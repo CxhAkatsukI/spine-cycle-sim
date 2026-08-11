@@ -4,12 +4,12 @@ Status: `INCOMPLETE`
 
 ## Campaign
 
-- Analysis: `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_complete_live`
-- Summary status: `PASS`
-- Observed executions: `18/18`
-- Complete pairs: `9/9`
-- Paired algorithms: `connected_components, thresholded_residual_pagerank, weighted_sssp`
-- Paired datasets: `sx_askubuntu, sx_superuser, wiki_talk_temporal`
+- Analysis: `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial`
+- Summary status: `PARTIAL`
+- Observed executions: `11/18`
+- Complete pairs: `2/9`
+- Paired algorithms: `weighted_sssp`
+- Paired datasets: `sx_askubuntu, sx_superuser`
 
 ## FPGA Calibration
 
@@ -33,6 +33,7 @@ Status: `INCOMPLETE`
 
 ## Next Actions
 
+- finish all 9 AU/SU/WK campaign pairs for calibrated Fig.9.
 - replace Fig.8 archived update-throughput CSVs with current setup-inclusive update-only evidence.
 - replace Fig.10 archived RQ3 traces with calibrated current-model component ledgers.
 - complete correctness-gated current-hardware total-cycle calibration and immutable holdout.

@@ -20,7 +20,7 @@
         "spine_owner_fifo_respr_hls_v1",
         "spine_owner_fifo_sssp_hls_v1"
       ],
-      "sha256": "38063c69239c9eb646a6ddb79ef269ee7d1bdc27124c3f55370de668ad2236a2",
+      "sha256": "5ac358a235872a87497a94514373320c36c6ee0daf6bd5073cdb78f0b139ae24",
       "valid": true
     },
     "directory": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration",
@@ -50,25 +50,22 @@
     "passed": false
   },
   "campaign": {
-    "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_complete_live",
-    "complete_for_fig9": true,
+    "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial",
+    "complete_for_fig9": false,
     "expected_executions": 18,
-    "missing_executions": 0,
-    "observed_executions": 18,
-    "pair_rows": 9,
+    "missing_executions": 7,
+    "observed_executions": 11,
+    "pair_rows": 2,
     "paired_algorithms": [
-      "connected_components",
-      "thresholded_residual_pagerank",
       "weighted_sssp"
     ],
     "paired_datasets": [
       "sx_askubuntu",
-      "sx_superuser",
-      "wiki_talk_temporal"
+      "sx_superuser"
     ],
     "present": true,
     "required_pair_rows": 9,
-    "summary_status": "PASS"
+    "summary_status": "PARTIAL"
   },
   "figures": {
     "fig10": {
@@ -90,7 +87,7 @@
     },
     "fig9": {
       "aligned": false,
-      "campaign_pairs": 9,
+      "campaign_pairs": 2,
       "evidence": "campaign pair_rows memory and HBM-energy ledger",
       "gap": "execution-driven request/byte/FIFO ledger validation is incomplete",
       "required_pairs": 9,
@@ -98,6 +95,7 @@
     }
   },
   "next_actions": [
+    "finish all 9 AU/SU/WK campaign pairs for calibrated Fig.9",
     "replace Fig.8 archived update-throughput CSVs with current setup-inclusive update-only evidence",
     "replace Fig.10 archived RQ3 traces with calibrated current-model component ledgers",
     "complete correctness-gated current-hardware total-cycle calibration and immutable holdout",

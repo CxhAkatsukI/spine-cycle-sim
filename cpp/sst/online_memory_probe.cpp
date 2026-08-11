@@ -2366,6 +2366,18 @@ class OnlineMemoryProbe final : public SST::Component {
     };
     device_dirty_source_limit_ =
         params.find<std::size_t>("device_dirty_source_limit", 16'777'216);
+    spine_owner_scheduler_enabled_ =
+        params.find<bool>("spine_owner_scheduler_enabled", false);
+    spine_owner_max_vertices_ =
+        params.find<std::size_t>("spine_owner_max_vertices", 16'777'216);
+    spine_owner_partitions_ =
+        params.find<std::size_t>("spine_owner_partitions", 16);
+    spine_owner_vertices_per_partition_ = params.find<std::size_t>(
+        "spine_owner_vertices_per_partition", 1'048'576);
+    spine_owner_fifo_depth_ =
+        params.find<std::size_t>("spine_owner_fifo_depth", 256);
+    spine_reactivation_fifo_depth_ =
+        params.find<std::size_t>("spine_reactivation_fifo_depth", 256);
     range_task_active_gate_ =
         params.find<std::size_t>("range_task_active_gate", 16'384);
     range_task_capacity_ =
@@ -2672,7 +2684,15 @@ class OnlineMemoryProbe final : public SST::Component {
         pagerank_pipeline_config_.apply.latency_cycles == 0 ||
         pagerank_pipeline_config_.apply.initiation_interval == 0 ||
         pagerank_pipeline_config_.apply.capacity == 0 ||
-        device_dirty_source_limit_ == 0 || range_task_active_gate_ == 0 ||
+        device_dirty_source_limit_ == 0 ||
+        (spine_owner_scheduler_enabled_ &&
+         (spine_owner_max_vertices_ == 0 || spine_owner_partitions_ == 0 ||
+          spine_owner_vertices_per_partition_ == 0 ||
+          spine_owner_fifo_depth_ == 0 ||
+          spine_reactivation_fifo_depth_ == 0 ||
+          spine_owner_partitions_ * spine_owner_vertices_per_partition_ <
+              spine_owner_max_vertices_)) ||
+        range_task_active_gate_ == 0 ||
         range_task_capacity_ == 0 || range_task_capacity_ > 65'536 ||
         range_task_payload_budget_ == 0 || fallback_replay_threshold_ == 0 ||
         memory_request_window_ == 0 || compute_memory_request_window_ == 0 ||
@@ -3399,7 +3419,8 @@ class OnlineMemoryProbe final : public SST::Component {
           delta_hls_residual_
               ? std::optional<SpineResidualCorrectionPlan>(
                     delta_hls_setup_->device_correction)
-              : std::nullopt);
+              : std::nullopt,
+          spine_owner_scheduler_config(vertices));
       pagerank_system_->register_components();
       pagerank_iteration_start_cycle_ = scheduler_.clock(core).completed_cycles;
       scheduler_.add_component(*backend_);
@@ -3799,13 +3820,15 @@ class OnlineMemoryProbe final : public SST::Component {
         workload.edges.clear();
         workload.case_name += "_resident_snapshot";
       }
+      const std::size_t spine_vertices = workload.vertices;
       spine_system_ = std::make_unique<SpineVerticalSliceSystem>(
           scheduler_, core, *backend_, std::move(workload), source_vertex_,
           4096, std::move(maintenance_config), std::move(initial_state),
           spine_axi_profile_, compute_memory_request_window_,
           compute_writeonly_request_window_, compute_on_chip_profile_,
           resident_snapshot && !sssp_algorithm_warm_start_,
-          std::move(algorithm_initial_state));
+          std::move(algorithm_initial_state),
+          spine_owner_scheduler_config(spine_vertices));
       spine_system_->register_components();
       scheduler_.add_component(*backend_);
       return;
@@ -4102,6 +4125,15 @@ class OnlineMemoryProbe final : public SST::Component {
         primaryComponentOKToEndSim();
         return true;
       }
+      if (pagerank_owner_retirement_started_ && pagerank_system_->done() &&
+          pagerank_system_->idle() && backend_->outstanding() == 0) {
+        const SpineOwnerScheduler *owner = pagerank_system_->owner_scheduler();
+        const bool owner_closed =
+            owner == nullptr || (owner->quiescent() && owner->ledger_closed());
+        write_result(!pagerank_system_->failed() && owner_closed);
+        primaryComponentOKToEndSim();
+        return true;
+      }
       if (pagerank_system_->done() && pagerank_system_->idle() &&
           backend_->outstanding() == 0) {
         const std::uint64_t now = scheduler_.clock(0).completed_cycles;
@@ -4164,6 +4196,12 @@ class OnlineMemoryProbe final : public SST::Component {
             mode_ == "spine_pagerank"
                 ? pagerank_completed_iterations_ == pagerank_iterations_
                 : frontier_converged;
+        const SpineOwnerScheduler *owner = pagerank_system_->owner_scheduler();
+        if (completed && owner != nullptr && !owner->quiescent()) {
+          pagerank_system_->finalize_owner_frontier();
+          pagerank_owner_retirement_started_ = true;
+          return false;
+        }
         write_result(!pagerank_system_->failed() && completed);
         primaryComponentOKToEndSim();
         return true;
@@ -4180,6 +4218,17 @@ class OnlineMemoryProbe final : public SST::Component {
     } else if (mode_ == "spine_sssp") {
       if (spine_system_->done() && spine_system_->idle() &&
           backend_->outstanding() == 0) {
+        if (sst_owner_retirement_started_) {
+          const SpineOwnerScheduler *owner = spine_system_->owner_scheduler();
+          const bool owner_closed =
+              owner == nullptr || (owner->quiescent() && owner->ledger_closed());
+          if (owner_closed && begin_dynamic_sssp_update()) {
+            return false;
+          }
+          write_result(!spine_system_->failed() && owner_closed);
+          primaryComponentOKToEndSim();
+          return true;
+        }
         if (!sst_waiting_dirty_ack_ &&
             spine_system_->recoverable_host_handoff()) {
           const std::uint64_t device_end_cycle =
@@ -4218,6 +4267,14 @@ class OnlineMemoryProbe final : public SST::Component {
               spine_system_->failed() || sst_pending_active_out_.empty() ||
               sst_rounds_.size() >= max_rounds_;
           if (finished) {
+            const SpineOwnerScheduler *owner = spine_system_->owner_scheduler();
+            if (!spine_system_->failed() &&
+                sst_pending_active_out_.empty() && owner != nullptr &&
+                !owner->quiescent()) {
+              spine_system_->finalize_owner_frontier();
+              sst_owner_retirement_started_ = true;
+              return false;
+            }
             if (begin_dynamic_sssp_update()) {
               return false;
             }
@@ -4260,6 +4317,13 @@ class OnlineMemoryProbe final : public SST::Component {
         const bool finished = spine_system_->failed() || active_out.empty() ||
                               sst_rounds_.size() >= max_rounds_;
         if (finished) {
+          const SpineOwnerScheduler *owner = spine_system_->owner_scheduler();
+          if (!spine_system_->failed() && active_out.empty() &&
+              owner != nullptr && !owner->quiescent()) {
+            spine_system_->finalize_owner_frontier();
+            sst_owner_retirement_started_ = true;
+            return false;
+          }
           if (begin_dynamic_sssp_update()) {
             return false;
           }
@@ -4404,6 +4468,15 @@ class OnlineMemoryProbe final : public SST::Component {
       {"pagerank_apply_ii", "PageRank apply initiation interval", "1"},
       {"pagerank_apply_capacity", "PageRank apply capacity", "8"},
       {"device_dirty_source_limit", "Device-owned source domain", "16777216"},
+      {"spine_owner_scheduler_enabled",
+       "Enable the finite device-owned per-key scheduler", "false"},
+      {"spine_owner_max_vertices", "Device owner key domain", "16777216"},
+      {"spine_owner_partitions", "Device owner partition count", "16"},
+      {"spine_owner_vertices_per_partition",
+       "Contiguous keys covered by each owner partition", "1048576"},
+      {"spine_owner_fifo_depth", "Owner FIFO depth per partition", "256"},
+      {"spine_reactivation_fifo_depth",
+       "Reactivation FIFO depth per partition", "256"},
       {"range_task_active_gate", "Exact-reader active-record gate", "16384"},
       {"range_task_capacity", "Exact-reader descriptor capacity", "65536"},
       {"range_task_payload_budget", "Exact-reader construction budget",
@@ -4578,6 +4651,74 @@ class OnlineMemoryProbe final : public SST::Component {
        "SST::Interfaces::StandardMem"})
 
  private:
+  [[nodiscard]] std::optional<SpineOwnerSchedulerConfig>
+  spine_owner_scheduler_config(std::size_t vertices) {
+    if (!spine_owner_scheduler_enabled_) {
+      return std::nullopt;
+    }
+    if (vertices > spine_owner_max_vertices_) {
+      output_.fatal(CALL_INFO, -1,
+                    "Spine owner domain %zu is smaller than workload %zu\n",
+                    spine_owner_max_vertices_, vertices);
+    }
+    return SpineOwnerSchedulerConfig{
+        .max_vertices = spine_owner_max_vertices_,
+        .partitions = spine_owner_partitions_,
+        .vertices_per_partition = spine_owner_vertices_per_partition_,
+        .owner_fifo_depth = spine_owner_fifo_depth_,
+        .reactivation_fifo_depth = spine_reactivation_fifo_depth_,
+    };
+  }
+
+  void write_owner_evidence(
+      std::ostream &result, const SpineOwnerScheduler *owner,
+      const SpineOwnerFrontierController *frontier) const {
+    result << "  \"owner_scheduler_enabled\": "
+           << (owner == nullptr ? "false" : "true") << ",\n"
+           << "  \"owner_ledger_closed\": "
+           << (owner == nullptr || owner->ledger_closed() ? "true" : "false")
+           << ",\n"
+           << "  \"owner_quiescent\": "
+           << (owner == nullptr || owner->quiescent() ? "true" : "false")
+           << ",\n";
+    const SpineOwnerSchedulerStats scheduler_stats =
+        owner == nullptr ? SpineOwnerSchedulerStats{} : owner->stats();
+    const SpineOwnerFrontierStats frontier_stats =
+        frontier == nullptr ? SpineOwnerFrontierStats{} : frontier->stats();
+    result << "  \"owner_activation_attempts\": "
+           << scheduler_stats.activation_attempts << ",\n"
+           << "  \"owner_initial_activations\": "
+           << scheduler_stats.initial_activations << ",\n"
+           << "  \"owner_reactivations\": "
+           << scheduler_stats.reactivations << ",\n"
+           << "  \"owner_coalesced_activations\": "
+           << scheduler_stats.coalesced_activations << ",\n"
+           << "  \"owner_dispatches\": " << scheduler_stats.dispatches
+           << ",\n"
+           << "  \"owner_completions\": " << scheduler_stats.completions
+           << ",\n"
+           << "  \"owner_work_credits_created\": "
+           << scheduler_stats.work_credits_created << ",\n"
+           << "  \"owner_work_credits_retired\": "
+           << scheduler_stats.work_credits_retired << ",\n"
+           << "  \"owner_max_work_credits\": "
+           << scheduler_stats.max_work_credits << ",\n"
+           << "  \"owner_fifo_backpressure_cycles\": "
+           << scheduler_stats.owner_fifo_backpressure_cycles << ",\n"
+           << "  \"owner_reactivation_fifo_backpressure_cycles\": "
+           << scheduler_stats.reactivation_fifo_backpressure_cycles << ",\n"
+           << "  \"owner_max_fifo_occupancy\": "
+           << scheduler_stats.max_owner_fifo_occupancy << ",\n"
+           << "  \"owner_max_reactivation_fifo_occupancy\": "
+           << scheduler_stats.max_reactivation_fifo_occupancy << ",\n"
+           << "  \"owner_frontier_control_cycles\": "
+           << frontier_stats.control_cycles << ",\n"
+           << "  \"owner_frontiers_completed\": "
+           << frontier_stats.frontiers_completed << ",\n"
+           << "  \"owner_frontiers_dispatched\": "
+           << frontier_stats.frontiers_dispatched << ",\n";
+  }
+
   void write_spine_resident_classification(std::ostream &result) const {
     const char *policy =
         !spine_resident_classification_valid_
@@ -4662,6 +4803,7 @@ class OnlineMemoryProbe final : public SST::Component {
                                 : dynamic_update_sources_;
     sst_round_start_cycle_ = dynamic_update_start_cycle_;
     sst_waiting_dirty_ack_ = false;
+    sst_owner_retirement_started_ = false;
     return true;
   }
 
@@ -4898,8 +5040,10 @@ class OnlineMemoryProbe final : public SST::Component {
       result << "{\n"
              << "  \"success\": " << (passed ? "true" : "false")
              << ",\n"
-             << "  \"mode\": \"spine_connected_components\",\n"
-             << "  \"algorithm_contract\": "
+             << "  \"mode\": \"spine_connected_components\",\n";
+      write_owner_evidence(result, pagerank_system_->owner_scheduler(),
+                           pagerank_system_->owner_frontier());
+      result << "  \"algorithm_contract\": "
                 "\"weakly_connected_min_vertex_reciprocal_v1\",\n"
              << "  \"backend\": \"" << backend_->backend_label()
              << "\",\n"
@@ -7226,8 +7370,10 @@ class OnlineMemoryProbe final : public SST::Component {
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
-          << "  \"mode\": \"spine_residual_pagerank\",\n"
-          << "  \"residual_contract\": \"" << residual_contract_id_
+          << "  \"mode\": \"spine_residual_pagerank\",\n";
+      write_owner_evidence(result, pagerank_system_->owner_scheduler(),
+                           pagerank_system_->owner_frontier());
+      result << "  \"residual_contract\": \"" << residual_contract_id_
           << "\",\n"
           << "  \"backend\": \"" << backend_->backend_label()
           << "\",\n"
@@ -7699,8 +7845,10 @@ class OnlineMemoryProbe final : public SST::Component {
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
-          << "  \"mode\": \"spine_pagerank\",\n"
-          << "  \"backend\": \"" << backend_->backend_label()
+          << "  \"mode\": \"spine_pagerank\",\n";
+      write_owner_evidence(result, pagerank_system_->owner_scheduler(),
+                           pagerank_system_->owner_frontier());
+      result << "  \"backend\": \"" << backend_->backend_label()
           << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
@@ -8836,8 +8984,10 @@ class OnlineMemoryProbe final : public SST::Component {
       result
           << "{\n"
           << "  \"success\": " << (passed ? "true" : "false") << ",\n"
-          << "  \"mode\": \"spine_sssp\",\n"
-          << "  \"backend\": \"" << backend_->backend_label()
+          << "  \"mode\": \"spine_sssp\",\n";
+      write_owner_evidence(result, spine_system_->owner_scheduler(),
+                           spine_system_->owner_frontier());
+      result << "  \"backend\": \"" << backend_->backend_label()
           << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
           << "  \"spine_maintenance_architecture\": \""
@@ -10605,6 +10755,12 @@ class OnlineMemoryProbe final : public SST::Component {
   std::size_t residual_max_iterations_{};
   AlgorithmPipelineConfig pagerank_pipeline_config_;
   std::size_t device_dirty_source_limit_{};
+  bool spine_owner_scheduler_enabled_{};
+  std::size_t spine_owner_max_vertices_{};
+  std::size_t spine_owner_partitions_{};
+  std::size_t spine_owner_vertices_per_partition_{};
+  std::size_t spine_owner_fifo_depth_{};
+  std::size_t spine_reactivation_fifo_depth_{};
   std::size_t range_task_active_gate_{};
   std::size_t range_task_capacity_{};
   std::uint64_t range_task_payload_budget_{};
@@ -10767,6 +10923,7 @@ class OnlineMemoryProbe final : public SST::Component {
       pagerank_reader_source_spool_read_bytes_per_iteration_;
   std::vector<std::uint64_t> pagerank_compute_edges_per_iteration_;
   std::uint64_t pagerank_iteration_start_cycle_{};
+  bool pagerank_owner_retirement_started_{};
   std::uint64_t pagerank_maintenance_backend_requests_{};
   MemoryTrafficStats pagerank_maintenance_backend_traffic_;
   MemoryTrafficStats grasu_update_backend_traffic_;
@@ -10775,6 +10932,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<SpineHostHandoffEvidence> sst_host_handoffs_;
   std::vector<std::uint32_t> sst_current_frontier_;
   std::vector<std::uint32_t> sst_pending_active_out_;
+  bool sst_owner_retirement_started_{};
   std::uint64_t sst_round_start_cycle_{};
   std::size_t spine_expected_edges_{};
   std::size_t spine_preload_edges_{};

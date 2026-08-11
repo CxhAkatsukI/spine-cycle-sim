@@ -1051,6 +1051,12 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
       edge_stream_, value_stream_, compute_memory_request_window,
       compute_writeonly_request_window, on_chip_profile, algorithm_policy,
       std::move(algorithm_initial_state), owner_scheduler_.get());
+  if (owner_scheduler_ != nullptr) {
+    owner_frontier_ = std::make_unique<SpineOwnerFrontierController>(
+        "spine-owner-frontier", clock_id_, *owner_scheduler_,
+        current_frontier_);
+    reader_->configure_start_gate(owner_frontier_->ready_gate());
+  }
   if (initial_host_active) {
     SpineActiveBins bins = build_spine_host_active_bins(
         state_, maintenance_->config(), current_frontier_, compute_->values());
@@ -1084,6 +1090,7 @@ void SpineVerticalSliceSystem::register_components() {
   scheduler_.add_component(*compute_);
   if (owner_scheduler_ != nullptr) {
     scheduler_.add_component(*owner_scheduler_);
+    scheduler_.add_component(*owner_frontier_);
   }
   if (vertex_lifecycle_ != nullptr) {
     scheduler_.add_component(*vertex_lifecycle_);
@@ -1231,6 +1238,9 @@ void SpineVerticalSliceSystem::restart_device_active_compute(
   }
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
+  if (owner_frontier_ != nullptr) {
+    owner_frontier_->restart(current_frontier_, active_sources, false);
+  }
   reader_->reset_active_list_round(active_sources.size());
   compute_->reset_round();
   current_frontier_ = std::move(active_sources);
@@ -1259,28 +1269,41 @@ void SpineVerticalSliceSystem::restart_read_compute_bins(
     throw std::logic_error(
         "Spine host-bin restart requires a successful drained round");
   }
+  std::vector<std::uint32_t> next_frontier = source_refresh;
+  std::unordered_set<std::uint32_t> seen(next_frontier.begin(),
+                                         next_frontier.end());
+  for (const auto &bin : active_bins.bins) {
+    for (const SpineActiveRecord &record : bin) {
+      if (seen.insert(record.source).second) {
+        next_frontier.push_back(record.source);
+      }
+    }
+  }
   edge_stream_.reset_stats();
   value_stream_.reset_stats();
+  if (owner_frontier_ != nullptr && !recovering) {
+    owner_frontier_->restart(current_frontier_, next_frontier, false);
+  }
   reader_->reset_host_round(active_bins, host_coverage, source_refresh);
   if (recovering) {
     compute_->reset_after_host_handoff();
   } else {
     compute_->reset_round();
   }
+  current_frontier_ = std::move(next_frontier);
+}
+
+void SpineVerticalSliceSystem::finalize_owner_frontier() {
+  if (owner_frontier_ == nullptr) {
+    return;
+  }
+  if (!registered_ || !done() || !idle() || failed() ||
+      current_frontier_.empty()) {
+    throw std::logic_error(
+        "Spine owner finalization requires a successful drained frontier");
+  }
+  owner_frontier_->restart(current_frontier_, {}, false);
   current_frontier_.clear();
-  std::unordered_set<std::uint32_t> seen;
-  for (const std::uint32_t source : source_refresh) {
-    if (seen.insert(source).second) {
-      current_frontier_.push_back(source);
-    }
-  }
-  for (const auto &bin : active_bins.bins) {
-    for (const SpineActiveRecord &record : bin) {
-      if (seen.insert(record.source).second) {
-        current_frontier_.push_back(record.source);
-      }
-    }
-  }
 }
 
 void SpineVerticalSliceSystem::restart_incremental_update(
@@ -1323,6 +1346,9 @@ void SpineVerticalSliceSystem::restart_incremental_update(
   reader_->reset_round(changed_sources);
   compute_->reset_round();
   maintenance_->reset_batch(std::move(workload));
+  if (owner_frontier_ != nullptr) {
+    owner_frontier_->restart({}, changed_sources, true);
+  }
   current_frontier_ = std::move(changed_sources);
   resident_bootstrap_pending_ = false;
   convergence_run_started_ = false;
@@ -1357,6 +1383,9 @@ void SpineVerticalSliceSystem::restart_full_rebuild(SpineEdgeSlice snapshot) {
   reader_->reset_round({source_});
   compute_->reset_for_full_recompute();
   maintenance_->reset_full_rebuild(std::move(snapshot));
+  if (owner_frontier_ != nullptr) {
+    owner_frontier_->restart({}, {source_}, true);
+  }
   current_frontier_ = {source_};
   resident_bootstrap_pending_ = false;
   convergence_run_started_ = false;
@@ -1462,14 +1491,10 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
   convergence_run_started_ = true;
   SpineSsspRunResult result;
   result.start_cycle = scheduler_.clock(clock_id_).completed_cycles;
-  owner_control_cycles_ = 0;
-  if (owner_scheduler_ != nullptr) {
-    if (!owner_scheduler_->quiescent() || !owner_scheduler_->ledger_closed()) {
-      throw std::logic_error(
-          "Spine convergence run started with an open owner ledger");
-    }
-    current_frontier_ = owner_admit_and_dispatch(
-        current_frontier_, true, max_events_per_round);
+  const std::uint64_t owner_control_start =
+      owner_frontier_ == nullptr ? 0 : owner_frontier_->stats().control_cycles;
+  if (owner_scheduler_ != nullptr && owner_frontier_ == nullptr) {
+    throw std::logic_error("Spine owner scheduler lacks a frontier controller");
   }
   for (std::size_t round = 0; round < max_rounds; ++round) {
     const std::uint64_t start_cycle =
@@ -1528,7 +1553,6 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
       result.failed = true;
       break;
     }
-    owner_complete_frontier(attempted_active_in, max_events_per_round);
     if (round == 0 && !resident_bootstrap_pending_) {
       start_dirty_ack();
       scheduler_.run_until(
@@ -1541,15 +1565,23 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
       }
     }
     if (active_out.empty()) {
+      if (owner_frontier_ != nullptr) {
+        finalize_owner_frontier();
+        scheduler_.run_until(
+            [this] {
+              return failed() ||
+                     (done() && idle() && owner_scheduler_->quiescent() &&
+                      owner_scheduler_->ledger_closed());
+            },
+            max_events_per_round);
+      }
       result.converged = owner_scheduler_ == nullptr ||
                          (owner_scheduler_->quiescent() &&
                           owner_scheduler_->ledger_closed());
       break;
     }
     if (round + 1 < max_rounds) {
-      const std::vector<std::uint32_t> dispatched =
-          owner_admit_and_dispatch(active_out, false, max_events_per_round);
-      restart_device_active_compute(dispatched);
+      restart_device_active_compute(active_out);
     }
   }
   result.end_cycle = scheduler_.clock(clock_id_).completed_cycles;
@@ -1557,7 +1589,8 @@ SpineSsspRunResult SpineVerticalSliceSystem::run_sssp_to_convergence(
     result.owner_scheduler = owner_scheduler_->stats();
     result.owner_ledger_closed = owner_scheduler_->ledger_closed();
     result.owner_quiescent = owner_scheduler_->quiescent();
-    result.owner_control_cycles = owner_control_cycles_;
+    result.owner_control_cycles =
+        owner_frontier_->stats().control_cycles - owner_control_start;
     if (result.converged &&
         (!result.owner_ledger_closed || !result.owner_quiescent)) {
       result.converged = false;
@@ -1615,12 +1648,14 @@ SpineVerticalSliceSystem::run_vertex_lifecycle_to_completion(
 bool SpineVerticalSliceSystem::done() const noexcept {
   return maintenance_->done() && reader_->done() && compute_->done() &&
          (!dirty_ack_->started() || dirty_ack_->done()) &&
+         (owner_frontier_ == nullptr || owner_frontier_->ready()) &&
          (vertex_lifecycle_ == nullptr || !vertex_lifecycle_->busy());
 }
 
 bool SpineVerticalSliceSystem::failed() const noexcept {
   return maintenance_->failed() || reader_->failed() || compute_->failed() ||
          (dirty_ack_->started() && dirty_ack_->failed()) ||
+         (owner_frontier_ != nullptr && owner_frontier_->failed()) ||
          (vertex_lifecycle_ != nullptr && vertex_lifecycle_->failed());
 }
 
@@ -2106,6 +2141,18 @@ void SpinePageRankVerticalSliceSystem::restart_iteration() {
                              dense_frontier);
   }
   compute_->reset_iteration();
+}
+
+void SpinePageRankVerticalSliceSystem::finalize_owner_frontier() {
+  if (owner_frontier_ == nullptr) {
+    return;
+  }
+  if (!registered_ || !done() || !idle() || failed()) {
+    throw std::logic_error(
+        "PageRank owner finalization requires a successful system drain");
+  }
+  owner_frontier_->restart(source_refresh_, {}, false);
+  source_refresh_.clear();
 }
 
 SpineFrontierRunResult

@@ -1655,6 +1655,31 @@ def main() -> int:
     )
     if profile_range_task_active_gate <= 0:
         raise SystemExit("profile range_task_active_gate must be positive")
+    profile_parameters = profile.get("parameters", {})
+    profile_owner_scheduler_enabled = bool(
+        profile_parameters.get("owner_scheduler_enabled", False)
+    )
+    profile_owner_max_vertices = int(
+        profile_parameters.get("max_vertices", 16_777_216)
+    )
+    profile_owner_partitions = int(profile_parameters.get("partitions", 16))
+    profile_owner_vertices_per_partition = int(
+        profile_parameters.get("vertex_partition_size", 1_048_576)
+    )
+    profile_owner_fifo_depth = int(
+        profile_parameters.get("owner_fifo_depth_per_partition", 256)
+    )
+    profile_reactivation_fifo_depth = int(
+        profile_parameters.get("reactivation_fifo_depth_per_partition", 256)
+    )
+    if profile_owner_scheduler_enabled and min(
+        profile_owner_max_vertices,
+        profile_owner_partitions,
+        profile_owner_vertices_per_partition,
+        profile_owner_fifo_depth,
+        profile_reactivation_fifo_depth,
+    ) <= 0:
+        raise SystemExit("profile owner scheduler dimensions must be positive")
     if profile_axi not in {
         "hls_split_9c08763",
         "candidate10_gmem_1e61fc0",
@@ -1959,6 +1984,18 @@ def main() -> int:
             "SPINE_SST_DEVICE_DIRTY_SOURCE_LIMIT": str(
                 args.device_dirty_source_limit
             ),
+            "SPINE_SST_OWNER_SCHEDULER_ENABLED": (
+                "1" if profile_owner_scheduler_enabled else "0"
+            ),
+            "SPINE_SST_OWNER_MAX_VERTICES": str(profile_owner_max_vertices),
+            "SPINE_SST_OWNER_PARTITIONS": str(profile_owner_partitions),
+            "SPINE_SST_OWNER_VERTICES_PER_PARTITION": str(
+                profile_owner_vertices_per_partition
+            ),
+            "SPINE_SST_OWNER_FIFO_DEPTH": str(profile_owner_fifo_depth),
+            "SPINE_SST_REACTIVATION_FIFO_DEPTH": str(
+                profile_reactivation_fifo_depth
+            ),
             "SPINE_SST_RANGE_TASK_ACTIVE_GATE": str(args.range_task_active_gate),
             "SPINE_SST_RANGE_TASK_CAPACITY": str(args.range_task_capacity),
             "SPINE_SST_RANGE_TASK_PAYLOAD_BUDGET": str(
@@ -2220,6 +2257,17 @@ def main() -> int:
             problems.append("mathematical_oracle")
         if abs(float(result.get("core_mhz", -1.0)) - core_mhz) > 1.0e-9:
             problems.append("core_mhz")
+    if profile_owner_scheduler_enabled and args.scenario in generic_scenarios:
+        owner_checks = {
+            "owner_scheduler_enabled": result.get("owner_scheduler_enabled") is True,
+            "owner_ledger_closed": result.get("owner_ledger_closed") is True,
+            "owner_quiescent": result.get("owner_quiescent") is True,
+            "owner_work_credit_ledger": result.get("owner_work_credits_created")
+            == result.get("owner_work_credits_retired"),
+            "owner_dispatch_completion_ledger": result.get("owner_dispatches")
+            == result.get("owner_completions"),
+        }
+        problems.extend(name for name, passed in owner_checks.items() if not passed)
     if args.sssp_warm_start:
         warm_checks = {
             "algorithm_warm_start": result.get("algorithm_warm_start") is True,
@@ -2397,6 +2445,7 @@ def main() -> int:
         "source_revision": profile["source"]["revision"],
         "architecture_profile_evidence_tier": profile["evidence_tier"],
         "simulation_evidence_tier": "structural_execution_driven",
+        "owner_scheduler_profile_enabled": profile_owner_scheduler_enabled,
         "range_task_active_gate": args.range_task_active_gate,
         "range_task_capacity": args.range_task_capacity,
         "range_task_payload_budget": args.range_task_payload_budget,

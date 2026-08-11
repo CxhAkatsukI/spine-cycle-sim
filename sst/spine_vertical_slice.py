@@ -145,6 +145,24 @@ probe.addParams(
         "device_dirty_source_limit": int(
             os.environ.get("SPINE_SST_DEVICE_DIRTY_SOURCE_LIMIT", "4096")
         ),
+        "spine_owner_scheduler_enabled": int(
+            os.environ.get("SPINE_SST_OWNER_SCHEDULER_ENABLED", "0")
+        ),
+        "spine_owner_max_vertices": int(
+            os.environ.get("SPINE_SST_OWNER_MAX_VERTICES", "16777216")
+        ),
+        "spine_owner_partitions": int(
+            os.environ.get("SPINE_SST_OWNER_PARTITIONS", "16")
+        ),
+        "spine_owner_vertices_per_partition": int(
+            os.environ.get("SPINE_SST_OWNER_VERTICES_PER_PARTITION", "1048576")
+        ),
+        "spine_owner_fifo_depth": int(
+            os.environ.get("SPINE_SST_OWNER_FIFO_DEPTH", "256")
+        ),
+        "spine_reactivation_fifo_depth": int(
+            os.environ.get("SPINE_SST_REACTIVATION_FIFO_DEPTH", "256")
+        ),
         "range_task_active_gate": int(
             os.environ.get("SPINE_SST_RANGE_TASK_ACTIVE_GATE", "16384")
         ),

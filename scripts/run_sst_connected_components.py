@@ -139,6 +139,13 @@ def _spine_profile_environment(parameters: dict[str, Any]) -> dict[str, str]:
         "publication_next_window_overlap_cycles": (
             "SPINE_SST_CANDIDATE_PUBLICATION_NEXT_WINDOW_OVERLAP_CYCLES"
         ),
+        "max_vertices": "SPINE_SST_OWNER_MAX_VERTICES",
+        "partitions": "SPINE_SST_OWNER_PARTITIONS",
+        "vertex_partition_size": "SPINE_SST_OWNER_VERTICES_PER_PARTITION",
+        "owner_fifo_depth_per_partition": "SPINE_SST_OWNER_FIFO_DEPTH",
+        "reactivation_fifo_depth_per_partition": (
+            "SPINE_SST_REACTIVATION_FIFO_DEPTH"
+        ),
     }
     environment = {
         environment_name: str(parameters[parameter])
@@ -155,6 +162,9 @@ def _spine_profile_environment(parameters: dict[str, Any]) -> dict[str, str]:
             ),
             "SPINE_SST_CANDIDATE_L0_WRITER_RTL_SCHEDULE": str(
                 int(bool(parameters.get("l0_writer_rtl_schedule", True)))
+            ),
+            "SPINE_SST_OWNER_SCHEDULER_ENABLED": str(
+                int(bool(parameters.get("owner_scheduler_enabled", False)))
             ),
         }
     )
@@ -247,6 +257,21 @@ def validate_result(
                 "partition_work": result.get("partition_passes")
                 == result.get("destination_partitions")
                 * result.get("iterations"),
+            }
+        )
+    elif result.get("owner_scheduler_enabled") is True:
+        checks.update(
+            {
+                "owner_ledger_closed": result.get("owner_ledger_closed") is True,
+                "owner_quiescent": result.get("owner_quiescent") is True,
+                "owner_work_credit_ledger": result.get(
+                    "owner_work_credits_created"
+                )
+                == result.get("owner_work_credits_retired"),
+                "owner_dispatch_completion_ledger": result.get(
+                    "owner_dispatches"
+                )
+                == result.get("owner_completions"),
             }
         )
     return checks

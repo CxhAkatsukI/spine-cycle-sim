@@ -250,6 +250,11 @@ class SpineVerticalSliceSystem {
   [[nodiscard]] const SpineOwnerScheduler *owner_scheduler() const noexcept {
     return owner_scheduler_.get();
   }
+  [[nodiscard]] const SpineOwnerFrontierController *owner_frontier() const
+      noexcept {
+    return owner_frontier_.get();
+  }
+  void finalize_owner_frontier();
   [[nodiscard]] const SpineVertexLifecycle *vertex_lifecycle() const noexcept {
     return vertex_lifecycle_.get();
   }
@@ -297,6 +302,7 @@ class SpineVerticalSliceSystem {
   std::unique_ptr<SpineSplitReader> reader_;
   std::unique_ptr<SpineSplitSsspCompute> compute_;
   std::unique_ptr<SpineOwnerScheduler> owner_scheduler_;
+  std::unique_ptr<SpineOwnerFrontierController> owner_frontier_;
   std::unique_ptr<SpineVertexLifecycle> vertex_lifecycle_;
   std::unique_ptr<SpineDirtyAck> dirty_ack_;
   std::vector<std::uint32_t> current_frontier_;
@@ -374,6 +380,7 @@ class SpinePageRankVerticalSliceSystem {
       noexcept {
     return owner_frontier_.get();
   }
+  void finalize_owner_frontier();
   [[nodiscard]] const SpineVertexLifecycle *vertex_lifecycle() const noexcept {
     return vertex_lifecycle_.get();
   }
