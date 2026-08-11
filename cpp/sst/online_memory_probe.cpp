@@ -4161,6 +4161,15 @@ class OnlineMemoryProbe final : public SST::Component {
             mode_ == "spine_residual_pagerank" &&
             compute.source_count == 0 && reader.source_requests == 0;
         if (!empty_frontier_fast_path) {
+          pagerank_round_evidence_.push_back(SpineFrontierRoundEvidence{
+              .round = pagerank_completed_iterations_,
+              .active_in = {},
+              .active_out = pagerank_system_->compute().next_active(),
+              .reader = reader,
+              .compute = compute,
+              .start_cycle = pagerank_iteration_start_cycle_,
+              .end_cycle = now,
+          });
           pagerank_iteration_cycles_.push_back(
               now - pagerank_iteration_start_cycle_);
           pagerank_iteration_start_cycles_.push_back(
@@ -4747,6 +4756,130 @@ class OnlineMemoryProbe final : public SST::Component {
            << frontier_stats.frontiers_dispatched << ",\n";
   }
 
+  template <typename RoundEvidence>
+  void write_owner_round_evidence(
+      std::ostream &result, const std::vector<RoundEvidence> &rounds,
+      bool owner_enabled) const {
+    std::vector<std::uint64_t> reader_source_completions;
+    std::vector<std::uint64_t> compute_source_completions;
+    std::vector<std::uint64_t> round_begins;
+    std::vector<std::uint64_t> source_dispatches;
+    std::vector<std::uint64_t> source_completions;
+    std::vector<std::uint64_t> activation_words;
+    std::vector<std::uint64_t> round_finalizes;
+    std::vector<std::uint64_t> hbm_requests_expected;
+    std::vector<std::uint64_t> hbm_requests_generated;
+    std::vector<std::uint64_t> hbm_requests_completed;
+    std::vector<std::uint64_t> hbm_read_requests;
+    std::vector<std::uint64_t> hbm_write_requests;
+    std::vector<std::uint64_t> hbm_read_bytes;
+    std::vector<std::uint64_t> hbm_write_bytes;
+    std::vector<std::uint32_t> round_ledger_matches;
+    std::vector<std::uint32_t> request_ledger_matches;
+    std::vector<std::uint32_t> byte_ledger_matches;
+    bool all_round_ledgers_match = true;
+    bool all_request_ledgers_match = true;
+    bool all_byte_ledgers_match = true;
+
+    for (const RoundEvidence &round : rounds) {
+      const auto &reader = round.reader;
+      const auto &compute = round.compute;
+      const std::uint64_t expected_requests =
+          owner_enabled
+              ? 2 + compute.owner_source_dispatches * 7 +
+                    compute.owner_source_completions * 6 +
+                    compute.owner_activation_words * 8 + 9
+              : 0;
+      const bool round_match =
+          compute.owner_round_begins == (owner_enabled ? 1U : 0U) &&
+          compute.owner_round_finalizes == (owner_enabled ? 1U : 0U) &&
+          compute.owner_source_dispatches ==
+              compute.owner_source_completions &&
+          reader.source_completion_markers ==
+              compute.owner_source_dispatches &&
+          compute.source_completion_markers ==
+              compute.owner_source_completions;
+      const bool request_match =
+          compute.owner_hbm_requests_generated == expected_requests &&
+          compute.owner_hbm_requests_completed == expected_requests &&
+          compute.owner_hbm_read_requests +
+                  compute.owner_hbm_write_requests ==
+              expected_requests;
+      const bool byte_match =
+          compute.owner_hbm_read_bytes + compute.owner_hbm_write_bytes ==
+          expected_requests * sizeof(std::uint64_t);
+
+      reader_source_completions.push_back(
+          reader.source_completion_markers);
+      compute_source_completions.push_back(
+          compute.source_completion_markers);
+      round_begins.push_back(compute.owner_round_begins);
+      source_dispatches.push_back(compute.owner_source_dispatches);
+      source_completions.push_back(compute.owner_source_completions);
+      activation_words.push_back(compute.owner_activation_words);
+      round_finalizes.push_back(compute.owner_round_finalizes);
+      hbm_requests_expected.push_back(expected_requests);
+      hbm_requests_generated.push_back(
+          compute.owner_hbm_requests_generated);
+      hbm_requests_completed.push_back(
+          compute.owner_hbm_requests_completed);
+      hbm_read_requests.push_back(compute.owner_hbm_read_requests);
+      hbm_write_requests.push_back(compute.owner_hbm_write_requests);
+      hbm_read_bytes.push_back(compute.owner_hbm_read_bytes);
+      hbm_write_bytes.push_back(compute.owner_hbm_write_bytes);
+      round_ledger_matches.push_back(round_match ? 1U : 0U);
+      request_ledger_matches.push_back(request_match ? 1U : 0U);
+      byte_ledger_matches.push_back(byte_match ? 1U : 0U);
+      all_round_ledgers_match = all_round_ledgers_match && round_match;
+      all_request_ledgers_match = all_request_ledgers_match && request_match;
+      all_byte_ledgers_match = all_byte_ledgers_match && byte_match;
+    }
+
+    result << "  \"owner_round_evidence_count\": " << rounds.size()
+           << ",\n"
+           << "  \"owner_round_ledger_match\": "
+           << (all_round_ledgers_match ? "true" : "false") << ",\n"
+           << "  \"owner_hbm_request_ledger_match\": "
+           << (all_request_ledgers_match ? "true" : "false") << ",\n"
+           << "  \"owner_hbm_byte_ledger_match\": "
+           << (all_byte_ledgers_match ? "true" : "false") << ",\n"
+           << "  \"reader_source_completion_markers_per_round\": ";
+    write_json_array(result, reader_source_completions);
+    result << ",\n  \"compute_source_completion_markers_per_round\": ";
+    write_json_array(result, compute_source_completions);
+    result << ",\n  \"owner_round_begins_per_round\": ";
+    write_json_array(result, round_begins);
+    result << ",\n  \"owner_source_dispatches_per_round\": ";
+    write_json_array(result, source_dispatches);
+    result << ",\n  \"owner_source_completions_per_round\": ";
+    write_json_array(result, source_completions);
+    result << ",\n  \"owner_activation_words_per_round\": ";
+    write_json_array(result, activation_words);
+    result << ",\n  \"owner_round_finalizes_per_round\": ";
+    write_json_array(result, round_finalizes);
+    result << ",\n  \"owner_hbm_requests_expected_per_round\": ";
+    write_json_array(result, hbm_requests_expected);
+    result << ",\n  \"owner_hbm_requests_generated_per_round\": ";
+    write_json_array(result, hbm_requests_generated);
+    result << ",\n  \"owner_hbm_requests_completed_per_round\": ";
+    write_json_array(result, hbm_requests_completed);
+    result << ",\n  \"owner_hbm_read_requests_per_round\": ";
+    write_json_array(result, hbm_read_requests);
+    result << ",\n  \"owner_hbm_write_requests_per_round\": ";
+    write_json_array(result, hbm_write_requests);
+    result << ",\n  \"owner_hbm_read_bytes_per_round\": ";
+    write_json_array(result, hbm_read_bytes);
+    result << ",\n  \"owner_hbm_write_bytes_per_round\": ";
+    write_json_array(result, hbm_write_bytes);
+    result << ",\n  \"owner_round_ledger_match_per_round\": ";
+    write_json_array(result, round_ledger_matches);
+    result << ",\n  \"owner_hbm_request_ledger_match_per_round\": ";
+    write_json_array(result, request_ledger_matches);
+    result << ",\n  \"owner_hbm_byte_ledger_match_per_round\": ";
+    write_json_array(result, byte_ledger_matches);
+    result << ",\n";
+  }
+
   void write_spine_resident_classification(std::ostream &result) const {
     const char *policy =
         !spine_resident_classification_valid_
@@ -5145,6 +5278,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"mode\": \"spine_connected_components\",\n";
       write_owner_evidence(result, spine_system_->owner_scheduler(),
                            spine_system_->owner_frontier());
+      write_owner_round_evidence(
+          result, sst_rounds_,
+          spine_system_->owner_scheduler() != nullptr);
       result << "  \"algorithm_contract\": "
                 "\"weakly_connected_min_vertex_reciprocal_v1\",\n"
              << "  \"compute_architecture\": "
@@ -7484,6 +7620,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"spine_residual_pagerank\",\n";
       write_owner_evidence(result, pagerank_system_->owner_scheduler(),
                            pagerank_system_->owner_frontier());
+      write_owner_round_evidence(
+          result, pagerank_round_evidence_,
+          pagerank_system_->owner_scheduler() != nullptr);
       result << "  \"residual_contract\": \"" << residual_contract_id_
           << "\",\n"
           << "  \"backend\": \"" << backend_->backend_label()
@@ -7965,6 +8104,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"spine_pagerank\",\n";
       write_owner_evidence(result, pagerank_system_->owner_scheduler(),
                            pagerank_system_->owner_frontier());
+      write_owner_round_evidence(
+          result, pagerank_round_evidence_,
+          pagerank_system_->owner_scheduler() != nullptr);
       result << "  \"backend\": \"" << backend_->backend_label()
           << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
@@ -9114,6 +9256,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"mode\": \"spine_sssp\",\n";
       write_owner_evidence(result, spine_system_->owner_scheduler(),
                            spine_system_->owner_frontier());
+      write_owner_round_evidence(
+          result, sst_rounds_,
+          spine_system_->owner_scheduler() != nullptr);
       result << "  \"backend\": \"" << backend_->backend_label()
           << "\",\n"
           << "  \"spine_axi_profile\": \"" << spine_axi_profile_id_ << "\",\n"
@@ -11056,6 +11201,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<std::uint64_t>
       pagerank_reader_source_spool_read_bytes_per_iteration_;
   std::vector<std::uint64_t> pagerank_compute_edges_per_iteration_;
+  std::vector<SpineFrontierRoundEvidence> pagerank_round_evidence_;
   std::uint64_t pagerank_iteration_start_cycle_{};
   bool pagerank_owner_retirement_started_{};
   std::uint64_t pagerank_maintenance_backend_requests_{};

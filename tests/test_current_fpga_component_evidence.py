@@ -11,6 +11,33 @@ from scripts.analyze_current_fpga_components import (
 )
 
 
+def owner_round_evidence() -> dict[str, object]:
+    return {
+        "owner_scheduler_enabled": True,
+        "owner_round_evidence_count": 1,
+        "owner_round_ledger_match": True,
+        "owner_hbm_request_ledger_match": True,
+        "owner_hbm_byte_ledger_match": True,
+        "reader_source_completion_markers_per_round": [1],
+        "compute_source_completion_markers_per_round": [1],
+        "owner_round_begins_per_round": [1],
+        "owner_source_dispatches_per_round": [1],
+        "owner_source_completions_per_round": [1],
+        "owner_activation_words_per_round": [0],
+        "owner_round_finalizes_per_round": [1],
+        "owner_hbm_requests_expected_per_round": [24],
+        "owner_hbm_requests_generated_per_round": [24],
+        "owner_hbm_requests_completed_per_round": [24],
+        "owner_hbm_read_requests_per_round": [10],
+        "owner_hbm_write_requests_per_round": [14],
+        "owner_hbm_read_bytes_per_round": [80],
+        "owner_hbm_write_bytes_per_round": [112],
+        "owner_round_ledger_match_per_round": [1],
+        "owner_hbm_request_ledger_match_per_round": [1],
+        "owner_hbm_byte_ledger_match_per_round": [1],
+    }
+
+
 class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
     def test_parse_key_value_timing_line(self):
         parsed = parse_key_value_line(
@@ -107,6 +134,7 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
 
     def test_explicit_spine_cc_ledgers_pass(self):
         result = {
+            **owner_round_evidence(),
             "backend_requests": 5,
             "backend_traffic": {"combined": {"requests": 5, "bytes": 320}},
             "memory_locality_ledger_match": True,
@@ -123,6 +151,7 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
 
     def test_backend_request_mismatch_fails(self):
         result = {
+            **owner_round_evidence(),
             "backend_requests": 6,
             "backend_traffic": {"combined": {"requests": 5, "bytes": 320}},
             "memory_locality_ledger_match": True,
@@ -135,6 +164,24 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
             "spine", "connected_components", "au", "calibration", result, Path(__file__)
         )
         self.assertEqual(row["status"], "FAIL")
+
+    def test_owner_round_formula_is_recomputed(self):
+        result = {
+            **owner_round_evidence(),
+            "backend_requests": 5,
+            "backend_traffic": {"combined": {"requests": 5, "bytes": 320}},
+            "memory_locality_ledger_match": True,
+            "active_edge_execution_ledger_match": True,
+            "component_request_ledger_match": True,
+            "fifo_ledger_match": True,
+            "owner_ledger_closed": True,
+        }
+        result["owner_hbm_requests_generated_per_round"] = [23]
+        row = memory_ledger_row(
+            "spine", "connected_components", "au", "calibration", result, Path(__file__)
+        )
+        self.assertEqual(row["status"], "FAIL")
+        self.assertFalse(row["checks"]["owner_round_formula_recomputed"])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "status": "PASS_OBSERVABILITY_NOT_TIMING_CALIBRATION",
+  "date": "2026-08-12",
+  "plugin": "cpp/sst/build/sst-current-fpga-v8/libspine_cycle.so",
+  "plugin_sha256": "65c37be3390e6192ce3af17a5d45f49f0a5f0cbc5d561807729390d749440e8e",
+  "owner_request_formula": "2 + 7*dispatches + 6*completions + 8*activation_words + 9",
+  "analyzer_recomputes_formula": true,
+  "correctness_admitted_rows": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "au",
+      "rounds": 2,
+      "owner_source_dispatches_per_round": [2, 1],
+      "owner_hbm_requests_generated_per_round": [45, 24],
+      "result_sha256": "5fa758cbceb26aac7342ad3152e8ccc014ecc55cec683cf9e96f7d83887f0452",
+      "ledger_status": "PASS"
+    },
+    {
+      "algorithm": "connected_components",
+      "dataset": "au",
+      "rounds": 1,
+      "owner_source_dispatches_per_round": [10],
+      "owner_hbm_requests_generated_per_round": [141],
+      "result_sha256": "c616ac901117c0fddc2836a5d7c35c9c01c12c2c475a10dd792db5ab3e2e746c",
+      "ledger_status": "PASS"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset": "au",
+      "rounds": 0,
+      "owner_source_dispatches_per_round": [],
+      "owner_hbm_requests_generated_per_round": [],
+      "result_sha256": "cbee27ac2feb06b537df432d78c21be0b663ef78443438dc3d2532b5bfa5faf5",
+      "ledger_status": "PASS_CORRECTION_ONLY"
+    }
+  ],
+  "diagnostic_only_rows": [
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset": "synthetic_cycle8",
+      "rounds": 256,
+      "per_round_owner_ledgers_closed": true,
+      "correctness_admitted": false,
+      "reason": "synthetic update did not converge within 256 rounds",
+      "result_sha256": "d9ef215cee3718160a956b05ff505ff818c4fdb216bc33e99980e9f99f7a5110"
+    }
+  ],
+  "timing_calibration_complete": false
+}

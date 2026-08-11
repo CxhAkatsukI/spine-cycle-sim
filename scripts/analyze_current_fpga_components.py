@@ -381,6 +381,122 @@ def memory_ledger_row(
         )
         is True,
     }
+    if architecture == "spine":
+        owner_round_count = result.get("owner_round_evidence_count")
+        per_round_fields = (
+            "reader_source_completion_markers_per_round",
+            "compute_source_completion_markers_per_round",
+            "owner_round_begins_per_round",
+            "owner_source_dispatches_per_round",
+            "owner_source_completions_per_round",
+            "owner_activation_words_per_round",
+            "owner_round_finalizes_per_round",
+            "owner_hbm_requests_expected_per_round",
+            "owner_hbm_requests_generated_per_round",
+            "owner_hbm_requests_completed_per_round",
+            "owner_hbm_read_requests_per_round",
+            "owner_hbm_write_requests_per_round",
+            "owner_hbm_read_bytes_per_round",
+            "owner_hbm_write_bytes_per_round",
+            "owner_round_ledger_match_per_round",
+            "owner_hbm_request_ledger_match_per_round",
+            "owner_hbm_byte_ledger_match_per_round",
+        )
+        owner_arrays = [result.get(field) for field in per_round_fields]
+        owner_evidence_reported = (
+            isinstance(owner_round_count, int)
+            and owner_round_count >= 0
+            and all(isinstance(values, list) for values in owner_arrays)
+            and all(len(values) == owner_round_count for values in owner_arrays)
+        )
+        owner_rows_recomputed = owner_evidence_reported
+        if owner_evidence_reported:
+            for round_index in range(owner_round_count):
+                dispatches = int(
+                    result["owner_source_dispatches_per_round"][round_index]
+                )
+                completions = int(
+                    result["owner_source_completions_per_round"][round_index]
+                )
+                activation_words = int(
+                    result["owner_activation_words_per_round"][round_index]
+                )
+                expected_requests = (
+                    2 + 7 * dispatches + 6 * completions + 8 * activation_words + 9
+                )
+                owner_rows_recomputed = owner_rows_recomputed and all(
+                    (
+                        int(result["owner_round_begins_per_round"][round_index]) == 1,
+                        int(result["owner_round_finalizes_per_round"][round_index]) == 1,
+                        dispatches == completions,
+                        int(
+                            result[
+                                "reader_source_completion_markers_per_round"
+                            ][round_index]
+                        )
+                        == dispatches,
+                        int(
+                            result[
+                                "compute_source_completion_markers_per_round"
+                            ][round_index]
+                        )
+                        == completions,
+                        int(
+                            result["owner_hbm_requests_expected_per_round"][
+                                round_index
+                            ]
+                        )
+                        == expected_requests,
+                        int(
+                            result["owner_hbm_requests_generated_per_round"][
+                                round_index
+                            ]
+                        )
+                        == expected_requests,
+                        int(
+                            result["owner_hbm_requests_completed_per_round"][
+                                round_index
+                            ]
+                        )
+                        == expected_requests,
+                        int(result["owner_hbm_read_requests_per_round"][round_index])
+                        + int(
+                            result["owner_hbm_write_requests_per_round"][round_index]
+                        )
+                        == expected_requests,
+                        int(result["owner_hbm_read_bytes_per_round"][round_index])
+                        + int(result["owner_hbm_write_bytes_per_round"][round_index])
+                        == expected_requests * 8,
+                    )
+                )
+        checks.update(
+            {
+                "owner_scheduler_enabled": result.get(
+                    "owner_scheduler_enabled"
+                )
+                is True,
+                "owner_round_evidence_reported": owner_evidence_reported,
+                "owner_round_formula_recomputed": owner_rows_recomputed,
+                "owner_round_ledger_match": result.get(
+                    "owner_round_ledger_match"
+                )
+                is True,
+                "owner_hbm_request_ledger_match": result.get(
+                    "owner_hbm_request_ledger_match"
+                )
+                is True,
+                "owner_hbm_byte_ledger_match": result.get(
+                    "owner_hbm_byte_ledger_match"
+                )
+                is True,
+                "owner_round_rows_all_pass": owner_evidence_reported
+                and all(
+                    int(value) == 1
+                    for field in per_round_fields[-3:]
+                    for value in result[field]
+                ),
+            }
+        )
     fifo_evidence = "completion_protocol_reaches_quiescence_with_bounded_fifo_occupancy"
     if architecture == "spine" and algorithm == "weighted_sssp":
         checks.update(
