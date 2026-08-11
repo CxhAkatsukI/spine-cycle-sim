@@ -4,10 +4,24 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.build_current_fpga_rq3_v11 import case_payload
+from scripts.build_current_fpga_rq3_v11 import (
+    DEFAULT_RESIDUAL_CORRECTION_ROOT,
+    DEFAULT_RESIDUAL_CORRECTION_SWEEP_ROOT,
+    case_payload,
+)
 
 
 class CurrentFPGARQ3V11Tests(unittest.TestCase):
+    def test_correction_holdout_and_sweep_use_disjoint_roots(self) -> None:
+        self.assertNotEqual(
+            DEFAULT_RESIDUAL_CORRECTION_ROOT,
+            DEFAULT_RESIDUAL_CORRECTION_SWEEP_ROOT,
+        )
+        self.assertEqual(
+            DEFAULT_RESIDUAL_CORRECTION_SWEEP_ROOT.name,
+            "residual_correction_sweep",
+        )
+
     def test_case_payload_preserves_role_and_physical_records(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             result_path = Path(temporary) / "result.json"

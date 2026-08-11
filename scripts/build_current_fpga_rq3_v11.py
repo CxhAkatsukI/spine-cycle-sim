@@ -44,6 +44,10 @@ DEFAULT_RESIDUAL_CORRECTION_ROOT = Path(
     "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_rq3_20260812/"
     "residual_correction"
 )
+DEFAULT_RESIDUAL_CORRECTION_SWEEP_ROOT = Path(
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_rq3_20260812/"
+    "residual_correction_sweep"
+)
 DEFAULT_OUT = Path(
     "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_rq3_20260812/package"
 )
@@ -136,6 +140,11 @@ def main() -> int:
         "--residual-correction-root",
         type=Path,
         default=DEFAULT_RESIDUAL_CORRECTION_ROOT,
+    )
+    parser.add_argument(
+        "--residual-correction-sweep-root",
+        type=Path,
+        default=DEFAULT_RESIDUAL_CORRECTION_SWEEP_ROOT,
     )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--allow-partial", action="store_true")
@@ -249,6 +258,48 @@ def main() -> int:
         )
     )
 
+    expected_respr = profile_entries["thresholded_residual_pagerank"]
+    correction_sweep_results: list[Path] = []
+    for user_mutations in (1, 64):
+        sweep_result_path = (
+            args.residual_correction_sweep_root.resolve()
+            / f"deltahls_soc_flickr_insert_u{user_mutations}"
+            / "eps_1e-06"
+            / "spine"
+            / "summary.json"
+        )
+        sweep_result = read_json(sweep_result_path)
+        if (
+            sweep_result.get("sst_plugin_sha256") != plugin_sha256
+            or sweep_result.get("architecture_profile_id")
+            != expected_respr["profile_id"]
+            or sweep_result.get("architecture_profile_sha256")
+            != expected_respr["sha256"]
+            or int(sweep_result.get("iterations", 0)) <= 0
+            or int(sweep_result.get("residual_correction_cycles", 0)) <= 0
+            or sweep_result.get("memory_ledger_match") is not True
+        ):
+            raise ValueError(
+                f"current-FPGA residual correction u{user_mutations} failed"
+            )
+        wrappers.append(
+            case_payload(
+                execution_id=(
+                    f"current_fpga_v11_flickr_respr_correction_u{user_mutations}"
+                ),
+                dataset=f"flickr_pr_correction_u{user_mutations}",
+                algorithm="thresholded_residual_pagerank",
+                scenario="pagerank_correction",
+                role="synthetic_calibration",
+                user_mutations=user_mutations,
+                physical_records=int(sweep_result.get("update_edges", 0)),
+                raw_result_path=sweep_result_path,
+                result=sweep_result,
+                plugin_sha256=plugin_sha256,
+            )
+        )
+        correction_sweep_results.append(sweep_result_path)
+
     correction_result_path = (
         args.residual_correction_root.resolve()
         / "deltahls_soc_flickr_insert_u8"
@@ -257,7 +308,6 @@ def main() -> int:
         / "summary.json"
     )
     correction_result = read_json(correction_result_path)
-    expected_respr = profile_entries["thresholded_residual_pagerank"]
     if (
         correction_result.get("sst_plugin_sha256") != plugin_sha256
         or correction_result.get("architecture_profile_id")
@@ -318,6 +368,14 @@ def main() -> int:
             "residual_correction_result_sha256": sha256_file(
                 correction_result_path
             ),
+            "residual_correction_sweep_results": [
+                {
+                    "path": str(path),
+                    "sha256": sha256_file(path),
+                    "role": "synthetic_calibration",
+                }
+                for path in correction_sweep_results
+            ],
             "case_results": len(wrappers),
             "missing": missing,
             "excluded_claims": [
