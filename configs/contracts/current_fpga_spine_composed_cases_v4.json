@@ -67,6 +67,6 @@
     "grasu_regraph_policy": "admit under the exact-result transition report because changed source is Spine-only",
     "grasu_regraph_transition_report": "docs/evidence/current_fpga_grasu_plugin_transition_v4_20260811.json"
   },
-  "model_selection_note": "The initial fixed-plus-simulator timing form failed development validation. Using calibration coefficients only, development rows selected HLS-structured realized-work forms: SSSP uses simulator span, reader level checks, and reader memory requests; CC uses iterations and processed edges; all algorithms use fixed-plus-simulator maintenance. No LJ/LJ08 row was executed or inspected during model selection.",
+  "model_selection_note": "The initial fixed-plus-simulator timing form failed development validation. Using calibration coefficients only, development rows selected HLS-structured realized-work forms: SSSP uses simulator span, reader level checks, and reader memory requests; CC uses a per-iteration fixed term, reader parent-state requests, and hot-vertex iterations; all algorithms use fixed-plus-simulator maintenance. No LJ/LJ08 row was executed or inspected during model selection.",
   "freeze_note": "Dataset roles were frozen before PK calibration completed. Revised model forms were frozen after development validation and before LJ/LJ08 holdout execution."
 }
