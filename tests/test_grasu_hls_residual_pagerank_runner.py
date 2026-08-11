@@ -8,6 +8,8 @@ from scripts.run_sst_grasu_regraph_hls_residual_pagerank import (
     DEFAULT_PROFILE,
     compact_hls_residual_oracle,
     external_rank_oracle_matches,
+    frontier_ledger_matches,
+    propagation_iteration_count_matches,
     require_hls_residual_capability,
     residual_bound_matches,
 )
@@ -162,6 +164,22 @@ class GraSuHlsResidualPageRankRunnerTests(unittest.TestCase):
         self.assertFalse(
             external_rank_oracle_matches(
                 {}, 5.1e-4, "generic_dangling_l1_cold", 1.0e-4, 0.85
+            )
+        )
+
+    def test_hardware_warm_correction_only_execution_has_empty_frontier(self) -> None:
+        self.assertTrue(propagation_iteration_count_matches(0, 256, True))
+        self.assertTrue(
+            frontier_ledger_matches(
+                {"frontier_in_sizes": [], "frontier_out_sizes": []}, 0
+            )
+        )
+
+    def test_generic_residual_requires_a_propagation_round(self) -> None:
+        self.assertFalse(propagation_iteration_count_matches(0, 256, False))
+        self.assertFalse(
+            frontier_ledger_matches(
+                {"frontier_in_sizes": [1], "frontier_out_sizes": []}, 1
             )
         )
 

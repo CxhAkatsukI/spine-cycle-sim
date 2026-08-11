@@ -124,6 +124,28 @@ def residual_bound_matches(
         return False
 
 
+def propagation_iteration_count_matches(
+    iterations: int, max_iterations: int, hardware_warm: bool
+) -> bool:
+    return (
+        0 <= iterations <= max_iterations
+        if hardware_warm
+        else 0 < iterations <= max_iterations
+    )
+
+
+def frontier_ledger_matches(result: dict[str, object], iterations: int) -> bool:
+    frontier_in = result.get("frontier_in_sizes", [])
+    frontier_out = result.get("frontier_out_sizes", [])
+    if not isinstance(frontier_in, list) or not isinstance(frontier_out, list):
+        return False
+    return (
+        len(frontier_in) == iterations
+        and len(frontier_out) == iterations
+        and (iterations == 0 or frontier_out[-1] == 0)
+    )
+
+
 def external_rank_oracle_matches(
     result: dict[str, object],
     mathematical_error: float,
@@ -323,10 +345,10 @@ def validate_result(
         ),
         "converged": result.get("converged") is True
         and result.get("residual_bound_passed") is True
-        and 0 < iterations <= max_iterations,
-        "frontiers": len(result.get("frontier_in_sizes", [])) == iterations
-        and len(result.get("frontier_out_sizes", [])) == iterations
-        and result.get("frontier_out_sizes", [None])[-1] == 0,
+        and propagation_iteration_count_matches(
+            iterations, max_iterations, hardware_warm
+        ),
+        "frontiers": frontier_ledger_matches(result, iterations),
         "active_edge_execution_ledger": result.get(
             "active_edge_execution_ledger_match"
         )
