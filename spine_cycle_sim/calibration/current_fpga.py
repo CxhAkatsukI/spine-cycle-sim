@@ -212,6 +212,121 @@ class SpineComponentFeatureModel:
 
 
 @dataclass(frozen=True)
+class SpineMechanismComponentRecord:
+    """Routed timing paired with non-overlapping HLS mechanism features."""
+
+    algorithm: str
+    profile_id: str
+    dataset: str
+    role: str
+    rounds: int
+    vertices: float
+    simulator_maintenance_cycles: float
+    simulator_reader_cycles: float
+    simulator_compute_cycles: float
+    simulator_reader_memory_requests: float
+    hardware_maintenance_cycles: float
+    hardware_reader_cycles: float
+    hardware_compute_cycles: float
+    hardware_iterative_span_cycles: float
+
+
+@dataclass(frozen=True)
+class SpineMechanismComponentModel:
+    """HLS mechanism model that preserves routed reader/compute overlap.
+
+    The reader event includes launch work, request service, and the full-domain
+    publication sweep observed through stream backpressure.  Compute timing is
+    mapped from its execution-driven span, which already includes AXI service
+    and bounded-pipeline stalls; adding request count again would double count
+    that work.
+    """
+
+    algorithm: str
+    profile_id: str
+    calibration_datasets: tuple[str, ...]
+    maintenance_fixed_cycles: float
+    maintenance_simulator_scale: float
+    reader_round_cycles: float
+    reader_vertex_cycles: float
+    reader_memory_request_cycles: float
+    compute_round_cycles: float
+    compute_simulator_cycle_scale: float
+    span_residual_cycles_per_round: float
+
+    def predict_components(
+        self,
+        *,
+        rounds: int,
+        vertices: float,
+        simulator_maintenance_cycles: float,
+        simulator_reader_cycles: float,
+        simulator_compute_cycles: float,
+        simulator_reader_memory_requests: float,
+    ) -> dict[str, float]:
+        _require_positive_finite(vertices, "vertices")
+        _require_positive_finite(
+            simulator_maintenance_cycles, "simulator_maintenance_cycles"
+        )
+        for value, name in (
+            (simulator_reader_cycles, "simulator_reader_cycles"),
+            (simulator_compute_cycles, "simulator_compute_cycles"),
+            (
+                simulator_reader_memory_requests,
+                "simulator_reader_memory_requests",
+            ),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and non-negative")
+        if rounds < 0:
+            raise ValueError("rounds must be non-negative")
+
+        maintenance = (
+            self.maintenance_fixed_cycles
+            + self.maintenance_simulator_scale * simulator_maintenance_cycles
+        )
+        if rounds == 0:
+            if any(
+                value != 0
+                for value in (
+                    simulator_reader_cycles,
+                    simulator_compute_cycles,
+                    simulator_reader_memory_requests,
+                )
+            ):
+                raise ValueError("zero-round timing cannot contain iterative work")
+            return {
+                "maintenance_cycles": maintenance,
+                "reader_cycles": 0.0,
+                "compute_cycles": 0.0,
+                "iterative_span_cycles": 0.0,
+                "total_cycles": maintenance,
+            }
+
+        reader = (
+            self.reader_round_cycles * rounds
+            + self.reader_vertex_cycles * vertices
+            + self.reader_memory_request_cycles
+            * simulator_reader_memory_requests
+        )
+        compute = (
+            self.compute_round_cycles * rounds
+            + self.compute_simulator_cycle_scale * simulator_compute_cycles
+        )
+        iterative_span = (
+            max(reader, compute)
+            + self.span_residual_cycles_per_round * rounds
+        )
+        return {
+            "maintenance_cycles": maintenance,
+            "reader_cycles": reader,
+            "compute_cycles": compute,
+            "iterative_span_cycles": iterative_span,
+            "total_cycles": maintenance + iterative_span,
+        }
+
+
+@dataclass(frozen=True)
 class PositiveScaleModel:
     architecture: str
     algorithm: str
@@ -1145,6 +1260,212 @@ def spine_component_feature_leave_one_dataset_out_rows(
         training = tuple(row for row in rows if row.dataset != held_out.dataset)
         model = fit_spine_component_feature_model(training)
         prediction = spine_component_feature_prediction_rows((held_out,), model)[0]
+        prediction["held_out_dataset"] = held_out.dataset
+        prediction["training_datasets"] = ";".join(model.calibration_datasets)
+        predictions.append(prediction)
+    return predictions
+
+
+def fit_spine_mechanism_component_model(
+    records: Iterable[SpineMechanismComponentRecord],
+) -> SpineMechanismComponentModel:
+    """Fit one immutable HLS mechanism model from calibration rows only."""
+
+    rows = tuple(records)
+    if len(rows) < 4:
+        raise ValueError("mechanism-component freeze requires four calibration rows")
+    if any(row.role != "calibration" for row in rows):
+        raise ValueError("mechanism-component freeze rejects non-calibration rows")
+    identities = {(row.algorithm, row.profile_id) for row in rows}
+    if len(identities) != 1:
+        raise ValueError("mechanism-component fit requires one algorithm/profile")
+    if len({row.dataset for row in rows}) != len(rows):
+        raise ValueError("mechanism-component fit requires distinct datasets")
+    algorithm, profile_id = next(iter(identities))
+
+    for row in rows:
+        _require_positive_finite(row.vertices, "vertices")
+        _require_positive_finite(
+            row.simulator_maintenance_cycles, "simulator_maintenance_cycles"
+        )
+        _require_positive_finite(
+            row.hardware_maintenance_cycles, "hardware_maintenance_cycles"
+        )
+        if row.rounds < 0:
+            raise ValueError("rounds must be non-negative")
+
+    maintenance_fixed, maintenance_scale = _fit_nonnegative_feature_model(
+        [(1.0, row.simulator_maintenance_cycles) for row in rows],
+        [row.hardware_maintenance_cycles for row in rows],
+    )
+    zero_round = all(row.rounds == 0 for row in rows)
+    if zero_round:
+        for row in rows:
+            if any(
+                value != 0
+                for value in (
+                    row.simulator_reader_cycles,
+                    row.simulator_compute_cycles,
+                    row.simulator_reader_memory_requests,
+                    row.hardware_reader_cycles,
+                    row.hardware_compute_cycles,
+                    row.hardware_iterative_span_cycles,
+                )
+            ):
+                raise ValueError("zero-round calibration contains iterative work")
+        return SpineMechanismComponentModel(
+            algorithm=algorithm,
+            profile_id=profile_id,
+            calibration_datasets=tuple(sorted(row.dataset for row in rows)),
+            maintenance_fixed_cycles=maintenance_fixed,
+            maintenance_simulator_scale=maintenance_scale,
+            reader_round_cycles=0.0,
+            reader_vertex_cycles=0.0,
+            reader_memory_request_cycles=0.0,
+            compute_round_cycles=0.0,
+            compute_simulator_cycle_scale=0.0,
+            span_residual_cycles_per_round=0.0,
+        )
+    if any(row.rounds <= 0 for row in rows):
+        raise ValueError("iterative calibration cannot mix zero and positive rounds")
+
+    for row in rows:
+        for value, name in (
+            (row.simulator_reader_cycles, "simulator_reader_cycles"),
+            (row.simulator_compute_cycles, "simulator_compute_cycles"),
+            (
+                row.simulator_reader_memory_requests,
+                "simulator_reader_memory_requests",
+            ),
+            (row.hardware_reader_cycles, "hardware_reader_cycles"),
+            (row.hardware_compute_cycles, "hardware_compute_cycles"),
+            (
+                row.hardware_iterative_span_cycles,
+                "hardware_iterative_span_cycles",
+            ),
+        ):
+            _require_positive_finite(value, name)
+        if row.hardware_iterative_span_cycles < max(
+            row.hardware_reader_cycles, row.hardware_compute_cycles
+        ):
+            raise ValueError("hardware span cannot be shorter than its components")
+
+    reader_round, reader_vertex, reader_request = _fit_nonnegative_feature_model(
+        [
+            (
+                float(row.rounds),
+                row.vertices,
+                row.simulator_reader_memory_requests,
+            )
+            for row in rows
+        ],
+        [row.hardware_reader_cycles for row in rows],
+    )
+    compute_round, compute_simulator = _fit_nonnegative_feature_model(
+        [
+            (float(row.rounds), row.simulator_compute_cycles)
+            for row in rows
+        ],
+        [row.hardware_compute_cycles for row in rows],
+    )
+    span_residual = _fit_nonnegative_feature_model(
+        [(float(row.rounds),) for row in rows],
+        [
+            row.hardware_iterative_span_cycles
+            - max(row.hardware_reader_cycles, row.hardware_compute_cycles)
+            for row in rows
+        ],
+    )[0]
+    return SpineMechanismComponentModel(
+        algorithm=algorithm,
+        profile_id=profile_id,
+        calibration_datasets=tuple(sorted(row.dataset for row in rows)),
+        maintenance_fixed_cycles=maintenance_fixed,
+        maintenance_simulator_scale=maintenance_scale,
+        reader_round_cycles=reader_round,
+        reader_vertex_cycles=reader_vertex,
+        reader_memory_request_cycles=reader_request,
+        compute_round_cycles=compute_round,
+        compute_simulator_cycle_scale=compute_simulator,
+        span_residual_cycles_per_round=span_residual,
+    )
+
+
+def spine_mechanism_component_prediction_rows(
+    records: Iterable[SpineMechanismComponentRecord],
+    model: SpineMechanismComponentModel,
+) -> list[dict[str, object]]:
+    """Apply a frozen mechanism model without fitting its input rows."""
+
+    predictions: list[dict[str, object]] = []
+    for record in records:
+        if (record.algorithm, record.profile_id) != (
+            model.algorithm,
+            model.profile_id,
+        ):
+            raise ValueError("mechanism-component record/model identity mismatch")
+        predicted = model.predict_components(
+            rounds=record.rounds,
+            vertices=record.vertices,
+            simulator_maintenance_cycles=record.simulator_maintenance_cycles,
+            simulator_reader_cycles=record.simulator_reader_cycles,
+            simulator_compute_cycles=record.simulator_compute_cycles,
+            simulator_reader_memory_requests=(
+                record.simulator_reader_memory_requests
+            ),
+        )
+        hardware_total = (
+            record.hardware_maintenance_cycles
+            + record.hardware_iterative_span_cycles
+        )
+        row = {
+            **asdict(record),
+            "predicted_maintenance_cycles": predicted["maintenance_cycles"],
+            "predicted_reader_cycles": predicted["reader_cycles"],
+            "predicted_compute_cycles": predicted["compute_cycles"],
+            "predicted_iterative_span_cycles": predicted["iterative_span_cycles"],
+            "hardware_total_cycles": hardware_total,
+            "predicted_total_cycles": predicted["total_cycles"],
+            "maintenance_absolute_error_percent": absolute_error_percent(
+                predicted["maintenance_cycles"], record.hardware_maintenance_cycles
+            ),
+            "reader_absolute_error_percent": 0.0,
+            "compute_absolute_error_percent": 0.0,
+            "iterative_span_absolute_error_percent": 0.0,
+            "total_absolute_error_percent": absolute_error_percent(
+                predicted["total_cycles"], hardware_total
+            ),
+        }
+        if record.rounds:
+            row["reader_absolute_error_percent"] = absolute_error_percent(
+                predicted["reader_cycles"], record.hardware_reader_cycles
+            )
+            row["compute_absolute_error_percent"] = absolute_error_percent(
+                predicted["compute_cycles"], record.hardware_compute_cycles
+            )
+            row["iterative_span_absolute_error_percent"] = absolute_error_percent(
+                predicted["iterative_span_cycles"],
+                record.hardware_iterative_span_cycles,
+            )
+        predictions.append(row)
+    return predictions
+
+
+def spine_mechanism_component_leave_one_dataset_out_rows(
+    records: Iterable[SpineMechanismComponentRecord],
+) -> list[dict[str, object]]:
+    """Measure development transfer without changing the mechanism form."""
+
+    rows = tuple(records)
+    if len(rows) < 5:
+        raise ValueError("leave-one-out validation requires at least five rows")
+    predictions: list[dict[str, object]] = []
+    for held_out in rows:
+        training = tuple(row for row in rows if row.dataset != held_out.dataset)
+        model = fit_spine_mechanism_component_model(training)
+        prediction = spine_mechanism_component_prediction_rows(
+            (held_out,), model
+        )[0]
         prediction["held_out_dataset"] = held_out.dataset
         prediction["training_datasets"] = ";".join(model.calibration_datasets)
         predictions.append(prediction)
