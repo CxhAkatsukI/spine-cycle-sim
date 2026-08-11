@@ -26,7 +26,9 @@ from scripts.analyze_current_fpga_components import (  # noqa: E402
     discover_hardware_logs,
     evidence_identity,
     load_admitted_result,
+    memory_ledger_row,
     run_directory,
+    spine_structural_work_row,
     unique_prefixed_record,
 )
 from spine_cycle_sim.calibration.current_fpga import (  # noqa: E402
@@ -41,6 +43,7 @@ DEFAULT_CONTRACT = (
     ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v6.json"
 )
 DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v10_frozen"
+EXPECTED_COMPONENT_MODEL_COUNT = 14
 
 
 def sha256_file(path: Path) -> str:
@@ -83,7 +86,12 @@ def collect_component_records(
     contract: dict[str, Any],
     simulation_root: Path,
     hardware_root: Path,
-) -> tuple[list[CurrentFPGAComponentRecord], list[dict[str, Any]]]:
+) -> tuple[
+    list[CurrentFPGAComponentRecord],
+    list[dict[str, Any]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+]:
     profile_entries = {
         (row["architecture"], row["algorithm"]): row
         for row in contract["architecture_profiles"]
@@ -92,6 +100,8 @@ def collect_component_records(
     clock_mhz = float(cases["clock_mhz"])
     records: list[CurrentFPGAComponentRecord] = []
     evidence: list[dict[str, Any]] = []
+    ledger_rows: list[dict[str, object]] = []
+    structural_rows: list[dict[str, object]] = []
     calibration_datasets = tuple(
         dataset for dataset, role in cases["roles"].items() if role == "calibration"
     )
@@ -172,7 +182,31 @@ def collect_component_records(
                         "hardware_log_sha256": [sha256_file(path) for path in logs],
                     }
                 )
-    return records, evidence
+                profile_parameters = read_json(ROOT / profile["path"])["parameters"]
+                ledger = memory_ledger_row(
+                    architecture,
+                    algorithm,
+                    dataset,
+                    "calibration",
+                    result,
+                    result_path,
+                    profile_parameters,
+                )
+                ledger["profile_id"] = profile["profile_id"]
+                ledger_rows.append(ledger)
+                if architecture == "spine":
+                    structural_rows.append(
+                        spine_structural_work_row(
+                            algorithm,
+                            dataset,
+                            "calibration",
+                            result,
+                            result_path,
+                            logs,
+                            hardware_records,
+                        )
+                    )
+    return records, evidence, ledger_rows, structural_rows
 
 
 def group_component_models(
@@ -275,7 +309,12 @@ def main() -> int:
             "calibration freeze is missing non-holdout rows or observed holdout rows"
         )
     total_models = group_total_models(total_records)
-    component_records, component_evidence = collect_component_records(
+    (
+        component_records,
+        component_evidence,
+        ledger_rows,
+        structural_rows,
+    ) = collect_component_records(
         cases, contract, simulation_root, hardware_root
     )
     component_models = group_component_models(component_records)
@@ -284,10 +323,46 @@ def main() -> int:
         raise ValueError(
             f"expected {expected_total_models} total models, got {len(total_models)}"
         )
+    if len(component_models) != EXPECTED_COMPONENT_MODEL_COUNT:
+        raise ValueError(
+            f"expected {EXPECTED_COMPONENT_MODEL_COUNT} component models, "
+            f"got {len(component_models)}"
+        )
+    calibration_dataset_count = sum(
+        role == "calibration" for role in cases["roles"].values()
+    )
+    expected_ledger_rows = expected_total_models * calibration_dataset_count
+    if len(ledger_rows) != expected_ledger_rows or any(
+        row["status"] != "PASS" for row in ledger_rows
+    ):
+        failed = [
+            f"{row['architecture']}:{row['algorithm']}:{row['dataset']}"
+            for row in ledger_rows
+            if row["status"] != "PASS"
+        ]
+        raise ValueError(
+            f"calibration memory ledger gate failed: rows={len(ledger_rows)}/"
+            f"{expected_ledger_rows} failed={failed}"
+        )
+    expected_structural_rows = len(cases["algorithms"]) * calibration_dataset_count
+    if len(structural_rows) != expected_structural_rows or any(
+        row["status"] != "PASS" for row in structural_rows
+    ):
+        failed = [
+            f"{row['algorithm']}:{row['dataset']}"
+            for row in structural_rows
+            if row["status"] != "PASS"
+        ]
+        raise ValueError(
+            f"calibration structural-work gate failed: rows={len(structural_rows)}/"
+            f"{expected_structural_rows} failed={failed}"
+        )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     total_models_path = args.out_dir / "frozen_total_models.json"
     component_models_path = args.out_dir / "frozen_component_models.json"
+    memory_ledger_path = args.out_dir / "memory_ledger_validation.json"
+    structural_work_path = args.out_dir / "structural_work_validation.json"
     write_json(
         total_models_path,
         {
@@ -313,6 +388,33 @@ def main() -> int:
         },
     )
     write_json(
+        memory_ledger_path,
+        {
+            "schema_version": 1,
+            "status": "PASS",
+            "gate_kind": "memory_ledger",
+            "scope": "calibration_only_before_holdout",
+            "contract_id": contract["contract_id"],
+            "rows": ledger_rows,
+        },
+    )
+    write_json(
+        structural_work_path,
+        {
+            "schema_version": 1,
+            "status": "PASS",
+            "gate_kind": "structural_work",
+            "scope": "calibration_only_before_holdout",
+            "contract_id": contract["contract_id"],
+            "hardware_observation_scope": (
+                "Spine routed iteration/range-task/processed-edge counters; "
+                "G+R routed hardware exposes timing but no equivalent per-round counters"
+            ),
+            "grasu_regraph_hardware_counter_limitation_explicit": True,
+            "rows": structural_rows,
+        },
+    )
+    write_json(
         args.out_dir / "calibration_freeze_manifest.json",
         {
             "schema_version": 1,
@@ -326,6 +428,10 @@ def main() -> int:
             "frozen_total_models_sha256": sha256_file(total_models_path),
             "frozen_component_models": str(component_models_path.resolve()),
             "frozen_component_models_sha256": sha256_file(component_models_path),
+            "memory_ledger_validation": str(memory_ledger_path.resolve()),
+            "memory_ledger_validation_sha256": sha256_file(memory_ledger_path),
+            "structural_work_validation": str(structural_work_path.resolve()),
+            "structural_work_validation_sha256": sha256_file(structural_work_path),
             "calibration_datasets": sorted(
                 dataset
                 for dataset, role in cases["roles"].items()
@@ -339,6 +445,8 @@ def main() -> int:
             "holdout_result_files_present_at_freeze": [],
             "total_model_count": len(total_models),
             "component_model_count": len(component_models),
+            "memory_ledger_row_count": len(ledger_rows),
+            "structural_work_row_count": len(structural_rows),
             "total_evidence": total_evidence,
             "component_evidence": component_evidence,
         },
