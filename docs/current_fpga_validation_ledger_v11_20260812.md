@@ -88,3 +88,87 @@ After all AU/SU rows pass, freeze calibration before starting WK/R19:
 ```bash
 python3 scripts/freeze_current_fpga_calibration_v4.py
 ```
+
+## End-to-end evidence sequence
+
+Run the six Spine and six G+R calibration cases on AU/SU. The runners reuse a
+case only when its manifest has the same v11 plugin and profile hashes.
+
+```bash
+python3 scripts/run_current_fpga_spine_compacted_matrix.py \
+  --simulation-root /data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812 \
+  --lib-dir cpp/sst/build/sst-current-fpga-v11 \
+  --dataset au --dataset su --jobs 3 --memory-reserve-gib 64
+
+python3 scripts/run_current_fpga_grasu_frozen_matrix.py \
+  --simulation-root /data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812 \
+  --lib-dir cpp/sst/build/sst-current-fpga-v11 \
+  --dataset au --dataset su --jobs 2 --memory-reserve-gib 64
+```
+
+Freeze and commit the fitted scales before creating any WK/R19 result. The
+freeze script fails if a holdout `result.json` is already present.
+
+```bash
+python3 scripts/freeze_current_fpga_calibration_v4.py
+git add docs/evaluation_refresh_20260810/calibration_v11_frozen
+git commit -m "Freeze v11 calibration before holdout"
+git push origin main
+```
+
+Only after that commit, run the independent holdout. The G+R runner schedules
+WK normally and forces R19 to one job because R19 is the memory and wall-time
+long tail.
+
+```bash
+python3 scripts/run_current_fpga_spine_compacted_matrix.py \
+  --simulation-root /data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812 \
+  --lib-dir cpp/sst/build/sst-current-fpga-v11 \
+  --dataset wk --dataset r19 --jobs 2 --memory-reserve-gib 64
+
+python3 scripts/run_current_fpga_grasu_frozen_matrix.py \
+  --simulation-root /data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812 \
+  --lib-dir cpp/sst/build/sst-current-fpga-v11 \
+  --dataset wk --dataset r19 --jobs 2 --memory-reserve-gib 64
+```
+
+The setup-inclusive update-only matrix can run alongside holdout after the
+freeze commit. It executes AU-512 once and publishes that result into both the
+cross-dataset and batch-sensitivity views.
+
+```bash
+python3 scripts/run_current_fig8_update_only_matrix.py \
+  --evidence-root \
+    /data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_fig8_20260812 \
+  --frozen-models-dir \
+    docs/evaluation_refresh_20260810/calibration_v11_frozen \
+  --jobs 3 --memory-reserve-gib 64
+```
+
+The finalizer is deliberately fail-closed. It applies only the frozen AU/SU
+models to WK/R19, requires every total/component/ledger/structural gate to
+pass, exports Fig. 8 and Fig. 9, rebuilds the current RQ3 package for Fig. 10,
+renders the figures, and requires the alignment audit to report `READY`.
+
+```bash
+python3 scripts/finalize_current_fpga_evaluation_v11.py
+```
+
+Important output locations are:
+
+- frozen scales: `docs/evaluation_refresh_20260810/calibration_v11_frozen/`;
+- independent calibration report:
+  `docs/evaluation_refresh_20260810/calibration_v11_analysis/`;
+- Fig. 8 ledger-gated data:
+  `docs/evaluation_refresh_20260810/fig8_current_v11/`;
+- Fig. 9 ledger-gated data:
+  `docs/evaluation_refresh_20260810/fig9_current_v11/`;
+- RQ3 package:
+  `/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_rq3_20260812/package/`;
+- final audit:
+  `docs/evaluation_refresh_20260810/provenance/alignment_audit.json`;
+- final evidence manifest:
+  `docs/evaluation_refresh_20260810/provenance/current_fpga_v11_finalization.json`.
+
+No failed correctness row, failed ledger row, partial run, projected value, or
+holdout-fitted parameter is admitted by this sequence.
