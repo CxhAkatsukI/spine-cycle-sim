@@ -47,6 +47,48 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
                 profile["sha256"],
             )
 
+    def test_v5_contract_pins_final_plugin_and_clean_holdout_split(self) -> None:
+        cases = json.loads(
+            (
+                ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v4.json"
+            ).read_text(encoding="utf-8")
+        )
+        contract = json.loads(
+            (
+                ROOT
+                / "configs/contracts/evaluation_refresh_fpga_calibration_v5.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(cases["calibration_contract_id"], contract["contract_id"])
+        self.assertEqual(
+            cases["roles"],
+            {
+                "au": "calibration",
+                "su": "calibration",
+                "wk": "holdout",
+                "r19": "holdout",
+            },
+        )
+        self.assertEqual(
+            cases["default_simulation_root"],
+            "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v9_20260812",
+        )
+        plugin = ROOT / contract["simulator_plugin"]["path"]
+        self.assertEqual(
+            contract["simulator_plugin"]["path"],
+            "cpp/sst/build/sst-current-fpga-v9/libspine_cycle.so",
+        )
+        self.assertRegex(contract["simulator_plugin"]["sha256"], r"^[0-9a-f]{64}$")
+        if plugin.is_file():
+            self.assertEqual(
+                hashlib.sha256(plugin.read_bytes()).hexdigest(),
+                contract["simulator_plugin"]["sha256"],
+            )
+        self.assertIn(
+            "source-completion",
+            contract["supersedes"]["reason"],
+        )
+
     def test_total_freeze_groups_only_calibration_rows(self) -> None:
         rows = [
             CurrentFPGATimingRecord("spine", "sssp", "p", "au", "calibration", 10, 20),
