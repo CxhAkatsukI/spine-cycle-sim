@@ -44,6 +44,31 @@ def write_complete_campaign(root: Path) -> Path:
     return analysis
 
 
+def write_current_fig9_package(root: Path) -> Path:
+    analysis = root / "fig9_current"
+    write_json(
+        analysis / "manifest.json",
+        {
+            "status": "PASS_CURRENT_MODEL_DATA",
+            "rows": 9,
+            "expected_rows": 9,
+        },
+    )
+    with (analysis / "pair_rows.csv").open(
+        "w", encoding="utf-8", newline=""
+    ) as sink:
+        writer = csv.DictWriter(sink, fieldnames=["dataset_id", "algorithm"])
+        writer.writeheader()
+        for dataset in ("au", "su", "wk"):
+            for algorithm in (
+                "weighted_sssp",
+                "connected_components",
+                "thresholded_residual_pagerank",
+            ):
+                writer.writerow({"dataset_id": dataset, "algorithm": algorithm})
+    return analysis
+
+
 def write_calibration_manifests(root: Path) -> Path:
     calibration = root / "calibration"
     contract = calibration_contract_status(DEFAULT_CALIBRATION_CONTRACT)
@@ -228,6 +253,34 @@ class EvaluationRefreshAlignmentAuditTests(unittest.TestCase):
         self.assertEqual(audit["status"], "READY")
         self.assertTrue(audit["calibration"]["passed"])
         self.assertEqual(audit["next_actions"], [])
+
+    def test_current_ledger_gated_fig9_package_can_be_ready(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            provenance = root / "provenance"
+            statuses = {
+                "fig7": "PASS",
+                "fig8": "PASS_CURRENT_MODEL_DATA",
+                "fig9": "PASS_CURRENT_MODEL_DATA",
+                "fig10": "PASS_CURRENT_MODEL_DATA",
+            }
+            for figure, status in statuses.items():
+                write_json(provenance / f"{figure}.json", {"status": status})
+            analysis = write_current_fig9_package(root)
+            calibration = write_calibration_manifests(root)
+
+            audit = build_audit(
+                root,
+                analysis,
+                DEFAULT_CALIBRATION_CONTRACT,
+                calibration,
+            )
+
+        self.assertEqual(audit["status"], "READY")
+        self.assertEqual(
+            audit["campaign"]["evidence_kind"],
+            "current_ledger_gated_fig9_package",
+        )
 
     def test_missing_structural_work_manifest_blocks_ready(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

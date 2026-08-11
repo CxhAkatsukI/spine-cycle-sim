@@ -43,6 +43,20 @@ def comparison(updates: int, batches: int, speedup: float) -> dict[str, object]:
     }
 
 
+def current_case_manifest() -> dict[str, object]:
+    return {
+        "status": "PASS",
+        "timing_boundary": (
+            "measured_host_preprocessing_plus_explicit_transfer_launch_model_"
+            "plus_calibrated_device_cycles"
+        ),
+        "sst_plugin_sha256": "plugin-v11",
+        "case_contract_sha256": "cases-v6",
+        "calibration_contract_sha256": "calibration-v7",
+        "frozen_component_models": {"sha256": "frozen-models"},
+    }
+
+
 class Fig8UpdateOnlyExportTests(unittest.TestCase):
     def test_current_runner_defaults_follow_v11_freeze(self) -> None:
         self.assertEqual(
@@ -90,8 +104,16 @@ class Fig8UpdateOnlyExportTests(unittest.TestCase):
                 comparison(4096, 10, 2.0),
             )
             write_json(
+                evidence / "cross_dataset" / "au" / "manifest.json",
+                current_case_manifest(),
+            )
+            write_json(
                 evidence / "batch_sensitivity" / "b10" / "comparison.json",
                 comparison(1024, 10, 3.0),
+            )
+            write_json(
+                evidence / "batch_sensitivity" / "b10" / "manifest.json",
+                current_case_manifest(),
             )
             out = root / "out"
             subprocess.run(
@@ -122,6 +144,44 @@ class Fig8UpdateOnlyExportTests(unittest.TestCase):
             self.assertEqual(float(batch[0]["spine_speedup"]), 3.0)
             self.assertEqual(float(batch[0]["updates_per_batch"]), 102.4)
             self.assertEqual(len(sources), 3)
+
+    def test_current_pass_rejects_missing_case_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence = root / "evidence"
+            write_json(
+                evidence / "cross_dataset" / "au" / "comparison.json",
+                comparison(8, 1, 2.0),
+            )
+            write_json(
+                evidence / "batch_sensitivity" / "b8" / "comparison.json",
+                comparison(8, 1, 2.0),
+            )
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "scripts" / "export_persistent_update_setup_fig8.py"),
+                    "--evidence-root",
+                    str(evidence),
+                    "--out-dir",
+                    str(root / "out"),
+                    "--cross-dataset",
+                    "au:AU",
+                    "--batch-count",
+                    "8",
+                    "--status",
+                    "PASS_CURRENT_MODEL_DATA",
+                ],
+                cwd=ROOT,
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertIn("case manifest is missing", completed.stderr)
 
     def test_renderer_rejects_noncurrent_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

@@ -113,6 +113,53 @@ def batch_rows(evidence_root: Path, batch_counts: tuple[int, ...]) -> tuple[list
     return rows, sources
 
 
+def validate_current_case_manifests(
+    comparison_paths: list[Path],
+) -> tuple[list[Path], dict[str, str]]:
+    manifests: list[Path] = []
+    identities: set[tuple[str, str, str, str]] = set()
+    for comparison_path in comparison_paths:
+        manifest_path = comparison_path.with_name("manifest.json")
+        if not manifest_path.is_file():
+            raise FileNotFoundError(
+                f"current Fig. 8 case manifest is missing: {manifest_path}"
+            )
+        manifest = load_json(manifest_path)
+        if manifest.get("status") != "PASS":
+            raise ValueError(f"current Fig. 8 case did not pass: {manifest_path}")
+        if manifest.get("timing_boundary") != (
+            "measured_host_preprocessing_plus_explicit_transfer_launch_model_"
+            "plus_calibrated_device_cycles"
+        ):
+            raise ValueError(
+                f"current Fig. 8 timing boundary mismatch: {manifest_path}"
+            )
+        identity = tuple(
+            str(manifest.get(field, ""))
+            for field in (
+                "sst_plugin_sha256",
+                "case_contract_sha256",
+                "calibration_contract_sha256",
+                "frozen_component_models",
+            )
+        )
+        if not all(identity):
+            raise ValueError(
+                f"current Fig. 8 case has incomplete frozen identity: {manifest_path}"
+            )
+        identities.add(identity)
+        manifests.append(manifest_path)
+    if len(identities) != 1:
+        raise ValueError("current Fig. 8 cases do not share one frozen identity")
+    plugin, cases, calibration, frozen_models = next(iter(identities))
+    return list(dict.fromkeys(manifests)), {
+        "sst_plugin_sha256": plugin,
+        "case_contract_sha256": cases,
+        "calibration_contract_sha256": calibration,
+        "frozen_component_models": frozen_models,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence-root", type=Path, default=DEFAULT_EVIDENCE)
@@ -152,10 +199,14 @@ def main() -> int:
 
     cross, cross_sources = cross_rows(evidence_root, mapping)
     batch, batch_sources = batch_rows(evidence_root, batches)
+    sources = list(dict.fromkeys(cross_sources + batch_sources))
+    case_manifests: list[Path] = []
+    frozen_identity: dict[str, str] | None = None
+    if args.status == "PASS_CURRENT_MODEL_DATA":
+        case_manifests, frozen_identity = validate_current_case_manifests(sources)
     out_dir = args.out_dir.resolve()
     write_csv(out_dir / CROSS_FILENAME, cross)
     write_csv(out_dir / BATCH_FILENAME, batch)
-    sources = cross_sources + batch_sources
     manifest = {
         "schema_version": 1,
         "status": args.status,
@@ -168,6 +219,11 @@ def main() -> int:
         "source_files": [
             {"path": str(path), "sha256": sha256(path)} for path in sources
         ],
+        "case_manifests": [
+            {"path": str(path), "sha256": sha256(path)}
+            for path in case_manifests
+        ],
+        "frozen_identity": frozen_identity,
         "output_files": {
             CROSS_FILENAME: sha256(out_dir / CROSS_FILENAME),
             BATCH_FILENAME: sha256(out_dir / BATCH_FILENAME),

@@ -252,8 +252,31 @@ def campaign_status(analysis_dir: Path | None) -> dict[str, Any]:
     if analysis_dir is None:
         return {"present": False}
     summary_path = analysis_dir / "summary.json"
+    manifest_path = analysis_dir / "manifest.json"
     pair_path = analysis_dir / "pair_rows.csv"
     if not summary_path.is_file():
+        if manifest_path.is_file() and pair_path.is_file():
+            manifest = read_json(manifest_path)
+            pairs = read_csv_rows(pair_path)
+            algorithms = sorted({row["algorithm"] for row in pairs})
+            datasets = sorted({row["dataset_id"] for row in pairs})
+            expected = int(manifest.get("expected_rows", REQUIRED_FIG9_ROWS))
+            current = manifest.get("status") == "PASS_CURRENT_MODEL_DATA"
+            return {
+                "present": True,
+                "analysis_dir": str(analysis_dir),
+                "summary_status": manifest.get("status"),
+                "observed_executions": len(pairs) * 2,
+                "expected_executions": expected * 2,
+                "pair_rows": len(pairs),
+                "required_pair_rows": REQUIRED_FIG9_ROWS,
+                "missing_executions": max(0, expected - len(pairs)) * 2,
+                "complete_for_fig9": current
+                and len(pairs) == REQUIRED_FIG9_ROWS,
+                "paired_algorithms": algorithms,
+                "paired_datasets": datasets,
+                "evidence_kind": "current_ledger_gated_fig9_package",
+            }
         return {
             "present": False,
             "analysis_dir": str(analysis_dir),
@@ -308,6 +331,7 @@ def figure_alignment(
                 fig8_status in ALIGNED_CURRENT_MODEL_STATUSES
                 and contract_pass
                 and total_pass
+                and component_pass
                 and structural_pass
             ),
             "status": fig8_status,
@@ -318,7 +342,7 @@ def figure_alignment(
         },
         "fig9": {
             "aligned": (
-                fig9_status == "PASS_CAMPAIGN_ANALYSIS"
+                fig9_status in ALIGNED_CURRENT_MODEL_STATUSES
                 and campaign.get("complete_for_fig9", False)
                 and contract_pass
                 and ledger_pass
