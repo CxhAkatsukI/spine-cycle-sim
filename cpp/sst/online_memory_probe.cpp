@@ -5401,9 +5401,12 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"pma_edge_abi\": \"normalized_weighted_19_12\",\n"
              << "  \"failure\": ";
       write_json_string(
-          result, compute_available
-                      ? grasu_connected_components_system_->failure()
-                      : "compute did not start");
+          result,
+          compute_available
+              ? grasu_connected_components_system_->failure()
+              : (grasu_update_system_->failed()
+                     ? grasu_update_system_->failure()
+                     : "compute did not start"));
       result << ",\n"
              << "  \"core_mhz\": " << core_mhz_ << ",\n"
              << "  \"cycles\": " << scheduler_.clock(0).completed_cycles

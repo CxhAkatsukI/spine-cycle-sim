@@ -576,11 +576,13 @@ public:
                     std::size_t lane_fifo_depth, std::uint64_t pma_base,
                     std::uint64_t partition_address_stride,
                     const std::vector<std::uint64_t> &partition_pma_bases,
+                    bool explicit_runtime_regions,
                     GraSuPmaWordAbi pma_word_abi, Ports ports)
       : Component(std::move(name), clock_id), cache_direct_(cache_direct),
         lane_fifo_depth_(lane_fifo_depth), pma_base_(pma_base),
         partition_address_stride_(partition_address_stride),
         partition_pma_bases_(partition_pma_bases), pma_word_abi_(pma_word_abi),
+        explicit_runtime_regions_(explicit_runtime_regions),
         ports_(ports), lanes_(cache_direct ? 1 : 32) {
     if (lane_fifo_depth_ == 0 || ports_.input == nullptr ||
         ports_.reads[0] == nullptr || ports_.writes[0] == nullptr ||
@@ -742,7 +744,9 @@ private:
     const std::uint64_t local_segment =
         static_cast<std::uint64_t>(item.segment_head_slot) >> 5;
     const std::uint64_t partition_base =
-        partition_pma_bases_.empty()
+        explicit_runtime_regions_
+            ? pma_base_
+            : partition_pma_bases_.empty()
             ? pma_base_ + item.partition * partition_address_stride_
             : partition_pma_bases_.at(item.partition);
     return partition_base + local_segment * kGraSuSegmentBytes;
@@ -976,6 +980,7 @@ private:
   std::uint64_t partition_address_stride_{};
   const std::vector<std::uint64_t> &partition_pma_bases_;
   GraSuPmaWordAbi pma_word_abi_{GraSuPmaWordAbi::kNormalizedWeighted};
+  bool explicit_runtime_regions_{};
   Ports ports_;
   std::vector<Lane> lanes_;
   std::optional<std::pair<std::size_t, LocatedUpdate>> staged_route_;
@@ -2523,6 +2528,7 @@ private:
           config_.explicit_runtime_regions ? config_.pma_bases[pma_lane]
                                            : config_.pma_base,
           config_.partition_address_stride, address_plan_.pma_bases,
+          config_.explicit_runtime_regions,
           config_.pma_word_abi,
           GraSuPmaProcessor::Ports{
               .input = process_inputs_[index].get(),

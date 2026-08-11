@@ -22,7 +22,11 @@ from spine_cycle_sim.experiments.shared_workloads import load_slice  # noqa: E40
 
 
 def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        while chunk := source.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def convert_graph(

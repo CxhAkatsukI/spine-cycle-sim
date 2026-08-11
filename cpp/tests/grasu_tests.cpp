@@ -2752,6 +2752,58 @@ void test_sharded_k4_runtime_plan_accepts_empty_destination_shard() {
           "empty destination shard omitted its routed minimum buffers");
 }
 
+void test_explicit_runtime_pma_lanes_use_their_own_base_offsets() {
+  constexpr std::size_t kVertices = 64;
+  std::vector<GraSuEdge> initial;
+  for (std::uint32_t destination = 16; destination < 32; ++destination) {
+    initial.push_back({.source = 0, .destination = destination, .weight = 1});
+  }
+  for (std::uint32_t destination = 32; destination < 48; ++destination) {
+    initial.push_back({.source = 1, .destination = destination, .weight = 1});
+  }
+  const std::vector<GraSuEdge> updates = {
+      {.source = 2, .destination = 3, .weight = 7},
+  };
+  const GraSuPmaLayout layout = GraSuPmaLayout::build(
+      kVertices, initial, updates, GraSuPmaWordAbi::kWeightedFullWord);
+
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("explicit-runtime-offset", 150.0);
+  MockMemoryBackend backend("shared-hbm", core,
+                            MockMemoryConfig{.channels = 4,
+                                             .latency_cycles = 5,
+                                             .accepts_per_channel_per_cycle = 1,
+                                             .max_outstanding_per_channel = 16,
+                                             .response_queue_depth = 256});
+  GraSuNativeConfig config;
+  config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
+  config.cache_segments_per_half = 1;
+  config.explicit_runtime_regions = true;
+  config.packed_partition_addresses = false;
+  config.update_channels = {1, 1, 1, 1};
+  config.row_channels = {2, 2, 2, 2};
+  config.binary_channels = {3, 3, 3, 3};
+  config.pma_channels = {0, 0, 0, 0};
+  config.update_bases = {0, 256, 512, 768};
+  config.row_offset_base = 0;
+  config.binary_base = 0;
+  config.pma_bases = {0, 4096, 8192, 12288};
+  config.pma_base = config.pma_bases[0];
+
+  GraSuPmaUpdateSystem update(scheduler, core, backend, layout, updates,
+                              config);
+  update.register_components();
+  scheduler.add_component(backend);
+  scheduler.run_until([&] { return update.done() || update.failed(); },
+                      100'000);
+  require(update.done() && !update.failed(),
+          "explicit runtime PMA lane ignored its routed base: " +
+              update.failure());
+  const auto live = edge_set(update.live_edges());
+  require(live.count({2, 3}) == 1,
+          "explicit runtime PMA insertion was written to the wrong lane");
+}
+
 void test_sharded_k4_update_state_feeds_compute() {
   constexpr std::size_t kVertices = 192;
   const std::vector<GraSuEdge> initial = {
@@ -2921,6 +2973,8 @@ int main() {
        test_sharded_k4_runtime_plan_rejects_channel_overflow},
       {"sharded_k4_runtime_empty_shard",
        test_sharded_k4_runtime_plan_accepts_empty_destination_shard},
+      {"explicit_runtime_pma_lane_offsets",
+       test_explicit_runtime_pma_lanes_use_their_own_base_offsets},
       {"sharded_k4_update_state_feeds_compute",
        test_sharded_k4_update_state_feeds_compute},
   };
