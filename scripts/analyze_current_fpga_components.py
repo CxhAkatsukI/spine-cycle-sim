@@ -29,6 +29,10 @@ from spine_cycle_sim.calibration.current_fpga import (  # noqa: E402
     fit_component_scale,
 )
 from spine_cycle_sim.calibration.frozen import load_frozen_scale_models  # noqa: E402
+from spine_cycle_sim.experiments.memory_traffic import (  # noqa: E402
+    memory_traffic_metrics,
+    phase_memory_metrics,
+)
 
 
 DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v2.json"
@@ -367,14 +371,31 @@ def memory_ledger_row(
     result: dict[str, Any],
     result_path: Path,
 ) -> dict[str, object]:
-    traffic = result.get("backend_traffic", {}).get("combined", {})
+    traffic_value = result.get("backend_traffic")
+    traffic = (
+        traffic_value.get("combined", {})
+        if isinstance(traffic_value, dict)
+        else {}
+    )
     requests = int(traffic.get("requests", -1))
     backend_requests = int(result.get("backend_requests", -2))
     bytes_accepted = int(traffic.get("bytes", -1))
     request_balance = requests >= 0 and requests == backend_requests
-    byte_balance = bytes_accepted >= 0 and request_balance
+    traffic_validation_error = ""
+    try:
+        memory_traffic_metrics(
+            traffic_value,
+            expected_requests=backend_requests,
+            prefix="backend",
+        )
+        traffic_schema_closed = True
+    except (TypeError, ValueError) as error:
+        traffic_schema_closed = False
+        traffic_validation_error = str(error)
+    byte_balance = bytes_accepted >= 0 and request_balance and traffic_schema_closed
     checks: dict[str, bool] = {
         "backend_request_traffic_match": request_balance,
+        "backend_read_write_and_locality_categories_close": traffic_schema_closed,
         "accepted_bytes_complete_at_quiescence": byte_balance,
         "memory_locality_ledger_match": result.get("memory_locality_ledger_match") is True,
         "active_edge_execution_ledger_match": result.get(
@@ -538,6 +559,29 @@ def memory_ledger_row(
         )
         fifo_evidence = "zero-propagation correction-only row; no reader/compute AXIS payload"
     else:
+        update_requests = int(result.get("update_backend_requests", -1))
+        compute_requests = int(result.get("compute_backend_requests", -1))
+        phase_validation_error = ""
+        try:
+            phase_memory_metrics(
+                result,
+                update_key="update_backend_traffic",
+                backend_requests=backend_requests,
+                update_requests=update_requests,
+                compute_requests=compute_requests,
+            )
+            phase_traffic_closed = True
+        except (TypeError, ValueError) as error:
+            phase_traffic_closed = False
+            phase_validation_error = str(error)
+        checks.update(
+            {
+                "phase_request_count_sum_match": update_requests >= 0
+                and compute_requests >= 0
+                and update_requests + compute_requests == backend_requests,
+                "update_compute_traffic_decomposition_closes": phase_traffic_closed,
+            }
+        )
         expected = result.get("expected_backend_requests")
         if expected is not None:
             checks["expected_backend_requests_match"] = int(expected) == backend_requests
@@ -558,6 +602,10 @@ def memory_ledger_row(
         "fifo_balance_or_residual_explained": passed,
         "fifo_evidence": fifo_evidence,
         "checks": checks,
+        "traffic_validation_error": traffic_validation_error,
+        "phase_traffic_validation_error": (
+            phase_validation_error if architecture != "spine" else ""
+        ),
         "simulator_result": str(result_path.resolve()),
         "simulator_result_sha256": sha256_file(result_path),
     }

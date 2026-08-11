@@ -11,6 +11,29 @@ from scripts.analyze_current_fpga_components import (
 )
 
 
+def traffic(requests: int, bytes_accepted: int) -> dict[str, object]:
+    reads = {
+        "requests": requests,
+        "bytes": bytes_accepted,
+        "first_requests": requests,
+        "first_bytes": bytes_accepted,
+        "contiguous_requests": 0,
+        "contiguous_bytes": 0,
+        "repeated_requests": 0,
+        "repeated_bytes": 0,
+        "discontinuous_requests": 0,
+        "discontinuous_bytes": 0,
+    }
+    writes = {key: 0 for key in reads}
+    return {
+        "classification": "per_initiator_and_operation_accepted_backend_request",
+        "address_basis": "logical_channel_and_byte_address",
+        "reads": reads,
+        "writes": writes,
+        "combined": dict(reads),
+    }
+
+
 def owner_round_evidence() -> dict[str, object]:
     return {
         "owner_scheduler_enabled": True,
@@ -136,7 +159,7 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
         result = {
             **owner_round_evidence(),
             "backend_requests": 5,
-            "backend_traffic": {"combined": {"requests": 5, "bytes": 320}},
+            "backend_traffic": traffic(5, 320),
             "memory_locality_ledger_match": True,
             "active_edge_execution_ledger_match": True,
             "component_request_ledger_match": True,
@@ -153,7 +176,7 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
         result = {
             **owner_round_evidence(),
             "backend_requests": 6,
-            "backend_traffic": {"combined": {"requests": 5, "bytes": 320}},
+            "backend_traffic": traffic(5, 320),
             "memory_locality_ledger_match": True,
             "active_edge_execution_ledger_match": True,
             "component_request_ledger_match": True,
@@ -169,7 +192,7 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
         result = {
             **owner_round_evidence(),
             "backend_requests": 5,
-            "backend_traffic": {"combined": {"requests": 5, "bytes": 320}},
+            "backend_traffic": traffic(5, 320),
             "memory_locality_ledger_match": True,
             "active_edge_execution_ledger_match": True,
             "component_request_ledger_match": True,
@@ -182,6 +205,58 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
         )
         self.assertEqual(row["status"], "FAIL")
         self.assertFalse(row["checks"]["owner_round_formula_recomputed"])
+
+    def test_grasu_phase_request_and_byte_ledgers_pass(self):
+        result = {
+            "backend_requests": 7,
+            "update_backend_requests": 2,
+            "compute_backend_requests": 5,
+            "expected_backend_requests": 7,
+            "backend_traffic": traffic(7, 448),
+            "update_backend_traffic": traffic(2, 128),
+            "compute_backend_traffic": traffic(5, 320),
+            "memory_locality_ledger_match": True,
+            "active_edge_execution_ledger_match": True,
+            "pipeline_busy_cycles": 1,
+        }
+        row = memory_ledger_row(
+            "grasu_regraph",
+            "weighted_sssp",
+            "au",
+            "calibration",
+            result,
+            Path(__file__),
+        )
+        self.assertEqual(row["status"], "PASS")
+        self.assertTrue(
+            row["checks"]["update_compute_traffic_decomposition_closes"]
+        )
+
+    def test_grasu_phase_byte_nonclosure_fails(self):
+        result = {
+            "backend_requests": 7,
+            "update_backend_requests": 2,
+            "compute_backend_requests": 5,
+            "expected_backend_requests": 7,
+            "backend_traffic": traffic(7, 449),
+            "update_backend_traffic": traffic(2, 128),
+            "compute_backend_traffic": traffic(5, 320),
+            "memory_locality_ledger_match": True,
+            "active_edge_execution_ledger_match": True,
+            "pipeline_busy_cycles": 1,
+        }
+        row = memory_ledger_row(
+            "grasu_regraph",
+            "weighted_sssp",
+            "au",
+            "calibration",
+            result,
+            Path(__file__),
+        )
+        self.assertEqual(row["status"], "FAIL")
+        self.assertFalse(
+            row["checks"]["update_compute_traffic_decomposition_closes"]
+        )
 
 
 if __name__ == "__main__":
