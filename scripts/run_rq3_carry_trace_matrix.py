@@ -16,7 +16,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
 DEFAULT_PROFILE = (
-    ROOT / "configs/architectures/spine_candidate10_opt_v2_reader_working_set.json"
+    ROOT / "configs/architectures/spine_owner_fifo_sssp_hls_v1.json"
 )
 
 

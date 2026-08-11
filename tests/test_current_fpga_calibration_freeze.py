@@ -10,6 +10,7 @@ from scripts.freeze_current_fpga_calibration_v4 import (
 from scripts import analyze_current_fpga_calibration
 from scripts import analyze_current_fpga_components
 from scripts import audit_evaluation_refresh_alignment
+from scripts import run_rq3_carry_trace_matrix
 from spine_cycle_sim.calibration.current_fpga import (
     CurrentFPGAComponentRecord,
     CurrentFPGATimingRecord,
@@ -36,6 +37,10 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
         self.assertEqual(
             audit_evaluation_refresh_alignment.DEFAULT_CALIBRATION_CONTRACT,
             expected_contract,
+        )
+        self.assertEqual(
+            run_rq3_carry_trace_matrix.DEFAULT_PROFILE,
+            ROOT / "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
         )
 
     def test_v4_contract_keeps_disjoint_frozen_roles(self) -> None:
