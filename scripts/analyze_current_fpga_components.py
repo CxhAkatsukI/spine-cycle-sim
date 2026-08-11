@@ -602,17 +602,29 @@ def memory_ledger_row(
         for occupancy_field, depth_field in GRASU_FIFO_DEPTH_FIELDS.items():
             occupancy = result.get(occupancy_field)
             depth = parameters.get(depth_field)
+            serialized_depth_field = occupancy_field.replace(
+                "_max_occupancy", "_depth"
+            )
+            serialized_depth = result.get(serialized_depth_field)
             valid = (
                 isinstance(occupancy, int)
                 and not isinstance(occupancy, bool)
                 and isinstance(depth, int)
                 and not isinstance(depth, bool)
+                and isinstance(serialized_depth, int)
+                and not isinstance(serialized_depth, bool)
                 and depth > 0
+                and serialized_depth == depth
                 and 0 <= occupancy <= depth
             )
             fifo_depth_checks[occupancy_field] = {
                 "occupancy": int(occupancy) if isinstance(occupancy, int) else -1,
                 "profile_depth": int(depth) if isinstance(depth, int) else -1,
+                "serialized_depth": (
+                    int(serialized_depth)
+                    if isinstance(serialized_depth, int)
+                    else -1
+                ),
                 "within_depth": valid,
             }
         if algorithm == "thresholded_residual_pagerank":
@@ -638,6 +650,7 @@ def memory_ledger_row(
                     "within_depth": valid,
                 }
         adapter_depth = parameters.get("regraph_pma_adapter_axis_fifo_depth")
+        serialized_adapter_depth = result.get("adapter_axis_fifo_depth")
         checks.update(
             {
                 "observable_fifo_occupancies_within_frozen_depths": bool(
@@ -651,9 +664,22 @@ def memory_ledger_row(
                     isinstance(adapter_depth, int)
                     and not isinstance(adapter_depth, bool)
                     and adapter_depth > 0
+                    and isinstance(serialized_adapter_depth, int)
+                    and not isinstance(serialized_adapter_depth, bool)
+                    and serialized_adapter_depth == adapter_depth
                     and isinstance(result.get("axis_push_stalls"), int)
                     and not isinstance(result.get("axis_push_stalls"), bool)
                     and int(result["axis_push_stalls"]) >= 0
+                ),
+                "compute_axi_issued_completed_match": (
+                    isinstance(result.get("compute_axi_beats_issued"), int)
+                    and isinstance(result.get("compute_axi_beats_completed"), int)
+                    and not isinstance(result.get("compute_axi_beats_issued"), bool)
+                    and not isinstance(
+                        result.get("compute_axi_beats_completed"), bool
+                    )
+                    and int(result["compute_axi_beats_issued"])
+                    == int(result["compute_axi_beats_completed"])
                 ),
             }
         )

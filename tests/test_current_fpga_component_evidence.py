@@ -64,11 +64,19 @@ def owner_round_evidence() -> dict[str, object]:
 def grasu_fifo_evidence() -> tuple[dict[str, int], dict[str, int]]:
     result = {
         "source_cache_request_fifo_max_occupancy": 1,
+        "source_cache_request_fifo_depth": 8,
         "source_cache_response_fifo_max_occupancy": 2,
+        "source_cache_response_fifo_depth": 8,
         "gather_merger_fifo_max_occupancy": 3,
+        "gather_merger_fifo_depth": 16,
         "merger_apply_fifo_max_occupancy": 4,
+        "merger_apply_fifo_depth": 16,
         "apply_wrapper_fifo_max_occupancy": 5,
+        "apply_wrapper_fifo_depth": 16,
+        "adapter_axis_fifo_depth": 32,
         "axis_push_stalls": 0,
+        "compute_axi_beats_issued": 5,
+        "compute_axi_beats_completed": 5,
     }
     profile = {
         "regraph_source_cache_request_fifo_depth": 8,

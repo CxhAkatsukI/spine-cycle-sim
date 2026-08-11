@@ -89,6 +89,41 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
             contract["supersedes"]["reason"],
         )
 
+    def test_v6_contract_pins_complete_grasu_observability(self) -> None:
+        cases = json.loads(
+            (
+                ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v5.json"
+            ).read_text(encoding="utf-8")
+        )
+        contract = json.loads(
+            (
+                ROOT
+                / "configs/contracts/evaluation_refresh_fpga_calibration_v6.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(cases["calibration_contract_id"], contract["contract_id"])
+        self.assertEqual(
+            cases["default_simulation_root"],
+            "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v10_20260812",
+        )
+        self.assertEqual(
+            contract["simulator_plugin"]["path"],
+            "cpp/sst/build/sst-current-fpga-v10/libspine_cycle.so",
+        )
+        plugin = ROOT / contract["simulator_plugin"]["path"]
+        self.assertRegex(contract["simulator_plugin"]["sha256"], r"^[0-9a-f]{64}$")
+        if plugin.is_file():
+            self.assertEqual(
+                hashlib.sha256(plugin.read_bytes()).hexdigest(),
+                contract["simulator_plugin"]["sha256"],
+            )
+        gates = contract["manifest_gates"]["memory_ledger"]
+        self.assertTrue(gates["grasu_regraph_phase_request_byte_locality_ledgers_closed"])
+        self.assertTrue(gates["grasu_regraph_compute_axi_issued_equal_completed"])
+        self.assertTrue(gates["grasu_regraph_observable_fifos_profile_bounded"])
+        self.assertTrue(gates["grasu_regraph_adapter_fifo_depth_and_stalls_serialized"])
+        self.assertIn("changes only result observability", contract["supersedes"]["reason"])
+
     def test_total_freeze_groups_only_calibration_rows(self) -> None:
         rows = [
             CurrentFPGATimingRecord("spine", "sssp", "p", "au", "calibration", 10, 20),
