@@ -3933,13 +3933,14 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
       edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id) {
       throw std::invalid_argument("invalid Spine split compute configuration");
   }
-  if (algorithm_policy_->config().kind !=
-          GraphAlgorithmKind::kWeightedSssp ||
+  if ((algorithm_policy_->config().kind !=
+           GraphAlgorithmKind::kWeightedSssp &&
+       algorithm_policy_->config().kind !=
+           GraphAlgorithmKind::kConnectedComponents) ||
       algorithm_policy_->config().vertices != vertices_ ||
       algorithm_policy_->config().source != source_) {
     throw std::invalid_argument(
-        "timed Spine split compute currently requires matching weighted SSSP "
-        "policy");
+        "timed Spine split compute requires a matching SSSP or CC policy");
   }
   if (initial_state.has_value()) {
     std::unordered_set<std::uint32_t> active;
@@ -3951,7 +3952,7 @@ SpineSplitSsspCompute::SpineSplitSsspCompute(
         std::any_of(active.begin(), active.end(), [this](std::uint32_t vertex) {
           return vertex >= vertices_;
         })) {
-      throw std::invalid_argument("invalid Spine SSSP algorithm warm state");
+      throw std::invalid_argument("invalid Spine tiled algorithm warm state");
     }
     values_ = std::move(initial_state->primary);
   } else {

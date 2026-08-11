@@ -9615,6 +9615,63 @@ void test_spine_connected_components_converges_with_min_labels() {
           "Spine CC labels or non-CC memory ledger are wrong");
 }
 
+void test_spine_connected_components_uses_tiled_split_compute() {
+  Scheduler scheduler;
+  const auto core = scheduler.add_clock_mhz("connected-components-tiled", 200.0);
+  MockMemoryBackend backend("connected-components-tiled-hbm", core,
+                            MockMemoryConfig{
+                                .channels = 32,
+                                .latency_cycles = 4,
+                                .accepts_per_channel_per_cycle = 1,
+                                .max_outstanding_per_channel = 128,
+                                .response_queue_depth = 256,
+                            });
+  const SpineEdgeSlice graph{
+      .vertices = 6,
+      .edges = {
+          {.src = 0, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 0, .weight = 1, .diff = 1},
+          {.src = 1, .dst = 2, .weight = 1, .diff = 1},
+          {.src = 2, .dst = 1, .weight = 1, .diff = 1},
+          {.src = 3, .dst = 4, .weight = 1, .diff = 1},
+          {.src = 4, .dst = 3, .weight = 1, .diff = 1},
+      },
+      .case_name = "connected_components_tiled_split_compute",
+  };
+  spine::sim::AlgorithmInitialState algorithm_state{
+      .primary = {0, 1, 2, 3, 4, 5},
+      .auxiliary = {},
+      .active_vertices = {0, 1, 2, 3, 4, 5},
+  };
+  SpineVerticalSliceSystem system(
+      scheduler, core, backend, graph, 0, 4096, SpineL0Config{},
+      SpineL0State{}, SpineAxiInterfaceProfile{},
+      SpineSplitSsspCompute::kDefaultMemoryRequestWindow,
+      SpineSplitSsspCompute::kDefaultWriteOnlyRequestWindow,
+      SpineOnChipMemoryProfile{}, false, std::move(algorithm_state),
+      std::nullopt, std::nullopt, GraphAlgorithmKind::kConnectedComponents);
+  system.register_components();
+  scheduler.add_component(backend);
+
+  const SpineSsspRunResult run =
+      system.run_sssp_to_convergence(8, 10'000'000);
+  const std::vector<std::uint32_t> expected_labels{0, 0, 0, 3, 3, 5};
+  const std::uint64_t processed_edges = std::accumulate(
+      run.rounds.begin(), run.rounds.end(), std::uint64_t{0},
+      [](std::uint64_t total,
+         const spine::sim::SpineSsspRoundEvidence &round) {
+        return total + round.compute.processed_edges;
+      });
+  std::cout << "EVIDENCE spine_connected_components_tiled rounds="
+            << run.rounds.size() << " cycles=" << run.end_cycle - run.start_cycle
+            << " processed_edges=" << processed_edges << '\n';
+  require(!run.failed && run.converged &&
+              system.compute().values() == expected_labels &&
+              processed_edges != 0 &&
+              run.rounds.back().active_out.empty(),
+          "Spine CC did not use the convergent tiled split-compute path");
+}
+
 void test_spine_delta_hls_residual_uses_warm_seed_frontier() {
   Scheduler scheduler;
   const auto core = scheduler.add_clock_mhz("delta-hls-warm-spine", 200.0);
@@ -10160,6 +10217,8 @@ int main(int argc, char **argv) {
        test_spine_residual_pagerank_tracks_thresholded_frontier},
       {"spine_connected_components",
        test_spine_connected_components_converges_with_min_labels},
+      {"spine_connected_components_tiled",
+       test_spine_connected_components_uses_tiled_split_compute},
       {"spine_delta_hls_warm_residual",
        test_spine_delta_hls_residual_uses_warm_seed_frontier},
       {"spine_cc_device_owner",

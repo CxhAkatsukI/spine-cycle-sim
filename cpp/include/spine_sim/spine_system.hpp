@@ -209,7 +209,9 @@ class SpineVerticalSliceSystem {
                            std::optional<SpineOwnerSchedulerConfig>
                                owner_scheduler_config = std::nullopt,
                            std::optional<SpineVertexLifecycleConfig>
-                               vertex_lifecycle_config = std::nullopt);
+                               vertex_lifecycle_config = std::nullopt,
+                           GraphAlgorithmKind algorithm_kind =
+                               GraphAlgorithmKind::kWeightedSssp);
 
   void register_components();
   void restart_device_active_compute(std::vector<std::uint32_t> active_sources);

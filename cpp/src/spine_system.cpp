@@ -940,7 +940,8 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
     SpineOnChipMemoryProfile on_chip_profile, bool initial_host_active,
     std::optional<AlgorithmInitialState> algorithm_initial_state,
     std::optional<SpineOwnerSchedulerConfig> owner_scheduler_config,
-    std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config)
+    std::optional<SpineVertexLifecycleConfig> vertex_lifecycle_config,
+    GraphAlgorithmKind algorithm_kind)
     : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
       axi_profile_(std::move(axi_profile)),
       source_(source),
@@ -951,6 +952,11 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
                             ? algorithm_initial_state->active_vertices
                             : std::vector<std::uint32_t>{source}),
       resident_bootstrap_pending_(initial_host_active) {
+  if (algorithm_kind != GraphAlgorithmKind::kWeightedSssp &&
+      algorithm_kind != GraphAlgorithmKind::kConnectedComponents) {
+    throw std::invalid_argument(
+        "Spine tiled vertical-slice system supports only SSSP or CC");
+  }
   if (source >= workload.vertices) {
     throw std::invalid_argument("Spine vertical-slice source is out of range");
   }
@@ -1027,7 +1033,7 @@ SpineVerticalSliceSystem::SpineVerticalSliceSystem(
   }
   const auto algorithm_policy = std::make_shared<const GraphAlgorithmPolicy>(
       AlgorithmPolicyConfig{
-          .kind = GraphAlgorithmKind::kWeightedSssp,
+          .kind = algorithm_kind,
           .vertices = vertices,
           .source = source,
       });
