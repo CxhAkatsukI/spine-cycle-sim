@@ -4175,6 +4175,8 @@ class OnlineMemoryProbe final : public SST::Component {
               pagerank_system_->compute().next_active().size());
           pagerank_compute_requests_per_iteration_.push_back(
               compute.memory_requests_issued);
+          pagerank_reader_range_tasks_per_iteration_.push_back(
+              reader.range_task_count);
           pagerank_reader_edges_per_iteration_.push_back(reader.edges_emitted);
           pagerank_reader_family_directory_bytes_per_iteration_.push_back(
               reader.family_directory_read_bytes);
@@ -7849,6 +7851,8 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_compute_requests_per_iteration_);
       result << ",\n  \"reader_edges_per_iteration\": ";
       write_json_array(result, pagerank_reader_edges_per_iteration_);
+      result << ",\n  \"reader_range_tasks_per_iteration\": ";
+      write_json_array(result, pagerank_reader_range_tasks_per_iteration_);
       result << ",\n  \"reader_family_directory_bytes_per_iteration\": ";
       write_json_array(result,
                        pagerank_reader_family_directory_bytes_per_iteration_);
@@ -8303,6 +8307,8 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, pagerank_compute_start_cycles_);
       result << ",\n  \"compute_end_cycles_per_round\": ";
       write_json_array(result, pagerank_compute_end_cycles_);
+      result << ",\n  \"reader_range_tasks_per_iteration\": ";
+      write_json_array(result, pagerank_reader_range_tasks_per_iteration_);
       result << ",\n  \"reader_family_directory_bytes_per_iteration\": ";
       write_json_array(result,
                        pagerank_reader_family_directory_bytes_per_iteration_);
@@ -11020,6 +11026,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<std::size_t> pagerank_frontier_in_sizes_;
   std::vector<std::size_t> pagerank_frontier_out_sizes_;
   std::vector<std::uint64_t> pagerank_compute_requests_per_iteration_;
+  std::vector<std::uint64_t> pagerank_reader_range_tasks_per_iteration_;
   std::vector<std::uint64_t> pagerank_reader_edges_per_iteration_;
   std::vector<std::uint64_t>
       pagerank_reader_family_directory_bytes_per_iteration_;

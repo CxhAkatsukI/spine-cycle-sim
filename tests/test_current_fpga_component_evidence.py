@@ -76,6 +76,35 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
             )
             self.assertEqual(row["status"], "PASS")
 
+    def test_residual_pagerank_structural_work_includes_range_tasks_and_edges(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result_path = root / "result.json"
+            result_path.write_text("{}\n", encoding="utf-8")
+            logs = []
+            for index in range(3):
+                path = root / f"run{index}.log"
+                path.write_text(
+                    "KERNEL_PAIR_RESULT iteration=0 task_count=27 processed_edges=311\n"
+                    "KERNEL_PAIR_RESULT iteration=1 task_count=7 processed_edges=275\n",
+                    encoding="utf-8",
+                )
+                logs.append(path)
+            row = spine_structural_work_row(
+                "thresholded_residual_pagerank",
+                "ask540",
+                "holdout",
+                {
+                    "iterations": 2,
+                    "reader_range_tasks_per_iteration": [27, 7],
+                    "reader_edges_per_iteration": [311, 275],
+                },
+                result_path,
+                logs,
+                [{"iterations": "2"}] * 3,
+            )
+            self.assertEqual(row["status"], "PASS")
+
     def test_explicit_spine_cc_ledgers_pass(self):
         result = {
             "backend_requests": 5,

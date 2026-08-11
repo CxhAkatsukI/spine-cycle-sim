@@ -298,8 +298,13 @@ def spine_structural_work_row(
         simulator_edges = [int(value) for value in result["reader_edges_per_iteration"]]
     else:
         simulator_iterations = int(result["iterations"])
-        simulator_tasks = []
-        simulator_edges = []
+        simulator_tasks = [
+            int(value)
+            for value in result.get("reader_range_tasks_per_iteration", [])
+        ]
+        simulator_edges = [
+            int(value) for value in result.get("reader_edges_per_iteration", [])
+        ]
 
     hardware_iterations_per_run = [int(record["iterations"]) for record in timing_records]
     hardware_tasks_per_run: list[list[int]] = []
