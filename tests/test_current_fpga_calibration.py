@@ -7,6 +7,7 @@ from spine_cycle_sim.calibration.current_fpga import (
     CurrentFPGAOverlapRecord,
     CurrentFPGAOverlapV6Record,
     CurrentFPGATimingRecord,
+    SpineRealizedWorkRecord,
     absolute_error_percent,
     composed_prediction_rows,
     component_prediction_rows,
@@ -15,17 +16,64 @@ from spine_cycle_sim.calibration.current_fpga import (
     fit_composed_timing_model,
     fit_overlap_timing_model,
     fit_overlap_v6_timing_model,
+    fit_spine_realized_work_model,
     fit_total_scale,
     fit_total_scale_calibration_only,
     overlap_leave_one_dataset_out_rows,
     overlap_prediction_rows,
     overlap_v6_prediction_rows,
     spearman_rank_correlation,
+    spine_realized_work_prediction_rows,
     total_prediction_rows,
 )
 
 
 class CurrentFPGACalibrationTests(unittest.TestCase):
+    def realized_work_rows(self):
+        rows = []
+        for dataset_index, dataset in enumerate(("au", "su", "wk", "r19"), 1):
+            for algorithm_index, algorithm in enumerate(
+                ("weighted_sssp", "connected_components"), 1
+            ):
+                rounds = 1 + dataset_index % 2
+                tasks = 3 * dataset_index + algorithm_index
+                edges = 11 * dataset_index + 2 * algorithm_index
+                rows.append(
+                    SpineRealizedWorkRecord(
+                        algorithm,
+                        f"p{algorithm_index}",
+                        dataset,
+                        "calibration",
+                        rounds,
+                        tasks,
+                        edges,
+                        100 * rounds + 2 * edges,
+                        80 * rounds + 3 * tasks + 4 * edges,
+                        110 * rounds + 5 * tasks + 6 * edges,
+                    )
+                )
+        return rows
+
+    def test_realized_work_model_recovers_hls_work_terms(self):
+        rows = self.realized_work_rows()
+        model = fit_spine_realized_work_model(rows)
+        self.assertAlmostEqual(model.reader_round_cycles, 100.0)
+        self.assertAlmostEqual(model.reader_processed_edge_cycles, 2.0)
+        self.assertAlmostEqual(model.compute_range_task_cycles, 3.0)
+        self.assertAlmostEqual(model.span_processed_edge_cycles, 6.0)
+        predictions = spine_realized_work_prediction_rows(rows, model)
+        self.assertTrue(
+            all(row["iterative_span_absolute_error_percent"] < 1e-8 for row in predictions)
+        )
+
+    def test_realized_work_freeze_rejects_validation_rows(self):
+        rows = self.realized_work_rows()
+        rows[-1] = SpineRealizedWorkRecord(
+            **{**rows[-1].__dict__, "role": "holdout"}
+        )
+        with self.assertRaisesRegex(ValueError, "rejects non-calibration"):
+            fit_spine_realized_work_model(rows)
+
     def timing_rows(self):
         return [
             CurrentFPGATimingRecord("spine", "sssp", "p1", "au", "calibration", 10, 20),

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "contract_id": "current_fpga_spine_realized_work_v13_20260812",
+  "status": "frozen_before_holdout_execution",
+  "architecture": "spine_owner_fifo",
+  "clock_mhz": 150.0,
+  "simulator_plugin": {
+    "path": "cpp/sst/build/sst-current-fpga-v12/libspine_cycle.so",
+    "sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70"
+  },
+  "profiles": {
+    "weighted_sssp": "spine_owner_fifo_sssp_hls_v1",
+    "connected_components": "spine_owner_fifo_cc_hls_v1",
+    "thresholded_residual_pagerank": "spine_owner_fifo_respr_hls_v1"
+  },
+  "roles": {
+    "calibration": ["au", "su", "wk", "r19"],
+    "holdout": ["pk", "lj08"],
+    "stress_validation": ["so", "lj"]
+  },
+  "model": {
+    "maintenance": "one positive geometric scale per algorithm applied to execution-driven maintenance cycles",
+    "reader": "non-negative OLS shared by SSSP and CC: rounds + processed edges",
+    "compute": "non-negative OLS shared by SSSP and CC: rounds + range tasks + processed edges",
+    "iterative_span": "non-negative OLS shared by SSSP and CC: rounds + range tasks + processed edges",
+    "total": "predicted maintenance plus predicted iterative span; zero-round residual PageRank is maintenance-only",
+    "fit_roles": ["calibration"],
+    "holdout_may_fit": false
+  },
+  "mechanism_mapping": {
+    "rounds": "reader/compute kernel launch, control, and drain per device round",
+    "range_tasks": "HLS range-task and tile service work",
+    "processed_edges": "actual edge payloads consumed by the routed reader/compute path"
+  },
+  "thresholds": {
+    "holdout_total_median_absolute_error_percent_max": 15.0,
+    "holdout_total_absolute_error_percent_max": 30.0,
+    "holdout_component_median_absolute_error_percent_max": 20.0,
+    "workload_rank_spearman_min": 0.9
+  },
+  "evidence_policy": {
+    "calibration_and_holdout_disjoint": true,
+    "holdout_results_absent_at_freeze": true,
+    "failed_v12_holdout_remains_failed": true,
+    "v12_parameters_are_not_modified": true,
+    "correctness_and_structural_ledgers_must_pass_before_timing_admission": true
+  },
+  "supersedes": {
+    "spine_timing_model": "evaluation_refresh_fpga_calibration_v8_20260812",
+    "reason": "The frozen v12 one-scale Spine timing model failed on WK/R19 even though routed rounds, range tasks, processed edges, and memory ledgers matched. V13 promotes those inspected rows to calibration and freezes an HLS-work model before PK/LJ08 execution. G+R remains governed by the independently frozen v12 model."
+  }
+}

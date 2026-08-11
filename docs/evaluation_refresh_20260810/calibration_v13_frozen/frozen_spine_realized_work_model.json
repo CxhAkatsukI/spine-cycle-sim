@@ -1,0 +1,61 @@
+{
+  "contract_id": "current_fpga_spine_realized_work_v13_20260812",
+  "fit_role": "calibration_only",
+  "holdout_used_for_fit": false,
+  "iterative_model": {
+    "calibration_datasets": [
+      "au",
+      "r19",
+      "su",
+      "wk"
+    ],
+    "compute_processed_edge_cycles": 83.50961399975357,
+    "compute_range_task_cycles": 331.24427210977245,
+    "compute_round_cycles": 54286.638634411654,
+    "reader_processed_edge_cycles": 160.05671394653973,
+    "reader_round_cycles": 95050.05222701243,
+    "span_processed_edge_cycles": 160.39316490561637,
+    "span_range_task_cycles": 122.21187059022667,
+    "span_round_cycles": 93860.8148205498
+  },
+  "maintenance_models": {
+    "connected_components": {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "r19",
+        "su",
+        "wk"
+      ],
+      "component": "maintenance",
+      "scale": 3.59929805239407
+    },
+    "thresholded_residual_pagerank": {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "r19",
+        "su",
+        "wk"
+      ],
+      "component": "maintenance",
+      "scale": 5.42209989393802
+    },
+    "weighted_sssp": {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "r19",
+        "su",
+        "wk"
+      ],
+      "component": "maintenance",
+      "scale": 5.070289500232786
+    }
+  },
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_HOLDOUT"
+}

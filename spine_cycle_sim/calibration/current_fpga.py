@@ -39,6 +39,68 @@ class CurrentFPGAComponentRecord:
 
 
 @dataclass(frozen=True)
+class SpineRealizedWorkRecord:
+    """Routed Spine timing paired with execution-driven HLS work counters."""
+
+    algorithm: str
+    profile_id: str
+    dataset: str
+    role: str
+    rounds: int
+    range_tasks: float
+    processed_edges: float
+    hardware_reader_cycles: float
+    hardware_compute_cycles: float
+    hardware_iterative_span_cycles: float
+
+
+@dataclass(frozen=True)
+class SpineRealizedWorkModel:
+    """Shared reader/compute model for the routed owner-FIFO Spine kernels."""
+
+    calibration_datasets: tuple[str, ...]
+    reader_round_cycles: float
+    reader_processed_edge_cycles: float
+    compute_round_cycles: float
+    compute_range_task_cycles: float
+    compute_processed_edge_cycles: float
+    span_round_cycles: float
+    span_range_task_cycles: float
+    span_processed_edge_cycles: float
+
+    def predict_components(
+        self, *, rounds: int, range_tasks: float, processed_edges: float
+    ) -> dict[str, float]:
+        if rounds <= 0:
+            raise ValueError("realized-work timing requires at least one round")
+        for value, name in (
+            (range_tasks, "range_tasks"),
+            (processed_edges, "processed_edges"),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and non-negative")
+        reader = (
+            self.reader_round_cycles * rounds
+            + self.reader_processed_edge_cycles * processed_edges
+        )
+        compute = (
+            self.compute_round_cycles * rounds
+            + self.compute_range_task_cycles * range_tasks
+            + self.compute_processed_edge_cycles * processed_edges
+        )
+        span = (
+            self.span_round_cycles * rounds
+            + self.span_range_task_cycles * range_tasks
+            + self.span_processed_edge_cycles * processed_edges
+        )
+        return {
+            "reader_cycles": reader,
+            "compute_cycles": compute,
+            "iterative_span_cycles": span,
+        }
+
+
+@dataclass(frozen=True)
 class PositiveScaleModel:
     architecture: str
     algorithm: str
@@ -649,6 +711,101 @@ def _fit_nonnegative_feature_model(
     if not math.isfinite(best_error):
         raise ValueError("non-negative feature fit has no feasible solution")
     return tuple(value / scale for value, scale in zip(best, scales))
+
+
+def fit_spine_realized_work_model(
+    records: Iterable[SpineRealizedWorkRecord],
+) -> SpineRealizedWorkModel:
+    """Fit one shared routed timing model using calibration rows only.
+
+    Reader and compute use the same work quantities that the routed HLS reports:
+    kernel rounds, range tasks, and processed edges.  The fit is shared across
+    SSSP and CC because both use the same reader and owner-FIFO kernel structure.
+    """
+
+    rows = tuple(records)
+    if len(rows) < 8:
+        raise ValueError("realized-work fit requires at least eight calibration rows")
+    if any(row.role != "calibration" for row in rows):
+        raise ValueError("realized-work freeze rejects non-calibration rows")
+    if {row.algorithm for row in rows} != {"weighted_sssp", "connected_components"}:
+        raise ValueError("realized-work fit requires SSSP and CC calibration rows")
+    dataset_algorithms: dict[str, set[str]] = {}
+    for row in rows:
+        if row.rounds <= 0:
+            raise ValueError("realized-work calibration rows require positive rounds")
+        for value, name in (
+            (row.range_tasks, "range_tasks"),
+            (row.processed_edges, "processed_edges"),
+            (row.hardware_reader_cycles, "hardware_reader_cycles"),
+            (row.hardware_compute_cycles, "hardware_compute_cycles"),
+            (row.hardware_iterative_span_cycles, "hardware_iterative_span_cycles"),
+        ):
+            _require_positive_finite(value, name)
+        if row.hardware_iterative_span_cycles < max(
+            row.hardware_reader_cycles, row.hardware_compute_cycles
+        ):
+            raise ValueError("hardware span cannot be shorter than reader or compute")
+        dataset_algorithms.setdefault(row.dataset, set()).add(row.algorithm)
+    if len(dataset_algorithms) < 4 or any(
+        algorithms != {"weighted_sssp", "connected_components"}
+        for algorithms in dataset_algorithms.values()
+    ):
+        raise ValueError("realized-work fit requires paired algorithms on four datasets")
+
+    reader_round, reader_edge = _fit_nonnegative_feature_model(
+        [(float(row.rounds), row.processed_edges) for row in rows],
+        [row.hardware_reader_cycles for row in rows],
+    )
+    compute_round, compute_task, compute_edge = _fit_nonnegative_feature_model(
+        [
+            (float(row.rounds), row.range_tasks, row.processed_edges)
+            for row in rows
+        ],
+        [row.hardware_compute_cycles for row in rows],
+    )
+    span_round, span_task, span_edge = _fit_nonnegative_feature_model(
+        [
+            (float(row.rounds), row.range_tasks, row.processed_edges)
+            for row in rows
+        ],
+        [row.hardware_iterative_span_cycles for row in rows],
+    )
+    return SpineRealizedWorkModel(
+        calibration_datasets=tuple(sorted(dataset_algorithms)),
+        reader_round_cycles=reader_round,
+        reader_processed_edge_cycles=reader_edge,
+        compute_round_cycles=compute_round,
+        compute_range_task_cycles=compute_task,
+        compute_processed_edge_cycles=compute_edge,
+        span_round_cycles=span_round,
+        span_range_task_cycles=span_task,
+        span_processed_edge_cycles=span_edge,
+    )
+
+
+def spine_realized_work_prediction_rows(
+    records: Iterable[SpineRealizedWorkRecord], model: SpineRealizedWorkModel
+) -> list[dict[str, object]]:
+    """Apply a frozen realized-work model without fitting validation rows."""
+
+    rows: list[dict[str, object]] = []
+    for record in records:
+        prediction = model.predict_components(
+            rounds=record.rounds,
+            range_tasks=record.range_tasks,
+            processed_edges=record.processed_edges,
+        )
+        row = {**asdict(record)}
+        for component in ("reader", "compute", "iterative_span"):
+            predicted = prediction[f"{component}_cycles"]
+            hardware = float(getattr(record, f"hardware_{component}_cycles"))
+            row[f"predicted_{component}_cycles"] = predicted
+            row[f"{component}_absolute_error_percent"] = absolute_error_percent(
+                predicted, hardware
+            )
+        rows.append(row)
+    return rows
 
 
 def fit_overlap_timing_model(
