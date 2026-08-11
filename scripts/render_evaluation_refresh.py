@@ -465,6 +465,9 @@ def collect_fig9_rows_from_campaign(
         "sx_askubuntu": "AU",
         "sx_superuser": "SU",
         "wiki_talk_temporal": "WK",
+        "au": "AU",
+        "su": "SU",
+        "wk": "WK",
     }
     for row in read_csv(path):
         if row.get("competitor") != "grasu_regraph_k4_shared":
@@ -496,11 +499,18 @@ def collect_fig9_rows_from_campaign(
         )
     )
     expected = len(FIG9_ALGORITHM_ORDER) * len(FIG9_DATASET_ORDER)
-    status = (
-        "PASS_CAMPAIGN_ANALYSIS"
-        if len(rows) == expected
-        else "PARTIAL_CAMPAIGN_ANALYSIS"
+    manifest_path = analysis_dir / "manifest.json"
+    manifest_status = (
+        str(read_json(manifest_path).get("status", ""))
+        if manifest_path.is_file()
+        else ""
     )
+    if len(rows) == expected and manifest_status == "PASS_CURRENT_MODEL_DATA":
+        status = "PASS_CURRENT_MODEL_DATA"
+    elif len(rows) == expected:
+        status = "PASS_CAMPAIGN_ANALYSIS"
+    else:
+        status = "PARTIAL_CAMPAIGN_ANALYSIS"
     return rows, path, status
 
 
@@ -1018,7 +1028,7 @@ def main() -> int:
         candidate_rows, fig9_source, fig9_status = collect_fig9_rows_from_campaign(
             args.campaign_analysis_dir.resolve()
         )
-        if fig9_status == "PASS_CAMPAIGN_ANALYSIS" or (
+        if fig9_status in {"PASS_CAMPAIGN_ANALYSIS", "PASS_CURRENT_MODEL_DATA"} or (
             candidate_rows and args.allow_partial_campaign_fig9
         ):
             fig9_rows = candidate_rows
