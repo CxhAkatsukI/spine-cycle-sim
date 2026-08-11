@@ -27,6 +27,7 @@ from spine_cycle_sim.experiments.connected_components_workloads import (  # noqa
 from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
     grasu_hbm_address_environment,
     partition_layout_footprints,
+    selected_source_state_stride_bytes,
     validate_grasu_hbm_address_map,
     validate_partition_footprints,
 )
@@ -415,6 +416,7 @@ def main() -> int:
 
     env = _with_progress_defaults(os.environ.copy(), args.out_dir)
     address_regions = None
+    runtime_source_state_stride = None
     if args.architecture == "spine":
         binding = spine_memory_binding(
             profile,
@@ -449,6 +451,9 @@ def main() -> int:
         destination_partitions = (
             graph.vertices + partition_vertices - 1
         ) // partition_vertices
+        runtime_source_state_stride = selected_source_state_stride_bytes(
+            parameters, destination_partitions
+        )
         footprints = partition_layout_footprints(
             graph.records,
             update.records,
@@ -505,6 +510,9 @@ def main() -> int:
                     )
                 ),
                 "GRASU_SST_SOURCE_BUFFER_VERTICES": str(source_buffer_vertices),
+                "GRASU_SST_SOURCE_STATE_BUFFER_STRIDE": str(
+                    runtime_source_state_stride
+                ),
                 "GRASU_SST_SOURCE_CACHE_REQUEST_FIFO_DEPTH": str(
                     parameters["regraph_source_cache_request_fifo_depth"]
                 ),
@@ -653,6 +661,7 @@ def main() -> int:
         "sst_library_binding": sst_library,
         "sst_memory_binding": binding.as_manifest(),
         "physical_hbm_address_regions": address_regions,
+        "runtime_source_state_stride_bytes": runtime_source_state_stride,
         "core_mhz": core_mhz,
         "compute_pipelines": compute_pipelines,
         "downstream_sharing": (

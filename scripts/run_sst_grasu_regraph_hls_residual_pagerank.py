@@ -29,6 +29,7 @@ from scripts.run_sst_grasu_regraph_hls_weighted import (  # noqa: E402
 from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
     grasu_hbm_address_environment,
     partition_layout_footprints,
+    selected_source_state_stride_bytes,
     validate_grasu_hbm_address_map,
     validate_partition_footprints,
 )
@@ -457,13 +458,16 @@ def main() -> int:
     initial = load_slice(args.workload.resolve())
     update = load_slice(args.update_workload.resolve())
     oracle = build_hls_weighted_oracle(initial, update, 0)
+    partition_vertices = int(params["regraph_partition_vertices"])
+    destination_partitions = (
+        initial.vertices + partition_vertices - 1
+    ) // partition_vertices
+    runtime_source_state_stride = selected_source_state_stride_bytes(
+        params, destination_partitions
+    )
     address_regions = None
     address_environment: dict[str, str] = {}
     if params.get("physical_address_map_id"):
-        partition_vertices = int(params["regraph_partition_vertices"])
-        destination_partitions = (
-            initial.vertices + partition_vertices - 1
-        ) // partition_vertices
         footprints = partition_layout_footprints(
             initial.records,
             update.records,
@@ -654,7 +658,7 @@ def main() -> int:
                 params["grasu_source_state_base_bytes"]
             ),
             "GRASU_SST_SOURCE_STATE_BUFFER_STRIDE": str(
-                params["grasu_source_state_buffer_stride_bytes"]
+                runtime_source_state_stride
             ),
             "GRASU_SST_DEGREE_BASE": str(params["grasu_degree_base_bytes"]),
             "GRASU_SST_PARTITION_ADDRESS_STRIDE": str(
@@ -722,6 +726,7 @@ def main() -> int:
         "update_workload_sha256": sha256(args.update_workload.resolve()),
         "sst_memory_binding": binding.as_manifest(),
         "physical_hbm_address_regions": address_regions,
+        "runtime_source_state_stride_bytes": runtime_source_state_stride,
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
         "host_oracle_storage": "compacted_before_sst_launch_v1",

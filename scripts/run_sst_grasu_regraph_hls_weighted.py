@@ -27,6 +27,7 @@ from spine_cycle_sim.experiments.profile_capabilities import (  # noqa: E402
 from spine_cycle_sim.experiments.grasu_addressing import (  # noqa: E402
     grasu_hbm_address_environment,
     partition_layout_footprints,
+    selected_source_state_stride_bytes,
     validate_grasu_hbm_address_map,
     validate_partition_footprints,
 )
@@ -590,6 +591,12 @@ def main() -> int:
     input_records = len(initial.records)
     update_records = len(update.records)
     partition_vertices = int(params["regraph_partition_vertices"])
+    destination_partitions = (
+        input_vertices + partition_vertices - 1
+    ) // partition_vertices
+    runtime_source_state_stride = selected_source_state_stride_bytes(
+        params, destination_partitions
+    )
     if args.update_only:
         runtime_oracle = build_hls_weighted_update_only_oracle(
             initial, update, args.source, partition_vertices
@@ -600,9 +607,6 @@ def main() -> int:
     address_regions = None
     address_environment: dict[str, str] = {}
     if params.get("physical_address_map_id"):
-        destination_partitions = (
-            initial.vertices + partition_vertices - 1
-        ) // partition_vertices
         footprints = partition_layout_footprints(
             initial.records,
             update.records,
@@ -691,6 +695,7 @@ def main() -> int:
         "selected_supersteps": supersteps,
         "superstep_policy": superstep_policy,
         "destination_partitions": len(runtime_oracle.partition_max_sources),
+        "runtime_source_state_stride_bytes": runtime_source_state_stride,
         "nonempty_destination_partitions": sum(
             value is not None for value in runtime_oracle.partition_max_sources
         ),
@@ -764,6 +769,9 @@ def main() -> int:
             ),
             "GRASU_SST_SOURCE_BUFFER_VERTICES": str(
                 params["regraph_source_buffer_vertices"]
+            ),
+            "GRASU_SST_SOURCE_STATE_BUFFER_STRIDE": str(
+                runtime_source_state_stride
             ),
             "GRASU_SST_SOURCE_CACHE_REQUEST_FIFO_DEPTH": str(
                 params["regraph_source_cache_request_fifo_depth"]
@@ -880,6 +888,7 @@ def main() -> int:
         "source_external": args.source,
         "sst_memory_binding": binding.as_manifest(),
         "physical_hbm_address_regions": address_regions,
+        "runtime_source_state_stride_bytes": runtime_source_state_stride,
         "sst_library_binding": sst_library,
         "sst_plugin_sha256": sst_library["plugin_sha256"],
         "sst_host_wall_seconds": wall_seconds,

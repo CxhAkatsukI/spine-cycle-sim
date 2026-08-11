@@ -7,6 +7,7 @@ from spine_cycle_sim.experiments.grasu_addressing import (
     FROZEN_CANDIDATE10_ADDRESS_PARAMETERS,
     grasu_hbm_address_environment,
     partition_layout_footprints,
+    selected_source_state_stride_bytes,
     source_state_prefetch_guard_bytes,
     validate_grasu_hbm_address_map,
     validate_partition_footprints,
@@ -77,6 +78,16 @@ class GraSuAddressingTests(unittest.TestCase):
         self.assertEqual(
             environment["GRASU_SST_PARTITION_ADDRESS_STRIDE"], str(16 << 20)
         )
+
+    def test_runtime_source_stride_expands_with_partition_count(self) -> None:
+        runtime = parameters()
+        runtime["runtime_source_state_stride"] = True
+        self.assertEqual(selected_source_state_stride_bytes(runtime, 8), 2 << 20)
+
+    def test_frozen_source_stride_rejects_runtime_underflow(self) -> None:
+        frozen = parameters()
+        with self.assertRaisesRegex(ValueError, "double-buffer stride is too small"):
+            selected_source_state_stride_bytes(frozen, 8)
 
     def test_runtime_packed_map_supports_eight_partitions_without_aliasing(
         self,

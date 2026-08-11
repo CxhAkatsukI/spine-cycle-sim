@@ -90,6 +90,23 @@ def required_source_state_stride_bytes(
     return ((required + 4095) // 4096) * 4096
 
 
+def selected_source_state_stride_bytes(
+    parameters: Mapping[str, Any], destination_partitions: int
+) -> int:
+    """Select the routed minimum or a workload-sized runtime stride."""
+
+    frozen = int(parameters["grasu_source_state_buffer_stride_bytes"])
+    required = required_source_state_stride_bytes(parameters, destination_partitions)
+    if bool(parameters.get("runtime_source_state_stride", False)):
+        return max(frozen, required)
+    if frozen < required:
+        raise ValueError(
+            "source-state double-buffer stride is too small: "
+            f"{frozen} < {required}"
+        )
+    return frozen
+
+
 def source_state_prefetch_guard_bytes(parameters: Mapping[str, Any]) -> int:
     """Return storage for ReGraph's one-window-ahead source prefetch.
 
