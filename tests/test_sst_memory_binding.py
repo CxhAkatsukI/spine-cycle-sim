@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SstMemoryBindingTests(unittest.TestCase):
-    def test_auto_hot_skips_vertices_from_already_fit_partitions(self) -> None:
+    def test_auto_hot_matches_hls_global_promotion_order(self) -> None:
         indegree = {destination: 10 for destination in range(8)}
         indegree[64] = 15
         promoted = _spine_automatic_hot_vertices(
@@ -34,8 +34,8 @@ class SstMemoryBindingTests(unittest.TestCase):
                 "vertex_partition_size": 64,
             },
         )
-        self.assertNotIn(64, promoted)
-        self.assertTrue(set(promoted) <= set(range(8)))
+        self.assertIn(64, promoted)
+        self.assertTrue(set(promoted) <= set(range(8)) | {64})
 
     def test_auto_hot_matches_hls_hash_collision_rejection(self) -> None:
         same_shard: list[int] = []

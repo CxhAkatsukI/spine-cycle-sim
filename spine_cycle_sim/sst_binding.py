@@ -191,8 +191,6 @@ def _spine_automatic_hot_vertices(
         if all(edges <= family_capacity for edges in cold):
             break
         partition = min(destination // partition_vertices, partitions - 1)
-        if cold[partition] <= family_capacity:
-            continue
         shard = _spine_hot_hash(destination) % partitions
         cold[partition] -= degree
         hot[shard] += degree

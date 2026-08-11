@@ -883,6 +883,8 @@ SpineResidentClassification classify_spine_resident_snapshot(
                 }
                 return left.dst < right.dst;
               });
+    // Match the routed host exactly: consume the global degree order until all
+    // cold partitions fit, including candidates from partitions that fit.
     for (const Candidate &candidate : candidates) {
       if (within(result.cold_partition_edges,
                  result.cold_partition_target)) {
@@ -891,10 +893,6 @@ SpineResidentClassification classify_spine_resident_snapshot(
       const std::size_t partition = std::min<std::size_t>(
           candidate.dst / config.vertex_partition_size,
           config.partitions - 1);
-      if (result.cold_partition_edges[partition] <=
-          result.cold_partition_target) {
-        continue;
-      }
       const std::size_t shard = spine_hot_shard(candidate.dst);
       result.cold_partition_edges[partition] -= candidate.degree;
       result.hot_shard_edges[shard] += candidate.degree;

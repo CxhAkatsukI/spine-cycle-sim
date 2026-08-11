@@ -6447,7 +6447,7 @@ void test_spine_resident_snapshot_auto_promotes_hot_destinations() {
           "classified resident preload lost physical records");
 }
 
-void test_spine_resident_snapshot_skips_fit_partition_candidates() {
+void test_spine_resident_snapshot_matches_hls_global_promotion_order() {
   SpineL0Config config;
   config.max_sort_edges = 8;
   config.max_vertices = 256;
@@ -6455,7 +6455,7 @@ void test_spine_resident_snapshot_skips_fit_partition_candidates() {
   SpineEdgeSlice snapshot{
       .vertices = 256,
       .edges = {},
-      .case_name = "resident_skip_fit_partition",
+      .case_name = "resident_hls_global_promotion_order",
   };
   snapshot.edges.reserve(1'370);
   for (std::uint32_t dst = 0; dst < 16; ++dst) {
@@ -6473,12 +6473,12 @@ void test_spine_resident_snapshot_skips_fit_partition_candidates() {
       classify_spine_resident_snapshot(snapshot, config);
   require(classification.automatic_hot_promotion &&
               std::find(classification.hot_vertices.begin(),
-                        classification.hot_vertices.end(), 16) ==
+                        classification.hot_vertices.end(), 16) !=
                   classification.hot_vertices.end() &&
-              classification.cold_partition_edges[1] == 250 &&
+              classification.cold_partition_edges[1] == 0 &&
               classification.cold_partition_edges[0] <=
                   classification.cold_partition_target,
-          "resident classifier overpromoted an already-fit cold partition");
+          "resident classifier diverged from HLS global promotion order");
 }
 
 void test_spine_resident_snapshot_rejects_superhub() {
@@ -10130,8 +10130,8 @@ int main(int argc, char **argv) {
        test_spine_cold_resident_snapshot_selects_refactor31_level},
       {"spine_resident_hot_classification",
        test_spine_resident_snapshot_auto_promotes_hot_destinations},
-      {"spine_resident_skip_fit_partition",
-       test_spine_resident_snapshot_skips_fit_partition_candidates},
+      {"spine_resident_hls_global_promotion_order",
+       test_spine_resident_snapshot_matches_hls_global_promotion_order},
       {"spine_resident_superhub_capacity",
        test_spine_resident_snapshot_rejects_superhub},
       {"spine_resident_hot_hash_collision_rejection",
