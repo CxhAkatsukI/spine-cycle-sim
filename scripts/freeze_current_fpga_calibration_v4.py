@@ -22,6 +22,7 @@ from scripts.analyze_current_fpga_calibration import (  # noqa: E402
     read_json,
 )
 from scripts.analyze_current_fpga_components import (  # noqa: E402
+    EXPECTED_COMPONENT_KEYS,
     component_samples,
     discover_hardware_logs,
     evidence_identity,
@@ -43,30 +44,6 @@ DEFAULT_CONTRACT = (
     ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
 )
 DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen"
-EXPECTED_COMPONENT_KEYS = frozenset(
-    {
-        ("grasu_regraph", algorithm, component)
-        for algorithm in (
-            "weighted_sssp",
-            "connected_components",
-            "thresholded_residual_pagerank",
-        )
-        for component in ("update_event", "downstream_hbm_event")
-    }
-    | {
-        ("spine", algorithm, component)
-        for algorithm in ("weighted_sssp", "connected_components")
-        for component in (
-            "maintenance",
-            "reader_event",
-            "compute_event",
-            "iterative_kernel_span",
-        )
-    }
-    | {("spine", "thresholded_residual_pagerank", "maintenance")}
-)
-
-
 def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 

@@ -3,6 +3,7 @@ from pathlib import Path
 import unittest
 
 from scripts.analyze_current_fpga_components import (
+    EXPECTED_COMPONENT_KEYS,
     memory_ledger_row,
     parse_key_value_line,
     prefixed_records,
@@ -90,6 +91,21 @@ def grasu_fifo_evidence() -> tuple[dict[str, int], dict[str, int]]:
 
 
 class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
+    def test_component_scope_contains_all_fifteen_observable_groups(self):
+        self.assertEqual(len(EXPECTED_COMPONENT_KEYS), 15)
+        self.assertIn(
+            ("spine", "weighted_sssp", "iterative_kernel_span"),
+            EXPECTED_COMPONENT_KEYS,
+        )
+        self.assertIn(
+            (
+                "grasu_regraph",
+                "thresholded_residual_pagerank",
+                "downstream_hbm_event",
+            ),
+            EXPECTED_COMPONENT_KEYS,
+        )
+
     def test_parse_key_value_timing_line(self):
         parsed = parse_key_value_line(
             "SPINE_HW_TIMING algorithm=weighted_sssp reader_ms=1.25 iterations=2",

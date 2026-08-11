@@ -39,6 +39,28 @@ DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json"
 DEFAULT_CONTRACT = ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
 DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v12_analysis"
 ARCHITECTURES = ("spine", "grasu_regraph")
+EXPECTED_COMPONENT_KEYS = frozenset(
+    {
+        ("grasu_regraph", algorithm, component)
+        for algorithm in (
+            "weighted_sssp",
+            "connected_components",
+            "thresholded_residual_pagerank",
+        )
+        for component in ("update_event", "downstream_hbm_event")
+    }
+    | {
+        ("spine", algorithm, component)
+        for algorithm in ("weighted_sssp", "connected_components")
+        for component in (
+            "maintenance",
+            "reader_event",
+            "compute_event",
+            "iterative_kernel_span",
+        )
+    }
+    | {("spine", "thresholded_residual_pagerank", "maintenance")}
+)
 GRASU_FIFO_DEPTH_FIELDS = {
     "source_cache_request_fifo_max_occupancy": (
         "regraph_source_cache_request_fifo_depth"
@@ -950,10 +972,14 @@ def main() -> int:
         component_records, component_threshold, frozen_models
     )
 
-    expected_component_groups = 3 + 4 + 1 + 2 + 2 + 2
+    observed_component_keys = {
+        (str(row["architecture"]), str(row["algorithm"]), str(row["component"]))
+        for row in summaries
+    }
+    expected_component_groups = len(EXPECTED_COMPONENT_KEYS)
     component_pass = (
         not missing
-        and len(summaries) == expected_component_groups
+        and observed_component_keys == EXPECTED_COMPONENT_KEYS
         and all(bool(row["holdout_median_pass"]) for row in summaries)
     )
     component_status = "PASS" if component_pass else ("INCOMPLETE" if missing else "FAIL")
