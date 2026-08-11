@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "status": "PASS_WITH_TRIGGERED_ROWS_REQUIRING_RERUN",
+  "source_revision": "f5cd7d0471a07a55cdf8185fe96308b79810dea0",
+  "baseline_plugin_sha256": "6739bd1056b75d86fe825c2208640e64c9a940c4814f59f105eda703285cdb35",
+  "candidate_plugin_sha256": "f69423f67d6d98bed90fd7d00ff28a055097ae797eca587e2a15bce242e9ecc8",
+  "changed_source_scope": "GraSU sharded runtime accepts legal empty destination shards, routed PMA processors use each lane's own HBM base offset, and update-stage failures retain their original diagnostic",
+  "classification": "exact_transition_on_non_triggering_microcases_only",
+  "reuse_policy": {
+    "allowed": "A correctness-admitted legacy row may reuse its frozen hardware scale only after the candidate plugin produces an exact result and cycle match for the relevant non-triggering path.",
+    "forbidden": "A row that rejected an empty shard, addressed a nonzero-offset PMA lane, failed correctness, or did not complete under the legacy plugin must be rerun with the candidate plugin. Transition evidence is not a timing fit."
+  },
+  "rows": [
+    {
+      "label": "weighted_sssp",
+      "status": "PASS",
+      "cycles": 99885,
+      "exact_result_match": true,
+      "baseline": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_weighted_v1",
+        "manifest_sha256": "57471d128dfa7ebbc964e8973022a8e17297559590581b81d6307287639092ae",
+        "result_sha256": "04d02e7fad0152eb48fa23ff4a7d97ad877b5b93a09de14f0d77bb1b18332e3c"
+      },
+      "candidate": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f5cd/grasu_weighted_v7",
+        "manifest_sha256": "e0a298ac3b6f2c5c8067f62ddedb4a63d1131f00b6133534e4c7a54aecf8566d",
+        "result_sha256": "04d02e7fad0152eb48fa23ff4a7d97ad877b5b93a09de14f0d77bb1b18332e3c"
+      }
+    },
+    {
+      "label": "connected_components",
+      "status": "PASS",
+      "cycles": 201893,
+      "exact_result_match": true,
+      "baseline": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_cc_v1",
+        "manifest_sha256": "d4f3bf2e9ea0ff7574e1cb1fbf654facc1189cd16f8c25bf8ea76939f64cbd3b",
+        "result_sha256": "f23f85a8a0eba83791290d43fa8ecbf432622dd775108c47f9500d830f080b5e"
+      },
+      "candidate": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f5cd/grasu_cc_v7",
+        "manifest_sha256": "1fdd56ecaade5336f0264783461c700433bdcc78d3a2bb1b0bf2e3a5fc3ebb26",
+        "result_sha256": "f23f85a8a0eba83791290d43fa8ecbf432622dd775108c47f9500d830f080b5e"
+      }
+    },
+    {
+      "label": "thresholded_residual_pagerank",
+      "status": "PASS",
+      "cycles": 1487890,
+      "exact_result_match": true,
+      "baseline": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_respr_v1",
+        "manifest_sha256": "e0f5a2f8b036051c73125407d74d6973f8974b3460106143b7e4d0e80bf07190",
+        "result_sha256": "0dc2a51c87392f6f648dcbb3948780c9864073e038285148690e97e666eb162e"
+      },
+      "candidate": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f5cd/grasu_respr_v7",
+        "manifest_sha256": "a7dcd2ceb0bd67eb9303695998a6f8e6415ebf17b9fd1cbd05f0267a413f7d6d",
+        "result_sha256": "0dc2a51c87392f6f648dcbb3948780c9864073e038285148690e97e666eb162e"
+      }
+    }
+  ]
+}
