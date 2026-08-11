@@ -1,0 +1,63 @@
+{
+  "changed_source_scope": "Spine resident hot/cold classifier and Spine counters only",
+  "classification": "grasu_execution_path_exact_result_equivalence",
+  "rows": [
+    {
+      "baseline": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_weighted_v1",
+        "manifest_sha256": "57471d128dfa7ebbc964e8973022a8e17297559590581b81d6307287639092ae",
+        "plugin_sha256": "6739bd1056b75d86fe825c2208640e64c9a940c4814f59f105eda703285cdb35",
+        "result_sha256": "04d02e7fad0152eb48fa23ff4a7d97ad877b5b93a09de14f0d77bb1b18332e3c"
+      },
+      "candidate": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_weighted_v4",
+        "manifest_sha256": "08e4d11cb76d69f15a482665510c92530cd3e72a243d5be6e1c7fcd7a144a34d",
+        "plugin_sha256": "f99b13a0bdf5410f3ab201d75d63dde609565f27893c2fe51790c7a2e3260ab5",
+        "result_sha256": "04d02e7fad0152eb48fa23ff4a7d97ad877b5b93a09de14f0d77bb1b18332e3c"
+      },
+      "cycles": 99885,
+      "exact_result_match": true,
+      "label": "weighted_sssp",
+      "status": "PASS"
+    },
+    {
+      "baseline": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_cc_v1",
+        "manifest_sha256": "d4f3bf2e9ea0ff7574e1cb1fbf654facc1189cd16f8c25bf8ea76939f64cbd3b",
+        "plugin_sha256": "6739bd1056b75d86fe825c2208640e64c9a940c4814f59f105eda703285cdb35",
+        "result_sha256": "f23f85a8a0eba83791290d43fa8ecbf432622dd775108c47f9500d830f080b5e"
+      },
+      "candidate": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_cc_v4",
+        "manifest_sha256": "e895d20760caf2acbbfe47961089f1846efc0b156bb2240f682c9efd28330550",
+        "plugin_sha256": "f99b13a0bdf5410f3ab201d75d63dde609565f27893c2fe51790c7a2e3260ab5",
+        "result_sha256": "f23f85a8a0eba83791290d43fa8ecbf432622dd775108c47f9500d830f080b5e"
+      },
+      "cycles": 201893,
+      "exact_result_match": true,
+      "label": "connected_components",
+      "status": "PASS"
+    },
+    {
+      "baseline": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_respr_v1",
+        "manifest_sha256": "e0f5a2f8b036051c73125407d74d6973f8974b3460106143b7e4d0e80bf07190",
+        "plugin_sha256": "6739bd1056b75d86fe825c2208640e64c9a940c4814f59f105eda703285cdb35",
+        "result_sha256": "0dc2a51c87392f6f648dcbb3948780c9864073e038285148690e97e666eb162e"
+      },
+      "candidate": {
+        "directory": "/data/tmp/chuxiao/plugin_equivalence_f742/grasu_respr_v4",
+        "manifest_sha256": "4f79a47c4ba10587017e1734a37ea014ff1b931152b8b5025dfce49d79fa2af3",
+        "plugin_sha256": "f99b13a0bdf5410f3ab201d75d63dde609565f27893c2fe51790c7a2e3260ab5",
+        "result_sha256": "0dc2a51c87392f6f648dcbb3948780c9864073e038285148690e97e666eb162e"
+      },
+      "cycles": 1487890,
+      "exact_result_match": true,
+      "label": "residual_pagerank",
+      "status": "PASS"
+    }
+  ],
+  "schema_version": 1,
+  "source_revision": "f742a1ebb17bd1e17c6819087504f9f6dfe76231",
+  "status": "PASS"
+}
