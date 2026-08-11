@@ -1,0 +1,99 @@
+{
+  "contract_id": "current_fpga_spine_overlap_v5_20260811",
+  "missing": [
+    "au_u64",
+    "su_u64"
+  ],
+  "rows": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "au",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/au_weighted_sssp_resident/spine/sssp/dynamic_au_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/au_weighted_sssp_resident/spine/sssp/dynamic_au_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/au_weighted_sssp_resident/spine/sssp/dynamic_au_weighted_sssp_insert_u8.log"
+      ],
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/au/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "lj",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/lj_weighted_sssp_resident/spine/sssp/dynamic_lj_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/lj_weighted_sssp_resident/spine/sssp/dynamic_lj_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/lj_weighted_sssp_resident/spine/sssp/dynamic_lj_weighted_sssp_insert_u8.log"
+      ],
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/lj/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "lj08",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/lj08_weighted_sssp_resident/spine/sssp/dynamic_lj08_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/lj08_weighted_sssp_resident/spine/sssp/dynamic_lj08_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/lj08_weighted_sssp_resident/spine/sssp/dynamic_lj08_weighted_sssp_insert_u8.log"
+      ],
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/lj08/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "pk",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/pk_weighted_sssp_resident/spine/sssp/dynamic_pk_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/pk_weighted_sssp_resident/spine/sssp/dynamic_pk_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/pk_weighted_sssp_resident/spine/sssp/dynamic_pk_weighted_sssp_insert_u8.log"
+      ],
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/pk/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "r19",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/r19_weighted_sssp_resident/spine/sssp/dynamic_r19_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/r19_weighted_sssp_resident/spine/sssp/dynamic_r19_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/r19_weighted_sssp_resident/spine/sssp/dynamic_r19_weighted_sssp_insert_u8.log"
+      ],
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/r19/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "so",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_matched_v2_20260806/so_weighted_sssp_resident/spine/sssp/dynamic_so_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/so_weighted_sssp_resident/spine/sssp/dynamic_so_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/so_weighted_sssp_resident/spine/sssp/dynamic_so_weighted_sssp_insert_u8.log"
+      ],
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/so/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "su",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/su_weighted_sssp_resident/spine/sssp/dynamic_su_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/su_weighted_sssp_resident/spine/sssp/dynamic_su_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/su_weighted_sssp_resident/spine/sssp/dynamic_su_weighted_sssp_insert_u8.log"
+      ],
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/su/spine/weighted_sssp"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "wk",
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/wk_weighted_sssp_resident/spine/sssp/dynamic_wk_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/wk_weighted_sssp_resident/spine/sssp/dynamic_wk_weighted_sssp_insert_u8.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/wk_weighted_sssp_resident/spine/sssp/dynamic_wk_weighted_sssp_insert_u8.log"
+      ],
+      "role": "calibration",
+      "run_dir": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/wk/spine/weighted_sssp"
+    }
+  ],
+  "schema_version": 1,
+  "status": "partial"
+}

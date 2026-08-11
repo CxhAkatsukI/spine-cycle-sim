@@ -25,6 +25,7 @@ from scripts.analyze_current_fpga_components import (  # noqa: E402
 from spine_cycle_sim.calibration.current_fpga import (  # noqa: E402
     CurrentFPGAOverlapRecord,
     fit_overlap_timing_model,
+    overlap_leave_one_dataset_out_rows,
     overlap_prediction_rows,
     spearman_rank_correlation,
 )
@@ -55,7 +56,9 @@ def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     if not rows:
         return
     with path.open("w", encoding="utf-8", newline="") as sink:
-        writer = csv.DictWriter(sink, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(
+            sink, fieldnames=list(rows[0]), lineterminator="\n"
+        )
         writer.writeheader()
         writer.writerows(rows)
 
@@ -150,6 +153,32 @@ def component_summary(rows: list[dict[str, object]]) -> list[dict[str, object]]:
     return summaries
 
 
+def leave_one_out_summary(rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    summaries: list[dict[str, object]] = []
+    for component in ("maintenance", "reader", "compute", "iterative_span", "total"):
+        errors = [float(row[f"{component}_absolute_error_percent"]) for row in rows]
+        predicted = [float(row[f"predicted_{component}_cycles"]) for row in rows]
+        hardware_field = (
+            "hardware_total_cycles"
+            if component == "total"
+            else f"hardware_{component}_cycles"
+        )
+        observed = [float(row[hardware_field]) for row in rows]
+        summaries.append(
+            {
+                "architecture": "spine",
+                "algorithm": "weighted_sssp",
+                "role": "leave_one_out",
+                "component": component,
+                "cases": len(rows),
+                "median_absolute_error_percent": statistics.median(errors),
+                "max_absolute_error_percent": max(errors),
+                "rank_spearman": spearman_rank_correlation(predicted, observed),
+            }
+        )
+    return summaries
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
@@ -213,23 +242,43 @@ def main() -> int:
             )
         )
         record = CurrentFPGAOverlapRecord(
-            "spine",
-            "weighted_sssp",
-            contract["profile"]["profile_id"],
-            dataset,
-            role,
-            rounds,
-            float(result["maintenance_cycles"]),
-            summed(result, "reader_active_cycles_per_round"),
-            summed(result, "compute_active_cycles_per_round"),
-            summed(result, "reader_memory_requests_issued_per_round"),
-            cache_bytes / 8.0,
-            active_scan_words,
-            summed(result, "processed_edges_per_round"),
-            median_field(timing, "maintenance_kernel_ms") * clock_mhz * 1000.0,
-            median_field(timing, "reader_ms") * clock_mhz * 1000.0,
-            median_field(timing, "compute_ms") * clock_mhz * 1000.0,
-            median_field(timing, "kernel_span_ms") * clock_mhz * 1000.0,
+            architecture="spine",
+            algorithm="weighted_sssp",
+            profile_id=contract["profile"]["profile_id"],
+            dataset=dataset,
+            role=role,
+            iterations=rounds,
+            simulator_vertices=float(result["vertices"]),
+            simulator_maintenance_cycles=float(result["maintenance_cycles"]),
+            simulator_reader_cycles=summed(result, "reader_active_cycles_per_round"),
+            simulator_compute_cycles=summed(result, "compute_active_cycles_per_round"),
+            simulator_reader_memory_requests=summed(
+                result, "reader_memory_requests_issued_per_round"
+            ),
+            simulator_reader_level_cache_words=cache_bytes / 8.0,
+            simulator_reader_range_tasks=summed(
+                result, "reader_range_tasks_per_round"
+            ),
+            simulator_reader_credit_stall_cycles=summed(
+                result, "reader_edge_pipeline_credit_stall_cycles_per_round"
+            ),
+            simulator_compute_active_scan_words=active_scan_words,
+            simulator_compute_range_tasks=summed(
+                result, "compute_range_tasks_per_round"
+            ),
+            simulator_processed_edges=summed(result, "processed_edges_per_round"),
+            hardware_maintenance_cycles=(
+                median_field(timing, "maintenance_kernel_ms") * clock_mhz * 1000.0
+            ),
+            hardware_reader_cycles=(
+                median_field(timing, "reader_ms") * clock_mhz * 1000.0
+            ),
+            hardware_compute_cycles=(
+                median_field(timing, "compute_ms") * clock_mhz * 1000.0
+            ),
+            hardware_iterative_span_cycles=(
+                median_field(timing, "kernel_span_ms") * clock_mhz * 1000.0
+            ),
         )
         records.append(record)
         structural_rows.append(
@@ -256,12 +305,16 @@ def main() -> int:
 
     predictions: list[dict[str, object]] = []
     summaries: list[dict[str, object]] = []
+    leave_one_out_rows: list[dict[str, object]] = []
+    leave_one_out_summaries: list[dict[str, object]] = []
     model_payload: dict[str, object] | None = None
     calibration_count = len(contract["roles"]["calibration"])
     if sum(record.role == "calibration" for record in records) == calibration_count:
         model = fit_overlap_timing_model(records)
         predictions = overlap_prediction_rows(records, model)
         summaries = component_summary(predictions)
+        leave_one_out_rows = overlap_leave_one_dataset_out_rows(records)
+        leave_one_out_summaries = leave_one_out_summary(leave_one_out_rows)
         model_payload = {**asdict(model), "fit_role": "calibration_only"}
     elif not args.allow_partial:
         raise ValueError("complete calibration set required")
@@ -275,6 +328,20 @@ def main() -> int:
         None,
     )
     thresholds = contract["thresholds"]
+    leave_one_out_total = next(
+        row
+        for row in leave_one_out_summaries
+        if row["component"] == "total"
+    ) if leave_one_out_summaries else None
+    leave_one_out_pass = bool(
+        leave_one_out_total
+        and float(leave_one_out_total["median_absolute_error_percent"])
+        <= float(thresholds["leave_one_out_median_absolute_error_percent_max"])
+        and float(leave_one_out_total["max_absolute_error_percent"])
+        <= float(thresholds["leave_one_out_absolute_error_percent_max"])
+        and float(leave_one_out_total["rank_spearman"])
+        >= float(thresholds["rank_spearman_min"])
+    )
     holdout_pass = bool(
         holdout_total
         and float(holdout_total["median_absolute_error_percent"])
@@ -294,13 +361,18 @@ def main() -> int:
     ledger_pass = bool(ledger_rows and all(row["status"] == "PASS" for row in ledger_rows))
     status = (
         "PASS"
-        if complete and holdout_pass and structural_pass and ledger_pass
+        if complete and holdout_pass and leave_one_out_pass and structural_pass and ledger_pass
         else ("INCOMPLETE" if not complete else "FAIL")
     )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     write_csv(args.out_dir / "spine_overlap_rows.csv", predictions)
     write_csv(args.out_dir / "spine_overlap_group_summary.csv", summaries)
+    write_csv(args.out_dir / "spine_overlap_leave_one_out_rows.csv", leave_one_out_rows)
+    write_csv(
+        args.out_dir / "spine_overlap_leave_one_out_summary.csv",
+        leave_one_out_summaries,
+    )
     write_json(
         args.out_dir / "spine_overlap_model.json",
         {"status": status, "model": model_payload},
@@ -326,6 +398,8 @@ def main() -> int:
             "hardware_reader_compute_intervals_summed": False,
             "missing": [list(item) for item in missing],
             "holdout_total_pass": holdout_pass,
+            "leave_one_out_pass": leave_one_out_pass,
+            "leave_one_out_summaries": leave_one_out_summaries,
             "summaries": summaries,
             "evidence": evidence_rows,
         },

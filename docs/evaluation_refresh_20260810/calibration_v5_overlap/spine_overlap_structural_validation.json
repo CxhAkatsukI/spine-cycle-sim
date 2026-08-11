@@ -1,0 +1,477 @@
+{
+  "rows": [
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "au",
+      "hardware_iterations_per_run": [
+        2,
+        2,
+        2
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          568,
+          0
+        ],
+        [
+          568,
+          0
+        ],
+        [
+          568,
+          0
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          17,
+          0
+        ],
+        [
+          17,
+          0
+        ],
+        [
+          17,
+          0
+        ]
+      ],
+      "role": "calibration",
+      "simulator_iterations": 2,
+      "simulator_processed_edges_per_iteration": [
+        568,
+        0
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/au/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "57663504cacc32b937f571a17131b441432e1387881b9d6d4fb985af5b396e0b",
+      "simulator_task_count_per_iteration": [
+        17,
+        0
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "lj",
+      "hardware_iterations_per_run": [
+        3,
+        3,
+        3
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          529,
+          11,
+          10
+        ],
+        [
+          529,
+          11,
+          10
+        ],
+        [
+          529,
+          11,
+          10
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          275,
+          9,
+          8
+        ],
+        [
+          275,
+          9,
+          8
+        ],
+        [
+          275,
+          9,
+          8
+        ]
+      ],
+      "role": "calibration",
+      "simulator_iterations": 3,
+      "simulator_processed_edges_per_iteration": [
+        529,
+        11,
+        10
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/lj/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "45d0e7d2aa6157905925b035c94cd078f5b345d118e597a95dfbd0f2df6d20d2",
+      "simulator_task_count_per_iteration": [
+        275,
+        9,
+        8
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "lj08",
+      "hardware_iterations_per_run": [
+        2,
+        2,
+        2
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          53,
+          1
+        ],
+        [
+          53,
+          1
+        ],
+        [
+          53,
+          1
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          22,
+          1
+        ],
+        [
+          22,
+          1
+        ],
+        [
+          22,
+          1
+        ]
+      ],
+      "role": "calibration",
+      "simulator_iterations": 2,
+      "simulator_processed_edges_per_iteration": [
+        53,
+        1
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/lj08/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "9dd1012d6b7052758f18eff6d3b46cc999dc51ad38b72d961827af8a0601d894",
+      "simulator_task_count_per_iteration": [
+        22,
+        1
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "pk",
+      "hardware_iterations_per_run": [
+        2,
+        2,
+        2
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          278,
+          1
+        ],
+        [
+          278,
+          1
+        ],
+        [
+          278,
+          1
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          109,
+          1
+        ],
+        [
+          109,
+          1
+        ],
+        [
+          109,
+          1
+        ]
+      ],
+      "role": "calibration",
+      "simulator_iterations": 2,
+      "simulator_processed_edges_per_iteration": [
+        278,
+        1
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/pk/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "cf02c714805bcc311229bd2b9c130290918368bca5264bc04cf2c1cdb5548145",
+      "simulator_task_count_per_iteration": [
+        109,
+        1
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "r19",
+      "hardware_iterations_per_run": [
+        2,
+        2,
+        2
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          20,
+          1
+        ],
+        [
+          20,
+          1
+        ],
+        [
+          20,
+          1
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          19,
+          1
+        ],
+        [
+          19,
+          1
+        ],
+        [
+          19,
+          1
+        ]
+      ],
+      "role": "calibration",
+      "simulator_iterations": 2,
+      "simulator_processed_edges_per_iteration": [
+        20,
+        1
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/r19/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "a7ba3d34659471d8fbd00ba6f76cdadac8991f24b129a37fdc5e1570aff6658c",
+      "simulator_task_count_per_iteration": [
+        19,
+        1
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "so",
+      "hardware_iterations_per_run": [
+        1,
+        1,
+        1
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          4415
+        ],
+        [
+          4415
+        ],
+        [
+          4415
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          277
+        ],
+        [
+          277
+        ],
+        [
+          277
+        ]
+      ],
+      "role": "calibration",
+      "simulator_iterations": 1,
+      "simulator_processed_edges_per_iteration": [
+        4415
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/so/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "e026475b8fbc8a0e674c103b47269f5413b85032023f8868c4cbd7e7ec025e56",
+      "simulator_task_count_per_iteration": [
+        277
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "su",
+      "hardware_iterations_per_run": [
+        2,
+        2,
+        2
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          438,
+          2
+        ],
+        [
+          438,
+          2
+        ],
+        [
+          438,
+          2
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          13,
+          2
+        ],
+        [
+          13,
+          2
+        ],
+        [
+          13,
+          2
+        ]
+      ],
+      "role": "calibration",
+      "simulator_iterations": 2,
+      "simulator_processed_edges_per_iteration": [
+        438,
+        2
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/su/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "6ac85ce4c99c3bca4b06b184a5da84679e0fa977f35900b02e6f329f0f142f25",
+      "simulator_task_count_per_iteration": [
+        13,
+        2
+      ],
+      "status": "PASS"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "checks": {
+        "hardware_runs_repeatable_edges": true,
+        "hardware_runs_repeatable_iterations": true,
+        "hardware_runs_repeatable_tasks": true,
+        "simulator_hardware_iterations_match": true,
+        "simulator_hardware_processed_edges_match": true,
+        "simulator_hardware_task_count_match": true
+      },
+      "dataset": "wk",
+      "hardware_iterations_per_run": [
+        1,
+        1,
+        1
+      ],
+      "hardware_observation_scope": "routed Spine KERNEL_PAIR_RESULT counters; G+R routed hosts do not expose equivalent per-round task/edge counters",
+      "hardware_processed_edges_per_iteration_per_run": [
+        [
+          1167
+        ],
+        [
+          1167
+        ],
+        [
+          1167
+        ]
+      ],
+      "hardware_task_count_per_iteration_per_run": [
+        [
+          6
+        ],
+        [
+          6
+        ],
+        [
+          6
+        ]
+      ],
+      "role": "calibration",
+      "simulator_iterations": 1,
+      "simulator_processed_edges_per_iteration": [
+        1167
+      ],
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811/runs_v5_observability/wk/spine/weighted_sssp/result.json",
+      "simulator_result_sha256": "7ff639264a27a09934d564ed400e6ca81f0c47173e8791dcbce2a4db5e7234ef",
+      "simulator_task_count_per_iteration": [
+        6
+      ],
+      "status": "PASS"
+    }
+  ],
+  "status": "PASS"
+}

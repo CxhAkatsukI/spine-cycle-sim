@@ -13,6 +13,7 @@ from spine_cycle_sim.calibration.current_fpga import (
     fit_composed_timing_model,
     fit_overlap_timing_model,
     fit_total_scale,
+    overlap_leave_one_dataset_out_rows,
     overlap_prediction_rows,
     spearman_rank_correlation,
     total_prediction_rows,
@@ -274,10 +275,23 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
 
     def test_overlap_model_recovers_reader_compute_and_span_terms(self):
         def row(dataset, role, values):
-            maintenance, reader, compute, requests, cache, scan, edges, iterations = values
+            (
+                maintenance,
+                reader,
+                compute,
+                requests,
+                cache,
+                reader_tasks,
+                credit_stalls,
+                scan,
+                compute_tasks,
+                edges,
+                iterations,
+                vertices,
+            ) = values
             hardware_maintenance = 100 + 2 * maintenance
-            hardware_reader = 2 * reader + 3 * requests + 5 * cache
-            hardware_compute = 7 * compute + 11 * scan + 13 * edges
+            hardware_reader = 2 * requests + 3 * iterations + 5 * vertices
+            hardware_compute = 7 * iterations + 11 * compute_tasks + 13 * edges
             hardware_span = max(hardware_reader, hardware_compute) + 17 * iterations
             return CurrentFPGAOverlapRecord(
                 "spine",
@@ -286,12 +300,16 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
                 dataset,
                 role,
                 iterations,
+                vertices,
                 maintenance,
                 reader,
                 compute,
                 requests,
                 cache,
+                reader_tasks,
+                credit_stalls,
                 scan,
+                compute_tasks,
                 edges,
                 hardware_maintenance,
                 hardware_reader,
@@ -300,21 +318,21 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
             )
 
         rows = [
-            row("au", "calibration", (10, 11, 13, 17, 19, 23, 29, 1)),
-            row("su", "calibration", (20, 31, 37, 41, 43, 47, 53, 2)),
-            row("so", "calibration", (30, 59, 61, 67, 71, 73, 79, 1)),
-            row("pk", "calibration", (40, 83, 89, 97, 101, 103, 107, 3)),
-            row("wk", "calibration", (50, 109, 113, 127, 131, 137, 139, 2)),
-            row("hold", "holdout", (25, 43, 47, 53, 59, 61, 67, 2)),
+            row("au", "calibration", (10, 11, 13, 17, 19, 23, 29, 31, 37, 41, 1, 43)),
+            row("su", "calibration", (20, 31, 37, 41, 43, 47, 53, 59, 61, 67, 2, 71)),
+            row("so", "calibration", (30, 59, 61, 67, 71, 73, 79, 83, 89, 97, 1, 101)),
+            row("pk", "calibration", (40, 83, 89, 97, 101, 103, 107, 109, 113, 127, 3, 131)),
+            row("wk", "calibration", (50, 109, 113, 127, 131, 137, 139, 149, 151, 157, 2, 163)),
+            row("hold", "holdout", (25, 43, 47, 53, 59, 61, 67, 71, 73, 79, 2, 83)),
         ]
         model = fit_overlap_timing_model(rows)
         self.assertAlmostEqual(model.maintenance_fixed_cycles, 100.0)
         self.assertAlmostEqual(model.maintenance_scale, 2.0)
-        self.assertAlmostEqual(model.reader_simulator_scale, 2.0)
-        self.assertAlmostEqual(model.reader_memory_request_cycles, 3.0)
-        self.assertAlmostEqual(model.reader_level_cache_word_cycles, 5.0)
-        self.assertAlmostEqual(model.compute_simulator_scale, 7.0)
-        self.assertAlmostEqual(model.compute_active_scan_word_cycles, 11.0)
+        self.assertAlmostEqual(model.reader_memory_request_cycles, 2.0)
+        self.assertAlmostEqual(model.reader_round_cycles, 3.0)
+        self.assertAlmostEqual(model.reader_vertex_cycles, 5.0)
+        self.assertAlmostEqual(model.compute_round_cycles, 7.0)
+        self.assertAlmostEqual(model.compute_range_task_cycles, 11.0)
         self.assertAlmostEqual(model.compute_processed_edge_cycles, 13.0)
         self.assertAlmostEqual(model.span_residual_cycles_per_iteration, 17.0)
         predictions = overlap_prediction_rows(rows, model)
@@ -323,15 +341,32 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
 
         prediction = model.predict_components(
             iterations=1,
+            simulator_vertices=1,
             simulator_maintenance_cycles=1,
             simulator_reader_cycles=1,
             simulator_compute_cycles=1,
             simulator_reader_memory_requests=0,
             simulator_reader_level_cache_words=0,
+            simulator_reader_range_tasks=0,
+            simulator_reader_credit_stall_cycles=0,
             simulator_compute_active_scan_words=0,
+            simulator_compute_range_tasks=0,
             simulator_processed_edges=0,
         )
         self.assertGreater(prediction["total_cycles"], 0)
+
+        leave_one_out = overlap_leave_one_dataset_out_rows(rows)
+        self.assertEqual(len(leave_one_out), 5)
+        self.assertEqual(
+            {item["held_out_dataset"] for item in leave_one_out},
+            {"au", "su", "so", "pk", "wk"},
+        )
+        self.assertTrue(
+            all(item["role"] == "leave_one_out" for item in leave_one_out)
+        )
+        self.assertTrue(
+            all(item["total_absolute_error_percent"] < 1e-8 for item in leave_one_out)
+        )
 
     def test_roles_must_be_disjoint(self):
         rows = self.timing_rows()

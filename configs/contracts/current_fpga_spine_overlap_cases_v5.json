@@ -45,8 +45,8 @@
   },
   "model": {
     "maintenance": "non-negative OLS: fixed + simulator maintenance cycles",
-    "reader": "non-negative OLS: simulator reader active cycles + issued memory requests + level-cache 64-bit words",
-    "compute": "non-negative OLS: simulator compute active cycles + active-bitmap scan words + processed edges",
+    "reader": "non-negative OLS: issued reader memory requests + rounds + resident vertex domain",
+    "compute": "non-negative OLS: rounds + range tasks + processed edges",
     "iterative_span": "max(predicted reader, predicted compute) + non-negative per-round residual",
     "fit_roles": ["calibration"],
     "holdout_may_fit": false
@@ -59,10 +59,12 @@
     "memory_fifo_owner_ledgers": "all available request, byte, FIFO, owner, dispatch, and work-credit ledgers must close"
   },
   "thresholds": {
+    "leave_one_out_median_absolute_error_percent_max": 20.0,
+    "leave_one_out_absolute_error_percent_max": 30.0,
     "holdout_median_absolute_error_percent_max": 20.0,
     "holdout_absolute_error_percent_max": 30.0,
     "rank_spearman_min": 0.9
   },
-  "model_selection_note": "The v4 total-span form failed on LJ/LJ08. Source inspection identified two omitted routed mechanisms: the reader's fixed family-by-level metadata walk and compute active-bitmap sweeps. All eight inspected batch-8 rows are therefore calibration/development evidence in v5.",
+  "model_selection_note": "The v4 total-span form failed on LJ/LJ08. Source inspection identified omitted routed domain/owner and HBM control costs plus component overlap. Calibration-only leave-one-out selection uses issued reader requests, rounds, and resident vertex domain for the routed reader floor, plus compute round, task, and edge work. Level-cache, active-bitmap, and AXIS counters remain explicit diagnostics rather than being hidden in total cycles. The vertex-domain coefficient is an empirical routed floor, not a claim that the reader performs a literal full-vertex scan. All eight inspected batch-8 rows are therefore calibration/development evidence in v5.",
   "freeze_note": "This contract and the exact AU/SU batch-64 workload hashes were frozen before either holdout workload was executed in the v5 simulator or on the FPGA."
 }

@@ -7,7 +7,7 @@ holdout rows when fitting that scale.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import itertools
 import math
 import statistics
@@ -155,12 +155,16 @@ class CurrentFPGAOverlapRecord:
     dataset: str
     role: str
     iterations: int
+    simulator_vertices: float
     simulator_maintenance_cycles: float
     simulator_reader_cycles: float
     simulator_compute_cycles: float
     simulator_reader_memory_requests: float
     simulator_reader_level_cache_words: float
+    simulator_reader_range_tasks: float
+    simulator_reader_credit_stall_cycles: float
     simulator_compute_active_scan_words: float
+    simulator_compute_range_tasks: float
     simulator_processed_edges: float
     hardware_maintenance_cycles: float
     hardware_reader_cycles: float
@@ -177,11 +181,11 @@ class OverlapTimingModel:
     calibration_datasets: tuple[str, ...]
     maintenance_fixed_cycles: float
     maintenance_scale: float
-    reader_simulator_scale: float
     reader_memory_request_cycles: float
-    reader_level_cache_word_cycles: float
-    compute_simulator_scale: float
-    compute_active_scan_word_cycles: float
+    reader_round_cycles: float
+    reader_vertex_cycles: float
+    compute_round_cycles: float
+    compute_range_task_cycles: float
     compute_processed_edge_cycles: float
     span_residual_cycles_per_iteration: float
 
@@ -189,17 +193,22 @@ class OverlapTimingModel:
         self,
         *,
         iterations: int,
+        simulator_vertices: float,
         simulator_maintenance_cycles: float,
         simulator_reader_cycles: float,
         simulator_compute_cycles: float,
         simulator_reader_memory_requests: float,
         simulator_reader_level_cache_words: float,
+        simulator_reader_range_tasks: float,
+        simulator_reader_credit_stall_cycles: float,
         simulator_compute_active_scan_words: float,
+        simulator_compute_range_tasks: float,
         simulator_processed_edges: float,
     ) -> dict[str, float]:
         if iterations <= 0:
             raise ValueError("overlap timing requires at least one iteration")
         for value, name in (
+            (simulator_vertices, "simulator_vertices"),
             (simulator_maintenance_cycles, "simulator_maintenance_cycles"),
             (simulator_reader_cycles, "simulator_reader_cycles"),
             (simulator_compute_cycles, "simulator_compute_cycles"),
@@ -214,10 +223,16 @@ class OverlapTimingModel:
                 simulator_reader_level_cache_words,
                 "simulator_reader_level_cache_words",
             ),
+            (simulator_reader_range_tasks, "simulator_reader_range_tasks"),
+            (
+                simulator_reader_credit_stall_cycles,
+                "simulator_reader_credit_stall_cycles",
+            ),
             (
                 simulator_compute_active_scan_words,
                 "simulator_compute_active_scan_words",
             ),
+            (simulator_compute_range_tasks, "simulator_compute_range_tasks"),
             (simulator_processed_edges, "simulator_processed_edges"),
         ):
             if not math.isfinite(value) or value < 0:
@@ -227,16 +242,14 @@ class OverlapTimingModel:
             + self.maintenance_scale * simulator_maintenance_cycles
         )
         reader = (
-            self.reader_simulator_scale * simulator_reader_cycles
-            + self.reader_memory_request_cycles
+            self.reader_memory_request_cycles
             * simulator_reader_memory_requests
-            + self.reader_level_cache_word_cycles
-            * simulator_reader_level_cache_words
+            + self.reader_round_cycles * iterations
+            + self.reader_vertex_cycles * simulator_vertices
         )
         compute = (
-            self.compute_simulator_scale * simulator_compute_cycles
-            + self.compute_active_scan_word_cycles
-            * simulator_compute_active_scan_words
+            self.compute_round_cycles * iterations
+            + self.compute_range_task_cycles * simulator_compute_range_tasks
             + self.compute_processed_edge_cycles * simulator_processed_edges
         )
         iterative_span = (
@@ -487,6 +500,7 @@ def fit_overlap_timing_model(
         if row.iterations <= 0:
             raise ValueError("overlap records require at least one iteration")
         for value, name in (
+            (row.simulator_vertices, "simulator_vertices"),
             (row.simulator_maintenance_cycles, "simulator_maintenance_cycles"),
             (row.simulator_reader_cycles, "simulator_reader_cycles"),
             (row.simulator_compute_cycles, "simulator_compute_cycles"),
@@ -508,10 +522,16 @@ def fit_overlap_timing_model(
                 row.simulator_reader_level_cache_words,
                 "simulator_reader_level_cache_words",
             ),
+            (row.simulator_reader_range_tasks, "simulator_reader_range_tasks"),
+            (
+                row.simulator_reader_credit_stall_cycles,
+                "simulator_reader_credit_stall_cycles",
+            ),
             (
                 row.simulator_compute_active_scan_words,
                 "simulator_compute_active_scan_words",
             ),
+            (row.simulator_compute_range_tasks, "simulator_compute_range_tasks"),
             (row.simulator_processed_edges, "simulator_processed_edges"),
         ):
             if not math.isfinite(value) or value < 0:
@@ -532,25 +552,25 @@ def fit_overlap_timing_model(
         [(1.0, row.simulator_maintenance_cycles) for row in calibration],
         [row.hardware_maintenance_cycles for row in calibration],
     )
-    reader_scale, reader_request_cycles, reader_level_cache_cycles = (
+    reader_request_cycles, reader_round_cycles, reader_vertex_cycles = (
         _fit_nonnegative_feature_model(
             [
                 (
-                    row.simulator_reader_cycles,
                     row.simulator_reader_memory_requests,
-                    row.simulator_reader_level_cache_words,
+                    float(row.iterations),
+                    row.simulator_vertices,
                 )
                 for row in calibration
             ],
             [row.hardware_reader_cycles for row in calibration],
         )
     )
-    compute_scale, compute_scan_cycles, compute_edge_cycles = (
+    compute_round_cycles, compute_task_cycles, compute_edge_cycles = (
         _fit_nonnegative_feature_model(
             [
                 (
-                    row.simulator_compute_cycles,
-                    row.simulator_compute_active_scan_words,
+                    float(row.iterations),
+                    row.simulator_compute_range_tasks,
                     row.simulator_processed_edges,
                 )
                 for row in calibration
@@ -573,11 +593,11 @@ def fit_overlap_timing_model(
         calibration_datasets=tuple(sorted(row.dataset for row in calibration)),
         maintenance_fixed_cycles=maintenance_fixed,
         maintenance_scale=maintenance_scale,
-        reader_simulator_scale=reader_scale,
         reader_memory_request_cycles=reader_request_cycles,
-        reader_level_cache_word_cycles=reader_level_cache_cycles,
-        compute_simulator_scale=compute_scale,
-        compute_active_scan_word_cycles=compute_scan_cycles,
+        reader_round_cycles=reader_round_cycles,
+        reader_vertex_cycles=reader_vertex_cycles,
+        compute_round_cycles=compute_round_cycles,
+        compute_range_task_cycles=compute_task_cycles,
         compute_processed_edge_cycles=compute_edge_cycles,
         span_residual_cycles_per_iteration=span_residual,
     )
@@ -597,6 +617,7 @@ def overlap_prediction_rows(
             raise ValueError("overlap timing model identity does not match record")
         prediction = model.predict_components(
             iterations=record.iterations,
+            simulator_vertices=record.simulator_vertices,
             simulator_maintenance_cycles=record.simulator_maintenance_cycles,
             simulator_reader_cycles=record.simulator_reader_cycles,
             simulator_compute_cycles=record.simulator_compute_cycles,
@@ -606,9 +627,14 @@ def overlap_prediction_rows(
             simulator_reader_level_cache_words=(
                 record.simulator_reader_level_cache_words
             ),
+            simulator_reader_range_tasks=record.simulator_reader_range_tasks,
+            simulator_reader_credit_stall_cycles=(
+                record.simulator_reader_credit_stall_cycles
+            ),
             simulator_compute_active_scan_words=(
                 record.simulator_compute_active_scan_words
             ),
+            simulator_compute_range_tasks=record.simulator_compute_range_tasks,
             simulator_processed_edges=record.simulator_processed_edges,
         )
         hardware_total = (
@@ -639,6 +665,36 @@ def overlap_prediction_rows(
             prediction["total_cycles"], hardware_total
         )
         rows.append(row)
+    return rows
+
+
+def overlap_leave_one_dataset_out_rows(
+    records: Iterable[CurrentFPGAOverlapRecord],
+) -> list[dict[str, object]]:
+    """Predict each development dataset using a model fit without that dataset.
+
+    This is development validation, not holdout evidence.  It checks whether a
+    frozen feature form transfers across the calibration topologies before the
+    independently hashed holdout workloads are executed.
+    """
+
+    calibration = tuple(row for row in records if row.role == "calibration")
+    if len(calibration) < 5:
+        raise ValueError("leave-one-dataset-out validation requires five calibration rows")
+    datasets = [row.dataset for row in calibration]
+    if len(set(datasets)) != len(datasets):
+        raise ValueError("leave-one-dataset-out validation requires one row per dataset")
+
+    rows: list[dict[str, object]] = []
+    for held_out in calibration:
+        training = tuple(row for row in calibration if row.dataset != held_out.dataset)
+        validation = replace(held_out, role="development_validation")
+        model = fit_overlap_timing_model((*training, validation))
+        prediction = overlap_prediction_rows((validation,), model)[0]
+        prediction["role"] = "leave_one_out"
+        prediction["held_out_dataset"] = held_out.dataset
+        prediction["training_datasets"] = ";".join(model.calibration_datasets)
+        rows.append(prediction)
     return rows
 
 

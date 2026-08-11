@@ -1,0 +1,6 @@
+architecture,algorithm,role,component,cases,median_absolute_error_percent,max_absolute_error_percent,rank_spearman
+spine,weighted_sssp,leave_one_out,maintenance,8,8.60357110007835,23.33331828862037,0.6190476190476191
+spine,weighted_sssp,leave_one_out,reader,8,1.64923661814829,10.354304936712403,0.9761904761904762
+spine,weighted_sssp,leave_one_out,compute,8,8.793796858169692,12.678005946407302,0.9285714285714286
+spine,weighted_sssp,leave_one_out,iterative_span,8,1.1727008694335788,11.153515160825497,0.9761904761904762
+spine,weighted_sssp,leave_one_out,total,8,2.1097766098420667,10.04507803580702,0.9761904761904762
