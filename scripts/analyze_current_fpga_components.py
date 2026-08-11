@@ -39,6 +39,17 @@ DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v2.json"
 DEFAULT_CONTRACT = ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v3.json"
 DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration"
 ARCHITECTURES = ("spine", "grasu_regraph")
+GRASU_FIFO_DEPTH_FIELDS = {
+    "source_cache_request_fifo_max_occupancy": (
+        "regraph_source_cache_request_fifo_depth"
+    ),
+    "source_cache_response_fifo_max_occupancy": (
+        "regraph_source_cache_response_fifo_depth"
+    ),
+    "gather_merger_fifo_max_occupancy": "regraph_gather_merger_fifo_depth",
+    "merger_apply_fifo_max_occupancy": "regraph_merger_apply_fifo_depth",
+    "apply_wrapper_fifo_max_occupancy": "regraph_apply_wrapper_fifo_depth",
+}
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -370,6 +381,7 @@ def memory_ledger_row(
     role: str,
     result: dict[str, Any],
     result_path: Path,
+    profile_parameters: dict[str, Any] | None = None,
 ) -> dict[str, object]:
     traffic_value = result.get("backend_traffic")
     traffic = (
@@ -559,6 +571,7 @@ def memory_ledger_row(
         )
         fifo_evidence = "zero-propagation correction-only row; no reader/compute AXIS payload"
     else:
+        parameters = profile_parameters or {}
         update_requests = int(result.get("update_backend_requests", -1))
         compute_requests = int(result.get("compute_backend_requests", -1))
         phase_validation_error = ""
@@ -585,9 +598,69 @@ def memory_ledger_row(
         expected = result.get("expected_backend_requests")
         if expected is not None:
             checks["expected_backend_requests_match"] = int(expected) == backend_requests
-        checks["bounded_fifo_occupancy_reported"] = any(
-            key.endswith("fifo_max_occupancy") for key in result
-        ) or int(result.get("pipeline_busy_cycles", 0)) > 0
+        fifo_depth_checks: dict[str, dict[str, int | bool]] = {}
+        for occupancy_field, depth_field in GRASU_FIFO_DEPTH_FIELDS.items():
+            occupancy = result.get(occupancy_field)
+            depth = parameters.get(depth_field)
+            valid = (
+                isinstance(occupancy, int)
+                and not isinstance(occupancy, bool)
+                and isinstance(depth, int)
+                and not isinstance(depth, bool)
+                and depth > 0
+                and 0 <= occupancy <= depth
+            )
+            fifo_depth_checks[occupancy_field] = {
+                "occupancy": int(occupancy) if isinstance(occupancy, int) else -1,
+                "profile_depth": int(depth) if isinstance(depth, int) else -1,
+                "within_depth": valid,
+            }
+        if algorithm == "thresholded_residual_pagerank":
+            for occupancy_field, depth_field in (
+                ("degree_fifo_max_occupancy", "grasu_degree_fifo_depth"),
+                ("degree_reorder_max_occupancy", "grasu_degree_reorder_entries"),
+            ):
+                occupancy = result.get(occupancy_field)
+                depth = parameters.get(depth_field)
+                valid = (
+                    isinstance(occupancy, int)
+                    and not isinstance(occupancy, bool)
+                    and isinstance(depth, int)
+                    and not isinstance(depth, bool)
+                    and depth > 0
+                    and 0 <= occupancy <= depth
+                )
+                fifo_depth_checks[occupancy_field] = {
+                    "occupancy": (
+                        int(occupancy) if isinstance(occupancy, int) else -1
+                    ),
+                    "profile_depth": int(depth) if isinstance(depth, int) else -1,
+                    "within_depth": valid,
+                }
+        adapter_depth = parameters.get("regraph_pma_adapter_axis_fifo_depth")
+        checks.update(
+            {
+                "observable_fifo_occupancies_within_frozen_depths": bool(
+                    fifo_depth_checks
+                )
+                and all(
+                    bool(row["within_depth"])
+                    for row in fifo_depth_checks.values()
+                ),
+                "adapter_axis_finite_depth_and_backpressure_reported": (
+                    isinstance(adapter_depth, int)
+                    and not isinstance(adapter_depth, bool)
+                    and adapter_depth > 0
+                    and isinstance(result.get("axis_push_stalls"), int)
+                    and not isinstance(result.get("axis_push_stalls"), bool)
+                    and int(result["axis_push_stalls"]) >= 0
+                ),
+            }
+        )
+        fifo_evidence = (
+            "profile-bounded downstream FIFO occupancies; adapter AXIS has a "
+            "frozen finite depth and stall counter but no occupancy counter"
+        )
     passed = all(checks.values())
     return {
         "architecture": architecture,
@@ -605,6 +678,9 @@ def memory_ledger_row(
         "traffic_validation_error": traffic_validation_error,
         "phase_traffic_validation_error": (
             phase_validation_error if architecture != "spine" else ""
+        ),
+        "fifo_depth_checks": (
+            fifo_depth_checks if architecture != "spine" else {}
         ),
         "simulator_result": str(result_path.resolve()),
         "simulator_result_sha256": sha256_file(result_path),
@@ -824,7 +900,15 @@ def main() -> int:
                     }
                 )
                 ledger_row = memory_ledger_row(
-                        architecture, algorithm, dataset, role, result, result_path
+                        architecture,
+                        algorithm,
+                        dataset,
+                        role,
+                        result,
+                        result_path,
+                        read_json(ROOT / profile_entries[(architecture, algorithm)]["path"])[
+                            "parameters"
+                        ],
                     )
                 ledger_row["profile_id"] = profile_id
                 ledger_rows.append(ledger_row)

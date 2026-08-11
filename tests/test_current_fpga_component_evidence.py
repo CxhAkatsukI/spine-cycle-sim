@@ -61,6 +61,26 @@ def owner_round_evidence() -> dict[str, object]:
     }
 
 
+def grasu_fifo_evidence() -> tuple[dict[str, int], dict[str, int]]:
+    result = {
+        "source_cache_request_fifo_max_occupancy": 1,
+        "source_cache_response_fifo_max_occupancy": 2,
+        "gather_merger_fifo_max_occupancy": 3,
+        "merger_apply_fifo_max_occupancy": 4,
+        "apply_wrapper_fifo_max_occupancy": 5,
+        "axis_push_stalls": 0,
+    }
+    profile = {
+        "regraph_source_cache_request_fifo_depth": 8,
+        "regraph_source_cache_response_fifo_depth": 8,
+        "regraph_gather_merger_fifo_depth": 16,
+        "regraph_merger_apply_fifo_depth": 16,
+        "regraph_apply_wrapper_fifo_depth": 16,
+        "regraph_pma_adapter_axis_fifo_depth": 32,
+    }
+    return result, profile
+
+
 class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
     def test_parse_key_value_timing_line(self):
         parsed = parse_key_value_line(
@@ -207,7 +227,9 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
         self.assertFalse(row["checks"]["owner_round_formula_recomputed"])
 
     def test_grasu_phase_request_and_byte_ledgers_pass(self):
+        fifo_result, profile = grasu_fifo_evidence()
         result = {
+            **fifo_result,
             "backend_requests": 7,
             "update_backend_requests": 2,
             "compute_backend_requests": 5,
@@ -226,6 +248,7 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
             "calibration",
             result,
             Path(__file__),
+            profile,
         )
         self.assertEqual(row["status"], "PASS")
         self.assertTrue(
@@ -233,7 +256,9 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
         )
 
     def test_grasu_phase_byte_nonclosure_fails(self):
+        fifo_result, profile = grasu_fifo_evidence()
         result = {
+            **fifo_result,
             "backend_requests": 7,
             "update_backend_requests": 2,
             "compute_backend_requests": 5,
@@ -252,10 +277,40 @@ class CurrentFPGAComponentEvidenceTests(unittest.TestCase):
             "calibration",
             result,
             Path(__file__),
+            profile,
         )
         self.assertEqual(row["status"], "FAIL")
         self.assertFalse(
             row["checks"]["update_compute_traffic_decomposition_closes"]
+        )
+
+    def test_grasu_fifo_occupancy_above_profile_depth_fails(self):
+        fifo_result, profile = grasu_fifo_evidence()
+        fifo_result["gather_merger_fifo_max_occupancy"] = 17
+        result = {
+            **fifo_result,
+            "backend_requests": 7,
+            "update_backend_requests": 2,
+            "compute_backend_requests": 5,
+            "expected_backend_requests": 7,
+            "backend_traffic": traffic(7, 448),
+            "update_backend_traffic": traffic(2, 128),
+            "compute_backend_traffic": traffic(5, 320),
+            "memory_locality_ledger_match": True,
+            "active_edge_execution_ledger_match": True,
+        }
+        row = memory_ledger_row(
+            "grasu_regraph",
+            "weighted_sssp",
+            "au",
+            "calibration",
+            result,
+            Path(__file__),
+            profile,
+        )
+        self.assertEqual(row["status"], "FAIL")
+        self.assertFalse(
+            row["checks"]["observable_fifo_occupancies_within_frozen_depths"]
         )
 
 
