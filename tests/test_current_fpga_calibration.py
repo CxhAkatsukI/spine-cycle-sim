@@ -11,10 +11,12 @@ from spine_cycle_sim.calibration.current_fpga import (
     composed_prediction_rows,
     component_prediction_rows,
     fit_component_scale,
+    fit_component_scale_calibration_only,
     fit_composed_timing_model,
     fit_overlap_timing_model,
     fit_overlap_v6_timing_model,
     fit_total_scale,
+    fit_total_scale_calibration_only,
     overlap_leave_one_dataset_out_rows,
     overlap_prediction_rows,
     overlap_v6_prediction_rows,
@@ -88,6 +90,13 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
         self.assertEqual([row["role"] for row in predictions].count("holdout"), 2)
         self.assertTrue(all(row["absolute_error_percent"] == 0 for row in predictions))
 
+    def test_total_calibration_freeze_rejects_holdout(self):
+        rows = self.timing_rows()
+        model = fit_total_scale_calibration_only(rows[:2])
+        self.assertAlmostEqual(model.scale, 2.0)
+        with self.assertRaisesRegex(ValueError, "rejects non-calibration"):
+            fit_total_scale_calibration_only(rows)
+
     def test_component_scale_requires_observation_scope(self):
         rows = self.component_rows()
         bad = [
@@ -112,6 +121,13 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
                 for row in predictions
             )
         )
+
+    def test_component_calibration_freeze_rejects_holdout(self):
+        rows = self.component_rows()
+        model = fit_component_scale_calibration_only(rows[:2])
+        self.assertAlmostEqual(model.scale, 3.0)
+        with self.assertRaisesRegex(ValueError, "rejects non-calibration"):
+            fit_component_scale_calibration_only(rows)
 
     def test_composed_model_recovers_hls_fixed_and_execution_terms(self):
         rows = self.composed_rows()

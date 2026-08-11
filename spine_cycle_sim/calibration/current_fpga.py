@@ -419,6 +419,31 @@ def fit_total_scale(records: Iterable[CurrentFPGATimingRecord]) -> PositiveScale
         raise ValueError("total-cycle fit requires at least two calibration and one holdout rows")
     if {row.dataset for row in calibration} & {row.dataset for row in holdout}:
         raise ValueError("calibration and holdout datasets overlap")
+    return fit_total_scale_calibration_only(calibration)
+
+
+def fit_total_scale_calibration_only(
+    records: Iterable[CurrentFPGATimingRecord],
+) -> PositiveScaleModel:
+    """Freeze a total-cycle scale before any holdout row is available."""
+
+    calibration = tuple(records)
+    if len(calibration) < 2:
+        raise ValueError("total-cycle freeze requires at least two calibration rows")
+    identities = {
+        (row.architecture, row.algorithm, row.profile_id) for row in calibration
+    }
+    if len(identities) != 1:
+        raise ValueError(
+            "total-cycle freeze must contain one architecture/algorithm/profile"
+        )
+    if any(row.role != "calibration" for row in calibration):
+        raise ValueError("total-cycle freeze rejects non-calibration rows")
+    if len({row.dataset for row in calibration}) != len(calibration):
+        raise ValueError("total-cycle freeze requires distinct calibration datasets")
+    for row in calibration:
+        _require_positive_finite(row.simulator_cycles, "simulator_cycles")
+        _require_positive_finite(row.hardware_cycles, "hardware_cycles")
     architecture, algorithm, _profile_id = next(iter(identities))
     return PositiveScaleModel(
         architecture=architecture,
@@ -456,6 +481,35 @@ def fit_component_scale(
         raise ValueError("component fit requires at least two calibration and one holdout rows")
     if {row.dataset for row in calibration} & {row.dataset for row in holdout}:
         raise ValueError("calibration and holdout datasets overlap")
+    return fit_component_scale_calibration_only(calibration)
+
+
+def fit_component_scale_calibration_only(
+    records: Iterable[CurrentFPGAComponentRecord],
+) -> PositiveScaleModel:
+    """Freeze one observable component scale before holdout execution."""
+
+    calibration = tuple(records)
+    if len(calibration) < 2:
+        raise ValueError("component freeze requires at least two calibration rows")
+    identities = {
+        (row.architecture, row.algorithm, row.profile_id, row.component)
+        for row in calibration
+    }
+    if len(identities) != 1:
+        raise ValueError(
+            "component freeze must contain one architecture/algorithm/profile/component"
+        )
+    if any(row.role != "calibration" for row in calibration):
+        raise ValueError("component freeze rejects non-calibration rows")
+    if len({row.dataset for row in calibration}) != len(calibration):
+        raise ValueError("component freeze requires distinct calibration datasets")
+    observations = {row.hardware_observation for row in calibration}
+    if len(observations) != 1 or not next(iter(observations)):
+        raise ValueError("hardware component observation scope must be explicit and stable")
+    for row in calibration:
+        _require_positive_finite(row.simulator_cycles, "simulator_cycles")
+        _require_positive_finite(row.hardware_cycles, "hardware_cycles")
     architecture, algorithm, _profile_id, component = next(iter(identities))
     return PositiveScaleModel(
         architecture=architecture,

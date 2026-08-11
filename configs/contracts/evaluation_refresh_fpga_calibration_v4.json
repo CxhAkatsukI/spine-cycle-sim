@@ -1,0 +1,183 @@
+{
+  "schema_version": 2,
+  "contract_id": "evaluation_refresh_fpga_calibration_v4_20260812",
+  "status": "frozen",
+  "scope": {
+    "figures": [
+      "fig8_update_throughput",
+      "fig9_memory_traffic",
+      "fig10_realized_work"
+    ],
+    "algorithms": [
+      "weighted_sssp",
+      "connected_components",
+      "thresholded_residual_pagerank"
+    ],
+    "platform": "xilinx_u55c_gen3x16_xdma_3_202210_1",
+    "device_clock_mhz": 150.0,
+    "hbm_pseudo_channels": 32,
+    "hbm_pseudo_channel_budget": 23,
+    "axi_data_width_bits": 512
+  },
+  "simulator_plugin": {
+    "path": "cpp/sst/build/sst-current-fpga-v8/libspine_cycle.so",
+    "sha256": "65c37be3390e6192ce3af17a5d45f49f0a5f0cbc5d561807729390d749440e8e",
+    "architectures": [
+      "spine",
+      "grasu_regraph"
+    ],
+    "policy": "one immutable execution image for all calibration and holdout rows"
+  },
+  "architecture_profiles": [
+    {
+      "architecture": "spine",
+      "algorithm": "weighted_sssp",
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+      "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
+    },
+    {
+      "architecture": "spine",
+      "algorithm": "connected_components",
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+      "sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c"
+    },
+    {
+      "architecture": "spine",
+      "algorithm": "thresholded_residual_pagerank",
+      "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
+      "sha256": "6ec5f93ea3b5c9b3ddfcb4fd70583e050456965c561f80d48e12b768499917c6"
+    },
+    {
+      "architecture": "grasu_regraph",
+      "algorithm": "weighted_sssp",
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+    },
+    {
+      "architecture": "grasu_regraph",
+      "algorithm": "connected_components",
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+      "sha256": "81cf01d6202f1993e51d6a68b719150404e5fe140e3887d310e43cd506a3e6e6"
+    },
+    {
+      "architecture": "grasu_regraph",
+      "algorithm": "thresholded_residual_pagerank",
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+      "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+    }
+  ],
+  "timing_windows": {
+    "device_dynamic": {
+      "start": "accepted_sorted_update_batch_resident_in_device_memory",
+      "stop": "new_result_version_published_after_device_quiescence",
+      "included": [
+        "maintenance",
+        "device_active_generation",
+        "pagerank_correction_and_seed",
+        "reader",
+        "map_reduce_apply",
+        "reactivation",
+        "drain_and_sync"
+      ],
+      "excluded": [
+        "initial_graph_bootstrap",
+        "external_sort",
+        "host_to_device_dma",
+        "command_launch",
+        "event_wait",
+        "host_rebin_and_relaunch",
+        "optional_result_readback"
+      ]
+    },
+    "setup_inclusive_update_only": {
+      "required_label": "measured_host_preprocessing_plus_explicit_transfer_launch_model_plus_calibrated_device_cycles",
+      "forbid_label": "measured_xrt_e2e",
+      "host_preprocessing_must_be_measured": true,
+      "transfer_and_launch_must_be_parameterized_and_disclosed": true
+    }
+  },
+  "model_policy": {
+    "structural_work_equivalence_required": true,
+    "minimum_matching_hardware_counters": [
+      "iterations",
+      "task_count",
+      "processed_edges"
+    ],
+    "baseline_total_model": "one_positive_geometric_scale_per_architecture_algorithm",
+    "component_models": "one_positive_geometric_scale_per_directly_observable_nonoverlapping_target",
+    "overlapping_hardware_events_must_not_be_summed": true,
+    "failed_holdout_must_remain_failed": true,
+    "mechanism_repair_requires_new_versioned_contract": true
+  },
+  "required_manifests": {
+    "total_cycle": "total_cycle_calibration.json",
+    "component_cycle": "component_cycle_calibration.json",
+    "memory_ledger": "memory_ledger_validation.json",
+    "structural_work": "structural_work_validation.json"
+  },
+  "manifest_gates": {
+    "common": {
+      "status": "PASS",
+      "parameters_frozen": true,
+      "correctness_gate": "PASS",
+      "workload_identity_pinned": true,
+      "calibration_and_holdout_disjoint": true
+    },
+    "total_cycle": {
+      "minimum_calibration_cases_per_architecture_algorithm": 2,
+      "minimum_holdout_cases_per_architecture_algorithm": 2,
+      "non_tiny_median_absolute_error_percent_max": 15.0,
+      "non_tiny_absolute_error_percent_max": 30.0,
+      "workload_rank_spearman_min": 0.9
+    },
+    "component_cycle": {
+      "minimum_calibration_cases_per_component": 2,
+      "minimum_holdout_cases_per_component": 1,
+      "median_absolute_error_percent_max": 20.0,
+      "hardware_counter_scope_must_be_explicit": true
+    },
+    "memory_ledger": {
+      "requests_issued_equal_completed": true,
+      "bytes_issued_equal_completed": true,
+      "fifo_push_pop_balance_or_residual_explained": true,
+      "hardware_observation_scope_must_be_explicit": true,
+      "spine_owner_scheduler_enabled": true,
+      "spine_owner_round_evidence_required": true,
+      "spine_owner_request_formula_recomputed": true,
+      "spine_owner_source_dispatch_completion_match": true,
+      "spine_owner_hbm_request_and_byte_ledgers_closed": true
+    },
+    "structural_work": {
+      "spine_iterations_must_match_hardware": true,
+      "spine_task_count_must_match_hardware": true,
+      "spine_processed_edges_must_match_hardware": true,
+      "grasu_regraph_limitation_must_be_explicit": true
+    }
+  },
+  "evidence_policy": {
+    "calibration_may_fit_parameters": true,
+    "holdout_may_fit_parameters": false,
+    "correctness_failure_rows_enter_performance_statistics": false,
+    "negative_or_overlapping_component_intervals_may_be_naively_summed": false,
+    "component_attribution_label": "calibrated_model_attribution_unless_direct_hardware_counter",
+    "hardware_hbm_byte_counter_required_for_memory_trend_claim": false,
+    "simulator_ledger_required_for_memory_trend_claim": true
+  },
+  "unsupported_claims_until_all_gates_pass": [
+    "cycle-accurate agreement for the current owner-FIFO Spine and sharded-K4 G+R systems",
+    "hardware-measured ten-stage Fig.10 component cycles",
+    "hardware-measured HBM traffic or HBM energy for Fig.9",
+    "measured XRT end-to-end latency for parameterized setup-inclusive Fig.8 rows",
+    "large-graph simulator speedup extrapolation without immutable holdout validation"
+  ],
+  "supersedes": {
+    "contract": "evaluation_refresh_fpga_calibration_v3_20260811",
+    "reason": "V4 freezes the device-owner protocol implementation and requires independently recomputed per-round source-completion and owner-HBM request/byte ledgers. The AU/SU calibration and WK/R19 holdout split is unchanged; old failed timing fits are not migrated."
+  }
+}
