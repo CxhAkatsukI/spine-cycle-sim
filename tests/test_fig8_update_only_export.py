@@ -9,6 +9,7 @@ import tempfile
 import unittest
 
 from scripts.render_evaluation_refresh import collect_fig8_rows
+from scripts.run_current_fig8_update_only_case import pure_result
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,6 +43,25 @@ def comparison(updates: int, batches: int, speedup: float) -> dict[str, object]:
 
 
 class Fig8UpdateOnlyExportTests(unittest.TestCase):
+    def test_current_case_preserves_raw_and_applies_frozen_component_scale(self) -> None:
+        result = pure_result(
+            {
+                "success": True,
+                "core_mhz": 150.0,
+                "maintenance_cycles": 101,
+                "correctness_mismatches": 0,
+                "backend_traffic": {"combined": {"requests": 1, "bytes": 64}},
+            },
+            system="spine",
+            updates=8,
+            calibration_scale=1.5,
+            calibration_component="maintenance",
+        )
+        self.assertEqual(result["raw_device_cycles"], 101)
+        self.assertEqual(result["calibrated_device_cycles"], 152)
+        self.assertEqual(result["device_cycles"], 152)
+        self.assertEqual(result["device_cycle_calibration_scale"], 1.5)
+
     def test_exporter_writes_renderer_ready_current_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

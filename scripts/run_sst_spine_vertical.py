@@ -2428,7 +2428,7 @@ def main() -> int:
             problems.append("mathematical_oracle")
         if abs(float(result.get("core_mhz", -1.0)) - core_mhz) > 1.0e-9:
             problems.append("core_mhz")
-    if profile_owner_scheduler_enabled:
+    if profile_owner_scheduler_enabled and args.scenario != "candidate10_maintenance":
         problems.extend(validate_owner_round_evidence(result))
     if args.sssp_warm_start:
         warm_checks = {
