@@ -175,7 +175,11 @@ def validate_generic_result(
                 == (
                     "zero_time_resident_old_rank_then_update_maintenance_then_device_correction_seed_then_compute"
                     if expected_mode == "spine_residual_pagerank"
-                    and residual_contract == "deltahls_sink_free_linf_warm"
+                    and residual_contract
+                    in {
+                        "deltahls_sink_free_linf_warm",
+                        "grasu_hardware_warm_dangling_linf",
+                    }
                     else "zero_time_resident_level_preload_then_update_maintenance_then_compute"
                 ),
                 "phase_backend_ledger": (not dynamic)
@@ -272,10 +276,14 @@ def validate_generic_result(
         )
     else:
         rounds = result.get("iterations", -1)
+        warm_linf = residual_contract in {
+            "deltahls_sink_free_linf_warm",
+            "grasu_hardware_warm_dangling_linf",
+        }
         delta_hls = residual_contract == "deltahls_sink_free_linf_warm"
         residual_measure = (
             result.get("residual_linf", float("inf"))
-            if delta_hls
+            if warm_linf
             else result.get("residual_l1", float("inf"))
         )
         checks.update(
@@ -320,7 +328,7 @@ def validate_generic_result(
                 "reader_protocol": result.get("reader_protocol_status") == 0,
             }
         )
-        if delta_hls:
+        if warm_linf:
             checks.update(
                 {
                     "device_residual_correction": result.get(
@@ -331,6 +339,10 @@ def validate_generic_result(
                         "residual_correction_request_ledger_closed"
                     )
                     is True,
+                    "device_residual_correction_sources": result.get(
+                        "residual_correction_touched_sources"
+                    )
+                    == result.get("delta_touched_sources"),
                 }
             )
     return [name for name, passed in checks.items() if not passed]
@@ -1442,17 +1454,18 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--pagerank-iterations", type=int, default=2)
-    parser.add_argument("--pagerank-damping", type=float, default=0.8)
-    parser.add_argument("--pagerank-epsilon", type=float, default=1.0e-5)
+    parser.add_argument("--pagerank-damping", type=float)
+    parser.add_argument("--pagerank-epsilon", type=float)
     parser.add_argument(
         "--residual-contract",
         choices=(
             "generic_dangling_l1_cold",
             "deltahls_sink_free_linf_warm",
+            "grasu_hardware_warm_dangling_linf",
         ),
-        default="generic_dangling_l1_cold",
+        default=None,
     )
-    parser.add_argument("--residual-max-iterations", type=int, default=256)
+    parser.add_argument("--residual-max-iterations", type=int)
     parser.add_argument("--pagerank-source-latency", type=int, default=3)
     parser.add_argument("--pagerank-source-ii", type=int, default=1)
     parser.add_argument("--pagerank-source-capacity", type=int, default=4)
@@ -1672,6 +1685,24 @@ def main() -> int:
     profile_reactivation_fifo_depth = int(
         profile_parameters.get("reactivation_fifo_depth_per_partition", 256)
     )
+    if args.pagerank_damping is None:
+        args.pagerank_damping = float(
+            profile_parameters.get("pagerank_damping", 0.8)
+        )
+    if args.pagerank_epsilon is None:
+        args.pagerank_epsilon = float(
+            profile_parameters.get("pagerank_epsilon", 1.0e-5)
+        )
+    if args.residual_contract is None:
+        args.residual_contract = str(
+            profile_parameters.get(
+                "pagerank_residual_contract", "generic_dangling_l1_cold"
+            )
+        )
+    if args.residual_max_iterations is None:
+        args.residual_max_iterations = int(
+            profile_parameters.get("pagerank_residual_max_iterations", 256)
+        )
     if profile_owner_scheduler_enabled and min(
         profile_owner_max_vertices,
         profile_owner_partitions,

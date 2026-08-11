@@ -20,7 +20,7 @@
         "spine_owner_fifo_respr_hls_v1",
         "spine_owner_fifo_sssp_hls_v1"
       ],
-      "sha256": "5ac358a235872a87497a94514373320c36c6ee0daf6bd5073cdb78f0b139ae24",
+      "sha256": "872ae43ae5c39882595a27fc08e0cc66812cb1a26eba121d677b469acedfb71d",
       "valid": true
     },
     "directory": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration",

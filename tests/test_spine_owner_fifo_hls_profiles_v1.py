@@ -37,6 +37,13 @@ class SpineOwnerFifoHlsProfilesV1Tests(unittest.TestCase):
             self.assertTrue(profile.parameters["device_determines_active_membership"])
             self.assertFalse(profile.parameters["host_recomputes_active_membership"])
             self.assertEqual(verify_profile_artifacts(profile, repository_root=ROOT), [])
+            if profile.parameters["algorithm_kind"] == "thresholded_residual_pagerank":
+                self.assertEqual(profile.parameters["pagerank_damping"], 0.85)
+                self.assertEqual(profile.parameters["pagerank_epsilon"], 1.0e-6)
+                self.assertEqual(
+                    profile.parameters["pagerank_residual_contract"],
+                    "grasu_hardware_warm_dangling_linf",
+                )
 
     def test_profiles_bind_complete_spine_hbm_topology(self) -> None:
         workload = ROOT / "tests" / "data" / "shared_comparison" / "syn_chain_v64.slice"

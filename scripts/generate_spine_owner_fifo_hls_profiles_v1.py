@@ -60,6 +60,14 @@ def dump(payload: dict[str, Any]) -> bytes:
 def payload(algorithm: str, spec: dict[str, str]) -> dict[str, Any]:
     tag = spec["tag"]
     base = BUILD_ROOT / tag
+    algorithm_parameters: dict[str, Any] = {}
+    if algorithm == "thresholded_residual_pagerank":
+        algorithm_parameters = {
+            "pagerank_damping": 0.85,
+            "pagerank_epsilon": 1.0e-6,
+            "pagerank_residual_contract": "grasu_hardware_warm_dangling_linf",
+            "pagerank_residual_max_iterations": 256,
+        }
     return {
         "schema_version": 1,
         "profile_id": f"spine_owner_fifo_{tag}_hls_v1",
@@ -128,6 +136,7 @@ def payload(algorithm: str, spec: dict[str, str]) -> dict[str, Any]:
             "host_rebin_and_relaunch": True,
             "work_credit_quiescence": True,
             "paper_alignment_contract": "spine_paper_architecture_alignment_v1",
+            **algorithm_parameters,
         },
         "features": [
             "routed_owner_fifo_hls",

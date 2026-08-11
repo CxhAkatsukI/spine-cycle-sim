@@ -39,7 +39,7 @@
       "algorithm": "thresholded_residual_pagerank",
       "profile_id": "spine_owner_fifo_respr_hls_v1",
       "path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
-      "sha256": "ac74ae545595f3efa7efabb1dc4a2bbd1cbeef368bdfdb7b8ec1faab746799f5"
+      "sha256": "e26c5967c3f48ba9327133c1391d4749fb00b1af359348044a74614a38063ec8"
     },
     {
       "architecture": "grasu_regraph",

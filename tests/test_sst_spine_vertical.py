@@ -221,6 +221,8 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             ),
             "residual_correction_device_timed": True,
             "residual_correction_request_ledger_closed": True,
+            "residual_correction_touched_sources": 1,
+            "delta_touched_sources": 1,
             "architecture_oracle": "deltahls_residual_float32",
             "mathematical_oracle": "full_pagerank_float64",
             "architecture_correctness_mismatches": 0,
@@ -273,6 +275,12 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         result["residual_correction_device_timed"] = True
         result["new_sink_vertices"] = 1
         self.assertIn("sink_free", validate_generic_result(result, dram, **arguments))
+
+        result["residual_contract"] = "grasu_hardware_warm_dangling_linf"
+        arguments["residual_contract"] = "grasu_hardware_warm_dangling_linf"
+        self.assertNotIn(
+            "sink_free", validate_generic_result(result, dram, **arguments)
+        )
 
     def test_dynamic_sssp_closes_cold_update_and_memory_ledgers(self) -> None:
         result = {
