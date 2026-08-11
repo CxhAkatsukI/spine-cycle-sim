@@ -145,6 +145,113 @@ class ComposedTimingModel:
         }
 
 
+@dataclass(frozen=True)
+class CurrentFPGAOverlapRecord:
+    """One routed reader/compute observation and its simulator work ledger."""
+
+    architecture: str
+    algorithm: str
+    profile_id: str
+    dataset: str
+    role: str
+    iterations: int
+    simulator_maintenance_cycles: float
+    simulator_reader_cycles: float
+    simulator_compute_cycles: float
+    simulator_reader_memory_requests: float
+    simulator_reader_level_cache_words: float
+    simulator_compute_active_scan_words: float
+    simulator_processed_edges: float
+    hardware_maintenance_cycles: float
+    hardware_reader_cycles: float
+    hardware_compute_cycles: float
+    hardware_iterative_span_cycles: float
+
+
+@dataclass(frozen=True)
+class OverlapTimingModel:
+    """Component model that preserves reader/compute overlap."""
+
+    architecture: str
+    algorithm: str
+    calibration_datasets: tuple[str, ...]
+    maintenance_fixed_cycles: float
+    maintenance_scale: float
+    reader_simulator_scale: float
+    reader_memory_request_cycles: float
+    reader_level_cache_word_cycles: float
+    compute_simulator_scale: float
+    compute_active_scan_word_cycles: float
+    compute_processed_edge_cycles: float
+    span_residual_cycles_per_iteration: float
+
+    def predict_components(
+        self,
+        *,
+        iterations: int,
+        simulator_maintenance_cycles: float,
+        simulator_reader_cycles: float,
+        simulator_compute_cycles: float,
+        simulator_reader_memory_requests: float,
+        simulator_reader_level_cache_words: float,
+        simulator_compute_active_scan_words: float,
+        simulator_processed_edges: float,
+    ) -> dict[str, float]:
+        if iterations <= 0:
+            raise ValueError("overlap timing requires at least one iteration")
+        for value, name in (
+            (simulator_maintenance_cycles, "simulator_maintenance_cycles"),
+            (simulator_reader_cycles, "simulator_reader_cycles"),
+            (simulator_compute_cycles, "simulator_compute_cycles"),
+        ):
+            _require_positive_finite(value, name)
+        for value, name in (
+            (
+                simulator_reader_memory_requests,
+                "simulator_reader_memory_requests",
+            ),
+            (
+                simulator_reader_level_cache_words,
+                "simulator_reader_level_cache_words",
+            ),
+            (
+                simulator_compute_active_scan_words,
+                "simulator_compute_active_scan_words",
+            ),
+            (simulator_processed_edges, "simulator_processed_edges"),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and non-negative")
+        maintenance = (
+            self.maintenance_fixed_cycles
+            + self.maintenance_scale * simulator_maintenance_cycles
+        )
+        reader = (
+            self.reader_simulator_scale * simulator_reader_cycles
+            + self.reader_memory_request_cycles
+            * simulator_reader_memory_requests
+            + self.reader_level_cache_word_cycles
+            * simulator_reader_level_cache_words
+        )
+        compute = (
+            self.compute_simulator_scale * simulator_compute_cycles
+            + self.compute_active_scan_word_cycles
+            * simulator_compute_active_scan_words
+            + self.compute_processed_edge_cycles * simulator_processed_edges
+        )
+        iterative_span = (
+            max(reader, compute)
+            + self.span_residual_cycles_per_iteration * iterations
+        )
+        return {
+            "maintenance_cycles": maintenance,
+            "reader_cycles": reader,
+            "compute_cycles": compute,
+            "iterative_span_cycles": iterative_span,
+            "total_cycles": maintenance + iterative_span,
+        }
+
+
 def _require_positive_finite(value: float, name: str) -> None:
     if not math.isfinite(value) or value <= 0:
         raise ValueError(f"{name} must be finite and positive")
@@ -362,6 +469,177 @@ def _fit_nonnegative_feature_model(
     if not math.isfinite(best_error):
         raise ValueError("non-negative feature fit has no feasible solution")
     return tuple(value / scale for value, scale in zip(best, scales))
+
+
+def fit_overlap_timing_model(
+    records: Iterable[CurrentFPGAOverlapRecord],
+) -> OverlapTimingModel:
+    """Fit routed maintenance, reader, compute, and overlap components."""
+
+    rows = tuple(records)
+    if not rows:
+        raise ValueError("overlap timing calibration requires records")
+    identities = {(row.architecture, row.algorithm, row.profile_id) for row in rows}
+    if len(identities) != 1:
+        raise ValueError("overlap fit must contain one architecture/algorithm/profile")
+    for row in rows:
+        _validate_composed_role(row.role)
+        if row.iterations <= 0:
+            raise ValueError("overlap records require at least one iteration")
+        for value, name in (
+            (row.simulator_maintenance_cycles, "simulator_maintenance_cycles"),
+            (row.simulator_reader_cycles, "simulator_reader_cycles"),
+            (row.simulator_compute_cycles, "simulator_compute_cycles"),
+            (row.hardware_maintenance_cycles, "hardware_maintenance_cycles"),
+            (row.hardware_reader_cycles, "hardware_reader_cycles"),
+            (row.hardware_compute_cycles, "hardware_compute_cycles"),
+            (
+                row.hardware_iterative_span_cycles,
+                "hardware_iterative_span_cycles",
+            ),
+        ):
+            _require_positive_finite(value, name)
+        for value, name in (
+            (
+                row.simulator_reader_memory_requests,
+                "simulator_reader_memory_requests",
+            ),
+            (
+                row.simulator_reader_level_cache_words,
+                "simulator_reader_level_cache_words",
+            ),
+            (
+                row.simulator_compute_active_scan_words,
+                "simulator_compute_active_scan_words",
+            ),
+            (row.simulator_processed_edges, "simulator_processed_edges"),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and non-negative")
+        if row.hardware_iterative_span_cycles < max(
+            row.hardware_reader_cycles, row.hardware_compute_cycles
+        ):
+            raise ValueError("hardware span cannot be shorter than either component")
+
+    calibration = tuple(row for row in rows if row.role == "calibration")
+    validation = tuple(row for row in rows if row.role != "calibration")
+    if len(calibration) < 4:
+        raise ValueError("overlap fit requires at least four calibration rows")
+    if {row.dataset for row in calibration} & {row.dataset for row in validation}:
+        raise ValueError("calibration and validation datasets overlap")
+
+    maintenance_fixed, maintenance_scale = _fit_nonnegative_two_feature_model(
+        [(1.0, row.simulator_maintenance_cycles) for row in calibration],
+        [row.hardware_maintenance_cycles for row in calibration],
+    )
+    reader_scale, reader_request_cycles, reader_level_cache_cycles = (
+        _fit_nonnegative_feature_model(
+            [
+                (
+                    row.simulator_reader_cycles,
+                    row.simulator_reader_memory_requests,
+                    row.simulator_reader_level_cache_words,
+                )
+                for row in calibration
+            ],
+            [row.hardware_reader_cycles for row in calibration],
+        )
+    )
+    compute_scale, compute_scan_cycles, compute_edge_cycles = (
+        _fit_nonnegative_feature_model(
+            [
+                (
+                    row.simulator_compute_cycles,
+                    row.simulator_compute_active_scan_words,
+                    row.simulator_processed_edges,
+                )
+                for row in calibration
+            ],
+            [row.hardware_compute_cycles for row in calibration],
+        )
+    )
+    span_residual = _fit_nonnegative_feature_model(
+        [(float(row.iterations),) for row in calibration],
+        [
+            row.hardware_iterative_span_cycles
+            - max(row.hardware_reader_cycles, row.hardware_compute_cycles)
+            for row in calibration
+        ],
+    )[0]
+    architecture, algorithm, _profile_id = next(iter(identities))
+    return OverlapTimingModel(
+        architecture=architecture,
+        algorithm=algorithm,
+        calibration_datasets=tuple(sorted(row.dataset for row in calibration)),
+        maintenance_fixed_cycles=maintenance_fixed,
+        maintenance_scale=maintenance_scale,
+        reader_simulator_scale=reader_scale,
+        reader_memory_request_cycles=reader_request_cycles,
+        reader_level_cache_word_cycles=reader_level_cache_cycles,
+        compute_simulator_scale=compute_scale,
+        compute_active_scan_word_cycles=compute_scan_cycles,
+        compute_processed_edge_cycles=compute_edge_cycles,
+        span_residual_cycles_per_iteration=span_residual,
+    )
+
+
+def overlap_prediction_rows(
+    records: Iterable[CurrentFPGAOverlapRecord], model: OverlapTimingModel
+) -> list[dict[str, object]]:
+    """Apply an overlap timing model without refitting validation rows."""
+
+    rows: list[dict[str, object]] = []
+    for record in records:
+        if (record.architecture, record.algorithm) != (
+            model.architecture,
+            model.algorithm,
+        ):
+            raise ValueError("overlap timing model identity does not match record")
+        prediction = model.predict_components(
+            iterations=record.iterations,
+            simulator_maintenance_cycles=record.simulator_maintenance_cycles,
+            simulator_reader_cycles=record.simulator_reader_cycles,
+            simulator_compute_cycles=record.simulator_compute_cycles,
+            simulator_reader_memory_requests=(
+                record.simulator_reader_memory_requests
+            ),
+            simulator_reader_level_cache_words=(
+                record.simulator_reader_level_cache_words
+            ),
+            simulator_compute_active_scan_words=(
+                record.simulator_compute_active_scan_words
+            ),
+            simulator_processed_edges=record.simulator_processed_edges,
+        )
+        hardware_total = (
+            record.hardware_maintenance_cycles
+            + record.hardware_iterative_span_cycles
+        )
+        row = {
+            **record.__dict__,
+            "hardware_total_cycles": hardware_total,
+            "predicted_maintenance_cycles": prediction["maintenance_cycles"],
+            "predicted_reader_cycles": prediction["reader_cycles"],
+            "predicted_compute_cycles": prediction["compute_cycles"],
+            "predicted_iterative_span_cycles": prediction[
+                "iterative_span_cycles"
+            ],
+            "predicted_total_cycles": prediction["total_cycles"],
+        }
+        for component in ("maintenance", "reader", "compute"):
+            row[f"{component}_absolute_error_percent"] = absolute_error_percent(
+                float(prediction[f"{component}_cycles"]),
+                float(getattr(record, f"hardware_{component}_cycles")),
+            )
+        row["iterative_span_absolute_error_percent"] = absolute_error_percent(
+            prediction["iterative_span_cycles"],
+            record.hardware_iterative_span_cycles,
+        )
+        row["total_absolute_error_percent"] = absolute_error_percent(
+            prediction["total_cycles"], hardware_total
+        )
+        rows.append(row)
+    return rows
 
 
 def fit_composed_timing_model(
