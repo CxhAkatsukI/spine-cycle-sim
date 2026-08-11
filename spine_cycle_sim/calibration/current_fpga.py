@@ -80,6 +80,7 @@ class ComposedTimingModel:
     maintenance_scale: float
     iterative_fixed_cycles_per_iteration: float
     iterative_simulator_scale: float
+    iterative_strategy: str
     calibration_datasets: tuple[str, ...]
 
     def predict_components(
@@ -248,6 +249,8 @@ def _fit_nonnegative_two_feature_model(
 
 def fit_composed_timing_model(
     records: Iterable[CurrentFPGAComposedRecord],
+    *,
+    iterative_strategy: str = "fixed_plus_simulator",
 ) -> ComposedTimingModel:
     """Fit maintenance and iterative timing using calibration rows only.
 
@@ -292,20 +295,33 @@ def fit_composed_timing_model(
     }:
         raise ValueError("calibration and validation datasets overlap")
     iterative_calibration = tuple(row for row in calibration if row.iterations > 0)
-    if len(iterative_calibration) < 2:
-        raise ValueError("composed fit requires two propagating calibration rows")
+    if iterative_strategy not in {"fixed_plus_simulator", "simulator_scale_only"}:
+        raise ValueError(f"unsupported iterative strategy: {iterative_strategy!r}")
+    minimum_iterative_rows = 2 if iterative_strategy == "fixed_plus_simulator" else 1
+    if len(iterative_calibration) < minimum_iterative_rows:
+        raise ValueError(
+            f"{iterative_strategy} requires {minimum_iterative_rows} "
+            "propagating calibration row(s)"
+        )
 
     maintenance_scale = _geometric_mean(
         row.hardware_maintenance_cycles / row.simulator_maintenance_cycles
         for row in calibration
     )
-    fixed, simulator_scale = _fit_nonnegative_two_feature_model(
-        [
-            (float(row.iterations), row.simulator_iterative_cycles)
+    if iterative_strategy == "fixed_plus_simulator":
+        fixed, simulator_scale = _fit_nonnegative_two_feature_model(
+            [
+                (float(row.iterations), row.simulator_iterative_cycles)
+                for row in iterative_calibration
+            ],
+            [row.hardware_iterative_cycles for row in iterative_calibration],
+        )
+    else:
+        fixed = 0.0
+        simulator_scale = _geometric_mean(
+            row.hardware_iterative_cycles / row.simulator_iterative_cycles
             for row in iterative_calibration
-        ],
-        [row.hardware_iterative_cycles for row in iterative_calibration],
-    )
+        )
     architecture, algorithm, _profile_id = next(iter(identities))
     return ComposedTimingModel(
         architecture=architecture,
@@ -313,6 +329,7 @@ def fit_composed_timing_model(
         maintenance_scale=maintenance_scale,
         iterative_fixed_cycles_per_iteration=fixed,
         iterative_simulator_scale=simulator_scale,
+        iterative_strategy=iterative_strategy,
         calibration_datasets=tuple(sorted(row.dataset for row in calibration)),
     )
 

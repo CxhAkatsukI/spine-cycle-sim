@@ -166,6 +166,31 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "zero-iteration"):
             fit_composed_timing_model(rows)
 
+    def test_composed_scale_only_supports_one_propagating_calibration_row(self):
+        rows = [
+            CurrentFPGAComposedRecord(
+                "spine", "respr", "p1", "zero1", "calibration", 10, 0, 0, 30, 0
+            ),
+            CurrentFPGAComposedRecord(
+                "spine", "respr", "p1", "zero2", "calibration", 20, 0, 0, 60, 0
+            ),
+            CurrentFPGAComposedRecord(
+                "spine", "respr", "p1", "prop", "calibration", 30, 100, 2, 90, 500
+            ),
+            CurrentFPGAComposedRecord(
+                "spine", "respr", "p1", "holdout", "holdout", 40, 200, 1, 120, 1000
+            ),
+        ]
+        model = fit_composed_timing_model(
+            rows, iterative_strategy="simulator_scale_only"
+        )
+        self.assertEqual(model.iterative_strategy, "simulator_scale_only")
+        self.assertEqual(model.iterative_fixed_cycles_per_iteration, 0.0)
+        self.assertAlmostEqual(model.iterative_simulator_scale, 5.0)
+        self.assertAlmostEqual(
+            model.predict_components(40, 200, 1)["total_cycles"], 1120.0
+        )
+
     def test_roles_must_be_disjoint(self):
         rows = self.timing_rows()
         rows[-1] = CurrentFPGATimingRecord(
