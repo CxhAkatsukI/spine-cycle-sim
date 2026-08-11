@@ -53,6 +53,17 @@ from .candidate10 import (
     summarize_candidate10_predictions,
     write_candidate10_analysis,
 )
+from .current_fpga import (
+    CurrentFPGAComponentRecord,
+    CurrentFPGATimingRecord,
+    PositiveScaleModel,
+    absolute_error_percent,
+    component_prediction_rows,
+    fit_component_scale,
+    fit_total_scale,
+    spearman_rank_correlation,
+    total_prediction_rows,
+)
 from .reader import (
     READER_COMPONENT_ORDER,
     READER_WHATIF_ORDER,
@@ -146,6 +157,15 @@ __all__ = [
     "read_candidate10_matrix",
     "summarize_candidate10_predictions",
     "write_candidate10_analysis",
+    "CurrentFPGAComponentRecord",
+    "CurrentFPGATimingRecord",
+    "PositiveScaleModel",
+    "absolute_error_percent",
+    "component_prediction_rows",
+    "fit_component_scale",
+    "fit_total_scale",
+    "spearman_rank_correlation",
+    "total_prediction_rows",
     "READER_COMPONENT_ORDER",
     "READER_WHATIF_ORDER",
     "ReaderComponentModel",
