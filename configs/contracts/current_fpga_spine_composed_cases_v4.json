@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "contract_id": "current_fpga_spine_composed_v4_20260811",
+  "status": "frozen_before_holdout_execution",
+  "architecture": "spine",
+  "hardware_source_revision": "3678ad488e0d0fe8538a36a11d87ddffa182fa99",
+  "simulator_source_revision": "f742a1ebb17bd1e17c6819087504f9f6dfe76231",
+  "simulator_plugin": {
+    "path": "cpp/sst/build/sst-current-fpga-v4/libspine_cycle.so",
+    "sha256": "f99b13a0bdf5410f3ab201d75d63dde609565f27893c2fe51790c7a2e3260ab5"
+  },
+  "clock_mhz": 150.0,
+  "timing_target": {
+    "maintenance": "median routed maintenance_kernel_ms",
+    "iterative": "median routed kernel_span_ms; reader and compute intervals overlap and are never summed",
+    "total": "maintenance plus iterative kernel span"
+  },
+  "algorithms": {
+    "weighted_sssp": {
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "iterative_strategy": "fixed_plus_simulator",
+      "calibration": ["au", "su", "so", "pk"],
+      "development_validation": ["wk", "r19"],
+      "holdout": ["lj", "lj08"]
+    },
+    "connected_components": {
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "iterative_strategy": "fixed_plus_simulator",
+      "calibration": ["au", "su", "so", "pk"],
+      "development_validation": ["wk", "r19"],
+      "holdout": ["lj", "lj08"]
+    },
+    "thresholded_residual_pagerank": {
+      "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "iterative_strategy": "simulator_scale_only",
+      "maintenance_calibration": ["au", "su", "so", "pk", "ask540"],
+      "iterative_calibration": ["ask540"],
+      "development_validation": ["wk", "r19"],
+      "maintenance_holdout": ["lj", "lj08", "ask904"],
+      "iterative_holdout": ["ask904"]
+    }
+  },
+  "admission": {
+    "correctness_oracles": "both architecture and independent mathematical oracles must pass",
+    "structural_work": "iterations, range tasks, and processed edges must exactly match routed hardware counters",
+    "memory_fifo_owner_ledgers": "all available request, byte, FIFO, owner, dispatch, and work-credit ledgers must close",
+    "calibration_may_fit": true,
+    "development_validation_may_fit": false,
+    "holdout_may_fit": false,
+    "zero_iteration_iterative_cycles": 0
+  },
+  "thresholds": {
+    "development_median_absolute_error_percent_max": 20.0,
+    "holdout_median_absolute_error_percent_max": 20.0,
+    "holdout_absolute_error_percent_max": 30.0,
+    "rank_spearman_min": 0.9
+  },
+  "legacy_plugin_reuse": {
+    "sha256": "6739bd1056b75d86fe825c2208640e64c9a940c4814f59f105eda703285cdb35",
+    "spine_policy": "admit only rows that never entered automatic hot promotion, plus an exact v4 successor for every affected row",
+    "grasu_regraph_policy": "admit under the exact-result transition report because changed source is Spine-only",
+    "grasu_regraph_transition_report": "docs/evidence/current_fpga_grasu_plugin_transition_v4_20260811.json"
+  },
+  "freeze_note": "Dataset roles and model forms were frozen before PK calibration completed and before LJ/LJ08 holdout execution."
+}
