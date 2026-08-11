@@ -9,6 +9,7 @@ import tempfile
 import unittest
 
 from scripts.render_evaluation_refresh import collect_fig8_rows
+from scripts import run_current_fig8_update_only_case
 from scripts.run_current_fig8_update_only_case import pure_result
 
 
@@ -43,6 +44,24 @@ def comparison(updates: int, batches: int, speedup: float) -> dict[str, object]:
 
 
 class Fig8UpdateOnlyExportTests(unittest.TestCase):
+    def test_current_runner_defaults_follow_v10_freeze(self) -> None:
+        self.assertEqual(
+            run_current_fig8_update_only_case.DEFAULT_LIB_DIR,
+            ROOT / "cpp/sst/build/sst-current-fpga-v10",
+        )
+        self.assertEqual(
+            run_current_fig8_update_only_case.DEFAULT_CASE_CONTRACT,
+            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v5.json",
+        )
+        self.assertEqual(
+            run_current_fig8_update_only_case.DEFAULT_CALIBRATION_CONTRACT,
+            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v6.json",
+        )
+        self.assertEqual(
+            run_current_fig8_update_only_case.DEFAULT_FROZEN_MODELS,
+            ROOT / "docs/evaluation_refresh_20260810/calibration_v10_frozen",
+        )
+
     def test_current_case_preserves_raw_and_applies_frozen_component_scale(self) -> None:
         result = pure_result(
             {

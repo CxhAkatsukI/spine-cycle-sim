@@ -32,7 +32,7 @@ DEFAULT_HOST_TOOL = (
     / "persistent_update_host_benchmark"
 )
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
-DEFAULT_LIB_DIR = ROOT / "cpp/sst/build/sst-current-fpga-v9"
+DEFAULT_LIB_DIR = ROOT / "cpp/sst/build/sst-current-fpga-v10"
 DEFAULT_SPINE_PROFILE = (
     ROOT / "configs/architectures/spine_owner_fifo_sssp_hls_v1.json"
 )
@@ -45,13 +45,13 @@ DEFAULT_CAPABILITY_CATALOG = (
     ROOT / "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json"
 )
 DEFAULT_CASE_CONTRACT = (
-    ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v4.json"
+    ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v5.json"
 )
 DEFAULT_CALIBRATION_CONTRACT = (
-    ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v5.json"
+    ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v6.json"
 )
 DEFAULT_FROZEN_MODELS = (
-    ROOT / "docs/evaluation_refresh_20260810/calibration_v9_frozen"
+    ROOT / "docs/evaluation_refresh_20260810/calibration_v10_frozen"
 )
 
 
