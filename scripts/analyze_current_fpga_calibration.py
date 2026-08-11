@@ -23,6 +23,7 @@ from spine_cycle_sim.calibration.current_fpga import (  # noqa: E402
     spearman_rank_correlation,
     total_prediction_rows,
 )
+from spine_cycle_sim.calibration.frozen import load_frozen_scale_models  # noqa: E402
 
 
 DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v2.json"
@@ -292,6 +293,7 @@ def collect_total_records(
 
 def analyze_total(
     records: list[CurrentFPGATimingRecord],
+    frozen_models: dict[tuple[str, ...], Any] | None = None,
 ) -> tuple[list[dict[str, object]], list[dict[str, object]], list[dict[str, Any]]]:
     grouped: dict[tuple[str, str, str], list[CurrentFPGATimingRecord]] = {}
     for record in records:
@@ -305,13 +307,19 @@ def analyze_total(
         rows = sorted(grouped[key], key=lambda row: (row.role, row.dataset))
         if len(rows) != 4:
             continue
-        model = fit_total_scale(rows)
+        if frozen_models is None:
+            model = fit_total_scale(rows)
+        else:
+            model = frozen_models.get(key)
+            if model is None:
+                raise ValueError(f"missing frozen total model: {key}")
         group_predictions = total_prediction_rows(rows, model)
         predictions.extend(group_predictions)
         summaries.append(summarize_group(group_predictions))
         models.append(
             {
                 **asdict(model),
+                "profile_id": key[2],
                 "fit_role": "calibration_only",
                 "holdout_used_for_fit": False,
                 "model_form": "hardware_cycles = scale * execution_driven_simulator_cycles",
@@ -328,6 +336,7 @@ def main() -> int:
     parser.add_argument("--hardware-root", type=Path)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--allow-partial", action="store_true")
+    parser.add_argument("--frozen-models-dir", type=Path)
     args = parser.parse_args()
 
     cases = read_json(args.cases.resolve())
@@ -344,6 +353,17 @@ def main() -> int:
         raise ValueError("frozen simulator plugin identity mismatch")
     simulation_root = (args.simulation_root or Path(cases["default_simulation_root"])).resolve()
     hardware_root = (args.hardware_root or Path(cases["default_hardware_root"])).resolve()
+    frozen_models = None
+    frozen_provenance = None
+    if args.frozen_models_dir:
+        frozen_models, frozen_provenance = load_frozen_scale_models(
+            args.frozen_models_dir,
+            kind="total",
+            contract_id=contract["contract_id"],
+            contract_sha256=sha256_file(contract_path),
+            cases_sha256=sha256_file(args.cases.resolve()),
+            plugin_sha256=contract["simulator_plugin"]["sha256"],
+        )
     records, evidence, missing = collect_total_records(
         cases,
         contract,
@@ -351,7 +371,7 @@ def main() -> int:
         hardware_root,
         allow_partial=args.allow_partial,
     )
-    predictions, summaries, models = analyze_total(records)
+    predictions, summaries, models = analyze_total(records, frozen_models)
     expected_groups = len(ARCHITECTURES) * len(cases["algorithms"])
     thresholds = contract["manifest_gates"]["total_cycle"]
     checks = []
@@ -381,7 +401,8 @@ def main() -> int:
         {
             "schema_version": 1,
             "status": status,
-            "parameters_frozen": all_pass,
+            "parameters_frozen": frozen_models is not None or all_pass,
+            "parameters_frozen_before_holdout": frozen_models is not None,
             "models": models,
         },
     )
@@ -416,11 +437,17 @@ def main() -> int:
         "contract_id": contract["contract_id"],
         "contract_sha256": sha256_file(contract_path),
         "status": status,
-        "parameters_frozen": all_pass,
+        "parameters_frozen": frozen_models is not None or all_pass,
+        "parameters_frozen_before_holdout": frozen_models is not None,
         "correctness_gate": "PASS" if not missing else "INCOMPLETE",
         "workload_identity_pinned": not missing,
         "calibration_and_holdout_disjoint": True,
-        "fit_policy": "one positive geometric-mean scale per architecture/algorithm; calibration rows only",
+        "fit_policy": (
+            "load immutable pre-holdout positive scale per architecture/algorithm"
+            if frozen_models is not None
+            else "one positive geometric-mean scale per architecture/algorithm; calibration rows only"
+        ),
+        "frozen_model_provenance": frozen_provenance,
         "timing_window": contract["timing_windows"]["device_dynamic"],
         "coverage": coverage,
         "threshold_checks": {

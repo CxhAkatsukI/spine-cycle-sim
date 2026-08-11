@@ -55,6 +55,7 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
         models = group_total_models(rows)
         self.assertEqual(len(models), 1)
         self.assertEqual(models[0]["scale"], 2.0)
+        self.assertEqual(models[0]["profile_id"], "p")
         self.assertFalse(models[0]["holdout_used_for_fit"])
         with self.assertRaisesRegex(ValueError, "holdout"):
             group_total_models(
@@ -78,6 +79,7 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
         models = group_component_models(rows)
         self.assertEqual(len(models), 1)
         self.assertAlmostEqual(models[0]["scale"], 3.0)
+        self.assertEqual(models[0]["profile_id"], "p")
         self.assertFalse(models[0]["holdout_used_for_fit"])
 
 

@@ -28,6 +28,7 @@ from spine_cycle_sim.calibration.current_fpga import (  # noqa: E402
     component_prediction_rows,
     fit_component_scale,
 )
+from spine_cycle_sim.calibration.frozen import load_frozen_scale_models  # noqa: E402
 
 
 DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v2.json"
@@ -583,6 +584,56 @@ def summarize_component(rows: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
+def analyze_component_records(
+    records: list[CurrentFPGAComponentRecord],
+    component_threshold: float,
+    frozen_models: dict[tuple[str, ...], Any] | None = None,
+) -> tuple[
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+]:
+    grouped: dict[tuple[str, str, str, str], list[CurrentFPGAComponentRecord]] = {}
+    for record in records:
+        grouped.setdefault(
+            (record.architecture, record.algorithm, record.profile_id, record.component),
+            [],
+        ).append(record)
+    predictions: list[dict[str, object]] = []
+    summaries: list[dict[str, object]] = []
+    models: list[dict[str, object]] = []
+    for key in sorted(grouped):
+        group = grouped[key]
+        if sum(row.role == "calibration" for row in group) < 2 or sum(
+            row.role == "holdout" for row in group
+        ) < 1:
+            continue
+        if frozen_models is None:
+            model = fit_component_scale(group)
+        else:
+            model = frozen_models.get(key)
+            if model is None:
+                raise ValueError(f"missing frozen component model: {key}")
+        group_rows = component_prediction_rows(group, model)
+        summary = summarize_component(group_rows)
+        summary["holdout_median_pass"] = (
+            float(summary["holdout_median_absolute_error_percent"])
+            <= component_threshold
+        )
+        predictions.extend(group_rows)
+        summaries.append(summary)
+        models.append(
+            {
+                **asdict(model),
+                "profile_id": key[2],
+                "fit_role": "calibration_only",
+                "holdout_used_for_fit": False,
+                "hardware_event_intervals_summed": False,
+            }
+        )
+    return predictions, summaries, models
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
@@ -591,6 +642,7 @@ def main() -> int:
     parser.add_argument("--hardware-root", type=Path)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--allow-partial", action="store_true")
+    parser.add_argument("--frozen-models-dir", type=Path)
     args = parser.parse_args()
 
     cases_path = args.cases.resolve()
@@ -615,6 +667,17 @@ def main() -> int:
     }
     profiles = {key: row["profile_id"] for key, row in profile_entries.items()}
     expected_plugin_sha256 = str(contract["simulator_plugin"]["sha256"])
+    frozen_models = None
+    frozen_provenance = None
+    if args.frozen_models_dir:
+        frozen_models, frozen_provenance = load_frozen_scale_models(
+            args.frozen_models_dir,
+            kind="component",
+            contract_id=contract["contract_id"],
+            contract_sha256=sha256_file(contract_path),
+            cases_sha256=sha256_file(cases_path),
+            plugin_sha256=expected_plugin_sha256,
+        )
     component_records: list[CurrentFPGAComponentRecord] = []
     component_evidence: list[dict[str, object]] = []
     ledger_rows: list[dict[str, object]] = []
@@ -718,39 +781,12 @@ def main() -> int:
                 ledger_row["profile_id"] = profile_id
                 ledger_rows.append(ledger_row)
 
-    grouped: dict[tuple[str, str, str, str], list[CurrentFPGAComponentRecord]] = {}
-    for record in component_records:
-        grouped.setdefault(
-            (record.architecture, record.algorithm, record.profile_id, record.component), []
-        ).append(record)
-    predictions: list[dict[str, object]] = []
-    summaries: list[dict[str, object]] = []
-    models: list[dict[str, object]] = []
     component_threshold = float(
         contract["manifest_gates"]["component_cycle"]["median_absolute_error_percent_max"]
     )
-    for key in sorted(grouped):
-        records = grouped[key]
-        if sum(row.role == "calibration" for row in records) < 2 or sum(
-            row.role == "holdout" for row in records
-        ) < 1:
-            continue
-        model = fit_component_scale(records)
-        group_rows = component_prediction_rows(records, model)
-        summary = summarize_component(group_rows)
-        summary["holdout_median_pass"] = (
-            float(summary["holdout_median_absolute_error_percent"]) <= component_threshold
-        )
-        predictions.extend(group_rows)
-        summaries.append(summary)
-        models.append(
-            {
-                **asdict(model),
-                "fit_role": "calibration_only",
-                "holdout_used_for_fit": False,
-                "hardware_event_intervals_summed": False,
-            }
-        )
+    predictions, summaries, models = analyze_component_records(
+        component_records, component_threshold, frozen_models
+    )
 
     expected_component_groups = 3 + 4 + 1 + 2 + 2 + 2
     component_pass = (
@@ -851,7 +887,8 @@ def main() -> int:
         {
             "schema_version": 1,
             "status": component_status,
-            "parameters_frozen": component_pass,
+            "parameters_frozen": frozen_models is not None or component_pass,
+            "parameters_frozen_before_holdout": frozen_models is not None,
             "models": models,
         },
     )
@@ -864,7 +901,9 @@ def main() -> int:
             "contract_sha256": sha256_file(contract_path),
             "case_contract_sha256": sha256_file(cases_path),
             "status": component_status,
-            "parameters_frozen": component_pass,
+            "parameters_frozen": frozen_models is not None or component_pass,
+            "parameters_frozen_before_holdout": frozen_models is not None,
+            "frozen_model_provenance": frozen_provenance,
             "correctness_gate": "PASS" if not missing else "INCOMPLETE",
             "workload_identity_pinned": not missing,
             "calibration_and_holdout_disjoint": True,

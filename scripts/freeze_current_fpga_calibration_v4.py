@@ -67,6 +67,7 @@ def group_total_models(records: list[Any]) -> list[dict[str, Any]]:
         models.append(
             {
                 **asdict(model),
+                "profile_id": key[2],
                 "fit_role": "calibration_only",
                 "holdout_used_for_fit": False,
                 "model_form": (
@@ -196,6 +197,7 @@ def group_component_models(
         models.append(
             {
                 **asdict(model),
+                "profile_id": key[2],
                 "fit_role": "calibration_only",
                 "holdout_used_for_fit": False,
                 "hardware_observation": grouped[key][0].hardware_observation,
