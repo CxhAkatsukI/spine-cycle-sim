@@ -5039,6 +5039,7 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint64_t> compute_end_cycles;
       std::vector<std::uint64_t> reader_edges_per_iteration;
       std::vector<std::uint64_t> compute_edges_per_iteration;
+      std::vector<std::uint64_t> reader_range_tasks_per_iteration;
       std::vector<std::uint64_t> fast_tiles_per_iteration;
       std::vector<std::uint64_t> full_tiles_per_iteration;
       std::vector<std::uint64_t> swept_words_per_iteration;
@@ -5063,6 +5064,8 @@ class OnlineMemoryProbe final : public SST::Component {
         compute_end_cycles.push_back(round.compute.end_cycle);
         reader_edges_per_iteration.push_back(round.reader.edges_emitted);
         compute_edges_per_iteration.push_back(round.compute.processed_edges);
+        reader_range_tasks_per_iteration.push_back(
+            round.reader.range_task_count);
         fast_tiles_per_iteration.push_back(round.compute.fast_path_tiles);
         full_tiles_per_iteration.push_back(round.compute.full_path_tiles);
         swept_words_per_iteration.push_back(
@@ -5299,6 +5302,8 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_edges_per_iteration);
       result << ",\n  \"compute_edges_per_iteration\": ";
       write_json_array(result, compute_edges_per_iteration);
+      result << ",\n  \"reader_range_tasks_per_iteration\": ";
+      write_json_array(result, reader_range_tasks_per_iteration);
       result << ",\n  \"fast_tiles_per_iteration\": ";
       write_json_array(result, fast_tiles_per_iteration);
       result << ",\n  \"full_tiles_per_iteration\": ";

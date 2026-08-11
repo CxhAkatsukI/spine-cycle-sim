@@ -63,7 +63,15 @@ def load_simulator_result(run_dir: Path) -> tuple[dict[str, Any], Path, Path | N
         raise FileNotFoundError(result_path)
     result = read_json(result_path)
     manifest_path = next(
-        (path for path in (run_dir / "run_manifest.json", run_dir / "summary.json") if path.is_file()),
+        (
+            path
+            for path in (
+                run_dir / "run_manifest.json",
+                run_dir / "summary.json",
+                run_dir / "manifest.json",
+            )
+            if path.is_file()
+        ),
         None,
     )
     if manifest_path is None:
@@ -197,12 +205,16 @@ def collect_total_records(
                 contract_entry = contract_profiles[(architecture, algorithm)]
                 if contract_entry["profile_id"] != expected_profile:
                     raise ValueError(f"case/contract profile mismatch: {architecture}:{algorithm}")
+                simulation_directories = algorithm_spec.get("simulation_directories", {})
+                simulation_directory = simulation_directories.get(
+                    architecture, algorithm_spec["simulation_directory"]
+                )
                 run_dir = (
                     simulation_root
                     / "runs_current_v1"
                     / dataset
                     / architecture
-                    / algorithm_spec["simulation_directory"]
+                    / simulation_directory
                 )
                 try:
                     result, result_path, manifest_path = load_simulator_result(run_dir)
