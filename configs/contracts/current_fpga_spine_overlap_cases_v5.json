@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "contract_id": "current_fpga_spine_overlap_v5_20260811",
+  "status": "frozen_before_holdout_execution",
+  "architecture": "spine",
+  "algorithm": "weighted_sssp",
+  "hardware_source_revision": "3678ad488e0d0fe8538a36a11d87ddffa182fa99",
+  "simulator_plugin_source_revision": "f00307c",
+  "simulator_plugin": {
+    "path": "cpp/sst/build/sst-current-fpga-v5/libspine_cycle.so",
+    "sha256": "dd0c2d0b44186f654fdced20bb8dcedb17a46d5ec6b1e4aa2a5b7ab8480b2c74"
+  },
+  "profile": {
+    "profile_id": "spine_owner_fifo_sssp_hls_v1",
+    "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+    "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
+  },
+  "clock_mhz": 150.0,
+  "roles": {
+    "calibration": ["au", "su", "wk", "r19", "so", "pk", "lj", "lj08"],
+    "holdout": ["au_u64", "su_u64"]
+  },
+  "holdout_workloads": {
+    "au_u64": {
+      "batch_size": 64,
+      "source": 11,
+      "graph_sha256": "13bfe11fbebc49295c3094ce82d3a35523538962e9f727ac21c3bedbeef1a0d8",
+      "initial_slice_sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+      "update_slice_sha256": "ec5dbaa3a1d8a49f9e70ff247634226a685c9c39a8d376d379d954fadd4e6618"
+    },
+    "su_u64": {
+      "batch_size": 64,
+      "source": 23,
+      "graph_sha256": "7c40f518181d1d99b59eb8425fd688d00b171b15217b7abcabc846540316c56d",
+      "initial_slice_sha256": "3afdd3088221d987dbbb0ac9ead992acc82b684cfab28ef235262e63b410ea4d",
+      "update_slice_sha256": "94af09c3c146c68e06532762bccb31cd7f26380ee16d7e55be6f569fe9969663"
+    }
+  },
+  "timing_target": {
+    "maintenance": "median routed maintenance_kernel_ms",
+    "reader": "median routed reader_ms",
+    "compute": "median routed compute_ms",
+    "iterative_span": "median routed kernel_span_ms",
+    "total": "maintenance plus iterative kernel span"
+  },
+  "model": {
+    "maintenance": "non-negative OLS: fixed + simulator maintenance cycles",
+    "reader": "non-negative OLS: simulator reader active cycles + issued memory requests + level-cache 64-bit words",
+    "compute": "non-negative OLS: simulator compute active cycles + active-bitmap scan words + processed edges",
+    "iterative_span": "max(predicted reader, predicted compute) + non-negative per-round residual",
+    "fit_roles": ["calibration"],
+    "holdout_may_fit": false
+  },
+  "admission": {
+    "correctness": "simulator success and both architecture and mathematical mismatch counters are zero",
+    "plugin_profile_identity": "exact SHA-256 match",
+    "hardware_repetitions": 3,
+    "hardware_reader_compute_intervals_summed": false,
+    "memory_fifo_owner_ledgers": "all available request, byte, FIFO, owner, dispatch, and work-credit ledgers must close"
+  },
+  "thresholds": {
+    "holdout_median_absolute_error_percent_max": 20.0,
+    "holdout_absolute_error_percent_max": 30.0,
+    "rank_spearman_min": 0.9
+  },
+  "model_selection_note": "The v4 total-span form failed on LJ/LJ08. Source inspection identified two omitted routed mechanisms: the reader's fixed family-by-level metadata walk and compute active-bitmap sweeps. All eight inspected batch-8 rows are therefore calibration/development evidence in v5.",
+  "freeze_note": "This contract and the exact AU/SU batch-64 workload hashes were frozen before either holdout workload was executed in the v5 simulator or on the FPGA."
+}
