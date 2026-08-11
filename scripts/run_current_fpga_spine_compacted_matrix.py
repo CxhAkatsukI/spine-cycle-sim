@@ -17,9 +17,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SIMULATION_ROOT = Path(
-    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812"
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812"
 )
-DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-current-fpga-v11"
+DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-current-fpga-v12"
 DATASETS = ("au", "su", "wk", "r19")
 ALGORITHMS = (
     "weighted_sssp",

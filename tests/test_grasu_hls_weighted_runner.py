@@ -8,12 +8,17 @@ import unittest
 from scripts.run_sst_grasu_regraph_hls_weighted import (
     HLS_INFINITY,
     build_hls_weighted_oracle,
+    build_hls_weighted_resident_oracle,
     compact_hls_weighted_oracle,
     require_hls_weighted_capability,
     validate_result,
 )
 from spine_cycle_sim.experiments.profile_capabilities import ImplementationStatus
-from spine_cycle_sim.experiments.shared_workloads import load_slice
+from spine_cycle_sim.experiments.shared_workloads import (
+    SliceGraph,
+    SliceRecord,
+    load_slice,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -166,6 +171,55 @@ class GrasuHlsWeightedRunnerTests(unittest.TestCase):
 
     def test_result_validator_accepts_complete_contract(self) -> None:
         validate_result(self._valid_result(), self.profile, self.oracle)
+
+    def test_resident_oracle_starts_from_old_state_and_update_sources(self) -> None:
+        initial = SliceGraph(
+            case_id="resident_initial",
+            vertices=4,
+            records=(SliceRecord(0, 1, 10), SliceRecord(1, 2, 10)),
+        )
+        update = SliceGraph(
+            case_id="resident_update",
+            vertices=4,
+            records=(SliceRecord(0, 2, 1),),
+        )
+        oracle = build_hls_weighted_resident_oracle(initial, update, 0)
+        self.assertEqual(oracle.external_distances, (0, 10, 1, HLS_INFINITY))
+        self.assertEqual(oracle.minimum_supersteps, 2)
+        self.assertEqual(oracle.resident_active_sources, 1)
+        result = self._valid_result(oracle=oracle, supersteps=2)
+        result["update_inserts"] = 1
+        result["update_deletes"] = 0
+        result["resident_state"] = "old_graph_converged"
+        result["resident_active_sources"] = 1
+        validate_result(
+            result,
+            self.profile,
+            oracle,
+            supersteps=2,
+            hardware_warm_sssp=True,
+        )
+
+    def test_resident_oracle_rejects_delete_and_weight_increase(self) -> None:
+        initial = SliceGraph(
+            case_id="resident_initial",
+            vertices=3,
+            records=(SliceRecord(0, 1, 2),),
+        )
+        deletion = SliceGraph(
+            case_id="resident_delete",
+            vertices=3,
+            records=(SliceRecord(0, 1, 2, -1),),
+        )
+        increase = SliceGraph(
+            case_id="resident_increase",
+            vertices=3,
+            records=(SliceRecord(0, 1, 3),),
+        )
+        with self.assertRaisesRegex(ValueError, "delete records"):
+            build_hls_weighted_resident_oracle(initial, deletion, 0)
+        with self.assertRaisesRegex(ValueError, "weight increases"):
+            build_hls_weighted_resident_oracle(initial, increase, 0)
 
     def test_result_validator_rejects_physical_update_drift(self) -> None:
         result = self._valid_result()

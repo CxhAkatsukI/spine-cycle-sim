@@ -2321,6 +2321,7 @@ class OnlineMemoryProbe final : public SST::Component {
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
     cc_hardware_full_recompute_ =
         params.find<bool>("cc_hardware_full_recompute", false);
+    hardware_warm_sssp_ = params.find<bool>("hardware_warm_sssp", false);
     grasu_native_supersteps_ =
         params.find<std::size_t>("grasu_native_supersteps", 2);
     pagerank_iterations_ = params.find<std::size_t>("pagerank_iterations", 1);
@@ -2937,6 +2938,26 @@ class OnlineMemoryProbe final : public SST::Component {
           throw std::invalid_argument(
               "weighted HLS GraSU vertex is outside the graph");
         }
+        if (hardware_warm_sssp_) {
+          if (!hls_weighted_grasu_sssp || !logical_update_snapshot.has_value()) {
+            throw std::invalid_argument(
+                "hardware warm SSSP requires weighted SSSP updates");
+          }
+          std::map<std::pair<std::uint32_t, std::uint32_t>, std::uint16_t>
+              old_weights;
+          for (const GraSuEdge &edge : initial_edges) {
+            old_weights[{edge.source, edge.destination}] = edge.weight;
+          }
+          for (const GraSuEdge &edge : updates) {
+            const auto found =
+                old_weights.find({edge.source, edge.destination});
+            if (edge.delete_op ||
+                (found != old_weights.end() && edge.weight > found->second)) {
+              throw std::invalid_argument(
+                  "hardware warm SSSP admits only insertion/decrease updates");
+            }
+          }
+        }
         grasu_source_external_ = source_vertex_;
         GraSuWeightedFullWordGraph prepared =
             prepare_grasu_weighted_full_word_graph(initial.vertices,
@@ -2998,10 +3019,44 @@ class OnlineMemoryProbe final : public SST::Component {
       }
       if (mode_ == "grasu_regraph_sssp" || native_grasu_sssp ||
           hls_weighted_grasu_sssp) {
-        grasu_sssp_reference_ =
-            run_sssp_reference(final_snapshot, source_vertex_,
-                               (native_grasu_sssp || hls_weighted_grasu_sssp)
-                                   ? grasu_native_supersteps_                                    : max_rounds_);
+        if (hls_weighted_grasu_sssp && hardware_warm_sssp_) {
+          std::vector<std::uint32_t> old_distances =
+              run_sssp_mathematical_reference(initial_snapshot, source_vertex_);
+          std::vector<std::uint32_t> active_sources;
+          active_sources.reserve(logical_update_snapshot->edges.size());
+          for (const SpineEdgeRecord &edge : logical_update_snapshot->edges) {
+            active_sources.push_back(grasu_external_to_internal_.at(edge.src));
+          }
+          std::sort(active_sources.begin(), active_sources.end());
+          active_sources.erase(
+              std::unique(active_sources.begin(), active_sources.end()),
+              active_sources.end());
+          if (active_sources.empty()) {
+            throw std::invalid_argument(
+                "hardware warm SSSP requires at least one update source");
+          }
+          grasu_resident_active_sources_ = active_sources.size();
+          grasu_sssp_initial_state_ = AlgorithmInitialState{
+              .primary = old_distances,
+              .auxiliary = {},
+              .active_vertices = active_sources,
+          };
+          grasu_sssp_reference_ = run_sssp_reference_from_state(
+              final_snapshot, std::move(old_distances),
+              std::move(active_sources), grasu_native_supersteps_);
+          if (!grasu_sssp_reference_.converged ||
+              grasu_sssp_reference_.frontiers.size() !=
+                  grasu_native_supersteps_) {
+            throw std::invalid_argument(
+                "hardware warm SSSP superstep count differs from resident oracle");
+          }
+        } else {
+          grasu_sssp_reference_ =
+              run_sssp_reference(final_snapshot, source_vertex_,
+                                 (native_grasu_sssp || hls_weighted_grasu_sssp)
+                                     ? grasu_native_supersteps_
+                                     : max_rounds_);
+        }
         grasu_sssp_mathematical_reference_ =
             run_sssp_mathematical_reference(final_snapshot, source_vertex_);
         if (!native_grasu_sssp && !hls_weighted_grasu_sssp &&
@@ -4000,13 +4055,15 @@ class OnlineMemoryProbe final : public SST::Component {
                   std::make_unique<GraSuReGraphSsspSystem>(
                       scheduler_, 0, *backend_, grasu_partitioned_layout_,
                       std::move(policy), std::vector<std::uint32_t>{},
-                      grasu_native_supersteps_, grasu_config_);
+                      grasu_native_supersteps_, grasu_config_,
+                      grasu_sssp_initial_state_);
             } else {
               grasu_compute_system_ =
                   std::make_unique<GraSuReGraphSsspSystem>(
                       scheduler_, 0, *backend_, grasu_layout_,
                       std::move(policy), std::vector<std::uint32_t>{},
-                      grasu_native_supersteps_, grasu_config_);
+                      grasu_native_supersteps_, grasu_config_,
+                      grasu_sssp_initial_state_);
             }
           } else {
             if (grasu_partitioned_execution_) {
@@ -4483,6 +4540,9 @@ class OnlineMemoryProbe final : public SST::Component {
       {"max_rounds", "Maximum SSSP frontier rounds", "256"},
       {"cc_hardware_full_recompute",
        "Run CC from all-vertex active identity labels like the FPGA host",
+       "false"},
+      {"hardware_warm_sssp",
+       "Initialize weighted SSSP from old-graph distances and update sources",
        "false"},
       {"grasu_native_supersteps", "Fixed native ReGraph supersteps", "2"},
       {"pagerank_iterations", "Full PageRank iteration count", "1"},
@@ -5572,6 +5632,13 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"initial_active_vertices\": "
              << connected_components_setup_->initial_state.active_vertices.size()
              << ",\n"
+             << "  \"resident_state\": \""
+             << (connected_components_setup_->hardware_full_recompute
+                     ? "cold_identity_full_recompute"
+                     : (connected_components_setup_->full_recompute
+                            ? "cold_identity_deletion_fallback"
+                            : "old_graph_converged"))
+             << "\",\n"
              << "  \"correctness_mismatches\": "
              << architecture_mismatches + mathematical_mismatches << ",\n"
              << "  \"architecture_correctness_mismatches\": "
@@ -7255,6 +7322,12 @@ class OnlineMemoryProbe final : public SST::Component {
              << ",\n"
              << "  \"fixed_host_supersteps\": "
              << (hls_weighted ? "true" : "false") << ",\n"
+             << "  \"resident_state\": \""
+             << (hardware_warm_sssp_ ? "old_graph_converged"
+                                     : "cold_source_initialized")
+             << "\",\n"
+             << "  \"resident_active_sources\": "
+             << grasu_resident_active_sources_ << ",\n"
              << "  \"update_inserts\": " << update.inserts << ",\n"
              << "  \"update_deletes\": " << update.deletes << ",\n"
              << "  \"update_weight_decreases\": "
@@ -11186,6 +11259,7 @@ class OnlineMemoryProbe final : public SST::Component {
   bool grasu_update_only_{};
   std::size_t max_rounds_{};
   bool cc_hardware_full_recompute_{};
+  bool hardware_warm_sssp_{};
   std::size_t grasu_native_supersteps_{};
   std::size_t pagerank_iterations_{};
   float pagerank_damping_{};
@@ -11295,6 +11369,8 @@ class OnlineMemoryProbe final : public SST::Component {
   GraSuUpdateCounters grasu_update_counters_;
   GraSuNativeCompactorCounters grasu_compactor_counters_;
   std::size_t grasu_native_compact_edge_slots_{};
+  std::optional<AlgorithmInitialState> grasu_sssp_initial_state_;
+  std::size_t grasu_resident_active_sources_{};
   SsspReference grasu_sssp_reference_;
   std::vector<std::uint32_t> grasu_sssp_mathematical_reference_;
   std::vector<float> grasu_pagerank_reference_;

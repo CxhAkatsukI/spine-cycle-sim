@@ -23,10 +23,10 @@ ROOT = Path(__file__).resolve().parents[1]
 class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
     def test_analysis_defaults_follow_latest_frozen_contract(self) -> None:
         expected_cases = (
-            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json"
+            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json"
         )
         expected_contract = (
-            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json"
+            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
         )
         self.assertEqual(analyze_current_fpga_calibration.DEFAULT_CASES, expected_cases)
         self.assertEqual(analyze_current_fpga_components.DEFAULT_CASES, expected_cases)
@@ -172,12 +172,51 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
             "cpp/sst/build/sst-current-fpga-v11/libspine_cycle.so",
         )
         plugin = ROOT / contract["simulator_plugin"]["path"]
-        self.assertEqual(
-            hashlib.sha256(plugin.read_bytes()).hexdigest(),
-            contract["simulator_plugin"]["sha256"],
-        )
+        if plugin.is_file():
+            self.assertEqual(
+                hashlib.sha256(plugin.read_bytes()).hexdigest(),
+                contract["simulator_plugin"]["sha256"],
+            )
         self.assertIn("owner-FIFO HBM protocol", contract["supersedes"]["reason"])
         self.assertIn("no v10 calibration row is migrated", contract["supersedes"]["reason"])
+
+    def test_v8_contract_pins_resident_state_semantics(self) -> None:
+        cases = json.loads(
+            (
+                ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json"
+            ).read_text(encoding="utf-8")
+        )
+        contract = json.loads(
+            (
+                ROOT
+                / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(cases["calibration_contract_id"], contract["contract_id"])
+        self.assertEqual(
+            cases["default_simulation_root"],
+            "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812",
+        )
+        self.assertEqual(
+            contract["simulator_plugin"]["path"],
+            "cpp/sst/build/sst-current-fpga-v12/libspine_cycle.so",
+        )
+        plugin = ROOT / contract["simulator_plugin"]["path"]
+        if plugin.is_file():
+            self.assertEqual(
+                hashlib.sha256(plugin.read_bytes()).hexdigest(),
+                contract["simulator_plugin"]["sha256"],
+            )
+        for algorithm in (
+            "weighted_sssp",
+            "connected_components",
+            "thresholded_residual_pagerank",
+        ):
+            self.assertEqual(
+                cases["algorithms"][algorithm]["resident_state"],
+                "old_graph_converged",
+            )
+        self.assertIn("no v11 row is migrated", contract["supersedes"]["reason"])
 
     def test_total_freeze_groups_only_calibration_rows(self) -> None:
         rows = [

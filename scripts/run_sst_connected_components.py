@@ -234,6 +234,15 @@ def validate_result(
         ),
     }
     if architecture == "grasu":
+        expected_resident_state = (
+            "cold_identity_full_recompute"
+            if hardware_full_recompute
+            else (
+                "cold_identity_deletion_fallback"
+                if analysis.deletions
+                else "old_graph_converged"
+            )
+        )
         legacy_k1_downstream = (
             compute_pipelines == 1
             and downstream_sharing == "direct"
@@ -243,6 +252,8 @@ def validate_result(
         checks.update(
             {
                 "conversion_free": result.get("conversion_cost_included") is False,
+                "resident_state": result.get("resident_state")
+                == expected_resident_state,
                 "pma_state": result.get("update_state_mismatches") == 0,
                 "compute_pipelines": result.get("compute_pipelines")
                 == compute_pipelines,
@@ -324,7 +335,10 @@ def main() -> int:
     parser.add_argument(
         "--hardware-full-recompute",
         action="store_true",
-        help="Match the current FPGA CC host by starting all vertices active.",
+        help=(
+            "Diagnostic cold/full recompute from all-vertex identity labels; "
+            "the current resident FPGA matrix does not use this mode."
+        ),
     )
     parser.add_argument("--instantiate-all-hbm-channels", action="store_true")
     args = parser.parse_args()

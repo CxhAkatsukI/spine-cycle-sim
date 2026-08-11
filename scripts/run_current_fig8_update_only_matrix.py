@@ -20,10 +20,10 @@ DEFAULT_MATERIALIZATION_ROOT = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/workloads"
 )
 DEFAULT_EVIDENCE_ROOT = Path(
-    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_fig8_20260812"
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_fig8_20260812"
 )
 DEFAULT_FROZEN_MODELS = (
-    ROOT / "docs/evaluation_refresh_20260810/calibration_v11_frozen"
+    ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen"
 )
 DATASETS = (
     ("au", "AU", "sx_askubuntu"),

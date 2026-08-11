@@ -38,11 +38,11 @@ from spine_cycle_sim.calibration.current_fpga import (  # noqa: E402
 )
 
 
-DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json"
+DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json"
 DEFAULT_CONTRACT = (
-    ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json"
+    ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
 )
-DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v11_frozen"
+DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen"
 EXPECTED_COMPONENT_MODEL_COUNT = 14
 
 

@@ -35,9 +35,9 @@ from spine_cycle_sim.experiments.memory_traffic import (  # noqa: E402
 )
 
 
-DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json"
-DEFAULT_CONTRACT = ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json"
-DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v11_analysis"
+DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json"
+DEFAULT_CONTRACT = ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
+DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v12_analysis"
 ARCHITECTURES = ("spine", "grasu_regraph")
 GRASU_FIFO_DEPTH_FIELDS = {
     "source_cache_request_fifo_max_occupancy": (

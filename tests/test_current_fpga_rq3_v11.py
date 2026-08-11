@@ -4,14 +4,14 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.build_current_fpga_rq3_v11 import (
+from scripts.build_current_fpga_rq3_v12 import (
     DEFAULT_RESIDUAL_CORRECTION_ROOT,
     DEFAULT_RESIDUAL_CORRECTION_SWEEP_ROOT,
     case_payload,
 )
 
 
-class CurrentFPGARQ3V11Tests(unittest.TestCase):
+class CurrentFPGARQ3V12Tests(unittest.TestCase):
     def test_correction_holdout_and_sweep_use_disjoint_roots(self) -> None:
         self.assertNotEqual(
             DEFAULT_RESIDUAL_CORRECTION_ROOT,

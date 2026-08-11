@@ -17,9 +17,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SIMULATION_ROOT = Path(
-    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812"
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812"
 )
-DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-current-fpga-v11"
+DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-current-fpga-v12"
 CAPABILITY_CATALOG = (
     ROOT / "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json"
 )
@@ -135,6 +135,7 @@ def build_command(
             *common,
             "--source",
             str(SOURCE[dataset]),
+            "--hardware-warm-sssp",
         ]
     if algorithm == "thresholded_residual_pagerank":
         return [
@@ -154,7 +155,6 @@ def build_command(
         "--architecture",
         "grasu",
         *common,
-        "--hardware-full-recompute",
     ]
 
 
@@ -169,15 +169,27 @@ def manifest_path(out_dir: Path) -> Path | None:
     )
 
 
-def valid_existing_result(out_dir: Path, profile: Path, plugin: Path) -> bool:
+def valid_existing_result(
+    out_dir: Path, profile: Path, plugin: Path, algorithm: str
+) -> bool:
     manifest = manifest_path(out_dir)
     if manifest is None or not (out_dir / "result.json").is_file():
         return False
     payload = json.loads(manifest.read_text(encoding="utf-8"))
-    return (
+    identity_matches = (
         payload.get("status") == "PASS"
         and payload.get("sst_plugin_sha256") == sha256_file(plugin)
         and payload.get("profile_sha256") == sha256_file(profile)
+    )
+    if not identity_matches:
+        return False
+    if algorithm == "weighted_sssp":
+        return payload.get("resident_state") == "old_graph_converged"
+    if algorithm == "connected_components":
+        return payload.get("hardware_full_recompute") is False
+    return (
+        payload.get("residual_contract")
+        == "grasu_hardware_warm_dangling_linf"
     )
 
 
@@ -203,7 +215,7 @@ def run_one(
     task_id = f"{dataset}:{algorithm}"
     out_dir = output_directory(simulation_root, dataset, algorithm)
     plugin = library / "libspine_cycle.so"
-    if valid_existing_result(out_dir, PROFILE[algorithm], plugin):
+    if valid_existing_result(out_dir, PROFILE[algorithm], plugin, algorithm):
         with lock:
             status["tasks"][task_id] = {"state": "PASS", "reused": True}
             write_status(status_path, status)
@@ -232,7 +244,7 @@ def run_one(
         )
     elapsed = time.monotonic() - start
     passed = completed.returncode == 0 and valid_existing_result(
-        out_dir, PROFILE[algorithm], plugin
+        out_dir, PROFILE[algorithm], plugin, algorithm
     )
     with lock:
         status["tasks"][task_id] = {

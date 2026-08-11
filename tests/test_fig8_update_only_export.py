@@ -50,30 +50,30 @@ def current_case_manifest() -> dict[str, object]:
             "measured_host_preprocessing_plus_explicit_transfer_launch_model_"
             "plus_calibrated_device_cycles"
         ),
-        "sst_plugin_sha256": "plugin-v11",
-        "case_contract_sha256": "cases-v6",
-        "calibration_contract_sha256": "calibration-v7",
+        "sst_plugin_sha256": "plugin-v12",
+        "case_contract_sha256": "cases-v7",
+        "calibration_contract_sha256": "calibration-v8",
         "frozen_component_models": {"sha256": "frozen-models"},
     }
 
 
 class Fig8UpdateOnlyExportTests(unittest.TestCase):
-    def test_current_runner_defaults_follow_v11_freeze(self) -> None:
+    def test_current_runner_defaults_follow_v12_freeze(self) -> None:
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_LIB_DIR,
-            ROOT / "cpp/sst/build/sst-current-fpga-v11",
+            ROOT / "cpp/sst/build/sst-current-fpga-v12",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_CASE_CONTRACT,
-            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json",
+            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_CALIBRATION_CONTRACT,
-            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json",
+            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_FROZEN_MODELS,
-            ROOT / "docs/evaluation_refresh_20260810/calibration_v11_frozen",
+            ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen",
         )
 
     def test_current_case_preserves_raw_and_applies_frozen_component_scale(self) -> None:

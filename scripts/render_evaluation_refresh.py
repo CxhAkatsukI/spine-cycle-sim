@@ -625,11 +625,20 @@ def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
                 ordered.append(row)
         return ordered
 
-    current_v11 = any(
-        row.get("execution_id", "").startswith("current_fpga_v11_")
-        for row in all_rows
+    current_version = next(
+        (
+            version
+            for version in ("v12", "v11")
+            if any(
+                row.get("execution_id", "").startswith(
+                    f"current_fpga_{version}_"
+                )
+                for row in all_rows
+            )
+        ),
+        None,
     )
-    if current_v11:
+    if current_version is not None:
         dynamic_specs = (
             (
                 "SI",
@@ -675,7 +684,7 @@ def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
                         "U1",
                         {
                             "execution_id": (
-                                "current_fpga_v11_flickr_respr_correction_u1"
+                                f"current_fpga_{current_version}_flickr_respr_correction_u1"
                             )
                         },
                     ),
@@ -683,7 +692,7 @@ def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
                         "U8",
                         {
                             "execution_id": (
-                                "current_fpga_v11_flickr_respr_correction_u8"
+                                f"current_fpga_{current_version}_flickr_respr_correction_u8"
                             )
                         },
                     ),
@@ -691,7 +700,7 @@ def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
                         "U64",
                         {
                             "execution_id": (
-                                "current_fpga_v11_flickr_respr_correction_u64"
+                                f"current_fpga_{current_version}_flickr_respr_correction_u64"
                             )
                         },
                     ),
@@ -704,7 +713,7 @@ def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
                         "Syn",
                         {
                             "execution_id": (
-                                "current_fpga_v11_delete_fallback_sssp"
+                                f"current_fpga_{current_version}_delete_fallback_sssp"
                             )
                         },
                     ),

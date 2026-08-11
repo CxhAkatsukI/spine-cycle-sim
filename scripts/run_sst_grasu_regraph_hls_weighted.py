@@ -67,6 +67,7 @@ class HlsWeightedOracle:
     external_distances: tuple[int, ...]
     source_internal: int
     minimum_supersteps: int
+    resident_active_sources: int | None = None
 
 
 @dataclass(frozen=True)
@@ -80,6 +81,7 @@ class HlsWeightedRuntimeOracle:
     minimum_supersteps: int
     partition_vertices: int
     partition_max_sources: tuple[int | None, ...]
+    resident_active_sources: int | None = None
 
 
 def compact_hls_weighted_oracle(
@@ -107,6 +109,7 @@ def compact_hls_weighted_oracle(
         minimum_supersteps=oracle.minimum_supersteps,
         partition_vertices=partition_vertices,
         partition_max_sources=tuple(partition_max_sources),
+        resident_active_sources=oracle.resident_active_sources,
     )
 
 
@@ -183,6 +186,42 @@ def _minimum_synchronous_supersteps(
         vertices, edges, source
     )
     return minimum_supersteps
+
+
+def _resident_relaxation(
+    vertices: int,
+    edges: tuple[tuple[int, int, int], ...],
+    initial_distances: tuple[int, ...],
+    active_sources: tuple[int, ...],
+) -> tuple[tuple[int, ...], int]:
+    if len(initial_distances) != vertices or not active_sources:
+        raise ValueError("invalid resident weighted-SSSP state")
+    adjacency: list[list[tuple[int, int]]] = [[] for _ in range(vertices)]
+    for source, destination, weight in edges:
+        adjacency[source].append((destination, weight))
+    distances = list(initial_distances)
+    frontier = list(active_sources)
+    for superstep in range(1, vertices + 2):
+        reduced: dict[int, int] = {}
+        for source in frontier:
+            for destination, weight in adjacency[source]:
+                value = distances[source]
+                candidate = (
+                    HLS_INFINITY
+                    if value >= HLS_INFINITY or value > HLS_INFINITY - weight
+                    else value + weight
+                )
+                reduced[destination] = min(
+                    reduced.get(destination, HLS_INFINITY), candidate
+                )
+        frontier = []
+        for destination, candidate in sorted(reduced.items()):
+            if candidate < distances[destination]:
+                distances[destination] = candidate
+                frontier.append(destination)
+        if not frontier:
+            return tuple(distances), superstep
+    raise ValueError("resident weighted-SSSP oracle did not converge")
 
 
 def build_hls_weighted_oracle(
@@ -264,6 +303,45 @@ def build_hls_weighted_oracle(
         external_distances=external_distances,
         source_internal=external_to_internal[source_external],
         minimum_supersteps=minimum_supersteps,
+    )
+
+
+def build_hls_weighted_resident_oracle(
+    initial: SliceGraph, update: SliceGraph, source_external: int
+) -> HlsWeightedOracle:
+    if any(edge.diff < 0 for edge in update.records):
+        raise ValueError("hardware resident SSSP does not admit delete records")
+    old_weights = {(edge.src, edge.dst): edge.weight for edge in initial.records}
+    for edge in update.records:
+        old_weight = old_weights.get((edge.src, edge.dst))
+        if old_weight is not None and edge.weight > old_weight:
+            raise ValueError("hardware resident SSSP does not admit weight increases")
+
+    oracle = build_hls_weighted_oracle(initial, update, source_external)
+    old_edges = tuple(
+        sorted((edge.src, edge.dst, edge.weight) for edge in initial.records)
+    )
+    old_distances = _dijkstra(initial.vertices, old_edges, source_external)
+    active_sources = tuple(sorted({edge.src for edge in update.records}))
+    resident_distances, minimum_supersteps = _resident_relaxation(
+        initial.vertices,
+        oracle.final_external_edges,
+        old_distances,
+        active_sources,
+    )
+    if resident_distances != oracle.external_distances:
+        raise ValueError("resident weighted-SSSP result differs from Dijkstra")
+    return HlsWeightedOracle(
+        logical_updates=oracle.logical_updates,
+        physical_updates=oracle.physical_updates,
+        external_to_internal=oracle.external_to_internal,
+        internal_to_external=oracle.internal_to_external,
+        final_external_edges=oracle.final_external_edges,
+        final_internal_edges=oracle.final_internal_edges,
+        external_distances=oracle.external_distances,
+        source_internal=oracle.source_internal,
+        minimum_supersteps=minimum_supersteps,
+        resident_active_sources=len(active_sources),
     )
 
 
@@ -352,6 +430,7 @@ def validate_result(
     oracle: HlsWeightedOracle | HlsWeightedRuntimeOracle,
     supersteps: int | None = None,
     downstream_sharing: str = "direct",
+    hardware_warm_sssp: bool = False,
 ) -> None:
     params = profile["parameters"]
     assert isinstance(params, dict)
@@ -461,6 +540,12 @@ def validate_result(
         and result.get("apply_input_bursts") == expected_bursts
         and result.get("hbm_wrapper_input_bursts") == expected_bursts,
     }
+    if hardware_warm_sssp:
+        checks["resident_state"] = (
+            result.get("resident_state") == "old_graph_converged"
+            and result.get("resident_active_sources")
+            == oracle.resident_active_sources
+        )
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
         raise RuntimeError(
@@ -519,6 +604,14 @@ def main() -> int:
     parser.add_argument("--source", type=int, default=0)
     parser.add_argument("--supersteps", type=int)
     parser.add_argument(
+        "--hardware-warm-sssp",
+        action="store_true",
+        help=(
+            "Match the routed host by starting from the old-graph converged "
+            "distance state and activating update sources."
+        ),
+    )
+    parser.add_argument(
         "--downstream-sharing", choices=("direct", "shared"), default=None
     )
     parser.add_argument("--out-dir", type=Path, required=True)
@@ -543,6 +636,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.preflight_only and args.reuse_result:
         raise ValueError("preflight-only and result reuse are mutually exclusive")
+    if args.hardware_warm_sssp and args.update_only:
+        raise ValueError("hardware warm SSSP and update-only are mutually exclusive")
     if args.reuse_result:
         if (
             args.reused_wall_seconds is None
@@ -602,7 +697,11 @@ def main() -> int:
             initial, update, args.source, partition_vertices
         )
     else:
-        oracle = build_hls_weighted_oracle(initial, update, args.source)
+        oracle = (
+            build_hls_weighted_resident_oracle(initial, update, args.source)
+            if args.hardware_warm_sssp
+            else build_hls_weighted_oracle(initial, update, args.source)
+        )
         runtime_oracle = compact_hls_weighted_oracle(oracle, partition_vertices)
     address_regions = None
     address_environment: dict[str, str] = {}
@@ -694,6 +793,12 @@ def main() -> int:
         "minimum_supersteps": runtime_oracle.minimum_supersteps,
         "selected_supersteps": supersteps,
         "superstep_policy": superstep_policy,
+        "resident_state": (
+            "old_graph_converged"
+            if args.hardware_warm_sssp
+            else "cold_source_initialized"
+        ),
+        "resident_active_sources": runtime_oracle.resident_active_sources,
         "destination_partitions": len(runtime_oracle.partition_max_sources),
         "runtime_source_state_stride_bytes": runtime_source_state_stride,
         "nonempty_destination_partitions": sum(
@@ -746,6 +851,9 @@ def main() -> int:
             "GRASU_SST_MAX_CYCLES": str(args.max_cycles),
             "GRASU_SST_UPDATE_ONLY": "1" if args.update_only else "0",
             "GRASU_SST_NATIVE_SUPERSTEPS": str(supersteps),
+            "GRASU_SST_HARDWARE_WARM_SSSP": (
+                "1" if args.hardware_warm_sssp else "0"
+            ),
             "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                 params["grasu_cache_segments_per_cu"]
             ),
@@ -870,7 +978,12 @@ def main() -> int:
         validate_update_only_result(result, runtime_oracle)
     else:
         validate_result(
-            result, profile, runtime_oracle, supersteps, downstream_sharing
+            result,
+            profile,
+            runtime_oracle,
+            supersteps,
+            downstream_sharing,
+            hardware_warm_sssp=args.hardware_warm_sssp,
         )
     dram = load_dram_stats(dram_dir)
     if (
@@ -909,6 +1022,12 @@ def main() -> int:
         "preflight": preflight,
         "supersteps": supersteps,
         "superstep_policy": superstep_policy,
+        "resident_state": (
+            "old_graph_converged"
+            if args.hardware_warm_sssp
+            else "cold_source_initialized"
+        ),
+        "resident_active_sources": runtime_oracle.resident_active_sources,
         "downstream_sharing": downstream_sharing,
         "update_only": args.update_only,
         "command": command,

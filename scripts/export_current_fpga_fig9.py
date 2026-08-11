@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export correctness- and ledger-gated current-v11 Figure 9 pairs."""
+"""Export correctness- and ledger-gated current-v12 Figure 9 pairs."""
 
 from __future__ import annotations
 
@@ -24,11 +24,11 @@ from scripts.analyze_current_fpga_components import (  # noqa: E402
 )
 
 
-DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json"
+DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json"
 DEFAULT_CONTRACT = (
-    ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json"
+    ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
 )
-DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/fig9_current_v11"
+DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/fig9_current_v12"
 DATASETS = ("au", "su", "wk")
 ARCHITECTURES = ("spine", "grasu_regraph")
 
