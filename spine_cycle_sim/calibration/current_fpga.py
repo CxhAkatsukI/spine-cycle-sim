@@ -50,6 +50,65 @@ class PositiveScaleModel:
         return self.scale * simulator_cycles
 
 
+@dataclass(frozen=True)
+class CurrentFPGAComposedRecord:
+    """One structurally admitted simulator/FPGA timing pair.
+
+    ``hardware_iterative_cycles`` is the routed reader/compute kernel span.  It
+    already contains overlap and therefore must not be reconstructed by adding
+    the individual reader and compute event intervals.
+    """
+
+    architecture: str
+    algorithm: str
+    profile_id: str
+    dataset: str
+    role: str
+    simulator_maintenance_cycles: float
+    simulator_iterative_cycles: float
+    iterations: int
+    hardware_maintenance_cycles: float
+    hardware_iterative_cycles: float
+
+
+@dataclass(frozen=True)
+class ComposedTimingModel:
+    """HLS-structured timing model for the current routed Spine design."""
+
+    architecture: str
+    algorithm: str
+    maintenance_scale: float
+    iterative_fixed_cycles_per_iteration: float
+    iterative_simulator_scale: float
+    calibration_datasets: tuple[str, ...]
+
+    def predict_components(
+        self,
+        simulator_maintenance_cycles: float,
+        simulator_iterative_cycles: float,
+        iterations: int,
+    ) -> dict[str, float]:
+        _require_positive_finite(
+            simulator_maintenance_cycles, "simulator_maintenance_cycles"
+        )
+        if not math.isfinite(simulator_iterative_cycles) or simulator_iterative_cycles < 0:
+            raise ValueError("simulator_iterative_cycles must be finite and non-negative")
+        if iterations < 0:
+            raise ValueError("iterations must be non-negative")
+        if iterations == 0 and simulator_iterative_cycles != 0:
+            raise ValueError("zero-iteration rows cannot contain iterative simulator cycles")
+        maintenance = self.maintenance_scale * simulator_maintenance_cycles
+        iterative = (
+            self.iterative_fixed_cycles_per_iteration * iterations
+            + self.iterative_simulator_scale * simulator_iterative_cycles
+        )
+        return {
+            "maintenance_cycles": maintenance,
+            "iterative_cycles": iterative,
+            "total_cycles": maintenance + iterative,
+        }
+
+
 def _require_positive_finite(value: float, name: str) -> None:
     if not math.isfinite(value) or value <= 0:
         raise ValueError(f"{name} must be finite and positive")
@@ -58,6 +117,11 @@ def _require_positive_finite(value: float, name: str) -> None:
 def _validate_role(role: str) -> None:
     if role not in {"calibration", "holdout"}:
         raise ValueError(f"invalid evidence role: {role!r}")
+
+
+def _validate_composed_role(role: str) -> None:
+    if role not in {"calibration", "development_validation", "holdout"}:
+        raise ValueError(f"invalid composed-model evidence role: {role!r}")
 
 
 def _geometric_mean(values: Iterable[float]) -> float:
@@ -133,6 +197,178 @@ def fit_component_scale(
         ),
         calibration_datasets=tuple(sorted(row.dataset for row in calibration)),
     )
+
+
+def _fit_nonnegative_two_feature_model(
+    features: list[tuple[float, float]], targets: list[float]
+) -> tuple[float, float]:
+    """Solve a two-column non-negative least-squares problem without SciPy."""
+
+    if len(features) != len(targets) or len(features) < 2:
+        raise ValueError("two-feature fit requires at least two aligned rows")
+    x_scale = max(row[0] for row in features)
+    y_scale = max(row[1] for row in features)
+    if x_scale <= 0 or y_scale <= 0:
+        raise ValueError("two-feature fit requires positive variation in both features")
+    normalized = [(x / x_scale, y / y_scale) for x, y in features]
+    xx = sum(x * x for x, _ in normalized)
+    xy = sum(x * y for x, y in normalized)
+    yy = sum(y * y for _, y in normalized)
+    xt = sum(x * target for (x, _), target in zip(normalized, targets))
+    yt = sum(y * target for (_, y), target in zip(normalized, targets))
+    determinant = xx * yy - xy * xy
+    if determinant <= 1e-12 * max(1.0, xx * yy):
+        raise ValueError("composed timing calibration features are rank deficient")
+
+    candidates: list[tuple[float, float]] = []
+    unrestricted = (
+        (xt * yy - yt * xy) / determinant,
+        (yt * xx - xt * xy) / determinant,
+    )
+    if unrestricted[0] >= 0 and unrestricted[1] >= 0:
+        candidates.append(unrestricted)
+    candidates.extend(
+        [
+            (max(0.0, xt / xx), 0.0),
+            (0.0, max(0.0, yt / yy)),
+            (0.0, 0.0),
+        ]
+    )
+
+    def squared_error(coefficients: tuple[float, float]) -> float:
+        left, right = coefficients
+        return sum(
+            (left * x + right * y - target) ** 2
+            for (x, y), target in zip(normalized, targets)
+        )
+
+    normalized_left, normalized_right = min(candidates, key=squared_error)
+    return normalized_left / x_scale, normalized_right / y_scale
+
+
+def fit_composed_timing_model(
+    records: Iterable[CurrentFPGAComposedRecord],
+) -> ComposedTimingModel:
+    """Fit maintenance and iterative timing using calibration rows only.
+
+    The iterative model has two physically interpretable terms: one fixed cost
+    per HLS reader/compute launch and one scale on the execution-driven
+    simulator span.  Zero-propagation rows train only the maintenance model.
+    """
+
+    rows = tuple(records)
+    if not rows:
+        raise ValueError("composed timing calibration requires records")
+    identities = {(row.architecture, row.algorithm, row.profile_id) for row in rows}
+    if len(identities) != 1:
+        raise ValueError("composed fit must contain one architecture/algorithm/profile")
+    for row in rows:
+        _validate_composed_role(row.role)
+        _require_positive_finite(
+            row.simulator_maintenance_cycles, "simulator_maintenance_cycles"
+        )
+        _require_positive_finite(
+            row.hardware_maintenance_cycles, "hardware_maintenance_cycles"
+        )
+        if row.iterations < 0:
+            raise ValueError("iterations must be non-negative")
+        for value, name in (
+            (row.simulator_iterative_cycles, "simulator_iterative_cycles"),
+            (row.hardware_iterative_cycles, "hardware_iterative_cycles"),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and non-negative")
+        if row.iterations == 0 and (
+            row.simulator_iterative_cycles != 0 or row.hardware_iterative_cycles != 0
+        ):
+            raise ValueError("zero-iteration rows cannot contain iterative cycles")
+
+    calibration = tuple(row for row in rows if row.role == "calibration")
+    non_calibration = tuple(row for row in rows if row.role != "calibration")
+    if len(calibration) < 3:
+        raise ValueError("composed fit requires at least three calibration rows")
+    if {row.dataset for row in calibration} & {
+        row.dataset for row in non_calibration
+    }:
+        raise ValueError("calibration and validation datasets overlap")
+    iterative_calibration = tuple(row for row in calibration if row.iterations > 0)
+    if len(iterative_calibration) < 2:
+        raise ValueError("composed fit requires two propagating calibration rows")
+
+    maintenance_scale = _geometric_mean(
+        row.hardware_maintenance_cycles / row.simulator_maintenance_cycles
+        for row in calibration
+    )
+    fixed, simulator_scale = _fit_nonnegative_two_feature_model(
+        [
+            (float(row.iterations), row.simulator_iterative_cycles)
+            for row in iterative_calibration
+        ],
+        [row.hardware_iterative_cycles for row in iterative_calibration],
+    )
+    architecture, algorithm, _profile_id = next(iter(identities))
+    return ComposedTimingModel(
+        architecture=architecture,
+        algorithm=algorithm,
+        maintenance_scale=maintenance_scale,
+        iterative_fixed_cycles_per_iteration=fixed,
+        iterative_simulator_scale=simulator_scale,
+        calibration_datasets=tuple(sorted(row.dataset for row in calibration)),
+    )
+
+
+def composed_prediction_rows(
+    records: Iterable[CurrentFPGAComposedRecord], model: ComposedTimingModel
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        if (record.architecture, record.algorithm) != (
+            model.architecture,
+            model.algorithm,
+        ):
+            raise ValueError("composed timing model identity does not match record")
+        prediction = model.predict_components(
+            record.simulator_maintenance_cycles,
+            record.simulator_iterative_cycles,
+            record.iterations,
+        )
+        hardware_total = (
+            record.hardware_maintenance_cycles + record.hardware_iterative_cycles
+        )
+        rows.append(
+            {
+                "architecture": record.architecture,
+                "algorithm": record.algorithm,
+                "profile_id": record.profile_id,
+                "dataset": record.dataset,
+                "role": record.role,
+                "iterations": record.iterations,
+                "simulator_maintenance_cycles": record.simulator_maintenance_cycles,
+                "simulator_iterative_cycles": record.simulator_iterative_cycles,
+                "hardware_maintenance_cycles": record.hardware_maintenance_cycles,
+                "hardware_iterative_cycles": record.hardware_iterative_cycles,
+                "hardware_total_cycles": hardware_total,
+                "predicted_maintenance_cycles": prediction["maintenance_cycles"],
+                "predicted_iterative_cycles": prediction["iterative_cycles"],
+                "predicted_total_cycles": prediction["total_cycles"],
+                "maintenance_absolute_error_percent": absolute_error_percent(
+                    prediction["maintenance_cycles"],
+                    record.hardware_maintenance_cycles,
+                ),
+                "iterative_absolute_error_percent": (
+                    absolute_error_percent(
+                        prediction["iterative_cycles"],
+                        record.hardware_iterative_cycles,
+                    )
+                    if record.hardware_iterative_cycles > 0
+                    else 0.0
+                ),
+                "total_absolute_error_percent": absolute_error_percent(
+                    prediction["total_cycles"], hardware_total
+                ),
+            }
+        )
+    return rows
 
 
 def absolute_error_percent(predicted: float, observed: float) -> float:
@@ -237,4 +473,3 @@ def component_prediction_rows(
             }
         )
     return rows
-
