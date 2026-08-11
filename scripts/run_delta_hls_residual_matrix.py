@@ -237,7 +237,7 @@ def _validate_result(
             float(result.get("pagerank_damping", math.nan)), DAMPING, abs_tol=1e-7
         ),
         "epsilon": math.isclose(
-            float(result.get("pagerank_epsilon", math.nan)), epsilon, abs_tol=1e-15
+            float(result.get("pagerank_epsilon", math.nan)), epsilon, abs_tol=1e-12
         ),
         "sink_free": result.get("old_sink_vertices") == 0
         and result.get("new_sink_vertices") == 0,

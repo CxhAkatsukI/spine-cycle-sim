@@ -1,0 +1,77 @@
+{
+  "schema_version": 2,
+  "status": "frozen",
+  "calibration_contract_id": "evaluation_refresh_fpga_calibration_v7_20260812",
+  "clock_mhz": 150.0,
+  "default_simulation_root": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812",
+  "default_hardware_root": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806",
+  "roles": {
+    "au": "calibration",
+    "su": "calibration",
+    "wk": "holdout",
+    "r19": "holdout"
+  },
+  "algorithms": {
+    "weighted_sssp": {
+      "hardware_directory": "sssp_fullgraph_u55c",
+      "hardware_algorithm": "weighted_sssp",
+      "hardware_case_suffix": "weighted_sssp_resident",
+      "simulation_directory": "weighted_sssp",
+      "simulation_directories": {
+        "spine": "weighted_sssp_compacted_hls_v1",
+        "grasu_regraph": "weighted_sssp_unified6739_v1"
+      },
+      "workload_algorithm": "weighted_sssp",
+      "spine_profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "grasu_regraph_profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "hardware_timing_prefix": "WEIGHTED_PMA_NATIVE_SHARDED_TIMING"
+    },
+    "connected_components": {
+      "hardware_directory": "cc_fullgraph_u55c",
+      "hardware_algorithm": "connected_components",
+      "hardware_case_suffix": "connected_components_resident",
+      "simulation_directory": "connected_components",
+      "simulation_directories": {
+        "spine": "connected_components_compacted_hls_v1",
+        "grasu_regraph": "connected_components_unified6739_v1"
+      },
+      "workload_algorithm": "connected_components",
+      "spine_profile_id": "spine_owner_fifo_cc_hls_v1",
+      "grasu_regraph_profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "hardware_timing_prefix": "CC_PMA_NATIVE_SHARDED_TIMING"
+    },
+    "thresholded_residual_pagerank": {
+      "hardware_directory": "respr_fullgraph_u55c",
+      "hardware_algorithm": "residual_pagerank",
+      "hardware_case_suffix": "residual_pagerank_resident",
+      "simulation_directory": "thresholded_residual_pagerank",
+      "simulation_directories": {
+        "spine": "thresholded_residual_pagerank_compacted_hls_v1",
+        "grasu_regraph": "thresholded_residual_pagerank_unified6739_v1"
+      },
+      "workload_algorithm": "residual_pagerank",
+      "spine_profile_id": "spine_owner_fifo_respr_hls_v1",
+      "grasu_regraph_profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "hardware_timing_prefix": "RESIDUAL_PR_PMA_NATIVE_SHARDED_TIMING",
+      "hardware_raw_roots": [
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run1",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run2",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run3"
+      ]
+    }
+  },
+  "timing_targets": {
+    "spine": {
+      "aggregate_field": "spine_dynamic_kernel_median_ms",
+      "observation": "median routed maintenance-kernel plus iterative-kernel span; excludes H2D/D2H migration and host orchestration"
+    },
+    "grasu_regraph": {
+      "aggregate_field": "gr_event_e2e_median_ms",
+      "observation": "median routed conversion-free G+R kernel-event envelope; graph and resident algorithm state are preloaded"
+    }
+  },
+  "supersedes": {
+    "case_contract": "evaluation_refresh_fpga_cases_v5.json",
+    "reason": "The v6 case contract preserves the frozen AU/SU calibration and WK/R19 holdout roles while moving every row to the clean v11 validation-ledger root. It never copies or silently admits v10 rows."
+  }
+}

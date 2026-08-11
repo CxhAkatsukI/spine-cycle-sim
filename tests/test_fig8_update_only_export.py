@@ -44,22 +44,22 @@ def comparison(updates: int, batches: int, speedup: float) -> dict[str, object]:
 
 
 class Fig8UpdateOnlyExportTests(unittest.TestCase):
-    def test_current_runner_defaults_follow_v10_freeze(self) -> None:
+    def test_current_runner_defaults_follow_v11_freeze(self) -> None:
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_LIB_DIR,
-            ROOT / "cpp/sst/build/sst-current-fpga-v10",
+            ROOT / "cpp/sst/build/sst-current-fpga-v11",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_CASE_CONTRACT,
-            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v5.json",
+            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_CALIBRATION_CONTRACT,
-            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v6.json",
+            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_FROZEN_MODELS,
-            ROOT / "docs/evaluation_refresh_20260810/calibration_v10_frozen",
+            ROOT / "docs/evaluation_refresh_20260810/calibration_v11_frozen",
         )
 
     def test_current_case_preserves_raw_and_applies_frozen_component_scale(self) -> None:

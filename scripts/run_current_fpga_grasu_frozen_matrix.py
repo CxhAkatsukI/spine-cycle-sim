@@ -17,9 +17,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SIMULATION_ROOT = Path(
-    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811"
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812"
 )
-DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-owner-compacted-v1"
+DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-current-fpga-v11"
 CAPABILITY_CATALOG = (
     ROOT / "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json"
 )

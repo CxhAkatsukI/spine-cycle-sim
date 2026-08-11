@@ -7592,16 +7592,27 @@ class OnlineMemoryProbe final : public SST::Component {
               residual_pagerank_reference_.frontier_in_sizes &&
           pagerank_frontier_out_sizes_ ==
               residual_pagerank_reference_.frontier_out_sizes;
+      const bool owner_enabled =
+          pagerank_system_->owner_scheduler() != nullptr;
       bool memory_ledger_match =
           pagerank_compute_requests_per_iteration_.size() ==
-          pagerank_frontier_in_sizes_.size();
+              pagerank_frontier_in_sizes_.size() &&
+          pagerank_round_evidence_.size() ==
+              pagerank_frontier_in_sizes_.size();
       for (std::size_t round = 0;
            memory_ledger_match &&
            round < pagerank_compute_requests_per_iteration_.size(); ++round) {
+        const auto &owner = pagerank_round_evidence_[round].compute;
+        const std::uint64_t owner_requests =
+            owner_enabled
+                ? 2 + owner.owner_source_dispatches * 7 +
+                      owner.owner_source_completions * 6 +
+                      owner.owner_activation_words * 8 + 9
+                : 0;
         memory_ledger_match =
             pagerank_compute_requests_per_iteration_[round] ==
             5 * pagerank_frontier_in_sizes_[round] + 2 * actual_ranks.size() +
-                pagerank_frontier_out_sizes_[round];
+                pagerank_frontier_out_sizes_[round] + owner_requests;
       }
       const std::uint64_t reader_edges_total = std::accumulate(
           pagerank_reader_edges_per_iteration_.begin(),
@@ -7683,8 +7694,7 @@ class OnlineMemoryProbe final : public SST::Component {
       write_owner_evidence(result, pagerank_system_->owner_scheduler(),
                            pagerank_system_->owner_frontier());
       write_owner_round_evidence(
-          result, pagerank_round_evidence_,
-          pagerank_system_->owner_scheduler() != nullptr);
+          result, pagerank_round_evidence_, owner_enabled);
       result << "  \"residual_contract\": \"" << residual_contract_id_
           << "\",\n"
           << "  \"backend\": \"" << backend_->backend_label()

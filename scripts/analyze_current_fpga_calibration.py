@@ -26,9 +26,9 @@ from spine_cycle_sim.calibration.current_fpga import (  # noqa: E402
 from spine_cycle_sim.calibration.frozen import load_frozen_scale_models  # noqa: E402
 
 
-DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v5.json"
-DEFAULT_CONTRACT = ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v6.json"
-DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v10_analysis"
+DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json"
+DEFAULT_CONTRACT = ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json"
+DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v11_analysis"
 ARCHITECTURES = ("spine", "grasu_regraph")
 
 

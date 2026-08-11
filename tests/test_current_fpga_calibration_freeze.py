@@ -23,10 +23,10 @@ ROOT = Path(__file__).resolve().parents[1]
 class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
     def test_analysis_defaults_follow_latest_frozen_contract(self) -> None:
         expected_cases = (
-            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v5.json"
+            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json"
         )
         expected_contract = (
-            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v6.json"
+            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json"
         )
         self.assertEqual(analyze_current_fpga_calibration.DEFAULT_CASES, expected_cases)
         self.assertEqual(analyze_current_fpga_components.DEFAULT_CASES, expected_cases)
@@ -149,6 +149,35 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
         self.assertTrue(gates["grasu_regraph_observable_fifos_profile_bounded"])
         self.assertTrue(gates["grasu_regraph_adapter_fifo_depth_and_stalls_serialized"])
         self.assertIn("changes only result observability", contract["supersedes"]["reason"])
+
+    def test_v7_contract_pins_owner_aware_residual_ledger(self) -> None:
+        cases = json.loads(
+            (
+                ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v6.json"
+            ).read_text(encoding="utf-8")
+        )
+        contract = json.loads(
+            (
+                ROOT
+                / "configs/contracts/evaluation_refresh_fpga_calibration_v7.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(cases["calibration_contract_id"], contract["contract_id"])
+        self.assertEqual(
+            cases["default_simulation_root"],
+            "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v11_20260812",
+        )
+        self.assertEqual(
+            contract["simulator_plugin"]["path"],
+            "cpp/sst/build/sst-current-fpga-v11/libspine_cycle.so",
+        )
+        plugin = ROOT / contract["simulator_plugin"]["path"]
+        self.assertEqual(
+            hashlib.sha256(plugin.read_bytes()).hexdigest(),
+            contract["simulator_plugin"]["sha256"],
+        )
+        self.assertIn("owner-FIFO HBM protocol", contract["supersedes"]["reason"])
+        self.assertIn("no v10 calibration row is migrated", contract["supersedes"]["reason"])
 
     def test_total_freeze_groups_only_calibration_rows(self) -> None:
         rows = [
