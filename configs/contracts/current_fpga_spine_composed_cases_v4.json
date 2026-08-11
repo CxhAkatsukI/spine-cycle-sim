@@ -20,7 +20,7 @@
       "profile_id": "spine_owner_fifo_sssp_hls_v1",
       "profile_path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
       "profile_sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d",
-      "iterative_strategy": "fixed_plus_simulator",
+      "iterative_strategy": "hls_sssp_realized_work",
       "calibration": ["au", "su", "so", "pk"],
       "development_validation": ["wk", "r19"],
       "holdout": ["lj", "lj08"]
@@ -29,7 +29,7 @@
       "profile_id": "spine_owner_fifo_cc_hls_v1",
       "profile_path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
       "profile_sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c",
-      "iterative_strategy": "fixed_plus_simulator",
+      "iterative_strategy": "hls_cc_realized_work",
       "calibration": ["au", "su", "so", "pk"],
       "development_validation": ["wk", "r19"],
       "holdout": ["lj", "lj08"]
@@ -67,5 +67,6 @@
     "grasu_regraph_policy": "admit under the exact-result transition report because changed source is Spine-only",
     "grasu_regraph_transition_report": "docs/evidence/current_fpga_grasu_plugin_transition_v4_20260811.json"
   },
-  "freeze_note": "Dataset roles and model forms were frozen before PK calibration completed and before LJ/LJ08 holdout execution."
+  "model_selection_note": "The initial fixed-plus-simulator timing form failed development validation. Using calibration coefficients only, development rows selected HLS-structured realized-work forms: SSSP uses simulator span, reader level checks, and reader memory requests; CC uses iterations and processed edges; all algorithms use fixed-plus-simulator maintenance. No LJ/LJ08 row was executed or inspected during model selection.",
+  "freeze_note": "Dataset roles were frozen before PK calibration completed. Revised model forms were frozen after development validation and before LJ/LJ08 holdout execution."
 }

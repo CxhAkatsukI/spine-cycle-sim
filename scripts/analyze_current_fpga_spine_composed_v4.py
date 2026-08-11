@@ -123,12 +123,12 @@ def load_admitted_result(
     ):
         if int(result.get(key, 0)) != 0:
             raise ValueError(f"nonzero {key}: {run_dir}")
-    observed_profile = result.get(
+    observed_profile = result.get("architecture_profile_id") or manifest.get(
         "architecture_profile_id", manifest.get("profile_id")
     )
     if observed_profile != profile_spec["profile_id"]:
         raise ValueError(f"profile mismatch: {run_dir}")
-    observed_profile_sha = manifest.get(
+    observed_profile_sha = manifest.get("architecture_profile_sha256") or manifest.get(
         "profile_sha256", result.get("architecture_profile_sha256")
     )
     if observed_profile_sha != profile_spec["profile_sha256"]:
@@ -149,6 +149,17 @@ def median_field(records: list[dict[str, str]], field: str) -> float:
     if not values or min(values) < 0:
         raise ValueError(f"invalid hardware field {field}")
     return statistics.median(values)
+
+
+def summed_result_metric(result: dict[str, Any], *names: str) -> float:
+    for name in names:
+        if name not in result:
+            continue
+        value = result[name]
+        if isinstance(value, list):
+            return float(sum(float(item) for item in value))
+        return float(value)
+    return 0.0
 
 
 def iterations_and_work(
@@ -279,6 +290,22 @@ def main() -> int:
             iterations,
             hardware_maintenance,
             hardware_iterative,
+            summed_result_metric(
+                result,
+                "reader_range_level_checks_per_round",
+                "reader_range_level_checks_per_iteration",
+                "reader_range_level_checks",
+            ),
+            summed_result_metric(
+                result,
+                "reader_memory_requests_issued_per_round",
+                "reader_memory_requests_issued_per_iteration",
+                "reader_memory_requests_issued",
+            ),
+            float(sum(simulator_edges)),
+            summed_result_metric(result, "reader_component_parent_requests_issued"),
+            float(iterations)
+            * summed_result_metric(result, "resident_hot_vertices"),
         )
         grouped[algorithm].append(record)
 

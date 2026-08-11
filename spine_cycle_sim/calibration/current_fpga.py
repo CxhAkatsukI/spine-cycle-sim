@@ -8,6 +8,7 @@ holdout rows when fitting that scale.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import itertools
 import math
 import statistics
 from typing import Iterable
@@ -69,6 +70,11 @@ class CurrentFPGAComposedRecord:
     iterations: int
     hardware_maintenance_cycles: float
     hardware_iterative_cycles: float
+    simulator_level_checks: float = 0.0
+    simulator_memory_requests: float = 0.0
+    simulator_processed_edges: float = 0.0
+    simulator_reader_parent_requests: float = 0.0
+    simulator_hot_vertex_iterations: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -82,12 +88,23 @@ class ComposedTimingModel:
     iterative_simulator_scale: float
     iterative_strategy: str
     calibration_datasets: tuple[str, ...]
+    maintenance_fixed_cycles: float = 0.0
+    iterative_level_check_cycles: float = 0.0
+    iterative_memory_request_cycles: float = 0.0
+    iterative_processed_edge_cycles: float = 0.0
+    iterative_reader_parent_request_cycles: float = 0.0
+    iterative_hot_vertex_cycles: float = 0.0
 
     def predict_components(
         self,
         simulator_maintenance_cycles: float,
         simulator_iterative_cycles: float,
         iterations: int,
+        simulator_level_checks: float = 0.0,
+        simulator_memory_requests: float = 0.0,
+        simulator_processed_edges: float = 0.0,
+        simulator_reader_parent_requests: float = 0.0,
+        simulator_hot_vertex_iterations: float = 0.0,
     ) -> dict[str, float]:
         _require_positive_finite(
             simulator_maintenance_cycles, "simulator_maintenance_cycles"
@@ -98,10 +115,28 @@ class ComposedTimingModel:
             raise ValueError("iterations must be non-negative")
         if iterations == 0 and simulator_iterative_cycles != 0:
             raise ValueError("zero-iteration rows cannot contain iterative simulator cycles")
-        maintenance = self.maintenance_scale * simulator_maintenance_cycles
+        for value, name in (
+            (simulator_level_checks, "simulator_level_checks"),
+            (simulator_memory_requests, "simulator_memory_requests"),
+            (simulator_processed_edges, "simulator_processed_edges"),
+            (simulator_reader_parent_requests, "simulator_reader_parent_requests"),
+            (simulator_hot_vertex_iterations, "simulator_hot_vertex_iterations"),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and non-negative")
+        maintenance = (
+            self.maintenance_fixed_cycles
+            + self.maintenance_scale * simulator_maintenance_cycles
+        )
         iterative = (
             self.iterative_fixed_cycles_per_iteration * iterations
             + self.iterative_simulator_scale * simulator_iterative_cycles
+            + self.iterative_level_check_cycles * simulator_level_checks
+            + self.iterative_memory_request_cycles * simulator_memory_requests
+            + self.iterative_processed_edge_cycles * simulator_processed_edges
+            + self.iterative_reader_parent_request_cycles
+            * simulator_reader_parent_requests
+            + self.iterative_hot_vertex_cycles * simulator_hot_vertex_iterations
         )
         return {
             "maintenance_cycles": maintenance,
@@ -247,6 +282,88 @@ def _fit_nonnegative_two_feature_model(
     return normalized_left / x_scale, normalized_right / y_scale
 
 
+def _solve_linear_system(
+    matrix: list[list[float]], vector: list[float]
+) -> list[float] | None:
+    size = len(vector)
+    augmented = [matrix[row][:] + [vector[row]] for row in range(size)]
+    for pivot in range(size):
+        selected = max(
+            range(pivot, size), key=lambda row: abs(augmented[row][pivot])
+        )
+        if abs(augmented[selected][pivot]) < 1e-12:
+            return None
+        augmented[pivot], augmented[selected] = (
+            augmented[selected],
+            augmented[pivot],
+        )
+        scale = augmented[pivot][pivot]
+        augmented[pivot] = [value / scale for value in augmented[pivot]]
+        for row in range(size):
+            if row == pivot:
+                continue
+            factor = augmented[row][pivot]
+            augmented[row] = [
+                value - factor * pivot_value
+                for value, pivot_value in zip(augmented[row], augmented[pivot])
+            ]
+    return [augmented[row][-1] for row in range(size)]
+
+
+def _fit_nonnegative_feature_model(
+    features: list[tuple[float, ...]], targets: list[float]
+) -> tuple[float, ...]:
+    """Fit a small NNLS model by enumerating active coefficient sets."""
+
+    if not features or len(features) != len(targets):
+        raise ValueError("feature fit requires aligned rows")
+    width = len(features[0])
+    if width < 1 or width > 3 or any(len(row) != width for row in features):
+        raise ValueError("feature fit supports one to three aligned columns")
+    scales = [max(row[column] for row in features) for column in range(width)]
+    if any(scale <= 0 for scale in scales):
+        raise ValueError("feature fit requires positive variation in every column")
+    normalized = [
+        tuple(value / scales[column] for column, value in enumerate(row))
+        for row in features
+    ]
+    best_error = math.inf
+    best = [0.0] * width
+    for active_width in range(1, width + 1):
+        for active in itertools.combinations(range(width), active_width):
+            gram = [
+                [
+                    sum(row[left] * row[right] for row in normalized)
+                    for right in active
+                ]
+                for left in active
+            ]
+            rhs = [
+                sum(row[column] * target for row, target in zip(normalized, targets))
+                for column in active
+            ]
+            solved = _solve_linear_system(gram, rhs)
+            if solved is None or any(value < -1e-9 for value in solved):
+                continue
+            candidate = [0.0] * width
+            for column, value in zip(active, solved):
+                candidate[column] = max(0.0, value)
+            error = sum(
+                (
+                    sum(coefficient * value for coefficient, value in zip(candidate, row))
+                    - target
+                )
+                ** 2
+                for row, target in zip(normalized, targets)
+            )
+            if error < best_error:
+                best_error = error
+                best = candidate
+    if not math.isfinite(best_error):
+        raise ValueError("non-negative feature fit has no feasible solution")
+    return tuple(value / scale for value, scale in zip(best, scales))
+
+
 def fit_composed_timing_model(
     records: Iterable[CurrentFPGAComposedRecord],
     *,
@@ -281,6 +398,18 @@ def fit_composed_timing_model(
         ):
             if not math.isfinite(value) or value < 0:
                 raise ValueError(f"{name} must be finite and non-negative")
+        for value, name in (
+            (row.simulator_level_checks, "simulator_level_checks"),
+            (row.simulator_memory_requests, "simulator_memory_requests"),
+            (row.simulator_processed_edges, "simulator_processed_edges"),
+            (
+                row.simulator_reader_parent_requests,
+                "simulator_reader_parent_requests",
+            ),
+            (row.simulator_hot_vertex_iterations, "simulator_hot_vertex_iterations"),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and non-negative")
         if row.iterations == 0 and (
             row.simulator_iterative_cycles != 0 or row.hardware_iterative_cycles != 0
         ):
@@ -295,19 +424,35 @@ def fit_composed_timing_model(
     }:
         raise ValueError("calibration and validation datasets overlap")
     iterative_calibration = tuple(row for row in calibration if row.iterations > 0)
-    if iterative_strategy not in {"fixed_plus_simulator", "simulator_scale_only"}:
+    supported_strategies = {
+        "fixed_plus_simulator",
+        "simulator_scale_only",
+        "hls_sssp_realized_work",
+        "hls_cc_realized_work",
+    }
+    if iterative_strategy not in supported_strategies:
         raise ValueError(f"unsupported iterative strategy: {iterative_strategy!r}")
-    minimum_iterative_rows = 2 if iterative_strategy == "fixed_plus_simulator" else 1
+    minimum_iterative_rows = {
+        "fixed_plus_simulator": 2,
+        "simulator_scale_only": 1,
+        "hls_sssp_realized_work": 3,
+        "hls_cc_realized_work": 2,
+    }[iterative_strategy]
     if len(iterative_calibration) < minimum_iterative_rows:
         raise ValueError(
             f"{iterative_strategy} requires {minimum_iterative_rows} "
             "propagating calibration row(s)"
         )
 
-    maintenance_scale = _geometric_mean(
-        row.hardware_maintenance_cycles / row.simulator_maintenance_cycles
-        for row in calibration
+    maintenance_fixed, maintenance_scale = _fit_nonnegative_two_feature_model(
+        [(1.0, row.simulator_maintenance_cycles) for row in calibration],
+        [row.hardware_maintenance_cycles for row in calibration],
     )
+    level_check_cycles = 0.0
+    memory_request_cycles = 0.0
+    processed_edge_cycles = 0.0
+    reader_parent_request_cycles = 0.0
+    hot_vertex_cycles = 0.0
     if iterative_strategy == "fixed_plus_simulator":
         fixed, simulator_scale = _fit_nonnegative_two_feature_model(
             [
@@ -316,11 +461,41 @@ def fit_composed_timing_model(
             ],
             [row.hardware_iterative_cycles for row in iterative_calibration],
         )
-    else:
+    elif iterative_strategy == "simulator_scale_only":
         fixed = 0.0
         simulator_scale = _geometric_mean(
             row.hardware_iterative_cycles / row.simulator_iterative_cycles
             for row in iterative_calibration
+        )
+    elif iterative_strategy == "hls_sssp_realized_work":
+        fixed = 0.0
+        simulator_scale, level_check_cycles, memory_request_cycles = (
+            _fit_nonnegative_feature_model(
+                [
+                    (
+                        row.simulator_iterative_cycles,
+                        row.simulator_level_checks,
+                        row.simulator_memory_requests,
+                    )
+                    for row in iterative_calibration
+                ],
+                [row.hardware_iterative_cycles for row in iterative_calibration],
+            )
+        )
+    else:
+        simulator_scale = 0.0
+        fixed, reader_parent_request_cycles, hot_vertex_cycles = (
+            _fit_nonnegative_feature_model(
+                [
+                    (
+                        float(row.iterations),
+                        row.simulator_reader_parent_requests,
+                        row.simulator_hot_vertex_iterations,
+                    )
+                    for row in iterative_calibration
+                ],
+                [row.hardware_iterative_cycles for row in iterative_calibration],
+            )
         )
     architecture, algorithm, _profile_id = next(iter(identities))
     return ComposedTimingModel(
@@ -331,6 +506,12 @@ def fit_composed_timing_model(
         iterative_simulator_scale=simulator_scale,
         iterative_strategy=iterative_strategy,
         calibration_datasets=tuple(sorted(row.dataset for row in calibration)),
+        maintenance_fixed_cycles=maintenance_fixed,
+        iterative_level_check_cycles=level_check_cycles,
+        iterative_memory_request_cycles=memory_request_cycles,
+        iterative_processed_edge_cycles=processed_edge_cycles,
+        iterative_reader_parent_request_cycles=reader_parent_request_cycles,
+        iterative_hot_vertex_cycles=hot_vertex_cycles,
     )
 
 
@@ -348,6 +529,11 @@ def composed_prediction_rows(
             record.simulator_maintenance_cycles,
             record.simulator_iterative_cycles,
             record.iterations,
+            record.simulator_level_checks,
+            record.simulator_memory_requests,
+            record.simulator_processed_edges,
+            record.simulator_reader_parent_requests,
+            record.simulator_hot_vertex_iterations,
         )
         hardware_total = (
             record.hardware_maintenance_cycles + record.hardware_iterative_cycles
@@ -362,6 +548,15 @@ def composed_prediction_rows(
                 "iterations": record.iterations,
                 "simulator_maintenance_cycles": record.simulator_maintenance_cycles,
                 "simulator_iterative_cycles": record.simulator_iterative_cycles,
+                "simulator_level_checks": record.simulator_level_checks,
+                "simulator_memory_requests": record.simulator_memory_requests,
+                "simulator_processed_edges": record.simulator_processed_edges,
+                "simulator_reader_parent_requests": (
+                    record.simulator_reader_parent_requests
+                ),
+                "simulator_hot_vertex_iterations": (
+                    record.simulator_hot_vertex_iterations
+                ),
                 "hardware_maintenance_cycles": record.hardware_maintenance_cycles,
                 "hardware_iterative_cycles": record.hardware_iterative_cycles,
                 "hardware_total_cycles": hardware_total,

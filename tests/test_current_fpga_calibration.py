@@ -191,6 +191,84 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
             model.predict_components(40, 200, 1)["total_cycles"], 1120.0
         )
 
+    def test_composed_model_recovers_fixed_maintenance_shell(self):
+        rows = [
+            CurrentFPGAComposedRecord(
+                "spine", "respr", "p1", dataset, role, maintenance, 0, 0,
+                100 + 2 * maintenance, 0,
+            )
+            for dataset, role, maintenance in (
+                ("au", "calibration", 10),
+                ("su", "calibration", 20),
+                ("so", "calibration", 40),
+                ("lj", "holdout", 30),
+            )
+        ]
+        rows.append(
+            CurrentFPGAComposedRecord(
+                "spine", "respr", "p1", "prop", "calibration", 50, 10, 1,
+                200, 20,
+            )
+        )
+        model = fit_composed_timing_model(
+            rows, iterative_strategy="simulator_scale_only"
+        )
+        self.assertAlmostEqual(model.maintenance_fixed_cycles, 100.0)
+        self.assertAlmostEqual(model.maintenance_scale, 2.0)
+        self.assertAlmostEqual(
+            model.predict_components(30, 0, 0)["maintenance_cycles"], 160.0
+        )
+
+    def test_sssp_realized_work_model_recovers_three_terms(self):
+        def row(dataset, role, maintenance, span, checks, requests):
+            target = 2 * span + 3 * checks + 5 * requests
+            return CurrentFPGAComposedRecord(
+                "spine", "sssp", "p1", dataset, role, maintenance, span, 1,
+                10 + maintenance, target, checks, requests, 0,
+            )
+
+        rows = [
+            row("au", "calibration", 10, 100, 10, 5),
+            row("su", "calibration", 20, 50, 40, 10),
+            row("so", "calibration", 30, 20, 5, 50),
+            row("pk", "calibration", 40, 80, 30, 20),
+            row("lj", "holdout", 25, 70, 20, 15),
+        ]
+        model = fit_composed_timing_model(
+            rows, iterative_strategy="hls_sssp_realized_work"
+        )
+        self.assertAlmostEqual(model.iterative_simulator_scale, 2.0)
+        self.assertAlmostEqual(model.iterative_level_check_cycles, 3.0)
+        self.assertAlmostEqual(model.iterative_memory_request_cycles, 5.0)
+        prediction = model.predict_components(25, 70, 1, 20, 15, 0)
+        self.assertAlmostEqual(prediction["iterative_cycles"], 275.0)
+
+    def test_cc_realized_work_model_recovers_protocol_and_hot_state_terms(self):
+        def row(dataset, role, maintenance, iterations, requests, hot_vertices):
+            return CurrentFPGAComposedRecord(
+                "spine", "cc", "p1", dataset, role, maintenance, 10, iterations,
+                20 + maintenance,
+                100 * iterations + 7 * requests + 3 * hot_vertices * iterations,
+                simulator_reader_parent_requests=requests,
+                simulator_hot_vertex_iterations=hot_vertices * iterations,
+            )
+
+        rows = [
+            row("au", "calibration", 10, 1, 10, 0),
+            row("su", "calibration", 20, 1, 20, 5),
+            row("so", "calibration", 30, 1, 40, 1),
+            row("pk", "calibration", 40, 2, 30, 10),
+            row("lj", "holdout", 25, 2, 30, 4),
+        ]
+        model = fit_composed_timing_model(
+            rows, iterative_strategy="hls_cc_realized_work"
+        )
+        self.assertAlmostEqual(model.iterative_fixed_cycles_per_iteration, 100.0)
+        self.assertAlmostEqual(model.iterative_reader_parent_request_cycles, 7.0)
+        self.assertAlmostEqual(model.iterative_hot_vertex_cycles, 3.0)
+        prediction = model.predict_components(25, 10, 2, 0, 0, 0, 30, 8)
+        self.assertAlmostEqual(prediction["iterative_cycles"], 434.0)
+
     def test_roles_must_be_disjoint(self):
         rows = self.timing_rows()
         rows[-1] = CurrentFPGATimingRecord(
