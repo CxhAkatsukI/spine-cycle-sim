@@ -615,7 +615,94 @@ def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
                 ordered.append(row)
         return ordered
 
-    dynamic_specs = (
+    current_v11 = any(
+        row.get("execution_id", "").startswith("current_fpga_v11_")
+        for row in all_rows
+    )
+    if current_v11:
+        dynamic_specs = (
+            (
+                "SI",
+                (
+                    (
+                        "AU",
+                        {
+                            "case_class": "shallow_insertion",
+                            "algorithm": "weighted_sssp",
+                            "dataset_id": "au",
+                        },
+                    ),
+                    (
+                        "SU",
+                        {
+                            "case_class": "shallow_insertion",
+                            "algorithm": "weighted_sssp",
+                            "dataset_id": "su",
+                        },
+                    ),
+                    (
+                        "WK",
+                        {
+                            "case_class": "shallow_insertion",
+                            "algorithm": "weighted_sssp",
+                            "dataset_id": "wk",
+                        },
+                    ),
+                ),
+            ),
+            (
+                "Carry",
+                (
+                    ("L1", {"execution_id": "rq3_trace_carry_l1_e8"}),
+                    ("L3", {"execution_id": "rq3_trace_carry_l3_e8"}),
+                    ("L5", {"execution_id": "rq3_trace_carry_l5_e8"}),
+                ),
+            ),
+            (
+                "PR-corr",
+                (
+                    (
+                        "U1",
+                        {
+                            "execution_id": (
+                                "current_fpga_v11_flickr_respr_correction_u1"
+                            )
+                        },
+                    ),
+                    (
+                        "U8",
+                        {
+                            "execution_id": (
+                                "current_fpga_v11_flickr_respr_correction_u8"
+                            )
+                        },
+                    ),
+                    (
+                        "U64",
+                        {
+                            "execution_id": (
+                                "current_fpga_v11_flickr_respr_correction_u64"
+                            )
+                        },
+                    ),
+                ),
+            ),
+            (
+                "Del",
+                (
+                    (
+                        "Syn",
+                        {
+                            "execution_id": (
+                                "current_fpga_v11_delete_fallback_sssp"
+                            )
+                        },
+                    ),
+                ),
+            ),
+        )
+    else:
+        dynamic_specs = (
         (
             "ZN",
             (
@@ -685,7 +772,7 @@ def collect_fig10_rows_from_path(latency_path: Path) -> list[dict[str, object]]:
                 ("Syn", {"case_class": "deletion_fallback"}),
             ),
         ),
-    )
+        )
     ordered = []
     missing_dynamic = []
     for group, entries in dynamic_specs:
