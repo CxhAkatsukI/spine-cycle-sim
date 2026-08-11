@@ -1,0 +1,93 @@
+{
+  "architecture": "spine",
+  "clocks": [
+    {
+      "achieved_mhz": 150.0,
+      "name": "data",
+      "requested_mhz": 150.0
+    },
+    {
+      "achieved_mhz": 450.0,
+      "name": "hbm",
+      "requested_mhz": 450.0
+    }
+  ],
+  "evidence": [
+    {
+      "kind": "paper_alignment_contract",
+      "path": "configs/contracts/spine_paper_architecture_alignment_v1.json",
+      "sha256": "6358e13196d7c65007eb0c49b198ecae5e9935b7feacaa6d0faa78ed41ecc8b2"
+    },
+    {
+      "kind": "routed_xclbin",
+      "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/respr/xclbin/spine_partitioned_split_e2e.respr.hw.xclbin",
+      "sha256": "a8bd5c0b19c5aa57a62f0e0ef630f4359e0823e4c102887f61b233ca2f691c38"
+    },
+    {
+      "kind": "routed_timing_summary",
+      "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/respr/reports/link/imp/impl_1_hw_bb_locked_timing_summary_postroute_physopted.rpt",
+      "sha256": "2f348fa1fe268fc9d0b441664d2f39ea313be4a4087c5cc9e9e91b8044bc1d01"
+    }
+  ],
+  "evidence_tier": "hardware_validated",
+  "features": [
+    "routed_owner_fifo_hls",
+    "device_queued_in_flight_dirty_state",
+    "finite_owner_and_reactivation_fifos",
+    "no_lost_reactivation",
+    "work_credit_quiescence",
+    "device_active_generation",
+    "split_readmaintenance_compute",
+    "resident_graph_and_algorithm_state",
+    "host_rebin_and_relaunch_without_membership_recomputation",
+    "dual_oracle_correctness_gate"
+  ],
+  "limitations": [
+    "The host rebins device-produced active IDs and relaunches rounds; host orchestration is outside the frozen device-cycle window.",
+    "The routed xclbin anchors implementation identity, but simulator timing claims require separate calibration and immutable holdout evidence.",
+    "Per-stage simulator attribution is not a routed per-stage hardware counter and must be labeled as calibrated model attribution."
+  ],
+  "memory": {
+    "backend": "u55c_hbm",
+    "channel_capacity_bytes": 536870912,
+    "channels": 32,
+    "data_width_bits": 512,
+    "max_burst_bytes": 1024,
+    "max_outstanding_per_port": 32
+  },
+  "parameters": {
+    "algorithm_kind": "thresholded_residual_pagerank",
+    "cold_families": 16,
+    "command_fifo_depth": 256,
+    "comparison_role": "hardware_native_owner_fifo",
+    "device_determines_active_membership": true,
+    "edge_stream_depth": 32,
+    "families": 32,
+    "graph_hbm_channels": 16,
+    "hbm_pseudo_channels_used": 23,
+    "host_rebin_and_relaunch": true,
+    "host_recomputes_active_membership": false,
+    "hot_families": 16,
+    "level_ratio": 2,
+    "levels": 11,
+    "max_vertices": 16777216,
+    "owner_fifo_depth_per_partition": 256,
+    "paper_alignment_contract": "spine_paper_architecture_alignment_v1",
+    "partitions": 16,
+    "reactivation_fifo_depth_per_partition": 256,
+    "split_compute_width": 4,
+    "tile_vertices": 65536,
+    "value_stream_depth": 32,
+    "vertex_partition_size": 1048576,
+    "work_credit_quiescence": true
+  },
+  "profile_id": "spine_owner_fifo_respr_hls_v1",
+  "schema_version": 1,
+  "source": {
+    "branch": "codex/paper-owner-fifos",
+    "dirty": false,
+    "repository": "/home/chuxiao/spine-dynamic-graph-reduce-levels",
+    "revision": "1b79b2b73117939464db2cc2902a4d7fd66697e6"
+  },
+  "status": "stable"
+}

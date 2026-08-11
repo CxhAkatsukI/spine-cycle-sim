@@ -1,4 +1,54 @@
 {
+  "calibration": {
+    "contract": {
+      "contract_id": "evaluation_refresh_fpga_calibration_v2_20260811",
+      "expected_pairs": [
+        "grasu_regraph:connected_components:grasu_regraph_sharded_k4_cc_hls_v8",
+        "grasu_regraph:thresholded_residual_pagerank:grasu_regraph_sharded_k4_residual_hls_v8",
+        "grasu_regraph:weighted_sssp:grasu_regraph_sharded_k4_weighted_hls_v8",
+        "spine:connected_components:spine_owner_fifo_cc_hls_v1",
+        "spine:thresholded_residual_pagerank:spine_owner_fifo_respr_hls_v1",
+        "spine:weighted_sssp:spine_owner_fifo_sssp_hls_v1"
+      ],
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/configs/contracts/evaluation_refresh_fpga_calibration_v2.json",
+      "problems": [],
+      "profile_ids": [
+        "grasu_regraph_sharded_k4_cc_hls_v8",
+        "grasu_regraph_sharded_k4_residual_hls_v8",
+        "grasu_regraph_sharded_k4_weighted_hls_v8",
+        "spine_owner_fifo_cc_hls_v1",
+        "spine_owner_fifo_respr_hls_v1",
+        "spine_owner_fifo_sssp_hls_v1"
+      ],
+      "sha256": "38063c69239c9eb646a6ddb79ef269ee7d1bdc27124c3f55370de668ad2236a2",
+      "valid": true
+    },
+    "directory": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration",
+    "manifests": {
+      "component_cycle": {
+        "passed": false,
+        "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration/component_cycle_calibration.json",
+        "problems": [
+          "missing manifest"
+        ]
+      },
+      "memory_ledger": {
+        "passed": false,
+        "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration/memory_ledger_validation.json",
+        "problems": [
+          "missing manifest"
+        ]
+      },
+      "total_cycle": {
+        "passed": false,
+        "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration/total_cycle_calibration.json",
+        "problems": [
+          "missing manifest"
+        ]
+      }
+    },
+    "passed": false
+  },
   "campaign": {
     "analysis_dir": "/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_complete_live",
     "complete_for_fig9": true,
@@ -22,9 +72,9 @@
   },
   "figures": {
     "fig10": {
-      "aligned": true,
+      "aligned": false,
       "evidence": "RQ3 component ledger",
-      "gap": "",
+      "gap": "ten-stage attribution lacks current-hardware total/component calibration and holdout",
       "status": "PASS_CURRENT_MODEL_DATA"
     },
     "fig7": {
@@ -33,20 +83,27 @@
       "status": "PASS"
     },
     "fig8": {
-      "aligned": true,
+      "aligned": false,
       "evidence": "setup-inclusive update-throughput simulator rows",
-      "gap": "",
+      "gap": "current-model data are not current-hardware calibrated with immutable holdout",
       "status": "PASS_CURRENT_MODEL_DATA"
     },
     "fig9": {
-      "aligned": true,
+      "aligned": false,
       "campaign_pairs": 9,
       "evidence": "campaign pair_rows memory and HBM-energy ledger",
+      "gap": "execution-driven request/byte/FIFO ledger validation is incomplete",
       "required_pairs": 9,
       "status": "PASS_CAMPAIGN_ANALYSIS"
     }
   },
-  "next_actions": [],
+  "next_actions": [
+    "replace Fig.8 archived update-throughput CSVs with current setup-inclusive update-only evidence",
+    "replace Fig.10 archived RQ3 traces with calibrated current-model component ledgers",
+    "complete correctness-gated current-hardware total-cycle calibration and immutable holdout",
+    "complete observable component-cycle calibration without summing overlapping event intervals",
+    "close request, byte, and finite-FIFO ledgers for both architectures"
+  ],
   "out_dir": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810",
-  "status": "READY"
+  "status": "INCOMPLETE"
 }
