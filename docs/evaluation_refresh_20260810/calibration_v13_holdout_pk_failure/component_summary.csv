@@ -1,0 +1,4 @@
+component,holdout_cases,median_absolute_error_percent,max_absolute_error_percent
+reader,2,59.07085385706468,66.24600126383115
+compute,2,15.005001172121482,16.272048894890034
+iterative_span,2,55.536907137318096,60.983119992999555
