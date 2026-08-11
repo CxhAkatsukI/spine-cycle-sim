@@ -34,21 +34,33 @@ def convert_graph(
     require_reciprocal: bool = False,
     sort_records: bool = False,
 ) -> dict[str, object]:
-    lines = [line.strip() for line in graph.read_text(encoding="ascii").splitlines()]
-    lines = [line for line in lines if line and not line.startswith("#")]
-    if not lines:
-        raise ValueError("GraSU graph is empty")
-    header = lines[0].split()
+    def graph_lines():
+        with graph.open(encoding="ascii") as source:
+            for raw_line in source:
+                line = raw_line.strip()
+                if line and not line.startswith("#"):
+                    yield line
+
+    lines = graph_lines()
+    try:
+        header = next(lines).split()
+    except StopIteration as error:
+        raise ValueError("GraSU graph is empty") from error
     if len(header) != 3:
         raise ValueError("GraSU graph header must be: vertices static updates")
     vertices, static_count, update_count = map(int, header)
     if vertices <= 0 or static_count < 0 or update_count < 0:
         raise ValueError("GraSU graph header contains an invalid count")
-    if len(lines) != 1 + static_count + update_count:
-        raise ValueError("GraSU graph row count does not match its header")
 
-    initial_rows: list[tuple[int, int, int, int]] = []
-    for line in lines[1 : 1 + static_count]:
+    def slice_header(case: str) -> list[str]:
+        return [
+            "# spine_real_slice_version=1",
+            f"# case={case}",
+            f"# vertices={vertices}",
+            "# columns=src dst weight diff",
+        ]
+
+    def parse_static(line: str) -> tuple[int, int, int, int]:
         fields = line.split()
         if len(fields) not in {2, 3}:
             raise ValueError("GraSU static edge must contain src dst [weight]")
@@ -58,10 +70,9 @@ def convert_graph(
             raise ValueError("GraSU static edge is out of range")
         if not 1 <= weight <= 4095:
             raise ValueError("GraSU static edge exceeds the weight12 ABI")
-        initial_rows.append((source, destination, weight, 1))
+        return source, destination, weight, 1
 
-    update_rows: list[tuple[int, int, int, int]] = []
-    for line in lines[1 + static_count :]:
+    def parse_update(line: str) -> tuple[int, int, int, int]:
         fields = line.split()
         if len(fields) not in {3, 4}:
             raise ValueError(
@@ -76,27 +87,53 @@ def convert_graph(
             raise ValueError("GraSU update edge exceeds the weight12 ABI")
         if operation not in (0, 1):
             raise ValueError("GraSU update operation must be 0 (delete) or 1 (insert)")
-        update_rows.append(
-            (source, destination, weight, 1 if operation == 1 else -1)
-        )
+        return source, destination, weight, 1 if operation == 1 else -1
 
-    if sort_records:
-        initial_rows.sort()
-        update_rows.sort()
+    initial_output.parent.mkdir(parents=True, exist_ok=True)
+    update_output.parent.mkdir(parents=True, exist_ok=True)
+    initial_rows: list[tuple[int, int, int, int]] = []
+    update_rows: list[tuple[int, int, int, int]] = []
+    all_unit_weight = True
+    with initial_output.open("w", encoding="ascii") as initial_stream, \
+            update_output.open("w", encoding="ascii") as update_stream:
+        initial_stream.write("\n".join(slice_header(f"{graph.stem}_initial")) + "\n")
+        update_stream.write("\n".join(slice_header(f"{graph.stem}_update")) + "\n")
+        for _ in range(static_count):
+            try:
+                row = parse_static(next(lines))
+            except StopIteration as error:
+                raise ValueError("GraSU graph row count does not match its header") from error
+            all_unit_weight = all_unit_weight and row[2] == 1
+            if sort_records:
+                initial_rows.append(row)
+            else:
+                initial_stream.write(" ".join(map(str, row)) + "\n")
+        for _ in range(update_count):
+            try:
+                row = parse_update(next(lines))
+            except StopIteration as error:
+                raise ValueError("GraSU graph row count does not match its header") from error
+            all_unit_weight = all_unit_weight and row[2] == 1
+            if sort_records:
+                update_rows.append(row)
+            else:
+                update_stream.write(" ".join(map(str, row)) + "\n")
+        try:
+            next(lines)
+        except StopIteration:
+            pass
+        else:
+            raise ValueError("GraSU graph row count does not match its header")
+        if sort_records:
+            initial_rows.sort()
+            update_rows.sort()
+            initial_stream.writelines(
+                " ".join(map(str, row)) + "\n" for row in initial_rows
+            )
+            update_stream.writelines(
+                " ".join(map(str, row)) + "\n" for row in update_rows
+            )
 
-    def write_slice(path: Path, case: str, rows: list[tuple[int, int, int, int]]) -> None:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        text = [
-            "# spine_real_slice_version=1",
-            f"# case={case}",
-            f"# vertices={vertices}",
-            "# columns=src dst weight diff",
-        ]
-        text.extend(" ".join(map(str, row)) for row in rows)
-        path.write_text("\n".join(text) + "\n", encoding="ascii")
-
-    write_slice(initial_output, f"{graph.stem}_initial", initial_rows)
-    write_slice(update_output, f"{graph.stem}_update", update_rows)
     if require_reciprocal:
         initial_graph = load_slice(initial_output)
         update_graph = load_slice(update_output)
@@ -114,9 +151,7 @@ def convert_graph(
         "update_slice": str(update_output.resolve()),
         "update_slice_sha256": sha256(update_output),
         "weights_preserved": True,
-        "unit_weight": (
-            1 if all(row[2] == 1 for row in initial_rows + update_rows) else None
-        ),
+        "unit_weight": 1 if all_unit_weight else None,
         "reciprocal_validated": require_reciprocal,
         "record_order": (
             "deterministic_src_dst_weight_diff" if sort_records else "source_graph"
