@@ -24,9 +24,9 @@ DEFAULT_CAMPAIGN_ANALYSIS = (
     / "analysis_partial"
 )
 DEFAULT_CALIBRATION_CONTRACT = (
-    ROOT / "configs" / "contracts" / "evaluation_refresh_fpga_calibration_v3.json"
+    ROOT / "configs" / "contracts" / "evaluation_refresh_fpga_calibration_v6.json"
 )
-DEFAULT_CALIBRATION_DIR = DEFAULT_OUT / "calibration"
+DEFAULT_CALIBRATION_DIR = DEFAULT_OUT / "calibration_v10_analysis"
 REQUIRED_FIG9_ROWS = 9
 ALIGNED_CURRENT_MODEL_STATUSES = {
     "PASS_CAMPAIGN_ANALYSIS",

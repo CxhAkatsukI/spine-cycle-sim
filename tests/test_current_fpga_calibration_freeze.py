@@ -7,6 +7,9 @@ from scripts.freeze_current_fpga_calibration_v4 import (
     group_component_models,
     group_total_models,
 )
+from scripts import analyze_current_fpga_calibration
+from scripts import analyze_current_fpga_components
+from scripts import audit_evaluation_refresh_alignment
 from spine_cycle_sim.calibration.current_fpga import (
     CurrentFPGAComponentRecord,
     CurrentFPGATimingRecord,
@@ -17,6 +20,24 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
+    def test_analysis_defaults_follow_latest_frozen_contract(self) -> None:
+        expected_cases = (
+            ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v5.json"
+        )
+        expected_contract = (
+            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v6.json"
+        )
+        self.assertEqual(analyze_current_fpga_calibration.DEFAULT_CASES, expected_cases)
+        self.assertEqual(analyze_current_fpga_components.DEFAULT_CASES, expected_cases)
+        self.assertEqual(
+            analyze_current_fpga_calibration.DEFAULT_CONTRACT, expected_contract
+        )
+        self.assertEqual(analyze_current_fpga_components.DEFAULT_CONTRACT, expected_contract)
+        self.assertEqual(
+            audit_evaluation_refresh_alignment.DEFAULT_CALIBRATION_CONTRACT,
+            expected_contract,
+        )
+
     def test_v4_contract_keeps_disjoint_frozen_roles(self) -> None:
         cases = json.loads(
             (
