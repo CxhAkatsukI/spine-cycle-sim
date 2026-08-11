@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "status": "frozen",
+  "calibration_contract_id": "evaluation_refresh_fpga_calibration_v2_20260811",
+  "clock_mhz": 150.0,
+  "default_simulation_root": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_exact_20260811",
+  "default_hardware_root": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806",
+  "roles": {
+    "au": "calibration",
+    "su": "calibration",
+    "wk": "holdout",
+    "r19": "holdout"
+  },
+  "algorithms": {
+    "weighted_sssp": {
+      "hardware_directory": "sssp_fullgraph_u55c",
+      "hardware_algorithm": "weighted_sssp",
+      "hardware_case_suffix": "weighted_sssp_resident",
+      "simulation_directory": "weighted_sssp",
+      "workload_algorithm": "weighted_sssp",
+      "spine_profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "grasu_regraph_profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8"
+    },
+    "connected_components": {
+      "hardware_directory": "cc_fullgraph_u55c",
+      "hardware_algorithm": "connected_components",
+      "hardware_case_suffix": "connected_components_resident",
+      "simulation_directory": "connected_components",
+      "workload_algorithm": "connected_components",
+      "spine_profile_id": "spine_owner_fifo_cc_hls_v1",
+      "grasu_regraph_profile_id": "grasu_regraph_sharded_k4_cc_hls_v8"
+    },
+    "thresholded_residual_pagerank": {
+      "hardware_directory": "respr_fullgraph_u55c",
+      "hardware_algorithm": "residual_pagerank",
+      "hardware_case_suffix": "residual_pagerank_resident",
+      "simulation_directory": "thresholded_residual_pagerank",
+      "workload_algorithm": "residual_pagerank",
+      "spine_profile_id": "spine_owner_fifo_respr_hls_v1",
+      "grasu_regraph_profile_id": "grasu_regraph_sharded_k4_residual_hls_v8"
+    }
+  },
+  "timing_targets": {
+    "spine": {
+      "aggregate_field": "spine_dynamic_kernel_median_ms",
+      "observation": "median routed maintenance-kernel plus iterative-kernel span; excludes H2D/D2H migration and host orchestration"
+    },
+    "grasu_regraph": {
+      "aggregate_field": "gr_event_e2e_median_ms",
+      "observation": "median routed conversion-free G+R kernel-event envelope; graph and resident algorithm state are preloaded"
+    }
+  }
+}
