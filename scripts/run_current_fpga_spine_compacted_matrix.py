@@ -20,13 +20,23 @@ DEFAULT_SIMULATION_ROOT = Path(
     "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812"
 )
 DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-current-fpga-v12"
-DATASETS = ("au", "su", "wk", "r19")
+DATASETS = ("au", "su", "wk", "r19", "so", "pk", "lj", "lj08")
+DEFAULT_DATASETS = ("au", "su", "wk", "r19")
 ALGORITHMS = (
     "weighted_sssp",
     "connected_components",
     "thresholded_residual_pagerank",
 )
-SOURCE = {"au": 11, "su": 23, "wk": 0, "r19": 113}
+SOURCE = {
+    "au": 11,
+    "su": 23,
+    "wk": 0,
+    "r19": 113,
+    "so": 32,
+    "pk": 64,
+    "lj": 71,
+    "lj08": 26,
+}
 PROFILE = {
     "weighted_sssp": ROOT / "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
     "connected_components": ROOT / "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
@@ -308,7 +318,7 @@ def main() -> int:
     plugin = library / "libspine_cycle.so"
     if not plugin.is_file():
         raise SystemExit(f"missing immutable plugin: {plugin}")
-    datasets = tuple(args.dataset or DATASETS)
+    datasets = tuple(args.dataset or DEFAULT_DATASETS)
     algorithms = tuple(args.algorithm or ALGORITHMS)
     for dataset in datasets:
         for algorithm in algorithms:
@@ -329,13 +339,13 @@ def main() -> int:
     small = [
         (dataset, algorithm)
         for dataset in datasets
-        if dataset != "r19"
+        if dataset in DEFAULT_DATASETS and dataset != "r19"
         for algorithm in algorithms
     ]
     large = [
         (dataset, algorithm)
         for dataset in datasets
-        if dataset == "r19"
+        if dataset not in DEFAULT_DATASETS or dataset == "r19"
         for algorithm in algorithms
     ]
     passed = run_group(

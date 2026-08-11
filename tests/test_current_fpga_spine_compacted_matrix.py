@@ -2,6 +2,8 @@ from pathlib import Path
 import unittest
 
 from scripts.run_current_fpga_spine_compacted_matrix import (
+    DATASETS,
+    DEFAULT_DATASETS,
     OUTPUT_DIRECTORY,
     build_command,
     output_directory,
@@ -16,6 +18,13 @@ class CurrentFPGASpineCompactedMatrixTests(unittest.TestCase):
         self.assertIn("--sssp-warm-start", command)
         self.assertEqual(command[command.index("--source") + 1], "23")
         self.assertEqual(command[command.index("--max-rounds") + 1], "256")
+
+    def test_large_graph_sources_are_explicit_without_changing_v12_defaults(self) -> None:
+        self.assertEqual(DEFAULT_DATASETS, ("au", "su", "wk", "r19"))
+        self.assertIn("so", DATASETS)
+        self.assertIn("pk", DATASETS)
+        command = build_command(Path("/sim"), Path("/plugin"), "so", "weighted_sssp")
+        self.assertEqual(command[command.index("--source") + 1], "32")
 
     def test_residual_command_freezes_contract_and_threshold(self) -> None:
         command = build_command(
