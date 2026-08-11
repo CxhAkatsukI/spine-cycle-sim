@@ -316,6 +316,10 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
             "processed_edges_per_round": [2, 1, 0],
             "reader_dirty_counts_per_round": [1, 0, 0],
             "reader_dirty_generations_per_round": [3, 4, 4],
+            "reader_level_cache_bytes_per_round": [2_880, 2_880, 2_880],
+            "reader_row_lookup_metadata_bytes_per_round": [8, 8, 0],
+            "reader_occupied_levels_per_round": [1, 1, 1],
+            "reader_metadata_bytes_per_round": [2_936, 2_936, 2_928],
             "maintenance_scan_passes": 19,
             "maintenance_edge_visits": 19,
             "maintenance_sorted_bytes": 320,
@@ -336,6 +340,13 @@ class SstSpineVerticalValidationTests(unittest.TestCase):
         result["frontier_mismatches"] = 1
         self.assertIn(
             "update_correctness",
+            validate_dynamic_sssp_result(result, dram, channels=32),
+        )
+
+        result["frontier_mismatches"] = 0
+        result["reader_occupied_levels_per_round"] = []
+        self.assertIn(
+            "reader_level_metadata_observability",
             validate_dynamic_sssp_result(result, dram, channels=32),
         )
 

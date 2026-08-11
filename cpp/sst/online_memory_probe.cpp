@@ -8698,6 +8698,9 @@ class OnlineMemoryProbe final : public SST::Component {
       std::vector<std::uint32_t> reader_range_paths;
       std::vector<std::uint32_t> reader_range_fallback_reasons;
       std::vector<std::uint32_t> reader_range_errors;
+      std::vector<std::uint64_t> reader_level_cache_bytes;
+      std::vector<std::uint64_t> reader_row_lookup_metadata_bytes;
+      std::vector<std::uint64_t> reader_occupied_levels;
       std::vector<std::uint64_t> reader_metadata_bytes;
       std::vector<std::uint64_t> reader_metadata_write_bytes;
       std::vector<std::uint64_t> reader_result_write_bytes;
@@ -8885,6 +8888,11 @@ class OnlineMemoryProbe final : public SST::Component {
         reader_range_fallback_reasons.push_back(
             round.reader.range_task_fallback_reason);
         reader_range_errors.push_back(round.reader.range_task_error);
+        reader_level_cache_bytes.push_back(
+            round.reader.level_cache_read_bytes);
+        reader_row_lookup_metadata_bytes.push_back(
+            round.reader.row_lookup_metadata_bytes);
+        reader_occupied_levels.push_back(round.reader.occupied_levels);
         reader_metadata_bytes.push_back(round.reader.metadata_read_bytes);
         reader_metadata_write_bytes.push_back(
             round.reader.metadata_write_bytes);
@@ -9662,6 +9670,12 @@ class OnlineMemoryProbe final : public SST::Component {
       write_json_array(result, reader_range_fallback_reasons);
       result << ",\n  \"reader_range_errors_per_round\": ";
       write_json_array(result, reader_range_errors);
+      result << ",\n  \"reader_level_cache_bytes_per_round\": ";
+      write_json_array(result, reader_level_cache_bytes);
+      result << ",\n  \"reader_row_lookup_metadata_bytes_per_round\": ";
+      write_json_array(result, reader_row_lookup_metadata_bytes);
+      result << ",\n  \"reader_occupied_levels_per_round\": ";
+      write_json_array(result, reader_occupied_levels);
       result << ",\n  \"reader_metadata_bytes_per_round\": ";
       write_json_array(result, reader_metadata_bytes);
       result << ",\n  \"reader_metadata_write_bytes_per_round\": ";

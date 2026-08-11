@@ -1177,6 +1177,13 @@ def validate_multiround_sssp_result(
 def validate_dynamic_sssp_result(
     result: dict[str, Any], dram: dict[str, int | float], *, channels: int
 ) -> list[str]:
+    rounds = int(result.get("rounds", 0))
+    level_cache_bytes = result.get("reader_level_cache_bytes_per_round", [])
+    row_lookup_metadata_bytes = result.get(
+        "reader_row_lookup_metadata_bytes_per_round", []
+    )
+    occupied_levels = result.get("reader_occupied_levels_per_round", [])
+    metadata_bytes = result.get("reader_metadata_bytes_per_round", [])
     checks = {
         "success": result.get("success") is True,
         "mode": result.get("mode") == "spine_sssp",
@@ -1211,6 +1218,25 @@ def validate_dynamic_sssp_result(
         and result.get("processed_edges_per_round") == [2, 1, 0]
         and result.get("reader_dirty_counts_per_round") == [1, 0, 0]
         and result.get("reader_dirty_generations_per_round") == [3, 4, 4],
+        "reader_level_metadata_observability": rounds > 0
+        and all(
+            len(values) == rounds
+            for values in (
+                level_cache_bytes,
+                row_lookup_metadata_bytes,
+                occupied_levels,
+                metadata_bytes,
+            )
+        )
+        and all(int(value) > 0 for value in level_cache_bytes)
+        and all(int(value) >= 0 for value in occupied_levels)
+        and all(int(value) % 8 == 0 for value in row_lookup_metadata_bytes)
+        and all(
+            int(total) >= int(cache) + int(row_lookup)
+            for total, cache, row_lookup in zip(
+                metadata_bytes, level_cache_bytes, row_lookup_metadata_bytes
+            )
+        ),
         "update_maintenance": result.get("maintenance_scan_passes") == 19
         and result.get("maintenance_edge_visits") == 19
         and result.get("maintenance_carry_new_batch_reads") == 1
