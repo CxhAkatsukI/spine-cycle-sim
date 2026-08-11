@@ -1,0 +1,625 @@
+{
+  "contract_id": "evaluation_refresh_fpga_calibration_v8_20260812",
+  "gate_kind": "memory_ledger",
+  "rows": [
+    {
+      "accepted_backend_bytes": 25640,
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "backend_requests": 3629,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "compute_requests_closed": true,
+        "maintenance_requests_closed": true,
+        "memory_locality_ledger_match": true,
+        "owner_hbm_byte_ledger_match": true,
+        "owner_hbm_request_ledger_match": true,
+        "owner_ledger_closed": true,
+        "owner_round_evidence_reported": true,
+        "owner_round_formula_recomputed": true,
+        "owner_round_ledger_match": true,
+        "owner_round_rows_all_pass": true,
+        "owner_scheduler_enabled": true,
+        "reader_requests_closed": true
+      },
+      "dataset": "au",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {},
+      "fifo_evidence": "per-round AXIS transfer counts plus closed owner/request ledgers",
+      "phase_traffic_validation_error": "",
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "simulator_result_sha256": "5fa758cbceb26aac7342ad3152e8ccc014ecc55cec683cf9e96f7d83887f0452",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 102985456,
+      "algorithm": "weighted_sssp",
+      "architecture": "grasu_regraph",
+      "backend_requests": 8823122,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "adapter_axis_finite_depth_and_backpressure_reported": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "compute_axi_issued_completed_match": true,
+        "expected_backend_requests_match": true,
+        "memory_locality_ledger_match": true,
+        "observable_fifo_occupancies_within_frozen_depths": true,
+        "phase_request_count_sum_match": true,
+        "update_compute_traffic_decomposition_closes": true
+      },
+      "dataset": "au",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {
+        "apply_wrapper_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "gather_merger_fifo_max_occupancy": {
+          "occupancy": 16,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "merger_apply_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "source_cache_request_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        },
+        "source_cache_response_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        }
+      },
+      "fifo_evidence": "profile-bounded downstream FIFO occupancies; adapter AXIS has a frozen finite depth and stall counter but no occupancy counter",
+      "phase_traffic_validation_error": "",
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/grasu_regraph/weighted_sssp_unified6739_v1/result.json",
+      "simulator_result_sha256": "fd75d99f62665c24df97e6b665ee479e1f25c2c43e79d1e6bd9b33ff464cbea5",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 23780,
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "backend_requests": 3323,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "compute_requests_closed": true,
+        "maintenance_requests_closed": true,
+        "memory_locality_ledger_match": true,
+        "owner_hbm_byte_ledger_match": true,
+        "owner_hbm_request_ledger_match": true,
+        "owner_ledger_closed": true,
+        "owner_round_evidence_reported": true,
+        "owner_round_formula_recomputed": true,
+        "owner_round_ledger_match": true,
+        "owner_round_rows_all_pass": true,
+        "owner_scheduler_enabled": true,
+        "reader_requests_closed": true
+      },
+      "dataset": "su",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {},
+      "fifo_evidence": "per-round AXIS transfer counts plus closed owner/request ledgers",
+      "phase_traffic_validation_error": "",
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "simulator_result_sha256": "a365c3643acf3b73e7cdcdfb0eedf554bbd55bc227abcb24e0170bd8560dff9c",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 129829440,
+      "algorithm": "weighted_sssp",
+      "architecture": "grasu_regraph",
+      "backend_requests": 10963840,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "adapter_axis_finite_depth_and_backpressure_reported": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "compute_axi_issued_completed_match": true,
+        "expected_backend_requests_match": true,
+        "memory_locality_ledger_match": true,
+        "observable_fifo_occupancies_within_frozen_depths": true,
+        "phase_request_count_sum_match": true,
+        "update_compute_traffic_decomposition_closes": true
+      },
+      "dataset": "su",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {
+        "apply_wrapper_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "gather_merger_fifo_max_occupancy": {
+          "occupancy": 16,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "merger_apply_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "source_cache_request_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        },
+        "source_cache_response_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        }
+      },
+      "fifo_evidence": "profile-bounded downstream FIFO occupancies; adapter AXIS has a frozen finite depth and stall counter but no occupancy counter",
+      "phase_traffic_validation_error": "",
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/grasu_regraph/weighted_sssp_unified6739_v1/result.json",
+      "simulator_result_sha256": "23b479ef99580ece53b757444f5238ffcc15a230fbb9f66e2973d22a24cc916c",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 43552,
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "backend_requests": 6105,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "component_requests_closed": true,
+        "fifo_push_pop_match": true,
+        "memory_locality_ledger_match": true,
+        "owner_hbm_byte_ledger_match": true,
+        "owner_hbm_request_ledger_match": true,
+        "owner_ledger_closed": true,
+        "owner_round_evidence_reported": true,
+        "owner_round_formula_recomputed": true,
+        "owner_round_ledger_match": true,
+        "owner_round_rows_all_pass": true,
+        "owner_scheduler_enabled": true
+      },
+      "dataset": "au",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {},
+      "fifo_evidence": "explicit edge/value AXIS push-pop equality",
+      "phase_traffic_validation_error": "",
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/connected_components_compacted_hls_v1/result.json",
+      "simulator_result_sha256": "c616ac901117c0fddc2836a5d7c35c9c01c12c2c475a10dd792db5ab3e2e746c",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 73845752,
+      "algorithm": "connected_components",
+      "architecture": "grasu_regraph",
+      "backend_requests": 4760862,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "adapter_axis_finite_depth_and_backpressure_reported": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "compute_axi_issued_completed_match": true,
+        "expected_backend_requests_match": true,
+        "memory_locality_ledger_match": true,
+        "observable_fifo_occupancies_within_frozen_depths": true,
+        "phase_request_count_sum_match": true,
+        "update_compute_traffic_decomposition_closes": true
+      },
+      "dataset": "au",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {
+        "apply_wrapper_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "gather_merger_fifo_max_occupancy": {
+          "occupancy": 16,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "merger_apply_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "source_cache_request_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        },
+        "source_cache_response_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        }
+      },
+      "fifo_evidence": "profile-bounded downstream FIFO occupancies; adapter AXIS has a frozen finite depth and stall counter but no occupancy counter",
+      "phase_traffic_validation_error": "",
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/grasu_regraph/connected_components_unified6739_v1/result.json",
+      "simulator_result_sha256": "357115108f1adbc45b85e78b06d51f1637f4321e1f804b9c0572d6999d1e2752",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 25752,
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "backend_requests": 3431,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "component_requests_closed": true,
+        "fifo_push_pop_match": true,
+        "memory_locality_ledger_match": true,
+        "owner_hbm_byte_ledger_match": true,
+        "owner_hbm_request_ledger_match": true,
+        "owner_ledger_closed": true,
+        "owner_round_evidence_reported": true,
+        "owner_round_formula_recomputed": true,
+        "owner_round_ledger_match": true,
+        "owner_round_rows_all_pass": true,
+        "owner_scheduler_enabled": true
+      },
+      "dataset": "su",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {},
+      "fifo_evidence": "explicit edge/value AXIS push-pop equality",
+      "phase_traffic_validation_error": "",
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/connected_components_compacted_hls_v1/result.json",
+      "simulator_result_sha256": "f93296d349c1232ecff94c86e944b480e94e7dd761d0140e8b30ac04b317057c",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 92378736,
+      "algorithm": "connected_components",
+      "architecture": "grasu_regraph",
+      "backend_requests": 5911061,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "adapter_axis_finite_depth_and_backpressure_reported": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "compute_axi_issued_completed_match": true,
+        "expected_backend_requests_match": true,
+        "memory_locality_ledger_match": true,
+        "observable_fifo_occupancies_within_frozen_depths": true,
+        "phase_request_count_sum_match": true,
+        "update_compute_traffic_decomposition_closes": true
+      },
+      "dataset": "su",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {
+        "apply_wrapper_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "gather_merger_fifo_max_occupancy": {
+          "occupancy": 16,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "merger_apply_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "source_cache_request_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        },
+        "source_cache_response_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        }
+      },
+      "fifo_evidence": "profile-bounded downstream FIFO occupancies; adapter AXIS has a frozen finite depth and stall counter but no occupancy counter",
+      "phase_traffic_validation_error": "",
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/grasu_regraph/connected_components_unified6739_v1/result.json",
+      "simulator_result_sha256": "fb898d65e8a5960a3c59b5614692b48b782ab57c4c9393c8978e835f5740264c",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 23120,
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "spine",
+      "backend_requests": 4473,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "correction_requests_closed": true,
+        "memory_ledger_match": true,
+        "memory_locality_ledger_match": true,
+        "owner_hbm_byte_ledger_match": true,
+        "owner_hbm_request_ledger_match": true,
+        "owner_ledger_closed": true,
+        "owner_round_evidence_reported": true,
+        "owner_round_formula_recomputed": true,
+        "owner_round_ledger_match": true,
+        "owner_round_rows_all_pass": true,
+        "owner_scheduler_enabled": true
+      },
+      "dataset": "au",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {},
+      "fifo_evidence": "zero-propagation correction-only row; no reader/compute AXIS payload",
+      "phase_traffic_validation_error": "",
+      "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "simulator_result_sha256": "cbee27ac2feb06b537df432d78c21be0b663ef78443438dc3d2532b5bfa5faf5",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 108205992,
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "grasu_regraph",
+      "backend_requests": 5789239,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "adapter_axis_finite_depth_and_backpressure_reported": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "compute_axi_issued_completed_match": true,
+        "expected_backend_requests_match": true,
+        "memory_locality_ledger_match": true,
+        "observable_fifo_occupancies_within_frozen_depths": true,
+        "phase_request_count_sum_match": true,
+        "update_compute_traffic_decomposition_closes": true
+      },
+      "dataset": "au",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {
+        "apply_wrapper_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "degree_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "within_depth": true
+        },
+        "degree_reorder_max_occupancy": {
+          "occupancy": 2,
+          "profile_depth": 4096,
+          "within_depth": true
+        },
+        "gather_merger_fifo_max_occupancy": {
+          "occupancy": 16,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "merger_apply_fifo_max_occupancy": {
+          "occupancy": 16,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "source_cache_request_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        },
+        "source_cache_response_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        }
+      },
+      "fifo_evidence": "profile-bounded downstream FIFO occupancies; adapter AXIS has a frozen finite depth and stall counter but no occupancy counter",
+      "phase_traffic_validation_error": "",
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/grasu_regraph/thresholded_residual_pagerank_unified6739_v1/result.json",
+      "simulator_result_sha256": "f6c13539f29f70242016dd1607838593e5675fc8553fbd017c22046278006519",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 19604,
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "spine",
+      "backend_requests": 3714,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "correction_requests_closed": true,
+        "memory_ledger_match": true,
+        "memory_locality_ledger_match": true,
+        "owner_hbm_byte_ledger_match": true,
+        "owner_hbm_request_ledger_match": true,
+        "owner_ledger_closed": true,
+        "owner_round_evidence_reported": true,
+        "owner_round_formula_recomputed": true,
+        "owner_round_ledger_match": true,
+        "owner_round_rows_all_pass": true,
+        "owner_scheduler_enabled": true
+      },
+      "dataset": "su",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {},
+      "fifo_evidence": "zero-propagation correction-only row; no reader/compute AXIS payload",
+      "phase_traffic_validation_error": "",
+      "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "simulator_result_sha256": "46a7717de8582e879b15628d9d382113883430a5f68be8540b6cf90b48ebdf73",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    },
+    {
+      "accepted_backend_bytes": 127759280,
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "grasu_regraph",
+      "backend_requests": 7016843,
+      "bytes_issued_equal_completed": true,
+      "checks": {
+        "accepted_bytes_complete_at_quiescence": true,
+        "active_edge_execution_ledger_match": true,
+        "adapter_axis_finite_depth_and_backpressure_reported": true,
+        "backend_read_write_and_locality_categories_close": true,
+        "backend_request_traffic_match": true,
+        "compute_axi_issued_completed_match": true,
+        "expected_backend_requests_match": true,
+        "memory_locality_ledger_match": true,
+        "observable_fifo_occupancies_within_frozen_depths": true,
+        "phase_request_count_sum_match": true,
+        "update_compute_traffic_decomposition_closes": true
+      },
+      "dataset": "su",
+      "fifo_balance_or_residual_explained": true,
+      "fifo_depth_checks": {
+        "apply_wrapper_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "degree_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 16,
+          "within_depth": true
+        },
+        "degree_reorder_max_occupancy": {
+          "occupancy": 3,
+          "profile_depth": 4096,
+          "within_depth": true
+        },
+        "gather_merger_fifo_max_occupancy": {
+          "occupancy": 16,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "merger_apply_fifo_max_occupancy": {
+          "occupancy": 16,
+          "profile_depth": 16,
+          "serialized_depth": 16,
+          "within_depth": true
+        },
+        "source_cache_request_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        },
+        "source_cache_response_fifo_max_occupancy": {
+          "occupancy": 1,
+          "profile_depth": 8,
+          "serialized_depth": 8,
+          "within_depth": true
+        }
+      },
+      "fifo_evidence": "profile-bounded downstream FIFO occupancies; adapter AXIS has a frozen finite depth and stall counter but no occupancy counter",
+      "phase_traffic_validation_error": "",
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "requests_issued_equal_completed": true,
+      "role": "calibration",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/grasu_regraph/thresholded_residual_pagerank_unified6739_v1/result.json",
+      "simulator_result_sha256": "97c76de3830059bdb1cbf275aacfc15cbd00633f39d298e569e8b0920b61e66a",
+      "status": "PASS",
+      "traffic_validation_error": ""
+    }
+  ],
+  "schema_version": 1,
+  "scope": "calibration_only_before_holdout",
+  "status": "PASS"
+}

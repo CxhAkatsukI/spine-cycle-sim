@@ -201,6 +201,10 @@ def evidence_identity(
             value = source.get(field)
             if isinstance(value, str) and value:
                 return value
+    if "profile_id" in fields or "architecture_profile_id" in fields:
+        profile = manifest.get("profile")
+        if isinstance(profile, str) and profile:
+            return Path(profile).stem
     raise ValueError(f"simulator evidence does not identify any of {fields}")
 
 

@@ -1,0 +1,220 @@
+{
+  "cases_sha256": "b9a03bbae24c2a6dc99009ea4234fec4c17692dbecdb071abee21e295a588fc2",
+  "contract_id": "evaluation_refresh_fpga_calibration_v8_20260812",
+  "contract_sha256": "4cd01f79e0224acfdb18e04d1db841e93e2d5b2107aa9bc4c2ee61e2f4597ce3",
+  "models": [
+    {
+      "algorithm": "connected_components",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "downstream_hbm_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed terminal HBM event interval; diagnostic only and overlapping upstream events",
+      "holdout_used_for_fit": false,
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "scale": 7.152395735540805
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "update_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed G+R grasu_ms event; downstream events may overlap it",
+      "holdout_used_for_fit": false,
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "scale": 1785.086633212892
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "downstream_hbm_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed terminal HBM event interval; diagnostic only and overlapping upstream events",
+      "holdout_used_for_fit": false,
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "scale": 12.457649847001115
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "update_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed G+R update_ms event; downstream events may overlap it",
+      "holdout_used_for_fit": false,
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "scale": 8317.794757108377
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "downstream_hbm_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed terminal HBM event interval; diagnostic only and overlapping upstream events",
+      "holdout_used_for_fit": false,
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "scale": 8.26726601713364
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "update_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed G+R grasu_ms event; downstream events may overlap it",
+      "holdout_used_for_fit": false,
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "scale": 6960.609733994563
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "compute_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed compute event envelope across all rounds; overlaps reader",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "scale": 2.8973159741228978
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "iterative_kernel_span",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed first-reader-start to last-reader/compute-end span; contains overlap",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "scale": 4.781126620027779
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "maintenance",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed maintenance kernel event; nonoverlapping with iterative kernel span",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "scale": 3.8026776225557284
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "reader_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed reader event envelope across all rounds; overlaps compute",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "scale": 6.135980372842922
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "maintenance",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed maintenance kernel event; nonoverlapping with iterative kernel span",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "scale": 5.148011112050441
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "compute_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed compute event envelope across all rounds; overlaps reader",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "scale": 2.8541193687147715
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "iterative_kernel_span",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed first-reader-start to last-reader/compute-end span; contains overlap",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "scale": 4.601144691071337
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "maintenance",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed maintenance kernel event; nonoverlapping with iterative kernel span",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "scale": 4.877588863272359
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": "reader_event",
+      "fit_role": "calibration_only",
+      "hardware_observation": "median routed reader event envelope across all rounds; overlaps compute",
+      "holdout_used_for_fit": false,
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "scale": 9.625786548589673
+    }
+  ],
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_HOLDOUT"
+}

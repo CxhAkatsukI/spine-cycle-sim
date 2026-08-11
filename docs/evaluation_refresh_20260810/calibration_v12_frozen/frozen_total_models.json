@@ -1,0 +1,94 @@
+{
+  "cases_sha256": "b9a03bbae24c2a6dc99009ea4234fec4c17692dbecdb071abee21e295a588fc2",
+  "contract_id": "evaluation_refresh_fpga_calibration_v8_20260812",
+  "contract_sha256": "4cd01f79e0224acfdb18e04d1db841e93e2d5b2107aa9bc4c2ee61e2f4597ce3",
+  "models": [
+    {
+      "algorithm": "connected_components",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": null,
+      "fit_role": "calibration_only",
+      "holdout_used_for_fit": false,
+      "model_form": "hardware_cycles = scale * execution_driven_simulator_cycles",
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "scale": 12.328973283577154
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": null,
+      "fit_role": "calibration_only",
+      "holdout_used_for_fit": false,
+      "model_form": "hardware_cycles = scale * execution_driven_simulator_cycles",
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "scale": 12.648008768782553
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "grasu_regraph",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": null,
+      "fit_role": "calibration_only",
+      "holdout_used_for_fit": false,
+      "model_form": "hardware_cycles = scale * execution_driven_simulator_cycles",
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "scale": 12.738878016248028
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": null,
+      "fit_role": "calibration_only",
+      "holdout_used_for_fit": false,
+      "model_form": "hardware_cycles = scale * execution_driven_simulator_cycles",
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "scale": 4.657169824608661
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": null,
+      "fit_role": "calibration_only",
+      "holdout_used_for_fit": false,
+      "model_form": "hardware_cycles = scale * execution_driven_simulator_cycles",
+      "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "scale": 2.1253263783645004
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "component": null,
+      "fit_role": "calibration_only",
+      "holdout_used_for_fit": false,
+      "model_form": "hardware_cycles = scale * execution_driven_simulator_cycles",
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "scale": 4.6577783318828665
+    }
+  ],
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_HOLDOUT"
+}

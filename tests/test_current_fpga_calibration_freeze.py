@@ -4,6 +4,7 @@ from pathlib import Path
 import unittest
 
 from scripts.freeze_current_fpga_calibration_v4 import (
+    EXPECTED_COMPONENT_KEYS,
     group_component_models,
     group_total_models,
 )
@@ -252,6 +253,29 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
         self.assertAlmostEqual(models[0]["scale"], 3.0)
         self.assertEqual(models[0]["profile_id"], "p")
         self.assertFalse(models[0]["holdout_used_for_fit"])
+
+    def test_component_identity_accepts_manifest_profile_path(self) -> None:
+        profile_id = analyze_current_fpga_components.evidence_identity(
+            {},
+            {"profile": "/tmp/grasu_regraph_sharded_k4_weighted_hls_v8.json"},
+            ("profile_id", "architecture_profile_id"),
+        )
+        self.assertEqual(profile_id, "grasu_regraph_sharded_k4_weighted_hls_v8")
+
+    def test_component_freeze_pins_complete_counter_scope(self) -> None:
+        self.assertEqual(len(EXPECTED_COMPONENT_KEYS), 15)
+        self.assertIn(
+            ("spine", "connected_components", "iterative_kernel_span"),
+            EXPECTED_COMPONENT_KEYS,
+        )
+        self.assertIn(
+            (
+                "grasu_regraph",
+                "thresholded_residual_pagerank",
+                "downstream_hbm_event",
+            ),
+            EXPECTED_COMPONENT_KEYS,
+        )
 
 
 if __name__ == "__main__":

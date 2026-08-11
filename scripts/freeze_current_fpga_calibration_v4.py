@@ -43,7 +43,28 @@ DEFAULT_CONTRACT = (
     ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
 )
 DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen"
-EXPECTED_COMPONENT_MODEL_COUNT = 14
+EXPECTED_COMPONENT_KEYS = frozenset(
+    {
+        ("grasu_regraph", algorithm, component)
+        for algorithm in (
+            "weighted_sssp",
+            "connected_components",
+            "thresholded_residual_pagerank",
+        )
+        for component in ("update_event", "downstream_hbm_event")
+    }
+    | {
+        ("spine", algorithm, component)
+        for algorithm in ("weighted_sssp", "connected_components")
+        for component in (
+            "maintenance",
+            "reader_event",
+            "compute_event",
+            "iterative_kernel_span",
+        )
+    }
+    | {("spine", "thresholded_residual_pagerank", "maintenance")}
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -323,10 +344,15 @@ def main() -> int:
         raise ValueError(
             f"expected {expected_total_models} total models, got {len(total_models)}"
         )
-    if len(component_models) != EXPECTED_COMPONENT_MODEL_COUNT:
+    component_keys = {
+        (model["architecture"], model["algorithm"], model["component"])
+        for model in component_models
+    }
+    if component_keys != EXPECTED_COMPONENT_KEYS:
         raise ValueError(
-            f"expected {EXPECTED_COMPONENT_MODEL_COUNT} component models, "
-            f"got {len(component_models)}"
+            "component model coverage mismatch: "
+            f"missing={sorted(EXPECTED_COMPONENT_KEYS - component_keys)} "
+            f"unexpected={sorted(component_keys - EXPECTED_COMPONENT_KEYS)}"
         )
     calibration_dataset_count = sum(
         role == "calibration" for role in cases["roles"].values()
