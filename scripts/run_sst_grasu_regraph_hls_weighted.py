@@ -832,6 +832,11 @@ def main() -> int:
         }
     )
     env.update(address_environment)
+    env.setdefault(
+        "SPINE_CAMPAIGN_PROGRESS_PATH",
+        str((args.out_dir / "progress.json").resolve()),
+    )
+    env.setdefault("SPINE_CAMPAIGN_PROGRESS_INTERVAL_CYCLES", "1000000")
     sst_library = forced_sst_library_binding(args.sst, args.lib_dir)
     command = [
         str(args.sst.resolve()),
