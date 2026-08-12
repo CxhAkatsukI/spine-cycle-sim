@@ -1,0 +1,43 @@
+{
+  "all_direct_ten_stage_ledgers_closed": true,
+  "analysis_id": "spine_rq3_realized_work_v2",
+  "calibration_dataset_ids": [
+    "sx_askubuntu"
+  ],
+  "coverage": {
+    "deep_carry": "ready",
+    "deletion_fallback": "ready",
+    "pagerank_correction": "ready",
+    "shallow_insertion": "ready",
+    "zero_net": "ready"
+  },
+  "direct_ten_stage_rows": 15,
+  "e2e_metrics": {},
+  "e2e_model": {
+    "algorithms": [
+      "connected_components",
+      "thresholded_residual_pagerank",
+      "weighted_sssp"
+    ],
+    "calibration_samples": 6,
+    "features": [
+      "w_sort_records",
+      "w_carry_records",
+      "directory_requests",
+      "m_phys_records",
+      "m_seed_records",
+      "switch_work",
+      "source_and_reactivation_work",
+      "algorithm_apply_operations"
+    ],
+    "fit_method": "variance_stabilized_nonnegative_coordinate_descent",
+    "required_samples": 9,
+    "status": "insufficient_calibration_rows"
+  },
+  "latency_rows": 15,
+  "preferred_plugin_sha256": [
+    "7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6"
+  ],
+  "schema_version": 2,
+  "work_rows": 15
+}

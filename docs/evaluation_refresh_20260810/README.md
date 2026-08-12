@@ -16,9 +16,10 @@ unchanged until the revised evidence is accepted.
   produced by the frozen v15 Spine and v20 sharded-K4 G+R models.
 - Figure 9 is admitted only when all nine AU/SU/WK algorithm pairs pass
   correctness, memory-ledger, arbitration, and DRAM-request conservation.
-- Figure 10 is component-calibrated diagnostic evidence. It is not promoted to
-  a whole-machine FPGA-calibrated cost model because the independent v15
-  holdout fails.
+- The complete Figure 10 candidate is explicitly simulator-predicted and uses
+  correctness-admitted, cycle-conserving execution rows for all five workload
+  classes. The older component-calibrated diagnostic packet is retained as a
+  separate artifact and is not promoted to a whole-machine FPGA cost model.
 - Figure 8 gives each panel a symbol-appropriate legend and uses
   setup-inclusive update-only throughput.
 - Figure 9 removes vertical separators and groups AU, SU, and WK by algorithm,
@@ -38,6 +39,9 @@ unchanged until the revised evidence is accepted.
   energy evidence with complete correctness and conservation gates.
 - `fig10_current_v15_evidence/`: seven admitted SSSP breakdown rows, mechanism
   correlations, and explicit rejection of the global cost model.
+- `simulator_predicted_fig10_v1/`: complete five-class, eleven-row normalized
+  simulator breakdown. This is the Figure 10 candidate to use when the claim is
+  explicitly simulator-predicted rather than FPGA component-calibrated.
 - `provenance/fig8.json`, `provenance/fig9.json`, and `provenance/fig10.json`:
   hashes, timing scope, normalization, and current limitations.
 - `alignment_audit.md` and `provenance/alignment_audit.json`: gate whether
@@ -63,6 +67,12 @@ Zero-net is omitted because the current HLS does not implement the paper's
 no-repair fast path. PageRank correction is omitted because no routed nonzero
 iteration sample exists for component calibration.
 
+That omission applies only to `fig10_current_v15_evidence/`. The independent
+`simulator_predicted_fig10_v1/` package includes zero-net and PageRank
+correction because FPGA component evidence is not its admission criterion. It
+requires correctness-admitted source rows, a single simulator plugin, complete
+five-class coverage, closed ledgers, and exact stage-cycle conservation.
+
 ## Reproduction
 
 ```bash
@@ -71,6 +81,9 @@ python3 -m venv /data/tmp/chuxiao/spine-cycle-sim-eval-venv
 /data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/pip install -e '.[plots]'
 /data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
   scripts/render_evaluation_refresh.py
+
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  scripts/package_simulator_predicted_fig10.py
 ```
 
 After the current Figure 9 matrix has produced all nine rows, export and
