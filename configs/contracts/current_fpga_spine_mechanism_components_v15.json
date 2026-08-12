@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "contract_id": "current_fpga_spine_mechanism_components_v15_20260812",
+  "status": "frozen_before_transfer_execution",
+  "architecture": "spine_owner_fifo",
+  "clock_mhz": 150.0,
+  "simulator_plugin": {
+    "path": "cpp/sst/build/sst-current-fpga-v12/libspine_cycle.so",
+    "sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70"
+  },
+  "profiles": {
+    "weighted_sssp": "spine_owner_fifo_sssp_hls_v1",
+    "connected_components": "spine_owner_fifo_cc_hls_v1",
+    "thresholded_residual_pagerank": "spine_owner_fifo_respr_hls_v1"
+  },
+  "roles": {
+    "calibration": [
+      "au",
+      "su",
+      "wk",
+      "r19",
+      "pk",
+      "so"
+    ],
+    "holdout": [
+      "lj",
+      "lj08"
+    ]
+  },
+  "compute_strategies": {
+    "weighted_sssp": "fixed_plus_execution",
+    "connected_components": "request_plus_execution",
+    "thresholded_residual_pagerank": "execution_span"
+  },
+  "model": {
+    "maintenance": "non-negative affine map of execution-driven maintenance cycles",
+    "reader": "round launches plus vertex-domain publication work plus completed reader AXI parent requests",
+    "compute_execution_span": "round launches plus execution-driven compute cycles; AXI and bounded-pipeline stalls are already included",
+    "compute_fixed_plus_execution": "one routed compute event launch/drain cost plus execution-driven compute cycles",
+    "compute_request_plus_execution": "CC state-memory parent requests plus execution-driven compute cycles and round launches",
+    "iterative_span": "max(reader, compute) plus a non-negative per-round routed overlap residual",
+    "total": "maintenance plus iterative span; zero-round residual PageRank is maintenance-only",
+    "fit_roles": [
+      "calibration"
+    ],
+    "holdout_may_fit": false
+  },
+  "mechanism_mapping": {
+    "reader_vertex_domain": "full-domain active publication and downstream sweep visible in the routed reader event through AXIS backpressure",
+    "reader_requests": "issued equals completed reader AXI parent requests",
+    "compute_cycles": "evaluate-commit compute state, finite FIFOs, AXIS backpressure, HBM response timing, and on-chip pipeline stalls",
+    "cc_compute_requests": "algorithm-specific label-state traffic not represented by the SSSP execution-span mapping",
+    "span": "routed reader and compute event intervals overlap and are never summed"
+  },
+  "thresholds": {
+    "holdout_total_median_absolute_error_percent_max": 15.0,
+    "holdout_total_absolute_error_percent_max": 30.0,
+    "holdout_component_median_absolute_error_percent_max": 20.0,
+    "holdout_component_absolute_error_percent_max": 40.0,
+    "workload_rank_spearman_min": 0.9
+  },
+  "evidence_policy": {
+    "calibration_and_holdout_disjoint_for_current_plugin": true,
+    "holdout_current_plugin_results_absent_at_freeze": true,
+    "historical_older_plugin_results_exist_for_holdout_datasets": true,
+    "claim_is_frozen_transfer_validation_not_project_lifetime_blind_holdout": true,
+    "failed_v14_so_transfer_remains_failed": true,
+    "v14_parameters_are_not_modified": true,
+    "correctness_and_structural_ledgers_must_pass_before_timing_admission": true,
+    "leave_one_dataset_out_is_development_evidence_only": true
+  },
+  "supersedes": {
+    "spine_timing_model": "current_fpga_spine_component_features_v14_20260812",
+    "reason": "V14 double-counted memory service by adding parent-request cost to execution-driven component cycles. It failed frozen SO transfer for SSSP (48.96% total error) and CC (32.98%). V15 restores the previously validated HLS reader work terms and uses an algorithm-specific compute policy before freezing against LJ and LJ08 current-plugin runs."
+  }
+}

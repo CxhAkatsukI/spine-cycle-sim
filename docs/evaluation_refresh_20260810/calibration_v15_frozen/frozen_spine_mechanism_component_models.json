@@ -1,0 +1,78 @@
+{
+  "contract_id": "current_fpga_spine_mechanism_components_v15_20260812",
+  "fit_role": "calibration_only",
+  "holdout_used_for_fit": false,
+  "models": {
+    "connected_components": {
+      "algorithm": "connected_components",
+      "calibration_datasets": [
+        "au",
+        "pk",
+        "r19",
+        "so",
+        "su",
+        "wk"
+      ],
+      "compute_fixed_cycles": 0.0,
+      "compute_memory_request_cycles": 62.20859824601167,
+      "compute_round_cycles": 44739.83441186791,
+      "compute_simulator_cycle_scale": 1.0016178870890184,
+      "compute_strategy": "request_plus_execution",
+      "maintenance_fixed_cycles": 14883.312485430713,
+      "maintenance_simulator_scale": 1.5722422241353102,
+      "profile_id": "spine_owner_fifo_cc_hls_v1",
+      "reader_memory_request_cycles": 44.56696134147511,
+      "reader_round_cycles": 31690.48418509758,
+      "reader_vertex_cycles": 0.20997853568661376,
+      "span_residual_cycles_per_round": 3110.625000000022
+    },
+    "thresholded_residual_pagerank": {
+      "algorithm": "thresholded_residual_pagerank",
+      "calibration_datasets": [
+        "au",
+        "pk",
+        "r19",
+        "so",
+        "su",
+        "wk"
+      ],
+      "compute_fixed_cycles": 0.0,
+      "compute_memory_request_cycles": 0.0,
+      "compute_round_cycles": 0.0,
+      "compute_simulator_cycle_scale": 0.0,
+      "compute_strategy": "execution_span",
+      "maintenance_fixed_cycles": 22288.430066147783,
+      "maintenance_simulator_scale": 1.0915492745417001,
+      "profile_id": "spine_owner_fifo_respr_hls_v1",
+      "reader_memory_request_cycles": 0.0,
+      "reader_round_cycles": 0.0,
+      "reader_vertex_cycles": 0.0,
+      "span_residual_cycles_per_round": 0.0
+    },
+    "weighted_sssp": {
+      "algorithm": "weighted_sssp",
+      "calibration_datasets": [
+        "au",
+        "pk",
+        "r19",
+        "so",
+        "su",
+        "wk"
+      ],
+      "compute_fixed_cycles": 103773.33686596359,
+      "compute_memory_request_cycles": 0.0,
+      "compute_round_cycles": 0.0,
+      "compute_simulator_cycle_scale": 0.8195494318324709,
+      "compute_strategy": "fixed_plus_execution",
+      "maintenance_fixed_cycles": 19911.73912786707,
+      "maintenance_simulator_scale": 1.1709306875562984,
+      "profile_id": "spine_owner_fifo_sssp_hls_v1",
+      "reader_memory_request_cycles": 26.391183725017378,
+      "reader_round_cycles": 43685.42779624002,
+      "reader_vertex_cycles": 0.20527147004891955,
+      "span_residual_cycles_per_round": 2632.4166666666374
+    }
+  },
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_HOLDOUT"
+}

@@ -225,6 +225,7 @@ class SpineMechanismComponentRecord:
     simulator_reader_cycles: float
     simulator_compute_cycles: float
     simulator_reader_memory_requests: float
+    simulator_compute_memory_requests: float
     hardware_maintenance_cycles: float
     hardware_reader_cycles: float
     hardware_compute_cycles: float
@@ -250,8 +251,11 @@ class SpineMechanismComponentModel:
     reader_round_cycles: float
     reader_vertex_cycles: float
     reader_memory_request_cycles: float
+    compute_fixed_cycles: float
     compute_round_cycles: float
+    compute_memory_request_cycles: float
     compute_simulator_cycle_scale: float
+    compute_strategy: str
     span_residual_cycles_per_round: float
 
     def predict_components(
@@ -263,6 +267,7 @@ class SpineMechanismComponentModel:
         simulator_reader_cycles: float,
         simulator_compute_cycles: float,
         simulator_reader_memory_requests: float,
+        simulator_compute_memory_requests: float,
     ) -> dict[str, float]:
         _require_positive_finite(vertices, "vertices")
         _require_positive_finite(
@@ -274,6 +279,10 @@ class SpineMechanismComponentModel:
             (
                 simulator_reader_memory_requests,
                 "simulator_reader_memory_requests",
+            ),
+            (
+                simulator_compute_memory_requests,
+                "simulator_compute_memory_requests",
             ),
         ):
             if not math.isfinite(value) or value < 0:
@@ -292,6 +301,7 @@ class SpineMechanismComponentModel:
                     simulator_reader_cycles,
                     simulator_compute_cycles,
                     simulator_reader_memory_requests,
+                    simulator_compute_memory_requests,
                 )
             ):
                 raise ValueError("zero-round timing cannot contain iterative work")
@@ -310,7 +320,10 @@ class SpineMechanismComponentModel:
             * simulator_reader_memory_requests
         )
         compute = (
-            self.compute_round_cycles * rounds
+            self.compute_fixed_cycles
+            + self.compute_round_cycles * rounds
+            + self.compute_memory_request_cycles
+            * simulator_compute_memory_requests
             + self.compute_simulator_cycle_scale * simulator_compute_cycles
         )
         iterative_span = (
@@ -1268,6 +1281,8 @@ def spine_component_feature_leave_one_dataset_out_rows(
 
 def fit_spine_mechanism_component_model(
     records: Iterable[SpineMechanismComponentRecord],
+    *,
+    compute_strategy: str = "execution_span",
 ) -> SpineMechanismComponentModel:
     """Fit one immutable HLS mechanism model from calibration rows only."""
 
@@ -1282,6 +1297,12 @@ def fit_spine_mechanism_component_model(
     if len({row.dataset for row in rows}) != len(rows):
         raise ValueError("mechanism-component fit requires distinct datasets")
     algorithm, profile_id = next(iter(identities))
+    if compute_strategy not in {
+        "execution_span",
+        "fixed_plus_execution",
+        "request_plus_execution",
+    }:
+        raise ValueError(f"unsupported compute strategy: {compute_strategy!r}")
 
     for row in rows:
         _require_positive_finite(row.vertices, "vertices")
@@ -1307,6 +1328,7 @@ def fit_spine_mechanism_component_model(
                     row.simulator_reader_cycles,
                     row.simulator_compute_cycles,
                     row.simulator_reader_memory_requests,
+                    row.simulator_compute_memory_requests,
                     row.hardware_reader_cycles,
                     row.hardware_compute_cycles,
                     row.hardware_iterative_span_cycles,
@@ -1322,8 +1344,11 @@ def fit_spine_mechanism_component_model(
             reader_round_cycles=0.0,
             reader_vertex_cycles=0.0,
             reader_memory_request_cycles=0.0,
+            compute_fixed_cycles=0.0,
             compute_round_cycles=0.0,
+            compute_memory_request_cycles=0.0,
             compute_simulator_cycle_scale=0.0,
+            compute_strategy=compute_strategy,
             span_residual_cycles_per_round=0.0,
         )
     if any(row.rounds <= 0 for row in rows):
@@ -1336,6 +1361,10 @@ def fit_spine_mechanism_component_model(
             (
                 row.simulator_reader_memory_requests,
                 "simulator_reader_memory_requests",
+            ),
+            (
+                row.simulator_compute_memory_requests,
+                "simulator_compute_memory_requests",
             ),
             (row.hardware_reader_cycles, "hardware_reader_cycles"),
             (row.hardware_compute_cycles, "hardware_compute_cycles"),
@@ -1361,13 +1390,39 @@ def fit_spine_mechanism_component_model(
         ],
         [row.hardware_reader_cycles for row in rows],
     )
-    compute_round, compute_simulator = _fit_nonnegative_feature_model(
-        [
-            (float(row.rounds), row.simulator_compute_cycles)
-            for row in rows
-        ],
-        [row.hardware_compute_cycles for row in rows],
-    )
+    compute_fixed = 0.0
+    compute_request = 0.0
+    if compute_strategy == "execution_span":
+        compute_round, compute_simulator = _fit_nonnegative_feature_model(
+            [
+                (float(row.rounds), row.simulator_compute_cycles)
+                for row in rows
+            ],
+            [row.hardware_compute_cycles for row in rows],
+        )
+    elif compute_strategy == "fixed_plus_execution":
+        compute_fixed, compute_simulator = _fit_nonnegative_feature_model(
+            [
+                (1.0, row.simulator_compute_cycles)
+                for row in rows
+            ],
+            [row.hardware_compute_cycles for row in rows],
+        )
+        compute_round = 0.0
+    else:
+        compute_round, compute_request, compute_simulator = (
+            _fit_nonnegative_feature_model(
+                [
+                    (
+                        float(row.rounds),
+                        row.simulator_compute_memory_requests,
+                        row.simulator_compute_cycles,
+                    )
+                    for row in rows
+                ],
+                [row.hardware_compute_cycles for row in rows],
+            )
+        )
     span_residual = _fit_nonnegative_feature_model(
         [(float(row.rounds),) for row in rows],
         [
@@ -1385,8 +1440,11 @@ def fit_spine_mechanism_component_model(
         reader_round_cycles=reader_round,
         reader_vertex_cycles=reader_vertex,
         reader_memory_request_cycles=reader_request,
+        compute_fixed_cycles=compute_fixed,
         compute_round_cycles=compute_round,
+        compute_memory_request_cycles=compute_request,
         compute_simulator_cycle_scale=compute_simulator,
+        compute_strategy=compute_strategy,
         span_residual_cycles_per_round=span_residual,
     )
 
@@ -1412,6 +1470,9 @@ def spine_mechanism_component_prediction_rows(
             simulator_compute_cycles=record.simulator_compute_cycles,
             simulator_reader_memory_requests=(
                 record.simulator_reader_memory_requests
+            ),
+            simulator_compute_memory_requests=(
+                record.simulator_compute_memory_requests
             ),
         )
         hardware_total = (
@@ -1453,6 +1514,8 @@ def spine_mechanism_component_prediction_rows(
 
 def spine_mechanism_component_leave_one_dataset_out_rows(
     records: Iterable[SpineMechanismComponentRecord],
+    *,
+    compute_strategy: str = "execution_span",
 ) -> list[dict[str, object]]:
     """Measure development transfer without changing the mechanism form."""
 
@@ -1462,7 +1525,9 @@ def spine_mechanism_component_leave_one_dataset_out_rows(
     predictions: list[dict[str, object]] = []
     for held_out in rows:
         training = tuple(row for row in rows if row.dataset != held_out.dataset)
-        model = fit_spine_mechanism_component_model(training)
+        model = fit_spine_mechanism_component_model(
+            training, compute_strategy=compute_strategy
+        )
         prediction = spine_mechanism_component_prediction_rows(
             (held_out,), model
         )[0]

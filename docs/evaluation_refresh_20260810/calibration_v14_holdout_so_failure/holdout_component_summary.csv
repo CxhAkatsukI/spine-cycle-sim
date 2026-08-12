@@ -1,0 +1,10 @@
+algorithm,component,role,cases,median_absolute_error_percent,max_absolute_error_percent
+connected_components,maintenance,holdout,1,11.853769456609522,11.853769456609522
+connected_components,reader,holdout,1,33.51966667292499,33.51966667292499
+connected_components,compute,holdout,1,20.98363793385607,20.98363793385607
+connected_components,iterative_span,holdout,1,33.60496883433088,33.60496883433088
+thresholded_residual_pagerank,maintenance,holdout,1,4.723155521792246,4.723155521792246
+weighted_sssp,maintenance,holdout,1,10.007110967753153,10.007110967753153
+weighted_sssp,reader,holdout,1,49.521336551334194,49.521336551334194
+weighted_sssp,compute,holdout,1,75.90145438019304,75.90145438019304
+weighted_sssp,iterative_span,holdout,1,49.65218927861993,49.65218927861993

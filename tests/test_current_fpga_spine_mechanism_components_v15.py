@@ -42,6 +42,7 @@ class CurrentFPGASpineMechanismComponentsV15Tests(unittest.TestCase):
                     99 * index,
                     simulator_compute,
                     reader_requests,
+                    2 * reader_requests,
                     hardware_maintenance,
                     hardware_reader,
                     hardware_compute,
@@ -58,7 +59,9 @@ class CurrentFPGASpineMechanismComponentsV15Tests(unittest.TestCase):
         self.assertAlmostEqual(model.reader_round_cycles, 11.0)
         self.assertAlmostEqual(model.reader_vertex_cycles, 3.0)
         self.assertAlmostEqual(model.reader_memory_request_cycles, 5.0)
+        self.assertEqual(model.compute_fixed_cycles, 0.0)
         self.assertAlmostEqual(model.compute_round_cycles, 13.0)
+        self.assertEqual(model.compute_memory_request_cycles, 0.0)
         self.assertAlmostEqual(model.compute_simulator_cycle_scale, 7.0)
         self.assertAlmostEqual(model.span_residual_cycles_per_round, 17.0)
         predictions = spine_mechanism_component_prediction_rows(rows, model)
@@ -84,6 +87,7 @@ class CurrentFPGASpineMechanismComponentsV15Tests(unittest.TestCase):
             simulator_reader_cycles=100,
             simulator_compute_cycles=20,
             simulator_reader_memory_requests=7,
+            simulator_compute_memory_requests=14,
         )
         changed = model.predict_components(
             rounds=1,
@@ -92,8 +96,60 @@ class CurrentFPGASpineMechanismComponentsV15Tests(unittest.TestCase):
             simulator_reader_cycles=100000,
             simulator_compute_cycles=20,
             simulator_reader_memory_requests=7,
+            simulator_compute_memory_requests=14,
         )
         self.assertEqual(baseline["reader_cycles"], changed["reader_cycles"])
+
+    def test_cc_strategy_can_retain_state_request_service(self):
+        rows = []
+        for row in self.iterative_rows():
+            hardware_compute = (
+                13 * row.rounds
+                + 4 * row.simulator_compute_memory_requests
+                + 7 * row.simulator_compute_cycles
+            )
+            rows.append(
+                SpineMechanismComponentRecord(
+                    **{
+                        **row.__dict__,
+                        "algorithm": "connected_components",
+                        "hardware_compute_cycles": hardware_compute,
+                        "hardware_iterative_span_cycles": max(
+                            row.hardware_reader_cycles, hardware_compute
+                        )
+                        + 17 * row.rounds,
+                    }
+                )
+            )
+        model = fit_spine_mechanism_component_model(
+            rows, compute_strategy="request_plus_execution"
+        )
+        self.assertAlmostEqual(model.compute_round_cycles, 13.0)
+        self.assertAlmostEqual(model.compute_memory_request_cycles, 4.0)
+        self.assertAlmostEqual(model.compute_simulator_cycle_scale, 7.0)
+
+    def test_fixed_compute_strategy_recovers_event_launch_cost(self):
+        rows = []
+        for row in self.iterative_rows():
+            hardware_compute = 41 + 7 * row.simulator_compute_cycles
+            rows.append(
+                SpineMechanismComponentRecord(
+                    **{
+                        **row.__dict__,
+                        "hardware_compute_cycles": hardware_compute,
+                        "hardware_iterative_span_cycles": max(
+                            row.hardware_reader_cycles, hardware_compute
+                        )
+                        + 17 * row.rounds,
+                    }
+                )
+            )
+        model = fit_spine_mechanism_component_model(
+            rows, compute_strategy="fixed_plus_execution"
+        )
+        self.assertAlmostEqual(model.compute_fixed_cycles, 41.0)
+        self.assertEqual(model.compute_round_cycles, 0.0)
+        self.assertAlmostEqual(model.compute_simulator_cycle_scale, 7.0)
 
     def test_zero_round_algorithm_is_maintenance_only(self):
         rows = [
@@ -105,6 +161,7 @@ class CurrentFPGASpineMechanismComponentsV15Tests(unittest.TestCase):
                 0,
                 100 * index,
                 10 * index,
+                0,
                 0,
                 0,
                 0,
@@ -123,6 +180,7 @@ class CurrentFPGASpineMechanismComponentsV15Tests(unittest.TestCase):
             simulator_reader_cycles=0,
             simulator_compute_cycles=0,
             simulator_reader_memory_requests=0,
+            simulator_compute_memory_requests=0,
         )
         self.assertAlmostEqual(prediction["total_cycles"], 170.0)
         self.assertEqual(prediction["iterative_span_cycles"], 0.0)
