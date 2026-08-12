@@ -91,3 +91,35 @@ python3 scripts/analyze_current_fpga_spine_mechanism_components_v15.py
 
 No Fig. 8--10 timing claim is admitted unless correctness, structural work,
 request/byte/FIFO ledgers, total timing, component timing, and rank gates pass.
+
+## V15 frozen transfer result
+
+LJ and LJ08 were subsequently evaluated without changing the frozen model.
+All 24 algorithm/dataset/role rows pass the structural-work checks, and all 24
+pass the request, byte, FIFO, and completion-ledger checks.  The total-cycle
+errors on the two transfer graphs are:
+
+| Algorithm | Median absolute error | Maximum absolute error |
+|---|---:|---:|
+| Weighted SSSP | 13.52% | 16.66% |
+| Connected Components | 6.75% | 12.59% |
+| Thresholded Residual PageRank | 5.98% | 6.39% |
+
+These values pass the frozen total-error magnitude gates.  The complete v15
+claim nevertheless remains **FAIL**, for three predeclared reasons:
+
+1. the connected-components compute component has 37.39% median absolute
+   error, above the 20% component median gate;
+2. LJ and LJ08 reverse the predicted total-cycle ordering for connected
+   components; and
+3. the same two-case ordering is reversed for weighted SSSP.
+
+The last two failures should be interpreted cautiously because Spearman rank
+over two close points is necessarily either +1 or -1, but the threshold was
+frozen before transfer and is therefore not relaxed after observing the data.
+The transfer rows were not refit.  Consequently, v15 supports a bounded
+total-cycle magnitude statement on LJ/LJ08, but not a claim of fully admitted
+per-component timing or workload ranking.  The machine-readable package is in
+`docs/evaluation_refresh_20260810/calibration_v15_holdout/`; its analysis
+manifest remains `FAIL`, while the independently scoped memory and structural
+validation files are `PASS`.

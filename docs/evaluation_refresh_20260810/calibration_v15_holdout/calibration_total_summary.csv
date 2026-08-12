@@ -1,0 +1,4 @@
+algorithm,role,cases,median_absolute_error_percent,max_absolute_error_percent,workload_rank_spearman
+connected_components,calibration,6,3.1206744666611614,8.932854220616525,0.9428571428571428
+thresholded_residual_pagerank,calibration,6,4.041117231408623,11.473604056828922,0.8285714285714286
+weighted_sssp,calibration,6,2.7099037373809978,5.793653534238674,1.0

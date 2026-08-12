@@ -1,0 +1,4 @@
+algorithm,role,cases,median_absolute_error_percent,max_absolute_error_percent,workload_rank_spearman
+connected_components,holdout,2,6.749412650344358,12.591709930013627,-0.9999999999999998
+thresholded_residual_pagerank,holdout,2,5.984344659016653,6.394053484984795,0.9999999999999998
+weighted_sssp,holdout,2,13.515664382709161,16.65763562743006,-0.9999999999999998

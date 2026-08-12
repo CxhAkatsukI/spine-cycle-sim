@@ -1,0 +1,10 @@
+algorithm,component,role,cases,median_absolute_error_percent,max_absolute_error_percent
+connected_components,maintenance,calibration,6,5.2627132175242854,15.570100672137242
+connected_components,reader,calibration,6,3.063257407398962,10.557499282177414
+connected_components,compute,calibration,6,3.9647777882837048,17.047254142728466
+connected_components,iterative_span,calibration,6,2.9642068948982936,9.945472849477987
+thresholded_residual_pagerank,maintenance,calibration,6,4.041117231408623,11.473604056828922
+weighted_sssp,maintenance,calibration,6,6.942007412854771,15.064590457340698
+weighted_sssp,reader,calibration,6,2.6275857761490378,5.609042998537104
+weighted_sssp,compute,calibration,6,2.493381615367551,24.588430855924994
+weighted_sssp,iterative_span,calibration,6,2.700945076569889,5.0450143729896

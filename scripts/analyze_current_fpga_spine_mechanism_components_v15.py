@@ -133,6 +133,88 @@ def prediction_summaries(
     return total, component
 
 
+def row_validation_status(
+    rows: list[dict[str, object]], *, missing: list[str]
+) -> str:
+    if missing:
+        return "INCOMPLETE"
+    return "PASS" if all(row["status"] == "PASS" for row in rows) else "FAIL"
+
+
+def timing_gate_failures(
+    contract: dict[str, Any],
+    holdout_total: list[dict[str, object]],
+    holdout_components: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    thresholds = contract["thresholds"]
+    failures: list[dict[str, object]] = []
+    for row in holdout_total:
+        checks = (
+            (
+                "total_median_absolute_error_percent",
+                float(row["median_absolute_error_percent"]),
+                float(thresholds["holdout_total_median_absolute_error_percent_max"]),
+                "max",
+            ),
+            (
+                "total_absolute_error_percent",
+                float(row["max_absolute_error_percent"]),
+                float(thresholds["holdout_total_absolute_error_percent_max"]),
+                "max",
+            ),
+            (
+                "workload_rank_spearman",
+                float(row["workload_rank_spearman"]),
+                float(thresholds["workload_rank_spearman_min"]),
+                "min",
+            ),
+        )
+        for gate, value, threshold, direction in checks:
+            failed = value > threshold if direction == "max" else value < threshold
+            if failed:
+                failures.append(
+                    {
+                        "scope": "total",
+                        "algorithm": row["algorithm"],
+                        "gate": gate,
+                        "value": value,
+                        "threshold": threshold,
+                        "direction": direction,
+                    }
+                )
+    for row in holdout_components:
+        checks = (
+            (
+                "component_median_absolute_error_percent",
+                float(row["median_absolute_error_percent"]),
+                float(
+                    thresholds[
+                        "holdout_component_median_absolute_error_percent_max"
+                    ]
+                ),
+            ),
+            (
+                "component_absolute_error_percent",
+                float(row["max_absolute_error_percent"]),
+                float(thresholds["holdout_component_absolute_error_percent_max"]),
+            ),
+        )
+        for gate, value, threshold in checks:
+            if value > threshold:
+                failures.append(
+                    {
+                        "scope": "component",
+                        "algorithm": row["algorithm"],
+                        "component": row["component"],
+                        "gate": gate,
+                        "value": value,
+                        "threshold": threshold,
+                        "direction": "max",
+                    }
+                )
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
@@ -270,29 +352,20 @@ def main() -> int:
         prediction_rows, "holdout"
     )
 
+    ledger_status = row_validation_status(ledger_rows, missing=missing)
+    structural_status = row_validation_status(structural_rows, missing=missing)
+    timing_failures = (
+        []
+        if missing
+        else timing_gate_failures(contract, holdout_total, holdout_components)
+    )
     status = "INCOMPLETE" if missing else "PASS"
-    if not missing:
-        if any(row["status"] != "PASS" for row in ledger_rows + structural_rows):
-            status = "FAIL"
-        thresholds = contract["thresholds"]
-        if any(
-            float(row["median_absolute_error_percent"])
-            > thresholds["holdout_total_median_absolute_error_percent_max"]
-            or float(row["max_absolute_error_percent"])
-            > thresholds["holdout_total_absolute_error_percent_max"]
-            or float(row["workload_rank_spearman"])
-            < thresholds["workload_rank_spearman_min"]
-            for row in holdout_total
-        ):
-            status = "FAIL"
-        if any(
-            float(row["median_absolute_error_percent"])
-            > thresholds["holdout_component_median_absolute_error_percent_max"]
-            or float(row["max_absolute_error_percent"])
-            > thresholds["holdout_component_absolute_error_percent_max"]
-            for row in holdout_components
-        ):
-            status = "FAIL"
+    if not missing and (
+        ledger_status != "PASS"
+        or structural_status != "PASS"
+        or timing_failures
+    ):
+        status = "FAIL"
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     write_csv(args.out_dir / "prediction_rows.csv", prediction_rows)
@@ -304,11 +377,11 @@ def main() -> int:
     write_csv(args.out_dir / "holdout_component_summary.csv", holdout_components)
     write_json(
         args.out_dir / "memory_ledger_validation.json",
-        {"status": status, "rows": ledger_rows},
+        {"status": ledger_status, "rows": ledger_rows},
     )
     write_json(
         args.out_dir / "structural_work_validation.json",
-        {"status": status, "rows": structural_rows},
+        {"status": structural_status, "rows": structural_rows},
     )
     write_json(
         args.out_dir / "analysis_manifest.json",
@@ -326,6 +399,12 @@ def main() -> int:
             "calibration_component_summary": calibration_components,
             "holdout_total_summary": holdout_total,
             "holdout_component_summary": holdout_components,
+            "gate_results": {
+                "memory_ledger": ledger_status,
+                "structural_work": structural_status,
+                "timing": "PASS" if not timing_failures else "FAIL",
+            },
+            "timing_gate_failures": timing_failures,
             "evidence": evidence,
         },
     )
