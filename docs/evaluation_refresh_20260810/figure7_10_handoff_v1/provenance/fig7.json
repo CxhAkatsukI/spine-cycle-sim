@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "figure": "fig7_fpga_speedup_candidate",
+  "timing_window": "setup_inclusive_dynamic_latency",
+  "source_files": [
+    {
+      "path": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806/sssp_fullgraph_u55c/aggregate_3runs.tsv",
+      "sha256": "9e8652487972f9eddd0499cd2fa59601495096ec36ea211983930abfe0292841"
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806/cc_fullgraph_u55c/aggregate_3runs.tsv",
+      "sha256": "4bb13f399c0fa6e672097d24093d8b356a8fd08d77ecfff9bb83c95e782639f9"
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806/respr_fullgraph_u55c/aggregate_3runs.tsv",
+      "sha256": "5aec7981259cbf1a1eb56aa37e60609806c61d5ad4c9fe84675f523ad0219325"
+    },
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_fullpr_k4_real_20260805/summary.tsv",
+      "sha256": "a10550cc25dad48d265858d4893addd4093b74b4b2424a6eae3d66afcc78f345"
+    },
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_fullpr_k4_real_20260805_repeat2/summary.tsv",
+      "sha256": "78d03d7c96acc5ab53d075b111274937daabf96d7f3d92dd6592a1479d12b720"
+    },
+    {
+      "path": "/data/tmp/chuxiao/matched_fpga_fullpr_k4_real_20260805_repeat3/summary.tsv",
+      "sha256": "1edf30a54ef88563f262617f4f1ed876f6a9b295b5c69bdd8458e7bcf23d070f"
+    }
+  ],
+  "data_csv": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/data/fig7_fpga_speedup.csv",
+  "data_csv_sha256": "1d4d0d287d7a01b06415dcfca46eca6faaebc8628a7c2450d72a9c35c315105c",
+  "limitations": [
+    "Panels a-c use destination-sharded K4 full-graph hardware.",
+    "Panel d uses compact one-partition K4-shared hardware until the sharded FullPR route is available.",
+    "No projected or timeout-bounded value enters the figure."
+  ]
+}

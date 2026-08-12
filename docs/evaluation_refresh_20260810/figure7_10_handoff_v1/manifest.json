@@ -1,0 +1,34 @@
+{
+  "figures": {
+    "10": "normalized simulator-predicted E2E stage attribution",
+    "7": "routed U55C setup-inclusive dynamic latency speedup",
+    "8": "setup-inclusive update-only throughput speedup",
+    "9": "simulator accepted bytes and bound-channel DRAMSim3 energy ratios"
+  },
+  "inputs": {
+    "data/fig10_normalized_breakdown_rows.csv": "3b7b22b6361f225732827d43bd02870b04c320df4403ba07eb82c330ae3c6df7",
+    "data/fig7_fpga_speedup.csv": "1d4d0d287d7a01b06415dcfca46eca6faaebc8628a7c2450d72a9c35c315105c",
+    "data/fig8_update_batch_sensitivity.csv": "418b1268c53b4960e2fd6eaf47120c49cda67097154a0d78bfde3a67354b0aee",
+    "data/fig8_update_cross_dataset.csv": "3a96779d8de4c3c89a3653ed19ab4b548574ac3fefe6ec69332ff6f16d1e27b6",
+    "data/fig9_memory_energy_rows.csv": "cfd9fff86c32525a547978afb7fbabc1940b0cf3ded93aa8a3b11cfb621d5dd1",
+    "provenance/fig10.json": "f6336f1e34de795d6027307ba4561141834b8b4b821da0b848339e410b9c3ab9",
+    "provenance/fig7.json": "5de201521fddd0f1600b738a4692e1c44418d51d520ab18f24c2cc674d9c620f",
+    "provenance/fig8.json": "bf3c15d1e9c5285f65b3f2f16b6021f28bc063c7bf6947d3947765cf266eaa74",
+    "provenance/fig9.json": "3dfaa834fa083074a3395b40c5fc668be09a1f6245edbf836231bdb9089034c7",
+    "reference/GraphyFlow_Plot.zip": "a1b053bbd7c20cd9ce5c79d44a11027327da1c72a402487f5c8c659b71c18a27"
+  },
+  "outputs": {
+    "figures/fig10_simulator_breakdown.pdf": "a0c38005ead775a722d54c5095503d2290871d41bce5127d321fd20813d51b91",
+    "figures/fig10_simulator_breakdown.png": "081f7664007bf6513d437843cc05bf523621093c3051a616314d3e505cfa3968",
+    "figures/fig7_fpga_speedup.pdf": "a20242b150d367edff34e8ba4c58b542cce287f2e9c6a8e9d3002114a7706474",
+    "figures/fig7_fpga_speedup.png": "a2f04dd554b01d4247438ecfe5ac1b4a59912037de4f8fa54379c256eac4f1df",
+    "figures/fig8_update_throughput.pdf": "5519cdb2f6eab75ba748bac9dc01eb31952a0ed7e4609b7f8be57ecb0611aab4",
+    "figures/fig8_update_throughput.png": "2e005e3e771c6a20a7a2530dd60de1e37c706ae87a35593a4df7f7cadad4eaed",
+    "figures/fig9_memory_energy.pdf": "4bb7a192d8936edef01a753049ca336e5247304d45c9cbce56f56b075da51a23",
+    "figures/fig9_memory_energy.png": "dfc7ca6e31a1bf2894584ee43d420bf5f8dc021cecf29a9deaf76403694b2546",
+    "figures/preview_all.png": "a41f75631f943d1b880b8e2abce6db00424cf2f1b03a79d4860612558d1e1fea"
+  },
+  "renderer": "render_all.py",
+  "schema_version": 1,
+  "status": "PASS_COMPLETE_FIGURE_7_10_HANDOFF"
+}

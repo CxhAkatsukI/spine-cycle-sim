@@ -1,0 +1,116 @@
+{
+  "batch_counts": [
+    64,
+    512,
+    4096
+  ],
+  "case_manifests": [
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/au/manifest.json",
+      "sha256": "5f5043e7351f4c5e3b5ac5399d87b9db01733ab923fc241b081685dfb9b92946"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/su/manifest.json",
+      "sha256": "2163cb23278110a84b2a5c06fc687fc6ab0b305ada6d40fa1b205d2c5ea9d8c1"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/wk/manifest.json",
+      "sha256": "940e08f4cda6c87975f850943d9cc1a69f6b3898dcaa1db862951045bc1ff877"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/so/manifest.json",
+      "sha256": "6c2564e4ebbd459ff0a8a9f006a6b89f9fb594aa1f604ea584d222378b9817e5"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/pk/manifest.json",
+      "sha256": "106733ad9aa18e319ca2e20bd2d04f7df88d186bcaff32603ef27944701dc5c0"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/batch_sensitivity/b64/manifest.json",
+      "sha256": "4f51c01ef4375fbd9b66e59151dfafa009d15b67cb5795ebbbd7f7a10f42abf5"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/batch_sensitivity/b512/manifest.json",
+      "sha256": "5f5043e7351f4c5e3b5ac5399d87b9db01733ab923fc241b081685dfb9b92946"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/batch_sensitivity/b4096/manifest.json",
+      "sha256": "3b022762eded7f9748440b418682d967e7ab1c0b246a8027225b7dbd7a71c4a4"
+    }
+  ],
+  "cross_datasets": [
+    {
+      "key": "au",
+      "label": "AU"
+    },
+    {
+      "key": "su",
+      "label": "SU"
+    },
+    {
+      "key": "wk",
+      "label": "WK"
+    },
+    {
+      "key": "so",
+      "label": "SO"
+    },
+    {
+      "key": "pk",
+      "label": "PK"
+    }
+  ],
+  "evidence_root": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812",
+  "frozen_identity": {
+    "case_contract_sha256": "b9a03bbae24c2a6dc99009ea4234fec4c17692dbecdb071abee21e295a588fc2",
+    "grasu_calibration_contract_sha256": "0e9d4bf91bbd538fe20be8372d7162d20bd99234b91c8172b162ff39adcbe98a",
+    "grasu_frozen_persistent_update_model_sha256": "6433b04fdcb5dfb60e75dca283e6063d414faabcb16dab182340a6a928a6255d",
+    "grasu_holdout_analysis_sha256": "2421cba44ef9f81a7d87e282413dd09a4f48404f851bfa0dfe3ce3434846bc44",
+    "grasu_sst_plugin_sha256": "13296920b5493610f706303395200306dea966475b2505779d586f1b9f87c6fc",
+    "spine_calibration_contract_sha256": "cbb916d8fdcead63a422d3c3911d280585ba592baba257f0018687fd86d9d5e2",
+    "spine_frozen_mechanism_model_sha256": "483146050c32bf423a57d8d568dc6d4bff346ff5369dc72650375726f43e3642",
+    "spine_holdout_analysis_sha256": "345b611e2dbd5042fed9c2b1b73347b75b0c72e09739ade5691408ad28bdec21",
+    "spine_sst_plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70"
+  },
+  "metric": "setup_inclusive_update_only_throughput",
+  "output_files": {
+    "persistent_update_setup_batch_sensitivity.csv": "418b1268c53b4960e2fd6eaf47120c49cda67097154a0d78bfde3a67354b0aee",
+    "persistent_update_setup_cross_dataset.csv": "3a96779d8de4c3c89a3653ed19ab4b548574ac3fefe6ec69332ff6f16d1e27b6"
+  },
+  "schema_version": 1,
+  "source_files": [
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/au/comparison.json",
+      "sha256": "c99373a3ad379918c47ee18e66514c54cc198fb9cf0c61b97eb5024b4f9e7d75"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/su/comparison.json",
+      "sha256": "63ea1e39e20eb43a324f46db58f2568be2e9f7fb1937d482983eb5f553abad4b"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/wk/comparison.json",
+      "sha256": "5867ebaf19ccad45ad725767e1227cdcb41c6309e4bcf6ed9510ad5a8c2c2289"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/so/comparison.json",
+      "sha256": "8866758cd4008890a49187254c74bf1c4bef5402397c621152f8224abd449196"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/cross_dataset/pk/comparison.json",
+      "sha256": "7996f1c2d960a4648f02c8fbbcf9f10cf0a61c30b10cd906337b9a511d758928"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/batch_sensitivity/b64/comparison.json",
+      "sha256": "034756c3249c0985603b3a91a80f1f7c33aa6064660621c88c7358a8d3c74468"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/batch_sensitivity/b512/comparison.json",
+      "sha256": "c99373a3ad379918c47ee18e66514c54cc198fb9cf0c61b97eb5024b4f9e7d75"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812/batch_sensitivity/b4096/comparison.json",
+      "sha256": "f47a4ea006e6254bea5df30a109d35f6944af6db18aeb93f770966cd62c40e03"
+    }
+  ],
+  "status": "PASS_CURRENT_MODEL_DATA"
+}

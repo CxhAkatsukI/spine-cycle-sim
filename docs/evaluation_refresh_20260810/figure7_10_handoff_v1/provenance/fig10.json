@@ -1,0 +1,50 @@
+{
+  "claim_scope": "normalized execution-driven simulator stage attribution",
+  "gates": {
+    "aggregate_ledger_closed": true,
+    "complete_five_class_coverage": true,
+    "explicit_target_zero_net_semantics": true,
+    "single_plugin": true,
+    "source_correctness_admitted": true,
+    "stage_cycle_conservation": true,
+    "ten_stage_ledger_closed": true,
+    "ten_stage_supported": true
+  },
+  "groups": [
+    "Zero-net",
+    "Shallow insert",
+    "Deep carry",
+    "PR correction",
+    "Deletion fallback"
+  ],
+  "normalization": "each bar is normalized to 100% of its own simulated E2E device cycles",
+  "not_claimed": [
+    "FPGA per-stage measurement",
+    "FPGA-calibrated stage percentages",
+    "absolute-latency comparison between normalized bars"
+  ],
+  "outputs": {
+    "README.md": "a5286a1bf688fbddaa9cad14815c422a9de41bb7039ebca5c13621f1cdc2e599",
+    "fig10_simulator_predicted_breakdown.pdf": "b454006080d36d768dbc2f47607f0d41a69102989b536190f1f1f4fc889dde01",
+    "fig10_simulator_predicted_breakdown.png": "2da804629b4cba766cff04b26eab646753faf2bbcb31cf4efd447437ae04ab04",
+    "normalized_breakdown_rows.csv": "3b7b22b6361f225732827d43bd02870b04c320df4403ba07eb82c330ae3c6df7"
+  },
+  "plugin_sha256": "7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6",
+  "rows": 11,
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/data/fig10_rq3_breakdown_rows.csv",
+      "sha256": "b917e02f45ebfb9950c63dd25569504b7f60ffb7f25fc94f82aeb00c0a3ce035"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/provenance/fig10.json",
+      "sha256": "fb06b2df05466e5ba21ae705c6c7eb8bdf3d4eee2e5c6d23c2952afec490a679"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/data/fig10_rq3_summary.json",
+      "sha256": "1bcf55fdb0224674e85058b906c03c076ac1866c29361c914739118ddae4d345"
+    }
+  ],
+  "status": "PASS_SIMULATOR_PREDICTED"
+}

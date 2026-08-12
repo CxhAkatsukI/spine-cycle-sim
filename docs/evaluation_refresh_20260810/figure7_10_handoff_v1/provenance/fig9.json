@@ -1,0 +1,388 @@
+{
+  "cases": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/configs/contracts/evaluation_refresh_fpga_cases_v7.json",
+  "cases_sha256": "b9a03bbae24c2a6dc99009ea4234fec4c17692dbecdb071abee21e295a588fc2",
+  "contract": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/configs/contracts/current_fpga_fig9_memory_v20.json",
+  "contract_sha256": "345b40e7b6da4e6849fc4d5bdd54334c2875274c06a6580796724b5dbd78cc05",
+  "evidence": [
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "au",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/weighted_sssp_compacted_hls_v1/summary.json",
+      "manifest_sha256": "f6b85e4e5f2365cd35419386329bb9172c7ba01f3751099fe8112a96d836518c",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "result_sha256": "5fa758cbceb26aac7342ad3152e8ccc014ecc55cec683cf9e96f7d83887f0452"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "au",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/au/grasu_regraph/weighted_sssp_unified6739_v1/manifest.json",
+      "manifest_sha256": "f0509a8851d7960d9985bc009a08ae9d5411ec186ad56a77a3f8242a7c597a5f",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/au/grasu_regraph/weighted_sssp_unified6739_v1/result.json",
+      "result_sha256": "36ce5d798750b57172b4b86d38a24b1462a99276d22ba8ab3e3976d86ba747eb"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "su",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/weighted_sssp_compacted_hls_v1/summary.json",
+      "manifest_sha256": "dd45b7a786dd899630e15c40cb620fd9dfeb8452045b47bf61ebb36f66f79cac",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "result_sha256": "a365c3643acf3b73e7cdcdfb0eedf554bbd55bc227abcb24e0170bd8560dff9c"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "su",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/su/grasu_regraph/weighted_sssp_unified6739_v1/manifest.json",
+      "manifest_sha256": "de306a4e2b8025fab18864cdf0f8870ebb32b9686c21849b95a5b8e1cb2ef63a",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/su/grasu_regraph/weighted_sssp_unified6739_v1/result.json",
+      "result_sha256": "07b9d8aa336af0f73d66b9b1f4f75347bc33eb0f6e83fe54551a25c679fe5560"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "wk",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/weighted_sssp_compacted_hls_v1/summary.json",
+      "manifest_sha256": "293d9f4967d0276602e85b46149e93c1e8f2c61ab4c28295522e76b79f112f5d",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "result_sha256": "c742ebc984aa2e5b51657265797273b4ab67b3a628e165ed2daa428b99172fb9"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "wk",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/wk/grasu_regraph/weighted_sssp_unified6739_v1/manifest.json",
+      "manifest_sha256": "7b8756000493a3d93e85745eff2fc1b7b621ae23fde0317585a4066da8a2e776",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/wk/grasu_regraph/weighted_sssp_unified6739_v1/result.json",
+      "result_sha256": "449ec7ae31f5239df2971da48cc9eda5d74fc588452ab8f8395b0a4c8831126d"
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "au",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/connected_components_compacted_hls_v1/run_manifest.json",
+      "manifest_sha256": "e480e73348f14403f3cdd905b4faa98ab61ac5045c5ae90e02664b8afc9ee8c3",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/connected_components_compacted_hls_v1/result.json",
+      "result_sha256": "c616ac901117c0fddc2836a5d7c35c9c01c12c2c475a10dd792db5ab3e2e746c"
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "au",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/au/grasu_regraph/connected_components_unified6739_v1/run_manifest.json",
+      "manifest_sha256": "9bdee13a08158df4873f0ea1a7ff7917d348874b7c1cb1403c3fa3a788080240",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/au/grasu_regraph/connected_components_unified6739_v1/result.json",
+      "result_sha256": "e7ce45b07ea90ec11dcb54bb22692b73d17fd360a3e8edd114b0f28223d4361d"
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "su",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/connected_components_compacted_hls_v1/run_manifest.json",
+      "manifest_sha256": "16540e19ed3f581306c3bd2b25a80f4768cb54fb47164815a16e29bd1426f8ad",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/connected_components_compacted_hls_v1/result.json",
+      "result_sha256": "f93296d349c1232ecff94c86e944b480e94e7dd761d0140e8b30ac04b317057c"
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "su",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/su/grasu_regraph/connected_components_unified6739_v1/run_manifest.json",
+      "manifest_sha256": "bdf6df747f4efc5df80c861f279996e5e190bf780980c1d5a07d2562d3cc136b",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/su/grasu_regraph/connected_components_unified6739_v1/result.json",
+      "result_sha256": "55c2e2d494021f9a52f3369459d44a23e74b8a578424381a92bb3d58e6c9763b"
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "wk",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/connected_components_compacted_hls_v1/run_manifest.json",
+      "manifest_sha256": "e4782883cbf045259730ee012d89cff7b07425f232457bf33f0744db5d748e22",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/connected_components_compacted_hls_v1/result.json",
+      "result_sha256": "8205397b3bffe61606cf56ec6eaa74c0267e0c21fa92634068b2416a0eda48a6"
+    },
+    {
+      "algorithm": "connected_components",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "wk",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/wk/grasu_regraph/connected_components_unified6739_v1/run_manifest.json",
+      "manifest_sha256": "2debcaae994129bed5ec8a2c44571dd70eec784043ba8b8d33c582b4bc61338d",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/wk/grasu_regraph/connected_components_unified6739_v1/result.json",
+      "result_sha256": "84ef7da1eff55d94190f714d9ac1a7b1a3cd4f35727c0950df141a474c1dc0eb"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "au",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/thresholded_residual_pagerank_compacted_hls_v1/summary.json",
+      "manifest_sha256": "aa58b70d7dd233c7c3252ed5467afe5e56eb42fdb80afda5e2182e8aab6a1c75",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "result_sha256": "cbee27ac2feb06b537df432d78c21be0b663ef78443438dc3d2532b5bfa5faf5"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "au",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/au/grasu_regraph/thresholded_residual_pagerank_unified6739_v1/manifest.json",
+      "manifest_sha256": "06be7b407ada3587e3b2bab042ce7806aaa8f06be435fd7330800a024a5d9af4",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/au/grasu_regraph/thresholded_residual_pagerank_unified6739_v1/result.json",
+      "result_sha256": "5cdf86fbff61e73b812c85826aff573f037ef4f4cc89f5d06cd14a48f1e89325"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "su",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/thresholded_residual_pagerank_compacted_hls_v1/summary.json",
+      "manifest_sha256": "5472e2866e62f13ef20c8993cbc81e742f573cf871099b64983d1fb40ce0e105",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "result_sha256": "46a7717de8582e879b15628d9d382113883430a5f68be8540b6cf90b48ebdf73"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "su",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/su/grasu_regraph/thresholded_residual_pagerank_unified6739_v1/manifest.json",
+      "manifest_sha256": "c07c240cf1372f8c0c19f51a0da1275bb2b02d4dc9609b3ff9fd09a624fe6dda",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/su/grasu_regraph/thresholded_residual_pagerank_unified6739_v1/result.json",
+      "result_sha256": "ca74baa7481b7eb4b900dd707b0aee4f61d4e0bd925ac8d13cb0870a4dff14f9"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "spine",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "wk",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/thresholded_residual_pagerank_compacted_hls_v1/summary.json",
+      "manifest_sha256": "95df68057a386046615f958406b507d29f925ffe044991c19e98d62c259befcc",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "result_sha256": "f96e3d1e4f67c51baef3672e95706e54b11f6ffbba683a2206881fcbb2173104"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "architecture": "grasu_regraph",
+      "conservation_checks": {
+        "arbitration_ledger_closed": true,
+        "arbitration_pending_empty": true,
+        "arbitration_reported": true,
+        "dramsim_request_count_match": true,
+        "intent_grant_consumed_match": true,
+        "memory_ledger_pass": true,
+        "runner_dram_request_gate": true
+      },
+      "conservation_status": "PASS",
+      "dataset": "wk",
+      "ledger_status": "PASS",
+      "manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/wk/grasu_regraph/thresholded_residual_pagerank_unified6739_v1/manifest.json",
+      "manifest_sha256": "8ae720de0ea55c3f088eecae7035f3294d4614ea91e15ddee388ac2df628fda4",
+      "result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/runs_current_v1/wk/grasu_regraph/thresholded_residual_pagerank_unified6739_v1/result.json",
+      "result_sha256": "46090ca41e33538b438bfb44d7ac64b84147eaa84c853a50f674d67a06341cf8"
+    }
+  ],
+  "expected_rows": 9,
+  "metric": "accepted_backend_bytes_and_bound_channel_dramsim3_energy",
+  "missing": [],
+  "plugins": {
+    "grasu_regraph": {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/cpp/sst/build/sst-current-fpga-v19/libspine_cycle.so",
+      "sha256": "13296920b5493610f706303395200306dea966475b2505779d586f1b9f87c6fc"
+    },
+    "spine": {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/cpp/sst/build/sst-current-fpga-v12/libspine_cycle.so",
+      "sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70"
+    }
+  },
+  "rows": 9,
+  "schema_version": 1,
+  "simulation_roots": {
+    "grasu_regraph": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812",
+    "spine": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812"
+  },
+  "status": "PASS_CURRENT_MODEL_DATA"
+}

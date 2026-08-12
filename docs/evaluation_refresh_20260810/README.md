@@ -29,6 +29,11 @@ unchanged until the revised evidence is accepted.
 
 ## Current contents
 
+- `figure7_10_handoff_v1/`: self-contained final handoff for Figures 7--10,
+  including one standalone Python renderer, frozen input CSVs, provenance,
+  GraphyFlow reference archive, PDF/PNG outputs, a combined preview, and one
+  overall explanation document. Use this directory when sharing the complete
+  plotting package.
 - `figures/fig7_fpga_speedup_candidate.{pdf,png}`: first hardware-only
   candidate.
 - `data/fig7_fpga_speedup.csv`: frozen medians and observed min/max values.
