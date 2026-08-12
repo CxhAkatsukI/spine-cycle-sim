@@ -117,7 +117,7 @@ def validate_current_case_manifests(
     comparison_paths: list[Path],
 ) -> tuple[list[Path], dict[str, str]]:
     manifests: list[Path] = []
-    identities: set[tuple[str, str, str, str]] = set()
+    identities: set[tuple[str, ...]] = set()
     for comparison_path in comparison_paths:
         manifest_path = comparison_path.with_name("manifest.json")
         if not manifest_path.is_file():
@@ -129,7 +129,7 @@ def validate_current_case_manifests(
             raise ValueError(f"current Fig. 8 case did not pass: {manifest_path}")
         if manifest.get("timing_boundary") != (
             "measured_host_preprocessing_plus_explicit_transfer_launch_model_"
-            "plus_calibrated_device_cycles"
+            "plus_frozen_calibrated_persistent_device_cycles"
         ):
             raise ValueError(
                 f"current Fig. 8 timing boundary mismatch: {manifest_path}"
@@ -137,19 +137,15 @@ def validate_current_case_manifests(
         identity = tuple(
             str(manifest.get(field, ""))
             for field in (
-                "sst_plugin_sha256",
+                "spine_sst_plugin_sha256",
+                "grasu_sst_plugin_sha256",
                 "case_contract_sha256",
-                "calibration_contract_sha256",
+                "spine_calibration_contract_sha256",
+                "grasu_calibration_contract_sha256",
                 "spine_frozen_mechanism_model_sha256",
+                "grasu_frozen_persistent_update_model_sha256",
             )
         )
-        frozen_models = manifest.get("frozen_component_models")
-        if not isinstance(frozen_models, dict) or not frozen_models.get("sha256"):
-            raise ValueError(
-                f"current Fig. 8 G+R frozen model identity is missing: "
-                f"{manifest_path}"
-            )
-        identity = (*identity, str(frozen_models["sha256"]))
         if not all(identity):
             raise ValueError(
                 f"current Fig. 8 case has incomplete frozen identity: {manifest_path}"
@@ -158,15 +154,23 @@ def validate_current_case_manifests(
         manifests.append(manifest_path)
     if len(identities) != 1:
         raise ValueError("current Fig. 8 cases do not share one frozen identity")
-    plugin, cases, calibration, spine_frozen_model, grasu_frozen_models = next(
-        iter(identities)
-    )
+    (
+        spine_plugin,
+        grasu_plugin,
+        cases,
+        spine_calibration,
+        grasu_calibration,
+        spine_frozen_model,
+        grasu_frozen_model,
+    ) = next(iter(identities))
     return list(dict.fromkeys(manifests)), {
-        "sst_plugin_sha256": plugin,
+        "spine_sst_plugin_sha256": spine_plugin,
+        "grasu_sst_plugin_sha256": grasu_plugin,
         "case_contract_sha256": cases,
-        "calibration_contract_sha256": calibration,
+        "spine_calibration_contract_sha256": spine_calibration,
+        "grasu_calibration_contract_sha256": grasu_calibration,
         "spine_frozen_mechanism_model_sha256": spine_frozen_model,
-        "grasu_frozen_component_models_sha256": grasu_frozen_models,
+        "grasu_frozen_persistent_update_model_sha256": grasu_frozen_model,
     }
 
 

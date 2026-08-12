@@ -21,18 +21,14 @@ from spine_cycle_sim.experiments.persistent_update_only import (  # noqa: E402
     HostRuntimeModel,
     analyze_persistent_update_pair,
 )
-from spine_cycle_sim.calibration.frozen import (  # noqa: E402
-    load_frozen_scale_models,
-)
-
-
 DEFAULT_HOST_TOOL = (
     Path("/data/tmp/chuxiao/spine-cycle-sim-sharded-k4-v3-build")
     / "cpp"
     / "persistent_update_host_benchmark"
 )
 DEFAULT_SST = Path("/data/feiyang/sst/bin/sst")
-DEFAULT_LIB_DIR = ROOT / "cpp/sst/build/sst-current-fpga-v12"
+DEFAULT_SPINE_LIB_DIR = ROOT / "cpp/sst/build/sst-current-fpga-v12"
+DEFAULT_GRASU_LIB_DIR = ROOT / "cpp/sst/build/sst-current-fpga-v19"
 DEFAULT_SPINE_PROFILE = (
     ROOT / "configs/architectures/spine_owner_fifo_sssp_hls_v1.json"
 )
@@ -47,11 +43,16 @@ DEFAULT_CAPABILITY_CATALOG = (
 DEFAULT_CASE_CONTRACT = (
     ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json"
 )
-DEFAULT_CALIBRATION_CONTRACT = (
-    ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
+DEFAULT_SPINE_CALIBRATION_CONTRACT = (
+    ROOT / "configs/contracts/current_fpga_spine_mechanism_components_v15.json"
 )
-DEFAULT_FROZEN_MODELS = (
-    ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen"
+DEFAULT_GRASU_CALIBRATION_CONTRACT = (
+    ROOT / "configs/contracts/current_fpga_grasu_persistent_update_v19.json"
+)
+DEFAULT_GRASU_FROZEN_MODEL = (
+    ROOT
+    / "docs/evaluation_refresh_20260810/"
+    "calibration_v19_grasu_persistent_update_frozen/frozen_model.json"
 )
 DEFAULT_SPINE_FROZEN_MODEL = (
     ROOT
@@ -164,6 +165,7 @@ def pure_result(
     calibration_scale: float,
     calibration_component: str,
     calibration_fixed_cycles: float = 0.0,
+    calibration_additive_cycles: float = 0.0,
 ) -> dict[str, Any]:
     if system == "spine":
         cycles = int(raw.get("maintenance_cycles", raw.get("update_cycles", 0)))
@@ -175,7 +177,12 @@ def pure_result(
     correctness += int(raw.get("architecture_correctness_mismatches", 0))
     correctness += int(raw.get("mathematical_correctness_mismatches", 0))
     calibrated_cycles = max(
-        1, round(calibration_fixed_cycles + cycles * calibration_scale)
+        1,
+        round(
+            calibration_fixed_cycles
+            + cycles * calibration_scale
+            + calibration_additive_cycles
+        ),
     )
     return {
         "success": bool(raw.get("success", False)),
@@ -191,6 +198,7 @@ def pure_result(
         "calibrated_device_cycles": calibrated_cycles,
         "device_cycle_calibration_scale": calibration_scale,
         "device_cycle_calibration_fixed_cycles": calibration_fixed_cycles,
+        "device_cycle_calibration_additive_cycles": calibration_additive_cycles,
         "device_cycle_calibration_component": calibration_component,
         "correctness_mismatches": correctness,
         "backend_traffic": update_traffic(raw),
@@ -209,7 +217,12 @@ def main() -> int:
     parser.add_argument("--host-repeats", type=int, default=3)
     parser.add_argument("--partition-vertices", type=int, default=65536)
     parser.add_argument("--sst", type=Path, default=DEFAULT_SST)
-    parser.add_argument("--lib-dir", type=Path, default=DEFAULT_LIB_DIR)
+    parser.add_argument(
+        "--spine-lib-dir", type=Path, default=DEFAULT_SPINE_LIB_DIR
+    )
+    parser.add_argument(
+        "--grasu-lib-dir", type=Path, default=DEFAULT_GRASU_LIB_DIR
+    )
     parser.add_argument("--spine-profile", type=Path, default=DEFAULT_SPINE_PROFILE)
     parser.add_argument("--grasu-profile", type=Path, default=DEFAULT_GRASU_PROFILE)
     parser.add_argument(
@@ -217,10 +230,17 @@ def main() -> int:
     )
     parser.add_argument("--case-contract", type=Path, default=DEFAULT_CASE_CONTRACT)
     parser.add_argument(
-        "--calibration-contract", type=Path, default=DEFAULT_CALIBRATION_CONTRACT
+        "--spine-calibration-contract",
+        type=Path,
+        default=DEFAULT_SPINE_CALIBRATION_CONTRACT,
     )
     parser.add_argument(
-        "--frozen-models-dir", type=Path, default=DEFAULT_FROZEN_MODELS
+        "--grasu-calibration-contract",
+        type=Path,
+        default=DEFAULT_GRASU_CALIBRATION_CONTRACT,
+    )
+    parser.add_argument(
+        "--grasu-frozen-model", type=Path, default=DEFAULT_GRASU_FROZEN_MODEL
     )
     parser.add_argument(
         "--spine-frozen-model", type=Path, default=DEFAULT_SPINE_FROZEN_MODEL
@@ -233,26 +253,21 @@ def main() -> int:
         raise ValueError("updates must be positive")
 
     case_contract_path = args.case_contract.resolve()
-    calibration_contract_path = args.calibration_contract.resolve()
+    spine_contract_path = args.spine_calibration_contract.resolve()
+    grasu_contract_path = args.grasu_calibration_contract.resolve()
     case_contract = load_json(case_contract_path)
-    calibration_contract = load_json(calibration_contract_path)
-    if (
-        case_contract.get("calibration_contract_id")
-        != calibration_contract.get("contract_id")
-    ):
-        raise ValueError("case and calibration contracts disagree")
-    plugin = args.lib_dir.resolve() / "libspine_cycle.so"
-    plugin_sha256 = sha256_file(plugin)
-    if plugin_sha256 != calibration_contract["simulator_plugin"]["sha256"]:
-        raise ValueError("Fig. 8 plugin does not match the frozen contract")
-    component_models, frozen_model_evidence = load_frozen_scale_models(
-        args.frozen_models_dir,
-        kind="component",
-        contract_id=str(calibration_contract["contract_id"]),
-        contract_sha256=sha256_file(calibration_contract_path),
-        cases_sha256=sha256_file(case_contract_path),
-        plugin_sha256=plugin_sha256,
-    )
+    spine_contract = load_json(spine_contract_path)
+    grasu_contract = load_json(grasu_contract_path)
+    spine_plugin = args.spine_lib_dir.resolve() / "libspine_cycle.so"
+    grasu_plugin = args.grasu_lib_dir.resolve() / "libspine_cycle.so"
+    spine_plugin_sha256 = sha256_file(spine_plugin)
+    grasu_plugin_sha256 = sha256_file(grasu_plugin)
+    if spine_plugin_sha256 != spine_contract["simulator_plugin"]["sha256"]:
+        raise ValueError("Fig. 8 Spine plugin does not match the v15 contract")
+    if grasu_plugin_sha256 != grasu_contract["plugin"]["sha256"]:
+        raise ValueError("Fig. 8 G+R plugin does not match the v19 contract")
+    if sha256_file(case_contract_path) != grasu_contract["case_contract"]["sha256"]:
+        raise ValueError("Fig. 8 case contract does not match G+R v19")
     spine_frozen_path = args.spine_frozen_model.resolve()
     spine_frozen = load_json(spine_frozen_path)
     if spine_frozen.get("status") != "FROZEN_BEFORE_HOLDOUT":
@@ -273,14 +288,23 @@ def main() -> int:
         raise ValueError("Fig. 8 frozen Spine SSSP model is missing")
     if spine_model.get("profile_id") != spine_profile_payload["profile_id"]:
         raise ValueError("Fig. 8 frozen Spine profile does not match the run")
-    grasu_model = component_models[
+    grasu_frozen_path = args.grasu_frozen_model.resolve()
+    grasu_frozen = load_json(grasu_frozen_path)
+    if grasu_frozen.get("status") != "FROZEN_BEFORE_TRANSFER_OBSERVATION":
+        raise ValueError("Fig. 8 G+R persistent update model is not frozen")
+    if grasu_frozen.get("contract_id") != grasu_contract.get("contract_id"):
+        raise ValueError("Fig. 8 G+R frozen model contract mismatch")
+    grasu_model = next(
         (
-            "grasu_regraph",
-            "weighted_sssp",
-            str(grasu_profile_payload["profile_id"]),
-            "update_event",
-        )
-    ]
+            row
+            for row in grasu_frozen.get("models", [])
+            if row.get("algorithm") == "weighted_sssp"
+            and row.get("profile_id") == grasu_profile_payload["profile_id"]
+        ),
+        None,
+    )
+    if not isinstance(grasu_model, dict):
+        raise ValueError("Fig. 8 frozen G+R SSSP persistent update model is missing")
 
     materialization = load_json(args.materialization_manifest.resolve())
     graph = Path(str(materialization["graphs"]["directed"]["path"]))
@@ -311,7 +335,7 @@ def main() -> int:
         "--sst",
         str(args.sst.resolve()),
         "--lib-dir",
-        str(args.lib_dir.resolve()),
+        str(args.spine_lib_dir.resolve()),
         "--no-build",
         "--profile",
         str(args.spine_profile.resolve()),
@@ -330,7 +354,7 @@ def main() -> int:
         "--sst",
         str(args.sst.resolve()),
         "--lib-dir",
-        str(args.lib_dir.resolve()),
+        str(args.grasu_lib_dir.resolve()),
         "--no-build",
         "--profile",
         str(args.grasu_profile.resolve()),
@@ -356,6 +380,15 @@ def main() -> int:
     run_command(grasu_command, ROOT, out / "grasu_raw.log")
     spine_raw = load_json(spine_dir / "result.json")
     grasu_raw = load_json(grasu_dir / "result.json")
+    grasu_observability = grasu_raw.get("update_observability")
+    if not isinstance(grasu_observability, dict):
+        raise ValueError("Fig. 8 G+R update observability is missing")
+    nonempty_destination_shards = int(
+        grasu_observability["destination_partitions_touched"]
+    )
+    control_cycles_per_shard = float(
+        grasu_model["control_cycles_per_nonempty_shard"]
+    )
     spine = pure_result(
         spine_raw,
         system="spine",
@@ -368,8 +401,13 @@ def main() -> int:
         grasu_raw,
         system="grasu",
         updates=args.updates,
-        calibration_scale=grasu_model.scale,
-        calibration_component="update_event",
+        calibration_scale=1.0,
+        calibration_additive_cycles=(
+            control_cycles_per_shard * nonempty_destination_shards
+        ),
+        calibration_component=(
+            "persistent_warm_update_raw_plus_nonempty_destination_shard_envelope"
+        ),
     )
     comparison = analyze_persistent_update_pair(
         dataset_id=args.dataset_id,
@@ -395,15 +433,22 @@ def main() -> int:
             "materialization_manifest": str(args.materialization_manifest.resolve()),
             "graph": str(graph.resolve()),
             "update_workload": str(update.resolve()),
-            "sst_plugin": str(plugin),
-            "sst_plugin_sha256": plugin_sha256,
+            "spine_sst_plugin": str(spine_plugin),
+            "spine_sst_plugin_sha256": spine_plugin_sha256,
+            "grasu_sst_plugin": str(grasu_plugin),
+            "grasu_sst_plugin_sha256": grasu_plugin_sha256,
             "case_contract": str(case_contract_path),
             "case_contract_sha256": sha256_file(case_contract_path),
-            "calibration_contract": str(calibration_contract_path),
-            "calibration_contract_sha256": sha256_file(
-                calibration_contract_path
+            "spine_calibration_contract": str(spine_contract_path),
+            "spine_calibration_contract_sha256": sha256_file(spine_contract_path),
+            "grasu_calibration_contract": str(grasu_contract_path),
+            "grasu_calibration_contract_sha256": sha256_file(grasu_contract_path),
+            "grasu_frozen_persistent_update_model": str(grasu_frozen_path),
+            "grasu_frozen_persistent_update_model_sha256": sha256_file(
+                grasu_frozen_path
             ),
-            "frozen_component_models": frozen_model_evidence,
+            "grasu_control_cycles_per_nonempty_shard": control_cycles_per_shard,
+            "grasu_nonempty_destination_shards": nonempty_destination_shards,
             "spine_frozen_mechanism_model": str(spine_frozen_path),
             "spine_frozen_mechanism_model_sha256": sha256_file(
                 spine_frozen_path
@@ -424,7 +469,7 @@ def main() -> int:
             ),
             "timing_boundary": (
                 "measured_host_preprocessing_plus_explicit_transfer_launch_model_"
-                "plus_calibrated_device_cycles"
+                "plus_frozen_calibrated_persistent_device_cycles"
             ),
             "h2d_gbps": args.h2d_gbps,
             "launch_sync_us": args.launch_sync_us,

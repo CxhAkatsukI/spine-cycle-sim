@@ -48,33 +48,47 @@ def current_case_manifest() -> dict[str, object]:
         "status": "PASS",
         "timing_boundary": (
             "measured_host_preprocessing_plus_explicit_transfer_launch_model_"
-            "plus_calibrated_device_cycles"
+            "plus_frozen_calibrated_persistent_device_cycles"
         ),
-        "sst_plugin_sha256": "plugin-v12",
+        "spine_sst_plugin_sha256": "spine-plugin-v12",
+        "grasu_sst_plugin_sha256": "grasu-plugin-v19",
         "case_contract_sha256": "cases-v7",
-        "calibration_contract_sha256": "calibration-v8",
-        "frozen_component_models": {"sha256": "frozen-models"},
+        "spine_calibration_contract_sha256": "spine-calibration-v15",
+        "grasu_calibration_contract_sha256": "grasu-calibration-v19",
         "spine_frozen_mechanism_model_sha256": "spine-v15",
+        "grasu_frozen_persistent_update_model_sha256": "grasu-v19",
     }
 
 
 class Fig8UpdateOnlyExportTests(unittest.TestCase):
-    def test_current_runner_defaults_follow_v12_freeze(self) -> None:
+    def test_current_runner_defaults_follow_split_v15_v19_freeze(self) -> None:
         self.assertEqual(
-            run_current_fig8_update_only_case.DEFAULT_LIB_DIR,
+            run_current_fig8_update_only_case.DEFAULT_SPINE_LIB_DIR,
             ROOT / "cpp/sst/build/sst-current-fpga-v12",
+        )
+        self.assertEqual(
+            run_current_fig8_update_only_case.DEFAULT_GRASU_LIB_DIR,
+            ROOT / "cpp/sst/build/sst-current-fpga-v19",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_CASE_CONTRACT,
             ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json",
         )
         self.assertEqual(
-            run_current_fig8_update_only_case.DEFAULT_CALIBRATION_CONTRACT,
-            ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json",
+            run_current_fig8_update_only_case.DEFAULT_SPINE_CALIBRATION_CONTRACT,
+            ROOT
+            / "configs/contracts/current_fpga_spine_mechanism_components_v15.json",
         )
         self.assertEqual(
-            run_current_fig8_update_only_case.DEFAULT_FROZEN_MODELS,
-            ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen",
+            run_current_fig8_update_only_case.DEFAULT_GRASU_CALIBRATION_CONTRACT,
+            ROOT
+            / "configs/contracts/current_fpga_grasu_persistent_update_v19.json",
+        )
+        self.assertEqual(
+            run_current_fig8_update_only_case.DEFAULT_GRASU_FROZEN_MODEL,
+            ROOT
+            / "docs/evaluation_refresh_20260810/"
+            "calibration_v19_grasu_persistent_update_frozen/frozen_model.json",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_SPINE_FROZEN_MODEL,
@@ -103,6 +117,25 @@ class Fig8UpdateOnlyExportTests(unittest.TestCase):
         self.assertEqual(result["device_cycles"], 162)
         self.assertEqual(result["device_cycle_calibration_scale"], 1.5)
         self.assertEqual(result["device_cycle_calibration_fixed_cycles"], 10.0)
+
+    def test_current_case_applies_additive_shard_envelope(self) -> None:
+        result = pure_result(
+            {
+                "success": True,
+                "core_mhz": 150.0,
+                "update_cycles": 101,
+                "correctness_mismatches": 0,
+                "backend_traffic": {"combined": {"requests": 1, "bytes": 64}},
+            },
+            system="grasu",
+            updates=8,
+            calibration_scale=1.0,
+            calibration_additive_cycles=30_000.0,
+            calibration_component="persistent_shard_envelope",
+        )
+        self.assertEqual(result["raw_device_cycles"], 101)
+        self.assertEqual(result["calibrated_device_cycles"], 30_101)
+        self.assertEqual(result["device_cycle_calibration_additive_cycles"], 30_000.0)
 
     def test_exporter_writes_renderer_ready_current_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
