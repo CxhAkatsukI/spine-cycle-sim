@@ -319,6 +319,7 @@ def main() -> int:
     args = parser.parse_args()
 
     simulation_root = args.simulation_root.resolve()
+    simulation_root.mkdir(parents=True, exist_ok=True)
     workload_root = args.workload_root.resolve()
     library = args.lib_dir.resolve()
     plugin = library / "libspine_cycle.so"
