@@ -5,12 +5,23 @@ import tempfile
 import unittest
 
 from scripts.run_current_fpga_grasu_frozen_matrix import (
+    DEFAULT_LIBRARY,
+    DEFAULT_SIMULATION_ROOT,
+    DEFAULT_WORKLOAD_ROOT,
     build_command,
     valid_existing_result,
 )
 
 
 class CurrentFPGAGrasuFrozenMatrixTests(unittest.TestCase):
+    def test_current_fig9_defaults_pin_v19_and_reuse_frozen_workloads(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        self.assertEqual(
+            DEFAULT_LIBRARY, root / "cpp/sst/build/sst-current-fpga-v19"
+        )
+        self.assertIn("current_fpga_v20_fig9", str(DEFAULT_SIMULATION_ROOT))
+        self.assertIn("current_fpga_v12_20260812/workloads", str(DEFAULT_WORKLOAD_ROOT))
+
     def test_weighted_command_freezes_source_and_shared_k4_profile(self) -> None:
         command = build_command(Path("/sim"), Path("/plugin"), "r19", "weighted_sssp")
         self.assertIn("run_sst_grasu_regraph_hls_weighted.py", " ".join(command))
@@ -29,6 +40,23 @@ class CurrentFPGAGrasuFrozenMatrixTests(unittest.TestCase):
         self.assertEqual(
             command[command.index("--residual-contract") + 1],
             "grasu_hardware_warm_dangling_linf",
+        )
+
+    def test_external_workload_root_does_not_change_output_root(self) -> None:
+        command = build_command(
+            Path("/out"),
+            Path("/plugin"),
+            "au",
+            "weighted_sssp",
+            Path("/frozen-workloads"),
+        )
+        self.assertEqual(
+            command[command.index("--workload") + 1],
+            "/frozen-workloads/au_weighted_sssp_insert_u8.initial.slice",
+        )
+        self.assertIn(
+            "/out/runs_current_v1/au/grasu_regraph",
+            command[command.index("--out-dir") + 1],
         )
 
     def test_cc_command_matches_routed_resident_host(self) -> None:

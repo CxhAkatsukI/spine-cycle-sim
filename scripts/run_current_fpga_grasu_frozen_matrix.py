@@ -17,9 +17,12 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SIMULATION_ROOT = Path(
-    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812"
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812"
 )
-DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-current-fpga-v12"
+DEFAULT_WORKLOAD_ROOT = Path(
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads"
+)
+DEFAULT_LIBRARY = ROOT / "cpp/sst/build/sst-current-fpga-v19"
 CAPABILITY_CATALOG = (
     ROOT / "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json"
 )
@@ -79,10 +82,9 @@ def wait_for_memory(reserve_gib: float, poll_seconds: float) -> None:
 
 
 def workload_paths(
-    simulation_root: Path, dataset: str, algorithm: str
+    workload_root: Path, dataset: str, algorithm: str
 ) -> tuple[Path, Path]:
     stem = f"{dataset}_{WORKLOAD_TAG[algorithm]}_insert_u8"
-    workload_root = simulation_root / "workloads"
     return (
         workload_root / f"{stem}.initial.slice",
         workload_root / f"{stem}.update.slice",
@@ -106,8 +108,11 @@ def build_command(
     library: Path,
     dataset: str,
     algorithm: str,
+    workload_root: Path | None = None,
 ) -> list[str]:
-    workload, update = workload_paths(simulation_root, dataset, algorithm)
+    workload, update = workload_paths(
+        workload_root or simulation_root / "workloads", dataset, algorithm
+    )
     out_dir = output_directory(simulation_root, dataset, algorithm)
     common = [
         "--profile",
@@ -203,6 +208,7 @@ def write_status(path: Path, payload: dict[str, Any]) -> None:
 
 def run_one(
     simulation_root: Path,
+    workload_root: Path,
     library: Path,
     dataset: str,
     algorithm: str,
@@ -223,7 +229,9 @@ def run_one(
 
     wait_for_memory(reserve_gib, poll_seconds)
     out_dir.mkdir(parents=True, exist_ok=True)
-    command = build_command(simulation_root, library, dataset, algorithm)
+    command = build_command(
+        simulation_root, library, dataset, algorithm, workload_root
+    )
     with lock:
         status["tasks"][task_id] = {
             "state": "RUNNING",
@@ -262,6 +270,7 @@ def run_group(
     *,
     jobs: int,
     simulation_root: Path,
+    workload_root: Path,
     library: Path,
     reserve_gib: float,
     poll_seconds: float,
@@ -275,6 +284,7 @@ def run_group(
             executor.submit(
                 run_one,
                 simulation_root,
+                workload_root,
                 library,
                 dataset,
                 algorithm,
@@ -299,6 +309,7 @@ def run_group(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--simulation-root", type=Path, default=DEFAULT_SIMULATION_ROOT)
+    parser.add_argument("--workload-root", type=Path, default=DEFAULT_WORKLOAD_ROOT)
     parser.add_argument("--lib-dir", type=Path, default=DEFAULT_LIBRARY)
     parser.add_argument("--jobs", type=int, default=3)
     parser.add_argument("--memory-reserve-gib", type=float, default=64.0)
@@ -308,6 +319,7 @@ def main() -> int:
     args = parser.parse_args()
 
     simulation_root = args.simulation_root.resolve()
+    workload_root = args.workload_root.resolve()
     library = args.lib_dir.resolve()
     plugin = library / "libspine_cycle.so"
     if not plugin.is_file():
@@ -316,7 +328,7 @@ def main() -> int:
     algorithms = tuple(args.algorithm or ALGORITHMS)
     for dataset in datasets:
         for algorithm in algorithms:
-            for path in workload_paths(simulation_root, dataset, algorithm):
+            for path in workload_paths(workload_root, dataset, algorithm):
                 if not path.is_file():
                     raise SystemExit(f"missing workload: {path}")
 
@@ -346,6 +358,7 @@ def main() -> int:
         small,
         jobs=max(1, args.jobs),
         simulation_root=simulation_root,
+        workload_root=workload_root,
         library=library,
         reserve_gib=args.memory_reserve_gib,
         poll_seconds=args.memory_poll_seconds,
@@ -357,6 +370,7 @@ def main() -> int:
         large,
         jobs=1,
         simulation_root=simulation_root,
+        workload_root=workload_root,
         library=library,
         reserve_gib=args.memory_reserve_gib,
         poll_seconds=args.memory_poll_seconds,

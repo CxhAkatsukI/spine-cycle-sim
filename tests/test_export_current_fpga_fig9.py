@@ -6,11 +6,20 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.export_current_fpga_fig9 import dram_energy_pj, pair_row
+from scripts.export_current_fpga_fig9 import DEFAULT_CONTRACT, dram_energy_pj, pair_row
 from scripts.render_evaluation_refresh import collect_fig9_rows_from_campaign
 
 
 class ExportCurrentFPGAFig9Tests(unittest.TestCase):
+    def test_v20_contract_pins_dual_plugins_and_nine_rows(self) -> None:
+        contract = json.loads(DEFAULT_CONTRACT.read_text(encoding="utf-8"))
+        self.assertEqual(contract["gates"]["rows_expected"], 9)
+        self.assertNotEqual(
+            contract["architectures"]["spine"]["plugin"]["sha256"],
+            contract["architectures"]["grasu_regraph"]["plugin"]["sha256"],
+        )
+        self.assertFalse(contract["measurement"]["timing_calibration_applied"])
+
     def test_energy_accepts_spine_direct_and_grasu_nested_forms(self) -> None:
         self.assertEqual(dram_energy_pj({}, {"dram_total_energy_pj": 12.0}), 12.0)
         self.assertEqual(

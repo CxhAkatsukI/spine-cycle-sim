@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "contract_id": "current_fpga_fig9_memory_v20_20260812",
+  "status": "frozen_before_current_grasu_execution",
+  "datasets": ["au", "su", "wk"],
+  "algorithms": [
+    "weighted_sssp",
+    "connected_components",
+    "thresholded_residual_pagerank"
+  ],
+  "case_contract": {
+    "path": "configs/contracts/evaluation_refresh_fpga_cases_v7.json",
+    "sha256": "b9a03bbae24c2a6dc99009ea4234fec4c17692dbecdb071abee21e295a588fc2"
+  },
+  "architectures": {
+    "spine": {
+      "plugin": {
+        "path": "cpp/sst/build/sst-current-fpga-v12/libspine_cycle.so",
+        "sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70"
+      },
+      "profiles": {
+        "weighted_sssp": {
+          "profile_id": "spine_owner_fifo_sssp_hls_v1",
+          "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+          "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
+        },
+        "connected_components": {
+          "profile_id": "spine_owner_fifo_cc_hls_v1",
+          "path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+          "sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c"
+        },
+        "thresholded_residual_pagerank": {
+          "profile_id": "spine_owner_fifo_respr_hls_v1",
+          "path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
+          "sha256": "6ec5f93ea3b5c9b3ddfcb4fd70583e050456965c561f80d48e12b768499917c6"
+        }
+      }
+    },
+    "grasu_regraph": {
+      "plugin": {
+        "path": "cpp/sst/build/sst-current-fpga-v19/libspine_cycle.so",
+        "sha256": "13296920b5493610f706303395200306dea966475b2505779d586f1b9f87c6fc"
+      },
+      "profiles": {
+        "weighted_sssp": {
+          "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+          "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+          "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+        },
+        "connected_components": {
+          "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+          "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+          "sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34"
+        },
+        "thresholded_residual_pagerank": {
+          "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+          "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+          "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+        }
+      }
+    }
+  },
+  "measurement": {
+    "window": "resident_update_to_algorithm_quiescence",
+    "traffic": "all execution-driven accepted backend requests in the measured run",
+    "energy": "bound-channel DRAMSim3 activity plus background energy over the same run",
+    "timing_calibration_applied": false,
+    "reason": "Figure 9 uses request/byte and DRAM command ledgers, not predicted FPGA cycles"
+  },
+  "memory": {
+    "backend": "dramsim3_u55c_hbm",
+    "pseudo_channels": 32,
+    "data_width_bits": 512,
+    "max_outstanding_per_port": 16
+  },
+  "gates": {
+    "correctness_mismatches": 0,
+    "memory_locality_ledger_match": true,
+    "backend_requests_equal_accepted_requests": true,
+    "read_write_locality_categories_close": true,
+    "accepted_bytes_complete_at_quiescence": true,
+    "all_profile_fifo_occupancies_bounded": true,
+    "rows_expected": 9
+  },
+  "evidence_boundary": {
+    "spine_rows": "immutable pre-existing v12 execution rows reused after hash admission",
+    "grasu_rows": "v19 rows must be generated after this contract is frozen",
+    "hardware_hbm_byte_counter_claim": false,
+    "fpga_cycle_calibration_required": false,
+    "claim": "execution-driven simulator memory traffic and DRAMSim3 HBM energy under a shared memory configuration"
+  }
+}

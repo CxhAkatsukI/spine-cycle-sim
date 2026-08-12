@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export correctness- and ledger-gated current-v12 Figure 9 pairs."""
+"""Export correctness- and ledger-gated current Figure 9 pairs."""
 
 from __future__ import annotations
 
@@ -25,11 +25,14 @@ from scripts.analyze_current_fpga_components import (  # noqa: E402
 
 
 DEFAULT_CASES = ROOT / "configs/contracts/evaluation_refresh_fpga_cases_v7.json"
-DEFAULT_CONTRACT = (
-    ROOT / "configs/contracts/evaluation_refresh_fpga_calibration_v8.json"
+DEFAULT_CONTRACT = ROOT / "configs/contracts/current_fpga_fig9_memory_v20.json"
+DEFAULT_SPINE_ROOT = Path(
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812"
 )
-DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/fig9_current_v12"
-DATASETS = ("au", "su", "wk")
+DEFAULT_GRASU_ROOT = Path(
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812"
+)
+DEFAULT_OUT = ROOT / "docs/evaluation_refresh_20260810/fig9_current_v20"
 ARCHITECTURES = ("spine", "grasu_regraph")
 
 
@@ -102,7 +105,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
-    parser.add_argument("--simulation-root", type=Path)
+    parser.add_argument("--spine-root", type=Path, default=DEFAULT_SPINE_ROOT)
+    parser.add_argument("--grasu-root", type=Path, default=DEFAULT_GRASU_ROOT)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--allow-partial", action="store_true")
     args = parser.parse_args()
@@ -111,29 +115,36 @@ def main() -> int:
     contract_path = args.contract.resolve()
     cases = read_json(cases_path)
     contract = read_json(contract_path)
-    if cases.get("calibration_contract_id") != contract.get("contract_id"):
-        raise ValueError("Figure 9 case and calibration contracts disagree")
-    simulation_root = (
-        args.simulation_root or Path(cases["default_simulation_root"])
-    ).resolve()
-    plugin = ROOT / contract["simulator_plugin"]["path"]
-    plugin_sha256 = sha256_file(plugin)
-    if plugin_sha256 != contract["simulator_plugin"]["sha256"]:
-        raise ValueError("Figure 9 plugin differs from the frozen contract")
-    profiles = {
-        (row["architecture"], row["algorithm"]): row
-        for row in contract["architecture_profiles"]
+    if contract.get("status") != "frozen_before_current_grasu_execution":
+        raise ValueError("Figure 9 contract is not frozen")
+    if sha256_file(cases_path) != contract["case_contract"]["sha256"]:
+        raise ValueError("Figure 9 case contract hash mismatch")
+    roots = {
+        "spine": args.spine_root.resolve(),
+        "grasu_regraph": args.grasu_root.resolve(),
     }
+    plugins: dict[str, tuple[Path, str]] = {}
+    for architecture in ARCHITECTURES:
+        architecture_contract = contract["architectures"][architecture]
+        plugin = ROOT / architecture_contract["plugin"]["path"]
+        plugin_sha256 = sha256_file(plugin)
+        if plugin_sha256 != architecture_contract["plugin"]["sha256"]:
+            raise ValueError(f"Figure 9 {architecture} plugin differs from contract")
+        plugins[architecture] = (plugin, plugin_sha256)
+        for profile in architecture_contract["profiles"].values():
+            if sha256_file(ROOT / profile["path"]) != profile["sha256"]:
+                raise ValueError(f"Figure 9 profile differs from contract: {profile['path']}")
 
     rows: list[dict[str, object]] = []
     evidence: list[dict[str, object]] = []
     missing: list[str] = []
-    for algorithm, specification in cases["algorithms"].items():
-        for dataset in DATASETS:
+    for algorithm in contract["algorithms"]:
+        specification = cases["algorithms"][algorithm]
+        for dataset in contract["datasets"]:
             systems: dict[str, tuple[dict[str, Any], dict[str, Any], dict[str, object]]] = {}
             for architecture in ARCHITECTURES:
                 run_dir = run_directory(
-                    simulation_root, specification, dataset, architecture
+                    roots[architecture], specification, dataset, architecture
                 )
                 try:
                     result, result_path, manifest_path = load_admitted_result(run_dir)
@@ -141,7 +152,8 @@ def main() -> int:
                     missing.append(f"{dataset}:{algorithm}:{architecture}")
                     continue
                 manifest = read_json(manifest_path)
-                profile = profiles[(architecture, algorithm)]
+                profile = contract["architectures"][architecture]["profiles"][algorithm]
+                _plugin, plugin_sha256 = plugins[architecture]
                 if manifest.get("sst_plugin_sha256") != plugin_sha256:
                     raise ValueError(f"Figure 9 plugin mismatch: {run_dir}")
                 if evidence_identity(
@@ -186,7 +198,7 @@ def main() -> int:
                 )
             )
 
-    expected = len(DATASETS) * len(cases["algorithms"])
+    expected = int(contract["gates"]["rows_expected"])
     if (missing or len(rows) != expected) and not args.allow_partial:
         raise FileNotFoundError(
             f"Figure 9 current matrix incomplete: rows={len(rows)}/{expected}, "
@@ -207,9 +219,16 @@ def main() -> int:
             "cases_sha256": sha256_file(cases_path),
             "contract": str(contract_path),
             "contract_sha256": sha256_file(contract_path),
-            "plugin": str(plugin.resolve()),
-            "plugin_sha256": plugin_sha256,
-            "simulation_root": str(simulation_root),
+            "simulation_roots": {
+                architecture: str(path) for architecture, path in roots.items()
+            },
+            "plugins": {
+                architecture: {
+                    "path": str(plugin.resolve()),
+                    "sha256": plugin_sha256,
+                }
+                for architecture, (plugin, plugin_sha256) in plugins.items()
+            },
             "rows": len(rows),
             "expected_rows": expected,
             "missing": missing,
