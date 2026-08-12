@@ -32,10 +32,10 @@ ALGORITHM_LABEL = {
     "residual_pagerank": "Residual PageRank",
     "full_pagerank": "Full PageRank, compact FPGA",
 }
-HATCH_FORWARD = "////"
-HATCH_BACKWARD = "\\\\\\\\"
-HATCH_VERTICAL = "||||"
-HATCH_CROSS = "xxxx"
+HATCH_FORWARD = "////////"
+HATCH_BACKWARD = "\\\\\\\\\\\\\\\\"
+HATCH_VERTICAL = "||||||||"
+HATCH_CROSS = "xxxxxxxx"
 FIG9_ALGORITHM_ORDER = (
     "weighted_sssp",
     "connected_components",
