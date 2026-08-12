@@ -1,0 +1,49 @@
+{
+  "contract_id": "current_fpga_grasu_persistent_update_v19_20260812",
+  "models": [
+    {
+      "algorithm": "weighted_sssp",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "control_cycles_per_nonempty_shard": 31054.06730769231,
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8"
+    },
+    {
+      "algorithm": "connected_components",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "control_cycles_per_nonempty_shard": 28359.875,
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "control_cycles_per_nonempty_shard": 54885.409375,
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8"
+    }
+  ],
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_TRANSFER_OBSERVATION",
+  "timing_target": {
+    "cold_repeat": 0,
+    "formal_statistic": "median update_ms over warm_repeats",
+    "measurement_window": "same_process_update_events",
+    "repeat_count": 5,
+    "repo_dirty": 0,
+    "repo_head": "1577c6013d7e3a33e4d46d1c7f1cdca56411a092",
+    "state_restore": "restore PMA words and PageRank degree state before every repeat",
+    "warm_repeats": [
+      1,
+      2,
+      3,
+      4
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "contract": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/configs/contracts/current_fpga_grasu_persistent_update_v19.json",
+  "contract_sha256": "7618d0c02cad3098fd72f1e087fce249d15b9037f0e9cba14c1d57247891ee38",
+  "max_calibration_absolute_error_percent": 11.04595661287335,
+  "max_calibration_leave_one_dataset_out_absolute_error_percent": 22.091913225746687,
+  "model": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration_v19_grasu_persistent_update_frozen/frozen_model.json",
+  "model_sha256": "55ee23b642655a95906bc6c6e00a14303408e3b0979a88e729a110c4e30c9366",
+  "status": "PASS",
+  "transfer_results_used": false
+}
