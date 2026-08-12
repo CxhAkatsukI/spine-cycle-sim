@@ -58,7 +58,7 @@ The current evidence boundary is:
 
 - Figure 8: `PASS_CURRENT_MODEL_DATA`. All seven unique update-only runs pass
   correctness, structural-work, memory-ledger, and frozen-identity gates.
-- Figure 9: pending only the final WikiTalk G+R rows. Completed rows pass
+- Figure 9: `PASS_CURRENT_MODEL_DATA`. All nine AU/SU/WK pairs pass
   correctness and strict request/byte conservation.
 - Figure 10: `PARTIAL_COMPONENT_CALIBRATION`. Seven SSSP rows are admitted for
   breakdown; the whole-machine cost model is diagnostic and rejected.
@@ -143,9 +143,9 @@ one deletion fallback. The remaining limitations are explicit:
 - The global cost model has 59.17% median and 107.35% maximum absolute error
   on seven real-trace holdout rows and is not admitted.
 
-## Active Figure 9 Completion Run
+## Figure 9 Completion
 
-A frozen nine-row memory campaign is running under:
+A frozen nine-row memory campaign completed under:
 
 ```bash
 /data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812
@@ -168,7 +168,12 @@ Every admitted row must satisfy:
 - no pending arbitration work at completion;
 - DRAMSim3 reads + writes = backend requests.
 
-Monitor it with:
+All 18 architecture rows pass these gates. G+R/Delta.hls accepted-byte ratios
+range from 1,276.72x to 11,534.73x with a 5,459.61x median. Bound-channel
+DRAMSim3 energy ratios range from 709.61x to 15,273.92x with a 3,684.47x
+median. These are model-ledger results, not direct routed-FPGA HBM counters.
+
+The completed progress records can be inspected with:
 
 ```bash
 watch -n 5 'for f in \

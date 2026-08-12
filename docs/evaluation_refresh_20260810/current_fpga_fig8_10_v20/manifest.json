@@ -1,0 +1,91 @@
+{
+  "claim_boundary": "Figures 8 and 9 are admitted current-model data. Figure 10 admits only the component-calibrated breakdown and explicitly reported mechanism correlations; its global whole-machine cost model is diagnostic.",
+  "fig10_copies": {
+    "admitted_breakdown_rows.csv": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/data/admitted_breakdown_rows.csv",
+      "output_sha256": "23025f3c7a00e68b2d82488ffdf5015f06209d2d373d35ef5c87b558a97edd38",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/admitted_breakdown_rows.csv",
+      "source_sha256": "23025f3c7a00e68b2d82488ffdf5015f06209d2d373d35ef5c87b558a97edd38"
+    },
+    "cost_model_admission.json": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/data/cost_model_admission.json",
+      "output_sha256": "e3427c22e414f275371dc61888f6f0f539328af267a9b8149ced9fbc5197077a",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/cost_model_admission.json",
+      "source_sha256": "e3427c22e414f275371dc61888f6f0f539328af267a9b8149ced9fbc5197077a"
+    },
+    "fig10_admitted_breakdown.pdf": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/figures/fig10_admitted_breakdown.pdf",
+      "output_sha256": "afb417f9fe9c42cfeab9f80774f9ce5bfe5aeac2f9d137d8b28c6975ab65010a",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/fig10_admitted_breakdown.pdf",
+      "source_sha256": "afb417f9fe9c42cfeab9f80774f9ce5bfe5aeac2f9d137d8b28c6975ab65010a"
+    },
+    "fig10_admitted_breakdown.png": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/figures/fig10_admitted_breakdown.png",
+      "output_sha256": "94dc5300665498ad5abd2f82fe11c3e64442948f5d27a2aecf35d073edf8c41a",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/fig10_admitted_breakdown.png",
+      "source_sha256": "94dc5300665498ad5abd2f82fe11c3e64442948f5d27a2aecf35d073edf8c41a"
+    },
+    "fig10_realized_work_correlations.pdf": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/figures/fig10_realized_work_correlations.pdf",
+      "output_sha256": "0e84522e889f4ec53ad272ec873cab8fe12b0cacfc9bc93532bfd31b1a28694e",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/fig10_realized_work_correlations.pdf",
+      "source_sha256": "0e84522e889f4ec53ad272ec873cab8fe12b0cacfc9bc93532bfd31b1a28694e"
+    },
+    "fig10_realized_work_correlations.png": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/figures/fig10_realized_work_correlations.png",
+      "output_sha256": "cd712c1e0cf380ddefc0baf936a660b4b5fec3e1ee576ed8453764086534890a",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/fig10_realized_work_correlations.png",
+      "source_sha256": "cd712c1e0cf380ddefc0baf936a660b4b5fec3e1ee576ed8453764086534890a"
+    },
+    "mechanism_admission.csv": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/data/mechanism_admission.csv",
+      "output_sha256": "8ab5669ae1a07ff640bd553017802dee813b85f82bf585afb494826f885210db",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/mechanism_admission.csv",
+      "source_sha256": "8ab5669ae1a07ff640bd553017802dee813b85f82bf585afb494826f885210db"
+    }
+  },
+  "fig10_holdout_status": "FAIL",
+  "fig10_status": "PARTIAL_COMPONENT_CALIBRATION",
+  "fig8_status": "PASS_CURRENT_MODEL_DATA",
+  "fig9_pair_rows": {
+    "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig9_current_v20/pair_rows.csv",
+    "sha256": "56281c4852471d807e7b9d600699535ab8164d3af8e64066193d062a181eaea0"
+  },
+  "fig9_status": "PASS_CURRENT_MODEL_DATA",
+  "inputs": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig8_current_v20/persistent_update_setup_manifest.json",
+      "sha256": "bf3c15d1e9c5285f65b3f2f16b6021f28bc063c7bf6947d3947765cf266eaa74"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig9_current_v20/manifest.json",
+      "sha256": "3dfaa834fa083074a3395b40c5fc668be09a1f6245edbf836231bdb9089034c7"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/manifest.json",
+      "sha256": "0ec3460f847dc3122ebcc3ceeaed055cae8a179a0a79898dc407396d8356595a"
+    }
+  ],
+  "schema_version": 1,
+  "source_manifest_copies": {
+    "fig10": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/data/fig10_source_manifest.json",
+      "output_sha256": "0ec3460f847dc3122ebcc3ceeaed055cae8a179a0a79898dc407396d8356595a",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_evidence/manifest.json",
+      "source_sha256": "0ec3460f847dc3122ebcc3ceeaed055cae8a179a0a79898dc407396d8356595a"
+    },
+    "fig8": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/data/fig8_source_manifest.json",
+      "output_sha256": "bf3c15d1e9c5285f65b3f2f16b6021f28bc063c7bf6947d3947765cf266eaa74",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig8_current_v20/persistent_update_setup_manifest.json",
+      "source_sha256": "bf3c15d1e9c5285f65b3f2f16b6021f28bc063c7bf6947d3947765cf266eaa74"
+    },
+    "fig9": {
+      "output": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/current_fpga_fig8_10_v20/data/fig9_source_manifest.json",
+      "output_sha256": "3dfaa834fa083074a3395b40c5fc668be09a1f6245edbf836231bdb9089034c7",
+      "source": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig9_current_v20/manifest.json",
+      "source_sha256": "3dfaa834fa083074a3395b40c5fc668be09a1f6245edbf836231bdb9089034c7"
+    }
+  },
+  "status": "PASS_WITH_DECLARED_PARTIAL_FIG10"
+}

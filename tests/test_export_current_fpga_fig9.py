@@ -11,11 +11,18 @@ from scripts.export_current_fpga_fig9 import (
     conservation_audit,
     dram_energy_pj,
     pair_row,
+    write_csv,
 )
 from scripts.render_evaluation_refresh import collect_fig9_rows_from_campaign
 
 
 class ExportCurrentFPGAFig9Tests(unittest.TestCase):
+    def test_csv_writer_uses_repository_lf_line_endings(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "rows.csv"
+            write_csv(output, [{"dataset": "au", "value": 1}])
+            self.assertEqual(output.read_bytes(), b"dataset,value\nau,1\n")
+
     def test_v20_contract_pins_dual_plugins_and_nine_rows(self) -> None:
         contract = json.loads(DEFAULT_CONTRACT.read_text(encoding="utf-8"))
         self.assertEqual(contract["gates"]["rows_expected"], 9)

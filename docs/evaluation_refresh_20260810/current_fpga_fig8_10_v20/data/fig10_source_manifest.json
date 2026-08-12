@@ -1,0 +1,52 @@
+{
+  "admitted_breakdown_rows": 7,
+  "admitted_breakdown_scope": "SSSP shallow insertion, forced carry, and deletion fallback only",
+  "fpga_calibration_scope": "aggregate maintenance and iterative envelopes",
+  "omitted_from_admitted_breakdown": {
+    "pagerank_correction": "no routed nonzero-iteration Residual PageRank component sample",
+    "zero_net": "current HLS lacks the paper zero-net no-repair fast path"
+  },
+  "outputs": {
+    "admitted_breakdown_rows.csv": "23025f3c7a00e68b2d82488ffdf5015f06209d2d373d35ef5c87b558a97edd38",
+    "cost_model_admission.json": "e3427c22e414f275371dc61888f6f0f539328af267a9b8149ced9fbc5197077a",
+    "fig10_admitted_breakdown.pdf": "afb417f9fe9c42cfeab9f80774f9ce5bfe5aeac2f9d137d8b28c6975ab65010a",
+    "fig10_admitted_breakdown.png": "94dc5300665498ad5abd2f82fe11c3e64442948f5d27a2aecf35d073edf8c41a",
+    "fig10_realized_work_correlations.pdf": "0e84522e889f4ec53ad272ec873cab8fe12b0cacfc9bc93532bfd31b1a28694e",
+    "fig10_realized_work_correlations.png": "cd712c1e0cf380ddefc0baf936a660b4b5fec3e1ee576ed8453764086534890a",
+    "mechanism_admission.csv": "8ab5669ae1a07ff640bd553017802dee813b85f82bf585afb494826f885210db"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_with_vertices/manifest.json",
+      "sha256": "9f12336680870a775baf27029d330cbef3c5afc3cdd069623eef0ffbe7f6b86b"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/fig10_current_v15_with_vertices/calibrated_breakdown_rows.csv",
+      "sha256": "4a78c546b108e90cd5b9827f2343c3a148d76a64e1f56752c1adcae62c53564a"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/analysis/rq3_regression_rows.csv",
+      "sha256": "18c507efc8e661ea9b80b24cacfd4fe1961e68d0b78b109aeee96f89b358f5c2"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/analysis/rq3_work_rows.csv",
+      "sha256": "a42147121e39738cecf1f6108af343c54d163f266cfd7ed1a58a7ba2ee024212"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/analysis/rq3_latency_rows.csv",
+      "sha256": "b6faccd0e97bcbbedd05330ec32fc96af985a7c6ada2cad00d664fbc67980f77"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/analysis/rq3_e2e_metric_rows.csv",
+      "sha256": "5f7ba4be276bc54545df2b2457f309b7da086efbd073f20a5704ea430b5fe1c8"
+    },
+    {
+      "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/analysis/rq3_summary.json",
+      "sha256": "12a3d3cc2cf0e6e0c0bb21cdca18112b505f8ca7824c9503624c0c51a16018f9"
+    }
+  ],
+  "status": "PARTIAL_COMPONENT_CALIBRATION",
+  "whole_machine_holdout_status": "FAIL",
+  "within_envelope_scope": "execution-model timestamp attribution"
+}

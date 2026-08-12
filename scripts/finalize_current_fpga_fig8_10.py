@@ -117,6 +117,17 @@ def main() -> int:
         destination = data_dir / filename if filename.endswith((".csv", ".json")) else figure_dir / filename
         copied[filename] = copy_with_hash(fig10 / filename, destination)
 
+    source_manifests = {
+        "fig8": copy_with_hash(
+            fig8_manifest_path, data_dir / "fig8_source_manifest.json"
+        ),
+        "fig9": copy_with_hash(
+            fig9_manifest_path, data_dir / "fig9_source_manifest.json"
+        ),
+        "fig10": copy_with_hash(
+            fig10_manifest_path, data_dir / "fig10_source_manifest.json"
+        ),
+    }
     inputs = (fig8_manifest_path, fig9_manifest_path, fig10_manifest_path)
     manifest = {
         "schema_version": 1,
@@ -133,6 +144,7 @@ def main() -> int:
         "inputs": [
             {"path": str(path), "sha256": sha256(path)} for path in inputs
         ],
+        "source_manifest_copies": source_manifests,
         "fig9_pair_rows": {"path": str(fig9_source), "sha256": sha256(fig9_source)},
         "fig10_copies": copied,
     }

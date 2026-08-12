@@ -35,7 +35,7 @@ unchanged until the revised evidence is accepted.
 - `fig8_current_v20/`: admitted setup-inclusive update-only data and immutable
   provenance for five datasets plus the AU batch-size sweep.
 - `fig9_current_v20/`: final nine-row accepted-byte and bound-channel DRAMSim3
-  energy evidence after the current matrix finishes.
+  energy evidence with complete correctness and conservation gates.
 - `fig10_current_v15_evidence/`: seven admitted SSSP breakdown rows, mechanism
   correlations, and explicit rejection of the global cost model.
 - `provenance/fig8.json`, `provenance/fig9.json`, and `provenance/fig10.json`:
@@ -44,7 +44,7 @@ unchanged until the revised evidence is accepted.
   refreshed figures use FPGA-aligned campaign evidence or still fall back to
   archived simulator data.
 - `hardware_and_calibration_status_20260810.md`: current evidence boundary,
-  including the Fig. 7 convergence semantics and the remaining Fig. 9 blocker.
+  including the Fig. 7 convergence semantics and Fig. 8--10 admission limits.
 
 `current_fpga_fig8_10_v20/` is the final handoff directory. Its finalizer
 refuses incomplete Figure 9 data and records Figure 10's partial calibration

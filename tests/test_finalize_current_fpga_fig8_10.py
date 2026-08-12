@@ -34,6 +34,7 @@ class FinalizeCurrentFpgaFig8To10Tests(unittest.TestCase):
             record = MODULE.copy_with_hash(source, destination)
             self.assertEqual(destination.read_text(encoding="ascii"), "evidence\n")
             self.assertEqual(record["source_sha256"], record["output_sha256"])
+            self.assertEqual(record["output"], str(destination.resolve()))
 
 
 if __name__ == "__main__":
