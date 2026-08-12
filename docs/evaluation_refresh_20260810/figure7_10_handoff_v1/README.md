@@ -38,15 +38,16 @@ rendered using TX Typewriter (`txtt`).
 
 **Data:** `data/fig7_fpga_speedup.csv`
 
-Panels (a)--(c) compare Delta.hls against destination-sharded K4 G+R on eight
-complete graphs: AU, SU, WK, SO, PK, LJ, LJ08, and R19. Each point is the median
-of three correctness-admitted routed-U55C repetitions; the error bar is the
-observed minimum/maximum range. The timing window starts from an old graph that
-is already resident and converged, applies one batch, and ends when the updated
-state converges. It includes setup/orchestration in the measured dynamic
-latency window.
+Panel (a) groups results by complete graph: AU, SU, WK, SO, PK, LJ, LJ08, and
+R19. Each dataset group contains adjacent Residual PageRank, CC, and weighted
+SSSP bars comparing Delta.hls against destination-sharded K4 G+R. Each bar is
+the median of three correctness-admitted routed-U55C repetitions; its error bar
+is the observed minimum/maximum range. The timing window starts from an old
+graph that is already resident and converged, applies one batch, and ends when
+the updated state converges. It includes setup/orchestration in the measured
+dynamic latency window.
 
-Panel (d) is deliberately narrower: three compact, one-partition Full PageRank
+Panel (b) is deliberately narrower: three compact, one-partition Full PageRank
 FPGA workloads (AM, WG, FL), each run for the same fixed three-round contract.
 It demonstrates the current FullPR disadvantage but is not complete-graph
 evidence. No projected or timeout-bounded value enters Figure 7.

@@ -239,73 +239,140 @@ def save_figure(figure: Any, output: Path, *, dpi: int = 300) -> None:
 
 
 def render_fig7(plt: Any, rows: list[dict[str, str]]) -> None:
-    from matplotlib.patches import Patch
-
-    blue = "#2A7F9E"
-    orange = "#D66A00"
     ink = "#202428"
-    floor = 0.01
-    figure, axes = plt.subplots(4, 1, figsize=(3.55, 4.15))
-    algorithms = (*ALGORITHM_ORDER, "full_pagerank")
-    for index, (axis, algorithm) in enumerate(zip(axes, algorithms, strict=True)):
-        selected = [row for row in rows if row["algorithm"] == algorithm]
-        values = [float(row["speedup_median"]) for row in selected]
-        colors = [blue if value >= 1.0 else orange for value in values]
-        x = list(range(len(selected)))
+    algorithm_style = {
+        "residual_pagerank": ("ResPR", "#F2C49B", "////"),
+        "connected_components": ("CC", "#B9D5E6", "\\\\\\\\"),
+        "weighted_sssp": ("SSSP", "#BCDDAE", "||||"),
+    }
+    comparison_order = (
+        "residual_pagerank",
+        "connected_components",
+        "weighted_sssp",
+    )
+    by_key = {(row["algorithm"], row["dataset"]): row for row in rows}
+    figure, axes = plt.subplots(
+        2,
+        1,
+        figsize=(3.55, 2.85),
+        gridspec_kw={"height_ratios": (1.55, 1.0)},
+    )
+
+    # Complete-graph dynamic algorithms: one dataset group with three adjacent bars.
+    axis = axes[0]
+    centers = list(range(len(DATASET_ORDER)))
+    width = 0.23
+    offsets = (-width, 0.0, width)
+    for algorithm, offset in zip(comparison_order, offsets, strict=True):
+        label, color, hatch = algorithm_style[algorithm]
+        selected = [by_key[(algorithm, dataset)] for dataset in DATASET_ORDER]
+        positions = [center + offset for center in centers]
+        medians = [float(row["speedup_median"]) for row in selected]
+        lows = [float(row["speedup_min"]) for row in selected]
+        highs = [float(row["speedup_max"]) for row in selected]
         axis.bar(
-            x,
-            [max(value - floor, 1e-12) for value in values],
-            bottom=floor,
-            width=0.58,
-            facecolor="white",
-            edgecolor=colors,
-            linewidth=0.72,
-            hatch="////",
+            positions,
+            [value - 1.0 for value in medians],
+            bottom=1.0,
+            width=width,
+            facecolor=color,
+            edgecolor=ink,
+            linewidth=0.45,
+            hatch=hatch,
+            label=label,
             zorder=3,
         )
-        for position, row, color in zip(x, selected, colors, strict=True):
-            median = float(row["speedup_median"])
-            low = float(row["speedup_min"])
-            high = float(row["speedup_max"])
-            axis.errorbar(
-                position,
-                median,
-                yerr=[[median - low], [high - median]],
-                fmt="none",
-                ecolor=color,
-                elinewidth=0.65,
-                capsize=1.5,
-                capthick=0.65,
-                zorder=5,
-            )
-        axis.axhline(1.0, color=ink, linestyle="--", linewidth=0.65, zorder=2)
-        axis.set_yscale("log")
-        axis.set_ylim(floor, 3000)
-        axis.set_yticks((0.01, 0.1, 1, 10, 100, 1000))
-        axis.set_yticklabels((".01", ".1", "1", "10", "1e2", "1e3"))
-        axis.set_xticks(x)
-        axis.set_xticklabels([row["dataset"] for row in selected])
+        axis.errorbar(
+            positions,
+            medians,
+            yerr=(
+                [median - low for median, low in zip(medians, lows, strict=True)],
+                [high - median for median, high in zip(medians, highs, strict=True)],
+            ),
+            fmt="none",
+            ecolor=ink,
+            elinewidth=0.48,
+            capsize=1.0,
+            capthick=0.48,
+            zorder=5,
+        )
+    axis.axhline(1.0, color=ink, linestyle="--", linewidth=0.62, zorder=2)
+    axis.set_yscale("log")
+    axis.set_ylim(0.8, 3000)
+    axis.set_yticks((1, 10, 100, 1000))
+    axis.set_yticklabels(("1", "10", "1e2", "1e3"))
+    axis.set_xticks(centers)
+    axis.set_xticklabels(DATASET_ORDER)
+    axis.set_title("(a) Dynamic algorithms, complete graphs", pad=4.5, fontweight="bold")
+    axis.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.42),
+        ncol=3,
+        frameon=False,
+        handlelength=1.25,
+        handletextpad=0.35,
+        columnspacing=0.8,
+    )
+
+    # FullPR has a compact one-partition, fixed-round contract and stays separate.
+    axis = axes[1]
+    full_pr = [by_key[("full_pagerank", dataset)] for dataset in ("AM", "WG", "FL")]
+    positions = list(range(len(full_pr)))
+    floor = 0.01
+    medians = [float(row["speedup_median"]) for row in full_pr]
+    lows = [float(row["speedup_min"]) for row in full_pr]
+    highs = [float(row["speedup_max"]) for row in full_pr]
+    axis.bar(
+        positions,
+        [value - floor for value in medians],
+        bottom=floor,
+        width=0.48,
+        facecolor="#D9D9D9",
+        edgecolor=ink,
+        linewidth=0.45,
+        hatch="xxxx",
+        zorder=3,
+    )
+    axis.errorbar(
+        positions,
+        medians,
+        yerr=(
+            [median - low for median, low in zip(medians, lows, strict=True)],
+            [high - median for median, high in zip(medians, highs, strict=True)],
+        ),
+        fmt="none",
+        ecolor=ink,
+        elinewidth=0.48,
+        capsize=1.2,
+        capthick=0.48,
+        zorder=5,
+    )
+    axis.axhline(1.0, color=ink, linestyle="--", linewidth=0.62, zorder=2)
+    axis.set_yscale("log")
+    axis.set_ylim(floor, 1.25)
+    axis.set_yticks((0.01, 0.1, 1.0))
+    axis.set_yticklabels((".01", ".1", "1"))
+    axis.set_xticks(positions)
+    axis.set_xticklabels([row["dataset"] for row in full_pr])
+    axis.set_xlim(-0.7, len(full_pr) - 0.3)
+    axis.set_title("(b) Full PageRank, compact FPGA", pad=4.5, fontweight="bold")
+
+    for axis in axes:
+        axis.grid(
+            axis="y",
+            which="major",
+            color="#D2D5D7",
+            linestyle="--",
+            linewidth=0.45,
+            zorder=0,
+        )
         axis.tick_params(axis="x", length=0)
-        axis.grid(axis="y", which="major", color="#D2D5D7", linestyle="--", linewidth=0.45, zorder=0)
         axis.minorticks_off()
-        axis.set_title(f"({chr(ord('a') + index)}) {ALGORITHM_LABEL[algorithm]}", pad=3.0, fontweight="bold")
         for spine in axis.spines.values():
             spine.set_color(ink)
             spine.set_linewidth(0.7)
     figure.supylabel("Speedup (G+R / Delta.hls)", x=0.012, fontsize=6.8)
-    figure.legend(
-        handles=(
-            Patch(facecolor="white", edgecolor=blue, hatch="////", label="Delta.hls faster"),
-            Patch(facecolor="white", edgecolor=orange, hatch="////", label="G+R faster"),
-        ),
-        loc="upper center",
-        bbox_to_anchor=(0.58, 1.005),
-        ncol=2,
-        frameon=False,
-        handlelength=1.35,
-        columnspacing=1.0,
-    )
-    figure.subplots_adjust(left=0.18, right=0.99, bottom=0.06, top=0.94, hspace=0.62)
+    figure.subplots_adjust(left=0.17, right=0.995, bottom=0.075, top=0.87, hspace=0.48)
     save_figure(figure, FIGURES / "fig7_fpga_speedup")
     plt.close(figure)
 

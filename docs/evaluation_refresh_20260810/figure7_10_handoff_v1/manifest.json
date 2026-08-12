@@ -20,13 +20,13 @@
   "outputs": {
     "figures/fig10_simulator_breakdown.pdf": "a0c38005ead775a722d54c5095503d2290871d41bce5127d321fd20813d51b91",
     "figures/fig10_simulator_breakdown.png": "081f7664007bf6513d437843cc05bf523621093c3051a616314d3e505cfa3968",
-    "figures/fig7_fpga_speedup.pdf": "a20242b150d367edff34e8ba4c58b542cce287f2e9c6a8e9d3002114a7706474",
-    "figures/fig7_fpga_speedup.png": "a2f04dd554b01d4247438ecfe5ac1b4a59912037de4f8fa54379c256eac4f1df",
+    "figures/fig7_fpga_speedup.pdf": "3ed0c91de7e5e9f032ddefe8728a6fb44ebba01fe4b6d3ade2471010047aa99f",
+    "figures/fig7_fpga_speedup.png": "a321869e0af5ff11ae1f43135b43c273f8038993077b31819a7c1505beba5351",
     "figures/fig8_update_throughput.pdf": "5519cdb2f6eab75ba748bac9dc01eb31952a0ed7e4609b7f8be57ecb0611aab4",
     "figures/fig8_update_throughput.png": "2e005e3e771c6a20a7a2530dd60de1e37c706ae87a35593a4df7f7cadad4eaed",
     "figures/fig9_memory_energy.pdf": "4bb7a192d8936edef01a753049ca336e5247304d45c9cbce56f56b075da51a23",
     "figures/fig9_memory_energy.png": "dfc7ca6e31a1bf2894584ee43d420bf5f8dc021cecf29a9deaf76403694b2546",
-    "figures/preview_all.png": "a41f75631f943d1b880b8e2abce6db00424cf2f1b03a79d4860612558d1e1fea"
+    "figures/preview_all.png": "b22c37188936cd6b1aa8d12cff3c5d1ec13d731af1c12293566af73c055528d4"
   },
   "renderer": "render_all.py",
   "schema_version": 1,
