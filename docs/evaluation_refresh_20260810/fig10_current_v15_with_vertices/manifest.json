@@ -1,0 +1,176 @@
+{
+  "calibrated_rows": 14,
+  "evidence": [
+    {
+      "execution_id": "current_fpga_v12_au_connected_components_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/connected_components_compacted_hls_v1/result.json",
+      "raw_result_sha256": "c616ac901117c0fddc2836a5d7c35c9c01c12c2c475a10dd792db5ab3e2e746c",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_au_connected_components_u8/case_result.json",
+      "wrapper_sha256": "d94a55a1fa98b7ece4cc311ffba703d056275c8ec2879bd8d16f17e351e3c90f"
+    },
+    {
+      "execution_id": "current_fpga_v12_au_thresholded_residual_pagerank_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "raw_result_sha256": "cbee27ac2feb06b537df432d78c21be0b663ef78443438dc3d2532b5bfa5faf5",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_au_thresholded_residual_pagerank_u8/case_result.json",
+      "wrapper_sha256": "7b0d153b9144105036f368628225e34421e75d3cbd7c59e0a514f19f24dc3853"
+    },
+    {
+      "execution_id": "current_fpga_v12_au_weighted_sssp_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/au/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "raw_result_sha256": "5fa758cbceb26aac7342ad3152e8ccc014ecc55cec683cf9e96f7d83887f0452",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_au_weighted_sssp_u8/case_result.json",
+      "wrapper_sha256": "19e6624d744ea4139c14a2e42a00c12850f1cb9250703169c8e3d6fa15367ada"
+    },
+    {
+      "execution_id": "current_fpga_v12_delete_fallback_sssp",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/delete_fallback/result.json",
+      "raw_result_sha256": "9173f6d4d9bb6e99848827ddea1af5289f1ed215e9723e86d45a404cfb7c34e4",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_delete_fallback_sssp/case_result.json",
+      "wrapper_sha256": "c8fb676b440ebeeaab99ac3d9db97c9be868af3e8f7606e5244d0689e5a663cc"
+    },
+    {
+      "execution_id": "current_fpga_v12_flickr_respr_correction_u1",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/residual_correction_sweep/deltahls_soc_flickr_insert_u1/eps_1e-06/spine/summary.json",
+      "raw_result_sha256": "2ae28c08167cb7091e1cfdc860be82b551fa5cf1e14be71d293f8adda216871a",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_flickr_respr_correction_u1/case_result.json",
+      "wrapper_sha256": "f597e4769f90c1503c8b8b58f0fa83ef961c0bdcc1495167550b967937a8765c"
+    },
+    {
+      "execution_id": "current_fpga_v12_flickr_respr_correction_u64",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/residual_correction_sweep/deltahls_soc_flickr_insert_u64/eps_1e-06/spine/summary.json",
+      "raw_result_sha256": "4b0899b7a91e74c9eafe7b8162def8b4fe00e64938ac69344a38944df79493d8",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_flickr_respr_correction_u64/case_result.json",
+      "wrapper_sha256": "3d9e74e7dc126b26b8588a2d9bc9350ca547365f97b998a44dce9fd2481e44b6"
+    },
+    {
+      "execution_id": "current_fpga_v12_flickr_respr_correction_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/residual_correction/deltahls_soc_flickr_insert_u8/eps_1e-06/spine/summary.json",
+      "raw_result_sha256": "eb4848fcd9719ad1d939c4751720bbe25eb788b7e4c675e57eb9e4fee616d4fb",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_flickr_respr_correction_u8/case_result.json",
+      "wrapper_sha256": "e35aa3c276b17ab98bfbd1bfecda0e066c3e337095093bf232c5b4af79b3667f"
+    },
+    {
+      "execution_id": "current_fpga_v12_r19_connected_components_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/r19/spine/connected_components_compacted_hls_v1/result.json",
+      "raw_result_sha256": "d2ca9ec95a09c8f3b66fc0cf9f29eb8f5ba79995256d16a0ac6209aad8d54690",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_r19_connected_components_u8/case_result.json",
+      "wrapper_sha256": "0c939e1d415ac058c5e6454eb64401b3fec9d134aa975cb5fd075f1e0af862e3"
+    },
+    {
+      "execution_id": "current_fpga_v12_r19_thresholded_residual_pagerank_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/r19/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "raw_result_sha256": "8a47043b8f57cb656b55de8c2b86b912954a3ac128a3b175b0fbf47ca2245db3",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_r19_thresholded_residual_pagerank_u8/case_result.json",
+      "wrapper_sha256": "20dc316665e4074d417374c5cfd6a51aa18e03e7413b05fab89ff43f00c3e130"
+    },
+    {
+      "execution_id": "current_fpga_v12_r19_weighted_sssp_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/r19/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "raw_result_sha256": "d2bce96df16f7b1e440a58d618234f4464e63bc1db6cc78ebbba83258a0e265f",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_r19_weighted_sssp_u8/case_result.json",
+      "wrapper_sha256": "960aab2506250cd829d75b834ab233f02f3bd9a338b566fb9702d4d3a2e9aefb"
+    },
+    {
+      "execution_id": "current_fpga_v12_su_connected_components_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/connected_components_compacted_hls_v1/result.json",
+      "raw_result_sha256": "f93296d349c1232ecff94c86e944b480e94e7dd761d0140e8b30ac04b317057c",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_su_connected_components_u8/case_result.json",
+      "wrapper_sha256": "dc852deda9405b6d2471dcfda28c9f2dce8a778cfa01fa7c14c46852c6c42cff"
+    },
+    {
+      "execution_id": "current_fpga_v12_su_thresholded_residual_pagerank_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "raw_result_sha256": "46a7717de8582e879b15628d9d382113883430a5f68be8540b6cf90b48ebdf73",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_su_thresholded_residual_pagerank_u8/case_result.json",
+      "wrapper_sha256": "dbc0a8d6e845a1a3b9efba6c4fc888629bab7b8a5cbb020c2275f5cd3f7587f1"
+    },
+    {
+      "execution_id": "current_fpga_v12_su_weighted_sssp_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "raw_result_sha256": "a365c3643acf3b73e7cdcdfb0eedf554bbd55bc227abcb24e0170bd8560dff9c",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_su_weighted_sssp_u8/case_result.json",
+      "wrapper_sha256": "a66dcbf0b8288cd8efc30c03080b37901775201f436b59747ae6e815e82fd6e6"
+    },
+    {
+      "execution_id": "current_fpga_v12_wk_connected_components_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/connected_components_compacted_hls_v1/result.json",
+      "raw_result_sha256": "8205397b3bffe61606cf56ec6eaa74c0267e0c21fa92634068b2416a0eda48a6",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_wk_connected_components_u8/case_result.json",
+      "wrapper_sha256": "7064718fd1b6e64b23df41ba6465b0a5f241ce41d257ba82e1b9b0a485a01e33"
+    },
+    {
+      "execution_id": "current_fpga_v12_wk_thresholded_residual_pagerank_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+      "raw_result_sha256": "f96e3d1e4f67c51baef3672e95706e54b11f6ffbba683a2206881fcbb2173104",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_wk_thresholded_residual_pagerank_u8/case_result.json",
+      "wrapper_sha256": "5065c71ce38698e67df20d04bac985529afe264c3fb93ec8dfa09b41bd84db39"
+    },
+    {
+      "execution_id": "current_fpga_v12_wk_weighted_sssp_u8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/weighted_sssp_compacted_hls_v1/result.json",
+      "raw_result_sha256": "c742ebc984aa2e5b51657265797273b4ab67b3a628e165ed2daa428b99172fb9",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/current_fpga_v12_wk_weighted_sssp_u8/case_result.json",
+      "wrapper_sha256": "ce0f58edef4f326aa94bf72465d2d1d8a514ba95476047013496f2cded43bbb6"
+    },
+    {
+      "execution_id": "rq3_trace_carry_l1_e8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/carry/runs/l1/result.json",
+      "raw_result_sha256": "344ea12599738795f48f8a3ad3735e5324a6f08c6585bd3eff0d0386bb7b6443",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/rq3_trace_carry_l1_e8/case_result.json",
+      "wrapper_sha256": "75ee6d56239f981225569878a9c728467fc71d962dbdea7f969c793b5ddd04b1"
+    },
+    {
+      "execution_id": "rq3_trace_carry_l2_e8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/carry/runs/l2/result.json",
+      "raw_result_sha256": "2216536834b527a21413e4a31ee190813674fc694d966b5eadc6504bd82e5bc9",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/rq3_trace_carry_l2_e8/case_result.json",
+      "wrapper_sha256": "e640af45dbe5eebbbe34e76cb688168318e79f2f3ec49628b7f540fda342f739"
+    },
+    {
+      "execution_id": "rq3_trace_carry_l3_e8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/carry/runs/l3/result.json",
+      "raw_result_sha256": "627e26203b55bb3b62391fc6cf48bdf332275b96662cee05646c88c6f302f6fd",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/rq3_trace_carry_l3_e8/case_result.json",
+      "wrapper_sha256": "3e2590f8aec86fffe69b3774ce2aeaaadad6801389402a48dbb01e253d91015f"
+    },
+    {
+      "execution_id": "rq3_trace_carry_l4_e8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/carry/runs/l4/result.json",
+      "raw_result_sha256": "ddd75c2f3eb0b60c0f02046d9132ad7400c6f82bc833e55183c1fdfc1fb6b90e",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/rq3_trace_carry_l4_e8/case_result.json",
+      "wrapper_sha256": "0c0b5519e99d5d4ca7b7ea5cf770f645aae6b649e19aee6ee38752ec07daee55"
+    },
+    {
+      "execution_id": "rq3_trace_carry_l5_e8",
+      "raw_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/carry/runs/l5/result.json",
+      "raw_result_sha256": "1a4417940cb0ac1ac8a631117fec78f207d986898230252fa7a747549e40cf1e",
+      "wrapper": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/runs/rq3_trace_carry_l5_e8/case_result.json",
+      "wrapper_sha256": "30c05ec71974377c0a6dc625f110df293cbb0d10d94f81e100e1896a7ae8d2b8"
+    }
+  ],
+  "evidence_boundary": "FPGA calibration covers aggregate maintenance and iterative component envelopes only; ten-stage fractions are direct execution-model timestamp attribution, not FPGA per-stage counters",
+  "frozen_model": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration_v15_frozen/frozen_spine_mechanism_component_models.json",
+  "frozen_model_sha256": "483146050c32bf423a57d8d568dc6d4bff346ff5369dc72650375726f43e3642",
+  "holdout_analysis": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration_v15_holdout/analysis_manifest.json",
+  "holdout_analysis_sha256": "345b611e2dbd5042fed9c2b1b73347b75b0c72e09739ade5691408ad28bdec21",
+  "holdout_status": "FAIL",
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "rows": 21,
+  "schema_version": 1,
+  "source_latency_rows": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices/analysis/rq3_latency_rows.csv",
+  "source_latency_rows_sha256": "b6faccd0e97bcbbedd05330ec32fc96af985a7c6ada2cad00d664fbc67980f77",
+  "source_package": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices",
+  "source_package_manifest_sha256": "8fb273988915e7d57f836095e5c8a589df764c5da806613e5b0e09e6703729e5",
+  "status": "PARTIAL_COMPONENT_CALIBRATION",
+  "structure_only_execution_ids": [
+    "current_fpga_v12_au_thresholded_residual_pagerank_u8",
+    "current_fpga_v12_flickr_respr_correction_u1",
+    "current_fpga_v12_flickr_respr_correction_u64",
+    "current_fpga_v12_flickr_respr_correction_u8",
+    "current_fpga_v12_r19_thresholded_residual_pagerank_u8",
+    "current_fpga_v12_su_thresholded_residual_pagerank_u8",
+    "current_fpga_v12_wk_thresholded_residual_pagerank_u8"
+  ],
+  "structure_only_rows": 7
+}

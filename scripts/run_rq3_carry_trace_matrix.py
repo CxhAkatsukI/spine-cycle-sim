@@ -162,6 +162,7 @@ def main() -> int:
                 "mathematical_correctness_mismatches": 0,
             },
             "scalar_metrics": {
+                "vertices": int(case["vertices"]),
                 "maintenance_target_level": int(result["maintenance_target_level"]),
                 "maintenance_cycles": int(result["maintenance_cycles"]),
             },

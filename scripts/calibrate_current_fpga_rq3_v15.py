@@ -127,25 +127,44 @@ def calibrate_row(
             "fpga_per_stage_counters_available": False,
         }
     )
+    truthy = {True, "True", "true", 1, "1"}
+    if row.get("ten_stage_supported") not in truthy:
+        common["timing_admission_reason"] = (
+            "execution result lacks the direct timestamps required for a "
+            "supported ten-stage attribution"
+        )
+        return common
+    if row.get("ten_stage_ledger_closed") not in truthy:
+        common["timing_admission_reason"] = (
+            "execution result has a ten-stage attribution whose ledger does "
+            "not close to the reported total"
+        )
+        return common
     if rounds > 0 and not iterative_model_supported(model):
         common["timing_admission_reason"] = (
             "frozen routed FPGA samples contain no nonzero iterative rounds "
             "for this algorithm"
         )
         return common
+    if "vertices" not in raw:
+        common["timing_admission_reason"] = (
+            "the frozen FPGA component model requires graph vertices, but "
+            "the integrity-checked execution evidence does not provide them"
+        )
+        return common
 
+    reader_cycles = component_active_cycles(dict(raw), "reader") if rounds else 0.0
+    compute_cycles = component_active_cycles(dict(raw), "compute") if rounds else 0.0
+    reader_requests = component_request_count(dict(raw), "reader") if rounds else 0.0
+    compute_requests = component_request_count(dict(raw), "compute") if rounds else 0.0
     prediction = model.predict_components(
         rounds=rounds,
         vertices=float(raw["vertices"]),
         simulator_maintenance_cycles=float(raw["maintenance_cycles"]),
-        simulator_reader_cycles=component_active_cycles(dict(raw), "reader"),
-        simulator_compute_cycles=component_active_cycles(dict(raw), "compute"),
-        simulator_reader_memory_requests=component_request_count(
-            dict(raw), "reader"
-        ),
-        simulator_compute_memory_requests=component_request_count(
-            dict(raw), "compute"
-        ),
+        simulator_reader_cycles=reader_cycles,
+        simulator_compute_cycles=compute_cycles,
+        simulator_reader_memory_requests=reader_requests,
+        simulator_compute_memory_requests=compute_requests,
     )
     projected = project_rq3_stage_ledger(
         row,
@@ -208,6 +227,10 @@ def main() -> int:
         if sha256_file(raw_path) != wrapper["raw_result_sha256"]:
             raise ValueError(f"RQ3 raw result changed: {execution_id}")
         raw = read_json(raw_path)
+        if "vertices" not in raw:
+            vertices = wrapper.get("scalar_metrics", {}).get("vertices")
+            if vertices is not None:
+                raw["vertices"] = int(vertices)
         algorithm = row["algorithm"]
         if algorithm not in models:
             raise ValueError(f"no frozen v15 model for {algorithm}")

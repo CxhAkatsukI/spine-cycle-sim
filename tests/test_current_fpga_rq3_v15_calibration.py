@@ -85,6 +85,37 @@ class CurrentFPGARQ3V15CalibrationTests(unittest.TestCase):
         self.assertFalse(calibrated["fpga_component_envelope_calibrated"])
         self.assertIn("no nonzero iterative rounds", calibrated["timing_admission_reason"])
 
+    def test_missing_ten_stage_timestamps_is_structure_only(self) -> None:
+        row = ledger_row()
+        row["ten_stage_supported"] = "False"
+        row["ten_stage_ledger_closed"] = "False"
+
+        calibrated = calibrate_row(row, raw_result(), model(iterative=True))
+
+        self.assertEqual(calibrated["timing_admission"], "STRUCTURE_ONLY")
+        self.assertFalse(calibrated["fpga_component_envelope_calibrated"])
+        self.assertIn("direct timestamps", calibrated["timing_admission_reason"])
+
+    def test_missing_vertices_is_structure_only(self) -> None:
+        raw = raw_result()
+        del raw["vertices"]
+
+        calibrated = calibrate_row(ledger_row(), raw, model(iterative=True))
+
+        self.assertEqual(calibrated["timing_admission"], "STRUCTURE_ONLY")
+        self.assertIn("requires graph vertices", calibrated["timing_admission_reason"])
+
+    def test_zero_round_ignores_preload_component_activity(self) -> None:
+        raw = raw_result()
+        raw["rounds"] = 0
+
+        calibrated = calibrate_row(ledger_row(), raw, model(iterative=True))
+
+        self.assertEqual(
+            calibrated["timing_admission"], "CALIBRATED_COMPONENT_ENVELOPE"
+        )
+        self.assertEqual(calibrated["predicted_iterative_span_cycles"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
