@@ -1,0 +1,4 @@
+role,algorithm,rows,median_absolute_error_percent,max_absolute_error_percent
+transfer,connected_components,2,27.035397487985577,31.766372842931066
+transfer,thresholded_residual_pagerank,2,11.448415261146183,16.69572652843474
+transfer,weighted_sssp,2,31.474088562128347,44.423059544505534
