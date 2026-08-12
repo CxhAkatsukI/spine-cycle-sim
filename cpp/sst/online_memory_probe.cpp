@@ -1181,6 +1181,47 @@ void write_memory_traffic(std::ostream &output,
   output << '}';
 }
 
+void write_grasu_update_observability(std::ostream &output,
+                                      const GraSuUpdateCounters &update) {
+  output << "{\"updates\":" << update.updates
+         << ",\"update_record_bytes\":" << update.update_record_bytes
+         << ",\"destination_partitions_touched\":"
+         << update.destination_partitions_touched
+         << ",\"partition_routes\":" << update.partition_routes
+         << ",\"inserts\":" << update.inserts
+         << ",\"deletes\":" << update.deletes
+         << ",\"weight_decreases\":" << update.weight_decreases
+         << ",\"weight_increases\":" << update.weight_increases
+         << ",\"row_reads\":" << update.row_reads
+         << ",\"binary_probes\":" << update.binary_probes
+         << ",\"cache_updates\":" << update.cache_updates
+         << ",\"ddr_updates\":" << update.ddr_updates
+         << ",\"pma_reads\":" << update.pma_reads
+         << ",\"pma_writes\":" << update.pma_writes
+         << ",\"degree_reads\":" << update.degree_reads
+         << ",\"degree_writes\":" << update.degree_writes
+         << ",\"update_read_bytes\":" << update.update_read_bytes
+         << ",\"row_read_bytes\":" << update.row_read_bytes
+         << ",\"binary_read_bytes\":" << update.binary_read_bytes
+         << ",\"pma_read_bytes\":" << update.pma_read_bytes
+         << ",\"pma_write_bytes\":" << update.pma_write_bytes
+         << ",\"degree_read_bytes\":" << update.degree_read_bytes
+         << ",\"degree_write_bytes\":" << update.degree_write_bytes
+         << ",\"degree_fifo_stalls\":" << update.degree_fifo_stalls
+         << ",\"degree_fifo_max_occupancy\":"
+         << update.degree_fifo_max_occupancy
+         << ",\"degree_reorder_max_occupancy\":"
+         << update.degree_reorder_max_occupancy
+         << ",\"axi_request_fifo_stalls\":"
+         << update.axi_request_fifo_stalls
+         << ",\"axi_backend_submit_stalls\":"
+         << update.axi_backend_submit_stalls
+         << ",\"axis_push_stalls\":" << update.axis_push_stalls
+         << ",\"lane_queue_stalls\":" << update.lane_queue_stalls
+         << ",\"start_cycle\":" << update.start_cycle
+         << ",\"end_cycle\":" << update.end_cycle << '}';
+}
+
 bool memory_locality_closes(const MemoryLocalityStats &stats) {
   return stats.requests ==
              stats.first_requests + stats.contiguous_requests +
@@ -5202,7 +5243,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->max_outstanding() << ",\n"
              << "  \"backend_arbitration\": "
              << backend_->arbitration_json() << ",\n"
-             << "  \"backend_traffic\": ";
+             << "  \"update_observability\": ";
+      write_grasu_update_observability(result, update);
+      result << ",\n  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"update_backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
@@ -5657,7 +5700,9 @@ class OnlineMemoryProbe final : public SST::Component {
              << (update_state_match ? 0 : 1) << ",\n"
              << "  \"memory_locality_ledger_match\": "
              << (memory_locality_ledger_match ? "true" : "false") << ",\n"
-             << "  \"active_edges\": " << reference.active_edges << ",\n"
+             << "  \"update_observability\": ";
+      write_grasu_update_observability(result, update);
+      result << ",\n  \"active_edges\": " << reference.active_edges << ",\n"
              << "  \"destination_partitions\": "
              << compute.destination_partitions << ",\n"
              << "  \"compute_pipelines\": " << compute.compute_pipelines
@@ -6736,6 +6781,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->arbitration_json() << ",\n";
       result << "  \"update_failure\": ";
       write_json_string(result, grasu_update_system_->failure());
+      result << ",\n  \"update_observability\": ";
+      write_grasu_update_observability(result, update);
       result << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
@@ -7170,6 +7217,9 @@ class OnlineMemoryProbe final : public SST::Component {
           << ",\n"
           << "  \"backend_arbitration\": " << backend_->arbitration_json()
           << ",\n";
+      result << "  \"update_observability\": ";
+      write_grasu_update_observability(result, update);
+      result << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"update_backend_traffic\": ";
@@ -7540,6 +7590,8 @@ class OnlineMemoryProbe final : public SST::Component {
              << backend_->arbitration_json() << ",\n";
       result << "  \"update_failure\": ";
       write_json_string(result, grasu_update_system_->failure());
+      result << ",\n  \"update_observability\": ";
+      write_grasu_update_observability(result, update);
       result << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
