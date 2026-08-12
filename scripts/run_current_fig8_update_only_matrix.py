@@ -20,12 +20,12 @@ DEFAULT_MATERIALIZATION_ROOT = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/workloads"
 )
 DEFAULT_EVIDENCE_ROOT = Path(
-    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_fig8_20260812"
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812"
 )
 DEFAULT_GRASU_FROZEN_MODEL = (
     ROOT
     / "docs/evaluation_refresh_20260810/"
-    "calibration_v19_grasu_persistent_update_frozen/frozen_model.json"
+    "calibration_v20_grasu_persistent_update_frozen/frozen_model.json"
 )
 DEFAULT_SPINE_FROZEN_MODEL = (
     ROOT

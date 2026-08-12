@@ -144,6 +144,8 @@ def validate_current_case_manifests(
                 "grasu_calibration_contract_sha256",
                 "spine_frozen_mechanism_model_sha256",
                 "grasu_frozen_persistent_update_model_sha256",
+                "spine_holdout_analysis_sha256",
+                "grasu_holdout_analysis_sha256",
             )
         )
         if not all(identity):
@@ -162,6 +164,8 @@ def validate_current_case_manifests(
         grasu_calibration,
         spine_frozen_model,
         grasu_frozen_model,
+        spine_holdout_analysis,
+        grasu_holdout_analysis,
     ) = next(iter(identities))
     return list(dict.fromkeys(manifests)), {
         "spine_sst_plugin_sha256": spine_plugin,
@@ -171,6 +175,8 @@ def validate_current_case_manifests(
         "grasu_calibration_contract_sha256": grasu_calibration,
         "spine_frozen_mechanism_model_sha256": spine_frozen_model,
         "grasu_frozen_persistent_update_model_sha256": grasu_frozen_model,
+        "spine_holdout_analysis_sha256": spine_holdout_analysis,
+        "grasu_holdout_analysis_sha256": grasu_holdout_analysis,
     }
 
 

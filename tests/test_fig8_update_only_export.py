@@ -11,6 +11,10 @@ import unittest
 from scripts.render_evaluation_refresh import collect_fig8_rows
 from scripts import run_current_fig8_update_only_case
 from scripts.run_current_fig8_update_only_case import pure_result
+from scripts.run_current_fig8_update_only_case import (
+    validate_grasu_holdout,
+    validate_spine_maintenance_holdout,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,14 +58,16 @@ def current_case_manifest() -> dict[str, object]:
         "grasu_sst_plugin_sha256": "grasu-plugin-v19",
         "case_contract_sha256": "cases-v7",
         "spine_calibration_contract_sha256": "spine-calibration-v15",
-        "grasu_calibration_contract_sha256": "grasu-calibration-v19",
+        "grasu_calibration_contract_sha256": "grasu-calibration-v20",
         "spine_frozen_mechanism_model_sha256": "spine-v15",
-        "grasu_frozen_persistent_update_model_sha256": "grasu-v19",
+        "grasu_frozen_persistent_update_model_sha256": "grasu-v20",
+        "spine_holdout_analysis_sha256": "spine-holdout-v15",
+        "grasu_holdout_analysis_sha256": "grasu-holdout-v20",
     }
 
 
 class Fig8UpdateOnlyExportTests(unittest.TestCase):
-    def test_current_runner_defaults_follow_split_v15_v19_freeze(self) -> None:
+    def test_current_runner_defaults_follow_split_v15_v20_freeze(self) -> None:
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_SPINE_LIB_DIR,
             ROOT / "cpp/sst/build/sst-current-fpga-v12",
@@ -82,13 +88,13 @@ class Fig8UpdateOnlyExportTests(unittest.TestCase):
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_GRASU_CALIBRATION_CONTRACT,
             ROOT
-            / "configs/contracts/current_fpga_grasu_persistent_update_v19.json",
+            / "configs/contracts/current_fpga_grasu_persistent_update_v20.json",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_GRASU_FROZEN_MODEL,
             ROOT
             / "docs/evaluation_refresh_20260810/"
-            "calibration_v19_grasu_persistent_update_frozen/frozen_model.json",
+            "calibration_v20_grasu_persistent_update_frozen/frozen_model.json",
         )
         self.assertEqual(
             run_current_fig8_update_only_case.DEFAULT_SPINE_FROZEN_MODEL,
@@ -96,6 +102,54 @@ class Fig8UpdateOnlyExportTests(unittest.TestCase):
             / "docs/evaluation_refresh_20260810/calibration_v15_frozen"
             / "frozen_spine_mechanism_component_models.json",
         )
+
+    def test_spine_component_admission_does_not_require_whole_machine_pass(self) -> None:
+        contract = {
+            "thresholds": {
+                "holdout_component_median_absolute_error_percent_max": 20.0,
+                "holdout_component_absolute_error_percent_max": 40.0,
+            }
+        }
+        analysis = {
+            "status": "FAIL",
+            "holdout_used_for_fit": False,
+            "gate_results": {"memory_ledger": "PASS", "structural_work": "PASS"},
+            "holdout_component_summary": [
+                {
+                    "algorithm": "weighted_sssp",
+                    "component": "maintenance",
+                    "role": "holdout",
+                    "cases": 2,
+                    "median_absolute_error_percent": 9.2,
+                    "max_absolute_error_percent": 16.2,
+                }
+            ],
+        }
+        row = validate_spine_maintenance_holdout(
+            analysis, contract, "weighted_sssp"
+        )
+        self.assertEqual(row["component"], "maintenance")
+
+    def test_grasu_holdout_requires_pass_without_refit(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            contract = root / "contract.json"
+            model = root / "model.json"
+            contract.write_text("{}\n", encoding="ascii")
+            model.write_text("{}\n", encoding="ascii")
+            good = {
+                "status": "PASS",
+                "model_refit": False,
+                "contract_sha256": run_current_fig8_update_only_case.sha256_file(
+                    contract
+                ),
+                "frozen_model_sha256": run_current_fig8_update_only_case.sha256_file(
+                    model
+                ),
+            }
+            validate_grasu_holdout(good, contract, model)
+            with self.assertRaisesRegex(ValueError, "did not pass"):
+                validate_grasu_holdout(dict(good, status="FAIL"), contract, model)
 
     def test_current_case_preserves_raw_and_applies_frozen_component_scale(self) -> None:
         result = pure_result(

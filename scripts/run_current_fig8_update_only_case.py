@@ -47,17 +47,27 @@ DEFAULT_SPINE_CALIBRATION_CONTRACT = (
     ROOT / "configs/contracts/current_fpga_spine_mechanism_components_v15.json"
 )
 DEFAULT_GRASU_CALIBRATION_CONTRACT = (
-    ROOT / "configs/contracts/current_fpga_grasu_persistent_update_v19.json"
+    ROOT / "configs/contracts/current_fpga_grasu_persistent_update_v20.json"
 )
 DEFAULT_GRASU_FROZEN_MODEL = (
     ROOT
     / "docs/evaluation_refresh_20260810/"
-    "calibration_v19_grasu_persistent_update_frozen/frozen_model.json"
+    "calibration_v20_grasu_persistent_update_frozen/frozen_model.json"
 )
 DEFAULT_SPINE_FROZEN_MODEL = (
     ROOT
     / "docs/evaluation_refresh_20260810/calibration_v15_frozen"
     / "frozen_spine_mechanism_component_models.json"
+)
+DEFAULT_SPINE_HOLDOUT_ANALYSIS = (
+    ROOT
+    / "docs/evaluation_refresh_20260810/calibration_v15_holdout"
+    / "analysis_manifest.json"
+)
+DEFAULT_GRASU_HOLDOUT_ANALYSIS = (
+    ROOT
+    / "docs/evaluation_refresh_20260810/"
+    "calibration_v20_grasu_persistent_update_holdout/manifest.json"
 )
 
 
@@ -74,6 +84,51 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+
+
+def validate_spine_maintenance_holdout(
+    analysis: dict[str, Any], contract: dict[str, Any], algorithm: str
+) -> dict[str, Any]:
+    if analysis.get("holdout_used_for_fit") is not False:
+        raise ValueError("Fig. 8 Spine holdout was used for fitting")
+    gates = analysis.get("gate_results", {})
+    if gates.get("memory_ledger") != "PASS" or gates.get("structural_work") != "PASS":
+        raise ValueError("Fig. 8 Spine structural holdout gates did not pass")
+    row = next(
+        (
+            candidate
+            for candidate in analysis.get("holdout_component_summary", [])
+            if candidate.get("algorithm") == algorithm
+            and candidate.get("component") == "maintenance"
+            and candidate.get("role") == "holdout"
+        ),
+        None,
+    )
+    if not isinstance(row, dict):
+        raise ValueError("Fig. 8 Spine maintenance holdout row is missing")
+    thresholds = contract["thresholds"]
+    if (
+        int(row.get("cases", 0)) < 2
+        or float(row["median_absolute_error_percent"])
+        > float(thresholds["holdout_component_median_absolute_error_percent_max"])
+        or float(row["max_absolute_error_percent"])
+        > float(thresholds["holdout_component_absolute_error_percent_max"])
+    ):
+        raise ValueError("Fig. 8 Spine maintenance component holdout failed")
+    return row
+
+
+def validate_grasu_holdout(
+    analysis: dict[str, Any], contract_path: Path, model_path: Path
+) -> None:
+    if analysis.get("status") != "PASS":
+        raise ValueError("Fig. 8 G+R v20 SO/PK holdout did not pass")
+    if analysis.get("model_refit") is not False:
+        raise ValueError("Fig. 8 G+R v20 holdout refit the frozen model")
+    if analysis.get("contract_sha256") != sha256_file(contract_path):
+        raise ValueError("Fig. 8 G+R holdout contract mismatch")
+    if analysis.get("frozen_model_sha256") != sha256_file(model_path):
+        raise ValueError("Fig. 8 G+R holdout frozen-model mismatch")
 
 
 def directed_insert_updates(materialization: dict[str, Any]) -> dict[int, Path]:
@@ -245,6 +300,12 @@ def main() -> int:
     parser.add_argument(
         "--spine-frozen-model", type=Path, default=DEFAULT_SPINE_FROZEN_MODEL
     )
+    parser.add_argument(
+        "--spine-holdout-analysis", type=Path, default=DEFAULT_SPINE_HOLDOUT_ANALYSIS
+    )
+    parser.add_argument(
+        "--grasu-holdout-analysis", type=Path, default=DEFAULT_GRASU_HOLDOUT_ANALYSIS
+    )
     parser.add_argument("--max-cycles", type=int, default=10_000_000_000)
     parser.add_argument("--h2d-gbps", type=float, default=12.0)
     parser.add_argument("--launch-sync-us", type=float, default=10.0)
@@ -265,9 +326,9 @@ def main() -> int:
     if spine_plugin_sha256 != spine_contract["simulator_plugin"]["sha256"]:
         raise ValueError("Fig. 8 Spine plugin does not match the v15 contract")
     if grasu_plugin_sha256 != grasu_contract["plugin"]["sha256"]:
-        raise ValueError("Fig. 8 G+R plugin does not match the v19 contract")
+        raise ValueError("Fig. 8 G+R plugin does not match the v20 contract")
     if sha256_file(case_contract_path) != grasu_contract["case_contract"]["sha256"]:
-        raise ValueError("Fig. 8 case contract does not match G+R v19")
+        raise ValueError("Fig. 8 case contract does not match G+R v20")
     spine_frozen_path = args.spine_frozen_model.resolve()
     spine_frozen = load_json(spine_frozen_path)
     if spine_frozen.get("status") != "FROZEN_BEFORE_HOLDOUT":
@@ -288,9 +349,13 @@ def main() -> int:
         raise ValueError("Fig. 8 frozen Spine SSSP model is missing")
     if spine_model.get("profile_id") != spine_profile_payload["profile_id"]:
         raise ValueError("Fig. 8 frozen Spine profile does not match the run")
+    spine_holdout_path = args.spine_holdout_analysis.resolve()
+    spine_holdout_row = validate_spine_maintenance_holdout(
+        load_json(spine_holdout_path), spine_contract, "weighted_sssp"
+    )
     grasu_frozen_path = args.grasu_frozen_model.resolve()
     grasu_frozen = load_json(grasu_frozen_path)
-    if grasu_frozen.get("status") != "FROZEN_BEFORE_TRANSFER_OBSERVATION":
+    if grasu_frozen.get("status") != "FROZEN_BEFORE_SO_PK_HOLDOUT":
         raise ValueError("Fig. 8 G+R persistent update model is not frozen")
     if grasu_frozen.get("contract_id") != grasu_contract.get("contract_id"):
         raise ValueError("Fig. 8 G+R frozen model contract mismatch")
@@ -305,6 +370,10 @@ def main() -> int:
     )
     if not isinstance(grasu_model, dict):
         raise ValueError("Fig. 8 frozen G+R SSSP persistent update model is missing")
+    grasu_holdout_path = args.grasu_holdout_analysis.resolve()
+    validate_grasu_holdout(
+        load_json(grasu_holdout_path), grasu_contract_path, grasu_frozen_path
+    )
 
     materialization = load_json(args.materialization_manifest.resolve())
     graph = Path(str(materialization["graphs"]["directed"]["path"]))
@@ -386,8 +455,10 @@ def main() -> int:
     nonempty_destination_shards = int(
         grasu_observability["destination_partitions_touched"]
     )
-    control_cycles_per_shard = float(
-        grasu_model["control_cycles_per_nonempty_shard"]
+    batch_launch_cycles = float(grasu_model["batch_launch_cycles"])
+    post_first_shard_cycles = float(grasu_model["post_first_shard_cycles"])
+    grasu_launch_envelope_cycles = batch_launch_cycles + post_first_shard_cycles * max(
+        0, nonempty_destination_shards - 1
     )
     spine = pure_result(
         spine_raw,
@@ -402,11 +473,9 @@ def main() -> int:
         system="grasu",
         updates=args.updates,
         calibration_scale=1.0,
-        calibration_additive_cycles=(
-            control_cycles_per_shard * nonempty_destination_shards
-        ),
+        calibration_additive_cycles=grasu_launch_envelope_cycles,
         calibration_component=(
-            "persistent_warm_update_raw_plus_nonempty_destination_shard_envelope"
+            "persistent_warm_update_raw_plus_batch_and_post_first_shard_envelope"
         ),
     )
     comparison = analyze_persistent_update_pair(
@@ -447,8 +516,13 @@ def main() -> int:
             "grasu_frozen_persistent_update_model_sha256": sha256_file(
                 grasu_frozen_path
             ),
-            "grasu_control_cycles_per_nonempty_shard": control_cycles_per_shard,
+            "grasu_batch_launch_cycles": batch_launch_cycles,
+            "grasu_post_first_shard_cycles": post_first_shard_cycles,
+            "grasu_launch_envelope_cycles": grasu_launch_envelope_cycles,
             "grasu_nonempty_destination_shards": nonempty_destination_shards,
+            "grasu_holdout_analysis": str(grasu_holdout_path),
+            "grasu_holdout_analysis_sha256": sha256_file(grasu_holdout_path),
+            "grasu_holdout_status": "PASS",
             "spine_frozen_mechanism_model": str(spine_frozen_path),
             "spine_frozen_mechanism_model_sha256": sha256_file(
                 spine_frozen_path
@@ -459,6 +533,11 @@ def main() -> int:
             "spine_frozen_mechanism_holdout_used_for_fit": spine_frozen.get(
                 "holdout_used_for_fit"
             ),
+            "spine_holdout_analysis": str(spine_holdout_path),
+            "spine_holdout_analysis_sha256": sha256_file(spine_holdout_path),
+            "spine_holdout_scope": "maintenance_component_only",
+            "spine_holdout_component_summary": spine_holdout_row,
+            "spine_whole_machine_holdout_status": "FAIL",
             "spine_profile_id": spine_profile_payload["profile_id"],
             "spine_profile_sha256": sha256_file(args.spine_profile.resolve()),
             "grasu_profile_id": grasu_profile_payload["profile_id"],
