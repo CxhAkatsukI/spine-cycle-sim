@@ -294,6 +294,30 @@ def validate_result(
     return checks
 
 
+def validate_update_only_result(
+    result: dict[str, Any], analysis: ReciprocalUpdateAnalysis
+) -> dict[str, bool]:
+    observability = result.get("update_observability")
+    return {
+        "success": result.get("success") is True,
+        "mode": result.get("mode") == "grasu_regraph_connected_components",
+        "measurement_window": result.get("measurement_window")
+        == "pure_update_only",
+        "pipeline_order": result.get("pipeline_order")
+        == "update_only_no_regraph_compute",
+        "conversion_absent": result.get("conversion_cost_included") is False,
+        "physical_records": result.get("physical_updates")
+        == analysis.physical_records,
+        "positive_update_cycles": int(result.get("update_cycles", 0)) > 0,
+        "zero_compute_cycles": int(result.get("compute_cycles", -1)) == 0,
+        "update_state": result.get("update_state_match") is True,
+        "memory_ledger": result.get("memory_locality_ledger_match") is True,
+        "correctness": result.get("correctness_mismatches") == 0,
+        "observability": isinstance(observability, dict)
+        and observability.get("updates") == analysis.physical_records,
+    }
+
+
 def _git_revision() -> str:
     return subprocess.run(
         ["git", "rev-parse", "HEAD"],
@@ -333,6 +357,11 @@ def main() -> int:
     parser.add_argument("--no-build", action="store_true")
     parser.add_argument("--reuse-result", action="store_true")
     parser.add_argument(
+        "--update-only",
+        action="store_true",
+        help="Stop after G+R PMA maintenance and emit update observability.",
+    )
+    parser.add_argument(
         "--hardware-full-recompute",
         action="store_true",
         help=(
@@ -346,6 +375,10 @@ def main() -> int:
         raise ValueError("CC runner timing and architecture parameters must be positive")
     if args.hardware_full_recompute and args.architecture != "grasu":
         raise ValueError("hardware full recompute is a G+R FPGA calibration mode")
+    if args.update_only and args.architecture != "grasu":
+        raise ValueError("CC update-only observation is available only for G+R")
+    if args.update_only and args.hardware_full_recompute:
+        raise ValueError("CC update-only and hardware full recompute are incompatible")
 
     requested_pipelines = args.compute_pipelines or 1
     requested_sharing = args.downstream_sharing or "direct"
@@ -407,8 +440,12 @@ def main() -> int:
     graph = load_slice(workload_path)
     update = load_slice(update_path)
     analysis = analyze_reciprocal_update(graph, update)
-    final_graph = materialize_reciprocal_update(graph, update)
-    oracle_labels = connected_components_labels(final_graph)
+    if args.update_only:
+        oracle_labels: tuple[int, ...] = ()
+    else:
+        final_graph = materialize_reciprocal_update(graph, update)
+        oracle_labels = connected_components_labels(final_graph)
+        del final_graph
 
     if not args.no_build:
         subprocess.run(
@@ -506,6 +543,7 @@ def main() -> int:
                 "GRASU_SST_CORE_MHZ": str(core_mhz),
                 "GRASU_SST_MAX_CYCLES": str(args.max_cycles),
                 "GRASU_SST_MAX_ROUNDS": str(args.max_rounds),
+                "GRASU_SST_UPDATE_ONLY": "1" if args.update_only else "0",
                 "GRASU_SST_CC_HARDWARE_FULL_RECOMPUTE": (
                     "1" if args.hardware_full_recompute else "0"
                 ),
@@ -625,7 +663,7 @@ def main() -> int:
     # The SST child reloads both slices from their file paths.  Keep only the
     # compact oracle result and update analysis while it runs; retaining these
     # three Python graph payloads duplicates the full graph in host memory.
-    del graph, update, final_graph
+    del graph, update
     host_heap_trimmed = release_process_heap()
     start = time.monotonic()
     if not args.reuse_result:
@@ -646,16 +684,20 @@ def main() -> int:
     wall_seconds = time.monotonic() - start
     result = json.loads(result_path.read_text(encoding="utf-8"))
     dram = load_dram_stats(dram_path)
-    checks = validate_result(
-        result,
-        architecture=args.architecture,
-        expected_labels=oracle_labels,
-        analysis=analysis,
-        compute_pipelines=compute_pipelines,
-        downstream_sharing=(
-            downstream_sharing if args.architecture == "grasu" else "native"
-        ),
-        hardware_full_recompute=args.hardware_full_recompute,
+    checks = (
+        validate_update_only_result(result, analysis)
+        if args.update_only
+        else validate_result(
+            result,
+            architecture=args.architecture,
+            expected_labels=oracle_labels,
+            analysis=analysis,
+            compute_pipelines=compute_pipelines,
+            downstream_sharing=(
+                downstream_sharing if args.architecture == "grasu" else "native"
+            ),
+            hardware_full_recompute=args.hardware_full_recompute,
+        )
     )
     checks["dram_request_ledger"] = (
         dram["channels"] == len(binding.instantiated_channels)
@@ -697,6 +739,10 @@ def main() -> int:
             hardware_full_recompute=args.hardware_full_recompute,
         ),
         "hardware_full_recompute": args.hardware_full_recompute,
+        "measurement_window": (
+            "pure_update_only" if args.update_only else "update_to_convergence"
+        ),
+        "graph_compute_executed": not args.update_only,
         "host_oracle_storage": "graph_payload_released_before_sst_launch_v1",
         "host_heap_trimmed": host_heap_trimmed,
         "sst_host_wall_seconds": wall_seconds,
@@ -711,11 +757,18 @@ def main() -> int:
     )
     if failed:
         raise AssertionError(f"CC result failed admission checks: {', '.join(failed)}")
-    print(
-        f"PASS {args.architecture} CC: cycles={result['cycles']} "
-        f"iterations={result['iterations']} components={result['components']} "
-        f"K={manifest['compute_pipelines']} wall={wall_seconds:.3f}s"
-    )
+    if args.update_only:
+        print(
+            f"PASS {args.architecture} CC update-only: "
+            f"cycles={result['update_cycles']} "
+            f"physical={analysis.physical_records} wall={wall_seconds:.3f}s"
+        )
+    else:
+        print(
+            f"PASS {args.architecture} CC: cycles={result['cycles']} "
+            f"iterations={result['iterations']} components={result['components']} "
+            f"K={manifest['compute_pipelines']} wall={wall_seconds:.3f}s"
+        )
     return 0
 
 

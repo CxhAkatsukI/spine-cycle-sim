@@ -9,6 +9,7 @@ from scripts.run_sst_connected_components import (
     _with_progress_defaults,
     expected_update_mode,
     validate_result,
+    validate_update_only_result,
 )
 from spine_cycle_sim.experiments.connected_components_workloads import (
     ReciprocalUpdateAnalysis,
@@ -102,6 +103,29 @@ class SstConnectedComponentsRunnerTests(unittest.TestCase):
                 compute_pipelines=4,
                 downstream_sharing="direct",
             )["partition_work"]
+        )
+
+    def test_grasu_update_only_admits_only_maintenance_boundary(self) -> None:
+        result = {
+            "success": True,
+            "mode": "grasu_regraph_connected_components",
+            "measurement_window": "pure_update_only",
+            "pipeline_order": "update_only_no_regraph_compute",
+            "conversion_cost_included": False,
+            "physical_updates": 2,
+            "update_cycles": 70,
+            "compute_cycles": 0,
+            "update_state_match": True,
+            "memory_locality_ledger_match": True,
+            "correctness_mismatches": 0,
+            "update_observability": {"updates": 2},
+        }
+        checks = validate_update_only_result(result, self.analysis)
+        self.assertTrue(all(checks.values()))
+        self.assertFalse(
+            validate_update_only_result(
+                dict(result, compute_cycles=1), self.analysis
+            )["zero_compute_cycles"]
         )
 
     def test_shared_downstream_requires_one_active_downstream(self) -> None:

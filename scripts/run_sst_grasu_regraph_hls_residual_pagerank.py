@@ -412,6 +412,40 @@ def validate_result(
         )
 
 
+def validate_update_only_result(
+    result: dict[str, object], oracle: HlsResidualRuntimeOracle
+) -> None:
+    observability = result.get("update_observability")
+    checks = {
+        "success": result.get("success") is True,
+        "mode": result.get("mode")
+        == "grasu_regraph_hls_weighted_residual_pagerank",
+        "measurement_window": result.get("measurement_window")
+        == "pure_update_only",
+        "pipeline_order": result.get("pipeline_order")
+        == "update_only_no_regraph_compute",
+        "conversion_absent": result.get("conversion_cost_included") is False,
+        "logical_updates": result.get("logical_updates") == oracle.logical_updates,
+        "physical_updates": result.get("physical_updates")
+        == oracle.physical_updates,
+        "positive_update_cycles": int(result.get("update_cycles", 0)) > 0,
+        "zero_compute_cycles": int(result.get("compute_cycles", -1)) == 0,
+        "update_state": result.get("update_state_match") is True,
+        "memory_ledger": result.get("memory_locality_ledger_match") is True,
+        "correctness": result.get("correctness_mismatches") == 0,
+        "observability": isinstance(observability, dict)
+        and observability.get("updates") == oracle.physical_updates
+        and observability.get("degree_reads") == oracle.physical_updates
+        and observability.get("degree_writes") == oracle.physical_updates,
+    }
+    failed = [name for name, passed in checks.items() if not passed]
+    if failed:
+        raise RuntimeError(
+            f"HLS-equivalent residual update-only validation failed ({failed}); "
+            f"cycles={result.get('update_cycles')}"
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
@@ -439,6 +473,11 @@ def main() -> int:
         "--downstream-sharing", choices=("direct", "shared"), default=None
     )
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument(
+        "--update-only",
+        action="store_true",
+        help="Stop after PMA and degree maintenance and emit update observability.",
+    )
     parser.add_argument(
         "--reuse-result",
         action="store_true",
@@ -523,8 +562,12 @@ def main() -> int:
     )
     if epsilon <= 0.0 or max_iterations <= 0:
         raise ValueError("epsilon and residual iteration limit must be positive")
-    full_solution = full_pagerank_oracle(
-        initial.vertices, oracle.final_external_edges, damping, 200
+    full_solution = (
+        ()
+        if args.update_only
+        else full_pagerank_oracle(
+            initial.vertices, oracle.final_external_edges, damping, 200
+        )
     )
     binding = grasu_normalized_memory_binding(
         profile, instantiate_all=args.instantiate_all_hbm_channels
@@ -570,6 +613,7 @@ def main() -> int:
             "GRASU_SST_PAGERANK_DAMPING": str(damping),
             "GRASU_SST_PAGERANK_EPSILON": str(epsilon),
             "GRASU_SST_RESIDUAL_CONTRACT": residual_contract,
+            "GRASU_SST_UPDATE_ONLY": "1" if args.update_only else "0",
             "GRASU_SST_CACHE_SEGMENTS_PER_HALF": str(
                 params["grasu_cache_segments_per_cu"]
             ),
@@ -720,16 +764,19 @@ def main() -> int:
                 f"rc={completed.returncode}; see {args.out_dir / 'sst.log'}"
             )
     result = json.loads(result_path.read_text(encoding="utf-8"))
-    validate_result(
-        result,
-        profile,
-        runtime_oracle,
-        full_solution,
-        residual_contract=residual_contract,
-        epsilon=epsilon,
-        max_iterations=max_iterations,
-        downstream_sharing=downstream_sharing,
-    )
+    if args.update_only:
+        validate_update_only_result(result, runtime_oracle)
+    else:
+        validate_result(
+            result,
+            profile,
+            runtime_oracle,
+            full_solution,
+            residual_contract=residual_contract,
+            epsilon=epsilon,
+            max_iterations=max_iterations,
+            downstream_sharing=downstream_sharing,
+        )
     dram = load_dram_stats(dram_dir)
     if (
         dram["channels"] != len(binding.instantiated_channels)
@@ -760,6 +807,10 @@ def main() -> int:
         "host_heap_trimmed": host_heap_trimmed,
         "sst_host_wall_seconds": wall_seconds,
         "reused_existing_result": args.reuse_result,
+        "measurement_window": (
+            "pure_update_only" if args.update_only else "update_to_convergence"
+        ),
+        "graph_compute_executed": not args.update_only,
         "command": command,
         "result": result,
         "dram": dram,
@@ -768,12 +819,20 @@ def main() -> int:
     (args.out_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    print(
-        "PASS grasu_regraph_hls_residual_pagerank_sst: "
-        f"cycles={result['cycles']} iterations={result['iterations']} "
-        f"active_edges={result['compute_active_edges']} "
-        f"requests={result['backend_requests']}"
-    )
+    if args.update_only:
+        print(
+            "PASS grasu_regraph_hls_residual_pagerank_update_only: "
+            f"cycles={result['update_cycles']} "
+            f"physical={runtime_oracle.physical_updates} "
+            f"requests={result['backend_requests']}"
+        )
+    else:
+        print(
+            "PASS grasu_regraph_hls_residual_pagerank_sst: "
+            f"cycles={result['cycles']} iterations={result['iterations']} "
+            f"active_edges={result['compute_active_edges']} "
+            f"requests={result['backend_requests']}"
+        )
     return 0
 
 

@@ -12,6 +12,7 @@ from scripts.run_sst_grasu_regraph_hls_residual_pagerank import (
     propagation_iteration_count_matches,
     require_hls_residual_capability,
     residual_bound_matches,
+    validate_update_only_result,
 )
 from scripts.run_sst_grasu_regraph_hls_pagerank import full_pagerank_oracle
 from scripts.run_sst_grasu_regraph_hls_weighted import build_hls_weighted_oracle
@@ -77,6 +78,39 @@ class GraSuHlsResidualPageRankRunnerTests(unittest.TestCase):
         self.assertEqual(compact.external_to_internal, prepared.external_to_internal)
         self.assertEqual(compact.internal_to_external, prepared.internal_to_external)
         self.assertFalse(hasattr(compact, "final_internal_edges"))
+
+    def test_update_only_requires_degree_rmw_observability(self) -> None:
+        initial = load_slice(
+            ROOT / "tests" / "data" / "grasu_regraph_weighted_dynamic_initial.slice"
+        )
+        update = load_slice(
+            ROOT / "tests" / "data" / "grasu_regraph_weighted_dynamic_update.slice"
+        )
+        prepared = build_hls_weighted_oracle(initial, update, 0)
+        compact = compact_hls_residual_oracle(prepared, 4, 4)
+        result = {
+            "success": True,
+            "mode": "grasu_regraph_hls_weighted_residual_pagerank",
+            "measurement_window": "pure_update_only",
+            "pipeline_order": "update_only_no_regraph_compute",
+            "conversion_cost_included": False,
+            "logical_updates": compact.logical_updates,
+            "physical_updates": compact.physical_updates,
+            "update_cycles": 199,
+            "compute_cycles": 0,
+            "update_state_match": True,
+            "memory_locality_ledger_match": True,
+            "correctness_mismatches": 0,
+            "update_observability": {
+                "updates": compact.physical_updates,
+                "degree_reads": compact.physical_updates,
+                "degree_writes": compact.physical_updates,
+            },
+        }
+        validate_update_only_result(result, compact)
+        result["update_observability"]["degree_writes"] = 0
+        with self.assertRaises(RuntimeError):
+            validate_update_only_result(result, compact)
 
     def test_delta_validator_accepts_linf_when_l1_exceeds_epsilon(self) -> None:
         result = {"residual_l1": 3.6e-4, "residual_linf": 9.0e-5}
