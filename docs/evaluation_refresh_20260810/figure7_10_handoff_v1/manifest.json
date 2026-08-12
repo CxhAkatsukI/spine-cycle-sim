@@ -18,15 +18,15 @@
     "reference/GraphyFlow_Plot.zip": "a1b053bbd7c20cd9ce5c79d44a11027327da1c72a402487f5c8c659b71c18a27"
   },
   "outputs": {
-    "figures/fig10_simulator_breakdown.pdf": "a0c38005ead775a722d54c5095503d2290871d41bce5127d321fd20813d51b91",
-    "figures/fig10_simulator_breakdown.png": "081f7664007bf6513d437843cc05bf523621093c3051a616314d3e505cfa3968",
+    "figures/fig10_simulator_breakdown.pdf": "aa1eeeba67b61f92a2680b9e9336982117dc5a1678dfa448c0ffaf38771f13a0",
+    "figures/fig10_simulator_breakdown.png": "e2df3604b05db959a8c4ded0de55fec5a3e2f6f4aae15aabf6b64ffbd98065ac",
     "figures/fig7_fpga_speedup.pdf": "3ed0c91de7e5e9f032ddefe8728a6fb44ebba01fe4b6d3ade2471010047aa99f",
     "figures/fig7_fpga_speedup.png": "a321869e0af5ff11ae1f43135b43c273f8038993077b31819a7c1505beba5351",
     "figures/fig8_update_throughput.pdf": "5519cdb2f6eab75ba748bac9dc01eb31952a0ed7e4609b7f8be57ecb0611aab4",
     "figures/fig8_update_throughput.png": "2e005e3e771c6a20a7a2530dd60de1e37c706ae87a35593a4df7f7cadad4eaed",
     "figures/fig9_memory_energy.pdf": "4bb7a192d8936edef01a753049ca336e5247304d45c9cbce56f56b075da51a23",
     "figures/fig9_memory_energy.png": "dfc7ca6e31a1bf2894584ee43d420bf5f8dc021cecf29a9deaf76403694b2546",
-    "figures/preview_all.png": "b22c37188936cd6b1aa8d12cff3c5d1ec13d731af1c12293566af73c055528d4"
+    "figures/preview_all.png": "a4a97d88fd80ba340d8aed3578908bd8e1e6ca21519b78aa6dd3eaa9a6d69b75"
   },
   "renderer": "render_all.py",
   "schema_version": 1,

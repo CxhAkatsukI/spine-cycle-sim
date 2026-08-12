@@ -32,6 +32,10 @@ ALGORITHM_LABEL = {
     "residual_pagerank": "Residual PageRank",
     "full_pagerank": "Full PageRank, compact FPGA",
 }
+HATCH_FORWARD = "////"
+HATCH_BACKWARD = "\\\\\\\\"
+HATCH_VERTICAL = "||||"
+HATCH_CROSS = "xxxx"
 FIG9_ALGORITHM_ORDER = (
     "weighted_sssp",
     "connected_components",
@@ -57,11 +61,11 @@ FIG10_TICKS = {
     "Deletion fallback": ("Syn",),
 }
 FIG10_STAGES = (
-    ("maintenance_percent", "Maint.", "#A8CF88", "xxxxxxxx"),
-    ("seed_publication_percent", "Seed/pub.", "#F1A55B", "||||||||"),
-    ("resolve_percent", "Resolve", "#2F86BD", "////////"),
-    ("application_percent", "App", "#B7D6E8", "\\\\\\\\\\\\\\\\"),
-    ("drain_sync_percent", "Drain", "#35A936", "xxxxxxxx"),
+    ("maintenance_percent", "Maint.", "#A8CF88", HATCH_CROSS),
+    ("seed_publication_percent", "Seed/pub.", "#F1A55B", HATCH_VERTICAL),
+    ("resolve_percent", "Resolve", "#2F86BD", HATCH_FORWARD),
+    ("application_percent", "App", "#B7D6E8", HATCH_BACKWARD),
+    ("drain_sync_percent", "Drain", "#35A936", HATCH_CROSS),
 )
 
 
@@ -241,9 +245,9 @@ def save_figure(figure: Any, output: Path, *, dpi: int = 300) -> None:
 def render_fig7(plt: Any, rows: list[dict[str, str]]) -> None:
     ink = "#202428"
     algorithm_style = {
-        "residual_pagerank": ("ResPR", "#F2C49B", "////"),
-        "connected_components": ("CC", "#B9D5E6", "\\\\\\\\"),
-        "weighted_sssp": ("SSSP", "#BCDDAE", "||||"),
+        "residual_pagerank": ("ResPR", "#F2C49B", HATCH_FORWARD),
+        "connected_components": ("CC", "#B9D5E6", HATCH_BACKWARD),
+        "weighted_sssp": ("SSSP", "#BCDDAE", HATCH_VERTICAL),
     }
     comparison_order = (
         "residual_pagerank",
@@ -330,7 +334,7 @@ def render_fig7(plt: Any, rows: list[dict[str, str]]) -> None:
         facecolor="#D9D9D9",
         edgecolor=ink,
         linewidth=0.45,
-        hatch="xxxx",
+        hatch=HATCH_CROSS,
         zorder=3,
     )
     axis.errorbar(
@@ -399,7 +403,7 @@ def render_fig8(
         facecolor="white",
         edgecolor=blue,
         linewidth=0.72,
-        hatch="////",
+        hatch=HATCH_FORWARD,
         zorder=3,
     )
     axes[0].set_xticks(x)
@@ -454,9 +458,9 @@ def render_fig9(plt: Any, rows: list[dict[str, str]]) -> None:
     from matplotlib.patches import Patch
 
     dataset_style = {
-        "AU": ("#2A7F9E", "////"),
-        "SU": ("#D66A00", "\\\\\\\\"),
-        "WK": ("#3B8A3E", "||||"),
+        "AU": ("#2A7F9E", HATCH_FORWARD),
+        "SU": ("#D66A00", HATCH_BACKWARD),
+        "WK": ("#3B8A3E", HATCH_VERTICAL),
     }
     ink = "#202428"
     figure, axes = plt.subplots(1, 2, figsize=(3.55, 1.65))
