@@ -1,0 +1,8 @@
+{
+  "real_trace_holdout_max_absolute_error_percent": 107.34545785908531,
+  "real_trace_holdout_median_absolute_error_percent": 59.16912577015564,
+  "real_trace_holdout_r2": 0.9785504165846411,
+  "real_trace_holdout_samples": 7,
+  "reason": "the current-plugin real-trace holdout has high absolute error and insufficient coverage for a publication-grade global cost model",
+  "status": "DIAGNOSTIC_NOT_ADMITTED"
+}
