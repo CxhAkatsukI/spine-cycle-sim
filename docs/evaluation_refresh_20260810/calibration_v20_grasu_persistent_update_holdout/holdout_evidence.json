@@ -1,0 +1,134 @@
+[
+  {
+    "algorithm": "weighted_sssp",
+    "cold_update_ms": 178.046521,
+    "dataset": "so",
+    "hardware_run_env": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/so_weighted_sssp/run.env",
+    "hardware_run_env_sha256": "a9782943ca34fa4aff19d57880557ea67b0bd6fe81b1ded01b5e2590c4f66442",
+    "hardware_run_log": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/so_weighted_sssp/run.log",
+    "hardware_run_log_sha256": "c35ab24e4b00bb0dcf3b04dad523325b33bd364fc8f1e7349e5cafb2494ad7e2",
+    "role": "holdout",
+    "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/so/weighted_sssp/run_manifest.json",
+    "simulator_manifest_sha256": "c95aae90f48cf5057476007d1d4dea0e1cff1ac2ba792bb5077a28f87aba508e",
+    "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/so/weighted_sssp/result.json",
+    "simulator_result_sha256": "e4f7da369ac6c19172b65cca397406366bc38438646811629da76d000a45e7a8",
+    "warm_update_cv": 0.08612289913848509,
+    "warm_update_median_ms": 1.5416515,
+    "warm_update_ms": [
+      1.83924,
+      1.49452,
+      1.516561,
+      1.566742
+    ]
+  },
+  {
+    "algorithm": "connected_components",
+    "cold_update_ms": 53.849563,
+    "dataset": "so",
+    "hardware_run_env": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/so_connected_components/run.env",
+    "hardware_run_env_sha256": "24f17ea7a068f42559618c404935b3f7a3e07c1775a6571baaec84ad06872949",
+    "hardware_run_log": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/so_connected_components/run.log",
+    "hardware_run_log_sha256": "f5455ec2ae377ba4248c42ba65b7f6fbd85a975d67ff9cb2fa4dba84922f612d",
+    "role": "holdout",
+    "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/so/connected_components/run_manifest.json",
+    "simulator_manifest_sha256": "c50c4bafcc3b3ad5c03cd51df67892a1f6ae6b031862ad5e0942d16360d7c166",
+    "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/so/connected_components/result.json",
+    "simulator_result_sha256": "505375f5b8dbc8b227d3130ae51f321332ff4e8cfa08d94862f391a5f0d9cce4",
+    "warm_update_cv": 0.06715763337078895,
+    "warm_update_median_ms": 0.219401,
+    "warm_update_ms": [
+      0.192676,
+      0.222976,
+      0.215826,
+      0.231736
+    ]
+  },
+  {
+    "algorithm": "thresholded_residual_pagerank",
+    "cold_update_ms": 165.075748,
+    "dataset": "so",
+    "hardware_run_env": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/so_residual_pagerank/run.env",
+    "hardware_run_env_sha256": "cb31112111c6dcf4c02abbc236d9f592a47e3bbb6cb9573d89d47e5124652502",
+    "hardware_run_log": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/so_residual_pagerank/run.log",
+    "hardware_run_log_sha256": "fb99cb57f47cc95881b7a59c8ce8da6d4923413839c928c4f4eb85489199f638",
+    "role": "holdout",
+    "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/so/thresholded_residual_pagerank/run_manifest.json",
+    "simulator_manifest_sha256": "3dff0d4e379b825edea69e7ded795734d0d82aea98356c455283c79860ba8acf",
+    "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/so/thresholded_residual_pagerank/result.json",
+    "simulator_result_sha256": "b09149131147003bde87192745e4bc1beaa223543c36a09d25ec01c1d57d2670",
+    "warm_update_cv": 0.07458591892283686,
+    "warm_update_median_ms": 2.8098265,
+    "warm_update_ms": [
+      2.755785,
+      2.883818,
+      2.863868,
+      2.379545
+    ]
+  },
+  {
+    "algorithm": "weighted_sssp",
+    "cold_update_ms": 172.048739,
+    "dataset": "pk",
+    "hardware_run_env": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/pk_weighted_sssp/run.env",
+    "hardware_run_env_sha256": "25bfe5579d13a6516a0acb66596ccebbb5395316622d7eccbe0cb52f2e717054",
+    "hardware_run_log": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/pk_weighted_sssp/run.log",
+    "hardware_run_log_sha256": "f238fad16f01770f94571433c4edfdb27202544177c4b16d618f734346ee52ae",
+    "role": "holdout",
+    "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/pk/weighted_sssp/run_manifest.json",
+    "simulator_manifest_sha256": "ea680263b29f7e4b2f7d61d95d0298ae35987826595bb7bf1ba8bda7c34f8632",
+    "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/pk/weighted_sssp/result.json",
+    "simulator_result_sha256": "48d406a97a31c7a5b1569a1b98caf57191b7d004e4ade94e460c583108dc07ad",
+    "warm_update_cv": 0.09929139578187471,
+    "warm_update_median_ms": 2.0080644999999997,
+    "warm_update_ms": [
+      1.998964,
+      1.923382,
+      2.017165,
+      2.454106
+    ]
+  },
+  {
+    "algorithm": "connected_components",
+    "cold_update_ms": 42.284531,
+    "dataset": "pk",
+    "hardware_run_env": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/pk_connected_components/run.env",
+    "hardware_run_env_sha256": "37f0733f80bc0588f1d2503693d5e67e526501e5a85358a008e8b54aa85074c5",
+    "hardware_run_log": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/pk_connected_components/run.log",
+    "hardware_run_log_sha256": "0b4f14f1068bf235df30b70b1a633da488c4d0b5418a500ce69b7b5c72eb378d",
+    "role": "holdout",
+    "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/pk/connected_components/run_manifest.json",
+    "simulator_manifest_sha256": "ba8fc58e20017fda53d63a066dd778369d1edcc69c2ca69ebb5bd48e3ebc0714",
+    "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/pk/connected_components/result.json",
+    "simulator_result_sha256": "f9da9e6411103bb40d35e255921e17b49f7c78ad0baeac3ab697001200a5a8f9",
+    "warm_update_cv": 0.04551368755258485,
+    "warm_update_median_ms": 0.246787,
+    "warm_update_ms": [
+      0.246487,
+      0.260017,
+      0.228607,
+      0.247087
+    ]
+  },
+  {
+    "algorithm": "thresholded_residual_pagerank",
+    "cold_update_ms": 181.330224,
+    "dataset": "pk",
+    "hardware_run_env": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/pk_residual_pagerank/run.env",
+    "hardware_run_env_sha256": "c39ca63eb8b62dcf1fcc6f960796837051157e348286e00c93629ccb3e408dbd",
+    "hardware_run_log": "/data/tmp/chuxiao/grasu_update_only_holdout_v20_000cc91/pk_residual_pagerank/run.log",
+    "hardware_run_log_sha256": "03b3179bd28a24b282eb9e5e684aea01074c243cfe5b0759a40c1ac5a9f7ba3f",
+    "role": "holdout",
+    "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/pk/thresholded_residual_pagerank/run_manifest.json",
+    "simulator_manifest_sha256": "76b4539841b915b9c62a14505d5c488424ef3cc69bba8273d0e62983cace9985",
+    "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_so_pk_holdout_20260812/transfer/pk/thresholded_residual_pagerank/result.json",
+    "simulator_result_sha256": "1d6599ce398e62a3e2922fe53fda4ca2ff82a7b34ed1527eef99f506c1aef38f",
+    "warm_update_cv": 0.016662783360730224,
+    "warm_update_median_ms": 2.5965350000000003,
+    "warm_update_ms": [
+      2.559799,
+      2.644231,
+      2.633271,
+      2.546419
+    ]
+  }
+]

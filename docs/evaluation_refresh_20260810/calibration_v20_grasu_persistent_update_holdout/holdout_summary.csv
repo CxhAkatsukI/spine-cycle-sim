@@ -1,0 +1,4 @@
+role,algorithm,rows,median_absolute_error_percent,max_absolute_error_percent
+holdout,connected_components,2,5.903525374044939,8.281162838128969
+holdout,thresholded_residual_pagerank,2,4.468698492978661,8.589205801134398
+holdout,weighted_sssp,2,16.875529401968336,32.244909082378506
