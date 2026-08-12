@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "contract_id": "current_fpga_grasu_persistent_update_v20_20260812",
+  "status": "frozen_before_so_pk_holdout_observation",
+  "clock_mhz": 150.0,
+  "roles": {
+    "development_small": ["au", "su"],
+    "development_transfer_failure": ["lj", "lj08"],
+    "holdout": ["so", "pk"]
+  },
+  "algorithms": [
+    "weighted_sssp",
+    "connected_components",
+    "thresholded_residual_pagerank"
+  ],
+  "integration": {
+    "repo_head": "1577c6013d7e3a33e4d46d1c7f1cdca56411a092",
+    "repo_dirty": 0,
+    "measurement_window": "same_process_update_events",
+    "repeat_count": 5,
+    "cold_repeat": 0,
+    "warm_repeats": [1, 2, 3, 4],
+    "formal_statistic": "median update_ms over warm_repeats",
+    "state_restore": "restore PMA words and PageRank degree state before every repeat"
+  },
+  "plugin": {
+    "path": "cpp/sst/build/sst-current-fpga-v19/libspine_cycle.so",
+    "sha256": "13296920b5493610f706303395200306dea966475b2505779d586f1b9f87c6fc",
+    "source_revision": "8f8a769a62029783bd15dbb77eea358308967932"
+  },
+  "case_contract": {
+    "path": "configs/contracts/evaluation_refresh_fpga_cases_v7.json",
+    "sha256": "b9a03bbae24c2a6dc99009ea4234fec4c17692dbecdb071abee21e295a588fc2"
+  },
+  "profiles": {
+    "weighted_sssp": {
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+    },
+    "connected_components": {
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+      "sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34"
+    },
+    "thresholded_residual_pagerank": {
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+      "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+    }
+  },
+  "model": {
+    "form": "hardware_warm_update_cycles = simulator_update_cycles + batch_launch_cycles + post_first_shard_cycles * max(0, nonempty_destination_shards - 1)",
+    "features": [
+      "one persistent warm update invocation",
+      "result.update_observability.destination_partitions_touched"
+    ],
+    "mechanism": "one fixed host/OpenCL warm batch-launch envelope followed by serial launch, stream-lifetime, and synchronization envelopes for every additional nonempty destination shard",
+    "fit": "per-algorithm ordinary least squares on AU, SU, LJ, and LJ08 development rows with nonnegative coefficients",
+    "holdout_may_fit": false
+  },
+  "gates": {
+    "correctness_mismatches": 0,
+    "memory_locality_ledger_match": true,
+    "simulator_measurement_window": "pure_update_only",
+    "hardware_status": "PASS",
+    "pma_mismatches": 0,
+    "degree_mismatches": 0,
+    "warm_repeat_cv_max": 0.20,
+    "development_absolute_error_percent_max": 30.0,
+    "development_leave_one_dataset_out_absolute_error_percent_max": 60.0,
+    "holdout_median_absolute_error_percent_max": 25.0,
+    "holdout_absolute_error_percent_max": 40.0
+  },
+  "evidence_boundary": {
+    "v19_failure": "LJ and LJ08 first served as untouched v19 transfer rows, failed the v19 gate, and are now explicitly development-only for v20.",
+    "untouched_holdout_datasets": ["so", "pk"],
+    "holdout_results_must_not_exist_in_frozen_model": true
+  },
+  "limitations": [
+    "The model predicts persistent update-only timing, not graph convergence or process startup.",
+    "The two coefficients are routed runtime envelopes rather than individual OpenCL operation counters.",
+    "SO and PK are the only confirmatory v20 holdout and cannot change the model or thresholds."
+  ]
+}

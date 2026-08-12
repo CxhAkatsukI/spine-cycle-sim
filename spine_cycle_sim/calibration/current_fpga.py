@@ -74,6 +74,29 @@ class GrasuUpdateControlModel:
 
 
 @dataclass(frozen=True)
+class GrasuPersistentLaunchModel:
+    """Warm batch launch plus serialized envelopes after the first shard."""
+
+    algorithm: str
+    profile_id: str
+    development_datasets: tuple[str, ...]
+    batch_launch_cycles: float
+    post_first_shard_cycles: float
+
+    def predict(
+        self, *, simulator_update_cycles: float, nonempty_destination_shards: int
+    ) -> float:
+        _require_positive_finite(simulator_update_cycles, "simulator_update_cycles")
+        if nonempty_destination_shards <= 0:
+            raise ValueError("nonempty_destination_shards must be positive")
+        return (
+            simulator_update_cycles
+            + self.batch_launch_cycles
+            + self.post_first_shard_cycles * (nonempty_destination_shards - 1)
+        )
+
+
+@dataclass(frozen=True)
 class SpineRealizedWorkRecord:
     """Routed Spine timing paired with execution-driven HLS work counters."""
 
@@ -796,6 +819,120 @@ def fit_grasu_update_control_model(
         calibration_datasets=tuple(sorted(row.dataset for row in rows)),
         control_cycles_per_nonempty_shard=control_cycles,
     )
+
+
+def fit_grasu_persistent_launch_model(
+    records: Iterable[GrasuUpdateControlRecord],
+) -> GrasuPersistentLaunchModel:
+    """Fit a fixed warm launch and a serialized post-first-shard envelope."""
+
+    rows = tuple(records)
+    if len(rows) < 3:
+        raise ValueError("persistent launch fit requires at least three development rows")
+    identities = {(row.algorithm, row.profile_id) for row in rows}
+    if len(identities) != 1:
+        raise ValueError("persistent launch fit requires one algorithm/profile")
+    if any(row.role != "calibration" for row in rows):
+        raise ValueError("persistent launch fit rejects non-development rows")
+    if len({row.dataset for row in rows}) != len(rows):
+        raise ValueError("persistent launch development datasets must be unique")
+    xs: list[float] = []
+    ys: list[float] = []
+    for row in rows:
+        _require_positive_finite(row.simulator_update_cycles, "simulator_update_cycles")
+        _require_positive_finite(row.hardware_update_cycles, "hardware_update_cycles")
+        if row.nonempty_destination_shards <= 0:
+            raise ValueError("nonempty_destination_shards must be positive")
+        residual = row.hardware_update_cycles - row.simulator_update_cycles
+        if residual <= 0:
+            raise ValueError("hardware update timing must exceed simulated dataflow")
+        xs.append(float(row.nonempty_destination_shards - 1))
+        ys.append(residual)
+    mean_x = statistics.fmean(xs)
+    mean_y = statistics.fmean(ys)
+    denominator = sum((value - mean_x) ** 2 for value in xs)
+    unconstrained_slope = (
+        sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys)) / denominator
+        if denominator > 0
+        else 0.0
+    )
+    unconstrained_intercept = mean_y - unconstrained_slope * mean_x
+    candidates = [
+        (mean_y, 0.0),
+        (
+            0.0,
+            max(0.0, sum(x * y for x, y in zip(xs, ys)) / sum(x * x for x in xs)),
+        ) if any(xs) else (mean_y, 0.0),
+    ]
+    if unconstrained_intercept >= 0 and unconstrained_slope >= 0:
+        candidates.append((unconstrained_intercept, unconstrained_slope))
+    intercept, slope = min(
+        candidates,
+        key=lambda pair: sum(
+            (y - pair[0] - pair[1] * x) ** 2 for x, y in zip(xs, ys)
+        ),
+    )
+    if not all(math.isfinite(value) and value >= 0 for value in (intercept, slope)):
+        raise ValueError("persistent launch coefficients must be finite and non-negative")
+    algorithm, profile_id = next(iter(identities))
+    return GrasuPersistentLaunchModel(
+        algorithm=algorithm,
+        profile_id=profile_id,
+        development_datasets=tuple(sorted(row.dataset for row in rows)),
+        batch_launch_cycles=intercept,
+        post_first_shard_cycles=slope,
+    )
+
+
+def grasu_persistent_launch_prediction_rows(
+    records: Iterable[GrasuUpdateControlRecord],
+    model: GrasuPersistentLaunchModel,
+) -> list[dict[str, object]]:
+    output: list[dict[str, object]] = []
+    for row in records:
+        if (row.algorithm, row.profile_id) != (model.algorithm, model.profile_id):
+            raise ValueError("persistent launch record/model identity mismatch")
+        predicted = model.predict(
+            simulator_update_cycles=row.simulator_update_cycles,
+            nonempty_destination_shards=row.nonempty_destination_shards,
+        )
+        output.append(
+            {
+                "algorithm": row.algorithm,
+                "profile_id": row.profile_id,
+                "dataset": row.dataset,
+                "role": row.role,
+                "simulator_update_cycles": row.simulator_update_cycles,
+                "nonempty_destination_shards": row.nonempty_destination_shards,
+                "batch_launch_cycles": model.batch_launch_cycles,
+                "post_first_shard_cycles": model.post_first_shard_cycles,
+                "predicted_update_cycles": predicted,
+                "hardware_update_cycles": row.hardware_update_cycles,
+                "error_percent": 100.0 * (predicted - row.hardware_update_cycles)
+                / row.hardware_update_cycles,
+                "absolute_error_percent": absolute_error_percent(
+                    predicted, row.hardware_update_cycles
+                ),
+            }
+        )
+    return output
+
+
+def grasu_persistent_launch_leave_one_dataset_out_rows(
+    records: Iterable[GrasuUpdateControlRecord],
+) -> list[dict[str, object]]:
+    rows = tuple(records)
+    if len(rows) < 4:
+        raise ValueError("persistent launch LODO requires at least four rows")
+    output: list[dict[str, object]] = []
+    for held_out in rows:
+        training = tuple(row for row in rows if row.dataset != held_out.dataset)
+        model = fit_grasu_persistent_launch_model(training)
+        prediction = grasu_persistent_launch_prediction_rows((held_out,), model)[0]
+        prediction["held_out_dataset"] = held_out.dataset
+        prediction["training_datasets"] = ",".join(model.development_datasets)
+        output.append(prediction)
+    return output
 
 
 def grasu_update_control_prediction_rows(

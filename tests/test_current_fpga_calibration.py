@@ -15,6 +15,9 @@ from spine_cycle_sim.calibration.current_fpga import (
     fit_component_scale,
     fit_component_scale_calibration_only,
     fit_grasu_update_control_model,
+    fit_grasu_persistent_launch_model,
+    grasu_persistent_launch_leave_one_dataset_out_rows,
+    grasu_persistent_launch_prediction_rows,
     fit_composed_timing_model,
     fit_overlap_timing_model,
     fit_overlap_v6_timing_model,
@@ -67,6 +70,34 @@ class CurrentFPGACalibrationTests(unittest.TestCase):
         self.assertEqual(
             {row["training_datasets"] for row in predictions}, {"au", "su"}
         )
+
+    def test_grasu_persistent_launch_recovers_fixed_and_incremental_work(self):
+        rows = [
+            GrasuUpdateControlRecord(
+                "weighted_sssp", "p1", dataset, "calibration", 100, shards,
+                100 + 200 + 50 * (shards - 1),
+            )
+            for dataset, shards in (("au", 1), ("su", 2), ("lj", 4), ("lj08", 6))
+        ]
+        model = fit_grasu_persistent_launch_model(rows)
+        self.assertAlmostEqual(model.batch_launch_cycles, 200.0)
+        self.assertAlmostEqual(model.post_first_shard_cycles, 50.0)
+        self.assertTrue(all(
+            row["absolute_error_percent"] < 1e-9
+            for row in grasu_persistent_launch_prediction_rows(rows, model)
+        ))
+        self.assertEqual(
+            {row["held_out_dataset"] for row in grasu_persistent_launch_leave_one_dataset_out_rows(rows)},
+            {"au", "su", "lj", "lj08"},
+        )
+
+    def test_grasu_persistent_launch_rejects_holdout_fit(self):
+        rows = self.grasu_update_rows()
+        rows.append(GrasuUpdateControlRecord(
+            "weighted_sssp", "p1", "lj", "holdout", 100, 6, 3100
+        ))
+        with self.assertRaisesRegex(ValueError, "rejects non-development"):
+            fit_grasu_persistent_launch_model(rows)
 
     def realized_work_rows(self):
         rows = []

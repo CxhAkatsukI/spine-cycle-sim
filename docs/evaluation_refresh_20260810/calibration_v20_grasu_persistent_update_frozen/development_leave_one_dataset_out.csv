@@ -1,0 +1,13 @@
+algorithm,profile_id,dataset,role,simulator_update_cycles,nonempty_destination_shards,batch_launch_cycles,post_first_shard_cycles,predicted_update_cycles,hardware_update_cycles,error_percent,absolute_error_percent,held_out_dataset,training_datasets
+weighted_sssp,grasu_regraph_sharded_k4_weighted_hls_v8,au,calibration,225.0,2,31861.02763157891,45534.819078947374,77620.84671052628,63270.075000000004,22.681768135293463,22.681768135293463,au,"lj,lj08,su"
+weighted_sssp,grasu_regraph_sharded_k4_weighted_hls_v8,su,calibration,272.0,3,42566.6276785715,44298.32053571428,131435.26875000005,92809.575,41.61822069544016,41.61822069544016,su,"au,lj,lj08"
+weighted_sssp,grasu_regraph_sharded_k4_weighted_hls_v8,lj,calibration,422.0,8,0.0,64190.31583333334,449754.2108333334,305437.125,47.24935969500544,47.24935969500544,lj,"au,lj08,su"
+weighted_sssp,grasu_regraph_sharded_k4_weighted_hls_v8,lj08,calibration,329.0,6,16774.49758064517,41027.42822580645,222240.6387096774,335846.85000000003,-33.82679077988155,33.82679077988155,lj08,"au,lj,su"
+connected_components,grasu_regraph_sharded_k4_cc_hls_v8,au,calibration,266.0,1,35246.28333333333,0.0,35512.28333333333,29477.249999999996,20.473529020968158,20.473529020968158,au,"lj,lj08,su"
+connected_components,grasu_regraph_sharded_k4_cc_hls_v8,su,calibration,258.0,1,35813.86666666666,0.0,36071.86666666666,27766.5,29.91146405440607,29.91146405440607,su,"au,lj,lj08"
+connected_components,grasu_regraph_sharded_k4_cc_hls_v8,lj,calibration,233.0,1,31092.908333333336,0.0,31325.908333333336,41904.37499999999,-25.244301261304237,25.244301261304237,lj,"au,lj08,su"
+connected_components,grasu_regraph_sharded_k4_cc_hls_v8,lj08,calibration,201.0,1,32797.041666666664,0.0,32998.041666666664,36759.975000000006,-10.23377554890432,10.23377554890432,lj08,"au,lj,su"
+thresholded_residual_pagerank,grasu_regraph_sharded_k4_residual_hls_v8,au,calibration,369.0,4,84907.70624999999,56683.49375000001,255327.1875,198035.69999999998,28.92987855220045,28.92987855220045,au,"lj,lj08,su"
+thresholded_residual_pagerank,grasu_regraph_sharded_k4_residual_hls_v8,su,calibration,370.0,4,15637.070833333244,67620.96250000002,218869.9583333333,241786.575,-9.478035191435545,9.478035191435545,su,"au,lj,lj08"
+thresholded_residual_pagerank,grasu_regraph_sharded_k4_residual_hls_v8,lj,calibration,593.0,8,0.0,76611.43779069767,536873.0645348837,468743.55000000005,14.534496428779374,14.534496428779374,lj,"au,lj08,su"
+thresholded_residual_pagerank,grasu_regraph_sharded_k4_residual_hls_v8,lj08,calibration,477.0,6,33084.953125,62152.22812500001,344323.09375000006,395885.4,-13.024553633450479,13.024553633450479,lj08,"au,lj,su"

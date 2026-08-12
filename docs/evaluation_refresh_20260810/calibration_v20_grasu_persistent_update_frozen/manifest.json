@@ -1,0 +1,8 @@
+{
+  "contract_sha256": "0e9d4bf91bbd538fe20be8372d7162d20bd99234b91c8172b162ff39adcbe98a",
+  "holdout_results_used": false,
+  "max_development_absolute_error_percent": 25.611212735655435,
+  "max_development_leave_one_dataset_out_absolute_error_percent": 47.24935969500544,
+  "model_sha256": "6433b04fdcb5dfb60e75dca283e6063d414faabcb16dab182340a6a928a6255d",
+  "status": "PASS"
+}
