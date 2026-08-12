@@ -140,9 +140,16 @@ def validate_current_case_manifests(
                 "sst_plugin_sha256",
                 "case_contract_sha256",
                 "calibration_contract_sha256",
-                "frozen_component_models",
+                "spine_frozen_mechanism_model_sha256",
             )
         )
+        frozen_models = manifest.get("frozen_component_models")
+        if not isinstance(frozen_models, dict) or not frozen_models.get("sha256"):
+            raise ValueError(
+                f"current Fig. 8 G+R frozen model identity is missing: "
+                f"{manifest_path}"
+            )
+        identity = (*identity, str(frozen_models["sha256"]))
         if not all(identity):
             raise ValueError(
                 f"current Fig. 8 case has incomplete frozen identity: {manifest_path}"
@@ -151,12 +158,15 @@ def validate_current_case_manifests(
         manifests.append(manifest_path)
     if len(identities) != 1:
         raise ValueError("current Fig. 8 cases do not share one frozen identity")
-    plugin, cases, calibration, frozen_models = next(iter(identities))
+    plugin, cases, calibration, spine_frozen_model, grasu_frozen_models = next(
+        iter(identities)
+    )
     return list(dict.fromkeys(manifests)), {
         "sst_plugin_sha256": plugin,
         "case_contract_sha256": cases,
         "calibration_contract_sha256": calibration,
-        "frozen_component_models": frozen_models,
+        "spine_frozen_mechanism_model_sha256": spine_frozen_model,
+        "grasu_frozen_component_models_sha256": grasu_frozen_models,
     }
 
 

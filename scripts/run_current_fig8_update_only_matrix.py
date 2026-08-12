@@ -20,10 +20,15 @@ DEFAULT_MATERIALIZATION_ROOT = Path(
     "/data/tmp/chuxiao/large_graph_campaign_v1/workloads"
 )
 DEFAULT_EVIDENCE_ROOT = Path(
-    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_fig8_20260812"
+    "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_fig8_20260812"
 )
 DEFAULT_FROZEN_MODELS = (
     ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen"
+)
+DEFAULT_SPINE_FROZEN_MODEL = (
+    ROOT
+    / "docs/evaluation_refresh_20260810/calibration_v15_frozen"
+    / "frozen_spine_mechanism_component_models.json"
 )
 DATASETS = (
     ("au", "AU", "sx_askubuntu"),
@@ -103,6 +108,7 @@ def case_command(
     materialization_root: Path,
     evidence_root: Path,
     frozen_models: Path,
+    spine_frozen_model: Path,
     dataset_key: str,
     dataset_id: str,
     updates: int,
@@ -122,6 +128,8 @@ def case_command(
         str(case_directory(evidence_root, dataset_key, updates)),
         "--frozen-models-dir",
         str(frozen_models),
+        "--spine-frozen-model",
+        str(spine_frozen_model),
     ]
 
 
@@ -130,6 +138,7 @@ def run_one(
     materialization_root: Path,
     evidence_root: Path,
     frozen_models: Path,
+    spine_frozen_model: Path,
     dataset_key: str,
     dataset_id: str,
     updates: int,
@@ -153,6 +162,7 @@ def run_one(
         materialization_root=materialization_root,
         evidence_root=evidence_root,
         frozen_models=frozen_models,
+        spine_frozen_model=spine_frozen_model,
         dataset_key=dataset_key,
         dataset_id=dataset_id,
         updates=updates,
@@ -255,6 +265,9 @@ def main() -> int:
     )
     parser.add_argument("--evidence-root", type=Path, default=DEFAULT_EVIDENCE_ROOT)
     parser.add_argument("--frozen-models-dir", type=Path, default=DEFAULT_FROZEN_MODELS)
+    parser.add_argument(
+        "--spine-frozen-model", type=Path, default=DEFAULT_SPINE_FROZEN_MODEL
+    )
     parser.add_argument("--dataset", action="append", choices=[row[0] for row in DATASETS])
     parser.add_argument("--cross-updates", type=int, default=DEFAULT_CROSS_UPDATES)
     parser.add_argument("--batch-updates", action="append", type=int)
@@ -266,6 +279,7 @@ def main() -> int:
     materialization_root = args.materialization_root.resolve()
     evidence_root = args.evidence_root.resolve()
     frozen_models = args.frozen_models_dir.resolve()
+    spine_frozen_model = args.spine_frozen_model.resolve()
     selected_dataset_keys = tuple(args.dataset or [row[0] for row in DATASETS])
     batch_updates = tuple(args.batch_updates or DEFAULT_BATCH_UPDATES)
     if args.cross_updates <= 0 or any(value <= 0 for value in batch_updates):
@@ -273,6 +287,11 @@ def main() -> int:
     if not frozen_models.is_dir():
         raise SystemExit(
             f"missing frozen calibration; Fig. 8 must wait for: {frozen_models}"
+        )
+    if not spine_frozen_model.is_file():
+        raise SystemExit(
+            f"missing frozen Spine v15 model; Fig. 8 must wait for: "
+            f"{spine_frozen_model}"
         )
     for key, _label, dataset_id in DATASETS:
         if key not in selected_dataset_keys:
@@ -288,6 +307,7 @@ def main() -> int:
         "status": "RUNNING",
         "timing_boundary": "setup_inclusive_update_only",
         "frozen_models_dir": str(frozen_models),
+        "spine_frozen_model": str(spine_frozen_model),
         "cross_updates": args.cross_updates,
         "batch_updates": list(batch_updates),
         "memory_reserve_gib": args.memory_reserve_gib,
@@ -299,6 +319,7 @@ def main() -> int:
         "materialization_root": materialization_root,
         "evidence_root": evidence_root,
         "frozen_models": frozen_models,
+        "spine_frozen_model": spine_frozen_model,
         "reserve_gib": args.memory_reserve_gib,
         "poll_seconds": args.memory_poll_seconds,
         "status": status,

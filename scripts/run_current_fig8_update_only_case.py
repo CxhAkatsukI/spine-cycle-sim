@@ -53,6 +53,11 @@ DEFAULT_CALIBRATION_CONTRACT = (
 DEFAULT_FROZEN_MODELS = (
     ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen"
 )
+DEFAULT_SPINE_FROZEN_MODEL = (
+    ROOT
+    / "docs/evaluation_refresh_20260810/calibration_v15_frozen"
+    / "frozen_spine_mechanism_component_models.json"
+)
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -158,6 +163,7 @@ def pure_result(
     updates: int,
     calibration_scale: float,
     calibration_component: str,
+    calibration_fixed_cycles: float = 0.0,
 ) -> dict[str, Any]:
     if system == "spine":
         cycles = int(raw.get("maintenance_cycles", raw.get("update_cycles", 0)))
@@ -168,7 +174,9 @@ def pure_result(
     correctness = int(raw.get("correctness_mismatches", 0))
     correctness += int(raw.get("architecture_correctness_mismatches", 0))
     correctness += int(raw.get("mathematical_correctness_mismatches", 0))
-    calibrated_cycles = max(1, round(cycles * calibration_scale))
+    calibrated_cycles = max(
+        1, round(calibration_fixed_cycles + cycles * calibration_scale)
+    )
     return {
         "success": bool(raw.get("success", False)),
         "mode": mode,
@@ -182,6 +190,7 @@ def pure_result(
         "raw_device_cycles": cycles,
         "calibrated_device_cycles": calibrated_cycles,
         "device_cycle_calibration_scale": calibration_scale,
+        "device_cycle_calibration_fixed_cycles": calibration_fixed_cycles,
         "device_cycle_calibration_component": calibration_component,
         "correctness_mismatches": correctness,
         "backend_traffic": update_traffic(raw),
@@ -213,6 +222,9 @@ def main() -> int:
     parser.add_argument(
         "--frozen-models-dir", type=Path, default=DEFAULT_FROZEN_MODELS
     )
+    parser.add_argument(
+        "--spine-frozen-model", type=Path, default=DEFAULT_SPINE_FROZEN_MODEL
+    )
     parser.add_argument("--max-cycles", type=int, default=10_000_000_000)
     parser.add_argument("--h2d-gbps", type=float, default=12.0)
     parser.add_argument("--launch-sync-us", type=float, default=10.0)
@@ -241,16 +253,26 @@ def main() -> int:
         cases_sha256=sha256_file(case_contract_path),
         plugin_sha256=plugin_sha256,
     )
+    spine_frozen_path = args.spine_frozen_model.resolve()
+    spine_frozen = load_json(spine_frozen_path)
+    if spine_frozen.get("status") != "FROZEN_BEFORE_HOLDOUT":
+        raise ValueError("Fig. 8 Spine mechanism model is not frozen")
+    if spine_frozen.get("holdout_used_for_fit") is not False:
+        raise ValueError("Fig. 8 Spine mechanism model used holdout data")
+    if spine_frozen.get("contract_id") != (
+        "current_fpga_spine_mechanism_components_v15_20260812"
+    ):
+        raise ValueError("Fig. 8 Spine mechanism model contract is not v15")
+    spine_models = spine_frozen.get("models")
+    if not isinstance(spine_models, dict):
+        raise ValueError("Fig. 8 Spine mechanism model payload is missing")
     spine_profile_payload = load_json(args.spine_profile.resolve())
     grasu_profile_payload = load_json(args.grasu_profile.resolve())
-    spine_model = component_models[
-        (
-            "spine",
-            "weighted_sssp",
-            str(spine_profile_payload["profile_id"]),
-            "maintenance",
-        )
-    ]
+    spine_model = spine_models.get("weighted_sssp")
+    if not isinstance(spine_model, dict):
+        raise ValueError("Fig. 8 frozen Spine SSSP model is missing")
+    if spine_model.get("profile_id") != spine_profile_payload["profile_id"]:
+        raise ValueError("Fig. 8 frozen Spine profile does not match the run")
     grasu_model = component_models[
         (
             "grasu_regraph",
@@ -338,7 +360,8 @@ def main() -> int:
         spine_raw,
         system="spine",
         updates=args.updates,
-        calibration_scale=spine_model.scale,
+        calibration_scale=float(spine_model["maintenance_simulator_scale"]),
+        calibration_fixed_cycles=float(spine_model["maintenance_fixed_cycles"]),
         calibration_component="maintenance",
     )
     grasu = pure_result(
@@ -381,6 +404,16 @@ def main() -> int:
                 calibration_contract_path
             ),
             "frozen_component_models": frozen_model_evidence,
+            "spine_frozen_mechanism_model": str(spine_frozen_path),
+            "spine_frozen_mechanism_model_sha256": sha256_file(
+                spine_frozen_path
+            ),
+            "spine_frozen_mechanism_contract_id": spine_frozen.get(
+                "contract_id"
+            ),
+            "spine_frozen_mechanism_holdout_used_for_fit": spine_frozen.get(
+                "holdout_used_for_fit"
+            ),
             "spine_profile_id": spine_profile_payload["profile_id"],
             "spine_profile_sha256": sha256_file(args.spine_profile.resolve()),
             "grasu_profile_id": grasu_profile_payload["profile_id"],

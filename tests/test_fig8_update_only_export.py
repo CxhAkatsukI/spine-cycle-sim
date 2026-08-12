@@ -54,6 +54,7 @@ def current_case_manifest() -> dict[str, object]:
         "case_contract_sha256": "cases-v7",
         "calibration_contract_sha256": "calibration-v8",
         "frozen_component_models": {"sha256": "frozen-models"},
+        "spine_frozen_mechanism_model_sha256": "spine-v15",
     }
 
 
@@ -75,6 +76,12 @@ class Fig8UpdateOnlyExportTests(unittest.TestCase):
             run_current_fig8_update_only_case.DEFAULT_FROZEN_MODELS,
             ROOT / "docs/evaluation_refresh_20260810/calibration_v12_frozen",
         )
+        self.assertEqual(
+            run_current_fig8_update_only_case.DEFAULT_SPINE_FROZEN_MODEL,
+            ROOT
+            / "docs/evaluation_refresh_20260810/calibration_v15_frozen"
+            / "frozen_spine_mechanism_component_models.json",
+        )
 
     def test_current_case_preserves_raw_and_applies_frozen_component_scale(self) -> None:
         result = pure_result(
@@ -88,12 +95,14 @@ class Fig8UpdateOnlyExportTests(unittest.TestCase):
             system="spine",
             updates=8,
             calibration_scale=1.5,
+            calibration_fixed_cycles=10.0,
             calibration_component="maintenance",
         )
         self.assertEqual(result["raw_device_cycles"], 101)
-        self.assertEqual(result["calibrated_device_cycles"], 152)
-        self.assertEqual(result["device_cycles"], 152)
+        self.assertEqual(result["calibrated_device_cycles"], 162)
+        self.assertEqual(result["device_cycles"], 162)
         self.assertEqual(result["device_cycle_calibration_scale"], 1.5)
+        self.assertEqual(result["device_cycle_calibration_fixed_cycles"], 10.0)
 
     def test_exporter_writes_renderer_ready_current_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
