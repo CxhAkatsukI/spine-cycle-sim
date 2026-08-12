@@ -6,7 +6,12 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.export_current_fpga_fig9 import DEFAULT_CONTRACT, dram_energy_pj, pair_row
+from scripts.export_current_fpga_fig9 import (
+    DEFAULT_CONTRACT,
+    conservation_audit,
+    dram_energy_pj,
+    pair_row,
+)
 from scripts.render_evaluation_refresh import collect_fig9_rows_from_campaign
 
 
@@ -46,6 +51,48 @@ class ExportCurrentFPGAFig9Tests(unittest.TestCase):
                 spine_energy_pj=20.0,
                 grasu_energy_pj=60.0,
             )
+
+    def test_conservation_audit_requires_closed_arbitration_and_dram(self) -> None:
+        result = {
+            "backend_requests": 7,
+            "backend_arbitration": {
+                "ledger_closed": True,
+                "unique_intents": 7,
+                "grants": 7,
+                "consumed_grants": 7,
+                "pending_intents": 0,
+                "pending_grants": 0,
+            },
+        }
+        manifest = {
+            "dram": {"reads": 5, "writes": 2},
+            "checks": {"dram_request_ledger": True},
+        }
+        audit = conservation_audit(result, manifest, {"status": "PASS"})
+        self.assertEqual(audit["status"], "PASS")
+        result["backend_arbitration"]["pending_grants"] = 1
+        self.assertEqual(
+            conservation_audit(result, manifest, {"status": "PASS"})["status"],
+            "FAIL",
+        )
+
+    def test_conservation_accepts_flat_spine_dram_schema(self) -> None:
+        result = {
+            "backend_requests": 3,
+            "backend_arbitration": {
+                "ledger_closed": True,
+                "unique_intents": 3,
+                "grants": 3,
+                "consumed_grants": 3,
+                "pending_intents": 0,
+                "pending_grants": 0,
+            },
+        }
+        manifest = {"dram_reads": 2, "dram_writes": 1}
+        self.assertEqual(
+            conservation_audit(result, manifest, {"status": "PASS"})["status"],
+            "PASS",
+        )
 
     def test_renderer_admits_complete_current_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

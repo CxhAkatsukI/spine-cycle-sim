@@ -69,6 +69,58 @@ def dram_energy_pj(result: Mapping[str, object], manifest: Mapping[str, object])
     raise ValueError("admitted result does not report DRAMSim3 energy")
 
 
+def conservation_audit(
+    result: Mapping[str, object],
+    manifest: Mapping[str, object],
+    ledger: Mapping[str, object],
+) -> dict[str, object]:
+    arbitration = result.get("backend_arbitration")
+    arbitration_checks = {
+        "reported": isinstance(arbitration, Mapping),
+        "ledger_closed": isinstance(arbitration, Mapping)
+        and arbitration.get("ledger_closed") is True,
+        "intent_grant_consumed_match": isinstance(arbitration, Mapping)
+        and int(arbitration.get("unique_intents", -1))
+        == int(arbitration.get("grants", -2))
+        == int(arbitration.get("consumed_grants", -3))
+        == int(result.get("backend_requests", -4)),
+        "pending_empty": isinstance(arbitration, Mapping)
+        and int(arbitration.get("pending_intents", -1)) == 0
+        and int(arbitration.get("pending_grants", -1)) == 0,
+    }
+    dram = manifest.get("dram")
+    manifest_checks = manifest.get("checks")
+    if isinstance(dram, Mapping):
+        dram_requests = int(dram.get("reads", -1)) + int(dram.get("writes", -1))
+    else:
+        dram_requests = int(manifest.get("dram_reads", -1)) + int(
+            manifest.get("dram_writes", -1)
+        )
+    runner_gate = (
+        manifest_checks.get("dram_request_ledger") is True
+        if isinstance(manifest_checks, Mapping)
+        else dram_requests == int(result.get("backend_requests", -2))
+    )
+    checks = {
+        "memory_ledger_pass": ledger.get("status") == "PASS",
+        "arbitration_reported": arbitration_checks["reported"],
+        "arbitration_ledger_closed": arbitration_checks["ledger_closed"],
+        "intent_grant_consumed_match": arbitration_checks[
+            "intent_grant_consumed_match"
+        ],
+        "arbitration_pending_empty": arbitration_checks["pending_empty"],
+        "dramsim_request_count_match": dram_requests
+        == int(result.get("backend_requests", -2)),
+        "runner_dram_request_gate": runner_gate,
+    }
+    return {
+        "status": "PASS" if all(checks.values()) else "FAIL",
+        "checks": checks,
+        "backend_requests": int(result.get("backend_requests", -1)),
+        "dramsim_requests": dram_requests,
+    }
+
+
 def pair_row(
     *,
     dataset: str,
@@ -141,7 +193,7 @@ def main() -> int:
     for algorithm in contract["algorithms"]:
         specification = cases["algorithms"][algorithm]
         for dataset in contract["datasets"]:
-            systems: dict[str, tuple[dict[str, Any], dict[str, Any], dict[str, object]]] = {}
+            systems: dict[str, tuple[dict[str, Any], dict[str, Any], dict[str, object], dict[str, object]]] = {}
             for architecture in ARCHITECTURES:
                 run_dir = run_directory(
                     roots[architecture], specification, dataset, architecture
@@ -170,7 +222,13 @@ def main() -> int:
                     result_path,
                     profile_parameters,
                 )
-                systems[architecture] = (result, manifest, ledger)
+                conservation = conservation_audit(result, manifest, ledger)
+                if conservation["status"] != "PASS":
+                    raise ValueError(
+                        f"Figure 9 conservation audit failed: {run_dir}: "
+                        f"{conservation['checks']}"
+                    )
+                systems[architecture] = (result, manifest, ledger, conservation)
                 evidence.append(
                     {
                         "dataset": dataset,
@@ -181,12 +239,14 @@ def main() -> int:
                         "manifest": str(manifest_path.resolve()),
                         "manifest_sha256": sha256_file(manifest_path),
                         "ledger_status": ledger["status"],
+                        "conservation_status": conservation["status"],
+                        "conservation_checks": conservation["checks"],
                     }
                 )
             if set(systems) != set(ARCHITECTURES):
                 continue
-            spine_result, spine_manifest, spine_ledger = systems["spine"]
-            grasu_result, grasu_manifest, grasu_ledger = systems["grasu_regraph"]
+            spine_result, spine_manifest, spine_ledger, _spine_conservation = systems["spine"]
+            grasu_result, grasu_manifest, grasu_ledger, _grasu_conservation = systems["grasu_regraph"]
             rows.append(
                 pair_row(
                     dataset=dataset,
