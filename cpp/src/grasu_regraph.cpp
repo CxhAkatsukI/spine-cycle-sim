@@ -343,6 +343,10 @@ private:
     target.update_record_bytes =
         std::max(target.update_record_bytes, source.update_record_bytes);
     SUM_COUNTER(destination_partitions_touched);
+    SUM_COUNTER(touched_shard_pma_slots);
+    target.max_touched_shard_pma_slots = std::max(
+        target.max_touched_shard_pma_slots,
+        source.max_touched_shard_pma_slots);
     SUM_COUNTER(partition_routes);
     SUM_COUNTER(inserts);
     SUM_COUNTER(deletes);

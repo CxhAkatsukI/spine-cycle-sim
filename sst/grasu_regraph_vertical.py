@@ -95,6 +95,9 @@ probe.addParams(
         "grasu_update_only": int(
             os.environ.get("GRASU_SST_UPDATE_ONLY", "0")
         ),
+        "grasu_weighted_host_preparation": int(
+            os.environ.get("GRASU_SST_WEIGHTED_HOST_PREPARATION", "0")
+        ),
         "max_rounds": int(os.environ.get("GRASU_SST_MAX_ROUNDS", "256")),
         "cc_hardware_full_recompute": int(
             os.environ.get("GRASU_SST_CC_HARDWARE_FULL_RECOMPUTE", "0")

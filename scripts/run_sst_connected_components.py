@@ -45,6 +45,9 @@ from spine_cycle_sim.sst_binding import (  # noqa: E402
 )
 from spine_cycle_sim.sst_library import forced_sst_library_binding  # noqa: E402
 from scripts.run_sst_grasu_regraph import load_dram_stats  # noqa: E402
+from scripts.run_sst_grasu_regraph_hls_weighted import (  # noqa: E402
+    build_hls_weighted_update_only_oracle,
+)
 
 
 DEFAULT_WORKLOAD = ROOT / "tests/data/connected_components_bridge_initial.slice"
@@ -202,6 +205,10 @@ def validate_result(
         else "grasu_regraph_connected_components"
     )
     labels = tuple(int(value) for value in result.get("labels", []))
+    minima: dict[int, int] = {}
+    for vertex, label in enumerate(labels):
+        minima[label] = min(minima.get(label, vertex), vertex)
+    canonical_labels = tuple(minima[label] for label in labels)
     checks = {
         "success": result.get("success") is True,
         "mode": result.get("mode") == expected_mode,
@@ -210,7 +217,7 @@ def validate_result(
         "dual_oracle": result.get("architecture_correctness_mismatches") == 0
         and result.get("mathematical_correctness_mismatches") == 0
         and result.get("correctness_mismatches") == 0,
-        "external_labels": labels == expected_labels,
+        "external_labels": canonical_labels == expected_labels,
         "converged": result.get("converged") is True
         and bool(result.get("frontier_out_sizes"))
         and result["frontier_out_sizes"][-1] == 0,
@@ -510,13 +517,23 @@ def main() -> int:
         runtime_source_state_stride = selected_source_state_stride_bytes(
             parameters, destination_partitions
         )
+        weighted_host_preparation = (
+            parameters.get("grasu_host_reorder")
+            == "physical_update_density_descending_vertex_id_tiebreak"
+        )
+        external_to_internal = range(graph.vertices)
+        if weighted_host_preparation:
+            runtime_oracle = build_hls_weighted_update_only_oracle(
+                graph, update, 0, partition_vertices
+            )
+            external_to_internal = runtime_oracle.external_to_internal
         footprints = partition_layout_footprints(
             graph.records,
             update.records,
             graph.vertices,
             partition_vertices,
-            range(graph.vertices),
-            weighted_full_word=False,
+            external_to_internal,
+            weighted_full_word=weighted_host_preparation,
         )
         if parameters.get("physical_address_map_id"):
             validate_partition_footprints(parameters, footprints)
@@ -544,6 +561,9 @@ def main() -> int:
                 "GRASU_SST_MAX_CYCLES": str(args.max_cycles),
                 "GRASU_SST_MAX_ROUNDS": str(args.max_rounds),
                 "GRASU_SST_UPDATE_ONLY": "1" if args.update_only else "0",
+                "GRASU_SST_WEIGHTED_HOST_PREPARATION": (
+                    "1" if weighted_host_preparation else "0"
+                ),
                 "GRASU_SST_CC_HARDWARE_FULL_RECOMPUTE": (
                     "1" if args.hardware_full_recompute else "0"
                 ),

@@ -47,7 +47,7 @@
       "handoff": "weighted_pma_to_axis_stream",
       "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
       "profile_path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
-      "profile_sha256": "81cf01d6202f1993e51d6a68b719150404e5fe140e3887d310e43cd506a3e6e6",
+      "profile_sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34",
       "supported_algorithms": {
         "connected_components": {
           "claim_class": "routed_hls_aligned_simulation_pending_cycle_reconciliation",

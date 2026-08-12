@@ -778,6 +778,44 @@ run_connected_components_mathematical_reference(const SpineEdgeSlice &graph) {
   return labels;
 }
 
+SpineEdgeSlice remap_connected_components_slice(
+    const SpineEdgeSlice &slice,
+    const std::vector<std::uint32_t> &external_to_internal) {
+  if (external_to_internal.size() != slice.vertices) {
+    throw std::invalid_argument(
+        "connected-components vertex map does not match the slice");
+  }
+  SpineEdgeSlice mapped{
+      .vertices = slice.vertices,
+      .edges = {},
+      .case_name = slice.case_name + "_host_reordered",
+  };
+  mapped.edges.reserve(slice.edges.size());
+  for (const SpineEdgeRecord &edge : slice.edges) {
+    SpineEdgeRecord record = edge;
+    record.src = external_to_internal.at(edge.src);
+    record.dst = external_to_internal.at(edge.dst);
+    mapped.edges.push_back(record);
+  }
+  return mapped;
+}
+
+std::vector<std::uint32_t> canonicalize_connected_components_labels(
+    const std::vector<std::uint32_t> &labels) {
+  std::unordered_map<std::uint32_t, std::uint32_t> minimum_vertex;
+  for (std::uint32_t vertex = 0; vertex < labels.size(); ++vertex) {
+    auto [found, inserted] = minimum_vertex.emplace(labels[vertex], vertex);
+    if (!inserted) {
+      found->second = std::min(found->second, vertex);
+    }
+  }
+  std::vector<std::uint32_t> canonical(labels.size());
+  for (std::size_t vertex = 0; vertex < labels.size(); ++vertex) {
+    canonical[vertex] = minimum_vertex.at(labels[vertex]);
+  }
+  return canonical;
+}
+
 ConnectedComponentsReference run_connected_components_architecture_reference(
     const SpineEdgeSlice &graph, std::vector<std::uint32_t> labels,
     std::vector<std::uint32_t> active, std::size_t max_iterations) {
@@ -1187,6 +1225,10 @@ void write_grasu_update_observability(std::ostream &output,
          << ",\"update_record_bytes\":" << update.update_record_bytes
          << ",\"destination_partitions_touched\":"
          << update.destination_partitions_touched
+         << ",\"touched_shard_pma_slots\":"
+         << update.touched_shard_pma_slots
+         << ",\"max_touched_shard_pma_slots\":"
+         << update.max_touched_shard_pma_slots
          << ",\"partition_routes\":" << update.partition_routes
          << ",\"inserts\":" << update.inserts
          << ",\"deletes\":" << update.deletes
@@ -2359,6 +2401,8 @@ class OnlineMemoryProbe final : public SST::Component {
     write_percent_ = params.find<std::uint32_t>("write_percent", 0);
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 1'000'000);
     grasu_update_only_ = params.find<bool>("grasu_update_only", false);
+    grasu_weighted_host_preparation_ =
+        params.find<bool>("grasu_weighted_host_preparation", false);
     max_rounds_ = params.find<std::size_t>("max_rounds", 256);
     cc_hardware_full_recompute_ =
         params.find<bool>("cc_hardware_full_recompute", false);
@@ -2647,9 +2691,12 @@ class OnlineMemoryProbe final : public SST::Component {
         mode_ == "grasu_regraph_hls_weighted_residual_pagerank";
     const bool grasu_connected_components =
         mode_ == "grasu_regraph_connected_components";
+    const bool hls_weighted_grasu_connected_components =
+        grasu_connected_components && grasu_weighted_host_preparation_;
     const bool hls_weighted_grasu =
         hls_weighted_grasu_sssp || hls_weighted_grasu_pagerank ||
-        hls_weighted_grasu_residual_pagerank;
+        hls_weighted_grasu_residual_pagerank ||
+        hls_weighted_grasu_connected_components;
     if (native_grasu_sssp) {
       grasu_update_config_.pma_word_abi =
           GraSuPmaWordAbi::kNativeRawDestination;
@@ -2892,9 +2939,12 @@ class OnlineMemoryProbe final : public SST::Component {
         mode_ == "grasu_regraph_hls_weighted_residual_pagerank";
     const bool grasu_connected_components =
         mode_ == "grasu_regraph_connected_components";
+    const bool hls_weighted_grasu_connected_components =
+        grasu_connected_components && grasu_weighted_host_preparation_;
     const bool hls_weighted_grasu =
         hls_weighted_grasu_sssp || hls_weighted_grasu_pagerank ||
-        hls_weighted_grasu_residual_pagerank;
+        hls_weighted_grasu_residual_pagerank ||
+        hls_weighted_grasu_connected_components;
     if (mode_ == "grasu_regraph_sssp" || native_grasu_sssp ||
         hls_weighted_grasu ||
         mode_ == "grasu_regraph_pagerank" ||
@@ -2951,6 +3001,18 @@ class OnlineMemoryProbe final : public SST::Component {
         }
       }
       grasu_logical_update_edges_ = updates.size();
+      if (hls_weighted_grasu_connected_components) {
+        if (!logical_update_snapshot.has_value()) {
+          throw std::invalid_argument(
+              "weighted HLS connected components requires an update workload");
+        }
+        const SpineEdgeSlice external_final_snapshot =
+            materialize_grasu_weighted_snapshot(initial.vertices, initial_edges,
+                                                updates);
+        grasu_cc_external_mathematical_reference_ =
+            run_connected_components_mathematical_reference(
+                external_final_snapshot);
+      }
       grasu_partitioned_execution_ =
           partitioned_dynamic_pagerank ||
           grasu_config_.sharded_runtime_placement ||
@@ -3003,6 +3065,11 @@ class OnlineMemoryProbe final : public SST::Component {
         GraSuWeightedFullWordGraph prepared =
             prepare_grasu_weighted_full_word_graph(initial.vertices,
                                                    initial_edges, updates);
+        std::optional<SpineEdgeSlice> reordered_cc_update;
+        if (hls_weighted_grasu_connected_components) {
+          reordered_cc_update = remap_connected_components_slice(
+              *logical_update_snapshot, prepared.external_to_internal);
+        }
         source_vertex_ =
             prepared.external_to_internal.at(grasu_source_external_);
         grasu_external_to_internal_ =
@@ -3012,6 +3079,9 @@ class OnlineMemoryProbe final : public SST::Component {
         initial_edges = std::move(prepared.initial_edges);
         updates = std::move(prepared.physical_updates);
         grasu_final_edges_ = std::move(prepared.final_edges);
+        if (reordered_cc_update.has_value()) {
+          logical_update_snapshot = std::move(*reordered_cc_update);
+        }
         reserved_updates.clear();
         for (const GraSuEdge &edge : updates) {
           if (!edge.delete_op) {
@@ -4579,6 +4649,8 @@ class OnlineMemoryProbe final : public SST::Component {
       {"write_percent", "Deterministic write percentage", "0"},
       {"max_cycles", "Core-cycle timeout", "1000000"},
       {"max_rounds", "Maximum SSSP frontier rounds", "256"},
+      {"grasu_weighted_host_preparation",
+       "Apply the routed weighted-full-word host vertex reorder", "false"},
       {"cc_hardware_full_recompute",
        "Run CC from all-vertex active identity labels like the FPGA host",
        "false"},
@@ -5566,15 +5638,36 @@ class OnlineMemoryProbe final : public SST::Component {
     if (mode_ == "grasu_regraph_connected_components") {
       const bool compute_available =
           grasu_connected_components_system_ != nullptr;
-      const std::vector<std::uint32_t> labels =
+      const std::vector<std::uint32_t> labels_internal =
           compute_available ? grasu_connected_components_system_->labels()
                             : std::vector<std::uint32_t>{};
       const ConnectedComponentsReference &reference =
           connected_components_setup_->architecture_reference;
       const std::uint64_t architecture_mismatches =
-          count_value_mismatches(labels, reference.labels);
+          count_value_mismatches(labels_internal, reference.labels);
+      std::vector<std::uint32_t> labels_external = labels_internal;
+      std::vector<std::uint32_t> canonical_external = labels_internal;
+      if (grasu_weighted_host_preparation_) {
+        labels_external.assign(labels_internal.size(), 0);
+        for (std::uint32_t internal = 0; internal < labels_internal.size();
+             ++internal) {
+          const std::uint32_t representative = labels_internal[internal];
+          if (representative >= grasu_internal_to_external_.size()) {
+            throw std::invalid_argument(
+                "connected-components representative is outside the host map");
+          }
+          labels_external.at(grasu_internal_to_external_.at(internal)) =
+              grasu_internal_to_external_.at(representative);
+        }
+        canonical_external =
+            canonicalize_connected_components_labels(labels_external);
+      }
+      const auto &mathematical_reference =
+          grasu_weighted_host_preparation_
+              ? grasu_cc_external_mathematical_reference_
+              : connected_components_setup_->mathematical_labels;
       const std::uint64_t mathematical_mismatches = count_value_mismatches(
-          labels, connected_components_setup_->mathematical_labels);
+          canonical_external, mathematical_reference);
       const GraSuReGraphCounters compute =
           compute_available ? grasu_connected_components_system_->counters()
                             : GraSuReGraphCounters{};
@@ -5617,8 +5710,8 @@ class OnlineMemoryProbe final : public SST::Component {
       const bool converged = compute_available &&
                              !grasu_connected_components_system_->failed() &&
                              !frontier_out.empty() && frontier_out.back() == 0;
-      std::unordered_set<std::uint32_t> components(labels.begin(),
-                                                   labels.end());
+      std::unordered_set<std::uint32_t> components(labels_internal.begin(),
+                                                   labels_internal.end());
       const bool passed =
           success && reference.converged && converged && frontier_match &&
           active_edge_ledger_match && update_state_match &&
@@ -5637,7 +5730,14 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"timing_evidence\": "
                 "\"execution_driven_sst_hbm_not_cycle_calibrated\",\n"
              << "  \"conversion_cost_included\": false,\n"
-             << "  \"pma_edge_abi\": \"normalized_weighted_19_12\",\n"
+             << "  \"pma_edge_abi\": \""
+             << (grasu_weighted_host_preparation_
+                     ? "regraph_weighted32_full_word_compare_dst19_weight12"
+                     : "normalized_weighted_19_12")
+             << "\",\n"
+             << "  \"host_vertex_reorder\": "
+             << (grasu_weighted_host_preparation_ ? "true" : "false")
+             << ",\n"
              << "  \"failure\": ";
       write_json_string(
           result,
@@ -5650,7 +5750,7 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"core_mhz\": " << core_mhz_ << ",\n"
              << "  \"cycles\": " << scheduler_.clock(0).completed_cycles
              << ",\n"
-             << "  \"vertices\": " << labels.size() << ",\n"
+             << "  \"vertices\": " << labels_internal.size() << ",\n"
              << "  \"components\": " << components.size() << ",\n"
              << "  \"initial_edges\": " << grasu_initial_edges_ << ",\n"
              << "  \"update_edges\": " << grasu_update_edges_ << ",\n"
@@ -5691,7 +5791,7 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"architecture_oracle\": "
                 "\"fixed_width_frontier_min_label_uint32\",\n"
              << "  \"mathematical_oracle\": "
-                "\"independent_cpu_bfs_min_external_vertex\",\n"
+                "\"independent_cpu_bfs_external_component_partition\",\n"
              << "  \"frontier_match\": "
              << (frontier_match ? "true" : "false") << ",\n"
              << "  \"active_edge_execution_ledger_match\": "
@@ -5807,7 +5907,7 @@ class OnlineMemoryProbe final : public SST::Component {
       result << ",\n  \"frontier_out_sizes\": ";
       write_json_array(result, frontier_out);
       result << ",\n  \"labels\": ";
-      write_json_array(result, labels);
+      write_json_array(result, labels_external);
       result << "\n}\n";
       output_.output(
           "completed %llu SST GraSU+ReGraph CC rounds in %llu cycles -> %s\n",
@@ -7036,6 +7136,10 @@ class OnlineMemoryProbe final : public SST::Component {
           << compute.downstream_busy_cycles << ",\n"
           << "  \"destination_partitions_touched\": "
           << update.destination_partitions_touched << ",\n"
+          << "  \"touched_shard_pma_slots\": "
+          << update.touched_shard_pma_slots << ",\n"
+          << "  \"max_touched_shard_pma_slots\": "
+          << update.max_touched_shard_pma_slots << ",\n"
           << "  \"partition_routes\": " << update.partition_routes << ",\n"
           << "  \"partition_passes\": " << compute.partition_passes << ",\n"
           << "  \"update_row_reads\": " << update.row_reads << ",\n"
@@ -11309,6 +11413,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::uint32_t write_percent_{};
   std::uint64_t max_cycles_{};
   bool grasu_update_only_{};
+  bool grasu_weighted_host_preparation_{};
   std::size_t max_rounds_{};
   bool cc_hardware_full_recompute_{};
   bool hardware_warm_sssp_{};
@@ -11431,6 +11536,7 @@ class OnlineMemoryProbe final : public SST::Component {
   std::vector<double> grasu_residual_mathematical_reference_;
   std::optional<DeltaHlsResidualSetup> delta_hls_setup_;
   std::optional<ConnectedComponentsSetup> connected_components_setup_;
+  std::vector<std::uint32_t> grasu_cc_external_mathematical_reference_;
   std::vector<std::uint32_t> grasu_pagerank_degrees_;
   std::vector<GraSuEdge> grasu_final_edges_;
   std::vector<std::uint32_t> grasu_external_to_internal_;

@@ -2079,6 +2079,14 @@ public:
           layout_.partition_for_destination(edge.destination));
     }
     result.destination_partitions_touched = touched_partitions.size();
+    for (const std::size_t partition : touched_partitions) {
+      const std::uint64_t slots =
+          layout_.partitions.at(partition).segments.size() *
+          kGraSuSegmentSlots;
+      result.touched_shard_pma_slots += slots;
+      result.max_touched_shard_pma_slots =
+          std::max(result.max_touched_shard_pma_slots, slots);
+    }
     result.partition_routes = partitioned_updates() ? updates_.size() : 0;
     std::map<std::pair<std::uint32_t, std::uint32_t>, std::uint16_t> live;
     for (const GraSuEdge &edge : layout_.live_edges()) {

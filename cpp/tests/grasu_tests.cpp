@@ -1212,8 +1212,21 @@ void test_partitioned_update_times_degree_rmw_and_feeds_pagerank() {
   require(weighted_edge_map(final_edges) == expected_edges,
           "partitioned GraSU PMA differs from edge-state oracle");
   const auto update_counters = update_system.counters();
+  std::uint64_t expected_touched_slots = 0;
+  std::uint64_t expected_max_touched_slots = 0;
+  for (const auto &partition : layout.partitions) {
+    const std::uint64_t slots =
+        partition.segments.size() * spine::sim::kGraSuSegmentSlots;
+    expected_touched_slots += slots;
+    expected_max_touched_slots =
+        std::max(expected_max_touched_slots, slots);
+  }
   require(update_counters.update_record_bytes == 16 &&
               update_counters.destination_partitions_touched == 3 &&
+              update_counters.touched_shard_pma_slots ==
+                  expected_touched_slots &&
+              update_counters.max_touched_shard_pma_slots ==
+                  expected_max_touched_slots &&
               update_counters.partition_routes == updates.size() &&
               update_counters.inserts == 2 && update_counters.deletes == 2 &&
               update_counters.weight_decreases == 1 &&
@@ -2853,8 +2866,21 @@ void test_sharded_k4_update_state_feeds_compute() {
                   {0, 2}, {0, 66}, {0, 130}},
           "sharded update engine lost the materialized PMA state");
   const auto update_counters = update.counters();
+  std::uint64_t expected_touched_slots = 0;
+  std::uint64_t expected_max_touched_slots = 0;
+  for (const auto &partition : layout.partitions) {
+    const std::uint64_t slots =
+        partition.segments.size() * spine::sim::kGraSuSegmentSlots;
+    expected_touched_slots += slots;
+    expected_max_touched_slots =
+        std::max(expected_max_touched_slots, slots);
+  }
   require(update_counters.updates == updates.size() &&
               update_counters.destination_partitions_touched == 3 &&
+              update_counters.touched_shard_pma_slots ==
+                  expected_touched_slots &&
+              update_counters.max_touched_shard_pma_slots ==
+                  expected_max_touched_slots &&
               update_counters.update_record_bytes == 8,
           "sharded update engine ledger does not match routed launches");
   const std::string row_name = "row";

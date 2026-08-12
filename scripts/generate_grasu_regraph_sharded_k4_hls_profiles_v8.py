@@ -129,7 +129,11 @@ def profile_payload(
     ]
     if algorithm == "connected_components":
         payload["features"].extend(
-            ["connected_components_min_label_map_reduce", "reciprocal_update_contract"]
+            [
+                "connected_components_min_label_map_reduce",
+                "reciprocal_update_contract",
+                "weighted_full_word_host_vertex_reorder",
+            ]
         )
     elif algorithm == "thresholded_residual_pagerank":
         payload["features"].extend(
@@ -205,6 +209,13 @@ def profile_payload(
                 "regraph_degree_channel": 27,
                 "regraph_residual_state_channel": 26,
                 "regraph_split_pagerank_state": True,
+            }
+        )
+    if algorithm == "connected_components":
+        params.update(
+            {
+                "connected_components_label_type": "uint32_min_reordered_internal_vertex_canonicalized_external",
+                "grasu_host_reorder": "physical_update_density_descending_vertex_id_tiebreak",
             }
         )
     return payload

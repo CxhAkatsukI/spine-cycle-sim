@@ -31,7 +31,8 @@
     "resident_state_host_relaunch",
     "dual_oracle_correctness_gate",
     "connected_components_min_label_map_reduce",
-    "reciprocal_update_contract"
+    "reciprocal_update_contract",
+    "weighted_full_word_host_vertex_reorder"
   ],
   "limitations": [
     "The simulator serializes four logical downstream objects to model the one routed shared downstream; it does not yet instantiate one literal downstream object.",
@@ -52,7 +53,7 @@
     "comparison_role": "hardware_native",
     "connected_components_contract": "weakly_connected_min_vertex_reciprocal_v1",
     "connected_components_deletion_policy": "full_recompute",
-    "connected_components_label_type": "uint32_min_external_vertex",
+    "connected_components_label_type": "uint32_min_reordered_internal_vertex_canonicalized_external",
     "connected_components_weight_semantics": "ignored_by_map_reduce_preserved_in_weighted_pma_update_storage",
     "conversion_cost_included": false,
     "grasu_bin_search_cus": 4,
@@ -67,7 +68,7 @@
     "grasu_degree_base_bytes": 16777216,
     "grasu_direct_cache_hbm_rmw": true,
     "grasu_dispatch_cus": 1,
-    "grasu_host_reorder": "identity_external_vertex_order",
+    "grasu_host_reorder": "physical_update_density_descending_vertex_id_tiebreak",
     "grasu_partition_address_layout": "destination_sharded_local_dst19_v1",
     "grasu_partition_address_stride_bytes": 16777216,
     "grasu_physical_hbm_channels": 32,

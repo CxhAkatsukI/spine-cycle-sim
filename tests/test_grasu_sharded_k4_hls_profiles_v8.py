@@ -82,6 +82,18 @@ class GraSuShardedK4HlsProfilesV8Tests(unittest.TestCase):
         self.assertEqual(params["regraph_degree_channel"], 27)
         self.assertEqual(params["pagerank_activation_rule"], "abs_residual_gt_epsilon")
 
+    def test_cc_profile_freezes_routed_host_vertex_reorder(self) -> None:
+        profile = json.loads(PROFILES["cc"].read_text(encoding="utf-8"))
+        params = profile["parameters"]
+        self.assertEqual(
+            params["grasu_host_reorder"],
+            "physical_update_density_descending_vertex_id_tiebreak",
+        )
+        self.assertEqual(
+            params["connected_components_label_type"],
+            "uint32_min_reordered_internal_vertex_canonicalized_external",
+        )
+
     def test_hls_runners_accept_hardware_native_capabilities(self) -> None:
         _catalog, weighted = require_hls_weighted_capability(
             PROFILES["weighted"], CATALOG, "weighted_dynamic_sssp"

@@ -190,6 +190,8 @@ struct GraSuUpdateCounters {
   std::uint64_t updates{};
   std::size_t update_record_bytes{};
   std::size_t destination_partitions_touched{};
+  std::uint64_t touched_shard_pma_slots{};
+  std::uint64_t max_touched_shard_pma_slots{};
   std::uint64_t partition_routes{};
   std::uint64_t inserts{};
   std::uint64_t deletes{};
