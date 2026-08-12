@@ -1,0 +1,228 @@
+{
+  "calibration_summary": [
+    {
+      "algorithm": "connected_components",
+      "cases": 2,
+      "max_absolute_error_percent": 6.112834504359277,
+      "median_absolute_error_percent": 5.779900193183641,
+      "role": "calibration"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "cases": 2,
+      "max_absolute_error_percent": 9.247425320717912,
+      "median_absolute_error_percent": 8.525748279034115,
+      "role": "calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "cases": 2,
+      "max_absolute_error_percent": 4.635766192766749,
+      "median_absolute_error_percent": 3.2834302675855116,
+      "role": "calibration"
+    }
+  ],
+  "contract": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/configs/contracts/current_fpga_grasu_update_control_v15.json",
+  "contract_sha256": "7a584ee8b016b98012e834e1d5261180221a9e064e6c57702ad5bd53514319ee",
+  "evidence": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "au",
+      "diagnostic_observability": {
+        "binary_probes": 30,
+        "cache_updates": 8,
+        "ddr_updates": 0,
+        "degree_reads": 0,
+        "degree_writes": 0,
+        "max_touched_shard_pma_slots": 1090992,
+        "pma_reads": 8,
+        "pma_writes": 8,
+        "row_reads": 8,
+        "touched_shard_pma_slots": 1177328
+      },
+      "hardware_log_sha256": [
+        "df8899661a39520e0720e17e0b76155ff4418b737090f243794c7279d4262af2",
+        "3d7504b75d5965493294a165491774a4c29c8d293ea2a5f3d74736798835cadf",
+        "ff556b6c3433fd12f02e0a5476117a4bcbbe5b6d5976f1d7fa24fa7eb7dab762"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/au_weighted_sssp_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/au_weighted_sssp_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/au_weighted_sssp_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/au/weighted_sssp/manifest.json",
+      "simulator_manifest_sha256": "6d2c5d25213d5c2edaff991327691c865e9289888a541aa1de47079d6c99aad4",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/au/weighted_sssp/result.json",
+      "simulator_result_sha256": "8e757317f23c96ff2c29f4ecbbabd9e4251afac2a85b31273bdc5baf0edbb574"
+    },
+    {
+      "algorithm": "connected_components",
+      "dataset": "au",
+      "diagnostic_observability": {
+        "binary_probes": 48,
+        "cache_updates": 16,
+        "ddr_updates": 0,
+        "degree_reads": 0,
+        "degree_writes": 0,
+        "max_touched_shard_pma_slots": 1882208,
+        "pma_reads": 16,
+        "pma_writes": 16,
+        "row_reads": 16,
+        "touched_shard_pma_slots": 1882208
+      },
+      "hardware_log_sha256": [
+        "e2a8e7af4486ce6b9a4129fc53ae859d8d0053fa026cfbeea5c7137865076bfa",
+        "79695c2c9381033a9f2d5c10bf483348d5888228431aad7690e671f7b950faf3",
+        "0c19981c022c337f92885c1d25c38fe5f858807225f412e5bab46c612df48eed"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/cc_fullgraph_run1_20260807/au_connected_components_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/cc_fullgraph_run2_20260807/au_connected_components_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/cc_fullgraph_run3_20260807/au_connected_components_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/au/connected_components/run_manifest.json",
+      "simulator_manifest_sha256": "df16c71944c16d6fc26db7cbf946537e1eeeb1ce7f150572931de26e23bf560b",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/au/connected_components/result.json",
+      "simulator_result_sha256": "f3f16f5bb70e1e22239112b899a494d50c725f0ea7ce7e59dce3dad5e41950f8"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset": "au",
+      "diagnostic_observability": {
+        "binary_probes": 5,
+        "cache_updates": 8,
+        "ddr_updates": 0,
+        "degree_reads": 8,
+        "degree_writes": 8,
+        "max_touched_shard_pma_slots": 1166592,
+        "pma_reads": 8,
+        "pma_writes": 8,
+        "row_reads": 8,
+        "touched_shard_pma_slots": 4404048
+      },
+      "hardware_log_sha256": [
+        "20f95cfdfe2cbdc95d036a61e8f02184630b5de9aaee193cd3c8cfc1b96d9a67",
+        "c3405d8ad82d5e9d72be5cdb31d45d915a96be18f35de4baa4b25d8eaad7f03a",
+        "f4f50e618768d7558fd5332940d42760688f1c867380cb67c6977588d4dead3b"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run1/au_residual_pagerank_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run2/au_residual_pagerank_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run3/au_residual_pagerank_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/au/thresholded_residual_pagerank/manifest.json",
+      "simulator_manifest_sha256": "3fd48375d785751048a4f6eb9fcdab13bc2aed0de3935a462c67ea51b8b77743",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/au/thresholded_residual_pagerank/result.json",
+      "simulator_result_sha256": "e825854a9f12f7b30620cb08f4302e464ae25618e0c012df69fccd4d48150717"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "su",
+      "diagnostic_observability": {
+        "binary_probes": 16,
+        "cache_updates": 8,
+        "ddr_updates": 0,
+        "degree_reads": 0,
+        "degree_writes": 0,
+        "max_touched_shard_pma_slots": 1644608,
+        "pma_reads": 8,
+        "pma_writes": 8,
+        "row_reads": 8,
+        "touched_shard_pma_slots": 1921008
+      },
+      "hardware_log_sha256": [
+        "38bb0e8432c4c88e0f36e02afc07ccd52b39003d113d5f7fc16ae4e2b52048ce",
+        "2d8818858de6ada7890c6c6ff8bbb3c7e9e80601b6d3481e9bc0762922cda42b",
+        "0d2a3d40e3078a6ca218ab4bcee2c890fb0f8c29e6cfeba660d0e775b6d84e2d"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/su_weighted_sssp_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/su_weighted_sssp_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/su_weighted_sssp_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/su/weighted_sssp/manifest.json",
+      "simulator_manifest_sha256": "493ac70eab24b3af60de031c801b9f2bb9f747491f3d76de905fca494ce6d495",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/su/weighted_sssp/result.json",
+      "simulator_result_sha256": "7db3f156de2b8c4b5d2a07f23ec2c96e4554d6758dbfdf0521d7e08bc0dfb627"
+    },
+    {
+      "algorithm": "connected_components",
+      "dataset": "su",
+      "diagnostic_observability": {
+        "binary_probes": 26,
+        "cache_updates": 16,
+        "ddr_updates": 0,
+        "degree_reads": 0,
+        "degree_writes": 0,
+        "max_touched_shard_pma_slots": 2398064,
+        "pma_reads": 16,
+        "pma_writes": 16,
+        "row_reads": 16,
+        "touched_shard_pma_slots": 2398064
+      },
+      "hardware_log_sha256": [
+        "227bc7b61d19bf2e0cd7e0c46b82b5504085f5b24a48d4e6019789972d2f66e6",
+        "8ff037dffe8f6bd1a8773c7cc18ceeac2dd11c90dd5e920e9e7ef67ac3e2866f",
+        "1f7b1601592646aeab521057194680adf578e70d9f2c6ec9cc49d324031533af"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/cc_fullgraph_run1_20260807/su_connected_components_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/cc_fullgraph_run2_20260807/su_connected_components_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/cc_fullgraph_run3_20260807/su_connected_components_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/su/connected_components/run_manifest.json",
+      "simulator_manifest_sha256": "b49bb0729b5ceb644c4240d062c5e8c8bf141986b4933d4d55a1d43681707e47",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/su/connected_components/result.json",
+      "simulator_result_sha256": "faf708ec5b2a9f67f417d4c7d5f9a7e76b55ea0068ad4f474d243371a8939ac7"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset": "su",
+      "diagnostic_observability": {
+        "binary_probes": 2,
+        "cache_updates": 8,
+        "ddr_updates": 0,
+        "degree_reads": 8,
+        "degree_writes": 8,
+        "max_touched_shard_pma_slots": 1322192,
+        "pma_reads": 8,
+        "pma_writes": 8,
+        "row_reads": 8,
+        "touched_shard_pma_slots": 4529504
+      },
+      "hardware_log_sha256": [
+        "9142a609c6c32810f6d93caa74b10b9aa89865282de449de6a45d22fc7666aa0",
+        "663f775dc3d3d8b7a87ede892e5f8f0af4601d64b8092e4b4c800bd6b1e4cd1b",
+        "afbc0618e50566454078cc66dc746bc3fbb47d3ffe259203e78845b31fe845c8"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run1/su_residual_pagerank_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run2/su_residual_pagerank_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run3/su_residual_pagerank_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/su/thresholded_residual_pagerank/manifest.json",
+      "simulator_manifest_sha256": "315a66615c848c979c27d8a21c306b22950edd998b5573a4f9166f04578f5704",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v15_update_observability_20260812/calibration/su/thresholded_residual_pagerank/result.json",
+      "simulator_result_sha256": "c1a200beba850a0faa8fc0d70f548e10b3285611da4031d975622043c99f35da"
+    }
+  ],
+  "evidence_boundary": {
+    "holdout_is_independent": false,
+    "next_untouched_transfer_datasets": [
+      "lj",
+      "lj08"
+    ],
+    "reason": "WK/R19 observations existed before this replacement contract. This run replays the unchanged v13 formula after CC structural parity was corrected; WK/R19 cannot be used for a confirmatory claim or refit."
+  },
+  "model": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration_v17_grasu_update_frozen/frozen_grasu_update_control_models.json",
+  "model_sha256": "750c35a9a0f68a0830b18d91d618b46207df79a16356b3a280b32ab8fb218749",
+  "plugin_sha256": "4350f1ca24d17ab9226a3ad29cd1875fa678de66e6caab7e3055162d3830aa1b",
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_DIAGNOSTIC_REPLAY"
+}

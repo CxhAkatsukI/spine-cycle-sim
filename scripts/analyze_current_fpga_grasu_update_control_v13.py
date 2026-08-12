@@ -71,14 +71,19 @@ def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     if not rows:
         raise ValueError(f"refusing to write empty CSV: {path}")
     with path.open("w", encoding="ascii", newline="") as sink:
-        writer = csv.DictWriter(sink, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(
+            sink, fieldnames=list(rows[0]), lineterminator="\n"
+        )
         writer.writeheader()
         writer.writerows(rows)
 
 
 def validate_contract(contract_path: Path, contract: dict[str, Any]) -> None:
-    if contract.get("status") != "frozen_before_holdout":
-        raise ValueError("G+R update control contract is not frozen")
+    if contract.get("status") not in {
+        "frozen_before_holdout",
+        "development_replay_pre_registered_formula",
+    }:
+        raise ValueError("G+R update control contract has an unsupported status")
     for entry in (contract["plugin"], contract["case_contract"]):
         path = ROOT / entry["path"]
         if not path.is_file() or sha256_file(path) != entry["sha256"]:
@@ -93,7 +98,10 @@ def validate_contract(contract_path: Path, contract: dict[str, Any]) -> None:
 
 def load_model(path: Path) -> dict[str, GrasuUpdateControlModel]:
     payload = read_json(path)
-    if payload.get("status") != "FROZEN_BEFORE_HOLDOUT":
+    if payload.get("status") not in {
+        "FROZEN_BEFORE_HOLDOUT",
+        "FROZEN_BEFORE_DIAGNOSTIC_REPLAY",
+    }:
         raise ValueError("G+R update model is not frozen")
     return {
         row["algorithm"]: GrasuUpdateControlModel(
@@ -189,6 +197,10 @@ def collect_records(
                     "simulator_manifest_sha256": sha256_file(manifest_path),
                     "hardware_logs": [str(path) for path in logs],
                     "hardware_log_sha256": [sha256_file(path) for path in logs],
+                    "diagnostic_observability": {
+                        field: observability[field]
+                        for field in contract.get("diagnostic_observability", [])
+                    },
                 }
             )
     return records, evidence
@@ -240,6 +252,11 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     if args.mode == "freeze":
+        model_status = (
+            "FROZEN_BEFORE_HOLDOUT"
+            if contract["status"] == "frozen_before_holdout"
+            else "FROZEN_BEFORE_DIAGNOSTIC_REPLAY"
+        )
         models = []
         predictions = []
         loo_rows = []
@@ -270,7 +287,7 @@ def main() -> int:
             model_path,
             {
                 "schema_version": 1,
-                "status": "FROZEN_BEFORE_HOLDOUT",
+                "status": model_status,
                 "contract_id": contract["contract_id"],
                 "contract_sha256": sha256_file(contract_path),
                 "holdout_used_for_fit": False,
@@ -283,13 +300,14 @@ def main() -> int:
             out_dir / "freeze_manifest.json",
             {
                 "schema_version": 1,
-                "status": "FROZEN_BEFORE_HOLDOUT",
+                "status": model_status,
                 "contract": str(contract_path),
                 "contract_sha256": sha256_file(contract_path),
                 "plugin_sha256": contract["plugin"]["sha256"],
                 "model": str(model_path),
                 "model_sha256": sha256_file(model_path),
                 "calibration_summary": summarize(predictions),
+                "evidence_boundary": contract.get("evidence_boundary", {}),
                 "evidence": evidence,
             },
         )
@@ -325,6 +343,10 @@ def main() -> int:
             "frozen_model": str(model_path),
             "frozen_model_sha256": sha256_file(model_path),
             "holdout_used_for_fit": False,
+            "holdout_is_independent": contract.get("evidence_boundary", {}).get(
+                "holdout_is_independent", True
+            ),
+            "evidence_boundary": contract.get("evidence_boundary", {}),
             "summary": summary,
             "evidence": evidence,
         },

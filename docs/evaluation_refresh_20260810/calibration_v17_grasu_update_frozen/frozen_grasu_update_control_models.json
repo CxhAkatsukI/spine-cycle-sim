@@ -1,0 +1,36 @@
+{
+  "contract_id": "current_fpga_grasu_update_control_v15_20260812",
+  "contract_sha256": "7a584ee8b016b98012e834e1d5261180221a9e064e6c57702ad5bd53514319ee",
+  "holdout_used_for_fit": false,
+  "models": [
+    {
+      "algorithm": "weighted_sssp",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "control_cycles_per_nonempty_shard": 712018.3038461537,
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8"
+    },
+    {
+      "algorithm": "connected_components",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "control_cycles_per_nonempty_shard": 778209.8,
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "calibration_datasets": [
+        "au",
+        "su"
+      ],
+      "control_cycles_per_nonempty_shard": 771030.7562500001,
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8"
+    }
+  ],
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_DIAGNOSTIC_REPLAY"
+}

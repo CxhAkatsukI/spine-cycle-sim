@@ -1,0 +1,7 @@
+algorithm,profile_id,dataset,role,simulator_update_cycles,nonempty_destination_shards,control_cycles_per_nonempty_shard,predicted_update_cycles,hardware_update_cycles,error_percent,absolute_error_percent,held_out_dataset,training_datasets
+weighted_sssp,grasu_regraph_sharded_k4_weighted_hls_v8,au,calibration,225.0,2,726040.5833333331,1452306.1666666663,1361161.3499999999,6.696106722885308,6.696106722885308,au,su
+weighted_sssp,grasu_regraph_sharded_k4_weighted_hls_v8,su,calibration,272.0,3,680468.1749999999,2041676.525,2178393.7499999995,-6.276056612813898,6.276056612813898,su,au
+connected_components,grasu_regraph_sharded_k4_cc_hls_v8,au,calibration,266.0,1,823055.4000000001,823321.4000000001,733630.2000000001,12.22566900871857,12.22566900871857,au,su
+connected_components,grasu_regraph_sharded_k4_cc_hls_v8,su,calibration,258.0,1,733364.2000000001,733622.2000000001,823313.4000000001,-10.893931764015994,10.893931764015994,su,au
+thresholded_residual_pagerank,grasu_regraph_sharded_k4_residual_hls_v8,au,calibration,369.0,4,836303.7125,3345583.85,2823400.2,18.494850641435807,18.494850641435807,au,su
+thresholded_residual_pagerank,grasu_regraph_sharded_k4_residual_hls_v8,su,calibration,370.0,4,705757.8,2823401.2,3345584.85,-15.608142474700646,15.608142474700646,su,au
