@@ -1,6 +1,6 @@
 # Hardware and Calibration Status
 
-Date: 2026-08-10
+Date: 2026-08-12
 
 This note records the current evidence boundary for the evaluation-refresh
 packet. It is intentionally separate from the paper text.
@@ -38,7 +38,7 @@ failing endpoints). It is therefore recorded as `PASS_TIMING_MISS` evidence and
 should not replace panel (d) until its correctness/performance matrix is run
 and its timing status is accepted for the intended claim.
 
-## Existing Calibration Coverage
+## Superseded Calibration Coverage
 
 The repository contains older G+R K4 FPGA calibration evidence:
 
@@ -49,22 +49,29 @@ The repository contains older G+R K4 FPGA calibration evidence:
 | Residual PR | `docs/evidence/k4_fpga_respr_component_calibration_20260806` | 5.69% |
 | Full PR | `docs/evidence/k4_fpga_fullpr_component_calibration_20260806` | 2.59% |
 
-These are useful sanity checks, but they are not yet the final calibration for
-the full-graph sharded-K4 hardware matrix used by Figure 7.
+These remain historical sanity checks. Current admission decisions use Spine
+v15 and G+R persistent-update v20; the older rows are not reused as holdout.
 
 ## Figure 8--10 Status
 
-Figures 8--10 in this directory are candidate formatting refreshes generated
-from the current evidence packet where available:
+The current evidence boundary is:
 
-- Figure 8: current setup-inclusive update-only throughput CSVs.
-- Figure 9: current campaign memory/HBM-energy ledger; still partial until all
-  AU/SU/WK pairs finish.
-- Figure 10: current RQ3 ten-stage latency ledger.
+- Figure 8: `PASS_CURRENT_MODEL_DATA`. All seven unique update-only runs pass
+  correctness, structural-work, memory-ledger, and frozen-identity gates.
+- Figure 9: pending only the final WikiTalk G+R rows. Completed rows pass
+  correctness and strict request/byte conservation.
+- Figure 10: `PARTIAL_COMPONENT_CALIBRATION`. Seven SSSP rows are admitted for
+  breakdown; the whole-machine cost model is diagnostic and rejected.
 
-Figure 8 and Figure 10 now pass the current-data alignment gate. Figure 9 is
-still not final because the WikiTalk G+R CC and residual PageRank rows were
-stopped by the campaign memory breaker and are being rerun.
+The Spine v15 whole-machine holdout is `FAIL`: structural and memory ledgers
+pass, but CC compute has 37.39% median absolute error and workload ordering is
+reversed on the two-row SSSP and CC holdouts. This failure is retained. It does
+not invalidate Figure 8's narrower maintenance-only window, whose SSSP
+maintenance holdout is 9.25% median and 16.15% maximum absolute error.
+
+The frozen G+R v20 persistent-update model passes the untouched SO/PK holdout
+without refitting. Median/maximum absolute errors are 16.88%/32.24% for SSSP,
+5.90%/8.28% for CC, and 4.47%/8.59% for Residual PageRank.
 
 Important Figure 8 boundary: Figure 8 uses setup-inclusive update-only
 throughput, not simulator wall time and not full convergence time. The restored
@@ -88,11 +95,11 @@ correctness is claimed for this figure. Host preprocessing is measured by
 
 The admitted current Fig. 8 evidence root is:
 
-- `/data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_evidence`
+- `/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812`
 
-The exported renderer input is:
+The tracked renderer input is:
 
-- `/data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_csv`
+- `docs/evaluation_refresh_20260810/fig8_current_v20`
 
 The generated CSVs are marked `PASS_CURRENT_MODEL_DATA` and cover:
 
@@ -101,16 +108,16 @@ The generated CSVs are marked `PASS_CURRENT_MODEL_DATA` and cover:
 
 The setup-inclusive speedups are:
 
-- cross dataset: AU `10.98x`, SU `9.91x`, WK `18.18x`, SO `25.13x`, PK `6.49x`;
-- AU batch sweep: 64 updates `11.61x`, 512 updates `11.38x`, 4096 updates
-  `9.86x`.
+- cross dataset: AU `11.24x`, SU `10.37x`, WK `18.48x`, SO `18.94x`, PK `6.09x`;
+- AU batch sweep: 64 updates `11.47x`, 512 updates `11.24x`, 4096 updates
+  `10.07x`.
 
 Reproduction sketch:
 
 ```bash
 python3 scripts/export_persistent_update_setup_fig8.py \
-  --evidence-root /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_evidence \
-  --out-dir /data/tmp/chuxiao/evaluation_refresh_20260810_fig8_current_csv \
+  --evidence-root /data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig8_20260812 \
+  --out-dir docs/evaluation_refresh_20260810/fig8_current_v20 \
   --status PASS_CURRENT_MODEL_DATA \
   --cross-dataset au:AU \
   --cross-dataset su:SU \
@@ -122,140 +129,73 @@ python3 scripts/export_persistent_update_setup_fig8.py \
   --batch-count 4096
 ```
 
-Figure 10 current-data refresh: running `scripts/analyze_rq3_realized_work.py`
-on the active calibration root plus current standalone RQ3 cases produced 15
-latency rows and 21 regression rows, with all direct ten-stage ledgers closed.
-The input roots are:
+Figure 10's immutable execution package contains 21 correctness-gated rows.
+Seven SSSP rows are admitted to the plotted breakdown after v15 aggregate
+component calibration: three shallow insertions, three forced-carry cases, and
+one deletion fallback. The remaining limitations are explicit:
 
-- `/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen`
-- `/data/tmp/chuxiao/evaluation_refresh_20260810_rq3_current_carry`
-- `/data/tmp/chuxiao/evaluation_refresh_20260810_rq3_current_targeted`
-- `/data/tmp/chuxiao/evaluation_refresh_20260810_rq3_current_delete_shared`
+- Zero-net is omitted because current HLS lacks the paper no-repair fast path.
+- PageRank correction is omitted because routed hardware has no nonzero
+  iterative-round component sample.
+- Sort, physical resolve/apply, and seed have holdout R2 values of 0.971,
+  0.962, and 0.904. Carry is only a two-point holdout. Directory, switch, and
+  drain correlations are unsupported.
+- The global cost model has 59.17% median and 107.35% maximum absolute error
+  on seven real-trace holdout rows and is not admitted.
 
-The coverage summary is:
+## Active Figure 9 Completion Run
 
-| RQ3 case class | Current probe status |
-|---|---|
-| zero-net | ready |
-| shallow insertion | ready |
-| deep carry | ready |
-| PageRank correction | ready |
-| deletion fallback | ready |
-
-This is sufficient for the Figure 10 normalized breakdown panel. The broader
-RQ3 linear cost-model fit is still under-sampled (`calibration_samples=6`,
-`required_samples=9`) and should not be claimed as a final fitted E2E model
-until more calibration rows are added.
-
-## Active Calibration Refresh Run
-
-A small calibration/refresh campaign is running from:
+A frozen nine-row memory campaign is running under:
 
 ```bash
-/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/campaign_manifest.json
+/data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812
 ```
 
-It covers AU/SU/WK, insert batch-8, three differential algorithms, and both
-`spine` and `grasu_regraph_k4_shared`. It uses the frozen SST plugin directory:
+It covers AU/SU/WK and all three differential algorithms. Spine data comes
+from the immutable v12 execution package; G+R uses the unified v19 plugin with
+v20-frozen evidence identities. Figure 9 records accepted backend bytes and
+bound-channel DRAMSim3 energy, not simulator wall time.
 
 ```bash
-/home/chuxiao/spine-cycle-sim-publication/build/sst
+/home/chuxiao/spine-cycle-sim-sharded-k4-v3/cpp/sst/build/sst-current-fpga-v19
 ```
 
-Latest partial checkpoint: partial analysis reports `observed=15`, `pairs=6`,
-`missing=3`. The completed pairs are:
+Every admitted row must satisfy:
 
-- `sx_askubuntu / weighted_sssp / insert-8`: Spine `61,817` cycles versus
-  G+R `179,053,544` cycles, or `2,896.5x` speedup.
-- `sx_superuser / weighted_sssp / insert-8`: Spine `60,699` cycles versus
-  G+R `291,909,003` cycles, or `4,809.1x` speedup.
-- `sx_askubuntu / connected_components / insert-8`: Spine `2,183,292` cycles
-  versus G+R `13,462,032` cycles, or `6.17x` speedup.
-- `sx_superuser / connected_components / insert-8`: Spine `2,397,167` cycles
-  versus G+R `21,367,179` cycles, or `8.91x` speedup.
-- `sx_askubuntu / thresholded_residual_pagerank / insert-8`: Spine
-  `2,175,289` cycles versus G+R `14,729,898` cycles, or `6.77x` speedup.
-- `sx_superuser / thresholded_residual_pagerank / insert-8`: Spine
-  `2,392,695` cycles versus G+R `23,162,486` cycles, or `9.68x` speedup.
-
-The remaining jobs are the G+R side of wiki_talk_temporal SSSP, CC, and
-residual PR. At the latest checkpoint wiki_talk_temporal SSSP was running and
-the other two wiki_talk_temporal jobs were queued behind the campaign
-scheduler's memory reserve.
+- architecture correctness `PASS`;
+- memory ledger `PASS`;
+- backend intents = grants = consumed grants = backend requests;
+- no pending arbitration work at completion;
+- DRAMSim3 reads + writes = backend requests.
 
 Monitor it with:
 
 ```bash
-watch -n 5 python3 scripts/monitor_large_graph_campaign.py \
-  --run-dir /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/run \
-  --max-rows 24
+watch -n 5 'for f in \
+  /data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812/\
+runs_current_v1/wk/grasu_regraph/*/progress.json; do jq -c . "$f"; done'
 ```
 
-Estimate the remaining cycle budget with:
+Export only after all nine rows complete:
 
 ```bash
-/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
-  scripts/estimate_evaluation_campaign_eta.py
+python3 scripts/export_current_fpga_fig9.py \
+  --spine-root /data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812 \
+  --grasu-root /data/tmp/chuxiao/evaluation_refresh_current_fpga_v20_fig9_20260812 \
+  --out-dir docs/evaluation_refresh_20260810/fig9_current_v20
 ```
 
-If the main runner leaves G+R long-tail jobs queued and memory has recovered
-well above the campaign recovery threshold, a sidecar campaign may be launched
-from:
-
-```bash
-/data/tmp/chuxiao/evaluation_refresh_20260810_calibration_sidecar_queued/campaign_manifest.json
-```
-
-Use:
-
-```bash
-/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
-  scripts/run_large_graph_campaign.py \
-  --manifest /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_sidecar_queued/campaign_manifest.json \
-  --run-dir /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_sidecar_queued/run \
-  --jobs 3 \
-  --large-jobs 2 \
-  --memory-reserve-gib 72 \
-  --memory-emergency-gib 64 \
-  --memory-recovery-gib 96 \
-  --sample-seconds 10 \
-  --no-progress-warn-minutes 20
-```
-
-Do not launch the sidecar while the machine is below the main recovery threshold.
-If it is used, include the sidecar root in finalization:
-
-```bash
-/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
-  scripts/finalize_evaluation_refresh.py \
-  --extra-result-root /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_sidecar_queued
-```
-
-Analyze partial or complete results with:
-
-```bash
-python3 scripts/analyze_publication_experiment_campaign.py \
-  --result-root /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen \
-  --manifest /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/campaign_manifest.json \
-  --result-transition-contract configs/contracts/large_graph_publication_campaign_fullgraph_v8.json \
-  --required-system spine \
-  --required-system grasu_regraph_k4_shared \
-  --out-dir /data/tmp/chuxiao/evaluation_refresh_20260810_calibration_frozen/analysis_partial
-```
-
-Do not pass the nested `runs/` directory as `--result-root`; the analysis
-loader expects `runs/*/case_result.json` under the supplied root.
-
-A first dry run with the current branch-local `build/sst` was rejected by the
-contract's plugin-admission gate. That was expected after inspection: the
-contract freezes plugin SHA
-`7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6`, which
-matches `/home/chuxiao/spine-cycle-sim-publication/build/sst/libspine_cycle.so`
-and not the branch-local rebuild.
+Historical calibration contracts v4--v8 referenced a mutable CC architecture
+profile later changed by the August 12 host-reordering work. Tests now expose
+that hash drift instead of pretending the historical contract is current. The
+v20 Figure 9 contract freezes the new profile hash and is unaffected.
 
 ## Immediate Replacement Rule
 
 - Figure 7(a)--(c): can be discussed as real FPGA evidence now.
 - Figure 7(d): use as compact FullPR placeholder only.
-- Figures 8--10: use for layout/review now; regenerate after calibration
-  before treating them as final numerical evidence.
+- Figure 8: admitted for its narrow update-only claim.
+- Figure 9: admitted only after the nine-row exporter returns
+  `PASS_CURRENT_MODEL_DATA`.
+- Figure 10: use only the admitted SSSP breakdown and supported mechanism
+  correlations; do not claim a calibrated whole-machine cost model.
