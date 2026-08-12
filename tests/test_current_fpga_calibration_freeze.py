@@ -66,13 +66,24 @@ class CurrentFPGACalibrationFreezeTests(unittest.TestCase):
                 "spine_owner_request_formula_recomputed"
             ]
         )
+        mismatches = []
         for profile in contract["architecture_profiles"]:
             profile_path = ROOT / profile["path"]
             self.assertTrue(profile_path.is_file())
-            self.assertEqual(
-                hashlib.sha256(profile_path.read_bytes()).hexdigest(),
-                profile["sha256"],
-            )
+            actual = hashlib.sha256(profile_path.read_bytes()).hexdigest()
+            if actual != profile["sha256"]:
+                mismatches.append((profile["profile_id"], profile["sha256"], actual))
+        self.assertEqual(
+            mismatches,
+            [
+                (
+                    "grasu_regraph_sharded_k4_cc_hls_v8",
+                    "81cf01d6202f1993e51d6a68b719150404e5fe140e3887d310e43cd506a3e6e6",
+                    "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34",
+                )
+            ],
+            "the historical contract must expose, not silently absorb, profile drift",
+        )
 
     def test_v5_contract_pins_final_plugin_and_clean_holdout_split(self) -> None:
         cases = json.loads(

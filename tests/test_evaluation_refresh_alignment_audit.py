@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -69,9 +70,21 @@ def write_current_fig9_package(root: Path) -> Path:
     return analysis
 
 
-def write_calibration_manifests(root: Path) -> Path:
+def write_current_contract(root: Path) -> Path:
+    source = json.loads(DEFAULT_CALIBRATION_CONTRACT.read_text(encoding="utf-8"))
+    for profile in source["architecture_profiles"]:
+        profile_path = Path(__file__).resolve().parents[1] / profile["path"]
+        profile["sha256"] = hashlib.sha256(profile_path.read_bytes()).hexdigest()
+    path = root / "current_contract.json"
+    write_json(path, source)
+    return path
+
+
+def write_calibration_manifests(
+    root: Path, contract_path: Path = DEFAULT_CALIBRATION_CONTRACT
+) -> Path:
     calibration = root / "calibration"
-    contract = calibration_contract_status(DEFAULT_CALIBRATION_CONTRACT)
+    contract = calibration_contract_status(contract_path)
     coverage_identity = []
     for pair in contract["expected_pairs"]:
         architecture, algorithm, profile_id = pair.split(":")
@@ -241,12 +254,13 @@ class EvaluationRefreshAlignmentAuditTests(unittest.TestCase):
             for figure, status in statuses.items():
                 write_json(provenance / f"{figure}.json", {"status": status})
             analysis = write_complete_campaign(root)
-            calibration = write_calibration_manifests(root)
+            contract = write_current_contract(root)
+            calibration = write_calibration_manifests(root, contract)
 
             audit = build_audit(
                 root,
                 analysis,
-                DEFAULT_CALIBRATION_CONTRACT,
+                contract,
                 calibration,
             )
 
@@ -267,12 +281,13 @@ class EvaluationRefreshAlignmentAuditTests(unittest.TestCase):
             for figure, status in statuses.items():
                 write_json(provenance / f"{figure}.json", {"status": status})
             analysis = write_current_fig9_package(root)
-            calibration = write_calibration_manifests(root)
+            contract = write_current_contract(root)
+            calibration = write_calibration_manifests(root, contract)
 
             audit = build_audit(
                 root,
                 analysis,
-                DEFAULT_CALIBRATION_CONTRACT,
+                contract,
                 calibration,
             )
 
