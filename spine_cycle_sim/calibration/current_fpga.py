@@ -39,6 +39,41 @@ class CurrentFPGAComponentRecord:
 
 
 @dataclass(frozen=True)
+class GrasuUpdateControlRecord:
+    """G+R update timing paired with the serialized nonempty-shard launches."""
+
+    algorithm: str
+    profile_id: str
+    dataset: str
+    role: str
+    simulator_update_cycles: float
+    nonempty_destination_shards: int
+    hardware_update_cycles: float
+
+
+@dataclass(frozen=True)
+class GrasuUpdateControlModel:
+    """Execution time plus one routed control envelope per nonempty PMA shard."""
+
+    algorithm: str
+    profile_id: str
+    calibration_datasets: tuple[str, ...]
+    control_cycles_per_nonempty_shard: float
+
+    def predict(
+        self, *, simulator_update_cycles: float, nonempty_destination_shards: int
+    ) -> float:
+        _require_positive_finite(simulator_update_cycles, "simulator_update_cycles")
+        if nonempty_destination_shards <= 0:
+            raise ValueError("nonempty_destination_shards must be positive")
+        return (
+            simulator_update_cycles
+            + self.control_cycles_per_nonempty_shard
+            * nonempty_destination_shards
+        )
+
+
+@dataclass(frozen=True)
 class SpineRealizedWorkRecord:
     """Routed Spine timing paired with execution-driven HLS work counters."""
 
@@ -721,6 +756,118 @@ def fit_total_scale(records: Iterable[CurrentFPGATimingRecord]) -> PositiveScale
     if {row.dataset for row in calibration} & {row.dataset for row in holdout}:
         raise ValueError("calibration and holdout datasets overlap")
     return fit_total_scale_calibration_only(calibration)
+
+
+def fit_grasu_update_control_model(
+    records: Iterable[GrasuUpdateControlRecord],
+) -> GrasuUpdateControlModel:
+    """Fit only the serialized shard control envelope from calibration rows."""
+
+    rows = tuple(records)
+    if len(rows) < 2:
+        raise ValueError("G+R update control fit requires two calibration rows")
+    identities = {(row.algorithm, row.profile_id) for row in rows}
+    if len(identities) != 1:
+        raise ValueError("G+R update control fit requires one algorithm/profile")
+    if any(row.role != "calibration" for row in rows):
+        raise ValueError("G+R update control fit rejects non-calibration rows")
+    if len({row.dataset for row in rows}) != len(rows):
+        raise ValueError("G+R update control calibration datasets must be unique")
+    numerator = 0.0
+    denominator = 0.0
+    for row in rows:
+        _require_positive_finite(
+            row.simulator_update_cycles, "simulator_update_cycles"
+        )
+        _require_positive_finite(row.hardware_update_cycles, "hardware_update_cycles")
+        if row.nonempty_destination_shards <= 0:
+            raise ValueError("nonempty_destination_shards must be positive")
+        residual = row.hardware_update_cycles - row.simulator_update_cycles
+        if residual <= 0:
+            raise ValueError("hardware update timing must exceed simulated dataflow")
+        numerator += row.nonempty_destination_shards * residual
+        denominator += row.nonempty_destination_shards**2
+    control_cycles = numerator / denominator
+    _require_positive_finite(control_cycles, "control_cycles_per_nonempty_shard")
+    algorithm, profile_id = next(iter(identities))
+    return GrasuUpdateControlModel(
+        algorithm=algorithm,
+        profile_id=profile_id,
+        calibration_datasets=tuple(sorted(row.dataset for row in rows)),
+        control_cycles_per_nonempty_shard=control_cycles,
+    )
+
+
+def grasu_update_control_prediction_rows(
+    records: Iterable[GrasuUpdateControlRecord],
+    model: GrasuUpdateControlModel,
+) -> list[dict[str, object]]:
+    rows = []
+    for record in records:
+        if (record.algorithm, record.profile_id) != (
+            model.algorithm,
+            model.profile_id,
+        ):
+            raise ValueError("G+R update control record/model identity mismatch")
+        predicted = model.predict(
+            simulator_update_cycles=record.simulator_update_cycles,
+            nonempty_destination_shards=record.nonempty_destination_shards,
+        )
+        rows.append(
+            {
+                "algorithm": record.algorithm,
+                "profile_id": record.profile_id,
+                "dataset": record.dataset,
+                "role": record.role,
+                "simulator_update_cycles": record.simulator_update_cycles,
+                "nonempty_destination_shards": record.nonempty_destination_shards,
+                "control_cycles_per_nonempty_shard": (
+                    model.control_cycles_per_nonempty_shard
+                ),
+                "predicted_update_cycles": predicted,
+                "hardware_update_cycles": record.hardware_update_cycles,
+                "error_percent": 100.0
+                * (predicted - record.hardware_update_cycles)
+                / record.hardware_update_cycles,
+                "absolute_error_percent": absolute_error_percent(
+                    predicted, record.hardware_update_cycles
+                ),
+            }
+        )
+    return rows
+
+
+def grasu_update_control_leave_one_dataset_out_rows(
+    records: Iterable[GrasuUpdateControlRecord],
+) -> list[dict[str, object]]:
+    rows = tuple(records)
+    if len(rows) < 2:
+        raise ValueError("leave-one-dataset-out requires at least two rows")
+    predictions: list[dict[str, object]] = []
+    for held_out in rows:
+        training = tuple(row for row in rows if row.dataset != held_out.dataset)
+        if not training:
+            raise ValueError("leave-one-dataset-out requires another dataset")
+        if len(training) == 1:
+            row = training[0]
+            residual = row.hardware_update_cycles - row.simulator_update_cycles
+            if residual <= 0 or row.nonempty_destination_shards <= 0:
+                raise ValueError("invalid leave-one-dataset-out training row")
+            model = GrasuUpdateControlModel(
+                algorithm=row.algorithm,
+                profile_id=row.profile_id,
+                calibration_datasets=(row.dataset,),
+                control_cycles_per_nonempty_shard=(
+                    residual / row.nonempty_destination_shards
+                ),
+            )
+        else:
+            model = fit_grasu_update_control_model(training)
+        prediction = grasu_update_control_prediction_rows((held_out,), model)[0]
+        prediction["held_out_dataset"] = held_out.dataset
+        prediction["training_datasets"] = ",".join(model.calibration_datasets)
+        predictions.append(prediction)
+    return predictions
 
 
 def fit_total_scale_calibration_only(

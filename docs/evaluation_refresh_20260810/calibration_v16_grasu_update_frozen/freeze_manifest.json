@@ -1,0 +1,148 @@
+{
+  "calibration_summary": [
+    {
+      "algorithm": "connected_components",
+      "cases": 2,
+      "max_absolute_error_percent": 17.42276233364523,
+      "median_absolute_error_percent": 13.886350429392051,
+      "role": "calibration"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "cases": 2,
+      "max_absolute_error_percent": 9.247425320717912,
+      "median_absolute_error_percent": 8.525748279034115,
+      "role": "calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "cases": 2,
+      "max_absolute_error_percent": 4.635766192766749,
+      "median_absolute_error_percent": 3.2834302675855116,
+      "role": "calibration"
+    }
+  ],
+  "contract": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/configs/contracts/current_fpga_grasu_update_control_v13.json",
+  "contract_sha256": "4a870bb1963d5fbecd48a12ca9121213dbb9740911803b90da93bd88ad9aedab",
+  "evidence": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "au",
+      "hardware_log_sha256": [
+        "df8899661a39520e0720e17e0b76155ff4418b737090f243794c7279d4262af2",
+        "3d7504b75d5965493294a165491774a4c29c8d293ea2a5f3d74736798835cadf",
+        "ff556b6c3433fd12f02e0a5476117a4bcbbe5b6d5976f1d7fa24fa7eb7dab762"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/au_weighted_sssp_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/au_weighted_sssp_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/au_weighted_sssp_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/au/weighted_sssp/manifest.json",
+      "simulator_manifest_sha256": "6025b7a2476c348857eb79577bf3fc57a16d8eb8af693a44bf3c89f624636983",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/au/weighted_sssp/result.json",
+      "simulator_result_sha256": "be6e6d4636669c92b7df0313f583e21f26bdb8c6ba312609aad036ad40d1120b"
+    },
+    {
+      "algorithm": "connected_components",
+      "dataset": "au",
+      "hardware_log_sha256": [
+        "e2a8e7af4486ce6b9a4129fc53ae859d8d0053fa026cfbeea5c7137865076bfa",
+        "79695c2c9381033a9f2d5c10bf483348d5888228431aad7690e671f7b950faf3",
+        "0c19981c022c337f92885c1d25c38fe5f858807225f412e5bab46c612df48eed"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/cc_fullgraph_run1_20260807/au_connected_components_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/cc_fullgraph_run2_20260807/au_connected_components_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/cc_fullgraph_run3_20260807/au_connected_components_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/au/connected_components/run_manifest.json",
+      "simulator_manifest_sha256": "e847c419a22e66969856da796c432d83b091889149cadff80677198970e04782",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/au/connected_components/result.json",
+      "simulator_result_sha256": "03fc1f4673768d2554f68ac634d07d82ecda22a4120aee236db2a85dc346d5e5"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset": "au",
+      "hardware_log_sha256": [
+        "20f95cfdfe2cbdc95d036a61e8f02184630b5de9aaee193cd3c8cfc1b96d9a67",
+        "c3405d8ad82d5e9d72be5cdb31d45d915a96be18f35de4baa4b25d8eaad7f03a",
+        "f4f50e618768d7558fd5332940d42760688f1c867380cb67c6977588d4dead3b"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run1/au_residual_pagerank_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run2/au_residual_pagerank_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run3/au_residual_pagerank_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/au/thresholded_residual_pagerank/manifest.json",
+      "simulator_manifest_sha256": "3a0723c795e99622484a88716a18a4fccad0af5d5bfc1ea4418e079a57ae3046",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/au/thresholded_residual_pagerank/result.json",
+      "simulator_result_sha256": "17d223cfd41426a4cf209518f0ffe62a80b903a96a949110de03676c2bedce6f"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "su",
+      "hardware_log_sha256": [
+        "38bb0e8432c4c88e0f36e02afc07ccd52b39003d113d5f7fc16ae4e2b52048ce",
+        "2d8818858de6ada7890c6c6ff8bbb3c7e9e80601b6d3481e9bc0762922cda42b",
+        "0d2a3d40e3078a6ca218ab4bcee2c890fb0f8c29e6cfeba660d0e775b6d84e2d"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat2_20260806/su_weighted_sssp_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_repeat3_20260807/su_weighted_sssp_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/sssp_fullgraph_small_v2_20260806/su_weighted_sssp_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/su/weighted_sssp/manifest.json",
+      "simulator_manifest_sha256": "5c2f6d872db435226284a66c8238c1ee7b5d05522ec166890ed701bc9ab24f18",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/su/weighted_sssp/result.json",
+      "simulator_result_sha256": "7988b2c09ccce6fde2cd3fb6b3a6ec9a46f1c1ce6a46e6aa5a30ebde6fa6f566"
+    },
+    {
+      "algorithm": "connected_components",
+      "dataset": "su",
+      "hardware_log_sha256": [
+        "227bc7b61d19bf2e0cd7e0c46b82b5504085f5b24a48d4e6019789972d2f66e6",
+        "8ff037dffe8f6bd1a8773c7cc18ceeac2dd11c90dd5e920e9e7ef67ac3e2866f",
+        "1f7b1601592646aeab521057194680adf578e70d9f2c6ec9cc49d324031533af"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/cc_fullgraph_run1_20260807/su_connected_components_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/cc_fullgraph_run2_20260807/su_connected_components_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/cc_fullgraph_run3_20260807/su_connected_components_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/su/connected_components/run_manifest.json",
+      "simulator_manifest_sha256": "d0c107113fb95f524938e2989ca9b13c0cdf23e8869e34b558d68a713514e3a3",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/su/connected_components/result.json",
+      "simulator_result_sha256": "42e0c53dd5250d5395897a146c871a5f2ddd3c9e2ea15974f7b6a6e7a88080d3"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "dataset": "su",
+      "hardware_log_sha256": [
+        "9142a609c6c32810f6d93caa74b10b9aa89865282de449de6a45d22fc7666aa0",
+        "663f775dc3d3d8b7a87ede892e5f8f0af4601d64b8092e4b4c800bd6b1e4cd1b",
+        "afbc0618e50566454078cc66dc746bc3fbb47d3ffe259203e78845b31fe845c8"
+      ],
+      "hardware_logs": [
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run1/su_residual_pagerank_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run2/su_residual_pagerank_resident/grasu_regraph/run.log",
+        "/data/tmp/chuxiao/fullgraph_respr_fpga_runs_bfe2024_route_aggressive_slr2_run3/su_residual_pagerank_resident/grasu_regraph/run.log"
+      ],
+      "role": "calibration",
+      "simulator_manifest": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/su/thresholded_residual_pagerank/manifest.json",
+      "simulator_manifest_sha256": "53963efb880890d2b17f11695ed1d0a4e0ad5c4949ae940347af3da5faed91ff",
+      "simulator_result": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v13_update_observability_20260812/calibration/su/thresholded_residual_pagerank/result.json",
+      "simulator_result_sha256": "5014f2a86fafcbd646a22205ddedc86227915b89447fe20af15a1ba321f5b606"
+    }
+  ],
+  "model": "/home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/calibration_v16_grasu_update_frozen/frozen_grasu_update_control_models.json",
+  "model_sha256": "9a480af0ab470c506bb01b703a3348718d1ec9c46c9339f6c37fe2cc920d9111",
+  "plugin_sha256": "169548e16eb5eb6d2cecfe32c9fb04c90e0d16785dbcdceec7f8eb3e24625587",
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_HOLDOUT"
+}

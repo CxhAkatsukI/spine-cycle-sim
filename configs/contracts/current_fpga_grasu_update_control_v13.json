@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "contract_id": "current_fpga_grasu_update_control_v13_20260812",
+  "status": "frozen_before_holdout",
+  "clock_mhz": 150.0,
+  "roles": {
+    "calibration": ["au", "su"],
+    "holdout": ["wk", "r19"]
+  },
+  "algorithms": [
+    "weighted_sssp",
+    "connected_components",
+    "thresholded_residual_pagerank"
+  ],
+  "plugin": {
+    "path": "cpp/sst/build/sst-current-fpga-v13/libspine_cycle.so",
+    "sha256": "169548e16eb5eb6d2cecfe32c9fb04c90e0d16785dbcdceec7f8eb3e24625587"
+  },
+  "case_contract": {
+    "path": "configs/contracts/evaluation_refresh_fpga_cases_v7.json",
+    "sha256": "b9a03bbae24c2a6dc99009ea4234fec4c17692dbecdb071abee21e295a588fc2"
+  },
+  "profiles": {
+    "weighted_sssp": {
+      "profile_id": "grasu_regraph_sharded_k4_weighted_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+    },
+    "connected_components": {
+      "profile_id": "grasu_regraph_sharded_k4_cc_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+      "sha256": "81cf01d6202f1993e51d6a68b719150404e5fe140e3887d310e43cd506a3e6e6"
+    },
+    "thresholded_residual_pagerank": {
+      "profile_id": "grasu_regraph_sharded_k4_residual_hls_v8",
+      "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+      "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+    }
+  },
+  "model": {
+    "form": "hardware_update_cycles = simulator_update_cycles + control_cycles_per_nonempty_shard * nonempty_destination_shards",
+    "feature_source": "result.update_observability.destination_partitions_touched",
+    "mechanism": "the routed host serializes nonempty destination shards; each shard enqueues the complete 9-CU update pipeline, or 10 CUs for PageRank degree RMW, and calls finish before the next shard",
+    "fit": "one nonnegative least-squares coefficient per algorithm",
+    "intercept": false,
+    "holdout_may_fit": false
+  },
+  "gates": {
+    "correctness_mismatches": 0,
+    "memory_locality_ledger_match": true,
+    "measurement_window": "pure_update_only",
+    "graph_compute_executed": false,
+    "calibration_absolute_error_percent_max": 20.0,
+    "calibration_leave_one_dataset_out_absolute_error_percent_max": 40.0,
+    "holdout_median_absolute_error_percent_max": 20.0,
+    "holdout_absolute_error_percent_max": 30.0
+  },
+  "limitations": [
+    "Only two calibration datasets are available per algorithm; leave-one-dataset-out is reported but not treated as a substitute for WK/R19 holdout.",
+    "The coefficient is an observed routed shard-control envelope, not an individually measured OpenCL launch latency.",
+    "The model applies to the current sharded-K4 routed hosts and the frozen u8 resident-state update window."
+  ]
+}

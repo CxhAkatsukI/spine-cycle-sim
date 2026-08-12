@@ -4,6 +4,7 @@ import unittest
 from spine_cycle_sim.calibration.current_fpga import (
     CurrentFPGAComposedRecord,
     CurrentFPGAComponentRecord,
+    GrasuUpdateControlRecord,
     CurrentFPGAOverlapRecord,
     CurrentFPGAOverlapV6Record,
     CurrentFPGATimingRecord,
@@ -13,12 +14,15 @@ from spine_cycle_sim.calibration.current_fpga import (
     component_prediction_rows,
     fit_component_scale,
     fit_component_scale_calibration_only,
+    fit_grasu_update_control_model,
     fit_composed_timing_model,
     fit_overlap_timing_model,
     fit_overlap_v6_timing_model,
     fit_spine_realized_work_model,
     fit_total_scale,
     fit_total_scale_calibration_only,
+    grasu_update_control_leave_one_dataset_out_rows,
+    grasu_update_control_prediction_rows,
     overlap_leave_one_dataset_out_rows,
     overlap_prediction_rows,
     overlap_v6_prediction_rows,
@@ -29,6 +33,41 @@ from spine_cycle_sim.calibration.current_fpga import (
 
 
 class CurrentFPGACalibrationTests(unittest.TestCase):
+    def grasu_update_rows(self):
+        return [
+            GrasuUpdateControlRecord(
+                "weighted_sssp", "p1", "au", "calibration", 100, 2, 1100
+            ),
+            GrasuUpdateControlRecord(
+                "weighted_sssp", "p1", "su", "calibration", 200, 4, 2200
+            ),
+        ]
+
+    def test_grasu_update_control_model_recovers_per_shard_envelope(self):
+        rows = self.grasu_update_rows()
+        model = fit_grasu_update_control_model(rows)
+        self.assertAlmostEqual(model.control_cycles_per_nonempty_shard, 500.0)
+        predictions = grasu_update_control_prediction_rows(rows, model)
+        self.assertTrue(
+            all(row["absolute_error_percent"] == 0 for row in predictions)
+        )
+
+    def test_grasu_update_control_fit_rejects_holdout(self):
+        rows = self.grasu_update_rows()
+        rows[-1] = GrasuUpdateControlRecord(
+            **{**rows[-1].__dict__, "role": "holdout"}
+        )
+        with self.assertRaisesRegex(ValueError, "rejects non-calibration"):
+            fit_grasu_update_control_model(rows)
+
+    def test_grasu_update_control_leave_one_dataset_out_is_independent(self):
+        rows = self.grasu_update_rows()
+        predictions = grasu_update_control_leave_one_dataset_out_rows(rows)
+        self.assertEqual({row["held_out_dataset"] for row in predictions}, {"au", "su"})
+        self.assertEqual(
+            {row["training_datasets"] for row in predictions}, {"au", "su"}
+        )
+
     def realized_work_rows(self):
         rows = []
         for dataset_index, dataset in enumerate(("au", "su", "wk", "r19"), 1):
