@@ -341,9 +341,10 @@ def render_fig8(
 
     cross_rows = [row for row in cross_rows if row["dataset"] in ("AU", "SU", "WK", "SO", "PK")]
     x = list(range(len(cross_rows)))
+    cross_speedups = [float(row["spine_speedup"]) for row in cross_rows]
     axes[0].bar(
         x,
-        [float(row["spine_speedup"]) for row in cross_rows],
+        cross_speedups,
         width=0.58,
         facecolor="white",
         edgecolor=blue,
@@ -358,9 +359,10 @@ def render_fig8(
 
     batch_rows = sorted(batch_rows, key=lambda row: float(row["updates_per_batch"]))
     x = list(range(len(batch_rows)))
+    batch_speedups = [float(row["spine_speedup"]) for row in batch_rows]
     axes[1].plot(
         x,
-        [float(row["spine_speedup"]) for row in batch_rows],
+        batch_speedups,
         marker="s",
         markersize=3.2,
         linewidth=0.9,
@@ -374,10 +376,10 @@ def render_fig8(
     axes[1].set_title("(b) Batch size", pad=4.5, fontweight="bold")
     axes[1].set_xlabel("updates/batch")
 
-    for axis in axes:
+    for axis, values in zip(axes, (cross_speedups, batch_speedups), strict=True):
         axis.axhline(1.0, color=ink, linestyle="--", linewidth=0.62, zorder=2)
-        axis.set_ylim(0.0, max(axis.get_ylim()[1], 3.1))
-        axis.set_yticks((0, 1, 2, 3))
+        axis.set_ylim(0.0, max(values) * 1.14)
+        axis.yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins=5, min_n_ticks=4))
         axis.grid(axis="y", color="#D2D5D7", linestyle="--", linewidth=0.45, zorder=0)
         axis.tick_params(axis="x", length=0)
         for spine in axis.spines.values():
