@@ -1,7 +1,7 @@
-# Figures 7--10 Complete Handoff
+# Figures 7--11 Complete Handoff
 
 This directory is the self-contained code, data, provenance, documentation,
-and preview package for the revised evaluation Figures 7--10. It lives in the
+and preview package for the revised evaluation Figures 7--11. It lives in the
 simulator repository and does not modify the paper repository.
 
 ## One-command reproduction
@@ -16,11 +16,11 @@ cd /home/chuxiao/spine-cycle-sim-sharded-k4-v3/docs/evaluation_refresh_20260810/
 
 The renderer reads only `data/` and `provenance/` within this directory. It
 validates evidence status, frozen hashes, workload coverage, simulator identity,
-and Figure 10 cycle conservation before drawing any figure.
+Figure 10 cycle conservation, and Figure 11 split/model hashes before drawing.
 
 ## Package layout
 
-- `render_all.py`: complete standalone Python renderer for all four figures.
+- `render_all.py`: complete standalone Python renderer for all five figures.
 - `data/`: frozen CSV inputs used by the renderer.
 - `provenance/`: source manifests and evidence boundaries for each figure.
 - `figures/`: PDF, PNG, and combined-preview outputs.
@@ -111,6 +111,41 @@ device-cycle interval. It explains how the dominant stage changes with realized
 work. It does not compare absolute latency between bars and is not an FPGA
 per-stage measurement or FPGA-calibrated stage breakdown.
 
+## Figure 11: Realized-work model prediction versus simulator cycles
+
+**Data:**
+
+- `data/fig11_rq3_prediction_rows.csv`
+- `data/fig11_rq3_metric_rows.csv`
+- `data/fig11_rq3_model.json`
+- `data/fig11_rq3_summary.json`
+
+The x-axis is the execution-driven simulator's observed end-to-end cycle
+count. The y-axis is the nonnegative realized-work model prediction. Square
+markers are the 24 calibration rows; circular markers are the 17 trace
+holdout rows. Calibration rows are used to fit the model, while holdout rows
+are never used for fitting. The line is the identity line, not a regression
+line.
+
+The frozen input combines the existing 21 current-v12 cases with 20 new
+correctness-admitted carry cases. The new cases use batch sizes of 1, 4, 16,
+and 32 edges and forced carry levels L1--L5. All 41 rows use the same frozen
+simulator plugin (`f1fca617...e324b70`). The expanded model has 24 calibration
+rows, 17 trace holdout rows, and 7 real-trace holdout rows.
+
+The expanded trace holdout has `R^2 = 0.981` and median absolute percentage
+error `9.8%`. The real-trace holdout has `R^2 = 0.978` but median absolute
+percentage error `57.3%` (maximum `90.2%`). Therefore this figure is admitted
+as a **diagnostic simulator-model figure**: it supports realized-work trend
+and bottleneck attribution, but it is not an FPGA-accurate absolute latency
+claim. In particular, the high real-trace holdout error must remain visible
+and must not be hidden by reporting only the calibration fit or the combined
+`R^2`.
+
+The model still has no zero-net row in this expanded input. That missing
+coverage is recorded in `data/fig11_rq3_summary.json`; it is not silently
+filled with a projected value.
+
 ## Evidence summary
 
 | Figure | Primary evidence | Scope |
@@ -119,6 +154,7 @@ per-stage measurement or FPGA-calibrated stage breakdown.
 | 8 | Measured host setup + frozen persistent update models | Update-only, no propagation |
 | 9 | Execution-driven simulator memory ledger + DRAMSim3 | Relative accepted bytes and HBM energy |
 | 10 | Execution-driven cycle simulator timestamps | Normalized stage attribution |
+| 11 | Execution-driven simulator cycles + realized-work model | Diagnostic model fit and holdout error; not hardware calibration |
 
 The provenance JSON files retain the raw evidence paths and hashes used to
 freeze each CSV. Those external paths are not needed to redraw the figures;

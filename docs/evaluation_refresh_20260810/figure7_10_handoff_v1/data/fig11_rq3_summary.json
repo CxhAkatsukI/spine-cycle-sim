@@ -1,0 +1,92 @@
+{
+  "all_direct_ten_stage_ledgers_closed": true,
+  "analysis_id": "spine_rq3_realized_work_v2",
+  "calibration_dataset_ids": [],
+  "coverage": {
+    "deep_carry": "ready",
+    "deletion_fallback": "ready",
+    "pagerank_correction": "ready",
+    "shallow_insertion": "ready",
+    "zero_net": "missing"
+  },
+  "direct_ten_stage_rows": 37,
+  "e2e_metrics": {
+    "calibration": {
+      "mape_percent": 14.575617155485611,
+      "max_ape_percent": 52.68005309472211,
+      "median_ape_percent": 10.775759561743186,
+      "r2": 0.9999559728981241,
+      "role": "calibration",
+      "samples": 24
+    },
+    "real_trace_holdout": {
+      "mape_percent": 48.579321796698004,
+      "max_ape_percent": 90.17904723700786,
+      "median_ape_percent": 57.30020071254685,
+      "r2": 0.978105009715819,
+      "role": "real_trace_holdout",
+      "samples": 7
+    },
+    "trace_holdout": {
+      "mape_percent": 24.212056132045564,
+      "max_ape_percent": 90.17904723700786,
+      "median_ape_percent": 9.839948078699297,
+      "r2": 0.980710276283194,
+      "role": "trace_holdout",
+      "samples": 17
+    }
+  },
+  "e2e_model": {
+    "algorithms": [
+      "connected_components",
+      "thresholded_residual_pagerank",
+      "weighted_sssp"
+    ],
+    "calibration_samples": 24,
+    "coefficients": {
+      "algorithm_apply_operations": 4.372842832065787,
+      "directory_requests": 0.0,
+      "fixed_cycles": 11669.662369107069,
+      "m_phys_records": 44.8719366410908,
+      "m_seed_records": 0.29628415141644293,
+      "source_and_reactivation_work": 695.0501814669566,
+      "switch_work": 0.0,
+      "w_carry_records": 0.0,
+      "w_sort_records": 0.0
+    },
+    "columns": [
+      "fixed_cycles",
+      "w_sort_records",
+      "w_carry_records",
+      "directory_requests",
+      "m_phys_records",
+      "m_seed_records",
+      "switch_work",
+      "source_and_reactivation_work",
+      "algorithm_apply_operations"
+    ],
+    "excluded_algorithms": [],
+    "features": [
+      "w_sort_records",
+      "w_carry_records",
+      "directory_requests",
+      "m_phys_records",
+      "m_seed_records",
+      "switch_work",
+      "source_and_reactivation_work",
+      "algorithm_apply_operations"
+    ],
+    "fit_method": "variance_stabilized_nonnegative_coordinate_descent",
+    "full_rank": true,
+    "holdout_rows_are_never_used_for_fit": true,
+    "iterations": 201,
+    "matrix_rank": 9,
+    "status": "fit"
+  },
+  "latency_rows": 41,
+  "preferred_plugin_sha256": [
+    "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70"
+  ],
+  "schema_version": 2,
+  "work_rows": 41
+}

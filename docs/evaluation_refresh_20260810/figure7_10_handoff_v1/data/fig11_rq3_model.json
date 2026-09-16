@@ -1,0 +1,47 @@
+{
+  "algorithms": [
+    "connected_components",
+    "thresholded_residual_pagerank",
+    "weighted_sssp"
+  ],
+  "calibration_samples": 24,
+  "coefficients": {
+    "algorithm_apply_operations": 4.372842832065787,
+    "directory_requests": 0.0,
+    "fixed_cycles": 11669.662369107069,
+    "m_phys_records": 44.8719366410908,
+    "m_seed_records": 0.29628415141644293,
+    "source_and_reactivation_work": 695.0501814669566,
+    "switch_work": 0.0,
+    "w_carry_records": 0.0,
+    "w_sort_records": 0.0
+  },
+  "columns": [
+    "fixed_cycles",
+    "w_sort_records",
+    "w_carry_records",
+    "directory_requests",
+    "m_phys_records",
+    "m_seed_records",
+    "switch_work",
+    "source_and_reactivation_work",
+    "algorithm_apply_operations"
+  ],
+  "excluded_algorithms": [],
+  "features": [
+    "w_sort_records",
+    "w_carry_records",
+    "directory_requests",
+    "m_phys_records",
+    "m_seed_records",
+    "switch_work",
+    "source_and_reactivation_work",
+    "algorithm_apply_operations"
+  ],
+  "fit_method": "variance_stabilized_nonnegative_coordinate_descent",
+  "full_rank": true,
+  "holdout_rows_are_never_used_for_fit": true,
+  "iterations": 201,
+  "matrix_rank": 9,
+  "status": "fit"
+}

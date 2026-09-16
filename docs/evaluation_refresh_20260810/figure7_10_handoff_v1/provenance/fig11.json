@@ -1,0 +1,72 @@
+{
+  "figure": "fig11_realized_work_cost_model",
+  "status": "PASS_DIAGNOSTIC_SIMULATOR_MODEL",
+  "admission_boundary": "diagnostic_only",
+  "claim_boundary": {
+    "supported": [
+      "The execution-driven simulator produces a monotonic realized-work trend over the covered cases.",
+      "The fitted model exposes which realized-work counters explain the simulator cycle trend.",
+      "Calibration and holdout rows are separated and holdout rows are never used for fitting."
+    ],
+    "not_supported": [
+      "An FPGA-accurate absolute cycle predictor for every workload.",
+      "A hardware-calibrated ten-stage breakdown.",
+      "A claim that the real-trace holdout error is small."
+    ]
+  },
+  "rows": 41,
+  "split": {
+    "calibration": 24,
+    "trace_holdout": 17,
+    "real_trace_holdout": 7
+  },
+  "campaign": {
+    "existing_root": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/package_with_vertices",
+    "new_roots": [
+      "/data/tmp/chuxiao/fig11_extended_campaign_v1/carry_e1",
+      "/data/tmp/chuxiao/fig11_extended_campaign_v1/carry_e4",
+      "/data/tmp/chuxiao/fig11_extended_campaign_v1/carry_e16",
+      "/data/tmp/chuxiao/fig11_extended_campaign_v1/carry_e32"
+    ],
+    "new_cases": 20,
+    "new_batch_edges": [1, 4, 16, 32],
+    "target_levels": [1, 2, 3, 4, 5],
+    "command": "python3 scripts/run_rq3_carry_trace_matrix.py --sst /data/feiyang/sst/bin/sst --lib-dir cpp/sst/build/sst-current-fpga-v12 --profile configs/architectures/spine_owner_fifo_sssp_hls_v1.json --no-build"
+  },
+  "simulator": {
+    "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+    "analysis_id": "spine_rq3_realized_work_v2",
+    "fit_method": "variance_stabilized_nonnegative_coordinate_descent",
+    "holdout_rows_are_never_used_for_fit": true,
+    "all_correctness_gates_passed": true
+  },
+  "metrics": {
+    "calibration": {
+      "samples": 24,
+      "r2": 0.9999559728981241,
+      "mape_percent": 14.575617155485611,
+      "median_ape_percent": 10.775759561743186,
+      "max_ape_percent": 52.68005309472211
+    },
+    "trace_holdout": {
+      "samples": 17,
+      "r2": 0.980710276283194,
+      "mape_percent": 24.212056132045564,
+      "median_ape_percent": 9.839948078699297,
+      "max_ape_percent": 90.17904723700786
+    },
+    "real_trace_holdout": {
+      "samples": 7,
+      "r2": 0.978105009715819,
+      "mape_percent": 48.579321796698004,
+      "median_ape_percent": 57.30020071254685,
+      "max_ape_percent": 90.17904723700786
+    }
+  },
+  "data_sha256": {
+    "prediction_rows.csv": "2951888636771345841715c63c1ca1bab84ce003691eba61c92710ac9515591a",
+    "metric_rows.csv": "846d4c733a571b9bc87a0cc79f07a8d08d611a806934de274ebed1e16c44d0e7",
+    "model.json": "2ee2f7a5c213d3db5c6be95b0ac0099210ba1c313a74dbb11314d66f20a936b4",
+    "summary.json": "5653cd9c6d4e8ec664ac16220a9023eadbe0e9ff953e5e9bd3ec976bdbe0f7e2"
+  }
+}

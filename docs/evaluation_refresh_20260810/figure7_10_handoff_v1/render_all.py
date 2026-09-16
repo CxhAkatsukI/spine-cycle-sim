@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate frozen evidence and render the complete Figure 7--10 handoff."""
+"""Validate frozen evidence and render the complete Figure 7--11 handoff."""
 
 from __future__ import annotations
 
@@ -100,11 +100,13 @@ def validate_inputs() -> dict[str, list[dict[str, str]]]:
         "fig8_batch": DATA / "fig8_update_batch_sensitivity.csv",
         "fig9": DATA / "fig9_memory_energy_rows.csv",
         "fig10": DATA / "fig10_normalized_breakdown_rows.csv",
+        "fig11_prediction": DATA / "fig11_rq3_prediction_rows.csv",
+        "fig11_metric": DATA / "fig11_rq3_metric_rows.csv",
     }
     rows = {key: read_csv(path) for key, path in paths.items()}
     provenance = {
         key: read_json(PROVENANCE / f"{key}.json")
-        for key in ("fig7", "fig8", "fig9", "fig10")
+        for key in ("fig7", "fig8", "fig9", "fig10", "fig11")
     }
 
     require(provenance["fig7"].get("status") == "PASS", "Figure 7 is not admitted")
@@ -182,6 +184,57 @@ def validate_inputs() -> dict[str, list[dict[str, str]]]:
     for row in rows["fig10"]:
         percentage = sum(float(row[key]) for key, _label, _color, _hatch in FIG10_STAGES)
         require(math.isclose(percentage, 100.0, abs_tol=1e-6), f"Figure 10 normalization mismatch: {row['execution_id']}")
+
+    fig11_manifest = provenance["fig11"]
+    require(
+        fig11_manifest.get("status") == "PASS_DIAGNOSTIC_SIMULATOR_MODEL",
+        "Figure 11 is not admitted as a diagnostic simulator model",
+    )
+    require(fig11_manifest.get("rows") == 41, "Figure 11 must contain 41 prediction rows")
+    fig11_hashes = fig11_manifest.get("data_sha256", {})
+    require(
+        fig11_hashes.get("prediction_rows.csv") == sha256(paths["fig11_prediction"]),
+        "Figure 11 prediction hash mismatch",
+    )
+    require(
+        fig11_hashes.get("metric_rows.csv") == sha256(paths["fig11_metric"]),
+        "Figure 11 metric hash mismatch",
+    )
+    require(
+        fig11_hashes.get("model.json") == sha256(DATA / "fig11_rq3_model.json"),
+        "Figure 11 model hash mismatch",
+    )
+    require(
+        fig11_hashes.get("summary.json") == sha256(DATA / "fig11_rq3_summary.json"),
+        "Figure 11 summary hash mismatch",
+    )
+    require(
+        len(rows["fig11_prediction"]) == 41
+        and len(rows["fig11_metric"]) == 3,
+        "Figure 11 analysis outputs are incomplete",
+    )
+    require(
+        {row["model_role"] for row in rows["fig11_prediction"]}
+        == {"calibration", "trace_holdout"},
+        "Figure 11 role coverage mismatch",
+    )
+    require(
+        {row["role"] for row in rows["fig11_metric"]}
+        == {"calibration", "trace_holdout", "real_trace_holdout"},
+        "Figure 11 metric coverage mismatch",
+    )
+    require(
+        sum(int(row["samples"]) for row in rows["fig11_metric"]) == 48,
+        "Figure 11 metric sample counts are inconsistent",
+    )
+    require(
+        all(
+            float(row["observed_cycles"]) > 0.0
+            and float(row["predicted_cycles"]) > 0.0
+            for row in rows["fig11_prediction"]
+        ),
+        "Figure 11 contains non-positive log-scale data",
+    )
 
     require(REFERENCE.is_file(), "GraphyFlow reference archive is missing")
     require(
@@ -622,17 +675,124 @@ def render_fig10(plt: Any, rows: list[dict[str, str]]) -> None:
     plt.close(figure)
 
 
+def render_fig11(
+    plt: Any,
+    rows: list[dict[str, str]],
+    metric_rows: list[dict[str, str]],
+) -> None:
+    from matplotlib.lines import Line2D
+
+    ink = "#202428"
+    blue = "#2A7F9E"
+    orange = "#D66A00"
+    figure, axis = plt.subplots(figsize=(3.55, 2.18))
+    calibration = [row for row in rows if row["model_role"] == "calibration"]
+    holdout = [row for row in rows if row["model_role"] == "trace_holdout"]
+    for selected, marker, color, label in (
+        (calibration, "s", blue, "Calib."),
+        (holdout, "o", orange, "Holdout"),
+    ):
+        axis.scatter(
+            [float(row["observed_cycles"]) for row in selected],
+            [float(row["predicted_cycles"]) for row in selected],
+            marker=marker,
+            s=22,
+            facecolors="white",
+            edgecolors=color,
+            linewidths=0.8,
+            label=label,
+            zorder=4,
+        )
+
+    observed = [float(row["observed_cycles"]) for row in rows]
+    predicted = [float(row["predicted_cycles"]) for row in rows]
+    lower = min(observed + predicted) / 1.8
+    upper = max(observed + predicted) * 1.8
+    axis.plot((lower, upper), (lower, upper), color=ink, linewidth=0.75, zorder=2)
+    axis.set_xscale("log")
+    axis.set_yscale("log")
+    axis.set_xlim(lower, upper)
+    axis.set_ylim(lower, upper)
+    axis.set_xlabel("Measured cycles")
+    axis.set_ylabel("Predicted cycles")
+    axis.grid(
+        axis="both",
+        which="major",
+        color="#D2D5D7",
+        linestyle="--",
+        linewidth=0.45,
+        zorder=0,
+    )
+    real_metrics = {
+        row["role"]: row for row in metric_rows
+    }["real_trace_holdout"]
+    axis.text(
+        0.055,
+        0.945,
+        (
+            rf"real holdout $R^2$={float(real_metrics['r2']):.3f}"
+            "\n"
+            rf"median APE={float(real_metrics['median_ape_percent']):.1f}\%"
+        ),
+        transform=axis.transAxes,
+        ha="left",
+        va="top",
+        fontsize=5.8,
+        color=ink,
+    )
+    axis.legend(
+        handles=(
+            Line2D(
+                (0,),
+                (0,),
+                marker="s",
+                color=blue,
+                markerfacecolor="white",
+                markeredgewidth=0.8,
+                linestyle="None",
+                markersize=4.0,
+                label="Calib.",
+            ),
+            Line2D(
+                (0,),
+                (0,),
+                marker="o",
+                color=orange,
+                markerfacecolor="white",
+                markeredgewidth=0.8,
+                linestyle="None",
+                markersize=4.0,
+                label="Holdout",
+            ),
+        ),
+        loc="lower right",
+        frameon=False,
+        handletextpad=0.35,
+        borderaxespad=0.15,
+    )
+    axis.tick_params(direction="in", top=True, right=True, length=2.3, width=0.65)
+    for spine in axis.spines.values():
+        spine.set_color(ink)
+        spine.set_linewidth(0.7)
+    figure.subplots_adjust(left=0.17, right=0.99, bottom=0.16, top=0.98)
+    save_figure(figure, FIGURES / "fig11_realized_work_model")
+    plt.close(figure)
+
+
 def render_overview(plt: Any) -> None:
     sources = (
         ("Figure 7", FIGURES / "fig7_fpga_speedup.png"),
         ("Figure 8", FIGURES / "fig8_update_throughput.png"),
         ("Figure 9", FIGURES / "fig9_memory_energy.png"),
         ("Figure 10", FIGURES / "fig10_simulator_breakdown.png"),
+        ("Figure 11", FIGURES / "fig11_realized_work_model.png"),
     )
-    figure, axes = plt.subplots(2, 2, figsize=(8.0, 7.2))
-    for axis, (title, path) in zip(axes.flat, sources, strict=True):
+    figure, axes = plt.subplots(3, 2, figsize=(8.0, 10.5))
+    for axis, (title, path) in zip(axes.flat, sources, strict=False):
         axis.imshow(plt.imread(path))
         axis.set_title(title, fontsize=9, pad=4)
+        axis.axis("off")
+    for axis in axes.flat[len(sources):]:
         axis.axis("off")
     figure.tight_layout(pad=0.8)
     figure.savefig(FIGURES / "preview_all.png", dpi=180, bbox_inches="tight", pad_inches=0.04)
@@ -640,19 +800,22 @@ def render_overview(plt: Any) -> None:
 
 
 def write_package_manifest() -> None:
-    input_paths = sorted((*DATA.glob("*.csv"), *PROVENANCE.glob("*.json"), REFERENCE))
+    input_paths = sorted(
+        (*DATA.glob("*.csv"), *DATA.glob("*.json"), *PROVENANCE.glob("*.json"), REFERENCE)
+    )
     output_paths = sorted(FIGURES.glob("*"))
     write_json(
         ROOT / "manifest.json",
         {
             "schema_version": 1,
-            "status": "PASS_COMPLETE_FIGURE_7_10_HANDOFF",
+            "status": "PASS_COMPLETE_FIGURE_7_11_HANDOFF",
             "renderer": "render_all.py",
             "figures": {
                 "7": "routed U55C setup-inclusive dynamic latency speedup",
                 "8": "setup-inclusive update-only throughput speedup",
                 "9": "simulator accepted bytes and bound-channel DRAMSim3 energy ratios",
                 "10": "normalized simulator-predicted E2E stage attribution",
+                "11": "diagnostic realized-work cost-model prediction versus execution-driven cycles",
             },
             "inputs": {str(path.relative_to(ROOT)): sha256(path) for path in input_paths},
             "outputs": {str(path.relative_to(ROOT)): sha256(path) for path in output_paths},
@@ -667,9 +830,10 @@ def main() -> int:
     render_fig8(plt, rows["fig8_cross"], rows["fig8_batch"])
     render_fig9(plt, rows["fig9"])
     render_fig10(plt, rows["fig10"])
+    render_fig11(plt, rows["fig11_prediction"], rows["fig11_metric"])
     render_overview(plt)
     write_package_manifest()
-    print(f"FIGURE_7_10_HANDOFF_PASS out={ROOT}", flush=True)
+    print(f"FIGURE_7_11_HANDOFF_PASS out={ROOT}", flush=True)
     return 0
 
 

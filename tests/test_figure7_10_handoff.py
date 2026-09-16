@@ -30,6 +30,8 @@ class FigureSevenToTenHandoffTests(unittest.TestCase):
         self.assertEqual(len(rows["fig8_batch"]), 3)
         self.assertEqual(len(rows["fig9"]), 9)
         self.assertEqual(len(rows["fig10"]), 11)
+        self.assertEqual(len(rows["fig11_prediction"]), 41)
+        self.assertEqual(len(rows["fig11_metric"]), 3)
 
     def test_handoff_is_self_contained(self) -> None:
         package = SCRIPT.parent
@@ -42,6 +44,12 @@ class FigureSevenToTenHandoffTests(unittest.TestCase):
             package / "data/fig8_update_batch_sensitivity.csv",
             package / "data/fig9_memory_energy_rows.csv",
             package / "data/fig10_normalized_breakdown_rows.csv",
+            package / "data/fig11_rq3_prediction_rows.csv",
+            package / "data/fig11_rq3_metric_rows.csv",
+            package / "data/fig11_rq3_model.json",
+            package / "data/fig11_rq3_summary.json",
+            package / "figures/fig11_realized_work_model.pdf",
+            package / "figures/fig11_realized_work_model.png",
         )
         self.assertTrue(all(path.is_file() for path in required))
 
@@ -49,7 +57,7 @@ class FigureSevenToTenHandoffTests(unittest.TestCase):
         module = load_renderer()
         package = SCRIPT.parent
         manifest = json.loads((package / "manifest.json").read_text(encoding="ascii"))
-        self.assertEqual(manifest["status"], "PASS_COMPLETE_FIGURE_7_10_HANDOFF")
+        self.assertEqual(manifest["status"], "PASS_COMPLETE_FIGURE_7_11_HANDOFF")
         for relative_path, expected_hash in manifest["outputs"].items():
             self.assertEqual(module.sha256(package / relative_path), expected_hash)
 

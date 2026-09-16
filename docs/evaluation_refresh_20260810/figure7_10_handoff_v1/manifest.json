@@ -1,34 +1,42 @@
 {
   "figures": {
     "10": "normalized simulator-predicted E2E stage attribution",
+    "11": "diagnostic realized-work cost-model prediction versus execution-driven cycles",
     "7": "routed U55C setup-inclusive dynamic latency speedup",
     "8": "setup-inclusive update-only throughput speedup",
     "9": "simulator accepted bytes and bound-channel DRAMSim3 energy ratios"
   },
   "inputs": {
     "data/fig10_normalized_breakdown_rows.csv": "3b7b22b6361f225732827d43bd02870b04c320df4403ba07eb82c330ae3c6df7",
+    "data/fig11_rq3_metric_rows.csv": "846d4c733a571b9bc87a0cc79f07a8d08d611a806934de274ebed1e16c44d0e7",
+    "data/fig11_rq3_model.json": "2ee2f7a5c213d3db5c6be95b0ac0099210ba1c313a74dbb11314d66f20a936b4",
+    "data/fig11_rq3_prediction_rows.csv": "2951888636771345841715c63c1ca1bab84ce003691eba61c92710ac9515591a",
+    "data/fig11_rq3_summary.json": "5653cd9c6d4e8ec664ac16220a9023eadbe0e9ff953e5e9bd3ec976bdbe0f7e2",
     "data/fig7_fpga_speedup.csv": "1d4d0d287d7a01b06415dcfca46eca6faaebc8628a7c2450d72a9c35c315105c",
     "data/fig8_update_batch_sensitivity.csv": "418b1268c53b4960e2fd6eaf47120c49cda67097154a0d78bfde3a67354b0aee",
     "data/fig8_update_cross_dataset.csv": "3a96779d8de4c3c89a3653ed19ab4b548574ac3fefe6ec69332ff6f16d1e27b6",
     "data/fig9_memory_energy_rows.csv": "cfd9fff86c32525a547978afb7fbabc1940b0cf3ded93aa8a3b11cfb621d5dd1",
     "provenance/fig10.json": "f6336f1e34de795d6027307ba4561141834b8b4b821da0b848339e410b9c3ab9",
+    "provenance/fig11.json": "2705b42afd0a70cbd087f1b986f9723f693f89f8136c888ed26c99af83ea0ce4",
     "provenance/fig7.json": "5de201521fddd0f1600b738a4692e1c44418d51d520ab18f24c2cc674d9c620f",
     "provenance/fig8.json": "bf3c15d1e9c5285f65b3f2f16b6021f28bc063c7bf6947d3947765cf266eaa74",
     "provenance/fig9.json": "3dfaa834fa083074a3395b40c5fc668be09a1f6245edbf836231bdb9089034c7",
     "reference/GraphyFlow_Plot.zip": "a1b053bbd7c20cd9ce5c79d44a11027327da1c72a402487f5c8c659b71c18a27"
   },
   "outputs": {
-    "figures/fig10_simulator_breakdown.pdf": "e978e173aba3d7ffa04f37c1095fb1ecff71fcbd32aa1b603ddb7b603008033e",
+    "figures/fig10_simulator_breakdown.pdf": "0c29b9cdbb5900a32f9531c888d10919c78be40325361805602ca1024dfa5810",
     "figures/fig10_simulator_breakdown.png": "081f7664007bf6513d437843cc05bf523621093c3051a616314d3e505cfa3968",
-    "figures/fig7_fpga_speedup.pdf": "90dc56bd9ed97696dc51c98eb6cba6e0640f9d828305af87335491b182b7b451",
+    "figures/fig11_realized_work_model.pdf": "8a55dbc117165e77bd8185b70963ca91caedafa094021998f437a0330c569b7d",
+    "figures/fig11_realized_work_model.png": "f5dbc99f996a5c6e2738b1dae80419922f8388360750a0f64402e32c67f2d507",
+    "figures/fig7_fpga_speedup.pdf": "dc474062c58115508a8e806e6f6ef97b371d004a78aa56ba640a9655f97ef96e",
     "figures/fig7_fpga_speedup.png": "a5805797981485c6d54f865c2e522d1827ce80ad9a14270319cde717bce965d3",
-    "figures/fig8_update_throughput.pdf": "a2d4b3c263605e2c32fca05efb90c6835f249e942083c7eed20b4d483620de0d",
+    "figures/fig8_update_throughput.pdf": "8a72b66e18217a4e13aed51ec6d3666cbb9dbecb50f11c60119987677ce6d6d2",
     "figures/fig8_update_throughput.png": "1bc19603c83f803fad1c58994706e1945193a3c0c139e8f6446dddf8caf8c3e7",
-    "figures/fig9_memory_energy.pdf": "8a214d63bf0c11dc00ffbcf739cd347d6224b3fc3e227a12d6fd3ce301adcd2a",
+    "figures/fig9_memory_energy.pdf": "eb85f2b12c73202fddc0f132e2b851c8a7cb04e4206e1b6a5acc5dfbf7add6c2",
     "figures/fig9_memory_energy.png": "1f56d0a1f51f5c392da9e1f24d497e13bd532fd8a066500e5ec65bf47dce62da",
-    "figures/preview_all.png": "9e84b91aa5ee064551df3a72d2088d2d146af82b8934a4e3b083b4c08c853fb4"
+    "figures/preview_all.png": "3a24e65caa78f9fba97c0d5b55a0f3e2a5004f6a19584ee770d2178f3361a71f"
   },
   "renderer": "render_all.py",
   "schema_version": 1,
-  "status": "PASS_COMPLETE_FIGURE_7_10_HANDOFF"
+  "status": "PASS_COMPLETE_FIGURE_7_11_HANDOFF"
 }
