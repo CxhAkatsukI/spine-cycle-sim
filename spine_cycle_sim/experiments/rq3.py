@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import gzip
 import hashlib
 import json
 import math
@@ -87,7 +88,11 @@ def _execution_metrics(result: Mapping[str, Any]) -> dict[str, Any]:
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     if digest != raw_sha256:
         raise ValueError(f"RQ3 raw result changed: {path}")
-    raw = json.loads(path.read_text(encoding="utf-8"))
+    if path.suffix == ".gz":
+        with gzip.open(path, "rt", encoding="utf-8") as source:
+            raw = json.load(source)
+    else:
+        raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("RQ3 raw result must be an object")
     metrics.update(raw)
@@ -122,6 +127,29 @@ def _intervals(
 
 def _active(intervals: Sequence[tuple[int, int]], start: int, end: int) -> bool:
     return any(left <= start and end <= right for left, right in intervals)
+
+
+def _observed_zero_round_correction(metrics: Mapping[str, Any]) -> bool:
+    """Distinguish a measured empty propagation path from missing timestamps."""
+    return (
+        all(metrics.get(key) is True for key in (
+            "success", "converged", "residual_correction_device_timed",
+            "residual_correction_request_ledger_closed", "active_edge_execution_ledger_match",
+            "owner_scheduler_enabled", "owner_ledger_closed", "owner_quiescent",
+        ))
+        and all(metrics.get(key) == 0 for key in (
+            "correctness_mismatches", "architecture_correctness_mismatches",
+            "mathematical_correctness_mismatches", "iterations", "initial_active_vertices",
+            "final_active", "reader_edges_total", "compute_edges_total", "expected_active_edges",
+            "owner_dispatches", "owner_completions", "owner_work_credits_created",
+            "owner_work_credits_retired",
+        ))
+        and all(metrics.get(key) == [] for key in (
+            "iteration_cycles", "round_start_cycles", "round_end_cycles",
+            "reader_start_cycles_per_round", "reader_end_cycles_per_round",
+            "compute_start_cycles_per_round", "compute_end_cycles_per_round",
+        ))
+    )
 
 
 def _critical_path_ledger(result: Mapping[str, Any]) -> dict[str, int]:
@@ -213,7 +241,8 @@ def _critical_path_ledger(result: Mapping[str, Any]) -> dict[str, int]:
             else:
                 key = "other_cycles"
         ledger[key] += width
-    if not reader and not app and "iteration_cycles" in metrics:
+    if (not reader and not app and "iteration_cycles" in metrics
+            and not _observed_zero_round_correction(metrics)):
         integrated = ledger["other_cycles"]
         ledger["other_cycles"] = 0
         ledger["integrated_resolve_app_cycles"] = integrated
@@ -319,7 +348,7 @@ def _ten_stage_ledger(result: Mapping[str, Any]) -> dict[str, Any]:
     # direct evidence, not missing instrumentation.
     component_supported = bool(reader or app) or (
         _case_class(result["case"], metrics) == "zero_net"
-    )
+    ) or _observed_zero_round_correction(metrics)
     stages: dict[str, int] = {
         **direct,
         "t_resolve_cycles": 0,
@@ -367,6 +396,7 @@ def _ten_stage_ledger(result: Mapping[str, Any]) -> dict[str, Any]:
     return {
         **stages,
         "ten_stage_supported": supported,
+        "observed_zero_round_correction": _observed_zero_round_correction(metrics),
         "ten_stage_ledger_closed": closed,
         "ten_stage_scope": (
             "exclusive_direct_maintenance_correction_and_component_timestamp_critical_path"
@@ -743,7 +773,9 @@ def analyze_rq3_results(
                 **ledger,
                 **ten_stage,
                 "ledger_resolution": (
-                    "component_timestamps"
+                    "observed_zero_round_correction"
+                    if _observed_zero_round_correction(metrics)
+                    else "component_timestamps"
                     if _metric(metrics, "reader_start_cycles_per_round")
                     or _metric(metrics, "compute_start_cycles_per_round")
                     else "integrated_iteration_span"

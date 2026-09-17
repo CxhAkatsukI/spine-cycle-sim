@@ -12,14 +12,15 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+CURRENT_PACKET = ROOT / "docs/evaluation_refresh_20260810/figure7_10_handoff_v1"
 DEFAULT_ROWS = (
-    ROOT / "docs/evaluation_refresh_20260810/data/fig10_rq3_breakdown_rows.csv"
+    CURRENT_PACKET / "data/fig10_stage_rows.csv"
 )
 DEFAULT_PROVENANCE = (
-    ROOT / "docs/evaluation_refresh_20260810/provenance/fig10.json"
+    CURRENT_PACKET / "provenance/fig10.json"
 )
 DEFAULT_SUMMARY = (
-    ROOT / "docs/evaluation_refresh_20260810/data/fig10_rq3_summary.json"
+    CURRENT_PACKET / "data/fig10_summary.json"
 )
 DEFAULT_OUT = (
     ROOT
@@ -133,6 +134,9 @@ def validate_and_order_rows(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     plugins = {row.get("plugin_sha256", "") for row in ordered}
     if len(plugins) != 1 or "" in plugins:
         raise ValueError(f"Figure 10 must use one identified simulator plugin: {plugins}")
+    expected = read_json(CURRENT_PACKET / "provenance/fig11.json")["simulator"]["plugin_sha256"]
+    if plugins != {expected}:
+        raise ValueError("Figure 10 must match the frozen Figure 11 simulator plugin")
 
     for row in ordered:
         execution_id = row["execution_id"]
@@ -147,7 +151,7 @@ def validate_and_order_rows(rows: list[dict[str, str]]) -> list[dict[str, str]]:
             )
     zero_net = ordered[0]
     if not as_bool(zero_net, "explicit_zero_net_semantics"):
-        raise ValueError("zero-net row lacks explicit target no-repair semantics")
+        raise ValueError("zero-net row lacks explicit zero-net semantics")
     return ordered
 
 
@@ -350,14 +354,15 @@ breakdown. All eleven bars use simulator plugin `{plugin_sha256}`.
 
 ## Scope
 
-- `Zero-net / Syn`: synthetic reciprocal update reduced to no effective graph
-  change; this uses the paper target's no-repair semantics.
+- `Zero-net / Syn`: synthetic reciprocal delete/reinsert with no final graph
+  change. The v12 SSSP implementation takes a full-rebuild fallback; this is
+  not the target no-repair fast path.
 - `Shallow insert / AU, SU, WK`: batch-8 insertion on AskUbuntu, Superuser, and
   WikiTalk traces.
 - `Deep carry / L1, L3, L5`: synthetic batch-8 traces forcing carry through
   level 1, 3, or 5.
 - `PR correction / FL, SU, WK`: thresholded residual PageRank correction on
-  Flickr, Superuser, and WikiTalk.
+  Flickr, Superuser, and WikiTalk. SU/WK have verified zero propagation rounds.
 - `Deletion fallback / Syn`: synthetic weighted-SSSP deletion fallback.
 
 The ten-stage ledger is grouped for readability:
@@ -406,10 +411,7 @@ def main() -> int:
     output.mkdir(parents=True, exist_ok=True)
 
     provenance = read_json(source_provenance)
-    if provenance.get("status") not in {
-        "PASS_CURRENT_MODEL_DATA",
-        "INTERIM_ARCHIVED_SIMULATOR_DATA",
-    }:
+    if provenance.get("status") != "PASS_SIMULATOR_PREDICTED":
         raise ValueError("source Figure 10 provenance is not simulator-admitted")
     if provenance.get("data_csv_sha256") != sha256_file(source_rows):
         raise ValueError("source Figure 10 CSV does not match its provenance hash")
@@ -456,7 +458,7 @@ def main() -> int:
                 "ten_stage_ledger_closed": True,
                 "aggregate_ledger_closed": True,
                 "stage_cycle_conservation": True,
-                "explicit_target_zero_net_semantics": True,
+                "explicit_zero_net_semantics": True,
             },
             "sources": [
                 {"path": str(source_rows), "sha256": sha256_file(source_rows)},

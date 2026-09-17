@@ -56,10 +56,17 @@ class PackageSimulatorPredictedFig10Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "stage ledger does not close"):
             validate_and_order_rows(rows)
 
-    def test_rejects_missing_target_zero_net_semantics(self) -> None:
+    def test_rejects_missing_zero_net_semantics(self) -> None:
         rows = copy.deepcopy(source_rows())
         rows[0]["explicit_zero_net_semantics"] = "False"
-        with self.assertRaisesRegex(ValueError, "target no-repair"):
+        with self.assertRaisesRegex(ValueError, "explicit zero-net"):
+            validate_and_order_rows(rows)
+
+    def test_rejects_internally_consistent_old_plugin(self) -> None:
+        rows = source_rows()
+        for row in rows:
+            row["plugin_sha256"] = "7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6"
+        with self.assertRaisesRegex(ValueError, "frozen Figure 11"):
             validate_and_order_rows(rows)
 
     def test_tracked_summary_matches_rows_and_closes_all_classes(self) -> None:

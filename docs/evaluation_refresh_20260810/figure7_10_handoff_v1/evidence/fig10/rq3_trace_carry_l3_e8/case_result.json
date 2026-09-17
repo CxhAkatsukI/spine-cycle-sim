@@ -1,0 +1,33 @@
+{
+  "case": {
+    "algorithm": "weighted_sssp",
+    "batch_size": 8,
+    "dataset_id": "synthetic_trace_carry_l3",
+    "execution_id": "rq3_trace_carry_l3_e8",
+    "scenario": "insert",
+    "system": "spine",
+    "update": {
+      "physical_records": 8,
+      "user_mutations": 8
+    }
+  },
+  "original_raw_result_path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/carry/runs/l3/result.json",
+  "original_raw_result_sha256": "627e26203b55bb3b62391fc6cf48bdf332275b96662cee05646c88c6f302f6fd",
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "raw_path_base": "handoff_directory",
+  "raw_result_path": "evidence/fig10/rq3_trace_carry_l3_e8/result.json.gz",
+  "raw_result_sha256": "f0a0f2ab143f291771e2159fb05eb27b0c6c1cf5c2829a24c8eaa3ad83458f97",
+  "row": {
+    "architecture_correctness_mismatches": 0,
+    "cycles": 14750,
+    "dataset_kind": "trace_holdout",
+    "mathematical_correctness_mismatches": 0
+  },
+  "rq3_role": "trace_holdout",
+  "scalar_metrics": {
+    "maintenance_cycles": 6410,
+    "maintenance_target_level": 3,
+    "vertices": 4096
+  },
+  "status": "pass"
+}

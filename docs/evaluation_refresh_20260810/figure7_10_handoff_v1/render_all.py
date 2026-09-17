@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import csv
+import argparse
 import hashlib
 import json
 import math
@@ -93,6 +94,17 @@ def require(condition: bool, message: str) -> None:
         raise ValueError(message)
 
 
+def validate_simulator_identity(provenance, fig10_rows):
+    identities = {
+        provenance["fig8"]["frozen_identity"]["spine_sst_plugin_sha256"],
+        provenance["fig9"]["plugins"]["spine"]["sha256"],
+        provenance["fig10"]["plugin_sha256"],
+        provenance["fig11"]["simulator"]["plugin_sha256"],
+        *(row["plugin_sha256"] for row in fig10_rows),
+    }
+    require(len(identities) == 1, "Figures 8--11 must use the same frozen Spine simulator plugin")
+
+
 def validate_inputs() -> dict[str, list[dict[str, str]]]:
     paths = {
         "fig7": DATA / "fig7_fpga_speedup.csv",
@@ -108,6 +120,7 @@ def validate_inputs() -> dict[str, list[dict[str, str]]]:
         key: read_json(PROVENANCE / f"{key}.json")
         for key in ("fig7", "fig8", "fig9", "fig10", "fig11")
     }
+    validate_simulator_identity(provenance, rows["fig10"])
 
     require(provenance["fig7"].get("status") == "PASS", "Figure 7 is not admitted")
     require(
@@ -181,7 +194,25 @@ def validate_inputs() -> dict[str, list[dict[str, str]]]:
     }
     require(observed_fig10 == expected_fig10, "Figure 10 workload coverage mismatch")
     require(len({row["plugin_sha256"] for row in rows["fig10"]}) == 1, "Figure 10 mixes simulator plugins")
+    require(fig10_manifest.get("stage_rows_sha256") == sha256(DATA / "fig10_stage_rows.csv"),
+            "Figure 10 stage data hash mismatch")
+    for path, expected in fig10_manifest["evidence_sha256"].items():
+        require(sha256(ROOT / path) == expected, f"Figure 10 raw evidence hash mismatch: {path}")
+    stage_rows = {row["execution_id"]: row for row in read_csv(DATA / "fig10_stage_rows.csv")}
     for row in rows["fig10"]:
+        stage = stage_rows[row["execution_id"]]
+        total = int(row["total_cycles"])
+        require(stage["ten_stage_ledger_closed"] == "True", "Figure 10 stage ledger is open")
+        require(sum(int(value) for key, value in stage.items()
+                    if key.startswith("t_") and key.endswith("_cycles")) == total,
+                "Figure 10 stages do not sum to measured total")
+        grouped = ("maintenance", "seed_publication", "resolve", "application", "drain_sync")
+        require(sum(int(row[key + "_cycles"]) for key in grouped) == total,
+                "Figure 10 grouped cycles do not close")
+        for key in grouped:
+            require(math.isclose(float(row[key + "_percent"]),
+                                 100.0 * int(row[key + "_cycles"]) / total, abs_tol=1e-6),
+                    "Figure 10 percentage differs from cycle count")
         percentage = sum(float(row[key]) for key, _label, _color, _hatch in FIG10_STAGES)
         require(math.isclose(percentage, 100.0, abs_tol=1e-6), f"Figure 10 normalization mismatch: {row['execution_id']}")
 
@@ -801,7 +832,9 @@ def render_overview(plt: Any) -> None:
 
 def write_package_manifest() -> None:
     input_paths = sorted(
-        (*DATA.glob("*.csv"), *DATA.glob("*.json"), *PROVENANCE.glob("*.json"), REFERENCE)
+        (*DATA.glob("*.csv"), *DATA.glob("*.json"), *PROVENANCE.glob("*.json"), REFERENCE,
+         *ROOT.glob("*.py"), *ROOT.glob("*.md"),
+         *(p for p in (ROOT / "evidence").rglob("*") if p.is_file()))
     )
     output_paths = sorted(FIGURES.glob("*"))
     write_json(
@@ -824,13 +857,17 @@ def write_package_manifest() -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--only-fig10", action="store_true")
+    args = parser.parse_args()
     rows = validate_inputs()
     plt = configure_matplotlib()
-    render_fig7(plt, rows["fig7"])
-    render_fig8(plt, rows["fig8_cross"], rows["fig8_batch"])
-    render_fig9(plt, rows["fig9"])
+    if not args.only_fig10:
+        render_fig7(plt, rows["fig7"])
+        render_fig8(plt, rows["fig8_cross"], rows["fig8_batch"])
+        render_fig9(plt, rows["fig9"])
+        render_fig11(plt, rows["fig11_prediction"], rows["fig11_metric"])
     render_fig10(plt, rows["fig10"])
-    render_fig11(plt, rows["fig11_prediction"], rows["fig11_metric"])
     render_overview(plt)
     write_package_manifest()
     print(f"FIGURE_7_11_HANDOFF_PASS out={ROOT}", flush=True)

@@ -1,0 +1,14 @@
+{
+  "all_direct_ten_stage_ledgers_closed": true,
+  "coverage": {
+    "deep_carry": "ready",
+    "deletion_fallback": "ready",
+    "pagerank_correction": "ready",
+    "shallow_insertion": "ready",
+    "zero_net": "ready"
+  },
+  "direct_ten_stage_rows": 11,
+  "preferred_plugin_sha256": [
+    "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70"
+  ]
+}

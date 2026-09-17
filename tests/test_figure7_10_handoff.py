@@ -23,6 +23,17 @@ def load_renderer():
 
 
 class FigureSevenToTenHandoffTests(unittest.TestCase):
+    def test_rejects_consistent_but_outdated_figure10_plugin(self) -> None:
+        module = load_renderer()
+        provenance = {key: module.read_json(module.PROVENANCE / f"{key}.json")
+                      for key in ("fig8", "fig9", "fig10", "fig11")}
+        rows = module.read_csv(module.DATA / "fig10_normalized_breakdown_rows.csv")
+        provenance["fig10"]["plugin_sha256"] = "old-plugin"
+        for row in rows:
+            row["plugin_sha256"] = "old-plugin"
+        with self.assertRaisesRegex(ValueError, "same frozen Spine"):
+            module.validate_simulator_identity(provenance, rows)
+
     def test_frozen_inputs_pass_all_gates(self) -> None:
         rows = load_renderer().validate_inputs()
         self.assertEqual(len(rows["fig7"]), 27)

@@ -1,0 +1,33 @@
+{
+  "case": {
+    "algorithm": "weighted_sssp",
+    "batch_size": 8,
+    "dataset_id": "su",
+    "execution_id": "current_fpga_v12_su_weighted_sssp_u8",
+    "scenario": "insert",
+    "system": "spine",
+    "update": {
+      "physical_records": 8,
+      "user_mutations": 8
+    }
+  },
+  "original_raw_result_path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/su/spine/weighted_sssp_compacted_hls_v1/result.json",
+  "original_raw_result_sha256": "a365c3643acf3b73e7cdcdfb0eedf554bbd55bc227abcb24e0170bd8560dff9c",
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "raw_path_base": "handoff_directory",
+  "raw_result_path": "evidence/fig10/current_fpga_v12_su_weighted_sssp_u8/result.json.gz",
+  "raw_result_sha256": "4e41eb38f4e455b9cdffc82e6931620c8abc74c3651f2a2a92c3fa8a9926581c",
+  "row": {
+    "architecture_correctness_mismatches": 0,
+    "cycles": 58866,
+    "dataset_kind": "real",
+    "mathematical_correctness_mismatches": 0
+  },
+  "rq3_role": "trace_calibration",
+  "scalar_metrics": {
+    "maintenance_cycles": 5100,
+    "measurement_window": "dynamic_e2e_to_convergence",
+    "update_cycles": 58866
+  },
+  "status": "pass"
+}

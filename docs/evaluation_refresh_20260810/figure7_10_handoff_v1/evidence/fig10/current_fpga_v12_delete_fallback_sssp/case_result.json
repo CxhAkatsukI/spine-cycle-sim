@@ -1,0 +1,33 @@
+{
+  "case": {
+    "algorithm": "weighted_sssp",
+    "batch_size": 1,
+    "dataset_id": "synthetic_delete_fallback",
+    "execution_id": "current_fpga_v12_delete_fallback_sssp",
+    "scenario": "delete",
+    "system": "spine",
+    "update": {
+      "physical_records": 1,
+      "user_mutations": 1
+    }
+  },
+  "original_raw_result_path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/delete_fallback/result.json",
+  "original_raw_result_sha256": "9173f6d4d9bb6e99848827ddea1af5289f1ed215e9723e86d45a404cfb7c34e4",
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "raw_path_base": "handoff_directory",
+  "raw_result_path": "evidence/fig10/current_fpga_v12_delete_fallback_sssp/result.json.gz",
+  "raw_result_sha256": "e33dce1c4b72cc0c663b5fc7150a87658ec51489960e795485784902109cd80d",
+  "row": {
+    "architecture_correctness_mismatches": 0,
+    "cycles": 69547,
+    "dataset_kind": "synthetic",
+    "mathematical_correctness_mismatches": 0
+  },
+  "rq3_role": "synthetic_calibration",
+  "scalar_metrics": {
+    "maintenance_cycles": 11240,
+    "measurement_window": "dynamic_e2e_to_convergence",
+    "update_cycles": 41484
+  },
+  "status": "pass"
+}

@@ -4,11 +4,16 @@ This directory is a review packet, not an in-paper replacement. It addresses
 the open questions about Figures 7--10 while keeping the TeX repository
 unchanged until the revised evidence is accepted.
 
+**Current handoff (corrected September 17): [Figures 7--11](figure7_10_handoff_v1/README.md).**
+Figure 10 now uses the same frozen v12 Spine plugin as Figures 8/9/11.
+Its previous `7563b028...` candidate is superseded. The current handoff includes
+raw evidence, the new SSSP zero-net fallback result, and the six-question audit.
+
 ## Frozen decisions
 
-- Figure 7 is hardware-only. Panels (a)--(c) use three correctness-admitted
+- Figure 7 is hardware-only. Its grouped three-algorithm panel uses three correctness-admitted
   U55C repetitions on eight complete graphs under the setup-inclusive dynamic
-  latency boundary. Panel (d) temporarily uses the existing three compact
+  latency boundary. Panel (b) uses the existing three compact
   Full PageRank FPGA rows and is explicitly labeled as compact evidence.
 - Projected values, timeout lower bounds, and missing bars are removed from
   Figure 7.
@@ -29,7 +34,7 @@ unchanged until the revised evidence is accepted.
 
 ## Current contents
 
-- `figure7_10_handoff_v1/`: self-contained final handoff for Figures 7--10,
+- `figure7_10_handoff_v1/`: self-contained final handoff for Figures 7--11,
   including one standalone Python renderer, frozen input CSVs, provenance,
   GraphyFlow reference archive, PDF/PNG outputs, a combined preview, and one
   overall explanation document. Use this directory when sharing the complete
@@ -44,9 +49,8 @@ unchanged until the revised evidence is accepted.
   energy evidence with complete correctness and conservation gates.
 - `fig10_current_v15_evidence/`: seven admitted SSSP breakdown rows, mechanism
   correlations, and explicit rejection of the global cost model.
-- `simulator_predicted_fig10_v1/`: complete five-class, eleven-row normalized
-  simulator breakdown. This is the Figure 10 candidate to use when the claim is
-  explicitly simulator-predicted rather than FPGA component-calibrated.
+- `simulator_predicted_fig10_v1/`: superseded historical breakdown using the
+  earlier plugin. Use the corrected handoff's Figure 10 instead.
 - `provenance/fig8.json`, `provenance/fig9.json`, and `provenance/fig10.json`:
   hashes, timing scope, normalization, and current limitations.
 - `alignment_audit.md` and `provenance/alignment_audit.json`: gate whether
@@ -55,7 +59,7 @@ unchanged until the revised evidence is accepted.
 - `hardware_and_calibration_status_20260810.md`: current evidence boundary,
   including the Fig. 7 convergence semantics and Fig. 8--10 admission limits.
 
-`current_fpga_fig8_10_v20/` is the final handoff directory. Its finalizer
+`current_fpga_fig8_10_v20/` is an earlier evidence packet. Its finalizer
 refuses incomplete Figure 9 data and records Figure 10's partial calibration
 status in the top-level manifest. Failed calibration evidence remains tracked
 but is not silently promoted.
@@ -72,11 +76,11 @@ Zero-net is omitted because the current HLS does not implement the paper's
 no-repair fast path. PageRank correction is omitted because no routed nonzero
 iteration sample exists for component calibration.
 
-That omission applies only to `fig10_current_v15_evidence/`. The independent
-`simulator_predicted_fig10_v1/` package includes zero-net and PageRank
-correction because FPGA component evidence is not its admission criterion. It
-requires correctness-admitted source rows, a single simulator plugin, complete
-five-class coverage, closed ledgers, and exact stage-cycle conservation.
+That omission applies only to `fig10_current_v15_evidence/`. The corrected
+`figure7_10_handoff_v1/` includes all five simulator-predicted classes using
+the frozen v12 plugin. Zero-net is an SSSP rebuild fallback; SU/WK PR-corr
+uses verified zero propagation rounds. Plugin identity is checked across
+Figures 8--11, in addition to correctness and cycle-conservation checks.
 
 ## Reproduction
 

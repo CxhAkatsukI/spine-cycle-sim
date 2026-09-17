@@ -4,6 +4,12 @@ This directory is the self-contained code, data, provenance, documentation,
 and preview package for the revised evaluation Figures 7--11. It lives in the
 simulator repository and does not modify the paper repository.
 
+Figure 10 was corrected on 2026-09-17. Its former `7563b028...` inputs have
+been replaced by the frozen v12 plugin `f1fca617...e324b70`, also used by the
+Spine results in Figures 8, 9, and 11. The renderer now rejects a mismatch
+between those figures, even when Figure 10 is internally consistent.
+See [the correction and six-question audit](EVIDENCE_AUDIT_20260917.md).
+
 ## One-command reproduction
 
 Prerequisites are Python 3, the package in `requirements.txt`, and a LaTeX
@@ -23,6 +29,10 @@ Figure 10 cycle conservation, and Figure 11 split/model hashes before drawing.
 - `render_all.py`: complete standalone Python renderer for all five figures.
 - `data/`: frozen CSV inputs used by the renderer.
 - `provenance/`: source manifests and evidence boundaries for each figure.
+- `evidence/fig10/`: losslessly compressed raw results, run summaries,
+  architecture profiles, and the rejected CC zero-net attempt.
+- `rebuild_fig10_data.py`: regenerate Figure 10 CSVs from that raw evidence
+  using this repository's RQ3 analyzer; it does not refit Figure 11.
 - `figures/`: PDF, PNG, and combined-preview outputs.
 - `reference/GraphyFlow_Plot.zip`: the supplied visual-style reference,
   preserved verbatim with SHA-256
@@ -46,6 +56,12 @@ is the observed minimum/maximum range. The timing window starts from an old
 graph that is already resident and converged, applies one batch, and ends when
 the updated state converges. It includes setup/orchestration in the measured
 dynamic latency window.
+
+Here setup-inclusive means the host intervals actually recorded by each
+runner. It is not a single timer around the entire application: some Spine
+frontier preparation and result processing occur outside the measured
+wrappers, and G+R preloads update buffers before its dynamic timer. The exact
+boundary must be retained when reusing the figure; see audit item 1.
 
 Panel (b) is deliberately narrower: three compact, one-partition Full PageRank
 FPGA workloads (AM, WG, FL), each run for the same fixed three-round contract.
@@ -92,10 +108,15 @@ accelerator power, FPGA board power, or ASIC core energy.
 
 The eleven bars cover all five requested workload classes:
 
-- `Zero-net / Syn`: target no-repair zero-net path;
+- `Zero-net / Syn`: reciprocal delete/reinsert on an eight-vertex SSSP
+  fixture with unchanged final graph. The v12 implementation takes the
+  full-rebuild fallback; this bar does not demonstrate no-repair behavior;
 - `Shallow insert / AU, SU, WK`: batch-8 insertion traces;
 - `Deep carry / L1, L3, L5`: forced carry through level 1, 3, or 5;
-- `PR correction / FL, SU, WK`: thresholded Residual PageRank correction;
+- `PR correction / FL, SU, WK`: thresholded Residual PageRank correction.
+  FL is Flickr using the sink-free contract; SU/WK use the hardware warm
+  dangling contract and converge during correction with zero propagation
+  rounds. These contract choices are recorded per row in provenance;
 - `Deletion fallback / Syn`: weighted-SSSP deletion fallback.
 
 The ten-stage ledger is grouped as:
@@ -104,12 +125,55 @@ The ten-stage ledger is grouped as:
 - `Seed/pub.` = seed + switch/publication;
 - `Resolve` = edge/history resolution;
 - `App` = algorithm application;
-- `Drain` = source/reactivation drain + synchronization.
+- `Drain` = completion/control gaps outside the recorded component spans,
+  source/reactivation drain, and synchronization.
 
 Each bar is independently normalized to 100% of its own simulated end-to-end
 device-cycle interval. It explains how the dominant stage changes with realized
 work. It does not compare absolute latency between bars and is not an FPGA
 per-stage measurement or FPGA-calibrated stage breakdown.
+
+Reader/compute overlap is assigned once to the component whose interval ends
+later, after maintenance/correction priority. The percentages are exclusive
+critical-path attribution under this convention, not sums of independent
+component busy times. Carry bars use the existing forced-carry fixture's
+output/protocol checks; the dynamic graph cases use architecture and
+mathematical oracle checks.
+
+The eleven measured device windows are:
+
+| Group | Labels | Cycles |
+| --- | --- | --- |
+| Zero-net | Syn | 28,343 |
+| Shallow insert | AU / SU / WK | 58,332 / 58,866 / 40,004 |
+| Deep carry | L1 / L3 / L5 | 11,331 / 14,750 / 22,997 |
+| PR correction | FL / SU / WK | 920,110 / 11,491 / 13,040 |
+| Deletion fallback | Syn | 41,484 |
+
+For ZN, the untimed-for-this-figure cold prefix is 21,968 cycles; the raw
+50,311-cycle execution minus that prefix gives the 28,343-cycle dynamic
+window. The final graph is independently checked against the initial graph.
+The unsuccessful CC zero-net run is retained under
+`evidence/fig10/rejected_zero_net_cc/` and is excluded from the plotted rows.
+
+SU/WK have explicit zero reader edges, compute edges, active vertices, owner
+dispatches, and propagation rounds, with closed correction requests. The
+previous analyzer treated their empty timestamps as missing evidence. The
+corrected analyzer admits this verified empty path without changing simulated
+cycles or the plugin. Their 137/135-cycle completion gaps are included in
+Drain; they are not graph-computation cycles.
+
+To regenerate the data and this figure in the simulator checkout:
+
+```bash
+python3 docs/evaluation_refresh_20260810/figure7_10_handoff_v1/rebuild_fig10_data.py
+/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python \
+  docs/evaluation_refresh_20260810/figure7_10_handoff_v1/render_all.py --only-fig10
+```
+
+The archived raw results are sufficient for this command; no FPGA run, plugin
+rebuild, or access to the original `/data/tmp` campaigns is needed. Full
+simulator rerun instructions for the new ZN example are in the audit document.
 
 ## Figure 11: Realized-work model prediction versus simulator cycles
 
@@ -132,6 +196,11 @@ correctness-admitted carry cases. The new cases use batch sizes of 1, 4, 16,
 and 32 edges and forced carry levels L1--L5. All 41 rows use the same frozen
 simulator plugin (`f1fca617...e324b70`). The expanded model has 24 calibration
 rows, 17 trace holdout rows, and 7 real-trace holdout rows.
+
+The September 17 Figure 10 correction does not refit or add ZN to this frozen
+41-row model. Figure 11's archived stage-admission summary predates the
+zero-round analysis fix (37 direct-stage rows); its observations, model,
+predictions, split, and reported errors remain unchanged.
 
 The expanded trace holdout has `R^2 = 0.981` and median absolute percentage
 error `9.8%`. The real-trace holdout has `R^2 = 0.978` but median absolute

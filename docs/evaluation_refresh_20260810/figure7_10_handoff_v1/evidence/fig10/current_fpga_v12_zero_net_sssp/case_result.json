@@ -1,0 +1,32 @@
+{
+  "case": {
+    "algorithm": "weighted_sssp",
+    "batch_size": 2,
+    "dataset_id": "synthetic_sssp_zero_net",
+    "execution_id": "current_fpga_v12_zero_net_sssp",
+    "scenario": "weight_change",
+    "system": "spine",
+    "update": {
+      "physical_records": 4,
+      "user_mutations": 2
+    }
+  },
+  "original_raw_result_path": "/data/tmp/chuxiao/fig10_v12_repair_20260917/zero_net_sssp_fallback/result.json",
+  "original_raw_result_sha256": "a7e97c134379c4a6f199b5bfc7b5ce72d9f3113b3a3e92b292b1f53914a37a57",
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "raw_path_base": "handoff_directory",
+  "raw_result_path": "evidence/fig10/current_fpga_v12_zero_net_sssp/result.json.gz",
+  "raw_result_sha256": "edf3f74f916ea4accdaccf461b687a18ae29b859942e9d3c7dcb4ae7bea07058",
+  "row": {
+    "architecture_correctness_mismatches": 0,
+    "cycles": 28343,
+    "dataset_kind": "synthetic",
+    "mathematical_correctness_mismatches": 0,
+    "measurement_window": "dynamic_e2e_to_convergence"
+  },
+  "rq3_role": "synthetic_calibration",
+  "scalar_metrics": {
+    "zero_net": true
+  },
+  "status": "pass"
+}

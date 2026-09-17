@@ -1,0 +1,33 @@
+{
+  "case": {
+    "algorithm": "thresholded_residual_pagerank",
+    "batch_size": 8,
+    "dataset_id": "wk",
+    "execution_id": "current_fpga_v12_wk_thresholded_residual_pagerank_u8",
+    "scenario": "insert",
+    "system": "spine",
+    "update": {
+      "physical_records": 8,
+      "user_mutations": 8
+    }
+  },
+  "original_raw_result_path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/runs_current_v1/wk/spine/thresholded_residual_pagerank_compacted_hls_v1/result.json",
+  "original_raw_result_sha256": "f96e3d1e4f67c51baef3672e95706e54b11f6ffbba683a2206881fcbb2173104",
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "raw_path_base": "handoff_directory",
+  "raw_result_path": "evidence/fig10/current_fpga_v12_wk_thresholded_residual_pagerank_u8/result.json.gz",
+  "raw_result_sha256": "9f53384e6dd20bee16065598c84b8a76ce206d149fe5ae70caa38249ddd0cdbe",
+  "row": {
+    "architecture_correctness_mismatches": 0,
+    "cycles": 13040,
+    "dataset_kind": "real",
+    "mathematical_correctness_mismatches": 0
+  },
+  "rq3_role": "trace_holdout",
+  "scalar_metrics": {
+    "maintenance_cycles": 4701,
+    "measurement_window": "dynamic_e2e_to_convergence",
+    "update_cycles": 0
+  },
+  "status": "pass"
+}

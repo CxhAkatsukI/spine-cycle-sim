@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import gzip
 import json
 import tempfile
 from pathlib import Path
@@ -67,6 +68,51 @@ def result(execution_id: str = "rq3") -> dict:
 
 
 class Rq3RealizedWorkTests(unittest.TestCase):
+    def test_zero_round_correction_requires_explicit_no_work_evidence(self) -> None:
+        residual = result("zero-round-correction")
+        residual["case"]["algorithm"] = "thresholded_residual_pagerank"
+        metrics = residual["scalar_metrics"]
+        for key in (
+            "success", "converged", "residual_correction_device_timed",
+            "residual_correction_request_ledger_closed", "active_edge_execution_ledger_match",
+            "owner_scheduler_enabled", "owner_ledger_closed", "owner_quiescent",
+        ):
+            metrics[key] = True
+        for key in (
+            "correctness_mismatches", "architecture_correctness_mismatches",
+            "mathematical_correctness_mismatches", "iterations", "initial_active_vertices",
+            "final_active", "reader_edges_total", "compute_edges_total", "expected_active_edges",
+            "owner_dispatches", "owner_completions", "owner_work_credits_created",
+            "owner_work_credits_retired",
+        ):
+            metrics[key] = 0
+        for key in (
+            "iteration_cycles", "round_start_cycles", "round_end_cycles",
+            "reader_start_cycles_per_round", "reader_end_cycles_per_round",
+            "compute_start_cycles_per_round", "compute_end_cycles_per_round",
+        ):
+            metrics[key] = []
+        metrics["residual_correction_cycles"] = 70
+        row = analyze_rq3_results([residual])["latency_rows"][0]
+        self.assertTrue(row["ten_stage_ledger_closed"])
+        self.assertEqual(row["t_resolve_cycles"], 0)
+        self.assertEqual(row["t_app_cycles"], 0)
+        self.assertEqual(row["t_seed_cycles"], 74)
+        self.assertEqual(row["t_drain_cycles"], 10)
+        self.assertEqual(row["integrated_resolve_app_cycles"], 0)
+        for key, bad in (
+            ("iterations", 1), ("compute_edges_total", 1), ("owner_dispatches", 1),
+            ("residual_correction_request_ledger_closed", False),
+            ("reader_end_cycles_per_round", None),
+        ):
+            with self.subTest(key=key):
+                previous = metrics.pop(key)
+                if bad is not None:
+                    metrics[key] = bad
+                rejected = analyze_rq3_results([residual])["latency_rows"][0]
+                self.assertFalse(rejected["ten_stage_supported"])
+                metrics[key] = previous
+
     def test_overlap_aware_ledger_closes_exactly(self) -> None:
         analysis = analyze_rq3_results([result()])
         row = analysis["latency_rows"][0]
@@ -372,17 +418,21 @@ class Rq3RealizedWorkTests(unittest.TestCase):
     def test_raw_per_round_evidence_is_hash_verified(self) -> None:
         case = result("raw")
         with tempfile.TemporaryDirectory() as temporary:
-            raw_path = Path(temporary) / "summary.json"
             raw = dict(case["scalar_metrics"])
             raw["processed_edges_per_round"] = [7, 5]
-            raw_path.write_text(json.dumps(raw) + "\n", encoding="ascii")
-            case["raw_result_path"] = str(raw_path)
-            case["raw_result_sha256"] = hashlib.sha256(raw_path.read_bytes()).hexdigest()
-            work = analyze_rq3_results([case])["work_rows"][0]
-            self.assertEqual(work["m_phys_records"], 12)
-            raw_path.write_text("{}\n", encoding="ascii")
-            with self.assertRaisesRegex(ValueError, "changed"):
-                analyze_rq3_results([case])
+            payload = (json.dumps(raw) + "\n").encode("ascii")
+            for name in ("summary.json", "summary.json.gz"):
+                with self.subTest(name=name):
+                    raw_path = Path(temporary) / name
+                    raw_path.write_bytes(gzip.compress(payload, mtime=0)
+                                         if name.endswith(".gz") else payload)
+                    case["raw_result_path"] = str(raw_path)
+                    case["raw_result_sha256"] = hashlib.sha256(raw_path.read_bytes()).hexdigest()
+                    work = analyze_rq3_results([case])["work_rows"][0]
+                    self.assertEqual(work["m_phys_records"], 12)
+                    raw_path.write_text("{}\n", encoding="ascii")
+                    with self.assertRaisesRegex(ValueError, "changed"):
+                        analyze_rq3_results([case])
 
 
 if __name__ == "__main__":

@@ -1,5 +1,11 @@
 # Simulator-predicted Figure 10
 
+**Superseded on 2026-09-17.** This historical packet uses an older plugin.
+Use the [corrected Figure 7--11 handoff](../figure7_10_handoff_v1/README.md),
+which pins Figure 10 to the same v12 plugin as Figures 8, 9, and 11.
+The command below now defaults to corrected source data; these retained
+historical files are not the current submission.
+
 This packet presents a normalized cycle breakdown from the execution-driven
 Spine simulator. It is not an FPGA per-stage measurement or an FPGA-calibrated
 breakdown. All eleven bars use simulator plugin `7563b028e61e792e7043a582682dd26d0e3d8cc3e2407021f144519d0ef57bf6`.

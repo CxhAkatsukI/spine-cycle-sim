@@ -1,0 +1,33 @@
+{
+  "case": {
+    "algorithm": "thresholded_residual_pagerank",
+    "batch_size": 8,
+    "dataset_id": "flickr_pr_correction",
+    "execution_id": "current_fpga_v12_flickr_respr_correction_u8",
+    "scenario": "pagerank_correction",
+    "system": "spine",
+    "update": {
+      "physical_records": 16,
+      "user_mutations": 8
+    }
+  },
+  "original_raw_result_path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_rq3_20260812/residual_correction/deltahls_soc_flickr_insert_u8/eps_1e-06/spine/summary.json",
+  "original_raw_result_sha256": "eb4848fcd9719ad1d939c4751720bbe25eb788b7e4c675e57eb9e4fee616d4fb",
+  "plugin_sha256": "f1fca617de22877ca675c72c6877444c029af8b83d4c30a25754d85f7e324b70",
+  "raw_path_base": "handoff_directory",
+  "raw_result_path": "evidence/fig10/current_fpga_v12_flickr_respr_correction_u8/result.json.gz",
+  "raw_result_sha256": "e9c93bee4d0d130f4112a48981e499135f04c659e1c3e927eea1db36cfc12c89",
+  "row": {
+    "architecture_correctness_mismatches": 0,
+    "cycles": 920110,
+    "dataset_kind": "real",
+    "mathematical_correctness_mismatches": 0
+  },
+  "rq3_role": "trace_holdout",
+  "scalar_metrics": {
+    "maintenance_cycles": 6710,
+    "measurement_window": "dynamic_e2e_to_convergence",
+    "update_cycles": 0
+  },
+  "status": "pass"
+}
