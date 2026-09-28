@@ -355,3 +355,16 @@ per-page refill cycles, and malformed-index rejection are documented in
 The online carry target writer, pending CSR packers, merge backpressure, and
 component-local timing evidence are documented in
 [`docs/spine_online_carry_writer_20260724.md`](docs/spine_online_carry_writer_20260724.md).
+
+## Artifact layout (large outputs on /data)
+
+`results/` and `build/` at the repository root are **symlinks** into the server
+data volume:
+
+- `results/` → `/data/chuxiao/spine-cycle-sim/results/`
+- `build/`   → `/data/chuxiao/spine-cycle-sim/build/`
+
+Simulation and analysis artifacts therefore live on `/data` (no $HOME disk
+quota) while every existing workflow keeps working unchanged. Use
+`--out-dir` (see `scripts/run_spine_sim.py`) to pick a different output
+location for a given run.
