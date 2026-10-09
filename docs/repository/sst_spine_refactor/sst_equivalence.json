@@ -1,0 +1,1570 @@
+{
+  "baseline_identity": {
+    "case_timeout_seconds": 600,
+    "contract_sha256": "581d6554e3e9dfc378f79cde0e5e42ff3b6c4d44215b7213c9e5bc885e3b2ce6",
+    "plugin_sha256": "5ff6b53fae61c87b896c76d45148b61b6b9357bf38576ff4e2f8f442868e97c7",
+    "schema_version": 1,
+    "source": {
+      "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+      "declared_build": {
+        "compiler": "g++",
+        "dramsim3_root": "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "host_flags": "-O3 -DNDEBUG -flto",
+        "native_host": 0,
+        "pgo_mode": "off"
+      },
+      "dramsim3_library_sha256": "9db26860cde335dd62c9e013d444b67ec98e8772107b39e15eb15a0ffdb8d906",
+      "files": [
+        {
+          "path": "CMakeLists.txt",
+          "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+          "sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+          "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+          "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+          "sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_fullpr_hls_v1.json",
+          "sha256": "368722475d2b4893ced39d58cd5898897159631673b54a46d49df024cd4baf57"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
+          "sha256": "6ec5f93ea3b5c9b3ddfcb4fd70583e050456965c561f80d48e12b768499917c6"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+          "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
+        },
+        {
+          "path": "configs/architectures/spine_shared_engine_9c08763.json",
+          "sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7"
+        },
+        {
+          "path": "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json",
+          "sha256": "673a349cd735e724ee0641f36d7122943d8c2c884886b84b81da6a2a3c6e722f"
+        },
+        {
+          "path": "configs/experiments/sst_spine_component_refactor_v2.json",
+          "sha256": "581d6554e3e9dfc378f79cde0e5e42ff3b6c4d44215b7213c9e5bc885e3b2ce6"
+        },
+        {
+          "path": "configs/memory/HBM2_1ch_x128.ini",
+          "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+        },
+        {
+          "path": "cpp/CMakeLists.txt",
+          "sha256": "2b663be824faf0b68923f12659322a1d2d727166c291e9a805f7023ff56118b7"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm.hpp",
+          "sha256": "de525d8443035964dde913c87ed0a697b741fab07090ae87dae55a7a1076070a"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm_pipeline.hpp",
+          "sha256": "d3194631dc802f8d990f7706515f9e3499fb588bb02de6ad00e67eb8cac004b3"
+        },
+        {
+          "path": "cpp/include/spine_sim/axi.hpp",
+          "sha256": "47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb"
+        },
+        {
+          "path": "cpp/include/spine_sim/banked_memory.hpp",
+          "sha256": "7e781e6c64cf14780d0fe40757844e1437d2a09bef44c141b9859f8d8fd4f08d"
+        },
+        {
+          "path": "cpp/include/spine_sim/component.hpp",
+          "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+        },
+        {
+          "path": "cpp/include/spine_sim/fifo.hpp",
+          "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+        },
+        {
+          "path": "cpp/include/spine_sim/fixed_axi_port.hpp",
+          "sha256": "6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu.hpp",
+          "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_native.hpp",
+          "sha256": "7012151680988d9be642a8a5f6b0617443a8a55dbd8b43e9f1b8537a91284a10"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+          "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+        },
+        {
+          "path": "cpp/include/spine_sim/memory_backend.hpp",
+          "sha256": "067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e"
+        },
+        {
+          "path": "cpp/include/spine_sim/scheduler.hpp",
+          "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_dirty.hpp",
+          "sha256": "e4c82aacfa311d7f89b0922ff42c2f4300f6b90eb5b5128ca1b59f128adf65be"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_l0.hpp",
+          "sha256": "b1ca2380705dca4df2ef0ac222699fc6d5ebb60460d6fb293836b8920daa6d38"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_owner.hpp",
+          "sha256": "877b9d7e3c38fe7183becccbdab097809d5fba7e5e2836cc8bfaaaaba4066a86"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_pagerank.hpp",
+          "sha256": "c4a1ea3fa2e83fc86b1570e8c0b134f97f17451d58249a8b95e5570bf053b4cc"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_split.hpp",
+          "sha256": "c819618f9cfbdbe3742396b1df394c84056dd0185eda2a4d05ec296f68953495"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_system.hpp",
+          "sha256": "564f9fea6afbbef6df7a7bef7a234ae5b5628bb23185df5d754b726ad0cf52a1"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_vertex_lifecycle.hpp",
+          "sha256": "252288e7a3b7000ac4bbef00b333ab2caa6ed97f76bc08a73097501cedf3a000"
+        },
+        {
+          "path": "cpp/src/algorithm.cpp",
+          "sha256": "253295d6c3d5c7655544fe58b8c6d480e4e96d1f2d4b1ad612c41b600dea50b1"
+        },
+        {
+          "path": "cpp/src/algorithm_pipeline.cpp",
+          "sha256": "f5eac512f9aa6b1c6d971907826e4a18b2b494a7be6e4e6e3e70ba30abc5b726"
+        },
+        {
+          "path": "cpp/src/axi.cpp",
+          "sha256": "c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd"
+        },
+        {
+          "path": "cpp/src/banked_memory.cpp",
+          "sha256": "37e993cf0f052c814c8ab3a8bb481630f154a91af7a7eaa505c77e22f549680b"
+        },
+        {
+          "path": "cpp/src/grasu.cpp",
+          "sha256": "352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915"
+        },
+        {
+          "path": "cpp/src/grasu_native.cpp",
+          "sha256": "e974e00f48f089a61c209c8032daa4e275185f3cd9d1e2e3f8ab88f920c52831"
+        },
+        {
+          "path": "cpp/src/grasu_regraph.cpp",
+          "sha256": "f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7"
+        },
+        {
+          "path": "cpp/src/grasu_regraph_runtime.cpp",
+          "sha256": "0cd0af809c14917f863b6d5f7da983f99403eff84bf54b351fc80c784182818c"
+        },
+        {
+          "path": "cpp/src/grasu_sharded_update.cpp",
+          "sha256": "ea7e569be558db3b6c5fdcfacc96bf904091788383836537a8d919740a2a8fbc"
+        },
+        {
+          "path": "cpp/src/memory_backend.cpp",
+          "sha256": "4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20"
+        },
+        {
+          "path": "cpp/src/scheduler.cpp",
+          "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+        },
+        {
+          "path": "cpp/src/spine_dirty.cpp",
+          "sha256": "097d217fcbfc59a19eba7de7475633ac400a345d4dbb3c17f0cbb05219ad63f8"
+        },
+        {
+          "path": "cpp/src/spine_l0.cpp",
+          "sha256": "aead6f7b4eb3cf5d889d9d7a285d86c0ea1dbeb380af052a4aef0e34ef7ad755"
+        },
+        {
+          "path": "cpp/src/spine_owner.cpp",
+          "sha256": "831a4ced1e4c928319e576beaf0110d59c4e498fcb5b6ea01536acd6c5149959"
+        },
+        {
+          "path": "cpp/src/spine_pagerank.cpp",
+          "sha256": "ab753aaab40f53051ede5275a978d6dcddde48604a932655e9796bff2f297ed9"
+        },
+        {
+          "path": "cpp/src/spine_split.cpp",
+          "sha256": "fc05d6104fd9c8ef96937ec309a60e43c345f5e6a09946916d1c886131919cf9"
+        },
+        {
+          "path": "cpp/src/spine_system.cpp",
+          "sha256": "442d17046d857b00fe6956ba081bdd5fbad74608b45f6fcd24ca6fb0bf61b5b1"
+        },
+        {
+          "path": "cpp/src/spine_vertex_lifecycle.cpp",
+          "sha256": "d5700861bf299ee426335819077fd00a5bb7fb719fa2e002c3a33d8bd04d4ab4"
+        },
+        {
+          "path": "cpp/sst/Makefile",
+          "sha256": "d8a1ef86e60c22d7de256fb40134f111438bc21fd82d96ae64eb8d2fcf94acd9"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.cpp",
+          "sha256": "70427a7e7c50768ab6888df4953bbcc680be9443a64e9deee36b96a800b11754"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.hpp",
+          "sha256": "313e7095554b02752c27b944317de1b162f3c339830ed9e2fdd238997e828e23"
+        },
+        {
+          "path": "cpp/sst/online_memory_probe.cpp",
+          "sha256": "04ab090ea23087be177a4b7578991d3f277f077cdde1d97d259d42315257d448"
+        },
+        {
+          "path": "scripts/run_component_refactor_regression.py",
+          "sha256": "2952cf88d13f097290e7160fe1392f1888333cda60deb484b7cb6af2c9123755"
+        },
+        {
+          "path": "scripts/run_grasu_refactor_regression.py",
+          "sha256": "e37eacadf4c258b3deede86c37cb539ca045a3004e7e442b203c9a7d6de9a17f"
+        },
+        {
+          "path": "scripts/run_sst_connected_components.py",
+          "sha256": "961d723a01c924e2ead94f1387da56b3e1a229d9b835a28fc5309c73d2f539c0"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+          "sha256": "caabfe83b2aecce3fd8a74a93bb3371747bae179d1cc8eb48e07fbafb4ce86b9"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+          "sha256": "f41926eb0412fa3a994011fa7f5fdf37d752cff7e7835e7075cb621c97ce9d1b"
+        },
+        {
+          "path": "scripts/run_sst_spine_vertical.py",
+          "sha256": "9fdf298fbd29b019ef69d581c62b398182deb6fee54ab4a38fed59ae848a3fee"
+        },
+        {
+          "path": "spine_cycle_sim/__init__.py",
+          "sha256": "312ef0853da0f8d69bbbe75607c799f84668864435b04e78e12251c44b67f193"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/__init__.py",
+          "sha256": "157c32b1b155f8b7e404df69409a56afd3ffd9ece7fda1986aadcde575376435"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/engine.py",
+          "sha256": "8f1f0d6ead2dfe8742c455e6bb384f169da0cfa56ea0287b588d7b2caabaf0d2"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/graph.py",
+          "sha256": "c2ed4aa2f421c044b34a160448a834e5ab972ed31bcec69fe543abb83e7d174c"
+        },
+        {
+          "path": "spine_cycle_sim/alignment_contract.py",
+          "sha256": "79965e798be2def46f79a17dd69162366ae42297be2b4138ad8d8ed6fbfecba3"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/__init__.py",
+          "sha256": "42ebbfce7db394e36eb4116c2025a26246be17a7663a3188d7dc66502ff5b822"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/bridge.py",
+          "sha256": "f355489a325164892b3b3fb937dc4af56733f7df0fad8a4400fc77cfcc7788ef"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/bstage.py",
+          "sha256": "047396c9a87bb4e9d1a3e1fd875b58296e86595f2d5f4c141940d8aaf1920ebb"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/candidate10.py",
+          "sha256": "c55c54e2f29e17973b05afde24148a14b593a499e767a1cc7e9d214bf891646a"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/current_fpga.py",
+          "sha256": "3058b8309e43aa2fcc509b848fa62ac8ac92171dd772954d86f72a3388640853"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/e2e.py",
+          "sha256": "ca7bc096ddb0ddabe402f8cd90024029219bd2b422df1bf7f46cd7f3778de515"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/frozen.py",
+          "sha256": "e895d4b09e57d50c7887f78c7788ec18322c4c4c3e7d71629867a31a94d69c02"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/grasu_native.py",
+          "sha256": "f6815cd8859fc1905cc38e81107ff13bae571f527ebaac751f7428b19e0f61ca"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/k4_fpga.py",
+          "sha256": "e73fd053ae136b4793aed76442d1593a0c64361778299c6642e30adf249c1c52"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/maintenance.py",
+          "sha256": "35b2ab74a4542ab54d6cc560beee19c8b143ab026d8c5866d426cebe565187d7"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/reader.py",
+          "sha256": "38402648754a0a254b3ba2d8bc4bc79dafe86aa9fcb71f9f852e5b2c9a9e6422"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/refactor31.py",
+          "sha256": "ea8d2c3fab77e6d45cc77d7f59bb2a82a1fb5e561eae060b74a8836ffbdd0a81"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/refactor31_scale.py",
+          "sha256": "0fd606ce7497d020ec83034c7feff9f08353f84081025600ea4e846526cfc054"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/rq3.py",
+          "sha256": "9ec067b3fd07a9983e7febe40ca2b1678a06a42bc683db97e58b20bf0cfea8b0"
+        },
+        {
+          "path": "spine_cycle_sim/core/__init__.py",
+          "sha256": "6998693a1f436bc40f62181aadc992fbc554def3aad34a6cb8419ad33a63c19e"
+        },
+        {
+          "path": "spine_cycle_sim/core/component.py",
+          "sha256": "27a056b6b6a5c7604a69522a000f60853f4de8c0c29c27d029c8bc6168908f09"
+        },
+        {
+          "path": "spine_cycle_sim/core/fifo.py",
+          "sha256": "29c636dac6d34ed1e246f26b70c41283494a8c6dc2561e654e85156c8fc05aba"
+        },
+        {
+          "path": "spine_cycle_sim/core/memory.py",
+          "sha256": "79a5ebbe8d0ff87bb4110531a0f8cacf9f4046ad8804bc6e2414d8d80a55b411"
+        },
+        {
+          "path": "spine_cycle_sim/core/simulator.py",
+          "sha256": "82febaa8a518197101300d12967c19a679de446e9d682cd104fa46aae0b9985a"
+        },
+        {
+          "path": "spine_cycle_sim/core/stats.py",
+          "sha256": "22c940a2f0141a58672b806a20bdf7bd371e9d39ab0b63e92069c385439f9f73"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/__init__.py",
+          "sha256": "33547caf30f64cf2cc4cf5c2b846c7853df1d9c1a16aa7441f51ee52b0b14794"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/area_projection.py",
+          "sha256": "aeb178d42fb46bba1455ea05a312a677f757c011b43728b8b453678b85d3de3a"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/candidate10.py",
+          "sha256": "5a89bb02c528567969ef22a3b32e7a0dadbf4f600247a3ef575586c5bd3bd88a"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/component_power.py",
+          "sha256": "364aac2abf8538e4d2133334e06831ce02eeb4587a085cc17b6c41736171b2cf"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/energy.py",
+          "sha256": "6610c9a4c6e3881cefa5b78b3208137ebc41fc7bfefd69c37a3fdd6869d81cf9"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/exact_idle.py",
+          "sha256": "fde19ffe2d2360152175986b94ecf6d9451d97425cfc2126749550a8c12a4258"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/fpga.py",
+          "sha256": "68bf3497a52adbbf0e4c3cbf3a614bbb6c00d1717d70448cde05f7e986feaa82"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/matched_energy.py",
+          "sha256": "eccb1bc7e6b4d482ab8b1dcee08591b99f2161cdaec2acc3b0ac21cb820f6e39"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/paper_energy.py",
+          "sha256": "e703a751e16b1dc1b988eb4dc3fa7fa4c8babb8e2f8a48eb9f6cfaeac714d741"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/publication_ppa.py",
+          "sha256": "290f51c00f09bccddc30a914d9c48e28acd3827d0e13a42fe76c5c722e805940"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/vivado_power.py",
+          "sha256": "5e06d533e0744e5fcbb2f3be90ae028f304278c9c5f455c8717718331e0c4ad8"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/weighted_energy.py",
+          "sha256": "7d3b23f24cbd3fcf5d14f26ffa9c55c831249a7261967d40a69605dc6f7c6504"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/workload_energy.py",
+          "sha256": "11b49691f490c2a29f85f29744ae11b457feae25ec72f9bd6bb372e1f08c4c59"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/__init__.py",
+          "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/candidate10_workloads.py",
+          "sha256": "484b1900c92e3b0d2368ab286dc8d7b0fad2f95f2527764081a232935690d006"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/comparison.py",
+          "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/comparison_analysis.py",
+          "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/connected_components_workloads.py",
+          "sha256": "8c0709569dfb814eb33e128ab24debf7ccd7ddf96445dee7ad5a523ffbbf3c8e"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/deltahls_workloads.py",
+          "sha256": "dea5c5d23cd9941f0cbcc3ed841d767ab500872cd9448655acf90b7d25a2085c"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/dense_batch_sweep.py",
+          "sha256": "e8ccd3e98d3bcef694591b0b907558218c2e9ee4d06f604556e03329a560cea5"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/feasibility.py",
+          "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/grasu_addressing.py",
+          "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/grasu_native_validation.py",
+          "sha256": "bca40ed6ec79268e0a5b45abb8d7c2cc2992fd2811e5f5338ae40fffe32e6f7d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+          "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_real_comparison.py",
+          "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_weighted_workloads.py",
+          "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/host_memory.py",
+          "sha256": "539d34c67346d03cfba8b0f0741424d6412b9571653923cbf2d6064b64d7286d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_graph_campaign.py",
+          "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_real_pagerank.py",
+          "sha256": "f94a514734231a59d908a152b70172ce764a012c1a6e1ace4a53886749e09529"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_reciprocal_workloads.py",
+          "sha256": "1da6eadeffaf2d027ce3ca1bceaf01ff8e50bf8a7cb79a9f809eae2e2fa44e96"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/memory_traffic.py",
+          "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/mixed_path_analysis.py",
+          "sha256": "88f66470a39d7f0a18b58d1e30f1a2f40e347aff1d4e63a7963838da90ace243"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/persistent_update_only.py",
+          "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/plugin_equivalence.py",
+          "sha256": "152aa80ff649a893f505794f42021a927ca95f384e8dbfff8b6fec898fcbfe54"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/profile_capabilities.py",
+          "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_analysis.py",
+          "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_cases.py",
+          "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_match.py",
+          "sha256": "f52433e022855532f134deb87ba7847479c54bbec55805e813a4695df716a960"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_workloads.py",
+          "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_memory_analysis.py",
+          "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_small_batch_analysis.py",
+          "sha256": "7161ef461195b36e34a9aa20d74dcf4d4bf944389bc07295498409c80ba7b24f"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_small_batches.py",
+          "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/refactor_equivalence.py",
+          "sha256": "6834e84a44b6c5127ab7262460d9dd5c12fad14756535887e3851e5fd0e15aa9"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/regraph_contracts.py",
+          "sha256": "f862d9504496d8fc197ac7cd623dd8eace7665ab23567e7c8b57de4c0bf4ce39"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/rq3.py",
+          "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/shared_workloads.py",
+          "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_dense_analysis.py",
+          "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_real_analysis.py",
+          "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_real_batches.py",
+          "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+          "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3"
+        },
+        {
+          "path": "spine_cycle_sim/models/__init__.py",
+          "sha256": "cf74d66882e89c105e5cd299c11302fc4523c6471be435e5b41e71d4376ef886"
+        },
+        {
+          "path": "spine_cycle_sim/models/dstage.py",
+          "sha256": "5b8eee8c18f0a0c1550d20ba38a733ab34e43c5fe232c9218e29527bf325b674"
+        },
+        {
+          "path": "spine_cycle_sim/models/spine.py",
+          "sha256": "66e263e421024fb8607e044f6951e3b3ac04e97607312d3d49b46dc08710f02b"
+        },
+        {
+          "path": "spine_cycle_sim/profiles.py",
+          "sha256": "e4f85c162b64d21434e0d26bc43965b8c7a25bab24c36abf8f33411eb0a9dc62"
+        },
+        {
+          "path": "spine_cycle_sim/sst_binding.py",
+          "sha256": "ae12d088a3b6e47f6324a264d4deafc96c023537c6d63a33b3f138535b4f7e39"
+        },
+        {
+          "path": "spine_cycle_sim/sst_library.py",
+          "sha256": "06af07b611fecaf97265a1759ae13328b57e8086fc5af90840680bc31a96d620"
+        },
+        {
+          "path": "spine_cycle_sim/stats/__init__.py",
+          "sha256": "d885d50577ed68f24d8841e8b1fbcf3c819266458c5d1084f9105b48099d83b7"
+        },
+        {
+          "path": "spine_cycle_sim/stats/io.py",
+          "sha256": "3d27b04add90b1357a9815d2a67f14d28c1608d45f55a73eb8ec7e87601fc311"
+        },
+        {
+          "path": "spine_cycle_sim/workloads/__init__.py",
+          "sha256": "4917c7f774ea79ad03e1069ca4589bfcea153b3b4f168ff17b5e304a2e83cdb6"
+        },
+        {
+          "path": "spine_cycle_sim/workloads/generators.py",
+          "sha256": "5bf1a7b5a8a8a79ecf457c3645b0ff236f23e69e4c67519d7aefba7b87474df5"
+        },
+        {
+          "path": "sst/grasu_regraph_vertical.py",
+          "sha256": "f1455f62b4072b6dfeeb33c4d3ee642072e8fe42266c725c907ad081e8e3a936"
+        },
+        {
+          "path": "sst/online_memory_probe.py",
+          "sha256": "2de7d64751dc1e636c57c12d9f0d43c465cadec579d401642ce1f7cdc1b2cd68"
+        },
+        {
+          "path": "sst/spine_vertical_slice.py",
+          "sha256": "068ff8593f063d302561dc2ef26705ff9fb61b0839fbfe153bd1305c491cd569"
+        },
+        {
+          "path": "tests/data/carry_hot_batch.slice",
+          "sha256": "a3ff9e925f73c418f2ffe0dbf78c3c256f22f7926ff78d5d39d2d24bad2d4b13"
+        },
+        {
+          "path": "tests/data/carry_hot_preload.slice",
+          "sha256": "1bc406fc26a57111e956411a23157b1a28e2b010706ca1b9587b6f9275464450"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_initial.slice",
+          "sha256": "c1348afd4f74dee02138feb393cd5dd99f8c0f42ae8f565f5b70975e356f35f0"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_insert.slice",
+          "sha256": "5f4c413c2c382bb9807a58d41578779dabbab97a16ecc6f557bc9d3bcb24f9a6"
+        },
+        {
+          "path": "tests/data/connected_components_formal/cc_zero_net_base.slice",
+          "sha256": "0773e0c88f1e018326d33d29059e76cd9ec3d66177e068f8dc7c233230690b58"
+        },
+        {
+          "path": "tests/data/connected_components_formal/cc_zero_net_delete_then_reinsert_u2.slice",
+          "sha256": "5e0001cd0b77771f3f65ce11e0149a433ec6a377f4850c3cc5e5333521dd449e"
+        },
+        {
+          "path": "tests/data/dynamic_delete_update.slice",
+          "sha256": "e8a80073d67211332959350d598edf3ab09d9f58d032edbabed9c4b0740c6f4d"
+        },
+        {
+          "path": "tests/data/dynamic_nonmonotonic_initial.slice",
+          "sha256": "fad6d7e5342e30d5f9a0813ed5cd41937070e3bff8c2e4dc1145d4e598bd41e5"
+        },
+        {
+          "path": "tests/data/dynamic_shortcut_initial.slice",
+          "sha256": "341352c73f4f80cf6f7424e34325d6f4811d3d59195d79d3ecbb15083a8834bc"
+        },
+        {
+          "path": "tests/data/dynamic_shortcut_update.slice",
+          "sha256": "817771e6a854abd9671fa7a3ce12ef33257e57d82b52d56afe1b15128b10e964"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_initial.slice",
+          "sha256": "8107f04145e1c42dca0a00771e79de6176be95c66af3f834eac272c964062621"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_update.slice",
+          "sha256": "4d9a3afe66864c3b291dfb322ab302067ff37a38811efc9e85e3695ca6204176"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+          "sha256": "38f8cdd79a9fe32571512ee5c4a706200260e48a70428130bbe52906b23f3a96"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+          "sha256": "a0c3eb0114f3dcc4693d20253741deace7ed5a832a00566033e3d9ae1d16df60"
+        },
+        {
+          "path": "tests/data/pagerank_four_vertex.slice",
+          "sha256": "f1462b615250c578a78d7858466fc8f292f9f2c61bc4e222553396d24696108b"
+        }
+      ],
+      "relevant_dirty_diff": "",
+      "revision": "abe4c3ed0b25bd22efaab45ae26818f693c4183b"
+    }
+  },
+  "candidate_identity": {
+    "case_timeout_seconds": 600,
+    "contract_sha256": "581d6554e3e9dfc378f79cde0e5e42ff3b6c4d44215b7213c9e5bc885e3b2ce6",
+    "plugin_sha256": "2fe5d3fa85d3797455e137f90e11e40f6e044cc2223180f7af125e256efc83dd",
+    "schema_version": 1,
+    "source": {
+      "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+      "declared_build": {
+        "compiler": "g++",
+        "dramsim3_root": "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "host_flags": "-O3 -DNDEBUG -flto",
+        "native_host": 0,
+        "pgo_mode": "off"
+      },
+      "dramsim3_library_sha256": "9db26860cde335dd62c9e013d444b67ec98e8772107b39e15eb15a0ffdb8d906",
+      "files": [
+        {
+          "path": "CMakeLists.txt",
+          "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+          "sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+          "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+          "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+          "sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_fullpr_hls_v1.json",
+          "sha256": "368722475d2b4893ced39d58cd5898897159631673b54a46d49df024cd4baf57"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
+          "sha256": "6ec5f93ea3b5c9b3ddfcb4fd70583e050456965c561f80d48e12b768499917c6"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+          "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
+        },
+        {
+          "path": "configs/architectures/spine_shared_engine_9c08763.json",
+          "sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7"
+        },
+        {
+          "path": "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json",
+          "sha256": "673a349cd735e724ee0641f36d7122943d8c2c884886b84b81da6a2a3c6e722f"
+        },
+        {
+          "path": "configs/experiments/sst_spine_component_refactor_v2.json",
+          "sha256": "581d6554e3e9dfc378f79cde0e5e42ff3b6c4d44215b7213c9e5bc885e3b2ce6"
+        },
+        {
+          "path": "configs/memory/HBM2_1ch_x128.ini",
+          "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+        },
+        {
+          "path": "cpp/CMakeLists.txt",
+          "sha256": "ca449b97963aef3a8cb0e7b16c97cc964d4259f26bb11deee4288b7c5dd98f72"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm.hpp",
+          "sha256": "de525d8443035964dde913c87ed0a697b741fab07090ae87dae55a7a1076070a"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm_pipeline.hpp",
+          "sha256": "d3194631dc802f8d990f7706515f9e3499fb588bb02de6ad00e67eb8cac004b3"
+        },
+        {
+          "path": "cpp/include/spine_sim/axi.hpp",
+          "sha256": "47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb"
+        },
+        {
+          "path": "cpp/include/spine_sim/banked_memory.hpp",
+          "sha256": "7e781e6c64cf14780d0fe40757844e1437d2a09bef44c141b9859f8d8fd4f08d"
+        },
+        {
+          "path": "cpp/include/spine_sim/component.hpp",
+          "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+        },
+        {
+          "path": "cpp/include/spine_sim/fifo.hpp",
+          "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+        },
+        {
+          "path": "cpp/include/spine_sim/fixed_axi_port.hpp",
+          "sha256": "6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu.hpp",
+          "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_native.hpp",
+          "sha256": "7012151680988d9be642a8a5f6b0617443a8a55dbd8b43e9f1b8537a91284a10"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+          "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+        },
+        {
+          "path": "cpp/include/spine_sim/memory_backend.hpp",
+          "sha256": "067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e"
+        },
+        {
+          "path": "cpp/include/spine_sim/scheduler.hpp",
+          "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_dirty.hpp",
+          "sha256": "e4c82aacfa311d7f89b0922ff42c2f4300f6b90eb5b5128ca1b59f128adf65be"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_l0.hpp",
+          "sha256": "b1ca2380705dca4df2ef0ac222699fc6d5ebb60460d6fb293836b8920daa6d38"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_owner.hpp",
+          "sha256": "877b9d7e3c38fe7183becccbdab097809d5fba7e5e2836cc8bfaaaaba4066a86"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_pagerank.hpp",
+          "sha256": "c4a1ea3fa2e83fc86b1570e8c0b134f97f17451d58249a8b95e5570bf053b4cc"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_split.hpp",
+          "sha256": "c819618f9cfbdbe3742396b1df394c84056dd0185eda2a4d05ec296f68953495"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_system.hpp",
+          "sha256": "564f9fea6afbbef6df7a7bef7a234ae5b5628bb23185df5d754b726ad0cf52a1"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_vertex_lifecycle.hpp",
+          "sha256": "252288e7a3b7000ac4bbef00b333ab2caa6ed97f76bc08a73097501cedf3a000"
+        },
+        {
+          "path": "cpp/src/algorithm.cpp",
+          "sha256": "253295d6c3d5c7655544fe58b8c6d480e4e96d1f2d4b1ad612c41b600dea50b1"
+        },
+        {
+          "path": "cpp/src/algorithm_pipeline.cpp",
+          "sha256": "f5eac512f9aa6b1c6d971907826e4a18b2b494a7be6e4e6e3e70ba30abc5b726"
+        },
+        {
+          "path": "cpp/src/axi.cpp",
+          "sha256": "c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd"
+        },
+        {
+          "path": "cpp/src/banked_memory.cpp",
+          "sha256": "37e993cf0f052c814c8ab3a8bb481630f154a91af7a7eaa505c77e22f549680b"
+        },
+        {
+          "path": "cpp/src/grasu.cpp",
+          "sha256": "352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915"
+        },
+        {
+          "path": "cpp/src/grasu_native.cpp",
+          "sha256": "e974e00f48f089a61c209c8032daa4e275185f3cd9d1e2e3f8ab88f920c52831"
+        },
+        {
+          "path": "cpp/src/grasu_regraph.cpp",
+          "sha256": "f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7"
+        },
+        {
+          "path": "cpp/src/grasu_regraph_runtime.cpp",
+          "sha256": "0cd0af809c14917f863b6d5f7da983f99403eff84bf54b351fc80c784182818c"
+        },
+        {
+          "path": "cpp/src/grasu_sharded_update.cpp",
+          "sha256": "ea7e569be558db3b6c5fdcfacc96bf904091788383836537a8d919740a2a8fbc"
+        },
+        {
+          "path": "cpp/src/memory_backend.cpp",
+          "sha256": "4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20"
+        },
+        {
+          "path": "cpp/src/scheduler.cpp",
+          "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+        },
+        {
+          "path": "cpp/src/spine_dirty.cpp",
+          "sha256": "097d217fcbfc59a19eba7de7475633ac400a345d4dbb3c17f0cbb05219ad63f8"
+        },
+        {
+          "path": "cpp/src/spine_l0.cpp",
+          "sha256": "aead6f7b4eb3cf5d889d9d7a285d86c0ea1dbeb380af052a4aef0e34ef7ad755"
+        },
+        {
+          "path": "cpp/src/spine_owner.cpp",
+          "sha256": "831a4ced1e4c928319e576beaf0110d59c4e498fcb5b6ea01536acd6c5149959"
+        },
+        {
+          "path": "cpp/src/spine_pagerank.cpp",
+          "sha256": "ab753aaab40f53051ede5275a978d6dcddde48604a932655e9796bff2f297ed9"
+        },
+        {
+          "path": "cpp/src/spine_split.cpp",
+          "sha256": "fc05d6104fd9c8ef96937ec309a60e43c345f5e6a09946916d1c886131919cf9"
+        },
+        {
+          "path": "cpp/src/spine_system.cpp",
+          "sha256": "442d17046d857b00fe6956ba081bdd5fbad74608b45f6fcd24ca6fb0bf61b5b1"
+        },
+        {
+          "path": "cpp/src/spine_vertex_lifecycle.cpp",
+          "sha256": "d5700861bf299ee426335819077fd00a5bb7fb719fa2e002c3a33d8bd04d4ab4"
+        },
+        {
+          "path": "cpp/sst/Makefile",
+          "sha256": "44b32b324cd8dfd2e21c7a1bf70ab04702385cd3de67b1b45235dc442dd2d7ce"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.cpp",
+          "sha256": "70427a7e7c50768ab6888df4953bbcc680be9443a64e9deee36b96a800b11754"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.hpp",
+          "sha256": "313e7095554b02752c27b944317de1b162f3c339830ed9e2fdd238997e828e23"
+        },
+        {
+          "path": "cpp/sst/online_memory_probe.cpp",
+          "sha256": "2aa89d723636cb8b7c6861edbb87ba280e8596580dbaf9a4b5bd482f6df08c41"
+        },
+        {
+          "path": "cpp/sst/physical_hbm_mapper.cpp",
+          "sha256": "2e4956359f2af2ba7596a5096bd8ef97b9dd756a03276e948675d0c7b4d6a276"
+        },
+        {
+          "path": "cpp/sst/physical_hbm_mapper.hpp",
+          "sha256": "7a4a7c92b320e553b7e23ba495aaf3abe11600b656733963b58bfd2e1214141f"
+        },
+        {
+          "path": "cpp/sst/sst_memory_backend.cpp",
+          "sha256": "3d978183e1976b0758a033a964fd1d8e515e2a1499130e0d834b5e1f86d8ed36"
+        },
+        {
+          "path": "cpp/sst/sst_memory_backend.hpp",
+          "sha256": "787c4bcbc3237a48f51208631d7099443c8ae6acbab857c21df368eabc1de898"
+        },
+        {
+          "path": "scripts/run_component_refactor_regression.py",
+          "sha256": "2952cf88d13f097290e7160fe1392f1888333cda60deb484b7cb6af2c9123755"
+        },
+        {
+          "path": "scripts/run_grasu_refactor_regression.py",
+          "sha256": "e37eacadf4c258b3deede86c37cb539ca045a3004e7e442b203c9a7d6de9a17f"
+        },
+        {
+          "path": "scripts/run_sst_connected_components.py",
+          "sha256": "961d723a01c924e2ead94f1387da56b3e1a229d9b835a28fc5309c73d2f539c0"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+          "sha256": "caabfe83b2aecce3fd8a74a93bb3371747bae179d1cc8eb48e07fbafb4ce86b9"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+          "sha256": "f41926eb0412fa3a994011fa7f5fdf37d752cff7e7835e7075cb621c97ce9d1b"
+        },
+        {
+          "path": "scripts/run_sst_spine_vertical.py",
+          "sha256": "9fdf298fbd29b019ef69d581c62b398182deb6fee54ab4a38fed59ae848a3fee"
+        },
+        {
+          "path": "spine_cycle_sim/__init__.py",
+          "sha256": "312ef0853da0f8d69bbbe75607c799f84668864435b04e78e12251c44b67f193"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/__init__.py",
+          "sha256": "157c32b1b155f8b7e404df69409a56afd3ffd9ece7fda1986aadcde575376435"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/engine.py",
+          "sha256": "8f1f0d6ead2dfe8742c455e6bb384f169da0cfa56ea0287b588d7b2caabaf0d2"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/graph.py",
+          "sha256": "c2ed4aa2f421c044b34a160448a834e5ab972ed31bcec69fe543abb83e7d174c"
+        },
+        {
+          "path": "spine_cycle_sim/alignment_contract.py",
+          "sha256": "79965e798be2def46f79a17dd69162366ae42297be2b4138ad8d8ed6fbfecba3"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/__init__.py",
+          "sha256": "42ebbfce7db394e36eb4116c2025a26246be17a7663a3188d7dc66502ff5b822"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/bridge.py",
+          "sha256": "f355489a325164892b3b3fb937dc4af56733f7df0fad8a4400fc77cfcc7788ef"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/bstage.py",
+          "sha256": "047396c9a87bb4e9d1a3e1fd875b58296e86595f2d5f4c141940d8aaf1920ebb"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/candidate10.py",
+          "sha256": "c55c54e2f29e17973b05afde24148a14b593a499e767a1cc7e9d214bf891646a"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/current_fpga.py",
+          "sha256": "3058b8309e43aa2fcc509b848fa62ac8ac92171dd772954d86f72a3388640853"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/e2e.py",
+          "sha256": "ca7bc096ddb0ddabe402f8cd90024029219bd2b422df1bf7f46cd7f3778de515"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/frozen.py",
+          "sha256": "e895d4b09e57d50c7887f78c7788ec18322c4c4c3e7d71629867a31a94d69c02"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/grasu_native.py",
+          "sha256": "f6815cd8859fc1905cc38e81107ff13bae571f527ebaac751f7428b19e0f61ca"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/k4_fpga.py",
+          "sha256": "e73fd053ae136b4793aed76442d1593a0c64361778299c6642e30adf249c1c52"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/maintenance.py",
+          "sha256": "35b2ab74a4542ab54d6cc560beee19c8b143ab026d8c5866d426cebe565187d7"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/reader.py",
+          "sha256": "38402648754a0a254b3ba2d8bc4bc79dafe86aa9fcb71f9f852e5b2c9a9e6422"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/refactor31.py",
+          "sha256": "ea8d2c3fab77e6d45cc77d7f59bb2a82a1fb5e561eae060b74a8836ffbdd0a81"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/refactor31_scale.py",
+          "sha256": "0fd606ce7497d020ec83034c7feff9f08353f84081025600ea4e846526cfc054"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/rq3.py",
+          "sha256": "9ec067b3fd07a9983e7febe40ca2b1678a06a42bc683db97e58b20bf0cfea8b0"
+        },
+        {
+          "path": "spine_cycle_sim/core/__init__.py",
+          "sha256": "6998693a1f436bc40f62181aadc992fbc554def3aad34a6cb8419ad33a63c19e"
+        },
+        {
+          "path": "spine_cycle_sim/core/component.py",
+          "sha256": "27a056b6b6a5c7604a69522a000f60853f4de8c0c29c27d029c8bc6168908f09"
+        },
+        {
+          "path": "spine_cycle_sim/core/fifo.py",
+          "sha256": "29c636dac6d34ed1e246f26b70c41283494a8c6dc2561e654e85156c8fc05aba"
+        },
+        {
+          "path": "spine_cycle_sim/core/memory.py",
+          "sha256": "79a5ebbe8d0ff87bb4110531a0f8cacf9f4046ad8804bc6e2414d8d80a55b411"
+        },
+        {
+          "path": "spine_cycle_sim/core/simulator.py",
+          "sha256": "82febaa8a518197101300d12967c19a679de446e9d682cd104fa46aae0b9985a"
+        },
+        {
+          "path": "spine_cycle_sim/core/stats.py",
+          "sha256": "22c940a2f0141a58672b806a20bdf7bd371e9d39ab0b63e92069c385439f9f73"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/__init__.py",
+          "sha256": "33547caf30f64cf2cc4cf5c2b846c7853df1d9c1a16aa7441f51ee52b0b14794"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/area_projection.py",
+          "sha256": "aeb178d42fb46bba1455ea05a312a677f757c011b43728b8b453678b85d3de3a"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/candidate10.py",
+          "sha256": "5a89bb02c528567969ef22a3b32e7a0dadbf4f600247a3ef575586c5bd3bd88a"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/component_power.py",
+          "sha256": "364aac2abf8538e4d2133334e06831ce02eeb4587a085cc17b6c41736171b2cf"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/energy.py",
+          "sha256": "6610c9a4c6e3881cefa5b78b3208137ebc41fc7bfefd69c37a3fdd6869d81cf9"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/exact_idle.py",
+          "sha256": "fde19ffe2d2360152175986b94ecf6d9451d97425cfc2126749550a8c12a4258"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/fpga.py",
+          "sha256": "68bf3497a52adbbf0e4c3cbf3a614bbb6c00d1717d70448cde05f7e986feaa82"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/matched_energy.py",
+          "sha256": "eccb1bc7e6b4d482ab8b1dcee08591b99f2161cdaec2acc3b0ac21cb820f6e39"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/paper_energy.py",
+          "sha256": "e703a751e16b1dc1b988eb4dc3fa7fa4c8babb8e2f8a48eb9f6cfaeac714d741"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/publication_ppa.py",
+          "sha256": "290f51c00f09bccddc30a914d9c48e28acd3827d0e13a42fe76c5c722e805940"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/vivado_power.py",
+          "sha256": "5e06d533e0744e5fcbb2f3be90ae028f304278c9c5f455c8717718331e0c4ad8"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/weighted_energy.py",
+          "sha256": "7d3b23f24cbd3fcf5d14f26ffa9c55c831249a7261967d40a69605dc6f7c6504"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/workload_energy.py",
+          "sha256": "11b49691f490c2a29f85f29744ae11b457feae25ec72f9bd6bb372e1f08c4c59"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/__init__.py",
+          "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/candidate10_workloads.py",
+          "sha256": "484b1900c92e3b0d2368ab286dc8d7b0fad2f95f2527764081a232935690d006"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/comparison.py",
+          "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/comparison_analysis.py",
+          "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/connected_components_workloads.py",
+          "sha256": "8c0709569dfb814eb33e128ab24debf7ccd7ddf96445dee7ad5a523ffbbf3c8e"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/deltahls_workloads.py",
+          "sha256": "dea5c5d23cd9941f0cbcc3ed841d767ab500872cd9448655acf90b7d25a2085c"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/dense_batch_sweep.py",
+          "sha256": "e8ccd3e98d3bcef694591b0b907558218c2e9ee4d06f604556e03329a560cea5"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/feasibility.py",
+          "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/grasu_addressing.py",
+          "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/grasu_native_validation.py",
+          "sha256": "bca40ed6ec79268e0a5b45abb8d7c2cc2992fd2811e5f5338ae40fffe32e6f7d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+          "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_real_comparison.py",
+          "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_weighted_workloads.py",
+          "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/host_memory.py",
+          "sha256": "539d34c67346d03cfba8b0f0741424d6412b9571653923cbf2d6064b64d7286d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_graph_campaign.py",
+          "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_real_pagerank.py",
+          "sha256": "f94a514734231a59d908a152b70172ce764a012c1a6e1ace4a53886749e09529"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_reciprocal_workloads.py",
+          "sha256": "1da6eadeffaf2d027ce3ca1bceaf01ff8e50bf8a7cb79a9f809eae2e2fa44e96"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/memory_traffic.py",
+          "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/mixed_path_analysis.py",
+          "sha256": "88f66470a39d7f0a18b58d1e30f1a2f40e347aff1d4e63a7963838da90ace243"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/persistent_update_only.py",
+          "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/plugin_equivalence.py",
+          "sha256": "152aa80ff649a893f505794f42021a927ca95f384e8dbfff8b6fec898fcbfe54"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/profile_capabilities.py",
+          "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_analysis.py",
+          "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_cases.py",
+          "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_match.py",
+          "sha256": "f52433e022855532f134deb87ba7847479c54bbec55805e813a4695df716a960"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_workloads.py",
+          "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_memory_analysis.py",
+          "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_small_batch_analysis.py",
+          "sha256": "7161ef461195b36e34a9aa20d74dcf4d4bf944389bc07295498409c80ba7b24f"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_small_batches.py",
+          "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/refactor_equivalence.py",
+          "sha256": "6834e84a44b6c5127ab7262460d9dd5c12fad14756535887e3851e5fd0e15aa9"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/regraph_contracts.py",
+          "sha256": "f862d9504496d8fc197ac7cd623dd8eace7665ab23567e7c8b57de4c0bf4ce39"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/rq3.py",
+          "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/shared_workloads.py",
+          "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_dense_analysis.py",
+          "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_real_analysis.py",
+          "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_real_batches.py",
+          "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+          "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3"
+        },
+        {
+          "path": "spine_cycle_sim/models/__init__.py",
+          "sha256": "cf74d66882e89c105e5cd299c11302fc4523c6471be435e5b41e71d4376ef886"
+        },
+        {
+          "path": "spine_cycle_sim/models/dstage.py",
+          "sha256": "5b8eee8c18f0a0c1550d20ba38a733ab34e43c5fe232c9218e29527bf325b674"
+        },
+        {
+          "path": "spine_cycle_sim/models/spine.py",
+          "sha256": "66e263e421024fb8607e044f6951e3b3ac04e97607312d3d49b46dc08710f02b"
+        },
+        {
+          "path": "spine_cycle_sim/profiles.py",
+          "sha256": "e4f85c162b64d21434e0d26bc43965b8c7a25bab24c36abf8f33411eb0a9dc62"
+        },
+        {
+          "path": "spine_cycle_sim/sst_binding.py",
+          "sha256": "ae12d088a3b6e47f6324a264d4deafc96c023537c6d63a33b3f138535b4f7e39"
+        },
+        {
+          "path": "spine_cycle_sim/sst_library.py",
+          "sha256": "06af07b611fecaf97265a1759ae13328b57e8086fc5af90840680bc31a96d620"
+        },
+        {
+          "path": "spine_cycle_sim/stats/__init__.py",
+          "sha256": "d885d50577ed68f24d8841e8b1fbcf3c819266458c5d1084f9105b48099d83b7"
+        },
+        {
+          "path": "spine_cycle_sim/stats/io.py",
+          "sha256": "3d27b04add90b1357a9815d2a67f14d28c1608d45f55a73eb8ec7e87601fc311"
+        },
+        {
+          "path": "spine_cycle_sim/workloads/__init__.py",
+          "sha256": "4917c7f774ea79ad03e1069ca4589bfcea153b3b4f168ff17b5e304a2e83cdb6"
+        },
+        {
+          "path": "spine_cycle_sim/workloads/generators.py",
+          "sha256": "5bf1a7b5a8a8a79ecf457c3645b0ff236f23e69e4c67519d7aefba7b87474df5"
+        },
+        {
+          "path": "sst/grasu_regraph_vertical.py",
+          "sha256": "f1455f62b4072b6dfeeb33c4d3ee642072e8fe42266c725c907ad081e8e3a936"
+        },
+        {
+          "path": "sst/online_memory_probe.py",
+          "sha256": "2de7d64751dc1e636c57c12d9f0d43c465cadec579d401642ce1f7cdc1b2cd68"
+        },
+        {
+          "path": "sst/spine_vertical_slice.py",
+          "sha256": "068ff8593f063d302561dc2ef26705ff9fb61b0839fbfe153bd1305c491cd569"
+        },
+        {
+          "path": "tests/data/carry_hot_batch.slice",
+          "sha256": "a3ff9e925f73c418f2ffe0dbf78c3c256f22f7926ff78d5d39d2d24bad2d4b13"
+        },
+        {
+          "path": "tests/data/carry_hot_preload.slice",
+          "sha256": "1bc406fc26a57111e956411a23157b1a28e2b010706ca1b9587b6f9275464450"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_initial.slice",
+          "sha256": "c1348afd4f74dee02138feb393cd5dd99f8c0f42ae8f565f5b70975e356f35f0"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_insert.slice",
+          "sha256": "5f4c413c2c382bb9807a58d41578779dabbab97a16ecc6f557bc9d3bcb24f9a6"
+        },
+        {
+          "path": "tests/data/connected_components_formal/cc_zero_net_base.slice",
+          "sha256": "0773e0c88f1e018326d33d29059e76cd9ec3d66177e068f8dc7c233230690b58"
+        },
+        {
+          "path": "tests/data/connected_components_formal/cc_zero_net_delete_then_reinsert_u2.slice",
+          "sha256": "5e0001cd0b77771f3f65ce11e0149a433ec6a377f4850c3cc5e5333521dd449e"
+        },
+        {
+          "path": "tests/data/dynamic_delete_update.slice",
+          "sha256": "e8a80073d67211332959350d598edf3ab09d9f58d032edbabed9c4b0740c6f4d"
+        },
+        {
+          "path": "tests/data/dynamic_nonmonotonic_initial.slice",
+          "sha256": "fad6d7e5342e30d5f9a0813ed5cd41937070e3bff8c2e4dc1145d4e598bd41e5"
+        },
+        {
+          "path": "tests/data/dynamic_shortcut_initial.slice",
+          "sha256": "341352c73f4f80cf6f7424e34325d6f4811d3d59195d79d3ecbb15083a8834bc"
+        },
+        {
+          "path": "tests/data/dynamic_shortcut_update.slice",
+          "sha256": "817771e6a854abd9671fa7a3ce12ef33257e57d82b52d56afe1b15128b10e964"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_initial.slice",
+          "sha256": "8107f04145e1c42dca0a00771e79de6176be95c66af3f834eac272c964062621"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_update.slice",
+          "sha256": "4d9a3afe66864c3b291dfb322ab302067ff37a38811efc9e85e3695ca6204176"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+          "sha256": "38f8cdd79a9fe32571512ee5c4a706200260e48a70428130bbe52906b23f3a96"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+          "sha256": "a0c3eb0114f3dcc4693d20253741deace7ed5a832a00566033e3d9ae1d16df60"
+        },
+        {
+          "path": "tests/data/pagerank_four_vertex.slice",
+          "sha256": "f1462b615250c578a78d7858466fc8f292f9f2c61bc4e222553396d24696108b"
+        }
+      ],
+      "relevant_dirty_diff": "diff --git a/cpp/CMakeLists.txt b/cpp/CMakeLists.txt\nindex a9c0f30..74ba117 100644\n--- a/cpp/CMakeLists.txt\n+++ b/cpp/CMakeLists.txt\n@@ -31,6 +31,13 @@ target_compile_options(persistent_update_host_benchmark PRIVATE\n   -Wall -Wextra -Wpedantic -Werror)\n \n if(BUILD_TESTING)\n+  add_executable(sst_hbm_mapper_tests\n+    tests/sst_hbm_mapper_tests.cpp sst/physical_hbm_mapper.cpp)\n+  target_include_directories(sst_hbm_mapper_tests PRIVATE sst)\n+  target_compile_features(sst_hbm_mapper_tests PRIVATE cxx_std_20)\n+  target_compile_options(sst_hbm_mapper_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)\n+  add_test(NAME sst_hbm_mapper_tests COMMAND sst_hbm_mapper_tests)\n+\n   add_executable(spine_cycle_core_tests tests/core_tests.cpp)\n   target_link_libraries(spine_cycle_core_tests PRIVATE spine_cycle_core)\n   target_compile_definitions(\ndiff --git a/cpp/sst/Makefile b/cpp/sst/Makefile\nindex 4adb6f2..07f964a 100644\n--- a/cpp/sst/Makefile\n+++ b/cpp/sst/Makefile\n@@ -39,6 +39,8 @@ CXXFLAGS += -DSPINE_HAVE_DIRECT_DRAMSIM3 -I$(DRAMSIM3_ROOT)/src\n LDFLAGS += -L$(DRAMSIM3_ROOT) -Wl,-rpath,$(DRAMSIM3_ROOT) -ldramsim3\n endif\n SOURCES := online_memory_probe.cpp \\\n+           physical_hbm_mapper.cpp \\\n+           sst_memory_backend.cpp \\\n            direct_dramsim3_engine.cpp \\\n            $(ROOT)/cpp/src/algorithm.cpp \\\n            $(ROOT)/cpp/src/algorithm_pipeline.cpp \\\n@@ -57,7 +59,7 @@ SOURCES := online_memory_probe.cpp \\\n            $(ROOT)/cpp/src/spine_split.cpp \\\n            $(ROOT)/cpp/src/spine_system.cpp \\\n            $(ROOT)/cpp/src/spine_vertex_lifecycle.cpp\n-HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp)\n+HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp) $(wildcard *.hpp)\n \n .PHONY: all clean native pgo-generate pgo-use pgo-native-generate \\\n         pgo-native-use\ndiff --git a/cpp/sst/online_memory_probe.cpp b/cpp/sst/online_memory_probe.cpp\nindex 69774e7..d26b476 100644\n--- a/cpp/sst/online_memory_probe.cpp\n+++ b/cpp/sst/online_memory_probe.cpp\n@@ -28,6 +28,7 @@\n #include <vector>\n \n #include \"direct_dramsim3_engine.hpp\"\n+#include \"sst_memory_backend.hpp\"\n #include \"spine_sim/axi.hpp\"\n #include \"spine_sim/fifo.hpp\"\n #include \"spine_sim/grasu.hpp\"\n@@ -1724,625 +1725,6 @@ class SpineWordSource final : public Component {\n   bool accepted_{};\n };\n \n-struct PhysicalHbmAddress {\n-  std::size_t channel{};\n-  std::uint64_t address{};\n-};\n-\n-class PhysicalHbmAddressMapper {\n- public:\n-  PhysicalHbmAddressMapper(std::size_t logical_channels,\n-                           std::uint64_t channel_capacity_bytes,\n-                           const std::string &mode,\n-                           const std::string &mapping_table,\n-                           std::size_t first_channel,\n-                           std::size_t channel_count,\n-                           std::uint64_t interleave_bytes)\n-      : logical_channels_(logical_channels),\n-        channel_capacity_bytes_(channel_capacity_bytes),\n-        entries_by_channel_(logical_channels) {\n-    if (mode.empty() || mode == \"identity\") {\n-      if (!mapping_table.empty()) {\n-        throw std::invalid_argument(\n-            \"identity HBM mapping unexpectedly has a mapping table\");\n-      }\n-      return;\n-    }\n-    if (mode != \"interleaved_arena_v1\" || logical_channels == 0 ||\n-        channel_capacity_bytes == 0 || channel_count == 0 ||\n-        first_channel > logical_channels ||\n-        channel_count > logical_channels - first_channel ||\n-        interleave_bytes == 0 ||\n-        (interleave_bytes & (interleave_bytes - 1)) != 0 ||\n-        mapping_table.empty()) {\n-      throw std::invalid_argument(\"invalid interleaved HBM address mapping\");\n-    }\n-    enabled_ = true;\n-    first_channel_ = first_channel;\n-    channel_count_ = channel_count;\n-    interleave_bytes_ = interleave_bytes;\n-    std::stringstream table(mapping_table);\n-    std::string encoded_entry;\n-    while (std::getline(table, encoded_entry, ';')) {\n-      std::stringstream fields(encoded_entry);\n-      std::array<std::uint64_t, 4> values{};\n-      std::string field;\n-      for (std::size_t index = 0; index < values.size(); ++index) {\n-        if (!std::getline(fields, field, ':') || field.empty()) {\n-          throw std::invalid_argument(\"malformed HBM mapping-table entry\");\n-        }\n-        std::size_t consumed{};\n-        values[index] = std::stoull(field, &consumed, 10);\n-        if (consumed != field.size()) {\n-          throw std::invalid_argument(\"non-numeric HBM mapping-table field\");\n-        }\n-      }\n-      if (std::getline(fields, field, ':') ||\n-          values[0] >= logical_channels || values[1] >= values[2] ||\n-          values[3] > std::numeric_limits<std::uint64_t>::max() -\n-                          (values[2] - values[1])) {\n-        throw std::invalid_argument(\"invalid HBM mapping-table range\");\n-      }\n-      entries_by_channel_[values[0]].push_back(Entry{\n-          .logical_begin = values[1],\n-          .logical_end = values[2],\n-          .global_begin = values[3],\n-      });\n-    }\n-    for (auto &entries : entries_by_channel_) {\n-      std::sort(entries.begin(), entries.end(),\n-                [](const Entry &left, const Entry &right) {\n-                  return left.logical_begin < right.logical_begin;\n-                });\n-      for (std::size_t index = 1; index < entries.size(); ++index) {\n-        if (entries[index - 1].logical_end > entries[index].logical_begin) {\n-          throw std::invalid_argument(\n-              \"overlapping logical ranges in HBM mapping table\");\n-        }\n-      }\n-    }\n-  }\n-\n-  [[nodiscard]] bool enabled() const noexcept { return enabled_; }\n-\n-  [[nodiscard]] PhysicalHbmAddress map(\n-      std::size_t logical_channel, std::uint64_t logical_address,\n-      std::uint32_t bytes) const {\n-    if (logical_channel >= logical_channels_ || bytes == 0 ||\n-        logical_address >\n-            std::numeric_limits<std::uint64_t>::max() - bytes) {\n-      throw std::invalid_argument(\"invalid logical HBM request\");\n-    }\n-    if (!enabled_) {\n-      return PhysicalHbmAddress{\n-          .channel = logical_channel,\n-          .address = logical_address % channel_capacity_bytes_,\n-      };\n-    }\n-    const std::uint64_t logical_end = logical_address + bytes;\n-    const auto &entries = entries_by_channel_[logical_channel];\n-    const auto found = std::find_if(\n-        entries.begin(), entries.end(), [&](const Entry &entry) {\n-          return logical_address >= entry.logical_begin &&\n-                 logical_end <= entry.logical_end;\n-        });\n-    if (found == entries.end()) {\n-      throw std::invalid_argument(\n-          \"logical HBM request is outside the interleaved address map: \"\n-          \"channel=\" +\n-          std::to_string(logical_channel) + \" address=\" +\n-          std::to_string(logical_address) + \" bytes=\" +\n-          std::to_string(bytes));\n-    }\n-    const std::uint64_t global_address =\n-        found->global_begin + (logical_address - found->logical_begin);\n-    const std::uint64_t byte_in_line = global_address % interleave_bytes_;\n-    if (bytes > interleave_bytes_ - byte_in_line) {\n-      throw std::invalid_argument(\n-          \"HBM request crosses an interleaved physical line\");\n-    }\n-    const std::uint64_t global_line = global_address / interleave_bytes_;\n-    const std::size_t channel =\n-        first_channel_ + static_cast<std::size_t>(global_line % channel_count_);\n-    const std::uint64_t address =\n-        (global_line / channel_count_) * interleave_bytes_ + byte_in_line;\n-    if (address > channel_capacity_bytes_ - bytes) {\n-      throw std::invalid_argument(\n-          \"mapped HBM request exceeds physical pseudo-channel capacity\");\n-    }\n-    return PhysicalHbmAddress{.channel = channel, .address = address};\n-  }\n-\n- private:\n-  struct Entry {\n-    std::uint64_t logical_begin{};\n-    std::uint64_t logical_end{};\n-    std::uint64_t global_begin{};\n-  };\n-\n-  std::size_t logical_channels_{};\n-  std::uint64_t channel_capacity_bytes_{};\n-  bool enabled_{};\n-  std::size_t first_channel_{};\n-  std::size_t channel_count_{};\n-  std::uint64_t interleave_bytes_{};\n-  std::vector<std::vector<Entry>> entries_by_channel_;\n-};\n-\n-class SstMemoryBackend final : public MemoryBackend {\n-  struct InitiatorState;\n-\n- public:\n-  SstMemoryBackend(ClockId clock_id,\n-                   std::vector<SST::Interfaces::StandardMem *> interfaces,\n-                   std::uint64_t channel_capacity_bytes,\n-                   std::size_t accepts_per_channel_per_cycle,\n-                   std::size_t max_outstanding_per_channel,\n-                   std::size_t response_queue_depth,\n-                   std::string address_mapping_mode = {},\n-                   std::string address_mapping_table = {},\n-                   std::size_t interleave_first_channel = 0,\n-                   std::size_t interleave_channels = 0,\n-                   std::uint64_t interleave_bytes = 64,\n-                   std::unique_ptr<DirectDramSim3Engine> direct_engine = nullptr)\n-      : MemoryBackend(\"sst-hbm-backend\", clock_id),\n-        interfaces_(std::move(interfaces)),\n-        direct_engine_(std::move(direct_engine)),\n-        channel_capacity_bytes_(channel_capacity_bytes),\n-        accepts_per_channel_per_cycle_(accepts_per_channel_per_cycle),\n-        max_outstanding_per_channel_(max_outstanding_per_channel),\n-        response_queue_depth_(response_queue_depth),\n-        address_mapper_(interfaces_.size(), channel_capacity_bytes,\n-                        address_mapping_mode, address_mapping_table,\n-                        interleave_first_channel, interleave_channels,\n-                        interleave_bytes),\n-        channel_outstanding_(interfaces_.size(), 0),\n-        staged_channel_submissions_(interfaces_.size(), 0),\n-        arbiter_(interfaces_.size(), accepts_per_channel_per_cycle) {\n-    if (interfaces_.empty() ||\n-        (direct_engine_ == nullptr &&\n-         std::none_of(interfaces_.begin(), interfaces_.end(),\n-                      [](const auto *interface) {\n-                        return interface != nullptr;\n-                      })) ||\n-        channel_capacity_bytes_ == 0 ||\n-        accepts_per_channel_per_cycle_ == 0 ||\n-        max_outstanding_per_channel_ == 0 || response_queue_depth_ == 0) {\n-      throw std::invalid_argument(\"invalid SST memory backend configuration\");\n-    }\n-  }\n-\n-  bool try_reserve(const BackendRequestHeader &request) override {\n-    if (!initiator_registered(request.initiator_id) ||\n-        request.channel >= interfaces_.size() || request.bytes == 0) {\n-      throw std::invalid_argument(\"invalid SST backend request\");\n-    }\n-    const PhysicalHbmAddress physical =\n-        address_mapper_.map(request.channel, request.address, request.bytes);\n-    BackendRequestHeader mapped_request = request;\n-    mapped_request.channel = physical.channel;\n-    mapped_request.address = physical.address;\n-    if (!channel_active(mapped_request.channel)) {\n-      throw std::invalid_argument(\n-          \"SST backend request targets an unbound memory channel\");\n-    }\n-    if (!arbiter_.try_acquire(mapped_request)) {\n-      ++submit_stalls_;\n-      return false;\n-    }\n-    InitiatorState &initiator = ensure_initiator_state(request.initiator_id);\n-    const std::size_t staged_for_channel =\n-        staged_channel_submissions_[mapped_request.channel];\n-    if (staged_for_channel >= accepts_per_channel_per_cycle_ ||\n-        channel_outstanding_[mapped_request.channel] + staged_for_channel >=\n-            max_outstanding_per_channel_) {\n-      ++submit_stalls_;\n-      return false;\n-    }\n-    ++staged_channel_submissions_[mapped_request.channel];\n-    if (initiator.staged_submissions == 0) {\n-      active_staged_initiators_.push_back(request.initiator_id);\n-    }\n-    ++initiator.staged_submissions;\n-    return true;\n-  }\n-\n-  void submit_reserved(BackendRequest request) override {\n-    if ((request.operation == MemoryOperation::kRead &&\n-         !request.write_data.empty()) ||\n-        (request.operation == MemoryOperation::kWrite &&\n-         request.write_data.size() != request.bytes)) {\n-      throw std::invalid_argument(\"invalid SST backend request payload\");\n-    }\n-    staged_submissions_.push_back(std::move(request));\n-  }\n-\n-  [[nodiscard]] bool reservation_intent_pending(\n-      std::uint32_t initiator_id,\n-      std::size_t channel) const noexcept override {\n-    if (address_mapper_.enabled()) {\n-      return false;\n-    }\n-    return arbiter_.intent_pending(initiator_id, channel);\n-  }\n-\n-  void account_same_cycle_reservation_stalls(\n-      std::uint32_t initiator_id, std::size_t channel,\n-      std::uint64_t count) override {\n-    arbiter_.account_duplicate_waits(initiator_id, channel, count);\n-    submit_stalls_ += count;\n-  }\n-\n-  [[nodiscard]] std::size_t response_count(\n-      std::uint32_t initiator_id) const noexcept override {\n-    const InitiatorState *state = find_initiator_state(initiator_id);\n-    return state == nullptr ? 0 : state->responses.size();\n-  }\n-\n-  [[nodiscard]] const BackendResponse &response_at(\n-      std::uint32_t initiator_id, std::size_t index) const override {\n-    const InitiatorState *state = find_initiator_state(initiator_id);\n-    if (state == nullptr || index >= state->responses.size()) {\n-      throw std::out_of_range(\"SST backend response index out of range\");\n-    }\n-    return state->responses[index];\n-  }\n-\n-  [[nodiscard]] const BackendResponse &staged_response_at(\n-      std::uint32_t initiator_id, std::size_t index) const override {\n-    const InitiatorState *state = find_initiator_state(initiator_id);\n-    if (state != nullptr && index < state->retired_responses.size()) {\n-      return state->retired_responses[index];\n-    }\n-    return response_at(initiator_id, index);\n-  }\n-\n-  bool stage_pop_responses(std::uint32_t initiator_id,\n-                           std::size_t count) override {\n-    InitiatorState &state = ensure_initiator_state(initiator_id);\n-    if (state.staged_response_pop != 0 || count > state.responses.size()) {\n-      return false;\n-    }\n-    state.staged_response_pop = count;\n-    active_response_pops_.push_back(initiator_id);\n-    return true;\n-  }\n-\n-  [[nodiscard]] std::size_t outstanding() const noexcept override {\n-    return staged_submissions_.size() + arbiter_.pending_grants() +\n-           inflight_.size() + direct_inflight_count_;\n-  }\n-\n-  [[nodiscard]] std::size_t outstanding_for(\n-      std::uint32_t initiator_id) const noexcept override {\n-    const InitiatorState *state = find_initiator_state(initiator_id);\n-    return (state == nullptr ? 0 : state->staged_submissions) +\n-           arbiter_.pending_grants_for(initiator_id) +\n-           (state == nullptr ? 0 : state->outstanding);\n-  }\n-\n-  [[nodiscard]] bool has_dynamic_prepare_guard() const noexcept override {\n-    return true;\n-  }\n-  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {\n-    return true;\n-  }\n-  [[nodiscard]] bool prepare_ready() const noexcept override {\n-    return !external_arrivals_.empty() || !active_retired_initiators_.empty();\n-  }\n-  [[nodiscard]] bool commit_ready() const noexcept override {\n-    return !active_response_pops_.empty() || !staged_submissions_.empty() ||\n-           arbiter_.pending_intents() != 0;\n-  }\n-\n-  void prepare(const CycleContext &) override {\n-    for (const std::uint32_t initiator_id : active_retired_initiators_) {\n-      ensure_initiator_state(initiator_id).retired_responses.clear();\n-    }\n-    active_retired_initiators_.clear();\n-    for (auto iterator = external_arrivals_.begin();\n-         iterator != external_arrivals_.end();) {\n-      auto &queue =\n-          ensure_initiator_state(iterator->initiator_id).responses;\n-      if (queue.size() >= response_queue_depth_) {\n-        ++response_queue_stalls_;\n-        ++iterator;\n-        continue;\n-      }\n-      queue.push_back(*iterator);\n-      notify_response_available(iterator->initiator_id);\n-      iterator = external_arrivals_.erase(iterator);\n-    }\n-  }\n-\n-  void evaluate(const CycleContext &) override {}\n-\n-  void commit(const CycleContext &) override {\n-    for (const std::uint32_t initiator_id : active_response_pops_) {\n-      InitiatorState &state = ensure_initiator_state(initiator_id);\n-      const std::size_t count = state.staged_response_pop;\n-      auto &queue = state.responses;\n-      auto &retired = state.retired_responses;\n-      retired.clear();\n-      retired.reserve(count);\n-      for (std::size_t index = 0; index < count; ++index) {\n-        retired.push_back(std::move(queue.front()));\n-        queue.pop_front();\n-      }\n-      state.staged_response_pop = 0;\n-      active_retired_initiators_.push_back(initiator_id);\n-    }\n-    active_response_pops_.clear();\n-\n-    for (const BackendRequest &request : staged_submissions_) {\n-      const PhysicalHbmAddress physical =\n-          address_mapper_.map(request.channel, request.address, request.bytes);\n-      Inflight inflight{\n-          .backend_request_id = request.request_id,\n-          .initiator_id = request.initiator_id,\n-          .channel = physical.channel,\n-          .operation = request.operation,\n-          .bytes = request.bytes,\n-          .request = request,\n-      };\n-      ++channel_outstanding_[physical.channel];\n-      ++ensure_initiator_state(request.initiator_id).outstanding;\n-      BackendRequest physical_request = request;\n-      physical_request.channel = physical.channel;\n-      physical_request.address = physical.address;\n-      record_accepted_request(physical_request);\n-      ++accepted_;\n-      if (direct_engine_ != nullptr) {\n-        const std::uint64_t token =\n-            allocate_direct_inflight(std::move(inflight));\n-        direct_engine_->submit(\n-            token, physical.channel, physical.address,\n-            request.operation == MemoryOperation::kWrite,\n-            direct_submit_time_ps_);\n-      } else {\n-        SST::Interfaces::StandardMem::Request *standard_request = nullptr;\n-        if (request.operation == MemoryOperation::kWrite) {\n-          standard_request = new SST::Interfaces::StandardMem::Write(\n-              physical.address, request.bytes, request.write_data);\n-        } else {\n-          standard_request = new SST::Interfaces::StandardMem::Read(\n-              physical.address, request.bytes);\n-        }\n-        standard_request->setNoncacheable();\n-        const auto standard_id = standard_request->getID();\n-        inflight_.emplace(standard_id, inflight);\n-        interfaces_[physical.channel]->send(standard_request);\n-      }\n-    }\n-    staged_submissions_.clear();\n-    std::fill(staged_channel_submissions_.begin(),\n-              staged_channel_submissions_.end(), 0);\n-    for (const std::uint32_t initiator_id : active_staged_initiators_) {\n-      ensure_initiator_state(initiator_id).staged_submissions = 0;\n-    }\n-    active_staged_initiators_.clear();\n-    arbiter_.arbitrate(channel_outstanding_, max_outstanding_per_channel_);\n-    max_outstanding_ = std::max(max_outstanding_, outstanding());\n-  }\n-\n-  void on_response(SST::Interfaces::StandardMem::Request *request) {\n-    const auto found = inflight_.find(request->getID());\n-    if (found == inflight_.end()) {\n-      throw std::logic_error(\"SST returned an unknown StandardMem request\");\n-    }\n-    if (found->second.operation == MemoryOperation::kRead) {\n-      auto *read_response =\n-          dynamic_cast<SST::Interfaces::StandardMem::ReadResp *>(request);\n-      if (read_response == nullptr ||\n-          read_response->data.size() != found->second.bytes) {\n-        throw std::logic_error(\"SST returned a malformed read response\");\n-      }\n-    } else if (dynamic_cast<SST::Interfaces::StandardMem::WriteResp *>(\n-                   request) == nullptr) {\n-      throw std::logic_error(\"SST returned a malformed write response\");\n-    }\n-    complete_inflight(found->second, request->getSuccess());\n-    inflight_.erase(found);\n-    delete request;\n-  }\n-\n-  void advance_direct_to(std::uint64_t time_ps) {\n-    if (direct_engine_ == nullptr) {\n-      return;\n-    }\n-    direct_engine_->advance_to(time_ps);\n-    direct_engine_->take_completions(direct_completions_);\n-    for (const DirectDramSim3Engine::Completion &completion :\n-         direct_completions_) {\n-      if (completion.token >= direct_inflight_.size() ||\n-          !direct_inflight_[completion.token].has_value()) {\n-        throw std::logic_error(\n-            \"direct DRAMSim3 returned an unknown request token\");\n-      }\n-      complete_inflight(*direct_inflight_[completion.token], true);\n-      release_direct_inflight(completion.token);\n-    }\n-    direct_submit_time_ps_ = time_ps;\n-  }\n-\n-  void print_direct_stats() {\n-    if (direct_engine_ != nullptr) {\n-      direct_engine_->print_stats();\n-    }\n-  }\n-\n-  [[nodiscard]] const char *backend_label() const noexcept {\n-    return direct_engine_ == nullptr ? \"sst_memHierarchy_dramsim3\"\n-                                     : \"direct_dramsim3_transport\";\n-  }\n-\n-  [[nodiscard]] std::uint64_t accepted() const noexcept { return accepted_; }\n-  [[nodiscard]] std::uint64_t submit_stalls() const noexcept {\n-    return submit_stalls_;\n-  }\n-  [[nodiscard]] std::uint64_t response_queue_stalls() const noexcept {\n-    return response_queue_stalls_;\n-  }\n-  [[nodiscard]] std::size_t max_outstanding() const noexcept {\n-    return max_outstanding_;\n-  }\n-  [[nodiscard]] const RegisteredChannelArbiterStats &arbitration_stats()\n-      const noexcept {\n-    return arbiter_.stats();\n-  }\n-  [[nodiscard]] std::string arbitration_json() const {\n-    const RegisteredChannelArbiterStats &stats = arbiter_.stats();\n-    const std::size_t pending_intents = arbiter_.pending_intents();\n-    const std::size_t pending_grants = arbiter_.pending_grants();\n-    const bool ledger_closed =\n-        stats.unique_intents == stats.grants &&\n-        stats.grants == stats.consumed_grants && pending_intents == 0 &&\n-        pending_grants == 0;\n-    std::ostringstream stream;\n-    stream << \"{\\\"policy\\\":\\\"registered_round_robin_per_pseudo_channel\\\"\"\n-           << \",\\\"unique_intents\\\":\" << stats.unique_intents\n-           << \",\\\"request_waits\\\":\" << stats.request_waits\n-           << \",\\\"grants\\\":\" << stats.grants\n-           << \",\\\"consumed_grants\\\":\" << stats.consumed_grants\n-           << \",\\\"pending_intents\\\":\" << pending_intents\n-           << \",\\\"pending_grants\\\":\" << pending_grants\n-           << \",\\\"ledger_closed\\\":\" << (ledger_closed ? \"true\" : \"false\")\n-           << \",\\\"contended_cycles\\\":\" << stats.contended_cycles\n-           << \",\\\"contention_losers\\\":\" << stats.contention_losers\n-           << \",\\\"capacity_blocked_cycles\\\":\"\n-           << stats.capacity_blocked_cycles\n-           << \",\\\"max_contenders\\\":\" << stats.max_contenders\n-           << \",\\\"max_pending_grants\\\":\" << stats.max_pending_grants\n-           << '}';\n-    return stream.str();\n-  }\n-\n- private:\n-  struct InitiatorState {\n-    std::deque<BackendResponse> responses;\n-    std::vector<BackendResponse> retired_responses;\n-    std::size_t staged_response_pop{};\n-    std::size_t staged_submissions{};\n-    std::size_t outstanding{};\n-  };\n-\n-  [[nodiscard]] InitiatorState *find_initiator_state(\n-      std::uint32_t initiator_id) noexcept {\n-    return initiator_id < initiator_states_.size()\n-               ? initiator_states_[initiator_id].get()\n-               : nullptr;\n-  }\n-\n-  [[nodiscard]] const InitiatorState *find_initiator_state(\n-      std::uint32_t initiator_id) const noexcept {\n-    return initiator_id < initiator_states_.size()\n-               ? initiator_states_[initiator_id].get()\n-               : nullptr;\n-  }\n-\n-  InitiatorState &ensure_initiator_state(std::uint32_t initiator_id) {\n-    if (initiator_id >= initiator_states_.size()) {\n-      initiator_states_.resize(static_cast<std::size_t>(initiator_id) + 1);\n-    }\n-    std::unique_ptr<InitiatorState> &state = initiator_states_[initiator_id];\n-    if (state == nullptr) {\n-      state = std::make_unique<InitiatorState>();\n-    }\n-    return *state;\n-  }\n-\n-  struct Inflight {\n-    std::uint64_t backend_request_id{};\n-    std::uint32_t initiator_id{};\n-    std::size_t channel{};\n-    MemoryOperation operation{MemoryOperation::kRead};\n-    std::uint32_t bytes{};\n-    BackendRequest request;\n-  };\n-\n-  [[nodiscard]] bool channel_active(std::size_t channel) const noexcept {\n-    return direct_engine_ != nullptr\n-               ? direct_engine_->channel_active(channel)\n-               : channel < interfaces_.size() && interfaces_[channel] != nullptr;\n-  }\n-\n-  void complete_inflight(const Inflight &inflight, bool success) {\n-    std::vector<std::uint8_t> read_data;\n-    if (inflight.operation == MemoryOperation::kRead) {\n-      read_data = complete_read_payload(inflight.request);\n-    } else {\n-      commit_write_payload(inflight.request);\n-    }\n-    external_arrivals_.push_back(BackendResponse{\n-        .initiator_id = inflight.initiator_id,\n-        .request_id = inflight.backend_request_id,\n-        .success = success,\n-        .read_data = std::move(read_data),\n-    });\n-    if (channel_outstanding_[inflight.channel] == 0) {\n-      throw std::logic_error(\"SST channel outstanding count underflow\");\n-    }\n-    --channel_outstanding_[inflight.channel];\n-    InitiatorState &initiator = ensure_initiator_state(inflight.initiator_id);\n-    if (initiator.outstanding == 0) {\n-      throw std::logic_error(\"SST initiator outstanding count underflow\");\n-    }\n-    --initiator.outstanding;\n-  }\n-\n-  [[nodiscard]] std::uint64_t allocate_direct_inflight(Inflight inflight) {\n-    std::size_t slot{};\n-    if (free_direct_inflight_.empty()) {\n-      slot = direct_inflight_.size();\n-      direct_inflight_.emplace_back(std::move(inflight));\n-    } else {\n-      slot = free_direct_inflight_.back();\n-      free_direct_inflight_.pop_back();\n-      direct_inflight_[slot].emplace(std::move(inflight));\n-    }\n-    ++direct_inflight_count_;\n-    return slot;\n-  }\n-\n-  void release_direct_inflight(std::uint64_t token) {\n-    const std::size_t slot = static_cast<std::size_t>(token);\n-    if (direct_inflight_count_ == 0) {\n-      throw std::logic_error(\"direct DRAMSim3 inflight count underflow\");\n-    }\n-    direct_inflight_[slot].reset();\n-    free_direct_inflight_.push_back(slot);\n-    --direct_inflight_count_;\n-  }\n-\n-  std::vector<SST::Interfaces::StandardMem *> interfaces_;\n-  std::unique_ptr<DirectDramSim3Engine> direct_engine_;\n-  std::uint64_t channel_capacity_bytes_{};\n-  std::size_t accepts_per_channel_per_cycle_{};\n-  std::size_t max_outstanding_per_channel_{};\n-  std::size_t response_queue_depth_{};\n-  PhysicalHbmAddressMapper address_mapper_;\n-  std::vector<std::size_t> channel_outstanding_;\n-  std::vector<std::size_t> staged_channel_submissions_;\n-  RegisteredChannelArbiter arbiter_;\n-  std::vector<std::unique_ptr<InitiatorState>> initiator_states_;\n-  std::vector<std::uint32_t> active_staged_initiators_;\n-  std::vector<std::uint32_t> active_response_pops_;\n-  std::vector<std::uint32_t> active_retired_initiators_;\n-  std::vector<BackendRequest> staged_submissions_;\n-  std::unordered_map<SST::Interfaces::StandardMem::Request::id_t, Inflight>\n-      inflight_;\n-  std::vector<std::optional<Inflight>> direct_inflight_;\n-  std::vector<std::size_t> free_direct_inflight_;\n-  std::vector<DirectDramSim3Engine::Completion> direct_completions_;\n-  std::deque<BackendResponse> external_arrivals_;\n-  std::uint64_t accepted_{};\n-  std::uint64_t submit_stalls_{};\n-  std::uint64_t response_queue_stalls_{};\n-  std::size_t max_outstanding_{};\n-  std::size_t direct_inflight_count_{};\n-  std::uint64_t direct_submit_time_ps_{};\n-};\n-\n }  // namespace\n \n class OnlineMemoryProbe final : public SST::Component {\n",
+      "revision": "abe4c3ed0b25bd22efaab45ae26818f693c4183b"
+    }
+  },
+  "cases": [
+    {
+      "backend_requests": 2382,
+      "case": "spine_sssp_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 25469,
+      "equivalent": true,
+      "result_hashes": [
+        "c9ea62b85d42862d8964bf118eae49263e8a0827d9fd8701b237dbd6f9a5fa2c",
+        "c9ea62b85d42862d8964bf118eae49263e8a0827d9fd8701b237dbd6f9a5fa2c"
+      ]
+    },
+    {
+      "backend_requests": 8598,
+      "case": "spine_sssp_delete",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 69215,
+      "equivalent": true,
+      "result_hashes": [
+        "81b10e24cd19d140b0905d797435d7609ff7f71f8136a01bad178bc03d676906",
+        "81b10e24cd19d140b0905d797435d7609ff7f71f8136a01bad178bc03d676906"
+      ]
+    },
+    {
+      "backend_requests": 2248,
+      "case": "spine_fullpr",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 9595069,
+      "equivalent": true,
+      "result_hashes": [
+        "d73a8dcfeeb91a0195d5bc05b70172f26ca1bed36342c4e6e8d3f3c8d8d15c30",
+        "d73a8dcfeeb91a0195d5bc05b70172f26ca1bed36342c4e6e8d3f3c8d8d15c30"
+      ]
+    },
+    {
+      "backend_requests": 2248,
+      "case": "spine_fullpr_direct",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 9595069,
+      "equivalent": true,
+      "result_hashes": [
+        "e59ff6339d36094f7d125514001a49f4fefaa2f566cf4fc6d24882e2c7660181",
+        "e59ff6339d36094f7d125514001a49f4fefaa2f566cf4fc6d24882e2c7660181"
+      ]
+    },
+    {
+      "backend_requests": 7040,
+      "case": "spine_respr_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": false,
+      "cycles": 117222,
+      "equivalent": true,
+      "evidence_class": "unchanged_known_rejection_not_correctness",
+      "reason": "Pre-existing active-edge accounting rejection; both mathematical oracles pass",
+      "result_hashes": [
+        "21735cd478a5cd7d6acac30a8f5f3238d4cafbaea50b221a6da0c223619cb4ce",
+        "21735cd478a5cd7d6acac30a8f5f3238d4cafbaea50b221a6da0c223619cb4ce"
+      ]
+    },
+    {
+      "backend_requests": 2446,
+      "case": "spine_cc_insert",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 25525,
+      "equivalent": true,
+      "result_hashes": [
+        "de570d3004640650ef26b228b2d36b047de400e5c999e9f939f3f6833a8ca742",
+        "de570d3004640650ef26b228b2d36b047de400e5c999e9f939f3f6833a8ca742"
+      ]
+    },
+    {
+      "backend_requests": 1341,
+      "case": "spine_cc_zero_net",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": false,
+      "cycles": 11055,
+      "equivalent": true,
+      "evidence_class": "unchanged_known_rejection_not_correctness",
+      "reason": "Pre-existing zero-net frontier and active-edge reference mismatch; labels pass",
+      "result_hashes": [
+        "d69742794f600ae0cdf3b10c1ad1360dbf786a2548a7f043e7eaf5851f8d8b7a",
+        "d69742794f600ae0cdf3b10c1ad1360dbf786a2548a7f043e7eaf5851f8d8b7a"
+      ]
+    },
+    {
+      "backend_requests": 1863,
+      "case": "spine_carry_legacy",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": false,
+      "cycles": 11734,
+      "equivalent": true,
+      "evidence_class": "unchanged_known_rejection_not_correctness",
+      "reason": "Legacy fixture and current shared-engine accounting disagree",
+      "result_hashes": [
+        "2c9726e4913ddba99b5d46ce62b3e43dc023015d350c9a742bcbf5d28495e215",
+        "2c9726e4913ddba99b5d46ce62b3e43dc023015d350c9a742bcbf5d28495e215"
+      ]
+    },
+    {
+      "backend_requests": 1215,
+      "case": "spine_carry_owner",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": false,
+      "cycles": 8157,
+      "equivalent": true,
+      "evidence_class": "unchanged_known_rejection_not_correctness",
+      "reason": "Wrapper requires candidate10_one_pass but owner profile declares segmented_exact",
+      "result_hashes": [
+        "3aff1d084e2856325a2d0c36f5debd7fae722a850c6e652ec2675bff8265be32",
+        "3aff1d084e2856325a2d0c36f5debd7fae722a850c6e652ec2675bff8265be32"
+      ]
+    },
+    {
+      "backend_requests": 33848,
+      "case": "sssp_mixed_cold",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 99885,
+      "equivalent": true,
+      "result_hashes": [
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+      ]
+    },
+    {
+      "backend_requests": 1775700,
+      "case": "sssp_multipart_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 5997674,
+      "equivalent": true,
+      "result_hashes": [
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+      ]
+    },
+    {
+      "backend_requests": 50741,
+      "case": "cc_reciprocal",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 133841,
+      "equivalent": true,
+      "result_hashes": [
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+      ]
+    },
+    {
+      "backend_requests": 997048,
+      "case": "residual_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 1487890,
+      "equivalent": true,
+      "result_hashes": [
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+      ]
+    },
+    {
+      "backend_requests": 48,
+      "case": "residual_update_only",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 200,
+      "equivalent": true,
+      "result_hashes": [
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+      ]
+    }
+  ],
+  "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+  "correctness_admitted_cases": 10,
+  "ignored_result_fields": [],
+  "known_rejections": 4,
+  "schema_version": 1,
+  "status": "PASS"
+}

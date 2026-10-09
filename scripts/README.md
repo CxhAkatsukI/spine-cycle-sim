@@ -20,6 +20,7 @@ Choose an evidence package and profile first, then choose its documented runner.
 | Original-publication comparison gates | [audit_grasu_regraph_publication.py](audit_grasu_regraph_publication.py) | Source audit; not a completed published-throughput experiment |
 | Native validation extraction handoff | [package_publication_validation_smoke.py](package_publication_validation_smoke.py) | Preserves exact result equality and the known 2-round rejection |
 | C++ G+R extraction regression | [run_grasu_refactor_regression.py](run_grasu_refactor_regression.py) | Five fixed cases, explicit plugin binding, exact full-result comparison; not performance calibration |
+| SST/Spine extraction regression | [run_component_refactor_regression.py](run_component_refactor_regression.py) | Frozen matrix; compare every result field, and keep known rejections separate from correctness admissions |
 
 ## Analysis and Figures
 

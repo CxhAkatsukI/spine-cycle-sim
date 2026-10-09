@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "protected_files_unchanged": 2437,
+  "public_headers_unchanged": [
+    "cpp/include/spine_sim/spine_split.hpp",
+    "cpp/include/spine_sim/grasu_regraph.hpp"
+  ],
+  "archive_sha256": "4986cebae051208386a1bd66da9e2d3dbdb3a3fede8b8a4c49197263799a67de",
+  "archive_result_files": 57,
+  "three_phase_byte_identical_cases": 14,
+  "correctness_admitted_cases": 10,
+  "known_rejections_not_correctness": 4,
+  "core_executables_passed": 6,
+  "focused_python_tests_passed": 126,
+  "full_python_suite_run": false,
+  "fresh_fpga_matrix_run": false,
+  "frozen_figure_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79"
+}

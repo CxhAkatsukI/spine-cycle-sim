@@ -15,6 +15,7 @@ add_library(spine_cycle_core STATIC
   src/spine_owner.cpp
   src/spine_pagerank.cpp
   src/spine_split.cpp
+  src/spine_sssp_compute.cpp
   src/spine_system.cpp
   src/spine_vertex_lifecycle.cpp
 )
@@ -31,6 +32,13 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(sst_hbm_mapper_tests
+    tests/sst_hbm_mapper_tests.cpp sst/physical_hbm_mapper.cpp)
+  target_include_directories(sst_hbm_mapper_tests PRIVATE sst)
+  target_compile_features(sst_hbm_mapper_tests PRIVATE cxx_std_20)
+  target_compile_options(sst_hbm_mapper_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME sst_hbm_mapper_tests COMMAND sst_hbm_mapper_tests)
+
   add_executable(spine_cycle_core_tests tests/core_tests.cpp)
   target_link_libraries(spine_cycle_core_tests PRIVATE spine_cycle_core)
   target_compile_definitions(

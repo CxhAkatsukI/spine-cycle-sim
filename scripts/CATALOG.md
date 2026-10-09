@@ -98,6 +98,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_candidate10_maintenance_control_rtl_oracle.sh](run_candidate10_maintenance_control_rtl_oracle.sh)
 - [run_candidate10_maintenance_matrix.py](run_candidate10_maintenance_matrix.py)
 - [run_candidate10_spine_weighted_cold_baselines.py](run_candidate10_spine_weighted_cold_baselines.py)
+- [run_component_refactor_regression.py](run_component_refactor_regression.py)
 - [run_connected_components_matrix.py](run_connected_components_matrix.py)
 - [run_current_fig8_update_only_case.py](run_current_fig8_update_only_case.py)
 - [run_current_fig8_update_only_matrix.py](run_current_fig8_update_only_matrix.py)

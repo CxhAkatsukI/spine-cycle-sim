@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "comparison": "AST leaf-token identity, complete definitions including constructor initializers and literals",
+  "baseline_revision": "abe4c3e",
+  "components": [
+    {
+      "component": "SpineSplitReader",
+      "unchanged_complete_method_definitions": 87
+    },
+    {
+      "component": "SpineSplitSsspCompute",
+      "unchanged_complete_method_definitions": 49
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.refactor_equivalence import (
-    case_command, compare_result_payloads, compare_runs, verify_source_snapshot,
+    case_command, compare_result_payloads, compare_runs, validate_case_outcome, verify_source_snapshot,
 )
 from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 
@@ -62,6 +62,15 @@ class RefactorEquivalenceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "changed during"):
                 verify_source_snapshot(root, snapshot)
 
+    def test_spine_command_omits_grasu_only_catalog_and_optional_updates(self) -> None:
+        case = {"runner": "scripts/spine.py", "profile": "spine.json",
+                "capability_catalog": None, "workload": "graph.slice",
+                "updates": None, "arguments": ["--scenario", "full_pagerank"]}
+        command = case_command(Path("/repo"), case, Path("/plugin"), Path("/output"))
+        self.assertNotIn("--capability-catalog", command)
+        self.assertNotIn("--update-workload", command)
+        self.assertIn("full_pagerank", command)
+
     def fixture(self, parent: Path):
         directories = [parent / "before", parent / "after"]
         contract = {"cases": [{"id": "example", "manifest": "manifest.json"}]}
@@ -112,6 +121,39 @@ class RefactorEquivalenceTests(unittest.TestCase):
                 path.write_text(json.dumps(identity))
                 with self.assertRaises(ValueError):
                     compare_runs(contract, *directories)
+
+    def test_known_rejections_remain_separate_and_compare_every_field(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            contract, directories = self.fixture(Path(temporary))
+            case = contract["cases"][0]
+            case["expected_rejection"] = {
+                "reason": "pre-existing ledger mismatch", "result_fields": {"success": False}}
+            for directory in directories:
+                (directory / "campaign").mkdir()
+                (directory / "campaign/campaign_state.json").write_text(json.dumps(
+                    {"jobs": [{"job_id": "example", "status": "fail", "exit_code": 1}]}))
+                (directory / "cases/example/result.json").write_text(json.dumps(
+                    {"success": False, "cycles": 100, "backend_requests": 20}))
+                (directory / "cases/example/manifest.json").unlink()
+            report = compare_runs(contract, *directories)
+            self.assertEqual(report["status"], "PASS")
+            self.assertEqual(report["correctness_admitted_cases"], 0)
+            self.assertEqual(report["known_rejections"], 1)
+            path = directories[1] / "cases/example/result.json"
+            result = json.loads(path.read_text())
+            result["cycles"] = 101
+            path.write_text(json.dumps(result))
+            self.assertEqual(compare_runs(contract, *directories)["status"], "FAIL")
+            result["success"] = True
+            path.write_text(json.dumps(result))
+            with self.assertRaisesRegex(ValueError, "signature"):
+                validate_case_outcome(case, directories[1])
+            result["success"] = False
+            path.write_text(json.dumps(result))
+            (directories[1] / "campaign/campaign_state.json").write_text(json.dumps(
+                {"jobs": [{"job_id": "example", "status": "fail", "exit_code": 124}]}))
+            with self.assertRaisesRegex(ValueError, "outcome"):
+                validate_case_outcome(case, directories[1])
 
 
 if __name__ == "__main__":

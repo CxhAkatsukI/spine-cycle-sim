@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "purpose": "independent_upstream_source_pins_not_timing_validation",
+  "sources": [
+    {
+      "id": "grasu",
+      "url": "https://github.com/qgwang-hust/GraSU.git",
+      "revision": "e95da256be9e7f2361449323b6fe0abf98c1b152",
+      "tracked_changes": "",
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "43be4940db1394f584158302990d4e6e51127a7ff0ed8f6a22c242dba49357be"
+        },
+        {
+          "path": "GraSU/GraSU_kernels/src/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "path": "GraSU/GraSU_kernels/src/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        },
+        {
+          "path": "GraSU/GraSU_kernels/src/kernel_process_ddr.cpp",
+          "sha256": "4fda96508724b55edc92b4c7984f4ad167e128cbafe0f360817fa2339b56e763"
+        },
+        {
+          "path": "GraSU/GraSU/src/host.cpp",
+          "sha256": "27f826fbcfafba02e849153444897adba93336124743df0c446c3eb9f7c4e5ed"
+        }
+      ]
+    },
+    {
+      "id": "regraph",
+      "url": "https://github.com/Xtra-Computing/ReGraph.git",
+      "revision": "365456826cef495285383d939907f847e05ad74b",
+      "tracked_changes": "",
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "b3d4829bc21320a8b6c449437f186f455978c0156a357e503c1d50d6c7bcf8c9"
+        },
+        {
+          "path": "global_para.mk",
+          "sha256": "2f14c52974b73a5bde4ea890c187e04e5c39a9c1662f482c4d10768c4274cd8f"
+        },
+        {
+          "path": "autogen/autogen.py",
+          "sha256": "aadf467f908768c68983e071e1b268728629f9ae0cb3b710e353ad9f00f57d7d"
+        },
+        {
+          "path": "autogen/connectivity_template.cfg",
+          "sha256": "9d10b5f8529195108aa1a789214b310a53c4ff02e9b98563f07440c8e26a67c5"
+        },
+        {
+          "path": "acc_template/kernel_little_gs/acc_scatter.h",
+          "sha256": "0c44fbded2c02c516856c073d937fc1016c1a1d8740bbf137906bb2150c9951b"
+        },
+        {
+          "path": "acc_template/kernel_little_gs/acc_gather.h",
+          "sha256": "df9a2755dcfb89b42482047bc1b73634d78f81ab3c15aa72fddd3d74115b5051"
+        },
+        {
+          "path": "acc_template/kernel_big_gs/acc_scatter.h",
+          "sha256": "197a76f7d5589b3abc29f8b2f21a7da155dd1047e9d8f9fabedbd34da843a3e1"
+        },
+        {
+          "path": "acc_template/kernel_big_gs/acc_gather.h",
+          "sha256": "669ef6d4f98b55f5c5e8eb9d5851f52e03115d2ec7a81b8e6c1446fbb60864b0"
+        },
+        {
+          "path": "host/preprocess/partition_schedule.cpp",
+          "sha256": "aa2571085b402b60c76814ebecdcd34b326315d92f94cfe6de1b517a536dd125"
+        },
+        {
+          "path": "acc_udfs/pr/l2.h",
+          "sha256": "37394bde14d3bc64de0214868c0e7b2b863ef91faa7788a983612d7386e4a0a3"
+        }
+      ]
+    }
+  ],
+  "open_questions": [
+    "GraSU paper segment-size units must be reconciled with upstream SEGMENT_SIZE=16 and 16x32-bit slots per 512-bit segment before declaring a geometry mismatch.",
+    "ReGraph Table IV graph-selected topology and its frequency scope need recovery; default 11L+3B and Figure 10 normalization do not supply both facts.",
+    "Four-Little/zero-Big generation is not yet a functional or timing acceptance; matched downstream resources need independent verification."
+  ]
+}

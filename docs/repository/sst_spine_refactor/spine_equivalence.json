@@ -1,0 +1,1578 @@
+{
+  "baseline_identity": {
+    "case_timeout_seconds": 600,
+    "contract_sha256": "581d6554e3e9dfc378f79cde0e5e42ff3b6c4d44215b7213c9e5bc885e3b2ce6",
+    "plugin_sha256": "5ff6b53fae61c87b896c76d45148b61b6b9357bf38576ff4e2f8f442868e97c7",
+    "schema_version": 1,
+    "source": {
+      "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+      "declared_build": {
+        "compiler": "g++",
+        "dramsim3_root": "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "host_flags": "-O3 -DNDEBUG -flto",
+        "native_host": 0,
+        "pgo_mode": "off"
+      },
+      "dramsim3_library_sha256": "9db26860cde335dd62c9e013d444b67ec98e8772107b39e15eb15a0ffdb8d906",
+      "files": [
+        {
+          "path": "CMakeLists.txt",
+          "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+          "sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+          "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+          "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+          "sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_fullpr_hls_v1.json",
+          "sha256": "368722475d2b4893ced39d58cd5898897159631673b54a46d49df024cd4baf57"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
+          "sha256": "6ec5f93ea3b5c9b3ddfcb4fd70583e050456965c561f80d48e12b768499917c6"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+          "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
+        },
+        {
+          "path": "configs/architectures/spine_shared_engine_9c08763.json",
+          "sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7"
+        },
+        {
+          "path": "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json",
+          "sha256": "673a349cd735e724ee0641f36d7122943d8c2c884886b84b81da6a2a3c6e722f"
+        },
+        {
+          "path": "configs/experiments/sst_spine_component_refactor_v2.json",
+          "sha256": "581d6554e3e9dfc378f79cde0e5e42ff3b6c4d44215b7213c9e5bc885e3b2ce6"
+        },
+        {
+          "path": "configs/memory/HBM2_1ch_x128.ini",
+          "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+        },
+        {
+          "path": "cpp/CMakeLists.txt",
+          "sha256": "2b663be824faf0b68923f12659322a1d2d727166c291e9a805f7023ff56118b7"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm.hpp",
+          "sha256": "de525d8443035964dde913c87ed0a697b741fab07090ae87dae55a7a1076070a"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm_pipeline.hpp",
+          "sha256": "d3194631dc802f8d990f7706515f9e3499fb588bb02de6ad00e67eb8cac004b3"
+        },
+        {
+          "path": "cpp/include/spine_sim/axi.hpp",
+          "sha256": "47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb"
+        },
+        {
+          "path": "cpp/include/spine_sim/banked_memory.hpp",
+          "sha256": "7e781e6c64cf14780d0fe40757844e1437d2a09bef44c141b9859f8d8fd4f08d"
+        },
+        {
+          "path": "cpp/include/spine_sim/component.hpp",
+          "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+        },
+        {
+          "path": "cpp/include/spine_sim/fifo.hpp",
+          "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+        },
+        {
+          "path": "cpp/include/spine_sim/fixed_axi_port.hpp",
+          "sha256": "6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu.hpp",
+          "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_native.hpp",
+          "sha256": "7012151680988d9be642a8a5f6b0617443a8a55dbd8b43e9f1b8537a91284a10"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+          "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+        },
+        {
+          "path": "cpp/include/spine_sim/memory_backend.hpp",
+          "sha256": "067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e"
+        },
+        {
+          "path": "cpp/include/spine_sim/scheduler.hpp",
+          "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_dirty.hpp",
+          "sha256": "e4c82aacfa311d7f89b0922ff42c2f4300f6b90eb5b5128ca1b59f128adf65be"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_l0.hpp",
+          "sha256": "b1ca2380705dca4df2ef0ac222699fc6d5ebb60460d6fb293836b8920daa6d38"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_owner.hpp",
+          "sha256": "877b9d7e3c38fe7183becccbdab097809d5fba7e5e2836cc8bfaaaaba4066a86"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_pagerank.hpp",
+          "sha256": "c4a1ea3fa2e83fc86b1570e8c0b134f97f17451d58249a8b95e5570bf053b4cc"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_split.hpp",
+          "sha256": "c819618f9cfbdbe3742396b1df394c84056dd0185eda2a4d05ec296f68953495"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_system.hpp",
+          "sha256": "564f9fea6afbbef6df7a7bef7a234ae5b5628bb23185df5d754b726ad0cf52a1"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_vertex_lifecycle.hpp",
+          "sha256": "252288e7a3b7000ac4bbef00b333ab2caa6ed97f76bc08a73097501cedf3a000"
+        },
+        {
+          "path": "cpp/src/algorithm.cpp",
+          "sha256": "253295d6c3d5c7655544fe58b8c6d480e4e96d1f2d4b1ad612c41b600dea50b1"
+        },
+        {
+          "path": "cpp/src/algorithm_pipeline.cpp",
+          "sha256": "f5eac512f9aa6b1c6d971907826e4a18b2b494a7be6e4e6e3e70ba30abc5b726"
+        },
+        {
+          "path": "cpp/src/axi.cpp",
+          "sha256": "c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd"
+        },
+        {
+          "path": "cpp/src/banked_memory.cpp",
+          "sha256": "37e993cf0f052c814c8ab3a8bb481630f154a91af7a7eaa505c77e22f549680b"
+        },
+        {
+          "path": "cpp/src/grasu.cpp",
+          "sha256": "352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915"
+        },
+        {
+          "path": "cpp/src/grasu_native.cpp",
+          "sha256": "e974e00f48f089a61c209c8032daa4e275185f3cd9d1e2e3f8ab88f920c52831"
+        },
+        {
+          "path": "cpp/src/grasu_regraph.cpp",
+          "sha256": "f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7"
+        },
+        {
+          "path": "cpp/src/grasu_regraph_runtime.cpp",
+          "sha256": "0cd0af809c14917f863b6d5f7da983f99403eff84bf54b351fc80c784182818c"
+        },
+        {
+          "path": "cpp/src/grasu_sharded_update.cpp",
+          "sha256": "ea7e569be558db3b6c5fdcfacc96bf904091788383836537a8d919740a2a8fbc"
+        },
+        {
+          "path": "cpp/src/memory_backend.cpp",
+          "sha256": "4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20"
+        },
+        {
+          "path": "cpp/src/scheduler.cpp",
+          "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+        },
+        {
+          "path": "cpp/src/spine_dirty.cpp",
+          "sha256": "097d217fcbfc59a19eba7de7475633ac400a345d4dbb3c17f0cbb05219ad63f8"
+        },
+        {
+          "path": "cpp/src/spine_l0.cpp",
+          "sha256": "aead6f7b4eb3cf5d889d9d7a285d86c0ea1dbeb380af052a4aef0e34ef7ad755"
+        },
+        {
+          "path": "cpp/src/spine_owner.cpp",
+          "sha256": "831a4ced1e4c928319e576beaf0110d59c4e498fcb5b6ea01536acd6c5149959"
+        },
+        {
+          "path": "cpp/src/spine_pagerank.cpp",
+          "sha256": "ab753aaab40f53051ede5275a978d6dcddde48604a932655e9796bff2f297ed9"
+        },
+        {
+          "path": "cpp/src/spine_split.cpp",
+          "sha256": "fc05d6104fd9c8ef96937ec309a60e43c345f5e6a09946916d1c886131919cf9"
+        },
+        {
+          "path": "cpp/src/spine_system.cpp",
+          "sha256": "442d17046d857b00fe6956ba081bdd5fbad74608b45f6fcd24ca6fb0bf61b5b1"
+        },
+        {
+          "path": "cpp/src/spine_vertex_lifecycle.cpp",
+          "sha256": "d5700861bf299ee426335819077fd00a5bb7fb719fa2e002c3a33d8bd04d4ab4"
+        },
+        {
+          "path": "cpp/sst/Makefile",
+          "sha256": "d8a1ef86e60c22d7de256fb40134f111438bc21fd82d96ae64eb8d2fcf94acd9"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.cpp",
+          "sha256": "70427a7e7c50768ab6888df4953bbcc680be9443a64e9deee36b96a800b11754"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.hpp",
+          "sha256": "313e7095554b02752c27b944317de1b162f3c339830ed9e2fdd238997e828e23"
+        },
+        {
+          "path": "cpp/sst/online_memory_probe.cpp",
+          "sha256": "04ab090ea23087be177a4b7578991d3f277f077cdde1d97d259d42315257d448"
+        },
+        {
+          "path": "scripts/run_component_refactor_regression.py",
+          "sha256": "2952cf88d13f097290e7160fe1392f1888333cda60deb484b7cb6af2c9123755"
+        },
+        {
+          "path": "scripts/run_grasu_refactor_regression.py",
+          "sha256": "e37eacadf4c258b3deede86c37cb539ca045a3004e7e442b203c9a7d6de9a17f"
+        },
+        {
+          "path": "scripts/run_sst_connected_components.py",
+          "sha256": "961d723a01c924e2ead94f1387da56b3e1a229d9b835a28fc5309c73d2f539c0"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+          "sha256": "caabfe83b2aecce3fd8a74a93bb3371747bae179d1cc8eb48e07fbafb4ce86b9"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+          "sha256": "f41926eb0412fa3a994011fa7f5fdf37d752cff7e7835e7075cb621c97ce9d1b"
+        },
+        {
+          "path": "scripts/run_sst_spine_vertical.py",
+          "sha256": "9fdf298fbd29b019ef69d581c62b398182deb6fee54ab4a38fed59ae848a3fee"
+        },
+        {
+          "path": "spine_cycle_sim/__init__.py",
+          "sha256": "312ef0853da0f8d69bbbe75607c799f84668864435b04e78e12251c44b67f193"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/__init__.py",
+          "sha256": "157c32b1b155f8b7e404df69409a56afd3ffd9ece7fda1986aadcde575376435"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/engine.py",
+          "sha256": "8f1f0d6ead2dfe8742c455e6bb384f169da0cfa56ea0287b588d7b2caabaf0d2"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/graph.py",
+          "sha256": "c2ed4aa2f421c044b34a160448a834e5ab972ed31bcec69fe543abb83e7d174c"
+        },
+        {
+          "path": "spine_cycle_sim/alignment_contract.py",
+          "sha256": "79965e798be2def46f79a17dd69162366ae42297be2b4138ad8d8ed6fbfecba3"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/__init__.py",
+          "sha256": "42ebbfce7db394e36eb4116c2025a26246be17a7663a3188d7dc66502ff5b822"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/bridge.py",
+          "sha256": "f355489a325164892b3b3fb937dc4af56733f7df0fad8a4400fc77cfcc7788ef"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/bstage.py",
+          "sha256": "047396c9a87bb4e9d1a3e1fd875b58296e86595f2d5f4c141940d8aaf1920ebb"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/candidate10.py",
+          "sha256": "c55c54e2f29e17973b05afde24148a14b593a499e767a1cc7e9d214bf891646a"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/current_fpga.py",
+          "sha256": "3058b8309e43aa2fcc509b848fa62ac8ac92171dd772954d86f72a3388640853"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/e2e.py",
+          "sha256": "ca7bc096ddb0ddabe402f8cd90024029219bd2b422df1bf7f46cd7f3778de515"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/frozen.py",
+          "sha256": "e895d4b09e57d50c7887f78c7788ec18322c4c4c3e7d71629867a31a94d69c02"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/grasu_native.py",
+          "sha256": "f6815cd8859fc1905cc38e81107ff13bae571f527ebaac751f7428b19e0f61ca"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/k4_fpga.py",
+          "sha256": "e73fd053ae136b4793aed76442d1593a0c64361778299c6642e30adf249c1c52"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/maintenance.py",
+          "sha256": "35b2ab74a4542ab54d6cc560beee19c8b143ab026d8c5866d426cebe565187d7"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/reader.py",
+          "sha256": "38402648754a0a254b3ba2d8bc4bc79dafe86aa9fcb71f9f852e5b2c9a9e6422"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/refactor31.py",
+          "sha256": "ea8d2c3fab77e6d45cc77d7f59bb2a82a1fb5e561eae060b74a8836ffbdd0a81"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/refactor31_scale.py",
+          "sha256": "0fd606ce7497d020ec83034c7feff9f08353f84081025600ea4e846526cfc054"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/rq3.py",
+          "sha256": "9ec067b3fd07a9983e7febe40ca2b1678a06a42bc683db97e58b20bf0cfea8b0"
+        },
+        {
+          "path": "spine_cycle_sim/core/__init__.py",
+          "sha256": "6998693a1f436bc40f62181aadc992fbc554def3aad34a6cb8419ad33a63c19e"
+        },
+        {
+          "path": "spine_cycle_sim/core/component.py",
+          "sha256": "27a056b6b6a5c7604a69522a000f60853f4de8c0c29c27d029c8bc6168908f09"
+        },
+        {
+          "path": "spine_cycle_sim/core/fifo.py",
+          "sha256": "29c636dac6d34ed1e246f26b70c41283494a8c6dc2561e654e85156c8fc05aba"
+        },
+        {
+          "path": "spine_cycle_sim/core/memory.py",
+          "sha256": "79a5ebbe8d0ff87bb4110531a0f8cacf9f4046ad8804bc6e2414d8d80a55b411"
+        },
+        {
+          "path": "spine_cycle_sim/core/simulator.py",
+          "sha256": "82febaa8a518197101300d12967c19a679de446e9d682cd104fa46aae0b9985a"
+        },
+        {
+          "path": "spine_cycle_sim/core/stats.py",
+          "sha256": "22c940a2f0141a58672b806a20bdf7bd371e9d39ab0b63e92069c385439f9f73"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/__init__.py",
+          "sha256": "33547caf30f64cf2cc4cf5c2b846c7853df1d9c1a16aa7441f51ee52b0b14794"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/area_projection.py",
+          "sha256": "aeb178d42fb46bba1455ea05a312a677f757c011b43728b8b453678b85d3de3a"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/candidate10.py",
+          "sha256": "5a89bb02c528567969ef22a3b32e7a0dadbf4f600247a3ef575586c5bd3bd88a"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/component_power.py",
+          "sha256": "364aac2abf8538e4d2133334e06831ce02eeb4587a085cc17b6c41736171b2cf"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/energy.py",
+          "sha256": "6610c9a4c6e3881cefa5b78b3208137ebc41fc7bfefd69c37a3fdd6869d81cf9"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/exact_idle.py",
+          "sha256": "fde19ffe2d2360152175986b94ecf6d9451d97425cfc2126749550a8c12a4258"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/fpga.py",
+          "sha256": "68bf3497a52adbbf0e4c3cbf3a614bbb6c00d1717d70448cde05f7e986feaa82"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/matched_energy.py",
+          "sha256": "eccb1bc7e6b4d482ab8b1dcee08591b99f2161cdaec2acc3b0ac21cb820f6e39"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/paper_energy.py",
+          "sha256": "e703a751e16b1dc1b988eb4dc3fa7fa4c8babb8e2f8a48eb9f6cfaeac714d741"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/publication_ppa.py",
+          "sha256": "290f51c00f09bccddc30a914d9c48e28acd3827d0e13a42fe76c5c722e805940"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/vivado_power.py",
+          "sha256": "5e06d533e0744e5fcbb2f3be90ae028f304278c9c5f455c8717718331e0c4ad8"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/weighted_energy.py",
+          "sha256": "7d3b23f24cbd3fcf5d14f26ffa9c55c831249a7261967d40a69605dc6f7c6504"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/workload_energy.py",
+          "sha256": "11b49691f490c2a29f85f29744ae11b457feae25ec72f9bd6bb372e1f08c4c59"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/__init__.py",
+          "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/candidate10_workloads.py",
+          "sha256": "484b1900c92e3b0d2368ab286dc8d7b0fad2f95f2527764081a232935690d006"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/comparison.py",
+          "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/comparison_analysis.py",
+          "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/connected_components_workloads.py",
+          "sha256": "8c0709569dfb814eb33e128ab24debf7ccd7ddf96445dee7ad5a523ffbbf3c8e"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/deltahls_workloads.py",
+          "sha256": "dea5c5d23cd9941f0cbcc3ed841d767ab500872cd9448655acf90b7d25a2085c"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/dense_batch_sweep.py",
+          "sha256": "e8ccd3e98d3bcef694591b0b907558218c2e9ee4d06f604556e03329a560cea5"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/feasibility.py",
+          "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/grasu_addressing.py",
+          "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/grasu_native_validation.py",
+          "sha256": "bca40ed6ec79268e0a5b45abb8d7c2cc2992fd2811e5f5338ae40fffe32e6f7d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+          "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_real_comparison.py",
+          "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_weighted_workloads.py",
+          "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/host_memory.py",
+          "sha256": "539d34c67346d03cfba8b0f0741424d6412b9571653923cbf2d6064b64d7286d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_graph_campaign.py",
+          "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_real_pagerank.py",
+          "sha256": "f94a514734231a59d908a152b70172ce764a012c1a6e1ace4a53886749e09529"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_reciprocal_workloads.py",
+          "sha256": "1da6eadeffaf2d027ce3ca1bceaf01ff8e50bf8a7cb79a9f809eae2e2fa44e96"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/memory_traffic.py",
+          "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/mixed_path_analysis.py",
+          "sha256": "88f66470a39d7f0a18b58d1e30f1a2f40e347aff1d4e63a7963838da90ace243"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/persistent_update_only.py",
+          "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/plugin_equivalence.py",
+          "sha256": "152aa80ff649a893f505794f42021a927ca95f384e8dbfff8b6fec898fcbfe54"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/profile_capabilities.py",
+          "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_analysis.py",
+          "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_cases.py",
+          "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_match.py",
+          "sha256": "f52433e022855532f134deb87ba7847479c54bbec55805e813a4695df716a960"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_workloads.py",
+          "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_memory_analysis.py",
+          "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_small_batch_analysis.py",
+          "sha256": "7161ef461195b36e34a9aa20d74dcf4d4bf944389bc07295498409c80ba7b24f"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_small_batches.py",
+          "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/refactor_equivalence.py",
+          "sha256": "6834e84a44b6c5127ab7262460d9dd5c12fad14756535887e3851e5fd0e15aa9"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/regraph_contracts.py",
+          "sha256": "f862d9504496d8fc197ac7cd623dd8eace7665ab23567e7c8b57de4c0bf4ce39"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/rq3.py",
+          "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/shared_workloads.py",
+          "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_dense_analysis.py",
+          "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_real_analysis.py",
+          "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_real_batches.py",
+          "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+          "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3"
+        },
+        {
+          "path": "spine_cycle_sim/models/__init__.py",
+          "sha256": "cf74d66882e89c105e5cd299c11302fc4523c6471be435e5b41e71d4376ef886"
+        },
+        {
+          "path": "spine_cycle_sim/models/dstage.py",
+          "sha256": "5b8eee8c18f0a0c1550d20ba38a733ab34e43c5fe232c9218e29527bf325b674"
+        },
+        {
+          "path": "spine_cycle_sim/models/spine.py",
+          "sha256": "66e263e421024fb8607e044f6951e3b3ac04e97607312d3d49b46dc08710f02b"
+        },
+        {
+          "path": "spine_cycle_sim/profiles.py",
+          "sha256": "e4f85c162b64d21434e0d26bc43965b8c7a25bab24c36abf8f33411eb0a9dc62"
+        },
+        {
+          "path": "spine_cycle_sim/sst_binding.py",
+          "sha256": "ae12d088a3b6e47f6324a264d4deafc96c023537c6d63a33b3f138535b4f7e39"
+        },
+        {
+          "path": "spine_cycle_sim/sst_library.py",
+          "sha256": "06af07b611fecaf97265a1759ae13328b57e8086fc5af90840680bc31a96d620"
+        },
+        {
+          "path": "spine_cycle_sim/stats/__init__.py",
+          "sha256": "d885d50577ed68f24d8841e8b1fbcf3c819266458c5d1084f9105b48099d83b7"
+        },
+        {
+          "path": "spine_cycle_sim/stats/io.py",
+          "sha256": "3d27b04add90b1357a9815d2a67f14d28c1608d45f55a73eb8ec7e87601fc311"
+        },
+        {
+          "path": "spine_cycle_sim/workloads/__init__.py",
+          "sha256": "4917c7f774ea79ad03e1069ca4589bfcea153b3b4f168ff17b5e304a2e83cdb6"
+        },
+        {
+          "path": "spine_cycle_sim/workloads/generators.py",
+          "sha256": "5bf1a7b5a8a8a79ecf457c3645b0ff236f23e69e4c67519d7aefba7b87474df5"
+        },
+        {
+          "path": "sst/grasu_regraph_vertical.py",
+          "sha256": "f1455f62b4072b6dfeeb33c4d3ee642072e8fe42266c725c907ad081e8e3a936"
+        },
+        {
+          "path": "sst/online_memory_probe.py",
+          "sha256": "2de7d64751dc1e636c57c12d9f0d43c465cadec579d401642ce1f7cdc1b2cd68"
+        },
+        {
+          "path": "sst/spine_vertical_slice.py",
+          "sha256": "068ff8593f063d302561dc2ef26705ff9fb61b0839fbfe153bd1305c491cd569"
+        },
+        {
+          "path": "tests/data/carry_hot_batch.slice",
+          "sha256": "a3ff9e925f73c418f2ffe0dbf78c3c256f22f7926ff78d5d39d2d24bad2d4b13"
+        },
+        {
+          "path": "tests/data/carry_hot_preload.slice",
+          "sha256": "1bc406fc26a57111e956411a23157b1a28e2b010706ca1b9587b6f9275464450"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_initial.slice",
+          "sha256": "c1348afd4f74dee02138feb393cd5dd99f8c0f42ae8f565f5b70975e356f35f0"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_insert.slice",
+          "sha256": "5f4c413c2c382bb9807a58d41578779dabbab97a16ecc6f557bc9d3bcb24f9a6"
+        },
+        {
+          "path": "tests/data/connected_components_formal/cc_zero_net_base.slice",
+          "sha256": "0773e0c88f1e018326d33d29059e76cd9ec3d66177e068f8dc7c233230690b58"
+        },
+        {
+          "path": "tests/data/connected_components_formal/cc_zero_net_delete_then_reinsert_u2.slice",
+          "sha256": "5e0001cd0b77771f3f65ce11e0149a433ec6a377f4850c3cc5e5333521dd449e"
+        },
+        {
+          "path": "tests/data/dynamic_delete_update.slice",
+          "sha256": "e8a80073d67211332959350d598edf3ab09d9f58d032edbabed9c4b0740c6f4d"
+        },
+        {
+          "path": "tests/data/dynamic_nonmonotonic_initial.slice",
+          "sha256": "fad6d7e5342e30d5f9a0813ed5cd41937070e3bff8c2e4dc1145d4e598bd41e5"
+        },
+        {
+          "path": "tests/data/dynamic_shortcut_initial.slice",
+          "sha256": "341352c73f4f80cf6f7424e34325d6f4811d3d59195d79d3ecbb15083a8834bc"
+        },
+        {
+          "path": "tests/data/dynamic_shortcut_update.slice",
+          "sha256": "817771e6a854abd9671fa7a3ce12ef33257e57d82b52d56afe1b15128b10e964"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_initial.slice",
+          "sha256": "8107f04145e1c42dca0a00771e79de6176be95c66af3f834eac272c964062621"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_update.slice",
+          "sha256": "4d9a3afe66864c3b291dfb322ab302067ff37a38811efc9e85e3695ca6204176"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+          "sha256": "38f8cdd79a9fe32571512ee5c4a706200260e48a70428130bbe52906b23f3a96"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+          "sha256": "a0c3eb0114f3dcc4693d20253741deace7ed5a832a00566033e3d9ae1d16df60"
+        },
+        {
+          "path": "tests/data/pagerank_four_vertex.slice",
+          "sha256": "f1462b615250c578a78d7858466fc8f292f9f2c61bc4e222553396d24696108b"
+        }
+      ],
+      "relevant_dirty_diff": "",
+      "revision": "abe4c3ed0b25bd22efaab45ae26818f693c4183b"
+    }
+  },
+  "candidate_identity": {
+    "case_timeout_seconds": 600,
+    "contract_sha256": "581d6554e3e9dfc378f79cde0e5e42ff3b6c4d44215b7213c9e5bc885e3b2ce6",
+    "plugin_sha256": "049ca069659a778ebc836ae549b1f93f22c67087986b1016886da6748f9745b0",
+    "schema_version": 1,
+    "source": {
+      "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+      "declared_build": {
+        "compiler": "g++",
+        "dramsim3_root": "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "host_flags": "-O3 -DNDEBUG -flto",
+        "native_host": 0,
+        "pgo_mode": "off"
+      },
+      "dramsim3_library_sha256": "9db26860cde335dd62c9e013d444b67ec98e8772107b39e15eb15a0ffdb8d906",
+      "files": [
+        {
+          "path": "CMakeLists.txt",
+          "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+          "sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+          "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+          "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+          "sha256": "a305753a33454ef2fae4040ffed278f9f152fea3a900039e9c4a8bccceeba02c"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_fullpr_hls_v1.json",
+          "sha256": "368722475d2b4893ced39d58cd5898897159631673b54a46d49df024cd4baf57"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
+          "sha256": "6ec5f93ea3b5c9b3ddfcb4fd70583e050456965c561f80d48e12b768499917c6"
+        },
+        {
+          "path": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+          "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d"
+        },
+        {
+          "path": "configs/architectures/spine_shared_engine_9c08763.json",
+          "sha256": "aba0d6bbcbaa64240897ed3efc555d6ce6d6455d2f10e77e0ccdb77fa46466a7"
+        },
+        {
+          "path": "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json",
+          "sha256": "673a349cd735e724ee0641f36d7122943d8c2c884886b84b81da6a2a3c6e722f"
+        },
+        {
+          "path": "configs/experiments/sst_spine_component_refactor_v2.json",
+          "sha256": "581d6554e3e9dfc378f79cde0e5e42ff3b6c4d44215b7213c9e5bc885e3b2ce6"
+        },
+        {
+          "path": "configs/memory/HBM2_1ch_x128.ini",
+          "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+        },
+        {
+          "path": "cpp/CMakeLists.txt",
+          "sha256": "7d64613ae0b0ec5a4fcc00fe23dc8f7d55f71d60b2f5a75ace186d0376b6510d"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm.hpp",
+          "sha256": "de525d8443035964dde913c87ed0a697b741fab07090ae87dae55a7a1076070a"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm_pipeline.hpp",
+          "sha256": "d3194631dc802f8d990f7706515f9e3499fb588bb02de6ad00e67eb8cac004b3"
+        },
+        {
+          "path": "cpp/include/spine_sim/axi.hpp",
+          "sha256": "47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb"
+        },
+        {
+          "path": "cpp/include/spine_sim/banked_memory.hpp",
+          "sha256": "7e781e6c64cf14780d0fe40757844e1437d2a09bef44c141b9859f8d8fd4f08d"
+        },
+        {
+          "path": "cpp/include/spine_sim/component.hpp",
+          "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+        },
+        {
+          "path": "cpp/include/spine_sim/fifo.hpp",
+          "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+        },
+        {
+          "path": "cpp/include/spine_sim/fixed_axi_port.hpp",
+          "sha256": "6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu.hpp",
+          "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_native.hpp",
+          "sha256": "7012151680988d9be642a8a5f6b0617443a8a55dbd8b43e9f1b8537a91284a10"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+          "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+        },
+        {
+          "path": "cpp/include/spine_sim/memory_backend.hpp",
+          "sha256": "067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e"
+        },
+        {
+          "path": "cpp/include/spine_sim/scheduler.hpp",
+          "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_dirty.hpp",
+          "sha256": "e4c82aacfa311d7f89b0922ff42c2f4300f6b90eb5b5128ca1b59f128adf65be"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_l0.hpp",
+          "sha256": "b1ca2380705dca4df2ef0ac222699fc6d5ebb60460d6fb293836b8920daa6d38"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_owner.hpp",
+          "sha256": "877b9d7e3c38fe7183becccbdab097809d5fba7e5e2836cc8bfaaaaba4066a86"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_pagerank.hpp",
+          "sha256": "c4a1ea3fa2e83fc86b1570e8c0b134f97f17451d58249a8b95e5570bf053b4cc"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_split.hpp",
+          "sha256": "c819618f9cfbdbe3742396b1df394c84056dd0185eda2a4d05ec296f68953495"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_system.hpp",
+          "sha256": "564f9fea6afbbef6df7a7bef7a234ae5b5628bb23185df5d754b726ad0cf52a1"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_vertex_lifecycle.hpp",
+          "sha256": "252288e7a3b7000ac4bbef00b333ab2caa6ed97f76bc08a73097501cedf3a000"
+        },
+        {
+          "path": "cpp/src/algorithm.cpp",
+          "sha256": "253295d6c3d5c7655544fe58b8c6d480e4e96d1f2d4b1ad612c41b600dea50b1"
+        },
+        {
+          "path": "cpp/src/algorithm_pipeline.cpp",
+          "sha256": "f5eac512f9aa6b1c6d971907826e4a18b2b494a7be6e4e6e3e70ba30abc5b726"
+        },
+        {
+          "path": "cpp/src/axi.cpp",
+          "sha256": "c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd"
+        },
+        {
+          "path": "cpp/src/banked_memory.cpp",
+          "sha256": "37e993cf0f052c814c8ab3a8bb481630f154a91af7a7eaa505c77e22f549680b"
+        },
+        {
+          "path": "cpp/src/detail/spine_split_payload.hpp",
+          "sha256": "a2cbcbfbcdf79d3e628b337b0ff0d8bf4a36532fd1aa32b40870ed86b9f057e0"
+        },
+        {
+          "path": "cpp/src/grasu.cpp",
+          "sha256": "352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915"
+        },
+        {
+          "path": "cpp/src/grasu_native.cpp",
+          "sha256": "e974e00f48f089a61c209c8032daa4e275185f3cd9d1e2e3f8ab88f920c52831"
+        },
+        {
+          "path": "cpp/src/grasu_regraph.cpp",
+          "sha256": "f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7"
+        },
+        {
+          "path": "cpp/src/grasu_regraph_runtime.cpp",
+          "sha256": "0cd0af809c14917f863b6d5f7da983f99403eff84bf54b351fc80c784182818c"
+        },
+        {
+          "path": "cpp/src/grasu_sharded_update.cpp",
+          "sha256": "ea7e569be558db3b6c5fdcfacc96bf904091788383836537a8d919740a2a8fbc"
+        },
+        {
+          "path": "cpp/src/memory_backend.cpp",
+          "sha256": "4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20"
+        },
+        {
+          "path": "cpp/src/scheduler.cpp",
+          "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+        },
+        {
+          "path": "cpp/src/spine_dirty.cpp",
+          "sha256": "097d217fcbfc59a19eba7de7475633ac400a345d4dbb3c17f0cbb05219ad63f8"
+        },
+        {
+          "path": "cpp/src/spine_l0.cpp",
+          "sha256": "aead6f7b4eb3cf5d889d9d7a285d86c0ea1dbeb380af052a4aef0e34ef7ad755"
+        },
+        {
+          "path": "cpp/src/spine_owner.cpp",
+          "sha256": "831a4ced1e4c928319e576beaf0110d59c4e498fcb5b6ea01536acd6c5149959"
+        },
+        {
+          "path": "cpp/src/spine_pagerank.cpp",
+          "sha256": "ab753aaab40f53051ede5275a978d6dcddde48604a932655e9796bff2f297ed9"
+        },
+        {
+          "path": "cpp/src/spine_split.cpp",
+          "sha256": "d4fe3c8998716f02c7127695c0a6b46ce515d03f26d96cc59f49ca098644efc9"
+        },
+        {
+          "path": "cpp/src/spine_sssp_compute.cpp",
+          "sha256": "05165233de2b999b011e82076e2c9399bc2aed197c0e5daafaf3b4be49ebdc19"
+        },
+        {
+          "path": "cpp/src/spine_system.cpp",
+          "sha256": "442d17046d857b00fe6956ba081bdd5fbad74608b45f6fcd24ca6fb0bf61b5b1"
+        },
+        {
+          "path": "cpp/src/spine_vertex_lifecycle.cpp",
+          "sha256": "d5700861bf299ee426335819077fd00a5bb7fb719fa2e002c3a33d8bd04d4ab4"
+        },
+        {
+          "path": "cpp/sst/Makefile",
+          "sha256": "33fc8cccf2de9c998205e8eb4642d40a7d6e16124e3e446625a8aca748f979d5"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.cpp",
+          "sha256": "70427a7e7c50768ab6888df4953bbcc680be9443a64e9deee36b96a800b11754"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.hpp",
+          "sha256": "313e7095554b02752c27b944317de1b162f3c339830ed9e2fdd238997e828e23"
+        },
+        {
+          "path": "cpp/sst/online_memory_probe.cpp",
+          "sha256": "2aa89d723636cb8b7c6861edbb87ba280e8596580dbaf9a4b5bd482f6df08c41"
+        },
+        {
+          "path": "cpp/sst/physical_hbm_mapper.cpp",
+          "sha256": "bb4cc7d9ae509bcfd5a56fa66547dd68085b8f7d15c965c2b2180b41f7e8ed1b"
+        },
+        {
+          "path": "cpp/sst/physical_hbm_mapper.hpp",
+          "sha256": "4ffaf3218e552a581c5334b525a96f68f0bf72f317a0cc168d19093ae1be6418"
+        },
+        {
+          "path": "cpp/sst/sst_memory_backend.cpp",
+          "sha256": "255eaa99be3ae0ea7b39d1aa1a24224a88d3e6f40fc478c720024b3c7d392e6a"
+        },
+        {
+          "path": "cpp/sst/sst_memory_backend.hpp",
+          "sha256": "e2356d8698da00cac3d07a0562fe305d7d3bb883225ce72a3a19504466cc275e"
+        },
+        {
+          "path": "scripts/run_component_refactor_regression.py",
+          "sha256": "2952cf88d13f097290e7160fe1392f1888333cda60deb484b7cb6af2c9123755"
+        },
+        {
+          "path": "scripts/run_grasu_refactor_regression.py",
+          "sha256": "e37eacadf4c258b3deede86c37cb539ca045a3004e7e442b203c9a7d6de9a17f"
+        },
+        {
+          "path": "scripts/run_sst_connected_components.py",
+          "sha256": "961d723a01c924e2ead94f1387da56b3e1a229d9b835a28fc5309c73d2f539c0"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+          "sha256": "caabfe83b2aecce3fd8a74a93bb3371747bae179d1cc8eb48e07fbafb4ce86b9"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+          "sha256": "f41926eb0412fa3a994011fa7f5fdf37d752cff7e7835e7075cb621c97ce9d1b"
+        },
+        {
+          "path": "scripts/run_sst_spine_vertical.py",
+          "sha256": "9fdf298fbd29b019ef69d581c62b398182deb6fee54ab4a38fed59ae848a3fee"
+        },
+        {
+          "path": "spine_cycle_sim/__init__.py",
+          "sha256": "312ef0853da0f8d69bbbe75607c799f84668864435b04e78e12251c44b67f193"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/__init__.py",
+          "sha256": "157c32b1b155f8b7e404df69409a56afd3ffd9ece7fda1986aadcde575376435"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/engine.py",
+          "sha256": "8f1f0d6ead2dfe8742c455e6bb384f169da0cfa56ea0287b588d7b2caabaf0d2"
+        },
+        {
+          "path": "spine_cycle_sim/algorithms/graph.py",
+          "sha256": "c2ed4aa2f421c044b34a160448a834e5ab972ed31bcec69fe543abb83e7d174c"
+        },
+        {
+          "path": "spine_cycle_sim/alignment_contract.py",
+          "sha256": "79965e798be2def46f79a17dd69162366ae42297be2b4138ad8d8ed6fbfecba3"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/__init__.py",
+          "sha256": "42ebbfce7db394e36eb4116c2025a26246be17a7663a3188d7dc66502ff5b822"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/bridge.py",
+          "sha256": "f355489a325164892b3b3fb937dc4af56733f7df0fad8a4400fc77cfcc7788ef"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/bstage.py",
+          "sha256": "047396c9a87bb4e9d1a3e1fd875b58296e86595f2d5f4c141940d8aaf1920ebb"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/candidate10.py",
+          "sha256": "c55c54e2f29e17973b05afde24148a14b593a499e767a1cc7e9d214bf891646a"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/current_fpga.py",
+          "sha256": "3058b8309e43aa2fcc509b848fa62ac8ac92171dd772954d86f72a3388640853"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/e2e.py",
+          "sha256": "ca7bc096ddb0ddabe402f8cd90024029219bd2b422df1bf7f46cd7f3778de515"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/frozen.py",
+          "sha256": "e895d4b09e57d50c7887f78c7788ec18322c4c4c3e7d71629867a31a94d69c02"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/grasu_native.py",
+          "sha256": "f6815cd8859fc1905cc38e81107ff13bae571f527ebaac751f7428b19e0f61ca"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/k4_fpga.py",
+          "sha256": "e73fd053ae136b4793aed76442d1593a0c64361778299c6642e30adf249c1c52"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/maintenance.py",
+          "sha256": "35b2ab74a4542ab54d6cc560beee19c8b143ab026d8c5866d426cebe565187d7"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/reader.py",
+          "sha256": "38402648754a0a254b3ba2d8bc4bc79dafe86aa9fcb71f9f852e5b2c9a9e6422"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/refactor31.py",
+          "sha256": "ea8d2c3fab77e6d45cc77d7f59bb2a82a1fb5e561eae060b74a8836ffbdd0a81"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/refactor31_scale.py",
+          "sha256": "0fd606ce7497d020ec83034c7feff9f08353f84081025600ea4e846526cfc054"
+        },
+        {
+          "path": "spine_cycle_sim/calibration/rq3.py",
+          "sha256": "9ec067b3fd07a9983e7febe40ca2b1678a06a42bc683db97e58b20bf0cfea8b0"
+        },
+        {
+          "path": "spine_cycle_sim/core/__init__.py",
+          "sha256": "6998693a1f436bc40f62181aadc992fbc554def3aad34a6cb8419ad33a63c19e"
+        },
+        {
+          "path": "spine_cycle_sim/core/component.py",
+          "sha256": "27a056b6b6a5c7604a69522a000f60853f4de8c0c29c27d029c8bc6168908f09"
+        },
+        {
+          "path": "spine_cycle_sim/core/fifo.py",
+          "sha256": "29c636dac6d34ed1e246f26b70c41283494a8c6dc2561e654e85156c8fc05aba"
+        },
+        {
+          "path": "spine_cycle_sim/core/memory.py",
+          "sha256": "79a5ebbe8d0ff87bb4110531a0f8cacf9f4046ad8804bc6e2414d8d80a55b411"
+        },
+        {
+          "path": "spine_cycle_sim/core/simulator.py",
+          "sha256": "82febaa8a518197101300d12967c19a679de446e9d682cd104fa46aae0b9985a"
+        },
+        {
+          "path": "spine_cycle_sim/core/stats.py",
+          "sha256": "22c940a2f0141a58672b806a20bdf7bd371e9d39ab0b63e92069c385439f9f73"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/__init__.py",
+          "sha256": "33547caf30f64cf2cc4cf5c2b846c7853df1d9c1a16aa7441f51ee52b0b14794"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/area_projection.py",
+          "sha256": "aeb178d42fb46bba1455ea05a312a677f757c011b43728b8b453678b85d3de3a"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/candidate10.py",
+          "sha256": "5a89bb02c528567969ef22a3b32e7a0dadbf4f600247a3ef575586c5bd3bd88a"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/component_power.py",
+          "sha256": "364aac2abf8538e4d2133334e06831ce02eeb4587a085cc17b6c41736171b2cf"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/energy.py",
+          "sha256": "6610c9a4c6e3881cefa5b78b3208137ebc41fc7bfefd69c37a3fdd6869d81cf9"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/exact_idle.py",
+          "sha256": "fde19ffe2d2360152175986b94ecf6d9451d97425cfc2126749550a8c12a4258"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/fpga.py",
+          "sha256": "68bf3497a52adbbf0e4c3cbf3a614bbb6c00d1717d70448cde05f7e986feaa82"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/matched_energy.py",
+          "sha256": "eccb1bc7e6b4d482ab8b1dcee08591b99f2161cdaec2acc3b0ac21cb820f6e39"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/paper_energy.py",
+          "sha256": "e703a751e16b1dc1b988eb4dc3fa7fa4c8babb8e2f8a48eb9f6cfaeac714d741"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/publication_ppa.py",
+          "sha256": "290f51c00f09bccddc30a914d9c48e28acd3827d0e13a42fe76c5c722e805940"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/vivado_power.py",
+          "sha256": "5e06d533e0744e5fcbb2f3be90ae028f304278c9c5f455c8717718331e0c4ad8"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/weighted_energy.py",
+          "sha256": "7d3b23f24cbd3fcf5d14f26ffa9c55c831249a7261967d40a69605dc6f7c6504"
+        },
+        {
+          "path": "spine_cycle_sim/evidence/workload_energy.py",
+          "sha256": "11b49691f490c2a29f85f29744ae11b457feae25ec72f9bd6bb372e1f08c4c59"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/__init__.py",
+          "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/candidate10_workloads.py",
+          "sha256": "484b1900c92e3b0d2368ab286dc8d7b0fad2f95f2527764081a232935690d006"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/comparison.py",
+          "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/comparison_analysis.py",
+          "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/connected_components_workloads.py",
+          "sha256": "8c0709569dfb814eb33e128ab24debf7ccd7ddf96445dee7ad5a523ffbbf3c8e"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/deltahls_workloads.py",
+          "sha256": "dea5c5d23cd9941f0cbcc3ed841d767ab500872cd9448655acf90b7d25a2085c"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/dense_batch_sweep.py",
+          "sha256": "e8ccd3e98d3bcef694591b0b907558218c2e9ee4d06f604556e03329a560cea5"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/feasibility.py",
+          "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/grasu_addressing.py",
+          "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/grasu_native_validation.py",
+          "sha256": "bca40ed6ec79268e0a5b45abb8d7c2cc2992fd2811e5f5338ae40fffe32e6f7d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+          "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_real_comparison.py",
+          "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/hls_weighted_workloads.py",
+          "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/host_memory.py",
+          "sha256": "539d34c67346d03cfba8b0f0741424d6412b9571653923cbf2d6064b64d7286d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_graph_campaign.py",
+          "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_real_pagerank.py",
+          "sha256": "f94a514734231a59d908a152b70172ce764a012c1a6e1ace4a53886749e09529"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/large_reciprocal_workloads.py",
+          "sha256": "1da6eadeffaf2d027ce3ca1bceaf01ff8e50bf8a7cb79a9f809eae2e2fa44e96"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/memory_traffic.py",
+          "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/mixed_path_analysis.py",
+          "sha256": "88f66470a39d7f0a18b58d1e30f1a2f40e347aff1d4e63a7963838da90ace243"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/persistent_update_only.py",
+          "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/plugin_equivalence.py",
+          "sha256": "152aa80ff649a893f505794f42021a927ca95f384e8dbfff8b6fec898fcbfe54"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/profile_capabilities.py",
+          "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_analysis.py",
+          "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_cases.py",
+          "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_match.py",
+          "sha256": "f52433e022855532f134deb87ba7847479c54bbec55805e813a4695df716a960"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/publication_workloads.py",
+          "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_memory_analysis.py",
+          "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_small_batch_analysis.py",
+          "sha256": "7161ef461195b36e34a9aa20d74dcf4d4bf944389bc07295498409c80ba7b24f"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/real_small_batches.py",
+          "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/refactor_equivalence.py",
+          "sha256": "6834e84a44b6c5127ab7262460d9dd5c12fad14756535887e3851e5fd0e15aa9"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/regraph_contracts.py",
+          "sha256": "f862d9504496d8fc197ac7cd623dd8eace7665ab23567e7c8b57de4c0bf4ce39"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/rq3.py",
+          "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/shared_workloads.py",
+          "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_dense_analysis.py",
+          "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_real_analysis.py",
+          "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_real_batches.py",
+          "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+          "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3"
+        },
+        {
+          "path": "spine_cycle_sim/models/__init__.py",
+          "sha256": "cf74d66882e89c105e5cd299c11302fc4523c6471be435e5b41e71d4376ef886"
+        },
+        {
+          "path": "spine_cycle_sim/models/dstage.py",
+          "sha256": "5b8eee8c18f0a0c1550d20ba38a733ab34e43c5fe232c9218e29527bf325b674"
+        },
+        {
+          "path": "spine_cycle_sim/models/spine.py",
+          "sha256": "66e263e421024fb8607e044f6951e3b3ac04e97607312d3d49b46dc08710f02b"
+        },
+        {
+          "path": "spine_cycle_sim/profiles.py",
+          "sha256": "e4f85c162b64d21434e0d26bc43965b8c7a25bab24c36abf8f33411eb0a9dc62"
+        },
+        {
+          "path": "spine_cycle_sim/sst_binding.py",
+          "sha256": "ae12d088a3b6e47f6324a264d4deafc96c023537c6d63a33b3f138535b4f7e39"
+        },
+        {
+          "path": "spine_cycle_sim/sst_library.py",
+          "sha256": "06af07b611fecaf97265a1759ae13328b57e8086fc5af90840680bc31a96d620"
+        },
+        {
+          "path": "spine_cycle_sim/stats/__init__.py",
+          "sha256": "d885d50577ed68f24d8841e8b1fbcf3c819266458c5d1084f9105b48099d83b7"
+        },
+        {
+          "path": "spine_cycle_sim/stats/io.py",
+          "sha256": "3d27b04add90b1357a9815d2a67f14d28c1608d45f55a73eb8ec7e87601fc311"
+        },
+        {
+          "path": "spine_cycle_sim/workloads/__init__.py",
+          "sha256": "4917c7f774ea79ad03e1069ca4589bfcea153b3b4f168ff17b5e304a2e83cdb6"
+        },
+        {
+          "path": "spine_cycle_sim/workloads/generators.py",
+          "sha256": "5bf1a7b5a8a8a79ecf457c3645b0ff236f23e69e4c67519d7aefba7b87474df5"
+        },
+        {
+          "path": "sst/grasu_regraph_vertical.py",
+          "sha256": "f1455f62b4072b6dfeeb33c4d3ee642072e8fe42266c725c907ad081e8e3a936"
+        },
+        {
+          "path": "sst/online_memory_probe.py",
+          "sha256": "2de7d64751dc1e636c57c12d9f0d43c465cadec579d401642ce1f7cdc1b2cd68"
+        },
+        {
+          "path": "sst/spine_vertical_slice.py",
+          "sha256": "068ff8593f063d302561dc2ef26705ff9fb61b0839fbfe153bd1305c491cd569"
+        },
+        {
+          "path": "tests/data/carry_hot_batch.slice",
+          "sha256": "a3ff9e925f73c418f2ffe0dbf78c3c256f22f7926ff78d5d39d2d24bad2d4b13"
+        },
+        {
+          "path": "tests/data/carry_hot_preload.slice",
+          "sha256": "1bc406fc26a57111e956411a23157b1a28e2b010706ca1b9587b6f9275464450"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_initial.slice",
+          "sha256": "c1348afd4f74dee02138feb393cd5dd99f8c0f42ae8f565f5b70975e356f35f0"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_insert.slice",
+          "sha256": "5f4c413c2c382bb9807a58d41578779dabbab97a16ecc6f557bc9d3bcb24f9a6"
+        },
+        {
+          "path": "tests/data/connected_components_formal/cc_zero_net_base.slice",
+          "sha256": "0773e0c88f1e018326d33d29059e76cd9ec3d66177e068f8dc7c233230690b58"
+        },
+        {
+          "path": "tests/data/connected_components_formal/cc_zero_net_delete_then_reinsert_u2.slice",
+          "sha256": "5e0001cd0b77771f3f65ce11e0149a433ec6a377f4850c3cc5e5333521dd449e"
+        },
+        {
+          "path": "tests/data/dynamic_delete_update.slice",
+          "sha256": "e8a80073d67211332959350d598edf3ab09d9f58d032edbabed9c4b0740c6f4d"
+        },
+        {
+          "path": "tests/data/dynamic_nonmonotonic_initial.slice",
+          "sha256": "fad6d7e5342e30d5f9a0813ed5cd41937070e3bff8c2e4dc1145d4e598bd41e5"
+        },
+        {
+          "path": "tests/data/dynamic_shortcut_initial.slice",
+          "sha256": "341352c73f4f80cf6f7424e34325d6f4811d3d59195d79d3ecbb15083a8834bc"
+        },
+        {
+          "path": "tests/data/dynamic_shortcut_update.slice",
+          "sha256": "817771e6a854abd9671fa7a3ce12ef33257e57d82b52d56afe1b15128b10e964"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_initial.slice",
+          "sha256": "8107f04145e1c42dca0a00771e79de6176be95c66af3f834eac272c964062621"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_update.slice",
+          "sha256": "4d9a3afe66864c3b291dfb322ab302067ff37a38811efc9e85e3695ca6204176"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+          "sha256": "38f8cdd79a9fe32571512ee5c4a706200260e48a70428130bbe52906b23f3a96"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+          "sha256": "a0c3eb0114f3dcc4693d20253741deace7ed5a832a00566033e3d9ae1d16df60"
+        },
+        {
+          "path": "tests/data/pagerank_four_vertex.slice",
+          "sha256": "f1462b615250c578a78d7858466fc8f292f9f2c61bc4e222553396d24696108b"
+        }
+      ],
+      "relevant_dirty_diff": "diff --git a/cpp/CMakeLists.txt b/cpp/CMakeLists.txt\nindex a9c0f30..7a49285 100644\n--- a/cpp/CMakeLists.txt\n+++ b/cpp/CMakeLists.txt\n@@ -15,6 +15,7 @@ add_library(spine_cycle_core STATIC\n   src/spine_owner.cpp\n   src/spine_pagerank.cpp\n   src/spine_split.cpp\n+  src/spine_sssp_compute.cpp\n   src/spine_system.cpp\n   src/spine_vertex_lifecycle.cpp\n )\n@@ -31,6 +32,13 @@ target_compile_options(persistent_update_host_benchmark PRIVATE\n   -Wall -Wextra -Wpedantic -Werror)\n \n if(BUILD_TESTING)\n+  add_executable(sst_hbm_mapper_tests\n+    tests/sst_hbm_mapper_tests.cpp sst/physical_hbm_mapper.cpp)\n+  target_include_directories(sst_hbm_mapper_tests PRIVATE sst)\n+  target_compile_features(sst_hbm_mapper_tests PRIVATE cxx_std_20)\n+  target_compile_options(sst_hbm_mapper_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)\n+  add_test(NAME sst_hbm_mapper_tests COMMAND sst_hbm_mapper_tests)\n+\n   add_executable(spine_cycle_core_tests tests/core_tests.cpp)\n   target_link_libraries(spine_cycle_core_tests PRIVATE spine_cycle_core)\n   target_compile_definitions(\ndiff --git a/cpp/src/spine_split.cpp b/cpp/src/spine_split.cpp\nindex 4cacb77..415ce8b 100644\n--- a/cpp/src/spine_split.cpp\n+++ b/cpp/src/spine_split.cpp\n@@ -1,7 +1,5 @@\n #include \"spine_sim/spine_split.hpp\"\n \n-#include \"spine_sim/spine_owner.hpp\"\n-\n #include <algorithm>\n #include <bit>\n #include <limits>\n@@ -10,33 +8,26 @@\n #include <unordered_set>\n #include <utility>\n \n+#include \"detail/spine_split_payload.hpp\"\n+\n namespace spine::sim {\n \n namespace {\n \n-constexpr std::uint64_t kOwnerWordBytes = sizeof(std::uint64_t);\n-constexpr std::uint64_t kOwnerBitmapWords = 16'777'216ULL / 64ULL;\n-constexpr std::uint64_t kOwnerControlBase = 5ULL * kOwnerBitmapWords;\n-\n-constexpr std::uint64_t owner_region_address(std::uint64_t region,\n-                                             std::uint64_t word) {\n-  return (region * kOwnerBitmapWords + word) * kOwnerWordBytes;\n-}\n-\n-constexpr std::uint64_t owner_control_address(std::uint64_t field) {\n-  return (kOwnerControlBase + field) * kOwnerWordBytes;\n-}\n+using detail::split_payload::kActiveOutputBytes;\n+using detail::split_payload::kTileVertices;\n+using detail::split_payload::kActiveWordBits;\n+using detail::split_payload::kRangeTaskPathFallback;\n+using detail::split_payload::encode_u32;\n+using detail::split_payload::encode_u64;\n+using detail::split_payload::decode_u32;\n+using detail::split_payload::decode_u64;\n+using detail::split_payload::encode_u32_words;\n \n constexpr std::uint64_t kActiveRecordBytes = 32;\n constexpr std::uint64_t kMetadataWordBytes = 8;\n-constexpr std::uint64_t kVertexWordBytes = 4;\n-constexpr std::uint64_t kActiveOutputBytes = 8;\n-constexpr std::uint64_t kResultBytes = 96 * 4;\n constexpr std::uint64_t kDirtyResultOffset = 80 * 4;\n constexpr std::size_t kDirtyResultWords = 16;\n-constexpr std::uint32_t kTileVertices = 65'536;\n-constexpr std::size_t kActiveWordBits = 64;\n-constexpr std::size_t kTileActiveWords = kTileVertices / kActiveWordBits;\n constexpr std::uint64_t kMetadataWordsPerSlice = 8;\n constexpr std::uint64_t kLevelCount = 11;\n constexpr std::uint64_t kPartitionCount = 16;\n@@ -44,9 +35,7 @@ constexpr std::size_t kRangeTaskMaxTiles = 256;\n constexpr std::size_t kFallbackTilesPerPartition = 16;\n constexpr std::uint64_t kRangeTaskMaxStart = std::uint64_t{1} << 26;\n constexpr std::uint32_t kRangeTaskMaxLength = std::uint32_t{1} << 24;\n-\n constexpr std::uint32_t kRangeTaskPathExact = 1;\n-constexpr std::uint32_t kRangeTaskPathFallback = 2;\n constexpr std::uint32_t kRangeTaskPathError = 3;\n constexpr std::uint32_t kRangeTaskFallbackActiveGate = 1;\n constexpr std::uint32_t kRangeTaskFallbackCapacity = 2;\n@@ -61,57 +50,6 @@ constexpr std::uint32_t kRangeTaskErrorDescriptor = 6;\n constexpr std::uint32_t kRangeTaskErrorProtocol = 7;\n constexpr std::uint32_t kRangeTaskErrorDirtyState = 8;\n \n-std::vector<std::uint8_t> encode_u32(std::uint32_t value) {\n-  return {\n-      static_cast<std::uint8_t>(value & 0xffU),\n-      static_cast<std::uint8_t>((value >> 8) & 0xffU),\n-      static_cast<std::uint8_t>((value >> 16) & 0xffU),\n-      static_cast<std::uint8_t>((value >> 24) & 0xffU),\n-  };\n-}\n-\n-std::vector<std::uint8_t> encode_u64(std::uint64_t value) {\n-  std::vector<std::uint8_t> data(sizeof(value));\n-  for (std::size_t byte = 0; byte < sizeof(value); ++byte) {\n-    data[byte] = static_cast<std::uint8_t>((value >> (byte * 8)) & 0xffU);\n-  }\n-  return data;\n-}\n-\n-std::uint32_t decode_u32(const std::vector<std::uint8_t> &data,\n-                         std::size_t offset = 0) {\n-  if (offset + sizeof(std::uint32_t) > data.size()) {\n-    throw std::invalid_argument(\"uint32 payload is truncated\");\n-  }\n-  return static_cast<std::uint32_t>(data[offset]) |\n-         (static_cast<std::uint32_t>(data[offset + 1]) << 8) |\n-         (static_cast<std::uint32_t>(data[offset + 2]) << 16) |\n-         (static_cast<std::uint32_t>(data[offset + 3]) << 24);\n-}\n-\n-std::uint64_t decode_u64(const std::vector<std::uint8_t> &data,\n-                         std::size_t offset = 0) {\n-  if (offset + sizeof(std::uint64_t) > data.size()) {\n-    throw std::invalid_argument(\"uint64 payload is truncated\");\n-  }\n-  std::uint64_t value = 0;\n-  for (std::size_t byte = 0; byte < sizeof(std::uint64_t); ++byte) {\n-    value |= static_cast<std::uint64_t>(data[offset + byte]) << (byte * 8);\n-  }\n-  return value;\n-}\n-\n-std::vector<std::uint8_t> encode_u32_words(\n-    const std::vector<std::uint32_t> &values) {\n-  std::vector<std::uint8_t> data(values.size() * sizeof(std::uint32_t));\n-  for (std::size_t index = 0; index < values.size(); ++index) {\n-    const std::vector<std::uint8_t> word = encode_u32(values[index]);\n-    std::copy(word.begin(), word.end(),\n-              data.begin() + static_cast<std::ptrdiff_t>(index * word.size()));\n-  }\n-  return data;\n-}\n-\n }  // namespace\n \n SpineSplitReader::SpineSplitReader(std::string name, ClockId clock_id,\n@@ -3925,1990 +3863,4 @@ void SpineSplitReader::advance(const CycleContext &context) {\n   }\n }\n \n-SpineSplitSsspCompute::SpineSplitSsspCompute(\n-    std::string name, ClockId clock_id, std::size_t vertices,\n-    std::uint32_t source, std::size_t tiny_threshold, SpineComputePorts ports,\n-    Fifo<PartConvWord> &edge_in, Fifo<SourceValueWord> &value_out,\n-    std::size_t memory_request_window, std::size_t writeonly_request_window,\n-    SpineOnChipMemoryProfile on_chip_profile,\n-    std::shared_ptr<const GraphAlgorithmPolicy> algorithm_policy,\n-    std::optional<AlgorithmInitialState> initial_state,\n-    SpineOwnerScheduler *owner_scheduler)\n-    : Component(std::move(name), clock_id),\n-      vertices_(vertices),\n-      source_(source),\n-      algorithm_policy_(\n-          algorithm_policy != nullptr\n-              ? std::move(algorithm_policy)\n-              : std::make_shared<const GraphAlgorithmPolicy>(\n-                    AlgorithmPolicyConfig{\n-                        .kind = GraphAlgorithmKind::kWeightedSssp,\n-                        .vertices = vertices,\n-                        .source = source,\n-                    })),\n-      tiny_threshold_(tiny_threshold),\n-      memory_request_window_(memory_request_window),\n-      writeonly_request_window_(writeonly_request_window),\n-      on_chip_profile_(on_chip_profile),\n-      ports_(ports),\n-      edge_in_(edge_in),\n-      value_out_(value_out),\n-      owner_scheduler_(owner_scheduler),\n-      values_(vertices) {\n-  if (vertices_ == 0 || source_ >= vertices_ || tiny_threshold_ == 0 ||\n-      memory_request_window_ == 0 || writeonly_request_window_ == 0 ||\n-      on_chip_profile_.tiny_bram_read_latency == 0 ||\n-      on_chip_profile_.vs_uram_read_latency == 0 ||\n-      on_chip_profile_.active_bram_read_latency == 0 ||\n-      on_chip_profile_.pipeline_capacity == 0 ||\n-      on_chip_profile_.vs_bypass_depth == 0 ||\n-      ports_.vertex_state == nullptr || ports_.active_out == nullptr ||\n-      ports_.active_bitmap == nullptr || ports_.result == nullptr ||\n-      edge_in_.clock_id() != clock_id || value_out_.clock_id() != clock_id) {\n-      throw std::invalid_argument(\"invalid Spine split compute configuration\");\n-  }\n-  if ((algorithm_policy_->config().kind !=\n-           GraphAlgorithmKind::kWeightedSssp &&\n-       algorithm_policy_->config().kind !=\n-           GraphAlgorithmKind::kConnectedComponents) ||\n-      algorithm_policy_->config().vertices != vertices_ ||\n-      algorithm_policy_->config().source != source_) {\n-    throw std::invalid_argument(\n-        \"timed Spine split compute requires a matching SSSP or CC policy\");\n-  }\n-  if (initial_state.has_value()) {\n-    std::unordered_set<std::uint32_t> active;\n-    active.insert(initial_state->active_vertices.begin(),\n-                  initial_state->active_vertices.end());\n-    if (initial_state->primary.size() != vertices_ ||\n-        !initial_state->auxiliary.empty() ||\n-        active.size() != initial_state->active_vertices.size() ||\n-        std::any_of(active.begin(), active.end(), [this](std::uint32_t vertex) {\n-          return vertex >= vertices_;\n-        })) {\n-      throw std::invalid_argument(\"invalid Spine tiled algorithm warm state\");\n-    }\n-    values_ = std::move(initial_state->primary);\n-  } else {\n-    for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {\n-      values_[vertex] =\n-          algorithm_policy_->initial_state(static_cast<std::uint32_t>(vertex))\n-              .primary;\n-    }\n-  }\n-  std::vector<std::uint8_t> vertex_payload(vertices_ * kVertexWordBytes);\n-  for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {\n-    const std::vector<std::uint8_t> encoded = encode_u32(values_[vertex]);\n-    std::copy(encoded.begin(), encoded.end(),\n-              vertex_payload.begin() +\n-                  static_cast<std::ptrdiff_t>(vertex * kVertexWordBytes));\n-  }\n-  ports_.vertex_state->initialize_payload(0, vertex_payload);\n-  owner_seed_epoch_ =\n-      owner_scheduler_ != nullptr && owner_scheduler_->work_credits() == 0;\n-}\n-\n-bool SpineSplitSsspCompute::recoverable_host_handoff() const noexcept {\n-  return done_ && failed_ && counters_.done_overflow &&\n-         counters_.range_task_path == kRangeTaskPathFallback &&\n-         counters_.range_task_fallback_reason != 0 &&\n-         counters_.range_task_error == 0 &&\n-         counters_.source_protocol_status ==\n-             static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk) &&\n-         !tile_open_ && memory_tasks_.empty() &&\n-         inflight_memory_tasks_.empty() && on_chip_pipelines_drained() &&\n-         !source_reply_pending_;\n-}\n-\n-void SpineSplitSsspCompute::reset_after_host_handoff() {\n-  if (!recoverable_host_handoff()) {\n-    throw std::logic_error(\n-        \"compute host handoff reset requires REQUIRES_HOST completion\");\n-  }\n-  failed_ = false;\n-  reset_round();\n-}\n-\n-void SpineSplitSsspCompute::reset_round() {\n-  if (!done_ || failed_ || !memory_tasks_.empty() ||\n-      !inflight_memory_tasks_.empty() || !on_chip_pipelines_drained() ||\n-      source_reply_pending_) {\n-    throw std::logic_error(\"compute round reset requires a successful drain\");\n-  }\n-  counters_ = {};\n-  next_active_.clear();\n-  reset_tile();\n-  phase_ = Phase::kInput;\n-  staged_action_ = Action::kNone;\n-  pending_source_ = 0;\n-  pending_source_value_ = kInfinity;\n-  pending_value_kind_ = SourceValueWord::Kind::kSourceValue;\n-  source_count_seen_ = false;\n-  source_generation_seen_ = false;\n-  source_protocol_overflow_ = false;\n-  owner_protocol_kind_ = OwnerProtocolKind::kNone;\n-  owner_protocol_return_phase_ = Phase::kInput;\n-  owner_protocol_index_ = 0;\n-  owner_protocol_subject_ = 0;\n-  owner_protocol_request_pending_ = false;\n-  owner_seed_epoch_ =\n-      owner_scheduler_ != nullptr && owner_scheduler_->work_credits() == 0;\n-  owner_round_started_ = false;\n-  deferred_active_ = false;\n-  deferred_active_word_index_ = 0;\n-  deferred_bitmap_chunk_.fill(0);\n-  deferred_sweep_base_word_ = 0;\n-  deferred_sweep_chunk_words_ = 0;\n-  deferred_sweep_word_index_ = 0;\n-  deferred_sweep_bit_index_ = 0;\n-  deferred_sweep_reads_pending_ = 0;\n-  deferred_sweep_scan_bits_ = 0;\n-  deferred_sweep_next_issue_cycle_ = 0;\n-  deferred_sweep_next_bit_cycle_ = 0;\n-  active_word_index_ = 0;\n-  active_bit_index_ = 0;\n-  active_output_base_ = 0;\n-  active_output_index_ = 0;\n-  active_scan_bits_ = 0;\n-  active_read_due_cycle_ = 0;\n-  last_on_chip_read_wait_cycle_ = ~std::uint64_t{0};\n-  last_on_chip_pipeline_stall_cycle_ = ~std::uint64_t{0};\n-  active_read_pending_ = false;\n-  active_read_ready_ = false;\n-  pending_tiny_reads_.clear();\n-  pending_vs_reads_.clear();\n-  reset_bypass();\n-  after_clear_phase_ = Phase::kRelax;\n-  done_ = false;\n-}\n-\n-void SpineSplitSsspCompute::reset_for_full_recompute() {\n-  reset_round();\n-  for (std::size_t vertex = 0; vertex < vertices_; ++vertex) {\n-    values_[vertex] =\n-        algorithm_policy_->initial_state(static_cast<std::uint32_t>(vertex))\n-            .primary;\n-  }\n-  std::vector<std::uint8_t> payload(vertices_ * kVertexWordBytes, 0xffU);\n-  const std::vector<std::uint8_t> source_value = encode_u32(values_[source_]);\n-  std::copy(source_value.begin(), source_value.end(),\n-            payload.begin() + static_cast<std::ptrdiff_t>(\n-                                  source_ * kVertexWordBytes));\n-  const std::size_t payload_bytes = payload.size();\n-  enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite, 0,\n-                 payload_bytes, std::move(payload));\n-  enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite, 0, 8,\n-                 std::vector<std::uint8_t>(8, 0));\n-  counters_.full_recompute_reset_words = vertices_;\n-  counters_.full_recompute_reset_write_bytes = vertices_ * kVertexWordBytes;\n-  phase_ = Phase::kReinitialize;\n-}\n-\n-void SpineSplitSsspCompute::evaluate(const CycleContext &context) {\n-  staged_action_ = Action::kNone;\n-  staged_memory_issue_ = false;\n-  staged_full_tile_read_beat_valid_ = false;\n-  staged_owner_activation_ = false;\n-  staged_owner_publication_ = false;\n-  staged_owner_dispatch_ = false;\n-  staged_owner_completion_ = false;\n-  staged_responses_.clear();\n-  if (done_ || failed_) {\n-    return;\n-  }\n-  if (phase_ == Phase::kReinitialize) {\n-    if (counters_.full_recompute_reset_cycles == 0) {\n-      counters_.start_cycle = context.domain_cycle;\n-    }\n-    ++counters_.full_recompute_reset_cycles;\n-  }\n-  if (phase_ == Phase::kDeferredActiveClear) {\n-    ++counters_.deferred_active_clear_cycles;\n-  }\n-  if (phase_ == Phase::kDeferredMergeScan ||\n-      phase_ == Phase::kDeferredMergeWait) {\n-    ++counters_.deferred_active_merge_cycles;\n-  }\n-  if (phase_ == Phase::kDeferredSweepRead) {\n-    ++counters_.deferred_active_sweep_read_cycles;\n-  }\n-  if (phase_ == Phase::kDeferredSweepBits) {\n-    ++counters_.deferred_active_sweep_bit_cycles;\n-  }\n-  if (phase_ == Phase::kDeferredFinalClear) {\n-    ++counters_.deferred_active_final_clear_cycles;\n-  }\n-  staged_full_tile_read_beat_valid_ = stage_full_tile_read_beat();\n-  const bool staged_memory_completion = stage_memory_completions();\n-  const std::size_t active_ports = active_memory_ports();\n-  if (active_ports > 1) {\n-    ++counters_.memory_cross_port_overlap_cycles;\n-  }\n-  if (std::any_of(staged_responses_.begin(), staged_responses_.end(),\n-                  [](const AxiResponse &response) {\n-                    return !response.success;\n-                  })) {\n-    return;\n-  }\n-  bool memory_issue_blocked = false;\n-  if (!memory_tasks_.empty()) {\n-    const MemoryTask &task = memory_tasks_.front();\n-    std::size_t inflight_on_port =\n-        inflight_memory_tasks_for_port(task.port);\n-    const bool same_port_completion =\n-        std::any_of(staged_responses_.begin(), staged_responses_.end(),\n-                    [&](const AxiResponse &response) {\n-                      const auto completing = inflight_memory_tasks_.find(\n-                          response.transaction_id);\n-                      return completing != inflight_memory_tasks_.end() &&\n-                             completing->second.port == task.port;\n-                    });\n-    if (same_port_completion) {\n-      --inflight_on_port;\n-    }\n-    if (inflight_on_port >= memory_request_window_for(task.port)) {\n-      ++counters_.memory_window_stall_cycles;\n-      memory_issue_blocked = true;\n-    } else if (memory_task_conflicts(task)) {\n-      ++counters_.memory_dependency_stall_cycles;\n-      memory_issue_blocked = true;\n-    } else if (task.port->requests().try_push(AxiRequest{\n-                   .transaction_id = next_transaction_id_,\n-                   .operation = task.operation,\n-                   .address = task.address,\n-                   .bytes = task.bytes,\n-                   .stream_read_beats = task.stream_read_beats,\n-                   .write_data = task.write_data,\n-               })) {\n-      staged_memory_issue_ = true;\n-    } else {\n-      ++counters_.memory_request_fifo_stall_cycles;\n-      memory_issue_blocked = true;\n-    }\n-  }\n-  const bool memory_active = !memory_tasks_.empty() ||\n-                             !inflight_memory_tasks_.empty() ||\n-                             staged_memory_completion;\n-  const bool cross_tile_write_overlap =\n-      (phase_ == Phase::kInput || phase_ == Phase::kClearTileActive) &&\n-      memory_active && memory_work_is_write_only();\n-  if (cross_tile_write_overlap) {\n-    ++counters_.cross_tile_write_overlap_cycles;\n-    counters_.max_cross_tile_writes_inflight =\n-        std::max(counters_.max_cross_tile_writes_inflight,\n-                 inflight_memory_tasks_.size());\n-  }\n-  if (phase_ == Phase::kFullLoad && memory_active &&\n-      !staged_full_tile_read_beat_valid_) {\n-    ++counters_.full_tile_read_wait_cycles;\n-  }\n-  if (controller_memory_overlap_phase() || cross_tile_write_overlap) {\n-    if (memory_issue_blocked && !cross_tile_write_overlap) {\n-      ++counters_.controller_memory_stall_cycles;\n-      return;\n-    }\n-    if (memory_active) {\n-      ++counters_.controller_memory_overlap_cycles;\n-    }\n-  } else if (memory_active) {\n-    return;\n-  }\n-  if (owner_scheduler_ != nullptr && !pending_vs_reads_.empty()) {\n-    const PendingVsRead &request = pending_vs_reads_.front();\n-    const bool memory_slot_available =\n-        memory_tasks_.empty() ||\n-        (memory_tasks_.size() == 1 && staged_memory_issue_);\n-    if (request.purpose == VsReadPurpose::kActiveEmit &&\n-        request.due_cycle <= context.domain_cycle && memory_slot_available) {\n-      ++counters_.owner_activation_attempts;\n-      staged_owner_activation_ = owner_scheduler_->try_activate(request.vertex);\n-      if (!staged_owner_activation_) {\n-        ++counters_.owner_activation_backpressure_cycles;\n-        return;\n-      }\n-      staged_owner_publication_ =\n-          owner_scheduler_->activation_will_publish(request.vertex);\n-    }\n-  }\n-  if (phase_ == Phase::kOwnerProtocol &&\n-      owner_protocol_index_ == owner_protocol_length() &&\n-      !owner_protocol_request_pending_) {\n-    if (owner_protocol_kind_ == OwnerProtocolKind::kDispatchSource) {\n-      staged_owner_dispatch_ =\n-          owner_scheduler_ != nullptr &&\n-          owner_scheduler_->try_dispatch_source(owner_protocol_subject_,\n-                                                owner_seed_epoch_);\n-      if (!staged_owner_dispatch_) {\n-        ++counters_.owner_activation_backpressure_cycles;\n-        return;\n-      }\n-    } else if (owner_protocol_kind_ == OwnerProtocolKind::kCompleteSource) {\n-      staged_owner_completion_ =\n-          owner_scheduler_ != nullptr &&\n-          owner_scheduler_->try_complete(owner_protocol_subject_);\n-      if (!staged_owner_completion_) {\n-        ++counters_.owner_activation_backpressure_cycles;\n-        return;\n-      }\n-    }\n-  }\n-  if (source_reply_pending_) {\n-    staged_value_word_ = SourceValueWord{.kind = pending_value_kind_,\n-                                         .source = pending_source_,\n-                                         .value = pending_source_value_};\n-    if (value_out_.try_push(staged_value_word_)) {\n-      staged_action_ = Action::kPushValue;\n-    }\n-    return;\n-  }\n-  if (phase_ == Phase::kInput) {\n-    const PartConvWord *next = edge_in_.front();\n-    if (next != nullptr && next->kind == PartConvWordKind::kEdge &&\n-        full_path_ &&\n-        pending_vs_reads_.size() >= on_chip_profile_.pipeline_capacity) {\n-      count_on_chip_pipeline_stall(context.domain_cycle);\n-      return;\n-    }\n-    if (edge_in_.try_pop(staged_edge_word_)) {\n-      staged_action_ = Action::kPopEdge;\n-    }\n-    return;\n-  }\n-  staged_action_ = Action::kAdvance;\n-}\n-\n-void SpineSplitSsspCompute::commit(const CycleContext &context) {\n-  if (staged_full_tile_read_beat_valid_) {\n-    consume_full_tile_read_beat(staged_full_tile_read_beat_);\n-    if (failed_) {\n-      done_ = true;\n-      return;\n-    }\n-  }\n-  for (const AxiResponse &response : staged_responses_) {\n-    const auto found = inflight_memory_tasks_.find(response.transaction_id);\n-    if (found == inflight_memory_tasks_.end() || !response.success) {\n-      failed_ = true;\n-      done_ = true;\n-      return;\n-    }\n-    consume_memory_response(found->second, response);\n-    inflight_memory_tasks_.erase(found);\n-    ++counters_.memory_requests_completed;\n-  }\n-  if (staged_memory_issue_) {\n-    const std::uint64_t transaction_id = next_transaction_id_++;\n-    inflight_memory_tasks_.emplace(transaction_id,\n-                                   std::move(memory_tasks_.front()));\n-    memory_tasks_.pop_front();\n-    ++counters_.memory_requests_issued;\n-    counters_.max_memory_requests_inflight = std::max(\n-        counters_.max_memory_requests_inflight, inflight_memory_tasks_.size());\n-    counters_.max_vertex_requests_inflight = std::max(\n-        counters_.max_vertex_requests_inflight,\n-        inflight_memory_tasks_for_port(ports_.vertex_state));\n-    counters_.max_active_out_requests_inflight = std::max(\n-        counters_.max_active_out_requests_inflight,\n-        inflight_memory_tasks_for_port(ports_.active_out));\n-    counters_.max_active_memory_ports =\n-        std::max(counters_.max_active_memory_ports, active_memory_ports());\n-  }\n-  advance_on_chip_pipelines(context);\n-  if (failed_) {\n-    done_ = true;\n-    return;\n-  }\n-  switch (staged_action_) {\n-    case Action::kNone:\n-      return;\n-    case Action::kPopEdge:\n-      if (counters_.source_requests == 0 && counters_.start_cycle == 0) {\n-        counters_.start_cycle = context.domain_cycle;\n-      }\n-      handle_edge_word(staged_edge_word_, context);\n-      return;\n-    case Action::kPushValue:\n-      source_reply_pending_ = false;\n-      if (pending_value_kind_ == SourceValueWord::Kind::kProtocolAck) {\n-        ++counters_.source_protocol_acks;\n-      } else {\n-        ++counters_.source_responses;\n-      }\n-      pending_value_kind_ = SourceValueWord::Kind::kSourceValue;\n-      phase_ = Phase::kInput;\n-      return;\n-    case Action::kAdvance:\n-      advance(context);\n-      return;\n-  }\n-}\n-\n-void SpineSplitSsspCompute::enqueue_memory(\n-    FixedAxiPort &port, MemoryOperation operation, std::uint64_t address,\n-    std::uint64_t bytes, std::vector<std::uint8_t> write_data,\n-    MemoryPayloadKind payload_kind, std::size_t item_index,\n-    std::uint64_t payload_value,\n-    bool stream_read_beats) {\n-  if ((operation == MemoryOperation::kRead && !write_data.empty()) ||\n-      (operation == MemoryOperation::kWrite && write_data.size() != bytes)) {\n-    throw std::invalid_argument(\"invalid Spine compute memory payload\");\n-  }\n-  const std::size_t payload_bytes = write_data.size();\n-  memory_tasks_.push_back(MemoryTask{\n-      .port = &port,\n-      .operation = operation,\n-      .address = address,\n-      .bytes = bytes,\n-      .write_data = std::move(write_data),\n-      .payload_kind = payload_kind,\n-      .item_index = item_index,\n-      .payload_value = payload_value,\n-      .stream_read_beats = stream_read_beats,\n-      .streamed_read_bytes = 0,\n-  });\n-  if (&port == ports_.vertex_state) {\n-    if (operation == MemoryOperation::kRead) {\n-      counters_.vertex_read_bytes += bytes;\n-    } else {\n-      counters_.vertex_write_bytes += bytes;\n-      counters_.vertex_payload_write_bytes += payload_bytes;\n-    }\n-  } else if (&port == ports_.active_out) {\n-    counters_.active_out_write_bytes += bytes;\n-  } else if (&port == ports_.active_bitmap) {\n-    counters_.bitmap_bytes += bytes;\n-  } else if (&port == ports_.result) {\n-    counters_.result_write_bytes += bytes;\n-  }\n-  if (payload_kind == MemoryPayloadKind::kOwnerProtocol) {\n-    ++counters_.owner_hbm_requests_generated;\n-    if (operation == MemoryOperation::kRead) {\n-      ++counters_.owner_hbm_read_requests;\n-      counters_.owner_hbm_read_bytes += bytes;\n-    } else {\n-      ++counters_.owner_hbm_write_requests;\n-      counters_.owner_hbm_write_bytes += bytes;\n-    }\n-  }\n-}\n-\n-bool SpineSplitSsspCompute::memory_task_conflicts(\n-    const MemoryTask &task) const {\n-  const std::uint64_t task_end = task.address + task.bytes;\n-  for (const auto &[transaction_id, inflight] : inflight_memory_tasks_) {\n-    (void)transaction_id;\n-    if (std::any_of(staged_responses_.begin(), staged_responses_.end(),\n-                    [&](const AxiResponse &response) {\n-                      return response.transaction_id == transaction_id;\n-                    })) {\n-      continue;\n-    }\n-    if (task.port != inflight.port ||\n-        (task.operation == MemoryOperation::kRead &&\n-         inflight.operation == MemoryOperation::kRead)) {\n-      continue;\n-    }\n-    const std::uint64_t inflight_end = inflight.address + inflight.bytes;\n-    if (task.address < inflight_end && inflight.address < task_end) {\n-      return true;\n-    }\n-  }\n-  return false;\n-}\n-\n-std::size_t SpineSplitSsspCompute::inflight_memory_tasks_for_port(\n-    const FixedAxiPort *port) const noexcept {\n-  return static_cast<std::size_t>(std::count_if(\n-      inflight_memory_tasks_.begin(), inflight_memory_tasks_.end(),\n-      [port](const auto &entry) { return entry.second.port == port; }));\n-}\n-\n-std::size_t SpineSplitSsspCompute::memory_request_window_for(\n-    const FixedAxiPort *port) const noexcept {\n-  return port == ports_.active_out || port == ports_.result\n-             ? writeonly_request_window_\n-             : memory_request_window_;\n-}\n-\n-std::size_t SpineSplitSsspCompute::active_memory_ports() const noexcept {\n-  std::size_t ports = 0;\n-  for (auto current = inflight_memory_tasks_.begin();\n-       current != inflight_memory_tasks_.end(); ++current) {\n-    const bool already_seen = std::any_of(\n-        inflight_memory_tasks_.begin(), current, [&](const auto &prior) {\n-          return prior.second.port == current->second.port;\n-        });\n-    ports += already_seen ? 0 : 1;\n-  }\n-  return ports;\n-}\n-\n-bool SpineSplitSsspCompute::memory_work_is_write_only() const noexcept {\n-  return memory_tasks_.empty() && !inflight_memory_tasks_.empty() &&\n-         std::all_of(inflight_memory_tasks_.begin(),\n-                     inflight_memory_tasks_.end(), [](const auto &entry) {\n-                       return entry.second.operation == MemoryOperation::kWrite;\n-                     });\n-}\n-\n-bool SpineSplitSsspCompute::stage_memory_completions() {\n-  struct Candidate {\n-    std::uint64_t transaction_id{};\n-    FixedAxiPort *port{};\n-  };\n-  std::vector<Candidate> candidates;\n-  for (const auto &[transaction_id, task] : inflight_memory_tasks_) {\n-    if (task.stream_read_beats && task.streamed_read_bytes < task.bytes) {\n-      continue;\n-    }\n-    const AxiResponse *response = task.port->responses().front();\n-    if (response != nullptr && response->transaction_id == transaction_id &&\n-        std::none_of(candidates.begin(), candidates.end(),\n-                     [&](const Candidate &candidate) {\n-                       return candidate.port == task.port;\n-                     })) {\n-      candidates.push_back(Candidate{transaction_id, task.port});\n-    }\n-  }\n-  std::sort(candidates.begin(), candidates.end(),\n-            [](const Candidate &left, const Candidate &right) {\n-              return left.transaction_id < right.transaction_id;\n-            });\n-  for (const Candidate &candidate : candidates) {\n-    AxiResponse response;\n-    if (!candidate.port->responses().try_pop(response)) {\n-      throw std::logic_error(\"failed to stage ready compute AXI response\");\n-    }\n-    staged_responses_.push_back(std::move(response));\n-  }\n-  counters_.max_memory_responses_completed_per_cycle =\n-      std::max(counters_.max_memory_responses_completed_per_cycle,\n-               staged_responses_.size());\n-  if (staged_responses_.size() > 1) {\n-    ++counters_.multi_port_response_cycles;\n-  }\n-  return !staged_responses_.empty();\n-}\n-\n-bool SpineSplitSsspCompute::stage_full_tile_read_beat() {\n-  if (!ports_.vertex_state->read_beat_stream_enabled()) {\n-    return false;\n-  }\n-  const AxiReadBeatResponse *beat = ports_.vertex_state->read_beats().front();\n-  if (beat == nullptr) {\n-    return false;\n-  }\n-  const auto found = inflight_memory_tasks_.find(beat->transaction_id);\n-  if (found == inflight_memory_tasks_.end() ||\n-      found->second.port != ports_.vertex_state ||\n-      found->second.operation != MemoryOperation::kRead ||\n-      found->second.payload_kind != MemoryPayloadKind::kFullTile ||\n-      !found->second.stream_read_beats) {\n-    throw std::logic_error(\n-        \"Spine full-tile read beat has no matching streamed request\");\n-  }\n-  return ports_.vertex_state->read_beats().try_pop(\n-      staged_full_tile_read_beat_);\n-}\n-\n-void SpineSplitSsspCompute::consume_full_tile_read_beat(\n-    const AxiReadBeatResponse &beat) {\n-  const auto found = inflight_memory_tasks_.find(beat.transaction_id);\n-  if (found == inflight_memory_tasks_.end()) {\n-    throw std::logic_error(\"Spine consumed an unknown full-tile read beat\");\n-  }\n-  MemoryTask &task = found->second;\n-  const bool shape_valid =\n-      beat.success && beat.parent_offset == task.streamed_read_bytes &&\n-      beat.address == task.address + beat.parent_offset &&\n-      !beat.read_data.empty() &&\n-      beat.read_data.size() % kVertexWordBytes == 0 &&\n-      task.streamed_read_bytes + beat.read_data.size() <= task.bytes;\n-  if (!shape_valid) {\n-    ++counters_.full_tile_stream_error_count;\n-    failed_ = true;\n-    return;\n-  }\n-  const std::size_t first_word = beat.parent_offset / kVertexWordBytes;\n-  const std::size_t words = beat.read_data.size() / kVertexWordBytes;\n-  if (first_word + words > tile_values_.size()) {\n-    ++counters_.full_tile_stream_error_count;\n-    failed_ = true;\n-    return;\n-  }\n-  for (std::size_t word = 0; word < words; ++word) {\n-    const std::uint32_t value =\n-        decode_u32(beat.read_data, word * kVertexWordBytes);\n-    tile_values_[first_word + word] = value;\n-    values_.at(tile_base_ + first_word + word) = value;\n-  }\n-  task.streamed_read_bytes += beat.read_data.size();\n-  ++counters_.full_tile_read_beats;\n-  counters_.full_tile_read_words += words;\n-  counters_.vs_tile_writes += words;\n-  counters_.vs_uram_write_requests += words;\n-  if (beat.last != (task.streamed_read_bytes == task.bytes)) {\n-    ++counters_.full_tile_stream_error_count;\n-    failed_ = true;\n-  }\n-}\n-\n-void SpineSplitSsspCompute::consume_memory_response(\n-    const MemoryTask &task, const AxiResponse &response) {\n-  if (task.payload_kind == MemoryPayloadKind::kOwnerProtocol) {\n-    if (!owner_protocol_request_pending_) {\n-      throw std::logic_error(\n-          \"Spine owner-HBM response has no dependent request\");\n-    }\n-    owner_protocol_request_pending_ = false;\n-    ++counters_.owner_hbm_requests_completed;\n-  }\n-  if (task.operation == MemoryOperation::kWrite) {\n-    if (!response.read_data.empty()) {\n-      throw std::logic_error(\"Spine compute write response carried payload\");\n-    }\n-    return;\n-  }\n-  if (response.read_data.size() != task.bytes) {\n-    throw std::logic_error(\"Spine compute read response payload size mismatch\");\n-  }\n-  if (task.payload_kind == MemoryPayloadKind::kNone) {\n-    return;\n-  }\n-  if (task.payload_kind == MemoryPayloadKind::kOwnerProtocol) {\n-    return;\n-  }\n-  if (task.port == ports_.vertex_state) {\n-    counters_.vertex_payload_read_bytes += response.read_data.size();\n-  }\n-  if (task.payload_kind == MemoryPayloadKind::kSourceValue) {\n-    const AlgorithmSourceResult prepared = algorithm_policy_->prepare_source(\n-        {.primary = decode_u32(response.read_data)}, 0);\n-    pending_source_value_ = prepared.edge_payload;\n-    values_.at(pending_source_) = prepared.state_after.primary;\n-    return;\n-  }\n-  if (task.payload_kind == MemoryPayloadKind::kGatherVertex) {\n-    const std::uint32_t vertex = gather_vertices_.at(task.item_index);\n-    const std::uint32_t value = decode_u32(response.read_data);\n-    gathered_values_[vertex] = value;\n-    values_.at(vertex) = value;\n-    ++counters_.gathered_vertex_words;\n-    ++counters_.vs_tile_writes;\n-    ++counters_.vs_uram_write_requests;\n-    return;\n-  }\n-  if (task.payload_kind == MemoryPayloadKind::kFullTile) {\n-    if (response.read_data.size() != tile_size_ * kVertexWordBytes) {\n-      throw std::logic_error(\"Spine full-tile payload size mismatch\");\n-    }\n-    if (task.stream_read_beats) {\n-      if (task.streamed_read_bytes != task.bytes) {\n-        throw std::logic_error(\n-            \"Spine full-tile parent completed before streamed words\");\n-      }\n-      return;\n-    }\n-    tile_values_.resize(tile_size_);\n-    for (std::size_t index = 0; index < tile_size_; ++index) {\n-      tile_values_[index] =\n-          decode_u32(response.read_data, index * kVertexWordBytes);\n-      values_.at(tile_base_ + index) = tile_values_[index];\n-    }\n-    counters_.vs_tile_writes += kTileVertices;\n-    counters_.vs_uram_write_requests += kTileVertices;\n-    return;\n-  }\n-  if (task.payload_kind == MemoryPayloadKind::kDeferredMergeWord) {\n-    if (task.port != ports_.active_bitmap || task.bytes != sizeof(std::uint64_t)) {\n-      throw std::logic_error(\"invalid deferred bitmap merge response\");\n-    }\n-    const std::uint64_t merged = decode_u64(response.read_data) |\n-                                 task.payload_value;\n-    enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite,\n-                   task.address, sizeof(std::uint64_t), encode_u64(merged));\n-    ++counters_.deferred_active_merge_words;\n-    return;\n-  }\n-  if (task.payload_kind == MemoryPayloadKind::kDeferredSweepWord) {\n-    if (task.port != ports_.active_bitmap ||\n-        task.item_index >= deferred_bitmap_chunk_.size() ||\n-        task.bytes != sizeof(std::uint64_t) ||\n-        deferred_sweep_reads_pending_ == 0) {\n-      throw std::logic_error(\"invalid deferred bitmap sweep response\");\n-    }\n-    deferred_bitmap_chunk_[task.item_index] = decode_u64(response.read_data);\n-    --deferred_sweep_reads_pending_;\n-    return;\n-  }\n-  if (task.payload_kind == MemoryPayloadKind::kDeferredPublishVertex) {\n-    if (task.port != ports_.vertex_state || task.item_index >= vertices_ ||\n-        task.bytes != kVertexWordBytes) {\n-      throw std::logic_error(\"invalid deferred active vertex response\");\n-    }\n-    const std::uint32_t vertex = static_cast<std::uint32_t>(task.item_index);\n-    const std::uint32_t value = decode_u32(response.read_data);\n-    values_.at(vertex) = value;\n-    enqueue_active_output(vertex, value,\n-                          static_cast<std::size_t>(task.payload_value));\n-    return;\n-  }\n-  throw std::logic_error(\"unknown Spine compute memory payload kind\");\n-}\n-\n-void SpineSplitSsspCompute::handle_edge_word(const PartConvWord &word,\n-                                              const CycleContext &context) {\n-  const auto set_protocol_status = [this](SpineSourceProtocolStatus status) {\n-    if (counters_.source_protocol_status ==\n-        static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk)) {\n-      counters_.source_protocol_status = static_cast<std::uint32_t>(status);\n-    }\n-  };\n-  switch (word.kind) {\n-    case PartConvWordKind::kSourceRequest:\n-      ++counters_.source_requests;\n-      pending_value_kind_ = SourceValueWord::Kind::kSourceValue;\n-      pending_source_ = word.first;\n-      if (word.first >= vertices_) {\n-        set_protocol_status(SpineSourceProtocolStatus::kSourceBounds);\n-        pending_source_value_ = kInfinity;\n-        source_reply_pending_ = true;\n-        phase_ = Phase::kSourceReply;\n-        return;\n-      }\n-      if (owner_scheduler_ != nullptr) {\n-        begin_owner_protocol(\n-            owner_round_started_ ? OwnerProtocolKind::kDispatchSource\n-                                 : OwnerProtocolKind::kBeginRound,\n-            pending_source_, Phase::kSourceRead);\n-      } else {\n-        enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,\n-                       pending_source_ * kVertexWordBytes, kVertexWordBytes, {},\n-                       MemoryPayloadKind::kSourceValue);\n-        phase_ = Phase::kSourceRead;\n-      }\n-      return;\n-    case PartConvWordKind::kSourceCount:\n-      ++counters_.source_protocol_markers;\n-      if (source_count_seen_) {\n-        set_protocol_status(SpineSourceProtocolStatus::kMetadataDuplicate);\n-      }\n-      source_count_seen_ = true;\n-      counters_.source_count = word.first;\n-      if (owner_scheduler_ != nullptr && !owner_round_started_) {\n-        begin_owner_protocol(OwnerProtocolKind::kBeginRound, 0,\n-                             Phase::kInput);\n-      } else {\n-        phase_ = Phase::kInput;\n-      }\n-      return;\n-    case PartConvWordKind::kSourceGeneration:\n-      ++counters_.source_protocol_markers;\n-      if (source_generation_seen_) {\n-        set_protocol_status(SpineSourceProtocolStatus::kMetadataDuplicate);\n-      }\n-      source_generation_seen_ = true;\n-      counters_.source_generation = word.first;\n-      phase_ = Phase::kInput;\n-      return;\n-    case PartConvWordKind::kSourceRequestsDone:\n-      ++counters_.source_protocol_markers;\n-      if (!source_count_seen_ || !source_generation_seen_ ||\n-          counters_.source_count != counters_.source_requests) {\n-        set_protocol_status(SpineSourceProtocolStatus::kCount);\n-      }\n-      pending_value_kind_ = SourceValueWord::Kind::kProtocolAck;\n-      pending_source_ = 0;\n-      pending_source_value_ = counters_.source_protocol_status;\n-      source_reply_pending_ = true;\n-      source_protocol_overflow_ =\n-          counters_.source_protocol_status !=\n-          static_cast<std::uint32_t>(SpineSourceProtocolStatus::kOk);\n-      phase_ = Phase::kSourceReply;\n-      return;\n-    case PartConvWordKind::kDeferActiveBegin:\n-      if (deferred_active_ || source_count_seen_ || tile_open_ ||\n-          word.first != 1U) {\n-        source_protocol_overflow_ = true;\n-        failed_ = true;\n-        done_ = true;\n-        return;\n-      }\n-      deferred_active_ = true;\n-      deferred_active_word_index_ = 0;\n-      ++counters_.deferred_active_markers;\n-      phase_ = Phase::kDeferredActiveClear;\n-      return;\n-    case PartConvWordKind::kSourceCompletion:\n-      ++counters_.source_completion_markers;\n-      if (word.first >= vertices_) {\n-        set_protocol_status(SpineSourceProtocolStatus::kSourceBounds);\n-        source_protocol_overflow_ = true;\n-        phase_ = Phase::kInput;\n-      } else if (owner_scheduler_ != nullptr) {\n-        begin_owner_protocol(OwnerProtocolKind::kCompleteSource, word.first,\n-                             Phase::kInput);\n-      } else {\n-        phase_ = Phase::kInput;\n-      }\n-      return;\n-    case PartConvWordKind::kDiagnostic:\n-      ++counters_.diagnostic_words;\n-      switch (static_cast<SpineDiagnosticKind>(word.first)) {\n-        case SpineDiagnosticKind::kTaskStatus:\n-          counters_.range_task_path = word.second & 0xffU;\n-          counters_.range_task_fallback_reason = (word.second >> 8) & 0xffU;\n-          counters_.range_task_error = (word.second >> 16) & 0xffU;\n-          return;\n-        case SpineDiagnosticKind::kTaskCount:\n-          counters_.range_task_count = word.second;\n-          return;\n-        case SpineDiagnosticKind::kTaskRowLookups:\n-          counters_.range_task_row_lookups = word.second;\n-          return;\n-        case SpineDiagnosticKind::kTaskConstructionPayloads:\n-          counters_.range_task_construction_payloads = word.second;\n-          return;\n-        case SpineDiagnosticKind::kTaskReplayPayloads:\n-          counters_.range_task_replay_payloads = word.second;\n-          return;\n-        case SpineDiagnosticKind::kTaskActiveRecords:\n-          counters_.range_task_active_records = word.second;\n-          return;\n-        case SpineDiagnosticKind::kTaskFamilyProbes:\n-          counters_.range_task_family_probes = word.second;\n-          return;\n-        case SpineDiagnosticKind::kTaskFamilySkips:\n-          counters_.range_task_family_skips = word.second;\n-          return;\n-        case SpineDiagnosticKind::kDirtyCount:\n-          counters_.dirty_count = word.second;\n-          return;\n-        case SpineDiagnosticKind::kDirtyGeneration:\n-          counters_.dirty_generation = word.second;\n-          return;\n-      }\n-      source_protocol_overflow_ = true;\n-      return;\n-    case PartConvWordKind::kTileBegin:\n-      if (tile_open_ || word.first >= vertices_) {\n-        failed_ = true;\n-        done_ = true;\n-        return;\n-      }\n-      tile_base_ = word.first;\n-      tile_size_ = std::min<std::size_t>(kTileVertices, vertices_ - tile_base_);\n-      tile_edges_.clear();\n-      gather_vertices_.clear();\n-      gathered_values_.clear();\n-      changed_vertices_.clear();\n-      relax_index_ = 0;\n-      full_path_ = false;\n-      overflow_edge_pending_ = false;\n-      tile_open_ = true;\n-    if (word.second != 0) {\n-      full_path_ = true;\n-      ++counters_.full_path_tiles;\n-      ++counters_.forced_dense_tiles;\n-      counters_.swept_vertex_words += tile_size_;\n-      tile_values_.assign(tile_size_, kInfinity);\n-      enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,\n-                     tile_base_ * kVertexWordBytes,\n-                     tile_size_ * kVertexWordBytes, {},\n-                     MemoryPayloadKind::kFullTile, 0, 0,\n-                     ports_.vertex_state->read_beat_stream_enabled());\n-      phase_ = Phase::kFullLoad;\n-    } else {\n-      phase_ = Phase::kInput;\n-    }\n-      return;\n-    case PartConvWordKind::kEdge:\n-      if (!tile_open_ || word.first < tile_base_ ||\n-          static_cast<std::uint64_t>(word.first) >=\n-              static_cast<std::uint64_t>(tile_base_) + kTileVertices ||\n-          word.first >= vertices_) {\n-        failed_ = true;\n-        done_ = true;\n-        return;\n-      }\n-      if (full_path_) {\n-        issue_vs_read(word, VsReadPurpose::kRelax, context);\n-        ++counters_.full_stream_edges;\n-      } else if (tile_edges_.size() < tiny_threshold_) {\n-        tile_edges_.push_back(word);\n-        ++counters_.tiny_buffer_writes;\n-        ++counters_.tiny_bram_write_requests;\n-      } else {\n-        begin_full_path(word);\n-      }\n-      phase_ = Phase::kInput;\n-      if (full_path_ && overflow_edge_pending_) {\n-        phase_ = Phase::kFullLoad;\n-      }\n-      return;\n-    case PartConvWordKind::kTileEnd:\n-      if (!tile_open_) {\n-        failed_ = true;\n-        done_ = true;\n-        return;\n-      }\n-      ++counters_.touched_tiles;\n-      if (full_path_) {\n-        phase_ = Phase::kFullStreamDrain;\n-        return;\n-      }\n-      ++counters_.fast_path_tiles;\n-      counters_.tiny_buffered_edges += tile_edges_.size();\n-      prepare_gather();\n-      begin_tile_active_clear(Phase::kGatherBegin);\n-      return;\n-    case PartConvWordKind::kDoneAll:\n-      if (tile_open_) {\n-        failed_ = true;\n-        done_ = true;\n-        return;\n-      }\n-      ++counters_.done_words;\n-      counters_.done_overflow = (word.second & 1U) != 0;\n-      source_protocol_overflow_ =\n-          source_protocol_overflow_ || counters_.done_overflow;\n-      if (counters_.source_completion_markers != 0 &&\n-          counters_.source_completion_markers != counters_.source_requests) {\n-        set_protocol_status(SpineSourceProtocolStatus::kCount);\n-        source_protocol_overflow_ = true;\n-      }\n-      if (deferred_active_) {\n-        if (source_protocol_overflow_) {\n-          deferred_active_word_index_ = 0;\n-          phase_ = Phase::kDeferredFinalClear;\n-        } else {\n-          begin_deferred_sweep();\n-        }\n-      } else if (owner_scheduler_ != nullptr && owner_round_started_) {\n-        begin_owner_protocol(OwnerProtocolKind::kFinalizeRound, 0,\n-                             Phase::kFinish);\n-      } else {\n-        enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,\n-                       std::vector<std::uint8_t>(kResultBytes, 0));\n-        phase_ = Phase::kFinish;\n-      }\n-      return;\n-  }\n-}\n-\n-void SpineSplitSsspCompute::issue_tiny_read(\n-    std::size_t item_index, TinyReadPurpose purpose,\n-    const CycleContext &context) {\n-  if (item_index >= tile_edges_.size() ||\n-      pending_tiny_reads_.size() >= on_chip_profile_.pipeline_capacity) {\n-    throw std::logic_error(\"invalid tiny-BRAM read issue\");\n-  }\n-  pending_tiny_reads_.push_back(PendingTinyRead{\n-      .due_cycle = context.domain_cycle +\n-                   on_chip_profile_.tiny_bram_read_latency,\n-      .item_index = item_index,\n-      .purpose = purpose,\n-      .edge = tile_edges_[item_index],\n-  });\n-  ++counters_.tiny_bram_read_requests;\n-  counters_.max_tiny_reads_inflight = std::max(\n-      counters_.max_tiny_reads_inflight, pending_tiny_reads_.size());\n-}\n-\n-void SpineSplitSsspCompute::issue_vs_read(\n-    const PartConvWord &edge, VsReadPurpose purpose,\n-    const CycleContext &context) {\n-  if (purpose != VsReadPurpose::kRelax ||\n-      pending_vs_reads_.size() >= on_chip_profile_.pipeline_capacity) {\n-    throw std::logic_error(\"invalid relax URAM read issue\");\n-  }\n-  const std::uint32_t memory_value =\n-      full_path_ ? tile_values_.at(edge.first - tile_base_)\n-                 : gathered_values_.at(edge.first);\n-  pending_vs_reads_.push_back(PendingVsRead{\n-      .due_cycle = context.domain_cycle + on_chip_profile_.vs_uram_read_latency,\n-      .purpose = purpose,\n-      .edge = edge,\n-      .vertex = edge.first,\n-      .memory_value = memory_value,\n-  });\n-  ++counters_.vs_tile_reads;\n-  ++counters_.vs_uram_read_requests;\n-  counters_.max_vs_reads_inflight = std::max(\n-      counters_.max_vs_reads_inflight, pending_vs_reads_.size());\n-}\n-\n-void SpineSplitSsspCompute::issue_vs_read(\n-    std::uint32_t vertex, VsReadPurpose purpose,\n-    const CycleContext &context) {\n-  if (purpose == VsReadPurpose::kRelax ||\n-      pending_vs_reads_.size() >= on_chip_profile_.pipeline_capacity) {\n-    throw std::logic_error(\"invalid controller URAM read issue\");\n-  }\n-  const std::uint32_t memory_value =\n-      full_path_ ? tile_values_.at(vertex - tile_base_)\n-                 : gathered_values_.at(vertex);\n-  pending_vs_reads_.push_back(PendingVsRead{\n-      .due_cycle = context.domain_cycle + on_chip_profile_.vs_uram_read_latency,\n-      .purpose = purpose,\n-      .edge = {},\n-      .vertex = vertex,\n-      .memory_value = memory_value,\n-  });\n-  ++counters_.vs_tile_reads;\n-  ++counters_.vs_uram_read_requests;\n-  counters_.max_vs_reads_inflight = std::max(\n-      counters_.max_vs_reads_inflight, pending_vs_reads_.size());\n-}\n-\n-std::uint32_t SpineSplitSsspCompute::bypass_value(\n-    std::uint32_t vertex, std::uint32_t memory_value) {\n-  const auto found = std::find_if(\n-      vs_bypass_.begin(), vs_bypass_.end(),\n-      [vertex](const VsBypassEntry &entry) { return entry.vertex == vertex; });\n-  if (found == vs_bypass_.end()) {\n-    ++counters_.vs_bypass_misses;\n-    return memory_value;\n-  }\n-  ++counters_.vs_bypass_hits;\n-  return found->value;\n-}\n-\n-void SpineSplitSsspCompute::push_bypass(std::uint32_t vertex,\n-                                        std::uint32_t value) {\n-  vs_bypass_.push_front(VsBypassEntry{.vertex = vertex, .value = value});\n-  if (vs_bypass_.size() > on_chip_profile_.vs_bypass_depth) {\n-    vs_bypass_.pop_back();\n-  }\n-}\n-\n-void SpineSplitSsspCompute::reset_bypass() { vs_bypass_.clear(); }\n-\n-void SpineSplitSsspCompute::count_on_chip_read_wait(std::uint64_t cycle) {\n-  if (last_on_chip_read_wait_cycle_ != cycle) {\n-    last_on_chip_read_wait_cycle_ = cycle;\n-    ++counters_.on_chip_read_wait_cycles;\n-  }\n-}\n-\n-void SpineSplitSsspCompute::count_on_chip_pipeline_stall(\n-    std::uint64_t cycle) {\n-  if (last_on_chip_pipeline_stall_cycle_ != cycle) {\n-    last_on_chip_pipeline_stall_cycle_ = cycle;\n-    ++counters_.on_chip_pipeline_stall_cycles;\n-  }\n-}\n-\n-bool SpineSplitSsspCompute::on_chip_pipelines_drained() const noexcept {\n-  return pending_tiny_reads_.empty() && pending_vs_reads_.empty() &&\n-         !active_read_pending_ && !active_read_ready_;\n-}\n-\n-void SpineSplitSsspCompute::complete_relax(const PendingVsRead &request) {\n-  const std::uint32_t old_value =\n-      bypass_value(request.vertex, request.memory_value);\n-  const std::uint32_t reduced =\n-      algorithm_policy_->reduce(std::nullopt, request.edge.second);\n-  const AlgorithmApplyResult applied =\n-      algorithm_policy_->apply({.primary = old_value}, reduced);\n-  if (applied.active) {\n-    const std::uint32_t new_value = applied.state_after.primary;\n-    if (full_path_) {\n-      tile_values_.at(request.vertex - tile_base_) = new_value;\n-    } else {\n-      gathered_values_.at(request.vertex) = new_value;\n-    }\n-    values_.at(request.vertex) = new_value;\n-    ++counters_.vs_tile_writes;\n-    ++counters_.vs_uram_write_requests;\n-    ++counters_.tile_active_mark_writes;\n-    const std::size_t local = request.vertex - tile_base_;\n-    tile_active_words_.at(local / 64) |=\n-        std::uint64_t{1} << static_cast<unsigned>(local % 64);\n-    ++counters_.active_bram_write_requests;\n-    push_bypass(request.vertex, new_value);\n-    if (std::find(changed_vertices_.begin(), changed_vertices_.end(),\n-                  request.vertex) == changed_vertices_.end()) {\n-      changed_vertices_.push_back(request.vertex);\n-      if (!deferred_active_ && owner_scheduler_ == nullptr) {\n-        next_active_.push_back(request.vertex);\n-      }\n-    }\n-  }\n-  ++counters_.processed_edges;\n-}\n-\n-void SpineSplitSsspCompute::advance_on_chip_pipelines(\n-    const CycleContext &context) {\n-  if (active_read_pending_) {\n-    if (active_read_due_cycle_ <= context.domain_cycle) {\n-      active_read_pending_ = false;\n-      active_read_ready_ = true;\n-      active_scan_bits_ = tile_active_words_.at(active_word_index_);\n-    } else {\n-      count_on_chip_read_wait(context.domain_cycle);\n-    }\n-  }\n-\n-  if (!pending_vs_reads_.empty()) {\n-    const PendingVsRead &request = pending_vs_reads_.front();\n-    if (request.due_cycle > context.domain_cycle) {\n-      count_on_chip_read_wait(context.domain_cycle);\n-    } else if (request.purpose == VsReadPurpose::kRelax) {\n-      complete_relax(request);\n-      pending_vs_reads_.pop_front();\n-    } else if (memory_tasks_.empty()) {\n-      if (request.purpose == VsReadPurpose::kSparseStore) {\n-        enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,\n-                       request.vertex * kVertexWordBytes, kVertexWordBytes,\n-                       encode_u32(request.memory_value));\n-        ++counters_.scattered_vertex_words;\n-        ++counters_.sparse_store_writes_generated;\n-      } else {\n-        if (owner_scheduler_ != nullptr && !staged_owner_activation_) {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-          return;\n-        }\n-        if (owner_scheduler_ != nullptr) {\n-          if (staged_owner_publication_) {\n-            enqueue_active_output(request.vertex);\n-            next_active_.push_back(request.vertex);\n-            ++counters_.owner_activations_accepted;\n-          } else {\n-            ++counters_.owner_activations_coalesced;\n-          }\n-        } else {\n-          enqueue_active_output(request.vertex);\n-        }\n-      }\n-      pending_vs_reads_.pop_front();\n-    } else {\n-      count_on_chip_pipeline_stall(context.domain_cycle);\n-    }\n-  }\n-\n-  if (!pending_tiny_reads_.empty()) {\n-    const PendingTinyRead &request = pending_tiny_reads_.front();\n-    if (request.due_cycle > context.domain_cycle) {\n-      count_on_chip_read_wait(context.domain_cycle);\n-    } else if (request.purpose == TinyReadPurpose::kGather) {\n-      if (memory_tasks_.empty()) {\n-        enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,\n-                       request.edge.first * kVertexWordBytes,\n-                       kVertexWordBytes, {},\n-                       MemoryPayloadKind::kGatherVertex, request.item_index);\n-        pending_tiny_reads_.pop_front();\n-      } else {\n-        count_on_chip_pipeline_stall(context.domain_cycle);\n-      }\n-    } else if (pending_vs_reads_.size() <\n-               on_chip_profile_.pipeline_capacity) {\n-      const PartConvWord edge = request.edge;\n-      pending_tiny_reads_.pop_front();\n-      issue_vs_read(edge, VsReadPurpose::kRelax, context);\n-    } else {\n-      count_on_chip_pipeline_stall(context.domain_cycle);\n-    }\n-  }\n-}\n-\n-void SpineSplitSsspCompute::prepare_gather() {\n-  gather_vertices_.clear();\n-  gather_vertices_.reserve(tile_edges_.size());\n-  for (const PartConvWord &edge : tile_edges_) {\n-    gather_vertices_.push_back(edge.first);\n-  }\n-  gathered_values_.clear();\n-  changed_vertices_.clear();\n-  relax_index_ = 0;\n-}\n-\n-void SpineSplitSsspCompute::sort_changed_vertices_for_emit() {\n-  if (changed_vertices_.empty()) {\n-    return;\n-  }\n-  std::sort(changed_vertices_.begin(), changed_vertices_.end());\n-  if (!deferred_active_ && owner_scheduler_ == nullptr) {\n-    const std::size_t active_base =\n-        next_active_.size() - changed_vertices_.size();\n-    std::copy(changed_vertices_.begin(), changed_vertices_.end(),\n-              next_active_.begin() + static_cast<std::ptrdiff_t>(active_base));\n-  }\n-}\n-\n-void SpineSplitSsspCompute::prepare_vertex_store() {\n-  sort_changed_vertices_for_emit();\n-  if (full_path_ && !changed_vertices_.empty()) {\n-    enqueue_memory(*ports_.vertex_state, MemoryOperation::kWrite,\n-                   tile_base_ * kVertexWordBytes, tile_size_ * kVertexWordBytes,\n-                   encode_u32_words(tile_values_));\n-    counters_.swept_vertex_words += tile_size_;\n-    counters_.vs_tile_reads += kTileVertices;\n-    counters_.vs_uram_read_requests += kTileVertices;\n-  }\n-}\n-\n-void SpineSplitSsspCompute::enqueue_active_output(std::uint32_t vertex) {\n-  enqueue_active_output(vertex, values_.at(vertex),\n-                        active_output_base_ + active_output_index_);\n-  ++active_output_index_;\n-}\n-\n-void SpineSplitSsspCompute::enqueue_active_output(std::uint32_t vertex,\n-                                                  std::uint32_t value,\n-                                                  std::size_t output_index) {\n-  std::vector<std::uint8_t> payload(kActiveOutputBytes, 0);\n-  const std::vector<std::uint8_t> encoded_value = encode_u32(value);\n-  const std::vector<std::uint8_t> encoded_vertex = encode_u32(vertex);\n-  std::copy(encoded_value.begin(), encoded_value.end(), payload.begin());\n-  std::copy(encoded_vertex.begin(), encoded_vertex.end(),\n-            payload.begin() + sizeof(std::uint32_t));\n-  enqueue_memory(*ports_.active_out, MemoryOperation::kWrite,\n-                 output_index * kActiveOutputBytes,\n-                 kActiveOutputBytes, std::move(payload));\n-  ++counters_.active_emit_writes_generated;\n-}\n-\n-void SpineSplitSsspCompute::begin_tile_active_clear(Phase next_phase) {\n-  active_word_index_ = 0;\n-  active_bit_index_ = 0;\n-  active_scan_bits_ = 0;\n-  active_read_pending_ = false;\n-  active_read_ready_ = false;\n-  after_clear_phase_ = next_phase;\n-  phase_ = Phase::kClearTileActive;\n-}\n-\n-std::optional<std::uint32_t>\n-SpineSplitSsspCompute::current_active_vertex() const {\n-  const std::size_t local_index =\n-      active_word_index_ * kActiveWordBits + active_bit_index_;\n-  if (local_index >= tile_size_) {\n-    return std::nullopt;\n-  }\n-  const std::uint32_t vertex =\n-      tile_base_ + static_cast<std::uint32_t>(local_index);\n-  return ((active_scan_bits_ >> active_bit_index_) & 1U) != 0\n-             ? std::optional<std::uint32_t>(vertex)\n-             : std::nullopt;\n-}\n-\n-bool SpineSplitSsspCompute::controller_memory_overlap_phase() const noexcept {\n-  return phase_ == Phase::kGatherBegin || phase_ == Phase::kGatherAdvance ||\n-         phase_ == Phase::kRelax ||\n-         phase_ == Phase::kSparseStoreScan ||\n-         phase_ == Phase::kSparseStoreBits ||\n-         (!full_path_ && phase_ == Phase::kStore) ||\n-         phase_ == Phase::kEmitActiveScan ||\n-         phase_ == Phase::kEmitActiveBits || phase_ == Phase::kEmitStore ||\n-         phase_ == Phase::kDeferredMergeScan ||\n-         phase_ == Phase::kDeferredSweepRead ||\n-         phase_ == Phase::kDeferredSweepScan ||\n-         phase_ == Phase::kDeferredSweepBits ||\n-         phase_ == Phase::kDeferredFinalClear;\n-}\n-\n-void SpineSplitSsspCompute::begin_sparse_store_scan() {\n-  sort_changed_vertices_for_emit();\n-  active_word_index_ = 0;\n-  active_bit_index_ = 0;\n-  active_scan_bits_ = 0;\n-  active_read_pending_ = false;\n-  active_read_ready_ = false;\n-  phase_ = Phase::kSparseStoreScan;\n-}\n-\n-void SpineSplitSsspCompute::begin_active_emit_scan() {\n-  active_word_index_ = 0;\n-  active_bit_index_ = 0;\n-  active_output_base_ =\n-      owner_scheduler_ == nullptr\n-          ? next_active_.size() - changed_vertices_.size()\n-          : next_active_.size();\n-  active_output_index_ = 0;\n-  active_scan_bits_ = 0;\n-  active_read_pending_ = false;\n-  active_read_ready_ = false;\n-  phase_ = Phase::kEmitActiveScan;\n-}\n-\n-void SpineSplitSsspCompute::begin_deferred_merge_scan() {\n-  sort_changed_vertices_for_emit();\n-  active_word_index_ = 0;\n-  active_bit_index_ = 0;\n-  active_scan_bits_ = 0;\n-  active_read_pending_ = false;\n-  active_read_ready_ = false;\n-  phase_ = Phase::kDeferredMergeScan;\n-}\n-\n-void SpineSplitSsspCompute::begin_deferred_sweep() {\n-  deferred_bitmap_chunk_.fill(0);\n-  deferred_sweep_base_word_ = 0;\n-  deferred_sweep_chunk_words_ = 0;\n-  deferred_sweep_word_index_ = 0;\n-  deferred_sweep_bit_index_ = 0;\n-  deferred_sweep_reads_pending_ = 0;\n-  deferred_sweep_scan_bits_ = 0;\n-  deferred_sweep_next_issue_cycle_ = 0;\n-  deferred_sweep_next_bit_cycle_ = 0;\n-  active_output_base_ = 0;\n-  active_output_index_ = 0;\n-  next_active_.clear();\n-  phase_ = Phase::kDeferredSweepRead;\n-}\n-\n-void SpineSplitSsspCompute::finish_active_word_scan(Phase scan_phase) {\n-  active_bit_index_ = 0;\n-  ++active_word_index_;\n-  active_scan_bits_ = 0;\n-  phase_ = scan_phase;\n-}\n-\n-void SpineSplitSsspCompute::begin_full_path(const PartConvWord &overflow_edge) {\n-  full_path_ = true;\n-  overflow_edge_ = overflow_edge;\n-  overflow_edge_pending_ = true;\n-  ++counters_.full_path_tiles;\n-  counters_.swept_vertex_words += tile_size_;\n-  changed_vertices_.clear();\n-  relax_index_ = 0;\n-  tile_values_.assign(tile_size_, kInfinity);\n-  enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,\n-                 tile_base_ * kVertexWordBytes, tile_size_ * kVertexWordBytes,\n-                 {}, MemoryPayloadKind::kFullTile, 0, 0,\n-                 ports_.vertex_state->read_beat_stream_enabled());\n-}\n-\n-void SpineSplitSsspCompute::reset_tile() {\n-  tile_edges_.clear();\n-  gather_vertices_.clear();\n-  gathered_values_.clear();\n-  changed_vertices_.clear();\n-  tile_values_.clear();\n-  relax_index_ = 0;\n-  active_word_index_ = 0;\n-  active_bit_index_ = 0;\n-  active_output_base_ = 0;\n-  active_output_index_ = 0;\n-  active_scan_bits_ = 0;\n-  active_read_due_cycle_ = 0;\n-  active_read_pending_ = false;\n-  active_read_ready_ = false;\n-  tile_size_ = 0;\n-  tile_open_ = false;\n-  full_path_ = false;\n-  overflow_edge_pending_ = false;\n-}\n-\n-void SpineSplitSsspCompute::advance(const CycleContext &context) {\n-  switch (phase_) {\n-    case Phase::kReinitialize:\n-      phase_ = Phase::kInput;\n-      return;\n-    case Phase::kOwnerProtocol:\n-      advance_owner_protocol();\n-      return;\n-    case Phase::kSourceRead:\n-      source_reply_pending_ = true;\n-      phase_ = Phase::kSourceReply;\n-      return;\n-    case Phase::kSourceReply:\n-      return;\n-    case Phase::kDeferredActiveClear: {\n-      const std::size_t active_words =\n-          (vertices_ + kActiveWordBits - 1) / kActiveWordBits;\n-      if (deferred_active_word_index_ == active_words) {\n-        phase_ = Phase::kInput;\n-        return;\n-      }\n-      enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite,\n-                     deferred_active_word_index_ * sizeof(std::uint64_t),\n-                     sizeof(std::uint64_t),\n-                     std::vector<std::uint8_t>(sizeof(std::uint64_t), 0));\n-      ++deferred_active_word_index_;\n-      ++counters_.deferred_active_clear_words;\n-      return;\n-    }\n-    case Phase::kGatherBegin:\n-      if (relax_index_ < tile_edges_.size()) {\n-        if (pending_tiny_reads_.size() >=\n-            on_chip_profile_.pipeline_capacity) {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-          return;\n-        }\n-        issue_tiny_read(relax_index_, TinyReadPurpose::kGather, context);\n-        ++counters_.tiny_buffer_reads;\n-        ++relax_index_;\n-        return;\n-      }\n-      if (pending_tiny_reads_.empty() && memory_tasks_.empty() &&\n-          inflight_memory_tasks_.empty()) {\n-        phase_ = Phase::kGatherAdvance;\n-      }\n-      return;\n-    case Phase::kGatherAdvance:\n-      if (!pending_tiny_reads_.empty() || !pending_vs_reads_.empty() ||\n-          !memory_tasks_.empty() || !inflight_memory_tasks_.empty()) {\n-        return;\n-      }\n-      relax_index_ = 0;\n-      phase_ = Phase::kRelax;\n-      return;\n-    case Phase::kClearTileActive:\n-      tile_active_words_.at(active_word_index_) = 0;\n-      ++counters_.tile_active_clear_words;\n-      counters_.tile_active_clear_lane_writes += kActiveWordBits;\n-      ++counters_.active_bram_write_requests;\n-      ++counters_.on_chip_controller_cycles;\n-      ++active_word_index_;\n-      if (active_word_index_ == kTileActiveWords) {\n-        active_word_index_ = 0;\n-        reset_bypass();\n-        phase_ = after_clear_phase_;\n-      }\n-      return;\n-    case Phase::kRelax:\n-      if (relax_index_ < tile_edges_.size()) {\n-        if (pending_tiny_reads_.size() >=\n-            on_chip_profile_.pipeline_capacity) {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-          return;\n-        }\n-        issue_tiny_read(relax_index_, TinyReadPurpose::kRelax, context);\n-        ++counters_.tiny_buffer_reads;\n-        ++relax_index_;\n-        return;\n-      }\n-      if (pending_tiny_reads_.empty() && pending_vs_reads_.empty()) {\n-        if (changed_vertices_.empty()) {\n-          if (deferred_active_) {\n-            begin_deferred_merge_scan();\n-          } else {\n-            begin_active_emit_scan();\n-          }\n-        } else {\n-          begin_sparse_store_scan();\n-        }\n-      }\n-      return;\n-    case Phase::kFullLoad:\n-      relax_index_ = 0;\n-      begin_tile_active_clear(Phase::kFullReplay);\n-      return;\n-    case Phase::kFullReplay:\n-      if (relax_index_ < tile_edges_.size()) {\n-        if (pending_tiny_reads_.size() >=\n-            on_chip_profile_.pipeline_capacity) {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-          return;\n-        }\n-        issue_tiny_read(relax_index_, TinyReadPurpose::kRelax, context);\n-        ++counters_.tiny_buffer_reads;\n-        ++counters_.full_buffer_replay_edges;\n-        ++relax_index_;\n-        return;\n-      }\n-      if (overflow_edge_pending_) {\n-        if (pending_vs_reads_.size() >=\n-            on_chip_profile_.pipeline_capacity) {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-          return;\n-        }\n-        issue_vs_read(overflow_edge_, VsReadPurpose::kRelax, context);\n-        ++counters_.full_overflow_edges;\n-        overflow_edge_pending_ = false;\n-        return;\n-      }\n-      phase_ = Phase::kFullReplayDrain;\n-      return;\n-    case Phase::kFullReplayDrain:\n-      if (!pending_tiny_reads_.empty() || !pending_vs_reads_.empty()) {\n-        return;\n-      }\n-      tile_edges_.clear();\n-      phase_ = Phase::kInput;\n-      return;\n-    case Phase::kFullStreamDrain:\n-      if (!pending_vs_reads_.empty()) {\n-        return;\n-      }\n-      prepare_vertex_store();\n-      phase_ = Phase::kStore;\n-      return;\n-    case Phase::kSparseStoreScan: {\n-      const std::size_t tile_words =\n-          (tile_size_ + kActiveWordBits - 1) / kActiveWordBits;\n-      if (active_word_index_ >= tile_words) {\n-        phase_ = Phase::kStore;\n-        return;\n-      }\n-      if (!active_read_ready_) {\n-        if (!active_read_pending_) {\n-          active_read_pending_ = true;\n-          active_read_due_cycle_ =\n-              context.domain_cycle + on_chip_profile_.active_bram_read_latency;\n-          ++counters_.active_bram_read_requests;\n-          ++counters_.sparse_store_scan_words;\n-          counters_.sparse_store_lane_reads += kActiveWordBits;\n-          ++counters_.on_chip_controller_cycles;\n-        } else {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-        }\n-        return;\n-      }\n-      active_read_ready_ = false;\n-      if (active_scan_bits_ != 0) {\n-        active_bit_index_ = 0;\n-        phase_ = Phase::kSparseStoreBits;\n-      } else {\n-        ++active_word_index_;\n-      }\n-      return;\n-    }\n-    case Phase::kSparseStoreBits: {\n-      const std::optional<std::uint32_t> vertex = current_active_vertex();\n-      if (vertex.has_value()) {\n-        if (pending_vs_reads_.size() >=\n-            on_chip_profile_.pipeline_capacity) {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-          return;\n-        }\n-        issue_vs_read(*vertex, VsReadPurpose::kSparseStore, context);\n-      }\n-      ++counters_.sparse_store_bit_cycles;\n-      ++counters_.on_chip_controller_cycles;\n-      ++active_bit_index_;\n-      if (active_bit_index_ == kActiveWordBits) {\n-        finish_active_word_scan(Phase::kSparseStoreScan);\n-      }\n-      return;\n-    }\n-    case Phase::kStore:\n-      if (!pending_vs_reads_.empty()) {\n-        return;\n-      }\n-      if (deferred_active_) {\n-        begin_deferred_merge_scan();\n-      } else {\n-        begin_active_emit_scan();\n-      }\n-      return;\n-    case Phase::kEmitActiveScan: {\n-      const std::size_t tile_words =\n-          (tile_size_ + kActiveWordBits - 1) / kActiveWordBits;\n-      if (active_word_index_ >= tile_words) {\n-        phase_ = Phase::kEmitStore;\n-        return;\n-      }\n-      if (!active_read_ready_) {\n-        if (!active_read_pending_) {\n-          active_read_pending_ = true;\n-          active_read_due_cycle_ =\n-              context.domain_cycle + on_chip_profile_.active_bram_read_latency;\n-          ++counters_.active_bram_read_requests;\n-          ++counters_.active_emit_scan_words;\n-          counters_.active_emit_lane_reads += kActiveWordBits;\n-          counters_.active_emit_lane_writes += kActiveWordBits;\n-          ++counters_.on_chip_controller_cycles;\n-        } else {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-        }\n-        return;\n-      }\n-      active_read_ready_ = false;\n-      tile_active_words_.at(active_word_index_) = 0;\n-      ++counters_.active_bram_write_requests;\n-      if (active_scan_bits_ != 0) {\n-        active_bit_index_ = 0;\n-        if (owner_scheduler_ != nullptr) {\n-          const std::uint32_t global_word = static_cast<std::uint32_t>(\n-              tile_base_ / kActiveWordBits + active_word_index_);\n-          begin_owner_protocol(OwnerProtocolKind::kActivateWord, global_word,\n-                               Phase::kEmitActiveBits);\n-        } else {\n-          phase_ = Phase::kEmitActiveBits;\n-        }\n-      } else {\n-        ++active_word_index_;\n-      }\n-      return;\n-    }\n-    case Phase::kEmitActiveBits: {\n-      const std::optional<std::uint32_t> vertex = current_active_vertex();\n-      if (vertex.has_value()) {\n-        if (pending_vs_reads_.size() >=\n-            on_chip_profile_.pipeline_capacity) {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-          return;\n-        }\n-        issue_vs_read(*vertex, VsReadPurpose::kActiveEmit, context);\n-      }\n-      ++counters_.active_emit_bit_cycles;\n-      ++counters_.on_chip_controller_cycles;\n-      ++active_bit_index_;\n-      if (active_bit_index_ == kActiveWordBits) {\n-        finish_active_word_scan(Phase::kEmitActiveScan);\n-      }\n-      return;\n-    }\n-    case Phase::kEmitStore:\n-      if (!pending_vs_reads_.empty()) {\n-        return;\n-      }\n-      if (owner_scheduler_ == nullptr &&\n-          active_output_index_ != changed_vertices_.size()) {\n-        failed_ = true;\n-        done_ = true;\n-        return;\n-      }\n-      reset_tile();\n-      phase_ = Phase::kInput;\n-      return;\n-    case Phase::kDeferredMergeScan: {\n-      const std::size_t tile_words =\n-          (tile_size_ + kActiveWordBits - 1) / kActiveWordBits;\n-      if (active_word_index_ >= tile_words) {\n-        phase_ = Phase::kDeferredMergeWait;\n-        return;\n-      }\n-      if (!active_read_ready_) {\n-        if (!active_read_pending_) {\n-          active_read_pending_ = true;\n-          active_read_due_cycle_ =\n-              context.domain_cycle + on_chip_profile_.active_bram_read_latency;\n-          ++counters_.active_bram_read_requests;\n-          ++counters_.on_chip_controller_cycles;\n-        } else {\n-          count_on_chip_pipeline_stall(context.domain_cycle);\n-        }\n-        return;\n-      }\n-      active_read_ready_ = false;\n-      tile_active_words_.at(active_word_index_) = 0;\n-      ++counters_.active_bram_write_requests;\n-      if (active_scan_bits_ != 0) {\n-        const std::size_t global_word =\n-            tile_base_ / kActiveWordBits + active_word_index_;\n-        enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead,\n-                       global_word * sizeof(std::uint64_t),\n-                       sizeof(std::uint64_t), {},\n-                       MemoryPayloadKind::kDeferredMergeWord, global_word,\n-                       active_scan_bits_);\n-      }\n-      ++active_word_index_;\n-      active_scan_bits_ = 0;\n-      return;\n-    }\n-    case Phase::kDeferredMergeWait:\n-      if (!memory_tasks_.empty() || !inflight_memory_tasks_.empty() ||\n-          !on_chip_pipelines_drained()) {\n-        return;\n-      }\n-      reset_tile();\n-      phase_ = Phase::kInput;\n-      return;\n-    case Phase::kDeferredSweepRead: {\n-      const std::size_t active_words =\n-          (vertices_ + kActiveWordBits - 1) / kActiveWordBits;\n-      if (deferred_sweep_base_word_ >= active_words) {\n-        phase_ = Phase::kDeferredSweepDrain;\n-        return;\n-      }\n-      if (deferred_sweep_chunk_words_ == 0) {\n-        deferred_sweep_chunk_words_ =\n-            std::min<std::size_t>(deferred_bitmap_chunk_.size(),\n-                                  active_words - deferred_sweep_base_word_);\n-        deferred_sweep_word_index_ = 0;\n-        deferred_sweep_reads_pending_ = 0;\n-        deferred_bitmap_chunk_.fill(0);\n-      }\n-      // The HLS read loop always executes the full 128-entry LUTRAM chunk.\n-      // Entries beyond the final valid HBM word are zero-filled without an\n-      // AXI request, but they still consume the loop's II=4 control schedule.\n-      if (deferred_sweep_word_index_ < deferred_bitmap_chunk_.size()) {\n-        if (context.domain_cycle < deferred_sweep_next_issue_cycle_) {\n-          return;\n-        }\n-        const std::size_t local_word = deferred_sweep_word_index_;\n-        if (local_word < deferred_sweep_chunk_words_) {\n-          const std::size_t global_word =\n-              deferred_sweep_base_word_ + local_word;\n-          enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead,\n-                         global_word * sizeof(std::uint64_t),\n-                         sizeof(std::uint64_t), {},\n-                         MemoryPayloadKind::kDeferredSweepWord, local_word);\n-          ++deferred_sweep_reads_pending_;\n-          ++counters_.deferred_active_sweep_read_words;\n-        }\n-        ++deferred_sweep_word_index_;\n-        deferred_sweep_next_issue_cycle_ = context.domain_cycle + 4;\n-        return;\n-      }\n-      if (deferred_sweep_reads_pending_ == 0) {\n-        deferred_sweep_word_index_ = 0;\n-        phase_ = Phase::kDeferredSweepScan;\n-      }\n-      return;\n-    }\n-    case Phase::kDeferredSweepScan:\n-      if (deferred_sweep_word_index_ >= deferred_sweep_chunk_words_) {\n-        deferred_sweep_base_word_ += deferred_sweep_chunk_words_;\n-        deferred_sweep_chunk_words_ = 0;\n-        deferred_sweep_word_index_ = 0;\n-        phase_ = Phase::kDeferredSweepRead;\n-        return;\n-      }\n-      deferred_sweep_scan_bits_ =\n-          deferred_bitmap_chunk_.at(deferred_sweep_word_index_);\n-      if (deferred_sweep_scan_bits_ == 0) {\n-        ++deferred_sweep_word_index_;\n-        return;\n-      }\n-      ++counters_.deferred_active_sweep_nonzero_words;\n-      deferred_sweep_bit_index_ = 0;\n-      deferred_sweep_next_bit_cycle_ = context.domain_cycle;\n-      phase_ = Phase::kDeferredSweepBits;\n-      return;\n-    case Phase::kDeferredSweepBits: {\n-      if (context.domain_cycle < deferred_sweep_next_bit_cycle_) {\n-        return;\n-      }\n-      const std::size_t global_word =\n-          deferred_sweep_base_word_ + deferred_sweep_word_index_;\n-      if (((deferred_sweep_scan_bits_ >> deferred_sweep_bit_index_) & 1U) != 0) {\n-        const std::size_t vertex =\n-            global_word * kActiveWordBits + deferred_sweep_bit_index_;\n-        if (vertex < vertices_) {\n-          const std::size_t output_index = active_output_index_++;\n-          next_active_.push_back(static_cast<std::uint32_t>(vertex));\n-          enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,\n-                         vertex * kVertexWordBytes, kVertexWordBytes, {},\n-                         MemoryPayloadKind::kDeferredPublishVertex, vertex,\n-                         output_index);\n-          ++counters_.deferred_active_published_vertices;\n-        }\n-      }\n-      ++deferred_sweep_bit_index_;\n-      deferred_sweep_next_bit_cycle_ = context.domain_cycle + 2;\n-      if (deferred_sweep_bit_index_ == kActiveWordBits) {\n-        ++deferred_sweep_word_index_;\n-        deferred_sweep_scan_bits_ = 0;\n-        phase_ = Phase::kDeferredSweepScan;\n-      }\n-      return;\n-    }\n-    case Phase::kDeferredSweepDrain:\n-      if (!memory_tasks_.empty() || !inflight_memory_tasks_.empty()) {\n-        return;\n-      }\n-      deferred_active_word_index_ = 0;\n-      phase_ = Phase::kDeferredFinalClear;\n-      return;\n-    case Phase::kDeferredFinalClear: {\n-      const std::size_t active_words =\n-          (vertices_ + kActiveWordBits - 1) / kActiveWordBits;\n-      if (deferred_active_word_index_ == active_words) {\n-        phase_ = Phase::kDeferredFinalDrain;\n-        return;\n-      }\n-      enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite,\n-                     deferred_active_word_index_ * sizeof(std::uint64_t),\n-                     sizeof(std::uint64_t),\n-                     std::vector<std::uint8_t>(sizeof(std::uint64_t), 0));\n-      ++deferred_active_word_index_;\n-      ++counters_.deferred_active_final_clear_words;\n-      return;\n-    }\n-    case Phase::kDeferredFinalDrain:\n-      if (!memory_tasks_.empty() || !inflight_memory_tasks_.empty()) {\n-        return;\n-      }\n-      enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,\n-                     std::vector<std::uint8_t>(kResultBytes, 0));\n-      phase_ = Phase::kFinish;\n-      return;\n-    case Phase::kFinish:\n-      counters_.end_cycle = context.domain_cycle;\n-      done_ = true;\n-      failed_ = source_protocol_overflow_;\n-      return;\n-    case Phase::kInput:\n-      return;\n-  }\n-}\n-\n-void SpineSplitSsspCompute::begin_owner_protocol(OwnerProtocolKind kind,\n-                                                 std::uint32_t subject,\n-                                                 Phase return_phase) {\n-  if (owner_scheduler_ == nullptr || kind == OwnerProtocolKind::kNone ||\n-      owner_protocol_kind_ != OwnerProtocolKind::kNone) {\n-    throw std::logic_error(\"invalid overlapping Spine owner-HBM protocol\");\n-  }\n-  // A source-completion marker can follow the last edge while vertex writes\n-  // remain in flight.  Entering kOwnerProtocol stalls on those requests in\n-  // evaluate(), then serializes the owner transaction on the shared port.\n-  owner_protocol_kind_ = kind;\n-  owner_protocol_subject_ = subject;\n-  owner_protocol_return_phase_ = return_phase;\n-  owner_protocol_index_ = 0;\n-  owner_protocol_request_pending_ = false;\n-  phase_ = Phase::kOwnerProtocol;\n-}\n-\n-std::size_t SpineSplitSsspCompute::owner_protocol_length() const {\n-  switch (owner_protocol_kind_) {\n-    case OwnerProtocolKind::kBeginRound:\n-      return 2;\n-    case OwnerProtocolKind::kDispatchSource:\n-      return 7;\n-    case OwnerProtocolKind::kCompleteSource:\n-      return 6;\n-    case OwnerProtocolKind::kActivateWord:\n-      return 8;\n-    case OwnerProtocolKind::kFinalizeRound:\n-      return 9;\n-    case OwnerProtocolKind::kNone:\n-      return 0;\n-  }\n-  throw std::logic_error(\"unknown Spine owner-HBM protocol kind\");\n-}\n-\n-void SpineSplitSsspCompute::enqueue_owner_protocol_operation(\n-    std::size_t index) {\n-  const std::uint64_t word = owner_protocol_subject_ >> 6;\n-  const auto read = [this](std::uint64_t address) {\n-    enqueue_memory(*ports_.active_bitmap, MemoryOperation::kRead, address,\n-                   kOwnerWordBytes, {}, MemoryPayloadKind::kOwnerProtocol);\n-  };\n-  const auto write = [this](std::uint64_t address) {\n-    enqueue_memory(*ports_.active_bitmap, MemoryOperation::kWrite, address,\n-                   kOwnerWordBytes,\n-                   std::vector<std::uint8_t>(kOwnerWordBytes, 0),\n-                   MemoryPayloadKind::kOwnerProtocol);\n-  };\n-  switch (owner_protocol_kind_) {\n-    case OwnerProtocolKind::kBeginRound:\n-      read(owner_control_address(index == 0 ? 0 : 2));\n-      return;\n-    case OwnerProtocolKind::kDispatchSource:\n-      switch (index) {\n-        case 0: read(owner_control_address(0)); return;\n-        case 1: read(owner_control_address(1)); return;\n-        case 2: read(owner_region_address(4, word)); return;\n-        case 3: read(owner_region_address(1, word)); return;\n-        case 4: read(owner_region_address(2, word)); return;\n-        case 5: write(owner_region_address(1, word)); return;\n-        case 6: write(owner_region_address(2, word)); return;\n-      }\n-      break;\n-    case OwnerProtocolKind::kCompleteSource:\n-      if (index < 3) {\n-        read(owner_region_address(1 + index, word));\n-      } else {\n-        write(owner_region_address(index - 2, word));\n-      }\n-      return;\n-    case OwnerProtocolKind::kActivateWord:\n-      switch (index) {\n-        case 0: read(owner_control_address(0)); return;\n-        case 1: read(owner_control_address(1)); return;\n-        case 2: read(owner_region_address(4, owner_protocol_subject_)); return;\n-        case 3: read(owner_region_address(1, owner_protocol_subject_)); return;\n-        case 4: read(owner_region_address(2, owner_protocol_subject_)); return;\n-        case 5: read(owner_region_address(3, owner_protocol_subject_)); return;\n-        case 6: write(owner_region_address(3, owner_protocol_subject_)); return;\n-        case 7: write(owner_region_address(1, owner_protocol_subject_)); return;\n-      }\n-      break;\n-    case OwnerProtocolKind::kFinalizeRound:\n-      switch (index) {\n-        case 0: write(owner_control_address(2)); return;\n-        case 1: read(owner_control_address(3)); return;\n-        case 2: read(owner_control_address(4)); return;\n-        case 3: read(owner_control_address(5)); return;\n-        case 4: write(owner_control_address(3)); return;\n-        case 5: write(owner_control_address(4)); return;\n-        case 6: write(owner_control_address(5)); return;\n-        case 7: write(owner_control_address(6)); return;\n-        case 8: write(owner_control_address(7)); return;\n-      }\n-      break;\n-    case OwnerProtocolKind::kNone:\n-      break;\n-  }\n-  throw std::logic_error(\"Spine owner-HBM protocol index is out of range\");\n-}\n-\n-void SpineSplitSsspCompute::advance_owner_protocol() {\n-  if (owner_protocol_request_pending_) {\n-    return;\n-  }\n-  if (owner_protocol_index_ < owner_protocol_length()) {\n-    enqueue_owner_protocol_operation(owner_protocol_index_++);\n-    owner_protocol_request_pending_ = true;\n-    return;\n-  }\n-  const OwnerProtocolKind completed = owner_protocol_kind_;\n-  const std::uint32_t subject = owner_protocol_subject_;\n-  const Phase return_phase = owner_protocol_return_phase_;\n-  owner_protocol_kind_ = OwnerProtocolKind::kNone;\n-  owner_protocol_index_ = 0;\n-  switch (completed) {\n-    case OwnerProtocolKind::kBeginRound:\n-      owner_seed_epoch_ = owner_scheduler_->work_credits() == 0;\n-      owner_round_started_ = true;\n-      ++counters_.owner_round_begins;\n-      if (return_phase == Phase::kSourceRead) {\n-        begin_owner_protocol(OwnerProtocolKind::kDispatchSource, subject,\n-                             Phase::kSourceRead);\n-      } else {\n-        phase_ = return_phase;\n-      }\n-      return;\n-    case OwnerProtocolKind::kDispatchSource:\n-      if (!staged_owner_dispatch_) {\n-        throw std::logic_error(\n-            \"Spine owner-HBM source dispatch lacked logical ownership\");\n-      }\n-      ++counters_.owner_source_dispatches;\n-      enqueue_memory(*ports_.vertex_state, MemoryOperation::kRead,\n-                     pending_source_ * kVertexWordBytes, kVertexWordBytes, {},\n-                     MemoryPayloadKind::kSourceValue);\n-      phase_ = Phase::kSourceRead;\n-      return;\n-    case OwnerProtocolKind::kCompleteSource:\n-      if (!staged_owner_completion_) {\n-        throw std::logic_error(\n-            \"Spine owner-HBM completion lacked logical owner retirement\");\n-      }\n-      ++counters_.owner_source_completions;\n-      phase_ = return_phase;\n-      return;\n-    case OwnerProtocolKind::kActivateWord:\n-      ++counters_.owner_activation_words;\n-      phase_ = return_phase;\n-      return;\n-    case OwnerProtocolKind::kFinalizeRound:\n-      if (counters_.owner_source_dispatches !=\n-              counters_.owner_source_completions ||\n-          owner_scheduler_->work_credits() != next_active_.size() ||\n-          !owner_scheduler_->ledger_closed()) {\n-        failed_ = true;\n-        owner_round_started_ = false;\n-        phase_ = return_phase;\n-        return;\n-      }\n-      ++counters_.owner_round_finalizes;\n-      owner_round_started_ = false;\n-      enqueue_memory(*ports_.result, MemoryOperation::kWrite, 0, kResultBytes,\n-                     std::vector<std::uint8_t>(kResultBytes, 0));\n-      phase_ = return_phase;\n-      return;\n-    case OwnerProtocolKind::kNone:\n-      break;\n-  }\n-  throw std::logic_error(\"Spine owner-HBM protocol completed without a kind\");\n-}\n-\n }  // namespace spine::sim\ndiff --git a/cpp/sst/Makefile b/cpp/sst/Makefile\nindex 4adb6f2..71dfb22 100644\n--- a/cpp/sst/Makefile\n+++ b/cpp/sst/Makefile\n@@ -39,6 +39,8 @@ CXXFLAGS += -DSPINE_HAVE_DIRECT_DRAMSIM3 -I$(DRAMSIM3_ROOT)/src\n LDFLAGS += -L$(DRAMSIM3_ROOT) -Wl,-rpath,$(DRAMSIM3_ROOT) -ldramsim3\n endif\n SOURCES := online_memory_probe.cpp \\\n+           physical_hbm_mapper.cpp \\\n+           sst_memory_backend.cpp \\\n            direct_dramsim3_engine.cpp \\\n            $(ROOT)/cpp/src/algorithm.cpp \\\n            $(ROOT)/cpp/src/algorithm_pipeline.cpp \\\n@@ -55,9 +57,11 @@ SOURCES := online_memory_probe.cpp \\\n            $(ROOT)/cpp/src/spine_owner.cpp \\\n            $(ROOT)/cpp/src/spine_pagerank.cpp \\\n            $(ROOT)/cpp/src/spine_split.cpp \\\n+           $(ROOT)/cpp/src/spine_sssp_compute.cpp \\\n            $(ROOT)/cpp/src/spine_system.cpp \\\n            $(ROOT)/cpp/src/spine_vertex_lifecycle.cpp\n-HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp)\n+HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp) $(wildcard *.hpp) \\\n+           $(wildcard $(ROOT)/cpp/src/detail/*.hpp)\n \n .PHONY: all clean native pgo-generate pgo-use pgo-native-generate \\\n         pgo-native-use\ndiff --git a/cpp/sst/online_memory_probe.cpp b/cpp/sst/online_memory_probe.cpp\nindex 69774e7..d26b476 100644\n--- a/cpp/sst/online_memory_probe.cpp\n+++ b/cpp/sst/online_memory_probe.cpp\n@@ -28,6 +28,7 @@\n #include <vector>\n \n #include \"direct_dramsim3_engine.hpp\"\n+#include \"sst_memory_backend.hpp\"\n #include \"spine_sim/axi.hpp\"\n #include \"spine_sim/fifo.hpp\"\n #include \"spine_sim/grasu.hpp\"\n@@ -1724,625 +1725,6 @@ class SpineWordSource final : public Component {\n   bool accepted_{};\n };\n \n-struct PhysicalHbmAddress {\n-  std::size_t channel{};\n-  std::uint64_t address{};\n-};\n-\n-class PhysicalHbmAddressMapper {\n- public:\n-  PhysicalHbmAddressMapper(std::size_t logical_channels,\n-                           std::uint64_t channel_capacity_bytes,\n-                           const std::string &mode,\n-                           const std::string &mapping_table,\n-                           std::size_t first_channel,\n-                           std::size_t channel_count,\n-                           std::uint64_t interleave_bytes)\n-      : logical_channels_(logical_channels),\n-        channel_capacity_bytes_(channel_capacity_bytes),\n-        entries_by_channel_(logical_channels) {\n-    if (mode.empty() || mode == \"identity\") {\n-      if (!mapping_table.empty()) {\n-        throw std::invalid_argument(\n-            \"identity HBM mapping unexpectedly has a mapping table\");\n-      }\n-      return;\n-    }\n-    if (mode != \"interleaved_arena_v1\" || logical_channels == 0 ||\n-        channel_capacity_bytes == 0 || channel_count == 0 ||\n-        first_channel > logical_channels ||\n-        channel_count > logical_channels - first_channel ||\n-        interleave_bytes == 0 ||\n-        (interleave_bytes & (interleave_bytes - 1)) != 0 ||\n-        mapping_table.empty()) {\n-      throw std::invalid_argument(\"invalid interleaved HBM address mapping\");\n-    }\n-    enabled_ = true;\n-    first_channel_ = first_channel;\n-    channel_count_ = channel_count;\n-    interleave_bytes_ = interleave_bytes;\n-    std::stringstream table(mapping_table);\n-    std::string encoded_entry;\n-    while (std::getline(table, encoded_entry, ';')) {\n-      std::stringstream fields(encoded_entry);\n-      std::array<std::uint64_t, 4> values{};\n-      std::string field;\n-      for (std::size_t index = 0; index < values.size(); ++index) {\n-        if (!std::getline(fields, field, ':') || field.empty()) {\n-          throw std::invalid_argument(\"malformed HBM mapping-table entry\");\n-        }\n-        std::size_t consumed{};\n-        values[index] = std::stoull(field, &consumed, 10);\n-        if (consumed != field.size()) {\n-          throw std::invalid_argument(\"non-numeric HBM mapping-table field\");\n-        }\n-      }\n-      if (std::getline(fields, field, ':') ||\n-          values[0] >= logical_channels || values[1] >= values[2] ||\n-          values[3] > std::numeric_limits<std::uint64_t>::max() -\n-                          (values[2] - values[1])) {\n-        throw std::invalid_argument(\"invalid HBM mapping-table range\");\n-      }\n-      entries_by_channel_[values[0]].push_back(Entry{\n-          .logical_begin = values[1],\n-          .logical_end = values[2],\n-          .global_begin = values[3],\n-      });\n-    }\n-    for (auto &entries : entries_by_channel_) {\n-      std::sort(entries.begin(), entries.end(),\n-                [](const Entry &left, const Entry &right) {\n-                  return left.logical_begin < right.logical_begin;\n-                });\n-      for (std::size_t index = 1; index < entries.size(); ++index) {\n-        if (entries[index - 1].logical_end > entries[index].logical_begin) {\n-          throw std::invalid_argument(\n-              \"overlapping logical ranges in HBM mapping table\");\n-        }\n-      }\n-    }\n-  }\n-\n-  [[nodiscard]] bool enabled() const noexcept { return enabled_; }\n-\n-  [[nodiscard]] PhysicalHbmAddress map(\n-      std::size_t logical_channel, std::uint64_t logical_address,\n-      std::uint32_t bytes) const {\n-    if (logical_channel >= logical_channels_ || bytes == 0 ||\n-        logical_address >\n-            std::numeric_limits<std::uint64_t>::max() - bytes) {\n-      throw std::invalid_argument(\"invalid logical HBM request\");\n-    }\n-    if (!enabled_) {\n-      return PhysicalHbmAddress{\n-          .channel = logical_channel,\n-          .address = logical_address % channel_capacity_bytes_,\n-      };\n-    }\n-    const std::uint64_t logical_end = logical_address + bytes;\n-    const auto &entries = entries_by_channel_[logical_channel];\n-    const auto found = std::find_if(\n-        entries.begin(), entries.end(), [&](const Entry &entry) {\n-          return logical_address >= entry.logical_begin &&\n-                 logical_end <= entry.logical_end;\n-        });\n-    if (found == entries.end()) {\n-      throw std::invalid_argument(\n-          \"logical HBM request is outside the interleaved address map: \"\n-          \"channel=\" +\n-          std::to_string(logical_channel) + \" address=\" +\n-          std::to_string(logical_address) + \" bytes=\" +\n-          std::to_string(bytes));\n-    }\n-    const std::uint64_t global_address =\n-        found->global_begin + (logical_address - found->logical_begin);\n-    const std::uint64_t byte_in_line = global_address % interleave_bytes_;\n-    if (bytes > interleave_bytes_ - byte_in_line) {\n-      throw std::invalid_argument(\n-          \"HBM request crosses an interleaved physical line\");\n-    }\n-    const std::uint64_t global_line = global_address / interleave_bytes_;\n-    const std::size_t channel =\n-        first_channel_ + static_cast<std::size_t>(global_line % channel_count_);\n-    const std::uint64_t address =\n-        (global_line / channel_count_) * interleave_bytes_ + byte_in_line;\n-    if (address > channel_capacity_bytes_ - bytes) {\n-      throw std::invalid_argument(\n-          \"mapped HBM request exceeds physical pseudo-channel capacity\");\n-    }\n-    return PhysicalHbmAddress{.channel = channel, .address = address};\n-  }\n-\n- private:\n-  struct Entry {\n-    std::uint64_t logical_begin{};\n-    std::uint64_t logical_end{};\n-    std::uint64_t global_begin{};\n-  };\n-\n-  std::size_t logical_channels_{};\n-  std::uint64_t channel_capacity_bytes_{};\n-  bool enabled_{};\n-  std::size_t first_channel_{};\n-  std::size_t channel_count_{};\n-  std::uint64_t interleave_bytes_{};\n-  std::vector<std::vector<Entry>> entries_by_channel_;\n-};\n-\n-class SstMemoryBackend final : public MemoryBackend {\n-  struct InitiatorState;\n-\n- public:\n-  SstMemoryBackend(ClockId clock_id,\n-                   std::vector<SST::Interfaces::StandardMem *> interfaces,\n-                   std::uint64_t channel_capacity_bytes,\n-                   std::size_t accepts_per_channel_per_cycle,\n-                   std::size_t max_outstanding_per_channel,\n-                   std::size_t response_queue_depth,\n-                   std::string address_mapping_mode = {},\n-                   std::string address_mapping_table = {},\n-                   std::size_t interleave_first_channel = 0,\n-                   std::size_t interleave_channels = 0,\n-                   std::uint64_t interleave_bytes = 64,\n-                   std::unique_ptr<DirectDramSim3Engine> direct_engine = nullptr)\n-      : MemoryBackend(\"sst-hbm-backend\", clock_id),\n-        interfaces_(std::move(interfaces)),\n-        direct_engine_(std::move(direct_engine)),\n-        channel_capacity_bytes_(channel_capacity_bytes),\n-        accepts_per_channel_per_cycle_(accepts_per_channel_per_cycle),\n-        max_outstanding_per_channel_(max_outstanding_per_channel),\n-        response_queue_depth_(response_queue_depth),\n-        address_mapper_(interfaces_.size(), channel_capacity_bytes,\n-                        address_mapping_mode, address_mapping_table,\n-                        interleave_first_channel, interleave_channels,\n-                        interleave_bytes),\n-        channel_outstanding_(interfaces_.size(), 0),\n-        staged_channel_submissions_(interfaces_.size(), 0),\n-        arbiter_(interfaces_.size(), accepts_per_channel_per_cycle) {\n-    if (interfaces_.empty() ||\n-        (direct_engine_ == nullptr &&\n-         std::none_of(interfaces_.begin(), interfaces_.end(),\n-                      [](const auto *interface) {\n-                        return interface != nullptr;\n-                      })) ||\n-        channel_capacity_bytes_ == 0 ||\n-        accepts_per_channel_per_cycle_ == 0 ||\n-        max_outstanding_per_channel_ == 0 || response_queue_depth_ == 0) {\n-      throw std::invalid_argument(\"invalid SST memory backend configuration\");\n-    }\n-  }\n-\n-  bool try_reserve(const BackendRequestHeader &request) override {\n-    if (!initiator_registered(request.initiator_id) ||\n-        request.channel >= interfaces_.size() || request.bytes == 0) {\n-      throw std::invalid_argument(\"invalid SST backend request\");\n-    }\n-    const PhysicalHbmAddress physical =\n-        address_mapper_.map(request.channel, request.address, request.bytes);\n-    BackendRequestHeader mapped_request = request;\n-    mapped_request.channel = physical.channel;\n-    mapped_request.address = physical.address;\n-    if (!channel_active(mapped_request.channel)) {\n-      throw std::invalid_argument(\n-          \"SST backend request targets an unbound memory channel\");\n-    }\n-    if (!arbiter_.try_acquire(mapped_request)) {\n-      ++submit_stalls_;\n-      return false;\n-    }\n-    InitiatorState &initiator = ensure_initiator_state(request.initiator_id);\n-    const std::size_t staged_for_channel =\n-        staged_channel_submissions_[mapped_request.channel];\n-    if (staged_for_channel >= accepts_per_channel_per_cycle_ ||\n-        channel_outstanding_[mapped_request.channel] + staged_for_channel >=\n-            max_outstanding_per_channel_) {\n-      ++submit_stalls_;\n-      return false;\n-    }\n-    ++staged_channel_submissions_[mapped_request.channel];\n-    if (initiator.staged_submissions == 0) {\n-      active_staged_initiators_.push_back(request.initiator_id);\n-    }\n-    ++initiator.staged_submissions;\n-    return true;\n-  }\n-\n-  void submit_reserved(BackendRequest request) override {\n-    if ((request.operation == MemoryOperation::kRead &&\n-         !request.write_data.empty()) ||\n-        (request.operation == MemoryOperation::kWrite &&\n-         request.write_data.size() != request.bytes)) {\n-      throw std::invalid_argument(\"invalid SST backend request payload\");\n-    }\n-    staged_submissions_.push_back(std::move(request));\n-  }\n-\n-  [[nodiscard]] bool reservation_intent_pending(\n-      std::uint32_t initiator_id,\n-      std::size_t channel) const noexcept override {\n-    if (address_mapper_.enabled()) {\n-      return false;\n-    }\n-    return arbiter_.intent_pending(initiator_id, channel);\n-  }\n-\n-  void account_same_cycle_reservation_stalls(\n-      std::uint32_t initiator_id, std::size_t channel,\n-      std::uint64_t count) override {\n-    arbiter_.account_duplicate_waits(initiator_id, channel, count);\n-    submit_stalls_ += count;\n-  }\n-\n-  [[nodiscard]] std::size_t response_count(\n-      std::uint32_t initiator_id) const noexcept override {\n-    const InitiatorState *state = find_initiator_state(initiator_id);\n-    return state == nullptr ? 0 : state->responses.size();\n-  }\n-\n-  [[nodiscard]] const BackendResponse &response_at(\n-      std::uint32_t initiator_id, std::size_t index) const override {\n-    const InitiatorState *state = find_initiator_state(initiator_id);\n-    if (state == nullptr || index >= state->responses.size()) {\n-      throw std::out_of_range(\"SST backend response index out of range\");\n-    }\n-    return state->responses[index];\n-  }\n-\n-  [[nodiscard]] const BackendResponse &staged_response_at(\n-      std::uint32_t initiator_id, std::size_t index) const override {\n-    const InitiatorState *state = find_initiator_state(initiator_id);\n-    if (state != nullptr && index < state->retired_responses.size()) {\n-      return state->retired_responses[index];\n-    }\n-    return response_at(initiator_id, index);\n-  }\n-\n-  bool stage_pop_responses(std::uint32_t initiator_id,\n-                           std::size_t count) override {\n-    InitiatorState &state = ensure_initiator_state(initiator_id);\n-    if (state.staged_response_pop != 0 || count > state.responses.size()) {\n-      return false;\n-    }\n-    state.staged_response_pop = count;\n-    active_response_pops_.push_back(initiator_id);\n-    return true;\n-  }\n-\n-  [[nodiscard]] std::size_t outstanding() const noexcept override {\n-    return staged_submissions_.size() + arbiter_.pending_grants() +\n-           inflight_.size() + direct_inflight_count_;\n-  }\n-\n-  [[nodiscard]] std::size_t outstanding_for(\n-      std::uint32_t initiator_id) const noexcept override {\n-    const InitiatorState *state = find_initiator_state(initiator_id);\n-    return (state == nullptr ? 0 : state->staged_submissions) +\n-           arbiter_.pending_grants_for(initiator_id) +\n-           (state == nullptr ? 0 : state->outstanding);\n-  }\n-\n-  [[nodiscard]] bool has_dynamic_prepare_guard() const noexcept override {\n-    return true;\n-  }\n-  [[nodiscard]] bool has_dynamic_commit_guard() const noexcept override {\n-    return true;\n-  }\n-  [[nodiscard]] bool prepare_ready() const noexcept override {\n-    return !external_arrivals_.empty() || !active_retired_initiators_.empty();\n-  }\n-  [[nodiscard]] bool commit_ready() const noexcept override {\n-    return !active_response_pops_.empty() || !staged_submissions_.empty() ||\n-           arbiter_.pending_intents() != 0;\n-  }\n-\n-  void prepare(const CycleContext &) override {\n-    for (const std::uint32_t initiator_id : active_retired_initiators_) {\n-      ensure_initiator_state(initiator_id).retired_responses.clear();\n-    }\n-    active_retired_initiators_.clear();\n-    for (auto iterator = external_arrivals_.begin();\n-         iterator != external_arrivals_.end();) {\n-      auto &queue =\n-          ensure_initiator_state(iterator->initiator_id).responses;\n-      if (queue.size() >= response_queue_depth_) {\n-        ++response_queue_stalls_;\n-        ++iterator;\n-        continue;\n-      }\n-      queue.push_back(*iterator);\n-      notify_response_available(iterator->initiator_id);\n-      iterator = external_arrivals_.erase(iterator);\n-    }\n-  }\n-\n-  void evaluate(const CycleContext &) override {}\n-\n-  void commit(const CycleContext &) override {\n-    for (const std::uint32_t initiator_id : active_response_pops_) {\n-      InitiatorState &state = ensure_initiator_state(initiator_id);\n-      const std::size_t count = state.staged_response_pop;\n-      auto &queue = state.responses;\n-      auto &retired = state.retired_responses;\n-      retired.clear();\n-      retired.reserve(count);\n-      for (std::size_t index = 0; index < count; ++index) {\n-        retired.push_back(std::move(queue.front()));\n-        queue.pop_front();\n-      }\n-      state.staged_response_pop = 0;\n-      active_retired_initiators_.push_back(initiator_id);\n-    }\n-    active_response_pops_.clear();\n-\n-    for (const BackendRequest &request : staged_submissions_) {\n-      const PhysicalHbmAddress physical =\n-          address_mapper_.map(request.channel, request.address, request.bytes);\n-      Inflight inflight{\n-          .backend_request_id = request.request_id,\n-          .initiator_id = request.initiator_id,\n-          .channel = physical.channel,\n-          .operation = request.operation,\n-          .bytes = request.bytes,\n-          .request = request,\n-      };\n-      ++channel_outstanding_[physical.channel];\n-      ++ensure_initiator_state(request.initiator_id).outstanding;\n-      BackendRequest physical_request = request;\n-      physical_request.channel = physical.channel;\n-      physical_request.address = physical.address;\n-      record_accepted_request(physical_request);\n-      ++accepted_;\n-      if (direct_engine_ != nullptr) {\n-        const std::uint64_t token =\n-            allocate_direct_inflight(std::move(inflight));\n-        direct_engine_->submit(\n-            token, physical.channel, physical.address,\n-            request.operation == MemoryOperation::kWrite,\n-            direct_submit_time_ps_);\n-      } else {\n-        SST::Interfaces::StandardMem::Request *standard_request = nullptr;\n-        if (request.operation == MemoryOperation::kWrite) {\n-          standard_request = new SST::Interfaces::StandardMem::Write(\n-              physical.address, request.bytes, request.write_data);\n-        } else {\n-          standard_request = new SST::Interfaces::StandardMem::Read(\n-              physical.address, request.bytes);\n-        }\n-        standard_request->setNoncacheable();\n-        const auto standard_id = standard_request->getID();\n-        inflight_.emplace(standard_id, inflight);\n-        interfaces_[physical.channel]->send(standard_request);\n-      }\n-    }\n-    staged_submissions_.clear();\n-    std::fill(staged_channel_submissions_.begin(),\n-              staged_channel_submissions_.end(), 0);\n-    for (const std::uint32_t initiator_id : active_staged_initiators_) {\n-      ensure_initiator_state(initiator_id).staged_submissions = 0;\n-    }\n-    active_staged_initiators_.clear();\n-    arbiter_.arbitrate(channel_outstanding_, max_outstanding_per_channel_);\n-    max_outstanding_ = std::max(max_outstanding_, outstanding());\n-  }\n-\n-  void on_response(SST::Interfaces::StandardMem::Request *request) {\n-    const auto found = inflight_.find(request->getID());\n-    if (found == inflight_.end()) {\n-      throw std::logic_error(\"SST returned an unknown StandardMem request\");\n-    }\n-    if (found->second.operation == MemoryOperation::kRead) {\n-      auto *read_response =\n-          dynamic_cast<SST::Interfaces::StandardMem::ReadResp *>(request);\n-      if (read_response == nullptr ||\n-          read_response->data.size() != found->second.bytes) {\n-        throw std::logic_error(\"SST returned a malformed read response\");\n-      }\n-    } else if (dynamic_cast<SST::Interfaces::StandardMem::WriteResp *>(\n-                   request) == nullptr) {\n-      throw std::logic_error(\"SST returned a malformed write response\");\n-    }\n-    complete_inflight(found->second, request->getSuccess());\n-    inflight_.erase(found);\n-    delete request;\n-  }\n-\n-  void advance_direct_to(std::uint64_t time_ps) {\n-    if (direct_engine_ == nullptr) {\n-      return;\n-    }\n-    direct_engine_->advance_to(time_ps);\n-    direct_engine_->take_completions(direct_completions_);\n-    for (const DirectDramSim3Engine::Completion &completion :\n-         direct_completions_) {\n-      if (completion.token >= direct_inflight_.size() ||\n-          !direct_inflight_[completion.token].has_value()) {\n-        throw std::logic_error(\n-            \"direct DRAMSim3 returned an unknown request token\");\n-      }\n-      complete_inflight(*direct_inflight_[completion.token], true);\n-      release_direct_inflight(completion.token);\n-    }\n-    direct_submit_time_ps_ = time_ps;\n-  }\n-\n-  void print_direct_stats() {\n-    if (direct_engine_ != nullptr) {\n-      direct_engine_->print_stats();\n-    }\n-  }\n-\n-  [[nodiscard]] const char *backend_label() const noexcept {\n-    return direct_engine_ == nullptr ? \"sst_memHierarchy_dramsim3\"\n-                                     : \"direct_dramsim3_transport\";\n-  }\n-\n-  [[nodiscard]] std::uint64_t accepted() const noexcept { return accepted_; }\n-  [[nodiscard]] std::uint64_t submit_stalls() const noexcept {\n-    return submit_stalls_;\n-  }\n-  [[nodiscard]] std::uint64_t response_queue_stalls() const noexcept {\n-    return response_queue_stalls_;\n-  }\n-  [[nodiscard]] std::size_t max_outstanding() const noexcept {\n-    return max_outstanding_;\n-  }\n-  [[nodiscard]] const RegisteredChannelArbiterStats &arbitration_stats()\n-      const noexcept {\n-    return arbiter_.stats();\n-  }\n-  [[nodiscard]] std::string arbitration_json() const {\n-    const RegisteredChannelArbiterStats &stats = arbiter_.stats();\n-    const std::size_t pending_intents = arbiter_.pending_intents();\n-    const std::size_t pending_grants = arbiter_.pending_grants();\n-    const bool ledger_closed =\n-        stats.unique_intents == stats.grants &&\n-        stats.grants == stats.consumed_grants && pending_intents == 0 &&\n-        pending_grants == 0;\n-    std::ostringstream stream;\n-    stream << \"{\\\"policy\\\":\\\"registered_round_robin_per_pseudo_channel\\\"\"\n-           << \",\\\"unique_intents\\\":\" << stats.unique_intents\n-           << \",\\\"request_waits\\\":\" << stats.request_waits\n-           << \",\\\"grants\\\":\" << stats.grants\n-           << \",\\\"consumed_grants\\\":\" << stats.consumed_grants\n-           << \",\\\"pending_intents\\\":\" << pending_intents\n-           << \",\\\"pending_grants\\\":\" << pending_grants\n-           << \",\\\"ledger_closed\\\":\" << (ledger_closed ? \"true\" : \"false\")\n-           << \",\\\"contended_cycles\\\":\" << stats.contended_cycles\n-           << \",\\\"contention_losers\\\":\" << stats.contention_losers\n-           << \",\\\"capacity_blocked_cycles\\\":\"\n-           << stats.capacity_blocked_cycles\n-           << \",\\\"max_contenders\\\":\" << stats.max_contenders\n-           << \",\\\"max_pending_grants\\\":\" << stats.max_pending_grants\n-           << '}';\n-    return stream.str();\n-  }\n-\n- private:\n-  struct InitiatorState {\n-    std::deque<BackendResponse> responses;\n-    std::vector<BackendResponse> retired_responses;\n-    std::size_t staged_response_pop{};\n-    std::size_t staged_submissions{};\n-    std::size_t outstanding{};\n-  };\n-\n-  [[nodiscard]] InitiatorState *find_initiator_state(\n-      std::uint32_t initiator_id) noexcept {\n-    return initiator_id < initiator_states_.size()\n-               ? initiator_states_[initiator_id].get()\n-               : nullptr;\n-  }\n-\n-  [[nodiscard]] const InitiatorState *find_initiator_state(\n-      std::uint32_t initiator_id) const noexcept {\n-    return initiator_id < initiator_states_.size()\n-               ? initiator_states_[initiator_id].get()\n-               : nullptr;\n-  }\n-\n-  InitiatorState &ensure_initiator_state(std::uint32_t initiator_id) {\n-    if (initiator_id >= initiator_states_.size()) {\n-      initiator_states_.resize(static_cast<std::size_t>(initiator_id) + 1);\n-    }\n-    std::unique_ptr<InitiatorState> &state = initiator_states_[initiator_id];\n-    if (state == nullptr) {\n-      state = std::make_unique<InitiatorState>();\n-    }\n-    return *state;\n-  }\n-\n-  struct Inflight {\n-    std::uint64_t backend_request_id{};\n-    std::uint32_t initiator_id{};\n-    std::size_t channel{};\n-    MemoryOperation operation{MemoryOperation::kRead};\n-    std::uint32_t bytes{};\n-    BackendRequest request;\n-  };\n-\n-  [[nodiscard]] bool channel_active(std::size_t channel) const noexcept {\n-    return direct_engine_ != nullptr\n-               ? direct_engine_->channel_active(channel)\n-               : channel < interfaces_.size() && interfaces_[channel] != nullptr;\n-  }\n-\n-  void complete_inflight(const Inflight &inflight, bool success) {\n-    std::vector<std::uint8_t> read_data;\n-    if (inflight.operation == MemoryOperation::kRead) {\n-      read_data = complete_read_payload(inflight.request);\n-    } else {\n-      commit_write_payload(inflight.request);\n-    }\n-    external_arrivals_.push_back(BackendResponse{\n-        .initiator_id = inflight.initiator_id,\n-        .request_id = inflight.backend_request_id,\n-        .success = success,\n-        .read_data = std::move(read_data),\n-    });\n-    if (channel_outstanding_[inflight.channel] == 0) {\n-      throw std::logic_error(\"SST channel outstanding count underflow\");\n-    }\n-    --channel_outstanding_[inflight.channel];\n-    InitiatorState &initiator = ensure_initiator_state(inflight.initiator_id);\n-    if (initiator.outstanding == 0) {\n-      throw std::logic_error(\"SST initiator outstanding count underflow\");\n-    }\n-    --initiator.outstanding;\n-  }\n-\n-  [[nodiscard]] std::uint64_t allocate_direct_inflight(Inflight inflight) {\n-    std::size_t slot{};\n-    if (free_direct_inflight_.empty()) {\n-      slot = direct_inflight_.size();\n-      direct_inflight_.emplace_back(std::move(inflight));\n-    } else {\n-      slot = free_direct_inflight_.back();\n-      free_direct_inflight_.pop_back();\n-      direct_inflight_[slot].emplace(std::move(inflight));\n-    }\n-    ++direct_inflight_count_;\n-    return slot;\n-  }\n-\n-  void release_direct_inflight(std::uint64_t token) {\n-    const std::size_t slot = static_cast<std::size_t>(token);\n-    if (direct_inflight_count_ == 0) {\n-      throw std::logic_error(\"direct DRAMSim3 inflight count underflow\");\n-    }\n-    direct_inflight_[slot].reset();\n-    free_direct_inflight_.push_back(slot);\n-    --direct_inflight_count_;\n-  }\n-\n-  std::vector<SST::Interfaces::StandardMem *> interfaces_;\n-  std::unique_ptr<DirectDramSim3Engine> direct_engine_;\n-  std::uint64_t channel_capacity_bytes_{};\n-  std::size_t accepts_per_channel_per_cycle_{};\n-  std::size_t max_outstanding_per_channel_{};\n-  std::size_t response_queue_depth_{};\n-  PhysicalHbmAddressMapper address_mapper_;\n-  std::vector<std::size_t> channel_outstanding_;\n-  std::vector<std::size_t> staged_channel_submissions_;\n-  RegisteredChannelArbiter arbiter_;\n-  std::vector<std::unique_ptr<InitiatorState>> initiator_states_;\n-  std::vector<std::uint32_t> active_staged_initiators_;\n-  std::vector<std::uint32_t> active_response_pops_;\n-  std::vector<std::uint32_t> active_retired_initiators_;\n-  std::vector<BackendRequest> staged_submissions_;\n-  std::unordered_map<SST::Interfaces::StandardMem::Request::id_t, Inflight>\n-      inflight_;\n-  std::vector<std::optional<Inflight>> direct_inflight_;\n-  std::vector<std::size_t> free_direct_inflight_;\n-  std::vector<DirectDramSim3Engine::Completion> direct_completions_;\n-  std::deque<BackendResponse> external_arrivals_;\n-  std::uint64_t accepted_{};\n-  std::uint64_t submit_stalls_{};\n-  std::uint64_t response_queue_stalls_{};\n-  std::size_t max_outstanding_{};\n-  std::size_t direct_inflight_count_{};\n-  std::uint64_t direct_submit_time_ps_{};\n-};\n-\n }  // namespace\n \n class OnlineMemoryProbe final : public SST::Component {\n",
+      "revision": "abe4c3ed0b25bd22efaab45ae26818f693c4183b"
+    }
+  },
+  "cases": [
+    {
+      "backend_requests": 2382,
+      "case": "spine_sssp_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 25469,
+      "equivalent": true,
+      "result_hashes": [
+        "c9ea62b85d42862d8964bf118eae49263e8a0827d9fd8701b237dbd6f9a5fa2c",
+        "c9ea62b85d42862d8964bf118eae49263e8a0827d9fd8701b237dbd6f9a5fa2c"
+      ]
+    },
+    {
+      "backend_requests": 8598,
+      "case": "spine_sssp_delete",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 69215,
+      "equivalent": true,
+      "result_hashes": [
+        "81b10e24cd19d140b0905d797435d7609ff7f71f8136a01bad178bc03d676906",
+        "81b10e24cd19d140b0905d797435d7609ff7f71f8136a01bad178bc03d676906"
+      ]
+    },
+    {
+      "backend_requests": 2248,
+      "case": "spine_fullpr",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 9595069,
+      "equivalent": true,
+      "result_hashes": [
+        "d73a8dcfeeb91a0195d5bc05b70172f26ca1bed36342c4e6e8d3f3c8d8d15c30",
+        "d73a8dcfeeb91a0195d5bc05b70172f26ca1bed36342c4e6e8d3f3c8d8d15c30"
+      ]
+    },
+    {
+      "backend_requests": 2248,
+      "case": "spine_fullpr_direct",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 9595069,
+      "equivalent": true,
+      "result_hashes": [
+        "e59ff6339d36094f7d125514001a49f4fefaa2f566cf4fc6d24882e2c7660181",
+        "e59ff6339d36094f7d125514001a49f4fefaa2f566cf4fc6d24882e2c7660181"
+      ]
+    },
+    {
+      "backend_requests": 7040,
+      "case": "spine_respr_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": false,
+      "cycles": 117222,
+      "equivalent": true,
+      "evidence_class": "unchanged_known_rejection_not_correctness",
+      "reason": "Pre-existing active-edge accounting rejection; both mathematical oracles pass",
+      "result_hashes": [
+        "21735cd478a5cd7d6acac30a8f5f3238d4cafbaea50b221a6da0c223619cb4ce",
+        "21735cd478a5cd7d6acac30a8f5f3238d4cafbaea50b221a6da0c223619cb4ce"
+      ]
+    },
+    {
+      "backend_requests": 2446,
+      "case": "spine_cc_insert",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 25525,
+      "equivalent": true,
+      "result_hashes": [
+        "de570d3004640650ef26b228b2d36b047de400e5c999e9f939f3f6833a8ca742",
+        "de570d3004640650ef26b228b2d36b047de400e5c999e9f939f3f6833a8ca742"
+      ]
+    },
+    {
+      "backend_requests": 1341,
+      "case": "spine_cc_zero_net",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": false,
+      "cycles": 11055,
+      "equivalent": true,
+      "evidence_class": "unchanged_known_rejection_not_correctness",
+      "reason": "Pre-existing zero-net frontier and active-edge reference mismatch; labels pass",
+      "result_hashes": [
+        "d69742794f600ae0cdf3b10c1ad1360dbf786a2548a7f043e7eaf5851f8d8b7a",
+        "d69742794f600ae0cdf3b10c1ad1360dbf786a2548a7f043e7eaf5851f8d8b7a"
+      ]
+    },
+    {
+      "backend_requests": 1863,
+      "case": "spine_carry_legacy",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": false,
+      "cycles": 11734,
+      "equivalent": true,
+      "evidence_class": "unchanged_known_rejection_not_correctness",
+      "reason": "Legacy fixture and current shared-engine accounting disagree",
+      "result_hashes": [
+        "2c9726e4913ddba99b5d46ce62b3e43dc023015d350c9a742bcbf5d28495e215",
+        "2c9726e4913ddba99b5d46ce62b3e43dc023015d350c9a742bcbf5d28495e215"
+      ]
+    },
+    {
+      "backend_requests": 1215,
+      "case": "spine_carry_owner",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": false,
+      "cycles": 8157,
+      "equivalent": true,
+      "evidence_class": "unchanged_known_rejection_not_correctness",
+      "reason": "Wrapper requires candidate10_one_pass but owner profile declares segmented_exact",
+      "result_hashes": [
+        "3aff1d084e2856325a2d0c36f5debd7fae722a850c6e652ec2675bff8265be32",
+        "3aff1d084e2856325a2d0c36f5debd7fae722a850c6e652ec2675bff8265be32"
+      ]
+    },
+    {
+      "backend_requests": 33848,
+      "case": "sssp_mixed_cold",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 99885,
+      "equivalent": true,
+      "result_hashes": [
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+      ]
+    },
+    {
+      "backend_requests": 1775700,
+      "case": "sssp_multipart_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 5997674,
+      "equivalent": true,
+      "result_hashes": [
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+      ]
+    },
+    {
+      "backend_requests": 50741,
+      "case": "cc_reciprocal",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 133841,
+      "equivalent": true,
+      "result_hashes": [
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+      ]
+    },
+    {
+      "backend_requests": 997048,
+      "case": "residual_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 1487890,
+      "equivalent": true,
+      "result_hashes": [
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+      ]
+    },
+    {
+      "backend_requests": 48,
+      "case": "residual_update_only",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 200,
+      "equivalent": true,
+      "result_hashes": [
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+      ]
+    }
+  ],
+  "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+  "correctness_admitted_cases": 10,
+  "ignored_result_fields": [],
+  "known_rejections": 4,
+  "schema_version": 1,
+  "status": "PASS"
+}

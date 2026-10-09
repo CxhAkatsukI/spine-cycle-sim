@@ -11,7 +11,7 @@ from .campaign_runtime import sha256_file
 
 
 SEMANTIC_IDENTITIES = (
-    "profile_sha256", "workload_sha256", "update_workload_sha256", "update_sha256",
+    "profile_sha256", "architecture_profile_sha256", "workload_sha256", "update_workload_sha256", "update_sha256",
     "capability_catalog_sha256", "algorithm_capability", "resident_state",
     "measurement_window", "supersteps", "residual_contract", "downstream_sharing",
     "sst_memory_binding", "physical_hbm_address_regions", "core_mhz",
@@ -20,7 +20,7 @@ SEMANTIC_IDENTITIES = (
 
 def source_snapshot(root: Path, contract_path: Path, contract: Mapping[str, Any]) -> dict:
     paths = {contract_path.resolve()}
-    for directory in ("cpp/include", "cpp/src", "cpp/sst", "sst"):
+    for directory in ("cpp/include", "cpp/src", "cpp/sst", "sst", "spine_cycle_sim"):
         paths.update(path for path in (root / directory).rglob("*")
                      if path.suffix in {".cpp", ".hpp", ".py"})
     paths.update(root / name for name in (
@@ -28,10 +28,15 @@ def source_snapshot(root: Path, contract_path: Path, contract: Mapping[str, Any]
         "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json",
         "configs/memory/HBM2_1ch_x128.ini",
         "scripts/run_grasu_refactor_regression.py",
+        "scripts/run_component_refactor_regression.py",
         "spine_cycle_sim/experiments/refactor_equivalence.py",
     ))
     for case in contract["cases"]:
-        paths.update(root / case[field] for field in ("runner", "profile", "workload", "updates"))
+        paths.update(root / case[field] for field in ("runner", "profile", "workload", "updates")
+                     if case.get(field))
+        paths.update(root / name for name in case.get("inputs", []))
+        if case.get("capability_catalog"):
+            paths.add(root / case["capability_catalog"])
     return {
         "revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
         "relevant_dirty_diff": subprocess.check_output(
@@ -60,14 +65,16 @@ def case_command(root: Path, case: Mapping[str, Any], lib_dir: Path, case_dir: P
 
     if timeout_seconds <= 0:
         raise ValueError("case timeout must be positive")
-    return [
+    command = [
         "timeout", "--signal=TERM", "--kill-after=10s", f"{timeout_seconds}s", sys.executable,
-        str(root / case["runner"]), "--no-build", "--profile", str(root / case["profile"]),
-        "--capability-catalog", str(root / "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json"),
-        "--workload", str(root / case["workload"]), "--update-workload", str(root / case["updates"]),
-        "--lib-dir", str(lib_dir), "--out-dir", str(case_dir),
-        *case["arguments"],
+        str(root / case["runner"]), "--no-build",
     ]
+    catalog = case.get("capability_catalog", "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json")
+    for flag, value in (("--profile", case.get("profile")), ("--capability-catalog", catalog),
+                        ("--workload", case.get("workload")), ("--update-workload", case.get("updates"))):
+        if value:
+            command.extend((flag, str(root / value)))
+    return [*command, "--lib-dir", str(lib_dir), "--out-dir", str(case_dir), *case["arguments"]]
 
 
 def compare_result_payloads(before: Mapping[str, Any], after: Mapping[str, Any]) -> dict:
@@ -76,6 +83,25 @@ def compare_result_payloads(before: Mapping[str, Any], after: Mapping[str, Any])
     changed = sorted(key for key in set(before) | set(after)
                      if key not in before or key not in after or before[key] != after[key])
     return {"equivalent": not changed, "changed_fields": changed}
+
+
+def validate_case_outcome(case: Mapping[str, Any], run_dir: Path) -> None:
+    """Keep known rejections visible without treating them as correctness passes."""
+    state = json.loads((run_dir / "campaign/campaign_state.json").read_text())
+    job = next(row for row in state["jobs"] if row["job_id"] == case["id"])
+    rejection = case.get("expected_rejection")
+    if rejection is None:
+        if job["status"] != "pass" or job["exit_code"] != 0:
+            raise ValueError(f"{case['id']}: unexpected runner failure")
+        return
+    if not rejection.get("reason") or not rejection.get("result_fields"):
+        raise ValueError("known rejections require a reason and a frozen signature")
+    if job["status"] != "fail" or job["exit_code"] != 1:
+        raise ValueError(f"{case['id']}: known rejection changed outcome")
+    result = json.loads((run_dir / "cases" / case["id"] / "result.json").read_text())
+    if any(key not in result or result[key] != value
+           for key, value in rejection["result_fields"].items()):
+        raise ValueError(f"{case['id']}: known rejection changed signature")
 
 
 def compare_runs(contract: Mapping[str, Any], baseline_dir: Path, candidate_dir: Path) -> dict:
@@ -92,6 +118,22 @@ def compare_runs(contract: Mapping[str, Any], baseline_dir: Path, candidate_dir:
     for case in contract["cases"]:
         directories = [directory / "cases" / case["id"] for directory in (baseline_dir, candidate_dir)]
         results = [json.loads((directory / "result.json").read_text()) for directory in directories]
+        if case.get("expected_rejection"):
+            for directory in (baseline_dir, candidate_dir):
+                validate_case_outcome(case, directory)
+            changed = sorted(key for key in set(results[0]) | set(results[1])
+                             if key not in results[0] or key not in results[1]
+                             or results[0][key] != results[1][key])
+            rows.append({
+                "case": case["id"], "evidence_class": "unchanged_known_rejection_not_correctness",
+                "correctness_admitted": False,
+                "reason": case["expected_rejection"]["reason"],
+                "equivalent": not changed, "changed_fields": changed,
+                "changed_manifest_identities": [],
+                "cycles": results[0]["cycles"], "backend_requests": results[0]["backend_requests"],
+                "result_hashes": [sha256_file(directory / "result.json") for directory in directories],
+            })
+            continue
         manifests = [json.loads((directory / case["manifest"]).read_text()) for directory in directories]
         for manifest, identity in zip(manifests, identities):
             if manifest.get("status") != "PASS" or manifest.get("sst_plugin_sha256") != identity["plugin_sha256"]:
@@ -100,7 +142,7 @@ def compare_runs(contract: Mapping[str, Any], baseline_dir: Path, candidate_dir:
                               if manifests[0].get(field) != manifests[1].get(field)]
         comparison = compare_result_payloads(*results)
         rows.append({
-            "case": case["id"], **comparison,
+            "case": case["id"], "correctness_admitted": True, **comparison,
             "changed_manifest_identities": changed_identities,
             "cycles": results[0]["cycles"], "backend_requests": results[0]["backend_requests"],
             "result_hashes": [sha256_file(directory / "result.json") for directory in directories],
@@ -110,5 +152,7 @@ def compare_runs(contract: Mapping[str, Any], baseline_dir: Path, candidate_dir:
         "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
         "status": "PASS" if all(row["equivalent"] and not row["changed_manifest_identities"] for row in rows) else "FAIL",
         "ignored_result_fields": [], "cases": rows,
+        "correctness_admitted_cases": sum(row["correctness_admitted"] for row in rows),
+        "known_rejections": sum(not row["correctness_admitted"] for row in rows),
         "baseline_identity": identities[0], "candidate_identity": identities[1],
     }

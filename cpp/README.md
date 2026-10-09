@@ -23,13 +23,16 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | AXI and memory service | [axi.hpp](include/spine_sim/axi.hpp), [memory_backend.hpp](include/spine_sim/memory_backend.hpp) | [axi.cpp](src/axi.cpp), [memory_backend.cpp](src/memory_backend.cpp) |
 | Spine maintenance and carry | [spine_l0.hpp](include/spine_sim/spine_l0.hpp) | [spine_l0.cpp](src/spine_l0.cpp) |
 | Spine dirty frontier and owner scheduling | [spine_dirty.hpp](include/spine_sim/spine_dirty.hpp), [spine_owner.hpp](include/spine_sim/spine_owner.hpp) | [spine_dirty.cpp](src/spine_dirty.cpp), [spine_owner.cpp](src/spine_owner.cpp) |
-| Spine range reading and compute | [spine_split.hpp](include/spine_sim/spine_split.hpp) | [spine_split.cpp](src/spine_split.cpp) |
+| Spine range resolution and edge/value stream reading | [spine_split.hpp](include/spine_sim/spine_split.hpp) | [spine_split.cpp](src/spine_split.cpp) |
+| Spine SSSP/CC state update and owner publication | [spine_split.hpp](include/spine_sim/spine_split.hpp) | [spine_sssp_compute.cpp](src/spine_sssp_compute.cpp) |
 | Spine system/algorithm orchestration | [spine_system.hpp](include/spine_sim/spine_system.hpp) | [spine_system.cpp](src/spine_system.cpp), [spine_pagerank.cpp](src/spine_pagerank.cpp) |
 | GraSU PMA layout and update paths | [grasu.hpp](include/spine_sim/grasu.hpp), [grasu_native.hpp](include/spine_sim/grasu_native.hpp) | [grasu.cpp](src/grasu.cpp), [grasu_native.cpp](src/grasu_native.cpp) |
 | G+R HBM buffer placement and capacity checks | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph_runtime.cpp](src/grasu_regraph_runtime.cpp) |
 | G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
 | G+R readers, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
 | SST setup and run serialization | SST component registration | [online_memory_probe.cpp](sst/online_memory_probe.cpp) |
+| SST physical HBM address mapping | [physical_hbm_mapper.hpp](sst/physical_hbm_mapper.hpp) | [physical_hbm_mapper.cpp](sst/physical_hbm_mapper.cpp) |
+| SST memory reservation, transport and completion | [sst_memory_backend.hpp](sst/sst_memory_backend.hpp) | [sst_memory_backend.cpp](sst/sst_memory_backend.cpp) |
 | Direct DRAMSim3 bridge | [direct_dramsim3_engine.hpp](sst/direct_dramsim3_engine.hpp) | [direct_dramsim3_engine.cpp](sst/direct_dramsim3_engine.cpp) |
 
 ## Two Build Entry Points
@@ -53,6 +56,7 @@ used by existing experiments.
 | G+R placement, capacity, and empty-shard invariants | [grasu_runtime_tests.cpp](tests/grasu_runtime_tests.cpp) |
 | Owner/reactivation protocol | [spine_owner_tests.cpp](tests/spine_owner_tests.cpp) |
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
+| SST address mapping without an SST installation | [sst_hbm_mapper_tests.cpp](tests/sst_hbm_mapper_tests.cpp) |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
@@ -79,3 +83,20 @@ contains the fixed pre/post SST matrix and full-result comparison. This is
 incremental modularization, not completion of the entire C++ cleanup. The
 [structure audit](../docs/repository/structure_audit_20261009.md) retains the
 remaining SST and Spine extraction work.
+
+## SST And Spine Extraction Boundary
+
+The [SST/Spine regression record](../docs/repository/sst_spine_refactor/README.md)
+tracks two independently checked checkpoints. `OnlineMemoryProbe` keeps SST
+registration, run setup, algorithm references, and serialization; physical
+address mapping and memory-backend arbitration/transport are separate units.
+The backend still uses the original prepare/evaluate/commit order and shares
+one completion/payload path between StandardMem and direct DRAMSim3.
+
+`SpineSplitReader` remains in `spine_split.cpp` for source-path compatibility;
+`SpineSplitSsspCompute` has its own implementation file. Their public header
+is unchanged. The private [payload helper](src/detail/spine_split_payload.hpp)
+contains only the existing shared encoders/decoders and ABI constants, not an
+alternate scheduler or architecture. Owner scheduling remains in its existing
+module. SST run setup/serialization and maintenance are still large and need
+later, separately verified extractions.

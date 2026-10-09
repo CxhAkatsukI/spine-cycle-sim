@@ -39,6 +39,8 @@ CXXFLAGS += -DSPINE_HAVE_DIRECT_DRAMSIM3 -I$(DRAMSIM3_ROOT)/src
 LDFLAGS += -L$(DRAMSIM3_ROOT) -Wl,-rpath,$(DRAMSIM3_ROOT) -ldramsim3
 endif
 SOURCES := online_memory_probe.cpp \
+           physical_hbm_mapper.cpp \
+           sst_memory_backend.cpp \
            direct_dramsim3_engine.cpp \
            $(ROOT)/cpp/src/algorithm.cpp \
            $(ROOT)/cpp/src/algorithm_pipeline.cpp \
@@ -55,9 +57,11 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/spine_owner.cpp \
            $(ROOT)/cpp/src/spine_pagerank.cpp \
            $(ROOT)/cpp/src/spine_split.cpp \
+           $(ROOT)/cpp/src/spine_sssp_compute.cpp \
            $(ROOT)/cpp/src/spine_system.cpp \
            $(ROOT)/cpp/src/spine_vertex_lifecycle.cpp
-HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp)
+HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp) $(wildcard *.hpp) \
+           $(wildcard $(ROOT)/cpp/src/detail/*.hpp)
 
 .PHONY: all clean native pgo-generate pgo-use pgo-native-generate \
         pgo-native-use

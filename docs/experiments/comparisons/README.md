@@ -6,6 +6,10 @@ Use the [GraSU / ReGraph study](grasu_regraph_publication_match/README.md)
 for source differences, A/A4/B/C acceptance gates, fresh regression evidence,
 and the explicit remaining work. It does not yet establish a published-speed match.
 
+The next [isolated G/A/A4/B stage-validation plan](grasu_regraph_stage_validation/PLAN.md)
+defines the execution order and independent acceptance gates after the
+[SST/Spine refactor](../../repository/sst_spine_refactor/README.md).
+
 ## For Current Figure Data
 
 Use the [Figures 7--11 handoff](../../evaluation_refresh_20260810/figure7_10_handoff_v1/README.md).

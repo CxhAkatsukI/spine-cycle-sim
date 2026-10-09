@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "study_id": "sst_spine_component_refactor_v1",
+  "claim": "behavior_preserving_sst_and_spine_source_extraction_not_calibration",
+  "build": {
+    "compiler": "g++",
+    "host_flags": "-O3 -DNDEBUG -flto",
+    "native_host": 0,
+    "pgo_mode": "off",
+    "dramsim3_root": "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729"
+  },
+  "cases": [
+    {
+      "id": "spine_sssp_warm",
+      "system": "spine",
+      "runner": "scripts/run_sst_spine_vertical.py",
+      "profile": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+      "capability_catalog": null,
+      "workload": "tests/data/dynamic_shortcut_initial.slice",
+      "updates": "tests/data/dynamic_shortcut_update.slice",
+      "arguments": [
+        "--scenario",
+        "dynamic_sssp",
+        "--sssp-warm-start",
+        "--validation-mode",
+        "generic"
+      ],
+      "manifest": "summary.json"
+    },
+    {
+      "id": "spine_sssp_delete",
+      "system": "spine",
+      "runner": "scripts/run_sst_spine_vertical.py",
+      "profile": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+      "capability_catalog": null,
+      "workload": "tests/data/dynamic_nonmonotonic_initial.slice",
+      "updates": "tests/data/dynamic_delete_update.slice",
+      "arguments": [
+        "--scenario",
+        "dynamic_sssp_delete",
+        "--validation-mode",
+        "generic"
+      ],
+      "manifest": "summary.json"
+    },
+    {
+      "id": "spine_fullpr",
+      "system": "spine",
+      "runner": "scripts/run_sst_spine_vertical.py",
+      "profile": "configs/architectures/spine_owner_fifo_fullpr_hls_v1.json",
+      "capability_catalog": null,
+      "workload": "tests/data/pagerank_four_vertex.slice",
+      "updates": null,
+      "arguments": [
+        "--scenario",
+        "full_pagerank",
+        "--validation-mode",
+        "generic",
+        "--pagerank-iterations",
+        "3"
+      ],
+      "manifest": "summary.json"
+    },
+    {
+      "id": "spine_fullpr_direct",
+      "system": "spine",
+      "runner": "scripts/run_sst_spine_vertical.py",
+      "profile": "configs/architectures/spine_owner_fifo_fullpr_hls_v1.json",
+      "capability_catalog": null,
+      "workload": "tests/data/pagerank_four_vertex.slice",
+      "updates": null,
+      "arguments": [
+        "--scenario",
+        "full_pagerank",
+        "--validation-mode",
+        "generic",
+        "--pagerank-iterations",
+        "3"
+      ],
+      "manifest": "summary.json",
+      "environment": {
+        "SPINE_SST_MEMORY_BACKEND": "direct_dramsim3_transport"
+      }
+    },
+    {
+      "id": "spine_respr_warm",
+      "system": "spine",
+      "runner": "scripts/run_sst_spine_vertical.py",
+      "profile": "configs/architectures/spine_owner_fifo_respr_hls_v1.json",
+      "capability_catalog": null,
+      "workload": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+      "updates": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+      "arguments": [
+        "--scenario",
+        "residual_pagerank",
+        "--validation-mode",
+        "generic"
+      ],
+      "manifest": "summary.json"
+    },
+    {
+      "id": "spine_cc_insert",
+      "system": "spine",
+      "runner": "scripts/run_sst_connected_components.py",
+      "profile": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+      "capability_catalog": null,
+      "workload": "tests/data/connected_components_bridge_initial.slice",
+      "updates": "tests/data/connected_components_bridge_insert.slice",
+      "arguments": [
+        "--architecture",
+        "spine"
+      ],
+      "manifest": "run_manifest.json"
+    },
+    {
+      "id": "spine_cc_zero_net",
+      "system": "spine",
+      "runner": "scripts/run_sst_connected_components.py",
+      "profile": "configs/architectures/spine_owner_fifo_cc_hls_v1.json",
+      "capability_catalog": null,
+      "workload": "tests/data/connected_components_formal/cc_zero_net_base.slice",
+      "updates": "tests/data/connected_components_formal/cc_zero_net_delete_then_reinsert_u2.slice",
+      "arguments": [
+        "--architecture",
+        "spine"
+      ],
+      "manifest": "run_manifest.json"
+    },
+    {
+      "id": "spine_carry_legacy",
+      "system": "spine",
+      "runner": "scripts/run_sst_spine_vertical.py",
+      "profile": "configs/architectures/spine_shared_engine_9c08763.json",
+      "capability_catalog": null,
+      "workload": "tests/data/carry_hot_batch.slice",
+      "updates": null,
+      "arguments": [
+        "--scenario",
+        "carry_hot",
+        "--preload",
+        "tests/data/carry_hot_preload.slice",
+        "--hot-vertices",
+        "17"
+      ],
+      "manifest": "summary.json",
+      "inputs": [
+        "tests/data/carry_hot_preload.slice"
+      ]
+    },
+    {
+      "id": "spine_carry_owner",
+      "system": "spine",
+      "runner": "scripts/run_sst_spine_vertical.py",
+      "profile": "configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+      "capability_catalog": null,
+      "workload": "tests/data/carry_hot_batch.slice",
+      "updates": null,
+      "arguments": [
+        "--scenario",
+        "candidate10_maintenance",
+        "--validation-mode",
+        "generic",
+        "--preload",
+        "tests/data/carry_hot_preload.slice",
+        "--hot-vertices",
+        "17"
+      ],
+      "manifest": "summary.json",
+      "inputs": [
+        "tests/data/carry_hot_preload.slice"
+      ]
+    },
+    {
+      "id": "sssp_mixed_cold",
+      "runner": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "workload": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+      "updates": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+      "arguments": [],
+      "manifest": "manifest.json"
+    },
+    {
+      "id": "sssp_multipart_warm",
+      "runner": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "workload": "tests/data/grasu_refactor_multipart_initial.slice",
+      "updates": "tests/data/grasu_refactor_multipart_update.slice",
+      "arguments": [
+        "--hardware-warm-sssp"
+      ],
+      "manifest": "manifest.json"
+    },
+    {
+      "id": "cc_reciprocal",
+      "runner": "scripts/run_sst_connected_components.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+      "workload": "tests/data/connected_components_bridge_initial.slice",
+      "updates": "tests/data/connected_components_bridge_insert.slice",
+      "arguments": [
+        "--architecture",
+        "grasu",
+        "--hardware-full-recompute"
+      ],
+      "manifest": "run_manifest.json"
+    },
+    {
+      "id": "residual_warm",
+      "runner": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+      "workload": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+      "updates": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+      "arguments": [],
+      "manifest": "manifest.json"
+    },
+    {
+      "id": "residual_update_only",
+      "runner": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+      "workload": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+      "updates": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+      "arguments": [
+        "--update-only"
+      ],
+      "manifest": "manifest.json"
+    }
+  ]
+}
