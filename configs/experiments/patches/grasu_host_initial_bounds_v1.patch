@@ -1,0 +1,12 @@
+diff --git a/pma_dynamic_graph.hpp b/pma_dynamic_graph.hpp
+--- a/pma_dynamic_graph.hpp
++++ b/pma_dynamic_graph.hpp
+@@ -144,7 +144,7 @@
+         std::sort(init_edges_vector.begin(), init_edges_vector.end());
+         cur_loc = 0;
+         for (size_t i = 0; i < data.size(); i++) {
+-            if (data[i] == init_edges_vector[cur_loc]) {
++            if (cur_loc < init_edges_vector.size() && data[i] == init_edges_vector[cur_loc]) {
+                 cur_loc++;
+             } else {
+                 data[i] = EMPTY;

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "evidence_class": "G_source16_host_two_bounds_guards_defined_padding_functional_control",
+  "boundary": "original_text_loader_and_trace_aware_PMA_preparation_through_original_kernel_functions_and_host_merge",
+  "original_header_sha256": "1c0ddec4066cb6370675e1fd3e913269d15ffa502af74ee93527aa7cf231437e",
+  "cases": ["empty_graph", "empty_batch", "insertion_only", "full_delete", "mixed_reservation", "hot_skew", "same_segment", "threshold_ring"],
+  "variants": ["original", "row_guard", "both_guards"],
+  "repetitions": 2,
+  "instrument_all_cases": true,
+  "segment_slots": 16,
+  "hot_segments_per_half": 131072,
+  "memory_limit_gib": 4,
+  "reserve_gib": 16,
+  "compile_timeout_seconds": 300,
+  "run_timeout_seconds": 300,
+  "not_claimed": ["unchanged_original_host_acceptance", "PMA_rebalance_or_invalid_update_semantics", "finite_FIFO_or_DDR_RAW_timing", "CPU_preparation_throughput", "DMA_or_OpenCL_launch_timing", "temporal_publication_workload", "paper8_geometry", "FPGA_or_publication_performance_match"]
+}

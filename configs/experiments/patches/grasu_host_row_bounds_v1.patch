@@ -1,0 +1,12 @@
+diff --git a/pma_dynamic_graph.hpp b/pma_dynamic_graph.hpp
+--- a/pma_dynamic_graph.hpp
++++ b/pma_dynamic_graph.hpp
+@@ -108,7 +108,7 @@
+         int cur_count = 0;
+         int cur_loc = 0;
+         for (size_t i = 0; i < node_size; i++) {
+-            while ((all_edges[cur_loc] >> 32) == i) {
++            while (cur_loc < all_edges.size() && (all_edges[cur_loc] >> 32) == i) {
+                 cur_count++;
+                 cur_loc++;
+             }

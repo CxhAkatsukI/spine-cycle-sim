@@ -36,6 +36,10 @@ The [original GraSU source-path control](original_grasu_source_path.md) checks
 search, BIPA, dispatch, both URAM-cache/DDR halves and every state slot through
 unmodified source functions. It is separate from the production direct-cache
 port and does not yet model finite timing or original host preparation.
+The separate [original GraSU host control](original_grasu_host.md) adds original
+trace-aware reservation and merge, with two explicit bounds guards and defined
+upload padding. Empty/full occupancy, repeated updates and the cache threshold
+pass; finite timing and publication throughput remain unadmitted.
 
 The [independent original-ReGraph Little core](original_regraph_little_gather.md)
 has a separate implementation and explicit partial timing boundary. It is a

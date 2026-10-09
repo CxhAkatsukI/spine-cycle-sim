@@ -14,7 +14,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 
 | Path | Current evidence | Still required |
 | --- | --- | --- |
-| G | Original source16 search, BIPA, dispatch, both cache/DDR halves and complete state pass eight functional cases | Original host preparation, temporal workload, paper8 geometry, finite-resource timing and publication rate admission |
+| G | Eight prepared-PMA cases plus eight host-prepared source16 cases pass complete state/protocol checks; host control declares two bounds guards and initialized padding | Temporal workload, paper8 geometry, finite-resource timing and publication rate admission; unchanged original host is not admitted |
 | A | Complete 11+3 graph execution, indexed state and finite ledgers pass under declared tail padding | Original-host allocation compatibility, graph-selected topology, publication memory/clock/window/denominator admission and timing match |
 | A4 | Complete Amazon and two fixtures pass every pre-Apply sum, four state replicas and finite ledgers; AXI capacities audited | Realistic memory/timing admission, publication comparison and fixed-resource adapter control B |
 | B | Not executed | PMA input adapter feeding the same original A4 downstream; state/work/cycle comparison |
@@ -26,6 +26,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 | --- | --- |
 | What is the plan and what counts as a match? | [Execution gates](PLAN.md), [source/comparability audit](../grasu_regraph_publication_match/README.md) |
 | Does the prepared original G kernel path agree? | [G source-path control](GRASU_SOURCE_PATH.md) |
+| Does trace-aware G host preparation compose with the original kernels? | [G host inputs, bounds failures and compatibility control](GRASU_HOST_INPUTS.md) |
 | What do source controls and HLS schedules establish? | [Initial source controls](SOURCE_CONTROLS.md), [HLS scheduling](HLS_SCHEDULES.md) |
 | How were complete graph inputs prepared? | [Original host inputs](ORIGINAL_HOST_INPUTS.md) |
 | Does complete original A4 work? | [Whole-A4 execution](A4_GRAPH_EXECUTION.md) |
