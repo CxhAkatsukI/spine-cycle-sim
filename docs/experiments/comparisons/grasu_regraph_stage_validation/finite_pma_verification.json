@@ -1,0 +1,4054 @@
+{
+  "FPGA_or_publication_timing_match": false,
+  "all_legacy_matched_and_completed_PMA_rows_rechecked": true,
+  "archive_bytes": 530760,
+  "archive_sha256": "29db973f71b501b774e4317d586051b413cc4ac9e7a4135c94622a1a72ff50bb",
+  "files": [
+    {
+      "bytes": 112080,
+      "path": "baseline/baseline.json",
+      "sha256": "ef17cc0d590eb43d3d7ab7f438f7ab10be2437b552cf2e4a1ef21134524c0cbe"
+    },
+    {
+      "bytes": 15021,
+      "path": "finite/build/CMakeCache.txt",
+      "sha256": "ac4f3c1daeb9f8119af147c1900ae4bd7930c0a099340e06ed4fafdf26435c1a"
+    },
+    {
+      "bytes": 29480,
+      "path": "finite/build/CMakeFiles/4.3.4/CompilerIdCXX/CMakeCXXCompilerId.cpp",
+      "sha256": "15597e769f9705997844403bbbf0c2fa65eb5b46a8ad4e6db684547644239fae"
+    },
+    {
+      "bytes": 1722,
+      "path": "finite/build/CMakeFiles/CMakeRuleHashes.txt",
+      "sha256": "84f472bb137959954bdc36261fd42092cbe2a6e18df35e3702bb810b9bb48f0f"
+    },
+    {
+      "bytes": 349,
+      "path": "finite/build/CMakeFiles/InstallScripts.json",
+      "sha256": "cd7295aada638ff6eedc32613864dd6174bcc06f168257b68c00a633a7cba7c1"
+    },
+    {
+      "bytes": 9396,
+      "path": "finite/build/CMakeFiles/TargetDirectories.txt",
+      "sha256": "1d07cba84c4c8267ff7ee84fff8d769f7653b659d8566b605c2a2609d0dcf85d"
+    },
+    {
+      "bytes": 531,
+      "path": "finite/build/Testing/Temporary/CTestCostData.txt",
+      "sha256": "e6d5e10ec428ef84161b3971b35f289dd937da96103f21ad87d08d3643103847"
+    },
+    {
+      "bytes": 40188,
+      "path": "finite/build/compile_commands.json",
+      "sha256": "5fe8f1ca07eac1971d2f69dd4b4198324ccf9200951e2781efb666f04f0fcde5"
+    },
+    {
+      "bytes": 3403,
+      "path": "finite/build/cpp/CMakeFiles/grasu_cycle_tests.dir/link.d",
+      "sha256": "8ed2b88949bb95dfd95506bd1e27305d7cb73f9740a17a25fe2afbb1b306874f"
+    },
+    {
+      "bytes": 189,
+      "path": "finite/build/cpp/CMakeFiles/grasu_cycle_tests.dir/link.txt",
+      "sha256": "84e25483591d387e0428d46084997671f1e81102c43350e4b2b67cdf8818402d"
+    },
+    {
+      "bytes": 14934,
+      "path": "finite/build/cpp/CMakeFiles/grasu_cycle_tests.dir/tests/grasu_tests.cpp.o.d",
+      "sha256": "b36cc9f1d3078e314e0b1c58f6defb8b1be9c4635ed8f89e0186aa3e497036f2"
+    },
+    {
+      "bytes": 3425,
+      "path": "finite/build/cpp/CMakeFiles/grasu_runtime_tests.dir/link.d",
+      "sha256": "7a6963a63f0ba429976ab9b647c324470ee9785bf70e4f6bfb19bf2df8b1b60c"
+    },
+    {
+      "bytes": 203,
+      "path": "finite/build/cpp/CMakeFiles/grasu_runtime_tests.dir/link.txt",
+      "sha256": "901d797eea0bbbf2f04010e065c9c74e2d169270288ea18fc57d463bb3a94f13"
+    },
+    {
+      "bytes": 13387,
+      "path": "finite/build/cpp/CMakeFiles/grasu_runtime_tests.dir/tests/grasu_runtime_tests.cpp.o.d",
+      "sha256": "f51fa9c7865885f5675f63a0b172222c68cf7a4adef06c6d67e846fc003d4e83"
+    },
+    {
+      "bytes": 3561,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/link.d",
+      "sha256": "3e2e49c47fb250e66baf40c152279a2c59cab3c4546e95c80e30d94a8f533076"
+    },
+    {
+      "bytes": 283,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/link.txt",
+      "sha256": "91f7a4c01b61d63dbdc6c10ab3e70e649bd45f9b80d193965726bb5d1575413a"
+    },
+    {
+      "bytes": 16557,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/tests/original_regraph/whole_graph/a4_execution.cpp.o.d",
+      "sha256": "96be8203f9e0bc2413d53e87fc698a0c3d031c74935d9b570c1817c7d4c90b21"
+    },
+    {
+      "bytes": 3547,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/link.d",
+      "sha256": "04152a3403433e3726dc150de0e7a51a71d12cea975f12cb221b93cc0d071585"
+    },
+    {
+      "bytes": 279,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/link.txt",
+      "sha256": "231dc1d018aa5ec14046bc465c8d4109c58c542b41c6bca340525a45c2870907"
+    },
+    {
+      "bytes": 14203,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/tests/original_regraph/big_comparison.cpp.o.d",
+      "sha256": "0fe8627eb478761223dc8fa6317bc934684c9bcea68ee242faf4b9c1e35868f9"
+    },
+    {
+      "bytes": 3592,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/link.d",
+      "sha256": "33817ae964488a630df7fe9e049d5966cf9a5a14b3983eaf9b7f6a64e18be605"
+    },
+    {
+      "bytes": 315,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/link.txt",
+      "sha256": "f6049f29ec63912ccbf4e628e705d6fc8790fa08f4adc693ca200438adc91ab9"
+    },
+    {
+      "bytes": 15379,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/tests/original_regraph/big_frontend_comparison.cpp.o.d",
+      "sha256": "ff87efe8669fb60ab09726992951c86b946aa40f916331d1e12886fe4635e38e"
+    },
+    {
+      "bytes": 3567,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/link.d",
+      "sha256": "4822320536a501d8ba1206810ecd30992247a9582798ff441d52ff504a0e1c0a"
+    },
+    {
+      "bytes": 295,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/link.txt",
+      "sha256": "bf0891e5e8943595f47b676e95ef3090acf3fb38e24045b3bf22051c8827f80f"
+    },
+    {
+      "bytes": 15147,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/tests/original_regraph/big_frontend_tests.cpp.o.d",
+      "sha256": "cfad16d2b5454e03a5afb496073ac18cbf8db5a1a444aedca4ba0cf0c709cc55"
+    },
+    {
+      "bytes": 3522,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_tests.dir/link.d",
+      "sha256": "63eb43de00183270bcc8debc26f86071e81dc07de8e837a459c67afd80fec5fb"
+    },
+    {
+      "bytes": 259,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_tests.dir/link.txt",
+      "sha256": "76919a98dd2b07de5efe38bec83ad77e96cf88a79e565117762d166692761196"
+    },
+    {
+      "bytes": 13974,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_big_tests.dir/tests/original_regraph/big_tests.cpp.o.d",
+      "sha256": "a73019ae4358302a9c8244d48dad3383a41464442f977f5b27f1590e63ec20ea"
+    },
+    {
+      "bytes": 1259,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/link.txt",
+      "sha256": "b494b696d22c2dff14860e7f1da32cb6562497b409faa920475aa948e051cdc1"
+    },
+    {
+      "bytes": 12744,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_gather.cpp.o.d",
+      "sha256": "3c68c2f44caf30a1e3fba1f1d7a09891b7680a6c9da9f973afd092bfbe13f86b"
+    },
+    {
+      "bytes": 12858,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_merge.cpp.o.d",
+      "sha256": "147bd9ed5c4f947252ff20917aa185e18ba1c89ec2716529a9812fb8c778a51b"
+    },
+    {
+      "bytes": 13248,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_requests.cpp.o.d",
+      "sha256": "6c7dccbc31416ead939821d63f4b1e98e1978a95af2f1fa0e814b4250749cb33"
+    },
+    {
+      "bytes": 12348,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_routing.cpp.o.d",
+      "sha256": "f65abe7c201a41e06737227a4737f3a6a9f34fc455e1c0c31bbc9d59477c5eb7"
+    },
+    {
+      "bytes": 13368,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_scatter.cpp.o.d",
+      "sha256": "99c0c2657e2896d447ac56b909d881b488b110a3d4a373e54e9f909895478a18"
+    },
+    {
+      "bytes": 13381,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_source_memory.cpp.o.d",
+      "sha256": "3563c9c6fd7986f136587d846405f00fedf9c1c996defaa75ce32cb39e39c8db"
+    },
+    {
+      "bytes": 13361,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/edge_reader.cpp.o.d",
+      "sha256": "e8f5d459467c989ac7b7701f0ac720d5016b09b1dc1bc8ee531ea00a08940856"
+    },
+    {
+      "bytes": 8629,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_gather.cpp.o.d",
+      "sha256": "83370e883d051bab5b0512f6c8a01432194146f47bc2662b2bc87bab3b9be2d9"
+    },
+    {
+      "bytes": 8749,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_merge.cpp.o.d",
+      "sha256": "b3c8ba72f325e199fbdd9c1378ff6077d98eef2b3d6b90e964c91663298b2a8f"
+    },
+    {
+      "bytes": 13255,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_scatter.cpp.o.d",
+      "sha256": "f874f7762efa547315473a14e33c50f031b0b519c025425fef2b3deb019336cd"
+    },
+    {
+      "bytes": 13367,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/mixed_indexer.cpp.o.d",
+      "sha256": "f40c729d873781a35894924a5d363772e9ac74a7c3b44fddfe12cffb22bdc1c9"
+    },
+    {
+      "bytes": 13473,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/pr_apply.cpp.o.d",
+      "sha256": "451aecf34667d48e7a01e5295c0c81b95e4a4e791b6d4a7e4539360116dd6a74"
+    },
+    {
+      "bytes": 13250,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/property_writer.cpp.o.d",
+      "sha256": "d12f461e81540e95954d4d8fe9514e4f6428f6c06c1a61288d12fd76d5b7bbcc"
+    },
+    {
+      "bytes": 13241,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/source_memory.cpp.o.d",
+      "sha256": "7b9bce0960cff7a7d7a7efac52c71e0a1a02eff8bc19583ead7081f09dfccc68"
+    },
+    {
+      "bytes": 13367,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/write_indexer.cpp.o.d",
+      "sha256": "1ab2e3138fa5259206d55a5c50fe19bc8a3df7fe314d77259da1b73de8c5a36e"
+    },
+    {
+      "bytes": 3547,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/link.d",
+      "sha256": "4b1629828d6e3ec70a4c66724ff34b1bc4148d5cbfce3bc3a98695135ba72f11"
+    },
+    {
+      "bytes": 279,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/link.txt",
+      "sha256": "29f945844f1602298c61b16b8431356a8f42fd5d5f412a43def51c7902a04fcc"
+    },
+    {
+      "bytes": 14526,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/tests/original_regraph/frontend_tests.cpp.o.d",
+      "sha256": "564d1166e6f2199b9e1091bd06c347d45a93ed9347f3a7b9452acf37378deb93"
+    },
+    {
+      "bytes": 3537,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/link.d",
+      "sha256": "13d056c08836024857e2eb32a5fd58bd58c954765d27dcb735d8719b5bdd9778"
+    },
+    {
+      "bytes": 271,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/link.txt",
+      "sha256": "15e79d2b8c88c9c83985d9a82f1ce23f5649462a83e994d1cb924c10af4e14d8"
+    },
+    {
+      "bytes": 13407,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/tests/original_regraph/gather_tests.cpp.o.d",
+      "sha256": "0694d51973456b71d8bc7a74c5026ed99b2a200093eda686ee97550bcd110f66"
+    },
+    {
+      "bytes": 3552,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/link.d",
+      "sha256": "e61113bcba068fb9e15771828ac957dd11884174f088e85850d74478d551a394"
+    },
+    {
+      "bytes": 283,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/link.txt",
+      "sha256": "33cdf1f545131c2bf5866f21df18e2caa9e04d830a184fce51adc994de239815"
+    },
+    {
+      "bytes": 14999,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/tests/original_regraph/iteration_tests.cpp.o.d",
+      "sha256": "fc892bf40d54fe8e7aad412f70ee93ae2d2c1356e2111e6a43a3f3597529fe68"
+    },
+    {
+      "bytes": 3576,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/link.d",
+      "sha256": "000dc97a5d21503d14f1060e00492bbafbe39db133680ff5d955c876e162f5c3"
+    },
+    {
+      "bytes": 295,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/link.txt",
+      "sha256": "2f39d4455bfc833138c9f6730984f389c68639a6522914a9913cd6f57f69ad78"
+    },
+    {
+      "bytes": 18177,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/tests/original_regraph/whole_graph/mixed/execution.cpp.o.d",
+      "sha256": "86ef18757158b9ba71b84c780bd06ccf7a568289a926c0078f1dec2524ee330a"
+    },
+    {
+      "bytes": 3572,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/link.d",
+      "sha256": "cb89f9ba6beebe13357db08489a94e577a0a1d71a2d8dfbf6414690e23a5ffbb"
+    },
+    {
+      "bytes": 287,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/link.txt",
+      "sha256": "00ebecfa0dfd8dbc496a22d753957b2c939ed1f7c24f293e72d812c8999a4306"
+    },
+    {
+      "bytes": 15850,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/tests/original_regraph/whole_graph/mixed/indexer_tests.cpp.o.d",
+      "sha256": "1ae49c7c00767c801307909c1d13dd0b8a6346bc9f75f78f8067dcac282494cb"
+    },
+    {
+      "bytes": 3562,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/link.d",
+      "sha256": "0fd39909b789e5e28fdd40f7790212769a045b1ca59b1e98b29cfd5061af2b28"
+    },
+    {
+      "bytes": 291,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/link.txt",
+      "sha256": "3ebac51d5656fcbb6e50773d8b2733f03092d3fecc857b61e7a9386cf0af7545"
+    },
+    {
+      "bytes": 13639,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/tests/original_regraph/source_comparison.cpp.o.d",
+      "sha256": "9cc70280661fa78f7277782bb5dd104aad644821783a59fd0e9940ad65ce123f"
+    },
+    {
+      "bytes": 3557,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/link.d",
+      "sha256": "ff0efe33864b4a7b6c71508c0d1b841fecbef3fe7a00b50b958968121dec3b65"
+    },
+    {
+      "bytes": 287,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/link.txt",
+      "sha256": "a319a2146b1481291fc095cf25698585f0b5f854a75993c1bb81b2083b0ce3aa"
+    },
+    {
+      "bytes": 14507,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/tests/original_regraph/state_comparison.cpp.o.d",
+      "sha256": "973d537d3857153959732d95d659121d91505421af0bb5b0d824a546a3df6192"
+    },
+    {
+      "bytes": 3532,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_state_tests.dir/link.d",
+      "sha256": "e0d59c8219d89621610be5fb8f8d681e363d6ba54bdcaa4ba95789243704f403"
+    },
+    {
+      "bytes": 267,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_state_tests.dir/link.txt",
+      "sha256": "c4fd4673adddaca6fc133ca6fbf6c896cf792a66adcab0e4f574c289cd9e986e"
+    },
+    {
+      "bytes": 14275,
+      "path": "finite/build/cpp/CMakeFiles/original_regraph_state_tests.dir/tests/original_regraph/state_tests.cpp.o.d",
+      "sha256": "edefbc39ba7f706c5f9dc82887f3465cc7ff80f4eb988b7e304ac3bd17ae8fcd"
+    },
+    {
+      "bytes": 3490,
+      "path": "finite/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/link.d",
+      "sha256": "bc834f7e8b21090731336b11c0250152113008e94fa222edf885acedb4ed54af"
+    },
+    {
+      "bytes": 255,
+      "path": "finite/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/link.txt",
+      "sha256": "68039f20a825c17723905d22c079fc7242de90300a52622ca43e6f533567869b"
+    },
+    {
+      "bytes": 16099,
+      "path": "finite/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/tools/persistent_update_host_benchmark.cpp.o.d",
+      "sha256": "8b926229d92781f2c488372e7de625ed8383b00d07d37f2285cc55f92dba3c0b"
+    },
+    {
+      "bytes": 139,
+      "path": "finite/build/cpp/CMakeFiles/pma_adapter_cycle.dir/link.txt",
+      "sha256": "ff14df0607efbfdb7c758e21a944dc0c9742e8b44e48cc9780d6046cdb85ecf8"
+    },
+    {
+      "bytes": 13310,
+      "path": "finite/build/cpp/CMakeFiles/pma_adapter_cycle.dir/src/pma_adapter/reader.cpp.o.d",
+      "sha256": "071c5b167960148d1dfa1b95912db5dd54139ae4355324dc85696802d944377f"
+    },
+    {
+      "bytes": 3543,
+      "path": "finite/build/cpp/CMakeFiles/pma_adapter_tests.dir/link.d",
+      "sha256": "87d95c54b84319b29d856d65a99de62ecd8b655d6c261d0ddabd0f11e1e9eb3c"
+    },
+    {
+      "bytes": 253,
+      "path": "finite/build/cpp/CMakeFiles/pma_adapter_tests.dir/link.txt",
+      "sha256": "36a0beef8e75c553b5a362a2b65233c1ca158ec6bb25c42a9ba619dc16f61b7b"
+    },
+    {
+      "bytes": 15009,
+      "path": "finite/build/cpp/CMakeFiles/pma_adapter_tests.dir/tests/pma_adapter/reader_tests.cpp.o.d",
+      "sha256": "c4ca07f56c737ce0101f46a0a0afd0b0b869074691fc747b06be798ca6ad6459"
+    },
+    {
+      "bytes": 3561,
+      "path": "finite/build/cpp/CMakeFiles/pma_regraph_execution.dir/link.d",
+      "sha256": "70729854b5e45704f3e74bcb99ee1f44297a2ea72547cb8e1f2a4560fc1dd915"
+    },
+    {
+      "bytes": 268,
+      "path": "finite/build/cpp/CMakeFiles/pma_regraph_execution.dir/link.txt",
+      "sha256": "42c2de2db79693ad64f329d462164f227978d4cf418b4529bf2e53806e5452a6"
+    },
+    {
+      "bytes": 16920,
+      "path": "finite/build/cpp/CMakeFiles/pma_regraph_execution.dir/tests/pma_adapter/whole_execution.cpp.o.d",
+      "sha256": "36e414a915e574487f6d7206d3f769844807e848c7acb8bdd94302625cc99ba4"
+    },
+    {
+      "bytes": 1136,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/link.txt",
+      "sha256": "341534076f37db5630011d276e6da442acd17301f86392df030e6d895f802b7b"
+    },
+    {
+      "bytes": 9104,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/algorithm.cpp.o.d",
+      "sha256": "ca846303874437a750bffaaa508c9d21ca522623811eea6bdd9c5572cc157e5f"
+    },
+    {
+      "bytes": 8422,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/algorithm_pipeline.cpp.o.d",
+      "sha256": "e20d4e078b75929b96609c50edfc2c8ae1d71f861cfb2387c70f07054b569feb"
+    },
+    {
+      "bytes": 12710,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/axi.cpp.o.d",
+      "sha256": "ea83631e19f71b0d8d187ce4207900c130295a134ee70a7a222886d81f122b21"
+    },
+    {
+      "bytes": 8679,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/banked_memory.cpp.o.d",
+      "sha256": "3161f9be8b99c39a0dcbdfbb2462def577670ecc47afa6e76270a9f575cfee31"
+    },
+    {
+      "bytes": 13269,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu.cpp.o.d",
+      "sha256": "495024aa0283714ef4b72bc3fffba818742aff4f6ce06701b29326f33b04bc12"
+    },
+    {
+      "bytes": 13407,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_native.cpp.o.d",
+      "sha256": "747b7ae32dd22a30a8d049aaa86013c6287ae549eaa73c3b35dfae04f218c83b"
+    },
+    {
+      "bytes": 14667,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_regraph.cpp.o.d",
+      "sha256": "4922e29d48ca5d709960757aeae8bcb810a3ed47d4f9bb15125db3ca5c4e753b"
+    },
+    {
+      "bytes": 13216,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_regraph_runtime.cpp.o.d",
+      "sha256": "b6f6c925f458b57567c59a17b67c18180e08f6c456e1ac9241b2e1d6f75e91aa"
+    },
+    {
+      "bytes": 13316,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_sharded_update.cpp.o.d",
+      "sha256": "945351e81193eed89229a9071c7888f9cdff9132811e71d1191b2abfa08e3ccc"
+    },
+    {
+      "bytes": 12369,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/memory_backend.cpp.o.d",
+      "sha256": "4212f312287df9f90a9f1e9fa1bed508ea24459dfbb5796a52b8e1713cda230b"
+    },
+    {
+      "bytes": 13159,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/scheduler.cpp.o.d",
+      "sha256": "7fc241c6e5b138937ec42d46e65064c7dac70e0df7c7d672b9525f578beb6d08"
+    },
+    {
+      "bytes": 14459,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_dirty.cpp.o.d",
+      "sha256": "c150c484669a902a02b7fd1692f700bc50c946daf4dc059f100144a6823cee37"
+    },
+    {
+      "bytes": 14439,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_l0.cpp.o.d",
+      "sha256": "790ad7d729bffcbc61235b83680785a38b5ceb03d3e35419cc792247f2e85348"
+    },
+    {
+      "bytes": 8501,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_owner.cpp.o.d",
+      "sha256": "0f41251f5d9f4861989f79749e5588c7cc3c685bb5942ce80859489412c40ddd"
+    },
+    {
+      "bytes": 15854,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_pagerank.cpp.o.d",
+      "sha256": "cbad379da27a96a960e976df3f3395d3692ccae86a8b2e1e6f1c526f28db1116"
+    },
+    {
+      "bytes": 14578,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_split.cpp.o.d",
+      "sha256": "67306058ef695d40f10683980eed424107f387608ca34f9a88b2918ddea2239a"
+    },
+    {
+      "bytes": 14575,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_sssp_compute.cpp.o.d",
+      "sha256": "8c52b179b8395c0156cf3a6244b58ed738976ba463d482c1a5d7691007e9af6f"
+    },
+    {
+      "bytes": 15100,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_system.cpp.o.d",
+      "sha256": "26031607e20d99604fdeaf514a14530f9903642df36296b61318e1de63b14c48"
+    },
+    {
+      "bytes": 13140,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_vertex_lifecycle.cpp.o.d",
+      "sha256": "44fc6f45ae66006c6927a6145be385d10bfeb1e7413861e3ed38089bf37a3431"
+    },
+    {
+      "bytes": 3416,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/link.d",
+      "sha256": "e41ed4b199968e6ed0a0c95b7d14d2ed3afcb28de80f199057eade538dafd313"
+    },
+    {
+      "bytes": 203,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/link.txt",
+      "sha256": "6faf1e5ff038444e31603b4085e55ece866ef965b37ed9dc4139811c555d7e1a"
+    },
+    {
+      "bytes": 16430,
+      "path": "finite/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/tests/core_tests.cpp.o.d",
+      "sha256": "6a71ce91db76e4d8f7eb1906131f8c0c41127fff8a93af4c355415402a66deb8"
+    },
+    {
+      "bytes": 3415,
+      "path": "finite/build/cpp/CMakeFiles/spine_owner_tests.dir/link.d",
+      "sha256": "97063301166c9a438d1c5ec93c5edcba97e27aab21f9c01258fb566b5b5458cc"
+    },
+    {
+      "bytes": 195,
+      "path": "finite/build/cpp/CMakeFiles/spine_owner_tests.dir/link.txt",
+      "sha256": "8e72cf3635991122a4d7046bfab9c7e1bfd0cab06e257d3b2d43cf101f8688c0"
+    },
+    {
+      "bytes": 10592,
+      "path": "finite/build/cpp/CMakeFiles/spine_owner_tests.dir/tests/spine_owner_tests.cpp.o.d",
+      "sha256": "1d13775cfa97d7806dbd6d2e46fc0547162147831e5ed166d757aeac75577f74"
+    },
+    {
+      "bytes": 3470,
+      "path": "finite/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/link.d",
+      "sha256": "f7a454100580a174b9ada6afc7a1898147f730f430c188d1df015dd8025fc61f"
+    },
+    {
+      "bytes": 239,
+      "path": "finite/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/link.txt",
+      "sha256": "9ffc7313081fde3a849ba164967cc3acdac467e6bf58a58cc33ea9467e419f99"
+    },
+    {
+      "bytes": 13321,
+      "path": "finite/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/tests/spine_vertex_lifecycle_tests.cpp.o.d",
+      "sha256": "42ac3253639966e6c3267bc2f8d504510cf3b043a5ae093aac2eeeeac4f7d0a5"
+    },
+    {
+      "bytes": 3588,
+      "path": "finite/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/link.d",
+      "sha256": "4d3f622dc46f85181d2068bc5559110f14c939e9b77c8661cdb9a8a1abfddd9d"
+    },
+    {
+      "bytes": 250,
+      "path": "finite/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/link.txt",
+      "sha256": "2428576bb9b73ea822112c3aeffee37dacf2c78b6b40bd63c4480cf0bafd8665"
+    },
+    {
+      "bytes": 10240,
+      "path": "finite/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/sst/physical_hbm_mapper.cpp.o.d",
+      "sha256": "958e1c6b14337b447c3b1333a4c6b57c12feca76c39eafe460c62c9ccbf22f02"
+    },
+    {
+      "bytes": 9758,
+      "path": "finite/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/tests/sst_hbm_mapper_tests.cpp.o.d",
+      "sha256": "eab2b2772436b3243d6eafb82f2f81624535202240ee3d4b285aedf16b6a5a2a"
+    },
+    {
+      "bytes": 819,
+      "path": "finite/build.resources.json",
+      "sha256": "ca99d809eefa08fcb7f52a3410ef741316af59f39e1f5eadc46a4ae0fe415b60"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 8677,
+      "path": "finite/build.stdout.txt",
+      "sha256": "ade4d7e84de7c26dd3c19ec1946e94efd6826ec15b3dffb2eea8e6243f261928"
+    },
+    {
+      "bytes": 1006,
+      "path": "finite/configure.resources.json",
+      "sha256": "94265dfa0c79c2d6270f8aafd12a2ab8957fe74205ddcb016c12fc78949fdd03"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 471,
+      "path": "finite/configure.stdout.txt",
+      "sha256": "976d31a5b0af9caeb94aaf4dfa933d7788b4c1243aed042b28ab7da1d5d0bc59"
+    },
+    {
+      "bytes": 2277,
+      "path": "finite/contract.json",
+      "sha256": "734dbd7cab7ecfd9b41bb665636292f736cfd8ed4535d0391fde4b307b4a7e09"
+    },
+    {
+      "bytes": 837,
+      "path": "finite/ctest.resources.json",
+      "sha256": "128b46c8a7750232613ba2fa7e229e3cd04829ee72d72149b821094223b4e92f"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/ctest.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1882,
+      "path": "finite/ctest.stdout.txt",
+      "sha256": "4bcf6a9331404eca0ecde08a189f8ed1fb29268e6068ad9490fc0320a6ad8650"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/finite/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/finite/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/finite/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 952,
+      "path": "finite/finite_routing.resources.json",
+      "sha256": "fdd23147c66666baaeda1e9c80c1e8223f4199e3609ef3f2208ed4d228863ff7"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/finite_routing.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 818,
+      "path": "finite/finite_routing.stdout.txt",
+      "sha256": "dfb1d75aab3ca6ae3b2c4f49d660d7ce7f2aed1c830125ea99b0422a9615f241"
+    },
+    {
+      "bytes": 793,
+      "path": "finite/focused_tests.resources.json",
+      "sha256": "9b1b8ba285f8245089eb416f3bd3375920ee3309c9be2383861d693bcdfa763a"
+    },
+    {
+      "bytes": 109,
+      "path": "finite/focused_tests.stderr.txt",
+      "sha256": "811eabda5dc298da232b3c7953fbe433089645edff6f53063d91016c4136c0a2"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/focused_tests.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 416,
+      "path": "finite/inputs/boundary_ring/adapter.u32le",
+      "sha256": "febf243753952afd4761c515a1e8bcf58bcf830b1b3cdc2ccc5296adfd74f373"
+    },
+    {
+      "bytes": 416,
+      "path": "finite/inputs/boundary_ring/execution.u32le",
+      "sha256": "e59e8ae532aef2ab7635d1af930cc20a4dc87c1c23645e0fe461c4bb0016beb3"
+    },
+    {
+      "bytes": 160,
+      "path": "finite/inputs/skewed_sources/adapter.u32le",
+      "sha256": "51e301e9d037f8e9b4d1a8fb3a53f3285b43314bc8a1ce5451fc3b44dc83d3a5"
+    },
+    {
+      "bytes": 160,
+      "path": "finite/inputs/skewed_sources/execution.u32le",
+      "sha256": "ac21cb1717fbc387fa4357d63261386d00acf5f99bb93a674c2a0b95ac9ef40a"
+    },
+    {
+      "bytes": 1152,
+      "path": "finite/legacy_amazon.resources.json",
+      "sha256": "e2b3d9414de6b043f0d71b5f6fac8c7b5e500279923d270ba145723398059f1a"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/legacy_amazon.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1590,
+      "path": "finite/legacy_amazon.stdout.txt",
+      "sha256": "6c2abf8782d0737e6274a964fcf6ed83ecc0770239bd5114f9ceb2157a6c868f"
+    },
+    {
+      "bytes": 1175,
+      "path": "finite/legacy_amazon_reverse.resources.json",
+      "sha256": "9409b014d2ac326d0d49732a4de086b8798b837407ee977a5f41139a525ecc8c"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/legacy_amazon_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1590,
+      "path": "finite/legacy_amazon_reverse.stdout.txt",
+      "sha256": "6c2abf8782d0737e6274a964fcf6ed83ecc0770239bd5114f9ceb2157a6c868f"
+    },
+    {
+      "bytes": 1165,
+      "path": "finite/legacy_boundary.resources.json",
+      "sha256": "8743a0cc32ea3149317621159df26530ea1a9be463b75d04e77549f7e6602dee"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/legacy_boundary.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1058,
+      "path": "finite/legacy_boundary.stdout.txt",
+      "sha256": "d6c9a5e1303aae8750bbeaf19325b4ee61ddf3cd37faca9121f10ff1c55246e3"
+    },
+    {
+      "bytes": 1198,
+      "path": "finite/legacy_boundary_latency128.resources.json",
+      "sha256": "592f6d58a6608b8a762d91daf57df58230b74791f3a6764ebf4db0167f9eaf88"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/legacy_boundary_latency128.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1065,
+      "path": "finite/legacy_boundary_latency128.stdout.txt",
+      "sha256": "1e2c996a4a378c9c1677dcde0b8712a20739b3e85c894b74e0ab9ea0d86ec7d6"
+    },
+    {
+      "bytes": 1188,
+      "path": "finite/legacy_boundary_reverse.resources.json",
+      "sha256": "651e15837cd470a4f887f703c3959630e887afc0c8fde35718b683fcd3542655"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/legacy_boundary_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1058,
+      "path": "finite/legacy_boundary_reverse.stdout.txt",
+      "sha256": "d6c9a5e1303aae8750bbeaf19325b4ee61ddf3cd37faca9121f10ff1c55246e3"
+    },
+    {
+      "bytes": 1199,
+      "path": "finite/legacy_boundary_two_parents.resources.json",
+      "sha256": "04d0d7a8b751de0a4f6fe53b8a84f18bad967c647a160e932a47325108766047"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/legacy_boundary_two_parents.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1079,
+      "path": "finite/legacy_boundary_two_parents.stdout.txt",
+      "sha256": "1f5fb3cdc414611d1b1d5ed87b7eb5cb8645b614e12c1156b07d3f2bbb2e15d7"
+    },
+    {
+      "bytes": 1160,
+      "path": "finite/legacy_skewed.resources.json",
+      "sha256": "152db44870e6716217910505ba8c83002b913205a5fe2907d9db1142d39e6d39"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/legacy_skewed.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 944,
+      "path": "finite/legacy_skewed.stdout.txt",
+      "sha256": "cd04e587f1b52425f198c57238a253e72d1097d75f2ed973057d6d5cb96b4349"
+    },
+    {
+      "bytes": 1184,
+      "path": "finite/legacy_skewed_reverse.resources.json",
+      "sha256": "345023e95a14afd26ddf2fd08fa1ab3330c8fbdfc1a8cde1a83777992270c52c"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/legacy_skewed_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 944,
+      "path": "finite/legacy_skewed_reverse.stdout.txt",
+      "sha256": "cd04e587f1b52425f198c57238a253e72d1097d75f2ed973057d6d5cb96b4349"
+    },
+    {
+      "bytes": 1164,
+      "path": "finite/matched_amazon.resources.json",
+      "sha256": "205aeeb069b585c23d9748911f9f40b77c82cb3534a7ef39ebf4772a742c1646"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/matched_amazon.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1616,
+      "path": "finite/matched_amazon.stdout.txt",
+      "sha256": "f0cc5ac0d0211f7de6f3ff9f458ae3de2ef03ed5a4f9819a1989e5e470837fa0"
+    },
+    {
+      "bytes": 1188,
+      "path": "finite/matched_amazon_reverse.resources.json",
+      "sha256": "35625eaf085a8468e906ee33a0c3e607a42bc9fa95c409a1fa97a3d9579d022b"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/matched_amazon_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1616,
+      "path": "finite/matched_amazon_reverse.stdout.txt",
+      "sha256": "f0cc5ac0d0211f7de6f3ff9f458ae3de2ef03ed5a4f9819a1989e5e470837fa0"
+    },
+    {
+      "bytes": 1177,
+      "path": "finite/matched_boundary.resources.json",
+      "sha256": "5ef3d49cd52053a6ef919ff27f1f1aac6aa235827db184e3516280f11a854c73"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/matched_boundary.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1084,
+      "path": "finite/matched_boundary.stdout.txt",
+      "sha256": "56c0090df26b5455179ac01cf420b15db7edb058a94b77dccfeaf45500ef9645"
+    },
+    {
+      "bytes": 1211,
+      "path": "finite/matched_boundary_latency128.resources.json",
+      "sha256": "38096af5bb207157759151d5e04843e576fdf6d9f3ac5a0e09da9f8089d11fa6"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/matched_boundary_latency128.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1091,
+      "path": "finite/matched_boundary_latency128.stdout.txt",
+      "sha256": "4c775a623e8a65dc650aaea4e621424c300e758ce1e8371a8ff016edddadf526"
+    },
+    {
+      "bytes": 1201,
+      "path": "finite/matched_boundary_reverse.resources.json",
+      "sha256": "2657c24ce33ce5efde4a23d1338d537292483311bfaa181f666bb25533ca13d2"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/matched_boundary_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1084,
+      "path": "finite/matched_boundary_reverse.stdout.txt",
+      "sha256": "56c0090df26b5455179ac01cf420b15db7edb058a94b77dccfeaf45500ef9645"
+    },
+    {
+      "bytes": 1212,
+      "path": "finite/matched_boundary_two_parents.resources.json",
+      "sha256": "46677386625d2d4d53fd026b5ed45e042fc5680c674b987e687b649d424767d7"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/matched_boundary_two_parents.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1105,
+      "path": "finite/matched_boundary_two_parents.stdout.txt",
+      "sha256": "e1b06137ea6de5318c1f4d0b1b1da6759e7f637f753dc3c13e4c00aca186066c"
+    },
+    {
+      "bytes": 1172,
+      "path": "finite/matched_skewed.resources.json",
+      "sha256": "ced226c8e741372a8f81c01651a6d775d039e27631d02767b80fed5ace0c6469"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/matched_skewed.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 970,
+      "path": "finite/matched_skewed.stdout.txt",
+      "sha256": "a5ba87fcc4efab2ec2b3fcb65457cd4f033b08f3483541bb345ca0c335968a0d"
+    },
+    {
+      "bytes": 1196,
+      "path": "finite/matched_skewed_reverse.resources.json",
+      "sha256": "b3a77fce05d7644021f306277ba154bc30f2f4dc0f3a79221246fb606d61218f"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/matched_skewed_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 970,
+      "path": "finite/matched_skewed_reverse.stdout.txt",
+      "sha256": "a5ba87fcc4efab2ec2b3fcb65457cd4f033b08f3483541bb345ca0c335968a0d"
+    },
+    {
+      "bytes": 17296,
+      "path": "finite/normal/dependencies.d",
+      "sha256": "9ad0d548009765e7a0ed3d474a1995a1a94a4e020461a596dd75286e44b57ffb"
+    },
+    {
+      "bytes": 1139,
+      "path": "finite/pma_amazon.resources.json",
+      "sha256": "dab3319076b13a582444bcb1a10944ce05ce60df9aef072010377b6bb1c1ba36"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_amazon.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 43396,
+      "path": "finite/pma_amazon.stdout.txt",
+      "sha256": "b61473f6f091f6c4e16ab8b8ceda8291f6f6a519317d63897d3bcf976aaa2a71"
+    },
+    {
+      "bytes": 1163,
+      "path": "finite/pma_amazon_reverse.resources.json",
+      "sha256": "c21f44d2647ae83c7a6544ecf4a4f325924af59abbed3dd4f9fd6e4431d3ee40"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_amazon_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 43396,
+      "path": "finite/pma_amazon_reverse.stdout.txt",
+      "sha256": "b61473f6f091f6c4e16ab8b8ceda8291f6f6a519317d63897d3bcf976aaa2a71"
+    },
+    {
+      "bytes": 1149,
+      "path": "finite/pma_boundary.resources.json",
+      "sha256": "e9bd3bcbed71a74297e12e39a0e561cb3c377ce36b8a97b10fab4f63203603fd"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_boundary.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3700,
+      "path": "finite/pma_boundary.stdout.txt",
+      "sha256": "ff88eab0aec6aeea673fe90423ffeb9d1b54cadcd291373855bfe12058955e69"
+    },
+    {
+      "bytes": 1184,
+      "path": "finite/pma_boundary_latency128.resources.json",
+      "sha256": "6d872f53903070ec09f7cbe36b541f823eda7b747cf2d4dc7eeca6048533173d"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_boundary_latency128.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 5223,
+      "path": "finite/pma_boundary_latency128.stdout.txt",
+      "sha256": "f68d1ec8276b8f5f52cff57060ca74bf00da176ba0a620b76a8aa2d83ede226d"
+    },
+    {
+      "bytes": 1173,
+      "path": "finite/pma_boundary_reverse.resources.json",
+      "sha256": "69fd808002fa973abfef8e9793869a329dd107376fcda9df799156a4c4b6e879"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_boundary_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3700,
+      "path": "finite/pma_boundary_reverse.stdout.txt",
+      "sha256": "ff88eab0aec6aeea673fe90423ffeb9d1b54cadcd291373855bfe12058955e69"
+    },
+    {
+      "bytes": 1184,
+      "path": "finite/pma_boundary_two_parents.resources.json",
+      "sha256": "44c5a92e1203c3f6199743d5e6231907a7a73c68577c2be4705846c711cfa4f2"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_boundary_two_parents.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3699,
+      "path": "finite/pma_boundary_two_parents.stdout.txt",
+      "sha256": "1fb6bd683ffb38fb316eeb12cc93a51d45b69de56883a6de1b2bfff47d102679"
+    },
+    {
+      "bytes": 3227,
+      "path": "finite/pma_r_ubsan_compile.resources.json",
+      "sha256": "04a8300417d4a60c7810ea84af0195adeff70ea54bda98eaf857ce7c32729869"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_r_ubsan_compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_r_ubsan_compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1144,
+      "path": "finite/pma_skewed.resources.json",
+      "sha256": "c7f331a1705e1d76702f5a01604f0ffbbcb17b8a54ad0e498366f20193d03edf"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_skewed.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1767,
+      "path": "finite/pma_skewed.stdout.txt",
+      "sha256": "08d287968eb03c5988082dc94fcaac3f4e0444d39a2a588e2457e06b370cd1a6"
+    },
+    {
+      "bytes": 1168,
+      "path": "finite/pma_skewed_reverse.resources.json",
+      "sha256": "b9cdd272c630ac2c414cbffe6cbaf6936b629048375c4dbf0d1c6f18146da28f"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/pma_skewed_reverse.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1767,
+      "path": "finite/pma_skewed_reverse.stdout.txt",
+      "sha256": "08d287968eb03c5988082dc94fcaac3f4e0444d39a2a588e2457e06b370cd1a6"
+    },
+    {
+      "bytes": 390041,
+      "path": "finite/report.json",
+      "sha256": "770b0fce55f54e0c32a2d04f373179e22e872b400c54a5761c6a3d29170f773e"
+    },
+    {
+      "bytes": 1751,
+      "path": "finite/routing_normal_compile.resources.json",
+      "sha256": "81453da971a3ef010e4c88e4fa137843f727cecdb1540eca99dec45c2f4294a5"
+    },
+    {
+      "bytes": 13585,
+      "path": "finite/routing_normal_compile.stderr.txt",
+      "sha256": "6727db674dd6dacb73695dc78fec9ae111718f487c989b5491ab7cbb2d8c71ca"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/routing_normal_compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1806,
+      "path": "finite/routing_ubsan_compile.resources.json",
+      "sha256": "0b795b51fe6404972e246ae9494704eb0d06b52fb0c9f11da8121c6216c102d4"
+    },
+    {
+      "bytes": 13585,
+      "path": "finite/routing_ubsan_compile.stderr.txt",
+      "sha256": "6727db674dd6dacb73695dc78fec9ae111718f487c989b5491ab7cbb2d8c71ca"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/routing_ubsan_compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 4444,
+      "path": "finite/schedules/burst.xml",
+      "sha256": "bd52f62cd498ea2da5ed6404e7c2a4b99bc0c0783da689cb176dbf55ffb3ab7e"
+    },
+    {
+      "bytes": 3694,
+      "path": "finite/schedules/manifest.env",
+      "sha256": "14c2e5540c23702cba06047686d6106825afc0712c2a26d93265727db36d5fdc"
+    },
+    {
+      "bytes": 802065,
+      "path": "finite/schedules/segment.verbose.rpt",
+      "sha256": "ababf454687f22938c407d20acdba60ba181d025e0ca90da97ba8f8faac6fca4"
+    },
+    {
+      "bytes": 72881,
+      "path": "finite/schedules/top.v",
+      "sha256": "e5c05cd69ce954a30fd4b52b7c202f1ef6445e02729b6a1e1dc75ab773b282ae"
+    },
+    {
+      "bytes": 245375,
+      "path": "finite/schedules/top.verbose.rpt",
+      "sha256": "92103df1ececa3eeccbab8d994281a4f106632c6d1280d3b7ec6f0f9744ca89e"
+    },
+    {
+      "bytes": 10125,
+      "path": "finite/source/pma_to_regraph_adapter.cpp",
+      "sha256": "19fb4eb83c5495cbf8946463b21411fdaba6c9e6f6e0f867d4eeff4adc5a4404"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_first/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_first/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_first/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 938,
+      "path": "finite/source_first.resources.json",
+      "sha256": "5538e00ac04afdad7b7a380a43011fa3135df6f8faad7d054af2e803c0787007"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/source_first.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 213,
+      "path": "finite/source_first.stdout.txt",
+      "sha256": "140b65b2b882e7d4037b4b1aafb65c814291640e51365fd7cb1c565c676df027"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_repeat/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_repeat/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_repeat/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 942,
+      "path": "finite/source_repeat.resources.json",
+      "sha256": "23e96f24ece2876d0ccef690c966d1bc866df44bd3892823eae9c4bdba50a282"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/source_repeat.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 213,
+      "path": "finite/source_repeat.stdout.txt",
+      "sha256": "140b65b2b882e7d4037b4b1aafb65c814291640e51365fd7cb1c565c676df027"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_ubsan/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_ubsan/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "finite/source_ubsan/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 937,
+      "path": "finite/source_ubsan.resources.json",
+      "sha256": "b0215683ef14c20b18cb82e009b57896eef9d3a322180387b8e071e9a613bbca"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/source_ubsan.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 213,
+      "path": "finite/source_ubsan.stdout.txt",
+      "sha256": "140b65b2b882e7d4037b4b1aafb65c814291640e51365fd7cb1c565c676df027"
+    },
+    {
+      "bytes": 17296,
+      "path": "finite/ubsan/dependencies.d",
+      "sha256": "9ad0d548009765e7a0ed3d474a1995a1a94a4e020461a596dd75286e44b57ffb"
+    },
+    {
+      "bytes": 1148,
+      "path": "finite/ubsan_boundary_ring.resources.json",
+      "sha256": "e7341edda4b0aebe7019222deb4d5c987e4c0f44b32f62305aa42b702e82b981"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/ubsan_boundary_ring.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3700,
+      "path": "finite/ubsan_boundary_ring.stdout.txt",
+      "sha256": "ff88eab0aec6aeea673fe90423ffeb9d1b54cadcd291373855bfe12058955e69"
+    },
+    {
+      "bytes": 1151,
+      "path": "finite/ubsan_skewed_sources.resources.json",
+      "sha256": "4bc4daeb761e4f201b832154ff385b6b802ebf370ffd31f0550cc5e6afd616b9"
+    },
+    {
+      "bytes": 0,
+      "path": "finite/ubsan_skewed_sources.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1767,
+      "path": "finite/ubsan_skewed_sources.stdout.txt",
+      "sha256": "08d287968eb03c5988082dc94fcaac3f4e0444d39a2a588e2457e06b370cd1a6"
+    },
+    {
+      "bytes": 15039,
+      "path": "attempts/finite_adapter_preflight_v1/build/CMakeCache.txt",
+      "sha256": "d92a99b5ff5e34039a6bf21fe1f253fe7a5d0e8940cb9a13c5d0ded10cf931cf"
+    },
+    {
+      "bytes": 29480,
+      "path": "attempts/finite_adapter_preflight_v1/build/CMakeFiles/4.3.4/CompilerIdCXX/CMakeCXXCompilerId.cpp",
+      "sha256": "15597e769f9705997844403bbbf0c2fa65eb5b46a8ad4e6db684547644239fae"
+    },
+    {
+      "bytes": 1722,
+      "path": "attempts/finite_adapter_preflight_v1/build/CMakeFiles/CMakeRuleHashes.txt",
+      "sha256": "7eb6a83077c5e036c83e4841e53fa348622bbdc3640dca63c734d0e6e3126abb"
+    },
+    {
+      "bytes": 357,
+      "path": "attempts/finite_adapter_preflight_v1/build/CMakeFiles/InstallScripts.json",
+      "sha256": "feceb957833fea87794676fcf96f591c9a1e6399acf2fb4c56c4ad727e25e5ac"
+    },
+    {
+      "bytes": 3,
+      "path": "attempts/finite_adapter_preflight_v1/build/CMakeFiles/Progress/count.txt",
+      "sha256": "ce516e29a2ccfe4bab40e4e6adab7661cd695680482c00b1faa738fc0df62698"
+    },
+    {
+      "bytes": 9465,
+      "path": "attempts/finite_adapter_preflight_v1/build/CMakeFiles/TargetDirectories.txt",
+      "sha256": "f5303d9302a68c7e24cbcb9862a67ab71b416711f94d34a2e434ee4610aa3bb8"
+    },
+    {
+      "bytes": 39709,
+      "path": "attempts/finite_adapter_preflight_v1/build/compile_commands.json",
+      "sha256": "d0edd807db9b43eb1facb41287e241501540c45afb3add4a2e678a727d3c57ba"
+    },
+    {
+      "bytes": 3403,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/grasu_cycle_tests.dir/link.d",
+      "sha256": "8ed2b88949bb95dfd95506bd1e27305d7cb73f9740a17a25fe2afbb1b306874f"
+    },
+    {
+      "bytes": 189,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/grasu_cycle_tests.dir/link.txt",
+      "sha256": "6da3818350549b9121df1224694dc850610454b83d786be5ac1d0d9d7d4b662e"
+    },
+    {
+      "bytes": 14934,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/grasu_cycle_tests.dir/tests/grasu_tests.cpp.o.d",
+      "sha256": "b36cc9f1d3078e314e0b1c58f6defb8b1be9c4635ed8f89e0186aa3e497036f2"
+    },
+    {
+      "bytes": 3425,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/grasu_runtime_tests.dir/link.d",
+      "sha256": "7a6963a63f0ba429976ab9b647c324470ee9785bf70e4f6bfb19bf2df8b1b60c"
+    },
+    {
+      "bytes": 203,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/grasu_runtime_tests.dir/link.txt",
+      "sha256": "84ef88580b8fbd9c70b7583f0334568020d774eaa45907ef3c48daa6ccbccd88"
+    },
+    {
+      "bytes": 13387,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/grasu_runtime_tests.dir/tests/grasu_runtime_tests.cpp.o.d",
+      "sha256": "f51fa9c7865885f5675f63a0b172222c68cf7a4adef06c6d67e846fc003d4e83"
+    },
+    {
+      "bytes": 3561,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/link.d",
+      "sha256": "3e2e49c47fb250e66baf40c152279a2c59cab3c4546e95c80e30d94a8f533076"
+    },
+    {
+      "bytes": 283,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/link.txt",
+      "sha256": "17c79b9f5118a3271a0a651eb72812044de598965671cd6067d5da33ca70aea4"
+    },
+    {
+      "bytes": 16557,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/tests/original_regraph/whole_graph/a4_execution.cpp.o.d",
+      "sha256": "96be8203f9e0bc2413d53e87fc698a0c3d031c74935d9b570c1817c7d4c90b21"
+    },
+    {
+      "bytes": 3547,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/link.d",
+      "sha256": "04152a3403433e3726dc150de0e7a51a71d12cea975f12cb221b93cc0d071585"
+    },
+    {
+      "bytes": 279,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/link.txt",
+      "sha256": "a5fe62f7476db177191ba0a44eecf33e9290568e0bb245bb454d73439a2ddf31"
+    },
+    {
+      "bytes": 14203,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/tests/original_regraph/big_comparison.cpp.o.d",
+      "sha256": "0fe8627eb478761223dc8fa6317bc934684c9bcea68ee242faf4b9c1e35868f9"
+    },
+    {
+      "bytes": 3592,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/link.d",
+      "sha256": "33817ae964488a630df7fe9e049d5966cf9a5a14b3983eaf9b7f6a64e18be605"
+    },
+    {
+      "bytes": 315,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/link.txt",
+      "sha256": "59bf8433d20c8d0fbfd72aab1957d584003a1628b36dd12dcb2995b23548e25b"
+    },
+    {
+      "bytes": 15379,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/tests/original_regraph/big_frontend_comparison.cpp.o.d",
+      "sha256": "ff87efe8669fb60ab09726992951c86b946aa40f916331d1e12886fe4635e38e"
+    },
+    {
+      "bytes": 3567,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/link.d",
+      "sha256": "4822320536a501d8ba1206810ecd30992247a9582798ff441d52ff504a0e1c0a"
+    },
+    {
+      "bytes": 295,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/link.txt",
+      "sha256": "98bbc84a82e98e911c132a002eaa06eba113e87e1b986ea839ee24cd29f089fa"
+    },
+    {
+      "bytes": 15147,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/tests/original_regraph/big_frontend_tests.cpp.o.d",
+      "sha256": "cfad16d2b5454e03a5afb496073ac18cbf8db5a1a444aedca4ba0cf0c709cc55"
+    },
+    {
+      "bytes": 3522,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_tests.dir/link.d",
+      "sha256": "63eb43de00183270bcc8debc26f86071e81dc07de8e837a459c67afd80fec5fb"
+    },
+    {
+      "bytes": 259,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_tests.dir/link.txt",
+      "sha256": "7ef1c16f8370cb1c5768758f23005aef50206b332b65d0078ca3f7fceb915ca3"
+    },
+    {
+      "bytes": 13974,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_big_tests.dir/tests/original_regraph/big_tests.cpp.o.d",
+      "sha256": "a73019ae4358302a9c8244d48dad3383a41464442f977f5b27f1590e63ec20ea"
+    },
+    {
+      "bytes": 1259,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/link.txt",
+      "sha256": "b494b696d22c2dff14860e7f1da32cb6562497b409faa920475aa948e051cdc1"
+    },
+    {
+      "bytes": 12744,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_gather.cpp.o.d",
+      "sha256": "3c68c2f44caf30a1e3fba1f1d7a09891b7680a6c9da9f973afd092bfbe13f86b"
+    },
+    {
+      "bytes": 12858,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_merge.cpp.o.d",
+      "sha256": "147bd9ed5c4f947252ff20917aa185e18ba1c89ec2716529a9812fb8c778a51b"
+    },
+    {
+      "bytes": 13248,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_requests.cpp.o.d",
+      "sha256": "6c7dccbc31416ead939821d63f4b1e98e1978a95af2f1fa0e814b4250749cb33"
+    },
+    {
+      "bytes": 12348,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_routing.cpp.o.d",
+      "sha256": "f65abe7c201a41e06737227a4737f3a6a9f34fc455e1c0c31bbc9d59477c5eb7"
+    },
+    {
+      "bytes": 13368,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_scatter.cpp.o.d",
+      "sha256": "99c0c2657e2896d447ac56b909d881b488b110a3d4a373e54e9f909895478a18"
+    },
+    {
+      "bytes": 13381,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_source_memory.cpp.o.d",
+      "sha256": "3563c9c6fd7986f136587d846405f00fedf9c1c996defaa75ce32cb39e39c8db"
+    },
+    {
+      "bytes": 13361,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/edge_reader.cpp.o.d",
+      "sha256": "e8f5d459467c989ac7b7701f0ac720d5016b09b1dc1bc8ee531ea00a08940856"
+    },
+    {
+      "bytes": 8629,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_gather.cpp.o.d",
+      "sha256": "83370e883d051bab5b0512f6c8a01432194146f47bc2662b2bc87bab3b9be2d9"
+    },
+    {
+      "bytes": 8749,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_merge.cpp.o.d",
+      "sha256": "b3c8ba72f325e199fbdd9c1378ff6077d98eef2b3d6b90e964c91663298b2a8f"
+    },
+    {
+      "bytes": 13255,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_scatter.cpp.o.d",
+      "sha256": "f874f7762efa547315473a14e33c50f031b0b519c025425fef2b3deb019336cd"
+    },
+    {
+      "bytes": 13367,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/mixed_indexer.cpp.o.d",
+      "sha256": "f40c729d873781a35894924a5d363772e9ac74a7c3b44fddfe12cffb22bdc1c9"
+    },
+    {
+      "bytes": 13473,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/pr_apply.cpp.o.d",
+      "sha256": "451aecf34667d48e7a01e5295c0c81b95e4a4e791b6d4a7e4539360116dd6a74"
+    },
+    {
+      "bytes": 13250,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/property_writer.cpp.o.d",
+      "sha256": "d12f461e81540e95954d4d8fe9514e4f6428f6c06c1a61288d12fd76d5b7bbcc"
+    },
+    {
+      "bytes": 13241,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/source_memory.cpp.o.d",
+      "sha256": "7b9bce0960cff7a7d7a7efac52c71e0a1a02eff8bc19583ead7081f09dfccc68"
+    },
+    {
+      "bytes": 13367,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/write_indexer.cpp.o.d",
+      "sha256": "1ab2e3138fa5259206d55a5c50fe19bc8a3df7fe314d77259da1b73de8c5a36e"
+    },
+    {
+      "bytes": 3547,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/link.d",
+      "sha256": "4b1629828d6e3ec70a4c66724ff34b1bc4148d5cbfce3bc3a98695135ba72f11"
+    },
+    {
+      "bytes": 279,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/link.txt",
+      "sha256": "86049a0efb4663bc7456dc73586f5cca0af316a9e4fbf65709b64cc020a04518"
+    },
+    {
+      "bytes": 14526,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/tests/original_regraph/frontend_tests.cpp.o.d",
+      "sha256": "564d1166e6f2199b9e1091bd06c347d45a93ed9347f3a7b9452acf37378deb93"
+    },
+    {
+      "bytes": 3537,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/link.d",
+      "sha256": "13d056c08836024857e2eb32a5fd58bd58c954765d27dcb735d8719b5bdd9778"
+    },
+    {
+      "bytes": 271,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/link.txt",
+      "sha256": "7701c47014cc3916f7e0a5ce3e96f5cbf361b90b0683e7541d22c062287d1903"
+    },
+    {
+      "bytes": 13407,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/tests/original_regraph/gather_tests.cpp.o.d",
+      "sha256": "0694d51973456b71d8bc7a74c5026ed99b2a200093eda686ee97550bcd110f66"
+    },
+    {
+      "bytes": 3552,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/link.d",
+      "sha256": "e61113bcba068fb9e15771828ac957dd11884174f088e85850d74478d551a394"
+    },
+    {
+      "bytes": 283,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/link.txt",
+      "sha256": "49809576cd4a4778c5583568d8d8b8544807a2cdc0455b1c0293cc9f313dd935"
+    },
+    {
+      "bytes": 14999,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/tests/original_regraph/iteration_tests.cpp.o.d",
+      "sha256": "fc892bf40d54fe8e7aad412f70ee93ae2d2c1356e2111e6a43a3f3597529fe68"
+    },
+    {
+      "bytes": 3576,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/link.d",
+      "sha256": "000dc97a5d21503d14f1060e00492bbafbe39db133680ff5d955c876e162f5c3"
+    },
+    {
+      "bytes": 295,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/link.txt",
+      "sha256": "d6fde1a77d5eb194b6ae7a00c431cdddaae550b0579f287a7302b9da22299238"
+    },
+    {
+      "bytes": 18177,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/tests/original_regraph/whole_graph/mixed/execution.cpp.o.d",
+      "sha256": "86ef18757158b9ba71b84c780bd06ccf7a568289a926c0078f1dec2524ee330a"
+    },
+    {
+      "bytes": 3572,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/link.d",
+      "sha256": "cb89f9ba6beebe13357db08489a94e577a0a1d71a2d8dfbf6414690e23a5ffbb"
+    },
+    {
+      "bytes": 287,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/link.txt",
+      "sha256": "2ada39b40551f80a562657e827044b83f253e76f9118f5e4a13134571be9b12c"
+    },
+    {
+      "bytes": 15850,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/tests/original_regraph/whole_graph/mixed/indexer_tests.cpp.o.d",
+      "sha256": "1ae49c7c00767c801307909c1d13dd0b8a6346bc9f75f78f8067dcac282494cb"
+    },
+    {
+      "bytes": 3562,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/link.d",
+      "sha256": "0fd39909b789e5e28fdd40f7790212769a045b1ca59b1e98b29cfd5061af2b28"
+    },
+    {
+      "bytes": 291,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/link.txt",
+      "sha256": "8ec7be45f4447522c1da86f72d27294db2d66ca35c1ac0973d28f7acbcc604f9"
+    },
+    {
+      "bytes": 13639,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/tests/original_regraph/source_comparison.cpp.o.d",
+      "sha256": "9cc70280661fa78f7277782bb5dd104aad644821783a59fd0e9940ad65ce123f"
+    },
+    {
+      "bytes": 3557,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/link.d",
+      "sha256": "ff0efe33864b4a7b6c71508c0d1b841fecbef3fe7a00b50b958968121dec3b65"
+    },
+    {
+      "bytes": 287,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/link.txt",
+      "sha256": "2f0c3c85c4203b9fd11dcc15a6308f52471ee2e79d94b041ed442e304ef4dd57"
+    },
+    {
+      "bytes": 14507,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/tests/original_regraph/state_comparison.cpp.o.d",
+      "sha256": "973d537d3857153959732d95d659121d91505421af0bb5b0d824a546a3df6192"
+    },
+    {
+      "bytes": 3532,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_state_tests.dir/link.d",
+      "sha256": "e0d59c8219d89621610be5fb8f8d681e363d6ba54bdcaa4ba95789243704f403"
+    },
+    {
+      "bytes": 267,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_state_tests.dir/link.txt",
+      "sha256": "9d7dea52efa6af8504d839a5298b6f34cda3c5364301b82edd88b974ebeb4e5c"
+    },
+    {
+      "bytes": 14275,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/original_regraph_state_tests.dir/tests/original_regraph/state_tests.cpp.o.d",
+      "sha256": "edefbc39ba7f706c5f9dc82887f3465cc7ff80f4eb988b7e304ac3bd17ae8fcd"
+    },
+    {
+      "bytes": 3490,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/link.d",
+      "sha256": "bc834f7e8b21090731336b11c0250152113008e94fa222edf885acedb4ed54af"
+    },
+    {
+      "bytes": 255,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/link.txt",
+      "sha256": "9516b1840b6d24dc5368de1d7194c7f48a01973295c19bac6873bf9330afc6cf"
+    },
+    {
+      "bytes": 16099,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/tools/persistent_update_host_benchmark.cpp.o.d",
+      "sha256": "8b926229d92781f2c488372e7de625ed8383b00d07d37f2285cc55f92dba3c0b"
+    },
+    {
+      "bytes": 139,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/pma_adapter_cycle.dir/link.txt",
+      "sha256": "ff14df0607efbfdb7c758e21a944dc0c9742e8b44e48cc9780d6046cdb85ecf8"
+    },
+    {
+      "bytes": 13310,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/pma_adapter_cycle.dir/src/pma_adapter/reader.cpp.o.d",
+      "sha256": "071c5b167960148d1dfa1b95912db5dd54139ae4355324dc85696802d944377f"
+    },
+    {
+      "bytes": 253,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/pma_adapter_tests.dir/link.txt",
+      "sha256": "1e0ec71f0e64fd8f3f8c4474d97b4d408549aa1a702c7cd703c6b86c6dcbf344"
+    },
+    {
+      "bytes": 15009,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/pma_adapter_tests.dir/tests/pma_adapter/reader_tests.cpp.o.d",
+      "sha256": "c4ca07f56c737ce0101f46a0a0afd0b0b869074691fc747b06be798ca6ad6459"
+    },
+    {
+      "bytes": 1136,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/link.txt",
+      "sha256": "341534076f37db5630011d276e6da442acd17301f86392df030e6d895f802b7b"
+    },
+    {
+      "bytes": 9104,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/algorithm.cpp.o.d",
+      "sha256": "ca846303874437a750bffaaa508c9d21ca522623811eea6bdd9c5572cc157e5f"
+    },
+    {
+      "bytes": 8422,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/algorithm_pipeline.cpp.o.d",
+      "sha256": "e20d4e078b75929b96609c50edfc2c8ae1d71f861cfb2387c70f07054b569feb"
+    },
+    {
+      "bytes": 12710,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/axi.cpp.o.d",
+      "sha256": "ea83631e19f71b0d8d187ce4207900c130295a134ee70a7a222886d81f122b21"
+    },
+    {
+      "bytes": 8679,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/banked_memory.cpp.o.d",
+      "sha256": "3161f9be8b99c39a0dcbdfbb2462def577670ecc47afa6e76270a9f575cfee31"
+    },
+    {
+      "bytes": 13269,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu.cpp.o.d",
+      "sha256": "495024aa0283714ef4b72bc3fffba818742aff4f6ce06701b29326f33b04bc12"
+    },
+    {
+      "bytes": 13407,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_native.cpp.o.d",
+      "sha256": "747b7ae32dd22a30a8d049aaa86013c6287ae549eaa73c3b35dfae04f218c83b"
+    },
+    {
+      "bytes": 14667,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_regraph.cpp.o.d",
+      "sha256": "4922e29d48ca5d709960757aeae8bcb810a3ed47d4f9bb15125db3ca5c4e753b"
+    },
+    {
+      "bytes": 13216,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_regraph_runtime.cpp.o.d",
+      "sha256": "b6f6c925f458b57567c59a17b67c18180e08f6c456e1ac9241b2e1d6f75e91aa"
+    },
+    {
+      "bytes": 13316,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_sharded_update.cpp.o.d",
+      "sha256": "945351e81193eed89229a9071c7888f9cdff9132811e71d1191b2abfa08e3ccc"
+    },
+    {
+      "bytes": 12369,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/memory_backend.cpp.o.d",
+      "sha256": "4212f312287df9f90a9f1e9fa1bed508ea24459dfbb5796a52b8e1713cda230b"
+    },
+    {
+      "bytes": 13159,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/scheduler.cpp.o.d",
+      "sha256": "7fc241c6e5b138937ec42d46e65064c7dac70e0df7c7d672b9525f578beb6d08"
+    },
+    {
+      "bytes": 14459,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_dirty.cpp.o.d",
+      "sha256": "c150c484669a902a02b7fd1692f700bc50c946daf4dc059f100144a6823cee37"
+    },
+    {
+      "bytes": 14439,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_l0.cpp.o.d",
+      "sha256": "790ad7d729bffcbc61235b83680785a38b5ceb03d3e35419cc792247f2e85348"
+    },
+    {
+      "bytes": 8501,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_owner.cpp.o.d",
+      "sha256": "0f41251f5d9f4861989f79749e5588c7cc3c685bb5942ce80859489412c40ddd"
+    },
+    {
+      "bytes": 15854,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_pagerank.cpp.o.d",
+      "sha256": "cbad379da27a96a960e976df3f3395d3692ccae86a8b2e1e6f1c526f28db1116"
+    },
+    {
+      "bytes": 14578,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_split.cpp.o.d",
+      "sha256": "67306058ef695d40f10683980eed424107f387608ca34f9a88b2918ddea2239a"
+    },
+    {
+      "bytes": 14575,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_sssp_compute.cpp.o.d",
+      "sha256": "8c52b179b8395c0156cf3a6244b58ed738976ba463d482c1a5d7691007e9af6f"
+    },
+    {
+      "bytes": 15100,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_system.cpp.o.d",
+      "sha256": "26031607e20d99604fdeaf514a14530f9903642df36296b61318e1de63b14c48"
+    },
+    {
+      "bytes": 13140,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_vertex_lifecycle.cpp.o.d",
+      "sha256": "44fc6f45ae66006c6927a6145be385d10bfeb1e7413861e3ed38089bf37a3431"
+    },
+    {
+      "bytes": 3416,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/link.d",
+      "sha256": "e41ed4b199968e6ed0a0c95b7d14d2ed3afcb28de80f199057eade538dafd313"
+    },
+    {
+      "bytes": 203,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/link.txt",
+      "sha256": "af658cd49d71efa5cc4fcd266bb4797ca549ad507b4365f1ba6b0b8be2735a45"
+    },
+    {
+      "bytes": 16430,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/tests/core_tests.cpp.o.d",
+      "sha256": "6a71ce91db76e4d8f7eb1906131f8c0c41127fff8a93af4c355415402a66deb8"
+    },
+    {
+      "bytes": 3415,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_owner_tests.dir/link.d",
+      "sha256": "97063301166c9a438d1c5ec93c5edcba97e27aab21f9c01258fb566b5b5458cc"
+    },
+    {
+      "bytes": 195,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_owner_tests.dir/link.txt",
+      "sha256": "f910a3f3bb2962c5b5b9c82acaf66b155f9b1546e7ac2d397fe916464abe77ff"
+    },
+    {
+      "bytes": 10592,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_owner_tests.dir/tests/spine_owner_tests.cpp.o.d",
+      "sha256": "1d13775cfa97d7806dbd6d2e46fc0547162147831e5ed166d757aeac75577f74"
+    },
+    {
+      "bytes": 3470,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/link.d",
+      "sha256": "f7a454100580a174b9ada6afc7a1898147f730f430c188d1df015dd8025fc61f"
+    },
+    {
+      "bytes": 239,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/link.txt",
+      "sha256": "1e4d1b6a863271ca991881c6188d02f747cb460bdd106f44c2ce9799e97e847e"
+    },
+    {
+      "bytes": 13321,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/tests/spine_vertex_lifecycle_tests.cpp.o.d",
+      "sha256": "42ac3253639966e6c3267bc2f8d504510cf3b043a5ae093aac2eeeeac4f7d0a5"
+    },
+    {
+      "bytes": 3588,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/link.d",
+      "sha256": "4d3f622dc46f85181d2068bc5559110f14c939e9b77c8661cdb9a8a1abfddd9d"
+    },
+    {
+      "bytes": 250,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/link.txt",
+      "sha256": "13b82dd71d9be4f628dbbf319504e7fbd639e2763c3f7b010647b283d1603222"
+    },
+    {
+      "bytes": 10240,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/sst/physical_hbm_mapper.cpp.o.d",
+      "sha256": "958e1c6b14337b447c3b1333a4c6b57c12feca76c39eafe460c62c9ccbf22f02"
+    },
+    {
+      "bytes": 9758,
+      "path": "attempts/finite_adapter_preflight_v1/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/tests/sst_hbm_mapper_tests.cpp.o.d",
+      "sha256": "eab2b2772436b3243d6eafb82f2f81624535202240ee3d4b285aedf16b6a5a2a"
+    },
+    {
+      "bytes": 830,
+      "path": "attempts/finite_adapter_preflight_v1/build.resources.json",
+      "sha256": "65725eaab8a6a6013a85685b307003c11c5e55d3b355d305aa6eec4a30b18719"
+    },
+    {
+      "bytes": 2317,
+      "path": "attempts/finite_adapter_preflight_v1/build.stderr.txt",
+      "sha256": "2d6183869a12aa996be61b0970261735e18a8534d6fb9162f57ea17809fef075"
+    },
+    {
+      "bytes": 8389,
+      "path": "attempts/finite_adapter_preflight_v1/build.stdout.txt",
+      "sha256": "9edea0eb34db1df9fdfd3084ddaee27805f2a80e2c37398518ccee6603da190c"
+    },
+    {
+      "bytes": 977,
+      "path": "attempts/finite_adapter_preflight_v1/configure.resources.json",
+      "sha256": "5e13e6a1f78fde611bea047d78356f76dbd5f6245f8e5be9d142efc9c9e56692"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_preflight_v1/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 475,
+      "path": "attempts/finite_adapter_preflight_v1/configure.stdout.txt",
+      "sha256": "c8f037e5eccab3ebe7606bb360744c525295b06e471cbd8c871dcced576c3d18"
+    },
+    {
+      "bytes": 2061,
+      "path": "attempts/finite_adapter_preflight_v1/report.json",
+      "sha256": "9a338bc2936ead36b64aeb29f16b4dcb7363a1f5ae01a3408d8fc1b4a758a6f0"
+    },
+    {
+      "bytes": 10125,
+      "path": "attempts/finite_adapter_preflight_v1/source/pma_to_regraph_adapter.cpp",
+      "sha256": "19fb4eb83c5495cbf8946463b21411fdaba6c9e6f6e0f867d4eeff4adc5a4404"
+    },
+    {
+      "bytes": 15039,
+      "path": "attempts/finite_adapter_preflight_v2/build/CMakeCache.txt",
+      "sha256": "fd904a51adea288f87ed592f1e268775b61e3252ade355eeec46c45f126e4b8a"
+    },
+    {
+      "bytes": 29480,
+      "path": "attempts/finite_adapter_preflight_v2/build/CMakeFiles/4.3.4/CompilerIdCXX/CMakeCXXCompilerId.cpp",
+      "sha256": "15597e769f9705997844403bbbf0c2fa65eb5b46a8ad4e6db684547644239fae"
+    },
+    {
+      "bytes": 1722,
+      "path": "attempts/finite_adapter_preflight_v2/build/CMakeFiles/CMakeRuleHashes.txt",
+      "sha256": "971e122c87b58728f13fec56cd7466e49914652954c680d834c479d63196a59b"
+    },
+    {
+      "bytes": 357,
+      "path": "attempts/finite_adapter_preflight_v2/build/CMakeFiles/InstallScripts.json",
+      "sha256": "52ff261abc6031a4d43b6744910c057b0cd48199f9d9559c5c5a83b2e2f9d76d"
+    },
+    {
+      "bytes": 9632,
+      "path": "attempts/finite_adapter_preflight_v2/build/CMakeFiles/TargetDirectories.txt",
+      "sha256": "9719238ac28a445c793e271b6faba344786f0f16324d40d31253a5bf8750fbef"
+    },
+    {
+      "bytes": 531,
+      "path": "attempts/finite_adapter_preflight_v2/build/Testing/Temporary/CTestCostData.txt",
+      "sha256": "52b21d36230d8960fda9f30c3df16d52b9c097ee8cd4cc1401820b17d1ba1bd3"
+    },
+    {
+      "bytes": 40420,
+      "path": "attempts/finite_adapter_preflight_v2/build/compile_commands.json",
+      "sha256": "12a25ff4031f9b02114122793f3e13fc8f35b4cb30133f5329ecc76acebc4ee1"
+    },
+    {
+      "bytes": 3403,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/grasu_cycle_tests.dir/link.d",
+      "sha256": "8ed2b88949bb95dfd95506bd1e27305d7cb73f9740a17a25fe2afbb1b306874f"
+    },
+    {
+      "bytes": 189,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/grasu_cycle_tests.dir/link.txt",
+      "sha256": "6da3818350549b9121df1224694dc850610454b83d786be5ac1d0d9d7d4b662e"
+    },
+    {
+      "bytes": 14934,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/grasu_cycle_tests.dir/tests/grasu_tests.cpp.o.d",
+      "sha256": "b36cc9f1d3078e314e0b1c58f6defb8b1be9c4635ed8f89e0186aa3e497036f2"
+    },
+    {
+      "bytes": 3425,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/grasu_runtime_tests.dir/link.d",
+      "sha256": "7a6963a63f0ba429976ab9b647c324470ee9785bf70e4f6bfb19bf2df8b1b60c"
+    },
+    {
+      "bytes": 203,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/grasu_runtime_tests.dir/link.txt",
+      "sha256": "84ef88580b8fbd9c70b7583f0334568020d774eaa45907ef3c48daa6ccbccd88"
+    },
+    {
+      "bytes": 13387,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/grasu_runtime_tests.dir/tests/grasu_runtime_tests.cpp.o.d",
+      "sha256": "f51fa9c7865885f5675f63a0b172222c68cf7a4adef06c6d67e846fc003d4e83"
+    },
+    {
+      "bytes": 3561,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/link.d",
+      "sha256": "3e2e49c47fb250e66baf40c152279a2c59cab3c4546e95c80e30d94a8f533076"
+    },
+    {
+      "bytes": 283,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/link.txt",
+      "sha256": "17c79b9f5118a3271a0a651eb72812044de598965671cd6067d5da33ca70aea4"
+    },
+    {
+      "bytes": 16557,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/tests/original_regraph/whole_graph/a4_execution.cpp.o.d",
+      "sha256": "96be8203f9e0bc2413d53e87fc698a0c3d031c74935d9b570c1817c7d4c90b21"
+    },
+    {
+      "bytes": 3547,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/link.d",
+      "sha256": "04152a3403433e3726dc150de0e7a51a71d12cea975f12cb221b93cc0d071585"
+    },
+    {
+      "bytes": 279,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/link.txt",
+      "sha256": "a5fe62f7476db177191ba0a44eecf33e9290568e0bb245bb454d73439a2ddf31"
+    },
+    {
+      "bytes": 14203,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/tests/original_regraph/big_comparison.cpp.o.d",
+      "sha256": "0fe8627eb478761223dc8fa6317bc934684c9bcea68ee242faf4b9c1e35868f9"
+    },
+    {
+      "bytes": 3592,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/link.d",
+      "sha256": "33817ae964488a630df7fe9e049d5966cf9a5a14b3983eaf9b7f6a64e18be605"
+    },
+    {
+      "bytes": 315,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/link.txt",
+      "sha256": "59bf8433d20c8d0fbfd72aab1957d584003a1628b36dd12dcb2995b23548e25b"
+    },
+    {
+      "bytes": 15379,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/tests/original_regraph/big_frontend_comparison.cpp.o.d",
+      "sha256": "ff87efe8669fb60ab09726992951c86b946aa40f916331d1e12886fe4635e38e"
+    },
+    {
+      "bytes": 3567,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/link.d",
+      "sha256": "4822320536a501d8ba1206810ecd30992247a9582798ff441d52ff504a0e1c0a"
+    },
+    {
+      "bytes": 295,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/link.txt",
+      "sha256": "98bbc84a82e98e911c132a002eaa06eba113e87e1b986ea839ee24cd29f089fa"
+    },
+    {
+      "bytes": 15147,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/tests/original_regraph/big_frontend_tests.cpp.o.d",
+      "sha256": "cfad16d2b5454e03a5afb496073ac18cbf8db5a1a444aedca4ba0cf0c709cc55"
+    },
+    {
+      "bytes": 3522,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_tests.dir/link.d",
+      "sha256": "63eb43de00183270bcc8debc26f86071e81dc07de8e837a459c67afd80fec5fb"
+    },
+    {
+      "bytes": 259,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_tests.dir/link.txt",
+      "sha256": "7ef1c16f8370cb1c5768758f23005aef50206b332b65d0078ca3f7fceb915ca3"
+    },
+    {
+      "bytes": 13974,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_big_tests.dir/tests/original_regraph/big_tests.cpp.o.d",
+      "sha256": "a73019ae4358302a9c8244d48dad3383a41464442f977f5b27f1590e63ec20ea"
+    },
+    {
+      "bytes": 1259,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/link.txt",
+      "sha256": "b494b696d22c2dff14860e7f1da32cb6562497b409faa920475aa948e051cdc1"
+    },
+    {
+      "bytes": 12744,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_gather.cpp.o.d",
+      "sha256": "3c68c2f44caf30a1e3fba1f1d7a09891b7680a6c9da9f973afd092bfbe13f86b"
+    },
+    {
+      "bytes": 12858,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_merge.cpp.o.d",
+      "sha256": "147bd9ed5c4f947252ff20917aa185e18ba1c89ec2716529a9812fb8c778a51b"
+    },
+    {
+      "bytes": 13248,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_requests.cpp.o.d",
+      "sha256": "6c7dccbc31416ead939821d63f4b1e98e1978a95af2f1fa0e814b4250749cb33"
+    },
+    {
+      "bytes": 12348,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_routing.cpp.o.d",
+      "sha256": "f65abe7c201a41e06737227a4737f3a6a9f34fc455e1c0c31bbc9d59477c5eb7"
+    },
+    {
+      "bytes": 13368,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_scatter.cpp.o.d",
+      "sha256": "99c0c2657e2896d447ac56b909d881b488b110a3d4a373e54e9f909895478a18"
+    },
+    {
+      "bytes": 13381,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_source_memory.cpp.o.d",
+      "sha256": "3563c9c6fd7986f136587d846405f00fedf9c1c996defaa75ce32cb39e39c8db"
+    },
+    {
+      "bytes": 13361,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/edge_reader.cpp.o.d",
+      "sha256": "e8f5d459467c989ac7b7701f0ac720d5016b09b1dc1bc8ee531ea00a08940856"
+    },
+    {
+      "bytes": 8629,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_gather.cpp.o.d",
+      "sha256": "83370e883d051bab5b0512f6c8a01432194146f47bc2662b2bc87bab3b9be2d9"
+    },
+    {
+      "bytes": 8749,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_merge.cpp.o.d",
+      "sha256": "b3c8ba72f325e199fbdd9c1378ff6077d98eef2b3d6b90e964c91663298b2a8f"
+    },
+    {
+      "bytes": 13255,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_scatter.cpp.o.d",
+      "sha256": "f874f7762efa547315473a14e33c50f031b0b519c025425fef2b3deb019336cd"
+    },
+    {
+      "bytes": 13367,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/mixed_indexer.cpp.o.d",
+      "sha256": "f40c729d873781a35894924a5d363772e9ac74a7c3b44fddfe12cffb22bdc1c9"
+    },
+    {
+      "bytes": 13473,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/pr_apply.cpp.o.d",
+      "sha256": "451aecf34667d48e7a01e5295c0c81b95e4a4e791b6d4a7e4539360116dd6a74"
+    },
+    {
+      "bytes": 13250,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/property_writer.cpp.o.d",
+      "sha256": "d12f461e81540e95954d4d8fe9514e4f6428f6c06c1a61288d12fd76d5b7bbcc"
+    },
+    {
+      "bytes": 13241,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/source_memory.cpp.o.d",
+      "sha256": "7b9bce0960cff7a7d7a7efac52c71e0a1a02eff8bc19583ead7081f09dfccc68"
+    },
+    {
+      "bytes": 13367,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/write_indexer.cpp.o.d",
+      "sha256": "1ab2e3138fa5259206d55a5c50fe19bc8a3df7fe314d77259da1b73de8c5a36e"
+    },
+    {
+      "bytes": 3547,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/link.d",
+      "sha256": "4b1629828d6e3ec70a4c66724ff34b1bc4148d5cbfce3bc3a98695135ba72f11"
+    },
+    {
+      "bytes": 279,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/link.txt",
+      "sha256": "86049a0efb4663bc7456dc73586f5cca0af316a9e4fbf65709b64cc020a04518"
+    },
+    {
+      "bytes": 14526,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/tests/original_regraph/frontend_tests.cpp.o.d",
+      "sha256": "564d1166e6f2199b9e1091bd06c347d45a93ed9347f3a7b9452acf37378deb93"
+    },
+    {
+      "bytes": 3537,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/link.d",
+      "sha256": "13d056c08836024857e2eb32a5fd58bd58c954765d27dcb735d8719b5bdd9778"
+    },
+    {
+      "bytes": 271,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/link.txt",
+      "sha256": "7701c47014cc3916f7e0a5ce3e96f5cbf361b90b0683e7541d22c062287d1903"
+    },
+    {
+      "bytes": 13407,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/tests/original_regraph/gather_tests.cpp.o.d",
+      "sha256": "0694d51973456b71d8bc7a74c5026ed99b2a200093eda686ee97550bcd110f66"
+    },
+    {
+      "bytes": 3552,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/link.d",
+      "sha256": "e61113bcba068fb9e15771828ac957dd11884174f088e85850d74478d551a394"
+    },
+    {
+      "bytes": 283,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/link.txt",
+      "sha256": "49809576cd4a4778c5583568d8d8b8544807a2cdc0455b1c0293cc9f313dd935"
+    },
+    {
+      "bytes": 14999,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/tests/original_regraph/iteration_tests.cpp.o.d",
+      "sha256": "fc892bf40d54fe8e7aad412f70ee93ae2d2c1356e2111e6a43a3f3597529fe68"
+    },
+    {
+      "bytes": 3576,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/link.d",
+      "sha256": "000dc97a5d21503d14f1060e00492bbafbe39db133680ff5d955c876e162f5c3"
+    },
+    {
+      "bytes": 295,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/link.txt",
+      "sha256": "d6fde1a77d5eb194b6ae7a00c431cdddaae550b0579f287a7302b9da22299238"
+    },
+    {
+      "bytes": 18177,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/tests/original_regraph/whole_graph/mixed/execution.cpp.o.d",
+      "sha256": "86ef18757158b9ba71b84c780bd06ccf7a568289a926c0078f1dec2524ee330a"
+    },
+    {
+      "bytes": 3572,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/link.d",
+      "sha256": "cb89f9ba6beebe13357db08489a94e577a0a1d71a2d8dfbf6414690e23a5ffbb"
+    },
+    {
+      "bytes": 287,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/link.txt",
+      "sha256": "2ada39b40551f80a562657e827044b83f253e76f9118f5e4a13134571be9b12c"
+    },
+    {
+      "bytes": 15850,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/tests/original_regraph/whole_graph/mixed/indexer_tests.cpp.o.d",
+      "sha256": "1ae49c7c00767c801307909c1d13dd0b8a6346bc9f75f78f8067dcac282494cb"
+    },
+    {
+      "bytes": 3562,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/link.d",
+      "sha256": "0fd39909b789e5e28fdd40f7790212769a045b1ca59b1e98b29cfd5061af2b28"
+    },
+    {
+      "bytes": 291,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/link.txt",
+      "sha256": "8ec7be45f4447522c1da86f72d27294db2d66ca35c1ac0973d28f7acbcc604f9"
+    },
+    {
+      "bytes": 13639,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/tests/original_regraph/source_comparison.cpp.o.d",
+      "sha256": "9cc70280661fa78f7277782bb5dd104aad644821783a59fd0e9940ad65ce123f"
+    },
+    {
+      "bytes": 3557,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/link.d",
+      "sha256": "ff0efe33864b4a7b6c71508c0d1b841fecbef3fe7a00b50b958968121dec3b65"
+    },
+    {
+      "bytes": 287,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/link.txt",
+      "sha256": "2f0c3c85c4203b9fd11dcc15a6308f52471ee2e79d94b041ed442e304ef4dd57"
+    },
+    {
+      "bytes": 14507,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/tests/original_regraph/state_comparison.cpp.o.d",
+      "sha256": "973d537d3857153959732d95d659121d91505421af0bb5b0d824a546a3df6192"
+    },
+    {
+      "bytes": 3532,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_state_tests.dir/link.d",
+      "sha256": "e0d59c8219d89621610be5fb8f8d681e363d6ba54bdcaa4ba95789243704f403"
+    },
+    {
+      "bytes": 267,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_state_tests.dir/link.txt",
+      "sha256": "9d7dea52efa6af8504d839a5298b6f34cda3c5364301b82edd88b974ebeb4e5c"
+    },
+    {
+      "bytes": 14275,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/original_regraph_state_tests.dir/tests/original_regraph/state_tests.cpp.o.d",
+      "sha256": "edefbc39ba7f706c5f9dc82887f3465cc7ff80f4eb988b7e304ac3bd17ae8fcd"
+    },
+    {
+      "bytes": 3490,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/link.d",
+      "sha256": "bc834f7e8b21090731336b11c0250152113008e94fa222edf885acedb4ed54af"
+    },
+    {
+      "bytes": 255,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/link.txt",
+      "sha256": "9516b1840b6d24dc5368de1d7194c7f48a01973295c19bac6873bf9330afc6cf"
+    },
+    {
+      "bytes": 16099,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/tools/persistent_update_host_benchmark.cpp.o.d",
+      "sha256": "8b926229d92781f2c488372e7de625ed8383b00d07d37f2285cc55f92dba3c0b"
+    },
+    {
+      "bytes": 139,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/pma_adapter_cycle.dir/link.txt",
+      "sha256": "ff14df0607efbfdb7c758e21a944dc0c9742e8b44e48cc9780d6046cdb85ecf8"
+    },
+    {
+      "bytes": 13310,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/pma_adapter_cycle.dir/src/pma_adapter/reader.cpp.o.d",
+      "sha256": "071c5b167960148d1dfa1b95912db5dd54139ae4355324dc85696802d944377f"
+    },
+    {
+      "bytes": 3543,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/pma_adapter_tests.dir/link.d",
+      "sha256": "87d95c54b84319b29d856d65a99de62ecd8b655d6c261d0ddabd0f11e1e9eb3c"
+    },
+    {
+      "bytes": 253,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/pma_adapter_tests.dir/link.txt",
+      "sha256": "1e0ec71f0e64fd8f3f8c4474d97b4d408549aa1a702c7cd703c6b86c6dcbf344"
+    },
+    {
+      "bytes": 15009,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/pma_adapter_tests.dir/tests/pma_adapter/reader_tests.cpp.o.d",
+      "sha256": "c4ca07f56c737ce0101f46a0a0afd0b0b869074691fc747b06be798ca6ad6459"
+    },
+    {
+      "bytes": 3561,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/pma_regraph_execution.dir/link.d",
+      "sha256": "70729854b5e45704f3e74bcb99ee1f44297a2ea72547cb8e1f2a4560fc1dd915"
+    },
+    {
+      "bytes": 268,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/pma_regraph_execution.dir/link.txt",
+      "sha256": "47449117cbd6baa65f44beb26eb6fc05ddc769e2fd52518f55e84459211e6e73"
+    },
+    {
+      "bytes": 16920,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/pma_regraph_execution.dir/tests/pma_adapter/whole_execution.cpp.o.d",
+      "sha256": "36e414a915e574487f6d7206d3f769844807e848c7acb8bdd94302625cc99ba4"
+    },
+    {
+      "bytes": 1136,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/link.txt",
+      "sha256": "341534076f37db5630011d276e6da442acd17301f86392df030e6d895f802b7b"
+    },
+    {
+      "bytes": 9104,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/algorithm.cpp.o.d",
+      "sha256": "ca846303874437a750bffaaa508c9d21ca522623811eea6bdd9c5572cc157e5f"
+    },
+    {
+      "bytes": 8422,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/algorithm_pipeline.cpp.o.d",
+      "sha256": "e20d4e078b75929b96609c50edfc2c8ae1d71f861cfb2387c70f07054b569feb"
+    },
+    {
+      "bytes": 12710,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/axi.cpp.o.d",
+      "sha256": "ea83631e19f71b0d8d187ce4207900c130295a134ee70a7a222886d81f122b21"
+    },
+    {
+      "bytes": 8679,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/banked_memory.cpp.o.d",
+      "sha256": "3161f9be8b99c39a0dcbdfbb2462def577670ecc47afa6e76270a9f575cfee31"
+    },
+    {
+      "bytes": 13269,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu.cpp.o.d",
+      "sha256": "495024aa0283714ef4b72bc3fffba818742aff4f6ce06701b29326f33b04bc12"
+    },
+    {
+      "bytes": 13407,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_native.cpp.o.d",
+      "sha256": "747b7ae32dd22a30a8d049aaa86013c6287ae549eaa73c3b35dfae04f218c83b"
+    },
+    {
+      "bytes": 14667,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_regraph.cpp.o.d",
+      "sha256": "4922e29d48ca5d709960757aeae8bcb810a3ed47d4f9bb15125db3ca5c4e753b"
+    },
+    {
+      "bytes": 13216,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_regraph_runtime.cpp.o.d",
+      "sha256": "b6f6c925f458b57567c59a17b67c18180e08f6c456e1ac9241b2e1d6f75e91aa"
+    },
+    {
+      "bytes": 13316,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_sharded_update.cpp.o.d",
+      "sha256": "945351e81193eed89229a9071c7888f9cdff9132811e71d1191b2abfa08e3ccc"
+    },
+    {
+      "bytes": 12369,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/memory_backend.cpp.o.d",
+      "sha256": "4212f312287df9f90a9f1e9fa1bed508ea24459dfbb5796a52b8e1713cda230b"
+    },
+    {
+      "bytes": 13159,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/scheduler.cpp.o.d",
+      "sha256": "7fc241c6e5b138937ec42d46e65064c7dac70e0df7c7d672b9525f578beb6d08"
+    },
+    {
+      "bytes": 14459,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_dirty.cpp.o.d",
+      "sha256": "c150c484669a902a02b7fd1692f700bc50c946daf4dc059f100144a6823cee37"
+    },
+    {
+      "bytes": 14439,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_l0.cpp.o.d",
+      "sha256": "790ad7d729bffcbc61235b83680785a38b5ceb03d3e35419cc792247f2e85348"
+    },
+    {
+      "bytes": 8501,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_owner.cpp.o.d",
+      "sha256": "0f41251f5d9f4861989f79749e5588c7cc3c685bb5942ce80859489412c40ddd"
+    },
+    {
+      "bytes": 15854,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_pagerank.cpp.o.d",
+      "sha256": "cbad379da27a96a960e976df3f3395d3692ccae86a8b2e1e6f1c526f28db1116"
+    },
+    {
+      "bytes": 14578,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_split.cpp.o.d",
+      "sha256": "67306058ef695d40f10683980eed424107f387608ca34f9a88b2918ddea2239a"
+    },
+    {
+      "bytes": 14575,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_sssp_compute.cpp.o.d",
+      "sha256": "8c52b179b8395c0156cf3a6244b58ed738976ba463d482c1a5d7691007e9af6f"
+    },
+    {
+      "bytes": 15100,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_system.cpp.o.d",
+      "sha256": "26031607e20d99604fdeaf514a14530f9903642df36296b61318e1de63b14c48"
+    },
+    {
+      "bytes": 13140,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_vertex_lifecycle.cpp.o.d",
+      "sha256": "44fc6f45ae66006c6927a6145be385d10bfeb1e7413861e3ed38089bf37a3431"
+    },
+    {
+      "bytes": 3416,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/link.d",
+      "sha256": "e41ed4b199968e6ed0a0c95b7d14d2ed3afcb28de80f199057eade538dafd313"
+    },
+    {
+      "bytes": 203,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/link.txt",
+      "sha256": "af658cd49d71efa5cc4fcd266bb4797ca549ad507b4365f1ba6b0b8be2735a45"
+    },
+    {
+      "bytes": 16430,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/tests/core_tests.cpp.o.d",
+      "sha256": "6a71ce91db76e4d8f7eb1906131f8c0c41127fff8a93af4c355415402a66deb8"
+    },
+    {
+      "bytes": 3415,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_owner_tests.dir/link.d",
+      "sha256": "97063301166c9a438d1c5ec93c5edcba97e27aab21f9c01258fb566b5b5458cc"
+    },
+    {
+      "bytes": 195,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_owner_tests.dir/link.txt",
+      "sha256": "f910a3f3bb2962c5b5b9c82acaf66b155f9b1546e7ac2d397fe916464abe77ff"
+    },
+    {
+      "bytes": 10592,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_owner_tests.dir/tests/spine_owner_tests.cpp.o.d",
+      "sha256": "1d13775cfa97d7806dbd6d2e46fc0547162147831e5ed166d757aeac75577f74"
+    },
+    {
+      "bytes": 3470,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/link.d",
+      "sha256": "f7a454100580a174b9ada6afc7a1898147f730f430c188d1df015dd8025fc61f"
+    },
+    {
+      "bytes": 239,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/link.txt",
+      "sha256": "1e4d1b6a863271ca991881c6188d02f747cb460bdd106f44c2ce9799e97e847e"
+    },
+    {
+      "bytes": 13321,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/tests/spine_vertex_lifecycle_tests.cpp.o.d",
+      "sha256": "42ac3253639966e6c3267bc2f8d504510cf3b043a5ae093aac2eeeeac4f7d0a5"
+    },
+    {
+      "bytes": 3588,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/link.d",
+      "sha256": "4d3f622dc46f85181d2068bc5559110f14c939e9b77c8661cdb9a8a1abfddd9d"
+    },
+    {
+      "bytes": 250,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/link.txt",
+      "sha256": "13b82dd71d9be4f628dbbf319504e7fbd639e2763c3f7b010647b283d1603222"
+    },
+    {
+      "bytes": 10240,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/sst/physical_hbm_mapper.cpp.o.d",
+      "sha256": "958e1c6b14337b447c3b1333a4c6b57c12feca76c39eafe460c62c9ccbf22f02"
+    },
+    {
+      "bytes": 9758,
+      "path": "attempts/finite_adapter_preflight_v2/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/tests/sst_hbm_mapper_tests.cpp.o.d",
+      "sha256": "eab2b2772436b3243d6eafb82f2f81624535202240ee3d4b285aedf16b6a5a2a"
+    },
+    {
+      "bytes": 830,
+      "path": "attempts/finite_adapter_preflight_v2/build.resources.json",
+      "sha256": "89f9b1609c32f13f168c4d2bd3a0f43cdb9534e5913114949a29c15eaa65d0f4"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_preflight_v2/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 8677,
+      "path": "attempts/finite_adapter_preflight_v2/build.stdout.txt",
+      "sha256": "b8be10be196829c0f1c9ce4ebadc20af6d6ed903d4f376dce575a3b8d1007a42"
+    },
+    {
+      "bytes": 977,
+      "path": "attempts/finite_adapter_preflight_v2/configure.resources.json",
+      "sha256": "926112e503ffb5be553d8370169030adbf714b30a718259967967e3dce1ede11"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_preflight_v2/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 475,
+      "path": "attempts/finite_adapter_preflight_v2/configure.stdout.txt",
+      "sha256": "cda50ba88e87c742e56529923b05148f7d0ce00f3cb5ca34b9586fb262fb617f"
+    },
+    {
+      "bytes": 850,
+      "path": "attempts/finite_adapter_preflight_v2/ctest.resources.json",
+      "sha256": "b5b5df88f9ad603cfabc247120e919c88a5fd88094723a84e9c3e08d1e96dcc8"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_preflight_v2/ctest.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1886,
+      "path": "attempts/finite_adapter_preflight_v2/ctest.stdout.txt",
+      "sha256": "b6cf42d03b7e4e6ce64008aae8ddbe6088b674ce4a9d008840b9887f264ed657"
+    },
+    {
+      "bytes": 3034,
+      "path": "attempts/finite_adapter_preflight_v2/report.json",
+      "sha256": "1346d6e07ba8f9e5bedeba9c6323247089376ab65ca84fdaceadf2940c9decf5"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/finite/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/finite/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/finite/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 972,
+      "path": "attempts/finite_adapter_source_preflight_v1/finite.resources.json",
+      "sha256": "71cc0ee1264bd15c81f47eb0101ddb2ec519fdb34e8a358035da798d2d164f28"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_source_preflight_v1/finite.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 818,
+      "path": "attempts/finite_adapter_source_preflight_v1/finite.stdout.txt",
+      "sha256": "dfb1d75aab3ca6ae3b2c4f49d660d7ce7f2aed1c830125ea99b0422a9615f241"
+    },
+    {
+      "bytes": 17307,
+      "path": "attempts/finite_adapter_source_preflight_v1/normal/dependencies.d",
+      "sha256": "12d03273717c50c81a5d86b5246d79a9c250598adc544ed4ea92b85e9e45ee60"
+    },
+    {
+      "bytes": 1781,
+      "path": "attempts/finite_adapter_source_preflight_v1/normal_compile.resources.json",
+      "sha256": "8153c308a92b41c545ce802a37ee2ddca1c4da3f80f425d7a1826af987123dc1"
+    },
+    {
+      "bytes": 13651,
+      "path": "attempts/finite_adapter_source_preflight_v1/normal_compile.stderr.txt",
+      "sha256": "e481446e10cc357f53588908d45e7dfc71b1d6e862290f3932f313667f2316aa"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_source_preflight_v1/normal_compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 141449,
+      "path": "attempts/finite_adapter_source_preflight_v1/report.json",
+      "sha256": "11b332b0c69342d98180b952081ba617b8c2aac6c0b5e23ef6d1f8f02000ec8d"
+    },
+    {
+      "bytes": 10125,
+      "path": "attempts/finite_adapter_source_preflight_v1/source/pma_to_regraph_adapter.cpp",
+      "sha256": "19fb4eb83c5495cbf8946463b21411fdaba6c9e6f6e0f867d4eeff4adc5a4404"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_first/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_first/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_first/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 982,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_first.resources.json",
+      "sha256": "af56d924145f78adf6de9e98341a2de3a0778d83d2a6f721771a9b8a9a955daf"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_first.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 213,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_first.stdout.txt",
+      "sha256": "140b65b2b882e7d4037b4b1aafb65c814291640e51365fd7cb1c565c676df027"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_repeat/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_repeat/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_repeat/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 986,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_repeat.resources.json",
+      "sha256": "d159b3b0fbff1156f592316e0231c523f3afa8526829e9c256bfb12d60b73e03"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_repeat.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 213,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_repeat.stdout.txt",
+      "sha256": "140b65b2b882e7d4037b4b1aafb65c814291640e51365fd7cb1c565c676df027"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_ubsan/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_ubsan/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_ubsan/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 982,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_ubsan.resources.json",
+      "sha256": "2f4a5f47ccbd75882abf02d07d994a11b93ef9f0f369c106761982484278e26d"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_ubsan.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 213,
+      "path": "attempts/finite_adapter_source_preflight_v1/source_ubsan.stdout.txt",
+      "sha256": "140b65b2b882e7d4037b4b1aafb65c814291640e51365fd7cb1c565c676df027"
+    },
+    {
+      "bytes": 17307,
+      "path": "attempts/finite_adapter_source_preflight_v1/ubsan/dependencies.d",
+      "sha256": "12d03273717c50c81a5d86b5246d79a9c250598adc544ed4ea92b85e9e45ee60"
+    },
+    {
+      "bytes": 1838,
+      "path": "attempts/finite_adapter_source_preflight_v1/ubsan_compile.resources.json",
+      "sha256": "da648a9e664fb092107b39cb655045d82d09730cb4f278343615c699bc53fb0f"
+    },
+    {
+      "bytes": 13651,
+      "path": "attempts/finite_adapter_source_preflight_v1/ubsan_compile.stderr.txt",
+      "sha256": "e481446e10cc357f53588908d45e7dfc71b1d6e862290f3932f313667f2316aa"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_source_preflight_v1/ubsan_compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 4444,
+      "path": "attempts/finite_adapter_schedule_preflight_v1/burst.xml",
+      "sha256": "bd52f62cd498ea2da5ed6404e7c2a4b99bc0c0783da689cb176dbf55ffb3ab7e"
+    },
+    {
+      "bytes": 3694,
+      "path": "attempts/finite_adapter_schedule_preflight_v1/manifest.env",
+      "sha256": "14c2e5540c23702cba06047686d6106825afc0712c2a26d93265727db36d5fdc"
+    },
+    {
+      "bytes": 3036,
+      "path": "attempts/finite_adapter_schedule_preflight_v1/report.json",
+      "sha256": "2bd041fc03fd22686e7a336bcb35bf4c9b2a28512199d9a8a32ab9cc72ef8352"
+    },
+    {
+      "bytes": 802065,
+      "path": "attempts/finite_adapter_schedule_preflight_v1/segment.verbose.rpt",
+      "sha256": "ababf454687f22938c407d20acdba60ba181d025e0ca90da97ba8f8faac6fca4"
+    },
+    {
+      "bytes": 72881,
+      "path": "attempts/finite_adapter_schedule_preflight_v1/top.v",
+      "sha256": "e5c05cd69ce954a30fd4b52b7c202f1ef6445e02729b6a1e1dc75ab773b282ae"
+    },
+    {
+      "bytes": 245375,
+      "path": "attempts/finite_adapter_schedule_preflight_v1/top.verbose.rpt",
+      "sha256": "92103df1ececa3eeccbab8d994281a4f106632c6d1280d3b7ec6f0f9744ca89e"
+    },
+    {
+      "bytes": 15023,
+      "path": "attempts/finite_adapter_smoke_v1/build/CMakeCache.txt",
+      "sha256": "41ecb7309f5623f7c4d2cb66a46578d409a98f80adbfd6bbd8150aab65a76e6f"
+    },
+    {
+      "bytes": 29480,
+      "path": "attempts/finite_adapter_smoke_v1/build/CMakeFiles/4.3.4/CompilerIdCXX/CMakeCXXCompilerId.cpp",
+      "sha256": "15597e769f9705997844403bbbf0c2fa65eb5b46a8ad4e6db684547644239fae"
+    },
+    {
+      "bytes": 1722,
+      "path": "attempts/finite_adapter_smoke_v1/build/CMakeFiles/CMakeRuleHashes.txt",
+      "sha256": "9c70b6614e0204b52a69955fdaa3b9708e990671d01dcb8e9903c4908daa5e82"
+    },
+    {
+      "bytes": 349,
+      "path": "attempts/finite_adapter_smoke_v1/build/CMakeFiles/InstallScripts.json",
+      "sha256": "74131d21fa6380f6ec301f753ff33182bf2f6fc5e0766083fb80dfdf873b0818"
+    },
+    {
+      "bytes": 9396,
+      "path": "attempts/finite_adapter_smoke_v1/build/CMakeFiles/TargetDirectories.txt",
+      "sha256": "82fe63732d4a15a3b8c752589adcbecbbea691102e758fae6bb47c7e433bb361"
+    },
+    {
+      "bytes": 533,
+      "path": "attempts/finite_adapter_smoke_v1/build/Testing/Temporary/CTestCostData.txt",
+      "sha256": "23f3d3773cac1de371ef1a7e66e211376fe5ba5dffeda76d6b9406176ad1b93f"
+    },
+    {
+      "bytes": 40188,
+      "path": "attempts/finite_adapter_smoke_v1/build/compile_commands.json",
+      "sha256": "8378308213fa62d225dda4830a44b4284f381b5ed1b9eff670cf455e79f0e951"
+    },
+    {
+      "bytes": 3403,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/grasu_cycle_tests.dir/link.d",
+      "sha256": "8ed2b88949bb95dfd95506bd1e27305d7cb73f9740a17a25fe2afbb1b306874f"
+    },
+    {
+      "bytes": 189,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/grasu_cycle_tests.dir/link.txt",
+      "sha256": "6da3818350549b9121df1224694dc850610454b83d786be5ac1d0d9d7d4b662e"
+    },
+    {
+      "bytes": 14934,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/grasu_cycle_tests.dir/tests/grasu_tests.cpp.o.d",
+      "sha256": "b36cc9f1d3078e314e0b1c58f6defb8b1be9c4635ed8f89e0186aa3e497036f2"
+    },
+    {
+      "bytes": 3425,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/grasu_runtime_tests.dir/link.d",
+      "sha256": "7a6963a63f0ba429976ab9b647c324470ee9785bf70e4f6bfb19bf2df8b1b60c"
+    },
+    {
+      "bytes": 203,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/grasu_runtime_tests.dir/link.txt",
+      "sha256": "84ef88580b8fbd9c70b7583f0334568020d774eaa45907ef3c48daa6ccbccd88"
+    },
+    {
+      "bytes": 13387,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/grasu_runtime_tests.dir/tests/grasu_runtime_tests.cpp.o.d",
+      "sha256": "f51fa9c7865885f5675f63a0b172222c68cf7a4adef06c6d67e846fc003d4e83"
+    },
+    {
+      "bytes": 3561,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/link.d",
+      "sha256": "3e2e49c47fb250e66baf40c152279a2c59cab3c4546e95c80e30d94a8f533076"
+    },
+    {
+      "bytes": 283,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/link.txt",
+      "sha256": "17c79b9f5118a3271a0a651eb72812044de598965671cd6067d5da33ca70aea4"
+    },
+    {
+      "bytes": 16557,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_a4_execution.dir/tests/original_regraph/whole_graph/a4_execution.cpp.o.d",
+      "sha256": "96be8203f9e0bc2413d53e87fc698a0c3d031c74935d9b570c1817c7d4c90b21"
+    },
+    {
+      "bytes": 3547,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/link.d",
+      "sha256": "04152a3403433e3726dc150de0e7a51a71d12cea975f12cb221b93cc0d071585"
+    },
+    {
+      "bytes": 279,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/link.txt",
+      "sha256": "a5fe62f7476db177191ba0a44eecf33e9290568e0bb245bb454d73439a2ddf31"
+    },
+    {
+      "bytes": 14203,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_comparison.dir/tests/original_regraph/big_comparison.cpp.o.d",
+      "sha256": "0fe8627eb478761223dc8fa6317bc934684c9bcea68ee242faf4b9c1e35868f9"
+    },
+    {
+      "bytes": 3592,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/link.d",
+      "sha256": "33817ae964488a630df7fe9e049d5966cf9a5a14b3983eaf9b7f6a64e18be605"
+    },
+    {
+      "bytes": 315,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/link.txt",
+      "sha256": "59bf8433d20c8d0fbfd72aab1957d584003a1628b36dd12dcb2995b23548e25b"
+    },
+    {
+      "bytes": 15379,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_comparison.dir/tests/original_regraph/big_frontend_comparison.cpp.o.d",
+      "sha256": "ff87efe8669fb60ab09726992951c86b946aa40f916331d1e12886fe4635e38e"
+    },
+    {
+      "bytes": 3567,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/link.d",
+      "sha256": "4822320536a501d8ba1206810ecd30992247a9582798ff441d52ff504a0e1c0a"
+    },
+    {
+      "bytes": 295,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/link.txt",
+      "sha256": "98bbc84a82e98e911c132a002eaa06eba113e87e1b986ea839ee24cd29f089fa"
+    },
+    {
+      "bytes": 15147,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_frontend_tests.dir/tests/original_regraph/big_frontend_tests.cpp.o.d",
+      "sha256": "cfad16d2b5454e03a5afb496073ac18cbf8db5a1a444aedca4ba0cf0c709cc55"
+    },
+    {
+      "bytes": 3522,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_tests.dir/link.d",
+      "sha256": "63eb43de00183270bcc8debc26f86071e81dc07de8e837a459c67afd80fec5fb"
+    },
+    {
+      "bytes": 259,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_tests.dir/link.txt",
+      "sha256": "7ef1c16f8370cb1c5768758f23005aef50206b332b65d0078ca3f7fceb915ca3"
+    },
+    {
+      "bytes": 13974,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_big_tests.dir/tests/original_regraph/big_tests.cpp.o.d",
+      "sha256": "a73019ae4358302a9c8244d48dad3383a41464442f977f5b27f1590e63ec20ea"
+    },
+    {
+      "bytes": 1259,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/link.txt",
+      "sha256": "b494b696d22c2dff14860e7f1da32cb6562497b409faa920475aa948e051cdc1"
+    },
+    {
+      "bytes": 12744,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_gather.cpp.o.d",
+      "sha256": "3c68c2f44caf30a1e3fba1f1d7a09891b7680a6c9da9f973afd092bfbe13f86b"
+    },
+    {
+      "bytes": 12858,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_merge.cpp.o.d",
+      "sha256": "147bd9ed5c4f947252ff20917aa185e18ba1c89ec2716529a9812fb8c778a51b"
+    },
+    {
+      "bytes": 13248,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_requests.cpp.o.d",
+      "sha256": "6c7dccbc31416ead939821d63f4b1e98e1978a95af2f1fa0e814b4250749cb33"
+    },
+    {
+      "bytes": 12348,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_routing.cpp.o.d",
+      "sha256": "f65abe7c201a41e06737227a4737f3a6a9f34fc455e1c0c31bbc9d59477c5eb7"
+    },
+    {
+      "bytes": 13368,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_scatter.cpp.o.d",
+      "sha256": "99c0c2657e2896d447ac56b909d881b488b110a3d4a373e54e9f909895478a18"
+    },
+    {
+      "bytes": 13381,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/big_source_memory.cpp.o.d",
+      "sha256": "3563c9c6fd7986f136587d846405f00fedf9c1c996defaa75ce32cb39e39c8db"
+    },
+    {
+      "bytes": 13361,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/edge_reader.cpp.o.d",
+      "sha256": "e8f5d459467c989ac7b7701f0ac720d5016b09b1dc1bc8ee531ea00a08940856"
+    },
+    {
+      "bytes": 8629,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_gather.cpp.o.d",
+      "sha256": "83370e883d051bab5b0512f6c8a01432194146f47bc2662b2bc87bab3b9be2d9"
+    },
+    {
+      "bytes": 8749,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_merge.cpp.o.d",
+      "sha256": "b3c8ba72f325e199fbdd9c1378ff6077d98eef2b3d6b90e964c91663298b2a8f"
+    },
+    {
+      "bytes": 13255,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/little_scatter.cpp.o.d",
+      "sha256": "f874f7762efa547315473a14e33c50f031b0b519c025425fef2b3deb019336cd"
+    },
+    {
+      "bytes": 13367,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/mixed_indexer.cpp.o.d",
+      "sha256": "f40c729d873781a35894924a5d363772e9ac74a7c3b44fddfe12cffb22bdc1c9"
+    },
+    {
+      "bytes": 13473,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/pr_apply.cpp.o.d",
+      "sha256": "451aecf34667d48e7a01e5295c0c81b95e4a4e791b6d4a7e4539360116dd6a74"
+    },
+    {
+      "bytes": 13250,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/property_writer.cpp.o.d",
+      "sha256": "d12f461e81540e95954d4d8fe9514e4f6428f6c06c1a61288d12fd76d5b7bbcc"
+    },
+    {
+      "bytes": 13241,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/source_memory.cpp.o.d",
+      "sha256": "7b9bce0960cff7a7d7a7efac52c71e0a1a02eff8bc19583ead7081f09dfccc68"
+    },
+    {
+      "bytes": 13367,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_cycle.dir/src/original_regraph/write_indexer.cpp.o.d",
+      "sha256": "1ab2e3138fa5259206d55a5c50fe19bc8a3df7fe314d77259da1b73de8c5a36e"
+    },
+    {
+      "bytes": 3547,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/link.d",
+      "sha256": "4b1629828d6e3ec70a4c66724ff34b1bc4148d5cbfce3bc3a98695135ba72f11"
+    },
+    {
+      "bytes": 279,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/link.txt",
+      "sha256": "86049a0efb4663bc7456dc73586f5cca0af316a9e4fbf65709b64cc020a04518"
+    },
+    {
+      "bytes": 14526,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_frontend_tests.dir/tests/original_regraph/frontend_tests.cpp.o.d",
+      "sha256": "564d1166e6f2199b9e1091bd06c347d45a93ed9347f3a7b9452acf37378deb93"
+    },
+    {
+      "bytes": 3537,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/link.d",
+      "sha256": "13d056c08836024857e2eb32a5fd58bd58c954765d27dcb735d8719b5bdd9778"
+    },
+    {
+      "bytes": 271,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/link.txt",
+      "sha256": "7701c47014cc3916f7e0a5ce3e96f5cbf361b90b0683e7541d22c062287d1903"
+    },
+    {
+      "bytes": 13407,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_gather_tests.dir/tests/original_regraph/gather_tests.cpp.o.d",
+      "sha256": "0694d51973456b71d8bc7a74c5026ed99b2a200093eda686ee97550bcd110f66"
+    },
+    {
+      "bytes": 3552,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/link.d",
+      "sha256": "e61113bcba068fb9e15771828ac957dd11884174f088e85850d74478d551a394"
+    },
+    {
+      "bytes": 283,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/link.txt",
+      "sha256": "49809576cd4a4778c5583568d8d8b8544807a2cdc0455b1c0293cc9f313dd935"
+    },
+    {
+      "bytes": 14999,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_iteration_tests.dir/tests/original_regraph/iteration_tests.cpp.o.d",
+      "sha256": "fc892bf40d54fe8e7aad412f70ee93ae2d2c1356e2111e6a43a3f3597529fe68"
+    },
+    {
+      "bytes": 3576,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/link.d",
+      "sha256": "000dc97a5d21503d14f1060e00492bbafbe39db133680ff5d955c876e162f5c3"
+    },
+    {
+      "bytes": 295,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/link.txt",
+      "sha256": "d6fde1a77d5eb194b6ae7a00c431cdddaae550b0579f287a7302b9da22299238"
+    },
+    {
+      "bytes": 18177,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_mixed_execution.dir/tests/original_regraph/whole_graph/mixed/execution.cpp.o.d",
+      "sha256": "86ef18757158b9ba71b84c780bd06ccf7a568289a926c0078f1dec2524ee330a"
+    },
+    {
+      "bytes": 3572,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/link.d",
+      "sha256": "cb89f9ba6beebe13357db08489a94e577a0a1d71a2d8dfbf6414690e23a5ffbb"
+    },
+    {
+      "bytes": 287,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/link.txt",
+      "sha256": "2ada39b40551f80a562657e827044b83f253e76f9118f5e4a13134571be9b12c"
+    },
+    {
+      "bytes": 15850,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_mixed_tests.dir/tests/original_regraph/whole_graph/mixed/indexer_tests.cpp.o.d",
+      "sha256": "1ae49c7c00767c801307909c1d13dd0b8a6346bc9f75f78f8067dcac282494cb"
+    },
+    {
+      "bytes": 3562,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/link.d",
+      "sha256": "0fd39909b789e5e28fdd40f7790212769a045b1ca59b1e98b29cfd5061af2b28"
+    },
+    {
+      "bytes": 291,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/link.txt",
+      "sha256": "8ec7be45f4447522c1da86f72d27294db2d66ca35c1ac0973d28f7acbcc604f9"
+    },
+    {
+      "bytes": 13639,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_source_comparison.dir/tests/original_regraph/source_comparison.cpp.o.d",
+      "sha256": "9cc70280661fa78f7277782bb5dd104aad644821783a59fd0e9940ad65ce123f"
+    },
+    {
+      "bytes": 3557,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/link.d",
+      "sha256": "ff0efe33864b4a7b6c71508c0d1b841fecbef3fe7a00b50b958968121dec3b65"
+    },
+    {
+      "bytes": 287,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/link.txt",
+      "sha256": "2f0c3c85c4203b9fd11dcc15a6308f52471ee2e79d94b041ed442e304ef4dd57"
+    },
+    {
+      "bytes": 14507,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_state_comparison.dir/tests/original_regraph/state_comparison.cpp.o.d",
+      "sha256": "973d537d3857153959732d95d659121d91505421af0bb5b0d824a546a3df6192"
+    },
+    {
+      "bytes": 3532,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_state_tests.dir/link.d",
+      "sha256": "e0d59c8219d89621610be5fb8f8d681e363d6ba54bdcaa4ba95789243704f403"
+    },
+    {
+      "bytes": 267,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_state_tests.dir/link.txt",
+      "sha256": "9d7dea52efa6af8504d839a5298b6f34cda3c5364301b82edd88b974ebeb4e5c"
+    },
+    {
+      "bytes": 14275,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/original_regraph_state_tests.dir/tests/original_regraph/state_tests.cpp.o.d",
+      "sha256": "edefbc39ba7f706c5f9dc82887f3465cc7ff80f4eb988b7e304ac3bd17ae8fcd"
+    },
+    {
+      "bytes": 3490,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/link.d",
+      "sha256": "bc834f7e8b21090731336b11c0250152113008e94fa222edf885acedb4ed54af"
+    },
+    {
+      "bytes": 255,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/link.txt",
+      "sha256": "9516b1840b6d24dc5368de1d7194c7f48a01973295c19bac6873bf9330afc6cf"
+    },
+    {
+      "bytes": 16099,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/persistent_update_host_benchmark.dir/tools/persistent_update_host_benchmark.cpp.o.d",
+      "sha256": "8b926229d92781f2c488372e7de625ed8383b00d07d37f2285cc55f92dba3c0b"
+    },
+    {
+      "bytes": 139,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/pma_adapter_cycle.dir/link.txt",
+      "sha256": "ff14df0607efbfdb7c758e21a944dc0c9742e8b44e48cc9780d6046cdb85ecf8"
+    },
+    {
+      "bytes": 13310,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/pma_adapter_cycle.dir/src/pma_adapter/reader.cpp.o.d",
+      "sha256": "071c5b167960148d1dfa1b95912db5dd54139ae4355324dc85696802d944377f"
+    },
+    {
+      "bytes": 3543,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/pma_adapter_tests.dir/link.d",
+      "sha256": "87d95c54b84319b29d856d65a99de62ecd8b655d6c261d0ddabd0f11e1e9eb3c"
+    },
+    {
+      "bytes": 253,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/pma_adapter_tests.dir/link.txt",
+      "sha256": "1e0ec71f0e64fd8f3f8c4474d97b4d408549aa1a702c7cd703c6b86c6dcbf344"
+    },
+    {
+      "bytes": 15009,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/pma_adapter_tests.dir/tests/pma_adapter/reader_tests.cpp.o.d",
+      "sha256": "c4ca07f56c737ce0101f46a0a0afd0b0b869074691fc747b06be798ca6ad6459"
+    },
+    {
+      "bytes": 3561,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/pma_regraph_execution.dir/link.d",
+      "sha256": "70729854b5e45704f3e74bcb99ee1f44297a2ea72547cb8e1f2a4560fc1dd915"
+    },
+    {
+      "bytes": 268,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/pma_regraph_execution.dir/link.txt",
+      "sha256": "47449117cbd6baa65f44beb26eb6fc05ddc769e2fd52518f55e84459211e6e73"
+    },
+    {
+      "bytes": 16920,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/pma_regraph_execution.dir/tests/pma_adapter/whole_execution.cpp.o.d",
+      "sha256": "36e414a915e574487f6d7206d3f769844807e848c7acb8bdd94302625cc99ba4"
+    },
+    {
+      "bytes": 1136,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/link.txt",
+      "sha256": "341534076f37db5630011d276e6da442acd17301f86392df030e6d895f802b7b"
+    },
+    {
+      "bytes": 9104,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/algorithm.cpp.o.d",
+      "sha256": "ca846303874437a750bffaaa508c9d21ca522623811eea6bdd9c5572cc157e5f"
+    },
+    {
+      "bytes": 8422,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/algorithm_pipeline.cpp.o.d",
+      "sha256": "e20d4e078b75929b96609c50edfc2c8ae1d71f861cfb2387c70f07054b569feb"
+    },
+    {
+      "bytes": 12710,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/axi.cpp.o.d",
+      "sha256": "ea83631e19f71b0d8d187ce4207900c130295a134ee70a7a222886d81f122b21"
+    },
+    {
+      "bytes": 8679,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/banked_memory.cpp.o.d",
+      "sha256": "3161f9be8b99c39a0dcbdfbb2462def577670ecc47afa6e76270a9f575cfee31"
+    },
+    {
+      "bytes": 13269,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu.cpp.o.d",
+      "sha256": "495024aa0283714ef4b72bc3fffba818742aff4f6ce06701b29326f33b04bc12"
+    },
+    {
+      "bytes": 13407,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_native.cpp.o.d",
+      "sha256": "747b7ae32dd22a30a8d049aaa86013c6287ae549eaa73c3b35dfae04f218c83b"
+    },
+    {
+      "bytes": 14667,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_regraph.cpp.o.d",
+      "sha256": "4922e29d48ca5d709960757aeae8bcb810a3ed47d4f9bb15125db3ca5c4e753b"
+    },
+    {
+      "bytes": 13216,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_regraph_runtime.cpp.o.d",
+      "sha256": "b6f6c925f458b57567c59a17b67c18180e08f6c456e1ac9241b2e1d6f75e91aa"
+    },
+    {
+      "bytes": 13316,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/grasu_sharded_update.cpp.o.d",
+      "sha256": "945351e81193eed89229a9071c7888f9cdff9132811e71d1191b2abfa08e3ccc"
+    },
+    {
+      "bytes": 12369,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/memory_backend.cpp.o.d",
+      "sha256": "4212f312287df9f90a9f1e9fa1bed508ea24459dfbb5796a52b8e1713cda230b"
+    },
+    {
+      "bytes": 13159,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/scheduler.cpp.o.d",
+      "sha256": "7fc241c6e5b138937ec42d46e65064c7dac70e0df7c7d672b9525f578beb6d08"
+    },
+    {
+      "bytes": 14459,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_dirty.cpp.o.d",
+      "sha256": "c150c484669a902a02b7fd1692f700bc50c946daf4dc059f100144a6823cee37"
+    },
+    {
+      "bytes": 14439,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_l0.cpp.o.d",
+      "sha256": "790ad7d729bffcbc61235b83680785a38b5ceb03d3e35419cc792247f2e85348"
+    },
+    {
+      "bytes": 8501,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_owner.cpp.o.d",
+      "sha256": "0f41251f5d9f4861989f79749e5588c7cc3c685bb5942ce80859489412c40ddd"
+    },
+    {
+      "bytes": 15854,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_pagerank.cpp.o.d",
+      "sha256": "cbad379da27a96a960e976df3f3395d3692ccae86a8b2e1e6f1c526f28db1116"
+    },
+    {
+      "bytes": 14578,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_split.cpp.o.d",
+      "sha256": "67306058ef695d40f10683980eed424107f387608ca34f9a88b2918ddea2239a"
+    },
+    {
+      "bytes": 14575,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_sssp_compute.cpp.o.d",
+      "sha256": "8c52b179b8395c0156cf3a6244b58ed738976ba463d482c1a5d7691007e9af6f"
+    },
+    {
+      "bytes": 15100,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_system.cpp.o.d",
+      "sha256": "26031607e20d99604fdeaf514a14530f9903642df36296b61318e1de63b14c48"
+    },
+    {
+      "bytes": 13140,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core.dir/src/spine_vertex_lifecycle.cpp.o.d",
+      "sha256": "44fc6f45ae66006c6927a6145be385d10bfeb1e7413861e3ed38089bf37a3431"
+    },
+    {
+      "bytes": 3416,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/link.d",
+      "sha256": "e41ed4b199968e6ed0a0c95b7d14d2ed3afcb28de80f199057eade538dafd313"
+    },
+    {
+      "bytes": 203,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/link.txt",
+      "sha256": "af658cd49d71efa5cc4fcd266bb4797ca549ad507b4365f1ba6b0b8be2735a45"
+    },
+    {
+      "bytes": 16430,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_cycle_core_tests.dir/tests/core_tests.cpp.o.d",
+      "sha256": "6a71ce91db76e4d8f7eb1906131f8c0c41127fff8a93af4c355415402a66deb8"
+    },
+    {
+      "bytes": 3415,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_owner_tests.dir/link.d",
+      "sha256": "97063301166c9a438d1c5ec93c5edcba97e27aab21f9c01258fb566b5b5458cc"
+    },
+    {
+      "bytes": 195,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_owner_tests.dir/link.txt",
+      "sha256": "f910a3f3bb2962c5b5b9c82acaf66b155f9b1546e7ac2d397fe916464abe77ff"
+    },
+    {
+      "bytes": 10592,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_owner_tests.dir/tests/spine_owner_tests.cpp.o.d",
+      "sha256": "1d13775cfa97d7806dbd6d2e46fc0547162147831e5ed166d757aeac75577f74"
+    },
+    {
+      "bytes": 3470,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/link.d",
+      "sha256": "f7a454100580a174b9ada6afc7a1898147f730f430c188d1df015dd8025fc61f"
+    },
+    {
+      "bytes": 239,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/link.txt",
+      "sha256": "1e4d1b6a863271ca991881c6188d02f747cb460bdd106f44c2ce9799e97e847e"
+    },
+    {
+      "bytes": 13321,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/spine_vertex_lifecycle_tests.dir/tests/spine_vertex_lifecycle_tests.cpp.o.d",
+      "sha256": "42ac3253639966e6c3267bc2f8d504510cf3b043a5ae093aac2eeeeac4f7d0a5"
+    },
+    {
+      "bytes": 3588,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/link.d",
+      "sha256": "4d3f622dc46f85181d2068bc5559110f14c939e9b77c8661cdb9a8a1abfddd9d"
+    },
+    {
+      "bytes": 250,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/link.txt",
+      "sha256": "13b82dd71d9be4f628dbbf319504e7fbd639e2763c3f7b010647b283d1603222"
+    },
+    {
+      "bytes": 10240,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/sst/physical_hbm_mapper.cpp.o.d",
+      "sha256": "958e1c6b14337b447c3b1333a4c6b57c12feca76c39eafe460c62c9ccbf22f02"
+    },
+    {
+      "bytes": 9758,
+      "path": "attempts/finite_adapter_smoke_v1/build/cpp/CMakeFiles/sst_hbm_mapper_tests.dir/tests/sst_hbm_mapper_tests.cpp.o.d",
+      "sha256": "eab2b2772436b3243d6eafb82f2f81624535202240ee3d4b285aedf16b6a5a2a"
+    },
+    {
+      "bytes": 819,
+      "path": "attempts/finite_adapter_smoke_v1/build.resources.json",
+      "sha256": "06cca374340dad070653d0ae659d40bbc8a4e1c4f63b5cbaf4aca049fbae3b57"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_smoke_v1/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 8677,
+      "path": "attempts/finite_adapter_smoke_v1/build.stdout.txt",
+      "sha256": "32a7597f72527afa658b5f0f6825a3fe21c97e1603bdd4fdc033dc87d3a3f720"
+    },
+    {
+      "bytes": 965,
+      "path": "attempts/finite_adapter_smoke_v1/configure.resources.json",
+      "sha256": "e67fd0848d1f8e0fb0c68331239de9e2bb56e72f24a11cf9850c9df331f009b4"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_smoke_v1/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 471,
+      "path": "attempts/finite_adapter_smoke_v1/configure.stdout.txt",
+      "sha256": "ca67986bdfbee299647c85f85a5d61ef7997bdb0da4478019974f257730e014c"
+    },
+    {
+      "bytes": 837,
+      "path": "attempts/finite_adapter_smoke_v1/ctest.resources.json",
+      "sha256": "1a8a3c5f795ce2c5570e003b9216616833983b1f2f51dfb6ecde2bbdffd943c0"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_smoke_v1/ctest.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1882,
+      "path": "attempts/finite_adapter_smoke_v1/ctest.stdout.txt",
+      "sha256": "0079d8e7eea263ccfd763e1b92be20435381746f82021d18a73a6c9091b8f1e0"
+    },
+    {
+      "bytes": 5591,
+      "path": "attempts/finite_adapter_smoke_v1/report.json",
+      "sha256": "ec03c4f16a3765aab01f4fb8953ced765ee08d8bfa951e666e562ef70d1d3c5f"
+    },
+    {
+      "bytes": 1161,
+      "path": "attempts/finite_adapter_smoke_v1/smoke_boundary_ring.resources.json",
+      "sha256": "fa8b5a4efeedce27106960fdd2e80c377f903ccf8f36ffff38e0ec9563244869"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_smoke_v1/smoke_boundary_ring.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3700,
+      "path": "attempts/finite_adapter_smoke_v1/smoke_boundary_ring.stdout.txt",
+      "sha256": "ff88eab0aec6aeea673fe90423ffeb9d1b54cadcd291373855bfe12058955e69"
+    },
+    {
+      "bytes": 1165,
+      "path": "attempts/finite_adapter_smoke_v1/smoke_skewed_sources.resources.json",
+      "sha256": "75182875cebd72135949b63c70c928f0ad4396ee3363104bb8408ee1cc48f367"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/finite_adapter_smoke_v1/smoke_skewed_sources.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1767,
+      "path": "attempts/finite_adapter_smoke_v1/smoke_skewed_sources.stdout.txt",
+      "sha256": "08d287968eb03c5988082dc94fcaac3f4e0444d39a2a588e2457e06b370cd1a6"
+    }
+  ],
+  "historical_attempts_not_accepted": [
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_preflight_v1",
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_preflight_v2",
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_source_preflight_v1",
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_schedule_preflight_v1",
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_smoke_v1"
+  ],
+  "indexed_large_inputs_and_states": [
+    {
+      "bytes": 416,
+      "name": "adapter.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/adapter.u32le",
+      "sha256": "febf243753952afd4761c515a1e8bcf58bcf830b1b3cdc2ccc5296adfd74f373"
+    },
+    {
+      "bytes": 12583008,
+      "name": "rows.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/rows.u32le",
+      "sha256": "d2b089533a6601bade36a6ce339292ee67954ccef4a896994099230ec8f39ce4"
+    },
+    {
+      "bytes": 8388864,
+      "name": "pma.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/pma.u32le",
+      "sha256": "48c290c9930e5f81f4f8d9f0724e7ade4f9fd0712a4b597c32ec9f9da9315045"
+    },
+    {
+      "bytes": 1050688,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/tasks.u32le",
+      "sha256": "eea75f09656fd08bbfe329586b3733cf3bc96481360872ef64c1b86cad5cd896",
+      "words": 262672
+    },
+    {
+      "bytes": 786432,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/initial.u32le",
+      "sha256": "713da263a02462123af106c8a3c1c4920e1a238f87c0d5dd9d2459859678ffd8",
+      "words": 196608
+    },
+    {
+      "bytes": 786432,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/degrees.u32le",
+      "sha256": "8266271e2b58e1370820e1d5c71b380e8d8ed48a8298fae0002f6d23ba679e2d",
+      "words": 196608
+    },
+    {
+      "bytes": 524296,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/csr_offsets.u32le",
+      "sha256": "25cdb4f6ec83af594faf55e6761b1abe2e22f6a2aa50e775202ffa923b37e8dc",
+      "words": 131074
+    },
+    {
+      "bytes": 524548,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/csr_destinations.u32le",
+      "sha256": "6b07a8600029eac54f3d4f801011ab31ff4b00d5abc4055e63ebfdd00aebb4e7",
+      "words": 131137
+    },
+    {
+      "bytes": 416,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/boundary_ring/execution.u32le",
+      "sha256": "e59e8ae532aef2ab7635d1af930cc20a4dc87c1c23645e0fe461c4bb0016beb3"
+    },
+    {
+      "bytes": 160,
+      "name": "adapter.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/adapter.u32le",
+      "sha256": "51e301e9d037f8e9b4d1a8fb3a53f3285b43314bc8a1ce5451fc3b44dc83d3a5"
+    },
+    {
+      "bytes": 2097184,
+      "name": "rows.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/rows.u32le",
+      "sha256": "b104dce9e2402bc81b614814951337b338b6aa508d34fff6b90e6414bc184782"
+    },
+    {
+      "bytes": 262208,
+      "name": "pma.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/pma.u32le",
+      "sha256": "f90c1c5610f87e1d25dcbb9f2405579d6257f2890864bad54b23e76f548da14d"
+    },
+    {
+      "bytes": 65792,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/tasks.u32le",
+      "sha256": "23815b72fe33530aadf7f14c62005d37ad38a05a2deb0fa187864bcf679def60",
+      "words": 16448
+    },
+    {
+      "bytes": 524288,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/initial.u32le",
+      "sha256": "25a49d3cc1089a37c78da60ead5648ab98f8defdcf46d2efda48db19ac97febe",
+      "words": 131072
+    },
+    {
+      "bytes": 524288,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/degrees.u32le",
+      "sha256": "1e2f334279659b6cacfbb7cf3ac901502923edf0bd19692d17eb3bdcb7a26a2e",
+      "words": 131072
+    },
+    {
+      "bytes": 262152,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/csr_offsets.u32le",
+      "sha256": "47d19baaa49aceee6bcab9ca624f97dc632af6b4a7e6c7113a75590856923c1b",
+      "words": 65538
+    },
+    {
+      "bytes": 32772,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/csr_destinations.u32le",
+      "sha256": "ef65bf4a55473a1b51ba8d772e26fdcea210e09408443ed104fbbee7c136d931",
+      "words": 8193
+    },
+    {
+      "bytes": 160,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/skewed_sources/execution.u32le",
+      "sha256": "ac21cb1717fbc387fa4357d63261386d00acf5f99bb93a674c2a0b95ac9ef40a"
+    },
+    {
+      "bytes": 1568,
+      "name": "adapter.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/adapter.u32le",
+      "sha256": "d66843d51c64229f852851c801499d15bf1fcdca94bf0350aa2d63fc8b39cf85"
+    },
+    {
+      "bytes": 282364416,
+      "name": "rows.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/rows.u32le",
+      "sha256": "f62a8cc92068fcaa995a816500e65536cb5c7c5735ff1f1014f08946d81682db"
+    },
+    {
+      "bytes": 174241024,
+      "name": "pma.u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/pma.u32le",
+      "sha256": "2558796365eb534f67d2ee8cc4f636f3d82fe009856a3e7c539372361f00474e"
+    },
+    {
+      "bytes": 41327424,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/tasks.u32le",
+      "sha256": "a4758acf27c8eb82981e23bf5d283056d7600d8225aa78217baae1f25e18472c",
+      "words": 10331856
+    },
+    {
+      "bytes": 3145728,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/initial.u32le",
+      "sha256": "1c5549ce390b024758fd6653a615a2898a24349b62d72085aa3d20d5cf4813ce",
+      "words": 786432
+    },
+    {
+      "bytes": 3145728,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/degrees.u32le",
+      "sha256": "a8b0eca0b556775f627f046b281fa89beba31962ab43f16beba0c84f2bf54072",
+      "words": 786432
+    },
+    {
+      "bytes": 2941300,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/csr_offsets.u32le",
+      "sha256": "7b43e4689360107f0d284a627166c87676726676f90a986ecdb6df7aec7a095e",
+      "words": 735325
+    },
+    {
+      "bytes": 20633552,
+      "format": "u32le",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/csr_destinations.u32le",
+      "sha256": "de451517a647469d39c327d1ff0810135d234e4215b368b41d8cbff27f3472e2",
+      "words": 5158388
+    },
+    {
+      "bytes": 1568,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/inputs/amazon/execution.u32le",
+      "sha256": "1ef46ed89f74b441583e6a92cb1d910440f1b353b27625ed41c6b828232be424"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_reverse/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_reverse/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_reverse/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_reverse/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_reverse/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_reverse/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_reverse/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_reverse/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_reverse/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_reverse/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_reverse/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_reverse/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_two_parents/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_two_parents/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_two_parents/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_two_parents/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_two_parents/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_two_parents/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_two_parents/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_two_parents/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_two_parents/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_two_parents/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_two_parents/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_two_parents/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_latency128/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_latency128/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_latency128/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/boundary_latency128/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_latency128/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_latency128/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_latency128/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/boundary_latency128/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_latency128/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_latency128/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_latency128/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/boundary_latency128/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/skewed/final_replica0.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/skewed/final_replica1.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/skewed/final_replica2.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/skewed/final_replica3.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/skewed/final_replica0.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/skewed/final_replica1.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/skewed/final_replica2.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/skewed/final_replica3.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/skewed/final_replica0.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/skewed/final_replica1.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/skewed/final_replica2.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/skewed/final_replica3.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/skewed_reverse/final_replica0.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/skewed_reverse/final_replica1.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/skewed_reverse/final_replica2.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/skewed_reverse/final_replica3.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/skewed_reverse/final_replica0.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/skewed_reverse/final_replica1.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/skewed_reverse/final_replica2.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/skewed_reverse/final_replica3.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/skewed_reverse/final_replica0.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/skewed_reverse/final_replica1.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/skewed_reverse/final_replica2.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/skewed_reverse/final_replica3.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/amazon/final_replica0.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/amazon/final_replica1.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/amazon/final_replica2.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/amazon/final_replica3.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/amazon/final_replica0.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/amazon/final_replica1.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/amazon/final_replica2.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/amazon/final_replica3.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/amazon/final_replica0.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/amazon/final_replica1.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/amazon/final_replica2.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/amazon/final_replica3.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/amazon_reverse/final_replica0.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/amazon_reverse/final_replica1.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/amazon_reverse/final_replica2.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/legacy/amazon_reverse/final_replica3.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/amazon_reverse/final_replica0.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/amazon_reverse/final_replica1.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/amazon_reverse/final_replica2.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/matched/amazon_reverse/final_replica3.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/amazon_reverse/final_replica0.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/amazon_reverse/final_replica1.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/amazon_reverse/final_replica2.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 3145728,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/amazon_reverse/final_replica3.u32le",
+      "sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/ubsan/boundary_ring/final_replica0.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/ubsan/boundary_ring/final_replica1.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/ubsan/boundary_ring/final_replica2.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 786432,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/ubsan/boundary_ring/final_replica3.u32le",
+      "sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/ubsan/skewed_sources/final_replica0.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/ubsan/skewed_sources/final_replica1.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/ubsan/skewed_sources/final_replica2.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 524288,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/ubsan/skewed_sources/final_replica3.u32le",
+      "sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_first/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_repeat/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_ubsan/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/cache0.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_first/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_repeat/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_ubsan/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/cache1.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_first/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_repeat/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/source_ubsan/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    },
+    {
+      "bytes": 768,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/finite/cache3.u32le",
+      "sha256": "78afd8f7fb327998ff10cb05a014d9d661c05cca3f405426d3685d1a2e45c244"
+    }
+  ],
+  "results_sha256": "770b0fce55f54e0c32a2d04f373179e22e872b400c54a5761c6a3d29170f773e",
+  "schema_version": 1,
+  "status": "FINITE_A4_B_FUNCTIONAL_PASS_TIMING_PREDICTED"
+}

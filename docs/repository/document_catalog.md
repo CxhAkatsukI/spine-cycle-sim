@@ -100,6 +100,7 @@ Start with the [documentation index](../README.md) and its topic guides.
 
 ## GraSU and ReGraph implementation
 
+- [finite_pma_original_a4.md](../implementation/grasu_regraph/finite_pma_original_a4.md)
 - [grasu_native_scheduler_runtime_20260725.md](../implementation/grasu_regraph/grasu_native_scheduler_runtime_20260725.md)
 - [grasu_native_sparse_hbm_channels_20260725.md](../implementation/grasu_regraph/grasu_native_sparse_hbm_channels_20260725.md)
 - [grasu_native_stress_runtime_20260725.md](../implementation/grasu_regraph/grasu_native_stress_runtime_20260725.md)

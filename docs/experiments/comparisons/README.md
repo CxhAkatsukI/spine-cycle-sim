@@ -7,9 +7,11 @@ for source differences, A/A4/B/C acceptance gates, fresh regression evidence,
 and the explicit remaining work. It does not yet establish a published-speed match.
 
 The [isolated G/A/A4/B stage study](grasu_regraph_stage_validation/README.md)
-now has four passing original-source functional controls after the accepted
-[SST/Spine refactor](../../repository/sst_spine_refactor/README.md). Its
-independent cycle models and publication-speed comparisons remain unfinished.
+owns current G source/host controls, complete original-R finite models, and
+the matched PMA/A4 state, traffic, and predicted-overhead study. The accepted
+[SST/Spine refactor](../../repository/sst_spine_refactor/README.md) remains
+unchanged. G finite timing, original-publication admission, physical timing,
+and host/system composition remain unfinished; use its status table.
 
 ## For Current Figure Data
 

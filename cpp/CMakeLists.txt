@@ -46,6 +46,11 @@ add_library(original_regraph_cycle STATIC
 target_link_libraries(original_regraph_cycle PUBLIC spine_cycle_core)
 target_compile_options(original_regraph_cycle PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
+# Independent study input; not part of the production SST plugin.
+add_library(pma_adapter_cycle STATIC src/pma_adapter/reader.cpp)
+target_link_libraries(pma_adapter_cycle PUBLIC original_regraph_cycle)
+target_compile_options(pma_adapter_cycle PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
 add_executable(persistent_update_host_benchmark
   tools/persistent_update_host_benchmark.cpp)
 target_link_libraries(persistent_update_host_benchmark PRIVATE spine_cycle_core)
@@ -53,6 +58,15 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(pma_adapter_tests tests/pma_adapter/reader_tests.cpp)
+  target_link_libraries(pma_adapter_tests PRIVATE pma_adapter_cycle)
+  target_compile_options(pma_adapter_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME pma_adapter_tests COMMAND pma_adapter_tests)
+
+  add_executable(pma_regraph_execution tests/pma_adapter/whole_execution.cpp)
+  target_link_libraries(pma_regraph_execution PRIVATE pma_adapter_cycle)
+  target_compile_options(pma_regraph_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
   add_executable(original_regraph_mixed_tests tests/original_regraph/whole_graph/mixed/indexer_tests.cpp)
   target_link_libraries(original_regraph_mixed_tests PRIVATE original_regraph_cycle)
   target_compile_options(original_regraph_mixed_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

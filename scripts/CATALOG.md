@@ -129,6 +129,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_original_regraph_inputs.py](run_original_regraph_inputs.py)
 - [run_original_regraph_mixed.py](run_original_regraph_mixed.py)
 - [run_original_regraph_state_validation.py](run_original_regraph_state_validation.py)
+- [run_pma_regraph_control.py](run_pma_regraph_control.py)
 - [run_publication_case.py](run_publication_case.py)
 - [run_publication_cc_case.py](run_publication_cc_case.py)
 - [run_refactor31_mechanism_calibration.py](run_refactor31_mechanism_calibration.py)

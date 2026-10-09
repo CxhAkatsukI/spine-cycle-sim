@@ -6,11 +6,12 @@ namespace wt = original_regraph_whole_test;
 
 int main(int argc, char** argv) {
   try {
-    wt::require(argc == 7, "usage: a4_execution INPUT_DIR OUTPUT_DIR STATE_PARENTS LATENCY REVERSE MAX_CYCLES");
+    wt::require(argc == 7 || argc == 8, "usage: a4_execution INPUT_DIR OUTPUT_DIR STATE_PARENTS LATENCY REVERSE MAX_CYCLES [INPUT_PARENTS]");
     const auto input = wt::Input::load(argv[1]);
     const auto state_parents = std::stoul(argv[3]);
     const auto latency = std::stoull(argv[4]), maximum = std::stoull(argv[6]);
-    wt::Wiring model(input, state_parents, latency, std::stoul(argv[5]) != 0);
+    const auto input_parents = argc == 8 ? std::stoul(argv[7]) : 2;
+    wt::Wiring model(input, state_parents, latency, std::stoul(argv[5]) != 0, input_parents);
     model.initialize();
     model.begin();
     std::uint64_t cycles = 0, checked_sum_words = 0;
@@ -98,7 +99,9 @@ int main(int argc, char** argv) {
       for (unsigned task = 0; task < path.completions.size(); ++task) { if (task) std::cout << ','; std::cout << path.completions[task]; }
       std::cout << "]}";
     }
-    std::cout << "]}\n";
+    std::cout << ']';
+    if (argc == 8) std::cout << ",\"input_parent_credits\":" << input_parents;
+    std::cout << "}\n";
     return 0;
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

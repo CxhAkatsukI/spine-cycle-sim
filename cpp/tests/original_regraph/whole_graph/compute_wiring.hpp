@@ -44,14 +44,15 @@ struct ComputePath {
 template <typename InputSource>
 class ComputeWiring {
  public:
-  ComputeWiring(InputSource source, std::size_t state_parents, std::uint64_t latency, bool reverse)
+  ComputeWiring(InputSource source, std::size_t state_parents, std::uint64_t latency, bool reverse,
+                std::size_t input_parents = 2)
       : memory(8, latency), input(source.input()), source_(std::move(source)) {
     require(state_parents > 0 && state_parents <= 16, "invalid state AXI parent credits");
     std::vector<Fifo<rg::VertexPair>*> outputs;
     for (unsigned index = 0; index < paths.size(); ++index) {
       auto& path = paths[index]; auto& p = path.components;
       const auto name = "little" + std::to_string(index);
-      p.edge_port = memory.port(name + ".edge_axi", index * 2 + 1, index * 2);
+      p.edge_port = memory.port(name + ".edge_axi", index * 2 + 1, index * 2, 16, input_parents);
       p.source_port = memory.port(name + ".source_axi", index * 2 + 2, index * 2 + 1);
       p.edges = memory.queue<rg::EdgeBurst>(name + ".edges");
       p.requests = memory.queue<rg::SourceRequest>(name + ".requests");

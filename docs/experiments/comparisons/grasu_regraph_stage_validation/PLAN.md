@@ -5,7 +5,9 @@
 Use the [status table and reading guide](README.md) for accepted checkpoints.
 Original G source-functional composition and complete A4/mixed-R controls now
 pass their declared gates. G finite timing, original publication admission
-and the matched A4/B/C study remain open. HLS schedules constrain models;
+and C composition remain open. The fixed-resource finite A4/B matrix passes
+state/traffic/window gates, with explicitly predicted rather than calibrated
+overhead; see [its report](FINITE_PMA_R.md). HLS schedules constrain models;
 they are not measured publication rates. The mixed 11+3 example's explicit
 tail-padding compatibility control is not the unknown graph-selected best
 topology.
@@ -48,7 +50,8 @@ four-pipeline configuration or a 14-pipeline throughput result.
    not permission to tune a holdout or choose the best result afterward.
 7. Compare A4/B per sweep and end to end. Report logical/physical edges, padding,
    PMA occupancy, source/edge/state bytes, backpressure, overlap and cycles.
-   Compute the matched-resource overhead from these two measured windows;
+   Compute the matched-resource overhead from these two common windows,
+   labeling simulated windows as predictions until timing is admitted;
    preserve negative overhead if overlap actually improves the path.
 8. Only then compose C and separately report host orchestration. Compensating
    G/R errors cannot establish stage validity even if the total time matches.

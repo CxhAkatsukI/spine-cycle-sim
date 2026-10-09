@@ -16,8 +16,8 @@ agreement and published-rate reproduction have separate acceptance gates.
 | --- | --- | --- |
 | G | Eight prepared-PMA cases plus eight host-prepared source16 cases pass complete state/protocol checks; host control declares two bounds guards and initialized padding | Temporal workload, paper8 geometry, finite-resource timing and publication rate admission; unchanged original host is not admitted |
 | A | Complete 11+3 graph execution, indexed state and finite ledgers pass under declared tail padding | Original-host allocation compatibility, graph-selected topology, publication memory/clock/window/denominator admission and timing match |
-| A4 | Complete Amazon and two fixtures pass every pre-Apply sum, four state replicas and finite ledgers; AXI capacities audited | Realistic memory/timing admission, publication comparison and fixed-resource adapter control B |
-| B | Existing sharded HLS adapter passes complete source packets on all three A4 inputs; shared downstream extraction preserves all eight A4 results | Complete finite adapter+A4 execution, cold/stale-copy routing and fixed-resource state/work/cycle/overlap comparison; no timing-overhead result yet |
+| A4 | Complete Amazon and two fixtures pass every pre-Apply sum, four state replicas and finite ledgers; eight legacy and matched-input-credit controls remain exact | Realistic memory/timing admission and publication comparison |
+| B | Eight complete finite PMA+A4 executions pass matched state/work/window/overlap gates; source fixtures prove cold/stale routing; modeled overhead is reported separately | FPGA/RTL timing admission, actual routed-K4 placement, original-G-produced inputs and publication comparison; predicted cycles are not measured overhead |
 | C | Not executed | Separate validated G/B windows, measured host orchestration and overlap accounting |
 
 ## Review Guide
@@ -31,6 +31,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 | How were complete graph inputs prepared? | [Original host inputs](ORIGINAL_HOST_INPUTS.md) |
 | Does complete original A4 work? | [Whole-A4 execution](A4_GRAPH_EXECUTION.md) |
 | Does the existing adapter preserve original A4 logical work? | [Adapter source and exact wiring regression](ADAPTER_SOURCE.md) |
+| What changes when finite PMA input feeds the same original A4 downstream? | [Matched finite A4/B state, traffic, overlap and predicted overhead](FINITE_PMA_R.md) |
 | Does the artifact's 11+3 example work? | [Mixed execution and allocation finding](MIXED_GRAPH_EXECUTION.md) |
 | Which Little components were checked separately? | [Gather](LITTLE_FINITE_MODEL.md), [frontend](LITTLE_FRONTEND_MODEL.md), [state](LITTLE_STATE_MODEL.md) |
 | Which Big components were checked separately? | [Routing/Gather](BIG_ROUTING_GATHER.md), [memory/Scatter](BIG_MEMORY_FRONTEND.md) |
@@ -66,9 +67,10 @@ The upstream ReGraph repository includes an AM candidate at
 `60b383901873b49883d0c67d8b524244ada1977719d25c834014b75238f3a815`.
 Despite the extension, it is not a Matrix Market file with a header. The
 upstream loader keeps the integer IDs and uses maximum ID plus one. This
-candidate now passes original-host DBG/partition/task and initial-state
-admission. Device-iteration and publication-event admission remain open;
-its availability does not make Table IV's graph-selected topology known.
+candidate passes original-host DBG/partition/task and initial-state admission,
+complete A4/mixed resident-iteration controls, and the declared finite PMA/A4
+comparison. Publication-event and timing admission remain open; its availability
+does not make Table IV's graph-selected topology known.
 
 ## Reproduce Source Controls
 

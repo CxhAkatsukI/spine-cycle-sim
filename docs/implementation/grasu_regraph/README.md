@@ -60,7 +60,12 @@ pre-Apply validation, explicit AXI capacities and exact old-default regression.
 Its finite mock-memory cycles remain predictions, not publication matching.
 The [PMA adapter input control](original_regraph_adapter_source.md) preserves
 the A4 task multiset, checks existing HLS packets and extracts shared wiring
-with exact regression. Complete finite B and its overhead are still open.
+with exact regression. That source checkpoint does not establish finite B
+timing or overhead.
+The [finite PMA/A4 control](finite_pma_original_a4.md) now has a separate
+registered reader, shared original downstream, source-packet routing controls,
+and matched input credits. Its experiment reports distinguish predicted
+overhead from FPGA calibration and original-publication performance.
 The [independent Big routing/Gather owner](original_regraph_big_gather.md)
 models the original three-layer omega network and eight partitioned banks,
 separately from Little. Its finite component/source/reuse gates do not yet

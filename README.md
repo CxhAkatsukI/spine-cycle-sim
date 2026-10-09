@@ -17,6 +17,7 @@ Contributors and coding agents must follow [the repository working rules](AGENTS
 | Reproduce the accepted figure handoff | [Figures 7--11 package](docs/evaluation_refresh_20260810/figure7_10_handoff_v1/README.md) |
 | Understand the organization problems and cleanup order | [Repository structure audit](docs/repository/structure_audit_20261009.md) |
 | Audit original GraSU/ReGraph publication comparisons | [Publication-match study](docs/experiments/comparisons/grasu_regraph_publication_match/README.md) |
+| Review current isolated G / original R / matched A4 / adapter studies | [Stage-validation status and evidence](docs/experiments/comparisons/grasu_regraph_stage_validation/README.md) |
 
 ## Repository Boundaries
 

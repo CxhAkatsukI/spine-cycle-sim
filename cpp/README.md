@@ -31,6 +31,7 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
 | G+R readers, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
 | Independent original-ReGraph Little path, PR state and separate Big omega/banks/merge | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
+| Independent finite PMA input for matched original A4 | [pma_adapter/](include/spine_sim/pma_adapter/) | [reader.cpp](src/pma_adapter/reader.cpp); separate library, not production SST |
 | SST setup and run serialization | SST component registration | [online_memory_probe.cpp](sst/online_memory_probe.cpp) |
 | SST physical HBM address mapping | [physical_hbm_mapper.hpp](sst/physical_hbm_mapper.hpp) | [physical_hbm_mapper.cpp](sst/physical_hbm_mapper.cpp) |
 | SST memory reservation, transport and completion | [sst_memory_backend.hpp](sst/sst_memory_backend.hpp) | [sst_memory_backend.cpp](sst/sst_memory_backend.cpp) |
@@ -62,6 +63,7 @@ used by existing experiments.
 | Original G search/cache/DDR functional composition | [grasu_path/](tests/publication_sources/grasu_path/) via [G source runner](../scripts/run_original_grasu_source_path.py); prepared PMA, not finite timing or original host validation |
 | Original G host/kernel/merge composition | [grasu_host/](tests/publication_sources/grasu_host/) via [host control runner](../scripts/run_original_grasu_host.py); two declared bounds guards and defined padding, not finite timing |
 | Existing PMA adapter source and common A4 downstream | [adapter_probe.cpp](tests/publication_sources/adapter_probe.cpp) and [compute_wiring.hpp](tests/original_regraph/whole_graph/compute_wiring.hpp); source packets and exact A4 extraction checks, not finite B overhead |
+| Finite PMA/A4 composition and original HLS routing | [pma_adapter/](tests/pma_adapter/), [adapter_routing_probe.cpp](tests/publication_sources/adapter_routing_probe.cpp) via [matched runner](../scripts/run_pma_regraph_control.py); complete state/traffic and predicted timing, not measured FPGA overhead |
 | Independent original-R finite Gather/merge | [original_regraph/](tests/original_regraph/) via [validation runner](../scripts/run_original_regraph_gather_validation.py) |
 | Independent original-R memory/frontend | [frontend_tests.cpp](tests/original_regraph/frontend_tests.cpp) via [frontend validation](../scripts/run_original_regraph_frontend_validation.py) |
 | Independent original-R PR state and resident rounds | [state_tests.cpp](tests/original_regraph/state_tests.cpp), [iteration_tests.cpp](tests/original_regraph/iteration_tests.cpp) via [state validation](../scripts/run_original_regraph_state_validation.py) |
