@@ -28,6 +28,9 @@ set_target_properties(spine_cycle_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # The independent author-ReGraph family is not wired into the production SST
 # plugin until its complete input, memory, and round boundaries are admitted.
 add_library(original_regraph_cycle STATIC
+  src/original_regraph/edge_reader.cpp
+  src/original_regraph/source_memory.cpp
+  src/original_regraph/little_scatter.cpp
   src/original_regraph/little_gather.cpp
   src/original_regraph/little_merge.cpp)
 target_link_libraries(original_regraph_cycle PUBLIC spine_cycle_core)
@@ -40,6 +43,11 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(original_regraph_frontend_tests tests/original_regraph/frontend_tests.cpp)
+  target_link_libraries(original_regraph_frontend_tests PRIVATE original_regraph_cycle)
+  target_compile_options(original_regraph_frontend_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME original_regraph_frontend_tests COMMAND original_regraph_frontend_tests)
+
   add_executable(original_regraph_gather_tests tests/original_regraph/gather_tests.cpp)
   target_link_libraries(original_regraph_gather_tests PRIVATE original_regraph_cycle)
   target_compile_options(original_regraph_gather_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

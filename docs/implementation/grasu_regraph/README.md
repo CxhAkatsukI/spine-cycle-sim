@@ -35,6 +35,9 @@ performance; no directory move establishes that equivalence.
 The [independent original-ReGraph Little core](original_regraph_little_gather.md)
 has a separate implementation and explicit partial timing boundary. It is a
 publication-control building block, not a replacement for the ported G+R model.
+The [Little input-path extension](original_regraph_little_frontend.md) owns
+edge AXI reads, request-dependent source-memory service and Scatter separately;
+it stops before Apply/writeback and retains predicted, not measured, timing.
 
 Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
 placement and destination-shard update sequencing now have separate source

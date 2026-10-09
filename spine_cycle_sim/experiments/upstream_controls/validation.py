@@ -10,6 +10,7 @@ SOURCE_KINDS = {
     "grasu_cache_probe.cpp": "grasu_cache",
     "regraph_little_probe.cpp": "regraph_little",
     "regraph_big_probe.cpp": "regraph_big",
+    "regraph_scatter_protocol_probe.cpp": "regraph_scatter_protocol",
 }
 
 

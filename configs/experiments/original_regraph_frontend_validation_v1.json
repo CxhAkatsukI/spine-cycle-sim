@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "evidence_class": "original_little_memory_frontend_model",
+  "boundary": "resident_padded_edges_and_source_properties_to_global_merged_fifo_before_apply",
+  "memory_limit_gib": 4,
+  "reserve_gib": 16,
+  "build_timeout_seconds": 1200,
+  "run_timeout_seconds": 120,
+  "build_parallelism": 1,
+  "configuration": {
+    "clock_mhz": 210, "source_window_vertices": 4096, "partition_vertices": 65536,
+    "axi_data_bytes": 64, "axi_max_burst_beats": 16, "default_outstanding": 16,
+    "read_reorder_capacity": 32, "edge_latency": 3, "scatter_latency": 4,
+    "gather_latency": 6, "drain_latency": 3, "local_merge_latency": 3,
+    "global_merge_latency": 4
+  },
+  "cases": [
+    {"id": "source_window0", "rounds": [0, 0], "requests": [0, 1], "little": 1},
+    {"id": "source_window1", "rounds": [1, 1], "requests": [0, 1, 2], "little": 1},
+    {"id": "source_windows012", "rounds": [0, 1, 2], "requests": [0, 1, 2, 3], "little": 1},
+    {"id": "reverse_registration", "rounds": [0, 1, 2], "requests": [0, 1, 2, 3], "little": 1},
+    {"id": "depth1_slow_sink", "rounds": [0, 1, 2], "requests": [0, 1, 2, 3], "little": 1},
+    {"id": "one_outstanding", "rounds": [0, 1, 2], "requests": [0, 1, 2, 3], "little": 1},
+    {"id": "memory_latency128", "rounds": [0, 1, 2], "requests": [0, 1, 2, 3], "little": 1},
+    {"id": "a4_memory_to_merged", "rounds": [0, 1, 2], "requests": [0, 1, 2, 3], "little": 4},
+    {"id": "source_initial_round2", "rounds": [2], "requests": [0, 2, 3], "little": 1},
+    {"id": "source_gap0_to3", "rounds": [0, 3], "requests": [0, 1, 3, 4], "little": 1}
+  ],
+  "expected_rejections": [
+    {"id": "unallocated_lookahead", "expected_rejection": true, "boundary": "source_allocation"}
+  ],
+  "source_protocol_cases": [
+    "source_window0", "source_window1", "source_windows012",
+    "source_initial_round2", "source_gap0_to3"
+  ],
+  "source_controls": [
+    {"id": "a4_original_little", "little": 4, "checked_words": 393216},
+    {"id": "a_default_little_component", "little": 11, "checked_words": 393216}
+  ],
+  "not_claimed": [
+    "measured_FPGA_or_HLS_cosimulation_cycles",
+    "complete_ReGraph_or_publication_speed_match",
+    "PR_Apply_degree_memory_or_state_writeback",
+    "Big_pipelines_mixed_scheduler_or_DBG_preprocessing",
+    "adapter_overhead_G_timing_or_host_orchestration",
+    "cycle_exact_equivalence_to_HLS_global_stall_control"
+  ]
+}

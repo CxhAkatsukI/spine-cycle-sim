@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "evidence_class": "upstream_source_functional_only",
+  "generator_python": "python3.11",
+  "memory_limit_gib": 2,
+  "reserve_gib": 16,
+  "compile_timeout_seconds": 300,
+  "run_timeout_seconds": 120,
+  "topologies": [{"id": "a4", "little": 4, "big": 0}],
+  "probes": [{
+    "id": "a4_original_scatter_protocol", "topology": "a4",
+    "source": "regraph_scatter_protocol_probe.cpp",
+    "expected": {
+      "kind": "regraph_scatter_protocol", "passed": true, "little": 4, "big": 0,
+      "positive_cases": 3, "known_source_gap_watchdogs": 2, "physical_edges": 224,
+      "normal_source_requests": 9, "source_response_lines": 2304
+    }
+  }],
+  "not_claimed": [
+    "device_cycles_or_concurrent_RTL_liveness",
+    "source_gap_watchdog_cases_as_successful_workloads",
+    "HBM_latency_or_original_publication_speed",
+    "complete_ReGraph_or_matched_adapter_overhead"
+  ]
+}

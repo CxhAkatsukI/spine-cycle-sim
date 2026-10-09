@@ -1,0 +1,1193 @@
+{
+  "analysis": {
+    "FPGA_cycle_error_pct": null,
+    "cases": [
+      {
+        "axi_beats": 520,
+        "axi_stalls": 520,
+        "checked_words": 64,
+        "completed": true,
+        "cycles": 1170,
+        "edge_bytes": 512,
+        "edge_stalls": 0,
+        "fifo_depth": 8,
+        "first_merged": 0,
+        "gather": false,
+        "id": "source_window0",
+        "last_scatter_done": 1170,
+        "little": 1,
+        "memory_latency": 64,
+        "normal_requests": 2,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            1
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 32768,
+        "source_discarded": 252,
+        "source_loaded": 260,
+        "source_response_stalls": 0
+      },
+      {
+        "axi_beats": 776,
+        "axi_stalls": 776,
+        "checked_words": 64,
+        "completed": true,
+        "cycles": 1753,
+        "edge_bytes": 512,
+        "edge_stalls": 0,
+        "fifo_depth": 8,
+        "first_merged": 0,
+        "gather": false,
+        "id": "source_window1",
+        "last_scatter_done": 1753,
+        "little": 1,
+        "memory_latency": 64,
+        "normal_requests": 3,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 49152,
+        "source_discarded": 252,
+        "source_loaded": 516,
+        "source_response_stalls": 0
+      },
+      {
+        "axi_beats": 1036,
+        "axi_stalls": 1036,
+        "checked_words": 96,
+        "completed": true,
+        "cycles": 2336,
+        "edge_bytes": 768,
+        "edge_stalls": 567,
+        "fifo_depth": 8,
+        "first_merged": 0,
+        "gather": false,
+        "id": "source_windows012",
+        "last_scatter_done": 2336,
+        "little": 1,
+        "memory_latency": 64,
+        "normal_requests": 4,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            1,
+            2,
+            3
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 65536,
+        "source_discarded": 254,
+        "source_loaded": 770,
+        "source_response_stalls": 0
+      },
+      {
+        "axi_beats": 1036,
+        "axi_stalls": 1036,
+        "checked_words": 96,
+        "completed": true,
+        "cycles": 2336,
+        "edge_bytes": 768,
+        "edge_stalls": 567,
+        "fifo_depth": 8,
+        "first_merged": 0,
+        "gather": false,
+        "id": "reverse_registration",
+        "last_scatter_done": 2336,
+        "little": 1,
+        "memory_latency": 64,
+        "normal_requests": 4,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            1,
+            2,
+            3
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 65536,
+        "source_discarded": 254,
+        "source_loaded": 770,
+        "source_response_stalls": 0
+      },
+      {
+        "axi_beats": 1036,
+        "axi_stalls": 12756,
+        "checked_words": 96,
+        "completed": true,
+        "cycles": 7163,
+        "edge_bytes": 768,
+        "edge_stalls": 6566,
+        "fifo_depth": 1,
+        "first_merged": 0,
+        "gather": false,
+        "id": "depth1_slow_sink",
+        "last_scatter_done": 7163,
+        "little": 1,
+        "memory_latency": 64,
+        "normal_requests": 4,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            1,
+            2,
+            3
+          ]
+        ],
+        "scatter_stalls": 5665,
+        "source_bytes": 65536,
+        "source_discarded": 253,
+        "source_loaded": 771,
+        "source_response_stalls": 4827
+      },
+      {
+        "axi_beats": 1036,
+        "axi_stalls": 1036,
+        "checked_words": 96,
+        "completed": true,
+        "cycles": 6236,
+        "edge_bytes": 768,
+        "edge_stalls": 1542,
+        "fifo_depth": 8,
+        "first_merged": 0,
+        "gather": false,
+        "id": "one_outstanding",
+        "last_scatter_done": 6236,
+        "little": 1,
+        "memory_latency": 64,
+        "normal_requests": 4,
+        "outstanding": 1,
+        "request_rounds": [
+          [
+            0,
+            1,
+            2,
+            3
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 65536,
+        "source_discarded": 254,
+        "source_loaded": 770,
+        "source_response_stalls": 0
+      },
+      {
+        "axi_beats": 1036,
+        "axi_stalls": 1036,
+        "checked_words": 96,
+        "completed": true,
+        "cycles": 2592,
+        "edge_bytes": 768,
+        "edge_stalls": 631,
+        "fifo_depth": 8,
+        "first_merged": 0,
+        "gather": false,
+        "id": "memory_latency128",
+        "last_scatter_done": 2592,
+        "little": 1,
+        "memory_latency": 128,
+        "normal_requests": 4,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            1,
+            2,
+            3
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 65536,
+        "source_discarded": 254,
+        "source_loaded": 770,
+        "source_response_stalls": 0
+      },
+      {
+        "axi_beats": 4144,
+        "axi_stalls": 4144,
+        "checked_words": 65536,
+        "completed": true,
+        "cycles": 34618,
+        "edge_bytes": 3072,
+        "edge_stalls": 2268,
+        "fifo_depth": 8,
+        "first_merged": 1858,
+        "gather": true,
+        "id": "a4_memory_to_merged",
+        "last_scatter_done": 2336,
+        "little": 4,
+        "memory_latency": 64,
+        "normal_requests": 16,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            0,
+            1,
+            2,
+            3
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 262144,
+        "source_discarded": 1016,
+        "source_loaded": 3080,
+        "source_response_stalls": 0
+      },
+      {
+        "axi_beats": 772,
+        "axi_stalls": 772,
+        "checked_words": 32,
+        "completed": true,
+        "cycles": 1753,
+        "edge_bytes": 256,
+        "edge_stalls": 0,
+        "fifo_depth": 8,
+        "first_merged": 0,
+        "gather": false,
+        "id": "source_initial_round2",
+        "last_scatter_done": 1753,
+        "little": 1,
+        "memory_latency": 64,
+        "normal_requests": 3,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            2,
+            3
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 49152,
+        "source_discarded": 254,
+        "source_loaded": 514,
+        "source_response_stalls": 0
+      },
+      {
+        "axi_beats": 1032,
+        "axi_stalls": 1032,
+        "checked_words": 64,
+        "completed": true,
+        "cycles": 2336,
+        "edge_bytes": 512,
+        "edge_stalls": 0,
+        "fifo_depth": 8,
+        "first_merged": 0,
+        "gather": false,
+        "id": "source_gap0_to3",
+        "last_scatter_done": 2336,
+        "little": 1,
+        "memory_latency": 64,
+        "normal_requests": 4,
+        "outstanding": 16,
+        "request_rounds": [
+          [
+            0,
+            1,
+            3,
+            4
+          ]
+        ],
+        "scatter_stalls": 0,
+        "source_bytes": 65536,
+        "source_discarded": 254,
+        "source_loaded": 770,
+        "source_response_stalls": 0
+      }
+    ],
+    "expected_rejections": [
+      {
+        "boundary": "source_allocation",
+        "expected_rejection": true,
+        "id": "unallocated_lookahead"
+      }
+    ],
+    "original_protocol_checked_words": 320,
+    "publication_rate_error_pct": null,
+    "repeat_stdout_and_all_counters_identical": true,
+    "status": "FINITE_MEMORY_FRONTEND_FUNCTIONAL_PASS_TIMING_PREDICTED"
+  },
+  "binaries": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_frontend_tests",
+      "sha256": "45954b7a1a5f6312307a53340280a7aac366a6109b00aa62d69c39ed1cdb8dcc"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_gather_tests",
+      "sha256": "0df5c9d227fca19284253bfefc7d4a943ae97437658dd2f45c35ff64b3bcd7e0"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_source_comparison",
+      "sha256": "104d882c2bc3578acbd030d4611d1e0c20accda221f75bcb1bedc4ca31c1d6e3"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/ubsan_frontend",
+      "sha256": "214417abed981fcb9a494f148264f4998143a284933cb8ea66251c61b63858fb"
+    }
+  ],
+  "boundary": "resident_padded_edges_and_source_properties_to_global_merged_fifo_before_apply",
+  "cmake_cache_sha256": "a8b64f7fe0ff3fa7a328ca4ef5f8a8610d69484458970443e97c31d9bdb9508a",
+  "cmake_version": "cmake version 4.3.4\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n",
+  "compile_commands_sha256": "36564c8be81a04bc1975125fbde9946b1517c9e9d3b098660504892f2b438986",
+  "compiler_path": "/usr/bin/c++",
+  "compiler_version": "c++ (Debian 15.2.0-14) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "contract_sha256": "d49106ad5f11d7a649e71cbc873a0e051727039421859c77d50f860884c0ce81",
+  "evidence_class": "original_little_memory_frontend_model",
+  "frozen_gather_and_captures_identical": true,
+  "gather_contract_sha256": "79ca972d47bbcb214cf47dda60e67a6412c440853357b09ffbee6ddb3a5430ee",
+  "gather_regression": {
+    "FPGA_cycle_error_pct": null,
+    "compared_source_words": 786432,
+    "invariant_cases": [
+      {
+        "capacity_stalls": 0,
+        "checked_words": 65536,
+        "cycles": 33788,
+        "id": "a4_registered",
+        "output_stalls": 0
+      },
+      {
+        "capacity_stalls": 0,
+        "checked_words": 65536,
+        "cycles": 33788,
+        "id": "a4_reverse_registration",
+        "output_stalls": 0
+      },
+      {
+        "capacity_stalls": 813406,
+        "checked_words": 65536,
+        "cycles": 144188,
+        "id": "a4_depth1_skew_slow_sink",
+        "output_stalls": 964989
+      },
+      {
+        "capacity_stalls": 23976,
+        "checked_words": 65536,
+        "cycles": 39782,
+        "id": "a4_one_inflight_gather",
+        "output_stalls": 0
+      },
+      {
+        "capacity_stalls": 3230,
+        "checked_words": 65536,
+        "cycles": 33355,
+        "id": "a11_little_component",
+        "output_stalls": 3230
+      },
+      {
+        "capacity_stalls": 0,
+        "checked_words": 65536,
+        "cycles": 32781,
+        "id": "a4_reused_zero_burst_partition",
+        "output_stalls": 0
+      },
+      {
+        "capacity_stalls": 0,
+        "checked_words": 65536,
+        "cycles": 33788,
+        "id": "a4_reused_nonzero_partition",
+        "output_stalls": 0
+      }
+    ],
+    "observed_configuration": {
+      "clock_mhz": 210,
+      "default_fifo_depth": 8,
+      "forwarding_entries_per_lane": 4,
+      "gather_lanes": 8,
+      "partition_vertices": 65536,
+      "timing": {
+        "drain": {
+          "capacity": 4,
+          "initiation_interval": 1,
+          "latency": 3
+        },
+        "gather": {
+          "capacity": 7,
+          "initiation_interval": 1,
+          "latency": 6
+        },
+        "global_merge": {
+          "capacity": 5,
+          "initiation_interval": 1,
+          "latency": 4
+        },
+        "local_merge": {
+          "capacity": 4,
+          "initiation_interval": 1,
+          "latency": 3
+        }
+      },
+      "uram_write_latency": 3
+    },
+    "publication_rate_error_pct": null,
+    "repeat_stdout_and_all_counters_identical": true,
+    "source_comparison": [
+      {
+        "capacity_stalls": 100,
+        "checked_words": 65536,
+        "cycles": 32835,
+        "iteration": 0,
+        "little": 4,
+        "output_stalls": 100,
+        "source_base": 0
+      },
+      {
+        "capacity_stalls": 100,
+        "checked_words": 65536,
+        "cycles": 32835,
+        "iteration": 1,
+        "little": 4,
+        "output_stalls": 100,
+        "source_base": 0
+      },
+      {
+        "capacity_stalls": 100,
+        "checked_words": 65536,
+        "cycles": 32835,
+        "iteration": 2,
+        "little": 4,
+        "output_stalls": 100,
+        "source_base": 0
+      },
+      {
+        "capacity_stalls": 100,
+        "checked_words": 65536,
+        "cycles": 32835,
+        "iteration": 0,
+        "little": 4,
+        "output_stalls": 100,
+        "source_base": 4096
+      },
+      {
+        "capacity_stalls": 100,
+        "checked_words": 65536,
+        "cycles": 32835,
+        "iteration": 1,
+        "little": 4,
+        "output_stalls": 100,
+        "source_base": 4096
+      },
+      {
+        "capacity_stalls": 100,
+        "checked_words": 65536,
+        "cycles": 32835,
+        "iteration": 2,
+        "little": 4,
+        "output_stalls": 100,
+        "source_base": 4096
+      },
+      {
+        "capacity_stalls": 1250,
+        "checked_words": 65536,
+        "cycles": 32921,
+        "iteration": 0,
+        "little": 11,
+        "output_stalls": 1250,
+        "source_base": 0
+      },
+      {
+        "capacity_stalls": 1250,
+        "checked_words": 65536,
+        "cycles": 32921,
+        "iteration": 1,
+        "little": 11,
+        "output_stalls": 1250,
+        "source_base": 0
+      },
+      {
+        "capacity_stalls": 1250,
+        "checked_words": 65536,
+        "cycles": 32921,
+        "iteration": 2,
+        "little": 11,
+        "output_stalls": 1250,
+        "source_base": 0
+      },
+      {
+        "capacity_stalls": 1250,
+        "checked_words": 65536,
+        "cycles": 32921,
+        "iteration": 0,
+        "little": 11,
+        "output_stalls": 1250,
+        "source_base": 4096
+      },
+      {
+        "capacity_stalls": 1250,
+        "checked_words": 65536,
+        "cycles": 32921,
+        "iteration": 1,
+        "little": 11,
+        "output_stalls": 1250,
+        "source_base": 4096
+      },
+      {
+        "capacity_stalls": 1250,
+        "checked_words": 65536,
+        "cycles": 32921,
+        "iteration": 2,
+        "little": 11,
+        "output_stalls": 1250,
+        "source_base": 4096
+      }
+    ],
+    "status": "FINITE_GATHER_MERGE_FUNCTIONAL_PASS_TIMING_PREDICTED"
+  },
+  "negative_controls": [
+    {
+      "available_before_bytes": 99485683712,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_source_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_fixtures/changed_word.u32le",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a_default_little_component/merged.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "expected_diagnostic": "differs from original source",
+      "expected_rejection": true,
+      "id": "changed_word",
+      "input_bytes": 1572864,
+      "input_sha256": "9801c6a44f5dcb0b554a4b9b7c019513de03fcfefb8c6f05130a38db42432c6c",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 18352,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_changed_word.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_changed_word.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.053666139021515846
+    },
+    {
+      "available_before_bytes": 99393757184,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_source_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_fixtures/truncated_word.u32le",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a_default_little_component/merged.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "expected_diagnostic": "truncated original-source capture",
+      "expected_rejection": true,
+      "id": "truncated_word",
+      "input_bytes": 1572860,
+      "input_sha256": "d345c0229800c61881761d706a9edf1981fa390a6b488a5115d263474d477b57",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 18352,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_truncated_word.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_truncated_word.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.3044424559921026
+    },
+    {
+      "available_before_bytes": 99862667264,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_source_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_fixtures/excess_word.u32le",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a_default_little_component/merged.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "expected_diagnostic": "excess original-source capture words",
+      "expected_rejection": true,
+      "id": "excess_word",
+      "input_bytes": 1572868,
+      "input_sha256": "7163a8f5f282147a8da3fccb0a52652fedc731003a1a44a60cabe526960a91fe",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 18352,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_excess_word.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/negative_excess_word.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.3041243958286941
+    }
+  ],
+  "not_claimed": [
+    "measured_FPGA_or_HLS_cosimulation_cycles",
+    "complete_ReGraph_or_publication_speed_match",
+    "PR_Apply_degree_memory_or_state_writeback",
+    "Big_pipelines_mixed_scheduler_or_DBG_preprocessing",
+    "adapter_overhead_G_timing_or_host_orchestration",
+    "cycle_exact_equivalence_to_HLS_global_stall_control"
+  ],
+  "original_protocol": {
+    "cases": [
+      {
+        "checked_words": 64,
+        "id": "source_window0",
+        "request_rounds": [
+          0,
+          1
+        ],
+        "source_response_lines": 512
+      },
+      {
+        "checked_words": 64,
+        "id": "source_window1",
+        "request_rounds": [
+          0,
+          1,
+          2
+        ],
+        "source_response_lines": 768
+      },
+      {
+        "checked_words": 96,
+        "id": "source_windows012",
+        "request_rounds": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "source_response_lines": 1024
+      },
+      {
+        "checked_words": 32,
+        "id": "source_initial_round2",
+        "request_rounds": [
+          0,
+          2,
+          3
+        ],
+        "source_response_lines": 768
+      },
+      {
+        "checked_words": 64,
+        "id": "source_gap0_to3",
+        "request_rounds": [
+          0,
+          1,
+          3,
+          4
+        ],
+        "source_response_lines": 1024
+      }
+    ],
+    "evidence_class": "upstream_source_functional_only",
+    "source_report_sha256": "93bca0ce1887ea4530bba293e9cb68b6ed848713a652acc2f1d0704de4d5d8ff",
+    "summary": {
+      "big": 0,
+      "guard_expression_bits": 33,
+      "guard_expression_signed": true,
+      "kind": "regraph_scatter_protocol",
+      "known_source_gap_watchdogs": 0,
+      "little": 4,
+      "normal_source_requests": 16,
+      "passed": true,
+      "physical_edges": 320,
+      "positive_cases": 5,
+      "source_response_lines": 4096
+    }
+  },
+  "schema_version": 1,
+  "source_captures": [
+    {
+      "boundary": "original_global_little_merger_before_apply",
+      "bytes": 1572864,
+      "checked_words": 393216,
+      "format": "u32le_source_window_then_iteration_then_vertex",
+      "id": "a4_original_little",
+      "little": 4,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a4_original_little/merged.u32le",
+      "sha256": "4868bc5c5121567e567f296fc408acdbe411e2ee8b463d4370b8268bf8932467",
+      "source_report_sha256": "917a0c1f451150c989e89cb1ced7eff4905718eeb4337bf9b5b493d3363a7267"
+    },
+    {
+      "boundary": "original_global_little_merger_before_apply",
+      "bytes": 1572864,
+      "checked_words": 393216,
+      "format": "u32le_source_window_then_iteration_then_vertex",
+      "id": "a_default_little_component",
+      "little": 11,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a_default_little_component/merged.u32le",
+      "sha256": "4868bc5c5121567e567f296fc408acdbe411e2ee8b463d4370b8268bf8932467",
+      "source_report_sha256": "917a0c1f451150c989e89cb1ced7eff4905718eeb4337bf9b5b493d3363a7267"
+    }
+  ],
+  "source_identities": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+    },
+    {
+      "path": "cpp/CMakeLists.txt",
+      "sha256": "58dd49d0bedff1ed9b585de9e816e0a02f11a20dc8887397f0401addf0d5ed22"
+    },
+    {
+      "path": "cpp/include/spine_sim/axi.hpp",
+      "sha256": "47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb"
+    },
+    {
+      "path": "cpp/include/spine_sim/component.hpp",
+      "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+    },
+    {
+      "path": "cpp/include/spine_sim/fifo.hpp",
+      "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+    },
+    {
+      "path": "cpp/include/spine_sim/memory_backend.hpp",
+      "sha256": "067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/detail/latency_pipe.hpp",
+      "sha256": "745a52cda74d29663824ba95f77cf8c195b43b19e69b0549ddfde4d3e0e3b64e"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/detail/wire.hpp",
+      "sha256": "a8f2e0b10f187e65739bf614d099d53ad778685c1c224255f7c9272b2d9db4f1"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/edge_reader.hpp",
+      "sha256": "655729932e87da5d7c06317c305d5412629acd28ec7f144db1fcc3b26f64074b"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/frontend_types.hpp",
+      "sha256": "f292f9f70bcb51383c67f6747a8bcb626d753f1d38b57ccdb4e5b4d722330352"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/little_gather.hpp",
+      "sha256": "c216b397448567f5a55ca44756c278e39c2cf38f7866ba189f5b7a45b9ec09fd"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/little_merge.hpp",
+      "sha256": "16d37cd38685b45610905c7976354a59dad1f3a9cc3b2681e6c54e90f6398ff3"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/little_scatter.hpp",
+      "sha256": "b9438ee2684515934a508d5bf1fa3d66b0e725a041dcf530bf40cffb4fb0b640"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/source_memory.hpp",
+      "sha256": "cf40a1821a0d4da443a3c7989b9da9373f340879a9898eb45ca01bd4cfa73ba8"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/types.hpp",
+      "sha256": "634116ce083005596a65f713c35c1e3121f0e491204dc423e92c1c397785e3b3"
+    },
+    {
+      "path": "cpp/include/spine_sim/scheduler.hpp",
+      "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+    },
+    {
+      "path": "cpp/src/axi.cpp",
+      "sha256": "c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd"
+    },
+    {
+      "path": "cpp/src/memory_backend.cpp",
+      "sha256": "4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20"
+    },
+    {
+      "path": "cpp/src/original_regraph/edge_reader.cpp",
+      "sha256": "e5dcb67282bbcb2b72793b8e5e6518d567826ad8e1376bb4e7e5310dd4ee633e"
+    },
+    {
+      "path": "cpp/src/original_regraph/little_gather.cpp",
+      "sha256": "875831ca14a8bdd4dc4fd9fcdc8eaa6bb4d5521f045a6f0f5c5365905f34fb8e"
+    },
+    {
+      "path": "cpp/src/original_regraph/little_merge.cpp",
+      "sha256": "d2268878b6b33e33dcf641c4e7b97d702826e91236261f018ae3c2a873986cf0"
+    },
+    {
+      "path": "cpp/src/original_regraph/little_scatter.cpp",
+      "sha256": "e664c1f588afd474f5a89085583b6e3804e02112088bb1c8a4b443bc3c46974e"
+    },
+    {
+      "path": "cpp/src/original_regraph/source_memory.cpp",
+      "sha256": "9bbb88c3fe09cfa0014cc47b43edc7fde6dd2e34ad081f4ecf56bf73a847b336"
+    },
+    {
+      "path": "cpp/src/scheduler.cpp",
+      "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+    },
+    {
+      "path": "cpp/tests/original_regraph/frontend_execution.hpp",
+      "sha256": "f994b6601a5a4413d5c5d66d368303e89890d937aa425954b24cffec4d62d7e0"
+    },
+    {
+      "path": "cpp/tests/original_regraph/frontend_support.hpp",
+      "sha256": "d851d28a0f4012527464b6e32c11b33f71776c488d930cb2f1ec4a0ce54fb16f"
+    },
+    {
+      "path": "cpp/tests/original_regraph/frontend_tests.cpp",
+      "sha256": "e5e9b85839db26f187ea4a8bc716003e139b8a7835170d700df0bb2c9da19348"
+    },
+    {
+      "path": "cpp/tests/original_regraph/frontend_wiring.hpp",
+      "sha256": "d43a102fbd2bd560505438b69d8dbc2d7152cd2ad04be6da6a51cec5ca436f8e"
+    },
+    {
+      "path": "cpp/tests/original_regraph/gather_tests.cpp",
+      "sha256": "e1588103612134bd7f54ca7ce0e3e002c9e54d177937cc2c0c6c08ddd7750485"
+    },
+    {
+      "path": "cpp/tests/original_regraph/network.hpp",
+      "sha256": "daeba3dadf029c534643f056e872ddb34f3794d8e94298cb25452934b417d3e1"
+    },
+    {
+      "path": "cpp/tests/original_regraph/source_comparison.cpp",
+      "sha256": "d798cf617def6ffd5146250fce652fdbda9790b0293db42467ecb76366ff8c83"
+    },
+    {
+      "path": "scripts/run_original_regraph_frontend_validation.py",
+      "sha256": "d732f534a592e1cee54563bb668da35a0b0d3763538a3c63acd2e9db2cd4d925"
+    },
+    {
+      "path": "scripts/run_original_regraph_gather_validation.py",
+      "sha256": "8c9f25c7d2175712f422e00464dd4809689c4bdadbcb73afc0d40203c36c880f"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/__init__.py",
+      "sha256": "db016d4e3e078f8579c8e07fe98da5770d92e175cb575cd60f62f11632797ff8"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/analysis.py",
+      "sha256": "7a9bd80d341f06b6dee7953a4fe4f7af69b149bea0ad694858dfc6c958a2cbad"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/delivery.py",
+      "sha256": "9f98ec2e729b65fc7ee237c6ce4885a09e161dbe6daced84612961c6ed4c557a"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/frontend_analysis.py",
+      "sha256": "f79f9c19f197dae451dfad035bee60645d3dc100a42571695d5f96c2feb7754f"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/frontend_delivery.py",
+      "sha256": "0f806054d884a3ebfa7095d55d387c0591cd38c24364c3ffd3aa967c013ebd92"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/frontend_study.py",
+      "sha256": "d9ed676493fd60872338e79e225961fd4e2a59becbb455bbd149306231aa15eb"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/negative_controls.py",
+      "sha256": "0276e4fc9d2f10f1930acb4aec6b795bf6a9c18bbff8bf7558b95ffd2ed1106a"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/study.py",
+      "sha256": "8cbdd1e3bbefba87a8199ab87619a28d3d94bfae1263aed176a88ac678763a6e"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "path": "tests/test_original_regraph_frontend.py",
+      "sha256": "e001a06d252f8887617aeeb8270ad29f11ed12b20b7fac5beb90488c05a79bef"
+    },
+    {
+      "path": "tests/test_original_regraph_validation.py",
+      "sha256": "fc6c234114af6fc89f1973b39c7462744fc2fe8daa2c9d4e80fde3a788e60bdb"
+    }
+  ],
+  "source_revision": "40ed1ec895c5eb3dbdfcccc9a03d189f4dfedd82",
+  "status": "FINITE_MEMORY_FRONTEND_FUNCTIONAL_PASS_TIMING_PREDICTED",
+  "steps": [
+    {
+      "available_before_bytes": 100695080960,
+      "command": [
+        "cmake",
+        "-S",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "-B",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "-DCMAKE_CXX_COMPILER=/usr/bin/c++"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "configure",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 151952,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/configure.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/configure.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.6045790729112923
+    },
+    {
+      "available_before_bytes": 100344082432,
+      "command": [
+        "cmake",
+        "--build",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build",
+        "--parallel",
+        "1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "build",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 690108,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 121.31017443723977
+    },
+    {
+      "available_before_bytes": 99740905472,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_frontend_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "frontend",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 18332,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/frontend.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/frontend.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.10330966114997864
+    },
+    {
+      "available_before_bytes": 99816407040,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_frontend_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "frontend_repeat",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 18332,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/frontend_repeat.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/frontend_repeat.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.10329620027914643
+    },
+    {
+      "available_before_bytes": 99399131136,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_gather_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "gather_invariants",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 62376,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/gather_invariants.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/gather_invariants.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.45466100005432963
+    },
+    {
+      "available_before_bytes": 100441210880,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_source_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a4_original_little/merged.u32le",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a_default_little_component/merged.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "source_comparison",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 27548,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/source_comparison.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/source_comparison.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.0056383982300758
+    },
+    {
+      "available_before_bytes": 99539054592,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build/cpp/original_regraph_source_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a4_original_little/merged.u32le",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_capture_after_frontend_v2/a_default_little_component/merged.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "source_comparison_repeat",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 27580,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/source_comparison_repeat.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/source_comparison_repeat.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.0555133167654276
+    },
+    {
+      "available_before_bytes": 99106136064,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/build",
+        "--output-on-failure"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "cpp_regression",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 95124,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/cpp_regression.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/cpp_regression.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 5.16858628205955
+    },
+    {
+      "available_before_bytes": 100013346816,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_original_regraph*.py"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "python_regression",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 26416,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/python_regression.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/python_regression.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.15376715688034892
+    },
+    {
+      "available_before_bytes": 99393781760,
+      "command": [
+        "/usr/bin/c++",
+        "-std=c++20",
+        "-O1",
+        "-g0",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-fsanitize=undefined",
+        "-fno-sanitize-recover=all",
+        "-D_GLIBCXX_ASSERTIONS",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/scheduler.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/axi.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/memory_backend.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/edge_reader.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/source_memory.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_scatter.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_gather.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_merge.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/original_regraph/frontend_tests.cpp",
+        "-o",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/ubsan_frontend"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "ubsan_compile",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 343340,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/ubsan_compile.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/ubsan_compile.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 19.74777823034674
+    },
+    {
+      "available_before_bytes": 100404772864,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/ubsan_frontend"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "ubsan_frontend",
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 18352,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/ubsan_frontend.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/little_frontend_final_v1/ubsan_frontend.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.3044043071568012
+    }
+  ],
+  "ubsan_identical_no_diagnostics": true,
+  "worktree_status": [
+    " M cpp/CMakeLists.txt",
+    " M scripts/build_current_fpga_spine_v4_index.py",
+    " M spine_cycle_sim/experiments/original_regraph_validation/study.py",
+    " M spine_cycle_sim/experiments/upstream_controls/study.py",
+    " M spine_cycle_sim/experiments/upstream_controls/validation.py",
+    "?? configs/experiments/original_regraph_frontend_validation_v1.json",
+    "?? configs/experiments/regraph_upstream_scatter_protocol_v1.json",
+    "?? configs/experiments/regraph_upstream_scatter_protocol_v2.json",
+    "?? cpp/include/spine_sim/original_regraph/detail/wire.hpp",
+    "?? cpp/include/spine_sim/original_regraph/edge_reader.hpp",
+    "?? cpp/include/spine_sim/original_regraph/frontend_types.hpp",
+    "?? cpp/include/spine_sim/original_regraph/little_scatter.hpp",
+    "?? cpp/include/spine_sim/original_regraph/source_memory.hpp",
+    "?? cpp/src/original_regraph/edge_reader.cpp",
+    "?? cpp/src/original_regraph/little_scatter.cpp",
+    "?? cpp/src/original_regraph/source_memory.cpp",
+    "?? cpp/tests/original_regraph/frontend_execution.hpp",
+    "?? cpp/tests/original_regraph/frontend_support.hpp",
+    "?? cpp/tests/original_regraph/frontend_tests.cpp",
+    "?? cpp/tests/original_regraph/frontend_wiring.hpp",
+    "?? cpp/tests/publication_sources/regraph_scatter_protocol_probe.cpp",
+    "?? docs/evaluation_refresh_20260810/calibration_v4/",
+    "?? docs/evidence/current_fpga_spine_composed_index_v4.json",
+    "?? scripts/run_original_regraph_frontend_validation.py",
+    "?? spine_cycle_sim/experiments/original_regraph_validation/frontend_analysis.py",
+    "?? spine_cycle_sim/experiments/original_regraph_validation/frontend_delivery.py",
+    "?? spine_cycle_sim/experiments/original_regraph_validation/frontend_study.py",
+    "?? tests/test_original_regraph_frontend.py"
+  ]
+}

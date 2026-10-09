@@ -35,6 +35,7 @@ def compiler_command(root: Path, source_root: Path, prepared: dict, probe: dict,
         for directory in (
             ".", "acc_template/common", "acc_udfs/pr", f"acc_template/kernel_{family}_gs",
             f"acc_template/kernel_{family}_gs_merger", "acc_template/kernel_apply",
+            "acc_template/kernel_hbm_wrapper",
         ):
             command.append(f"-I{original / directory}")
     command.extend([str(source), "-pthread", "-lgmp", "-o", str(case_dir / "probe")])

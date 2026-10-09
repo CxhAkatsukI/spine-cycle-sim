@@ -16,6 +16,12 @@ finite-buffer conservation, repeated drain/clear and negative-reference gates
 pass. Reader/source memory, Apply/writeback and whole-R timing are still missing;
 the complete original-R and A4/B milestones below are not marked complete.
 
+The subsequent [Little memory/frontend checkpoint](LITTLE_FRONTEND_MODEL.md)
+now adds edge reads, source-memory service and Scatter. It passes exact original
+request-protocol controls, finite pressure/resource sensitivity and old Gather
+equivalence. Apply/writeback, Big/mixed scheduling, whole-R timing and the
+publication/A4-B exit gates are still open.
+
 ## Separate Questions
 
 | Path | Question | Required control |

@@ -25,11 +25,18 @@ It matches all 786,432 original-source output words over the admitted 4-Little
 and 11-Little component fixtures. Its boundary excludes edge/source memory
 service and Apply; whole-R timing and A4/B overhead remain unfinished.
 
+The [Little memory/frontend checkpoint](LITTLE_FRONTEND_MODEL.md) extends this
+family through finite edge/source AXI service and Scatter, matching five
+request-dependent original-source controls, including sparse source windows.
+All frozen Gather/capture results remain identical. The ten positive frontend
+rows, allocation rejection, repeats and instrumentation pass. Apply/writeback,
+Big/mixed scheduling and complete stage timing remain unfinished.
+
 | Path | Current evidence | Still required |
 | --- | --- | --- |
 | G | Original cache dispatch, all 16 URAM banks, preload/update/writeback agree with an independent oracle over three batches | Original search/DDR/host path, temporal workload admission and finite-resource timing |
 | A | Original Little and Big components pass independently, including generated 11-way/3-way mergers | Whole-graph DBG/scheduling and memory wrapper, publication topology/clock admission, cycle model |
-| A4 | Original 4L/0B source functions pass; independent finite Gather/merge matches original outputs and conserves streams under backpressure | Edge/source memory, Apply/writeback and complete finite timing, then matching to B |
+| A4 | Original 4L/0B source functions and request-dependent Scatter/wrapper controls pass; finite edge/source/Scatter/Gather/merge preserve values and traffic under backpressure | Apply/writeback, complete finite timing and resource matching to B |
 | B | Not executed | PMA input adapter feeding the same admitted original A4 downstream; state/work/cycle comparison |
 | C | Not executed | Separate validated G and B windows, measured host orchestration and overlap accounting |
 
