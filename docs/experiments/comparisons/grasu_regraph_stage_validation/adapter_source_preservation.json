@@ -1,0 +1,276 @@
+{
+  "A4_all_eight_full_observations_exact": true,
+  "A4_all_three_UBSan_exact": true,
+  "CTest_count": 13,
+  "FPGA_matrix_rerun": false,
+  "Python_test_count_excluding_organization": 154,
+  "SST_matrix_rerun": false,
+  "accepted_archive_manifest_sha256": "16c6ff18394bae76db7ee700390c2877e26e0e9db133a891fbd3ba25ac30fc21",
+  "accepted_archive_sha256": "c5845d1352bea56af3c38d36b47196e215c6ecb1ea5228158eafa0a5be8b93a8",
+  "accepted_results_sha256": "19f7603c0d34ccb5c30a1e13be0eeb118489b567d44e226af5db0eab86515652",
+  "checks": [
+    {
+      "resources": {
+        "available_before_bytes": 125626707968,
+        "command": [
+          "ctest",
+          "--test-dir",
+          "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_final_v1/build",
+          "--output-on-failure"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "id": "ctest",
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 95096,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_final_v1/ctest.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_final_v1/ctest.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 7.227007683832198
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_text": "",
+      "stdout_sha256": "aef7fd24f64dec3bc68e7988ada629d686a3706b705b58a3020efe6e428afad3",
+      "stdout_text": "Test project /home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_final_v1/build\n      Start  1: original_regraph_mixed_tests\n 1/13 Test  #1: original_regraph_mixed_tests ..........   Passed    0.00 sec\n      Start  2: original_regraph_big_frontend_tests\n 2/13 Test  #2: original_regraph_big_frontend_tests ...   Passed    0.06 sec\n      Start  3: original_regraph_big_tests\n 3/13 Test  #3: original_regraph_big_tests ............   Passed    1.51 sec\n      Start  4: original_regraph_iteration_tests\n 4/13 Test  #4: original_regraph_iteration_tests ......   Passed    0.87 sec\n      Start  5: original_regraph_state_tests\n 5/13 Test  #5: original_regraph_state_tests ..........   Passed    0.03 sec\n      Start  6: original_regraph_frontend_tests\n 6/13 Test  #6: original_regraph_frontend_tests .......   Passed    0.08 sec\n      Start  7: original_regraph_gather_tests\n 7/13 Test  #7: original_regraph_gather_tests .........   Passed    0.39 sec\n      Start  8: sst_hbm_mapper_tests\n 8/13 Test  #8: sst_hbm_mapper_tests ..................   Passed    0.00 sec\n      Start  9: spine_cycle_core_tests\n 9/13 Test  #9: spine_cycle_core_tests ................   Passed    3.71 sec\n      Start 10: spine_owner_tests\n10/13 Test #10: spine_owner_tests .....................   Passed    0.00 sec\n      Start 11: spine_vertex_lifecycle_tests\n11/13 Test #11: spine_vertex_lifecycle_tests ..........   Passed    0.01 sec\n      Start 12: grasu_cycle_tests\n12/13 Test #12: grasu_cycle_tests .....................   Passed    0.50 sec\n      Start 13: grasu_runtime_tests\n13/13 Test #13: grasu_runtime_tests ...................   Passed    0.01 sec\n\n100% tests passed, 0 tests failed out of 13\n\nTotal Test time (real) =   7.20 sec\n"
+    },
+    {
+      "resources": {
+        "available_before_bytes": 125600555008,
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "tests.test_original_regraph_big_frontend",
+          "tests.test_original_regraph_big_validation",
+          "tests.test_original_regraph_execution",
+          "tests.test_original_regraph_frontend",
+          "tests.test_original_regraph_inputs",
+          "tests.test_original_regraph_mixed",
+          "tests.test_original_regraph_state",
+          "tests.test_original_regraph_validation",
+          "tests.test_refactor_equivalence",
+          "tests.test_sst_memory_binding",
+          "tests.test_upstream_stage_controls",
+          "tests.test_upstream_stage_synthesis",
+          "tests.test_original_grasu_source_path",
+          "tests.test_original_grasu_host",
+          "tests.test_original_regraph_adapter"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 3,
+        "peak_rss_kib": 116240,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/python.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/python.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 3.312120051123202
+      },
+      "stderr_sha256": "05700be8782e707efa7163d2c96f73366c0cd1f90864765ac95efe6fd2025720",
+      "stderr_text": "..........................................................................................................................................................\n----------------------------------------------------------------------\nRan 154 tests in 2.832s\n\nOK\n",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_text": ""
+    }
+  ],
+  "declared_old_file_extraction": [
+    "cpp/tests/original_regraph/whole_graph/wiring.hpp"
+  ],
+  "delivery_negative_gates": [
+    {
+      "diagnostic": "adapter source checkpoint incomplete or changed",
+      "id": "wrong_status",
+      "rejected": true
+    },
+    {
+      "diagnostic": "adapter source checkpoint incomplete or changed",
+      "id": "wrong_source_identity",
+      "rejected": true
+    },
+    {
+      "diagnostic": "adapter source checkpoint incomplete or changed",
+      "id": "claimed_timing_overhead",
+      "rejected": true
+    },
+    {
+      "diagnostic": "adapter complete source/regression steps missing",
+      "id": "missing_step",
+      "rejected": true
+    }
+  ],
+  "expected_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "finite_adapter_timing_validated": false,
+  "fresh_Release_build": true,
+  "frozen_changed": [],
+  "frozen_files_rechecked": 2437,
+  "frozen_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "matched_A4_B_overhead_validated": false,
+  "numerical_source_diff": "",
+  "organization_checks": [
+    {
+      "id": "write_catalogs",
+      "resources": {
+        "available_before_bytes": 125594365952,
+        "command": [
+          "python3",
+          "scripts/audit_repository_structure.py",
+          "--write-catalogs"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 19704,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/write_catalogs.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/write_catalogs.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 0.20450891414657235
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_text": "",
+      "stdout_sha256": "3bbf8815cc0b86ea74b8a18cff756bf11b945d546039342a73f5101db379a861",
+      "stdout_text": "WROTE docs/repository/document_catalog.md\nWROTE scripts/CATALOG.md\n"
+    },
+    {
+      "id": "doc_layout",
+      "resources": {
+        "available_before_bytes": 125588353024,
+        "command": [
+          "python3",
+          "scripts/audit_repository_structure.py",
+          "--check-docs"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 15920,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/doc_layout.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/doc_layout.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 0.10447388887405396
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_text": "",
+      "stdout_sha256": "64102c098bc722c7cf4bb5be8ec5fc63e486be0ff860750f8c4e834713e8fe79",
+      "stdout_text": "PASS topic guides, document relocations, and clean docs root\n"
+    },
+    {
+      "id": "catalogs",
+      "resources": {
+        "available_before_bytes": 125587447808,
+        "command": [
+          "python3",
+          "scripts/audit_repository_structure.py",
+          "--check-catalogs"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 19788,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/catalogs.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/catalogs.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 0.1549207386560738
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_text": "",
+      "stdout_sha256": "a804a509d05304ad9182d1df7fda38b01039c8b921cd3ef96f942d0c23d3bec3",
+      "stdout_text": "PASS documentation and script catalogs\n"
+    },
+    {
+      "id": "organization",
+      "resources": {
+        "available_before_bytes": 125585711104,
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_repository_structure.py"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 23048,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/organization.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/organization.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 0.15479147480800748
+      },
+      "stderr_sha256": "4cf7f1d1a01e0a87de085e4e4242cda3c66c0ff89e95a7b50cce948ed3d375cf",
+      "stderr_text": "...............\n----------------------------------------------------------------------\nRan 15 tests in 0.012s\n\nOK\n",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_text": ""
+    },
+    {
+      "id": "diff_check",
+      "resources": {
+        "available_before_bytes": 125585338368,
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 15920,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/diff_check.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/diff_check.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 0.05431769695132971
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_text": "",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_text": ""
+    },
+    {
+      "id": "staged_diff_check",
+      "resources": {
+        "available_before_bytes": 125586132992,
+        "command": [
+          "git",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 15920,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/staged_diff_check.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/adapter_source_postchecks_v1/staged_diff_check.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 0.05458906525745988
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_text": "",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_text": ""
+    }
+  ],
+  "organization_test_count": 15,
+  "preexisting_source_evidence_files": 173,
+  "reason": "Shared A4 downstream extraction and existing-adapter source functionality; finite B timing not yet admitted",
+  "schema_version": 1,
+  "total_focused_Python_test_count": 169,
+  "user_dirty_patch_preserved": true,
+  "whole_A4_matrix_rerun": true
+}

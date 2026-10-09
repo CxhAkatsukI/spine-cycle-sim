@@ -58,6 +58,9 @@ The [A4 whole-graph execution owner](original_regraph_a4_execution.md) connects
 all admitted partitions through four state replicas, with nonintrusive
 pre-Apply validation, explicit AXI capacities and exact old-default regression.
 Its finite mock-memory cycles remain predictions, not publication matching.
+The [PMA adapter input control](original_regraph_adapter_source.md) preserves
+the A4 task multiset, checks existing HLS packets and extracts shared wiring
+with exact regression. Complete finite B and its overhead are still open.
 The [independent Big routing/Gather owner](original_regraph_big_gather.md)
 models the original three-layer omega network and eight partitioned banks,
 separately from Little. Its finite component/source/reuse gates do not yet

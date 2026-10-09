@@ -11,7 +11,7 @@ are unchanged; this remains an isolated optional CMake validation executable.
 | Responsibility | Owner |
 | --- | --- |
 | Bounded binary loading, task geometry and independent CSR sum/PR reference | `cpp/tests/original_regraph/whole_graph/input.hpp` |
-| Finite components, physical memory placement and independent per-kernel task progress | `whole_graph/wiring.hpp` |
+| Finite downstream, physical memory placement and independent per-kernel task progress | `whole_graph/compute_wiring.hpp`; original reader policy in `compact_source.hpp`, compatible alias in `wiring.hpp` |
 | Resident execution, nonintrusive pre-Apply observation, replica/guard checks and result emission | `whole_graph/a4_execution.cpp` |
 | Shared finite memory/AXI test ownership | `cpp/tests/original_regraph/memory_fixture.hpp` |
 | Fixed experiment preparation/execution/admission and delivery | [original_regraph_execution](../../../spine_cycle_sim/experiments/original_regraph_execution/README.md) |
@@ -21,6 +21,9 @@ or the old state's guard-filling `begin`: whole-graph properties and degrees
 come from the author's captured preparation, and live buffers must not alias.
 The shared reader/source/Scatter/Gather/merge/Apply/writer implementations
 remain the same finite components used in previous source comparisons.
+The [adapter-input control](original_regraph_adapter_source.md) extracts this
+shared wiring with full eight-case equality checks; it does not yet connect
+a timed PMA producer or establish A4/B overhead.
 
 ## Input And Functional Window
 

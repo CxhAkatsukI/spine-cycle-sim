@@ -136,6 +136,7 @@ Start with the [documentation index](../README.md) and its topic guides.
 - [original_grasu_host.md](../implementation/grasu_regraph/original_grasu_host.md)
 - [original_grasu_source_path.md](../implementation/grasu_regraph/original_grasu_source_path.md)
 - [original_regraph_a4_execution.md](../implementation/grasu_regraph/original_regraph_a4_execution.md)
+- [original_regraph_adapter_source.md](../implementation/grasu_regraph/original_regraph_adapter_source.md)
 - [original_regraph_big_frontend.md](../implementation/grasu_regraph/original_regraph_big_frontend.md)
 - [original_regraph_big_gather.md](../implementation/grasu_regraph/original_regraph_big_gather.md)
 - [original_regraph_inputs.md](../implementation/grasu_regraph/original_regraph_inputs.md)

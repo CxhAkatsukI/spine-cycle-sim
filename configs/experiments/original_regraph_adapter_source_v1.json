@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "evidence_class": "existing_sharded_destination_only_adapter_source_functional_control",
+  "boundary": "resident_source16_PMA_and_row_bounds_through_all_adapter_AXIS_packets",
+  "adapter_source_sha256": "19fb4eb83c5495cbf8946463b21411fdaba6c9e6f6e0f867d4eeff4adc5a4404",
+  "adapter_source_revision": "d886f42a730c5b75666fc51d8c1c246023b0f5cb",
+  "adapter_source_path": "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+  "defines": {"GRASU_REGRAPH_WEIGHTED_PMA": 0, "GRASU_REGRAPH_DESTINATION_ONLY": 1, "GRASU_REGRAPH_SHARDED_PMA": 1, "GRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS": 1},
+  "inputs": ["boundary_ring", "skewed_sources", "amazon"],
+  "segment_slots": 16,
+  "hot_segments_per_half": 131072,
+  "empty_task_control": "one_empty_reserved_segment_at_the_original_dummy_source",
+  "duplicate_edges": "preserve_all_entries_in_read_only_PMA_ABI_control_not_original_G_host_or_update_admission",
+  "repetitions": 2,
+  "instrument_all_cases": true,
+  "memory_limit_gib": 4,
+  "reserve_gib": 16,
+  "compile_timeout_seconds": 300,
+  "run_timeout_seconds": 900,
+  "not_claimed": ["finite_FIFO_or_AXI_timing", "adapter_R_overlap_or_cycles", "original_host_generated_PMA", "GraSU_update_semantics_on_duplicate_edges", "actual_routed_K4_task_assignment_or_placement", "FPGA_or_publication_performance_match", "G_update_or_CPU_preparation_time"]
+}

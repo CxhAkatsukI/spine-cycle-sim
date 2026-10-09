@@ -121,6 +121,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_original_grasu_host.py](run_original_grasu_host.py)
 - [run_original_grasu_source_path.py](run_original_grasu_source_path.py)
 - [run_original_regraph_a4.py](run_original_regraph_a4.py)
+- [run_original_regraph_adapter_source.py](run_original_regraph_adapter_source.py)
 - [run_original_regraph_big_frontend_validation.py](run_original_regraph_big_frontend_validation.py)
 - [run_original_regraph_big_validation.py](run_original_regraph_big_validation.py)
 - [run_original_regraph_frontend_validation.py](run_original_regraph_frontend_validation.py)

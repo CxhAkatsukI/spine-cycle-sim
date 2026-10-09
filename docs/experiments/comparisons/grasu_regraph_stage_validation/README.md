@@ -17,7 +17,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 | G | Eight prepared-PMA cases plus eight host-prepared source16 cases pass complete state/protocol checks; host control declares two bounds guards and initialized padding | Temporal workload, paper8 geometry, finite-resource timing and publication rate admission; unchanged original host is not admitted |
 | A | Complete 11+3 graph execution, indexed state and finite ledgers pass under declared tail padding | Original-host allocation compatibility, graph-selected topology, publication memory/clock/window/denominator admission and timing match |
 | A4 | Complete Amazon and two fixtures pass every pre-Apply sum, four state replicas and finite ledgers; AXI capacities audited | Realistic memory/timing admission, publication comparison and fixed-resource adapter control B |
-| B | Not executed | PMA input adapter feeding the same original A4 downstream; state/work/cycle comparison |
+| B | Existing sharded HLS adapter passes complete source packets on all three A4 inputs; shared downstream extraction preserves all eight A4 results | Complete finite adapter+A4 execution, cold/stale-copy routing and fixed-resource state/work/cycle/overlap comparison; no timing-overhead result yet |
 | C | Not executed | Separate validated G/B windows, measured host orchestration and overlap accounting |
 
 ## Review Guide
@@ -30,6 +30,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 | What do source controls and HLS schedules establish? | [Initial source controls](SOURCE_CONTROLS.md), [HLS scheduling](HLS_SCHEDULES.md) |
 | How were complete graph inputs prepared? | [Original host inputs](ORIGINAL_HOST_INPUTS.md) |
 | Does complete original A4 work? | [Whole-A4 execution](A4_GRAPH_EXECUTION.md) |
+| Does the existing adapter preserve original A4 logical work? | [Adapter source and exact wiring regression](ADAPTER_SOURCE.md) |
 | Does the artifact's 11+3 example work? | [Mixed execution and allocation finding](MIXED_GRAPH_EXECUTION.md) |
 | Which Little components were checked separately? | [Gather](LITTLE_FINITE_MODEL.md), [frontend](LITTLE_FRONTEND_MODEL.md), [state](LITTLE_STATE_MODEL.md) |
 | Which Big components were checked separately? | [Routing/Gather](BIG_ROUTING_GATHER.md), [memory/Scatter](BIG_MEMORY_FRONTEND.md) |
