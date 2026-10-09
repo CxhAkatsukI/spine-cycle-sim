@@ -50,6 +50,13 @@ repeats, reuse and UBSan pass; all eight whole-A4 rows remain exact. Next add
 Big request-dependent source-memory service and connected mixed execution.
 This is not whole-R timing admission or a completed A/G/B/C comparison.
 
+The [Big memory/frontend checkpoint](BIG_MEMORY_FRONTEND.md) now separately
+passes request, wrapper response and Scatter captures, including original
+last-cacheline reuse and finite read/cache/queue ledgers. Source/model UBSan,
+repeats and all old component/A4/Big-Gather outputs remain exact. Next connect
+the complete mixed scheduler/state path. Publication timing and original
+G/A4-B/C gates remain open; partial component cycles are not stage matching.
+
 ## Separate Questions
 
 | Path | Question | Required control |

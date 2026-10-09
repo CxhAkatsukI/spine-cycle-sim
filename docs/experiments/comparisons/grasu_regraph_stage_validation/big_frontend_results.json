@@ -1,0 +1,3362 @@
+{
+  "FPGA_cycles": null,
+  "big_frontend_comparison": [
+    {
+      "cache_hits": 0,
+      "capacity_stalls": 0,
+      "checked_tuples": 64,
+      "cycles": 96,
+      "edge_bytes": 512,
+      "fork_stalls": 0,
+      "id": "source_case0",
+      "logical_requests": 1,
+      "reads": 1,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 64
+    },
+    {
+      "cache_hits": 99,
+      "capacity_stalls": 1224,
+      "checked_tuples": 512,
+      "cycles": 1907,
+      "edge_bytes": 4096,
+      "fork_stalls": 839,
+      "id": "source_case1",
+      "logical_requests": 511,
+      "reads": 412,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 26368
+    },
+    {
+      "cache_hits": 224,
+      "capacity_stalls": 316,
+      "checked_tuples": 512,
+      "cycles": 696,
+      "edge_bytes": 4096,
+      "fork_stalls": 234,
+      "id": "source_case2",
+      "logical_requests": 257,
+      "reads": 33,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 2112
+    },
+    {
+      "cache_hits": 380,
+      "capacity_stalls": 600,
+      "checked_tuples": 512,
+      "cycles": 1265,
+      "edge_bytes": 4096,
+      "fork_stalls": 515,
+      "id": "source_case3",
+      "logical_requests": 507,
+      "reads": 127,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 8128
+    },
+    {
+      "cache_hits": 0,
+      "capacity_stalls": 0,
+      "checked_tuples": 8,
+      "cycles": 82,
+      "edge_bytes": 64,
+      "fork_stalls": 0,
+      "id": "source_case4",
+      "logical_requests": 1,
+      "reads": 1,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 64
+    },
+    {
+      "cache_hits": 258,
+      "capacity_stalls": 636,
+      "checked_tuples": 512,
+      "cycles": 1271,
+      "edge_bytes": 4096,
+      "fork_stalls": 521,
+      "id": "source_case5",
+      "logical_requests": 513,
+      "reads": 255,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 16320
+    }
+  ],
+  "big_frontend_tests": [
+    {
+      "cache_hits": 99,
+      "capacity_stalls": 1224,
+      "checked_tuples": 512,
+      "cycles": 1907,
+      "edge_bytes": 4096,
+      "fork_stalls": 839,
+      "id": "sorted",
+      "logical_requests": 511,
+      "reads": 412,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 26368
+    },
+    {
+      "cache_hits": 99,
+      "capacity_stalls": 1224,
+      "checked_tuples": 512,
+      "cycles": 1907,
+      "edge_bytes": 4096,
+      "fork_stalls": 839,
+      "id": "reverse",
+      "logical_requests": 511,
+      "reads": 412,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 26368
+    },
+    {
+      "cache_hits": 99,
+      "capacity_stalls": 1224,
+      "checked_tuples": 512,
+      "cycles": 1907,
+      "edge_bytes": 4096,
+      "fork_stalls": 839,
+      "id": "reused",
+      "logical_requests": 511,
+      "reads": 412,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 26368
+    },
+    {
+      "cache_hits": 0,
+      "capacity_stalls": 0,
+      "checked_tuples": 64,
+      "cycles": 96,
+      "edge_bytes": 512,
+      "fork_stalls": 0,
+      "id": "line_zero",
+      "logical_requests": 1,
+      "reads": 1,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 64
+    },
+    {
+      "cache_hits": 224,
+      "capacity_stalls": 316,
+      "checked_tuples": 512,
+      "cycles": 696,
+      "edge_bytes": 4096,
+      "fork_stalls": 234,
+      "id": "duplicate_lines",
+      "logical_requests": 257,
+      "reads": 33,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 2112
+    },
+    {
+      "cache_hits": 380,
+      "capacity_stalls": 600,
+      "checked_tuples": 512,
+      "cycles": 1265,
+      "edge_bytes": 4096,
+      "fork_stalls": 515,
+      "id": "gapped",
+      "logical_requests": 507,
+      "reads": 127,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 8128
+    },
+    {
+      "cache_hits": 0,
+      "capacity_stalls": 0,
+      "checked_tuples": 8,
+      "cycles": 82,
+      "edge_bytes": 64,
+      "fork_stalls": 0,
+      "id": "dummy_only",
+      "logical_requests": 1,
+      "reads": 1,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 64
+    },
+    {
+      "cache_hits": 258,
+      "capacity_stalls": 636,
+      "checked_tuples": 512,
+      "cycles": 1271,
+      "edge_bytes": 4096,
+      "fork_stalls": 521,
+      "id": "offset_flags",
+      "logical_requests": 513,
+      "reads": 255,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 16320
+    },
+    {
+      "cache_hits": 99,
+      "capacity_stalls": 2824,
+      "checked_tuples": 512,
+      "cycles": 3635,
+      "edge_bytes": 4096,
+      "fork_stalls": 1671,
+      "id": "latency128",
+      "logical_requests": 511,
+      "reads": 412,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 26368
+    },
+    {
+      "cache_hits": 99,
+      "capacity_stalls": 26399,
+      "checked_tuples": 512,
+      "cycles": 28452,
+      "edge_bytes": 4096,
+      "fork_stalls": 14067,
+      "id": "outstanding1",
+      "logical_requests": 511,
+      "reads": 412,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 26368
+    },
+    {
+      "cache_hits": 99,
+      "capacity_stalls": 29280,
+      "checked_tuples": 512,
+      "cycles": 29875,
+      "edge_bytes": 4096,
+      "fork_stalls": 14909,
+      "id": "live1",
+      "logical_requests": 511,
+      "reads": 412,
+      "response_stalls": 0,
+      "scatter_stalls": 0,
+      "source_bytes": 26368
+    },
+    {
+      "cache_hits": 99,
+      "capacity_stalls": 0,
+      "checked_tuples": 512,
+      "cycles": 15261,
+      "edge_bytes": 4096,
+      "fork_stalls": 14958,
+      "id": "depth1_slow_sink",
+      "logical_requests": 511,
+      "reads": 412,
+      "response_stalls": 100,
+      "scatter_stalls": 9777,
+      "source_bytes": 26368
+    }
+  ],
+  "binaries": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_tests",
+      "sha256": "5128abf267b836456ba06f9439c7141f57b39f6b1036682feb8bcb3c35b993c6"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+      "sha256": "9bf56c94ed8eb43e47418c3c5bd8b3b0e3af6104971b1ebf67e1035e1092c827"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_tests",
+      "sha256": "cfa864b43b27150dd118fa6cd426a96425b0f6fcb45b731b93c1514d6ac2c377"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_comparison",
+      "sha256": "734450a84388b431d3fe46e3d072f21e57e55eb65c45af7e11a30dfbebe7051f"
+    }
+  ],
+  "boundary": "resident_compact_edges_and_properties_to_PR_update_bursts",
+  "compiler_version": "g++ (Debian 15.2.0-14) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "contract_sha256": "bd3eb82cb91e2870df3a2815514afcd380b000a3221772143c669a6363871fe4",
+  "evidence_class": "finite_original_big_memory_frontend_timing_predicted",
+  "legacy": {
+    "baseline_sha256": "64de7e5b89b17d2a9757a95c41fed320ac962487268f4734a8187701f2984345",
+    "checks": [
+      {
+        "id": "gather_tests",
+        "identical": true,
+        "stdout_sha256": "e5174d46d59f21c9de0e3c966fcf376c549e16c19a2cae22723ed5ccd6d1f408"
+      },
+      {
+        "id": "frontend_tests",
+        "identical": true,
+        "stdout_sha256": "faa36287220f92d095e20abad5464824e42409a83839004f70f8996209448000"
+      },
+      {
+        "id": "state_tests",
+        "identical": true,
+        "stdout_sha256": "892a9a8f21f5229209e4aaa33f3c1fe69823405d4b4a580aed938bb68717c7cd"
+      },
+      {
+        "id": "iteration_tests",
+        "identical": true,
+        "stdout_sha256": "1eddfaeab93a217d88f98dde0e3010b19995d52acbe1b7ed0818de23b41b9286"
+      },
+      {
+        "id": "big_tests",
+        "identical": true,
+        "stdout_sha256": "4d038a575dc7f552f48bb018543edfafa07822b6d8f5522bd62c02d5670e9992"
+      },
+      {
+        "id": "boundary",
+        "identical": true,
+        "replica_sha256": [
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+        ],
+        "stdout_sha256": "d6c9a5e1303aae8750bbeaf19325b4ee61ddf3cd37faca9121f10ff1c55246e3"
+      },
+      {
+        "id": "boundary_reverse",
+        "identical": true,
+        "replica_sha256": [
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+        ],
+        "stdout_sha256": "d6c9a5e1303aae8750bbeaf19325b4ee61ddf3cd37faca9121f10ff1c55246e3"
+      },
+      {
+        "id": "boundary_two_parents",
+        "identical": true,
+        "replica_sha256": [
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+        ],
+        "stdout_sha256": "1f5fb3cdc414611d1b1d5ed87b7eb5cb8645b614e12c1156b07d3f2bbb2e15d7"
+      },
+      {
+        "id": "boundary_latency128",
+        "identical": true,
+        "replica_sha256": [
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1"
+        ],
+        "stdout_sha256": "1e2c996a4a378c9c1677dcde0b8712a20739b3e85c894b74e0ab9ea0d86ec7d6"
+      },
+      {
+        "id": "skewed",
+        "identical": true,
+        "replica_sha256": [
+          "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+          "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+          "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+          "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+        ],
+        "stdout_sha256": "cd04e587f1b52425f198c57238a253e72d1097d75f2ed973057d6d5cb96b4349"
+      },
+      {
+        "id": "skewed_reverse",
+        "identical": true,
+        "replica_sha256": [
+          "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+          "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+          "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+          "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336"
+        ],
+        "stdout_sha256": "cd04e587f1b52425f198c57238a253e72d1097d75f2ed973057d6d5cb96b4349"
+      },
+      {
+        "id": "amazon",
+        "identical": true,
+        "replica_sha256": [
+          "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+          "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+          "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+          "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+        ],
+        "stdout_sha256": "6c2abf8782d0737e6274a964fcf6ed83ecc0770239bd5114f9ceb2157a6c868f"
+      },
+      {
+        "id": "amazon_reverse",
+        "identical": true,
+        "replica_sha256": [
+          "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+          "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+          "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+          "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45"
+        ],
+        "stdout_sha256": "6c2abf8782d0737e6274a964fcf6ed83ecc0770239bd5114f9ceb2157a6c868f"
+      }
+    ],
+    "old_sources_unchanged_except_build_list": true,
+    "whole_a4_reference_sha256": "da34da9d64fb8db7f061a93e3204c4074b15f393541302dc43166c53b150ca18"
+  },
+  "legacy_big_comparison_identical": true,
+  "negative_controls": [
+    {
+      "id": "header",
+      "rejected": true,
+      "sha256": "27e05d87cf15b97ba490ad171f40ceec9ee20eaa31e9b87008206fb2c97d80d4"
+    },
+    {
+      "id": "request",
+      "rejected": true,
+      "sha256": "a885e5468f0cadd442fcd8766771e8101116935165bd85410ca417e24413af2f"
+    },
+    {
+      "id": "response",
+      "rejected": true,
+      "sha256": "a1b035ec8b68cb4f2a897ad191790f2c519715117ede8dc9a451f461a1d757b0"
+    },
+    {
+      "id": "update",
+      "rejected": true,
+      "sha256": "e72eb9de4d6901d7cd4f4fbffc4e3c3a4c1a0191d46afe1501f8628f362b0285"
+    },
+    {
+      "id": "truncated",
+      "rejected": true,
+      "sha256": "d61fac1950ee14f4f2e2bedc3eee21fac9ae5e537512a800ea8695d400d0251e"
+    },
+    {
+      "id": "excess",
+      "rejected": true,
+      "sha256": "9f5196a7a8c025d281522e9169f2e68733de175f7c8460c929f2cd49391b1354"
+    }
+  ],
+  "not_claimed": [
+    "FPGA_cycles_or_publication_speed_match",
+    "complete_mixed_11L_3B_execution",
+    "combined_Gather_Apply_writeback_timing",
+    "exact_HLS_global_stall_or_AXI_coalescing",
+    "publication_memory_topology_clock_window_admission",
+    "G_or_adapter_B_overhead"
+  ],
+  "publication_error_pct": null,
+  "schema_version": 1,
+  "source_control": {
+    "binaries": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/probe",
+        "sha256": "7403fa63a9f28674b51e696946c172db438d4449d4380ef533a022bf7400ef1c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/probe_ubsan",
+        "sha256": "4cda1a8589d4d705d518ae7b49982dd3b7742fc57e4b5e0c357b1ec30a367e47"
+      }
+    ],
+    "capture": {
+      "bytes": 167960,
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/first.u32le",
+      "sha256": "df58d586033c3932edfd1e39d5bab9c7c362b73a452e85f518bde792a9140220"
+    },
+    "cases": [
+      {
+        "bursts": 8,
+        "case": 0,
+        "requests_including_end": 2
+      },
+      {
+        "bursts": 64,
+        "case": 1,
+        "requests_including_end": 512
+      },
+      {
+        "bursts": 64,
+        "case": 2,
+        "requests_including_end": 258
+      },
+      {
+        "bursts": 64,
+        "case": 3,
+        "requests_including_end": 508
+      },
+      {
+        "bursts": 1,
+        "case": 4,
+        "requests_including_end": 2
+      },
+      {
+        "bursts": 64,
+        "case": 5,
+        "requests_including_end": 514
+      }
+    ],
+    "dependencies": [
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/ap_axi_sdata.h",
+        "sha256": "6ac2b5a198b9ec59884006fc32c62401c1732f7a4e6efc9aa3b4917e06ee81cf"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/ap_fixed.h",
+        "sha256": "8c0990470e583216b8bb34d9b132691a13943dcea5935cbabcfa62a2047f9c69"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/ap_int.h",
+        "sha256": "f56975ae6c369260be52c92a97f602f4f215d6ed8c400ea3f61607b9af383354"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_common.h",
+        "sha256": "8f4bc9b03daadb6613f9eb499c06e1c54f41fdf17b15dfa96c887c63a22d4b04"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_decl.h",
+        "sha256": "930040d625d1ff634bfb59c01ad13c892e79fa58bdf6987d64914145d655f3de"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_fixed_base.h",
+        "sha256": "22765417d6583f16733dc1632c04f87405ea9ed5094b471dd8b8bc846664467c"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_fixed_ref.h",
+        "sha256": "012b818fcce557970bdb2006257b8bca60b8805fc5089018d18ff4835a76a601"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_fixed_special.h",
+        "sha256": "52108459b981d65b17a0864f2c7b9d4d1200a05ad8db78c42cb626ee820b9d3d"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_int_base.h",
+        "sha256": "a5f38bcc9a130abc96afb1707ef48d276f578f9137c81efc099ba9df1714fbd6"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_int_ref.h",
+        "sha256": "a3d82db491dc1becfaa6fcdf5dd14479ec101a4af75bfaa3f24301a5338d4868"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_int_special.h",
+        "sha256": "d1848c387b49d3fd44a14d0b7501b049aaab22824dc1dcb10caa37b1256a2ba8"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/ap_private.h",
+        "sha256": "42d81e1c59596724504bbf22662f1dd8224bc6be2fc9643a3caf781735ef4613"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/hls_half_fpo.h",
+        "sha256": "39cd322bbba1572cfdefb6d927105cfce65570401acf28cc04a5c967797aa894"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc/hls_half_x_utils.h",
+        "sha256": "65bb873a8429f341b7a5870f00461ca41b0a9374be5e6c298559289ed8827856"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/floating_point_v7_1_bitacc_cmodel.h",
+        "sha256": "7d188e00824826540ec813c64a3a389b8dc44365fbf640714c3e20ab169ef4f0"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/gmp.h",
+        "sha256": "dbec1da56d245658930a6845aa6cf64cf30f0cab6ba0b5f6954272af6e0198b8"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/hls_fpo.h",
+        "sha256": "286baa9d0e42d13362b1646acc1e3f9b295f4787bb0c2e02532a29046c37325b"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/hls_half.h",
+        "sha256": "96cd45f450092f58ef334b4ae1d7917526c120917d07b7809a5fbe172b924077"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/hls_stream.h",
+        "sha256": "6a1a170d8467646128a74e1fccd65248bb5ef7359786af6b92b109ff4c5dc3ac"
+      },
+      {
+        "path": "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/mpfr.h",
+        "sha256": "3352b1feab5ac9a5c22cc1869aff6d56fdb7df7ee61428d6eca4971d725a5374"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/publication_sources/probe_support.hpp",
+        "sha256": "1c4c86e10b941f0039cef4b10d60d4d20a5c08526b1b053033f2f23db3415891"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/publication_sources/regraph_big_frontend_probe.cpp",
+        "sha256": "73e87747f6c627eb8368a36b8a9bb61c775ba5234a181b51559c8d529515e864"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/common/acc_config.h",
+        "sha256": "02b8123e275df964076c10d46101a37349d68a8ab9b6ca6b20c9c84acdfe3e86"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/common/acc_data_types.h",
+        "sha256": "982ea125a4914e572f83465391479e228a200a416c282dd2c3175d5d57b2ea94"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/common/fpga_application.h",
+        "sha256": "baa554f389db7c442a58eeee731e3b967b1c88206d2b8ca02357e9e9cb1be35b"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/common/l1_api.h",
+        "sha256": "c78211bdf95337bac86f4f4fda4a853d14d2c86915ddbffb1143d4806e09965c"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_big_gs/acc_scatter.h",
+        "sha256": "197a76f7d5589b3abc29f8b2f21a7da155dd1047e9d8f9fabedbd34da843a3e1"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_hbm_wrapper/hbm_wrapper.h",
+        "sha256": "93661638e35fa6d5b669f7fbc5b54a61a3211d30cfa3eb1bae6d27d5197c878f"
+      },
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_udfs/pr/l2.h",
+        "sha256": "37394bde14d3bc64de0214868c0e7b2b863ef91faa7788a983612d7386e4a0a3"
+      },
+      {
+        "path": "/usr/include/alloca.h",
+        "sha256": "8655ed58a5aedda99207d636aba00cbbf9842cfed6722593876a083700b4d138"
+      },
+      {
+        "path": "/usr/include/asm-generic/bitsperlong.h",
+        "sha256": "3a8e58cc67210c5a2b3bf24c84a96328e974dfe94206c74e5478d3142c991cf7"
+      },
+      {
+        "path": "/usr/include/asm-generic/errno-base.h",
+        "sha256": "2c148e92b8318deeb767fabd60822113e575ee664ff09a1873aed8f7a495793c"
+      },
+      {
+        "path": "/usr/include/asm-generic/errno.h",
+        "sha256": "fb7b5a504015f3a9074c641e7371b250d867d751d90e4a22a8ac17fced3d50af"
+      },
+      {
+        "path": "/usr/include/asm-generic/int-ll64.h",
+        "sha256": "eb8b891e775ebb50af0353fdcbc625854fd98780399b3a57a404d36af6c29749"
+      },
+      {
+        "path": "/usr/include/asm-generic/posix_types.h",
+        "sha256": "8d273280f282bf9e810f00ad9905977161dec3f103ef789892ceec8c453e1398"
+      },
+      {
+        "path": "/usr/include/asm-generic/types.h",
+        "sha256": "09b4477d655ddd2c5657e83a0761700d6706f012c7365f310a6b0a6696936a10"
+      },
+      {
+        "path": "/usr/include/assert.h",
+        "sha256": "2889066c81efc417e8d3e11d76dba9ba2373d44b8bee805e97b8d9bd70834749"
+      },
+      {
+        "path": "/usr/include/c++/15/array",
+        "sha256": "01c907cd814896810911d1c2703790d34ab9c93552dec257019cd587b7275df0"
+      },
+      {
+        "path": "/usr/include/c++/15/atomic",
+        "sha256": "3db46fff7c71193aac3865305181d27d556c09dddc422d386b993d228c399f54"
+      },
+      {
+        "path": "/usr/include/c++/15/backward/binders.h",
+        "sha256": "0e9a2f4c30540b0576503138bfd31191156e03bb2cead12b2bc796679f3b0c4c"
+      },
+      {
+        "path": "/usr/include/c++/15/bit",
+        "sha256": "9aa15a89513b5c540322170dbd657f65e9b0b0b290d801f5ad4c08c9a35f70e1"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/alloc_traits.h",
+        "sha256": "aacc9ad8e66d9c5118bf336c01729e3a2a7e512dace395b09f4717ac384ec6e0"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/allocated_ptr.h",
+        "sha256": "d56c1873a940c8ac9a46b86cb603113744fb2326b71e150f2c17c7dfc18e0d96"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/allocator.h",
+        "sha256": "d4e5bc6d36bc57723a4634201b725fba98d51c106ed0180f6e6bd2f2be3e6bf6"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/atomic_base.h",
+        "sha256": "3942989fdd66643b08eecb2b547c1e375c63a1e3347b60593958693784cf356b"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/atomic_lockfree_defines.h",
+        "sha256": "64b276fae9b151d1e063b65ef233e2d65fd49e4ba829f07012445ef88c16084d"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/basic_ios.h",
+        "sha256": "f85d4bc430ff99f76f8bae89f850729bd25c099c89e8f779a280b6dec5f4d501"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/basic_ios.tcc",
+        "sha256": "8b90ecd76248a1948b786b4a4052150dcf73eb4326e4e3d3cec998083e0f051f"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/basic_string.h",
+        "sha256": "272d9f689c2ef96bda5b117cbd13a6012a5492b1a1d5f8dbc1e8acb00547c3ae"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/basic_string.tcc",
+        "sha256": "fb82ea022a52219d5dd00f6dd779e1f87644d86646f90e8e1321d4ebcad5d387"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/char_traits.h",
+        "sha256": "fede2bfa2b754354b254d19c1dfa51d7d8e1da9289ff6b198fbd88089f229c2c"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/charconv.h",
+        "sha256": "ea0fcf14e54ffb9c3509df844f8645f5a5ddbc67f1352916c25b53543a44c793"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/chrono.h",
+        "sha256": "e1705c04a03021a6c8b41cbe99d0d51fe3ef7eac9e77c83796e920cd318aa2a9"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/codecvt.h",
+        "sha256": "ac183df0317e23103b7a9ca621995baf50ebf33bd7205524288a73200d03b255"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/concept_check.h",
+        "sha256": "bba7c664ba77959c6024e0302f56e9997054d3d19471a4afae05c41dabcb2f24"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/cpp_type_traits.h",
+        "sha256": "28cb168898e61b6d11916e0c1a49f9e21f99f13348c1c8fa69b78e093dc53384"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/cxxabi_forced.h",
+        "sha256": "90e1b435f83d1279caad5416fb061b0e4ec7932521215382665949d1ccde6858"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/cxxabi_init_exception.h",
+        "sha256": "14bae741e2dfa28050813941d936f8b6428ca83d3186b7d5b99948a0b7e605aa"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/deque.tcc",
+        "sha256": "2f1ce7b341725ae7448511c02119acb5fbdebc5c91eb060e738ecf4b64462b70"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/enable_special_members.h",
+        "sha256": "c9a80e9e203dcd0de053b43a1172d174e634d0361301bff97f09033836aa6a35"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/erase_if.h",
+        "sha256": "6c887e2ff172b15cafa044179627e93e9ccd05a84db769fcabf709caa5b3473f"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/exception.h",
+        "sha256": "77c4297fb1d14b8618e7680918359f4b0349a37954ed3a73c781840b32dc6973"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/exception_defines.h",
+        "sha256": "9fa6e776e83a9b716e172fa6a43c5f6be691b9d4b5d14cd666ab90fece8f086f"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/exception_ptr.h",
+        "sha256": "ce7a37e7fcf46d9c9a6e5a8e7ab903a481fa6f4d1cc01cd6122e6601603541c2"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/fstream.tcc",
+        "sha256": "d9b75abeea0d830226f54aab325f0d9a5180a1782348febe5e438b4a5dc6f606"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/functexcept.h",
+        "sha256": "2c4691c792b523769f63376161f31a95a8adaa2a760d103118d9d8e1ef9c1d37"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/functional_hash.h",
+        "sha256": "11959f3edebba5a21f98833d55f68f94354dc37bf291cae838e729f3c8a781d5"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/hash_bytes.h",
+        "sha256": "e51f4e7cdc2f499d1369910b5869fe72af590423579fba0233ff90e7a72a7446"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/hashtable.h",
+        "sha256": "31aa8f84f3aa819b57e7c37e1e502ed767b6007355638349009a832851aa60c6"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/hashtable_policy.h",
+        "sha256": "952d24a022e37fdc0535f09d943c6c0c0f2f2b9072734707d13cd83b628546b8"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/invoke.h",
+        "sha256": "ad472939aebb37fcf68ba83c6caa6ea45ed5474b91a3204c904b394b19b8e945"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/ios_base.h",
+        "sha256": "0168c00c68d1ccc9c5bf4e4a1e0f7a2d14d5fdd0f6f79fe3c2d061b56604a871"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/istream.tcc",
+        "sha256": "a45bbc349691e8e352f218516584b0fa8926fe0034867d971a649591b5cbe083"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/locale_classes.h",
+        "sha256": "dd6fa1dac66d786100d719f15028ab09d40cb3b9185273056b1c057c768e56e6"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/locale_classes.tcc",
+        "sha256": "fc42f5513b85a38a8f4e55140deaece199ccc90c44747d12cf74212d74db64b3"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/locale_conv.h",
+        "sha256": "4d7e174c0b798ee969f99abf941dc2c74521e16a4cfe33ccf8ae59254f20923b"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/locale_facets.h",
+        "sha256": "0e498bb9170a87116543ad1688937713caf372db3d4ef7e80e973ba8a6a9ba15"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/locale_facets.tcc",
+        "sha256": "4057762b8a0da42d71f19bf55294c756b023585eb505bf1429120d1830aae8d8"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/locale_facets_nonio.h",
+        "sha256": "65669d8dc4249afe52835cbca7e4c4dda8aab378e126f5379128d8f43c3715c5"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/locale_facets_nonio.tcc",
+        "sha256": "3372f52458ffe7e8be53d41381ed4d35ae2e050d2d7bde10faf9131cf24d1c89"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/localefwd.h",
+        "sha256": "44467e5f5b8a95b94e6392790106d3c83f31b584a06973484fbd924a8f3e5020"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/memory_resource.h",
+        "sha256": "3a6441bb7624e0f410db31c8778ef2b352f2b9578195371ddc3eae8c8c957478"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/memoryfwd.h",
+        "sha256": "26fec04ffa838255b38ca152868ab4b00c6d07fc307893ad2fd15029cc7e2176"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/move.h",
+        "sha256": "c75af1d3f0c48e44547409ce43274adbd8790b1fb63926bdfb8fabfb7960f6bc"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/nested_exception.h",
+        "sha256": "3a5e959100e86bc3d48be06cd4e695764e337f23dd8442495a1bebbf16495862"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/new_allocator.h",
+        "sha256": "e81b789ed8cab7674db3799f447b80553ef102481d787884641df5099bba94f2"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/node_handle.h",
+        "sha256": "5bb1f1836bac9fdeea3c2e60b8efa5526e89d6cc5fde229c897778c347b99829"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/ostream.h",
+        "sha256": "f7c9201a25d7482eeca550789095bc576ad4f251e71442dbcfc9651763e69f10"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/ostream.tcc",
+        "sha256": "ea9140b0ae96a6907cbf6ff303472e220e91415a6730a6b687fe49b1129aff74"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/ostream_insert.h",
+        "sha256": "7df2693547af9f9aa5cfa565405127042c05870449055af0cd329d6af642f6de"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/parse_numbers.h",
+        "sha256": "45de8acb85250d49bc0903aab8bc181922b1a8bdfb1b352598377566a31539a9"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/postypes.h",
+        "sha256": "b4d420ba1c3fbb0909539e30d4565aea9f06a2842fee8fd9b22904644e60a88c"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/predefined_ops.h",
+        "sha256": "18f5aacab724424cc61615cd66c66dab04439e8876c8a40e80045d4ec7fff5b0"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/ptr_traits.h",
+        "sha256": "5986ab64a5018aa9a9eb840132ba3ac2154418c23e5010911f90dc9ab67aec9e"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/quoted_string.h",
+        "sha256": "f9b2a7048b67b3ef7529084666cf3dd9a7b65522ad85e3ad7061a265f550755b"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/range_access.h",
+        "sha256": "d823b0c0f6614d541c77d906f151e194997d0e6c495262b189b8451006f8e4e5"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/refwrap.h",
+        "sha256": "ce2d28458ba5aa8f4df04e8013986e97944430d8641e09bae3d563f8d7d4a2a6"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/requires_hosted.h",
+        "sha256": "e3a41079a079eb22fe7e9b45271ab5e8e2a051b3fff4cd4e971ecdc2ab874fe2"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/shared_ptr.h",
+        "sha256": "72cc45d6cc2f237d344866959a2184e15c29dc63c789945747ee3d83aa7da34e"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/shared_ptr_base.h",
+        "sha256": "a78944127d78c48425125f4bc16f1e3fb5b66d3adf381d4168f0298425172e96"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/specfun.h",
+        "sha256": "061597eeb26be87586b737872022b7b7f49c0dd7c2e0afdc36bf16b1d75b9918"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/sstream.tcc",
+        "sha256": "5a83c383c90828cba33b176e9ea2fa37b0ece4090f43a27c7b44b29491dce24e"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/std_abs.h",
+        "sha256": "a5234b46c1d248fd821d0af56ec0aac8d07c8fc978450c558d6267980194896b"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/std_mutex.h",
+        "sha256": "20821dd1f5fcfd160df488d479b575d595158a436ee0aded3f0aa1eaeff4f415"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/std_thread.h",
+        "sha256": "aa5a0a80afd2258d6d8fc193fca386bc4bb5d977f0b127028f811667364afa8c"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_algobase.h",
+        "sha256": "3ba7fdbcf8e5fb9a799dd876d6a66eee750ab94395b8b2129b619b99dac25c13"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_bvector.h",
+        "sha256": "30ad511d5eff8dfd4256c37ad400a9d5680ef78dd752f89a7760090038317efa"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_construct.h",
+        "sha256": "9434a55937ac7912e975634006cd2723f1bef8b63c5f9f04aee0d8a2e4772c6e"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_deque.h",
+        "sha256": "8ee15f7e3c828b2ef73181ee9fcfaaeb51076988c3da32f218dda8c81bba7c20"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_function.h",
+        "sha256": "6a0942c6e6ade055ed76f40838d4d878bb8bbc562028c1d4e9767b42407e0a7c"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_heap.h",
+        "sha256": "4cd107c49adb58a1a31735b16bbc65ed8bd2d81967f2cecc651caa1beaaff5ef"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_iterator.h",
+        "sha256": "7069cf3e004e51255233ad488752efb3326eb194247147e64020bae21048e67f"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_iterator_base_funcs.h",
+        "sha256": "8ad31a56f36d0a41d038a2d96d34daaa32d79db7433d91f14a4f773af0249fdf"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_iterator_base_types.h",
+        "sha256": "7eae0799798c890eaba2752462879235ff29675158ddd4c1c97832f3dcc5fda8"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_pair.h",
+        "sha256": "7bacbe91fbb29537f676b9549953c21f2b85880aa79bcd04abea487966389231"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_queue.h",
+        "sha256": "6b51fedee6e2926ebe1b2e6e801ee86e26a53ae45582a3ec67e624216b670ad1"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_uninitialized.h",
+        "sha256": "fd3c45def3508f75dc1599a5221dc7a86dc45f9d8e41d800b55c03535978442f"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stl_vector.h",
+        "sha256": "b2163ab89f65b9b0df05b2af52e30186cd6bfa6c15e2eca8262ceb1f906a0fd7"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/streambuf.tcc",
+        "sha256": "044d85eaf2b28beb3552cac16085fea0a8d986d02bd5d80080e1e6a3951437cf"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/streambuf_iterator.h",
+        "sha256": "2e55cec0cd24fc9bc9b728936aec8840383de698c65916d22dd7b8b3ad5af21e"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/string_view.tcc",
+        "sha256": "1866d0985d21e8e7e88bd6a3f8ae0ff63582ee04e5719ec7e93e29027216c647"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/stringfwd.h",
+        "sha256": "7b23ace02b5f070513dc1683a73b29b9eea352b98b3df6841eacc35d6a4a6a23"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/this_thread_sleep.h",
+        "sha256": "3394dfd763d75f6be18080406edf68153e499ab0e328d470923b2247ceec8155"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/unique_lock.h",
+        "sha256": "55b145bcddd53c65dae3118503720bb841411fed62372369d299aa87373f664f"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/unique_ptr.h",
+        "sha256": "e380ad67a2b5f7f1a90f0e9d8cae254d733b09433425a14f3ca16e8c253ed2a6"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/unordered_map.h",
+        "sha256": "523a694af033f3cc471fe23e66ee2c2425164a3a1cb58805bd35b4f895b2ec54"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/uses_allocator.h",
+        "sha256": "bbcd2d272c31ad990e0b37df246cb6fe3ecc8b6df39f1f355c8ad22fdb1add45"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/uses_allocator_args.h",
+        "sha256": "2826e5a72882b60d6a13ec002c105319ed75f9838d05487437d60b2dd133b779"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/utility.h",
+        "sha256": "5c3a2d1f53c3fe77bb32c2d074afa6655f7742da7a28d06f60bb0dbac125ac11"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/vector.tcc",
+        "sha256": "e835a64b6db1cf843a2c4e2d56cc5abad6452deda0d03d8fe9ad167edc90961f"
+      },
+      {
+        "path": "/usr/include/c++/15/bits/version.h",
+        "sha256": "e6ad7c73aa2355dfba25695487e356fa3f98bc11cb56c5adacd2b669ad0ece53"
+      },
+      {
+        "path": "/usr/include/c++/15/cassert",
+        "sha256": "80a06af2df4e7623232ee4ae7e41d3651e5b54e643baa03a4349d16b9446f1d8"
+      },
+      {
+        "path": "/usr/include/c++/15/cctype",
+        "sha256": "9da7fa23600919647ebe93fdf763a2f38d0025f95e2d8e8db378f39c420df21d"
+      },
+      {
+        "path": "/usr/include/c++/15/cerrno",
+        "sha256": "47b99ec44b4bc79e76c8697d7d91201dd727585fb6f0a0366d9d88b35e97bbb2"
+      },
+      {
+        "path": "/usr/include/c++/15/cfenv",
+        "sha256": "903db183b196d0d8947a03f6dbc7e159b44c6e257171c4c6113ba9a036dbb34b"
+      },
+      {
+        "path": "/usr/include/c++/15/chrono",
+        "sha256": "c039b66b1c24820fb97dc80c6c46df4fe6ce65e30076794544dc904b99b3b8b1"
+      },
+      {
+        "path": "/usr/include/c++/15/climits",
+        "sha256": "dff81b18694c6331fb12c034f0ec242a7117b2ab9f853b9301b41438322d71f6"
+      },
+      {
+        "path": "/usr/include/c++/15/clocale",
+        "sha256": "3652456511dbf30741e49b0b97ecd8d1f5053575897ee2e3c7dba5ccee4bbdea"
+      },
+      {
+        "path": "/usr/include/c++/15/cmath",
+        "sha256": "c0e2ec40a610e48b1fe7100353bff8fc97c98e125e606179f1a38469af2357b9"
+      },
+      {
+        "path": "/usr/include/c++/15/compare",
+        "sha256": "3c21d986bd8fbd1d9ec9a1778a67db7cfab9ce335965602f12051cdd376cf504"
+      },
+      {
+        "path": "/usr/include/c++/15/concepts",
+        "sha256": "63f21868cebad3f5577623dc1f1c13e65bc8f4e41621632250ca4f5db9cf87c3"
+      },
+      {
+        "path": "/usr/include/c++/15/condition_variable",
+        "sha256": "4120956cf72d61171dd966ec925d3c37aeba18ff7df9fdfaf5aa675e6e7edbef"
+      },
+      {
+        "path": "/usr/include/c++/15/cstddef",
+        "sha256": "3d128b473bc0d915e130385abc910358201d2694f24fc9630885fa2e03d94c69"
+      },
+      {
+        "path": "/usr/include/c++/15/cstdint",
+        "sha256": "29263eed8b2d09b5a8c3b803da92c4ebf91d6a219a2c3fc44cac061cc2780677"
+      },
+      {
+        "path": "/usr/include/c++/15/cstdio",
+        "sha256": "f79b5a3f15ba1af99fe963e915458f2e81aa1db43cf2ad0b3d3353471ddc6b43"
+      },
+      {
+        "path": "/usr/include/c++/15/cstdlib",
+        "sha256": "25917ebada7bf3e269f89593a544826030f2efc7973fcc0a8c42ba645863f496"
+      },
+      {
+        "path": "/usr/include/c++/15/cstring",
+        "sha256": "7f4e5a03f972192696bb686474a9cf0a4c8bb79a26d7fcc2e7782672148e2803"
+      },
+      {
+        "path": "/usr/include/c++/15/ctime",
+        "sha256": "91b91f24cc52690ae6dcded83cd1111e3ac6520f7b28563d6cc9541c6171a250"
+      },
+      {
+        "path": "/usr/include/c++/15/cwchar",
+        "sha256": "6721f87b681623bafc39228626ad22d35344107e9b210ec0cd9f7713a537cf56"
+      },
+      {
+        "path": "/usr/include/c++/15/cwctype",
+        "sha256": "a1293fdad5c4b8d72d24f06e3a7572012f4a13f41fe0ca328e350dae13ff90bb"
+      },
+      {
+        "path": "/usr/include/c++/15/cxxabi.h",
+        "sha256": "711ae1aa69bc92e1cdb9e89ee8170dbb389a89b4e3addf68ff1d942cc53bb8fe"
+      },
+      {
+        "path": "/usr/include/c++/15/debug/assertions.h",
+        "sha256": "cfec10c6546c15e493c60fafcc5a2163fb37c978aed84ccc9c46a9b5bc34015e"
+      },
+      {
+        "path": "/usr/include/c++/15/debug/debug.h",
+        "sha256": "1b697cff3be5922f780dc68aab074e6a9dbbe78e1980a29926e42afbbb3cb3d5"
+      },
+      {
+        "path": "/usr/include/c++/15/deque",
+        "sha256": "aa710eb1038941548e0ce5e1b5cd7cbe6b4e248183b3ba88f2c15e353e17a82e"
+      },
+      {
+        "path": "/usr/include/c++/15/exception",
+        "sha256": "2cdb0f2b1cd740475088fa3cc9859007412b3566b71946dee085a00c28445d8d"
+      },
+      {
+        "path": "/usr/include/c++/15/ext/aligned_buffer.h",
+        "sha256": "68ec0a36cbe09df4e956dec6643559ac0913a5b62b70ee7cab902d85d1628195"
+      },
+      {
+        "path": "/usr/include/c++/15/ext/alloc_traits.h",
+        "sha256": "3d1b9fbe5c0a8d22dd6d901aa9f8ffbd87312152913b6a96a38e30c8b24a3794"
+      },
+      {
+        "path": "/usr/include/c++/15/ext/atomicity.h",
+        "sha256": "2e3616d9f7e7516ef65ad10271fb59019e0327e7017bebd811d02fdbcd144aaa"
+      },
+      {
+        "path": "/usr/include/c++/15/ext/concurrence.h",
+        "sha256": "98c623329005f3a50eb41781095c131efabeedb24218ee28828a45d7b8a41782"
+      },
+      {
+        "path": "/usr/include/c++/15/ext/numeric_traits.h",
+        "sha256": "b21a9e049805180ede7b1e8467d5da47b7388fc9e4bdbb9ff98489d1c6945007"
+      },
+      {
+        "path": "/usr/include/c++/15/ext/string_conversions.h",
+        "sha256": "616f0331c1445daba2fb90ca960a003879835dc570d7df1a62cf1875097c7f29"
+      },
+      {
+        "path": "/usr/include/c++/15/ext/type_traits.h",
+        "sha256": "0a42d589ff085acb064fc03ddf131e0e4b00fc0745738daeb07a38118c98f0a0"
+      },
+      {
+        "path": "/usr/include/c++/15/fenv.h",
+        "sha256": "774d74645d345a73e72fb332aa7546d54438bef1595fe856a1849a907c279d51"
+      },
+      {
+        "path": "/usr/include/c++/15/fstream",
+        "sha256": "67802ca812609d72df8dc2a5456953ac507f77be2a5ac4cdb6f85a7c12f643eb"
+      },
+      {
+        "path": "/usr/include/c++/15/initializer_list",
+        "sha256": "0daf0c7b4d21a0962bfa22661cd39bc5f3cb629ff7c86d42aa0ea9b83a4f063b"
+      },
+      {
+        "path": "/usr/include/c++/15/iomanip",
+        "sha256": "ce69c05b79ae07b6c4fc656feabbececf600d7c44d4a7e8dd4749971e8bc7232"
+      },
+      {
+        "path": "/usr/include/c++/15/ios",
+        "sha256": "4b7f7c3c0bd59fb26f100758979c4a9371e336c51a5a9f73ac351640ad3fd3bc"
+      },
+      {
+        "path": "/usr/include/c++/15/iosfwd",
+        "sha256": "d74bbdf3fb07e416bd269181b9a7aa3e005f355faea80c41442eb5c3b79ef17f"
+      },
+      {
+        "path": "/usr/include/c++/15/iostream",
+        "sha256": "41935238f58e4e8b85a32b23c60deda473f05d4d37fd5984281a333f9e74d6c0"
+      },
+      {
+        "path": "/usr/include/c++/15/istream",
+        "sha256": "0579f692f69b9fafa4361c8dbd4db46358a7091fc6e7195ac8cb7fa8254ec8b4"
+      },
+      {
+        "path": "/usr/include/c++/15/limits",
+        "sha256": "050ccdf4c4cc2383e79a7a4acdac01a7189124634969f8b4dab1b21219d8bddc"
+      },
+      {
+        "path": "/usr/include/c++/15/locale",
+        "sha256": "e38b80a3e80afe4fe38de62e6cc63db1a20b96fa19aaeec40defde9b954e9b6d"
+      },
+      {
+        "path": "/usr/include/c++/15/math.h",
+        "sha256": "33d7931705edd370fb7188825c0e39077eea102523fab169ad4ee6e3a0eac132"
+      },
+      {
+        "path": "/usr/include/c++/15/mutex",
+        "sha256": "0ccd60fd5313e1e66252de0e89647655184b68ce1646281a65031186a5fd2c98"
+      },
+      {
+        "path": "/usr/include/c++/15/new",
+        "sha256": "cc066fae2bf521a4d5751470a4710bda4a46506c8af0c3a03dd9c988380ec206"
+      },
+      {
+        "path": "/usr/include/c++/15/ostream",
+        "sha256": "80c29f8fbace184dc56ed889130f6823c8d9fec57e34f8687da67c2578317b1d"
+      },
+      {
+        "path": "/usr/include/c++/15/pstl/pstl_config.h",
+        "sha256": "66d40c2f29f0702ceb8415009cffc1437f74395b60b3ab195e154d411a4ec68a"
+      },
+      {
+        "path": "/usr/include/c++/15/queue",
+        "sha256": "91e4d08d3570027dc24f910b5f3268225cf09a5e930105b001f61644d4970032"
+      },
+      {
+        "path": "/usr/include/c++/15/ratio",
+        "sha256": "e743a38aace4c343e424cfa28591650649e342833fdac70d17686aa2f8336662"
+      },
+      {
+        "path": "/usr/include/c++/15/sstream",
+        "sha256": "1a724a88455e1f85ec32bad80224ed50da04740eac4760c4cac7b9179101bf6d"
+      },
+      {
+        "path": "/usr/include/c++/15/stdexcept",
+        "sha256": "d8e116c58c0151dfd98a450100891aadb27fe09a1be108fdff4c381925915155"
+      },
+      {
+        "path": "/usr/include/c++/15/stdlib.h",
+        "sha256": "3d30979b7940f45eb733e2552167edc5d4a22b06e6a5f687254a8f6609730de0"
+      },
+      {
+        "path": "/usr/include/c++/15/streambuf",
+        "sha256": "69ef3393825daac31c4203df83b2e139a4361c9b7c93793d870557a33752cea1"
+      },
+      {
+        "path": "/usr/include/c++/15/string",
+        "sha256": "4d388dc94de6b3eb6959b75a3f3dfc55b4240a077623b6b5dfe4ec1781f35c05"
+      },
+      {
+        "path": "/usr/include/c++/15/string_view",
+        "sha256": "071eaec8f3781cdf6dcca474030c934f496f0395c09901f46f6b85a4432b15cc"
+      },
+      {
+        "path": "/usr/include/c++/15/system_error",
+        "sha256": "272eadb7a5a227e4bbebebd5d14a15b6f6c43f63f8cf5620f98ba606019f0023"
+      },
+      {
+        "path": "/usr/include/c++/15/thread",
+        "sha256": "0503b276ce12a5b61a0b1b9fdaf112b20710a1ac28e7b79b5112db0acc43c55b"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/bessel_function.tcc",
+        "sha256": "5ef78b4de0738e2fe5aa6c52f2340f0c4fa4a94ea9455ee41db23ad111b253a2"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/beta_function.tcc",
+        "sha256": "a19a28736075c9b3834d0461a32640adeda4c3f70db19d28f79d9cbd36b91e03"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/ell_integral.tcc",
+        "sha256": "c85502bd300647b043e9b806518d290b4eee7112ddcabcdf8133bd2a1eec0113"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/exp_integral.tcc",
+        "sha256": "7ad460fc36dd316943461e3e100d2d2d48c23a7157cf16a17df3e6078af2c826"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/gamma.tcc",
+        "sha256": "305a0cab26b4d50bf72afe159729c413dc67f1793fa827603001398f50ec9e19"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/hypergeometric.tcc",
+        "sha256": "beaf2cb426717b591a7c80f75d5912ab69f6b084b4c1a453f0bc29e4d963450d"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/legendre_function.tcc",
+        "sha256": "11e84ca32a22791402361ce6a01ecabdd24c388686f6cb3fe931d5eef6c9ae9f"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/modified_bessel_func.tcc",
+        "sha256": "0f0ede68d9f8fbfbb018d709a3d95967d47cd9a1e20424d5406e29c464c5504c"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/poly_hermite.tcc",
+        "sha256": "3b54a9ded1d191a770b29de01fbfce13a753862abeef807277d443936d01d1aa"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/poly_laguerre.tcc",
+        "sha256": "4068b3fcbfd0d3db5de65a968cb34ab997d7eca388e14a5dfe04c7e9d2a7c187"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/riemann_zeta.tcc",
+        "sha256": "23859a4350c1b425fb64cbf4deef6cf4e5ac9348a0d08b7eb7203b93539376d1"
+      },
+      {
+        "path": "/usr/include/c++/15/tr1/special_function_util.h",
+        "sha256": "9842679d6949bb0484989a4208f5193534e2fbb7070b562511dbc866028d3497"
+      },
+      {
+        "path": "/usr/include/c++/15/tuple",
+        "sha256": "66b1e0d7ab7b64cf539aeb29b20abcca73baa31ba7a4d76cad244803e47a1841"
+      },
+      {
+        "path": "/usr/include/c++/15/type_traits",
+        "sha256": "a9e7a6590ecb6831fdac64ff9e7afa47d49611b3bc1031e6d648815e4985500f"
+      },
+      {
+        "path": "/usr/include/c++/15/typeinfo",
+        "sha256": "b3fa76d84f83e2bebfc7881b0327631d72de8cdf9bce569c0012a8f72e1e0e07"
+      },
+      {
+        "path": "/usr/include/c++/15/unordered_map",
+        "sha256": "47249f9fe0f8c71281ebfc76871f58d4d4901e95a20ea29ed358c56763eef028"
+      },
+      {
+        "path": "/usr/include/c++/15/vector",
+        "sha256": "7e76ff0301475adbdaa5623a523e6e95fd3ba1cf41986254dfe9f1e45266678c"
+      },
+      {
+        "path": "/usr/include/ctype.h",
+        "sha256": "21c99631e2d75b93e87bca3f26cfe24586895bf9505717f680a1751b1605b05e"
+      },
+      {
+        "path": "/usr/include/endian.h",
+        "sha256": "537adf5fc94e17547d825a375723b666e89ff1f0a3c29fb7a78e223d22e0e210"
+      },
+      {
+        "path": "/usr/include/errno.h",
+        "sha256": "2b170be13aeb5a0ec9443803cea7fc4ce31ceae6708e0405b1afdae9300ac278"
+      },
+      {
+        "path": "/usr/include/features-time64.h",
+        "sha256": "89036fa88ac19881ddfb07d4e65beb620a083d770cbf1c925f148c9ea1ce5a63"
+      },
+      {
+        "path": "/usr/include/features.h",
+        "sha256": "8825ba3d9a02f0698618f503a0f569844bb2912bbc8b10de95f403d8f66ca82e"
+      },
+      {
+        "path": "/usr/include/fenv.h",
+        "sha256": "c7041ee382571c46ad36e7bbb64bca991ae190a1dd0cc885dd7510100b6b7d17"
+      },
+      {
+        "path": "/usr/include/libintl.h",
+        "sha256": "eb5dcaf339990951201ca609df284324b5354f551f0b524fdb0ee79da843e354"
+      },
+      {
+        "path": "/usr/include/limits.h",
+        "sha256": "59dccd0e0f84037a0be75a01efe840b7b1ebe8502cdfb49742697c49290ce18f"
+      },
+      {
+        "path": "/usr/include/linux/errno.h",
+        "sha256": "a47fb2f49bce0546a1e88805cec954338abb1b2ac87de042166e8e3a74b23261"
+      },
+      {
+        "path": "/usr/include/linux/limits.h",
+        "sha256": "567dbb4893d20bb986996f0a8b8f774b02ca6cb7df8e4b642895eade7e7ffcd9"
+      },
+      {
+        "path": "/usr/include/linux/posix_types.h",
+        "sha256": "bc68636a383418f235d3457e4b21cf27cefc7c7f3edea4c1f6706f1018db196f"
+      },
+      {
+        "path": "/usr/include/linux/sched/types.h",
+        "sha256": "560858184f6052b4b8b6cb4c079e66e06f55049b23e6f08a36d977eef880d851"
+      },
+      {
+        "path": "/usr/include/linux/stddef.h",
+        "sha256": "d9d06920429953d634a7a1870c26c08fba34cc526403c9e63dee1e37091c646c"
+      },
+      {
+        "path": "/usr/include/linux/types.h",
+        "sha256": "89de4736e44cf154844fad3d6c40c435f3d15200801046becb1876030db247ce"
+      },
+      {
+        "path": "/usr/include/locale.h",
+        "sha256": "54aaf5745fb69ed99930781bbeb42b925e9a5523b912834e6987da0c7d88a5a4"
+      },
+      {
+        "path": "/usr/include/math.h",
+        "sha256": "a048a56f2b20ed5a192616b64b7a01508437eaaf9c04e83f69d60527f5416c7d"
+      },
+      {
+        "path": "/usr/include/pthread.h",
+        "sha256": "8ced37b70612c44ff042343501c1bd1a0ece9f3b78a9b0fb77fc678b3a36a238"
+      },
+      {
+        "path": "/usr/include/sched.h",
+        "sha256": "e7f62b1566aa210bf65da19d44c1b0a516fdb1089d0d79995f7ce26898560209"
+      },
+      {
+        "path": "/usr/include/stdc-predef.h",
+        "sha256": "82975831ea2d1f95b60225f37ddd6130225f0c3de2318674cb178fea661ad87b"
+      },
+      {
+        "path": "/usr/include/stdint.h",
+        "sha256": "38751c3803361248b73bba3d8b48aa7015ccb94c2c31f247f587b157c4ee344a"
+      },
+      {
+        "path": "/usr/include/stdio.h",
+        "sha256": "591954b00d9b51f6f673ae9974eaa6fa08b22d3f27aadab3c1a9cb672c098393"
+      },
+      {
+        "path": "/usr/include/stdlib.h",
+        "sha256": "f81e8fb1ca6e5f541ef99961d0cf6334ca7972e5a81e2caff09b548d4f093b3b"
+      },
+      {
+        "path": "/usr/include/string.h",
+        "sha256": "2829e08094d8e97155e863a0aa5ea37cf09d4ffcd6ce86e572571276c2e21a8a"
+      },
+      {
+        "path": "/usr/include/strings.h",
+        "sha256": "c337c6ee3a39d2465795897080331e7bc7c385d91bbbbbb5c7dfb0094dcdf804"
+      },
+      {
+        "path": "/usr/include/time.h",
+        "sha256": "502077dfa1b92bb9d166d69ab07ba536afbc5188ff0ed4e55308845e7ef9752a"
+      },
+      {
+        "path": "/usr/include/wchar.h",
+        "sha256": "3416c50573ce0f8180fbb605294edbef0fa948138b6c488ad46e0c7e0be6aa84"
+      },
+      {
+        "path": "/usr/include/wctype.h",
+        "sha256": "7e3aebf0404c69d8ffad56e9e3ccc4d3dec9e685f07b4aa2c5a80f9b3b0338b8"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h",
+        "sha256": "05531d0ae2a64ce741fe96a6c992190ef77eff1dc72e9e8f9bd0ff3b6bd7ff57"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/byteswap.h",
+        "sha256": "07044d37a88f3a088ecf65df86a5d4a2c03e2966747b680ae8e0a01753cf97a1"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/cpu-set.h",
+        "sha256": "df8b69ed158512eec73529d91f4e3e5b9d2633a7606a38b521993b87064e54b0"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/endian.h",
+        "sha256": "f559fd70d8a24202805d1d8a3546e28c427f6ce7808296002687cb6c636fd21f"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/endianness.h",
+        "sha256": "659a7060004eda113671a38852c4d1e9cb97a35932bcd1d8540f98c09c180747"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/errno.h",
+        "sha256": "d6875c7a15ed169ab16e706bf2af52bd8d48ea067f02adbdb34e8bb9198fb014"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/fenv.h",
+        "sha256": "66736e50e7e29aca7293e465d7fbe0d3042d4b714987d6e86f8bcbcb4a95e823"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/floatn-common.h",
+        "sha256": "a8a1a20b3e3c9811b348f9f7c4a3825d0eae6b27615991d1ca50dd1338e32a00"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/floatn.h",
+        "sha256": "959a6fafb663ca665daa89066124c126291603e14d727d8a1d59823e9fd92451"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/flt-eval-method.h",
+        "sha256": "23a5215104041d3bf0aec17ced13d17beaaa7f48346dd48022ef4b6f47f912bf"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/fp-fast.h",
+        "sha256": "face0a968a557c3fe56fafa0d45043d763d92314fa03621bb86c0ea48c8b8814"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/fp-logb.h",
+        "sha256": "4c9d15c0730ae3b77c8f5efb12561bb3efa43eda4d8043683f241584b65d9083"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/iscanonical.h",
+        "sha256": "c4ee163df9b633572c3133c2f9025957634e0c8927e2348836e3f3bca9bf57ce"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/libc-header-start.h",
+        "sha256": "06256b79e2535489e5dce8c21854d3b0bd72d5479a3d013170f09261defc0a4f"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h",
+        "sha256": "d3e6699f06ccc770d1209c2668cd5ce7b6e281738f5f8feb91b994e40a9bb878"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/local_lim.h",
+        "sha256": "b38fad51045d65239da3868ea94c4f31850901ec1f7e56349452fca45f70717e"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/locale.h",
+        "sha256": "9706602e00fd81bd6f825b331b846b381fad21b420b6d8b753f569612995b005"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/long-double.h",
+        "sha256": "30f74e9207fbbbe7fafb7b5e3e54124997abc44549506c514f2adae054ee3d56"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/math-vector.h",
+        "sha256": "daa745b265e601145966f0e2e0f31ec632b45acf95db7c7d9954747f4b0282b4"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h",
+        "sha256": "6010275c8748fc750862c4b99475171250dcfb2b6d4cdb6a04a2ba7263d04425"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/mathcalls-macros.h",
+        "sha256": "9d82c07d16ca739b615328f1c4cdec17d4062ca2a6c44b27d77ed5b94f4c2a83"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h",
+        "sha256": "e749091910b32f884918141a373b805f2facace8cdfbe93cab5e0e38168472c5"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/mathcalls.h",
+        "sha256": "35ad6eb77483e8da69d53c9d41f7fe71fa3bff748eb976dd2aa2299e12b596b3"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/posix1_lim.h",
+        "sha256": "ea4252c4bb02abfad2e734c657d9f323e98f406b35be6377f43c7eb78699b8d6"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/posix2_lim.h",
+        "sha256": "53647564016cc8ecba361bd9cb7c706b9755ef604213ece31a1307ebc4cd08d1"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/pthread_stack_min-dynamic.h",
+        "sha256": "aa07727cdcd5a7d9e2159e03b2db63f0e9ab75efd5332b565b5c8623ab9b714f"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h",
+        "sha256": "c838de98779156e73b927940c1db8d3e385624980d2c4ca37c352ad69955074b"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h",
+        "sha256": "acad99a6a3ef489327e806c8d29b25797ca2126cd5489233837e5c9c01516cd1"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/sched.h",
+        "sha256": "2fb6537fb0cbaf6712115cb6241c043e2ccdaf80dddacdbeced8ade2d90a2dea"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/select.h",
+        "sha256": "576acd13d6fba6206bdf24b1f9b6567e46da81bcf20fb2f5529434c59cfb9c3e"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/setjmp.h",
+        "sha256": "2c953ac477ba1060a84f7fbad27dffd2f4fe5e8b5847b382ec19bff1270ef5ef"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/stdint-intn.h",
+        "sha256": "88f639a4e588077b6edfad36b3bb045f0cc052b5f9d194f8e706ee27cd846f67"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/stdint-least.h",
+        "sha256": "f2f6cc431ef00e9182f7367cd06fb1130740c41a1f4dd1c61f146a1e761a4474"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h",
+        "sha256": "8ce3858074e8073db1eed4d25d69b3c14d41e826fa2351c5fc5246bb546161f8"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/stdio.h",
+        "sha256": "182891bcd563185c52e7c01f4fdbd885f943f70682dd758ceab319eeaf917c08"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/stdio_lim.h",
+        "sha256": "436ad57abe906d460631967c822c0622dc100da1e1bd3e0fa8879b6f7f2c6654"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h",
+        "sha256": "231afa57a5d88ab4ede48d5d0808f7343986405ee89f85505dd06e1d31971a88"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/stdlib-float.h",
+        "sha256": "fdd6c94e471e2aa2e03bae449f993392a6593044490fc82601b77d7116381201"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/struct_mutex.h",
+        "sha256": "700e77ca8b5d27b19649358abe229e64b238cb4ce79474fc1194d7831dc3a34f"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h",
+        "sha256": "7d1b998c8def8d264af5114e869bcb37c484daa23ec8ac54a2110dbdd9c05a95"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/thread-shared-types.h",
+        "sha256": "f16fd912b0b1e8a222af4acb11dbbc9c68ba485c381a0dcf49be60b38e581c37"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/time.h",
+        "sha256": "9b34f004f183bea846379580cb3d2f19588d96b4c7faafb3ebb7c9ffd9bafd59"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/time64.h",
+        "sha256": "b0c5f25ce84037dda2c42408543a4616e129d70d6ebf10bd3ecc8b756466582a"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/timesize.h",
+        "sha256": "d949eed9646ca5916b338e1f02ffaf31a4c62907738805aba4ffa329a365f8f2"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/timex.h",
+        "sha256": "feb7e3f78aadcf5aa89233175df74e74366b0a7e79bf70f29edd24b45e817a4b"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types.h",
+        "sha256": "74d92766725404961cc2908de587aeaf24a5a8ef49a0103c5d3fb9f9fe9dead0"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/FILE.h",
+        "sha256": "37515f78be386f2edad4746f2947c928f480728c56d9a94e25302ebbdaef3c96"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/__FILE.h",
+        "sha256": "26c909942e8a6bc82725e9c402f393aed9e32d94190257ddf71e1b5f819b4e5e"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h",
+        "sha256": "8afae3abf006beb39fd9d4d4bae38745cdf08a91e6217ddf25833c8d4b04751b"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h",
+        "sha256": "603e58ab31ed75b7e0ab09a2ca94e99955f7fbc63310466321ce27c906227eb4"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/__locale_t.h",
+        "sha256": "d2513e510029ea0f2fc3868e9f1c990173b2df593d40bb8957b63c8035a1eb35"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h",
+        "sha256": "c561df72d5b987ccbd022059fdb1bcb6899c3e94b403997a0576ef3e1afb0f94"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h",
+        "sha256": "05291a7d38bb1d0da1ed01c09fe85fa2b1f4d5bc708e06bb930efec672db08d5"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/clock_t.h",
+        "sha256": "81e60e8a8d99b28bc723c14b156d7f7fc8ff663d98a857a3f5aea90431f577e3"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h",
+        "sha256": "dcd64d184855b245e5c7acf21910a0aaca590f1faf094e400da5d30551d11eb0"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h",
+        "sha256": "f3a731752c167e53c1786b20e5460ec3696e1a35521f883d5ca84da85d983d9f"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/error_t.h",
+        "sha256": "221c2f8eea5726f2ce51c8f7207c417584b2f49601793a13ca5d1f2200ab60b9"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/locale_t.h",
+        "sha256": "aee0f473e9900ae9c3f9845cfabce44fb4d60ddf2706a30f802ea89bc6411d4c"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h",
+        "sha256": "c0608830973c4e1a71219e477b470b7ed77b211dc870410776ec13a1b7bb759a"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/sigset_t.h",
+        "sha256": "3db5ded9d98a694e8c7196a06690b2e816ec6bb82689940d281f6504533f37e1"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h",
+        "sha256": "3580149e4ad199415bbe70119b199fcaf097b6f986d64ba15ccfb3109589dd13"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h",
+        "sha256": "05e69f8d10ee12c3ad50204ff9e55926d9b57d3a24634c04b2c718547573f735"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h",
+        "sha256": "d6299fbc46fc57e7d14635cd5cf69125710ed021ab7305586c84644a03a39f8e"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h",
+        "sha256": "f302ecf26419064eacddd110ed6fd8758c2e390d7958af69ceae3177f616e1b4"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h",
+        "sha256": "798e773d0c7f3796033c043910db2b093d1e43116c4b3d2cf3be85f8c4304cf1"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h",
+        "sha256": "6585bf0dcd3d5a780d6246da841031f9b314ceb7400a3210f34815f5da93b1fa"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h",
+        "sha256": "e7bdda3f42eb0633850ed150fef0a0cf6193cbba8fa740e7505925424a595566"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/time_t.h",
+        "sha256": "d1cc45e24a80009117f61ee4ae9cae5d12f69f38d691e0a933f989f7a1d27bb0"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/timer_t.h",
+        "sha256": "d96a2452da0d933941273d11d1048ea525f033306892835b0a7a0999b13853aa"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/types/wint_t.h",
+        "sha256": "7321a39e4baa04e5d730bfe4e52d00ce82f2ae62dbd8292a4a6a3073b6ae3593"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/typesizes.h",
+        "sha256": "49656ffcee2a7091ae16f8ad737c63c1d3e06ecdb84c3fa1c6f65b0b6784262a"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/uintn-identity.h",
+        "sha256": "f2854176fc9476ed0d2f52241b4911861bdc41a133f4bd2a3e9fd1073278086f"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/uio_lim.h",
+        "sha256": "f3f33ea936a58c89d0a45601ec3ad6d75bf0442599500bd3506ece333fa6b0e1"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/waitflags.h",
+        "sha256": "fe55139021b16f8d4a2b00309ce9818b679626ba2d685a63ea527414d852d7b3"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/waitstatus.h",
+        "sha256": "af2b2a279b806c772f9dafe54473029d42a06d3c9547a76718745a29565fdbbb"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/wchar.h",
+        "sha256": "169453a3eb0c5e504b513fb3bad0bda7780bb84c7139c501e3deeb75ac731f35"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/wctype-wchar.h",
+        "sha256": "ffb18c1026840e451d7f4da47f44d7fd172859743314eda49f13e73aebbf656d"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/wordsize.h",
+        "sha256": "948177c0fc84c4746588f62252029880ec4c6f88b743ba55d952f980303ebfbb"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/bits/xopen_lim.h",
+        "sha256": "189ecbb0ca3df67cd58ee5160845c074af56c9ccc28467048576c492b2fac559"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/atomic_word.h",
+        "sha256": "abcef81a1b25b23e2914e7e467a7109fd67adc090ba7b624d9c331ea7324a78c"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/basic_file.h",
+        "sha256": "d316816cbe48e54e4863990bf40b54df18cb61fd6f624f2ba53979f132984674"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/c++allocator.h",
+        "sha256": "4fabd9d2fdf98a5964e3aac41d5df9b11ec898f4f49388c2cf34d6a55a8021c7"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/c++config.h",
+        "sha256": "e1197c3f1a2c743667a7c49bf3f4a1e4f17bfb76dd452f2dc90b3e307a39f45a"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/c++io.h",
+        "sha256": "81a79fe24bb4530c3d909a89ac6b8933a23cd08c82a5ba02783a015deffc7a05"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/c++locale.h",
+        "sha256": "50f257ccc85668efad9306f13d1c90362d5699afdf94fbdab8f0a32e46345878"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/cpu_defines.h",
+        "sha256": "c4145a07cbd3ab98d68021876b67afa841d8aa3bf153c30a2a554140ef3ab4eb"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/ctype_base.h",
+        "sha256": "c8d3c103c2464e3c60d32b7221679d1c08cfa6fed6e7a4aa3d73342b8aab5bac"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/ctype_inline.h",
+        "sha256": "5cf09004a06c69729ae70f6fd25dfe9c2c3c804a3f1f4e3d6c3ae49ec56ded1c"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/cxxabi_tweaks.h",
+        "sha256": "d044e4f459b1aa662eea4b4815d60f413cafa18b26a6689aa62856ff5f8c6d3e"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/error_constants.h",
+        "sha256": "bec7fdf8bbb2eaa6b81c5ce7f04107b7706069cd9262efe45abea9191372857d"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/gthr-default.h",
+        "sha256": "5b4242f4c32526185948c0615bfc5a4dcadce139523d0e595553af043e9c7723"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/gthr.h",
+        "sha256": "192db09cf592d5e689632864cbc424b80d8541ddc5e11d21ad0e70c6e786b662"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/messages_members.h",
+        "sha256": "f2332a1ac80a1522759a4e6a2ac13526c380d7095ce57e959745a28332b9615e"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/os_defines.h",
+        "sha256": "d5832330190c273d9e37d7951302e6c37aa23c150598c14683e1700cb798eede"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/c++/15/bits/time_members.h",
+        "sha256": "b690ec793ce8bda88b5d83a8d7d2bbdabe514c3f99e88c499dead26f5469b41f"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/gnu/stubs-64.h",
+        "sha256": "0b6ab3e2ed3ba79b30fe6ba81a68fc41f57965b8d56662763633431b703c9289"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/gnu/stubs.h",
+        "sha256": "ef444295a0a9e8f5c40918399a00cc91ba0bd79774110cdf6e652baa6cfadb2e"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/sys/cdefs.h",
+        "sha256": "69a3c3625bac01b58ab781d02c7800592b5082c4ea962a456260dcf288216f68"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/sys/select.h",
+        "sha256": "0e36149f12e27b0d38e28e25dd392c4a3c75c06a3cf85c3d906bc9fef4a45e4b"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/sys/single_threaded.h",
+        "sha256": "419395b8d6c0c129f165d51c525781919d7894ce72444b9c2aa519f7191bff62"
+      },
+      {
+        "path": "/usr/include/x86_64-linux-gnu/sys/types.h",
+        "sha256": "3134ee1a8359f7d4d69e40db42b70f94c10f1e9e40b9925454bccbf7608d5ced"
+      },
+      {
+        "path": "/usr/lib/gcc/x86_64-linux-gnu/15/include/limits.h",
+        "sha256": "c1db59d8d8a54dbc7e7dbc5ce2f25fd0451f8e01794e7964a15a3e6cc17566d3"
+      },
+      {
+        "path": "/usr/lib/gcc/x86_64-linux-gnu/15/include/stdarg.h",
+        "sha256": "3014f1490722369be2ab7e10a3bd88a53435083fea5fc30fb8b6f87520684bb7"
+      },
+      {
+        "path": "/usr/lib/gcc/x86_64-linux-gnu/15/include/stdbool.h",
+        "sha256": "85c7055c3c43090548b29d09a38cfd967ed1b4f23be98a7b52bde66b2122e653"
+      },
+      {
+        "path": "/usr/lib/gcc/x86_64-linux-gnu/15/include/stddef.h",
+        "sha256": "472a84e536689fc48e861b2415b229742e133d09bbf1c8fd8e0fe89ab5712f04"
+      },
+      {
+        "path": "/usr/lib/gcc/x86_64-linux-gnu/15/include/stdint.h",
+        "sha256": "64ab730bb09eba38f01a62174fb8371ef281778ac33f141a6fa4217a9b39466a"
+      },
+      {
+        "path": "/usr/lib/gcc/x86_64-linux-gnu/15/include/syslimits.h",
+        "sha256": "9409a59233daef9339a757c58b3dd1cee980a65f1ef2590040fe5e106222a4bc"
+      },
+      {
+        "path": "/usr/lib/linux/uapi/x86/asm/bitsperlong.h",
+        "sha256": "8ef5efeb3f25ae47ce03ba892f5caf77631b1257715fc12de72c21e61db17e43"
+      },
+      {
+        "path": "/usr/lib/linux/uapi/x86/asm/errno.h",
+        "sha256": "4ee384515a4325315992e61dd957f0fa91f3858fe7c079de59f56edded51de86"
+      },
+      {
+        "path": "/usr/lib/linux/uapi/x86/asm/posix_types.h",
+        "sha256": "983090c7e5e7eaff27114ec216889a8ad26e40ad8fbb78b8ae6c09391dc61543"
+      },
+      {
+        "path": "/usr/lib/linux/uapi/x86/asm/posix_types_64.h",
+        "sha256": "5cdabc01dac0a3e9731ac16353210a615ca44e85b6ec9eafd2e79206e0b26c76"
+      },
+      {
+        "path": "/usr/lib/linux/uapi/x86/asm/types.h",
+        "sha256": "b6bdcd528bce555b2ecb58e8a1624e3e13e09312c31318023c4e86b957e2b01f"
+      }
+    ],
+    "generated": {
+      "big": 3,
+      "command": [
+        "python3.11",
+        "autogen/autogen.py",
+        "11",
+        "3",
+        "true",
+        "false"
+      ],
+      "generated_files": [
+        {
+          "path": "acc_template/kernel_little_gs_merger/kernel_little_gs_merger.cpp",
+          "sha256": "2e8c0f7ac804375209d1ed93124a76790e190cff97b33686b6269d4d82d92e0c"
+        },
+        {
+          "path": "acc_template/kernel_big_gs_merger/kernel_big_gs_merger.cpp",
+          "sha256": "35b6b9f05c4125707d0f61e2104733c2b0934e06247831fc2f6e942c72626acf"
+        },
+        {
+          "path": "acc_template/kernel_hbm_wrapper/hbm_wrapper.h",
+          "sha256": "93661638e35fa6d5b669f7fbc5b54a61a3211d30cfa3eb1bae6d27d5197c878f"
+        },
+        {
+          "path": "acc_template/kernel_hbm_wrapper/kernel_hbm_wrapper.cpp",
+          "sha256": "528f4db60f233849400589970b6adae8166a4022b2e11737a12d8c0c3d902344"
+        },
+        {
+          "path": "acc_template/connectivity.cfg",
+          "sha256": "b77b73ad75173869dd2dc5f8794b240499ccee88c26c8aa5553fc7a71b2f1a60"
+        },
+        {
+          "path": "host/host_config/hbm_mapping.h",
+          "sha256": "36ac9f6354e2e37603353d68cee98022c32654ce44c1d431dd5120545c2c8319"
+        },
+        {
+          "path": "little_merger_call.hpp",
+          "sha256": "8aaeb53f41ff872503c68fb65079898e453e4fbe335753fa698558f53c7a16e7"
+        },
+        {
+          "path": "property_writer_call.hpp",
+          "sha256": "9a37ff1ca498991c5e2622c9cb0f01f960966fb65e59b40fc819c3fcce873a54"
+        },
+        {
+          "path": "big_merger_call.hpp",
+          "sha256": "fa8cb0f715a3f9b3c5ee54c27fcd7172c2aa10185990e96440728132ed02f12c"
+        }
+      ],
+      "little": 11
+    },
+    "repeated_and_ubsan_identical": true,
+    "snapshot": {
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "b3d4829bc21320a8b6c449437f186f455978c0156a357e503c1d50d6c7bcf8c9"
+        },
+        {
+          "path": "global_para.mk",
+          "sha256": "2f14c52974b73a5bde4ea890c187e04e5c39a9c1662f482c4d10768c4274cd8f"
+        },
+        {
+          "path": "autogen/autogen.py",
+          "sha256": "aadf467f908768c68983e071e1b268728629f9ae0cb3b710e353ad9f00f57d7d"
+        },
+        {
+          "path": "autogen/connectivity_template.cfg",
+          "sha256": "9d10b5f8529195108aa1a789214b310a53c4ff02e9b98563f07440c8e26a67c5"
+        },
+        {
+          "path": "acc_template/kernel_little_gs/acc_scatter.h",
+          "sha256": "0c44fbded2c02c516856c073d937fc1016c1a1d8740bbf137906bb2150c9951b"
+        },
+        {
+          "path": "acc_template/kernel_little_gs/acc_gather.h",
+          "sha256": "df9a2755dcfb89b42482047bc1b73634d78f81ab3c15aa72fddd3d74115b5051"
+        },
+        {
+          "path": "acc_template/kernel_big_gs/acc_scatter.h",
+          "sha256": "197a76f7d5589b3abc29f8b2f21a7da155dd1047e9d8f9fabedbd34da843a3e1"
+        },
+        {
+          "path": "acc_template/kernel_big_gs/acc_gather.h",
+          "sha256": "669ef6d4f98b55f5c5e8eb9d5851f52e03115d2ec7a81b8e6c1446fbb60864b0"
+        },
+        {
+          "path": "host/preprocess/partition_schedule.cpp",
+          "sha256": "aa2571085b402b60c76814ebecdcd34b326315d92f94cfe6de1b517a536dd125"
+        },
+        {
+          "path": "acc_udfs/pr/l2.h",
+          "sha256": "37394bde14d3bc64de0214868c0e7b2b863ef91faa7788a983612d7386e4a0a3"
+        }
+      ],
+      "id": "regraph",
+      "revision": "365456826cef495285383d939907f847e05ad74b"
+    }
+  },
+  "source_identities": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+    },
+    {
+      "path": "cpp/CMakeLists.txt",
+      "sha256": "8dd5d549c287a4f66ace09fa9efe48c3191de0138647beafd0007610f45d49ec"
+    },
+    {
+      "path": "cpp/include/spine_sim/algorithm.hpp",
+      "sha256": "de525d8443035964dde913c87ed0a697b741fab07090ae87dae55a7a1076070a"
+    },
+    {
+      "path": "cpp/include/spine_sim/algorithm_pipeline.hpp",
+      "sha256": "d3194631dc802f8d990f7706515f9e3499fb588bb02de6ad00e67eb8cac004b3"
+    },
+    {
+      "path": "cpp/include/spine_sim/axi.hpp",
+      "sha256": "47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb"
+    },
+    {
+      "path": "cpp/include/spine_sim/banked_memory.hpp",
+      "sha256": "7e781e6c64cf14780d0fe40757844e1437d2a09bef44c141b9859f8d8fd4f08d"
+    },
+    {
+      "path": "cpp/include/spine_sim/component.hpp",
+      "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+    },
+    {
+      "path": "cpp/include/spine_sim/fifo.hpp",
+      "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+    },
+    {
+      "path": "cpp/include/spine_sim/fixed_axi_port.hpp",
+      "sha256": "6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f"
+    },
+    {
+      "path": "cpp/include/spine_sim/grasu.hpp",
+      "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+    },
+    {
+      "path": "cpp/include/spine_sim/grasu_native.hpp",
+      "sha256": "7012151680988d9be642a8a5f6b0617443a8a55dbd8b43e9f1b8537a91284a10"
+    },
+    {
+      "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+      "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+    },
+    {
+      "path": "cpp/include/spine_sim/memory_backend.hpp",
+      "sha256": "067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/big_frontend_types.hpp",
+      "sha256": "f37c55b82a7eb07579b74b8ab501b424a94976d671d4398049c5ddd8116d8049"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/big_gather.hpp",
+      "sha256": "2a8b1ffcc66373e9d5f4ab78067990754bc270ceed499e0635f22cbb2a375480"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/big_merge.hpp",
+      "sha256": "9f78a19cf57e324a0a34ea628c851e2a23aa076bed0fb79c1c3a39a0f7ada4db"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/big_requests.hpp",
+      "sha256": "6fb25b36450692d5c5aa1d1c5ae15e64fccf911f658b61ff6871479317d3692e"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/big_routing.hpp",
+      "sha256": "a05b36647341d21314533a0b52cfd7dc9c6a91265a19078ec526861b29ba624c"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/big_scatter.hpp",
+      "sha256": "94fbe196fb90b9c96199846f2512d0a5817adacfad8b9fce26f660a502e675a3"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/big_source_memory.hpp",
+      "sha256": "f9ebb15f950a5c556258b94d334411b2d12bce8f207d754c3ccf00afd9b4ec48"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/big_types.hpp",
+      "sha256": "a8d1e92eaa87ebdecf498d2a601fe0583985fc122ef1678714a8288ad0687f02"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/detail/latency_pipe.hpp",
+      "sha256": "745a52cda74d29663824ba95f77cf8c195b43b19e69b0549ddfde4d3e0e3b64e"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/detail/wire.hpp",
+      "sha256": "a8f2e0b10f187e65739bf614d099d53ad778685c1c224255f7c9272b2d9db4f1"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/edge_reader.hpp",
+      "sha256": "655729932e87da5d7c06317c305d5412629acd28ec7f144db1fcc3b26f64074b"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/frontend_types.hpp",
+      "sha256": "f292f9f70bcb51383c67f6747a8bcb626d753f1d38b57ccdb4e5b4d722330352"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/little_gather.hpp",
+      "sha256": "c216b397448567f5a55ca44756c278e39c2cf38f7866ba189f5b7a45b9ec09fd"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/little_merge.hpp",
+      "sha256": "16d37cd38685b45610905c7976354a59dad1f3a9cc3b2681e6c54e90f6398ff3"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/little_scatter.hpp",
+      "sha256": "b9438ee2684515934a508d5bf1fa3d66b0e725a041dcf530bf40cffb4fb0b640"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/pr_apply.hpp",
+      "sha256": "c715bf520483591cc745b0e19b369f6aa2191302f3c0ba46514e4062f95d2c52"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/property_writer.hpp",
+      "sha256": "5a888ce5b636d22f406dfd2a61e4b23db008b317121c70b203aa6c5a5fa168a6"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/source_memory.hpp",
+      "sha256": "51794becf0fedf910687e7bec679039f7a6da71dcb65653c18b4ae8e350cb835"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/state_types.hpp",
+      "sha256": "0fc613149daab5f75dd9743c69694d3049ef00122c1c038ba68536c2265816bd"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/types.hpp",
+      "sha256": "634116ce083005596a65f713c35c1e3121f0e491204dc423e92c1c397785e3b3"
+    },
+    {
+      "path": "cpp/include/spine_sim/original_regraph/write_indexer.hpp",
+      "sha256": "83590558c003c574c08ef13dfa029b00b3c40955443bdd684ee6f3059921abfb"
+    },
+    {
+      "path": "cpp/include/spine_sim/scheduler.hpp",
+      "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+    },
+    {
+      "path": "cpp/include/spine_sim/spine_dirty.hpp",
+      "sha256": "e4c82aacfa311d7f89b0922ff42c2f4300f6b90eb5b5128ca1b59f128adf65be"
+    },
+    {
+      "path": "cpp/include/spine_sim/spine_l0.hpp",
+      "sha256": "b1ca2380705dca4df2ef0ac222699fc6d5ebb60460d6fb293836b8920daa6d38"
+    },
+    {
+      "path": "cpp/include/spine_sim/spine_owner.hpp",
+      "sha256": "877b9d7e3c38fe7183becccbdab097809d5fba7e5e2836cc8bfaaaaba4066a86"
+    },
+    {
+      "path": "cpp/include/spine_sim/spine_pagerank.hpp",
+      "sha256": "c4a1ea3fa2e83fc86b1570e8c0b134f97f17451d58249a8b95e5570bf053b4cc"
+    },
+    {
+      "path": "cpp/include/spine_sim/spine_split.hpp",
+      "sha256": "c819618f9cfbdbe3742396b1df394c84056dd0185eda2a4d05ec296f68953495"
+    },
+    {
+      "path": "cpp/include/spine_sim/spine_system.hpp",
+      "sha256": "564f9fea6afbbef6df7a7bef7a234ae5b5628bb23185df5d754b726ad0cf52a1"
+    },
+    {
+      "path": "cpp/include/spine_sim/spine_vertex_lifecycle.hpp",
+      "sha256": "252288e7a3b7000ac4bbef00b333ab2caa6ed97f76bc08a73097501cedf3a000"
+    },
+    {
+      "path": "cpp/src/algorithm.cpp",
+      "sha256": "253295d6c3d5c7655544fe58b8c6d480e4e96d1f2d4b1ad612c41b600dea50b1"
+    },
+    {
+      "path": "cpp/src/algorithm_pipeline.cpp",
+      "sha256": "f5eac512f9aa6b1c6d971907826e4a18b2b494a7be6e4e6e3e70ba30abc5b726"
+    },
+    {
+      "path": "cpp/src/axi.cpp",
+      "sha256": "c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd"
+    },
+    {
+      "path": "cpp/src/banked_memory.cpp",
+      "sha256": "37e993cf0f052c814c8ab3a8bb481630f154a91af7a7eaa505c77e22f549680b"
+    },
+    {
+      "path": "cpp/src/grasu.cpp",
+      "sha256": "352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915"
+    },
+    {
+      "path": "cpp/src/grasu_native.cpp",
+      "sha256": "e974e00f48f089a61c209c8032daa4e275185f3cd9d1e2e3f8ab88f920c52831"
+    },
+    {
+      "path": "cpp/src/grasu_regraph.cpp",
+      "sha256": "f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7"
+    },
+    {
+      "path": "cpp/src/grasu_regraph_runtime.cpp",
+      "sha256": "0cd0af809c14917f863b6d5f7da983f99403eff84bf54b351fc80c784182818c"
+    },
+    {
+      "path": "cpp/src/grasu_sharded_update.cpp",
+      "sha256": "ea7e569be558db3b6c5fdcfacc96bf904091788383836537a8d919740a2a8fbc"
+    },
+    {
+      "path": "cpp/src/memory_backend.cpp",
+      "sha256": "4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20"
+    },
+    {
+      "path": "cpp/src/original_regraph/big_gather.cpp",
+      "sha256": "1e4c380862e6421cea33b96083756dae5474b617e548825ba2145daf267cb35b"
+    },
+    {
+      "path": "cpp/src/original_regraph/big_merge.cpp",
+      "sha256": "910d8bcb2341bc9e63626f0b32bf37923f097ac49134eb3035b6fd5ec5ab532e"
+    },
+    {
+      "path": "cpp/src/original_regraph/big_requests.cpp",
+      "sha256": "e467afdbc6750a75f0bc0cff403377b6cad9455099fb7d1c935ccfc215fe54de"
+    },
+    {
+      "path": "cpp/src/original_regraph/big_routing.cpp",
+      "sha256": "fad838f7544cf53e1b1b4d7185776460a311bcc140e10c9a0f257a07177ad018"
+    },
+    {
+      "path": "cpp/src/original_regraph/big_scatter.cpp",
+      "sha256": "419386e51b5e1a034d3096cc88e7ccb29c2ac91795c74ee60d47229d1d936777"
+    },
+    {
+      "path": "cpp/src/original_regraph/big_source_memory.cpp",
+      "sha256": "88b2d95a7ab85dd851695b4690649faa4571dfc4d568e48ac8fa906360ba6e2a"
+    },
+    {
+      "path": "cpp/src/original_regraph/edge_reader.cpp",
+      "sha256": "e5dcb67282bbcb2b72793b8e5e6518d567826ad8e1376bb4e7e5310dd4ee633e"
+    },
+    {
+      "path": "cpp/src/original_regraph/little_gather.cpp",
+      "sha256": "875831ca14a8bdd4dc4fd9fcdc8eaa6bb4d5521f045a6f0f5c5365905f34fb8e"
+    },
+    {
+      "path": "cpp/src/original_regraph/little_merge.cpp",
+      "sha256": "d2268878b6b33e33dcf641c4e7b97d702826e91236261f018ae3c2a873986cf0"
+    },
+    {
+      "path": "cpp/src/original_regraph/little_scatter.cpp",
+      "sha256": "e664c1f588afd474f5a89085583b6e3804e02112088bb1c8a4b443bc3c46974e"
+    },
+    {
+      "path": "cpp/src/original_regraph/pr_apply.cpp",
+      "sha256": "32515a49421d7b36430e44517f40ecafe451186c66e897928532d3aaad44ee29"
+    },
+    {
+      "path": "cpp/src/original_regraph/property_writer.cpp",
+      "sha256": "2d38219e9045cfab9999c9da39a580a7b75e6e6540aafd5076408b74fff48bf4"
+    },
+    {
+      "path": "cpp/src/original_regraph/source_memory.cpp",
+      "sha256": "1a382ae5716bb77180a43d70097a27af6ff644b3d4745277b609c60ee5f1010b"
+    },
+    {
+      "path": "cpp/src/original_regraph/write_indexer.cpp",
+      "sha256": "ba5757acdc4b3f522ac3ce55c069f26549f2d5279df86ca0fd873a433ade4d98"
+    },
+    {
+      "path": "cpp/src/scheduler.cpp",
+      "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+    },
+    {
+      "path": "cpp/src/spine_dirty.cpp",
+      "sha256": "097d217fcbfc59a19eba7de7475633ac400a345d4dbb3c17f0cbb05219ad63f8"
+    },
+    {
+      "path": "cpp/src/spine_l0.cpp",
+      "sha256": "aead6f7b4eb3cf5d889d9d7a285d86c0ea1dbeb380af052a4aef0e34ef7ad755"
+    },
+    {
+      "path": "cpp/src/spine_owner.cpp",
+      "sha256": "831a4ced1e4c928319e576beaf0110d59c4e498fcb5b6ea01536acd6c5149959"
+    },
+    {
+      "path": "cpp/src/spine_pagerank.cpp",
+      "sha256": "ab753aaab40f53051ede5275a978d6dcddde48604a932655e9796bff2f297ed9"
+    },
+    {
+      "path": "cpp/src/spine_split.cpp",
+      "sha256": "d4fe3c8998716f02c7127695c0a6b46ce515d03f26d96cc59f49ca098644efc9"
+    },
+    {
+      "path": "cpp/src/spine_sssp_compute.cpp",
+      "sha256": "05165233de2b999b011e82076e2c9399bc2aed197c0e5daafaf3b4be49ebdc19"
+    },
+    {
+      "path": "cpp/src/spine_system.cpp",
+      "sha256": "442d17046d857b00fe6956ba081bdd5fbad74608b45f6fcd24ca6fb0bf61b5b1"
+    },
+    {
+      "path": "cpp/src/spine_vertex_lifecycle.cpp",
+      "sha256": "d5700861bf299ee426335819077fd00a5bb7fb719fa2e002c3a33d8bd04d4ab4"
+    },
+    {
+      "path": "cpp/tests/original_regraph/big_comparison.cpp",
+      "sha256": "ecf5cfdbaa239a2546758367e5892e083cf19c40b5ebb18190ca7510d0b423e1"
+    },
+    {
+      "path": "cpp/tests/original_regraph/big_frontend_comparison.cpp",
+      "sha256": "be94eb91e80c273fe6818601f7d1632c4f9911973deaefe56dd5299ed29f7f39"
+    },
+    {
+      "path": "cpp/tests/original_regraph/big_frontend_execution.hpp",
+      "sha256": "aa885309d605c71b038c19db534dc4f30d47b6024fd6593c52991001048394e1"
+    },
+    {
+      "path": "cpp/tests/original_regraph/big_frontend_fixture.hpp",
+      "sha256": "09ee0a98ec78e9bb24bb8dc224afc5f090ee81e9b92bb5918e4cfa74f5442a17"
+    },
+    {
+      "path": "cpp/tests/original_regraph/big_frontend_tests.cpp",
+      "sha256": "d863b55960251aa7aef6e6a16e2567e25cd6339e83066c6fc7ba1a69170e4c81"
+    },
+    {
+      "path": "cpp/tests/original_regraph/big_frontend_wiring.hpp",
+      "sha256": "c828466f59a4bb6046887ae85c270ffd03ec76c5bebda229276b1613588af4a4"
+    },
+    {
+      "path": "cpp/tests/original_regraph/big_network.hpp",
+      "sha256": "aa21f6287b17c9bf77f284534cb9d2ceb17f5d453efbb357a7342e43b3038e6f"
+    },
+    {
+      "path": "cpp/tests/original_regraph/big_tests.cpp",
+      "sha256": "aae64615eae0c5f7fbd9a589b6a07d3d2552e00fe78b0555a6faec9440311973"
+    },
+    {
+      "path": "cpp/tests/original_regraph/frontend_execution.hpp",
+      "sha256": "f994b6601a5a4413d5c5d66d368303e89890d937aa425954b24cffec4d62d7e0"
+    },
+    {
+      "path": "cpp/tests/original_regraph/frontend_support.hpp",
+      "sha256": "6a177c96dcee7ce19a68368233e3e7783c11606a0f975e5afc4513ab06cdca2f"
+    },
+    {
+      "path": "cpp/tests/original_regraph/frontend_tests.cpp",
+      "sha256": "e5e9b85839db26f187ea4a8bc716003e139b8a7835170d700df0bb2c9da19348"
+    },
+    {
+      "path": "cpp/tests/original_regraph/frontend_wiring.hpp",
+      "sha256": "54d99b09b85d00e32880b4bf5a46eb946ef609076095b6d300bd12310d821288"
+    },
+    {
+      "path": "cpp/tests/original_regraph/gather_tests.cpp",
+      "sha256": "e1588103612134bd7f54ca7ce0e3e002c9e54d177937cc2c0c6c08ddd7750485"
+    },
+    {
+      "path": "cpp/tests/original_regraph/iteration_tests.cpp",
+      "sha256": "b1adec1fdf8e8b4b814ee03664a34490cd71c72c8fc11f3988e995a6cefd2f02"
+    },
+    {
+      "path": "cpp/tests/original_regraph/memory_fixture.hpp",
+      "sha256": "544188ef15c5915b0aa0cee62be5264b05ade657abb214f6e9b462bf855ec3b8"
+    },
+    {
+      "path": "cpp/tests/original_regraph/network.hpp",
+      "sha256": "daeba3dadf029c534643f056e872ddb34f3794d8e94298cb25452934b417d3e1"
+    },
+    {
+      "path": "cpp/tests/original_regraph/source_comparison.cpp",
+      "sha256": "d798cf617def6ffd5146250fce652fdbda9790b0293db42467ecb76366ff8c83"
+    },
+    {
+      "path": "cpp/tests/original_regraph/state_comparison.cpp",
+      "sha256": "ec5ec775b4d4c27e47e9bc615ce42334c280cac396ce7e6b50465f210a56a55e"
+    },
+    {
+      "path": "cpp/tests/original_regraph/state_execution.hpp",
+      "sha256": "989cce8dd85f65e85eab654b5b3dccc6eb5316371add6c33be3277a161b3142d"
+    },
+    {
+      "path": "cpp/tests/original_regraph/state_support.hpp",
+      "sha256": "fd111e30b3108f73c79806acb2458ad32dd04ec240daa2dee23a767e02194ff3"
+    },
+    {
+      "path": "cpp/tests/original_regraph/state_tests.cpp",
+      "sha256": "5ca0f64c0e2d190c64d3b4d03e77bebcf9afbb08732740b5c3d1c3d12405f15d"
+    },
+    {
+      "path": "cpp/tests/original_regraph/whole_graph/a4_execution.cpp",
+      "sha256": "c33483cf3ef0703d3f65f464b949e4c2a268323a6b4d8a1283d232daac011ce5"
+    },
+    {
+      "path": "cpp/tests/original_regraph/whole_graph/input.hpp",
+      "sha256": "4dc3a96ddc07028fa3b398df0dfce9b00a2ca97949294205de915264bb7e3e18"
+    },
+    {
+      "path": "cpp/tests/original_regraph/whole_graph/wiring.hpp",
+      "sha256": "6c0e864601a82d2f9ff791abe4b7155bc70fc3a3a41aeaa0b9180fdd3bdd8024"
+    },
+    {
+      "path": "cpp/tests/publication_sources/regraph_big_frontend_probe.cpp",
+      "sha256": "73e87747f6c627eb8368a36b8a9bb61c775ba5234a181b51559c8d529515e864"
+    },
+    {
+      "path": "cpp/tests/publication_sources/regraph_big_gather_probe.cpp",
+      "sha256": "d748d74ece12fcab8b280c692e6e337cb5c015c7e89125fe95d136cbd4872260"
+    },
+    {
+      "path": "scripts/run_original_regraph_big_frontend_validation.py",
+      "sha256": "121d54bf33a21846a7543e0a12ef1f25d95278daaf85999151a225722ee72357"
+    },
+    {
+      "path": "scripts/run_original_regraph_big_validation.py",
+      "sha256": "4d1e9356881680140f462c8595deb58e46685d053d84f47e75a245a9818c3500"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/__init__.py",
+      "sha256": "db016d4e3e078f8579c8e07fe98da5770d92e175cb575cd60f62f11632797ff8"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/analysis.py",
+      "sha256": "7a9bd80d341f06b6dee7953a4fe4f7af69b149bea0ad694858dfc6c958a2cbad"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/__init__.py",
+      "sha256": "e69caa5dfd7d50c3f96882db95bd221b309aeafc7e7c2e57728113d5a427c387"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/analysis.py",
+      "sha256": "10dc971e8768f5a19e822920c904b306a2dffcb4d7cd704b778395992ac17e5c"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/delivery.py",
+      "sha256": "f8823078610104b07794204f6a523edcb8fbd9d9f882efb3e48b3eee9d56dd02"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/frontend_analysis.py",
+      "sha256": "5a9d80a6536a3215b5a1cd8adda5f44a879b4f5156c8b725eb4e42e2b55f9ee4"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/frontend_delivery.py",
+      "sha256": "2fd4f5888951547df7b7b64bbde079801240f1e6326d240624ef405014941041"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/frontend_sources.py",
+      "sha256": "a10448309c6897cd270f69fc4fc0e2b7a9bac259d739430d539b3d7347d2678a"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/frontend_study.py",
+      "sha256": "1f80cd7c47195c951f99e680d92d87d607b04b83e47e148a5a014a0c73ed4a39"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/regression.py",
+      "sha256": "3ca5a38755caa057e5273651527f4cd6e36ae0d25750ec09d8b3fe8a3ff887e8"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/sources.py",
+      "sha256": "4822fae7b9a27783ecf330b2f6822dd5c85bd0c435f5f79792db07e38b4a9899"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/big/study.py",
+      "sha256": "e3f7593a01f243626fc0ec5d1e5e90f8414d5ac356706f5d48727851316385be"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/delivery.py",
+      "sha256": "9f98ec2e729b65fc7ee237c6ce4885a09e161dbe6daced84612961c6ed4c557a"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/frontend_analysis.py",
+      "sha256": "f79f9c19f197dae451dfad035bee60645d3dc100a42571695d5f96c2feb7754f"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/frontend_delivery.py",
+      "sha256": "0f806054d884a3ebfa7095d55d387c0591cd38c24364c3ffd3aa967c013ebd92"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/frontend_study.py",
+      "sha256": "4a3b0e765ae2d679aab69c0296aa8714ae7ddcbf2deca2c0ccae1cb73e36fc80"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/instrumentation.py",
+      "sha256": "1b360d9910500ee58592d50ceb26a916204073dc29d98c2ae3ce817ad4bc5405"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/negative_controls.py",
+      "sha256": "21a40b695d516c137ad527870ac547b726ed0d4ccd4a3bdebc5b653d29c54143"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/state_analysis.py",
+      "sha256": "eba4c23323633591ffb533bae2823e76e3cefe900ea0e4600bf55a89535853ea"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/state_delivery.py",
+      "sha256": "e3f141efef6e1742602c8e915934c9f30ec431b9f583e19de7d2777291a0e2ab"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/state_sources.py",
+      "sha256": "9167c1480841705acee932180ed6ba3425d22745ccf75588535936c2e45d8d2d"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/state_study.py",
+      "sha256": "2aa2369547d70ce5aaf85a379e2026d48e7d64d61ae2ab0f86ea9ee965953f8b"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_validation/study.py",
+      "sha256": "aa81c200972d0f9188a955f1196d747938a6a84969343dd829492de3969a1eaa"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/__init__.py",
+      "sha256": "c9df6b968cbbdda00f9fbd678995575e5d73704c85e55538ed579874f40a87e0"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/hls_analysis.py",
+      "sha256": "517c012a64d39b601139faeeaeaf8117a8ae13d0a600ece47cd03ae4dd11180c"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/hls_preparation.py",
+      "sha256": "2cf1948d39f6faf4895484c7d458e09b0628011fb8b1d5217e8586a5af15adc0"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/hls_reports.py",
+      "sha256": "ab94ec8ffd84c0b8723e2d8827df61b9da67a68afab8d69f9801602360084935"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/hls_study.py",
+      "sha256": "ef4886113c12f658f7fe0a7ecd7d2c440d5876d2a8ab536cdf1b56b9f4b2e9f4"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/sources.py",
+      "sha256": "57ae964a2bfa05bc583a90d76f65937ea2b42358d2ebfcd20d1a383ddca9e2c1"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/study.py",
+      "sha256": "716de3121bf50befe917755a167c965f588e0242c8433c720ed105571dcca0f5"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/validation.py",
+      "sha256": "c303d848d57c5a33d4f32bb7b3bfed4c7075864d7c8825104bbb71728d40eed8"
+    },
+    {
+      "path": "tests/test_original_regraph_big_frontend.py",
+      "sha256": "a757e982efabe8cadcbe718bc4deefbc4ab11cf212af75131aa33667cc730867"
+    },
+    {
+      "path": "tests/test_original_regraph_big_validation.py",
+      "sha256": "1a4761f3885e8eb7293f42f30c37e80e9c91c1ea199c58bf1f8f7b7508408ff0"
+    }
+  ],
+  "source_revision": "69fcf23d3606e3f1bb9dc5d934e5a0cbba6d0c1a",
+  "status": "FINITE_BIG_MEMORY_FRONTEND_PASS_TIMING_PREDICTED",
+  "steps": [
+    {
+      "available_before_bytes": 87121616896,
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++17",
+        "-O1",
+        "-g0",
+        "-Wno-unknown-pragmas",
+        "-Wno-deprecated-declarations",
+        "-DDISABLE_MAX_HLS_STREAM_DEPTH_PRINT",
+        "-MD",
+        "-MF",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/dependencies.d",
+        "-MT",
+        "probe",
+        "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+        "-DSW_EMU",
+        "-DLITTLE_KERNEL_NUM=11",
+        "-DBIG_KERNEL_NUM=3",
+        "-DLITTLE_KERNEL_DST_BUFFER_SIZE=65536",
+        "-DBIG_KERNEL_DST_BUFFER_SIZE=524288",
+        "-DSRC_BUFFER_SIZE=4096",
+        "-DLOG2_SRC_BUFFER_SIZE=12",
+        "-DHAVE_APPLY_OUTDEG=1",
+        "-DHAVE_VERTEX_PROP=0",
+        "-DHAVE_UNSIGNED_PROP=0",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/common",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_udfs/pr",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_big_gs",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_big_gs_merger",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_apply",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_hbm_wrapper",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/publication_sources/regraph_big_frontend_probe.cpp",
+        "-pthread",
+        "-lgmp",
+        "-o",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/probe"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "source_compile",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 331780,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_compile.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_compile.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 2.4570599258877337
+    },
+    {
+      "available_before_bytes": 86961295360,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/probe",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/first.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "source_first",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 16784,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_first.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_first.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.10374231217429042
+    },
+    {
+      "available_before_bytes": 86959259648,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/probe",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/repeat.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "source_repeat",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 16784,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_repeat.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_repeat.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.10345279285684228
+    },
+    {
+      "available_before_bytes": 86952710144,
+      "command": [
+        "/usr/bin/g++",
+        "-fsanitize=undefined",
+        "-fno-sanitize-recover=all",
+        "-std=c++17",
+        "-O1",
+        "-g0",
+        "-Wno-unknown-pragmas",
+        "-Wno-deprecated-declarations",
+        "-DDISABLE_MAX_HLS_STREAM_DEPTH_PRINT",
+        "-MD",
+        "-MF",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/dependencies.d",
+        "-MT",
+        "probe",
+        "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+        "-DSW_EMU",
+        "-DLITTLE_KERNEL_NUM=11",
+        "-DBIG_KERNEL_NUM=3",
+        "-DLITTLE_KERNEL_DST_BUFFER_SIZE=65536",
+        "-DBIG_KERNEL_DST_BUFFER_SIZE=524288",
+        "-DSRC_BUFFER_SIZE=4096",
+        "-DLOG2_SRC_BUFFER_SIZE=12",
+        "-DHAVE_APPLY_OUTDEG=1",
+        "-DHAVE_VERTEX_PROP=0",
+        "-DHAVE_UNSIGNED_PROP=0",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/common",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_udfs/pr",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_big_gs",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_big_gs_merger",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_apply",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/prepared/acc_template/kernel_hbm_wrapper",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/publication_sources/regraph_big_frontend_probe.cpp",
+        "-pthread",
+        "-lgmp",
+        "-o",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/probe_ubsan"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "source_ubsan_compile",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 352452,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_ubsan_compile.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_ubsan_compile.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 3.710039319936186
+    },
+    {
+      "available_before_bytes": 86759731200,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/probe_ubsan",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/ubsan.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "source_ubsan",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 16796,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_ubsan.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_ubsan.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.3033916540443897
+    },
+    {
+      "available_before_bytes": 86751072256,
+      "command": [
+        "cmake",
+        "-S",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "-B",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "configure",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 152220,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/configure.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/configure.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.5536567992530763
+    },
+    {
+      "available_before_bytes": 86735458304,
+      "command": [
+        "cmake",
+        "--build",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build",
+        "-j2"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "build",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 689636,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 77.46582700591534
+    },
+    {
+      "available_before_bytes": 84415115264,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "big_frontend_tests_first",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17160,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/big_frontend_tests_first.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/big_frontend_tests_first.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.10261300206184387
+    },
+    {
+      "available_before_bytes": 84414173184,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "big_frontend_tests_repeat",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17168,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/big_frontend_tests_repeat.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/big_frontend_tests_repeat.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05340371932834387
+    },
+    {
+      "available_before_bytes": 84418465792,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/first.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "big_frontend_comparison_first",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17172,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/big_frontend_comparison_first.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/big_frontend_comparison_first.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05319478316232562
+    },
+    {
+      "available_before_bytes": 84420558848,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/first.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "big_frontend_comparison_repeat",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17176,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/big_frontend_comparison_repeat.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/big_frontend_comparison_repeat.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.053311286959797144
+    },
+    {
+      "available_before_bytes": 84418756608,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build",
+        "--output-on-failure"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "ctest",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 95164,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ctest.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ctest.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.517846786417067
+    },
+    {
+      "available_before_bytes": 84376403968,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_gather_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_gather_tests",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 62416,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_gather_tests.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_gather_tests.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.4034037380479276
+    },
+    {
+      "available_before_bytes": 84375445504,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_frontend_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_frontend_tests",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17184,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_frontend_tests.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_frontend_tests.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.10265336092561483
+    },
+    {
+      "available_before_bytes": 84375134208,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_state_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_state_tests",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17192,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_state_tests.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_state_tests.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.052610415033996105
+    },
+    {
+      "available_before_bytes": 84373913600,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_iteration_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_iteration_tests",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 18184,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_iteration_tests.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_iteration_tests.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.9541037711314857
+    },
+    {
+      "available_before_bytes": 84823130112,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_big_tests",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 61064,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_big_tests.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_big_tests.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.607357129920274
+    },
+    {
+      "available_before_bytes": 86237138944,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_a4_execution",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/a4_execution_final_v3/inputs/boundary_ring",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4/boundary",
+        "16",
+        "64",
+        "0",
+        "20000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_a4_boundary",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 30008,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_boundary.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_boundary.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.4533725609071553
+    },
+    {
+      "available_before_bytes": 86724763648,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_a4_execution",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/a4_execution_final_v3/inputs/boundary_ring",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4/boundary_reverse",
+        "16",
+        "64",
+        "1",
+        "20000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_a4_boundary_reverse",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 29976,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_boundary_reverse.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_boundary_reverse.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.40366949466988444
+    },
+    {
+      "available_before_bytes": 87180222464,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_a4_execution",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/a4_execution_final_v3/inputs/boundary_ring",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4/boundary_two_parents",
+        "2",
+        "64",
+        "0",
+        "20000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_a4_boundary_two_parents",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 30028,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_boundary_two_parents.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_boundary_two_parents.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.6039202529937029
+    },
+    {
+      "available_before_bytes": 87839502336,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_a4_execution",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/a4_execution_final_v3/inputs/boundary_ring",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4/boundary_latency128",
+        "16",
+        "128",
+        "0",
+        "20000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_a4_boundary_latency128",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 30028,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_boundary_latency128.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_boundary_latency128.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.5041308491490781
+    },
+    {
+      "available_before_bytes": 88557473792,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_a4_execution",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/a4_execution_final_v3/inputs/skewed_sources",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4/skewed",
+        "16",
+        "64",
+        "0",
+        "20000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_a4_skewed",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 21756,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_skewed.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_skewed.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.15365801705047488
+    },
+    {
+      "available_before_bytes": 89393889280,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_a4_execution",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/a4_execution_final_v3/inputs/skewed_sources",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4/skewed_reverse",
+        "16",
+        "64",
+        "1",
+        "20000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_a4_skewed_reverse",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 21756,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_skewed_reverse.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_skewed_reverse.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.152605673763901
+    },
+    {
+      "available_before_bytes": 90330263552,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_a4_execution",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/a4_execution_final_v3/inputs/amazon",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4/amazon",
+        "16",
+        "64",
+        "0",
+        "20000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_a4_amazon",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 177132,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_amazon.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_amazon.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 6.114025757648051
+    },
+    {
+      "available_before_bytes": 98265903104,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_a4_execution",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/a4_execution_final_v3/inputs/amazon",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4/amazon_reverse",
+        "16",
+        "64",
+        "1",
+        "20000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_a4_amazon_reverse",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 177076,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_amazon_reverse.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_a4_amazon_reverse.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 5.9153942740522325
+    },
+    {
+      "available_before_bytes": 99781591040,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_gather_final_v2/big_source.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "legacy_big_comparison",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17168,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_big_comparison.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/legacy_big_comparison.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.7056600018404424
+    },
+    {
+      "available_before_bytes": 100407971840,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_header.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "id": "negative_header",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17368,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_header.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_header.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05298778414726257
+    },
+    {
+      "available_before_bytes": 100564914176,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_request.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "id": "negative_request",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17636,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_request.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_request.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.052942144218832254
+    },
+    {
+      "available_before_bytes": 100706070528,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_response.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "id": "negative_response",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17708,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_response.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_response.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.052918002009391785
+    },
+    {
+      "available_before_bytes": 100730843136,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_update.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "id": "negative_update",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17708,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_update.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_update.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05286939023062587
+    },
+    {
+      "available_before_bytes": 100731097088,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_truncated.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "id": "negative_truncated",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17708,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_truncated.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_truncated.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05244238907471299
+    },
+    {
+      "available_before_bytes": 100728778752,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/build/cpp/original_regraph_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_excess.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "id": "negative_excess",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17708,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_excess.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/negative_excess.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05218293983489275
+    },
+    {
+      "available_before_bytes": 100730331136,
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++20",
+        "-O1",
+        "-g0",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-fsanitize=undefined",
+        "-fno-sanitize-recover=all",
+        "-D_GLIBCXX_ASSERTIONS",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/scheduler.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/axi.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/memory_backend.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_gather.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_merge.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_requests.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_routing.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_scatter.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_source_memory.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/edge_reader.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_gather.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_merge.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_scatter.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/pr_apply.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/property_writer.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/source_memory.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/write_indexer.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/original_regraph/big_frontend_tests.cpp",
+        "-o",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "ubsan_compile_big_frontend_tests",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 341388,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_compile_big_frontend_tests.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_compile_big_frontend_tests.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 28.454772192053497
+    },
+    {
+      "available_before_bytes": 96176832512,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "ubsan_big_frontend_tests",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 17740,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_tests.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_tests.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.20383530529215932
+    },
+    {
+      "available_before_bytes": 96116846592,
+      "command": [
+        "/usr/bin/g++",
+        "-std=c++20",
+        "-O1",
+        "-g0",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-fsanitize=undefined",
+        "-fno-sanitize-recover=all",
+        "-D_GLIBCXX_ASSERTIONS",
+        "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/scheduler.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/axi.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/memory_backend.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_gather.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_merge.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_requests.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_routing.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_scatter.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/big_source_memory.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/edge_reader.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_gather.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_merge.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/little_scatter.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/pr_apply.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/property_writer.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/source_memory.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/src/original_regraph/write_indexer.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/original_regraph/big_frontend_comparison.cpp",
+        "-o",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_comparison"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "ubsan_compile_big_frontend_comparison",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 340500,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_compile_big_frontend_comparison.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_compile_big_frontend_comparison.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 28.465138888917863
+    },
+    {
+      "available_before_bytes": 88517591040,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_comparison",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/source_control/first.u32le"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "id": "ubsan_big_frontend_comparison",
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 20464,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_comparison.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_final_v2/ubsan_big_frontend_comparison.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05329380976036191
+    }
+  ],
+  "ubsan_identical_no_diagnostics": true,
+  "worktree_status": [
+    " M cpp/CMakeLists.txt",
+    " M scripts/build_current_fpga_spine_v4_index.py",
+    "?? configs/experiments/original_regraph_big_frontend_validation_v1.json",
+    "?? cpp/include/spine_sim/original_regraph/big_frontend_types.hpp",
+    "?? cpp/include/spine_sim/original_regraph/big_requests.hpp",
+    "?? cpp/include/spine_sim/original_regraph/big_scatter.hpp",
+    "?? cpp/include/spine_sim/original_regraph/big_source_memory.hpp",
+    "?? cpp/src/original_regraph/big_requests.cpp",
+    "?? cpp/src/original_regraph/big_scatter.cpp",
+    "?? cpp/src/original_regraph/big_source_memory.cpp",
+    "?? cpp/tests/original_regraph/big_frontend_comparison.cpp",
+    "?? cpp/tests/original_regraph/big_frontend_execution.hpp",
+    "?? cpp/tests/original_regraph/big_frontend_fixture.hpp",
+    "?? cpp/tests/original_regraph/big_frontend_tests.cpp",
+    "?? cpp/tests/original_regraph/big_frontend_wiring.hpp",
+    "?? cpp/tests/publication_sources/regraph_big_frontend_probe.cpp",
+    "?? docs/evaluation_refresh_20260810/calibration_v4/",
+    "?? docs/evidence/current_fpga_spine_composed_index_v4.json",
+    "?? scripts/run_original_regraph_big_frontend_validation.py",
+    "?? spine_cycle_sim/experiments/original_regraph_validation/big/frontend_analysis.py",
+    "?? spine_cycle_sim/experiments/original_regraph_validation/big/frontend_delivery.py",
+    "?? spine_cycle_sim/experiments/original_regraph_validation/big/frontend_sources.py",
+    "?? spine_cycle_sim/experiments/original_regraph_validation/big/frontend_study.py",
+    "?? tests/test_original_regraph_big_frontend.py"
+  ]
+}

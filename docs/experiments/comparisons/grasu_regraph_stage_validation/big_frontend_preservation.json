@@ -1,0 +1,168 @@
+{
+  "CTest_tests_passed": 12,
+  "Python_resources": {
+    "available_before_bytes": 85024436224,
+    "command": [
+      "python3",
+      "-c",
+      "import unittest; patterns=('test_upstream_stage_controls.py','test_upstream_stage_synthesis.py','test_original_regraph_validation.py','test_original_regraph_frontend.py','test_original_regraph_state.py','test_original_regraph_inputs.py','test_original_regraph_execution.py','test_original_regraph_big_validation.py','test_original_regraph_big_frontend.py','test_publication_match.py','test_publication_validation_delivery.py','test_repository_structure.py'); suite=unittest.TestSuite(); [suite.addTests(unittest.defaultTestLoader.discover('tests',pattern=p)) for p in patterns]; result=unittest.TextTestRunner().run(suite); raise SystemExit(not result.wasSuccessful())"
+    ],
+    "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+    "exit_code": 0,
+    "memory_limit_gib": 3,
+    "peak_rss_kib": 33120,
+    "reserve_gib": 16,
+    "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+    "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_postchecks_v1/python_tests.stderr.txt",
+    "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_frontend_postchecks_v1/python_tests.stdout.txt",
+    "timed_out": false,
+    "wall_seconds": 1.7566742072813213
+  },
+  "Python_stderr": "............................................................................................................................\n----------------------------------------------------------------------\nRan 124 tests in 1.557s\n\nOK\n",
+  "Python_stderr_sha256": "d8e1937f5063eeb8fe215455566a791d809d8e9206940ff9dccec28cc9fe1b4c",
+  "Python_stdout": "",
+  "Python_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "SST_numerical_matrix_rerun": false,
+  "accepted_report_sha256": "dddbe1d4ca9e533b41fb0767d67df1dfbf47d5761a9f75559096210430250af3",
+  "complete_previous_Big_source_comparison_exact": true,
+  "focused_Python_tests_passed": 124,
+  "frozen_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "legacy_components_exact": 5,
+  "no_production_numerical_or_SST_changes": true,
+  "old_original_R_source_files_unchanged_except_CMake": 47,
+  "paper_edited": false,
+  "previous_study_artifacts_checked": [
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/a4_axi_verification.json",
+      "sha256": "3fa857cde286f1bfe9235680c5cf18b8124ec39044b04f0443b9933d005a5c14"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/a4_preservation.json",
+      "sha256": "107f1ee1c788bdfd1854a72b1652c977895bdf72a42d2beb80ef83bebcd022ba"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/a4_results.json",
+      "sha256": "da34da9d64fb8db7f061a93e3204c4074b15f393541302dc43166c53b150ca18"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/a4_verification.json",
+      "sha256": "d88b96359c0699b5a9aa16a934dc63d23ac2fd654ca0ac667da335a7da24d0e5"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/big_gather_preservation.json",
+      "sha256": "8ec66dfe0db933359448e4f07c2661a1fa7b95e1e31c39b2fa3fb7487ee9170d"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/big_gather_results.json",
+      "sha256": "e0745af6f34162914516d217238a93eab3773c7bcb73f18735d4d7dc4f77825d"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/big_gather_verification.json",
+      "sha256": "cc6eb6487bb67099f21a409a5d98ed73e1824f540fda1e1a1e6493ebb51db277"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/finite_gather_results.json",
+      "sha256": "d579acc4ffe8ec8ba9963a2c2f2c77d07ce9a6d927a5c3aaaaf318c18379bd3c"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/finite_gather_verification.json",
+      "sha256": "b54bc9f78492fa370fefbeb2cd072f6c77736f205d64a7aac2cec9fb6f3c24f5"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/frontend_results.json",
+      "sha256": "b04751fbdab970f74518ca0af073b9328a360b9ee07e3e0a8a3e680158083a13"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/frontend_verification.json",
+      "sha256": "70cac21e4c6a5e7b329645fd8c3b1de1e46b55cff03a745b7943929cfc58add9"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/input_preservation.json",
+      "sha256": "10bf614f3b151deeea259d18b0ce3e6c925a345dff48bb325b5c1fedecaad9c4"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/input_results.json",
+      "sha256": "6facfcb80cbb9314cbfdc4e045cab9a34b0a2fae49d1a4034d0d4198575b22db"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/input_verification.json",
+      "sha256": "d3274c246d9728bc7766aec7349c01527a39f005e2aba65beb8b9c872f408023"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_a4_axi_instances.tar.gz",
+      "sha256": "5d9dec73bfa09a2d0b7a74e4e0ee2883af159f0bc6b2baba6b3b2cb365b19d30"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_a4_graph_execution.tar.gz",
+      "sha256": "482233408f0461b9ca177f810601745c51025bf842ac03f1202ba0260e0f1185"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_big_gather.tar.gz",
+      "sha256": "f583a57bd78234fd2ebd521ece6f40853ddfc5b07b39ca880d6f600828b550e3"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_hls_schedules.tar.gz",
+      "sha256": "99a39a06b30579194b646eeb5ab49d1ea30e4a7ff035b9bf62ef054401b6c06d"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_little_finite_model.tar.gz",
+      "sha256": "1d7d39696865c4af420f4592c104bda1b69d46b880fefaf20602718b8254bb8c"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_little_frontend_model.tar.gz",
+      "sha256": "67e481fc4cf901cae541b90be4f62dfaaab711f2cc91d05403c79a85421500ce"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_little_state_model.tar.gz",
+      "sha256": "07bd1894afe8647618bbef252dd8942e383fef9fc74fe31640374d96c685cdcb"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_original_host_inputs.tar.gz",
+      "sha256": "c12320d2efb63e12e0d8548165e43f4d1cfda53be12125d604691e036bb272bc"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_source_controls.tar.gz",
+      "sha256": "f086261803fd623fbda546ea69fd2e33affb341b9b2ef41730997f64dc97ca42"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/schedule_analysis.json",
+      "sha256": "2cf14f5cd413529f947ddbc5afa1ae4d1dbbfbf080eb67575df5ca8c1f8c287d"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/schedule_verification.json",
+      "sha256": "0042919cabd4cefb3169db0ab6ec6db0740a86c86ba3689b7580f84fa11e5b3e"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/source_pins.json",
+      "sha256": "1ef3d7d368df51d3209c91b9a53c4fdf8ceae05cbc00994b8ff6a778e00dc2aa"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/state_preservation.json",
+      "sha256": "cf1d2a2640c8ffbc5703a1d6ed9df6efca077f52957089e98efc162989954dfb"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/state_results.json",
+      "sha256": "a105a6366876673a2021e73493e4e432e128f7bd2f92feca4a8ade6bd4606b6f"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/state_verification.json",
+      "sha256": "fbda6117e57786c19ba72457f02f15282228837b4e951da5f0b30cb6f49bc926"
+    },
+    {
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/verification.json",
+      "sha256": "1b17536a7dac6eac34bb42ac67a10e701bfd7054ed1895ccc35405f1cff23389"
+    }
+  ],
+  "protected_files_changed": [],
+  "protected_files_checked": 2437,
+  "remaining_claims_unfinished": [
+    "connected_mixed_R",
+    "G_finite_timing",
+    "publication_matching",
+    "matched_A4_B_adapter_and_C_host_overhead"
+  ],
+  "schema_version": 1,
+  "status": "UNCHANGED_LEGACY_AND_FROZEN_EVIDENCE",
+  "whole_A4_replica_files_exact": 32,
+  "whole_A4_rows_exact": 8
+}

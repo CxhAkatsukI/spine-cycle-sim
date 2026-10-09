@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "evidence_class": "finite_original_big_memory_frontend_timing_predicted",
+  "boundary": "resident_compact_edges_and_properties_to_PR_update_bursts",
+  "memory_limit_gib": 3,
+  "reserve_gib": 16,
+  "build_jobs": 2,
+  "build_timeout_seconds": 600,
+  "run_timeout_seconds": 180,
+  "generator_python": "python3.11",
+  "clock_mhz": 210,
+  "memory": {"channels": 32, "latency_cycles": 64, "beat_bytes": 64, "outstanding": 16, "source_parents": 16, "edge_parents": 2, "wrapper_live": 32},
+  "source_vertices": 131072,
+  "source_cases": [0, 1, 2, 3, 4, 5],
+  "source_bursts": [8, 64, 64, 64, 1, 64],
+  "cases": ["sorted", "reverse", "reused", "line_zero", "duplicate_lines", "gapped", "dummy_only", "offset_flags", "latency128", "outstanding1", "live1", "depth1_slow_sink"],
+  "not_claimed": ["FPGA_cycles_or_publication_speed_match", "complete_mixed_11L_3B_execution", "combined_Gather_Apply_writeback_timing", "exact_HLS_global_stall_or_AXI_coalescing", "publication_memory_topology_clock_window_admission", "G_or_adapter_B_overhead"]
+}

@@ -59,10 +59,17 @@ repetitions and two UBSan executables pass. All four existing component and
 eight complete-A4 execution outputs remain exact. Big source-memory service,
 connected mixed execution and publication timing admission remain open.
 
+The [Big memory/frontend checkpoint](BIG_MEMORY_FRONTEND.md) now checks the
+original request generator, last-cacheline wrapper, response routing and
+Scatter, comparing every request/response/update field over six source
+fixtures. Twelve finite-resource rows, source/model instrumentation and all
+old component/A4/Big-Gather outputs pass. Connected mixed execution and
+publication memory/topology/window admission are still required.
+
 | Path | Current evidence | Still required |
 | --- | --- | --- |
 | G | Original cache dispatch, all 16 URAM banks, preload/update/writeback agree with an independent oracle over three batches | Original search/DDR/host path, temporal workload admission and finite-resource timing |
-| A | Original Little/Big source controls and host inputs pass; finite Big omega/banks/three-way merge now matches complete original-source captures | Big source-memory service, connected mixed execution, publication topology/clock/window admission and whole-R timing |
+| A | Original Little/Big source controls and host inputs pass; finite Big memory/Scatter and omega/banks/merge match complete independent captures | Connected mixed execution, publication memory/topology/clock/window admission and whole-R timing |
 | A4 | Full multi-partition execution on complete Amazon and two fixtures; every pre-Apply sum/four state replicas and finite ledgers pass; instantiated AXI capacities audited | Realistic memory/topology timing admission, original-publication comparison and fixed-resource adapter control B |
 | B | Not executed | PMA input adapter feeding the same admitted original A4 downstream; state/work/cycle comparison |
 | C | Not executed | Separate validated G and B windows, measured host orchestration and overlap accounting |

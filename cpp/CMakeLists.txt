@@ -28,6 +28,9 @@ set_target_properties(spine_cycle_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # The independent author-ReGraph family is not wired into the production SST
 # plugin until its complete input, memory, and round boundaries are admitted.
 add_library(original_regraph_cycle STATIC
+  src/original_regraph/big_requests.cpp
+  src/original_regraph/big_source_memory.cpp
+  src/original_regraph/big_scatter.cpp
   src/original_regraph/big_routing.cpp
   src/original_regraph/big_gather.cpp
   src/original_regraph/big_merge.cpp
@@ -49,6 +52,15 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(original_regraph_big_frontend_tests tests/original_regraph/big_frontend_tests.cpp)
+  target_link_libraries(original_regraph_big_frontend_tests PRIVATE original_regraph_cycle)
+  target_compile_options(original_regraph_big_frontend_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME original_regraph_big_frontend_tests COMMAND original_regraph_big_frontend_tests)
+
+  add_executable(original_regraph_big_frontend_comparison tests/original_regraph/big_frontend_comparison.cpp)
+  target_link_libraries(original_regraph_big_frontend_comparison PRIVATE original_regraph_cycle)
+  target_compile_options(original_regraph_big_frontend_comparison PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
   add_executable(original_regraph_big_tests tests/original_regraph/big_tests.cpp)
   target_link_libraries(original_regraph_big_tests PRIVATE original_regraph_cycle)
   target_compile_options(original_regraph_big_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

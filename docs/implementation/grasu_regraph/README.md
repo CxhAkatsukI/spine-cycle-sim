@@ -53,6 +53,9 @@ The [independent Big routing/Gather owner](original_regraph_big_gather.md)
 models the original three-layer omega network and eight partitioned banks,
 separately from Little. Its finite component/source/reuse gates do not yet
 include Big source-memory service or complete mixed-system timing.
+The [Big memory/Scatter owner](original_regraph_big_frontend.md) separately
+adds request batches, the last-cacheline wrapper, initial/lane routing and
+source-property Scatter. Its whole mixed-system integration remains open.
 
 Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
 placement and destination-shard update sequencing now have separate source

@@ -65,6 +65,7 @@ used by existing experiments.
 | Original-host graph/DBG/partition/task preparation | [regraph_layout_probe.cpp](tests/publication_sources/regraph_layout_probe.cpp) via [input runner](../scripts/run_original_regraph_inputs.py); no device timing |
 | Independent original-A4 full graph execution | [whole_graph/](tests/original_regraph/whole_graph/) via [A4 runner](../scripts/run_original_regraph_a4.py); finite model timing, not FPGA/publication matching |
 | Independent original-R Big omega/banks/merger | [big_tests.cpp](tests/original_regraph/big_tests.cpp), [big_comparison.cpp](tests/original_regraph/big_comparison.cpp) via [Big runner](../scripts/run_original_regraph_big_validation.py); partial predicted timing |
+| Independent original-R Big memory/Scatter | [big_frontend_tests.cpp](tests/original_regraph/big_frontend_tests.cpp), [big_frontend_comparison.cpp](tests/original_regraph/big_frontend_comparison.cpp) via [Big frontend runner](../scripts/run_original_regraph_big_frontend_validation.py); separate cache/request/read ledgers |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
