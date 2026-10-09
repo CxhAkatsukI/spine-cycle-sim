@@ -49,6 +49,10 @@ The [A4 whole-graph execution owner](original_regraph_a4_execution.md) connects
 all admitted partitions through four state replicas, with nonintrusive
 pre-Apply validation, explicit AXI capacities and exact old-default regression.
 Its finite mock-memory cycles remain predictions, not publication matching.
+The [independent Big routing/Gather owner](original_regraph_big_gather.md)
+models the original three-layer omega network and eight partitioned banks,
+separately from Little. Its finite component/source/reuse gates do not yet
+include Big source-memory service or complete mixed-system timing.
 
 Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
 placement and destination-shard update sequencing now have separate source

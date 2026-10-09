@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "evidence_class": "finite_original_big_components_timing_predicted",
+  "boundary": "PR_update_bursts_to_three_way_Big_global_merger",
+  "generator_python": "python3.11",
+  "memory_limit_gib": 3,
+  "reserve_gib": 16,
+  "build_jobs": 2,
+  "build_timeout_seconds": 600,
+  "run_timeout_seconds": 180,
+  "clock_mhz": 210,
+  "big_vertices": 524288,
+  "big": 3,
+  "source_case_order": [0, 1, 2, 0],
+  "checked_source_words": 2097152,
+  "cases": [
+    "b3_registered", "b3_reverse", "b3_reused_zero", "b3_reused_nonzero",
+    "b3_hotspot", "b3_depth1_slow_sink", "b3_one_inflight", "b1_registered"
+  ],
+  "default_fifos": {"dispatch": 16, "omega_layers": 2, "switch_routes": 2, "bank_pairs": 4, "packed": 8},
+  "timing": {
+    "gather": {"latency": 6, "ii": 1, "capacity": 7},
+    "uram_write": {"latency": 3, "ii": 1, "capacity": 4},
+    "drain": {"latency": 3, "ii": 1, "capacity": 4},
+    "pack": {"latency": 1, "ii": 1, "capacity": 2},
+    "merge": {"latency": 4, "ii": 1, "capacity": 5}
+  },
+  "not_claimed": [
+    "edge_or_source_AXI_memory_timing",
+    "complete_original_mixed_11L_3B_execution",
+    "exact_HLS_blocking_write_global_stall_schedule",
+    "published_clock_topology_event_admission",
+    "FPGA_cycles_or_publication_speed_match",
+    "G_or_matched_A4_B_adapter_overhead"
+  ]
+}

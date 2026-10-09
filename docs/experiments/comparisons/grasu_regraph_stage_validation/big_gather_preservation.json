@@ -1,0 +1,44 @@
+{
+  "CTest_tests_passed": 11,
+  "Python_resources": {
+    "available_before_bytes": 86109851648,
+    "command": [
+      "python3",
+      "-c",
+      "import unittest; patterns=('test_upstream_stage_controls.py','test_upstream_stage_synthesis.py','test_original_regraph_validation.py','test_original_regraph_frontend.py','test_original_regraph_state.py','test_original_regraph_inputs.py','test_original_regraph_execution.py','test_original_regraph_big_validation.py','test_publication_match.py','test_publication_validation_delivery.py','test_repository_structure.py'); suite=unittest.TestSuite(); [suite.addTests(unittest.defaultTestLoader.discover('tests',pattern=p)) for p in patterns]; result=unittest.TextTestRunner(verbosity=1).run(suite); raise SystemExit(not result.wasSuccessful())"
+    ],
+    "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+    "exit_code": 0,
+    "memory_limit_gib": 3,
+    "peak_rss_kib": 33060,
+    "reserve_gib": 16,
+    "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+    "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_gather_postchecks_v1/python_tests.stderr.txt",
+    "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/big_gather_postchecks_v1/python_tests.stdout.txt",
+    "timed_out": false,
+    "wall_seconds": 1.7056189263239503
+  },
+  "Python_stderr": ".....................................................................................................................\n----------------------------------------------------------------------\nRan 117 tests in 1.536s\n\nOK\n",
+  "Python_stderr_sha256": "fa3ee6251ab254306f733d9ede29bf17895a152874497b41b0f77d1360617f9a",
+  "Python_stdout": "",
+  "Python_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "SST_numerical_matrix_rerun": false,
+  "accepted_report_sha256": "e0745af6f34162914516d217238a93eab3773c7bcb73f18735d4d7dc4f77825d",
+  "focused_Python_tests_passed": 117,
+  "frozen_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "legacy_A4_replica_files_exact": 32,
+  "legacy_complete_A4_rows_exact": 8,
+  "legacy_component_rows_exact": 4,
+  "no_production_numerical_or_SST_changes": true,
+  "paper_edited": false,
+  "protected_files_changed": [],
+  "protected_files_checked": 2437,
+  "remaining_claims_unfinished": [
+    "Big_source_memory_and_connected_mixed",
+    "G_finite_timing",
+    "publication_matching",
+    "matched_A4_B_adapter_and_C_host_overhead"
+  ],
+  "schema_version": 1,
+  "status": "UNCHANGED_LEGACY_AND_FROZEN_EVIDENCE"
+}

@@ -43,6 +43,13 @@ component/source outputs are exact. Next implement connected Big/mixed R and
 admit the original publication topology/window and memory timing; this mock
 memory result does not complete publication matching or the A4/B/C milestones.
 
+The [Big routing/Gather checkpoint](BIG_ROUTING_GATHER.md) now independently
+checks the omega network, eight banked destination arrays, packing and
+three-way merge against complete author-source captures. Finite pressure,
+repeats, reuse and UBSan pass; all eight whole-A4 rows remain exact. Next add
+Big request-dependent source-memory service and connected mixed execution.
+This is not whole-R timing admission or a completed A/G/B/C comparison.
+
 ## Separate Questions
 
 | Path | Question | Required control |

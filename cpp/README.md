@@ -30,7 +30,7 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | G+R HBM buffer placement and capacity checks | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph_runtime.cpp](src/grasu_regraph_runtime.cpp) |
 | G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
 | G+R readers, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
-| Independent original-ReGraph Little reader/source/Scatter/Gather/merge and PR state path | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
+| Independent original-ReGraph Little path, PR state and separate Big omega/banks/merge | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
 | SST setup and run serialization | SST component registration | [online_memory_probe.cpp](sst/online_memory_probe.cpp) |
 | SST physical HBM address mapping | [physical_hbm_mapper.hpp](sst/physical_hbm_mapper.hpp) | [physical_hbm_mapper.cpp](sst/physical_hbm_mapper.cpp) |
 | SST memory reservation, transport and completion | [sst_memory_backend.hpp](sst/sst_memory_backend.hpp) | [sst_memory_backend.cpp](sst/sst_memory_backend.cpp) |
@@ -64,6 +64,7 @@ used by existing experiments.
 | Independent original-R PR state and resident rounds | [state_tests.cpp](tests/original_regraph/state_tests.cpp), [iteration_tests.cpp](tests/original_regraph/iteration_tests.cpp) via [state validation](../scripts/run_original_regraph_state_validation.py) |
 | Original-host graph/DBG/partition/task preparation | [regraph_layout_probe.cpp](tests/publication_sources/regraph_layout_probe.cpp) via [input runner](../scripts/run_original_regraph_inputs.py); no device timing |
 | Independent original-A4 full graph execution | [whole_graph/](tests/original_regraph/whole_graph/) via [A4 runner](../scripts/run_original_regraph_a4.py); finite model timing, not FPGA/publication matching |
+| Independent original-R Big omega/banks/merger | [big_tests.cpp](tests/original_regraph/big_tests.cpp), [big_comparison.cpp](tests/original_regraph/big_comparison.cpp) via [Big runner](../scripts/run_original_regraph_big_validation.py); partial predicted timing |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
