@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "evidence_class": "upstream_source_functional_only",
+  "generator_python": "python3.11",
+  "memory_limit_gib": 2,
+  "reserve_gib": 16,
+  "compile_timeout_seconds": 300,
+  "run_timeout_seconds": 180,
+  "topologies": [
+    {"id": "a4", "little": 4, "big": 0},
+    {"id": "default_mixed", "little": 11, "big": 3}
+  ],
+  "probes": [
+    {
+      "id": "g_original_cache",
+      "source": "grasu_cache_probe.cpp",
+      "expected": {
+        "kind": "grasu_cache", "passed": true, "batches": 3, "banks": 16,
+        "segments_per_batch": 131072, "checked_words": 6291456,
+        "successful_updates": 224
+      }
+    },
+    {
+      "id": "a4_original_little", "topology": "a4",
+      "source": "regraph_little_probe.cpp",
+      "expected": {
+        "kind": "regraph_little", "passed": true, "source_windows": 2,
+        "iterations_per_window": 3, "logical_edges_per_iteration": 257,
+        "checked_vertices": 393216, "little": 4, "big": 0,
+        "physical_edges": 1584, "merger_observation": "one_partition_prefix"
+      }
+    },
+    {
+      "id": "a_default_little_component", "topology": "default_mixed",
+      "source": "regraph_little_probe.cpp",
+      "expected": {
+        "kind": "regraph_little", "passed": true, "source_windows": 2,
+        "iterations_per_window": 3, "logical_edges_per_iteration": 257,
+        "checked_vertices": 393216, "little": 11, "big": 3,
+        "physical_edges": 1584, "merger_observation": "one_partition_prefix"
+      }
+    }
+  ],
+  "not_claimed": [
+    "device_cycle_or_publication_rate_measurement",
+    "finite_buffer_or_deadlock_freedom_of_concurrent_hardware",
+    "complete_G_dispatch_search_DDR_and_host_path",
+    "complete_original_mixed_ReGraph_scheduler_or_Big_path",
+    "matched_A4_B_resources_or_adapter_overhead"
+  ]
+}

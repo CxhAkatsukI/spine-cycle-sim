@@ -57,11 +57,18 @@ used by existing experiments.
 | Owner/reactivation protocol | [spine_owner_tests.cpp](tests/spine_owner_tests.cpp) |
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
 | SST address mapping without an SST installation | [sst_hbm_mapper_tests.cpp](tests/sst_hbm_mapper_tests.cpp) |
+| Independent author-source G/R controls | [publication_sources/](tests/publication_sources/) via [study runner](../scripts/run_upstream_stage_controls.py) |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
 [grasu_native_validation.py](../spine_cycle_sim/experiments/grasu_native_validation.py).
 The legacy runner re-exports these functions for compatible CLI/import use.
+
+The optional [author-source controls](../docs/experiments/comparisons/grasu_regraph_stage_validation/README.md)
+compile pinned external GraSU/ReGraph sources, not local HLS ports or simulator
+implementations. They require Vitis headers and GMP and are deliberately not
+part of the dependency-free CMake core. Their functional acceptance does not
+establish device timing or finite-buffer correctness.
 
 ## G+R Extraction Boundary
 

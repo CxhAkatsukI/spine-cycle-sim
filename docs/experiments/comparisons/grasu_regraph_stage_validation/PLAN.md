@@ -1,7 +1,9 @@
 # GraSU And ReGraph Stage Validation
 
-Status: planned after SST/Spine refactor acceptance. No measured publication
-match or integration-overhead conclusion is claimed here.
+Status: SST/Spine refactor accepted in `51565fc`. Four independent upstream
+source-functional controls pass; see [the checkpoint](SOURCE_CONTROLS.md).
+Cycle models, admitted publication timing and A4/B integration overhead remain
+unfinished. No measured publication match is claimed here.
 
 ## Separate Questions
 
@@ -23,6 +25,9 @@ four-pipeline configuration or a 14-pipeline throughput result.
    [source audit](../grasu_regraph_publication_match/README.md). Recover exact
    input identity, transformation, iteration count and throughput denominator.
    Keep unresolved conditions explicit instead of normalizing them away.
+   The confirmed GraSU paper/source geometry mismatch requires separately
+   named `G-paper8` and `G-source16` controls; the source-functional checkpoint
+   only covers the latter. Do not silently alter the pinned author code.
 2. Give original G and original R independent component/source ownership. Do
    not add timing multipliers or hidden baseline modes to the current G+R
    implementation. Keep preparation, execution, validation and analysis apart.

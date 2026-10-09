@@ -18,6 +18,7 @@ Choose an evidence package and profile first, then choose its documented runner.
 | Persistent update-only case | [run_current_fig8_update_only_case.py](run_current_fig8_update_only_case.py) | Update-only scope, not graph convergence |
 | Profile/capability checks | [generate_grasu_regraph_sharded_k4_hls_profiles_v8.py](generate_grasu_regraph_sharded_k4_hls_profiles_v8.py) | Use its check mode for frozen-profile validation |
 | Original-publication comparison gates | [audit_grasu_regraph_publication.py](audit_grasu_regraph_publication.py) | Source audit; not a completed published-throughput experiment |
+| Independent original-source stage controls | [run_upstream_stage_controls.py](run_upstream_stage_controls.py) | Original cache/Little/Big source-functional checks; no device-cycle or published-speed claim |
 | Native validation extraction handoff | [package_publication_validation_smoke.py](package_publication_validation_smoke.py) | Preserves exact result equality and the known 2-round rejection |
 | C++ G+R extraction regression | [run_grasu_refactor_regression.py](run_grasu_refactor_regression.py) | Five fixed cases, explicit plugin binding, exact full-result comparison; not performance calibration |
 | SST/Spine extraction regression | [run_component_refactor_regression.py](run_component_refactor_regression.py) | Frozen matrix; compare every result field, and keep known rejections separate from correctness admissions |

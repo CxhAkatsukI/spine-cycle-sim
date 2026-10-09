@@ -1,0 +1,19 @@
+{
+  "A4_B_overhead_established": false,
+  "accepted_functional_probes": 4,
+  "accepted_run": "source_functional_final_v1",
+  "archive_files": 120,
+  "archive_sha256": "f086261803fd623fbda546ea69fd2e33affb341b9b2ef41730997f64dc97ca42",
+  "core_test_executables_passed": 6,
+  "device_cycles_measured": false,
+  "fresh_FPGA_matrix_run": false,
+  "fresh_SST_matrix_run": false,
+  "frozen_figure_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "full_python_suite_run": false,
+  "numerical_source_diff_from_51565fc": "",
+  "protected_files_unchanged": 2437,
+  "publication_performance_match_established": false,
+  "python_tests_passed": 45,
+  "schema_version": 1,
+  "status": "PASS_source_functional_not_publication_timing"
+}

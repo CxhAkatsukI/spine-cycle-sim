@@ -142,6 +142,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_sst_payload_roundtrip.py](run_sst_payload_roundtrip.py)
 - [run_sst_spine_vertical.py](run_sst_spine_vertical.py)
 - [run_streaming_grasu_update_only_v19.py](run_streaming_grasu_update_only_v19.py)
+- [run_upstream_stage_controls.py](run_upstream_stage_controls.py)
 
 ## Export, packaging, and rendering
 
