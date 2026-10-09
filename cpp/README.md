@@ -52,6 +52,10 @@ used by existing experiments.
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
+Native GraSU/ReGraph result gates now have one Python owner:
+[grasu_native_validation.py](../spine_cycle_sim/experiments/grasu_native_validation.py).
+The legacy runner re-exports these functions for compatible CLI/import use.
+
 The largest translation units still mix several responsibilities. This map
 does not claim they have been modularized. The
 [structure audit](../docs/repository/structure_audit_20261009.md) gives the

@@ -165,6 +165,18 @@ are required; changes in calibration coefficients are not a refactor gate.
 Worktree removal, fixture externalization, and evidence deletion are separate
 decisions, not prerequisites for improving code navigation.
 
+### First Extraction Checkpoint
+
+Native GraSU/ReGraph runner validation and capability/topology gates now live
+in `spine_cycle_sim/experiments/grasu_native_validation.py`. The legacy CLI
+re-exports its public functions; the matrix imports the canonical module.
+Two fresh pre/post SST result JSON files are exactly equal, including a
+preserved mathematical-correctness rejection. A separate Release CMake build
+passes all four C++ test executables. See the
+[publication-match study](../experiments/comparisons/grasu_regraph_publication_match/README.md)
+for source admission, raw results, and the unfinished original-model work.
+The large C++ units and the larger Spine runner have not yet been split.
+
 ## Verification of The Initial Navigation Pass
 
 - Seven organization-tool unit tests passed.

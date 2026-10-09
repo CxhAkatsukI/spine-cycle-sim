@@ -1,0 +1,169 @@
+{
+  "all_comparisons_matched": false,
+  "analysis_code": [
+    {
+      "path": "spine_cycle_sim/experiments/publication_match.py",
+      "sha256": "f52433e022855532f134deb87ba7847479c54bbec55805e813a4695df716a960"
+    },
+    {
+      "path": "scripts/audit_grasu_regraph_publication.py",
+      "sha256": "74dc3ef8287ca81dbc828c86902268a58671810976d5b0cbe1d46ceabe727472"
+    }
+  ],
+  "claim": "publication_performance_match_not_established",
+  "comparisons": [
+    {
+      "absolute_rate_error_pct": null,
+      "candidate_rate": null,
+      "id": "GraSU_published_AU_vs_current_G_stage",
+      "mismatches": [
+        "topology",
+        "memory",
+        "clock"
+      ],
+      "reference_rate": 190.77,
+      "status": "NOT_COMPARABLE_AS_CONFIGURED",
+      "threshold_pct": 10.0,
+      "unresolved": [
+        "workload",
+        "initial_state",
+        "boundary",
+        "numerator",
+        "correctness"
+      ]
+    },
+    {
+      "absolute_rate_error_pct": null,
+      "candidate_rate": null,
+      "id": "ReGraph_published_PR_AM_vs_current_R_stage",
+      "mismatches": [
+        "topology",
+        "memory",
+        "boundary"
+      ],
+      "reference_rate": 3744.0,
+      "status": "NOT_COMPARABLE_AS_CONFIGURED",
+      "threshold_pct": 10.0,
+      "unresolved": [
+        "algorithm",
+        "workload",
+        "initial_state",
+        "clock",
+        "numerator",
+        "correctness"
+      ]
+    },
+    {
+      "absolute_rate_error_pct": null,
+      "candidate_rate": null,
+      "id": "Reject_ReGraph_CC_name_alias",
+      "mismatches": [
+        "algorithm"
+      ],
+      "reference_rate": 4152.0,
+      "status": "NOT_COMPARABLE_AS_CONFIGURED",
+      "threshold_pct": 10.0,
+      "unresolved": [
+        "workload",
+        "initial_state",
+        "topology",
+        "memory",
+        "clock",
+        "boundary",
+        "numerator",
+        "correctness"
+      ]
+    },
+    {
+      "absolute_rate_error_pct": null,
+      "candidate_rate": null,
+      "id": "Original_A4_Little_control_vs_adapter_B",
+      "mismatches": [],
+      "reference_rate": null,
+      "status": "INSUFFICIENT_EVIDENCE",
+      "threshold_pct": 10.0,
+      "unresolved": [
+        "algorithm",
+        "workload",
+        "initial_state",
+        "topology",
+        "memory",
+        "clock",
+        "boundary",
+        "numerator",
+        "correctness"
+      ]
+    }
+  ],
+  "contract_sha256": "431ea573fd8e1a24ae168b05f8704db5d4be997350f3082e36976fbd40444274",
+  "execution_class": "source_audit_no_new_publication_timing_samples",
+  "local_evidence": [
+    {
+      "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+    },
+    {
+      "path": "cpp/include/spine_sim/grasu.hpp",
+      "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+    },
+    {
+      "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+      "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+    }
+  ],
+  "matched_comparisons": 0,
+  "schema_version": 1,
+  "source_revision": "2c6104d114ec6299557c6094b1f0dc128d8a0ca8",
+  "sources": [
+    {
+      "id": "grasu_paper",
+      "inspected_pdf_sha256": "f0604446fe12b9aaad9249b7064ccea47bdc455db4d2f75e9808398317ceff5c",
+      "location": "Section 6.1 and Table 4, printed pages 155-156",
+      "url": "https://doi.org/10.1145/3431920.3439288"
+    },
+    {
+      "id": "regraph_paper",
+      "location": "Section VII, Table IV, Figures 9-12, appendix",
+      "url": "https://soldierchen.github.io/assets/pdf/regraph.pdf",
+      "version": "17-page camera-ready; do not substitute the earlier arXiv version"
+    },
+    {
+      "id": "grasu_author_source",
+      "local_cache_kernel_sha256": "eccb7ea04f56772af6d59ca058db35458e97a8e571c10c241699f67697c054a0",
+      "local_port_revision": "d5c707c5b30b6c0e19ff1e56ea4b16801a46cfae",
+      "note": "Remote HEAD is a lookup identity, not the revision of our local port.",
+      "remote_head_observed": "e95da256be9e7f2361449323b6fe0abf98c1b152",
+      "url": "https://github.com/qgwang-hust/GraSU"
+    },
+    {
+      "id": "regraph_author_source",
+      "local_copy": "Non-Git source copy; its current parameters are 1 Little and 1 Big, not 11+3.",
+      "local_global_para_sha256": "2a71f8d3988a23679374d3147b9f421a5b198757811ae976dac68e1064cb90c0",
+      "local_readme_sha256": "b3d4829bc21320a8b6c449437f186f455978c0156a357e503c1d50d6c7bcf8c9",
+      "remote_head_observed": "365456826cef495285383d939907f847e05ad74b",
+      "url": "https://github.com/Xtra-Computing/ReGraph"
+    }
+  ],
+  "worktree_status": [
+    " M README.md",
+    " M cpp/README.md",
+    " M docs/experiments/comparisons/README.md",
+    " M docs/repository/structure_audit_20261009.md",
+    " M scripts/README.md",
+    " M scripts/build_current_fpga_spine_v4_index.py",
+    " M scripts/run_grasu_native_hw_matrix.py",
+    " M scripts/run_sst_grasu_regraph_native.py",
+    " M tests/test_grasu_native_runner.py",
+    "?? configs/experiments/grasu_regraph_publication_match_v1.json",
+    "?? configs/experiments/publication_validation_smoke_v1.json",
+    "?? docs/evaluation_refresh_20260810/calibration_v4/",
+    "?? docs/evidence/current_fpga_spine_composed_index_v4.json",
+    "?? docs/experiments/comparisons/grasu_regraph_publication_match/",
+    "?? scripts/audit_grasu_regraph_publication.py",
+    "?? scripts/package_publication_validation_smoke.py",
+    "?? spine_cycle_sim/experiments/grasu_native_validation.py",
+    "?? spine_cycle_sim/experiments/publication_match.py",
+    "?? tests/test_publication_match.py",
+    "?? tests/test_publication_validation_delivery.py"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "initial_slice": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/publication_validation_v1/after_star/tiny_star_v16_u12/input/initial.slice",
+  "initial_slice_sha256": "af55bf1a4991e88ef0efb34d3fba8353c63bfe7c9ed0ff6664a4813cd7ae9eae",
+  "operation_mapping": {
+    "0": -1,
+    "1": 1
+  },
+  "reciprocal_validated": false,
+  "record_order": "source_graph",
+  "schema_version": 1,
+  "source_graph": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/data/grasu_native_hw_matrix/tiny_star_v16_u12.graph",
+  "source_graph_sha256": "f91f7add86e3422f1be6faf512a6ec6c603ba48a0098660618ea463a0a0716ef",
+  "static_edges": 16,
+  "unit_weight": 1,
+  "update_edges": 12,
+  "update_slice": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/publication_validation_v1/after_star/tiny_star_v16_u12/input/update.slice",
+  "update_slice_sha256": "59c11c39c18d1bf3ff33a5cfda41c760116353ae99403d26d112ce893d4a12b8",
+  "vertices": 16,
+  "weights_preserved": true
+}

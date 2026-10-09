@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "campaign_id": "publication_validation_smoke_v1",
+  "default_cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+  "jobs": [
+    {
+      "job_id": "native_star_fixed_two_rounds",
+      "command": ["timeout", "--signal=TERM", "--kill-after=10s", "180s", "python3", "scripts/run_grasu_native_hw_matrix.py", "--no-build", "--case", "tiny_star_v16_u12", "--out-dir", "results/publication_validation_v1/after_star"],
+      "dataset_id": "tiny_star_v16_u12",
+      "algorithm": "unit_weight_sssp",
+      "system": "grasu_regraph_native_a9aef06",
+      "tier": "frozen_port_regression_not_publication_match",
+      "resource_class": "small",
+      "estimated_rss_gib": 1.0
+    },
+    {
+      "job_id": "native_spread_holdout",
+      "command": ["timeout", "--signal=TERM", "--kill-after=10s", "180s", "python3", "scripts/run_grasu_native_hw_matrix.py", "--no-build", "--case", "tiny_spread_v16_u8", "--out-dir", "results/publication_validation_v1/after_holdout"],
+      "dataset_id": "tiny_spread_v16_u8",
+      "algorithm": "unit_weight_sssp",
+      "system": "grasu_regraph_native_a9aef06",
+      "tier": "frozen_port_regression_not_publication_match",
+      "resource_class": "small",
+      "estimated_rss_gib": 1.0
+    }
+  ]
+}

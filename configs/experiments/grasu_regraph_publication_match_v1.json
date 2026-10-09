@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "threshold_pct": 10.0,
+  "scope": "Source-based admission audit; not a completed publication-performance experiment.",
+  "sources": [
+    {
+      "id": "grasu_paper",
+      "url": "https://doi.org/10.1145/3431920.3439288",
+      "location": "Section 6.1 and Table 4, printed pages 155-156",
+      "inspected_pdf_sha256": "f0604446fe12b9aaad9249b7064ccea47bdc455db4d2f75e9808398317ceff5c"
+    },
+    {
+      "id": "regraph_paper",
+      "url": "https://soldierchen.github.io/assets/pdf/regraph.pdf",
+      "location": "Section VII, Table IV, Figures 9-12, appendix",
+      "version": "17-page camera-ready; do not substitute the earlier arXiv version"
+    },
+    {
+      "id": "grasu_author_source",
+      "url": "https://github.com/qgwang-hust/GraSU",
+      "remote_head_observed": "e95da256be9e7f2361449323b6fe0abf98c1b152",
+      "local_port_revision": "d5c707c5b30b6c0e19ff1e56ea4b16801a46cfae",
+      "note": "Remote HEAD is a lookup identity, not the revision of our local port.",
+      "local_cache_kernel_sha256": "eccb7ea04f56772af6d59ca058db35458e97a8e571c10c241699f67697c054a0"
+    },
+    {
+      "id": "regraph_author_source",
+      "url": "https://github.com/Xtra-Computing/ReGraph",
+      "remote_head_observed": "365456826cef495285383d939907f847e05ad74b",
+      "local_copy": "Non-Git source copy; its current parameters are 1 Little and 1 Big, not 11+3.",
+      "local_readme_sha256": "b3d4829bc21320a8b6c449437f186f455978c0156a357e503c1d50d6c7bcf8c9",
+      "local_global_para_sha256": "2a71f8d3988a23679374d3147b9f421a5b198757811ae976dac68e1064cb90c0"
+    }
+  ],
+  "local_evidence": [
+    {
+      "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+    },
+    {
+      "path": "cpp/include/spine_sim/grasu.hpp",
+      "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+    },
+    {
+      "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+      "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+    }
+  ],
+  "published_anchors": {
+    "grasu_table4": {
+      "unit": "million successfully updated edges per second",
+      "AU": 190.77, "SU": 147.08, "WK": 202.97, "SO": 55.83, "BC": 174.46,
+      "platform": "U250, 200 MHz, four DDR4 channels, URAM hot storage, 32 update PEs, 8-word segments",
+      "batch_policy": "Ten temporal update batches by default; recover original event multiplicity and batching before comparison."
+    },
+    "regraph_table4_AM": {
+      "unit": "million traversed edges per second",
+      "PR_best": 4224, "PR_system": 3744, "BFS_system": 4060,
+      "CC_closeness_system": 4152,
+      "platform": "U280, graph-selected heterogeneous pipeline combinations",
+      "clock_note": "Figure 10 explicitly normalizes to 210 MHz; do not assign that clock to a Table IV row without confirming its scope."
+    }
+  },
+  "comparisons": [
+    {
+      "id": "GraSU_published_AU_vs_current_G_stage",
+      "reference_rate": 190.77, "candidate_rate": null,
+      "conditions": {
+        "algorithm": {"status": "matched", "evidence": "Both execute graph edge updates; operation-level trace semantics remain a workload gate."},
+        "workload": {"status": "unresolved", "evidence": "Original temporal AU event multiplicity, base graph, ordering, and ten-batch split have not been reproduced here."},
+        "initial_state": {"status": "unresolved", "evidence": "Original PMA reservation, reorder, hot-set selection, and snapshot state need independent reconstruction."},
+        "topology": {"status": "mismatch", "evidence": "GraSU Section 6.1 uses 8-word PMA segments; our routed sharded-K4 profile uses 16-word segments. No original-G control model is admitted."},
+        "memory": {"status": "mismatch", "evidence": "Paper: URAM hot edges plus U250 DDR4. Current profile: direct_cache_hbm_rmw=true on U55C; prepare_pure_hw_pipeline_build.sh defines GRASU_PURE_PIPELINE_DIRECT_CACHE."},
+        "clock": {"status": "mismatch", "evidence": "Paper experiments use 200 MHz; sharded-K4 profile uses 150 MHz. No automatic throughput rescaling is justified."},
+        "boundary": {"status": "unresolved", "evidence": "Need isolated G event boundaries and URAM preload/writeback inclusion; setup-inclusive host throughput is not Table 4 kernel-update throughput."},
+        "numerator": {"status": "unresolved", "evidence": "Paper counts successfully updated edges; trace events, duplicates, lowered operations, and accepted updates are not interchangeable."},
+        "correctness": {"status": "unresolved", "evidence": "No new run on the exact publication-matched temporal trace has passed yet."}
+      }
+    },
+    {
+      "id": "ReGraph_published_PR_AM_vs_current_R_stage",
+      "reference_rate": 3744, "candidate_rate": null,
+      "conditions": {
+        "algorithm": {"status": "unresolved", "evidence": "Use static full PR, not residual PR; verify fixed-point arithmetic, iteration count, termination, and the traversed-edge denominator from the original artifact."},
+        "workload": {"status": "unresolved", "evidence": "Must pin the exact amazon-2008 graph, duplicate/self-loop policy, DBG reorder, partition order, and padding; a compact slice is not the paper graph."},
+        "initial_state": {"status": "unresolved", "evidence": "Paper static PR state must be reproduced, not a resident dynamic-update state."},
+        "topology": {"status": "mismatch", "evidence": "Table IV uses graph-selected heterogeneous pipelines; current K4 uses four Little frontends and one shared downstream, without a Big path. 11L+3B is an example, not the universal Table IV topology."},
+        "memory": {"status": "mismatch", "evidence": "Paper U280 original edge-array ports and buffers differ from current U55C sharded PMA placement; no resource normalization has been validated."},
+        "clock": {"status": "unresolved", "evidence": "Current K4 is 150 MHz; confirm Table IV frequency scope independently of Figure 10's 210-MHz statement."},
+        "boundary": {"status": "mismatch", "evidence": "Current adapter+R includes PMA occupancy and reader effects; the published R path reads preprocessed compact edges. Neither G nor host time belongs in this isolated comparison."},
+        "numerator": {"status": "unresolved", "evidence": "Need traversed edges with the same iteration and graph-direction conventions, not accepted update bytes or useful dynamic edges."},
+        "correctness": {"status": "unresolved", "evidence": "No original-topology simulator run on this exact static PR case has been admitted."}
+      }
+    },
+    {
+      "id": "Reject_ReGraph_CC_name_alias",
+      "reference_rate": 4152, "candidate_rate": null,
+      "conditions": {
+        "algorithm": {"status": "mismatch", "evidence": "ReGraph Section VII-A and README define CC as Closeness Centrality. Our CC is Connected Components. Their Table IV rates cannot calibrate our CC."},
+        "workload": {"status": "unresolved", "evidence": "No common-algorithm publication workload has been selected for this intentionally rejected alias."},
+        "initial_state": {"status": "unresolved", "evidence": "Different graph problems have different initial states."},
+        "topology": {"status": "unresolved", "evidence": "Do not proceed to topology matching before resolving the algorithm mismatch."},
+        "memory": {"status": "unresolved", "evidence": "No normalized memory comparison for this rejected alias."},
+        "clock": {"status": "unresolved", "evidence": "No normalized clock comparison for this rejected alias."},
+        "boundary": {"status": "unresolved", "evidence": "Different algorithms cannot acquire a shared valid window by renaming the label."},
+        "numerator": {"status": "unresolved", "evidence": "Traversed-edge conventions need the same algorithm first."},
+        "correctness": {"status": "unresolved", "evidence": "Separate oracles do not turn these two algorithms into one comparison."}
+      }
+    },
+    {
+      "id": "Original_A4_Little_control_vs_adapter_B",
+      "reference_rate": null, "candidate_rate": null,
+      "conditions": {
+        "algorithm": {"status": "unresolved", "evidence": "Predeclare one common original algorithm, preferably full PR, before collecting A4 and B timing."},
+        "workload": {"status": "unresolved", "evidence": "A4 compact edges and B PMA must represent identical logical edges, state, and partition order; report padding separately."},
+        "initial_state": {"status": "unresolved", "evidence": "Both paths must start from exactly the same vertex properties."},
+        "topology": {"status": "unresolved", "evidence": "Original four-Little/zero-Big control is not implemented in this simulator. Parameterizing current K4 is not an independent original-ReGraph control."},
+        "memory": {"status": "unresolved", "evidence": "Match ports, outstanding budgets, source buffering and merger/apply resources; PMA occupancy remains an explicit B-path difference."},
+        "clock": {"status": "unresolved", "evidence": "Run both resource-matched controls at a common clock; no fitted clock conversion."},
+        "boundary": {"status": "unresolved", "evidence": "Measure source/edge fetch through result publication for A4 and B, with G complete before either starts; count reader overlap once."},
+        "numerator": {"status": "unresolved", "evidence": "Report common logical edges per sweep plus physical edge/PMA traffic and cycles."},
+        "correctness": {"status": "unresolved", "evidence": "Independent per-iteration state and traffic checks are required before any performance-ratio claim."}
+      }
+    }
+  ]
+}

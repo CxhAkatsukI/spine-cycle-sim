@@ -17,6 +17,8 @@ Choose an evidence package and profile first, then choose its documented runner.
 | Frozen G+R matrix | [run_current_fpga_grasu_frozen_matrix.py](run_current_fpga_grasu_frozen_matrix.py) | Same checks; a filename containing `current` is not proof of currency |
 | Persistent update-only case | [run_current_fig8_update_only_case.py](run_current_fig8_update_only_case.py) | Update-only scope, not graph convergence |
 | Profile/capability checks | [generate_grasu_regraph_sharded_k4_hls_profiles_v8.py](generate_grasu_regraph_sharded_k4_hls_profiles_v8.py) | Use its check mode for frozen-profile validation |
+| Original-publication comparison gates | [audit_grasu_regraph_publication.py](audit_grasu_regraph_publication.py) | Source audit; not a completed published-throughput experiment |
+| Native validation extraction handoff | [package_publication_validation_smoke.py](package_publication_validation_smoke.py) | Preserves exact result equality and the known 2-round rejection |
 
 ## Analysis and Figures
 
@@ -42,5 +44,7 @@ status. Do not delete a command merely because a later version exists.
 5. Keep simulator wall time separate from modeled device latency and measured
    hardware event windows.
 
-This organization pass does not change any existing runner, default, model,
-profile, calibration coefficient, or figure input.
+The navigation cleanup did not change numerical behavior. The subsequent
+[native validation extraction](../docs/experiments/comparisons/grasu_regraph_publication_match/README.md)
+preserves CLI/import compatibility and exact smoke outputs; models, profiles,
+calibration coefficients, and figure inputs remain unchanged.

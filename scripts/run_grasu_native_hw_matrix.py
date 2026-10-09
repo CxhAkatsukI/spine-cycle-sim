@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.run_sst_grasu_regraph_native import validate_result  # noqa: E402
+from spine_cycle_sim.experiments.grasu_native_validation import validate_result  # noqa: E402
 
 
 DEFAULT_MATRIX = (

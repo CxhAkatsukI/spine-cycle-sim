@@ -10,6 +10,7 @@ from scripts.run_sst_grasu_regraph_native import (
     require_native_algorithm_capability,
     validate_result,
 )
+from spine_cycle_sim.experiments import grasu_native_validation
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +20,17 @@ PROFILE = (
 
 
 class GraSuNativeRunnerTests(unittest.TestCase):
+    def test_cli_reexports_canonical_validation_without_a_second_copy(self) -> None:
+        self.assertIs(validate_result, grasu_native_validation.validate_result)
+        self.assertIs(
+            native_active_hbm_channels,
+            grasu_native_validation.native_active_hbm_channels,
+        )
+        self.assertIs(
+            require_native_algorithm_capability,
+            grasu_native_validation.require_native_algorithm_capability,
+        )
+
     def setUp(self) -> None:
         self.profile = json.loads(PROFILE.read_text(encoding="utf-8"))
         self.result = {

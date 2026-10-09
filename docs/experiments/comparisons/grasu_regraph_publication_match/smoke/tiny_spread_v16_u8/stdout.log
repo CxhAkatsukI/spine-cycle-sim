@@ -1,0 +1,5 @@
+[1/1] native hardware alignment: tiny_spread_v16_u8
+PASS convert_grasu_graph_to_slices: vertices=16 static=16 updates=8
+PASS grasu_regraph_native_sst: cycles=578499 update=130 conversion=1842 compute=576527
+PASS grasu_native_hw_alignment: structure=exact e2e_abs_err_pct=53.40
+PASS native hardware matrix: cases=1 structure=True -> /home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/publication_validation_v1/after_holdout
