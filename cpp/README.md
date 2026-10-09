@@ -30,6 +30,7 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | G+R HBM buffer placement and capacity checks | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph_runtime.cpp](src/grasu_regraph_runtime.cpp) |
 | G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
 | G+R readers, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
+| Independent original-ReGraph Little Gather and mergers | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
 | SST setup and run serialization | SST component registration | [online_memory_probe.cpp](sst/online_memory_probe.cpp) |
 | SST physical HBM address mapping | [physical_hbm_mapper.hpp](sst/physical_hbm_mapper.hpp) | [physical_hbm_mapper.cpp](sst/physical_hbm_mapper.cpp) |
 | SST memory reservation, transport and completion | [sst_memory_backend.hpp](sst/sst_memory_backend.hpp) | [sst_memory_backend.cpp](sst/sst_memory_backend.cpp) |
@@ -58,6 +59,7 @@ used by existing experiments.
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
 | SST address mapping without an SST installation | [sst_hbm_mapper_tests.cpp](tests/sst_hbm_mapper_tests.cpp) |
 | Independent author-source G/R controls | [publication_sources/](tests/publication_sources/) via [study runner](../scripts/run_upstream_stage_controls.py) |
+| Independent original-R finite Gather/merge | [original_regraph/](tests/original_regraph/) via [validation runner](../scripts/run_original_regraph_gather_validation.py) |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
@@ -76,6 +78,12 @@ uses the same pinned author sources in isolated scratch projects. The small
 32-bit `uint` alias. No original algorithm body, production C++ component, or
 SST build list is changed by that optional study. Its reports do not imply
 that a complete independent original-G/ReGraph cycle model exists yet.
+
+The [finite Little Gather/merge checkpoint](../docs/experiments/comparisons/grasu_regraph_stage_validation/LITTLE_FINITE_MODEL.md)
+adds a separately owned CMake library with registered finite resources and
+word-for-word author-source comparison. It stops before Apply and does not
+include original edge/source memory service or Big scheduling. It is therefore
+not wired into SST, and its predicted cycles are not whole-R throughput.
 
 ## G+R Extraction Boundary
 

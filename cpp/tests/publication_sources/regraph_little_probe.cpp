@@ -8,6 +8,7 @@
 #include "little_merger_call.hpp"
 
 #include <algorithm>
+#include <fstream>
 
 namespace {
 constexpr unsigned vertex_count = LITTLE_KERNEL_DST_BUFFER_SIZE;
@@ -142,8 +143,15 @@ void check_apply(const std::vector<write_burst_pkt> &merged,
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
   try {
+    std::ofstream capture;
+    if (argc != 1) {
+      require(argc == 3 && std::string(argv[1]) == "--capture-merged",
+              "expected --capture-merged OUTPUT.bin");
+      capture.open(argv[2], std::ios::binary | std::ios::out | std::ios::trunc);
+      require(capture.is_open(), "cannot open merged-value capture");
+    }
     unsigned physical_edges = 0;
     for (unsigned source_base : {0u, static_cast<unsigned>(SRC_BUFFER_SIZE)}) {
       const auto edges = fixture(source_base);
@@ -188,9 +196,20 @@ int main() {
                       .data.range((vertex % 16) * 32 + 31, (vertex % 16) * 32)
                       .to_uint() == expected[vertex],
               "Little scatter/gather/merger differs from per-edge oracle");
+          if (capture.is_open()) {
+            const auto value = observer.values[vertex / 16]
+                .data.range((vertex % 16) * 32 + 31, (vertex % 16) * 32).to_uint();
+            for (unsigned byte = 0; byte < 4; ++byte) {
+              capture.put(static_cast<char>((value >> (byte * 8)) & 255u));
+            }
+          }
         }
         check_apply(observer.values, expected, degree, properties);
       }
+    }
+    if (capture.is_open()) {
+      capture.flush();
+      require(capture.good(), "merged-value capture write failed");
     }
     std::cout
         << "PUBLICATION_PROBE {\"kind\":\"regraph_little\",\"passed\":true,"

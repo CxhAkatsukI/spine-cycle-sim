@@ -25,6 +25,14 @@ target_compile_features(spine_cycle_core PUBLIC cxx_std_20)
 target_compile_options(spine_cycle_core PRIVATE -Wall -Wextra -Wpedantic -Werror)
 set_target_properties(spine_cycle_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+# The independent author-ReGraph family is not wired into the production SST
+# plugin until its complete input, memory, and round boundaries are admitted.
+add_library(original_regraph_cycle STATIC
+  src/original_regraph/little_gather.cpp
+  src/original_regraph/little_merge.cpp)
+target_link_libraries(original_regraph_cycle PUBLIC spine_cycle_core)
+target_compile_options(original_regraph_cycle PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
 add_executable(persistent_update_host_benchmark
   tools/persistent_update_host_benchmark.cpp)
 target_link_libraries(persistent_update_host_benchmark PRIVATE spine_cycle_core)
@@ -32,6 +40,15 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(original_regraph_gather_tests tests/original_regraph/gather_tests.cpp)
+  target_link_libraries(original_regraph_gather_tests PRIVATE original_regraph_cycle)
+  target_compile_options(original_regraph_gather_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME original_regraph_gather_tests COMMAND original_regraph_gather_tests)
+
+  add_executable(original_regraph_source_comparison tests/original_regraph/source_comparison.cpp)
+  target_link_libraries(original_regraph_source_comparison PRIVATE original_regraph_cycle)
+  target_compile_options(original_regraph_source_comparison PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
   add_executable(sst_hbm_mapper_tests
     tests/sst_hbm_mapper_tests.cpp sst/physical_hbm_mapper.cpp)
   target_include_directories(sst_hbm_mapper_tests PRIVATE sst)

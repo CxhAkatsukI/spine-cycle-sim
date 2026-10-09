@@ -44,6 +44,10 @@ def validate_contract(contract: dict) -> None:
     for probe in probes:
         if probe.get("source") not in SOURCE_KINDS:
             raise ValueError("use a supported source-functional probe")
+        if "capture_merged" in probe and (
+                probe["capture_merged"] is not True or
+                probe["source"] != "regraph_little_probe.cpp"):
+            raise ValueError("merged capture requires an explicit Little source control")
         expected = probe.get("expected", {})
         if expected.get("kind") != SOURCE_KINDS[probe["source"]] or expected.get("passed") is not True:
             raise ValueError("probe/source kind or expected outcome mismatch")

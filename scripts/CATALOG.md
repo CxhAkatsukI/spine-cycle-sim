@@ -118,6 +118,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_hw_maintenance_calibration.py](run_hw_maintenance_calibration.py)
 - [run_large_graph_campaign.py](run_large_graph_campaign.py)
 - [run_maintenance_microbench.py](run_maintenance_microbench.py)
+- [run_original_regraph_gather_validation.py](run_original_regraph_gather_validation.py)
 - [run_publication_case.py](run_publication_case.py)
 - [run_publication_cc_case.py](run_publication_cc_case.py)
 - [run_refactor31_mechanism_calibration.py](run_refactor31_mechanism_calibration.py)

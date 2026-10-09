@@ -102,12 +102,25 @@ def run_study(root: Path, contract_path: Path, pins_path: Path, source_root: Pat
                 raise ValueError("author-source compilation failed or timed out")
             row["dependencies"] = dependency_identities(case_dir / "dependencies.d", root)
             row["binary_sha256"] = sha256_file(case_dir / "probe")
-            row["run"] = run_bounded([str(case_dir / "probe")], root, case_dir / "run",
+            run_command = [str(case_dir / "probe")]
+            if probe.get("capture_merged"):
+                run_command += ["--capture-merged", str(case_dir / "merged.u32le")]
+            row["run"] = run_bounded(run_command, root, case_dir / "run",
                                        timeout=contract["run_timeout_seconds"], **limits)
             if row["run"]["exit_code"] != 0:
                 raise ValueError("source-functional probe failed or timed out")
             row["observed"] = validate_probe(Path(row["run"]["stdout"]).read_text(),
                                               probe["expected"])
+            if probe.get("capture_merged"):
+                capture = case_dir / "merged.u32le"
+                if capture.stat().st_size != probe["expected"]["checked_vertices"] * 4:
+                    raise ValueError("merged-value capture has the wrong extent")
+                row["merged_capture"] = {
+                    "path": str(capture), "sha256": sha256_file(capture),
+                    "bytes": capture.stat().st_size,
+                    "format": "u32le_source_window_then_iteration_then_vertex",
+                    "boundary": "original_global_little_merger_before_apply",
+                }
             for dependency in row["dependencies"]:
                 if sha256_file(Path(dependency["path"])) != dependency["sha256"]:
                     raise ValueError("compiled dependency changed during probe")

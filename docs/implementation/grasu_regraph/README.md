@@ -32,6 +32,10 @@ performance; no directory move establishes that equivalence.
 
 ## Code Review
 
+The [independent original-ReGraph Little core](original_regraph_little_gather.md)
+has a separate implementation and explicit partial timing boundary. It is a
+publication-control building block, not a replacement for the ported G+R model.
+
 Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
 placement and destination-shard update sequencing now have separate source
 files behind the existing public header. The

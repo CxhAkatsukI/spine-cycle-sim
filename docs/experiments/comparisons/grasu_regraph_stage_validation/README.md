@@ -18,11 +18,18 @@ U280 support is absent locally; PR apply has a separately declared control
 interface compatibility directive. These HLS estimates are neither complete
 cycle-model validation nor publication performance reproduction.
 
+The [finite Little Gather/merge checkpoint](LITTLE_FINITE_MODEL.md) now adds
+an independent cycle-component family with private destination arrays,
+forwarding, full drain/clear, registered FIFOs and finite in-flight work.
+It matches all 786,432 original-source output words over the admitted 4-Little
+and 11-Little component fixtures. Its boundary excludes edge/source memory
+service and Apply; whole-R timing and A4/B overhead remain unfinished.
+
 | Path | Current evidence | Still required |
 | --- | --- | --- |
 | G | Original cache dispatch, all 16 URAM banks, preload/update/writeback agree with an independent oracle over three batches | Original search/DDR/host path, temporal workload admission and finite-resource timing |
 | A | Original Little and Big components pass independently, including generated 11-way/3-way mergers | Whole-graph DBG/scheduling and memory wrapper, publication topology/clock admission, cycle model |
-| A4 | Original 4L/0B generation has no active Big connection; Little scatter/gather/merger/apply pass | Concurrent finite-buffer timing and explicit downstream matching to B |
+| A4 | Original 4L/0B source functions pass; independent finite Gather/merge matches original outputs and conserves streams under backpressure | Edge/source memory, Apply/writeback and complete finite timing, then matching to B |
 | B | Not executed | PMA input adapter feeding the same admitted original A4 downstream; state/work/cycle comparison |
 | C | Not executed | Separate validated G and B windows, measured host orchestration and overlap accounting |
 

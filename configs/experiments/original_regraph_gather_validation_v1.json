@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "evidence_class": "original_little_finite_gather_model",
+  "boundary": "scatter_update_fifo_to_global_merged_property_fifo_before_apply",
+  "memory_limit_gib": 4,
+  "reserve_gib": 16,
+  "build_timeout_seconds": 1200,
+  "run_timeout_seconds": 120,
+  "build_parallelism": 1,
+  "clock_mhz": 210,
+  "partition_vertices": 65536,
+  "gather_lanes": 8,
+  "default_fifo_depth": 8,
+  "uram_write_latency": 3,
+  "forwarding_entries_per_lane": 4,
+  "timing": {
+    "gather": {"latency": 6, "initiation_interval": 1, "capacity": 7},
+    "drain": {"latency": 3, "initiation_interval": 1, "capacity": 4},
+    "local_merge": {"latency": 3, "initiation_interval": 1, "capacity": 4},
+    "global_merge": {"latency": 4, "initiation_interval": 1, "capacity": 5}
+  },
+  "source_controls": [
+    {"id": "a4_original_little", "little": 4, "checked_words": 393216},
+    {"id": "a_default_little_component", "little": 11, "checked_words": 393216}
+  ],
+  "invariant_cases": [
+    "a4_registered", "a4_reverse_registration", "a4_depth1_skew_slow_sink",
+    "a4_one_inflight_gather", "a11_little_component",
+    "a4_reused_zero_burst_partition", "a4_reused_nonzero_partition"
+  ],
+  "not_claimed": [
+    "measured_FPGA_or_HLS_cosimulation_cycles",
+    "complete_ReGraph_or_published_MTEPS_match",
+    "edge_reader_scatter_source_cache_or_HBM_service_timing",
+    "PR_Apply_or_state_writer_timing",
+    "Big_pipelines_or_mixed_partition_scheduler",
+    "A4_B_resource_matching_or_adapter_overhead",
+    "arbitrary_signed_overflow_equivalence"
+  ]
+}

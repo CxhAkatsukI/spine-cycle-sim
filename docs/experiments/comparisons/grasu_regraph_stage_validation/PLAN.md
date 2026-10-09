@@ -10,6 +10,12 @@ the original kernel components, with source/tool/platform and compatibility
 differences retained. It supplies implementation constraints for the missing
 cycle models; it does not satisfy the publication timing or A4/B exit gates.
 
+The [Little finite Gather/merge checkpoint](LITTLE_FINITE_MODEL.md) now covers
+the first independent original-R cycle components. Complete word comparison,
+finite-buffer conservation, repeated drain/clear and negative-reference gates
+pass. Reader/source memory, Apply/writeback and whole-R timing are still missing;
+the complete original-R and A4/B milestones below are not marked complete.
+
 ## Separate Questions
 
 | Path | Question | Required control |

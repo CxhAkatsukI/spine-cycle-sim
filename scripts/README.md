@@ -21,6 +21,7 @@ Choose an evidence package and profile first, then choose its documented runner.
 | Independent original-source stage controls | [run_upstream_stage_controls.py](run_upstream_stage_controls.py) | Original cache/Little/Big source-functional checks; no device-cycle or published-speed claim |
 | Original-source HLS schedules | [run_upstream_stage_synthesis.py](run_upstream_stage_synthesis.py) | Bounded isolated synthesis; source/tool/platform differences explicit; no FPGA timing claim |
 | HLS schedule analysis | [analyze_upstream_stage_synthesis.py](analyze_upstream_stage_synthesis.py) | Checks contracts/report hashes and indexes all attempts; never invents workload cycles or rates |
+| Independent original-R finite Gather/merge | [run_original_regraph_gather_validation.py](run_original_regraph_gather_validation.py) | Isolated build, complete source-word comparison, finite-buffer and negative controls; not whole-R throughput |
 | Native validation extraction handoff | [package_publication_validation_smoke.py](package_publication_validation_smoke.py) | Preserves exact result equality and the known 2-round rejection |
 | C++ G+R extraction regression | [run_grasu_refactor_regression.py](run_grasu_refactor_regression.py) | Five fixed cases, explicit plugin binding, exact full-result comparison; not performance calibration |
 | SST/Spine extraction regression | [run_component_refactor_regression.py](run_component_refactor_regression.py) | Frozen matrix; compare every result field, and keep known rejections separate from correctness admissions |
