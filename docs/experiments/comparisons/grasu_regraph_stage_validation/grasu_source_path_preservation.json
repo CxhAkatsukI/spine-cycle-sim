@@ -1,0 +1,115 @@
+{
+  "CTest_build_reused_unchanged_numerical_sources": true,
+  "CTest_count": 13,
+  "FPGA_matrix_rerun": false,
+  "Python_test_count_excluding_organization": 135,
+  "SST_matrix_rerun": false,
+  "accepted_archive_manifest_sha256": "786f6af11e03a1256d0467278bfb8087653e06741873065a0396845ddbc2cc07",
+  "accepted_results_sha256": "035133d5d865f2f999b74e3bea2c8fda129c909b8912383741932e34a9362f80",
+  "checks": [
+    {
+      "resources": {
+        "available_before_bytes": 99761909760,
+        "command": [
+          "ctest",
+          "--test-dir",
+          "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/mixed_execution_final_v3/build",
+          "--output-on-failure"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 3,
+        "peak_rss_kib": 95124,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_source_path_postchecks_v1/ctest.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_source_path_postchecks_v1/ctest.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 7.568991865962744
+      },
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_text": "",
+      "stdout_sha256": "1ae93fb917d8e1faf5d666477e79994232d319492a1dd399832b982693ac0c2f",
+      "stdout_text": "Test project /home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/mixed_execution_final_v3/build\n      Start  1: original_regraph_mixed_tests\n 1/13 Test  #1: original_regraph_mixed_tests ..........   Passed    0.00 sec\n      Start  2: original_regraph_big_frontend_tests\n 2/13 Test  #2: original_regraph_big_frontend_tests ...   Passed    0.05 sec\n      Start  3: original_regraph_big_tests\n 3/13 Test  #3: original_regraph_big_tests ............   Passed    1.59 sec\n      Start  4: original_regraph_iteration_tests\n 4/13 Test  #4: original_regraph_iteration_tests ......   Passed    0.94 sec\n      Start  5: original_regraph_state_tests\n 5/13 Test  #5: original_regraph_state_tests ..........   Passed    0.03 sec\n      Start  6: original_regraph_frontend_tests\n 6/13 Test  #6: original_regraph_frontend_tests .......   Passed    0.10 sec\n      Start  7: original_regraph_gather_tests\n 7/13 Test  #7: original_regraph_gather_tests .........   Passed    0.39 sec\n      Start  8: sst_hbm_mapper_tests\n 8/13 Test  #8: sst_hbm_mapper_tests ..................   Passed    0.00 sec\n      Start  9: spine_cycle_core_tests\n 9/13 Test  #9: spine_cycle_core_tests ................   Passed    3.92 sec\n      Start 10: spine_owner_tests\n10/13 Test #10: spine_owner_tests .....................   Passed    0.00 sec\n      Start 11: spine_vertex_lifecycle_tests\n11/13 Test #11: spine_vertex_lifecycle_tests ..........   Passed    0.00 sec\n      Start 12: grasu_cycle_tests\n12/13 Test #12: grasu_cycle_tests .....................   Passed    0.50 sec\n      Start 13: grasu_runtime_tests\n13/13 Test #13: grasu_runtime_tests ...................   Passed    0.00 sec\n\n100% tests passed, 0 tests failed out of 13\n\nTotal Test time (real) =   7.54 sec\n"
+    },
+    {
+      "resources": {
+        "available_before_bytes": 104431403008,
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "tests.test_original_regraph_big_frontend",
+          "tests.test_original_regraph_big_validation",
+          "tests.test_original_regraph_execution",
+          "tests.test_original_regraph_frontend",
+          "tests.test_original_regraph_inputs",
+          "tests.test_original_regraph_mixed",
+          "tests.test_original_regraph_state",
+          "tests.test_original_regraph_validation",
+          "tests.test_refactor_equivalence",
+          "tests.test_sst_memory_binding",
+          "tests.test_upstream_stage_controls",
+          "tests.test_upstream_stage_synthesis",
+          "tests.test_original_grasu_source_path"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 3,
+        "peak_rss_kib": 116160,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_source_path_postchecks_v1/python.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_source_path_postchecks_v1/python.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 2.810229924041778
+      },
+      "stderr_sha256": "51b38ba014e3a886a093f0e51afc64612079f7b17bb66e661ff63fbe050c52b7",
+      "stderr_text": ".......................................................................................................................................\n----------------------------------------------------------------------\nRan 135 tests in 2.628s\n\nOK\n",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_text": ""
+    }
+  ],
+  "expected_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "frozen_changed": [],
+  "frozen_files_rechecked": 2437,
+  "frozen_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "numerical_source_diff": "",
+  "organization_checks": {
+    "resources": {
+      "available_before_bytes": 108217442304,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_repository_structure.py"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 23088,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_source_path_postchecks_v1/organization.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_source_path_postchecks_v1/organization.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.15411953069269657
+    },
+    "stderr_sha256": "ec91da9384c20fb44bcbb38fde402617ad1682b97587bce6c32a2838398567dc",
+    "stderr_text": "...............\n----------------------------------------------------------------------\nRan 15 tests in 0.014s\n\nOK\n",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_text": ""
+  },
+  "organization_test_count": 15,
+  "preexisting_changed": [],
+  "preexisting_source_evidence_files": 126,
+  "reason": "Only optional original-source G control and guides added; production numerical sources and earlier evidence unchanged",
+  "schema_version": 1,
+  "total_focused_Python_test_count": 150,
+  "user_dirty_patch_preserved": true,
+  "whole_A4_matrix_rerun": false
+}

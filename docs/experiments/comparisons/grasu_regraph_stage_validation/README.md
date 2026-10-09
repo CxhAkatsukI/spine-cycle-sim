@@ -5,81 +5,38 @@ Start with the [execution and acceptance plan](PLAN.md), then the preceding
 This folder owns the new study's results and conclusions, rather than
 scattering them among figure-refresh and daily investigation directories.
 
-Status: the SST/Spine extraction passed exact regression and was pushed in
-`51565fc`. Four independent author-source functional controls now pass; read
-[their results and limitations](SOURCE_CONTROLS.md). Original G/R cycle models,
-publication-speed matching, and the matched A4/B overhead study remain in
-progress. No new FPGA timing is claimed.
+## Current Status
 
-The [original-kernel scheduling checkpoint](HLS_SCHEDULES.md) now covers
-four GraSU kernels and the original ReGraph Little/Big, merger, wrapper and
-apply components. R scheduling uses explicitly labeled U55C controls because
-U280 support is absent locally; PR apply has a separately declared control
-interface compatibility directive. These HLS estimates are neither complete
-cycle-model validation nor publication performance reproduction.
-
-The [finite Little Gather/merge checkpoint](LITTLE_FINITE_MODEL.md) now adds
-an independent cycle-component family with private destination arrays,
-forwarding, full drain/clear, registered FIFOs and finite in-flight work.
-It matches all 786,432 original-source output words over the admitted 4-Little
-and 11-Little component fixtures. Its boundary excludes edge/source memory
-service and Apply; whole-R timing and A4/B overhead remain unfinished.
-
-The [Little memory/frontend checkpoint](LITTLE_FRONTEND_MODEL.md) extends this
-family through finite edge/source AXI service and Scatter, matching five
-request-dependent original-source controls, including sparse source windows.
-All frozen Gather/capture results remain identical. The ten positive frontend
-rows, allocation rejection, repeats and instrumentation pass. Apply/writeback,
-Big/mixed scheduling and complete stage timing remain unfinished.
-
-The [Little PR state checkpoint](LITTLE_STATE_MODEL.md) extends the independent
-path through degree reads, Apply and acknowledged broadcast writes. It also
-checks three connected resident A4 rounds with shared source/write channels.
-The old frontend/Gather analyses remain identical. Publication matching and
-matched adapter overhead are still not established.
-
-The [original-host input checkpoint](ORIGINAL_HOST_INPUTS.md) now passes full
-DBG, partition/scheduling and PR-initialization checks for complete Amazon
-and two neighboring fixtures, for both A4 and the artifact's 11+3 example.
-All six cases repeat exactly under normal and UBSan builds. This admits input
-preparation, not whole-R device timing or the publication's best topology.
-
-The [A4 whole-graph checkpoint](A4_GRAPH_EXECUTION.md) now executes every
-original scheduled partition through acknowledged PR writeback on full Amazon
-and two neighboring inputs. Complete pre-Apply values, four replicas, work and
-memory ledgers, repetitions, reverse registration and instrumentation pass.
-It explicitly audits parent versus burst credits while preserving all old
-component/source-comparison outputs. Its mock-memory cycles are predicted,
-not a publication-speed match or a completed A4/B overhead experiment.
-
-The [Big routing/Gather checkpoint](BIG_ROUTING_GATHER.md) now passes a
-separate finite omega/bank/three-way-merger model against 2,097,152 original
-source words. Eight functional/pressure/reuse rows, malformed captures,
-repetitions and two UBSan executables pass. All four existing component and
-eight complete-A4 execution outputs remain exact. Big source-memory service,
-connected mixed execution and publication timing admission remain open.
-
-The [Big memory/frontend checkpoint](BIG_MEMORY_FRONTEND.md) now checks the
-original request generator, last-cacheline wrapper, response routing and
-Scatter, comparing every request/response/update field over six source
-fixtures. Twelve finite-resource rows, source/model instrumentation and all
-old component/A4/Big-Gather outputs pass. That checkpoint stops before the
-mixed connection below; publication memory/topology/window admission remains open.
-
-The [mixed whole-graph checkpoint](MIXED_GRAPH_EXECUTION.md) now connects
-the 11+3 artifact example through complete indexed PR state and 14 replicas.
-It exposes and rejects an original host/publication-tail allocation mismatch,
-then runs an explicitly zero-extended compatibility control. Complete graph,
-pressure/repetition/UBSan and exact old A4/Big checks pass. This closes connected
-functional mixed execution, not original-best-topology or timing admission.
+SST/Spine extraction passed exact regression in `51565fc`. Independent G/R
+controls below are not changes to the frozen paper model, FPGA measurements,
+or successful publication-speed matches. Timing prediction, functional
+agreement and published-rate reproduction have separate acceptance gates.
 
 | Path | Current evidence | Still required |
 | --- | --- | --- |
-| G | Original cache dispatch, all 16 URAM banks, preload/update/writeback agree with an independent oracle over three batches | Original search/DDR/host path, temporal workload admission and finite-resource timing |
-| A | Original Little/Big captures pass; complete 11+3 graph execution, indexed state and finite ledgers pass under declared tail padding | Original-host allocation compatibility, graph-selected topology, publication memory/clock/window/denominator admission and timing match |
-| A4 | Full multi-partition execution on complete Amazon and two fixtures; every pre-Apply sum/four state replicas and finite ledgers pass; instantiated AXI capacities audited | Realistic memory/topology timing admission, original-publication comparison and fixed-resource adapter control B |
-| B | Not executed | PMA input adapter feeding the same admitted original A4 downstream; state/work/cycle comparison |
-| C | Not executed | Separate validated G and B windows, measured host orchestration and overlap accounting |
+| G | Original source16 search, BIPA, dispatch, both cache/DDR halves and complete state pass eight functional cases | Original host preparation, temporal workload, paper8 geometry, finite-resource timing and publication rate admission |
+| A | Complete 11+3 graph execution, indexed state and finite ledgers pass under declared tail padding | Original-host allocation compatibility, graph-selected topology, publication memory/clock/window/denominator admission and timing match |
+| A4 | Complete Amazon and two fixtures pass every pre-Apply sum, four state replicas and finite ledgers; AXI capacities audited | Realistic memory/timing admission, publication comparison and fixed-resource adapter control B |
+| B | Not executed | PMA input adapter feeding the same original A4 downstream; state/work/cycle comparison |
+| C | Not executed | Separate validated G/B windows, measured host orchestration and overlap accounting |
+
+## Review Guide
+
+| Question | Evidence |
+| --- | --- |
+| What is the plan and what counts as a match? | [Execution gates](PLAN.md), [source/comparability audit](../grasu_regraph_publication_match/README.md) |
+| Does the prepared original G kernel path agree? | [G source-path control](GRASU_SOURCE_PATH.md) |
+| What do source controls and HLS schedules establish? | [Initial source controls](SOURCE_CONTROLS.md), [HLS scheduling](HLS_SCHEDULES.md) |
+| How were complete graph inputs prepared? | [Original host inputs](ORIGINAL_HOST_INPUTS.md) |
+| Does complete original A4 work? | [Whole-A4 execution](A4_GRAPH_EXECUTION.md) |
+| Does the artifact's 11+3 example work? | [Mixed execution and allocation finding](MIXED_GRAPH_EXECUTION.md) |
+| Which Little components were checked separately? | [Gather](LITTLE_FINITE_MODEL.md), [frontend](LITTLE_FRONTEND_MODEL.md), [state](LITTLE_STATE_MODEL.md) |
+| Which Big components were checked separately? | [Routing/Gather](BIG_ROUTING_GATHER.md), [memory/Scatter](BIG_MEMORY_FRONTEND.md) |
+
+Component reports retain their checkpoint-specific scope. They are not the
+current complete-system status; use the table above for that. Original R's
+11+3 example uses declared publication-tail padding and mock memory, not the
+unknown graph-selected best topology or admitted U280 paper timing.
 
 [Independent upstream source pins](source_pins.json) record fresh clean
 checkouts and inspected file hashes. They are distinct from the modified local

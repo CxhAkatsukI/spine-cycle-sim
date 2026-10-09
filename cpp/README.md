@@ -59,6 +59,7 @@ used by existing experiments.
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
 | SST address mapping without an SST installation | [sst_hbm_mapper_tests.cpp](tests/sst_hbm_mapper_tests.cpp) |
 | Independent author-source G/R controls | [publication_sources/](tests/publication_sources/) via [study runner](../scripts/run_upstream_stage_controls.py) |
+| Original G search/cache/DDR functional composition | [grasu_path/](tests/publication_sources/grasu_path/) via [G source runner](../scripts/run_original_grasu_source_path.py); prepared PMA, not finite timing or original host validation |
 | Independent original-R finite Gather/merge | [original_regraph/](tests/original_regraph/) via [validation runner](../scripts/run_original_regraph_gather_validation.py) |
 | Independent original-R memory/frontend | [frontend_tests.cpp](tests/original_regraph/frontend_tests.cpp) via [frontend validation](../scripts/run_original_regraph_frontend_validation.py) |
 | Independent original-R PR state and resident rounds | [state_tests.cpp](tests/original_regraph/state_tests.cpp), [iteration_tests.cpp](tests/original_regraph/iteration_tests.cpp) via [state validation](../scripts/run_original_regraph_state_validation.py) |

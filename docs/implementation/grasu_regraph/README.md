@@ -32,6 +32,11 @@ performance; no directory move establishes that equivalence.
 
 ## Code Review
 
+The [original GraSU source-path control](original_grasu_source_path.md) checks
+search, BIPA, dispatch, both URAM-cache/DDR halves and every state slot through
+unmodified source functions. It is separate from the production direct-cache
+port and does not yet model finite timing or original host preparation.
+
 The [independent original-ReGraph Little core](original_regraph_little_gather.md)
 has a separate implementation and explicit partial timing boundary. It is a
 publication-control building block, not a replacement for the ported G+R model.

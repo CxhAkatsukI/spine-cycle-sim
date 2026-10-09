@@ -1,70 +1,16 @@
 # GraSU And ReGraph Stage Validation
 
-Status: SST/Spine refactor accepted in `51565fc`. Four independent upstream
-source-functional controls pass; see [the checkpoint](SOURCE_CONTROLS.md).
-Cycle models, admitted publication timing and A4/B integration overhead remain
-unfinished. No measured publication match is claimed here.
+## Current Scope
 
-Independent [HLS scheduling evidence](HLS_SCHEDULES.md) is now available for
-the original kernel components, with source/tool/platform and compatibility
-differences retained. It supplies implementation constraints for the missing
-cycle models; it does not satisfy the publication timing or A4/B exit gates.
-
-The [Little finite Gather/merge checkpoint](LITTLE_FINITE_MODEL.md) now covers
-the first independent original-R cycle components. Complete word comparison,
-finite-buffer conservation, repeated drain/clear and negative-reference gates
-pass. Reader/source memory, Apply/writeback and whole-R timing are still missing;
-the complete original-R and A4/B milestones below are not marked complete.
-
-The subsequent [Little memory/frontend checkpoint](LITTLE_FRONTEND_MODEL.md)
-now adds edge reads, source-memory service and Scatter. It passes exact original
-request-protocol controls, finite pressure/resource sensitivity and old Gather
-equivalence. Apply/writeback, Big/mixed scheduling, whole-R timing and the
-publication/A4-B exit gates are still open.
-
-The [Little PR state checkpoint](LITTLE_STATE_MODEL.md) adds degree/Apply,
-indexed broadcast writeback and three resident A4 ping-pong iterations.
-Original-source values and old Gather/frontend regression are checked
-separately from model cycles. This does not complete partition/Big/mixed,
-publication timing, original G or the matched A4/B/C milestones.
-
-The [original-host input checkpoint](ORIGINAL_HOST_INPUTS.md) now passes full
-Amazon and two neighboring inputs under A4 and the artifact's 11+3 example,
-with complete edge/capture checks, repetitions and UBSan. Next connect the
-admitted multi-partition A4 tasks after auditing per-port parent/burst credits.
-Big/mixed device execution and original publication topology/window admission
-remain open; successful host preparation is not a completed original-R model.
-
-The [A4 whole-graph checkpoint](A4_GRAPH_EXECUTION.md) now connects those
-multi-partition tasks through all acknowledged PR writes. Full Amazon and two
-neighboring inputs pass pre-Apply/state/finite-ledger checks, fixed resource
-sensitivity, reverse registration, repeated runs and UBSan. Old default
-component/source outputs are exact. Next implement connected Big/mixed R and
-admit the original publication topology/window and memory timing; this mock
-memory result does not complete publication matching or the A4/B/C milestones.
-
-The [Big routing/Gather checkpoint](BIG_ROUTING_GATHER.md) now independently
-checks the omega network, eight banked destination arrays, packing and
-three-way merge against complete author-source captures. Finite pressure,
-repeats, reuse and UBSan pass; all eight whole-A4 rows remain exact. Next add
-Big request-dependent source-memory service and connected mixed execution.
-This is not whole-R timing admission or a completed A/G/B/C comparison.
-
-The [Big memory/frontend checkpoint](BIG_MEMORY_FRONTEND.md) now separately
-passes request, wrapper response and Scatter captures, including original
-last-cacheline reuse and finite read/cache/queue ledgers. Source/model UBSan,
-repeats and all old component/A4/Big-Gather outputs remain exact. Next connect
-the complete mixed scheduler/state path. Publication timing and original
-G/A4-B/C gates remain open; partial component cycles are not stage matching.
+Use the [status table and reading guide](README.md) for accepted checkpoints.
+Original G source-functional composition and complete A4/mixed-R controls now
+pass their declared gates. G finite timing, original publication admission
+and the matched A4/B/C study remain open. HLS schedules constrain models;
+they are not measured publication rates. The mixed 11+3 example's explicit
+tail-padding compatibility control is not the unknown graph-selected best
+topology.
 
 ## Separate Questions
-
-The [connected mixed checkpoint](MIXED_GRAPH_EXECUTION.md) now passes the
-11+3 example on complete admitted graphs, including continuous Big groups,
-independent indexed merge, all 14 state replicas and exact old regressions.
-Original-host publication-tail overflow is rejected; successful execution
-uses declared zero-extension. This closes the mixed functional connection,
-not publication topology/memory/timing admission or G/B/C completion.
 
 | Path | Question | Required control |
 | --- | --- | --- |

@@ -19,6 +19,7 @@ Choose an evidence package and profile first, then choose its documented runner.
 | Profile/capability checks | [generate_grasu_regraph_sharded_k4_hls_profiles_v8.py](generate_grasu_regraph_sharded_k4_hls_profiles_v8.py) | Use its check mode for frozen-profile validation |
 | Original-publication comparison gates | [audit_grasu_regraph_publication.py](audit_grasu_regraph_publication.py) | Source audit; not a completed published-throughput experiment |
 | Independent original-source stage controls | [run_upstream_stage_controls.py](run_upstream_stage_controls.py) | Original cache/Little/Big source-functional checks; no device-cycle or published-speed claim |
+| Original G prepared-PMA kernel composition | [run_original_grasu_source_path.py](run_original_grasu_source_path.py) | Search/BIPA/dispatch/cache/DDR, complete state, repetitions and UBSan; not host preparation, finite timing or paper throughput |
 | Original-source HLS schedules | [run_upstream_stage_synthesis.py](run_upstream_stage_synthesis.py) | Bounded isolated synthesis; source/tool/platform differences explicit; no FPGA timing claim |
 | HLS schedule analysis | [analyze_upstream_stage_synthesis.py](analyze_upstream_stage_synthesis.py) | Checks contracts/report hashes and indexes all attempts; never invents workload cycles or rates |
 | Independent original-R finite Gather/merge | [run_original_regraph_gather_validation.py](run_original_regraph_gather_validation.py) | Isolated build, complete source-word comparison, finite-buffer and negative controls; not whole-R throughput |

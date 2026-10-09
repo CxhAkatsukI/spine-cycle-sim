@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "evidence_class": "original_G_source16_functional_composition_not_timing",
+  "boundary": "prepared_PMA_and_trace_to_completed_search_dispatch_cache_DDR_and_merged_state",
+  "cases": ["empty", "one", "three", "lane_65", "lane_257", "hot_only", "cold_only", "mixed_three_batches"],
+  "segment_slots": 16,
+  "hot_segments_per_half": 131072,
+  "segments_per_half": 131104,
+  "search_kernels": 4,
+  "search_lanes_per_kernel": 64,
+  "bipa_lanes": 16,
+  "cache_banks_per_half": 16,
+  "repetitions": 2,
+  "instrument_all_cases": true,
+  "known_source_diagnostic": "exactly_one_512_or_32_width_warning_pair_per_valid_insertion_no_other_diagnostics",
+  "memory_limit_gib": 3,
+  "reserve_gib": 16,
+  "compile_timeout_seconds": 300,
+  "run_timeout_seconds": 180,
+  "not_claimed": ["finite_FIFO_or_cycle_model", "concurrent_top_level_C_simulation", "original_host_PMA_preparation", "temporal_publication_workload", "G_paper8_geometry", "FPGA_or_published_throughput_match", "adapter_R_or_host_orchestration_validation"]
+}
