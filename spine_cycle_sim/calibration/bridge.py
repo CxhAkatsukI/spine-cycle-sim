@@ -1,7 +1,7 @@
 """E2E timing bridge — feed the simulator's structural features into the
 already-calibrated component models to emit HW-matching per-stage E2E timing.
 
-This is the "4a" bridge described in ``docs/e2e_bridge_20260720.md``: it does not
+This is the "4a" bridge described in ``docs/history/early_models/e2e_bridge_20260720.md``: it does not
 re-fit any of the validated science and it does not mechanize anything. It wires
 the mechanistic ``SpineV0Simulator`` (which emits structural ``dstage_tile_*``
 features but only Phase-2-era timing) to the HW-validated component models:

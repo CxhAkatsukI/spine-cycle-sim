@@ -39,7 +39,7 @@ Carry / cascade path (``mode == "carry"``)
     ``fixed_residual`` correction fitted from the calibration synthetic
     residuals.
 
-See ``docs/bstage_phase4c_component_model_20260720.md`` for the full HLS action
+See ``docs/history/early_models/bstage_phase4c_component_model_20260720.md`` for the full HLS action
 mapping and reproduction commands.
 """
 

@@ -1,0 +1,58 @@
+# C++ Code Map
+
+The core in `include/spine_sim/` and `src/` implements cycle-level execution.
+The SST plugin in `sst/` connects that engine to SST and the memory backend.
+The Python layer prepares and checks runs; it is not the current C++ engine.
+
+## Review Order
+
+1. Read [component.hpp](include/spine_sim/component.hpp),
+   [fifo.hpp](include/spine_sim/fifo.hpp), and
+   [scheduler.cpp](src/scheduler.cpp) for execution phases and backpressure.
+2. Read [memory_backend.cpp](src/memory_backend.cpp) and [axi.cpp](src/axi.cpp)
+   for memory service and request/response accounting.
+3. Read the affected architecture's public header before its implementation.
+4. Inspect the selected profile, runner, and oracle checks together.
+5. Check the SST wiring and output fields touched by the change.
+
+## Component Ownership
+
+| Responsibility | Public contract | Implementation |
+| --- | --- | --- |
+| Algorithm arithmetic and finite compute pipeline | [algorithm.hpp](include/spine_sim/algorithm.hpp), [algorithm_pipeline.hpp](include/spine_sim/algorithm_pipeline.hpp) | [algorithm.cpp](src/algorithm.cpp), [algorithm_pipeline.cpp](src/algorithm_pipeline.cpp) |
+| AXI and memory service | [axi.hpp](include/spine_sim/axi.hpp), [memory_backend.hpp](include/spine_sim/memory_backend.hpp) | [axi.cpp](src/axi.cpp), [memory_backend.cpp](src/memory_backend.cpp) |
+| Spine maintenance and carry | [spine_l0.hpp](include/spine_sim/spine_l0.hpp) | [spine_l0.cpp](src/spine_l0.cpp) |
+| Spine dirty frontier and owner scheduling | [spine_dirty.hpp](include/spine_sim/spine_dirty.hpp), [spine_owner.hpp](include/spine_sim/spine_owner.hpp) | [spine_dirty.cpp](src/spine_dirty.cpp), [spine_owner.cpp](src/spine_owner.cpp) |
+| Spine range reading and compute | [spine_split.hpp](include/spine_sim/spine_split.hpp) | [spine_split.cpp](src/spine_split.cpp) |
+| Spine system/algorithm orchestration | [spine_system.hpp](include/spine_sim/spine_system.hpp) | [spine_system.cpp](src/spine_system.cpp), [spine_pagerank.cpp](src/spine_pagerank.cpp) |
+| GraSU PMA layout and update paths | [grasu.hpp](include/spine_sim/grasu.hpp), [grasu_native.hpp](include/spine_sim/grasu_native.hpp) | [grasu.cpp](src/grasu.cpp), [grasu_native.cpp](src/grasu_native.cpp) |
+| G+R readers, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
+| SST setup and run serialization | SST component registration | [online_memory_probe.cpp](sst/online_memory_probe.cpp) |
+| Direct DRAMSim3 bridge | [direct_dramsim3_engine.hpp](sst/direct_dramsim3_engine.hpp) | [direct_dramsim3_engine.cpp](sst/direct_dramsim3_engine.cpp) |
+
+## Two Build Entry Points
+
+- [CMakeLists.txt](CMakeLists.txt) builds the core library, host benchmark, and
+  C++ tests. It does not build the SST plugin.
+- [sst/Makefile](sst/Makefile) builds `libspine_cycle.so` from its own source
+  list, SST configuration, compiler flags, and optional DRAMSim3 linkage.
+
+A source-file split must update both applicable build lists. A passing CMake
+test alone does not establish that the SST plugin contains the change.
+Use a new `BUILD_DIR` when checking plugin changes; preserve frozen libraries
+used by existing experiments.
+
+## Test Layers
+
+| Layer | Entry |
+| --- | --- |
+| Shared core and Spine execution | [core_tests.cpp](tests/core_tests.cpp) |
+| GraSU and G+R execution | [grasu_tests.cpp](tests/grasu_tests.cpp) |
+| Owner/reactivation protocol | [spine_owner_tests.cpp](tests/spine_owner_tests.cpp) |
+| Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
+| Python runner, profiles, and result gates | [tests/](../tests) |
+
+The largest translation units still mix several responsibilities. This map
+does not claim they have been modularized. The
+[structure audit](../docs/repository/structure_audit_20261009.md) gives the
+proposed extraction boundaries and regression gates.

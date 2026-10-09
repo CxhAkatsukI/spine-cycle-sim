@@ -1,0 +1,46 @@
+# Script Guide
+
+These are CLI entry points, not one chronological pipeline. Similar names with
+different `vN`, candidate, or date suffixes may consume different contracts.
+Choose an evidence package and profile first, then choose its documented runner.
+
+## Execution and Validation
+
+| Task | Entry | Caution |
+| --- | --- | --- |
+| Inspect repository structure | [audit_repository_structure.py](audit_repository_structure.py) | Read-only unless catalog generation is requested |
+| Spine SST component/system runs | [run_sst_spine_vertical.py](run_sst_spine_vertical.py) | Multiple explicit modes; follow the selected profile's contract |
+| G+R weighted SSSP | [run_sst_grasu_regraph_hls_weighted.py](run_sst_grasu_regraph_hls_weighted.py) | Ported HLS topology, not original-publication equivalence |
+| Connected components | [run_sst_connected_components.py](run_sst_connected_components.py) | Architecture and initialization policy must match the experiment |
+| G+R Residual PR | [run_sst_grasu_regraph_hls_residual_pagerank.py](run_sst_grasu_regraph_hls_residual_pagerank.py) | Correction and propagation are distinct work |
+| Frozen Spine matrix | [run_current_fpga_spine_compacted_matrix.py](run_current_fpga_spine_compacted_matrix.py) | Inspect plugin identity, input roots, memory reserve, and defaults |
+| Frozen G+R matrix | [run_current_fpga_grasu_frozen_matrix.py](run_current_fpga_grasu_frozen_matrix.py) | Same checks; a filename containing `current` is not proof of currency |
+| Persistent update-only case | [run_current_fig8_update_only_case.py](run_current_fig8_update_only_case.py) | Update-only scope, not graph convergence |
+| Profile/capability checks | [generate_grasu_regraph_sharded_k4_hls_profiles_v8.py](generate_grasu_regraph_sharded_k4_hls_profiles_v8.py) | Use its check mode for frozen-profile validation |
+
+## Analysis and Figures
+
+| Task | Entry | Scope |
+| --- | --- | --- |
+| Hardware-component timing analysis | [analyze_current_fpga_components.py](analyze_current_fpga_components.py) | Check calibration and holdout status; not a blanket calibration certificate |
+| Figure 8 export | [export_persistent_update_setup_fig8.py](export_persistent_update_setup_fig8.py) | Setup-inclusive update-only evidence |
+| Figure 9 export | [export_current_fpga_fig9.py](export_current_fpga_fig9.py) | Accepted-byte and HBM-energy ledgers |
+| RQ3 realized-work analysis | [analyze_rq3_realized_work.py](analyze_rq3_realized_work.py) | Model fitting and prediction, not FPGA stage counters |
+| Complete Figures 7--11 rendering | [handoff render_all.py](../docs/evaluation_refresh_20260810/figure7_10_handoff_v1/render_all.py) | Use the complete handoff, not a similarly named earlier renderer |
+
+The [complete catalog](CATALOG.md) includes the retained investigation and
+historical commands. Categorization describes command role, not acceptance
+status. Do not delete a command merely because a later version exists.
+
+## Before Launching a Campaign
+
+1. Read the owning contract and `--help`; inspect default output/workload paths.
+2. Record source revision, profiles, compiler/build flags, plugin SHA-256, and
+   any uncommitted changes relevant to execution.
+3. Use a new output directory. Do not overwrite accepted or failed evidence.
+4. Set parallelism using measured peak memory and a reserve, not CPU count.
+5. Keep simulator wall time separate from modeled device latency and measured
+   hardware event windows.
+
+This organization pass does not change any existing runner, default, model,
+profile, calibration coefficient, or figure input.

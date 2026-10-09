@@ -1,0 +1,31 @@
+# GraSU + ReGraph Implementation
+
+The ported baseline connects a GraSU PMA update stage to a PMA-native edge
+adapter and ReGraph-style compute. Its routed configuration must not be
+confused with the original ReGraph publication's configuration.
+
+## Reading Order
+
+1. [Sharded-K4 hardware reconciliation](grasu_regraph_sharded_k4_hardware_reconcile_20260807.md):
+   destination sharding, four frontends, and shared downstream resources.
+2. [Native conversion](grasu_regraph_native_conversion_20260725.md) and
+   [native E2E integration](grasu_regraph_native_e2e_20260725.md):
+   the PMA-to-edge-stream interface and stage boundaries.
+3. [K-pipeline freeze](grasu_regraph_k_pipeline_freeze_20260728.md):
+   topology and scheduling assumptions for that implementation era.
+4. [Physical HBM map](grasu_regraph_physical_hbm_map_20260728.md):
+   logical resources versus physical memory binding.
+
+## Algorithm and Capacity Details
+
+- [Weighted dynamic SSSP](grasu_regraph_weighted_dynamic_sssp_20260725.md)
+- [Residual PageRank](grasu_regraph_residual_pagerank_20260725.md)
+- [Full PageRank](grasu_regraph_full_pagerank_20260725.md)
+- [Algorithm capabilities](grasu_regraph_algorithm_capabilities_20260726.md)
+- [Destination-19 partition fix](grasu_weighted_dst19_partition_fix_20260729.md)
+- [HBM capacity preflight](grasu_regraph_hbm_capacity_preflight_20260730.md)
+
+Hardware/model calibration records are in the
+[calibration section](../../experiments/calibration/README.md). Matching this
+port is a different question from reproducing original-publication G or R
+performance; no directory move establishes that equivalence.
