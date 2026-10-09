@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "evidence_class": "original_a4_full_graph_functional_timing_predicted",
+  "boundary": "one_resident_original_PR_iteration_first_task_start_through_all_write_acknowledgements",
+  "clock_mhz": 210, "argument": 0, "iterations": 1,
+  "memory_model": "mock_32_channels_registered_round_robin_one_64B_beat_per_channel_per_cycle",
+  "outstanding_bursts": 16, "edge_source_parent_credits": 2, "fifo_depth": 8,
+  "memory_limit_gib": 4, "reserve_gib": 16,
+  "build_jobs": 2, "build_timeout_seconds": 600, "run_timeout_seconds": 900,
+  "max_cycles": 20000000,
+  "cases": [
+    {"id": "boundary", "input": "boundary_ring", "state_parents": 16, "latency": 64, "reverse": false},
+    {"id": "boundary_reverse", "input": "boundary_ring", "state_parents": 16, "latency": 64, "reverse": true},
+    {"id": "boundary_two_parents", "input": "boundary_ring", "state_parents": 2, "latency": 64, "reverse": false},
+    {"id": "boundary_latency128", "input": "boundary_ring", "state_parents": 16, "latency": 128, "reverse": false},
+    {"id": "skewed", "input": "skewed_sources", "state_parents": 16, "latency": 64, "reverse": false},
+    {"id": "skewed_reverse", "input": "skewed_sources", "state_parents": 16, "latency": 64, "reverse": true},
+    {"id": "amazon", "input": "amazon", "state_parents": 16, "latency": 64, "reverse": false},
+    {"id": "amazon_reverse", "input": "amazon", "state_parents": 16, "latency": 64, "reverse": true}
+  ],
+  "instrumented_cases": ["boundary", "skewed", "amazon"],
+  "axi_evidence": [
+    {"run": "source_synthesis_u55c_portability_v4", "path": "a4_little/project/solution/syn/verilog/littleKernelScatterGather.v", "read": [16], "write": [0]},
+    {"run": "source_synthesis_u55c_portability_v4", "path": "a4_memory_wrapper/project/solution/syn/verilog/kernelHBMWrapper.v", "read": [16,16,16,16], "write": [16,16,16,16]},
+    {"run": "source_synthesis_apply_final_v6", "path": "a4_apply/project/solution/syn/verilog/kernelApply.v", "read": [16], "write": [0]}
+  ],
+  "not_claimed": [
+    "original_publication_or_FPGA_speed_match",
+    "cycle_exact_HLS_gmem_internal_arbitration_burst_coalescing_global_stalls_or_HBM_controller",
+    "multiple_whole_graph_PR_iterations_or_convergence",
+    "Big_mixed_original_R_or_matched_A4_B_adapter_overhead",
+    "DMA_DBG_host_enqueue_relaunch_or_readback_time"
+  ]
+}

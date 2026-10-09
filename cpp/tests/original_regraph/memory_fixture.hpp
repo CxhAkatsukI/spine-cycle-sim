@@ -13,9 +13,9 @@ namespace original_regraph_memory_test {
 using spine::sim::Fifo;
 
 inline spine::sim::AxiConfig axi_config(unsigned initiator, std::size_t channel,
-                                       std::size_t outstanding = 16) {
+                                       std::size_t outstanding = 16, std::size_t parents = 2) {
   return {.initiator_id = initiator, .data_width_bytes = 64, .max_burst_beats = 16,
-          .channels = 32, .channel_interleave_bytes = 64, .max_pending_requests = 2,
+          .channels = 32, .channel_interleave_bytes = 64, .max_pending_requests = parents,
           .max_outstanding_bursts = outstanding, .address_accepts_per_cycle = 1,
           .beat_issues_per_cycle = 1, .response_beats_per_cycle = 1,
           .read_reorder_capacity = 32, .fixed_channel = channel};
@@ -64,12 +64,12 @@ class MemoryFixture {
   }
 
   MemoryLink port(const std::string& name, unsigned initiator, std::size_t channel,
-                  std::size_t outstanding = 16) {
+                  std::size_t outstanding = 16, std::size_t parents = 2) {
     MemoryLink link;
     link.requests = queue<spine::sim::AxiRequest>(name + ".requests");
     link.responses = queue<spine::sim::AxiResponse>(name + ".responses");
     link.beats = queue<spine::sim::AxiReadBeatResponse>(name + ".beats");
-    link.master = make<spine::sim::AxiMaster>(name, clock, axi_config(initiator, channel, outstanding),
+    link.master = make<spine::sim::AxiMaster>(name, clock, axi_config(initiator, channel, outstanding, parents),
         *link.requests, *link.responses, *backend, link.beats);
     masters_.push_back(link.master);
     return link;

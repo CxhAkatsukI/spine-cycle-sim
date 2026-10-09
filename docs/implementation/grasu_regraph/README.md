@@ -45,6 +45,10 @@ not establish Big/mixed or publication-performance equivalence.
 The [original-host input owner](original_regraph_inputs.md) executes pinned
 DBG/partition/scheduling and PR initialization with full graph/capture checks;
 it supplies whole-path inputs but does not model device timing.
+The [A4 whole-graph execution owner](original_regraph_a4_execution.md) connects
+all admitted partitions through four state replicas, with nonintrusive
+pre-Apply validation, explicit AXI capacities and exact old-default regression.
+Its finite mock-memory cycles remain predictions, not publication matching.
 
 Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
 placement and destination-shard update sequencing now have separate source

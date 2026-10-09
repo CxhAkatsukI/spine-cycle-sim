@@ -63,6 +63,7 @@ used by existing experiments.
 | Independent original-R memory/frontend | [frontend_tests.cpp](tests/original_regraph/frontend_tests.cpp) via [frontend validation](../scripts/run_original_regraph_frontend_validation.py) |
 | Independent original-R PR state and resident rounds | [state_tests.cpp](tests/original_regraph/state_tests.cpp), [iteration_tests.cpp](tests/original_regraph/iteration_tests.cpp) via [state validation](../scripts/run_original_regraph_state_validation.py) |
 | Original-host graph/DBG/partition/task preparation | [regraph_layout_probe.cpp](tests/publication_sources/regraph_layout_probe.cpp) via [input runner](../scripts/run_original_regraph_inputs.py); no device timing |
+| Independent original-A4 full graph execution | [whole_graph/](tests/original_regraph/whole_graph/) via [A4 runner](../scripts/run_original_regraph_a4.py); finite model timing, not FPGA/publication matching |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
@@ -108,6 +109,12 @@ uses unmodified author loader/DBG/scheduler functions with small separate
 mapping, full-edge validation and capture helpers. Its six-case matrix includes
 complete Amazon for A4 and the artifact's 11+3 example. It is optional, needs
 real OpenCL/XRT types, and does not add dependencies to the CMake core or SST.
+
+The [whole-A4 validation executable](../docs/implementation/grasu_regraph/original_regraph_a4_execution.md)
+separates binary input/reference checks, finite wiring/per-kernel task progress,
+and nonintrusive full-state execution. It reuses the original numerical
+components unchanged. An optional AXI parent-credit argument preserves every
+old helper default while exposing single-line state-port concurrency.
 
 ## G+R Extraction Boundary
 

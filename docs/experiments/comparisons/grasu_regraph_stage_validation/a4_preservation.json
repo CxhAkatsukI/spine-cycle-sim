@@ -1,0 +1,37 @@
+{
+  "changed_pre_edit_paths": [
+    "cpp/CMakeLists.txt",
+    "cpp/tests/original_regraph/memory_fixture.hpp"
+  ],
+  "changed_protected_paths": [],
+  "focused_python_resources": {
+    "available_before_bytes": 86225113088,
+    "command": [
+      "python3",
+      "-c",
+      "import unittest; loader=unittest.TestLoader(); pats=[\"test_original_regraph*.py\",\"test_upstream_stage*.py\",\"test_repository_structure.py\",\"test_refactor_equivalence.py\",\"test_publication_validation_delivery.py\",\"test_publication_match.py\"]; suite=unittest.TestSuite(loader.discover(\"tests\",pattern=p) for p in pats); result=unittest.TextTestRunner(verbosity=2).run(suite); raise SystemExit(not result.wasSuccessful())"
+    ],
+    "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+    "exit_code": 0,
+    "memory_limit_gib": 2,
+    "peak_rss_kib": 32884,
+    "reserve_gib": 16,
+    "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+    "stderr": "results/upstream_stage_controls/a4_execution_final_v3/focused_python.stderr.txt",
+    "stdout": "results/upstream_stage_controls/a4_execution_final_v3/focused_python.stdout.txt",
+    "timed_out": false,
+    "wall_seconds": 1.6566766742616892
+  },
+  "focused_python_tests": 120,
+  "fresh_source_input_paths_reproduce_all_eight_complete_results": true,
+  "frozen_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "legacy_component_and_full_source_outputs_identical": true,
+  "new_CTest_executables": 10,
+  "new_SST_matrix_or_FPGA_run": false,
+  "numerical_component_bodies_unchanged": true,
+  "pre_edit_baseline_sha256": "d552764accb9666b0b6ea80100df6ad50cbe1bdc9fe2409e99e90f86a01a0328",
+  "previous_whole_result_report_sha256": "2b79d09b4e09d359557aba03387dfdfa1b98046047d8fbeaf0595b4d53a7fd50",
+  "protected_file_count": 2437,
+  "schema_version": 1,
+  "status": "PRESERVED"
+}

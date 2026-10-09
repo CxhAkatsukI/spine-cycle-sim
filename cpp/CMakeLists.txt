@@ -46,6 +46,10 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(original_regraph_a4_execution tests/original_regraph/whole_graph/a4_execution.cpp)
+  target_link_libraries(original_regraph_a4_execution PRIVATE original_regraph_cycle)
+  target_compile_options(original_regraph_a4_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
   add_executable(original_regraph_iteration_tests tests/original_regraph/iteration_tests.cpp)
   target_link_libraries(original_regraph_iteration_tests PRIVATE original_regraph_cycle)
   target_compile_options(original_regraph_iteration_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

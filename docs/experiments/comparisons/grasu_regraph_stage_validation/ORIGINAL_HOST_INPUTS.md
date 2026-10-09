@@ -5,6 +5,9 @@ input preparation passes on the full pinned Amazon graph and two neighboring
 synthetic inputs for both four Little/zero Big and the artifact's eleven
 Little/three Big example. Device cycles and publication-rate errors remain
 null. This does not complete original R, G timing or the matched A4/B study.
+The subsequent [A4 execution checkpoint](A4_GRAPH_EXECUTION.md) now consumes
+these inputs through complete multi-partition PR writeback; its timing remains
+predicted rather than a publication-speed match.
 
 ## Scope And Results
 

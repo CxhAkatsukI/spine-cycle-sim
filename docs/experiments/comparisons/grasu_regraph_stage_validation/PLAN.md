@@ -35,6 +35,14 @@ admitted multi-partition A4 tasks after auditing per-port parent/burst credits.
 Big/mixed device execution and original publication topology/window admission
 remain open; successful host preparation is not a completed original-R model.
 
+The [A4 whole-graph checkpoint](A4_GRAPH_EXECUTION.md) now connects those
+multi-partition tasks through all acknowledged PR writes. Full Amazon and two
+neighboring inputs pass pre-Apply/state/finite-ledger checks, fixed resource
+sensitivity, reverse registration, repeated runs and UBSan. Old default
+component/source outputs are exact. Next implement connected Big/mixed R and
+admit the original publication topology/window and memory timing; this mock
+memory result does not complete publication matching or the A4/B/C milestones.
+
 ## Separate Questions
 
 | Path | Question | Required control |

@@ -44,11 +44,19 @@ and two neighboring fixtures, for both A4 and the artifact's 11+3 example.
 All six cases repeat exactly under normal and UBSan builds. This admits input
 preparation, not whole-R device timing or the publication's best topology.
 
+The [A4 whole-graph checkpoint](A4_GRAPH_EXECUTION.md) now executes every
+original scheduled partition through acknowledged PR writeback on full Amazon
+and two neighboring inputs. Complete pre-Apply values, four replicas, work and
+memory ledgers, repetitions, reverse registration and instrumentation pass.
+It explicitly audits parent versus burst credits while preserving all old
+component/source-comparison outputs. Its mock-memory cycles are predicted,
+not a publication-speed match or a completed A4/B overhead experiment.
+
 | Path | Current evidence | Still required |
 | --- | --- | --- |
 | G | Original cache dispatch, all 16 URAM banks, preload/update/writeback agree with an independent oracle over three batches | Original search/DDR/host path, temporal workload admission and finite-resource timing |
 | A | Original Little/Big components, generated 11-way/3-way mergers and full author-host input preparation pass independently | Connected Big/mixed memory execution, publication topology/clock/window admission and whole-R timing |
-| A4 | Finite reader/source/Scatter/Gather/merge/PR-Apply/writeback pass; three resident rounds agree; full Amazon author-host input preparation passes | Connected multi-partition execution, per-port memory timing audit and resource matching to B |
+| A4 | Full multi-partition execution on complete Amazon and two fixtures; every pre-Apply sum/four state replicas and finite ledgers pass; instantiated AXI capacities audited | Realistic memory/topology timing admission, original-publication comparison and fixed-resource adapter control B |
 | B | Not executed | PMA input adapter feeding the same admitted original A4 downstream; state/work/cycle comparison |
 | C | Not executed | Separate validated G and B windows, measured host orchestration and overlap accounting |
 

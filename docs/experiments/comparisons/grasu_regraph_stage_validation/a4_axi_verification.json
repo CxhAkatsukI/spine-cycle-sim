@@ -1,0 +1,38 @@
+{
+  "archive_bytes": 156821,
+  "archive_sha256": "5d9dec73bfa09a2d0b7a74e4e0ee2883af159f0bc6b2baba6b3b2cb365b19d30",
+  "evidence_class": "original_HLS_instantiated_AXI_parameters_not_FPGA_timing",
+  "excluded": [
+    "generic_Xilinx_AXI_IP_submodule_bodies",
+    "compiled_or_routed_hardware",
+    "author_source_trees"
+  ],
+  "files": [
+    {
+      "bytes": 25194,
+      "path": "source_synthesis_apply_final_v6/a4_apply/project/solution/syn/verilog/kernelApply.v",
+      "sha256": "54ef78968187eb2173d1543444d800c0e11d58e6a278b844bc3abe000c463deb"
+    },
+    {
+      "bytes": 116172,
+      "path": "source_synthesis_apply_final_v6/report.json",
+      "sha256": "d016e5af76a85d193900746a790d7ff056b045249321c50777b618a5dc6934a9"
+    },
+    {
+      "bytes": 50682,
+      "path": "source_synthesis_u55c_portability_v4/a4_little/project/solution/syn/verilog/littleKernelScatterGather.v",
+      "sha256": "c4e36394543b848eeade7ce4b8de24b799daf7571ebbe99ec57317e1b132c4bf"
+    },
+    {
+      "bytes": 90493,
+      "path": "source_synthesis_u55c_portability_v4/a4_memory_wrapper/project/solution/syn/verilog/kernelHBMWrapper.v",
+      "sha256": "54484a2d2ad12192334056271ed59902ca88e670590e19ada5873aba83f8a8a5"
+    },
+    {
+      "bytes": 1369898,
+      "path": "source_synthesis_u55c_portability_v4/report.json",
+      "sha256": "78bd4899f78dc550d9b8618ea3b852a0c408b14932148412d38a5554b947983d"
+    }
+  ],
+  "schema_version": 1
+}
