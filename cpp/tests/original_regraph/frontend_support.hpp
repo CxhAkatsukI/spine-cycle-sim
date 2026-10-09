@@ -10,6 +10,7 @@
 #include "spine_sim/original_regraph/source_memory.hpp"
 #include "spine_sim/original_regraph/little_merge.hpp"
 #include "spine_sim/scheduler.hpp"
+#include "memory_fixture.hpp"
 
 namespace original_regraph_frontend_test {
 namespace rg = spine::sim::original_regraph;
@@ -35,11 +36,7 @@ struct Options {
 
 inline spine::sim::AxiConfig axi_config(unsigned initiator, std::size_t channel,
                                        const Options& options) {
-  return {.initiator_id = initiator, .data_width_bytes = 64, .max_burst_beats = 16,
-          .channels = 32, .channel_interleave_bytes = 64, .max_pending_requests = 2,
-          .max_outstanding_bursts = options.outstanding, .address_accepts_per_cycle = 1,
-          .beat_issues_per_cycle = 1, .response_beats_per_cycle = 1,
-          .read_reorder_capacity = 32, .fixed_channel = channel};
+  return original_regraph_memory_test::axi_config(initiator, channel, options.outstanding);
 }
 
 inline void append_word(std::vector<std::uint8_t>& bytes, std::uint32_t value) {

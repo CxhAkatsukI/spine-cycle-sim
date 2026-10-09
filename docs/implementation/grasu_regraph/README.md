@@ -38,6 +38,10 @@ publication-control building block, not a replacement for the ported G+R model.
 The [Little input-path extension](original_regraph_little_frontend.md) owns
 edge AXI reads, request-dependent source-memory service and Scatter separately;
 it stops before Apply/writeback and retains predicted, not measured, timing.
+The [Little PR state extension](original_regraph_little_state.md) adds separately
+owned indexer, degree/Apply and acknowledged broadcast writer components, plus
+a connected resident-round fixture. Its timing is still predicted, and it does
+not establish Big/mixed or publication-performance equivalence.
 
 Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
 placement and destination-shard update sequencing now have separate source

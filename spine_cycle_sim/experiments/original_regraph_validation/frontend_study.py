@@ -12,6 +12,7 @@ from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 from .analysis import admit_captures, analyze, same_typed
 from .frontend_analysis import admit_protocol, analyze_frontend
 from .negative_controls import run_negative_controls
+from .instrumentation import sanitize_cases
 from .study import source_identities
 
 
@@ -94,22 +95,10 @@ def run_frontend_study(root: Path, contract_path: Path, captures: Path,
         report["negative_controls"] = run_negative_controls(root, output, binaries[2], captured, gather_contract)
         if not all(row["expected_rejection"] for row in report["negative_controls"]):
             raise ValueError("source comparator corruption gate failed")
-        sanitized = output / "ubsan_frontend"
-        sources = ["scheduler.cpp", "axi.cpp", "memory_backend.cpp", *[
-            f"original_regraph/{name}.cpp" for name in (
-                "edge_reader", "source_memory", "little_scatter", "little_gather", "little_merge")]]
-        execute("ubsan_compile", [compiler, "-std=c++20", "-O1", "-g0", "-Wall", "-Wextra",
-                                  "-Wpedantic", "-Werror", "-fsanitize=undefined",
-                                  "-fno-sanitize-recover=all", "-D_GLIBCXX_ASSERTIONS",
-                                  f"-I{root / 'cpp/include'}", *[
-                                      str(root / "cpp/src" / name) for name in sources],
-                                  str(root / "cpp/tests/original_regraph/frontend_tests.cpp"),
-                                  "-o", str(sanitized)], contract["build_timeout_seconds"])
-        sanitized_run = execute("ubsan_frontend", [str(sanitized)], contract["run_timeout_seconds"])
-        if contents(sanitized_run) != contents(first) or Path(sanitized_run["stderr"]).read_text():
-            raise ValueError("undefined-behavior instrumentation changed results or reported diagnostics")
+        report["binaries"].extend(sanitize_cases(root, output, compiler, execute,
+            {"frontend": ("frontend_tests.cpp", [], contents(first))},
+            contract["build_timeout_seconds"], contract["run_timeout_seconds"]))
         report["ubsan_identical_no_diagnostics"] = True
-        report["binaries"].append({"path": str(sanitized), "sha256": sha256_file(sanitized)})
         if source_identities(root) != identities or sha256_file(contract_path) != report["contract_sha256"]:
             raise ValueError("tested source/contract changed during study")
         if sha256_file(gather_path) != report["gather_contract_sha256"]:

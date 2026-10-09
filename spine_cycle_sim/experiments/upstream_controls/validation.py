@@ -11,6 +11,7 @@ SOURCE_KINDS = {
     "regraph_little_probe.cpp": "regraph_little",
     "regraph_big_probe.cpp": "regraph_big",
     "regraph_scatter_protocol_probe.cpp": "regraph_scatter_protocol",
+    "regraph_apply_probe.cpp": "regraph_apply",
 }
 
 
@@ -49,6 +50,9 @@ def validate_contract(contract: dict) -> None:
                 probe["capture_merged"] is not True or
                 probe["source"] != "regraph_little_probe.cpp"):
             raise ValueError("merged capture requires an explicit Little source control")
+        if "capture_applied" in probe and (
+                probe["capture_applied"] is not True or probe["source"] != "regraph_apply_probe.cpp"):
+            raise ValueError("applied capture requires an explicit original Apply control")
         expected = probe.get("expected", {})
         if expected.get("kind") != SOURCE_KINDS[probe["source"]] or expected.get("passed") is not True:
             raise ValueError("probe/source kind or expected outcome mismatch")

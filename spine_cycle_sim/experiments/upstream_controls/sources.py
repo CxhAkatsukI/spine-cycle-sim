@@ -59,6 +59,19 @@ def big_merger_invocation(big: int) -> str:
     )
 
 
+def writer_invocation(replicas: int) -> str:
+    if type(replicas) is not int or not 1 <= replicas <= 14:
+        raise ValueError("property replica count must be an integer in [1, 14]")
+    arguments = ", ".join(f"replicas[{index}].data()" for index in range(replicas))
+    return (
+        "inline void call_property_writer(\n"
+        "    std::vector<std::vector<ap_uint<512>>> &replicas,\n"
+        "    hls::stream<write_burst_pkt> &input) {\n"
+        f"  write_out({arguments}, input);\n"
+        "}\n"
+    )
+
+
 def prepare_regraph(source: Path, destination: Path, little: int, big: int,
                     generator_python: str) -> dict:
     if (isinstance(big, bool) or not isinstance(big, int) or big < 0
@@ -75,6 +88,8 @@ def prepare_regraph(source: Path, destination: Path, little: int, big: int,
         raise ValueError(f"upstream generator failed; inspect {destination / 'autogen.stderr.txt'}")
     (destination / "little_merger_call.hpp").write_text(invocation, encoding="ascii")
     invocation_files = ["little_merger_call.hpp"]
+    (destination / "property_writer_call.hpp").write_text(writer_invocation(little + big), encoding="ascii")
+    invocation_files.append("property_writer_call.hpp")
     if big:
         (destination / "big_merger_call.hpp").write_text(big_merger_invocation(big), encoding="ascii")
         invocation_files.append("big_merger_call.hpp")

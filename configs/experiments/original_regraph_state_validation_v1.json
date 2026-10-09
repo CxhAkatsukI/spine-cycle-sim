@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "evidence_class": "original_little_PR_state_model",
+  "boundary": "indexed_Little_sums_through_original_PR_degree_Apply_to_all_replica_write_acknowledgements",
+  "memory_limit_gib": 4, "reserve_gib": 16,
+  "build_timeout_seconds": 1200, "run_timeout_seconds": 120,
+  "configuration": {
+    "clock_mhz": 210, "axi_data_bytes": 64, "outstanding": 16,
+    "memory_latency": 64, "write_index_latency": 2, "apply_post_read_latency": 26,
+    "apply_line_credits": 100, "writer_line_credits": 72,
+    "degree_channel": 30, "source_writer_share_odd_channels": true
+  },
+  "invariant_cases": [
+    "a4_state", "a4_state_reused", "a4_state_reverse", "a4_state_one_credit",
+    "a4_state_one_writer_credit", "a4_state_memory128"
+  ],
+  "expected_rejections": [
+    {"id": "apply_early_end", "expected_rejection": true},
+    {"id": "degree_extent", "expected_rejection": true},
+    {"id": "writer_early_end", "expected_rejection": true},
+    {"id": "writer_extent", "expected_rejection": true},
+    {"id": "unknown_write_ack", "expected_rejection": true}
+  ],
+  "source_controls": [
+    {"id": "a4_original_apply", "replicas": 4, "checked_words": 196608},
+    {"id": "a_default_original_apply_component", "replicas": 14, "checked_words": 196608}
+  ],
+  "iteration_cases": ["a4_complete_rounds", "a4_complete_rounds_reverse"],
+  "iteration_work": {
+    "iterations": 3, "little": 4, "big": 0, "checked_words": 196608,
+    "read_bytes": 1582080, "write_bytes": 3145728
+  },
+  "not_claimed": [
+    "FPGA_or_RTL_measured_cycles_or_publication_speed_match",
+    "arbitrary_signed_int_overflow_equivalence",
+    "Big_compute_mixed_scheduler_or_multiple_destination_partitions",
+    "DBG_preprocessing_or_published_PR_initialization_and_convergence",
+    "GraSU_timing_adapter_overhead_or_host_orchestration",
+    "cycle_exact_HLS_global_stall_or_AXI_burst_coalescing_equivalence"
+  ]
+}

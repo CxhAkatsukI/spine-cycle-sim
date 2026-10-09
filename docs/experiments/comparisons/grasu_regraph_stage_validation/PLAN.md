@@ -22,6 +22,12 @@ request-protocol controls, finite pressure/resource sensitivity and old Gather
 equivalence. Apply/writeback, Big/mixed scheduling, whole-R timing and the
 publication/A4-B exit gates are still open.
 
+The [Little PR state checkpoint](LITTLE_STATE_MODEL.md) adds degree/Apply,
+indexed broadcast writeback and three resident A4 ping-pong iterations.
+Original-source values and old Gather/frontend regression are checked
+separately from model cycles. This does not complete partition/Big/mixed,
+publication timing, original G or the matched A4/B/C milestones.
+
 ## Separate Questions
 
 | Path | Question | Required control |

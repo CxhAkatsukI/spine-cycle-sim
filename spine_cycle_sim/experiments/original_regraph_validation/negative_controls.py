@@ -10,15 +10,14 @@ from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 
 
 def run_negative_controls(root: Path, output: Path, binary: Path,
-                          captures: list[dict], contract: dict) -> list[dict]:
+                          captures: list[dict], contract: dict, *,
+                          diagnostics: tuple[str, str, str] | None = None) -> list[dict]:
     fixtures = output / "negative_fixtures"
     fixtures.mkdir()
     original = Path(captures[0]["path"])
-    cases = (
-        ("changed_word", "differs from original source"),
-        ("truncated_word", "truncated original-source capture"),
-        ("excess_word", "excess original-source capture words"),
-    )
+    diagnostics = diagnostics or ("differs from original source", "truncated original-source capture",
+                                  "excess original-source capture words")
+    cases = zip(("changed_word", "truncated_word", "excess_word"), diagnostics, strict=True)
     rows = []
     for name, diagnostic in cases:
         destination = fixtures / f"{name}.u32le"

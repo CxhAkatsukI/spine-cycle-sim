@@ -20,7 +20,7 @@ class LittleSourceMemory final : public Component {
   LittleSourceMemory(std::string name, ClockId clock, ReadPort memory,
                      Fifo<SourceRequest>& input, Fifo<SourceResponse>& output,
                      std::uint64_t property_address, std::uint64_t property_bytes);
-  void begin_partitions(unsigned count);
+  void begin_partitions(unsigned count, std::optional<std::uint64_t> property_address = std::nullopt);
   bool finished() const noexcept { return phase_ == Phase::kFinished; }
   const SourceMemoryCounters& counters() const noexcept { return counters_; }
   void evaluate(const CycleContext&) override;

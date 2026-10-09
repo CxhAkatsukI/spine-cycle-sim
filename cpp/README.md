@@ -30,7 +30,7 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | G+R HBM buffer placement and capacity checks | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph_runtime.cpp](src/grasu_regraph_runtime.cpp) |
 | G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
 | G+R readers, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
-| Independent original-ReGraph Little reader/source/Scatter/Gather and mergers | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
+| Independent original-ReGraph Little reader/source/Scatter/Gather/merge and PR state path | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
 | SST setup and run serialization | SST component registration | [online_memory_probe.cpp](sst/online_memory_probe.cpp) |
 | SST physical HBM address mapping | [physical_hbm_mapper.hpp](sst/physical_hbm_mapper.hpp) | [physical_hbm_mapper.cpp](sst/physical_hbm_mapper.cpp) |
 | SST memory reservation, transport and completion | [sst_memory_backend.hpp](sst/sst_memory_backend.hpp) | [sst_memory_backend.cpp](sst/sst_memory_backend.cpp) |
@@ -61,6 +61,7 @@ used by existing experiments.
 | Independent author-source G/R controls | [publication_sources/](tests/publication_sources/) via [study runner](../scripts/run_upstream_stage_controls.py) |
 | Independent original-R finite Gather/merge | [original_regraph/](tests/original_regraph/) via [validation runner](../scripts/run_original_regraph_gather_validation.py) |
 | Independent original-R memory/frontend | [frontend_tests.cpp](tests/original_regraph/frontend_tests.cpp) via [frontend validation](../scripts/run_original_regraph_frontend_validation.py) |
+| Independent original-R PR state and resident rounds | [state_tests.cpp](tests/original_regraph/state_tests.cpp), [iteration_tests.cpp](tests/original_regraph/iteration_tests.cpp) via [state validation](../scripts/run_original_regraph_state_validation.py) |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
@@ -93,6 +94,13 @@ Its fixed matrix preserves all accepted Gather/capture results and checks
 registration order, backpressure, source-window gaps and allocation rejection.
 Apply/writeback and complete original-R/adapter timing remain separate work;
 this independent library is still not wired into the production SST plugin.
+
+The [PR state extension](../docs/implementation/grasu_regraph/original_regraph_little_state.md)
+owns degree/Apply, indexed writes and per-replica completion separately. Its
+shared memory-test fixture preserves old frontend outputs exactly and permits
+connected resident ping-pong iterations without host-generated next-state
+properties. Source-word equivalence, finite-resource correctness and predicted
+cycles remain distinct from whole-R publication or FPGA timing validation.
 
 ## G+R Extraction Boundary
 

@@ -18,12 +18,18 @@ LittleSourceMemory::LittleSourceMemory(std::string name, ClockId clock, ReadPort
   }
 }
 
-void LittleSourceMemory::begin_partitions(unsigned count) {
+void LittleSourceMemory::begin_partitions(unsigned count, std::optional<std::uint64_t> address) {
   if (!finished() || !input_.empty() || !output_.empty() ||
       !memory_.requests.empty() || !memory_.responses.empty() || !memory_.beats.empty()) {
     throw std::logic_error("source-memory restart requires drained queues");
   }
   if (!count || count > 255) throw std::invalid_argument("original wrapper has an 8-bit partition count");
+  if (address) {
+    if (*address % 64 || property_bytes_ > std::numeric_limits<std::uint64_t>::max() - *address) {
+      throw std::invalid_argument("invalid relocated source-property allocation");
+    }
+    property_address_ = *address;
+  }
   partitions_ = count;
   completed_ = 0;
   phase_ = Phase::kIdle;

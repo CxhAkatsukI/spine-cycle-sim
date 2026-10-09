@@ -135,6 +135,7 @@ Start with the [documentation index](../README.md) and its topic guides.
 - [grasu_weighted_dst19_partition_fix_20260729.md](../implementation/grasu_regraph/grasu_weighted_dst19_partition_fix_20260729.md)
 - [original_regraph_little_frontend.md](../implementation/grasu_regraph/original_regraph_little_frontend.md)
 - [original_regraph_little_gather.md](../implementation/grasu_regraph/original_regraph_little_gather.md)
+- [original_regraph_little_state.md](../implementation/grasu_regraph/original_regraph_little_state.md)
 
 ## Hardware alignment and calibration records
 

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "evidence_class": "upstream_source_functional_only",
+  "generator_python": "python3.11",
+  "memory_limit_gib": 2,
+  "reserve_gib": 16,
+  "compile_timeout_seconds": 300,
+  "run_timeout_seconds": 120,
+  "topologies": [
+    {"id": "a4", "little": 4, "big": 0},
+    {"id": "default_mixed", "little": 11, "big": 3}
+  ],
+  "probes": [
+    {
+      "id": "a4_original_apply", "topology": "a4",
+      "source": "regraph_apply_probe.cpp", "capture_applied": true,
+      "expected": {
+        "kind": "regraph_apply", "passed": true, "little": 4, "big": 0,
+        "cases": 3, "checked_vertices": 196608, "replica_words_checked": 786432,
+        "degree_zero_words": 24576, "write_terminators": 3
+      }
+    },
+    {
+      "id": "a_default_original_apply_component", "topology": "default_mixed",
+      "source": "regraph_apply_probe.cpp", "capture_applied": true,
+      "expected": {
+        "kind": "regraph_apply", "passed": true, "little": 11, "big": 3,
+        "cases": 3, "checked_vertices": 196608, "replica_words_checked": 2752512,
+        "degree_zero_words": 24576, "write_terminators": 3
+      }
+    }
+  ],
+  "not_claimed": [
+    "device_cycles_or_concurrent_RTL_liveness",
+    "arbitrary_signed_int_overflow_equivalence",
+    "complete_ReGraph_or_publication_speed_match"
+  ]
+}

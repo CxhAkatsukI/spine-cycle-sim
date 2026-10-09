@@ -21,7 +21,9 @@ def source_identities(root: Path) -> list[dict]:
         "cpp/src/axi.cpp", "cpp/src/memory_backend.cpp",
         "cpp/src/scheduler.cpp", "scripts/run_original_regraph_gather_validation.py",
         "scripts/run_original_regraph_frontend_validation.py",
+        "scripts/run_original_regraph_state_validation.py",
         "tests/test_original_regraph_validation.py", "tests/test_original_regraph_frontend.py",
+        "tests/test_original_regraph_state.py",
         "spine_cycle_sim/experiments/upstream_controls/execution.py",
         "spine_cycle_sim/experiments/campaign_runtime.py")}
     for directory in ("cpp/include/spine_sim/original_regraph", "cpp/src/original_regraph",

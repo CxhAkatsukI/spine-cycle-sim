@@ -120,6 +120,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_maintenance_microbench.py](run_maintenance_microbench.py)
 - [run_original_regraph_frontend_validation.py](run_original_regraph_frontend_validation.py)
 - [run_original_regraph_gather_validation.py](run_original_regraph_gather_validation.py)
+- [run_original_regraph_state_validation.py](run_original_regraph_state_validation.py)
 - [run_publication_case.py](run_publication_case.py)
 - [run_publication_cc_case.py](run_publication_cc_case.py)
 - [run_refactor31_mechanism_calibration.py](run_refactor31_mechanism_calibration.py)

@@ -32,11 +32,17 @@ All frozen Gather/capture results remain identical. The ten positive frontend
 rows, allocation rejection, repeats and instrumentation pass. Apply/writeback,
 Big/mixed scheduling and complete stage timing remain unfinished.
 
+The [Little PR state checkpoint](LITTLE_STATE_MODEL.md) extends the independent
+path through degree reads, Apply and acknowledged broadcast writes. It also
+checks three connected resident A4 rounds with shared source/write channels.
+The old frontend/Gather analyses remain identical. Publication matching and
+matched adapter overhead are still not established.
+
 | Path | Current evidence | Still required |
 | --- | --- | --- |
 | G | Original cache dispatch, all 16 URAM banks, preload/update/writeback agree with an independent oracle over three batches | Original search/DDR/host path, temporal workload admission and finite-resource timing |
 | A | Original Little and Big components pass independently, including generated 11-way/3-way mergers | Whole-graph DBG/scheduling and memory wrapper, publication topology/clock admission, cycle model |
-| A4 | Original 4L/0B source functions and request-dependent Scatter/wrapper controls pass; finite edge/source/Scatter/Gather/merge preserve values and traffic under backpressure | Apply/writeback, complete finite timing and resource matching to B |
+| A4 | Original 4L/0B source controls and finite reader/source/Scatter/Gather/merge/PR-Apply/writeback pass; three resident rounds agree with a scalar oracle | Multiple partitions, admitted real workload/memory timing and resource matching to B |
 | B | Not executed | PMA input adapter feeding the same admitted original A4 downstream; state/work/cycle comparison |
 | C | Not executed | Separate validated G and B windows, measured host orchestration and overlap accounting |
 
