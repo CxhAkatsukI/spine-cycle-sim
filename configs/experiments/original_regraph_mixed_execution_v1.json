@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "evidence_class": "complete_original_mixed_R_one_PR_iteration_with_declared_state_tail_padding",
+  "boundary": "resident_original_host_tasks_to_all_14_state_write_acknowledgements",
+  "little": 11, "big": 3, "dense_partitions_argument": 1,
+  "clock_mhz": 210, "iterations": 1, "argument": 0,
+  "memory_limit_gib": 3, "reserve_gib": 16, "build_jobs": 2,
+  "build_timeout_seconds": 600, "run_timeout_seconds": 180, "max_cycles": 4000000,
+  "padding_policy": "explicit_zero_extension_to_max_original_allocation_and_complete_publication_extent",
+  "cases": [
+    {"id": "boundary", "input": "boundary_ring", "state_parents": 16, "latency": 64, "reverse": false},
+    {"id": "boundary_reverse", "input": "boundary_ring", "state_parents": 16, "latency": 64, "reverse": true},
+    {"id": "boundary_latency128", "input": "boundary_ring", "state_parents": 16, "latency": 128, "reverse": false},
+    {"id": "boundary_one_parent", "input": "boundary_ring", "state_parents": 1, "latency": 64, "reverse": false},
+    {"id": "skewed", "input": "skewed_sources", "state_parents": 16, "latency": 64, "reverse": false},
+    {"id": "skewed_reverse", "input": "skewed_sources", "state_parents": 16, "latency": 64, "reverse": true},
+    {"id": "amazon", "input": "amazon", "state_parents": 16, "latency": 64, "reverse": false},
+    {"id": "amazon_reverse", "input": "amazon", "state_parents": 16, "latency": 64, "reverse": true}
+  ],
+  "instrumented_cases": ["boundary", "skewed", "amazon"],
+  "not_claimed": ["unmodified_original_host_allocation_safety", "original_paper_best_graph_selected_topology",
+    "FPGA_or_RTL_or_publication_timing_match", "exact_HLS_global_stall_or_coalescing_or_memory_controller",
+    "repeated_PR_iteration_or_convergence_equivalence", "G_or_A4_B_adapter_or_C_composition_completion"]
+}

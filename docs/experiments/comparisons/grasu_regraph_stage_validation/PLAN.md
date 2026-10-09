@@ -59,6 +59,13 @@ G/A4-B/C gates remain open; partial component cycles are not stage matching.
 
 ## Separate Questions
 
+The [connected mixed checkpoint](MIXED_GRAPH_EXECUTION.md) now passes the
+11+3 example on complete admitted graphs, including continuous Big groups,
+independent indexed merge, all 14 state replicas and exact old regressions.
+Original-host publication-tail overflow is rejected; successful execution
+uses declared zero-extension. This closes the mixed functional connection,
+not publication topology/memory/timing admission or G/B/C completion.
+
 | Path | Question | Required control |
 | --- | --- | --- |
 | G | Does an isolated original GraSU update model reproduce an admitted published update rate? | Original temporal trace/batches, successful-update numerator, PMA geometry, URAM hot-store/writeback policy, DDR/clock and event boundary |

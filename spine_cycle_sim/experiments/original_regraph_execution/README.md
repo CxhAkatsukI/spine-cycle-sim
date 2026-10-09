@@ -23,3 +23,8 @@ reused unchanged. Read the [study results](../../../docs/experiments/comparisons
 and [implementation contract](../../../docs/implementation/grasu_regraph/original_regraph_a4_execution.md)
 before changing resources or interpreting cycles. The accepted report, not
 a `final` suffix, determines whether a run passed.
+
+The separate [mixed owner](mixed/README.md) connects the artifact's 11+3
+example. It audits original output allocation and explicitly declares any
+zero-extension control; it does not change this A4 executor or establish
+publication timing by comparing two model totals.

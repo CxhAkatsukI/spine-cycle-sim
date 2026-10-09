@@ -1,0 +1,75 @@
+{
+  "CTest_count": 13,
+  "Python_checks": {
+    "resources": {
+      "available_before_bytes": 91116400640,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_original_regraph_big_frontend",
+        "tests.test_original_regraph_big_validation",
+        "tests.test_original_regraph_execution",
+        "tests.test_original_regraph_frontend",
+        "tests.test_original_regraph_inputs",
+        "tests.test_original_regraph_mixed",
+        "tests.test_original_regraph_state",
+        "tests.test_original_regraph_validation",
+        "tests.test_refactor_equivalence",
+        "tests.test_repository_structure",
+        "tests.test_sst_memory_binding",
+        "tests.test_upstream_stage_controls",
+        "tests.test_upstream_stage_synthesis"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 3,
+      "peak_rss_kib": 33940,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/mixed_postchecks_v2/python.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/mixed_postchecks_v2/python.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.7059252462349832
+    },
+    "stderr_sha256": "547d0de3603ea06f6ce0e1df5eb49c8ed39bf07f95312958183b39433c724cdb",
+    "stderr_text": "..........................................................................................................................................\n----------------------------------------------------------------------\nRan 138 tests in 1.557s\n\nOK\n",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_text": ""
+  },
+  "Python_test_count": 138,
+  "UBSan_graph_count": 3,
+  "authoritative_report_sha256": "4dac2e1463bc81e85252553f72abbd45c2410a1b85ae868cf1ed61209c0712db",
+  "expected_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "frozen_changed": [],
+  "frozen_files": 2437,
+  "frozen_files_rechecked": 2437,
+  "frozen_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "legacy_checks": 16,
+  "prior_study_artifacts": 34,
+  "prior_study_artifacts_rechecked": 34,
+  "prior_study_changed": [],
+  "production_SST_matrix_rerun": false,
+  "reason": "production_Spine_GR_SST_bodies_unchanged_independent_original_R_extension",
+  "source_geometry_files": [
+    {
+      "path": "build/publication_sources/regraph/host/preprocess/graph_preprocess.cpp",
+      "sha256": "f4f4530dd0355e1ca00804dee48a187bb658e3d869cd6519f2e77dbd77c1a48c"
+    },
+    {
+      "path": "build/publication_sources/regraph/acc_template/kernel_apply/acc_apply.h",
+      "sha256": "6cc34caca88f1c331ec5d601096409bb7ab3433d5c278ea77401acacd1e662d1"
+    }
+  ],
+  "three_full_run_numerics_identical": true,
+  "whole_A4_raw_stdout_stderr_identical": [
+    "boundary",
+    "boundary_reverse",
+    "boundary_two_parents",
+    "boundary_latency128",
+    "skewed",
+    "skewed_reverse",
+    "amazon",
+    "amazon_reverse"
+  ]
+}

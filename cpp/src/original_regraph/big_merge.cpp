@@ -72,8 +72,12 @@ BigGlobalMerge::BigGlobalMerge(std::string name, ClockId clock,
   }
 }
 void BigGlobalMerge::begin_partition() {
+  begin_partitions(1);
+}
+void BigGlobalMerge::begin_partitions(unsigned count) {
   restart(finished(), inputs_, output_);
-  remaining_ = kBigBankRows;
+  if (!count || count > 255) throw std::invalid_argument("Big merge partition count must be 1..255");
+  remaining_ = kBigBankRows * count;
 }
 void BigGlobalMerge::evaluate(const CycleContext& context) {
   accepted_ = false;

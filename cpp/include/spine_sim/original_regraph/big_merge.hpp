@@ -28,6 +28,7 @@ class BigGlobalMerge final : public Component {
   BigGlobalMerge(std::string name, ClockId clock, std::vector<Fifo<PropertyLine>*> inputs,
       Fifo<PropertyLine>& output, PipelineTiming timing = BigTiming{}.merge);
   void begin_partition();
+  void begin_partitions(unsigned count);
   bool finished() const noexcept { return remaining_ == 0 && pipeline_.drained(); }
   const PipelineCounters& counters() const noexcept { return pipeline_.counters(); }
   void evaluate(const CycleContext&) override;

@@ -140,6 +140,7 @@ Start with the [documentation index](../README.md) and its topic guides.
 - [original_regraph_little_frontend.md](../implementation/grasu_regraph/original_regraph_little_frontend.md)
 - [original_regraph_little_gather.md](../implementation/grasu_regraph/original_regraph_little_gather.md)
 - [original_regraph_little_state.md](../implementation/grasu_regraph/original_regraph_little_state.md)
+- [original_regraph_mixed_execution.md](../implementation/grasu_regraph/original_regraph_mixed_execution.md)
 
 ## Hardware alignment and calibration records
 

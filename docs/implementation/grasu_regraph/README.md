@@ -55,7 +55,13 @@ separately from Little. Its finite component/source/reuse gates do not yet
 include Big source-memory service or complete mixed-system timing.
 The [Big memory/Scatter owner](original_regraph_big_frontend.md) separately
 adds request batches, the last-cacheline wrapper, initial/lane routing and
-source-property Scatter. Its whole mixed-system integration remains open.
+source-property Scatter. That checkpoint stops before mixed-system integration.
+
+The [mixed whole-graph owner](original_regraph_mixed_execution.md) connects
+that path to Little, independent write-index arbitration, Apply and 14 state
+replicas. Original publication-tail allocation differences are rejected and
+explicitly controlled, not silently clipped. Its complete-state regression
+does not by itself establish publication timing.
 
 Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
 placement and destination-shard update sequencing now have separate source
