@@ -26,6 +26,8 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | Spine range reading and compute | [spine_split.hpp](include/spine_sim/spine_split.hpp) | [spine_split.cpp](src/spine_split.cpp) |
 | Spine system/algorithm orchestration | [spine_system.hpp](include/spine_sim/spine_system.hpp) | [spine_system.cpp](src/spine_system.cpp), [spine_pagerank.cpp](src/spine_pagerank.cpp) |
 | GraSU PMA layout and update paths | [grasu.hpp](include/spine_sim/grasu.hpp), [grasu_native.hpp](include/spine_sim/grasu_native.hpp) | [grasu.cpp](src/grasu.cpp), [grasu_native.cpp](src/grasu_native.cpp) |
+| G+R HBM buffer placement and capacity checks | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph_runtime.cpp](src/grasu_regraph_runtime.cpp) |
+| G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
 | G+R readers, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
 | SST setup and run serialization | SST component registration | [online_memory_probe.cpp](sst/online_memory_probe.cpp) |
 | Direct DRAMSim3 bridge | [direct_dramsim3_engine.hpp](sst/direct_dramsim3_engine.hpp) | [direct_dramsim3_engine.cpp](sst/direct_dramsim3_engine.cpp) |
@@ -48,6 +50,7 @@ used by existing experiments.
 | --- | --- |
 | Shared core and Spine execution | [core_tests.cpp](tests/core_tests.cpp) |
 | GraSU and G+R execution | [grasu_tests.cpp](tests/grasu_tests.cpp) |
+| G+R placement, capacity, and empty-shard invariants | [grasu_runtime_tests.cpp](tests/grasu_runtime_tests.cpp) |
 | Owner/reactivation protocol | [spine_owner_tests.cpp](tests/spine_owner_tests.cpp) |
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
 | Python runner, profiles, and result gates | [tests/](../tests) |
@@ -56,7 +59,23 @@ Native GraSU/ReGraph result gates now have one Python owner:
 [grasu_native_validation.py](../spine_cycle_sim/experiments/grasu_native_validation.py).
 The legacy runner re-exports these functions for compatible CLI/import use.
 
-The largest translation units still mix several responsibilities. This map
-does not claim they have been modularized. The
-[structure audit](../docs/repository/structure_audit_20261009.md) gives the
-proposed extraction boundaries and regression gates.
+## G+R Extraction Boundary
+
+The first C++ extraction separates two existing responsibilities without
+changing their public header or function bodies:
+
+1. Runtime placement consumes a partitioned PMA layout and update counts;
+   it returns deterministic buffer regions or rejects invalid/capacity-limited
+   geometry. It does not issue simulated memory requests.
+2. Sharded update orchestration consumes that placement and the update batch;
+   it launches the existing native update engine one destination shard at a
+   time, preserves degree initialization, and combines counters.
+3. Readers, source service, gather/merge/apply, and round control remain in
+   `grasu_regraph.cpp`. Their next extraction must preserve registration
+   order, FIFO ownership, and shared-downstream backpressure.
+
+The [refactor record](../docs/repository/grasu_component_refactor/README.md)
+contains the fixed pre/post SST matrix and full-result comparison. This is
+incremental modularization, not completion of the entire C++ cleanup. The
+[structure audit](../docs/repository/structure_audit_20261009.md) retains the
+remaining SST and Spine extraction work.

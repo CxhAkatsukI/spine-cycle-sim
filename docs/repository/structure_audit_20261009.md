@@ -177,6 +177,17 @@ passes all four C++ test executables. See the
 for source admission, raw results, and the unfinished original-model work.
 The large C++ units and the larger Spine runner have not yet been split.
 
+### First C++ Extraction Checkpoint
+
+The subsequent [G+R C++ extraction](grasu_component_refactor/README.md)
+moves HBM runtime placement and destination-shard PMA update orchestration to
+two implementation files, keeping the public header unchanged. Three runtime
+placement tests have their own executable. Both CMake and SST source lists
+include the new files. The remaining G+R readers/compute/controller, SST
+bootstrap/serialization, and large Spine units still require incremental
+extraction. This checkpoint does not replace the original-publication A/A4
+implementation or performance experiments.
+
 ## Verification of The Initial Navigation Pass
 
 - Seven organization-tool unit tests passed.

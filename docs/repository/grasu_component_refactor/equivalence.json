@@ -1,0 +1,605 @@
+{
+  "baseline_identity": {
+    "contract_sha256": "d727a1941927845588952a6632d2d3bdeeedaff8929d683a68dc245be9a8e372",
+    "plugin_sha256": "dbf38cc09c6aafc006cc2e03c95960d13c2d5518ec729112188dac70271d9360",
+    "schema_version": 1,
+    "source": {
+      "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+      "declared_build": {
+        "compiler": "g++",
+        "dramsim3_root": "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "host_flags": "-O3 -DNDEBUG -flto",
+        "native_host": 0,
+        "pgo_mode": "off"
+      },
+      "dramsim3_library_sha256": "9db26860cde335dd62c9e013d444b67ec98e8772107b39e15eb15a0ffdb8d906",
+      "files": [
+        {
+          "path": "CMakeLists.txt",
+          "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+          "sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+          "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+          "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+        },
+        {
+          "path": "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json",
+          "sha256": "673a349cd735e724ee0641f36d7122943d8c2c884886b84b81da6a2a3c6e722f"
+        },
+        {
+          "path": "configs/experiments/grasu_component_refactor_v1.json",
+          "sha256": "d727a1941927845588952a6632d2d3bdeeedaff8929d683a68dc245be9a8e372"
+        },
+        {
+          "path": "configs/memory/HBM2_1ch_x128.ini",
+          "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+        },
+        {
+          "path": "cpp/CMakeLists.txt",
+          "sha256": "bb5b02958113e570a6625d0a79f84397dd2a26ad55a62820f4b2e6028c9f49fe"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm.hpp",
+          "sha256": "de525d8443035964dde913c87ed0a697b741fab07090ae87dae55a7a1076070a"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm_pipeline.hpp",
+          "sha256": "d3194631dc802f8d990f7706515f9e3499fb588bb02de6ad00e67eb8cac004b3"
+        },
+        {
+          "path": "cpp/include/spine_sim/axi.hpp",
+          "sha256": "47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb"
+        },
+        {
+          "path": "cpp/include/spine_sim/banked_memory.hpp",
+          "sha256": "7e781e6c64cf14780d0fe40757844e1437d2a09bef44c141b9859f8d8fd4f08d"
+        },
+        {
+          "path": "cpp/include/spine_sim/component.hpp",
+          "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+        },
+        {
+          "path": "cpp/include/spine_sim/fifo.hpp",
+          "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+        },
+        {
+          "path": "cpp/include/spine_sim/fixed_axi_port.hpp",
+          "sha256": "6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu.hpp",
+          "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_native.hpp",
+          "sha256": "7012151680988d9be642a8a5f6b0617443a8a55dbd8b43e9f1b8537a91284a10"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+          "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+        },
+        {
+          "path": "cpp/include/spine_sim/memory_backend.hpp",
+          "sha256": "067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e"
+        },
+        {
+          "path": "cpp/include/spine_sim/scheduler.hpp",
+          "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_dirty.hpp",
+          "sha256": "e4c82aacfa311d7f89b0922ff42c2f4300f6b90eb5b5128ca1b59f128adf65be"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_l0.hpp",
+          "sha256": "b1ca2380705dca4df2ef0ac222699fc6d5ebb60460d6fb293836b8920daa6d38"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_owner.hpp",
+          "sha256": "877b9d7e3c38fe7183becccbdab097809d5fba7e5e2836cc8bfaaaaba4066a86"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_pagerank.hpp",
+          "sha256": "c4a1ea3fa2e83fc86b1570e8c0b134f97f17451d58249a8b95e5570bf053b4cc"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_split.hpp",
+          "sha256": "c819618f9cfbdbe3742396b1df394c84056dd0185eda2a4d05ec296f68953495"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_system.hpp",
+          "sha256": "564f9fea6afbbef6df7a7bef7a234ae5b5628bb23185df5d754b726ad0cf52a1"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_vertex_lifecycle.hpp",
+          "sha256": "252288e7a3b7000ac4bbef00b333ab2caa6ed97f76bc08a73097501cedf3a000"
+        },
+        {
+          "path": "cpp/src/algorithm.cpp",
+          "sha256": "253295d6c3d5c7655544fe58b8c6d480e4e96d1f2d4b1ad612c41b600dea50b1"
+        },
+        {
+          "path": "cpp/src/algorithm_pipeline.cpp",
+          "sha256": "f5eac512f9aa6b1c6d971907826e4a18b2b494a7be6e4e6e3e70ba30abc5b726"
+        },
+        {
+          "path": "cpp/src/axi.cpp",
+          "sha256": "c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd"
+        },
+        {
+          "path": "cpp/src/banked_memory.cpp",
+          "sha256": "37e993cf0f052c814c8ab3a8bb481630f154a91af7a7eaa505c77e22f549680b"
+        },
+        {
+          "path": "cpp/src/grasu.cpp",
+          "sha256": "352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915"
+        },
+        {
+          "path": "cpp/src/grasu_native.cpp",
+          "sha256": "e974e00f48f089a61c209c8032daa4e275185f3cd9d1e2e3f8ab88f920c52831"
+        },
+        {
+          "path": "cpp/src/grasu_regraph.cpp",
+          "sha256": "3246dd1af3d7b1081c3ed9c7eed877f2c1972c844101497576eebbeaf6236d81"
+        },
+        {
+          "path": "cpp/src/memory_backend.cpp",
+          "sha256": "4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20"
+        },
+        {
+          "path": "cpp/src/scheduler.cpp",
+          "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+        },
+        {
+          "path": "cpp/src/spine_dirty.cpp",
+          "sha256": "097d217fcbfc59a19eba7de7475633ac400a345d4dbb3c17f0cbb05219ad63f8"
+        },
+        {
+          "path": "cpp/src/spine_l0.cpp",
+          "sha256": "aead6f7b4eb3cf5d889d9d7a285d86c0ea1dbeb380af052a4aef0e34ef7ad755"
+        },
+        {
+          "path": "cpp/src/spine_owner.cpp",
+          "sha256": "831a4ced1e4c928319e576beaf0110d59c4e498fcb5b6ea01536acd6c5149959"
+        },
+        {
+          "path": "cpp/src/spine_pagerank.cpp",
+          "sha256": "ab753aaab40f53051ede5275a978d6dcddde48604a932655e9796bff2f297ed9"
+        },
+        {
+          "path": "cpp/src/spine_split.cpp",
+          "sha256": "fc05d6104fd9c8ef96937ec309a60e43c345f5e6a09946916d1c886131919cf9"
+        },
+        {
+          "path": "cpp/src/spine_system.cpp",
+          "sha256": "442d17046d857b00fe6956ba081bdd5fbad74608b45f6fcd24ca6fb0bf61b5b1"
+        },
+        {
+          "path": "cpp/src/spine_vertex_lifecycle.cpp",
+          "sha256": "d5700861bf299ee426335819077fd00a5bb7fb719fa2e002c3a33d8bd04d4ab4"
+        },
+        {
+          "path": "cpp/sst/Makefile",
+          "sha256": "03302f81c7567c31de9821eb70e8d691d26cf24472eddd63d7e85ef59acdd8fb"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.cpp",
+          "sha256": "70427a7e7c50768ab6888df4953bbcc680be9443a64e9deee36b96a800b11754"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.hpp",
+          "sha256": "313e7095554b02752c27b944317de1b162f3c339830ed9e2fdd238997e828e23"
+        },
+        {
+          "path": "cpp/sst/online_memory_probe.cpp",
+          "sha256": "04ab090ea23087be177a4b7578991d3f277f077cdde1d97d259d42315257d448"
+        },
+        {
+          "path": "scripts/run_grasu_refactor_regression.py",
+          "sha256": "2cfdaa172d2b9d0b81b49cc0ab64bfbebc0064573b803e3e18772ce930273b00"
+        },
+        {
+          "path": "scripts/run_sst_connected_components.py",
+          "sha256": "961d723a01c924e2ead94f1387da56b3e1a229d9b835a28fc5309c73d2f539c0"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+          "sha256": "caabfe83b2aecce3fd8a74a93bb3371747bae179d1cc8eb48e07fbafb4ce86b9"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+          "sha256": "f41926eb0412fa3a994011fa7f5fdf37d752cff7e7835e7075cb621c97ce9d1b"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/refactor_equivalence.py",
+          "sha256": "430721e0e86e91188f0bb14f2c9e11d2c53cc840c127701c2d58afcd90cfe156"
+        },
+        {
+          "path": "sst/grasu_regraph_vertical.py",
+          "sha256": "f1455f62b4072b6dfeeb33c4d3ee642072e8fe42266c725c907ad081e8e3a936"
+        },
+        {
+          "path": "sst/online_memory_probe.py",
+          "sha256": "2de7d64751dc1e636c57c12d9f0d43c465cadec579d401642ce1f7cdc1b2cd68"
+        },
+        {
+          "path": "sst/spine_vertical_slice.py",
+          "sha256": "068ff8593f063d302561dc2ef26705ff9fb61b0839fbfe153bd1305c491cd569"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_initial.slice",
+          "sha256": "c1348afd4f74dee02138feb393cd5dd99f8c0f42ae8f565f5b70975e356f35f0"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_insert.slice",
+          "sha256": "5f4c413c2c382bb9807a58d41578779dabbab97a16ecc6f557bc9d3bcb24f9a6"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_initial.slice",
+          "sha256": "8107f04145e1c42dca0a00771e79de6176be95c66af3f834eac272c964062621"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_update.slice",
+          "sha256": "4d9a3afe66864c3b291dfb322ab302067ff37a38811efc9e85e3695ca6204176"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+          "sha256": "38f8cdd79a9fe32571512ee5c4a706200260e48a70428130bbe52906b23f3a96"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+          "sha256": "a0c3eb0114f3dcc4693d20253741deace7ed5a832a00566033e3d9ae1d16df60"
+        }
+      ],
+      "relevant_dirty_diff": "",
+      "revision": "9b41c15c7224dcb2b75450ae60aa3619a1edd3e1"
+    }
+  },
+  "candidate_identity": {
+    "case_timeout_seconds": 600,
+    "contract_sha256": "d727a1941927845588952a6632d2d3bdeeedaff8929d683a68dc245be9a8e372",
+    "plugin_sha256": "5ff6b53fae61c87b896c76d45148b61b6b9357bf38576ff4e2f8f442868e97c7",
+    "schema_version": 1,
+    "source": {
+      "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+      "declared_build": {
+        "compiler": "g++",
+        "dramsim3_root": "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "host_flags": "-O3 -DNDEBUG -flto",
+        "native_host": 0,
+        "pgo_mode": "off"
+      },
+      "dramsim3_library_sha256": "9db26860cde335dd62c9e013d444b67ec98e8772107b39e15eb15a0ffdb8d906",
+      "files": [
+        {
+          "path": "CMakeLists.txt",
+          "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+          "sha256": "62bc85f9f6e018c370baa0c271bab0891d330fd4fd41ad5001f6a7c748764f34"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+          "sha256": "ead5f2e182cd5be0764105001f0f8cb094e52fc50f072c3ab1db48747db4159b"
+        },
+        {
+          "path": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+          "sha256": "004bfe755983ff12742f45ac6f130f3a76c21abdaf35be73fb28d9f818bc04d7"
+        },
+        {
+          "path": "configs/contracts/grasu_regraph_sharded_k4_hls_capabilities_v8.json",
+          "sha256": "673a349cd735e724ee0641f36d7122943d8c2c884886b84b81da6a2a3c6e722f"
+        },
+        {
+          "path": "configs/experiments/grasu_component_refactor_v1.json",
+          "sha256": "d727a1941927845588952a6632d2d3bdeeedaff8929d683a68dc245be9a8e372"
+        },
+        {
+          "path": "configs/memory/HBM2_1ch_x128.ini",
+          "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f"
+        },
+        {
+          "path": "cpp/CMakeLists.txt",
+          "sha256": "2b663be824faf0b68923f12659322a1d2d727166c291e9a805f7023ff56118b7"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm.hpp",
+          "sha256": "de525d8443035964dde913c87ed0a697b741fab07090ae87dae55a7a1076070a"
+        },
+        {
+          "path": "cpp/include/spine_sim/algorithm_pipeline.hpp",
+          "sha256": "d3194631dc802f8d990f7706515f9e3499fb588bb02de6ad00e67eb8cac004b3"
+        },
+        {
+          "path": "cpp/include/spine_sim/axi.hpp",
+          "sha256": "47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb"
+        },
+        {
+          "path": "cpp/include/spine_sim/banked_memory.hpp",
+          "sha256": "7e781e6c64cf14780d0fe40757844e1437d2a09bef44c141b9859f8d8fd4f08d"
+        },
+        {
+          "path": "cpp/include/spine_sim/component.hpp",
+          "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+        },
+        {
+          "path": "cpp/include/spine_sim/fifo.hpp",
+          "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+        },
+        {
+          "path": "cpp/include/spine_sim/fixed_axi_port.hpp",
+          "sha256": "6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu.hpp",
+          "sha256": "a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_native.hpp",
+          "sha256": "7012151680988d9be642a8a5f6b0617443a8a55dbd8b43e9f1b8537a91284a10"
+        },
+        {
+          "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+          "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+        },
+        {
+          "path": "cpp/include/spine_sim/memory_backend.hpp",
+          "sha256": "067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e"
+        },
+        {
+          "path": "cpp/include/spine_sim/scheduler.hpp",
+          "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_dirty.hpp",
+          "sha256": "e4c82aacfa311d7f89b0922ff42c2f4300f6b90eb5b5128ca1b59f128adf65be"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_l0.hpp",
+          "sha256": "b1ca2380705dca4df2ef0ac222699fc6d5ebb60460d6fb293836b8920daa6d38"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_owner.hpp",
+          "sha256": "877b9d7e3c38fe7183becccbdab097809d5fba7e5e2836cc8bfaaaaba4066a86"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_pagerank.hpp",
+          "sha256": "c4a1ea3fa2e83fc86b1570e8c0b134f97f17451d58249a8b95e5570bf053b4cc"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_split.hpp",
+          "sha256": "c819618f9cfbdbe3742396b1df394c84056dd0185eda2a4d05ec296f68953495"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_system.hpp",
+          "sha256": "564f9fea6afbbef6df7a7bef7a234ae5b5628bb23185df5d754b726ad0cf52a1"
+        },
+        {
+          "path": "cpp/include/spine_sim/spine_vertex_lifecycle.hpp",
+          "sha256": "252288e7a3b7000ac4bbef00b333ab2caa6ed97f76bc08a73097501cedf3a000"
+        },
+        {
+          "path": "cpp/src/algorithm.cpp",
+          "sha256": "253295d6c3d5c7655544fe58b8c6d480e4e96d1f2d4b1ad612c41b600dea50b1"
+        },
+        {
+          "path": "cpp/src/algorithm_pipeline.cpp",
+          "sha256": "f5eac512f9aa6b1c6d971907826e4a18b2b494a7be6e4e6e3e70ba30abc5b726"
+        },
+        {
+          "path": "cpp/src/axi.cpp",
+          "sha256": "c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd"
+        },
+        {
+          "path": "cpp/src/banked_memory.cpp",
+          "sha256": "37e993cf0f052c814c8ab3a8bb481630f154a91af7a7eaa505c77e22f549680b"
+        },
+        {
+          "path": "cpp/src/grasu.cpp",
+          "sha256": "352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915"
+        },
+        {
+          "path": "cpp/src/grasu_native.cpp",
+          "sha256": "e974e00f48f089a61c209c8032daa4e275185f3cd9d1e2e3f8ab88f920c52831"
+        },
+        {
+          "path": "cpp/src/grasu_regraph.cpp",
+          "sha256": "f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7"
+        },
+        {
+          "path": "cpp/src/grasu_regraph_runtime.cpp",
+          "sha256": "0cd0af809c14917f863b6d5f7da983f99403eff84bf54b351fc80c784182818c"
+        },
+        {
+          "path": "cpp/src/grasu_sharded_update.cpp",
+          "sha256": "ea7e569be558db3b6c5fdcfacc96bf904091788383836537a8d919740a2a8fbc"
+        },
+        {
+          "path": "cpp/src/memory_backend.cpp",
+          "sha256": "4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20"
+        },
+        {
+          "path": "cpp/src/scheduler.cpp",
+          "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+        },
+        {
+          "path": "cpp/src/spine_dirty.cpp",
+          "sha256": "097d217fcbfc59a19eba7de7475633ac400a345d4dbb3c17f0cbb05219ad63f8"
+        },
+        {
+          "path": "cpp/src/spine_l0.cpp",
+          "sha256": "aead6f7b4eb3cf5d889d9d7a285d86c0ea1dbeb380af052a4aef0e34ef7ad755"
+        },
+        {
+          "path": "cpp/src/spine_owner.cpp",
+          "sha256": "831a4ced1e4c928319e576beaf0110d59c4e498fcb5b6ea01536acd6c5149959"
+        },
+        {
+          "path": "cpp/src/spine_pagerank.cpp",
+          "sha256": "ab753aaab40f53051ede5275a978d6dcddde48604a932655e9796bff2f297ed9"
+        },
+        {
+          "path": "cpp/src/spine_split.cpp",
+          "sha256": "fc05d6104fd9c8ef96937ec309a60e43c345f5e6a09946916d1c886131919cf9"
+        },
+        {
+          "path": "cpp/src/spine_system.cpp",
+          "sha256": "442d17046d857b00fe6956ba081bdd5fbad74608b45f6fcd24ca6fb0bf61b5b1"
+        },
+        {
+          "path": "cpp/src/spine_vertex_lifecycle.cpp",
+          "sha256": "d5700861bf299ee426335819077fd00a5bb7fb719fa2e002c3a33d8bd04d4ab4"
+        },
+        {
+          "path": "cpp/sst/Makefile",
+          "sha256": "d8a1ef86e60c22d7de256fb40134f111438bc21fd82d96ae64eb8d2fcf94acd9"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.cpp",
+          "sha256": "70427a7e7c50768ab6888df4953bbcc680be9443a64e9deee36b96a800b11754"
+        },
+        {
+          "path": "cpp/sst/direct_dramsim3_engine.hpp",
+          "sha256": "313e7095554b02752c27b944317de1b162f3c339830ed9e2fdd238997e828e23"
+        },
+        {
+          "path": "cpp/sst/online_memory_probe.cpp",
+          "sha256": "04ab090ea23087be177a4b7578991d3f277f077cdde1d97d259d42315257d448"
+        },
+        {
+          "path": "scripts/run_grasu_refactor_regression.py",
+          "sha256": "a69e6a23b9c9b21276a0a1992df5fdc3ac9de321380c02f0497d368fc10f77f8"
+        },
+        {
+          "path": "scripts/run_sst_connected_components.py",
+          "sha256": "961d723a01c924e2ead94f1387da56b3e1a229d9b835a28fc5309c73d2f539c0"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+          "sha256": "caabfe83b2aecce3fd8a74a93bb3371747bae179d1cc8eb48e07fbafb4ce86b9"
+        },
+        {
+          "path": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+          "sha256": "f41926eb0412fa3a994011fa7f5fdf37d752cff7e7835e7075cb621c97ce9d1b"
+        },
+        {
+          "path": "spine_cycle_sim/experiments/refactor_equivalence.py",
+          "sha256": "4c908bf0d193cc50d64af4ac686887041debbf20dda80907f25a7b2b7e88717c"
+        },
+        {
+          "path": "sst/grasu_regraph_vertical.py",
+          "sha256": "f1455f62b4072b6dfeeb33c4d3ee642072e8fe42266c725c907ad081e8e3a936"
+        },
+        {
+          "path": "sst/online_memory_probe.py",
+          "sha256": "2de7d64751dc1e636c57c12d9f0d43c465cadec579d401642ce1f7cdc1b2cd68"
+        },
+        {
+          "path": "sst/spine_vertical_slice.py",
+          "sha256": "068ff8593f063d302561dc2ef26705ff9fb61b0839fbfe153bd1305c491cd569"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_initial.slice",
+          "sha256": "c1348afd4f74dee02138feb393cd5dd99f8c0f42ae8f565f5b70975e356f35f0"
+        },
+        {
+          "path": "tests/data/connected_components_bridge_insert.slice",
+          "sha256": "5f4c413c2c382bb9807a58d41578779dabbab97a16ecc6f557bc9d3bcb24f9a6"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_initial.slice",
+          "sha256": "8107f04145e1c42dca0a00771e79de6176be95c66af3f834eac272c964062621"
+        },
+        {
+          "path": "tests/data/grasu_refactor_multipart_update.slice",
+          "sha256": "4d9a3afe66864c3b291dfb322ab302067ff37a38811efc9e85e3695ca6204176"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+          "sha256": "38f8cdd79a9fe32571512ee5c4a706200260e48a70428130bbe52906b23f3a96"
+        },
+        {
+          "path": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+          "sha256": "a0c3eb0114f3dcc4693d20253741deace7ed5a832a00566033e3d9ae1d16df60"
+        }
+      ],
+      "relevant_dirty_diff": "diff --git a/cpp/CMakeLists.txt b/cpp/CMakeLists.txt\nindex c69dfe9..a9c0f30 100644\n--- a/cpp/CMakeLists.txt\n+++ b/cpp/CMakeLists.txt\n@@ -6,6 +6,8 @@ add_library(spine_cycle_core STATIC\n   src/grasu.cpp\n   src/grasu_native.cpp\n   src/grasu_regraph.cpp\n+  src/grasu_regraph_runtime.cpp\n+  src/grasu_sharded_update.cpp\n   src/memory_backend.cpp\n   src/scheduler.cpp\n   src/spine_dirty.cpp\n@@ -50,4 +52,9 @@ if(BUILD_TESTING)\n   target_link_libraries(grasu_cycle_tests PRIVATE spine_cycle_core)\n   target_compile_options(grasu_cycle_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)\n   add_test(NAME grasu_cycle_tests COMMAND grasu_cycle_tests)\n+\n+  add_executable(grasu_runtime_tests tests/grasu_runtime_tests.cpp)\n+  target_link_libraries(grasu_runtime_tests PRIVATE spine_cycle_core)\n+  target_compile_options(grasu_runtime_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)\n+  add_test(NAME grasu_runtime_tests COMMAND grasu_runtime_tests)\n endif()\ndiff --git a/cpp/src/grasu_regraph.cpp b/cpp/src/grasu_regraph.cpp\nindex 97eedd7..19a163a 100644\n--- a/cpp/src/grasu_regraph.cpp\n+++ b/cpp/src/grasu_regraph.cpp\n@@ -20,439 +20,6 @@ namespace spine::sim {\n \n namespace {\n \n-constexpr std::array<std::pair<std::size_t, std::size_t>, 4>\n-    kU55cLaneChannelRanges{{{0, 6}, {6, 12}, {12, 18}, {18, 23}}};\n-\n-std::size_t align_runtime_bytes(std::size_t value) {\n-  constexpr std::size_t alignment = kGraSuReGraphRuntimeAlignmentBytes;\n-  if (value > std::numeric_limits<std::size_t>::max() - (alignment - 1)) {\n-    throw std::overflow_error(\"GraSU-ReGraph runtime region size overflow\");\n-  }\n-  return (value + alignment - 1) & ~(alignment - 1);\n-}\n-\n-} // namespace\n-\n-GraSuReGraphRuntimePlan build_grasu_regraph_runtime_plan(\n-    const GraSuPartitionedPmaLayout &layout,\n-    const std::vector<std::size_t> &physical_updates_per_shard,\n-    std::size_t max_cache_segments, std::size_t channels,\n-    std::size_t channel_capacity_bytes) {\n-  if (layout.vertices == 0 || layout.partitions.empty() ||\n-      physical_updates_per_shard.size() != layout.partitions.size() ||\n-      max_cache_segments == 0 || channels != kGraSuReGraphU55cGraphChannels ||\n-      channel_capacity_bytes == 0) {\n-    throw std::invalid_argument(\"invalid GraSU-ReGraph runtime geometry\");\n-  }\n-\n-  GraSuReGraphRuntimePlan result;\n-  result.max_cache_segments = max_cache_segments;\n-  result.channel_capacity_bytes = channel_capacity_bytes;\n-  result.channel_load_bytes.assign(channels, 0);\n-  result.shards.reserve(layout.partitions.size());\n-\n-  const auto add_region = [&](std::size_t shard, std::string name,\n-                              std::size_t logical_bytes) {\n-    std::size_t channel_first = 0;\n-    std::size_t channel_last = channels;\n-    if (name.rfind(\"update\", 0) == 0 || name.rfind(\"pma\", 0) == 0) {\n-      const char lane_character = name.back();\n-      if (lane_character < '0' || lane_character > '3') {\n-        throw std::logic_error(\"GraSU-ReGraph lane role is malformed\");\n-      }\n-      const std::size_t lane = static_cast<std::size_t>(lane_character - '0');\n-      channel_first = kU55cLaneChannelRanges[lane].first;\n-      channel_last = kU55cLaneChannelRanges[lane].second;\n-    }\n-    result.regions.push_back({\n-        .shard = shard,\n-        .name = std::move(name),\n-        .logical_bytes = logical_bytes,\n-        .allocated_bytes =\n-            align_runtime_bytes(std::max<std::size_t>(logical_bytes, 1)),\n-        .channel_first = channel_first,\n-        .channel_last = channel_last,\n-    });\n-  };\n-\n-  for (std::size_t shard = 0; shard < layout.partitions.size(); ++shard) {\n-    const GraSuPmaLayout &partition = layout.partitions[shard];\n-    const std::size_t segments = partition.segments.size();\n-    if (partition.row_slot_bounds.size() != layout.vertices ||\n-        partition.binary_heads.size() != segments) {\n-      throw std::invalid_argument(\"invalid GraSU-ReGraph PMA shard buffers\");\n-    }\n-    const std::size_t even_segments = (segments + 1) / 2;\n-    const std::size_t odd_segments = segments / 2;\n-    GraSuReGraphShardRuntimePlan shard_plan;\n-    shard_plan.destination_base = partition.destination_base;\n-    shard_plan.destination_vertices = partition.destination_vertices;\n-    shard_plan.pma_slot_count = segments * kGraSuSegmentSlots;\n-    shard_plan.pma_words = {\n-        max_cache_segments * kGraSuSegmentSlots,\n-        std::max<std::size_t>(\n-            even_segments > max_cache_segments ? even_segments : 1, 1) *\n-            kGraSuSegmentSlots,\n-        max_cache_segments * kGraSuSegmentSlots,\n-        std::max<std::size_t>(\n-            odd_segments > max_cache_segments ? odd_segments : 1, 1) *\n-            kGraSuSegmentSlots,\n-    };\n-    for (std::size_t lane = 0; lane < 4; ++lane) {\n-      shard_plan.update_counts[lane] =\n-          physical_updates_per_shard[shard] / 4 +\n-          (lane < physical_updates_per_shard[shard] % 4 ? 1 : 0);\n-      shard_plan.update_alloc_counts[lane] =\n-          std::max<std::size_t>(shard_plan.update_counts[lane], 1);\n-      add_region(shard, \"update\" + std::to_string(lane),\n-                 shard_plan.update_alloc_counts[lane] * sizeof(std::uint64_t));\n-      add_region(shard, \"pma\" + std::to_string(lane),\n-                 shard_plan.pma_words[lane] * sizeof(std::uint32_t));\n-    }\n-    // The routed HLS ABI stores a sentinel row at index |V|.\n-    shard_plan.row_words = layout.vertices + 1;\n-    shard_plan.binary_words = std::max<std::size_t>(segments, 1);\n-    add_region(shard, \"row\", shard_plan.row_words * sizeof(std::uint64_t));\n-    add_region(shard, \"binary\",\n-               shard_plan.binary_words * sizeof(std::uint64_t));\n-    result.shards.push_back(shard_plan);\n-  }\n-\n-  std::vector<std::size_t> order(result.regions.size());\n-  for (std::size_t index = 0; index < order.size(); ++index) {\n-    order[index] = index;\n-  }\n-  std::sort(order.begin(), order.end(),\n-            [&](std::size_t left, std::size_t right) {\n-              const auto &a = result.regions[left];\n-              const auto &b = result.regions[right];\n-              if (a.allocated_bytes != b.allocated_bytes) {\n-                return a.allocated_bytes > b.allocated_bytes;\n-              }\n-              return std::pair(a.shard, a.name) < std::pair(b.shard, b.name);\n-            });\n-\n-  for (const std::size_t region_index : order) {\n-    GraSuReGraphBufferRegion &region = result.regions[region_index];\n-    std::size_t selected = channels;\n-    for (std::size_t channel = region.channel_first;\n-         channel < region.channel_last; ++channel) {\n-      if (region.allocated_bytes > channel_capacity_bytes ||\n-          result.channel_load_bytes[channel] >\n-              channel_capacity_bytes - region.allocated_bytes) {\n-        continue;\n-      }\n-      if (selected == channels || result.channel_load_bytes[channel] <\n-                                      result.channel_load_bytes[selected]) {\n-        selected = channel;\n-      }\n-    }\n-    if (selected == channels) {\n-      throw std::overflow_error(\n-          \"GraSU-ReGraph runtime buffers exceed HBM pseudo-channel capacity\");\n-    }\n-    region.channel = selected;\n-    region.channel_offset_bytes = result.channel_load_bytes[selected];\n-    result.channel_load_bytes[selected] += region.allocated_bytes;\n-    result.total_allocated_bytes += region.allocated_bytes;\n-  }\n-  return result;\n-}\n-\n-const GraSuReGraphBufferRegion &\n-find_grasu_regraph_runtime_region(const GraSuReGraphRuntimePlan &plan,\n-                                  std::size_t shard, const std::string &name) {\n-  const auto found =\n-      std::find_if(plan.regions.begin(), plan.regions.end(),\n-                   [&](const GraSuReGraphBufferRegion &region) {\n-                     return region.shard == shard && region.name == name;\n-                   });\n-  if (found == plan.regions.end()) {\n-    throw std::out_of_range(\"GraSU-ReGraph runtime region is missing\");\n-  }\n-  return *found;\n-}\n-\n-class GraSuShardedPmaUpdateSystem::Impl {\n-public:\n-  Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,\n-       GraSuPartitionedPmaLayout layout, std::vector<GraSuEdge> updates,\n-       GraSuNativeConfig config, std::size_t runtime_channel_capacity_bytes)\n-      : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),\n-        layout_(std::move(layout)), config_(config),\n-        start_cycle_(scheduler.clock(clock_id).completed_cycles) {\n-    updates_by_shard_.resize(layout_.partitions.size());\n-    for (const GraSuEdge &edge : updates) {\n-      updates_by_shard_.at(layout_.partition_for_destination(edge.destination))\n-          .push_back(edge);\n-    }\n-    std::vector<std::size_t> counts;\n-    counts.reserve(updates_by_shard_.size());\n-    for (const auto &shard_updates : updates_by_shard_) {\n-      counts.push_back(shard_updates.size());\n-    }\n-    runtime_plan_ = build_grasu_regraph_runtime_plan(\n-        layout_, counts, config_.cache_segments_per_half,\n-        kGraSuReGraphU55cGraphChannels, runtime_channel_capacity_bytes);\n-    if (config_.maintain_out_degree && config_.initialize_degree_payload) {\n-      initialize_degree_payload();\n-    }\n-  }\n-\n-  void register_components() {\n-    if (registered_) {\n-      throw std::logic_error(\n-          \"sharded GraSU update engine registered more than once\");\n-    }\n-    registered_ = true;\n-    launch_next_shard();\n-  }\n-\n-  void unregister_components() {\n-    if (!registered_ || !done()) {\n-      throw std::logic_error(\n-          \"sharded GraSU update engine can only unregister after completion\");\n-    }\n-    registered_ = false;\n-  }\n-\n-  bool advance_if_complete() {\n-    if (!registered_ || current_ == nullptr || current_->failed() ||\n-        !current_->done() || backend_.outstanding() != 0) {\n-      return false;\n-    }\n-    merge_counters(current_->counters());\n-    const GraSuPartitionedPmaLayout materialized =\n-        current_->materialized_partitioned_layout();\n-    layout_.partitions.at(current_shard_) = materialized.partitions.front();\n-    current_->unregister_components();\n-    current_.reset();\n-    ++current_shard_;\n-    launch_next_shard();\n-    return true;\n-  }\n-\n-  [[nodiscard]] bool done() const noexcept {\n-    return registered_ && current_ == nullptr &&\n-           current_shard_ >= updates_by_shard_.size();\n-  }\n-\n-  [[nodiscard]] bool failed() const noexcept {\n-    return current_ != nullptr && current_->failed();\n-  }\n-\n-  [[nodiscard]] const std::string &failure() const noexcept {\n-    if (current_ != nullptr) {\n-      return current_->failure();\n-    }\n-    static const std::string empty;\n-    return empty;\n-  }\n-\n-  [[nodiscard]] GraSuUpdateCounters counters() const {\n-    GraSuUpdateCounters result = completed_counters_;\n-    if (current_ != nullptr) {\n-      merge_counters_into(result, current_->counters());\n-    }\n-    result.start_cycle = start_cycle_;\n-    result.end_cycle =\n-        done() ? end_cycle_ : scheduler_.clock(clock_id_).completed_cycles;\n-    return result;\n-  }\n-\n-  [[nodiscard]] std::vector<GraSuEdge> live_edges() const {\n-    return layout_.live_edges();\n-  }\n-\n-  [[nodiscard]] GraSuPartitionedPmaLayout\n-  materialized_partitioned_layout() const {\n-    return layout_;\n-  }\n-\n-  [[nodiscard]] const GraSuReGraphRuntimePlan &runtime_plan() const noexcept {\n-    return runtime_plan_;\n-  }\n-\n-private:\n-  void initialize_degree_payload() {\n-    std::vector<std::uint32_t> degrees(layout_.vertices);\n-    for (const GraSuEdge &edge : layout_.live_edges()) {\n-      ++degrees.at(edge.source);\n-    }\n-    std::vector<std::uint8_t> bytes;\n-    bytes.reserve(degrees.size() * sizeof(std::uint32_t));\n-    for (const std::uint32_t degree : degrees) {\n-      for (std::size_t byte = 0; byte < sizeof(degree); ++byte) {\n-        bytes.push_back(static_cast<std::uint8_t>(degree >> (byte * 8)));\n-      }\n-    }\n-    backend_.initialize_payload(config_.degree_channel, config_.degree_base,\n-                                bytes);\n-  }\n-\n-  void launch_next_shard() {\n-    while (current_shard_ < updates_by_shard_.size() &&\n-           updates_by_shard_[current_shard_].empty()) {\n-      ++current_shard_;\n-    }\n-    if (current_shard_ >= updates_by_shard_.size()) {\n-      end_cycle_ = scheduler_.clock(clock_id_).completed_cycles;\n-      return;\n-    }\n-\n-    GraSuNativeConfig shard_config = config_;\n-    shard_config.explicit_runtime_regions = true;\n-    shard_config.packed_partition_addresses = false;\n-    shard_config.initialize_degree_payload = false;\n-    shard_config.initiator_base =\n-        static_cast<std::uint32_t>(10'000 + current_shard_ * 32);\n-    const std::string row_name = \"row\";\n-    const std::string binary_name = \"binary\";\n-    const GraSuReGraphBufferRegion &row = find_grasu_regraph_runtime_region(\n-        runtime_plan_, current_shard_, row_name);\n-    const GraSuReGraphBufferRegion &binary = find_grasu_regraph_runtime_region(\n-        runtime_plan_, current_shard_, binary_name);\n-    shard_config.row_offset_base = row.channel_offset_bytes;\n-    shard_config.binary_base = binary.channel_offset_bytes;\n-    shard_config.row_channels.fill(row.channel);\n-    shard_config.binary_channels.fill(binary.channel);\n-    for (std::size_t lane = 0; lane < 4; ++lane) {\n-      const std::string update_name = \"update\" + std::to_string(lane);\n-      const std::string pma_name = \"pma\" + std::to_string(lane);\n-      const GraSuReGraphBufferRegion &update =\n-          find_grasu_regraph_runtime_region(runtime_plan_, current_shard_,\n-                                            update_name);\n-      const GraSuReGraphBufferRegion &pma = find_grasu_regraph_runtime_region(\n-          runtime_plan_, current_shard_, pma_name);\n-      shard_config.update_channels[lane] = update.channel;\n-      shard_config.update_bases[lane] = update.channel_offset_bytes;\n-      shard_config.pma_channels[lane] = pma.channel;\n-      shard_config.pma_bases[lane] = pma.channel_offset_bytes;\n-    }\n-    shard_config.pma_base = shard_config.pma_bases[0];\n-    current_ = std::make_unique<GraSuPmaUpdateSystem>(\n-        scheduler_, clock_id_, backend_, layout_.partitions[current_shard_],\n-        updates_by_shard_[current_shard_], shard_config);\n-    current_->register_components();\n-  }\n-\n-  static void merge_counters_into(GraSuUpdateCounters &target,\n-                                  const GraSuUpdateCounters &source) {\n-#define SUM_COUNTER(field) target.field += source.field\n-    SUM_COUNTER(updates);\n-    target.update_record_bytes =\n-        std::max(target.update_record_bytes, source.update_record_bytes);\n-    SUM_COUNTER(destination_partitions_touched);\n-    SUM_COUNTER(touched_shard_pma_slots);\n-    target.max_touched_shard_pma_slots = std::max(\n-        target.max_touched_shard_pma_slots,\n-        source.max_touched_shard_pma_slots);\n-    SUM_COUNTER(partition_routes);\n-    SUM_COUNTER(inserts);\n-    SUM_COUNTER(deletes);\n-    SUM_COUNTER(weight_decreases);\n-    SUM_COUNTER(weight_increases);\n-    SUM_COUNTER(row_reads);\n-    SUM_COUNTER(binary_probes);\n-    SUM_COUNTER(cache_updates);\n-    SUM_COUNTER(ddr_updates);\n-    SUM_COUNTER(pma_reads);\n-    SUM_COUNTER(pma_writes);\n-    SUM_COUNTER(degree_reads);\n-    SUM_COUNTER(degree_writes);\n-    SUM_COUNTER(update_read_bytes);\n-    SUM_COUNTER(row_read_bytes);\n-    SUM_COUNTER(binary_read_bytes);\n-    SUM_COUNTER(pma_read_bytes);\n-    SUM_COUNTER(pma_write_bytes);\n-    SUM_COUNTER(degree_read_bytes);\n-    SUM_COUNTER(degree_write_bytes);\n-    SUM_COUNTER(degree_fifo_stalls);\n-    target.degree_fifo_max_occupancy = std::max(\n-        target.degree_fifo_max_occupancy, source.degree_fifo_max_occupancy);\n-    target.degree_reorder_max_occupancy =\n-        std::max(target.degree_reorder_max_occupancy,\n-                 source.degree_reorder_max_occupancy);\n-    SUM_COUNTER(axi_request_fifo_stalls);\n-    SUM_COUNTER(axi_backend_submit_stalls);\n-    SUM_COUNTER(axis_push_stalls);\n-    SUM_COUNTER(lane_queue_stalls);\n-#undef SUM_COUNTER\n-  }\n-\n-  void merge_counters(const GraSuUpdateCounters &source) {\n-    merge_counters_into(completed_counters_, source);\n-  }\n-\n-  Scheduler &scheduler_;\n-  ClockId clock_id_{};\n-  MemoryBackend &backend_;\n-  GraSuPartitionedPmaLayout layout_;\n-  GraSuNativeConfig config_;\n-  std::vector<std::vector<GraSuEdge>> updates_by_shard_;\n-  GraSuReGraphRuntimePlan runtime_plan_;\n-  std::unique_ptr<GraSuPmaUpdateSystem> current_;\n-  std::size_t current_shard_{};\n-  GraSuUpdateCounters completed_counters_;\n-  std::uint64_t start_cycle_{};\n-  std::uint64_t end_cycle_{};\n-  bool registered_{};\n-};\n-\n-GraSuShardedPmaUpdateSystem::GraSuShardedPmaUpdateSystem(\n-    Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,\n-    GraSuPartitionedPmaLayout layout, std::vector<GraSuEdge> updates,\n-    GraSuNativeConfig config, std::size_t runtime_channel_capacity_bytes)\n-    : impl_(std::make_unique<Impl>(scheduler, clock_id, backend,\n-                                   std::move(layout), std::move(updates),\n-                                   config, runtime_channel_capacity_bytes)) {}\n-\n-GraSuShardedPmaUpdateSystem::~GraSuShardedPmaUpdateSystem() = default;\n-\n-void GraSuShardedPmaUpdateSystem::register_components() {\n-  impl_->register_components();\n-}\n-\n-void GraSuShardedPmaUpdateSystem::unregister_components() {\n-  impl_->unregister_components();\n-}\n-\n-bool GraSuShardedPmaUpdateSystem::advance_if_complete() {\n-  return impl_->advance_if_complete();\n-}\n-\n-bool GraSuShardedPmaUpdateSystem::done() const noexcept {\n-  return impl_->done();\n-}\n-\n-bool GraSuShardedPmaUpdateSystem::failed() const noexcept {\n-  return impl_->failed();\n-}\n-\n-const std::string &GraSuShardedPmaUpdateSystem::failure() const noexcept {\n-  return impl_->failure();\n-}\n-\n-GraSuUpdateCounters GraSuShardedPmaUpdateSystem::counters() const {\n-  return impl_->counters();\n-}\n-\n-std::vector<GraSuEdge> GraSuShardedPmaUpdateSystem::live_edges() const {\n-  return impl_->live_edges();\n-}\n-\n-GraSuPartitionedPmaLayout\n-GraSuShardedPmaUpdateSystem::materialized_partitioned_layout() const {\n-  return impl_->materialized_partitioned_layout();\n-}\n-\n-const GraSuReGraphRuntimePlan &\n-GraSuShardedPmaUpdateSystem::runtime_plan() const noexcept {\n-  return impl_->runtime_plan();\n-}\n-\n-namespace {\n-\n constexpr std::uint32_t kReGraphActive = 0x8000'0000U;\n constexpr std::uint32_t kReGraphValueMask = 0x7fff'ffffU;\n constexpr std::uint32_t kReGraphInfinity = 0x7fff'fffeU;\ndiff --git a/cpp/sst/Makefile b/cpp/sst/Makefile\nindex 78a51d6..4adb6f2 100644\n--- a/cpp/sst/Makefile\n+++ b/cpp/sst/Makefile\n@@ -46,6 +46,8 @@ SOURCES := online_memory_probe.cpp \\\n            $(ROOT)/cpp/src/grasu.cpp \\\n            $(ROOT)/cpp/src/grasu_native.cpp \\\n            $(ROOT)/cpp/src/grasu_regraph.cpp \\\n+           $(ROOT)/cpp/src/grasu_regraph_runtime.cpp \\\n+           $(ROOT)/cpp/src/grasu_sharded_update.cpp \\\n            $(ROOT)/cpp/src/memory_backend.cpp \\\n            $(ROOT)/cpp/src/scheduler.cpp \\\n            $(ROOT)/cpp/src/spine_dirty.cpp \\\n",
+      "revision": "9b41c15c7224dcb2b75450ae60aa3619a1edd3e1"
+    }
+  },
+  "cases": [
+    {
+      "backend_requests": 33848,
+      "case": "sssp_mixed_cold",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "cycles": 99885,
+      "equivalent": true,
+      "result_hashes": [
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+      ]
+    },
+    {
+      "backend_requests": 1775700,
+      "case": "sssp_multipart_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "cycles": 5997674,
+      "equivalent": true,
+      "result_hashes": [
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+      ]
+    },
+    {
+      "backend_requests": 50741,
+      "case": "cc_reciprocal",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "cycles": 133841,
+      "equivalent": true,
+      "result_hashes": [
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+      ]
+    },
+    {
+      "backend_requests": 997048,
+      "case": "residual_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "cycles": 1487890,
+      "equivalent": true,
+      "result_hashes": [
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+      ]
+    },
+    {
+      "backend_requests": 48,
+      "case": "residual_update_only",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "cycles": 200,
+      "equivalent": true,
+      "result_hashes": [
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+      ]
+    }
+  ],
+  "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+  "ignored_result_fields": [],
+  "schema_version": 1,
+  "status": "PASS"
+}

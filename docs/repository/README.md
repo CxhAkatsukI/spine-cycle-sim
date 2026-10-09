@@ -2,6 +2,7 @@
 
 - [Structure audit and remaining code-refactoring work](structure_audit_20261009.md)
 - [Document migration and verification](document_migration_20261009.md)
+- [G+R C++ extraction and equivalence evidence](grasu_component_refactor/README.md)
 - [Old-to-new document paths](document_locations.json)
 - [Detailed record catalog](document_catalog.md)
 

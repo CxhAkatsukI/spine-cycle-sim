@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "study_id": "grasu_component_refactor_v1",
+  "claim": "behavior_preserving_source_extraction_not_performance_calibration",
+  "build": {
+    "compiler": "g++",
+    "host_flags": "-O3 -DNDEBUG -flto",
+    "native_host": 0,
+    "pgo_mode": "off",
+    "dramsim3_root": "/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729"
+  },
+  "cases": [
+    {
+      "id": "sssp_mixed_cold",
+      "runner": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "workload": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+      "updates": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+      "arguments": [], "manifest": "manifest.json"
+    },
+    {
+      "id": "sssp_multipart_warm",
+      "runner": "scripts/run_sst_grasu_regraph_hls_weighted.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json",
+      "workload": "tests/data/grasu_refactor_multipart_initial.slice",
+      "updates": "tests/data/grasu_refactor_multipart_update.slice",
+      "arguments": ["--hardware-warm-sssp"], "manifest": "manifest.json"
+    },
+    {
+      "id": "cc_reciprocal",
+      "runner": "scripts/run_sst_connected_components.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_cc_hls_v8.json",
+      "workload": "tests/data/connected_components_bridge_initial.slice",
+      "updates": "tests/data/connected_components_bridge_insert.slice",
+      "arguments": ["--architecture", "grasu", "--hardware-full-recompute"],
+      "manifest": "run_manifest.json"
+    },
+    {
+      "id": "residual_warm",
+      "runner": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+      "workload": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+      "updates": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+      "arguments": [], "manifest": "manifest.json"
+    },
+    {
+      "id": "residual_update_only",
+      "runner": "scripts/run_sst_grasu_regraph_hls_residual_pagerank.py",
+      "profile": "configs/architectures/grasu_regraph_sharded_k4_residual_hls_v8.json",
+      "workload": "tests/data/grasu_regraph_weighted_dynamic_initial.slice",
+      "updates": "tests/data/grasu_regraph_weighted_dynamic_update.slice",
+      "arguments": ["--update-only"], "manifest": "manifest.json"
+    }
+  ]
+}

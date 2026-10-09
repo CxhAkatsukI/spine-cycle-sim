@@ -1,0 +1,8 @@
+# spine_real_slice_version=1
+# case=grasu_refactor_multipart_initial
+# vertices=131076
+# columns=src dst weight diff
+0 1 4 1
+1 65536 5 1
+65536 131072 6 1
+65537 131074 2 1

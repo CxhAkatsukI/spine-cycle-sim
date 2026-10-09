@@ -6,6 +6,8 @@ add_library(spine_cycle_core STATIC
   src/grasu.cpp
   src/grasu_native.cpp
   src/grasu_regraph.cpp
+  src/grasu_regraph_runtime.cpp
+  src/grasu_sharded_update.cpp
   src/memory_backend.cpp
   src/scheduler.cpp
   src/spine_dirty.cpp
@@ -50,4 +52,9 @@ if(BUILD_TESTING)
   target_link_libraries(grasu_cycle_tests PRIVATE spine_cycle_core)
   target_compile_options(grasu_cycle_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME grasu_cycle_tests COMMAND grasu_cycle_tests)
+
+  add_executable(grasu_runtime_tests tests/grasu_runtime_tests.cpp)
+  target_link_libraries(grasu_runtime_tests PRIVATE spine_cycle_core)
+  target_compile_options(grasu_runtime_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME grasu_runtime_tests COMMAND grasu_runtime_tests)
 endif()

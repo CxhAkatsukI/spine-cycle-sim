@@ -108,6 +108,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_dynamic_algorithm_acceptance.py](run_dynamic_algorithm_acceptance.py)
 - [run_grasu_hls_weighted_matrix.py](run_grasu_hls_weighted_matrix.py)
 - [run_grasu_native_hw_matrix.py](run_grasu_native_hw_matrix.py)
+- [run_grasu_refactor_regression.py](run_grasu_refactor_regression.py)
 - [run_hls_pagerank_real_comparison.py](run_hls_pagerank_real_comparison.py)
 - [run_hls_residual_pagerank_real_comparison.py](run_hls_residual_pagerank_real_comparison.py)
 - [run_hls_weighted_real_comparison.py](run_hls_weighted_real_comparison.py)

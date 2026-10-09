@@ -29,3 +29,12 @@ Hardware/model calibration records are in the
 [calibration section](../../experiments/calibration/README.md). Matching this
 port is a different question from reproducing original-publication G or R
 performance; no directory move establishes that equivalence.
+
+## Code Review
+
+Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
+placement and destination-shard update sequencing now have separate source
+files behind the existing public header. The
+[extraction record](../../repository/grasu_component_refactor/README.md)
+documents the fixed regression matrix; readers, compute, and round control
+still share a larger implementation file.
