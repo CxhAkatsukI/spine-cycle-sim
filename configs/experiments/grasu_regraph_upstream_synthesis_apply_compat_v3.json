@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "evidence_class": "upstream_hls_schedule_not_board_timing",
+  "generator_python": "python3.11",
+  "memory_limit_gib": 12,
+  "reserve_gib": 16,
+  "timeout_seconds": 1500,
+  "grasu_part": "xcu250-figd2104-2L-e",
+  "grasu_clock_ns": 5.0,
+  "regraph_part": "xcu55c-fsvh2892-2L-e",
+  "regraph_clock_ns": 4.761904761904762,
+  "clock_boundary": "U55C schedule-only PR apply follow-up; bind only previously missing arg_reg control bundle; not U280 publication timing",
+  "jobs": [
+    {"id": "a4_apply", "family": "regraph", "kernel": "apply", "little": 4, "big": 0, "bind_arg_reg_control": true},
+    {"id": "a_default_apply", "family": "regraph", "kernel": "apply", "little": 11, "big": 3, "bind_arg_reg_control": true}
+  ],
+  "not_claimed": [
+    "placed_and_routed_frequency_or_FPGA_elapsed_time",
+    "C_RTL_cosimulation_or_finite_buffer_deadlock_freedom",
+    "U280_or_original_toolchain_reproduction",
+    "original_publication_throughput_match",
+    "A4_B_integration_overhead"
+  ]
+}

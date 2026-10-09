@@ -11,6 +11,13 @@ Status: the SST/Spine extraction passed exact regression and was pushed in
 publication-speed matching, and the matched A4/B overhead study remain in
 progress. No new FPGA timing is claimed.
 
+The [original-kernel scheduling checkpoint](HLS_SCHEDULES.md) now covers
+four GraSU kernels and the original ReGraph Little/Big, merger, wrapper and
+apply components. R scheduling uses explicitly labeled U55C controls because
+U280 support is absent locally; PR apply has a separately declared control
+interface compatibility directive. These HLS estimates are neither complete
+cycle-model validation nor publication performance reproduction.
+
 | Path | Current evidence | Still required |
 | --- | --- | --- |
 | G | Original cache dispatch, all 16 URAM banks, preload/update/writeback agree with an independent oracle over three batches | Original search/DDR/host path, temporal workload admission and finite-resource timing |

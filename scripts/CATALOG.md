@@ -76,6 +76,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [analyze_sparse_hbm_equivalence.py](analyze_sparse_hbm_equivalence.py)
 - [analyze_spine_opt_v1.py](analyze_spine_opt_v1.py)
 - [analyze_spine_opt_v2.py](analyze_spine_opt_v2.py)
+- [analyze_upstream_stage_synthesis.py](analyze_upstream_stage_synthesis.py)
 - [analyze_vivado_component_power.py](analyze_vivado_component_power.py)
 - [analyze_workload_component_energy.py](analyze_workload_component_energy.py)
 
@@ -143,6 +144,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_sst_spine_vertical.py](run_sst_spine_vertical.py)
 - [run_streaming_grasu_update_only_v19.py](run_streaming_grasu_update_only_v19.py)
 - [run_upstream_stage_controls.py](run_upstream_stage_controls.py)
+- [run_upstream_stage_synthesis.py](run_upstream_stage_synthesis.py)
 
 ## Export, packaging, and rendering
 

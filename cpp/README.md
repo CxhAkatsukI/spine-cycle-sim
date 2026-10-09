@@ -70,6 +70,13 @@ implementations. They require Vitis headers and GMP and are deliberately not
 part of the dependency-free CMake core. Their functional acceptance does not
 establish device timing or finite-buffer correctness.
 
+The [HLS scheduling study](../docs/experiments/comparisons/grasu_regraph_stage_validation/HLS_SCHEDULES.md)
+uses the same pinned author sources in isolated scratch projects. The small
+`publication_sources/hls_portability.hpp` header supplies only the legacy
+32-bit `uint` alias. No original algorithm body, production C++ component, or
+SST build list is changed by that optional study. Its reports do not imply
+that a complete independent original-G/ReGraph cycle model exists yet.
+
 ## G+R Extraction Boundary
 
 The first C++ extraction separates two existing responsibilities without

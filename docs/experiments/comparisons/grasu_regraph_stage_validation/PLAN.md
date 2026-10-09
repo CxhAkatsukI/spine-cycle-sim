@@ -5,6 +5,11 @@ source-functional controls pass; see [the checkpoint](SOURCE_CONTROLS.md).
 Cycle models, admitted publication timing and A4/B integration overhead remain
 unfinished. No measured publication match is claimed here.
 
+Independent [HLS scheduling evidence](HLS_SCHEDULES.md) is now available for
+the original kernel components, with source/tool/platform and compatibility
+differences retained. It supplies implementation constraints for the missing
+cycle models; it does not satisfy the publication timing or A4/B exit gates.
+
 ## Separate Questions
 
 | Path | Question | Required control |

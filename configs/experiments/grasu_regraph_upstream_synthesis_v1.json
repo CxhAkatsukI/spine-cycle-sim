@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "evidence_class": "upstream_hls_schedule_not_board_timing",
+  "generator_python": "python3.11",
+  "memory_limit_gib": 12,
+  "reserve_gib": 16,
+  "timeout_seconds": 1500,
+  "grasu_part": "xcu250-figd2104-2L-e",
+  "grasu_clock_ns": 5.0,
+  "regraph_part": "xcu280-fsvh2892-2L-e",
+  "regraph_clock_ns": 4.761904761904762,
+  "clock_boundary": "G paper 200 MHz; R 210 MHz normalized reference, not admitted Table IV clock",
+  "jobs": [
+    {"id": "g_source16_cache", "family": "grasu", "kernel": "cache"},
+    {"id": "a4_little", "family": "regraph", "kernel": "little", "little": 4, "big": 0},
+    {"id": "a4_merger", "family": "regraph", "kernel": "little_merger", "little": 4, "big": 0},
+    {"id": "a4_apply", "family": "regraph", "kernel": "apply", "little": 4, "big": 0},
+    {"id": "a4_memory_wrapper", "family": "regraph", "kernel": "memory_wrapper", "little": 4, "big": 0},
+    {"id": "a_default_big", "family": "regraph", "kernel": "big", "little": 11, "big": 3},
+    {"id": "a_default_little_merger", "family": "regraph", "kernel": "little_merger", "little": 11, "big": 3},
+    {"id": "a_default_big_merger", "family": "regraph", "kernel": "big_merger", "little": 11, "big": 3},
+    {"id": "a_default_apply", "family": "regraph", "kernel": "apply", "little": 11, "big": 3},
+    {"id": "g_source16_ddr", "family": "grasu", "kernel": "ddr"},
+    {"id": "g_source16_search", "family": "grasu", "kernel": "search"},
+    {"id": "g_source16_dispatch", "family": "grasu", "kernel": "dispatch"}
+  ],
+  "not_claimed": [
+    "placed_and_routed_frequency_or_FPGA_elapsed_time",
+    "C_RTL_cosimulation_or_finite_buffer_deadlock_freedom",
+    "2019_GraSU_toolchain_reproduction",
+    "admitted_ReGraph_Table_IV_topology_clock_or_workload",
+    "original_publication_throughput_match",
+    "G_paper8_geometry",
+    "A4_B_integration_overhead"
+  ]
+}
