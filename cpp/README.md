@@ -62,6 +62,7 @@ used by existing experiments.
 | Independent original-R finite Gather/merge | [original_regraph/](tests/original_regraph/) via [validation runner](../scripts/run_original_regraph_gather_validation.py) |
 | Independent original-R memory/frontend | [frontend_tests.cpp](tests/original_regraph/frontend_tests.cpp) via [frontend validation](../scripts/run_original_regraph_frontend_validation.py) |
 | Independent original-R PR state and resident rounds | [state_tests.cpp](tests/original_regraph/state_tests.cpp), [iteration_tests.cpp](tests/original_regraph/iteration_tests.cpp) via [state validation](../scripts/run_original_regraph_state_validation.py) |
+| Original-host graph/DBG/partition/task preparation | [regraph_layout_probe.cpp](tests/publication_sources/regraph_layout_probe.cpp) via [input runner](../scripts/run_original_regraph_inputs.py); no device timing |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
@@ -101,6 +102,12 @@ shared memory-test fixture preserves old frontend outputs exactly and permits
 connected resident ping-pong iterations without host-generated next-state
 properties. Source-word equivalence, finite-resource correctness and predicted
 cycles remain distinct from whole-R publication or FPGA timing validation.
+
+The [original-host input probe](../docs/implementation/grasu_regraph/original_regraph_inputs.md)
+uses unmodified author loader/DBG/scheduler functions with small separate
+mapping, full-edge validation and capture helpers. Its six-case matrix includes
+complete Amazon for A4 and the artifact's 11+3 example. It is optional, needs
+real OpenCL/XRT types, and does not add dependencies to the CMake core or SST.
 
 ## G+R Extraction Boundary
 

@@ -42,6 +42,9 @@ The [Little PR state extension](original_regraph_little_state.md) adds separatel
 owned indexer, degree/Apply and acknowledged broadcast writer components, plus
 a connected resident-round fixture. Its timing is still predicted, and it does
 not establish Big/mixed or publication-performance equivalence.
+The [original-host input owner](original_regraph_inputs.md) executes pinned
+DBG/partition/scheduling and PR initialization with full graph/capture checks;
+it supplies whole-path inputs but does not model device timing.
 
 Start with the [C++ ownership map](../../../cpp/README.md). Runtime HBM
 placement and destination-shard update sequencing now have separate source

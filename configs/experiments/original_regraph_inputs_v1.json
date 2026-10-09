@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "evidence_class": "original_regraph_host_layout_not_device_timing",
+  "seed": 73,
+  "generator_python": "python3.11",
+  "memory_limit_gib": 2, "reserve_gib": 16,
+  "compile_timeout_seconds": 300, "run_timeout_seconds": 180,
+  "topologies": [
+    {"id": "a4", "little": 4, "big": 0, "dense_partitions_argument": 1},
+    {"id": "original_example", "little": 11, "big": 3, "dense_partitions_argument": 1}
+  ],
+  "inputs": [
+    {"id": "boundary_ring", "fixture": "boundary_ring", "vertices": 131073, "logical_edges": 131137},
+    {"id": "skewed_sources", "fixture": "skewed_sources", "vertices": 65537, "logical_edges": 8193},
+    {"id": "amazon", "source_path": "dataset/amazon-2008.mtx", "vertices": 735324,
+     "logical_edges": 5158388, "sha256": "60b383901873b49883d0c67d8b524244ada1977719d25c834014b75238f3a815"}
+  ],
+  "capture_files": [
+    "original_to_reordered.u32le", "csr_offsets.u32le", "csr_destinations.u32le",
+    "initial.u32le", "degrees.u32le", "partitions.u32le", "tasks.u32le"
+  ],
+  "not_claimed": [
+    "original_publication_workload_or_best_topology_admission",
+    "device_or_FPGA_or_RTL_cycles_and_publication_speed_match",
+    "complete_original_R_or_A4_B_integration_overhead",
+    "original_host_preprocessing_speed_reproduction",
+    "arbitrary_signed_overflow_or_repeated_PR_iteration_equivalence"
+  ]
+}

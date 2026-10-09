@@ -28,6 +28,13 @@ Original-source values and old Gather/frontend regression are checked
 separately from model cycles. This does not complete partition/Big/mixed,
 publication timing, original G or the matched A4/B/C milestones.
 
+The [original-host input checkpoint](ORIGINAL_HOST_INPUTS.md) now passes full
+Amazon and two neighboring inputs under A4 and the artifact's 11+3 example,
+with complete edge/capture checks, repetitions and UBSan. Next connect the
+admitted multi-partition A4 tasks after auditing per-port parent/burst credits.
+Big/mixed device execution and original publication topology/window admission
+remain open; successful host preparation is not a completed original-R model.
+
 ## Separate Questions
 
 | Path | Question | Required control |

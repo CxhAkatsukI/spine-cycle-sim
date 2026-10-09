@@ -1,0 +1,51 @@
+{
+  "baseline_sha256": "1805c4c936e740b14f528661e1e744bb405562aac79cce7ff4b1e5e32e67699f",
+  "changed_protected_paths": [],
+  "focused_python_tests": 106,
+  "frozen_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "new_sst_matrix_run": false,
+  "previous_core_build_ctest_executables": 10,
+  "production_numerical_sources_changed": false,
+  "protected_file_count": 2437,
+  "regression_resource_records": {
+    "focused_python": {
+      "available_before_bytes": 86123069440,
+      "command": [
+        "python3",
+        "-c",
+        "import unittest; loader=unittest.TestLoader(); pats=[\"test_original_regraph*.py\",\"test_upstream_stage*.py\",\"test_repository_structure.py\",\"test_refactor_equivalence.py\",\"test_publication_validation_delivery.py\",\"test_publication_match.py\"]; suite=unittest.TestSuite(loader.discover(\"tests\",pattern=p) for p in pats); result=unittest.TextTestRunner(verbosity=2).run(suite); raise SystemExit(not result.wasSuccessful())"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 32592,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "results/upstream_stage_controls/original_host_inputs_final_v3/focused_python.stderr.txt",
+      "stdout": "results/upstream_stage_controls/original_host_inputs_final_v3/focused_python.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.6573648303747177
+    },
+    "old_core_regression": {
+      "available_before_bytes": 84328845312,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build/original-regraph-frontend",
+        "--output-on-failure"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 95132,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "results/upstream_stage_controls/original_host_inputs_final_v3/old_core_regression.stderr.txt",
+      "stdout": "results/upstream_stage_controls/original_host_inputs_final_v3/old_core_regression.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 29.756418318953365
+    }
+  },
+  "schema_version": 1,
+  "status": "PRESERVED"
+}

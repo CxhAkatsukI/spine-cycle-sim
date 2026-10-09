@@ -38,11 +38,17 @@ checks three connected resident A4 rounds with shared source/write channels.
 The old frontend/Gather analyses remain identical. Publication matching and
 matched adapter overhead are still not established.
 
+The [original-host input checkpoint](ORIGINAL_HOST_INPUTS.md) now passes full
+DBG, partition/scheduling and PR-initialization checks for complete Amazon
+and two neighboring fixtures, for both A4 and the artifact's 11+3 example.
+All six cases repeat exactly under normal and UBSan builds. This admits input
+preparation, not whole-R device timing or the publication's best topology.
+
 | Path | Current evidence | Still required |
 | --- | --- | --- |
 | G | Original cache dispatch, all 16 URAM banks, preload/update/writeback agree with an independent oracle over three batches | Original search/DDR/host path, temporal workload admission and finite-resource timing |
-| A | Original Little and Big components pass independently, including generated 11-way/3-way mergers | Whole-graph DBG/scheduling and memory wrapper, publication topology/clock admission, cycle model |
-| A4 | Original 4L/0B source controls and finite reader/source/Scatter/Gather/merge/PR-Apply/writeback pass; three resident rounds agree with a scalar oracle | Multiple partitions, admitted real workload/memory timing and resource matching to B |
+| A | Original Little/Big components, generated 11-way/3-way mergers and full author-host input preparation pass independently | Connected Big/mixed memory execution, publication topology/clock/window admission and whole-R timing |
+| A4 | Finite reader/source/Scatter/Gather/merge/PR-Apply/writeback pass; three resident rounds agree; full Amazon author-host input preparation passes | Connected multi-partition execution, per-port memory timing audit and resource matching to B |
 | B | Not executed | PMA input adapter feeding the same admitted original A4 downstream; state/work/cycle comparison |
 | C | Not executed | Separate validated G and B windows, measured host orchestration and overlap accounting |
 
@@ -72,8 +78,9 @@ The upstream ReGraph repository includes an AM candidate at
 `60b383901873b49883d0c67d8b524244ada1977719d25c834014b75238f3a815`.
 Despite the extension, it is not a Matrix Market file with a header. The
 upstream loader keeps the integer IDs and uses maximum ID plus one. This
-candidate has not yet passed complete workload/DBG/iteration admission; its
-availability does not make Table IV's graph-selected topology known.
+candidate now passes original-host DBG/partition/task and initial-state
+admission. Device-iteration and publication-event admission remain open;
+its availability does not make Table IV's graph-selected topology known.
 
 ## Reproduce Source Controls
 
