@@ -18,6 +18,7 @@ Choose an evidence package and profile first, then choose its documented runner.
 | Persistent update-only case | [run_current_fig8_update_only_case.py](run_current_fig8_update_only_case.py) | Update-only scope, not graph convergence |
 | Profile/capability checks | [generate_grasu_regraph_sharded_k4_hls_profiles_v8.py](generate_grasu_regraph_sharded_k4_hls_profiles_v8.py) | Use its check mode for frozen-profile validation |
 | Original-publication comparison gates | [audit_grasu_regraph_publication.py](audit_grasu_regraph_publication.py) | Source audit; not a completed published-throughput experiment |
+| Full temporal publication input controls | [audit_publication_workloads.py](audit_publication_workloads.py) | Complete AU/SU/WK order/batch/unique counts and explicitly post-hoc denominator clue; not recovered author updates or a timing match |
 | Independent original-source stage controls | [run_upstream_stage_controls.py](run_upstream_stage_controls.py) | Original cache/Little/Big source-functional checks; no device-cycle or published-speed claim |
 | Original G prepared-PMA kernel composition | [run_original_grasu_source_path.py](run_original_grasu_source_path.py) | Search/BIPA/dispatch/cache/DDR, complete state, repetitions and UBSan; not host preparation, finite timing or paper throughput |
 | Original G host/kernel/merge control | [run_original_grasu_host.py](run_original_grasu_host.py) | Trace-aware preparation, two bounds guards, initialized padding and exact old G regression; functional, not device timing |

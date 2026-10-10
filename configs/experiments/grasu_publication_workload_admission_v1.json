@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "purpose": "Full temporal input and publication denominator admission, not a timing fit",
+  "paper": {
+    "url": "https://doi.org/10.1145/3431920.3439288",
+    "sha256": "f0604446fe12b9aaad9249b7064ccea47bdc455db4d2f75e9808398317ceff5c",
+    "clock_mhz": 200,
+    "tables": "Table 2 base/event counts; Table 4 successful updates/s and seconds",
+    "published_base_count_is_rounded": true,
+    "batch_count": 10,
+    "batch_order_and_reduction_not_recovered": true
+  },
+  "limits": {"memory_gib": 4, "reserve_gib": 16, "timeout_seconds": 900, "max_events": 8000000, "sqlite_cache_kib": 65536},
+  "ordering_controls": ["file_order", "timestamp_then_file_order"],
+  "batch_controls": ["equal_event_count", "equal_timestamp_span"],
+  "self_loop_controls": ["retain", "exclude_from_success_count_only"],
+  "repetitions": 2,
+  "datasets": [
+    {"id": "AU", "source": "sx-askubuntu/sx-askubuntu.txt.gz", "sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6", "base_events": 590000, "base_rounding_half_width": 5000, "paper_events_million": "0.96", "paper_seconds": "0.00068", "paper_rate_million": "190.77"},
+    {"id": "SU", "source": "sx-superuser/sx-superuser.txt.gz", "sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928", "base_events": 920000, "base_rounding_half_width": 5000, "paper_events_million": "1.44", "paper_seconds": "0.00125", "paper_rate_million": "147.08"},
+    {"id": "WK", "source": "wiki-talk-temporal/wiki-talk-temporal.txt.gz", "sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e", "base_events": 3310000, "base_rounding_half_width": 5000, "paper_events_million": "7.83", "paper_seconds": "0.01375", "paper_rate_million": "202.97"}
+  ],
+  "not_claimed": ["exact_original_base_cut_or_batching", "repeated_contact_is_definitely_a_noop_in_original_workload", "source16_equals_paper8", "original_DDR_or_HBM_timing", "published_rate_match", "FPGA_measurement"]
+}

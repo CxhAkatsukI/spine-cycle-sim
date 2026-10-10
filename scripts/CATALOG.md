@@ -88,6 +88,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [audit_grasu_plugin_transition.py](audit_grasu_plugin_transition.py)
 - [audit_grasu_regraph_publication.py](audit_grasu_regraph_publication.py)
 - [audit_large_graph_campaign.py](audit_large_graph_campaign.py)
+- [audit_publication_workloads.py](audit_publication_workloads.py)
 - [audit_repository_structure.py](audit_repository_structure.py)
 - [audit_spine_hot_transition_successor.py](audit_spine_hot_transition_successor.py)
 

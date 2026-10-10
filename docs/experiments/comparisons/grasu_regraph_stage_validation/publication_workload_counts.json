@@ -1,0 +1,2104 @@
+{
+  "code": [
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/__init__.py",
+      "sha256": "d537f6749b987d7c5bcf6dd62e2a9c42f8085612d6613f39217c458c174461f3"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/analysis.py",
+      "sha256": "6dd77e41e3f70bf96c9f8bdac934e2822f8279503a0cf3a95e12e9b088e716db"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/denominators.py",
+      "sha256": "d703210c95e5136df4fcea19b5b7292942de0c7fef12ac94cb62361e1b5adbf1"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/study.py",
+      "sha256": "784911da32158565c0aac00489161fdf8a7cfc7cf9e3f0e1afad765615ecd8d9"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/temporal.py",
+      "sha256": "9f303fe913c5c2486f8c78dfe05e5e087d43dde8c04781dbdacc92cf790e2f30"
+    },
+    {
+      "path": "scripts/audit_publication_workloads.py",
+      "sha256": "666f4894db807cbcea9ebec3cdb662ff53391e360d79c28068bb65f6883fdab7"
+    },
+    {
+      "path": "tests/test_publication_workload_admission.py",
+      "sha256": "c4c4bcf670512cf1d2eb71b5135483f869a244a5045f223a555b9a30d8e4e527"
+    },
+    {
+      "path": "configs/experiments/grasu_publication_workload_admission_v1.json",
+      "sha256": "5069863c3f9a2d012cc41514a9739545891487f57393c0541a8824b34527dcda"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    }
+  ],
+  "contract": {
+    "batch_controls": [
+      "equal_event_count",
+      "equal_timestamp_span"
+    ],
+    "datasets": [
+      {
+        "base_events": 590000,
+        "base_rounding_half_width": 5000,
+        "id": "AU",
+        "paper_events_million": "0.96",
+        "paper_rate_million": "190.77",
+        "paper_seconds": "0.00068",
+        "sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6",
+        "source": "sx-askubuntu/sx-askubuntu.txt.gz"
+      },
+      {
+        "base_events": 920000,
+        "base_rounding_half_width": 5000,
+        "id": "SU",
+        "paper_events_million": "1.44",
+        "paper_rate_million": "147.08",
+        "paper_seconds": "0.00125",
+        "sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928",
+        "source": "sx-superuser/sx-superuser.txt.gz"
+      },
+      {
+        "base_events": 3310000,
+        "base_rounding_half_width": 5000,
+        "id": "WK",
+        "paper_events_million": "7.83",
+        "paper_rate_million": "202.97",
+        "paper_seconds": "0.01375",
+        "sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e",
+        "source": "wiki-talk-temporal/wiki-talk-temporal.txt.gz"
+      }
+    ],
+    "limits": {
+      "max_events": 8000000,
+      "memory_gib": 4,
+      "reserve_gib": 16,
+      "sqlite_cache_kib": 65536,
+      "timeout_seconds": 900
+    },
+    "not_claimed": [
+      "exact_original_base_cut_or_batching",
+      "repeated_contact_is_definitely_a_noop_in_original_workload",
+      "source16_equals_paper8",
+      "original_DDR_or_HBM_timing",
+      "published_rate_match",
+      "FPGA_measurement"
+    ],
+    "ordering_controls": [
+      "file_order",
+      "timestamp_then_file_order"
+    ],
+    "paper": {
+      "batch_count": 10,
+      "batch_order_and_reduction_not_recovered": true,
+      "clock_mhz": 200,
+      "published_base_count_is_rounded": true,
+      "sha256": "f0604446fe12b9aaad9249b7064ccea47bdc455db4d2f75e9808398317ceff5c",
+      "tables": "Table 2 base/event counts; Table 4 successful updates/s and seconds",
+      "url": "https://doi.org/10.1145/3431920.3439288"
+    },
+    "purpose": "Full temporal input and publication denominator admission, not a timing fit",
+    "repetitions": 2,
+    "schema_version": 1,
+    "self_loop_controls": [
+      "retain",
+      "exclude_from_success_count_only"
+    ]
+  },
+  "environment": {
+    "executable": "/usr/bin/python3",
+    "executable_sha256": "ecf651f545bcef039d29503acf695a38903b7e8e9867a1ce0994ff6924e0274b",
+    "platform": "Linux-6.1.0-35-amd64-x86_64-with-glibc2.42",
+    "python": "3.13.12 (main, Feb  4 2026, 15:06:39) [GCC 15.2.0]",
+    "sqlite": "3.46.1"
+  },
+  "publication_timing_match": null,
+  "rows": [
+    {
+      "capture": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/AU/0/counts.json",
+      "id": "AU",
+      "repeat": 0,
+      "result": {
+        "dataset": {
+          "base_events": 590000,
+          "base_rounding_half_width": 5000,
+          "id": "AU",
+          "paper_events_million": "0.96",
+          "paper_rate_million": "190.77",
+          "paper_seconds": "0.00068",
+          "sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6",
+          "source": "sx-askubuntu/sx-askubuntu.txt.gz"
+        },
+        "exploratory_denominator": {
+          "actual_original_update_sequence_recovered": false,
+          "candidate_count": 129728,
+          "candidate_is_proven_successful_update_count": false,
+          "formula": "all_raw_events - all_self_loop_events - full_trace_unique_edges_including_loops",
+          "full_trace_unique_edges_including_loops": 596933,
+          "implied_paper_numerator": {
+            "central": "129723.6000000",
+            "integer_max": 130680,
+            "integer_min": 128767,
+            "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+          },
+          "publication_timing_match": null,
+          "status": "POST_HOC_ARITHMETIC_CLUE_NOT_ADMITTED_WORKLOAD",
+          "warning": "This subtracts full unique edges including loops from nonself events; it is not a simple-graph insertion oracle. Recover the original converter and operation types before using it.",
+          "within_printed_rounding_interval": true
+        },
+        "input": {
+          "database_bytes": 37236736,
+          "decompressed_sha256": "1a416ccaf5a679996156dd31290dfcca3e7dde3431171afed1b1fd616fbd31e6",
+          "events": 964437,
+          "first_timestamp": 1280369730,
+          "last_timestamp": 1457266069,
+          "max_timestamp": 1457266069,
+          "min_timestamp": 1231431607,
+          "self_loop_events": 237776,
+          "source_sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6",
+          "timestamp_inversions": 4100
+        },
+        "orders": [
+          {
+            "base_last_timestamp": 1389156794,
+            "base_raw_events": 590000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 594999,
+              "raw_base_min": 585000,
+              "successful_new_edges_max": 178459,
+              "successful_new_edges_min": 173495
+            },
+            "base_unique_edges": 420932,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "129723.6000000",
+                "integer_max": 130680,
+                "integer_min": 128767,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 17918,
+                "new_nonself_edges": 15848,
+                "raw_events": 37444
+              },
+              {
+                "id": 1,
+                "new_edges": 18263,
+                "new_nonself_edges": 16201,
+                "raw_events": 37444
+              },
+              {
+                "id": 2,
+                "new_edges": 17899,
+                "new_nonself_edges": 15907,
+                "raw_events": 37444
+              },
+              {
+                "id": 3,
+                "new_edges": 18053,
+                "new_nonself_edges": 16021,
+                "raw_events": 37443
+              },
+              {
+                "id": 4,
+                "new_edges": 17806,
+                "new_nonself_edges": 15598,
+                "raw_events": 37444
+              },
+              {
+                "id": 5,
+                "new_edges": 16940,
+                "new_nonself_edges": 14737,
+                "raw_events": 37444
+              },
+              {
+                "id": 6,
+                "new_edges": 16673,
+                "new_nonself_edges": 14428,
+                "raw_events": 37443
+              },
+              {
+                "id": 7,
+                "new_edges": 16819,
+                "new_nonself_edges": 14472,
+                "raw_events": 37444
+              },
+              {
+                "id": 8,
+                "new_edges": 17391,
+                "new_nonself_edges": 14936,
+                "raw_events": 37444
+              },
+              {
+                "id": 9,
+                "new_edges": 18239,
+                "new_nonself_edges": 15626,
+                "raw_events": 37443
+              }
+            ],
+            "events": 964437,
+            "final_unique_edges": 596933,
+            "final_unique_nonself_edges": 544621,
+            "ordering": "file_order",
+            "repeated_update_events": 198436,
+            "successful_new_edges": 176001,
+            "successful_new_nonself_edges": 153774,
+            "update_max_timestamp": 1457266069,
+            "update_min_timestamp": 1280370637,
+            "update_raw_events": 374437
+          },
+          {
+            "base_last_timestamp": 1405826286,
+            "base_raw_events": 590000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 594999,
+              "raw_base_min": 585000,
+              "successful_new_edges_max": 217156,
+              "successful_new_edges_min": 211198
+            },
+            "base_unique_edges": 382758,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "129723.6000000",
+                "integer_max": 130680,
+                "integer_min": 128767,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 22497,
+                "new_nonself_edges": 20397,
+                "raw_events": 37444
+              },
+              {
+                "id": 1,
+                "new_edges": 22940,
+                "new_nonself_edges": 20743,
+                "raw_events": 37444
+              },
+              {
+                "id": 2,
+                "new_edges": 22385,
+                "new_nonself_edges": 20266,
+                "raw_events": 37444
+              },
+              {
+                "id": 3,
+                "new_edges": 21812,
+                "new_nonself_edges": 19374,
+                "raw_events": 37443
+              },
+              {
+                "id": 4,
+                "new_edges": 20360,
+                "new_nonself_edges": 18141,
+                "raw_events": 37444
+              },
+              {
+                "id": 5,
+                "new_edges": 20433,
+                "new_nonself_edges": 18215,
+                "raw_events": 37444
+              },
+              {
+                "id": 6,
+                "new_edges": 20461,
+                "new_nonself_edges": 18166,
+                "raw_events": 37443
+              },
+              {
+                "id": 7,
+                "new_edges": 20768,
+                "new_nonself_edges": 18314,
+                "raw_events": 37444
+              },
+              {
+                "id": 8,
+                "new_edges": 20856,
+                "new_nonself_edges": 18478,
+                "raw_events": 37444
+              },
+              {
+                "id": 9,
+                "new_edges": 21663,
+                "new_nonself_edges": 19057,
+                "raw_events": 37443
+              }
+            ],
+            "equal_timestamp_span": [
+              {
+                "id": 0,
+                "new_edges": 20774,
+                "new_nonself_edges": 18840,
+                "raw_events": 34522
+              },
+              {
+                "id": 1,
+                "new_edges": 18743,
+                "new_nonself_edges": 16943,
+                "raw_events": 30721
+              },
+              {
+                "id": 2,
+                "new_edges": 17845,
+                "new_nonself_edges": 16190,
+                "raw_events": 29507
+              },
+              {
+                "id": 3,
+                "new_edges": 19860,
+                "new_nonself_edges": 17792,
+                "raw_events": 33668
+              },
+              {
+                "id": 4,
+                "new_edges": 24659,
+                "new_nonself_edges": 21920,
+                "raw_events": 43911
+              },
+              {
+                "id": 5,
+                "new_edges": 23356,
+                "new_nonself_edges": 20830,
+                "raw_events": 43079
+              },
+              {
+                "id": 6,
+                "new_edges": 21199,
+                "new_nonself_edges": 18841,
+                "raw_events": 38194
+              },
+              {
+                "id": 7,
+                "new_edges": 22194,
+                "new_nonself_edges": 19608,
+                "raw_events": 40605
+              },
+              {
+                "id": 8,
+                "new_edges": 21693,
+                "new_nonself_edges": 19193,
+                "raw_events": 38923
+              },
+              {
+                "id": 9,
+                "new_edges": 23852,
+                "new_nonself_edges": 20994,
+                "raw_events": 41307
+              }
+            ],
+            "events": 964437,
+            "final_unique_edges": 596933,
+            "final_unique_nonself_edges": 544621,
+            "ordering": "timestamp_then_file_order",
+            "repeated_update_events": 160262,
+            "successful_new_edges": 214175,
+            "successful_new_nonself_edges": 191151,
+            "update_max_timestamp": 1457266069,
+            "update_min_timestamp": 1405826372,
+            "update_raw_events": 374437
+          }
+        ],
+        "timing_match": null
+      },
+      "sha256": "b34083e2e5a4a40a75851946179a44265740e281533cebb493c4944c07ee832e"
+    },
+    {
+      "capture": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/AU/1/counts.json",
+      "id": "AU",
+      "repeat": 1,
+      "result": {
+        "dataset": {
+          "base_events": 590000,
+          "base_rounding_half_width": 5000,
+          "id": "AU",
+          "paper_events_million": "0.96",
+          "paper_rate_million": "190.77",
+          "paper_seconds": "0.00068",
+          "sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6",
+          "source": "sx-askubuntu/sx-askubuntu.txt.gz"
+        },
+        "exploratory_denominator": {
+          "actual_original_update_sequence_recovered": false,
+          "candidate_count": 129728,
+          "candidate_is_proven_successful_update_count": false,
+          "formula": "all_raw_events - all_self_loop_events - full_trace_unique_edges_including_loops",
+          "full_trace_unique_edges_including_loops": 596933,
+          "implied_paper_numerator": {
+            "central": "129723.6000000",
+            "integer_max": 130680,
+            "integer_min": 128767,
+            "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+          },
+          "publication_timing_match": null,
+          "status": "POST_HOC_ARITHMETIC_CLUE_NOT_ADMITTED_WORKLOAD",
+          "warning": "This subtracts full unique edges including loops from nonself events; it is not a simple-graph insertion oracle. Recover the original converter and operation types before using it.",
+          "within_printed_rounding_interval": true
+        },
+        "input": {
+          "database_bytes": 37236736,
+          "decompressed_sha256": "1a416ccaf5a679996156dd31290dfcca3e7dde3431171afed1b1fd616fbd31e6",
+          "events": 964437,
+          "first_timestamp": 1280369730,
+          "last_timestamp": 1457266069,
+          "max_timestamp": 1457266069,
+          "min_timestamp": 1231431607,
+          "self_loop_events": 237776,
+          "source_sha256": "54af4be03bf77030e8894e445679c4e20614f0b82d68fc8cb49431f70e07a0f6",
+          "timestamp_inversions": 4100
+        },
+        "orders": [
+          {
+            "base_last_timestamp": 1389156794,
+            "base_raw_events": 590000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 594999,
+              "raw_base_min": 585000,
+              "successful_new_edges_max": 178459,
+              "successful_new_edges_min": 173495
+            },
+            "base_unique_edges": 420932,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "129723.6000000",
+                "integer_max": 130680,
+                "integer_min": 128767,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 17918,
+                "new_nonself_edges": 15848,
+                "raw_events": 37444
+              },
+              {
+                "id": 1,
+                "new_edges": 18263,
+                "new_nonself_edges": 16201,
+                "raw_events": 37444
+              },
+              {
+                "id": 2,
+                "new_edges": 17899,
+                "new_nonself_edges": 15907,
+                "raw_events": 37444
+              },
+              {
+                "id": 3,
+                "new_edges": 18053,
+                "new_nonself_edges": 16021,
+                "raw_events": 37443
+              },
+              {
+                "id": 4,
+                "new_edges": 17806,
+                "new_nonself_edges": 15598,
+                "raw_events": 37444
+              },
+              {
+                "id": 5,
+                "new_edges": 16940,
+                "new_nonself_edges": 14737,
+                "raw_events": 37444
+              },
+              {
+                "id": 6,
+                "new_edges": 16673,
+                "new_nonself_edges": 14428,
+                "raw_events": 37443
+              },
+              {
+                "id": 7,
+                "new_edges": 16819,
+                "new_nonself_edges": 14472,
+                "raw_events": 37444
+              },
+              {
+                "id": 8,
+                "new_edges": 17391,
+                "new_nonself_edges": 14936,
+                "raw_events": 37444
+              },
+              {
+                "id": 9,
+                "new_edges": 18239,
+                "new_nonself_edges": 15626,
+                "raw_events": 37443
+              }
+            ],
+            "events": 964437,
+            "final_unique_edges": 596933,
+            "final_unique_nonself_edges": 544621,
+            "ordering": "file_order",
+            "repeated_update_events": 198436,
+            "successful_new_edges": 176001,
+            "successful_new_nonself_edges": 153774,
+            "update_max_timestamp": 1457266069,
+            "update_min_timestamp": 1280370637,
+            "update_raw_events": 374437
+          },
+          {
+            "base_last_timestamp": 1405826286,
+            "base_raw_events": 590000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 594999,
+              "raw_base_min": 585000,
+              "successful_new_edges_max": 217156,
+              "successful_new_edges_min": 211198
+            },
+            "base_unique_edges": 382758,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "129723.6000000",
+                "integer_max": 130680,
+                "integer_min": 128767,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 22497,
+                "new_nonself_edges": 20397,
+                "raw_events": 37444
+              },
+              {
+                "id": 1,
+                "new_edges": 22940,
+                "new_nonself_edges": 20743,
+                "raw_events": 37444
+              },
+              {
+                "id": 2,
+                "new_edges": 22385,
+                "new_nonself_edges": 20266,
+                "raw_events": 37444
+              },
+              {
+                "id": 3,
+                "new_edges": 21812,
+                "new_nonself_edges": 19374,
+                "raw_events": 37443
+              },
+              {
+                "id": 4,
+                "new_edges": 20360,
+                "new_nonself_edges": 18141,
+                "raw_events": 37444
+              },
+              {
+                "id": 5,
+                "new_edges": 20433,
+                "new_nonself_edges": 18215,
+                "raw_events": 37444
+              },
+              {
+                "id": 6,
+                "new_edges": 20461,
+                "new_nonself_edges": 18166,
+                "raw_events": 37443
+              },
+              {
+                "id": 7,
+                "new_edges": 20768,
+                "new_nonself_edges": 18314,
+                "raw_events": 37444
+              },
+              {
+                "id": 8,
+                "new_edges": 20856,
+                "new_nonself_edges": 18478,
+                "raw_events": 37444
+              },
+              {
+                "id": 9,
+                "new_edges": 21663,
+                "new_nonself_edges": 19057,
+                "raw_events": 37443
+              }
+            ],
+            "equal_timestamp_span": [
+              {
+                "id": 0,
+                "new_edges": 20774,
+                "new_nonself_edges": 18840,
+                "raw_events": 34522
+              },
+              {
+                "id": 1,
+                "new_edges": 18743,
+                "new_nonself_edges": 16943,
+                "raw_events": 30721
+              },
+              {
+                "id": 2,
+                "new_edges": 17845,
+                "new_nonself_edges": 16190,
+                "raw_events": 29507
+              },
+              {
+                "id": 3,
+                "new_edges": 19860,
+                "new_nonself_edges": 17792,
+                "raw_events": 33668
+              },
+              {
+                "id": 4,
+                "new_edges": 24659,
+                "new_nonself_edges": 21920,
+                "raw_events": 43911
+              },
+              {
+                "id": 5,
+                "new_edges": 23356,
+                "new_nonself_edges": 20830,
+                "raw_events": 43079
+              },
+              {
+                "id": 6,
+                "new_edges": 21199,
+                "new_nonself_edges": 18841,
+                "raw_events": 38194
+              },
+              {
+                "id": 7,
+                "new_edges": 22194,
+                "new_nonself_edges": 19608,
+                "raw_events": 40605
+              },
+              {
+                "id": 8,
+                "new_edges": 21693,
+                "new_nonself_edges": 19193,
+                "raw_events": 38923
+              },
+              {
+                "id": 9,
+                "new_edges": 23852,
+                "new_nonself_edges": 20994,
+                "raw_events": 41307
+              }
+            ],
+            "events": 964437,
+            "final_unique_edges": 596933,
+            "final_unique_nonself_edges": 544621,
+            "ordering": "timestamp_then_file_order",
+            "repeated_update_events": 160262,
+            "successful_new_edges": 214175,
+            "successful_new_nonself_edges": 191151,
+            "update_max_timestamp": 1457266069,
+            "update_min_timestamp": 1405826372,
+            "update_raw_events": 374437
+          }
+        ],
+        "timing_match": null
+      },
+      "sha256": "b34083e2e5a4a40a75851946179a44265740e281533cebb493c4944c07ee832e"
+    },
+    {
+      "capture": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/SU/0/counts.json",
+      "id": "SU",
+      "repeat": 0,
+      "result": {
+        "dataset": {
+          "base_events": 920000,
+          "base_rounding_half_width": 5000,
+          "id": "SU",
+          "paper_events_million": "1.44",
+          "paper_rate_million": "147.08",
+          "paper_seconds": "0.00125",
+          "sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928",
+          "source": "sx-superuser/sx-superuser.txt.gz"
+        },
+        "exploratory_denominator": {
+          "actual_original_update_sequence_recovered": false,
+          "candidate_count": 183853,
+          "candidate_is_proven_successful_update_count": false,
+          "formula": "all_raw_events - all_self_loop_events - full_trace_unique_edges_including_loops",
+          "full_trace_unique_edges_including_loops": 924886,
+          "implied_paper_numerator": {
+            "central": "183850.0000000",
+            "integer_max": 184591,
+            "integer_min": 183109,
+            "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+          },
+          "publication_timing_match": null,
+          "status": "POST_HOC_ARITHMETIC_CLUE_NOT_ADMITTED_WORKLOAD",
+          "warning": "This subtracts full unique edges including loops from nonself events; it is not a simple-graph insertion oracle. Recover the original converter and operation types before using it.",
+          "within_printed_rounding_interval": true
+        },
+        "input": {
+          "database_bytes": 55783424,
+          "decompressed_sha256": "d99a66429d0cb69b6f61be71cac3064868cd683b251140b232f377bf42112be7",
+          "events": 1443339,
+          "first_timestamp": 1247667441,
+          "last_timestamp": 1457266493,
+          "max_timestamp": 1457266493,
+          "min_timestamp": 1217651565,
+          "self_loop_events": 334600,
+          "source_sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928",
+          "timestamp_inversions": 17027
+        },
+        "orders": [
+          {
+            "base_last_timestamp": 1365877552,
+            "base_raw_events": 920000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 924999,
+              "raw_base_min": 915000,
+              "successful_new_edges_max": 272467,
+              "successful_new_edges_min": 267212
+            },
+            "base_unique_edges": 655122,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "183850.0000000",
+                "integer_max": 184591,
+                "integer_min": 183109,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 26489,
+                "new_nonself_edges": 23720,
+                "raw_events": 52334
+              },
+              {
+                "id": 1,
+                "new_edges": 26520,
+                "new_nonself_edges": 23713,
+                "raw_events": 52334
+              },
+              {
+                "id": 2,
+                "new_edges": 26524,
+                "new_nonself_edges": 23447,
+                "raw_events": 52334
+              },
+              {
+                "id": 3,
+                "new_edges": 26176,
+                "new_nonself_edges": 23088,
+                "raw_events": 52334
+              },
+              {
+                "id": 4,
+                "new_edges": 27455,
+                "new_nonself_edges": 24152,
+                "raw_events": 52334
+              },
+              {
+                "id": 5,
+                "new_edges": 27364,
+                "new_nonself_edges": 24218,
+                "raw_events": 52334
+              },
+              {
+                "id": 6,
+                "new_edges": 27113,
+                "new_nonself_edges": 23919,
+                "raw_events": 52334
+              },
+              {
+                "id": 7,
+                "new_edges": 27046,
+                "new_nonself_edges": 23648,
+                "raw_events": 52334
+              },
+              {
+                "id": 8,
+                "new_edges": 27524,
+                "new_nonself_edges": 24171,
+                "raw_events": 52334
+              },
+              {
+                "id": 9,
+                "new_edges": 27553,
+                "new_nonself_edges": 24183,
+                "raw_events": 52333
+              }
+            ],
+            "events": 1443339,
+            "final_unique_edges": 924886,
+            "final_unique_nonself_edges": 854377,
+            "ordering": "file_order",
+            "repeated_update_events": 253575,
+            "successful_new_edges": 269764,
+            "successful_new_nonself_edges": 238259,
+            "update_max_timestamp": 1457266493,
+            "update_min_timestamp": 1220983084,
+            "update_raw_events": 523339
+          },
+          {
+            "base_last_timestamp": 1389677016,
+            "base_raw_events": 920000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 924999,
+              "raw_base_min": 915000,
+              "successful_new_edges_max": 328471,
+              "successful_new_edges_min": 322194
+            },
+            "base_unique_edges": 599654,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "183850.0000000",
+                "integer_max": 184591,
+                "integer_min": 183109,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 32675,
+                "new_nonself_edges": 29716,
+                "raw_events": 52334
+              },
+              {
+                "id": 1,
+                "new_edges": 31977,
+                "new_nonself_edges": 29160,
+                "raw_events": 52334
+              },
+              {
+                "id": 2,
+                "new_edges": 33361,
+                "new_nonself_edges": 30251,
+                "raw_events": 52334
+              },
+              {
+                "id": 3,
+                "new_edges": 33301,
+                "new_nonself_edges": 30253,
+                "raw_events": 52334
+              },
+              {
+                "id": 4,
+                "new_edges": 32646,
+                "new_nonself_edges": 29573,
+                "raw_events": 52334
+              },
+              {
+                "id": 5,
+                "new_edges": 32535,
+                "new_nonself_edges": 29401,
+                "raw_events": 52334
+              },
+              {
+                "id": 6,
+                "new_edges": 32051,
+                "new_nonself_edges": 28790,
+                "raw_events": 52334
+              },
+              {
+                "id": 7,
+                "new_edges": 32389,
+                "new_nonself_edges": 29259,
+                "raw_events": 52334
+              },
+              {
+                "id": 8,
+                "new_edges": 32530,
+                "new_nonself_edges": 29237,
+                "raw_events": 52334
+              },
+              {
+                "id": 9,
+                "new_edges": 31767,
+                "new_nonself_edges": 28633,
+                "raw_events": 52333
+              }
+            ],
+            "equal_timestamp_span": [
+              {
+                "id": 0,
+                "new_edges": 32519,
+                "new_nonself_edges": 29577,
+                "raw_events": 52057
+              },
+              {
+                "id": 1,
+                "new_edges": 29577,
+                "new_nonself_edges": 26968,
+                "raw_events": 48504
+              },
+              {
+                "id": 2,
+                "new_edges": 32019,
+                "new_nonself_edges": 29052,
+                "raw_events": 50203
+              },
+              {
+                "id": 3,
+                "new_edges": 32547,
+                "new_nonself_edges": 29549,
+                "raw_events": 51255
+              },
+              {
+                "id": 4,
+                "new_edges": 29473,
+                "new_nonself_edges": 26756,
+                "raw_events": 46915
+              },
+              {
+                "id": 5,
+                "new_edges": 29305,
+                "new_nonself_edges": 26437,
+                "raw_events": 47199
+              },
+              {
+                "id": 6,
+                "new_edges": 33279,
+                "new_nonself_edges": 29984,
+                "raw_events": 54312
+              },
+              {
+                "id": 7,
+                "new_edges": 37545,
+                "new_nonself_edges": 33859,
+                "raw_events": 60703
+              },
+              {
+                "id": 8,
+                "new_edges": 34332,
+                "new_nonself_edges": 30862,
+                "raw_events": 55343
+              },
+              {
+                "id": 9,
+                "new_edges": 34636,
+                "new_nonself_edges": 31229,
+                "raw_events": 56848
+              }
+            ],
+            "events": 1443339,
+            "final_unique_edges": 924886,
+            "final_unique_nonself_edges": 854377,
+            "ordering": "timestamp_then_file_order",
+            "repeated_update_events": 198107,
+            "successful_new_edges": 325232,
+            "successful_new_nonself_edges": 294273,
+            "update_max_timestamp": 1457266493,
+            "update_min_timestamp": 1389677201,
+            "update_raw_events": 523339
+          }
+        ],
+        "timing_match": null
+      },
+      "sha256": "a96ee1ceae89039f01f76dc6e38c7b5103cd0f2fb40b2ae5376fe8980a7732a6"
+    },
+    {
+      "capture": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/SU/1/counts.json",
+      "id": "SU",
+      "repeat": 1,
+      "result": {
+        "dataset": {
+          "base_events": 920000,
+          "base_rounding_half_width": 5000,
+          "id": "SU",
+          "paper_events_million": "1.44",
+          "paper_rate_million": "147.08",
+          "paper_seconds": "0.00125",
+          "sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928",
+          "source": "sx-superuser/sx-superuser.txt.gz"
+        },
+        "exploratory_denominator": {
+          "actual_original_update_sequence_recovered": false,
+          "candidate_count": 183853,
+          "candidate_is_proven_successful_update_count": false,
+          "formula": "all_raw_events - all_self_loop_events - full_trace_unique_edges_including_loops",
+          "full_trace_unique_edges_including_loops": 924886,
+          "implied_paper_numerator": {
+            "central": "183850.0000000",
+            "integer_max": 184591,
+            "integer_min": 183109,
+            "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+          },
+          "publication_timing_match": null,
+          "status": "POST_HOC_ARITHMETIC_CLUE_NOT_ADMITTED_WORKLOAD",
+          "warning": "This subtracts full unique edges including loops from nonself events; it is not a simple-graph insertion oracle. Recover the original converter and operation types before using it.",
+          "within_printed_rounding_interval": true
+        },
+        "input": {
+          "database_bytes": 55783424,
+          "decompressed_sha256": "d99a66429d0cb69b6f61be71cac3064868cd683b251140b232f377bf42112be7",
+          "events": 1443339,
+          "first_timestamp": 1247667441,
+          "last_timestamp": 1457266493,
+          "max_timestamp": 1457266493,
+          "min_timestamp": 1217651565,
+          "self_loop_events": 334600,
+          "source_sha256": "35367fa1357d28ba92b06f75a2616cdf983e0c5b70b9560f36440e39648cc928",
+          "timestamp_inversions": 17027
+        },
+        "orders": [
+          {
+            "base_last_timestamp": 1365877552,
+            "base_raw_events": 920000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 924999,
+              "raw_base_min": 915000,
+              "successful_new_edges_max": 272467,
+              "successful_new_edges_min": 267212
+            },
+            "base_unique_edges": 655122,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "183850.0000000",
+                "integer_max": 184591,
+                "integer_min": 183109,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 26489,
+                "new_nonself_edges": 23720,
+                "raw_events": 52334
+              },
+              {
+                "id": 1,
+                "new_edges": 26520,
+                "new_nonself_edges": 23713,
+                "raw_events": 52334
+              },
+              {
+                "id": 2,
+                "new_edges": 26524,
+                "new_nonself_edges": 23447,
+                "raw_events": 52334
+              },
+              {
+                "id": 3,
+                "new_edges": 26176,
+                "new_nonself_edges": 23088,
+                "raw_events": 52334
+              },
+              {
+                "id": 4,
+                "new_edges": 27455,
+                "new_nonself_edges": 24152,
+                "raw_events": 52334
+              },
+              {
+                "id": 5,
+                "new_edges": 27364,
+                "new_nonself_edges": 24218,
+                "raw_events": 52334
+              },
+              {
+                "id": 6,
+                "new_edges": 27113,
+                "new_nonself_edges": 23919,
+                "raw_events": 52334
+              },
+              {
+                "id": 7,
+                "new_edges": 27046,
+                "new_nonself_edges": 23648,
+                "raw_events": 52334
+              },
+              {
+                "id": 8,
+                "new_edges": 27524,
+                "new_nonself_edges": 24171,
+                "raw_events": 52334
+              },
+              {
+                "id": 9,
+                "new_edges": 27553,
+                "new_nonself_edges": 24183,
+                "raw_events": 52333
+              }
+            ],
+            "events": 1443339,
+            "final_unique_edges": 924886,
+            "final_unique_nonself_edges": 854377,
+            "ordering": "file_order",
+            "repeated_update_events": 253575,
+            "successful_new_edges": 269764,
+            "successful_new_nonself_edges": 238259,
+            "update_max_timestamp": 1457266493,
+            "update_min_timestamp": 1220983084,
+            "update_raw_events": 523339
+          },
+          {
+            "base_last_timestamp": 1389677016,
+            "base_raw_events": 920000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 924999,
+              "raw_base_min": 915000,
+              "successful_new_edges_max": 328471,
+              "successful_new_edges_min": 322194
+            },
+            "base_unique_edges": 599654,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "183850.0000000",
+                "integer_max": 184591,
+                "integer_min": 183109,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 32675,
+                "new_nonself_edges": 29716,
+                "raw_events": 52334
+              },
+              {
+                "id": 1,
+                "new_edges": 31977,
+                "new_nonself_edges": 29160,
+                "raw_events": 52334
+              },
+              {
+                "id": 2,
+                "new_edges": 33361,
+                "new_nonself_edges": 30251,
+                "raw_events": 52334
+              },
+              {
+                "id": 3,
+                "new_edges": 33301,
+                "new_nonself_edges": 30253,
+                "raw_events": 52334
+              },
+              {
+                "id": 4,
+                "new_edges": 32646,
+                "new_nonself_edges": 29573,
+                "raw_events": 52334
+              },
+              {
+                "id": 5,
+                "new_edges": 32535,
+                "new_nonself_edges": 29401,
+                "raw_events": 52334
+              },
+              {
+                "id": 6,
+                "new_edges": 32051,
+                "new_nonself_edges": 28790,
+                "raw_events": 52334
+              },
+              {
+                "id": 7,
+                "new_edges": 32389,
+                "new_nonself_edges": 29259,
+                "raw_events": 52334
+              },
+              {
+                "id": 8,
+                "new_edges": 32530,
+                "new_nonself_edges": 29237,
+                "raw_events": 52334
+              },
+              {
+                "id": 9,
+                "new_edges": 31767,
+                "new_nonself_edges": 28633,
+                "raw_events": 52333
+              }
+            ],
+            "equal_timestamp_span": [
+              {
+                "id": 0,
+                "new_edges": 32519,
+                "new_nonself_edges": 29577,
+                "raw_events": 52057
+              },
+              {
+                "id": 1,
+                "new_edges": 29577,
+                "new_nonself_edges": 26968,
+                "raw_events": 48504
+              },
+              {
+                "id": 2,
+                "new_edges": 32019,
+                "new_nonself_edges": 29052,
+                "raw_events": 50203
+              },
+              {
+                "id": 3,
+                "new_edges": 32547,
+                "new_nonself_edges": 29549,
+                "raw_events": 51255
+              },
+              {
+                "id": 4,
+                "new_edges": 29473,
+                "new_nonself_edges": 26756,
+                "raw_events": 46915
+              },
+              {
+                "id": 5,
+                "new_edges": 29305,
+                "new_nonself_edges": 26437,
+                "raw_events": 47199
+              },
+              {
+                "id": 6,
+                "new_edges": 33279,
+                "new_nonself_edges": 29984,
+                "raw_events": 54312
+              },
+              {
+                "id": 7,
+                "new_edges": 37545,
+                "new_nonself_edges": 33859,
+                "raw_events": 60703
+              },
+              {
+                "id": 8,
+                "new_edges": 34332,
+                "new_nonself_edges": 30862,
+                "raw_events": 55343
+              },
+              {
+                "id": 9,
+                "new_edges": 34636,
+                "new_nonself_edges": 31229,
+                "raw_events": 56848
+              }
+            ],
+            "events": 1443339,
+            "final_unique_edges": 924886,
+            "final_unique_nonself_edges": 854377,
+            "ordering": "timestamp_then_file_order",
+            "repeated_update_events": 198107,
+            "successful_new_edges": 325232,
+            "successful_new_nonself_edges": 294273,
+            "update_max_timestamp": 1457266493,
+            "update_min_timestamp": 1389677201,
+            "update_raw_events": 523339
+          }
+        ],
+        "timing_match": null
+      },
+      "sha256": "a96ee1ceae89039f01f76dc6e38c7b5103cd0f2fb40b2ae5376fe8980a7732a6"
+    },
+    {
+      "capture": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/WK/0/counts.json",
+      "id": "WK",
+      "repeat": 0,
+      "result": {
+        "dataset": {
+          "base_events": 3310000,
+          "base_rounding_half_width": 5000,
+          "id": "WK",
+          "paper_events_million": "7.83",
+          "paper_rate_million": "202.97",
+          "paper_seconds": "0.01375",
+          "sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e",
+          "source": "wiki-talk-temporal/wiki-talk-temporal.txt.gz"
+        },
+        "exploratory_denominator": {
+          "actual_original_update_sequence_recovered": false,
+          "candidate_count": 2790946,
+          "candidate_is_proven_successful_update_count": false,
+          "formula": "all_raw_events - all_self_loop_events - full_trace_unique_edges_including_loops",
+          "full_trace_unique_edges_including_loops": 3309592,
+          "implied_paper_numerator": {
+            "central": "2790837.5000000",
+            "integer_max": 2791921,
+            "integer_min": 2789754,
+            "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+          },
+          "publication_timing_match": null,
+          "status": "POST_HOC_ARITHMETIC_CLUE_NOT_ADMITTED_WORKLOAD",
+          "warning": "This subtracts full unique edges including loops from nonself events; it is not a simple-graph insertion oracle. Recover the original converter and operation types before using it.",
+          "within_printed_rounding_interval": true
+        },
+        "input": {
+          "database_bytes": 300081152,
+          "decompressed_sha256": "d45012e758e26bc28f6b610f1146aee0e87728a79e69cc6d696dd180f19dff66",
+          "events": 7833140,
+          "first_timestamp": 1003638700,
+          "last_timestamp": 1199614728,
+          "max_timestamp": 1199614728,
+          "min_timestamp": 999130846,
+          "self_loop_events": 1732602,
+          "source_sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e",
+          "timestamp_inversions": 563579
+        },
+        "orders": [
+          {
+            "base_last_timestamp": 1168338497,
+            "base_raw_events": 3310000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 3314999,
+              "raw_base_min": 3305000,
+              "successful_new_edges_max": 2120079,
+              "successful_new_edges_min": 2116485
+            },
+            "base_unique_edges": 1191287,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "2790837.5000000",
+                "integer_max": 2791921,
+                "integer_min": 2789754,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 181504,
+                "new_nonself_edges": 171072,
+                "raw_events": 452314
+              },
+              {
+                "id": 1,
+                "new_edges": 178437,
+                "new_nonself_edges": 167996,
+                "raw_events": 452314
+              },
+              {
+                "id": 2,
+                "new_edges": 183893,
+                "new_nonself_edges": 172748,
+                "raw_events": 452314
+              },
+              {
+                "id": 3,
+                "new_edges": 199690,
+                "new_nonself_edges": 186355,
+                "raw_events": 452314
+              },
+              {
+                "id": 4,
+                "new_edges": 208975,
+                "new_nonself_edges": 196318,
+                "raw_events": 452314
+              },
+              {
+                "id": 5,
+                "new_edges": 216449,
+                "new_nonself_edges": 202685,
+                "raw_events": 452314
+              },
+              {
+                "id": 6,
+                "new_edges": 216254,
+                "new_nonself_edges": 202270,
+                "raw_events": 452314
+              },
+              {
+                "id": 7,
+                "new_edges": 232426,
+                "new_nonself_edges": 218203,
+                "raw_events": 452314
+              },
+              {
+                "id": 8,
+                "new_edges": 236953,
+                "new_nonself_edges": 222898,
+                "raw_events": 452314
+              },
+              {
+                "id": 9,
+                "new_edges": 263724,
+                "new_nonself_edges": 247845,
+                "raw_events": 452314
+              }
+            ],
+            "events": 7833140,
+            "final_unique_edges": 3309592,
+            "final_unique_nonself_edges": 3130742,
+            "ordering": "file_order",
+            "repeated_update_events": 2404835,
+            "successful_new_edges": 2118305,
+            "successful_new_nonself_edges": 1988390,
+            "update_max_timestamp": 1199614728,
+            "update_min_timestamp": 1020013957,
+            "update_raw_events": 4523140
+          },
+          {
+            "base_last_timestamp": 1164241661,
+            "base_raw_events": 3310000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 3314999,
+              "raw_base_min": 3305000,
+              "successful_new_edges_max": 1924939,
+              "successful_new_edges_min": 1920690
+            },
+            "base_unique_edges": 1386783,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "2790837.5000000",
+                "integer_max": 2791921,
+                "integer_min": 2789754,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 195264,
+                "new_nonself_edges": 184668,
+                "raw_events": 452314
+              },
+              {
+                "id": 1,
+                "new_edges": 193393,
+                "new_nonself_edges": 182829,
+                "raw_events": 452314
+              },
+              {
+                "id": 2,
+                "new_edges": 193453,
+                "new_nonself_edges": 181897,
+                "raw_events": 452314
+              },
+              {
+                "id": 3,
+                "new_edges": 211851,
+                "new_nonself_edges": 201595,
+                "raw_events": 452314
+              },
+              {
+                "id": 4,
+                "new_edges": 185912,
+                "new_nonself_edges": 177570,
+                "raw_events": 452314
+              },
+              {
+                "id": 5,
+                "new_edges": 180392,
+                "new_nonself_edges": 172076,
+                "raw_events": 452314
+              },
+              {
+                "id": 6,
+                "new_edges": 186705,
+                "new_nonself_edges": 178223,
+                "raw_events": 452314
+              },
+              {
+                "id": 7,
+                "new_edges": 190381,
+                "new_nonself_edges": 180852,
+                "raw_events": 452314
+              },
+              {
+                "id": 8,
+                "new_edges": 185739,
+                "new_nonself_edges": 177023,
+                "raw_events": 452314
+              },
+              {
+                "id": 9,
+                "new_edges": 199719,
+                "new_nonself_edges": 192213,
+                "raw_events": 452314
+              }
+            ],
+            "equal_timestamp_span": [
+              {
+                "id": 0,
+                "new_edges": 164245,
+                "new_nonself_edges": 155290,
+                "raw_events": 380056
+              },
+              {
+                "id": 1,
+                "new_edges": 190508,
+                "new_nonself_edges": 180275,
+                "raw_events": 444113
+              },
+              {
+                "id": 2,
+                "new_edges": 195338,
+                "new_nonself_edges": 183797,
+                "raw_events": 457318
+              },
+              {
+                "id": 3,
+                "new_edges": 207841,
+                "new_nonself_edges": 196613,
+                "raw_events": 463186
+              },
+              {
+                "id": 4,
+                "new_edges": 221520,
+                "new_nonself_edges": 212185,
+                "raw_events": 515625
+              },
+              {
+                "id": 5,
+                "new_edges": 181119,
+                "new_nonself_edges": 172756,
+                "raw_events": 454225
+              },
+              {
+                "id": 6,
+                "new_edges": 174392,
+                "new_nonself_edges": 166448,
+                "raw_events": 422741
+              },
+              {
+                "id": 7,
+                "new_edges": 186275,
+                "new_nonself_edges": 177141,
+                "raw_events": 444790
+              },
+              {
+                "id": 8,
+                "new_edges": 189611,
+                "new_nonself_edges": 180575,
+                "raw_events": 458047
+              },
+              {
+                "id": 9,
+                "new_edges": 211960,
+                "new_nonself_edges": 203866,
+                "raw_events": 483039
+              }
+            ],
+            "events": 7833140,
+            "final_unique_edges": 3309592,
+            "final_unique_nonself_edges": 3130742,
+            "ordering": "timestamp_then_file_order",
+            "repeated_update_events": 2600331,
+            "successful_new_edges": 1922809,
+            "successful_new_nonself_edges": 1828946,
+            "update_max_timestamp": 1199614728,
+            "update_min_timestamp": 1164241665,
+            "update_raw_events": 4523140
+          }
+        ],
+        "timing_match": null
+      },
+      "sha256": "9ddee3fb4089a62b47e390c61632fa91f7c4954d7a5d27d8b63d1a72871fed10"
+    },
+    {
+      "capture": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/WK/1/counts.json",
+      "id": "WK",
+      "repeat": 1,
+      "result": {
+        "dataset": {
+          "base_events": 3310000,
+          "base_rounding_half_width": 5000,
+          "id": "WK",
+          "paper_events_million": "7.83",
+          "paper_rate_million": "202.97",
+          "paper_seconds": "0.01375",
+          "sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e",
+          "source": "wiki-talk-temporal/wiki-talk-temporal.txt.gz"
+        },
+        "exploratory_denominator": {
+          "actual_original_update_sequence_recovered": false,
+          "candidate_count": 2790946,
+          "candidate_is_proven_successful_update_count": false,
+          "formula": "all_raw_events - all_self_loop_events - full_trace_unique_edges_including_loops",
+          "full_trace_unique_edges_including_loops": 3309592,
+          "implied_paper_numerator": {
+            "central": "2790837.5000000",
+            "integer_max": 2791921,
+            "integer_min": 2789754,
+            "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+          },
+          "publication_timing_match": null,
+          "status": "POST_HOC_ARITHMETIC_CLUE_NOT_ADMITTED_WORKLOAD",
+          "warning": "This subtracts full unique edges including loops from nonself events; it is not a simple-graph insertion oracle. Recover the original converter and operation types before using it.",
+          "within_printed_rounding_interval": true
+        },
+        "input": {
+          "database_bytes": 300081152,
+          "decompressed_sha256": "d45012e758e26bc28f6b610f1146aee0e87728a79e69cc6d696dd180f19dff66",
+          "events": 7833140,
+          "first_timestamp": 1003638700,
+          "last_timestamp": 1199614728,
+          "max_timestamp": 1199614728,
+          "min_timestamp": 999130846,
+          "self_loop_events": 1732602,
+          "source_sha256": "2053b1f5bb3c46320f8e4da91aa6d7d79ec8d78e2c8cc99cede609c0c375f33e",
+          "timestamp_inversions": 563579
+        },
+        "orders": [
+          {
+            "base_last_timestamp": 1168338497,
+            "base_raw_events": 3310000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 3314999,
+              "raw_base_min": 3305000,
+              "successful_new_edges_max": 2120079,
+              "successful_new_edges_min": 2116485
+            },
+            "base_unique_edges": 1191287,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "2790837.5000000",
+                "integer_max": 2791921,
+                "integer_min": 2789754,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 181504,
+                "new_nonself_edges": 171072,
+                "raw_events": 452314
+              },
+              {
+                "id": 1,
+                "new_edges": 178437,
+                "new_nonself_edges": 167996,
+                "raw_events": 452314
+              },
+              {
+                "id": 2,
+                "new_edges": 183893,
+                "new_nonself_edges": 172748,
+                "raw_events": 452314
+              },
+              {
+                "id": 3,
+                "new_edges": 199690,
+                "new_nonself_edges": 186355,
+                "raw_events": 452314
+              },
+              {
+                "id": 4,
+                "new_edges": 208975,
+                "new_nonself_edges": 196318,
+                "raw_events": 452314
+              },
+              {
+                "id": 5,
+                "new_edges": 216449,
+                "new_nonself_edges": 202685,
+                "raw_events": 452314
+              },
+              {
+                "id": 6,
+                "new_edges": 216254,
+                "new_nonself_edges": 202270,
+                "raw_events": 452314
+              },
+              {
+                "id": 7,
+                "new_edges": 232426,
+                "new_nonself_edges": 218203,
+                "raw_events": 452314
+              },
+              {
+                "id": 8,
+                "new_edges": 236953,
+                "new_nonself_edges": 222898,
+                "raw_events": 452314
+              },
+              {
+                "id": 9,
+                "new_edges": 263724,
+                "new_nonself_edges": 247845,
+                "raw_events": 452314
+              }
+            ],
+            "events": 7833140,
+            "final_unique_edges": 3309592,
+            "final_unique_nonself_edges": 3130742,
+            "ordering": "file_order",
+            "repeated_update_events": 2404835,
+            "successful_new_edges": 2118305,
+            "successful_new_nonself_edges": 1988390,
+            "update_max_timestamp": 1199614728,
+            "update_min_timestamp": 1020013957,
+            "update_raw_events": 4523140
+          },
+          {
+            "base_last_timestamp": 1164241661,
+            "base_raw_events": 3310000,
+            "base_rounding_sensitivity": {
+              "raw_base_max_inclusive": 3314999,
+              "raw_base_min": 3305000,
+              "successful_new_edges_max": 1924939,
+              "successful_new_edges_min": 1920690
+            },
+            "base_unique_edges": 1386783,
+            "denominator_comparison": {
+              "base_rounding_success_intervals_overlap": false,
+              "implied_paper_numerator": {
+                "central": "2790837.5000000",
+                "integer_max": 2791921,
+                "integer_min": 2789754,
+                "interpretation": "only_if_table_time_and_rate_share_one_aggregate_window"
+              },
+              "new_edge_count_consistent": false,
+              "new_nonself_count_consistent": false,
+              "publication_timing_match": null,
+              "raw_update_count_consistent": false,
+              "status": "DENOMINATOR_CONTROL_ONLY_NOT_TIMING_ADMISSION"
+            },
+            "equal_event_count": [
+              {
+                "id": 0,
+                "new_edges": 195264,
+                "new_nonself_edges": 184668,
+                "raw_events": 452314
+              },
+              {
+                "id": 1,
+                "new_edges": 193393,
+                "new_nonself_edges": 182829,
+                "raw_events": 452314
+              },
+              {
+                "id": 2,
+                "new_edges": 193453,
+                "new_nonself_edges": 181897,
+                "raw_events": 452314
+              },
+              {
+                "id": 3,
+                "new_edges": 211851,
+                "new_nonself_edges": 201595,
+                "raw_events": 452314
+              },
+              {
+                "id": 4,
+                "new_edges": 185912,
+                "new_nonself_edges": 177570,
+                "raw_events": 452314
+              },
+              {
+                "id": 5,
+                "new_edges": 180392,
+                "new_nonself_edges": 172076,
+                "raw_events": 452314
+              },
+              {
+                "id": 6,
+                "new_edges": 186705,
+                "new_nonself_edges": 178223,
+                "raw_events": 452314
+              },
+              {
+                "id": 7,
+                "new_edges": 190381,
+                "new_nonself_edges": 180852,
+                "raw_events": 452314
+              },
+              {
+                "id": 8,
+                "new_edges": 185739,
+                "new_nonself_edges": 177023,
+                "raw_events": 452314
+              },
+              {
+                "id": 9,
+                "new_edges": 199719,
+                "new_nonself_edges": 192213,
+                "raw_events": 452314
+              }
+            ],
+            "equal_timestamp_span": [
+              {
+                "id": 0,
+                "new_edges": 164245,
+                "new_nonself_edges": 155290,
+                "raw_events": 380056
+              },
+              {
+                "id": 1,
+                "new_edges": 190508,
+                "new_nonself_edges": 180275,
+                "raw_events": 444113
+              },
+              {
+                "id": 2,
+                "new_edges": 195338,
+                "new_nonself_edges": 183797,
+                "raw_events": 457318
+              },
+              {
+                "id": 3,
+                "new_edges": 207841,
+                "new_nonself_edges": 196613,
+                "raw_events": 463186
+              },
+              {
+                "id": 4,
+                "new_edges": 221520,
+                "new_nonself_edges": 212185,
+                "raw_events": 515625
+              },
+              {
+                "id": 5,
+                "new_edges": 181119,
+                "new_nonself_edges": 172756,
+                "raw_events": 454225
+              },
+              {
+                "id": 6,
+                "new_edges": 174392,
+                "new_nonself_edges": 166448,
+                "raw_events": 422741
+              },
+              {
+                "id": 7,
+                "new_edges": 186275,
+                "new_nonself_edges": 177141,
+                "raw_events": 444790
+              },
+              {
+                "id": 8,
+                "new_edges": 189611,
+                "new_nonself_edges": 180575,
+                "raw_events": 458047
+              },
+              {
+                "id": 9,
+                "new_edges": 211960,
+                "new_nonself_edges": 203866,
+                "raw_events": 483039
+              }
+            ],
+            "events": 7833140,
+            "final_unique_edges": 3309592,
+            "final_unique_nonself_edges": 3130742,
+            "ordering": "timestamp_then_file_order",
+            "repeated_update_events": 2600331,
+            "successful_new_edges": 1922809,
+            "successful_new_nonself_edges": 1828946,
+            "update_max_timestamp": 1199614728,
+            "update_min_timestamp": 1164241665,
+            "update_raw_events": 4523140
+          }
+        ],
+        "timing_match": null
+      },
+      "sha256": "9ddee3fb4089a62b47e390c61632fa91f7c4954d7a5d27d8b63d1a72871fed10"
+    }
+  ],
+  "status": "FULL_TEMPORAL_COUNTS_REPEAT_PASS_NOT_PUBLICATION_TIMING",
+  "steps": [
+    {
+      "available_before_bytes": 87370928128,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/scripts/audit_publication_workloads.py",
+        "--worker",
+        "AU",
+        "--source-root",
+        "/data/feiyang/Graph_Datasets",
+        "--out",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/AU/0"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 126212,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/AU_0.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/AU_0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 8.572784984949976
+    },
+    {
+      "available_before_bytes": 87359184896,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/scripts/audit_publication_workloads.py",
+        "--worker",
+        "AU",
+        "--source-root",
+        "/data/feiyang/Graph_Datasets",
+        "--out",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/AU/1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 126104,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/AU_1.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/AU_1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 8.422683468554169
+    },
+    {
+      "available_before_bytes": 87366221824,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/scripts/audit_publication_workloads.py",
+        "--worker",
+        "SU",
+        "--source-root",
+        "/data/feiyang/Graph_Datasets",
+        "--out",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/SU/0"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 155188,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/SU_0.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/SU_0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 13.288667298853397
+    },
+    {
+      "available_before_bytes": 87509286912,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/scripts/audit_publication_workloads.py",
+        "--worker",
+        "SU",
+        "--source-root",
+        "/data/feiyang/Graph_Datasets",
+        "--out",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/SU/1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 155168,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/SU_1.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/SU_1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 13.036155224777758
+    },
+    {
+      "available_before_bytes": 87388246016,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/scripts/audit_publication_workloads.py",
+        "--worker",
+        "WK",
+        "--source-root",
+        "/data/feiyang/Graph_Datasets",
+        "--out",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/WK/0"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 165176,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/WK_0.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/WK_0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 81.79276970028877
+    },
+    {
+      "available_before_bytes": 87421906944,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/scripts/audit_publication_workloads.py",
+        "--worker",
+        "WK",
+        "--source-root",
+        "/data/feiyang/Graph_Datasets",
+        "--out",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/captures/WK/1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 165076,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/WK_1.stderr.txt",
+      "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/publication_workload_counts_final_v2/logs/WK_1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 81.26665888214484
+    }
+  ]
+}

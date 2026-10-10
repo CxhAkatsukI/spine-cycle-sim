@@ -14,7 +14,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 
 | Path | Current evidence | Still required |
 | --- | --- | --- |
-| G | Eight prepared-PMA and eight guarded host-prepared source16 cases pass; twelve original DDR RTL controls pass; complete four-bank finite search/cache/DDR composition passes twelve configurations, exact repetitions and selected UBSan | Temporal workload, paper8 geometry, cache/search/controller timing and publication rate admission; unchanged original host is not admitted |
+| G | Eight prepared-PMA and eight guarded host-prepared source16 cases pass; twelve original DDR RTL controls pass; complete finite composition passes twelve configurations; full AU/SU/WK counts repeat exactly and identify a common exploratory Table 4 numerator | Actual temporal converter/operations and original aggregation rule, paper8 geometry, cache/search/controller timing and publication rate admission; unchanged original host is not admitted |
 | A | Complete 11+3 graph execution, indexed state and finite ledgers pass under declared tail padding | Original-host allocation compatibility, graph-selected topology, publication memory/clock/window/denominator admission and timing match |
 | A4 | Complete Amazon and two fixtures pass every pre-Apply sum, four state replicas and finite ledgers; eight legacy and matched-input-credit controls remain exact | Realistic memory/timing admission and publication comparison |
 | B | Eight complete finite PMA+A4 executions pass matched state/work/window/overlap gates; source fixtures prove cold/stale routing; modeled overhead is reported separately | FPGA/RTL timing admission, actual routed-K4 placement, original-G-produced inputs and publication comparison; predicted cycles are not measured overhead |
@@ -25,6 +25,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 | Question | Evidence |
 | --- | --- |
 | What is the plan and what counts as a match? | [Execution gates](PLAN.md), [source/comparability audit](../grasu_regraph_publication_match/README.md) |
+| Do complete temporal inputs explain the publication denominator, and are the G/R timers comparable? | [Full AU/SU/WK counts, post-hoc arithmetic clue and event boundaries](PUBLICATION_WORKLOADS.md) |
 | Does the prepared original G kernel path agree? | [G source-path control](GRASU_SOURCE_PATH.md) |
 | Does trace-aware G host preparation compose with the original kernels? | [G host inputs, bounds failures and compatibility control](GRASU_HOST_INPUTS.md) |
 | Do original DDR RTL ports safely alias physical memory under finite pressure? | [Twelve source/RTL state controls, bus tests and event ordering](GRASU_DDR_RTL.md) |

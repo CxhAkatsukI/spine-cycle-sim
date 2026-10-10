@@ -23,6 +23,14 @@ selected whole-path UBSan. That closes the finite composition checkpoint, not
 its timing admission: cache/search/controller, temporal inputs, paper8 and the
 published-rate comparison remain open.
 
+The [complete temporal input controls](PUBLICATION_WORKLOADS.md) now establish
+repeatable AU/SU/WK counts under declared order/batch interpretations. They
+reject a direct raw-prefix insertion interpretation of Table 4 and identify
+a common post-hoc residual-count clue. This is progress on input admission,
+not recovery of the author's converted update sequence or a timing match.
+Original G and R source timers are also distinct; preserve those boundaries
+instead of treating reported Mupdates/s and MTEPS as interchangeable windows.
+
 ## Separate Questions
 
 | Path | Question | Required control |

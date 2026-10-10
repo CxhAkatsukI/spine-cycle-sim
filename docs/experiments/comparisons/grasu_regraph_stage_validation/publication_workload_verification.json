@@ -1,0 +1,60 @@
+{
+  "status": "FULL_TEMPORAL_COUNTS_VERIFIED_NOT_PUBLICATION_TIMING",
+  "accepted_collection": "results/upstream_stage_controls/publication_workload_counts_final_v2",
+  "preceding_count_only_collection": "results/upstream_stage_controls/publication_workload_counts_final_v1",
+  "result": {
+    "path": "publication_workload_counts.json",
+    "sha256": "22215641e2b33e76f3b0f70072711b9d58a565a4c8e2901bf82a71457997ba9f",
+    "bounded_executions": 6,
+    "complete_v1_v2_count_results_exact": true,
+    "repeated_results_exact": true,
+    "source_and_code_identities_rechecked": true,
+    "sum_subprocess_wall_seconds": 206.3797195595689,
+    "peak_individual_process_rss_kib": 165176,
+    "memory_limit_gib_per_process": 4,
+    "additional_memory_reserve_gib": 16,
+    "timeout_seconds_per_process": 900,
+    "parallelism": 1,
+    "publication_timing_match": null
+  },
+  "archive": {
+    "path": "raw_publication_workload_counts.tar.gz",
+    "sha256": "ebc65937caa496e1b554250587d78d6e18c6da86d531b7e640a0e2a480a133eb",
+    "bytes": 42361,
+    "file_members": 69,
+    "all_v2_code_and_capture_hashes_checked": true,
+    "contents": ["both immutable count collections and resource logs", "current v2 collector/analysis source and shared helper dependencies", "fixed contract and focused tests", "focused Python, reused C++ build and document-layout verification logs"],
+    "not_redistributed": ["external source datasets", "copyrighted paper PDFs", "Python or SQLite binaries", "earlier v1 collector source snapshot"],
+    "earlier_v1_code_boundary": "The first report retains its original source hashes. The archive supplies current v2 code, not a claimed unchanged v1 code snapshot. Count observations are exactly compared across both collections."
+  },
+  "tests": {
+    "focused_python": {"passed": 102, "new_workload_tests": 16, "log": "results/upstream_stage_controls/publication_workload_verification_v1/focused_python.stderr.txt"},
+    "cpp": {"passed": 15, "fresh_build": false, "build": "results/upstream_stage_controls/grasu_finite_final_v1/build", "log": "results/upstream_stage_controls/publication_workload_verification_v1/core_tests.stdout.txt"},
+    "full_python_suite_run": false,
+    "fresh_SST_or_FPGA_matrix_run": false,
+    "initial_command_error": "An exploratory unittest command named two nonexistent modules (test_component_refactor_regression and test_grasu_refactor_regression). This was corrected to the actual test_refactor_equivalence module; it was not a numerical regression failure.",
+    "initial_package_check": "The first unaccepted archive omitted two shared Python helpers. Membership verification caught the omission. The final archive includes both and passes all v2 code/capture hashes."
+  },
+  "preservation": {
+    "protected_evidence_files_checked": 2437,
+    "protected_evidence_files_changed": 0,
+    "accepted_finite_G_frozen_code_files_checked": 124,
+    "accepted_finite_G_frozen_code_files_changed": 0,
+    "production_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+    "user_script_sha256": "d47e967f2dfe30b52aae8a8d9ed66b6a28b6a8fe73d55a827b7e92692730b7c2",
+    "user_script": "scripts/build_current_fpga_spine_v4_index.py",
+    "user_calibration_outputs": "Preserved and excluded from this commit",
+    "numerical_Cpp_or_SST_changes": false,
+    "paper_or_frozen_figure_changes": false
+  },
+  "source_witnesses": [
+    {"repository": "GraSU", "revision": "e95da256be9e7f2361449323b6fe0abf98c1b152", "clean_checkout_checked": true, "file": "GraSU/GraSU/src/host.cpp", "sha256": "27f826fbcfafba02e849153444897adba93336124743df0c446c3eb9f7c4e5ed", "witness": "lines 267-293: kernel-event envelope and raw update_edge_size numerator; lines 397-419: preconverted input loader"},
+    {"repository": "ReGraph", "revision": "365456826cef495285383d939907f847e05ad74b", "clean_checkout_checked": true, "file": "host/host.cpp", "sha256": "eef13bb2f1fa3ba7d7e56d8974832164cfefaeb115065e8f029de1025e89f717", "witness": "lines 159-176: wall timer after enqueue; lines 252-258: final printed throughput uses wall duration, not event_e2e_exe_time"},
+    {"repository": "ReGraph", "revision": "365456826cef495285383d939907f847e05ad74b", "file": "host/preprocess/partition_schedule.cpp", "sha256": "aa2571085b402b60c76814ebecdcd34b326315d92f94cfe6de1b517a536dd125", "witness": "line 11: top-level selection TODO, subsequent declared num_dense_partitions controls dense/sparse split"}
+  ],
+  "paper_anchors": [
+    {"paper": "GraSU FPGA 2021", "url": "https://doi.org/10.1145/3431920.3439288", "sha256": "f0604446fe12b9aaad9249b7064ccea47bdc455db4d2f75e9808398317ceff5c", "anchors": ["Section 6.1: 200 MHz experiments, segment8, directed temporal datasets, ten batches", "Table 2: rounded raw/base sizes", "Table 4: seconds and successful-update rates"]},
+    {"paper": "ReGraph camera-ready", "url": "https://soldierchen.github.io/assets/pdf/regraph.pdf", "sha256": "870d6eec5bd80edaf2ee4bdb37f9726070fd5631ca71f74c054ff3aa3645be13", "anchors": ["Section VII-B and Figure 9: single Big/Little PR per eight partitions on PK, HD, WP and G23", "Section VII-C and Figure 10: fixed combinations normalized to 210 MHz, includes AM", "Table IV: graph-selected best and system combinations"]}
+  ],
+  "not_established": ["actual original GraSU converted update sequence and aggregation", "successful-update interpretation of the post-hoc residual expression", "paper8/source16 timing equivalence", "original DDR/HBM timing admission", "ReGraph publication-selected partition cut and event window", "approximately 10 percent publication-speed match", "C system composition"]
+}
