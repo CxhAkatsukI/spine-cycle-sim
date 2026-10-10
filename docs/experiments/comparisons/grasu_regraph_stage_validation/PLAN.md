@@ -2,9 +2,14 @@
 
 ## Current Scope
 
+See the [delivery conclusions](CONCLUSIONS.md) for the verified outcome and
+external evidence required to unblock original-publication timing admission.
+The control-study implementation is delivered; the approximately 10% speed
+matching and measured system-C objectives remain unachieved.
+
 Use the [status table and reading guide](README.md) for accepted checkpoints.
 Original G source-functional composition and complete A4/mixed-R controls now
-pass their declared gates. G finite timing, original publication admission
+pass their declared gates. G finite timing admission, original publication admission
 and C composition remain open. The fixed-resource finite A4/B matrix passes
 state/traffic/window gates, with explicitly predicted rather than calibrated
 overhead; see [its report](FINITE_PMA_R.md). HLS schedules constrain models;

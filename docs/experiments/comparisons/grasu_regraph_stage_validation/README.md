@@ -1,6 +1,7 @@
 # Isolated G / R Validation
 
-Start with the [execution and acceptance plan](PLAN.md), then the preceding
+Start with the [delivery conclusions and remaining blockers](CONCLUSIONS.md).
+For reproduction, read the [execution and acceptance plan](PLAN.md), then the preceding
 [source/comparability audit](../grasu_regraph_publication_match/README.md).
 This folder owns the new study's results and conclusions, rather than
 scattering them among figure-refresh and daily investigation directories.

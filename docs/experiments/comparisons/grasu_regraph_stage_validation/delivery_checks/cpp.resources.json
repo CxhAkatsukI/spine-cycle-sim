@@ -1,0 +1,21 @@
+{
+  "available_before_bytes": 71573549056,
+  "command": [
+    "ctest",
+    "--test-dir",
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/build",
+    "--output-on-failure",
+    "--timeout",
+    "120"
+  ],
+  "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+  "exit_code": 0,
+  "memory_limit_gib": 2,
+  "peak_rss_kib": 95184,
+  "reserve_gib": 16,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/stage_delivery_audit_v1/cpp.stderr.txt",
+  "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/stage_delivery_audit_v1/cpp.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 7.573837602045387
+}

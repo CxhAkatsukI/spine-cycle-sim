@@ -1,0 +1,434 @@
+{
+  "assets": [
+    {
+      "bytes": 1428,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/a4_axi_verification.json",
+      "sha256": "3fa857cde286f1bfe9235680c5cf18b8124ec39044b04f0443b9933d005a5c14"
+    },
+    {
+      "bytes": 238233,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/a4_results.json",
+      "sha256": "da34da9d64fb8db7f061a93e3204c4074b15f393541302dc43166c53b150ca18"
+    },
+    {
+      "bytes": 109820,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/a4_verification.json",
+      "sha256": "d88b96359c0699b5a9aa16a934dc63d23ac2fd654ca0ac667da335a7da24d0e5"
+    },
+    {
+      "bytes": 331222,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/adapter_source_results.json",
+      "sha256": "19f7603c0d34ccb5c30a1e13be0eeb118489b567d44e226af5db0eab86515652"
+    },
+    {
+      "bytes": 91583,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/adapter_source_verification.json",
+      "sha256": "16c6ff18394bae76db7ee700390c2877e26e0e9db133a891fbd3ba25ac30fc21"
+    },
+    {
+      "bytes": 147863,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/big_frontend_results.json",
+      "sha256": "dddbe1d4ca9e533b41fb0767d67df1dfbf47d5761a9f75559096210430250af3"
+    },
+    {
+      "bytes": 24504,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/big_frontend_verification.json",
+      "sha256": "e342d2d15e8ba44e1f2ddcf6e8b1b85dacac3b830ebd8a5ee34053319dfdede6"
+    },
+    {
+      "bytes": 127363,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/big_gather_results.json",
+      "sha256": "e0745af6f34162914516d217238a93eab3773c7bcb73f18735d4d7dc4f77825d"
+    },
+    {
+      "bytes": 23035,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/big_gather_verification.json",
+      "sha256": "cc6eb6487bb67099f21a409a5d98ed73e1824f540fda1e1a1e6493ebb51db277"
+    },
+    {
+      "bytes": 858,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/delivery_checks/cpp.resources.json",
+      "sha256": "137ec32294d34a95a6691f02a5491d1fcd9a796087eaa570a98f7011a0c6154c"
+    },
+    {
+      "bytes": 0,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/delivery_checks/cpp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1994,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/delivery_checks/cpp.stdout.txt",
+      "sha256": "ad2b8855b60b0224180627f8c66f79a2105a0484b353169460591f5e00d149c8"
+    },
+    {
+      "bytes": 1317,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/delivery_checks/python.resources.json",
+      "sha256": "755093b5ad57c6583d46cf2a494c0b1a0ad49c7b74c1f52deaf00062db052449"
+    },
+    {
+      "bytes": 233,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/delivery_checks/python.stderr.txt",
+      "sha256": "311df84cd48ea23b42933cd98a277af162c5a226cdfcadadba4eae464f7f4a41"
+    },
+    {
+      "bytes": 0,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/delivery_checks/python.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 23835,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/finite_gather_results.json",
+      "sha256": "d579acc4ffe8ec8ba9963a2c2f2c77d07ce9a6d927a5c3aaaaf318c18379bd3c"
+    },
+    {
+      "bytes": 10304,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/finite_gather_verification.json",
+      "sha256": "b54bc9f78492fa370fefbeb2cd072f6c77736f205d64a7aac2cec9fb6f3c24f5"
+    },
+    {
+      "bytes": 349185,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/finite_grasu_results.json",
+      "sha256": "752faaf3cdaf79af4f5b9e87478467ede7a3e570a567ba720b102b3cc5fc432d"
+    },
+    {
+      "bytes": 169372,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/finite_grasu_verification.json",
+      "sha256": "dc0ee81c98c9cf25e84eb8f6bf1afadbd618b4280115b7ea68bc5b9b0caea896"
+    },
+    {
+      "bytes": 390041,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/finite_pma_results.json",
+      "sha256": "770b0fce55f54e0c32a2d04f373179e22e872b400c54a5761c6a3d29170f773e"
+    },
+    {
+      "bytes": 185840,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/finite_pma_verification.json",
+      "sha256": "01d2e3bf833cdce0b330599d7f4eeb12ccae6dda8a06276787b6a0e46c0e2306"
+    },
+    {
+      "bytes": 44454,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/frontend_results.json",
+      "sha256": "b04751fbdab970f74518ca0af073b9328a360b9ee07e3e0a8a3e680158083a13"
+    },
+    {
+      "bytes": 23110,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/frontend_verification.json",
+      "sha256": "70cac21e4c6a5e7b329645fd8c3b1de1e46b55cff03a745b7943929cfc58add9"
+    },
+    {
+      "bytes": 523854,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/grasu_ddr_rtl_results.json",
+      "sha256": "fc3a10744821b29bcee268024d94c46e02eaa673570a983e76c0f4e8ffc0dad9"
+    },
+    {
+      "bytes": 724672,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/grasu_ddr_rtl_verification.json",
+      "sha256": "2193a52ed29a5aa0629f1ddad8db0aeb60ae54d5cc94ccefd7341a4c86acd573"
+    },
+    {
+      "bytes": 490533,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/grasu_host_results.json",
+      "sha256": "b548229594e31b4d78eefa2ec79502a97134fad35a274504c9089cadadd06048"
+    },
+    {
+      "bytes": 114885,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/grasu_host_verification.json",
+      "sha256": "6292b4ca36c37359d1fec8d6b5e924dc007352b4c90ba5de00d63e7d0f55fdaa"
+    },
+    {
+      "bytes": 262163,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/grasu_source_path_results.json",
+      "sha256": "035133d5d865f2f999b74e3bea2c8fda129c909b8912383741932e34a9362f80"
+    },
+    {
+      "bytes": 54965,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/grasu_source_path_verification.json",
+      "sha256": "786f6af11e03a1256d0467278bfb8087653e06741873065a0396845ddbc2cc07"
+    },
+    {
+      "bytes": 392755,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/input_results.json",
+      "sha256": "6facfcb80cbb9314cbfdc4e045cab9a34b0a2fae49d1a4034d0d4198575b22db"
+    },
+    {
+      "bytes": 51513,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/input_verification.json",
+      "sha256": "d3274c246d9728bc7766aec7349c01527a39f005e2aba65beb8b9c872f408023"
+    },
+    {
+      "bytes": 380189,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/mixed_results.json",
+      "sha256": "4dac2e1463bc81e85252553f72abbd45c2410a1b85ae868cf1ed61209c0712db"
+    },
+    {
+      "bytes": 32172,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/mixed_verification.json",
+      "sha256": "7150bec2bcb9ccb3f3aaf5bc1cee01143c7a6fa5bd68d86f3ff74031545f81f2"
+    },
+    {
+      "bytes": 5834,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/publication_history.json",
+      "sha256": "57a3962642ec4bb13c8b8fca9bd222c6ec8b3cf6dcfe7e98649b2b36ddaf8f0d"
+    },
+    {
+      "bytes": 3531,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/publication_history_verification.json",
+      "sha256": "21982e8886dc8f236d9dfb448624a91316f28c6b1e32b5467aca257dbdc1e1ad"
+    },
+    {
+      "bytes": 75970,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/publication_workload_counts.json",
+      "sha256": "22215641e2b33e76f3b0f70072711b9d58a565a4c8e2901bf82a71457997ba9f"
+    },
+    {
+      "bytes": 5637,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/publication_workload_verification.json",
+      "sha256": "bf3d7f3c3828e361bd8cca23ef2845df0827bec83264060fc5340b206a9deb4d"
+    },
+    {
+      "bytes": 156821,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_a4_axi_instances.tar.gz",
+      "sha256": "5d9dec73bfa09a2d0b7a74e4e0ee2883af159f0bc6b2baba6b3b2cb365b19d30"
+    },
+    {
+      "bytes": 377897,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_a4_graph_execution.tar.gz",
+      "sha256": "482233408f0461b9ca177f810601745c51025bf842ac03f1202ba0260e0f1185"
+    },
+    {
+      "bytes": 237978,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_adapter_source.tar.gz",
+      "sha256": "c5845d1352bea56af3c38d36b47196e215c6ecb1ea5228158eafa0a5be8b93a8"
+    },
+    {
+      "bytes": 258325,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_big_frontend.tar.gz",
+      "sha256": "1728ab3a5e24c9a5541ba857bdb60fea836de41b0e028d7bc315e07fd9df78cf"
+    },
+    {
+      "bytes": 157537,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_big_gather.tar.gz",
+      "sha256": "f583a57bd78234fd2ebd521ece6f40853ddfc5b07b39ca880d6f600828b550e3"
+    },
+    {
+      "bytes": 1304778,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_finite_grasu.tar.gz",
+      "sha256": "fed4c89f38ac983ae60497badd3a7802bf54065d0a0afe03fd93ef51b3041362"
+    },
+    {
+      "bytes": 530760,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_finite_pma.tar.gz",
+      "sha256": "29db973f71b501b774e4317d586051b413cc4ac9e7a4135c94622a1a72ff50bb"
+    },
+    {
+      "bytes": 8038547,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_grasu_ddr_rtl.tar.gz",
+      "sha256": "f44b3ad59cfb4120d998d147c43db7df8df4a78650b9471405c0a63e2aa374f5"
+    },
+    {
+      "bytes": 26432135,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_grasu_host.tar.gz",
+      "sha256": "315e91eec9cdce1996e1a5c4c66c49473d01efa6a7be6053ab7844fa1bb43dc6"
+    },
+    {
+      "bytes": 472374,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_grasu_source_path.tar.gz",
+      "sha256": "9622e297e78416812d40f4b16b61cb2e4f0141eb68f78a1c396efbde200569c4"
+    },
+    {
+      "bytes": 2043381,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_hls_schedules.tar.gz",
+      "sha256": "99a39a06b30579194b646eeb5ab49d1ea30e4a7ff035b9bf62ef054401b6c06d"
+    },
+    {
+      "bytes": 77276,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_little_finite_model.tar.gz",
+      "sha256": "1d7d39696865c4af420f4592c104bda1b69d46b880fefaf20602718b8254bb8c"
+    },
+    {
+      "bytes": 191686,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_little_frontend_model.tar.gz",
+      "sha256": "67e481fc4cf901cae541b90be4f62dfaaab711f2cc91d05403c79a85421500ce"
+    },
+    {
+      "bytes": 216764,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_little_state_model.tar.gz",
+      "sha256": "07bd1894afe8647618bbef252dd8942e383fef9fc74fe31640374d96c685cdcb"
+    },
+    {
+      "bytes": 87542,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_mixed_execution.tar.gz",
+      "sha256": "e6704991448c6043ce31447407c3f8bc7001ecfcb0bb74ad5bb2140892e5d58a"
+    },
+    {
+      "bytes": 267259,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_original_host_inputs.tar.gz",
+      "sha256": "c12320d2efb63e12e0d8548165e43f4d1cfda53be12125d604691e036bb272bc"
+    },
+    {
+      "bytes": 256322,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_publication_history.tar.gz",
+      "sha256": "fe41fb41f8744c626776559c9510815b0c206865406dd3505ce0ee467441a966"
+    },
+    {
+      "bytes": 42361,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_publication_workload_counts.tar.gz",
+      "sha256": "ebc65937caa496e1b554250587d78d6e18c6da86d531b7e640a0e2a480a133eb"
+    },
+    {
+      "bytes": 300424,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/raw_source_controls.tar.gz",
+      "sha256": "f086261803fd623fbda546ea69fd2e33affb341b9b2ef41730997f64dc97ca42"
+    },
+    {
+      "bytes": 323690,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/schedule_verification.json",
+      "sha256": "0042919cabd4cefb3169db0ab6ec6db0740a86c86ba3689b7580f84fa11e5b3e"
+    },
+    {
+      "bytes": 46430,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/state_results.json",
+      "sha256": "a105a6366876673a2021e73493e4e432e128f7bd2f92feca4a8ade6bd4606b6f"
+    },
+    {
+      "bytes": 31453,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/state_verification.json",
+      "sha256": "fbda6117e57786c19ba72457f02f15282228837b4e951da5f0b30cb6f49bc926"
+    },
+    {
+      "bytes": 43723,
+      "path": "docs/repository/grasu_component_refactor/equivalence.json",
+      "sha256": "57bf4e894d20fa18bc4cd54f71bfeb73d1b2c0d176852048f2f0cb6630db082d"
+    },
+    {
+      "bytes": 3589097,
+      "path": "docs/repository/grasu_component_refactor/raw_runs.tar.gz",
+      "sha256": "c7f9540cb5b367f7dbdc428662dbac7a2a7ac9e72578219d7c66b6467e5b739f"
+    },
+    {
+      "bytes": 401,
+      "path": "docs/repository/sst_spine_refactor/definition_equivalence.json",
+      "sha256": "6f0ea9bec34a428bf9ffaf47364884c314f26534223fc74fd7c6520cf408da7d"
+    },
+    {
+      "bytes": 7806639,
+      "path": "docs/repository/sst_spine_refactor/raw_runs.tar.gz",
+      "sha256": "4986cebae051208386a1bd66da9e2d3dbdb3a3fede8b8a4c49197263799a67de"
+    },
+    {
+      "bytes": 178627,
+      "path": "docs/repository/sst_spine_refactor/spine_equivalence.json",
+      "sha256": "650add14fd1679e15233d2c2a8cf9f01a9ee792afde4b502c6a6783af592f5c8"
+    },
+    {
+      "bytes": 93470,
+      "path": "docs/repository/sst_spine_refactor/sst_equivalence.json",
+      "sha256": "ea3219025a45a4e313bbf13350dbb8d44803475ef632f6d68389350254caab94"
+    },
+    {
+      "bytes": 664,
+      "path": "docs/repository/sst_spine_refactor/verification.json",
+      "sha256": "dcf1ee5410d7941bae3ed761252c4f7cef3119d68ea86d60f3467182f289113a"
+    },
+    {
+      "bytes": 8630,
+      "path": "tests/test_stage_validation_delivery.py",
+      "sha256": "bf69086758351405994d187d44be70808661b53b747ab4f4b3aa55e34165b49e"
+    }
+  ],
+  "checks": {
+    "G_finite_configurations": 12,
+    "G_finite_repeated_rows": 24,
+    "G_refactor_raw_pairs_exact": 5,
+    "SST_Spine_correctness_admitted": 10,
+    "SST_Spine_raw_three_phase_cases_exact": 14,
+    "complete_stage_archive_members_hash_checked": 1997,
+    "current_numerical_source_identity_test_passed": true,
+    "known_rejections_preserved_not_admitted": 4,
+    "large_payload_files_hashed": 347,
+    "matched_A4_B_rows": 8,
+    "original_A4_rows": 8,
+    "original_mixed_A_rows": 8
+  },
+  "measured_system_C": false,
+  "preservation": {
+    "author_checkouts": {
+      "grasu": {
+        "head": "e95da256be9e7f2361449323b6fe0abf98c1b152",
+        "worktree_clean": true
+      },
+      "regraph": {
+        "head": "365456826cef495285383d939907f847e05ad74b",
+        "worktree_clean": true
+      }
+    },
+    "changed_protected_files": [],
+    "frozen_G_code_files_hashed": 124,
+    "frozen_temporal_collector_identity_set_unchanged": true,
+    "production_plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+    "protected_files_hashed": 2437,
+    "unrelated_v4_outputs_excluded": true,
+    "user_script_sha256": "d47e967f2dfe30b52aae8a8d9ed66b6a28b6a8fe73d55a827b7e92692730b7c2"
+  },
+  "publication_matches_admitted": 0,
+  "publication_rate_error_pct": null,
+  "schema_version": 1,
+  "source_revision_at_check": "c143591e2d1777b91bcd297bddb4101f4a251e6b",
+  "status": "DELIVERY_INTEGRITY_VERIFIED_PUBLICATION_TIMING_BLOCKED",
+  "unresolved": [
+    "G author temporal conversion, operations, denominator and aggregation",
+    "G paper8 versus inspected source16 geometry and original memory/timing",
+    "R graph-selected topology/cut, original memory/clock/timing window",
+    "FPGA admission of A4/B predicted timing and routed K4 placement equivalence",
+    "Actual G-produced PMA handoff and measured host/system-C composition"
+  ],
+  "verification": {
+    "focused_Python_tests_passed": 133,
+    "fresh_build_or_SST_or_FPGA_or_synthesis": false,
+    "full_Python_suite": false,
+    "initial_delivery_test_rejected_assumption": "A known wrapper rejection can have result.success=true; fixed the test to check the frozen rejection signature plus runner exit/status, without changing any results.",
+    "new_model_runs": false,
+    "reused_build_Cpp_tests_passed": 15,
+    "steps": [
+      {
+        "available_before_bytes": 72202825728,
+        "command": [
+          "/usr/bin/python3",
+          "-c",
+          "import unittest; loader=unittest.TestLoader(); suite=unittest.TestSuite(loader.discover(\"tests\", pattern=p) for p in ['test_stage_validation_delivery.py', 'test_refactor_equivalence.py', 'test_pma_regraph_control.py', 'test_original_grasu_finite.py', 'test_original_regraph_mixed.py', 'test_original_grasu_source_path.py', 'test_publication_match.py', 'test_original_grasu_ddr_rtl.py', 'test_original_grasu_host.py', 'test_publication_workload_admission.py', 'test_upstream_publication_history.py', 'test_repository_structure.py']); result=unittest.TextTestRunner().run(suite); raise SystemExit(not result.wasSuccessful())"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 2,
+        "peak_rss_kib": 118608,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/stage_delivery_audit_v1/python.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/stage_delivery_audit_v1/python.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 8.52203334774822
+      },
+      {
+        "available_before_bytes": 71573549056,
+        "command": [
+          "ctest",
+          "--test-dir",
+          "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/build",
+          "--output-on-failure",
+          "--timeout",
+          "120"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 2,
+        "peak_rss_kib": 95184,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/stage_delivery_audit_v1/cpp.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/stage_delivery_audit_v1/cpp.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 7.573837602045387
+      }
+    ]
+  }
+}

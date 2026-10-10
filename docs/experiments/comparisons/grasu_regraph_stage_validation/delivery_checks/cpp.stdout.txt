@@ -1,0 +1,35 @@
+Test project /home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/build
+      Start  1: original_grasu_tests
+ 1/15 Test  #1: original_grasu_tests ..................   Passed    0.01 sec
+      Start  2: pma_adapter_tests
+ 2/15 Test  #2: pma_adapter_tests .....................   Passed    0.01 sec
+      Start  3: original_regraph_mixed_tests
+ 3/15 Test  #3: original_regraph_mixed_tests ..........   Passed    0.00 sec
+      Start  4: original_regraph_big_frontend_tests
+ 4/15 Test  #4: original_regraph_big_frontend_tests ...   Passed    0.06 sec
+      Start  5: original_regraph_big_tests
+ 5/15 Test  #5: original_regraph_big_tests ............   Passed    1.59 sec
+      Start  6: original_regraph_iteration_tests
+ 6/15 Test  #6: original_regraph_iteration_tests ......   Passed    0.91 sec
+      Start  7: original_regraph_state_tests
+ 7/15 Test  #7: original_regraph_state_tests ..........   Passed    0.03 sec
+      Start  8: original_regraph_frontend_tests
+ 8/15 Test  #8: original_regraph_frontend_tests .......   Passed    0.11 sec
+      Start  9: original_regraph_gather_tests
+ 9/15 Test  #9: original_regraph_gather_tests .........   Passed    0.39 sec
+      Start 10: sst_hbm_mapper_tests
+10/15 Test #10: sst_hbm_mapper_tests ..................   Passed    0.00 sec
+      Start 11: spine_cycle_core_tests
+11/15 Test #11: spine_cycle_core_tests ................   Passed    3.91 sec
+      Start 12: spine_owner_tests
+12/15 Test #12: spine_owner_tests .....................   Passed    0.00 sec
+      Start 13: spine_vertex_lifecycle_tests
+13/15 Test #13: spine_vertex_lifecycle_tests ..........   Passed    0.00 sec
+      Start 14: grasu_cycle_tests
+14/15 Test #14: grasu_cycle_tests .....................   Passed    0.51 sec
+      Start 15: grasu_runtime_tests
+15/15 Test #15: grasu_runtime_tests ...................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 15
+
+Total Test time (real) =   7.55 sec

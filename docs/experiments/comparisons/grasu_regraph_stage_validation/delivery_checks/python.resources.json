@@ -1,0 +1,18 @@
+{
+  "available_before_bytes": 72202825728,
+  "command": [
+    "/usr/bin/python3",
+    "-c",
+    "import unittest; loader=unittest.TestLoader(); suite=unittest.TestSuite(loader.discover(\"tests\", pattern=p) for p in ['test_stage_validation_delivery.py', 'test_refactor_equivalence.py', 'test_pma_regraph_control.py', 'test_original_grasu_finite.py', 'test_original_regraph_mixed.py', 'test_original_grasu_source_path.py', 'test_publication_match.py', 'test_original_grasu_ddr_rtl.py', 'test_original_grasu_host.py', 'test_publication_workload_admission.py', 'test_upstream_publication_history.py', 'test_repository_structure.py']); result=unittest.TextTestRunner().run(suite); raise SystemExit(not result.wasSuccessful())"
+  ],
+  "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+  "exit_code": 0,
+  "memory_limit_gib": 2,
+  "peak_rss_kib": 118608,
+  "reserve_gib": 16,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/stage_delivery_audit_v1/python.stderr.txt",
+  "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/stage_delivery_audit_v1/python.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 8.52203334774822
+}

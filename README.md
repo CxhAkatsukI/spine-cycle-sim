@@ -18,6 +18,7 @@ Contributors and coding agents must follow [the repository working rules](AGENTS
 | Understand the organization problems and cleanup order | [Repository structure audit](docs/repository/structure_audit_20261009.md) |
 | Audit original GraSU/ReGraph publication comparisons | [Publication-match study](docs/experiments/comparisons/grasu_regraph_publication_match/README.md) |
 | Review current isolated G / original R / matched A4 / adapter studies | [Stage-validation status and evidence](docs/experiments/comparisons/grasu_regraph_stage_validation/README.md) |
+| Read the stage-study conclusion and what remains unverified | [Delivery conclusions](docs/experiments/comparisons/grasu_regraph_stage_validation/CONCLUSIONS.md) |
 
 ## Repository Boundaries
 
