@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import csv
-import fcntl
 import os
 from pathlib import Path
 import subprocess
@@ -11,6 +10,7 @@ import subprocess
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 from .analysis import analyze_log
+from .board import board_lease, hardware_command, require_idle_board
 
 
 def identity(path: Path) -> dict:
@@ -52,32 +52,19 @@ def run_study(*, integration: Path, matrix: Path, case: str, baseline_host: Path
                 "reserve_gib": 16, "timeout_seconds": timeout,
                 "claim": "observational_host_trace_of_unchanged_routed_K4_not_A4_or_publication_match"}
     atomic_write_json(output / "manifest.json", manifest)
-    lock_path = Path(f"/tmp/chuxiao-sharded-k4-board-{device}.lock")
-    render = ("/dev/dri/renderD128", "/dev/dri/renderD131")[device]
-    if not Path(render).exists():
-        raise FileNotFoundError(render)
     attempts = []
-    with lock_path.open("a") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    with board_lease(device) as render:
         for repeat in range(repeats):
             for arm, host, trace in (("baseline", baseline_host, "0"),
                                      ("trace_disabled", trace_host, "0"),
                                      ("trace_enabled", trace_host, "1")):
-                users = subprocess.run(["fuser", render], capture_output=True, text=True)
-                if users.returncode != 1:
-                    raise RuntimeError(f"board is occupied or occupancy check failed: {users.stdout} {users.stderr}")
+                require_idle_board(render)
                 name = f"r{repeat}_{arm}"
                 run_dir = output / name
                 if run_dir.exists():
                     raise FileExistsError(run_dir)
-                command = ["env", f"GRASU_SHARDED_EVENT_TRACE={trace}",
-                           "GRASU_UPDATE_REPEATS=1", "bash",
-                           str(integration / "scripts/run_pma_native_hw.sh"),
-                           "--algorithm", row["algorithm"], "--host", str(host),
-                           "--xclbin", row["gr_xclbin"], "--graph", row["graph"],
-                           "--out-dir", str(run_dir), "--source", row["source"],
-                           "--max-supersteps", "256", "--device-index", str(device),
-                           "--timeout", str(max(1, timeout - 20))]
+                command = hardware_command(integration, row, host, Path(row["gr_xclbin"]),
+                                           run_dir, device, timeout, trace)
                 resources = run_bounded(command, integration, output / f"{name}_process",
                                         timeout=timeout, memory_gib=memory_gib, reserve_gib=16)
                 attempt = {"arm": arm, "repeat": repeat, "resources": resources}

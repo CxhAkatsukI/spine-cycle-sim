@@ -6,6 +6,9 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 71-cycle memory assumption is assigned to the FPGA path.
 
 Start with [the measured checkpoint and remaining work](RESULTS.md).
+Continue with [adapter RTL/route validation](adapter_optimization/README.md)
+for the next optimization checkpoint. The initial raw package below remains
+frozen and does not contain the later candidate build.
 The [raw file index](raw_index.json) covers all 27 board logs and the
 four candidate HLS ablations. It does not certify an optimized bitstream.
 

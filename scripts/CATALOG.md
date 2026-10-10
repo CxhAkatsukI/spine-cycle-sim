@@ -229,6 +229,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 
 ## Supporting commands
 
+- [admit_sharded_k4_bitstream.py](admit_sharded_k4_bitstream.py)
 - [calibrate_current_fpga_rq3_v15.py](calibrate_current_fpga_rq3_v15.py)
 - [characterize_current_grasu_arrays.py](characterize_current_grasu_arrays.py)
 - [collect_candidate10_grouped_pass_rtl_oracle.py](collect_candidate10_grouped_pass_rtl_oracle.py)
@@ -242,8 +243,10 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [collect_vivado_power.py](collect_vivado_power.py)
 - [collect_vivado_power_evidence.py](collect_vivado_power_evidence.py)
 - [compare_dstage_tile_schedule.py](compare_dstage_tile_schedule.py)
+- [compare_sharded_k4_bitstreams.py](compare_sharded_k4_bitstreams.py)
 - [control_large_graph_campaign.py](control_large_graph_campaign.py)
 - [convert_grasu_graph_to_slices.py](convert_grasu_graph_to_slices.py)
+- [cosim_sharded_k4_adapter.py](cosim_sharded_k4_adapter.py)
 - [derive_update_only_manifest.py](derive_update_only_manifest.py)
 - [estimate_evaluation_campaign_eta.py](estimate_evaluation_campaign_eta.py)
 - [import_spine_candidate10_hw_evidence.py](import_spine_candidate10_hw_evidence.py)
@@ -260,6 +263,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [repair_registered_arbitration_admission.py](repair_registered_arbitration_admission.py)
 - [repin_active_campaigns.py](repin_active_campaigns.py)
 - [resume_formal_v6_sssp_after_priority.sh](resume_formal_v6_sssp_after_priority.sh)
+- [route_sharded_k4_adapter.py](route_sharded_k4_adapter.py)
 - [summarize_grasu_k_pipeline_sensitivity.py](summarize_grasu_k_pipeline_sensitivity.py)
 - [synthesize_sharded_k4_adapter_candidates.py](synthesize_sharded_k4_adapter_candidates.py)
 - [verify_plugin_host_runtime_equivalence.py](verify_plugin_host_runtime_equivalence.py)
