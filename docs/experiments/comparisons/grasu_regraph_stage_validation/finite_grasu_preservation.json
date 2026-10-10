@@ -1,0 +1,140 @@
+{
+  "SST_and_FPGA_matrices_rerun": false,
+  "archive_members": 594,
+  "archive_sha256": "fed4c89f38ac983ae60497badd3a7802bf54065d0a0afe03fd93ef51b3041362",
+  "changed_protected_files": [],
+  "formal_peak_rss_kib": 153800,
+  "formal_steps": 44,
+  "formal_subprocess_wall_seconds": 146.20221285056323,
+  "large_payloads_indexed": 204,
+  "old_code_preservation": {
+    "A4_B_result_preserved": true,
+    "changed_old_files": [
+      "cpp/CMakeLists.txt"
+    ],
+    "old_files": 164,
+    "only_independent_build_declarations_changed": true,
+    "production_plugin_preserved": true,
+    "user_patch_preserved": true
+  },
+  "protected_baseline_sha256": "1805c4c936e740b14f528661e1e744bb405562aac79cce7ff4b1e5e32e67699f",
+  "protected_evidence_files": 2437,
+  "reason": "no old numerical source or plugin changed; only independent CMake declarations were added",
+  "regression": [
+    {
+      "resource": {
+        "available_before_bytes": 125391998976,
+        "command": [
+          "ctest",
+          "--test-dir",
+          "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/build",
+          "--output-on-failure",
+          "--timeout",
+          "120"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 95108,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/ctest.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/ctest.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 7.3730917372740805
+      },
+      "stderr": "",
+      "stdout": "Test project /home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/build\n      Start  1: original_grasu_tests\n 1/15 Test  #1: original_grasu_tests ..................   Passed    0.01 sec\n      Start  2: pma_adapter_tests\n 2/15 Test  #2: pma_adapter_tests .....................   Passed    0.01 sec\n      Start  3: original_regraph_mixed_tests\n 3/15 Test  #3: original_regraph_mixed_tests ..........   Passed    0.00 sec\n      Start  4: original_regraph_big_frontend_tests\n 4/15 Test  #4: original_regraph_big_frontend_tests ...   Passed    0.04 sec\n      Start  5: original_regraph_big_tests\n 5/15 Test  #5: original_regraph_big_tests ............   Passed    1.58 sec\n      Start  6: original_regraph_iteration_tests\n 6/15 Test  #6: original_regraph_iteration_tests ......   Passed    0.89 sec\n      Start  7: original_regraph_state_tests\n 7/15 Test  #7: original_regraph_state_tests ..........   Passed    0.01 sec\n      Start  8: original_regraph_frontend_tests\n 8/15 Test  #8: original_regraph_frontend_tests .......   Passed    0.09 sec\n      Start  9: original_regraph_gather_tests\n 9/15 Test  #9: original_regraph_gather_tests .........   Passed    0.38 sec\n      Start 10: sst_hbm_mapper_tests\n10/15 Test #10: sst_hbm_mapper_tests ..................   Passed    0.00 sec\n      Start 11: spine_cycle_core_tests\n11/15 Test #11: spine_cycle_core_tests ................   Passed    3.81 sec\n      Start 12: spine_owner_tests\n12/15 Test #12: spine_owner_tests .....................   Passed    0.00 sec\n      Start 13: spine_vertex_lifecycle_tests\n13/15 Test #13: spine_vertex_lifecycle_tests ..........   Passed    0.00 sec\n      Start 14: grasu_cycle_tests\n14/15 Test #14: grasu_cycle_tests .....................   Passed    0.51 sec\n      Start 15: grasu_runtime_tests\n15/15 Test #15: grasu_runtime_tests ...................   Passed    0.00 sec\n\n100% tests passed, 0 tests failed out of 15\n\nTotal Test time (real) =   7.35 sec\n",
+      "tests": 15
+    },
+    {
+      "resource": {
+        "available_before_bytes": 125232996352,
+        "command": [
+          "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/ubsan/cpp/original_grasu_tests"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 15712,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/ubsan_tests.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/ubsan_tests.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 0.05381165677681565
+      },
+      "stderr": "",
+      "stdout": "original G components pass\n",
+      "tests": 1
+    },
+    {
+      "resource": {
+        "available_before_bytes": 125261570048,
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "tests.test_publication_match",
+          "tests.test_upstream_stage_controls",
+          "tests.test_upstream_stage_synthesis",
+          "tests.test_original_grasu_source_path",
+          "tests.test_original_grasu_host",
+          "tests.test_original_grasu_ddr_rtl",
+          "tests.test_original_grasu_finite",
+          "tests.test_original_regraph_validation",
+          "tests.test_original_regraph_frontend",
+          "tests.test_original_regraph_state",
+          "tests.test_original_regraph_inputs",
+          "tests.test_original_regraph_execution",
+          "tests.test_original_regraph_adapter",
+          "tests.test_original_regraph_big_validation",
+          "tests.test_original_regraph_big_frontend",
+          "tests.test_original_regraph_mixed",
+          "tests.test_pma_regraph_control",
+          "tests.test_grasu_native_runner",
+          "tests.test_repository_structure"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 115972,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/run/validation/focused_tests.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/run/validation/focused_tests.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 3.0603325832635164
+      },
+      "stderr": ".........................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 201 tests in 2.879s\n\nOK\n",
+      "stdout": "",
+      "tests": 201
+    },
+    {
+      "resource": {
+        "available_before_bytes": 125224943616,
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "tests.test_refactor_equivalence"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 24712,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/run/validation/refactor_tests.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_finite_final_v1/run/validation/refactor_tests.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 0.15338177559897304
+      },
+      "stderr": "..........\n----------------------------------------------------------------------\nRan 10 tests in 0.007s\n\nOK\n",
+      "stdout": "",
+      "tests": 10
+    }
+  ],
+  "schema_version": 1,
+  "status": "G_FINITE_SOURCE16_STATE_LEDGER_PASS_NOT_TIMING"
+}

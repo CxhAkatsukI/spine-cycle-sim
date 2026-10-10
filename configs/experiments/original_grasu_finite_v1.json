@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "source_revision": "e95da256be9e7f2361449323b6fe0abf98c1b152",
+  "source_probe": "results/upstream_stage_controls/grasu_source_path_final_v1/normal/probe",
+  "source_probe_sha256": "c9f2646a9b21e26e8fc9631ec37498d6bf1d918f51702a75e8748f7ef1cc27f3",
+  "source_ubsan_probe": "results/upstream_stage_controls/grasu_source_path_final_v1/ubsan/probe",
+  "source_ubsan_probe_sha256": "572220d04827d8b87fe365c3d72859c98cedfef2e7be397dc7dc9c7d57b3de5b",
+  "clock_mhz": 200,
+  "timing_kind": "declared_prediction_not_fpga_or_publication_calibration",
+  "memory": {"banks": 4, "latency": 64, "bank_credits": 512, "fifo_depth": 2, "port_bursts": 16, "port_parents": 16, "accepts_per_bank_cycle": 1},
+  "timing": {"search_control": 1, "cache_interval": 3, "cache_latency": 7, "ddr_compute": 18, "ddr_sweep_minimum": 161, "ddr_restart": 4},
+  "matrix": [
+    {"id": "empty", "case": 0},
+    {"id": "one", "case": 1},
+    {"id": "three", "case": 2},
+    {"id": "lane_65", "case": 3},
+    {"id": "lane_257", "case": 4},
+    {"id": "hot_only", "case": 5},
+    {"id": "cold_only", "case": 6},
+    {"id": "mixed_three_batches", "case": 7},
+    {"id": "lane_257_reverse", "case": 4, "reverse": 1},
+    {"id": "mixed_reverse", "case": 7, "reverse": 1},
+    {"id": "cold_pressure", "case": 6, "latency": 128, "bank_credits": 16},
+    {"id": "hot_pressure", "case": 5, "latency": 128, "bank_credits": 16, "fifo_depth": 8}
+  ],
+  "repetitions": 2,
+  "ubsan_rows": ["empty", "lane_257", "mixed_three_batches", "cold_pressure"],
+  "limits": {"memory_gib": 4, "reserve_gib": 16, "timeout_seconds": 600, "max_cycles_per_batch": 4000000}
+}

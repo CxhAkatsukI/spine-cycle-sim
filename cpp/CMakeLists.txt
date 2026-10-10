@@ -47,6 +47,16 @@ target_link_libraries(original_regraph_cycle PUBLIC spine_cycle_core)
 target_compile_options(original_regraph_cycle PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
 # Independent study input; not part of the production SST plugin.
+add_library(original_grasu_cycle STATIC
+  src/original_grasu/types.cpp
+  src/original_grasu/routing.cpp
+  src/original_grasu/edge_reader.cpp
+  src/original_grasu/search.cpp
+  src/original_grasu/hot_store.cpp
+  src/original_grasu/ddr.cpp)
+target_link_libraries(original_grasu_cycle PUBLIC spine_cycle_core)
+target_compile_options(original_grasu_cycle PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
 add_library(pma_adapter_cycle STATIC src/pma_adapter/reader.cpp)
 target_link_libraries(pma_adapter_cycle PUBLIC original_regraph_cycle)
 target_compile_options(pma_adapter_cycle PRIVATE -Wall -Wextra -Wpedantic -Werror)
@@ -58,6 +68,14 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(original_grasu_execution tests/original_grasu/execution.cpp)
+  target_link_libraries(original_grasu_execution PRIVATE original_grasu_cycle)
+  target_compile_options(original_grasu_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_executable(original_grasu_tests tests/original_grasu/component_tests.cpp)
+  target_link_libraries(original_grasu_tests PRIVATE original_grasu_cycle)
+  target_compile_options(original_grasu_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME original_grasu_tests COMMAND original_grasu_tests)
+
   add_executable(pma_adapter_tests tests/pma_adapter/reader_tests.cpp)
   target_link_libraries(pma_adapter_tests PRIVATE pma_adapter_cycle)
   target_compile_options(pma_adapter_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

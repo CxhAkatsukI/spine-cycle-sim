@@ -44,6 +44,10 @@ The [isolated original GraSU DDR RTL control](original_grasu_ddr_rtl.md)
 checks aliased physical memory, finite queues, repeated-segment ordering and
 complete state against the original source. It constrains one G component;
 complete G finite timing, cache/search timing and publication matching remain open.
+The separate [finite G composition owner](original_grasu_finite.md) connects
+search, cache and DDR through shared physical banks, bounded queues and
+complete state/traffic gates. Its timing is a declared prediction, not a
+replacement for the original RTL or publication-admission controls.
 
 The [independent original-ReGraph Little core](original_regraph_little_gather.md)
 has a separate implementation and explicit partial timing boundary. It is a

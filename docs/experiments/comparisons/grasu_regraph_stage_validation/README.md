@@ -14,7 +14,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 
 | Path | Current evidence | Still required |
 | --- | --- | --- |
-| G | Eight prepared-PMA and eight guarded host-prepared source16 cases pass; twelve original DDR RTL/shared-memory cases pass full state, ordering and finite-bus gates | Complete finite search/cache/DDR composition, temporal workload, paper8 geometry and publication rate admission; unchanged original host is not admitted |
+| G | Eight prepared-PMA and eight guarded host-prepared source16 cases pass; twelve original DDR RTL controls pass; complete four-bank finite search/cache/DDR composition passes twelve configurations, exact repetitions and selected UBSan | Temporal workload, paper8 geometry, cache/search/controller timing and publication rate admission; unchanged original host is not admitted |
 | A | Complete 11+3 graph execution, indexed state and finite ledgers pass under declared tail padding | Original-host allocation compatibility, graph-selected topology, publication memory/clock/window/denominator admission and timing match |
 | A4 | Complete Amazon and two fixtures pass every pre-Apply sum, four state replicas and finite ledgers; eight legacy and matched-input-credit controls remain exact | Realistic memory/timing admission and publication comparison |
 | B | Eight complete finite PMA+A4 executions pass matched state/work/window/overlap gates; source fixtures prove cold/stale routing; modeled overhead is reported separately | FPGA/RTL timing admission, actual routed-K4 placement, original-G-produced inputs and publication comparison; predicted cycles are not measured overhead |
@@ -28,6 +28,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 | Does the prepared original G kernel path agree? | [G source-path control](GRASU_SOURCE_PATH.md) |
 | Does trace-aware G host preparation compose with the original kernels? | [G host inputs, bounds failures and compatibility control](GRASU_HOST_INPUTS.md) |
 | Do original DDR RTL ports safely alias physical memory under finite pressure? | [Twelve source/RTL state controls, bus tests and event ordering](GRASU_DDR_RTL.md) |
+| Does the complete G path preserve source state and requests under shared-bank pressure? | [Finite source16 composition, complete matrix and explicit timing boundary](FINITE_GRASU.md) |
 | What do source controls and HLS schedules establish? | [Initial source controls](SOURCE_CONTROLS.md), [HLS scheduling](HLS_SCHEDULES.md) |
 | How were complete graph inputs prepared? | [Original host inputs](ORIGINAL_HOST_INPUTS.md) |
 | Does complete original A4 work? | [Whole-A4 execution](A4_GRAPH_EXECUTION.md) |

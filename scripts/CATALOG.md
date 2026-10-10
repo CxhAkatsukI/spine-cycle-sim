@@ -119,6 +119,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [run_large_graph_campaign.py](run_large_graph_campaign.py)
 - [run_maintenance_microbench.py](run_maintenance_microbench.py)
 - [run_original_grasu_ddr_rtl.py](run_original_grasu_ddr_rtl.py)
+- [run_original_grasu_finite.py](run_original_grasu_finite.py)
 - [run_original_grasu_host.py](run_original_grasu_host.py)
 - [run_original_grasu_source_path.py](run_original_grasu_source_path.py)
 - [run_original_regraph_a4.py](run_original_regraph_a4.py)

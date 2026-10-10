@@ -17,6 +17,12 @@ state/ordering cases under declared shared memory plus independent bus tests.
 It constrains one G component; it does not close complete finite G composition,
 original DDR/clock admission, paper8 geometry or the publication-rate gate.
 
+The subsequent [finite G composition](FINITE_GRASU.md) passes all twelve
+prepared-source16 configurations, exact repetitions, source requests/state and
+selected whole-path UBSan. That closes the finite composition checkpoint, not
+its timing admission: cache/search/controller, temporal inputs, paper8 and the
+published-rate comparison remain open.
+
 ## Separate Questions
 
 | Path | Question | Required control |
