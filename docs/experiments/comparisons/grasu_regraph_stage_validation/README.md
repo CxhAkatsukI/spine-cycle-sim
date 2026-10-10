@@ -6,6 +6,10 @@ For reproduction, read the [execution and acceptance plan](PLAN.md), then the pr
 This folder owns the new study's results and conclusions, rather than
 scattering them among figure-refresh and daily investigation directories.
 
+The revised next step is [actual sharded-K4 validation](actual_sharded_k4/README.md):
+freeze and observe the production path, diagnose it, then optimize and compare
+it with original A4. The independent PMA+A4 control below is not that hardware.
+
 ## Current Status
 
 SST/Spine extraction passed exact regression in `51565fc`. Independent G/R

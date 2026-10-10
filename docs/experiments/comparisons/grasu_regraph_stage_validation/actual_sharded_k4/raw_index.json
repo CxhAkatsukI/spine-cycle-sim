@@ -1,0 +1,1253 @@
+{
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/raw_diagnostic.tar.gz",
+    "sha256": "f6af9a3db6f39e4c65bc07f5cda682a5995461a5108658fcef5364f852e78672"
+  },
+  "files": [
+    {
+      "archive_path": "ablations/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/attempts.json",
+      "sha256": "145fc3a132cdf12b7d9792e48435b2c2c922ad7ec62422bf2bff0e5c90ce7c30"
+    },
+    {
+      "archive_path": "ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "551e2f6d326a2b969b36f24c4649a11b57c2e908f91314869e10aaae8e0a3e7f"
+    },
+    {
+      "archive_path": "ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/impl/misc/hls_files/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/impl/misc/hls_files/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "0a9356e4efb8c1ae4c5f1021c1d087b506a2ddac8ab889fdf364118ef00d79b7"
+    },
+    {
+      "archive_path": "ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "0a9356e4efb8c1ae4c5f1021c1d087b506a2ddac8ab889fdf364118ef00d79b7"
+    },
+    {
+      "archive_path": "ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+      "sha256": "22465b5459e966fa20d38afcb8bca37857297665407b45bbc8a7349464a54feb"
+    },
+    {
+      "archive_path": "ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+      "sha256": "48cbfe01ba6b701e690cbfef6e06e38941e82d9539a303129e1288c2ae59e783"
+    },
+    {
+      "archive_path": "ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "6b41af487f71aed9fcc824bd2034117dec34025d2e03560fab586270ec3950ac"
+    },
+    {
+      "archive_path": "ablations/combined/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/compile.resources.json",
+      "sha256": "8c76b1b8f9ef71297584ad4223f5073bc1d7624689b7b4a552ef19860895281f"
+    },
+    {
+      "archive_path": "ablations/combined/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "ablations/combined/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/compile.stdout.txt",
+      "sha256": "728390e08816c1c85660c33950bfeb2b6fa2d41d78568fa7c4b14eb911bbcaff"
+    },
+    {
+      "archive_path": "ablations/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/manifest.json",
+      "sha256": "926c86bf75d8b761cb020081553c4bd8fa41a3f7bc3b0507d7f47de1217b867c"
+    },
+    {
+      "archive_path": "ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "6cc65b8294f6787b621d0e34a2528d045a625ba11c78dab86e43c65321f3451b"
+    },
+    {
+      "archive_path": "ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/impl/misc/hls_files/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/impl/misc/hls_files/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "13c25d2cc91bace345b17820f8e55c1913140d809bc64ad43129f00bc42f8346"
+    },
+    {
+      "archive_path": "ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "13c25d2cc91bace345b17820f8e55c1913140d809bc64ad43129f00bc42f8346"
+    },
+    {
+      "archive_path": "ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+      "sha256": "48cbfe01ba6b701e690cbfef6e06e38941e82d9539a303129e1288c2ae59e783"
+    },
+    {
+      "archive_path": "ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "bf895bf58040d548c540ebe00308da4ea9d98047df7e0112def6ea82237a3d99"
+    },
+    {
+      "archive_path": "ablations/original/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/compile.resources.json",
+      "sha256": "956650e8103833f3538c11ce67535bcac3ff582893fa31ccb4a07a00c3b1720e"
+    },
+    {
+      "archive_path": "ablations/original/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "ablations/original/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/compile.stdout.txt",
+      "sha256": "9f01f66b26f4081276f207e52eb86fea69944e199f9527bdf19501a1217f9b0a"
+    },
+    {
+      "archive_path": "ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "6386a3446a2e489a6bafe9ef47e2d3954d1d8d752187b18eb12d9882fc62f4f7"
+    },
+    {
+      "archive_path": "ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/impl/misc/hls_files/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/impl/misc/hls_files/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "fe7a0559f52f021f10177017346676666d4c3d39588f591daaea9460462970a5"
+    },
+    {
+      "archive_path": "ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "fe7a0559f52f021f10177017346676666d4c3d39588f591daaea9460462970a5"
+    },
+    {
+      "archive_path": "ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+      "sha256": "630ed3b4781f5e7b7691c25e6898ea5ec00bb561f691be7e6613971c594ef580"
+    },
+    {
+      "archive_path": "ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+      "sha256": "48cbfe01ba6b701e690cbfef6e06e38941e82d9539a303129e1288c2ae59e783"
+    },
+    {
+      "archive_path": "ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "672baffc4c1de1a40dbb265794f5216a93921063abce55daecff3249a84489e9"
+    },
+    {
+      "archive_path": "ablations/prefetch/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/compile.resources.json",
+      "sha256": "b346ba38c19fca2eb75932053ee053ecf5e33d2114ec637f3c0f08498cdec525"
+    },
+    {
+      "archive_path": "ablations/prefetch/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "ablations/prefetch/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/compile.stdout.txt",
+      "sha256": "a17bb42f14fa59aa0f1dac1001cb24582df3e8797bafd08eb2adcfd67a4b47ee"
+    },
+    {
+      "archive_path": "ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "6910d8c93577b543f4149ac72261e5e3fa9fefd16f6960fa611b2d0c388427aa"
+    },
+    {
+      "archive_path": "ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/impl/misc/hls_files/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/impl/misc/hls_files/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "6ac19a7e850cff892ad7c09d593383b7ac352246df1b40f0753dc75e054603d3"
+    },
+    {
+      "archive_path": "ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "6ac19a7e850cff892ad7c09d593383b7ac352246df1b40f0753dc75e054603d3"
+    },
+    {
+      "archive_path": "ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+      "sha256": "48cbfe01ba6b701e690cbfef6e06e38941e82d9539a303129e1288c2ae59e783"
+    },
+    {
+      "archive_path": "ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "81b9df9e16d7c6a2976bfe113738df19de57b75c6b54d5091be929591969abf2"
+    },
+    {
+      "archive_path": "ablations/stop_after_last/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/compile.resources.json",
+      "sha256": "47171b42b8de5d2c8c4a1b3c7f69dd18c97ebfc116b9385293e8c2cd5b48961a"
+    },
+    {
+      "archive_path": "ablations/stop_after_last/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "ablations/stop_after_last/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/compile.stdout.txt",
+      "sha256": "bb2a3f963b978e05309b7f08a0dd5b0596bbc76e58c6f07332ef3ca07c59922b"
+    },
+    {
+      "archive_path": "ablations/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/summary.json",
+      "sha256": "e66cd10833008a25e013448dfe43e5a89a75ca5cca8789f9500e55d5934759c9"
+    },
+    {
+      "archive_path": "all_host_check.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/all_host_check.resources.json",
+      "sha256": "2dee65df284ad1eded220c61f87c36ab399d4562cf1478b14905db7e1b4cd73c"
+    },
+    {
+      "archive_path": "all_host_check.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/all_host_check.stderr.txt",
+      "sha256": "5f8d69f82964e9c5089f10c5da61e2191a152fa9dfe4c7e64d98addb602bd141"
+    },
+    {
+      "archive_path": "all_host_check.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/all_host_check.stdout.txt",
+      "sha256": "3e7041b5bc76a4eff4be7b45edd843763a15b189fa061e29f9627da5fc66adeb"
+    },
+    {
+      "archive_path": "au_cc/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/attempts.json",
+      "sha256": "dfc3dc0ce93791419860fcd292ef5efb587d9415403f73c79beec4bad3b6a7fd"
+    },
+    {
+      "archive_path": "au_cc/integration.diff",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/integration.diff",
+      "sha256": "f2395022a9b99e7c96f656a46c9b042b49d143cc923a269cf27f157a046c2b6f"
+    },
+    {
+      "archive_path": "au_cc/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/manifest.json",
+      "sha256": "72180bd8777b2432b851a7da845d1bbf26b16b21f112f120f868d3ae35672382"
+    },
+    {
+      "archive_path": "au_cc/r0_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_baseline/evidence.sha256",
+      "sha256": "0e2c5a6425e7f5e1604b4e8b61878403ecadd7bb2a18dc2381a9169d552b50bc"
+    },
+    {
+      "archive_path": "au_cc/r0_baseline/result.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_baseline/result.txt",
+      "sha256": "d53712a39d1dcb07fb83301f9643049c13f64d915e8c3093e4e28787de04321e"
+    },
+    {
+      "archive_path": "au_cc/r0_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_baseline/run.env",
+      "sha256": "457a6da1d2faa80a3eab7a519caa65558bedc1385d36c622cd71e8d3442f5dfd"
+    },
+    {
+      "archive_path": "au_cc/r0_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_baseline/run.log",
+      "sha256": "a8888bd262b93345e1f2ba34b1f80c6d8086ff1f0e3770986852c3153c523349"
+    },
+    {
+      "archive_path": "au_cc/r0_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_baseline/summary.tsv",
+      "sha256": "63caf7f4b55098e771bdc596300ee037f1e38de8b690a427cdce4a2a4ea03662"
+    },
+    {
+      "archive_path": "au_cc/r0_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_baseline_process.resources.json",
+      "sha256": "b2b7588cb837f3840d1d7642ce6d9cb0c8a11d423e3da5b94fb5944e85afe0e0"
+    },
+    {
+      "archive_path": "au_cc/r0_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r0_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_baseline_process.stdout.txt",
+      "sha256": "f4e21e62208250416af26dd844f9d525c0b9aeea95c653d6706bbbaa5b98cc13"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_disabled/evidence.sha256",
+      "sha256": "082daba7b8ab9ba2d71360637c97a6e309f14e11b8f483412b9cbaa5dec53ca6"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_disabled/run.env",
+      "sha256": "001daaeda93d2e7d59aa3d87eaf5b2e67ca172e090a9baa8cb0baebd534bc354"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_disabled/run.log",
+      "sha256": "fb0af84482c0d88ebabb24ecfcc5661ce7a941707a75a6c931a6926c83f5ede4"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_disabled/summary.tsv",
+      "sha256": "ded56922761be753a8ed2730eec5bee9edbcbd557b6744ebdf989a84907b38fd"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_disabled_process.resources.json",
+      "sha256": "27ff7f8ca11a9679f3b54fa36d1bf1abb87d76dc0d5ee1cb0130a0693a38ce37"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_disabled_process.stdout.txt",
+      "sha256": "1ba4a547b209c80ed1d29088cb8fd011252e40145f12cd39e9244353e2abc03f"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_enabled/evidence.sha256",
+      "sha256": "d864b376e4fae4573d5e8beb99c884f681b2f49593f83bd08f2342b1e96eb187"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_enabled/run.env",
+      "sha256": "b5b040ecc69957fd87cd38350ddbc2c129acbfd9ad4d9c25f54723bc754f5d96"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_enabled/run.log",
+      "sha256": "cd12f75be8cee2a492d7a3ce96421a6aa7105601b4b6d354f42caf328fc7ddde"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_enabled/summary.tsv",
+      "sha256": "1ef5826ac1870a8ecad970da64ac2daeb7b95bbacbbccfd98be86c0aa7e44e43"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_enabled_process.resources.json",
+      "sha256": "825257b1b983321cac3770d5ed94edb1422e23374fd3bcb078ab89a3af363e7c"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r0_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r0_trace_enabled_process.stdout.txt",
+      "sha256": "7730374e803217ad67aa592d7a85a0d13f547330968e1e6ebaafaf1cff810988"
+    },
+    {
+      "archive_path": "au_cc/r1_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_baseline/evidence.sha256",
+      "sha256": "e3a65c24acd31999680d77cd7e0d053992ad1047449acbe228a1ce3083cc977c"
+    },
+    {
+      "archive_path": "au_cc/r1_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_baseline/run.env",
+      "sha256": "7527e26b1d862cc755e82c13e486cec96a3dc7375e1387644817dbec286f16d3"
+    },
+    {
+      "archive_path": "au_cc/r1_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_baseline/run.log",
+      "sha256": "e030cf0e00ad58ad3c931e3b14c2479c4d23997e0c09f559aad7fc95796be311"
+    },
+    {
+      "archive_path": "au_cc/r1_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_baseline/summary.tsv",
+      "sha256": "2d41797a4cc064cce5afc78693d576b116e67440b1fd42d6ac99a26349bc5ec2"
+    },
+    {
+      "archive_path": "au_cc/r1_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_baseline_process.resources.json",
+      "sha256": "cdd538374cdb080d6814fd82465c5f6ffdac66668ba73df1abcd64ddcdb550b8"
+    },
+    {
+      "archive_path": "au_cc/r1_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r1_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_baseline_process.stdout.txt",
+      "sha256": "a21b580dca3f097d5c473f95b32aef76c67bf8b1acc09217d774905b0ef71601"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_disabled/evidence.sha256",
+      "sha256": "bdf6315f1339d95c5ca3eb9e9306a8b9c5a5ed38bc8c54f90a61122d0a93a44f"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_disabled/run.env",
+      "sha256": "a378d8dbde31c95b9619d14b1eb585373b297764c5a15c7021b5600cb9ba3a6a"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_disabled/run.log",
+      "sha256": "1dd97a436b41c8e85be08c6e71e675bbe1601d346a584f41408ad580144c0315"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_disabled/summary.tsv",
+      "sha256": "9fc02e1799eb8df7c1170f7a1c49dfbe12ebbb8bd4f439d4ed0e63ae3478eac8"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_disabled_process.resources.json",
+      "sha256": "69f921753a8517f7a3bf1bda0fb96a4a2e006e466d12a4bd3dcb8680c4b6ef8e"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_disabled_process.stdout.txt",
+      "sha256": "85cfc9ae0bae36959dc535202ec6512ded834688dcb162e3de1141e3c9107b8c"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_enabled/evidence.sha256",
+      "sha256": "f39deb779fb52dcffef164d2d95720647eb1ebc07be52150a4c0392301a719ee"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_enabled/run.env",
+      "sha256": "813f26b1e1ca3e9e7b30d33e5238341066e242b981487dd13fe15c0c944247b1"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_enabled/run.log",
+      "sha256": "b7ffa033e8f869d75fd700b06d6e11a67ab967932c6df1392e1c6731ada08b6d"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_enabled/summary.tsv",
+      "sha256": "5976e447b35feb84e9abdb8bf3e279d84c76f1917c19af889e62d3d6f102a129"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_enabled_process.resources.json",
+      "sha256": "3f2c5401e635b9d827534ed70e227cabb4f12aa61878de3cd7b8cc7b36dbd8bf"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r1_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r1_trace_enabled_process.stdout.txt",
+      "sha256": "845848d172ecf4b26dcd2fc28e5d805c460e6f91ec300df9ba1ad7cd6b5fc57e"
+    },
+    {
+      "archive_path": "au_cc/r2_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_baseline/evidence.sha256",
+      "sha256": "1d8f2d8ad7b978b7c48fae395bf7770590bd3f8babc3524785e7e3916053a7c1"
+    },
+    {
+      "archive_path": "au_cc/r2_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_baseline/run.env",
+      "sha256": "a92240c2ba4495a0f6cc9e7fef7762c90447589b642ba092f163c4de55af94d8"
+    },
+    {
+      "archive_path": "au_cc/r2_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_baseline/run.log",
+      "sha256": "a6e7fe4e3689aa19ccf66c20636d870a6503e3763aae960eaf6ba9f99a48e1bb"
+    },
+    {
+      "archive_path": "au_cc/r2_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_baseline/summary.tsv",
+      "sha256": "3fb48c9ba0df2585d25badb50943e968f11f7ca80aecdd942398869dad22e6ba"
+    },
+    {
+      "archive_path": "au_cc/r2_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_baseline_process.resources.json",
+      "sha256": "332e2c9b64a8b7bafdeabaff7cfe2af948bec2b6ac604524c2251f756176f97f"
+    },
+    {
+      "archive_path": "au_cc/r2_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r2_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_baseline_process.stdout.txt",
+      "sha256": "7137e83acf9dce537532a81ae6fb89497b2362f247474d195b719aadaf9ac563"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_disabled/evidence.sha256",
+      "sha256": "e7da9453d299b9156d4a523f1d6c4ca6d7f1d68803ff0135aa186b5c6707fc1b"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_disabled/run.env",
+      "sha256": "c85d7d0fdfada7c9351c5044001a018e5e544b2677f262d28ad439125e512b62"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_disabled/run.log",
+      "sha256": "9014dfba26b95ab3ea4a1f967a7fd08eca69765bf0f06eff355557e2cf7d1ae9"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_disabled/summary.tsv",
+      "sha256": "e59aaad49b999d3f46bef4fa9235125067b7dca056080e8f7b4f1bc0602ca621"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_disabled_process.resources.json",
+      "sha256": "a7acdac5bb568c86b39a5ec1eceef7154aae505e1efad3bea17d223e326f2d7c"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_disabled_process.stdout.txt",
+      "sha256": "d0984eba92494bfee2c0c5a4662634bfda359043c94998ebc9fc7bcf81f91857"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_enabled/evidence.sha256",
+      "sha256": "2a9f4ae96ef65a5c47d864395f799183e1bb50c68da757076d81f85eb6076419"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_enabled/run.env",
+      "sha256": "bd0ea112183bd27f2c5810c755af1b57e189ef93bc8473853afed3f3d9a4ed14"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_enabled/run.log",
+      "sha256": "15471694ab63955fa2c1513d69d852f59bc5ccb46396eac18155e1d39ea05dd4"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_enabled/summary.tsv",
+      "sha256": "681d320f0dd429a392d42deb09c05ed280ce10915f4feb7507dadbf2911bf570"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_enabled_process.resources.json",
+      "sha256": "41c1017a02f854c65690bc0512b7d945bbd812277f0267100fbfc27a3287ea10"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_cc/r2_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/r2_trace_enabled_process.stdout.txt",
+      "sha256": "3fb9eee95c9137ee34415966d9f1a3f7ab4baeee623e80a942c37bc6f7f5eccc"
+    },
+    {
+      "archive_path": "au_cc/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_cc/summary.json",
+      "sha256": "19f99eadfa628c79fc0da4600bdce522645878959df59f88008720dd453324e5"
+    },
+    {
+      "archive_path": "au_respr/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/attempts.json",
+      "sha256": "317052a849f6feacebb279e1fba2ad833c6193fa01c432a096212ce784f13810"
+    },
+    {
+      "archive_path": "au_respr/integration.diff",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/integration.diff",
+      "sha256": "f2395022a9b99e7c96f656a46c9b042b49d143cc923a269cf27f157a046c2b6f"
+    },
+    {
+      "archive_path": "au_respr/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/manifest.json",
+      "sha256": "0888e8ae81fde5408f734256c5e7e7eae2e1dabf70fc62026350b6c5c210837e"
+    },
+    {
+      "archive_path": "au_respr/r0_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_baseline/evidence.sha256",
+      "sha256": "dc2db779b32cdbe80219622d6229b4e809647b1d9619db25c570602733560c6c"
+    },
+    {
+      "archive_path": "au_respr/r0_baseline/result.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_baseline/result.txt",
+      "sha256": "d8343f707972ef53671ee38cc1e014d475e0ab014e14d4e78681466924990975"
+    },
+    {
+      "archive_path": "au_respr/r0_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_baseline/run.env",
+      "sha256": "6be28a344990fde25364d40e31f17a18f50cb205b17f0b192f7407a890a70d9d"
+    },
+    {
+      "archive_path": "au_respr/r0_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_baseline/run.log",
+      "sha256": "787e0d7b5157f5ba4538f58a70abf816cb52cd6cb3e7dd10fa8724895fc423ee"
+    },
+    {
+      "archive_path": "au_respr/r0_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_baseline/summary.tsv",
+      "sha256": "8e19a6733f1d3823b2d5d41adec47a27d6aa54680adfbc66a5afc8476cf85453"
+    },
+    {
+      "archive_path": "au_respr/r0_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_baseline_process.resources.json",
+      "sha256": "e9526ef4867f120481217114f5e181b113e16d994aefc9a86fa672ea27c44310"
+    },
+    {
+      "archive_path": "au_respr/r0_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r0_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_baseline_process.stdout.txt",
+      "sha256": "38f44e27d5a9fd947b8f79378173b4198838bbfa375a8d136ac576495d86d298"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_disabled/evidence.sha256",
+      "sha256": "3de9743fe1835e2657430b4fccc164686cbc3e46068219c7148a5f13d75d695e"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_disabled/run.env",
+      "sha256": "4d3921cf6f08e5d4615c9866cf5cd2f6c3db15e18aff9a124520c71699ea72a0"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_disabled/run.log",
+      "sha256": "cab7e584cd9ec88d421464f38ab56574c986d99603f67dbf745a279979377f05"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_disabled/summary.tsv",
+      "sha256": "eb76c528740ffd684c79517e26fa13705cd80d98832683cd4d239eaec6667eae"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_disabled_process.resources.json",
+      "sha256": "2a4748a661b3b49b55cb06f4884b12489b9f3acb67e7f28fdcaf16caa8fe4ac3"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_disabled_process.stdout.txt",
+      "sha256": "a9bb5e3931fd240a8ddb50cf29ae6d7ce216d592d4eccafd2e42dad9a60fe8f9"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_enabled/evidence.sha256",
+      "sha256": "bac8e77377dacef318acfbd62678a480d3d61b5db36e4a724d89b0c745e567fd"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_enabled/run.env",
+      "sha256": "73e4d0e280e3e7086841faea1681ff50c4b603eeb086e73dcd52fd3120771875"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_enabled/run.log",
+      "sha256": "a6c278ec27aa2e2fd84f4dab5d0380e2736132ad66ca6d4866042dcf576dbc6e"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_enabled/summary.tsv",
+      "sha256": "b1872ca21a1c77aef290faccbe0ed91ce111f7161c3738b7ed744b31077c3410"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_enabled_process.resources.json",
+      "sha256": "8324a98b49882f9129d68b3853320b1e4640df0983315f6894a0d999344bac48"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r0_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r0_trace_enabled_process.stdout.txt",
+      "sha256": "27d340f1e03ab9995480069775bc009884ab3d70d6f7653add71ea86bdc50306"
+    },
+    {
+      "archive_path": "au_respr/r1_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_baseline/evidence.sha256",
+      "sha256": "798f5402e687be9eabe64009db1a6832e93f1b85ebe795800c90ac07ebe19df9"
+    },
+    {
+      "archive_path": "au_respr/r1_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_baseline/run.env",
+      "sha256": "66d2ea20608961f25193515f3f094c7005e432b94ea3cf19ac9cd0a5008e28e2"
+    },
+    {
+      "archive_path": "au_respr/r1_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_baseline/run.log",
+      "sha256": "3a59aafbc2c46b0cfc6c0bf7b9a4a775b37417f75d1f29197849ffbe4820d837"
+    },
+    {
+      "archive_path": "au_respr/r1_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_baseline/summary.tsv",
+      "sha256": "2baa4e524c5999ade3ea3c55b3b0cb1de085f2372702d6c27f82f9deb2476a96"
+    },
+    {
+      "archive_path": "au_respr/r1_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_baseline_process.resources.json",
+      "sha256": "f1c9c696a4acf8c0041cce047020051661354f3a098f766551917851df3def26"
+    },
+    {
+      "archive_path": "au_respr/r1_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r1_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_baseline_process.stdout.txt",
+      "sha256": "936ebf45a76fd5aa2c43aa4dbd55d31b995fa3e8c47d792358fe68a9c46a0fa2"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_disabled/evidence.sha256",
+      "sha256": "9a9be2e3f3da04ac57560e4dc63d63c5ddba3c8651ca771a1c4ac24e3842ab4c"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_disabled/run.env",
+      "sha256": "22977921747b4abfd150c786cf70a62123e3c4cd97b4c9e279255c8d6af9b80f"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_disabled/run.log",
+      "sha256": "9d0aa379610b9bbfaaf795d6eed8812ba23ca3ce0e66c5148226026c10ff9483"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_disabled/summary.tsv",
+      "sha256": "1e50ac9e2e384746c215b5394437f1d2d5a92ba01270568c36527565d6aaad29"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_disabled_process.resources.json",
+      "sha256": "ef014a7b79a36a515388487b8efe843845f8e4d4526d787241483adfc59e1fd4"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_disabled_process.stdout.txt",
+      "sha256": "0c3cf5f65df4826db32b048e38190672fe02c44d9b9a5ba2374882806a14baef"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_enabled/evidence.sha256",
+      "sha256": "08c41692d2a424cf3e907c0761bb92186063cd1957109ee27b290b8abe3ace48"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_enabled/run.env",
+      "sha256": "277ac76ed815c5e7656f7a660cc7c978a1212b01831ab84555a19d74d4b1e1ba"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_enabled/run.log",
+      "sha256": "e46116f1826380c56602dce7bc2eddb37e48fa7a74e28b972c4a008cacc667bc"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_enabled/summary.tsv",
+      "sha256": "ce12ff13671af1e529a68655ccb4029855a2f7de4af5a54986b0bf44ae2417af"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_enabled_process.resources.json",
+      "sha256": "af4061ed374b6e45923591587fb3ece9790f97d80eac7707056bdd3657a029a7"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r1_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r1_trace_enabled_process.stdout.txt",
+      "sha256": "48600289f010fa87470b23b1b67b6b249506ea6b18cfb60606ac57666ec130fa"
+    },
+    {
+      "archive_path": "au_respr/r2_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_baseline/evidence.sha256",
+      "sha256": "06d43e440fa12250ce5e0f11c43c415e4be35bd6faddb8155f27239a3a1dd16e"
+    },
+    {
+      "archive_path": "au_respr/r2_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_baseline/run.env",
+      "sha256": "a7ba4ec78ea473010a9f6b333317b182dda0ad77456694711b525bc5df7eb5ba"
+    },
+    {
+      "archive_path": "au_respr/r2_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_baseline/run.log",
+      "sha256": "d8e3d9afec3704821740bb74100b0cda6a6b5fe7ecd1462bed4af8f40bd7aca8"
+    },
+    {
+      "archive_path": "au_respr/r2_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_baseline/summary.tsv",
+      "sha256": "2229c09a53310f5e67984a69bd21d4d42ee2b7104945bb61372fb75c65e5e816"
+    },
+    {
+      "archive_path": "au_respr/r2_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_baseline_process.resources.json",
+      "sha256": "dab377c64d90606098e5e2e1fad8b45b47a2a104583fc1467ae2fe1256aa7194"
+    },
+    {
+      "archive_path": "au_respr/r2_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r2_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_baseline_process.stdout.txt",
+      "sha256": "d65c183c13d8fd17a0f578917174d94b2725245320b75bbdca35f01924c84236"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_disabled/evidence.sha256",
+      "sha256": "599339b2f4238e30da4777eec6c63c7554b0c3595dab473b7cbcc5a340c29bcb"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_disabled/run.env",
+      "sha256": "1ff24b551b1235242fc02a03caf43d4d7caed02dd2017faded9e0696dae4f322"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_disabled/run.log",
+      "sha256": "8b408732a55b5d7df2d9c880c468179cd0c9b50c27c8e7d1d2364e026b5c50c9"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_disabled/summary.tsv",
+      "sha256": "21cba262c6901083036f15feec5342dd221441eb19d889a4dc1d486fb7cfd569"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_disabled_process.resources.json",
+      "sha256": "99b70e6c0752f686767c67bab5798d52bf0afbd4658e399c63995b0e5456c7f9"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_disabled_process.stdout.txt",
+      "sha256": "77826002dae946baf9a310ef3c0b97f538bc2bed348357094433098b2fc68d2b"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_enabled/evidence.sha256",
+      "sha256": "3989fc71bad15356550371445e491b431d343e7be9436f3eae27aa2f6f534a2e"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_enabled/run.env",
+      "sha256": "12d677566bc397016c9be5147ef6aea39c862fe10020389c0d3e680156284bb6"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_enabled/run.log",
+      "sha256": "926240b5ce25a92eb0955cb69e7937d61e0f6438f883a77f51638ac92bc45b1b"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_enabled/summary.tsv",
+      "sha256": "1e743f732ad75c2ace85d03a7864a7ad20cd3bef74c0f0d6aaa857377ce63474"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_enabled_process.resources.json",
+      "sha256": "dd874b9a40ebeccef50d7bb610b3ba1b66b9029a6d561abe87474104840fb3c2"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_respr/r2_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/r2_trace_enabled_process.stdout.txt",
+      "sha256": "b88b5e63bf6755c974b203e5909bfbe56e4df7000f08a342318cd2349fcaa6d6"
+    },
+    {
+      "archive_path": "au_respr/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_respr/summary.json",
+      "sha256": "c5aa24c6ec741d00bdbfc85e3d05e0acab3c39d837c108f395f4679d06aba266"
+    },
+    {
+      "archive_path": "au_sssp/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/attempts.json",
+      "sha256": "80f79b0634ab1b11382106065306d56c2685f2f3715cd11cd75f251247de777d"
+    },
+    {
+      "archive_path": "au_sssp/integration.diff",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/integration.diff",
+      "sha256": "cbe0facc70894d54f018e4b2d15802b78b150837891539a6d39e62258de01b30"
+    },
+    {
+      "archive_path": "au_sssp/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/manifest.json",
+      "sha256": "73777f1a06f5888c60d9c29538c1a0795473a9a9e2f4ec906ddb1bbaafcabbc0"
+    },
+    {
+      "archive_path": "au_sssp/r0_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_baseline/evidence.sha256",
+      "sha256": "dfb8bdcf72745d65f08f3c54691e1e097cfd3119cbf84e44fcc93f11b283b138"
+    },
+    {
+      "archive_path": "au_sssp/r0_baseline/result.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_baseline/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "archive_path": "au_sssp/r0_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_baseline/run.env",
+      "sha256": "c88fa5b3b8ec8e316d14f30e3eafd75cbe9cdb03bc2dcabaa799f8dd30176097"
+    },
+    {
+      "archive_path": "au_sssp/r0_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_baseline/run.log",
+      "sha256": "7eb364334d9f7f256a3197d7fd9497f37f853de4229b9942ff6aa76ffe1537d0"
+    },
+    {
+      "archive_path": "au_sssp/r0_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_baseline/summary.tsv",
+      "sha256": "10fdde776187bd3d3886da95cb3d2c905b95ecf4b2ba95e6d499e05c3dcbb930"
+    },
+    {
+      "archive_path": "au_sssp/r0_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_baseline_process.resources.json",
+      "sha256": "0af091e3758fdeeacecd89950380516a00dede47a6ae32fee1d19e45391fab1a"
+    },
+    {
+      "archive_path": "au_sssp/r0_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r0_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_baseline_process.stdout.txt",
+      "sha256": "d5cfccd9161eeb2e4235dbf5a3ea6ee13310b12ea2cca882f437db869ef5f68a"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_disabled/evidence.sha256",
+      "sha256": "a6aa4e03311a1832511ec5068f5b0a8e0d02a57f8fbad4137c90085971be9471"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_disabled/run.env",
+      "sha256": "43e8242a16fed4e07864d4efb874654276a4b270d16ad13312d7bbd8b59e2b50"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_disabled/run.log",
+      "sha256": "beb78eb06937040e3c2af770bd349cf3823fa2c9b14ea75b9f7ae7306ac854ff"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_disabled/summary.tsv",
+      "sha256": "3548965d26a7460cc387a318d08f4aee25fc147a0d4be7f1fadff5a468ddb0ea"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_disabled_process.resources.json",
+      "sha256": "ce6e1daa8dcf5357f66398d8c9199450919bd44902102a5ecb8940f790695a95"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_disabled_process.stdout.txt",
+      "sha256": "c55bffe99e0859b69848958807f4168148139361518956f450803b9703f0c094"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_enabled/evidence.sha256",
+      "sha256": "034cd150a50a9fe787cd2ec9de198295b00ccf2bc1039e6fbd72574d59b64692"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_enabled/run.env",
+      "sha256": "68400b844d7e65aa87aadbe08eff634516da4a6a3202ad2528ecf1e1fdc83869"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_enabled/run.log",
+      "sha256": "b21f9d6152fe85caacff0d02a69b864b7d42033d8da73bb2f787d6bc5eb130e4"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_enabled/summary.tsv",
+      "sha256": "1b7b1dccad7f29cdc1defbeee1af6d427857b949345fec0ce1a828a5347c1ac3"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_enabled_process.resources.json",
+      "sha256": "d694bfa2dd62bfdead7bbde9ad29543e8171d2a61e1dab81c39bbf1e7026afca"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r0_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r0_trace_enabled_process.stdout.txt",
+      "sha256": "9fa65cdee74dcd363a001f55d892c3a43bb3193f49c223d611bf32e732a8d9ba"
+    },
+    {
+      "archive_path": "au_sssp/r1_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_baseline/evidence.sha256",
+      "sha256": "6f84a025eb940ba9c0ecb9167d50501c14255fa564e3b07aaaae5c49c69b9c20"
+    },
+    {
+      "archive_path": "au_sssp/r1_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_baseline/run.env",
+      "sha256": "0a23dc62f4f7a1eca8348d9667eedd51879acd7c3ec6d68b53ec27ff20c41c8c"
+    },
+    {
+      "archive_path": "au_sssp/r1_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_baseline/run.log",
+      "sha256": "1788cf703f15ceff7f4687243220c96d9131b0e263db3d48e3c45694918fdc96"
+    },
+    {
+      "archive_path": "au_sssp/r1_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_baseline/summary.tsv",
+      "sha256": "e3f87a9f496c63b67a44ae90ecb9efa3c2da2dfc1b91d4b8f09e71015a00da80"
+    },
+    {
+      "archive_path": "au_sssp/r1_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_baseline_process.resources.json",
+      "sha256": "8bd9ed79a9418cbd935caa7774f32cb20a544a5a9ade5cd04291386f1d32c610"
+    },
+    {
+      "archive_path": "au_sssp/r1_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r1_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_baseline_process.stdout.txt",
+      "sha256": "b6c08a58333cf136183d345bbe0bbd3eefc90b913816bfacf2769a513e584465"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_disabled/evidence.sha256",
+      "sha256": "aec4f1ad631b66aaf6f8336ff2941c261129ed4b11e2fd98bfec619fe2aa8090"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_disabled/run.env",
+      "sha256": "bf53e0ee9290b006ba924cd1fa925efd47f83cc941c2e282f91ff0400f9d0561"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_disabled/run.log",
+      "sha256": "49a3e3cefffd3c347f6fe74a08caf18aa6678bd8de2d608c2d5204a04602cb25"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_disabled/summary.tsv",
+      "sha256": "968c0ba1696096980f64145e73fb423df7e3bcd25f92f3fe717ced58ce6b9422"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_disabled_process.resources.json",
+      "sha256": "c73c1956c30b42a7bce2504237f04be03e96a082b74305de3fd1b3c3b582f801"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_disabled_process.stdout.txt",
+      "sha256": "f11900ccc26ac2bf5ca0d97472948a3a25edeeb982bae7058e6a674320db1872"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_enabled/evidence.sha256",
+      "sha256": "4faa7d648f10c0bad6b19ca5c497ce47687f178fecd990cf91b7d8c9bc787108"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_enabled/run.env",
+      "sha256": "e4d5ece5dbdc386fb4e31c9b97937324ebc4391279628aa7ad222555c072b818"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_enabled/run.log",
+      "sha256": "477b38e153994ac274c3b447f144fb9b41df115ab14cf7b2c3d88bfa135c00f8"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_enabled/summary.tsv",
+      "sha256": "900e2515406fbb088c55f106c9c19d2f7a117f9b4d46c5b573d6abefac20e2aa"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_enabled_process.resources.json",
+      "sha256": "9faa28bec5278509b2947b1a2d3920e3b9903da501a8351d9f693df6104295d5"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r1_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r1_trace_enabled_process.stdout.txt",
+      "sha256": "9b87516c3ff10165015337b5ff3ff36a34b9be9ea37b49361031beb8592a2a7d"
+    },
+    {
+      "archive_path": "au_sssp/r2_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_baseline/evidence.sha256",
+      "sha256": "b410e41b0c4bdb938b26d417675575525383c2f69a39192ed72c907ac1516399"
+    },
+    {
+      "archive_path": "au_sssp/r2_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_baseline/run.env",
+      "sha256": "5c15e7c0e6151aac81d1061eb2e8ac4f5cb620b54e9e6bd6a2ae19d897a55081"
+    },
+    {
+      "archive_path": "au_sssp/r2_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_baseline/run.log",
+      "sha256": "1bc405f3a0815dd5d1e397aa5ad019ae6d634285c24cbb4358b19f7212d66066"
+    },
+    {
+      "archive_path": "au_sssp/r2_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_baseline/summary.tsv",
+      "sha256": "641735b7e376bc0d502508442146fa54a04ad6b9a3b00259063a89d3edd21361"
+    },
+    {
+      "archive_path": "au_sssp/r2_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_baseline_process.resources.json",
+      "sha256": "b5fa1ec79ea7b04d9f8d4433a27b61c8f8cd7ff15bd0dadfb4589d4b4457e84e"
+    },
+    {
+      "archive_path": "au_sssp/r2_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r2_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_baseline_process.stdout.txt",
+      "sha256": "f2a93b3050ea48b790c8ed7a6de1343d0a3c0fb9d7ec6edc9abf0f4c7d3938d3"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_disabled/evidence.sha256",
+      "sha256": "88cac02e68c6d785be94980c1e95c43c2b43b0e87dfb6997d101ccf597e5633a"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_disabled/run.env",
+      "sha256": "a796512a4b08fa75bf96ec0bc3e8c3a6dffe43cca38556bf4208d5fa0f4d174c"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_disabled/run.log",
+      "sha256": "d4a7bdf472e80116805317d9c23e15b77209b65dc2368aa92f8f35bd45ecbe32"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_disabled/summary.tsv",
+      "sha256": "ce442613d957ab08c5a02169277b5ea86607d12a09bd2bbbe986a09ab2d92938"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_disabled_process.resources.json",
+      "sha256": "b888d48b56eaf4ee50d6cd015f7b31581bc0b1b799b9300793d4532723eae298"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_disabled_process.stdout.txt",
+      "sha256": "e98406945e5bb094d0933ae45d3d585da30742729f0b3c35c3e94bd3d2cb7080"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_enabled/evidence.sha256",
+      "sha256": "82254508a6595b3b99954816d91dc70eb59fd0579cf10c71ac8ae181bc607c5f"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_enabled/run.env",
+      "sha256": "6bafef786214ac48cff991031ce9859c56b5336de301a5738075eebe4246e650"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_enabled/run.log",
+      "sha256": "c0a9a2bd3556f373e1993157fdb35c3112e75784ae46ef5a171ebad5395fb5bd"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_enabled/summary.tsv",
+      "sha256": "48329e1b71db2c291489ad1cebecbe84c837bac888035379119ba950d2348193"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_enabled_process.resources.json",
+      "sha256": "c5479cf6aa9cdd329013e256f2248f47c64db9ecadf7c2fb3d4a73c518981c2f"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "au_sssp/r2_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/r2_trace_enabled_process.stdout.txt",
+      "sha256": "73ac8cf9ace420cc914741e78f80f28c5a58a85ce06d5346b01e3d3e799b5a64"
+    },
+    {
+      "archive_path": "au_sssp/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/au_sssp/summary.json",
+      "sha256": "198480421ed90d0359afa493add399fd79ce32b98b3bfd8a19bdcc5aa8e15bd7"
+    },
+    {
+      "archive_path": "baseline_source.tar",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/baseline_source.tar",
+      "sha256": "2669423cdf9146bc1f207fa461ea87ad1ffb539dd155de1dda24a372351b70cf"
+    },
+    {
+      "archive_path": "candidate_source.tar.gz",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/candidate_source.tar.gz",
+      "sha256": "2a4c9f91727e62ac1bddef2ccfc747a20cb623c9ac4d8a6590de104370d529c3"
+    },
+    {
+      "archive_path": "final_adapter_check.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/final_adapter_check.resources.json",
+      "sha256": "a474e472ed8596b65dba4396ceba60fb22e255d1dd38b35281a4eeda122aaee5"
+    },
+    {
+      "archive_path": "final_adapter_check.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/final_adapter_check.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "final_adapter_check.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/final_adapter_check.stdout.txt",
+      "sha256": "b355fd244c02fcedeb8171b2f47fc8084ca98836aec13ab274fae5c366af3aaf"
+    }
+  ]
+}

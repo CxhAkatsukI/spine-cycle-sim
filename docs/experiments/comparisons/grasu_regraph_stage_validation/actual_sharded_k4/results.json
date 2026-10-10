@@ -1,0 +1,4786 @@
+{
+  "not_complete": [
+    "optimized_routing_and_board_validation",
+    "optimized_simulator_synchronization",
+    "matched_original_A4_vs_actual_K4",
+    "original_publication_speed_match"
+  ],
+  "raw_archive_scope": "all_27_logs_and_one_byte_identical_result_per_algorithm_plus_HLS_reports",
+  "status": "CURRENT_HARDWARE_DIAGNOSTIC_AND_CANDIDATE_HLS_PASS",
+  "studies": {
+    "CC": {
+      "case": {
+        "algorithm": "connected_components",
+        "case": "au_connected_components_resident",
+        "gr_host": "/data/tmp/chuxiao/sharded_k4_hosts_5d501d9/connected_components/sharded_k4_cc_native_host",
+        "gr_xclbin": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_cc_hw_d886f42_20260806/build/grasu_regraph_connected_components_pma_native_sharded_k4.hw.xclbin",
+        "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_connected_components_insert_u8.graph",
+        "source": "0"
+      },
+      "checks": {
+        "all_result_bytes_equal": true,
+        "baseline_host": true,
+        "graph": true,
+        "matrix": true,
+        "same_correctness_and_rounds": true,
+        "source_unchanged_during_run": true,
+        "trace_host": true,
+        "xclbin": true
+      },
+      "host_affinity": [
+        120,
+        121
+      ],
+      "input_identities": {
+        "baseline_host": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/baseline_host/connected_components/sharded_k4_cc_native_host",
+          "sha256": "44a690185a3c8f1ce85f47d424eaa97c238da4095b5d0b4310048c45a6d98a3e"
+        },
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_connected_components_insert_u8.graph",
+          "sha256": "66eb4ba111ceec80ce9c6496cd04c34aa74cedfc813dc37dd55417d2a03dbc90"
+        },
+        "matrix": {
+          "path": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806/cc_fullgraph_u55c/matrix.tsv",
+          "sha256": "eed4a52fb715c4e9605779da77a30b1695f7c37ec92868ae034a020fee93312b"
+        },
+        "trace_host": {
+          "path": "/data/chuxiao/grasu-regraph-integration/tmp_build/sharded_k4_native_host_check_20261010_173726/cc/sharded_k4_cc_native_host",
+          "sha256": "935497e3c189873c83b797e7b71adc466d54b0b7dd14167b66722c95a04de33a"
+        },
+        "xclbin": {
+          "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_cc_hw_d886f42_20260806/build/grasu_regraph_connected_components_pma_native_sharded_k4.hw.xclbin",
+          "sha256": "f871add9ba8333432373df24bac0272b46e7224c592d69bc594e503be51da7e4"
+        }
+      },
+      "median_adapter_after_gather_union_ms": 891.806576,
+      "median_compute_span_ms": 1034.402589,
+      "median_setup_inclusive_ms": {
+        "baseline": 1038.352962,
+        "trace_disabled": 1039.114057,
+        "trace_enabled": 1039.645903
+      },
+      "median_stage_metrics": {
+        "adapter": {
+          "max_concurrency": 4,
+          "sum_ms": 4086.907601,
+          "union_ms": 1034.335527
+        },
+        "apply": {
+          "max_concurrency": 1,
+          "sum_ms": 525.049903,
+          "union_ms": 525.049903
+        },
+        "gather": {
+          "max_concurrency": 4,
+          "sum_ms": 2083.860937,
+          "union_ms": 524.993362
+        },
+        "hbm": {
+          "max_concurrency": 1,
+          "sum_ms": 525.079394,
+          "union_ms": 525.079394
+        },
+        "mux": {
+          "max_concurrency": 1,
+          "sum_ms": 524.961911,
+          "union_ms": 524.961911
+        }
+      },
+      "peak_rss_mib": 643.078125,
+      "runs": 9,
+      "trace_events": [
+        {
+          "adapter_after_gather_union_ms": 891.495757,
+          "between_compute_events_gap_ms": 0.0,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 1034.120272,
+          "compute_union_ms": 1034.120272,
+          "event_count": 26,
+          "events": [
+            {
+              "end_ns": 622553846,
+              "queued_ns": 97779620,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 97779820,
+              "submit_ns": 97779680,
+              "worker": -1
+            },
+            {
+              "end_ns": 622564666,
+              "queued_ns": 97812421,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 97812531,
+              "submit_ns": 97812461,
+              "worker": -1
+            },
+            {
+              "end_ns": 611183832,
+              "queued_ns": 97849133,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 97849253,
+              "submit_ns": 97849173,
+              "worker": 0
+            },
+            {
+              "end_ns": 240404335,
+              "queued_ns": 97874383,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 97874503,
+              "submit_ns": 97874423,
+              "worker": 0
+            },
+            {
+              "end_ns": 240425265,
+              "queued_ns": 97896984,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 97897104,
+              "submit_ns": 97897024,
+              "worker": 0
+            },
+            {
+              "end_ns": 612811933,
+              "queued_ns": 97939515,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 100509796,
+              "submit_ns": 100509636,
+              "worker": 1
+            },
+            {
+              "end_ns": 241426917,
+              "queued_ns": 97956576,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 97956686,
+              "submit_ns": 97956616,
+              "worker": 1
+            },
+            {
+              "end_ns": 241436927,
+              "queued_ns": 97979757,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 240426705,
+              "submit_ns": 240426465,
+              "worker": 1
+            },
+            {
+              "end_ns": 613621628,
+              "queued_ns": 98015038,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 102815757,
+              "submit_ns": 102815577,
+              "worker": 2
+            },
+            {
+              "end_ns": 242183600,
+              "queued_ns": 98032048,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 98032198,
+              "submit_ns": 98032108,
+              "worker": 2
+            },
+            {
+              "end_ns": 242194171,
+              "queued_ns": 98056409,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 241438247,
+              "submit_ns": 241438057,
+              "worker": 2
+            },
+            {
+              "end_ns": 615165336,
+              "queued_ns": 98088190,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 105104418,
+              "submit_ns": 105104328,
+              "worker": 3
+            },
+            {
+              "end_ns": 242513321,
+              "queued_ns": 98105201,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 98105371,
+              "submit_ns": 98105251,
+              "worker": 3
+            },
+            {
+              "end_ns": 242464099,
+              "queued_ns": 98127311,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 242195181,
+              "submit_ns": 242194981,
+              "worker": 3
+            },
+            {
+              "end_ns": 1123630714,
+              "queued_ns": 98152002,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 613982009,
+              "submit_ns": 613981669,
+              "worker": 0
+            },
+            {
+              "end_ns": 614583388,
+              "queued_ns": 98166712,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 240407535,
+              "submit_ns": 240407225,
+              "worker": 0
+            },
+            {
+              "end_ns": 614584388,
+              "queued_ns": 98183973,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 242464929,
+              "submit_ns": 242464799,
+              "worker": 0
+            },
+            {
+              "end_ns": 1127415762,
+              "queued_ns": 98209754,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 617270962,
+              "submit_ns": 617270571,
+              "worker": 1
+            },
+            {
+              "end_ns": 617652263,
+              "queued_ns": 98227094,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 241428217,
+              "submit_ns": 241428067,
+              "worker": 1
+            },
+            {
+              "end_ns": 617653123,
+              "queued_ns": 98242745,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 614585698,
+              "submit_ns": 614585478,
+              "worker": 1
+            },
+            {
+              "end_ns": 1130083705,
+              "queued_ns": 98266336,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 619171461,
+              "submit_ns": 619171341,
+              "worker": 2
+            },
+            {
+              "end_ns": 619759559,
+              "queued_ns": 98282446,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 242185300,
+              "submit_ns": 242185090,
+              "worker": 2
+            },
+            {
+              "end_ns": 619760389,
+              "queued_ns": 98298777,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 617653993,
+              "submit_ns": 617653793,
+              "worker": 2
+            },
+            {
+              "end_ns": 1131900092,
+              "queued_ns": 98321537,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 622201745,
+              "submit_ns": 622201475,
+              "worker": 3
+            },
+            {
+              "end_ns": 622565566,
+              "queued_ns": 98339238,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 242514091,
+              "submit_ns": 242513981,
+              "worker": 3
+            },
+            {
+              "end_ns": 622566476,
+              "queued_ns": 98356778,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 619761549,
+              "submit_ns": 619761379,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "1",
+            "final_edges": "679262",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "16",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "1",
+            "physical_updates": "16",
+            "pma_slots_total": "3075424",
+            "processed_edge_slots_per_superstep": "3075424",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "0",
+            "source_internal": "140049",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 4086.907601,
+              "union_ms": 1034.050839
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 524.752135,
+              "union_ms": 524.752135
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 2082.585048,
+              "union_ms": 524.691063
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 524.774026,
+              "union_ms": 524.774026
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 524.661432,
+              "union_ms": 524.661432
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 4086.907601,
+            "apply_ms": 524.752135,
+            "barrier_ms": 4.025245,
+            "convergence_readback_ms": 0.227137,
+            "event_e2e_ms": 1038.489427,
+            "grasu_ms": 4.260502,
+            "hbm_ms": 524.774026,
+            "lksg_ms": 2082.585048,
+            "setup_inclusive_ms": 1039.645903
+          }
+        },
+        {
+          "adapter_after_gather_union_ms": 891.806576,
+          "between_compute_events_gap_ms": 0.0,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 1034.402589,
+          "compute_union_ms": 1034.402589,
+          "event_count": 26,
+          "events": [
+            {
+              "end_ns": 620375657,
+              "queued_ns": 95296103,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 95296263,
+              "submit_ns": 95296143,
+              "worker": -1
+            },
+            {
+              "end_ns": 620377387,
+              "queued_ns": 95327374,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 95327484,
+              "submit_ns": 95327414,
+              "worker": -1
+            },
+            {
+              "end_ns": 608724985,
+              "queued_ns": 95363205,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 95363325,
+              "submit_ns": 95363245,
+              "worker": 0
+            },
+            {
+              "end_ns": 237892276,
+              "queued_ns": 95384675,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 95384795,
+              "submit_ns": 95384715,
+              "worker": 0
+            },
+            {
+              "end_ns": 237907026,
+              "queued_ns": 95409826,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 95409936,
+              "submit_ns": 95409866,
+              "worker": 0
+            },
+            {
+              "end_ns": 610527491,
+              "queued_ns": 95456188,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 98249554,
+              "submit_ns": 98249324,
+              "worker": 1
+            },
+            {
+              "end_ns": 239149785,
+              "queued_ns": 95474188,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 95474318,
+              "submit_ns": 95474228,
+              "worker": 1
+            },
+            {
+              "end_ns": 239157385,
+              "queued_ns": 95497979,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 237908106,
+              "submit_ns": 237907976,
+              "worker": 1
+            },
+            {
+              "end_ns": 611202972,
+              "queued_ns": 95531960,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 100398381,
+              "submit_ns": 100398211,
+              "worker": 2
+            },
+            {
+              "end_ns": 239709312,
+              "queued_ns": 95547600,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 95547710,
+              "submit_ns": 95547650,
+              "worker": 2
+            },
+            {
+              "end_ns": 239701362,
+              "queued_ns": 95571191,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 239157965,
+              "submit_ns": 239157885,
+              "worker": 2
+            },
+            {
+              "end_ns": 613072250,
+              "queued_ns": 95605802,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 103046024,
+              "submit_ns": 103045834,
+              "worker": 3
+            },
+            {
+              "end_ns": 239996851,
+              "queued_ns": 95623033,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 95623163,
+              "submit_ns": 95623073,
+              "worker": 3
+            },
+            {
+              "end_ns": 239964930,
+              "queued_ns": 95644643,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 239702022,
+              "submit_ns": 239701942,
+              "worker": 3
+            },
+            {
+              "end_ns": 1121901180,
+              "queued_ns": 95670514,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 612231684,
+              "submit_ns": 612231284,
+              "worker": 0
+            },
+            {
+              "end_ns": 612590975,
+              "queued_ns": 95685435,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 237894326,
+              "submit_ns": 237893956,
+              "worker": 0
+            },
+            {
+              "end_ns": 612592905,
+              "queued_ns": 95701325,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 239965500,
+              "submit_ns": 239965400,
+              "worker": 0
+            },
+            {
+              "end_ns": 1124346776,
+              "queued_ns": 95725506,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 614200405,
+              "submit_ns": 614200005,
+              "worker": 1
+            },
+            {
+              "end_ns": 614550856,
+              "queued_ns": 95742507,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 239150715,
+              "submit_ns": 239150595,
+              "worker": 1
+            },
+            {
+              "end_ns": 614551966,
+              "queued_ns": 95758297,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 612595045,
+              "submit_ns": 612594685,
+              "worker": 1
+            },
+            {
+              "end_ns": 1128451673,
+              "queued_ns": 95790298,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 618045645,
+              "submit_ns": 618045245,
+              "worker": 2
+            },
+            {
+              "end_ns": 618375355,
+              "queued_ns": 95809929,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 239710052,
+              "submit_ns": 239709872,
+              "worker": 2
+            },
+            {
+              "end_ns": 618376865,
+              "queued_ns": 95826539,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 614553086,
+              "submit_ns": 614552826,
+              "worker": 2
+            },
+            {
+              "end_ns": 1129698852,
+              "queued_ns": 95849430,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 620047107,
+              "submit_ns": 620046917,
+              "worker": 3
+            },
+            {
+              "end_ns": 620378157,
+              "queued_ns": 95867030,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 239997551,
+              "submit_ns": 239997401,
+              "worker": 3
+            },
+            {
+              "end_ns": 620378937,
+              "queued_ns": 95884921,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 618377805,
+              "submit_ns": 618377625,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "1",
+            "final_edges": "679262",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "16",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "1",
+            "physical_updates": "16",
+            "pma_slots_total": "3075424",
+            "processed_edge_slots_per_superstep": "3075424",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "0",
+            "source_internal": "140049",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 4086.344054,
+              "union_ms": 1034.335527
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 525.049903,
+              "union_ms": 525.049903
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 2083.860937,
+              "union_ms": 524.993362
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 525.079394,
+              "union_ms": 525.079394
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 524.961911,
+              "union_ms": 524.961911
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 4086.344054,
+            "apply_ms": 525.049903,
+            "barrier_ms": 3.942973,
+            "convergence_readback_ms": 0.141275,
+            "event_e2e_ms": 1038.639532,
+            "grasu_ms": 4.126389,
+            "hbm_ms": 525.079394,
+            "lksg_ms": 2083.860937,
+            "setup_inclusive_ms": 1039.612312
+          }
+        },
+        {
+          "adapter_after_gather_union_ms": 892.369884,
+          "between_compute_events_gap_ms": 0.0,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 1034.967617,
+          "compute_union_ms": 1034.967617,
+          "event_count": 26,
+          "events": [
+            {
+              "end_ns": 621775431,
+              "queued_ns": 96141679,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 96141839,
+              "submit_ns": 96141729,
+              "worker": -1
+            },
+            {
+              "end_ns": 621776191,
+              "queued_ns": 96170880,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 96171030,
+              "submit_ns": 96170940,
+              "worker": -1
+            },
+            {
+              "end_ns": 609981894,
+              "queued_ns": 96205471,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 96205581,
+              "submit_ns": 96205511,
+              "worker": 0
+            },
+            {
+              "end_ns": 238739572,
+              "queued_ns": 96228691,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 96228791,
+              "submit_ns": 96228731,
+              "worker": 0
+            },
+            {
+              "end_ns": 238759223,
+              "queued_ns": 96253272,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 96253382,
+              "submit_ns": 96253312,
+              "worker": 0
+            },
+            {
+              "end_ns": 611226273,
+              "queued_ns": 96295924,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 98875324,
+              "submit_ns": 98875154,
+              "worker": 1
+            },
+            {
+              "end_ns": 239793345,
+              "queued_ns": 96314204,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 96314324,
+              "submit_ns": 96314254,
+              "worker": 1
+            },
+            {
+              "end_ns": 239803805,
+              "queued_ns": 96340435,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 238760773,
+              "submit_ns": 238760653,
+              "worker": 1
+            },
+            {
+              "end_ns": 612006487,
+              "queued_ns": 96376676,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 101177815,
+              "submit_ns": 101177675,
+              "worker": 2
+            },
+            {
+              "end_ns": 240501727,
+              "queued_ns": 96393577,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 96393707,
+              "submit_ns": 96393627,
+              "worker": 2
+            },
+            {
+              "end_ns": 240510547,
+              "queued_ns": 96415997,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 239804625,
+              "submit_ns": 239804525,
+              "worker": 2
+            },
+            {
+              "end_ns": 614018920,
+              "queued_ns": 96448748,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 103971212,
+              "submit_ns": 103971062,
+              "worker": 3
+            },
+            {
+              "end_ns": 240809176,
+              "queued_ns": 96471129,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 96471249,
+              "submit_ns": 96471169,
+              "worker": 3
+            },
+            {
+              "end_ns": 240777635,
+              "queued_ns": 96493360,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 240511397,
+              "submit_ns": 240511277,
+              "worker": 3
+            },
+            {
+              "end_ns": 1122520789,
+              "queued_ns": 96522531,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 612815862,
+              "submit_ns": 612815492,
+              "worker": 0
+            },
+            {
+              "end_ns": 613426431,
+              "queued_ns": 96539421,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 238742382,
+              "submit_ns": 238741992,
+              "worker": 0
+            },
+            {
+              "end_ns": 613427701,
+              "queued_ns": 96555462,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 240778475,
+              "submit_ns": 240778335,
+              "worker": 0
+            },
+            {
+              "end_ns": 1126146522,
+              "queued_ns": 96580782,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 616016752,
+              "submit_ns": 616016322,
+              "worker": 1
+            },
+            {
+              "end_ns": 616367373,
+              "queued_ns": 96597403,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 239794505,
+              "submit_ns": 239794355,
+              "worker": 1
+            },
+            {
+              "end_ns": 616369053,
+              "queued_ns": 96615124,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 613428871,
+              "submit_ns": 613428681,
+              "worker": 1
+            },
+            {
+              "end_ns": 1128408442,
+              "queued_ns": 96639444,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 618001884,
+              "submit_ns": 618001664,
+              "worker": 2
+            },
+            {
+              "end_ns": 618576692,
+              "queued_ns": 96657695,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 240502827,
+              "submit_ns": 240502687,
+              "worker": 2
+            },
+            {
+              "end_ns": 618577542,
+              "queued_ns": 96674185,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 616370353,
+              "submit_ns": 616370023,
+              "worker": 2
+            },
+            {
+              "end_ns": 1131109456,
+              "queued_ns": 96697826,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 621437620,
+              "submit_ns": 621437030,
+              "worker": 3
+            },
+            {
+              "end_ns": 621776711,
+              "queued_ns": 96714277,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 240809916,
+              "submit_ns": 240809776,
+              "worker": 3
+            },
+            {
+              "end_ns": 621777391,
+              "queued_ns": 96731027,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 618578532,
+              "submit_ns": 618578342,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "1",
+            "final_edges": "679262",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "16",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "1",
+            "physical_updates": "16",
+            "pma_slots_total": "3075424",
+            "processed_edge_slots_per_superstep": "3075424",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "0",
+            "source_internal": "140049",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 4086.916733,
+              "union_ms": 1034.903875
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 525.605161,
+              "union_ms": 525.605161
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 2084.733326,
+              "union_ms": 525.54792
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 525.633592,
+              "union_ms": 525.633592
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 525.516489,
+              "union_ms": 525.516489
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 4086.916733,
+            "apply_ms": 525.605161,
+            "barrier_ms": 4.242282,
+            "convergence_readback_ms": 0.117104,
+            "event_e2e_ms": 1039.54135,
+            "grasu_ms": 4.462879,
+            "hbm_ms": 525.633592,
+            "lksg_ms": 2084.733326,
+            "setup_inclusive_ms": 1040.447828
+          }
+        }
+      ]
+    },
+    "ResPR": {
+      "case": {
+        "algorithm": "residual_pagerank",
+        "case": "au_residual_pagerank_resident",
+        "gr_host": "/data/tmp/chuxiao/sharded_k4_hosts_5d501d9/residual_pagerank/sharded_k4_residual_pagerank_native_host",
+        "gr_xclbin": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_respr_hw_bfe2024_route_aggressive_slr2_20260807/build/grasu_regraph_residual_pagerank.hw.xclbin",
+        "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph",
+        "source": "0"
+      },
+      "checks": {
+        "all_result_bytes_equal": true,
+        "baseline_host": true,
+        "graph": true,
+        "matrix": true,
+        "same_correctness_and_rounds": true,
+        "source_unchanged_during_run": true,
+        "trace_host": true,
+        "xclbin": true
+      },
+      "host_affinity": [
+        120,
+        121
+      ],
+      "input_identities": {
+        "baseline_host": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/baseline_host/residual_pagerank/sharded_k4_residual_pagerank_native_host",
+          "sha256": "040c0ee567ae44115774662e35ceaef6c44e97acdfec466a9281d125cf429950"
+        },
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph",
+          "sha256": "b66ce231811d607cf3ff853f82e0320d04768f7171d6d7c22e115ab21ab2c580"
+        },
+        "matrix": {
+          "path": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806/respr_fullgraph_u55c/matrix.tsv",
+          "sha256": "fe9a45c388f93e6702fab7add58b0a27f6eedf4461bc89215136e76e5ee1fa01"
+        },
+        "trace_host": {
+          "path": "/data/chuxiao/grasu-regraph-integration/tmp_build/sharded_k4_native_host_check_20261010_173726/residual_pr/sharded_k4_residual_pagerank_native_host",
+          "sha256": "afa1ca6ab3bdcb768c3cf62545b8681f732ea8591f5f7a7d998c056d981fa92d"
+        },
+        "xclbin": {
+          "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_respr_hw_bfe2024_route_aggressive_slr2_20260807/build/grasu_regraph_residual_pagerank.hw.xclbin",
+          "sha256": "8d47aef98bcaa4cd338bbe5bd32d649db12b6dc15afb0a1d272bb2e47b7b5653"
+        }
+      },
+      "median_adapter_after_gather_union_ms": 0.365999,
+      "median_compute_span_ms": 1169.608427,
+      "median_setup_inclusive_ms": {
+        "baseline": 1189.597435,
+        "trace_disabled": 1189.554893,
+        "trace_enabled": 1189.43439
+      },
+      "median_stage_metrics": {
+        "adapter": {
+          "max_concurrency": 4,
+          "sum_ms": 4584.570165,
+          "union_ms": 1168.844738
+        },
+        "apply": {
+          "max_concurrency": 1,
+          "sum_ms": 1169.579006,
+          "union_ms": 1169.579006
+        },
+        "gather": {
+          "max_concurrency": 4,
+          "sum_ms": 4618.990029,
+          "union_ms": 1169.510024
+        },
+        "hbm": {
+          "max_concurrency": 1,
+          "sum_ms": 1169.606487,
+          "union_ms": 1169.606487
+        },
+        "mux": {
+          "max_concurrency": 1,
+          "sum_ms": 1169.438734,
+          "union_ms": 1169.438734
+        },
+        "source_prepare": {
+          "max_concurrency": 1,
+          "sum_ms": 1.210921,
+          "union_ms": 1.210921
+        }
+      },
+      "peak_rss_mib": 709.40625,
+      "runs": 9,
+      "trace_events": [
+        {
+          "adapter_after_gather_union_ms": 0.238776,
+          "between_compute_events_gap_ms": 0.0,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 1169.473434,
+          "compute_union_ms": 1169.473434,
+          "event_count": 27,
+          "events": [
+            {
+              "end_ns": 113380447,
+              "queued_ns": 112163076,
+              "round": 0,
+              "shard": -1,
+              "stage": "source_prepare",
+              "start_ns": 112163256,
+              "submit_ns": 112163126,
+              "worker": -1
+            },
+            {
+              "end_ns": 1282945743,
+              "queued_ns": 113481230,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 113481400,
+              "submit_ns": 113481270,
+              "worker": -1
+            },
+            {
+              "end_ns": 1282948363,
+              "queued_ns": 113508950,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 113509060,
+              "submit_ns": 113508990,
+              "worker": -1
+            },
+            {
+              "end_ns": 694408059,
+              "queued_ns": 113553792,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 115966623,
+              "submit_ns": 115966463,
+              "worker": 0
+            },
+            {
+              "end_ns": 694575613,
+              "queued_ns": 113571332,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 113571432,
+              "submit_ns": 113571372,
+              "worker": 0
+            },
+            {
+              "end_ns": 694584424,
+              "queued_ns": 113595653,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 113595753,
+              "submit_ns": 113595693,
+              "worker": 0
+            },
+            {
+              "end_ns": 705035216,
+              "queued_ns": 113628373,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 113628483,
+              "submit_ns": 113628413,
+              "worker": 1
+            },
+            {
+              "end_ns": 704825631,
+              "queued_ns": 113651444,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 113651544,
+              "submit_ns": 113651484,
+              "worker": 1
+            },
+            {
+              "end_ns": 704852571,
+              "queued_ns": 113675255,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 694585344,
+              "submit_ns": 694585194,
+              "worker": 1
+            },
+            {
+              "end_ns": 679433813,
+              "queued_ns": 113700855,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 113700975,
+              "submit_ns": 113700895,
+              "worker": 2
+            },
+            {
+              "end_ns": 705165389,
+              "queued_ns": 113723736,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 113723836,
+              "submit_ns": 113723776,
+              "worker": 2
+            },
+            {
+              "end_ns": 705105248,
+              "queued_ns": 113745696,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 704853471,
+              "submit_ns": 704853341,
+              "worker": 2
+            },
+            {
+              "end_ns": 670288153,
+              "queued_ns": 113771057,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 113771197,
+              "submit_ns": 113771117,
+              "worker": 3
+            },
+            {
+              "end_ns": 705433066,
+              "queued_ns": 113798508,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 113798608,
+              "submit_ns": 113798548,
+              "worker": 3
+            },
+            {
+              "end_ns": 705370794,
+              "queued_ns": 113819998,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 705105958,
+              "submit_ns": 705105778,
+              "worker": 3
+            },
+            {
+              "end_ns": 1250494638,
+              "queued_ns": 113848829,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 697637241,
+              "submit_ns": 697637061,
+              "worker": 0
+            },
+            {
+              "end_ns": 1251549124,
+              "queued_ns": 113866849,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 694577183,
+              "submit_ns": 694576683,
+              "worker": 0
+            },
+            {
+              "end_ns": 1251552495,
+              "queued_ns": 113882110,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 705371624,
+              "submit_ns": 705371474,
+              "worker": 0
+            },
+            {
+              "end_ns": 1256410997,
+              "queued_ns": 113900840,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 705036146,
+              "submit_ns": 705035976,
+              "worker": 1
+            },
+            {
+              "end_ns": 1256381806,
+              "queued_ns": 113915401,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 704826441,
+              "submit_ns": 704826331,
+              "worker": 1
+            },
+            {
+              "end_ns": 1256384486,
+              "queued_ns": 113932191,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 1251555315,
+              "submit_ns": 1251554545,
+              "worker": 1
+            },
+            {
+              "end_ns": 1282473221,
+              "queued_ns": 113956432,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 682024328,
+              "submit_ns": 682024198,
+              "worker": 2
+            },
+            {
+              "end_ns": 1282629515,
+              "queued_ns": 113976572,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 705166019,
+              "submit_ns": 705165869,
+              "worker": 2
+            },
+            {
+              "end_ns": 1282631745,
+              "queued_ns": 113995173,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 1256386577,
+              "submit_ns": 1256386147,
+              "worker": 2
+            },
+            {
+              "end_ns": 1260938341,
+              "queued_ns": 114018493,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 672871338,
+              "submit_ns": 672871168,
+              "worker": 3
+            },
+            {
+              "end_ns": 1282954834,
+              "queued_ns": 114035524,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 705433626,
+              "submit_ns": 705433536,
+              "worker": 3
+            },
+            {
+              "end_ns": 1282949823,
+              "queued_ns": 114052304,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 1282633725,
+              "submit_ns": 1282633205,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "degree_mismatches": "0",
+            "destination_partitions": "8",
+            "epsilon": "0.000001",
+            "final_edges": "826856",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "max_abs_error": "0.000000",
+            "oracle_converged": "1",
+            "oracle_propagation_rounds": "0",
+            "physical_updates": "8",
+            "pipeline_executions": "1",
+            "pma_slots_total": "8913984",
+            "processed_edge_slots_per_execution": "8913984",
+            "propagation_rounds": "0",
+            "rank_mismatches": "0",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "status": "PASS",
+            "threshold_semantics": "direct_per_vertex",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 4584.846107,
+              "union_ms": 1168.844738
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 1169.439303,
+              "union_ms": 1169.439303
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 4618.766289,
+              "union_ms": 1169.383402
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 1169.464343,
+              "union_ms": 1169.464343
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 1169.343819,
+              "union_ms": 1169.343819
+            },
+            "source_prepare": {
+              "max_concurrency": 1,
+              "sum_ms": 1.217191,
+              "union_ms": 1.217191
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 4584.846107,
+            "apply_ms": 1169.439303,
+            "device_e2e_ms": 1187.954648,
+            "hbm_ms": 1169.464343,
+            "lksg_ms": 4618.766289,
+            "mux_ms": 1169.343819,
+            "setup_inclusive_ms": 1189.148237,
+            "source_prepare_ms": 1.217191,
+            "update_ms": 17.007027
+          }
+        },
+        {
+          "adapter_after_gather_union_ms": 0.40292,
+          "between_compute_events_gap_ms": 0.0,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 1169.608427,
+          "compute_union_ms": 1169.608427,
+          "event_count": 27,
+          "events": [
+            {
+              "end_ns": 133686080,
+              "queued_ns": 132474829,
+              "round": 0,
+              "shard": -1,
+              "stage": "source_prepare",
+              "start_ns": 132475159,
+              "submit_ns": 132474959,
+              "worker": -1
+            },
+            {
+              "end_ns": 1303395929,
+              "queued_ns": 133789322,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 133789442,
+              "submit_ns": 133789362,
+              "worker": -1
+            },
+            {
+              "end_ns": 1303397039,
+              "queued_ns": 133817923,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 133818033,
+              "submit_ns": 133817973,
+              "worker": -1
+            },
+            {
+              "end_ns": 714485760,
+              "queued_ns": 133868624,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 136284856,
+              "submit_ns": 136284716,
+              "worker": 0
+            },
+            {
+              "end_ns": 715003573,
+              "queued_ns": 133887735,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 133887845,
+              "submit_ns": 133887765,
+              "worker": 0
+            },
+            {
+              "end_ns": 715018084,
+              "queued_ns": 133911455,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 133911565,
+              "submit_ns": 133911495,
+              "worker": 0
+            },
+            {
+              "end_ns": 725288585,
+              "queued_ns": 133943266,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 133943356,
+              "submit_ns": 133943306,
+              "worker": 1
+            },
+            {
+              "end_ns": 725085280,
+              "queued_ns": 133969407,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 133969547,
+              "submit_ns": 133969457,
+              "worker": 1
+            },
+            {
+              "end_ns": 725102390,
+              "queued_ns": 133994828,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 715019514,
+              "submit_ns": 715019324,
+              "worker": 1
+            },
+            {
+              "end_ns": 699483930,
+              "queued_ns": 134023268,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 134023368,
+              "submit_ns": 134023308,
+              "worker": 2
+            },
+            {
+              "end_ns": 725425238,
+              "queued_ns": 134045269,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 134045369,
+              "submit_ns": 134045309,
+              "worker": 2
+            },
+            {
+              "end_ns": 725370457,
+              "queued_ns": 134071600,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 725103540,
+              "submit_ns": 725103450,
+              "worker": 2
+            },
+            {
+              "end_ns": 690539213,
+              "queued_ns": 134098010,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 134098130,
+              "submit_ns": 134098050,
+              "worker": 3
+            },
+            {
+              "end_ns": 725687275,
+              "queued_ns": 134121411,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 134121501,
+              "submit_ns": 134121451,
+              "worker": 3
+            },
+            {
+              "end_ns": 725657494,
+              "queued_ns": 134142711,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 725371737,
+              "submit_ns": 725371537,
+              "worker": 3
+            },
+            {
+              "end_ns": 1270565747,
+              "queued_ns": 134168502,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 717830065,
+              "submit_ns": 717829905,
+              "worker": 0
+            },
+            {
+              "end_ns": 1272078925,
+              "queued_ns": 134188522,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 715005374,
+              "submit_ns": 715005044,
+              "worker": 0
+            },
+            {
+              "end_ns": 1272081185,
+              "queued_ns": 134206423,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 725659494,
+              "submit_ns": 725659254,
+              "worker": 0
+            },
+            {
+              "end_ns": 1276721853,
+              "queued_ns": 134226663,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 725291075,
+              "submit_ns": 725290745,
+              "worker": 1
+            },
+            {
+              "end_ns": 1276522238,
+              "queued_ns": 134242234,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 725087630,
+              "submit_ns": 725087200,
+              "worker": 1
+            },
+            {
+              "end_ns": 1276524418,
+              "queued_ns": 134258854,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 1272083075,
+              "submit_ns": 1272082575,
+              "worker": 1
+            },
+            {
+              "end_ns": 1302727493,
+              "queued_ns": 134285745,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 702208089,
+              "submit_ns": 702207979,
+              "worker": 2
+            },
+            {
+              "end_ns": 1303021470,
+              "queued_ns": 134306525,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 725426158,
+              "submit_ns": 725425988,
+              "worker": 2
+            },
+            {
+              "end_ns": 1303023440,
+              "queued_ns": 134322716,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 1276526018,
+              "submit_ns": 1276525718,
+              "worker": 2
+            },
+            {
+              "end_ns": 1280984561,
+              "queued_ns": 134349587,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 693308124,
+              "submit_ns": 693307814,
+              "worker": 3
+            },
+            {
+              "end_ns": 1303397869,
+              "queued_ns": 134365557,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 725688415,
+              "submit_ns": 725688205,
+              "worker": 3
+            },
+            {
+              "end_ns": 1303361379,
+              "queued_ns": 134381287,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 1303025170,
+              "submit_ns": 1303024870,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "degree_mismatches": "0",
+            "destination_partitions": "8",
+            "epsilon": "0.000001",
+            "final_edges": "826856",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "max_abs_error": "0.000000",
+            "oracle_converged": "1",
+            "oracle_propagation_rounds": "0",
+            "physical_updates": "8",
+            "pipeline_executions": "1",
+            "pma_slots_total": "8913984",
+            "processed_edge_slots_per_execution": "8913984",
+            "propagation_rounds": "0",
+            "rank_mismatches": "0",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "status": "PASS",
+            "threshold_semantics": "direct_per_vertex",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 4583.810079,
+              "union_ms": 1168.784137
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 1169.579006,
+              "union_ms": 1169.579006
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 4618.990029,
+              "union_ms": 1169.510024
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 1169.606487,
+              "union_ms": 1169.606487
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 1169.438734,
+              "union_ms": 1169.438734
+            },
+            "source_prepare": {
+              "max_concurrency": 1,
+              "sum_ms": 1.210921,
+              "union_ms": 1.210921
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 4583.810079,
+            "apply_ms": 1169.579006,
+            "device_e2e_ms": 1188.27034,
+            "hbm_ms": 1169.606487,
+            "lksg_ms": 4618.990029,
+            "mux_ms": 1169.438734,
+            "setup_inclusive_ms": 1189.43439,
+            "source_prepare_ms": 1.210921,
+            "update_ms": 17.176115
+          }
+        },
+        {
+          "adapter_after_gather_union_ms": 0.365999,
+          "between_compute_events_gap_ms": 0.0,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 1170.260031,
+          "compute_union_ms": 1170.260031,
+          "event_count": 27,
+          "events": [
+            {
+              "end_ns": 119584170,
+              "queued_ns": 118375350,
+              "round": 0,
+              "shard": -1,
+              "stage": "source_prepare",
+              "start_ns": 118375530,
+              "submit_ns": 118375390,
+              "worker": -1
+            },
+            {
+              "end_ns": 1289938024,
+              "queued_ns": 119681923,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 119682063,
+              "submit_ns": 119681963,
+              "worker": -1
+            },
+            {
+              "end_ns": 1289940174,
+              "queued_ns": 119714904,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 119715014,
+              "submit_ns": 119714944,
+              "worker": -1
+            },
+            {
+              "end_ns": 700617845,
+              "queued_ns": 119759915,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 122236508,
+              "submit_ns": 122236328,
+              "worker": 0
+            },
+            {
+              "end_ns": 701215760,
+              "queued_ns": 119776635,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 119776755,
+              "submit_ns": 119776675,
+              "worker": 0
+            },
+            {
+              "end_ns": 701232141,
+              "queued_ns": 119798096,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 119798196,
+              "submit_ns": 119798136,
+              "worker": 0
+            },
+            {
+              "end_ns": 711395111,
+              "queued_ns": 119827307,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 119827417,
+              "submit_ns": 119827347,
+              "worker": 1
+            },
+            {
+              "end_ns": 711210196,
+              "queued_ns": 119848787,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 119848897,
+              "submit_ns": 119848827,
+              "worker": 1
+            },
+            {
+              "end_ns": 711230057,
+              "queued_ns": 119870728,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 701233461,
+              "submit_ns": 701233191,
+              "worker": 1
+            },
+            {
+              "end_ns": 685623942,
+              "queued_ns": 119904369,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 119904579,
+              "submit_ns": 119904439,
+              "worker": 2
+            },
+            {
+              "end_ns": 711558435,
+              "queued_ns": 119941649,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 119941829,
+              "submit_ns": 119941709,
+              "worker": 2
+            },
+            {
+              "end_ns": 711535134,
+              "queued_ns": 119977040,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 711231347,
+              "submit_ns": 711231157,
+              "worker": 2
+            },
+            {
+              "end_ns": 677109883,
+              "queued_ns": 120016681,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 120016911,
+              "submit_ns": 120016751,
+              "worker": 3
+            },
+            {
+              "end_ns": 711869863,
+              "queued_ns": 120051602,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 120051782,
+              "submit_ns": 120051672,
+              "worker": 3
+            },
+            {
+              "end_ns": 711846332,
+              "queued_ns": 120085133,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 711537865,
+              "submit_ns": 711537545,
+              "worker": 3
+            },
+            {
+              "end_ns": 1257382521,
+              "queued_ns": 120128284,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 704674719,
+              "submit_ns": 704674289,
+              "worker": 0
+            },
+            {
+              "end_ns": 1258531960,
+              "queued_ns": 120165775,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 701217280,
+              "submit_ns": 701216970,
+              "worker": 0
+            },
+            {
+              "end_ns": 1258534240,
+              "queued_ns": 120190266,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 711848923,
+              "submit_ns": 711848572,
+              "worker": 0
+            },
+            {
+              "end_ns": 1262801269,
+              "queued_ns": 120226047,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 711397891,
+              "submit_ns": 711397581,
+              "worker": 1
+            },
+            {
+              "end_ns": 1262620185,
+              "queued_ns": 120251247,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 711212556,
+              "submit_ns": 711212266,
+              "worker": 1
+            },
+            {
+              "end_ns": 1262622445,
+              "queued_ns": 120277978,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 1258535650,
+              "submit_ns": 1258535350,
+              "worker": 1
+            },
+            {
+              "end_ns": 1289474022,
+              "queued_ns": 120318369,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 688344101,
+              "submit_ns": 688343721,
+              "worker": 2
+            },
+            {
+              "end_ns": 1289622546,
+              "queued_ns": 120344740,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 711559755,
+              "submit_ns": 711559515,
+              "worker": 2
+            },
+            {
+              "end_ns": 1289624576,
+              "queued_ns": 120370800,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 1262624205,
+              "submit_ns": 1262623795,
+              "worker": 2
+            },
+            {
+              "end_ns": 1267097389,
+              "queued_ns": 120410401,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 680529691,
+              "submit_ns": 680529271,
+              "worker": 3
+            },
+            {
+              "end_ns": 1289941524,
+              "queued_ns": 120437562,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 711870893,
+              "submit_ns": 711870753,
+              "worker": 3
+            },
+            {
+              "end_ns": 1289942094,
+              "queued_ns": 120465973,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 1289626386,
+              "submit_ns": 1289625816,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "degree_mismatches": "0",
+            "destination_partitions": "8",
+            "epsilon": "0.000001",
+            "final_edges": "826856",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "max_abs_error": "0.000000",
+            "oracle_converged": "1",
+            "oracle_propagation_rounds": "0",
+            "physical_updates": "8",
+            "pipeline_executions": "1",
+            "pma_slots_total": "8913984",
+            "processed_edge_slots_per_execution": "8913984",
+            "propagation_rounds": "0",
+            "rank_mismatches": "0",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "status": "PASS",
+            "threshold_semantics": "direct_per_vertex",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 4584.570165,
+              "union_ms": 1169.646605
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 1170.22516,
+              "union_ms": 1170.22516
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 4621.090722,
+              "union_ms": 1170.164769
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 1170.255961,
+              "union_ms": 1170.255961
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 1170.130986,
+              "union_ms": 1170.130986
+            },
+            "source_prepare": {
+              "max_concurrency": 1,
+              "sum_ms": 1.20864,
+              "union_ms": 1.20864
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 4584.570165,
+            "apply_ms": 1170.22516,
+            "device_e2e_ms": 1189.506993,
+            "hbm_ms": 1170.255961,
+            "lksg_ms": 4621.090722,
+            "mux_ms": 1170.130986,
+            "setup_inclusive_ms": 1190.94719,
+            "source_prepare_ms": 1.20864,
+            "update_ms": 17.782484
+          }
+        }
+      ]
+    },
+    "SSSP": {
+      "case": {
+        "algorithm": "weighted_sssp",
+        "case": "au_weighted_sssp_resident",
+        "gr_host": "/data/tmp/chuxiao/sharded_k4_hosts_5d501d9/weighted_sssp/sharded_k4_sssp_native_host",
+        "gr_xclbin": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+        "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+        "source": "11"
+      },
+      "checks": {
+        "all_result_bytes_equal": true,
+        "baseline_host": true,
+        "graph": true,
+        "matrix": true,
+        "same_correctness_and_rounds": true,
+        "source_unchanged_during_run": true,
+        "trace_host": true,
+        "xclbin": true
+      },
+      "host_affinity": [
+        120,
+        121
+      ],
+      "input_identities": {
+        "baseline_host": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/baseline_host/sharded_k4_sssp_native_host",
+          "sha256": "e127a55f4cbe0d87d8578454a84dfae43bbce2c6518cedc230768a52917ade3a"
+        },
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+          "sha256": "c59f311efc83dc1c748b7e1121cca055c3b86aaca4e04c5d1de57e694022e734"
+        },
+        "matrix": {
+          "path": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806/sssp_fullgraph_u55c/matrix.tsv",
+          "sha256": "c2b02da3af9d50d5dedef7f0ae065837a11e653555a94ab097ddc3afb2a633fb"
+        },
+        "trace_host": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/trace_host/sharded_k4_sssp_native_host",
+          "sha256": "b15a80910d17fd0d4a4eaca1fe0abea14abfa96185c32d2c05518e8e37539df3"
+        },
+        "xclbin": {
+          "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+          "sha256": "292ae9e468dda3d9d1941d1ab46e1696643956122d134ec366711e4acda2ceaf"
+        }
+      },
+      "median_adapter_after_gather_union_ms": 1735.511019,
+      "median_compute_span_ms": 2053.786942,
+      "median_setup_inclusive_ms": {
+        "baseline": 2063.606375,
+        "trace_disabled": 2063.741991,
+        "trace_enabled": 2062.583156
+      },
+      "median_stage_metrics": {
+        "adapter": {
+          "max_concurrency": 4,
+          "sum_ms": 8169.219505,
+          "union_ms": 2053.319517
+        },
+        "apply": {
+          "max_concurrency": 1,
+          "sum_ms": 1192.653148,
+          "union_ms": 1192.653148
+        },
+        "gather": {
+          "max_concurrency": 4,
+          "sum_ms": 4751.649365,
+          "union_ms": 1192.489523
+        },
+        "hbm": {
+          "max_concurrency": 1,
+          "sum_ms": 1192.750621,
+          "union_ms": 1192.750621
+        },
+        "mux": {
+          "max_concurrency": 1,
+          "sum_ms": 1192.38434,
+          "union_ms": 1192.38434
+        }
+      },
+      "peak_rss_mib": 603.890625,
+      "runs": 9,
+      "trace_events": [
+        {
+          "adapter_after_gather_union_ms": 1735.19636,
+          "between_compute_events_gap_ms": 0.33721,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 2053.206663,
+          "compute_union_ms": 2052.869453,
+          "event_count": 52,
+          "events": [
+            {
+              "end_ns": 705485165,
+              "queued_ns": 105615172,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 105615372,
+              "submit_ns": 105615262,
+              "worker": -1
+            },
+            {
+              "end_ns": 705487015,
+              "queued_ns": 105645423,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 105645523,
+              "submit_ns": 105645463,
+              "worker": -1
+            },
+            {
+              "end_ns": 617672896,
+              "queued_ns": 105678024,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 105678154,
+              "submit_ns": 105678074,
+              "worker": 0
+            },
+            {
+              "end_ns": 186818306,
+              "queued_ns": 105699254,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 105699364,
+              "submit_ns": 105699294,
+              "worker": 0
+            },
+            {
+              "end_ns": 186830296,
+              "queued_ns": 105720415,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 105720525,
+              "submit_ns": 105720455,
+              "worker": 0
+            },
+            {
+              "end_ns": 618717689,
+              "queued_ns": 105767286,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 108275784,
+              "submit_ns": 108275634,
+              "worker": 1
+            },
+            {
+              "end_ns": 187465096,
+              "queued_ns": 105783577,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 105783697,
+              "submit_ns": 105783617,
+              "worker": 1
+            },
+            {
+              "end_ns": 187473666,
+              "queued_ns": 105806328,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 186831216,
+              "submit_ns": 186831086,
+              "worker": 1
+            },
+            {
+              "end_ns": 621365081,
+              "queued_ns": 105840999,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 110516274,
+              "submit_ns": 110516104,
+              "worker": 2
+            },
+            {
+              "end_ns": 189723386,
+              "queued_ns": 105856549,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 105856669,
+              "submit_ns": 105856589,
+              "worker": 2
+            },
+            {
+              "end_ns": 189731826,
+              "queued_ns": 105877750,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 187474566,
+              "submit_ns": 187474456,
+              "worker": 2
+            },
+            {
+              "end_ns": 623532268,
+              "queued_ns": 105910611,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 113351912,
+              "submit_ns": 113351812,
+              "worker": 3
+            },
+            {
+              "end_ns": 192336357,
+              "queued_ns": 105926591,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 105926731,
+              "submit_ns": 105926631,
+              "worker": 3
+            },
+            {
+              "end_ns": 192344467,
+              "queued_ns": 105947582,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 189732746,
+              "submit_ns": 189732506,
+              "worker": 3
+            },
+            {
+              "end_ns": 1130595908,
+              "queued_ns": 105973823,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 620816474,
+              "submit_ns": 620816314,
+              "worker": 0
+            },
+            {
+              "end_ns": 699718886,
+              "queued_ns": 105990943,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 186820136,
+              "submit_ns": 186819796,
+              "worker": 0
+            },
+            {
+              "end_ns": 699720646,
+              "queued_ns": 106006474,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 192345137,
+              "submit_ns": 192345017,
+              "worker": 0
+            },
+            {
+              "end_ns": 1129022919,
+              "queued_ns": 106025724,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 618719549,
+              "submit_ns": 618719089,
+              "worker": 1
+            },
+            {
+              "end_ns": 700016036,
+              "queued_ns": 106041635,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 187465946,
+              "submit_ns": 187465796,
+              "worker": 1
+            },
+            {
+              "end_ns": 700017456,
+              "queued_ns": 106056735,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 699721916,
+              "submit_ns": 699721606,
+              "worker": 1
+            },
+            {
+              "end_ns": 1135207422,
+              "queued_ns": 106081786,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 624650003,
+              "submit_ns": 624649873,
+              "worker": 2
+            },
+            {
+              "end_ns": 703639888,
+              "queued_ns": 106098677,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 189724316,
+              "submit_ns": 189724176,
+              "worker": 2
+            },
+            {
+              "end_ns": 703641298,
+              "queued_ns": 106115017,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 700019086,
+              "submit_ns": 700018676,
+              "worker": 2
+            },
+            {
+              "end_ns": 1136401449,
+              "queued_ns": 106138888,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 626707757,
+              "submit_ns": 626707507,
+              "worker": 3
+            },
+            {
+              "end_ns": 705488005,
+              "queued_ns": 106155198,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 192337197,
+              "submit_ns": 192337087,
+              "worker": 3
+            },
+            {
+              "end_ns": 705488556,
+              "queued_ns": 106171879,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 703642678,
+              "submit_ns": 703642288,
+              "worker": 3
+            },
+            {
+              "end_ns": 1728831761,
+              "queued_ns": 1136738289,
+              "round": 1,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 1136738659,
+              "submit_ns": 1136738369,
+              "worker": -1
+            },
+            {
+              "end_ns": 1728823441,
+              "queued_ns": 1136808461,
+              "round": 1,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 1136808811,
+              "submit_ns": 1136808571,
+              "worker": -1
+            },
+            {
+              "end_ns": 1648962129,
+              "queued_ns": 1136868023,
+              "round": 1,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 1136868243,
+              "submit_ns": 1136868103,
+              "worker": 0
+            },
+            {
+              "end_ns": 1218068047,
+              "queued_ns": 1136927605,
+              "round": 1,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 1136927865,
+              "submit_ns": 1136927685,
+              "worker": 0
+            },
+            {
+              "end_ns": 1218087807,
+              "queued_ns": 1136970136,
+              "round": 1,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 1136970356,
+              "submit_ns": 1136970216,
+              "worker": 0
+            },
+            {
+              "end_ns": 1647725040,
+              "queued_ns": 1137028458,
+              "round": 1,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 1137028748,
+              "submit_ns": 1137028538,
+              "worker": 1
+            },
+            {
+              "end_ns": 1218405297,
+              "queued_ns": 1137073070,
+              "round": 1,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 1137073300,
+              "submit_ns": 1137073150,
+              "worker": 1
+            },
+            {
+              "end_ns": 1218381716,
+              "queued_ns": 1137119401,
+              "round": 1,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 1218088987,
+              "submit_ns": 1218088857,
+              "worker": 1
+            },
+            {
+              "end_ns": 1648216976,
+              "queued_ns": 1137162902,
+              "round": 1,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 1137163152,
+              "submit_ns": 1137162982,
+              "worker": 2
+            },
+            {
+              "end_ns": 1218697236,
+              "queued_ns": 1137212744,
+              "round": 1,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 1137212964,
+              "submit_ns": 1137212824,
+              "worker": 2
+            },
+            {
+              "end_ns": 1218717037,
+              "queued_ns": 1137269056,
+              "round": 1,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 1218384516,
+              "submit_ns": 1218384216,
+              "worker": 2
+            },
+            {
+              "end_ns": 1647664078,
+              "queued_ns": 1137311957,
+              "round": 1,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 1137312217,
+              "submit_ns": 1137312057,
+              "worker": 3
+            },
+            {
+              "end_ns": 1219018846,
+              "queued_ns": 1137359369,
+              "round": 1,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 1137359599,
+              "submit_ns": 1137359449,
+              "worker": 3
+            },
+            {
+              "end_ns": 1219038847,
+              "queued_ns": 1137384119,
+              "round": 1,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 1218718597,
+              "submit_ns": 1218718397,
+              "worker": 3
+            },
+            {
+              "end_ns": 2158822035,
+              "queued_ns": 1137403550,
+              "round": 1,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 1648966219,
+              "submit_ns": 1648965599,
+              "worker": 0
+            },
+            {
+              "end_ns": 1727916282,
+              "queued_ns": 1137418740,
+              "round": 1,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 1218070627,
+              "submit_ns": 1218070267,
+              "worker": 0
+            },
+            {
+              "end_ns": 1727918593,
+              "queued_ns": 1137435041,
+              "round": 1,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 1219039937,
+              "submit_ns": 1219039767,
+              "worker": 0
+            },
+            {
+              "end_ns": 2158052781,
+              "queued_ns": 1137462522,
+              "round": 1,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 1647727070,
+              "submit_ns": 1647726790,
+              "worker": 1
+            },
+            {
+              "end_ns": 1728235442,
+              "queued_ns": 1137479152,
+              "round": 1,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 1218406427,
+              "submit_ns": 1218406247,
+              "worker": 1
+            },
+            {
+              "end_ns": 1728237892,
+              "queued_ns": 1137494053,
+              "round": 1,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 1727920553,
+              "submit_ns": 1727920063,
+              "worker": 1
+            },
+            {
+              "end_ns": 2158819745,
+              "queued_ns": 1137512303,
+              "round": 1,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 1648219906,
+              "submit_ns": 1648219506,
+              "worker": 2
+            },
+            {
+              "end_ns": 1728563583,
+              "queued_ns": 1137531004,
+              "round": 1,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 1218699846,
+              "submit_ns": 1218699566,
+              "worker": 2
+            },
+            {
+              "end_ns": 1728524591,
+              "queued_ns": 1137546624,
+              "round": 1,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 1728240013,
+              "submit_ns": 1728239572,
+              "worker": 2
+            },
+            {
+              "end_ns": 2157448682,
+              "queued_ns": 1137568695,
+              "round": 1,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 1647668178,
+              "submit_ns": 1647667858,
+              "worker": 3
+            },
+            {
+              "end_ns": 1728825701,
+              "queued_ns": 1137588326,
+              "round": 1,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 1219021386,
+              "submit_ns": 1219021056,
+              "worker": 3
+            },
+            {
+              "end_ns": 1728826481,
+              "queued_ns": 1137603316,
+              "round": 1,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 1728525811,
+              "submit_ns": 1728525661,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "2",
+            "final_edges": "390855",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "2",
+            "physical_updates": "8",
+            "pma_slots_total": "1843296",
+            "processed_edge_slots_per_superstep": "1843296",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "11",
+            "source_internal": "5",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 8168.557458,
+              "union_ms": 2052.677087
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 1191.856122,
+              "union_ms": 1191.856122
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 4750.550324,
+              "union_ms": 1191.686477
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 1191.962895,
+              "union_ms": 1191.962895
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 1191.604535,
+              "union_ms": 1191.604535
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 8168.557458,
+            "apply_ms": 1191.856122,
+            "barrier_ms": 7.001608,
+            "convergence_readback_ms": 0.338451,
+            "event_e2e_ms": 2061.205412,
+            "grasu_ms": 7.910196,
+            "hbm_ms": 1191.962895,
+            "lksg_ms": 4750.550324,
+            "setup_inclusive_ms": 2062.1365
+          }
+        },
+        {
+          "adapter_after_gather_union_ms": 1735.511019,
+          "between_compute_events_gap_ms": 0.282839,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 2053.786942,
+          "compute_union_ms": 2053.504103,
+          "event_count": 52,
+          "events": [
+            {
+              "end_ns": 773156450,
+              "queued_ns": 172565774,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 172565934,
+              "submit_ns": 172565814,
+              "worker": -1
+            },
+            {
+              "end_ns": 773159000,
+              "queued_ns": 172595615,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 172595755,
+              "submit_ns": 172595655,
+              "worker": -1
+            },
+            {
+              "end_ns": 684667109,
+              "queued_ns": 172628966,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 172629086,
+              "submit_ns": 172629006,
+              "worker": 0
+            },
+            {
+              "end_ns": 253744026,
+              "queued_ns": 172651546,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 172651666,
+              "submit_ns": 172651576,
+              "worker": 0
+            },
+            {
+              "end_ns": 253722536,
+              "queued_ns": 172674777,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 172674907,
+              "submit_ns": 172674817,
+              "worker": 0
+            },
+            {
+              "end_ns": 685764003,
+              "queued_ns": 172716578,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 175233626,
+              "submit_ns": 175233506,
+              "worker": 1
+            },
+            {
+              "end_ns": 254441568,
+              "queued_ns": 172740579,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 172740739,
+              "submit_ns": 172740619,
+              "worker": 1
+            },
+            {
+              "end_ns": 254412147,
+              "queued_ns": 172764170,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 253725076,
+              "submit_ns": 253724766,
+              "worker": 1
+            },
+            {
+              "end_ns": 688498769,
+              "queued_ns": 172805391,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 177511947,
+              "submit_ns": 177511837,
+              "worker": 2
+            },
+            {
+              "end_ns": 256738460,
+              "queued_ns": 172822732,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 172822882,
+              "submit_ns": 172822772,
+              "worker": 2
+            },
+            {
+              "end_ns": 256708239,
+              "queued_ns": 172845872,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 254413367,
+              "submit_ns": 254413167,
+              "worker": 2
+            },
+            {
+              "end_ns": 690150530,
+              "queued_ns": 172879903,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 179867300,
+              "submit_ns": 179867210,
+              "worker": 3
+            },
+            {
+              "end_ns": 258840345,
+              "queued_ns": 172897194,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 172897364,
+              "submit_ns": 172897234,
+              "worker": 3
+            },
+            {
+              "end_ns": 258849096,
+              "queued_ns": 172919965,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 256709289,
+              "submit_ns": 256709179,
+              "worker": 3
+            },
+            {
+              "end_ns": 1197151208,
+              "queued_ns": 172944995,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 687269520,
+              "submit_ns": 687268940,
+              "worker": 0
+            },
+            {
+              "end_ns": 766676769,
+              "queued_ns": 172960346,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 253745506,
+              "submit_ns": 253745286,
+              "worker": 0
+            },
+            {
+              "end_ns": 766678959,
+              "queued_ns": 172976906,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 258849866,
+              "submit_ns": 258849726,
+              "worker": 0
+            },
+            {
+              "end_ns": 1196097985,
+              "queued_ns": 172998177,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 685766923,
+              "submit_ns": 685766513,
+              "worker": 1
+            },
+            {
+              "end_ns": 767013859,
+              "queued_ns": 173014518,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 254442888,
+              "submit_ns": 254442698,
+              "worker": 1
+            },
+            {
+              "end_ns": 766990648,
+              "queued_ns": 173028878,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 766680129,
+              "submit_ns": 766679829,
+              "worker": 1
+            },
+            {
+              "end_ns": 1201915596,
+              "queued_ns": 173055829,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 691259875,
+              "submit_ns": 691259485,
+              "worker": 2
+            },
+            {
+              "end_ns": 770456606,
+              "queued_ns": 173070459,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 256739300,
+              "submit_ns": 256739170,
+              "worker": 2
+            },
+            {
+              "end_ns": 770458796,
+              "queued_ns": 173085810,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 766993259,
+              "submit_ns": 766992829,
+              "worker": 2
+            },
+            {
+              "end_ns": 1204063242,
+              "queued_ns": 173108601,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 694303619,
+              "submit_ns": 694303209,
+              "worker": 3
+            },
+            {
+              "end_ns": 773160040,
+              "queued_ns": 173124691,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 258841215,
+              "submit_ns": 258841115,
+              "worker": 3
+            },
+            {
+              "end_ns": 773160870,
+              "queued_ns": 173143242,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 770460136,
+              "submit_ns": 770459806,
+              "worker": 3
+            },
+            {
+              "end_ns": 1796506186,
+              "queued_ns": 1204345681,
+              "round": 1,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 1204346081,
+              "submit_ns": 1204345781,
+              "worker": -1
+            },
+            {
+              "end_ns": 1796501436,
+              "queued_ns": 1204411233,
+              "round": 1,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 1204411533,
+              "submit_ns": 1204411313,
+              "worker": -1
+            },
+            {
+              "end_ns": 1716546981,
+              "queued_ns": 1204467295,
+              "round": 1,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 1204467515,
+              "submit_ns": 1204467375,
+              "worker": 0
+            },
+            {
+              "end_ns": 1285660739,
+              "queued_ns": 1204521127,
+              "round": 1,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 1204521357,
+              "submit_ns": 1204521197,
+              "worker": 0
+            },
+            {
+              "end_ns": 1285680589,
+              "queued_ns": 1204555318,
+              "round": 1,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 1204555558,
+              "submit_ns": 1204555388,
+              "worker": 0
+            },
+            {
+              "end_ns": 1715371775,
+              "queued_ns": 1204597159,
+              "round": 1,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 1204597419,
+              "submit_ns": 1204597229,
+              "worker": 1
+            },
+            {
+              "end_ns": 1286004749,
+              "queued_ns": 1204638390,
+              "round": 1,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 1204638610,
+              "submit_ns": 1204638450,
+              "worker": 1
+            },
+            {
+              "end_ns": 1285982139,
+              "queued_ns": 1204672771,
+              "round": 1,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 1285681829,
+              "submit_ns": 1285681689,
+              "worker": 1
+            },
+            {
+              "end_ns": 1715744116,
+              "queued_ns": 1204705172,
+              "round": 1,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 1204705432,
+              "submit_ns": 1204705242,
+              "worker": 2
+            },
+            {
+              "end_ns": 1286312119,
+              "queued_ns": 1204737933,
+              "round": 1,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 1204738163,
+              "submit_ns": 1204738003,
+              "worker": 2
+            },
+            {
+              "end_ns": 1286288858,
+              "queued_ns": 1204774305,
+              "round": 1,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 1285984689,
+              "submit_ns": 1285984389,
+              "worker": 2
+            },
+            {
+              "end_ns": 1715393345,
+              "queued_ns": 1204809546,
+              "round": 1,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 1204809816,
+              "submit_ns": 1204809636,
+              "worker": 3
+            },
+            {
+              "end_ns": 1286609528,
+              "queued_ns": 1204848827,
+              "round": 1,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 1204849067,
+              "submit_ns": 1204848907,
+              "worker": 3
+            },
+            {
+              "end_ns": 1286636489,
+              "queued_ns": 1204882278,
+              "round": 1,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 1286291348,
+              "submit_ns": 1286291058,
+              "worker": 3
+            },
+            {
+              "end_ns": 2226352876,
+              "queued_ns": 1204921109,
+              "round": 1,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 1716550241,
+              "submit_ns": 1716549771,
+              "worker": 0
+            },
+            {
+              "end_ns": 1795521076,
+              "queued_ns": 1204948670,
+              "round": 1,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 1285663549,
+              "submit_ns": 1285663219,
+              "worker": 0
+            },
+            {
+              "end_ns": 1795523226,
+              "queued_ns": 1204975731,
+              "round": 1,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 1286637509,
+              "submit_ns": 1286637359,
+              "worker": 0
+            },
+            {
+              "end_ns": 2225623554,
+              "queued_ns": 1205007592,
+              "round": 1,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 1715374985,
+              "submit_ns": 1715374485,
+              "worker": 1
+            },
+            {
+              "end_ns": 1795867896,
+              "queued_ns": 1205032643,
+              "round": 1,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 1286006399,
+              "submit_ns": 1286006219,
+              "worker": 1
+            },
+            {
+              "end_ns": 1795844586,
+              "queued_ns": 1205058383,
+              "round": 1,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 1795524746,
+              "submit_ns": 1795524296,
+              "worker": 1
+            },
+            {
+              "end_ns": 2226275334,
+              "queued_ns": 1205093205,
+              "round": 1,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 1715747006,
+              "submit_ns": 1715746676,
+              "worker": 2
+            },
+            {
+              "end_ns": 1796326951,
+              "queued_ns": 1205118315,
+              "round": 1,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 1286313209,
+              "submit_ns": 1286313059,
+              "worker": 2
+            },
+            {
+              "end_ns": 1796159916,
+              "queued_ns": 1205143796,
+              "round": 1,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 1795847496,
+              "submit_ns": 1795847086,
+              "worker": 2
+            },
+            {
+              "end_ns": 2225091837,
+              "queued_ns": 1205179527,
+              "round": 1,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 1715394445,
+              "submit_ns": 1715394285,
+              "worker": 3
+            },
+            {
+              "end_ns": 1796502506,
+              "queued_ns": 1205207758,
+              "round": 1,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 1286615958,
+              "submit_ns": 1286615328,
+              "worker": 3
+            },
+            {
+              "end_ns": 1796478826,
+              "queued_ns": 1205233099,
+              "round": 1,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 1796162376,
+              "submit_ns": 1796162046,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "2",
+            "final_edges": "390855",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "2",
+            "physical_updates": "8",
+            "pma_slots_total": "1843296",
+            "processed_edge_slots_per_superstep": "1843296",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "11",
+            "source_internal": "5",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 8169.219505,
+              "union_ms": 2053.319517
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 1192.653148,
+              "union_ms": 1192.653148
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 4751.649365,
+              "union_ms": 1192.489523
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 1192.750621,
+              "union_ms": 1192.750621
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 1192.38434,
+              "union_ms": 1192.38434
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 8169.219505,
+            "apply_ms": 1192.653148,
+            "barrier_ms": 6.855593,
+            "convergence_readback_ms": 0.228568,
+            "event_e2e_ms": 2061.769941,
+            "grasu_ms": 7.896346,
+            "hbm_ms": 1192.750621,
+            "lksg_ms": 4751.649365,
+            "setup_inclusive_ms": 2062.583156
+          }
+        },
+        {
+          "adapter_after_gather_union_ms": 1736.550222,
+          "between_compute_events_gap_ms": 0.301669,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 2054.769324,
+          "compute_union_ms": 2054.467655,
+          "event_count": 52,
+          "events": [
+            {
+              "end_ns": 704047512,
+              "queued_ns": 102952709,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 102952959,
+              "submit_ns": 102952779,
+              "worker": -1
+            },
+            {
+              "end_ns": 704048062,
+              "queued_ns": 102985050,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 102985160,
+              "submit_ns": 102985090,
+              "worker": -1
+            },
+            {
+              "end_ns": 615045946,
+              "queued_ns": 103018181,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 103018281,
+              "submit_ns": 103018221,
+              "worker": 0
+            },
+            {
+              "end_ns": 184133503,
+              "queued_ns": 103040802,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 103040892,
+              "submit_ns": 103040842,
+              "worker": 0
+            },
+            {
+              "end_ns": 184141073,
+              "queued_ns": 103067683,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 103067903,
+              "submit_ns": 103067763,
+              "worker": 0
+            },
+            {
+              "end_ns": 615979745,
+              "queued_ns": 103114844,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 105476158,
+              "submit_ns": 105476028,
+              "worker": 1
+            },
+            {
+              "end_ns": 184667139,
+              "queued_ns": 103135535,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 103135695,
+              "submit_ns": 103135575,
+              "worker": 1
+            },
+            {
+              "end_ns": 184626538,
+              "queued_ns": 103158556,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 184141703,
+              "submit_ns": 184141633,
+              "worker": 1
+            },
+            {
+              "end_ns": 619786473,
+              "queued_ns": 103196617,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 108927395,
+              "submit_ns": 108927255,
+              "worker": 2
+            },
+            {
+              "end_ns": 188165508,
+              "queued_ns": 103212657,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 103212817,
+              "submit_ns": 103212707,
+              "worker": 2
+            },
+            {
+              "end_ns": 188173978,
+              "queued_ns": 103236558,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 184627398,
+              "submit_ns": 184627208,
+              "worker": 2
+            },
+            {
+              "end_ns": 621065243,
+              "queued_ns": 103268839,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 110778233,
+              "submit_ns": 110778123,
+              "worker": 3
+            },
+            {
+              "end_ns": 189796279,
+              "queued_ns": 103289380,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 103289510,
+              "submit_ns": 103289420,
+              "worker": 3
+            },
+            {
+              "end_ns": 189805339,
+              "queued_ns": 103314121,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 188174718,
+              "submit_ns": 188174618,
+              "worker": 3
+            },
+            {
+              "end_ns": 1128341259,
+              "queued_ns": 103341191,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 618452461,
+              "submit_ns": 618451841,
+              "worker": 0
+            },
+            {
+              "end_ns": 697419136,
+              "queued_ns": 103356372,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 184134583,
+              "submit_ns": 184134443,
+              "worker": 0
+            },
+            {
+              "end_ns": 697421196,
+              "queued_ns": 103371532,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 189806179,
+              "submit_ns": 189806049,
+              "worker": 0
+            },
+            {
+              "end_ns": 1126782731,
+              "queued_ns": 103393913,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 615981015,
+              "submit_ns": 615980735,
+              "worker": 1
+            },
+            {
+              "end_ns": 697767327,
+              "queued_ns": 103412864,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 184667969,
+              "submit_ns": 184667819,
+              "worker": 1
+            },
+            {
+              "end_ns": 697700605,
+              "queued_ns": 103431194,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 697422536,
+              "submit_ns": 697422246,
+              "worker": 1
+            },
+            {
+              "end_ns": 1133844411,
+              "queued_ns": 103457485,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 623260651,
+              "submit_ns": 623260411,
+              "worker": 2
+            },
+            {
+              "end_ns": 702397871,
+              "queued_ns": 103474316,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 188166328,
+              "submit_ns": 188166208,
+              "worker": 2
+            },
+            {
+              "end_ns": 702398581,
+              "queued_ns": 103490596,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 697701555,
+              "submit_ns": 697701425,
+              "worker": 2
+            },
+            {
+              "end_ns": 1134971556,
+              "queued_ns": 103519477,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 625186921,
+              "submit_ns": 625186671,
+              "worker": 3
+            },
+            {
+              "end_ns": 704041572,
+              "queued_ns": 103538148,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 189797169,
+              "submit_ns": 189797029,
+              "worker": 3
+            },
+            {
+              "end_ns": 704042392,
+              "queued_ns": 103557018,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 702399781,
+              "submit_ns": 702399551,
+              "worker": 3
+            },
+            {
+              "end_ns": 1727488091,
+              "queued_ns": 1135272835,
+              "round": 1,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 1135273225,
+              "submit_ns": 1135272915,
+              "worker": -1
+            },
+            {
+              "end_ns": 1727463251,
+              "queued_ns": 1135344877,
+              "round": 1,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 1135345207,
+              "submit_ns": 1135344977,
+              "worker": -1
+            },
+            {
+              "end_ns": 1647511405,
+              "queued_ns": 1135421190,
+              "round": 1,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 1135421410,
+              "submit_ns": 1135421270,
+              "worker": 0
+            },
+            {
+              "end_ns": 1216668525,
+              "queued_ns": 1135464391,
+              "round": 1,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 1135464601,
+              "submit_ns": 1135464471,
+              "worker": 0
+            },
+            {
+              "end_ns": 1216687715,
+              "queued_ns": 1135519853,
+              "round": 1,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 1135520103,
+              "submit_ns": 1135519973,
+              "worker": 0
+            },
+            {
+              "end_ns": 1646731981,
+              "queued_ns": 1135569594,
+              "round": 1,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 1135569814,
+              "submit_ns": 1135569674,
+              "worker": 1
+            },
+            {
+              "end_ns": 1217533951,
+              "queued_ns": 1135613156,
+              "round": 1,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 1135613396,
+              "submit_ns": 1135613246,
+              "worker": 1
+            },
+            {
+              "end_ns": 1217495710,
+              "queued_ns": 1135663337,
+              "round": 1,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 1216688875,
+              "submit_ns": 1216688725,
+              "worker": 1
+            },
+            {
+              "end_ns": 1647119553,
+              "queued_ns": 1135716959,
+              "round": 1,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 1135717279,
+              "submit_ns": 1135717079,
+              "worker": 2
+            },
+            {
+              "end_ns": 1217853021,
+              "queued_ns": 1135767620,
+              "round": 1,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 1135767890,
+              "submit_ns": 1135767720,
+              "worker": 2
+            },
+            {
+              "end_ns": 1217829951,
+              "queued_ns": 1135822552,
+              "round": 1,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 1217498430,
+              "submit_ns": 1217498110,
+              "worker": 2
+            },
+            {
+              "end_ns": 1646459512,
+              "queued_ns": 1135854713,
+              "round": 1,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 1135854833,
+              "submit_ns": 1135854753,
+              "worker": 3
+            },
+            {
+              "end_ns": 1218176381,
+              "queued_ns": 1135876974,
+              "round": 1,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 1135877094,
+              "submit_ns": 1135877014,
+              "worker": 3
+            },
+            {
+              "end_ns": 1218144670,
+              "queued_ns": 1135897314,
+              "round": 1,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 1217832571,
+              "submit_ns": 1217832281,
+              "worker": 3
+            },
+            {
+              "end_ns": 2157388063,
+              "queued_ns": 1135915445,
+              "round": 1,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 1647513985,
+              "submit_ns": 1647513655,
+              "worker": 0
+            },
+            {
+              "end_ns": 1726499101,
+              "queued_ns": 1135930486,
+              "round": 1,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 1216671145,
+              "submit_ns": 1216670845,
+              "worker": 0
+            },
+            {
+              "end_ns": 1726501221,
+              "queued_ns": 1135944076,
+              "round": 1,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 1218148110,
+              "submit_ns": 1218147790,
+              "worker": 0
+            },
+            {
+              "end_ns": 2157068543,
+              "queued_ns": 1135960246,
+              "round": 1,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 1646734911,
+              "submit_ns": 1646734481,
+              "worker": 1
+            },
+            {
+              "end_ns": 1726837601,
+              "queued_ns": 1135973917,
+              "round": 1,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 1217535231,
+              "submit_ns": 1217535041,
+              "worker": 1
+            },
+            {
+              "end_ns": 1726814231,
+              "queued_ns": 1135987937,
+              "round": 1,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 1726502531,
+              "submit_ns": 1726502231,
+              "worker": 1
+            },
+            {
+              "end_ns": 2157722283,
+              "queued_ns": 1136004948,
+              "round": 1,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 1647122663,
+              "submit_ns": 1647121873,
+              "worker": 2
+            },
+            {
+              "end_ns": 1727155411,
+              "queued_ns": 1136017398,
+              "round": 1,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 1217854211,
+              "submit_ns": 1217854041,
+              "worker": 2
+            },
+            {
+              "end_ns": 1727132390,
+              "queued_ns": 1136031489,
+              "round": 1,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 1726816891,
+              "submit_ns": 1726816521,
+              "worker": 2
+            },
+            {
+              "end_ns": 2156505945,
+              "queued_ns": 1136047999,
+              "round": 1,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 1646462713,
+              "submit_ns": 1646462313,
+              "worker": 3
+            },
+            {
+              "end_ns": 1727463991,
+              "queued_ns": 1136064270,
+              "round": 1,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 1218177541,
+              "submit_ns": 1218177371,
+              "worker": 3
+            },
+            {
+              "end_ns": 1727442410,
+              "queued_ns": 1136077730,
+              "round": 1,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 1727134640,
+              "submit_ns": 1727134350,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "2",
+            "final_edges": "390855",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "2",
+            "physical_updates": "8",
+            "pma_slots_total": "1843296",
+            "processed_edge_slots_per_superstep": "1843296",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "11",
+            "source_internal": "5",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 8170.845926,
+              "union_ms": 2054.254148
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 1193.180946,
+              "union_ms": 1193.180946
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 4754.170245,
+              "union_ms": 1193.00007
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 1193.309419,
+              "union_ms": 1193.309419
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 1192.874076,
+              "union_ms": 1192.874076
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 8170.845926,
+            "apply_ms": 1193.180946,
+            "barrier_ms": 6.968656,
+            "convergence_readback_ms": 0.273889,
+            "event_e2e_ms": 2062.957128,
+            "grasu_ms": 8.097702,
+            "hbm_ms": 1193.309419,
+            "lksg_ms": 4754.170245,
+            "setup_inclusive_ms": 2063.848396
+          }
+        }
+      ]
+    }
+  },
+  "synthesis": {
+    "claim": "SSSP_adapter_HLS_scheduling_ablation_not_routed_FPGA_performance",
+    "raw_summary_identity": {
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/summary.json",
+      "sha256": "e66cd10833008a25e013448dfe43e5a89a75ca5cca8789f9500e55d5934759c9"
+    },
+    "runs": {
+      "combined": {
+        "analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "551e2f6d326a2b969b36f24c4649a11b57c2e908f91314869e10aaae8e0a3e7f"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "\n",
+              "IterationLatency": "\n",
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "6b41af487f71aed9fcc824bd2034117dec34025d2e03560fab586270ec3950ac"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 12183,
+            "LUT": 17170,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "scevgepseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:21:11",
+              "OrigDirection": "read",
+              "OrigID": "for.body.i.load.23",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "GreaterOrEqualAlignmentMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Could not widen since type i64 size is greater than or equal to alignment 8(bytes)",
+              "msg_id": "214-307",
+              "msg_severity": "INFO",
+              "resolution": "214-307",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            }
+          ]
+        },
+        "delivery_report_analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "551e2f6d326a2b969b36f24c4649a11b57c2e908f91314869e10aaae8e0a3e7f"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "",
+              "IterationLatency": {
+                "range": {
+                  "max": "536871072",
+                  "min": "6"
+                }
+              },
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef",
+              "name": "source_loop"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "6b41af487f71aed9fcc824bd2034117dec34025d2e03560fab586270ec3950ac"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 12183,
+            "LUT": 17170,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "scevgepseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:21:11",
+              "OrigDirection": "read",
+              "OrigID": "for.body.i.load.23",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "GreaterOrEqualAlignmentMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Could not widen since type i64 size is greater than or equal to alignment 8(bytes)",
+              "msg_id": "214-307",
+              "msg_severity": "INFO",
+              "resolution": "214-307",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            }
+          ]
+        },
+        "execution": {
+          "available_before_bytes": 102017282048,
+          "command": [
+            "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+            "--target",
+            "hw",
+            "--compile",
+            "--kernel_frequency",
+            "150",
+            "--kernel",
+            "pma_to_regraph_adapter",
+            "--platform",
+            "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+            "--save-temps",
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "--temp_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/build",
+            "--report_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/reports",
+            "--log_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/logs",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/adapter.hw.xo",
+            "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 841752,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 53.01430516736582
+        },
+        "xo": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/combined/adapter.hw.xo",
+          "sha256": "a401feaa7bcb1cde928c70c53dc8262cadaeaa6da448181f46952f132bca431e"
+        }
+      },
+      "original": {
+        "analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "6cc65b8294f6787b621d0e34a2528d045a625ba11c78dab86e43c65321f3451b"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "\n",
+              "IterationLatency": "\n",
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "bf895bf58040d548c540ebe00308da4ea9d98047df7e0112def6ea82237a3d99"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 11294,
+            "LUT": 16952,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "row_offsetseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5",
+              "LoopName": "source_loop",
+              "OrigDirection": "read",
+              "OrigID": "for.body.load.6",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5",
+              "LoopName": "source_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5",
+              "OrigDirection": "read",
+              "OrigID": "row_offsetseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BadAccessLenMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Sequential access length is not divisible by 2",
+              "msg_id": "214-234",
+              "msg_severity": "INFO",
+              "resolution": "214-234",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5"
+            }
+          ]
+        },
+        "delivery_report_analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "6cc65b8294f6787b621d0e34a2528d045a625ba11c78dab86e43c65321f3451b"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "",
+              "IterationLatency": {
+                "range": {
+                  "max": "536871061",
+                  "min": "77"
+                }
+              },
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef",
+              "name": "source_loop"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "bf895bf58040d548c540ebe00308da4ea9d98047df7e0112def6ea82237a3d99"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 11294,
+            "LUT": 16952,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "row_offsetseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5",
+              "LoopName": "source_loop",
+              "OrigDirection": "read",
+              "OrigID": "for.body.load.6",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5",
+              "LoopName": "source_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5",
+              "OrigDirection": "read",
+              "OrigID": "row_offsetseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BadAccessLenMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Sequential access length is not divisible by 2",
+              "msg_id": "214-234",
+              "msg_severity": "INFO",
+              "resolution": "214-234",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5"
+            }
+          ]
+        },
+        "execution": {
+          "available_before_bytes": 102991519744,
+          "command": [
+            "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+            "--target",
+            "hw",
+            "--compile",
+            "--kernel_frequency",
+            "150",
+            "--kernel",
+            "pma_to_regraph_adapter",
+            "--platform",
+            "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+            "--save-temps",
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "--temp_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/build",
+            "--report_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/reports",
+            "--log_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/logs",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/adapter.hw.xo",
+            "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 838836,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 52.2792910230346
+        },
+        "xo": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/original/adapter.hw.xo",
+          "sha256": "63473cdf92ab31fcd5c5811dd3f7f8514b4520190dc7c0afc3111f7c53cf58f3"
+        }
+      },
+      "prefetch": {
+        "analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "6386a3446a2e489a6bafe9ef47e2d3954d1d8d752187b18eb12d9882fc62f4f7"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "\n",
+              "IterationLatency": "\n",
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "672baffc4c1de1a40dbb265794f5216a93921063abce55daecff3249a84489e9"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 12150,
+            "LUT": 17019,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "scevgepseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:21:11",
+              "OrigDirection": "read",
+              "OrigID": "for.body.i.load.23",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5",
+              "LoopName": "source_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "AccessInCondBranchMissed",
+              "group": "BURST_VERBOSE_MISSED",
+              "msg_body": "Access call is in the conditional branch",
+              "msg_id": "214-232",
+              "msg_severity": "INFO",
+              "resolution": "214-232",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "GreaterOrEqualAlignmentMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Could not widen since type i64 size is greater than or equal to alignment 8(bytes)",
+              "msg_id": "214-307",
+              "msg_severity": "INFO",
+              "resolution": "214-307",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            }
+          ]
+        },
+        "delivery_report_analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "6386a3446a2e489a6bafe9ef47e2d3954d1d8d752187b18eb12d9882fc62f4f7"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "",
+              "IterationLatency": {
+                "range": {
+                  "max": "536871072",
+                  "min": "6"
+                }
+              },
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef",
+              "name": "source_loop"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "672baffc4c1de1a40dbb265794f5216a93921063abce55daecff3249a84489e9"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 12150,
+            "LUT": 17019,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "scevgepseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:21:11",
+              "OrigDirection": "read",
+              "OrigID": "for.body.i.load.23",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5",
+              "LoopName": "source_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "AccessInCondBranchMissed",
+              "group": "BURST_VERBOSE_MISSED",
+              "msg_body": "Access call is in the conditional branch",
+              "msg_id": "214-232",
+              "msg_severity": "INFO",
+              "resolution": "214-232",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:216:5"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "GreaterOrEqualAlignmentMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Could not widen since type i64 size is greater than or equal to alignment 8(bytes)",
+              "msg_id": "214-307",
+              "msg_severity": "INFO",
+              "resolution": "214-307",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            }
+          ]
+        },
+        "execution": {
+          "available_before_bytes": 103199449088,
+          "command": [
+            "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+            "--target",
+            "hw",
+            "--compile",
+            "--kernel_frequency",
+            "150",
+            "--kernel",
+            "pma_to_regraph_adapter",
+            "--platform",
+            "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+            "--save-temps",
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "--temp_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/build",
+            "--report_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/reports",
+            "--log_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/logs",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/adapter.hw.xo",
+            "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 837748,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 52.93208662699908
+        },
+        "xo": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/prefetch/adapter.hw.xo",
+          "sha256": "1c7e5b92e50731a523fef29cb113dfee3fdd831267c96009570ad2b8b7fce976"
+        }
+      },
+      "stop_after_last": {
+        "analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "6910d8c93577b543f4149ac72261e5e3fa9fefd16f6960fa611b2d0c388427aa"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "\n",
+              "IterationLatency": "\n",
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "81b9df9e16d7c6a2976bfe113738df19de57b75c6b54d5091be929591969abf2"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 11327,
+            "LUT": 17062,
+            "URAM": 0
+          },
+          "row_burst_findings": []
+        },
+        "delivery_report_analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "6910d8c93577b543f4149ac72261e5e3fa9fefd16f6960fa611b2d0c388427aa"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "",
+              "IterationLatency": {
+                "range": {
+                  "max": "536871061",
+                  "min": "77"
+                }
+              },
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef",
+              "name": "source_loop"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "81b9df9e16d7c6a2976bfe113738df19de57b75c6b54d5091be929591969abf2"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 11327,
+            "LUT": 17062,
+            "URAM": 0
+          },
+          "row_burst_findings": []
+        },
+        "execution": {
+          "available_before_bytes": 102337695744,
+          "command": [
+            "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+            "--target",
+            "hw",
+            "--compile",
+            "--kernel_frequency",
+            "150",
+            "--kernel",
+            "pma_to_regraph_adapter",
+            "--platform",
+            "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+            "--save-temps",
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "--temp_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/build",
+            "--report_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/reports",
+            "--log_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/logs",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/adapter.hw.xo",
+            "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 836968,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 52.31928722374141
+        },
+        "xo": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations/stop_after_last/adapter.hw.xo",
+          "sha256": "e75f22e71fabb38e01641d8f46d4ba7dd63d6696221591ad776452d08b14202f"
+        }
+      }
+    },
+    "source": [
+      {
+        "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+        "sha256": "ea0f6e4f4ee32a2a744b4fb73e3ee2c94a49dd5bcb569149e7a4f0fdf9698c17"
+      },
+      {
+        "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+        "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+      }
+    ],
+    "status": "HLS_PASS_NOT_ROUTED"
+  }
+}
