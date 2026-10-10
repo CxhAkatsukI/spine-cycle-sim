@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "evidence_class": "original_G_source16_DDR_RTL_shared_memory_control_not_board_timing",
+  "source_revision": "e95da256be9e7f2361449323b6fe0abf98c1b152",
+  "kernel_sha256": "4fda96508724b55edc92b4c7984f4ad167e128cbafe0f360817fa2339b56e763",
+  "header_sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959",
+  "boundary": "one_original_process_ddr_kernel_start_through_ap_done_and_all_shared_memory_responses_drained",
+  "capture_settle_cycles": 3,
+  "clock_ns": 5,
+  "first_half_segment": 131072,
+  "memory_lines": 32,
+  "queue_depth_per_port": 16,
+  "shared_service_beats_per_cycle": 1,
+  "repetitions": 2,
+  "bus_controls": [
+    {"id": "alias_backpressure", "mode": 0, "rejection": null},
+    {"id": "unaligned_read", "mode": 1, "rejection": "shared memory address outside the admitted cold region"},
+    {"id": "multi_beat_read", "mode": 2, "rejection": "invalid read port/burst/capacity"},
+    {"id": "partial_write", "mode": 3, "rejection": "invalid write beat/strobe/capacity"}
+  ],
+  "cases": [
+    {"id": "empty", "sequence": "empty", "latency": 64, "input_gap": 0},
+    {"id": "single", "sequence": "single", "latency": 64, "input_gap": 0},
+    {"id": "unique_even", "sequence": "unique_even", "latency": 64, "input_gap": 0},
+    {"id": "unique_both", "sequence": "unique_both", "latency": 64, "input_gap": 0},
+    {"id": "repeat_even", "sequence": "repeat_even", "latency": 64, "input_gap": 0},
+    {"id": "repeat_odd", "sequence": "repeat_odd", "latency": 64, "input_gap": 0},
+    {"id": "repeat_both", "sequence": "repeat_both", "latency": 64, "input_gap": 0},
+    {"id": "repeat_paced", "sequence": "repeat_even", "latency": 64, "input_gap": 800},
+    {"id": "repeat_latency16", "sequence": "repeat_even", "latency": 16, "input_gap": 0},
+    {"id": "repeat_latency128", "sequence": "repeat_even", "latency": 128, "input_gap": 0},
+    {"id": "unique_latency128", "sequence": "unique_both", "latency": 128, "input_gap": 0},
+    {"id": "alternating", "sequence": "alternating", "latency": 64, "input_gap": 0}
+  ],
+  "max_cycles": 20000,
+  "memory_limit_gib": 4,
+  "reserve_gib": 16,
+  "compile_timeout_seconds": 600,
+  "run_timeout_seconds": 180,
+  "not_claimed": ["FPGA_measured_cycles", "DDR_controller_calibration", "complete_G_timing", "G_cache_or_search_validation", "published_throughput_match", "paper8_geometry", "current_routed_G_plus_R_equivalence"]
+}

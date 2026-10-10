@@ -1,0 +1,142 @@
+{
+  "SST_and_FPGA_matrices_rerun": false,
+  "archive_sha256": "f44b3ad59cfb4120d998d147c43db7df8df4a78650b9471405c0a63e2aa374f5",
+  "changed_protected_files": [],
+  "delivery_negative_gates": [
+    {
+      "mutation": "FPGA_measured_cycles",
+      "reason": "DDR report claim, source, or complete declared matrix differs",
+      "status": "REJECTED"
+    },
+    {
+      "mutation": "publication_rate_error_pct",
+      "reason": "DDR report claim, source, or complete declared matrix differs",
+      "status": "REJECTED"
+    },
+    {
+      "mutation": "cases",
+      "reason": "DDR report claim, source, or complete declared matrix differs",
+      "status": "REJECTED"
+    },
+    {
+      "mutation": "steps",
+      "reason": "DDR report claim, source, or complete declared matrix differs",
+      "status": "REJECTED"
+    },
+    {
+      "mutation": "bus_controls",
+      "reason": "DDR report claim, source, or complete declared matrix differs",
+      "status": "REJECTED"
+    },
+    {
+      "mutation": "tools",
+      "reason": "DDR complete tool or executable identity matrix missing",
+      "status": "REJECTED"
+    },
+    {
+      "mutation": "simulation_binaries",
+      "reason": "DDR complete tool or executable identity matrix missing",
+      "status": "REJECTED"
+    },
+    {
+      "mutation": "rtl_files",
+      "reason": "DDR complete generated RTL identity missing",
+      "status": "REJECTED"
+    },
+    {
+      "mutation": "fabricated_RTL_window",
+      "reason": "DDR RTL complete state or protocol evidence changed",
+      "status": "REJECTED"
+    }
+  ],
+  "expanded_baseline_capture_smoke": {
+    "accepted_A4_B_result_sha256": "770b0fce55f54e0c32a2d04f373179e22e872b400c54a5761c6a3d29170f773e",
+    "baseline_sha256": "89c442446d0488c2b29d151a0d296090bf453ea04dea42cf989346d1d2805d44",
+    "changed_old_files": [],
+    "old_source_files": 164,
+    "plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+    "user_dirty_diff_preserved": true
+  },
+  "formal_peak_rss_kib": 580596,
+  "formal_steps": 74,
+  "old_code_preservation": {
+    "accepted_A4_B_result_sha256": "770b0fce55f54e0c32a2d04f373179e22e872b400c54a5761c6a3d29170f773e",
+    "baseline_sha256": "f657c675d103c7e17066ef75be3e2b0eaea065a6ba622850548ba370061efef6",
+    "changed_old_files": [],
+    "old_source_files": 152,
+    "plugin_sha256": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+    "user_dirty_diff_preserved": true
+  },
+  "prior_accepted_v2_complete_case_observations_equal": true,
+  "protected_evidence_files": 2437,
+  "regression": [
+    {
+      "resource": {
+        "available_before_bytes": 127585660928,
+        "command": [
+          "ctest",
+          "--test-dir",
+          "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/build",
+          "--output-on-failure"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 95148,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_ddr_rtl_regression_v1/ctest.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_ddr_rtl_regression_v1/ctest.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 7.51763991266489
+      },
+      "stderr": "",
+      "stdout": "Test project /home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/finite_adapter_final_v1/build\n      Start  1: pma_adapter_tests\n 1/14 Test  #1: pma_adapter_tests .....................   Passed    0.01 sec\n      Start  2: original_regraph_mixed_tests\n 2/14 Test  #2: original_regraph_mixed_tests ..........   Passed    0.01 sec\n      Start  3: original_regraph_big_frontend_tests\n 3/14 Test  #3: original_regraph_big_frontend_tests ...   Passed    0.06 sec\n      Start  4: original_regraph_big_tests\n 4/14 Test  #4: original_regraph_big_tests ............   Passed    1.58 sec\n      Start  5: original_regraph_iteration_tests\n 5/14 Test  #5: original_regraph_iteration_tests ......   Passed    0.91 sec\n      Start  6: original_regraph_state_tests\n 6/14 Test  #6: original_regraph_state_tests ..........   Passed    0.01 sec\n      Start  7: original_regraph_frontend_tests\n 7/14 Test  #7: original_regraph_frontend_tests .......   Passed    0.10 sec\n      Start  8: original_regraph_gather_tests\n 8/14 Test  #8: original_regraph_gather_tests .........   Passed    0.39 sec\n      Start  9: sst_hbm_mapper_tests\n 9/14 Test  #9: sst_hbm_mapper_tests ..................   Passed    0.00 sec\n      Start 10: spine_cycle_core_tests\n10/14 Test #10: spine_cycle_core_tests ................   Passed    3.84 sec\n      Start 11: spine_owner_tests\n11/14 Test #11: spine_owner_tests .....................   Passed    0.00 sec\n      Start 12: spine_vertex_lifecycle_tests\n12/14 Test #12: spine_vertex_lifecycle_tests ..........   Passed    0.00 sec\n      Start 13: grasu_cycle_tests\n13/14 Test #13: grasu_cycle_tests .....................   Passed    0.52 sec\n      Start 14: grasu_runtime_tests\n14/14 Test #14: grasu_runtime_tests ...................   Passed    0.01 sec\n\n100% tests passed, 0 tests failed out of 14\n\nTotal Test time (real) =   7.45 sec\n"
+    },
+    {
+      "resource": {
+        "available_before_bytes": 127851130880,
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "tests.test_original_grasu_ddr_rtl",
+          "tests.test_original_grasu_host",
+          "tests.test_original_grasu_source_path",
+          "tests.test_original_regraph_adapter",
+          "tests.test_original_regraph_big_frontend",
+          "tests.test_original_regraph_big_validation",
+          "tests.test_original_regraph_execution",
+          "tests.test_original_regraph_frontend",
+          "tests.test_original_regraph_inputs",
+          "tests.test_original_regraph_mixed",
+          "tests.test_original_regraph_state",
+          "tests.test_original_regraph_validation",
+          "tests.test_upstream_stage_controls",
+          "tests.test_upstream_stage_synthesis",
+          "tests.test_pma_regraph_control",
+          "tests.test_publication_match",
+          "tests.test_refactor_equivalence"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 117964,
+        "reserve_gib": 16,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_ddr_rtl_regression_v3/python.stderr.txt",
+        "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/grasu_ddr_rtl_regression_v3/python.stdout.txt",
+        "timed_out": false,
+        "wall_seconds": 2.960014643613249
+      },
+      "stderr": "............................................................................................................................................................................\n----------------------------------------------------------------------\nRan 172 tests in 2.739s\n\nOK\n",
+      "stdout": ""
+    }
+  ],
+  "root_tool_feedback_files_absent": true,
+  "schema_version": 1,
+  "status": "PASS",
+  "v2_to_v3_only_source_change": [
+    "spine_cycle_sim/experiments/grasu_ddr_rtl/study.py"
+  ]
+}

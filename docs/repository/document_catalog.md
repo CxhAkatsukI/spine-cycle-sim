@@ -134,6 +134,7 @@ Start with the [documentation index](../README.md) and its topic guides.
 - [grasu_residual_execution_frontier_validation_20260728.md](../implementation/grasu_regraph/grasu_residual_execution_frontier_validation_20260728.md)
 - [grasu_residual_source_state_capacity_20260728.md](../implementation/grasu_regraph/grasu_residual_source_state_capacity_20260728.md)
 - [grasu_weighted_dst19_partition_fix_20260729.md](../implementation/grasu_regraph/grasu_weighted_dst19_partition_fix_20260729.md)
+- [original_grasu_ddr_rtl.md](../implementation/grasu_regraph/original_grasu_ddr_rtl.md)
 - [original_grasu_host.md](../implementation/grasu_regraph/original_grasu_host.md)
 - [original_grasu_source_path.md](../implementation/grasu_regraph/original_grasu_source_path.md)
 - [original_regraph_a4_execution.md](../implementation/grasu_regraph/original_regraph_a4_execution.md)

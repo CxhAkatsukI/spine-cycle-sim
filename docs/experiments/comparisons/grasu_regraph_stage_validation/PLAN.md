@@ -12,6 +12,11 @@ they are not measured publication rates. The mixed 11+3 example's explicit
 tail-padding compatibility control is not the unknown graph-selected best
 topology.
 
+The [original DDR RTL control](GRASU_DDR_RTL.md) now passes twelve complete
+state/ordering cases under declared shared memory plus independent bus tests.
+It constrains one G component; it does not close complete finite G composition,
+original DDR/clock admission, paper8 geometry or the publication-rate gate.
+
 ## Separate Questions
 
 | Path | Question | Required control |

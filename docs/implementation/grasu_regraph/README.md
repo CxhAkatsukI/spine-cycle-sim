@@ -40,6 +40,10 @@ The separate [original GraSU host control](original_grasu_host.md) adds original
 trace-aware reservation and merge, with two explicit bounds guards and defined
 upload padding. Empty/full occupancy, repeated updates and the cache threshold
 pass; finite timing and publication throughput remain unadmitted.
+The [isolated original GraSU DDR RTL control](original_grasu_ddr_rtl.md)
+checks aliased physical memory, finite queues, repeated-segment ordering and
+complete state against the original source. It constrains one G component;
+complete G finite timing, cache/search timing and publication matching remain open.
 
 The [independent original-ReGraph Little core](original_regraph_little_gather.md)
 has a separate implementation and explicit partial timing boundary. It is a
