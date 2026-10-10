@@ -1,0 +1,863 @@
+{
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/raw_pre_route.tar.gz",
+    "sha256": "7f29a7e10b6d5678bede36fcb6ebc86b96edef0d708bdd92f18100523da83117"
+  },
+  "files": [
+    {
+      "archive_path": "ablations_safe_index/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/attempts.json",
+      "sha256": "ae98eb73b19ed1411105a56b226d514bb347b0addb6417fe754dcab25094dc2a"
+    },
+    {
+      "archive_path": "ablations_safe_index/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "35bef56165750c0c8de25dd6715e110390278ad2ee406507db4438d3c2facdb4"
+    },
+    {
+      "archive_path": "ablations_safe_index/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "c70e7e54e8b3a806a53e4dc469253cfd0de3eb6ebd7052ae1c455a2e8a7d0538"
+    },
+    {
+      "archive_path": "ablations_safe_index/combined/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/compile.resources.json",
+      "sha256": "aa89447f94cb8601ccd17983a71c2338184b52b06155f2094f4003903a1d0a9d"
+    },
+    {
+      "archive_path": "ablations_safe_index/combined/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "ablations_safe_index/combined/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/compile.stdout.txt",
+      "sha256": "52b0bea3712fc57052b17686dbbe123ed1e93e4dc03beb108476fd5b4803e03b"
+    },
+    {
+      "archive_path": "ablations_safe_index/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/manifest.json",
+      "sha256": "2326cc9eb2a744d0a9f93734e01c58154189b613171b38a23254a5989e119533"
+    },
+    {
+      "archive_path": "ablations_safe_index/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "974da980f2ad0e6fea301d0e6a76d510e524d450b063974b01167a66d2bdf493"
+    },
+    {
+      "archive_path": "ablations_safe_index/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "7129699efe27e56993fa386f65da5ff0cc5d3be75a9e49c782c91300c7a061ab"
+    },
+    {
+      "archive_path": "ablations_safe_index/original/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/compile.resources.json",
+      "sha256": "026af3002aaf95f67ed64edf76f496014915a44716cc3fab1f0c9ba20a1908df"
+    },
+    {
+      "archive_path": "ablations_safe_index/original/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "ablations_safe_index/original/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/compile.stdout.txt",
+      "sha256": "c1c2e0893993e44d05c182ed032946f61f98e2d0f48304d2626596069c983b1e"
+    },
+    {
+      "archive_path": "ablations_safe_index/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "ef967d1e6dc2b0029c883c487c203337204f0b05efaf5e6ed61bedf2116d0332"
+    },
+    {
+      "archive_path": "ablations_safe_index/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "d5c882702c7ea4f10b5b205c24e519ddd2b21021a852f6abeed904848c06a8cf"
+    },
+    {
+      "archive_path": "ablations_safe_index/prefetch/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/compile.resources.json",
+      "sha256": "73129741a3f4429121170ad77a510e72d508891ce038ff4074d129ca3bca04e0"
+    },
+    {
+      "archive_path": "ablations_safe_index/prefetch/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "ablations_safe_index/prefetch/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/compile.stdout.txt",
+      "sha256": "b31eebb83145c7319c2549b7ad1040772a3991d1f482eaccd66abf83342c829b"
+    },
+    {
+      "archive_path": "ablations_safe_index/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "f20e49a86f54d8955f8cba3cffa4bcd9d3ee4b526954e6228546e80ad186aa87"
+    },
+    {
+      "archive_path": "ablations_safe_index/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "14e32911d4a97cc1f5334b09fe1f5f9d2f8a52a9a9c990388b56fd5d6f7b4912"
+    },
+    {
+      "archive_path": "ablations_safe_index/stop_after_last/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/compile.resources.json",
+      "sha256": "12410fde15cacb4c9e9ddeb3440f0ba891342a8ee3ec15f3f51f234ba310238b"
+    },
+    {
+      "archive_path": "ablations_safe_index/stop_after_last/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "ablations_safe_index/stop_after_last/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/compile.stdout.txt",
+      "sha256": "200e06d740942e1fafa1b2f0a7d764a37f65a141b873830c041490472b110dc3"
+    },
+    {
+      "archive_path": "ablations_safe_index/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/summary.json",
+      "sha256": "a48a61aa96a643bf8db2261ed4f0f3a8d6fbd4695d2bedc0b835e06fe2d50d8e"
+    },
+    {
+      "archive_path": "board_helper_regression/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/attempts.json",
+      "sha256": "50089ab2e33129c96aa45f7b37646ab396962c81f1bb1fadb8881d9584ba82ac"
+    },
+    {
+      "archive_path": "board_helper_regression/integration.diff",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/integration.diff",
+      "sha256": "5c16cf9d131f388f564fcb412a9360644cd489435da2e2b4019edb0d38baafc8"
+    },
+    {
+      "archive_path": "board_helper_regression/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/manifest.json",
+      "sha256": "f296f814c1eb21849d09a6b22c629f6c442fa27e0df38d1b8cc28f0474f6c56d"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_baseline/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline/evidence.sha256",
+      "sha256": "30b096e3cfce71d80c0d49c6d646a2c2fb9939facb2e4021f8859f644d44f5ef"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_baseline/result.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_baseline/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline/run.env",
+      "sha256": "eed72604af5455d14ae0c882b19542381bdfa9a1abaf41b007577dccbd0ee9c7"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_baseline/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline/run.log",
+      "sha256": "a0b96cb6862259a9e14abda9250092f426ff57a1b1cd20b0dd0c9e41b9ee693b"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_baseline/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline/summary.tsv",
+      "sha256": "788cc54d955f73cd6077f11d53b6ba38fff6be3cbcd14ad20dd3b01bc5c55d83"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_baseline_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline_process.resources.json",
+      "sha256": "95d1b46c40c286ab957ddc6fe80027d8248d951558d482ddbb3d13d75c833b0b"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_baseline_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_baseline_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline_process.stdout.txt",
+      "sha256": "3eb53caf70f104bd6bb97fbe53d16dc4b8da27b2ad5c52bd3d526d577d5a723f"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_disabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled/evidence.sha256",
+      "sha256": "d6dd2dd28684cd630504fa63c61e1c8d64a7ece072c4b7501ab59bce1dbcca1b"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_disabled/result.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_disabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled/run.env",
+      "sha256": "87615127accd622421989b68277e6019cd4c40078eeae5d815a4c70df76e9d52"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_disabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled/run.log",
+      "sha256": "b5de9d93ab1538e16977accc10e44432c4f343cddebdaf6678fdffdb0b5d207f"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_disabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled/summary.tsv",
+      "sha256": "aab1095e57bf6d156a96d9a84e5ac2f9edf119573f4111396d7513822471dfca"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_disabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled_process.resources.json",
+      "sha256": "575d2d1c311afeb3047b957b0bb764ab3e886ef2b08ba167c507cfde80d11209"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_disabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_disabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled_process.stdout.txt",
+      "sha256": "20ae360b76b354e3436a072a51d30b6fffa6dbe10ed1079bcc5048776bd93826"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_enabled/evidence.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled/evidence.sha256",
+      "sha256": "5f7b9b00f4bf414cb132148821852808c8e0468bfbe184a74d4a2f03a82d6c41"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_enabled/result.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_enabled/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled/run.env",
+      "sha256": "08c1dc77fba04b23e8bfd02cfb0191e2494fb9fac1ca00b8488fce2eacb1610e"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_enabled/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled/run.log",
+      "sha256": "737ca1904739dd02ffe07c87fdec419ad640fc6452ab3da8f8bfa2cf96a1d511"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_enabled/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled/summary.tsv",
+      "sha256": "7d9f4257bd4d75c8245936749db9e6c90989fc9a14e5854c15b3179c3432fc46"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_enabled_process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled_process.resources.json",
+      "sha256": "848c0b88ba0fa35e1b40878586f1d57c397288fd3d2692b4d07450a21a8ef2e4"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_enabled_process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled_process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "board_helper_regression/r0_trace_enabled_process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled_process.stdout.txt",
+      "sha256": "1a9b46016c6b902234fa819b9add95a1561c5ab84c090030a0b979c1fd752aae"
+    },
+    {
+      "archive_path": "board_helper_regression/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/summary.json",
+      "sha256": "d7b22f9e7da6f91a125956d3d82d993c3cffb75b640eca0cb644b8ef2254305a"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/attempts.json",
+      "sha256": "bb9770d726deb4dd1c5e5356c96ca2dfbb16f76ea3a599b56d8e337dc6eeafbd"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/cosim.resources.json",
+      "sha256": "9fd21d65d550eb02186c4c6bf5e62eaa2c47eb3f99992a1800e74e5007932369"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/cosim.stdout.txt",
+      "sha256": "d591d8513abb069ed328e4337d544f2ccf55b62576e71095d0301be28e5dcf2e"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "sha256": "dd173659c50c41a1028a152ab58e0a87cc90feddeac0296d2d717633d4055472"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "sha256": "de790d1513410b66815a3879e16bfc9f28ecf4b6a91960f49e878d265e7f01b5"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "sha256": "05ae0794f9177b88af19a4aff6b412dffc61222d82b9f3dffae3f71c39c409f8"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "sha256": "b05728d869afe3c44da5b03ab2ce2502e9fac4469caa58b19b16cf6e1b90f0c4"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/manifest.json",
+      "sha256": "6f81821af3b12525487defcbb832b0897be6f7a2520d21e0f648e0581396358f"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/cosim.resources.json",
+      "sha256": "d4eb6bdf55e26066769975147ded362e91a425afa7583b89eac7968a9539e187"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/cosim.stdout.txt",
+      "sha256": "762e4cca56e4f7ec7fce7e8edda664ec1a366aa57fbdce4c968e3c4040c73a8a"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "sha256": "61d2e8c8c3e120d6f945cc1f897b981247a49b005d9a47d931f63aaf7ea2d28c"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "sha256": "39ec381b2ce0e70e786ffbcaeb91e62f39db845f53fb0808ae55e43a5fb134f2"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "sha256": "c2478db8e0c2cf0f729d1b0fd1f74ceedcd4ebbac93a072f97220a2205ee61a3"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "archive_path": "rtl_destination_safe_index/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/summary.json",
+      "sha256": "6c62a142a842abb505bef716d92ec32777be045875274cc135ef11662b6e617e"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/attempts.json",
+      "sha256": "2d49155dddedcf8c144479aea23ecd1c87e7e39a12999434dd0e5fc166da0abd"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/cosim.resources.json",
+      "sha256": "1431394321c60f9953ba4fa7b0c9586c558269a8fd269205bd4f4aeefd01b238"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/cosim.stdout.txt",
+      "sha256": "ef0e63298f03289a360e430dbe0816489bfce86957e41a23363fd142acf1d223"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "sha256": "fe74199435cb4e7b0085c17fa074de82390366edb228f311541573b41dba8793"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "sha256": "96499bbf40a1182721a8ae592c6aeedde4a11ae06891a668d1e79403f3baebc2"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "sha256": "05ae0794f9177b88af19a4aff6b412dffc61222d82b9f3dffae3f71c39c409f8"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "sha256": "778ada35f516c3610112ec4a1b9fc60bae372b9d5ddf5f872f1c2b64f707a8a2"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/manifest.json",
+      "sha256": "eb374481ea9dc895ef7c73db4384d78dcfa2f30e111db66f5e1e763dc9fbd18a"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/cosim.resources.json",
+      "sha256": "5fe33699854f793745409ce019a4051b5ee4c7f21263321479986f3068bcf44d"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/cosim.stdout.txt",
+      "sha256": "0c3d289aa1af47d5c3cad518949a72f4b739e339590eee267006e5e9b1490159"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "sha256": "a013cdf54ef42653a7f02fc41b240b430f61e577de55fdf875b112dd3663d5c5"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "sha256": "7dbdf6c06bff77932a22820aa4441e8f3a1c594ee2ab4d0e91dfb03b1f9b9f00"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "sha256": "5141e538ddeb04f6ff5548c65677d7725c2acc03a54371852e25fd368e641903"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "archive_path": "rtl_unit_safe_index/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/summary.json",
+      "sha256": "2b8f1d28346b384ce34c68588e7803d4ce746228cc646659c40214c452e021be"
+    },
+    {
+      "archive_path": "rtl_weighted/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/attempts.json",
+      "sha256": "e37246f4b888365a8aadfd2bd147d8e38711e438f0c43f11294997f9998cd933"
+    },
+    {
+      "archive_path": "rtl_weighted/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/manifest.json",
+      "sha256": "d70216ea1c5732ca73d69df89f326846d54b110ce67a33df7715009523e6201e"
+    },
+    {
+      "archive_path": "rtl_weighted/original/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/original/cosim.resources.json",
+      "sha256": "dac76257d130973efd39415fa50d135b83a5d8f0b8cf1d88a1a26ec3f286ff65"
+    },
+    {
+      "archive_path": "rtl_weighted/original/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/original/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_weighted/original/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/original/cosim.stdout.txt",
+      "sha256": "f499de34c7756b0ffa7004b15aaed92b4193363d5e425410a64ebb059525bff5"
+    },
+    {
+      "archive_path": "rtl_weighted_depth/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/attempts.json",
+      "sha256": "358b0e8bbc6313a6a908bbdf3571ed80de36d0c387f97af6f294348e069172dc"
+    },
+    {
+      "archive_path": "rtl_weighted_depth/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/manifest.json",
+      "sha256": "2d0c1ab236065d487079ddd847d1bb1408b4054936aa9ae63b0cd3de1ecce522"
+    },
+    {
+      "archive_path": "rtl_weighted_depth/original/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/original/cosim.resources.json",
+      "sha256": "683df2d57a6f61204a961c608cc1dd3eb090dffd9bbd7f95fb06448df9c44c77"
+    },
+    {
+      "archive_path": "rtl_weighted_depth/original/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/original/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_weighted_depth/original/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/original/cosim.stdout.txt",
+      "sha256": "fbbf469d437c99ededf8439400b57ed4a21ee1e0f6f603fd5e89c6a883ae2b11"
+    },
+    {
+      "archive_path": "rtl_weighted_pragma/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/attempts.json",
+      "sha256": "3df983d7fc4c5868bb5ea0a9ae25c003d361ad3cbe83719c16f8fbc1f4ffd670"
+    },
+    {
+      "archive_path": "rtl_weighted_pragma/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/manifest.json",
+      "sha256": "e80b90683730207a87ec5356dd16964f63d41c7bd7c3370f869eb37054f25aae"
+    },
+    {
+      "archive_path": "rtl_weighted_pragma/original/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/original/cosim.resources.json",
+      "sha256": "13a5cdd8b63d645049e7a796c6fc62ea69dc9a274986c7b095a588590d9760f0"
+    },
+    {
+      "archive_path": "rtl_weighted_pragma/original/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/original/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_weighted_pragma/original/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/original/cosim.stdout.txt",
+      "sha256": "06123879bf7d1cbe7497107fdca05c569380fbd163ef115f36c29f86dbc4f680"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/attempts.json",
+      "sha256": "c998920e211daa15f54405d993d1a3c8a519036fb94c59afa1851d7cdeb4d004"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/cosim.resources.json",
+      "sha256": "3478f5c7e7ba283e0940080df6e75dd6f85da35d4d1b3a83436a2ddcbbf2afc5"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/cosim.stdout.txt",
+      "sha256": "33b2c502a22ca9d6df7dbf7adf5e06ccc19aac1dbeccb6ba8cac78488cfb8f84"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "sha256": "612b6b0fbdcddb1879e7e5aa0de1dd89fce4093d9d2342ac55d8d47994ea9497"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "sha256": "b6aeffa208eaff2b52ebc2ab09f02285224560f1524e78e5f4988d9e1a63f6a1"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "sha256": "05ae0794f9177b88af19a4aff6b412dffc61222d82b9f3dffae3f71c39c409f8"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "sha256": "a84a90152cac1d18511fe059416898d69a7761f2243e8887706827823cd61e3a"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/manifest.json",
+      "sha256": "fab37f143d01f8b6352cef0ad91a0c80a6ce66d60783dd8fddd33864df00bbdc"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/cosim.resources.json",
+      "sha256": "ded9d4d69a2a7baf3489d750cf5063e5213de21f98abe534e392c70d2eab41c3"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/cosim.stdout.txt",
+      "sha256": "a0461cb24c71b7d5570aab31249dc426ad89ea421bf4c2fb4a537ad6a450595a"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+      "sha256": "65a6fa5bef796530b8914591698bf76e391f9ec2ce1fbf27452b50133c59680e"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "sha256": "e3e59cadec6afdbac3d013adfd487c18c3e5a81641983c62390964eca2a32777"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "sha256": "fd068f3c2f07959e0a43a3f015b282e4ef66e7bc57bfecdea6c40f7b271b5391"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "archive_path": "rtl_weighted_safe_index/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/summary.json",
+      "sha256": "ec597b4544bbcb4a90ca4f53026da26e734aad242a43e8ec922c2c523e3f67a9"
+    },
+    {
+      "archive_path": "rtl_weighted_threads2/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/attempts.json",
+      "sha256": "b22d620737aff0f8bc355ee41b1fd01b9c35eb94878685692d07be615ba0b9d3"
+    },
+    {
+      "archive_path": "rtl_weighted_threads2/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/manifest.json",
+      "sha256": "08b1c0d6ee3916df8b4b548c7ccf469f3adcecfa2fde25d214520856b32d68c1"
+    },
+    {
+      "archive_path": "rtl_weighted_threads2/original/cosim.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/original/cosim.resources.json",
+      "sha256": "21bc3ed62d35e3d3600215219cd09d7bfc2e2fb7597db202e44abc84e2561f17"
+    },
+    {
+      "archive_path": "rtl_weighted_threads2/original/cosim.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/original/cosim.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rtl_weighted_threads2/original/cosim.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/original/cosim.stdout.txt",
+      "sha256": "b0d20297dff2eb7e2ecf1d18cda6aa6cd59debed48d9f8b110ff4edea442343b"
+    },
+    {
+      "archive_path": "source/integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+      "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+      "sha256": "fd29b356c0494b150ba6c8a26c279fe45c11648af746981869dfdfa2c9dd93f7"
+    },
+    {
+      "archive_path": "source/integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+      "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+      "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+    },
+    {
+      "archive_path": "source/integration/scripts/check_pma_to_regraph_adapter.sh",
+      "path": "/home/chuxiao/grasu-regraph-integration/scripts/check_pma_to_regraph_adapter.sh",
+      "sha256": "d3c2d89bc96e121f97dbb78f957dae882d3ffe0e8182b9f642b4d80c8763715d"
+    },
+    {
+      "archive_path": "source/integration/tests/pma_adapter_cosim.tcl",
+      "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl",
+      "sha256": "ab227577c6ea98ce0af35098051f91d49e7a76cc640c4f20276daa54c4ebb15a"
+    },
+    {
+      "archive_path": "source/integration/tests/pma_adapter_cosim_tb.cpp",
+      "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim_tb.cpp",
+      "sha256": "1df196b22bc31597e132ebb52459a155f3250df00e138f97fe9e07a6fb7528f5"
+    },
+    {
+      "archive_path": "source/integration/tests/pma_adapter_row_prefetch_tb.cpp",
+      "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_row_prefetch_tb.cpp",
+      "sha256": "57c6227539dbcab2409e856e62af9cf8e5be00aea19a9679e29222843407de67"
+    },
+    {
+      "archive_path": "source/integration/tests/pma_to_regraph_adapter_tb.cpp",
+      "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_to_regraph_adapter_tb.cpp",
+      "sha256": "75552a5e5123dbab95e3f1ef6def25520277d19c33653aa2782522d4abb749b0"
+    },
+    {
+      "archive_path": "source/simulator/__init__.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+      "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299"
+    },
+    {
+      "archive_path": "source/simulator/analysis.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/analysis.py",
+      "sha256": "04704dfa8a44357b2aba921be8ec38da8908b0619a7acec1265e5ccf3c4fce45"
+    },
+    {
+      "archive_path": "source/simulator/bitstream.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/bitstream.py",
+      "sha256": "d752dc51669fd46184e7bec6de1eb2fd207dece88ecf42e5245e7968b8b2d8c1"
+    },
+    {
+      "archive_path": "source/simulator/board.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/board.py",
+      "sha256": "6e0ca5da78ad37559ba54a77b7e66b2e0b4c4c023d49ae6f8fe67bc3a6e0a065"
+    },
+    {
+      "archive_path": "source/simulator/comparison.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/comparison.py",
+      "sha256": "20f3e7fe4c0a58b8e2596350f71038dade9ab4b3cb5a4f1ca50be6e384860b27"
+    },
+    {
+      "archive_path": "source/simulator/delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/delivery.py",
+      "sha256": "73d1f6799bf2a44f8c15dc5202931ab97d9a39cd38e24f2ac4b3c1e6c1e7490d"
+    },
+    {
+      "archive_path": "source/simulator/execution.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "archive_path": "source/simulator/link_runtime.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "40eac743cd5b450df31441307b073c8a4401c9c074e5fb87caefde27a86c71e1"
+    },
+    {
+      "archive_path": "source/simulator/optimization_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/optimization_delivery.py",
+      "sha256": "0bfa2605f909b9c76fc4fbf81275250fdfd330cc9a3d15d31bcf8afea497edfd"
+    },
+    {
+      "archive_path": "source/simulator/routing.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/routing.py",
+      "sha256": "00fbf2d2da34735ad054c4b0fc2d5276a9a374e11111b041dd50f1b52d46c664"
+    },
+    {
+      "archive_path": "source/simulator/rtl.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/rtl.py",
+      "sha256": "72eebef090cc6a2c6793d8ef3c0c7d9b0b2853766e776c4c9ffb6f34e3f55a48"
+    },
+    {
+      "archive_path": "source/simulator/synthesis.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/synthesis.py",
+      "sha256": "ffca22354e7e494dbc5017185fe39cf8c49775b8c846692771c0928bc953b759"
+    },
+    {
+      "archive_path": "source_safe_index/SHA256SUMS",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index/SHA256SUMS",
+      "sha256": "3d3972a2972818d909a56da3002ed9674a222010bacf83b492d29959b82c5b0b"
+    },
+    {
+      "archive_path": "source_safe_index/manifest.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index/manifest.env",
+      "sha256": "e23a9861a3164bd0753ecd25173a964c5d1051a1bd3803688ef96d4ce66a6d95"
+    },
+    {
+      "archive_path": "source_safe_index/test.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index/test.log",
+      "sha256": "55de18f37bf672739cf29750b636ff82ed11d22fa74f1b9100b828691cd53c5f"
+    },
+    {
+      "archive_path": "source_safe_index_execution.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index_execution.resources.json",
+      "sha256": "8ee4b59809ec5e80e0a6190a8236aa2c72069e65b2146a6548e1e0d1e7e88b47"
+    },
+    {
+      "archive_path": "source_safe_index_execution.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index_execution.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "source_safe_index_execution.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index_execution.stdout.txt",
+      "sha256": "5254d64bf4aa74026c6df01ec5f9ac0bcba1c3db6f711be796ee58adb86dd45d"
+    }
+  ]
+}

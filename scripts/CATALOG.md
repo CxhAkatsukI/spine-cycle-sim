@@ -175,6 +175,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [finalize_large_real_runtime.py](finalize_large_real_runtime.py)
 - [package_current_fpga_fig10_v15.py](package_current_fpga_fig10_v15.py)
 - [package_publication_validation_smoke.py](package_publication_validation_smoke.py)
+- [package_sharded_k4_adapter_gates.py](package_sharded_k4_adapter_gates.py)
 - [package_sharded_k4_stage_diagnostic.py](package_sharded_k4_stage_diagnostic.py)
 - [package_simulator_predicted_fig10.py](package_simulator_predicted_fig10.py)
 - [render_connected_components_figure.py](render_connected_components_figure.py)

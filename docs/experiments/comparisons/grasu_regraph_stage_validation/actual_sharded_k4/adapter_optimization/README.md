@@ -10,6 +10,9 @@ completed original-A4 comparison or a published-performance match.
 2. This guide defines the candidate and the acceptance sequence.
 3. The [code owner](../../../../../../spine_cycle_sim/experiments/sharded_k4_stages/README.md)
    maps each responsibility to one module. CLI commands only delegate.
+4. [Pre-route gate results](pre_route.json), [raw evidence index](pre_route_raw_index.json)
+   and [raw logs, RTL and source](raw_pre_route.tar.gz) freeze the completed gates.
+   The still-running route job is deliberately not included in that archive.
 
 ## Candidate And Current Gates
 
@@ -99,11 +102,27 @@ not be reset or killed to obtain a board.
 
 ## Remaining Gates
 
+The production simulator is not silently changed or retimed by this study.
+Its current `PmaNativeReader` in `cpp/src/grasu_regraph.cpp` combines row
+reading, source-cache consumption and edge emission. `ReGraphGather` drains
+only after that reader is done. The actual hardware consumes a known packet
+count and can finish gather before the adapter finishes trailing empty rows,
+as the parent FPGA diagnostic shows. Reconciliation must represent these
+distinct completion events, not merely shorten a row-read latency constant.
+
+A candidate simulator must charge the final-row extent read, bound the
+eight-entry row cache, preserve partial-block bounds and shared AXI pressure,
+and leave gather/merge/apply drain and required source-state traffic intact.
+It must retain legacy-profile full-result equality and use a separate
+candidate profile for changed traffic/timing. No sparse-source list may be
+constructed free on the host. This remaining work has not been admitted by
+the RTL test or by whole-FPGA elapsed time.
+
 Candidate board timing, optimized production-simulator synchronization and
 matched original-A4 versus actual-K4 performance remain unaccepted until
-their evidence is delivered. Original A4 currently models one original PR
-iteration at 210 MHz; the production FullPR host executes three rounds with
-different state preparation. Their total times must not be compared as if
+their evidence is delivered. Original A4 currently models one original
+fixed-point PR iteration at 210 MHz; the production FullPR host executes
+three FP32 rounds with different state preparation. Their total times must not be compared as if
 already matched. No new K4 speedup or publication ~10% match is claimed here.
 
 The paper, figure package, frozen SST plugin and existing numerical models

@@ -16,6 +16,7 @@ PMA timing control. Start with the
 | `bitstream.py` | Routed timing, clock and normalized XRT connectivity admission |
 | `comparison.py` | Alternating original/candidate board runs with identical host/input |
 | `delivery.py` | Frozen initial diagnostic package; never replace its raw evidence |
+| `optimization_delivery.py` | Immutable pre-route raw evidence, including failed RTL attempts |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`; the production simulator is

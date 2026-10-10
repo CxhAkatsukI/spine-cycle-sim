@@ -1,0 +1,1696 @@
+{
+  "board_helper_regression": {
+    "attempts": [
+      {
+        "analysis": {
+          "event_count": 0,
+          "events": [],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "2",
+            "final_edges": "390855",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "2",
+            "physical_updates": "8",
+            "pma_slots_total": "1843296",
+            "processed_edge_slots_per_superstep": "1843296",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "11",
+            "source_internal": "5",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "timing_ms": {
+            "adapter_ms": 8168.481476,
+            "apply_ms": 1191.503511,
+            "barrier_ms": 7.197526,
+            "convergence_readback_ms": 0.273809,
+            "event_e2e_ms": 2060.826246,
+            "grasu_ms": 8.124224,
+            "hbm_ms": 1191.601914,
+            "lksg_ms": 4748.465529,
+            "setup_inclusive_ms": 2061.750553
+          }
+        },
+        "arm": "baseline",
+        "repeat": 0,
+        "resources": {
+          "available_before_bytes": 65147314176,
+          "command": [
+            "env",
+            "GRASU_SHARDED_EVENT_TRACE=0",
+            "GRASU_UPDATE_REPEATS=1",
+            "bash",
+            "/home/chuxiao/grasu-regraph-integration/scripts/run_pma_native_hw.sh",
+            "--algorithm",
+            "weighted_sssp",
+            "--host",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/baseline_host/sharded_k4_sssp_native_host",
+            "--xclbin",
+            "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+            "--graph",
+            "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+            "--out-dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline",
+            "--source",
+            "11",
+            "--max-supersteps",
+            "256",
+            "--device-index",
+            "0",
+            "--timeout",
+            "580"
+          ],
+          "cwd": "/home/chuxiao/grasu-regraph-integration",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 618320,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline_process.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline_process.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 18.846355161163956
+        },
+        "result": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_baseline/result.txt",
+          "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+        }
+      },
+      {
+        "analysis": {
+          "event_count": 0,
+          "events": [],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "2",
+            "final_edges": "390855",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "2",
+            "physical_updates": "8",
+            "pma_slots_total": "1843296",
+            "processed_edge_slots_per_superstep": "1843296",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "11",
+            "source_internal": "5",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "timing_ms": {
+            "adapter_ms": 8169.195401,
+            "apply_ms": 1192.105811,
+            "barrier_ms": 7.239308,
+            "convergence_readback_ms": 0.256618,
+            "event_e2e_ms": 2061.620647,
+            "grasu_ms": 8.104803,
+            "hbm_ms": 1192.200304,
+            "lksg_ms": 4748.741686,
+            "setup_inclusive_ms": 2062.513385
+          }
+        },
+        "arm": "trace_disabled",
+        "repeat": 0,
+        "resources": {
+          "available_before_bytes": 65056595968,
+          "command": [
+            "env",
+            "GRASU_SHARDED_EVENT_TRACE=0",
+            "GRASU_UPDATE_REPEATS=1",
+            "bash",
+            "/home/chuxiao/grasu-regraph-integration/scripts/run_pma_native_hw.sh",
+            "--algorithm",
+            "weighted_sssp",
+            "--host",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/trace_host/sharded_k4_sssp_native_host",
+            "--xclbin",
+            "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+            "--graph",
+            "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+            "--out-dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled",
+            "--source",
+            "11",
+            "--max-supersteps",
+            "256",
+            "--device-index",
+            "0",
+            "--timeout",
+            "580"
+          ],
+          "cwd": "/home/chuxiao/grasu-regraph-integration",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 618424,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled_process.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled_process.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 5.565083357039839
+        },
+        "result": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_disabled/result.txt",
+          "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+        }
+      },
+      {
+        "analysis": {
+          "adapter_after_gather_union_ms": 1735.355371,
+          "between_compute_events_gap_ms": 0.295039,
+          "boundary": "compute_kernel_events_including_stalls_not_exclusive_stage_cycles",
+          "compute_span_ms": 2053.317557,
+          "compute_union_ms": 2053.022518,
+          "event_count": 52,
+          "events": [
+            {
+              "end_ns": 752097519,
+              "queued_ns": 151953298,
+              "round": 0,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 151953478,
+              "submit_ns": 151953338,
+              "worker": -1
+            },
+            {
+              "end_ns": 752098429,
+              "queued_ns": 151983499,
+              "round": 0,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 151983599,
+              "submit_ns": 151983539,
+              "worker": -1
+            },
+            {
+              "end_ns": 663962695,
+              "queued_ns": 152017130,
+              "round": 0,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 152017230,
+              "submit_ns": 152017170,
+              "worker": 0
+            },
+            {
+              "end_ns": 233015979,
+              "queued_ns": 152038600,
+              "round": 0,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 152038710,
+              "submit_ns": 152038650,
+              "worker": 0
+            },
+            {
+              "end_ns": 233022839,
+              "queued_ns": 152060681,
+              "round": 0,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 152060781,
+              "submit_ns": 152060721,
+              "worker": 0
+            },
+            {
+              "end_ns": 665108160,
+              "queued_ns": 152102002,
+              "round": 0,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 154629138,
+              "submit_ns": 154628858,
+              "worker": 1
+            },
+            {
+              "end_ns": 233788232,
+              "queued_ns": 152120503,
+              "round": 0,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 152120623,
+              "submit_ns": 152120543,
+              "worker": 1
+            },
+            {
+              "end_ns": 233792672,
+              "queued_ns": 152144393,
+              "round": 0,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 233023389,
+              "submit_ns": 233023309,
+              "worker": 1
+            },
+            {
+              "end_ns": 667776890,
+              "queued_ns": 152178954,
+              "round": 0,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 156884486,
+              "submit_ns": 156884356,
+              "worker": 2
+            },
+            {
+              "end_ns": 236062700,
+              "queued_ns": 152197195,
+              "round": 0,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 152197325,
+              "submit_ns": 152197235,
+              "worker": 2
+            },
+            {
+              "end_ns": 236036290,
+              "queued_ns": 152217726,
+              "round": 0,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 233793142,
+              "submit_ns": 233793072,
+              "worker": 2
+            },
+            {
+              "end_ns": 669731209,
+              "queued_ns": 152250367,
+              "round": 0,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 159506445,
+              "submit_ns": 159506284,
+              "worker": 3
+            },
+            {
+              "end_ns": 238479013,
+              "queued_ns": 152266327,
+              "round": 0,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 152266457,
+              "submit_ns": 152266367,
+              "worker": 3
+            },
+            {
+              "end_ns": 238471973,
+              "queued_ns": 152289378,
+              "round": 0,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 236036750,
+              "submit_ns": 236036680,
+              "worker": 3
+            },
+            {
+              "end_ns": 1177141318,
+              "queued_ns": 152316629,
+              "round": 0,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 667287895,
+              "submit_ns": 667287495,
+              "worker": 0
+            },
+            {
+              "end_ns": 746210162,
+              "queued_ns": 152331779,
+              "round": 0,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 233016849,
+              "submit_ns": 233016719,
+              "worker": 0
+            },
+            {
+              "end_ns": 746211722,
+              "queued_ns": 152346759,
+              "round": 0,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 238472493,
+              "submit_ns": 238472353,
+              "worker": 0
+            },
+            {
+              "end_ns": 1175481948,
+              "queued_ns": 152366420,
+              "round": 0,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 665110030,
+              "submit_ns": 665109720,
+              "worker": 1
+            },
+            {
+              "end_ns": 746517712,
+              "queued_ns": 152382060,
+              "round": 0,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 233788772,
+              "submit_ns": 233788702,
+              "worker": 1
+            },
+            {
+              "end_ns": 746479350,
+              "queued_ns": 152398491,
+              "round": 0,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 746213092,
+              "submit_ns": 746212902,
+              "worker": 1
+            },
+            {
+              "end_ns": 1181721135,
+              "queued_ns": 152422712,
+              "round": 0,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 671147871,
+              "submit_ns": 671147731,
+              "worker": 2
+            },
+            {
+              "end_ns": 750144370,
+              "queued_ns": 152438372,
+              "round": 0,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 236063180,
+              "submit_ns": 236063090,
+              "worker": 2
+            },
+            {
+              "end_ns": 750133020,
+              "queued_ns": 152453343,
+              "round": 0,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 746480770,
+              "submit_ns": 746480530,
+              "worker": 2
+            },
+            {
+              "end_ns": 1183019154,
+              "queued_ns": 152477923,
+              "round": 0,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 673274005,
+              "submit_ns": 673273725,
+              "worker": 3
+            },
+            {
+              "end_ns": 752078569,
+              "queued_ns": 152493994,
+              "round": 0,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 238479523,
+              "submit_ns": 238479473,
+              "worker": 3
+            },
+            {
+              "end_ns": 752079099,
+              "queued_ns": 152508634,
+              "round": 0,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 750134100,
+              "submit_ns": 750133930,
+              "worker": 3
+            },
+            {
+              "end_ns": 1775349311,
+              "queued_ns": 1183313783,
+              "round": 1,
+              "shard": -1,
+              "stage": "hbm",
+              "start_ns": 1183314193,
+              "submit_ns": 1183313863,
+              "worker": -1
+            },
+            {
+              "end_ns": 1775352961,
+              "queued_ns": 1183374065,
+              "round": 1,
+              "shard": -1,
+              "stage": "apply",
+              "start_ns": 1183374335,
+              "submit_ns": 1183374165,
+              "worker": -1
+            },
+            {
+              "end_ns": 1695420533,
+              "queued_ns": 1183432816,
+              "round": 1,
+              "shard": 0,
+              "stage": "adapter",
+              "start_ns": 1183433036,
+              "submit_ns": 1183432896,
+              "worker": 0
+            },
+            {
+              "end_ns": 1264480167,
+              "queued_ns": 1183498128,
+              "round": 1,
+              "shard": 0,
+              "stage": "gather",
+              "start_ns": 1183498378,
+              "submit_ns": 1183498208,
+              "worker": 0
+            },
+            {
+              "end_ns": 1264492018,
+              "queued_ns": 1183538870,
+              "round": 1,
+              "shard": 0,
+              "stage": "mux",
+              "start_ns": 1183539080,
+              "submit_ns": 1183538950,
+              "worker": 0
+            },
+            {
+              "end_ns": 1694203777,
+              "queued_ns": 1183588971,
+              "round": 1,
+              "shard": 1,
+              "stage": "adapter",
+              "start_ns": 1183589201,
+              "submit_ns": 1183589051,
+              "worker": 1
+            },
+            {
+              "end_ns": 1264777256,
+              "queued_ns": 1183637763,
+              "round": 1,
+              "shard": 1,
+              "stage": "gather",
+              "start_ns": 1183637993,
+              "submit_ns": 1183637843,
+              "worker": 1
+            },
+            {
+              "end_ns": 1264743875,
+              "queued_ns": 1183680414,
+              "round": 1,
+              "shard": 1,
+              "stage": "mux",
+              "start_ns": 1264492698,
+              "submit_ns": 1264492598,
+              "worker": 1
+            },
+            {
+              "end_ns": 1694720542,
+              "queued_ns": 1183722105,
+              "round": 1,
+              "shard": 2,
+              "stage": "adapter",
+              "start_ns": 1183722415,
+              "submit_ns": 1183722225,
+              "worker": 2
+            },
+            {
+              "end_ns": 1265020833,
+              "queued_ns": 1183765296,
+              "round": 1,
+              "shard": 2,
+              "stage": "gather",
+              "start_ns": 1183765516,
+              "submit_ns": 1183765376,
+              "worker": 2
+            },
+            {
+              "end_ns": 1265000173,
+              "queued_ns": 1183824778,
+              "round": 1,
+              "shard": 2,
+              "stage": "mux",
+              "start_ns": 1264744575,
+              "submit_ns": 1264744495,
+              "worker": 2
+            },
+            {
+              "end_ns": 1694247518,
+              "queued_ns": 1183875020,
+              "round": 1,
+              "shard": 3,
+              "stage": "adapter",
+              "start_ns": 1183875290,
+              "submit_ns": 1183875110,
+              "worker": 3
+            },
+            {
+              "end_ns": 1265265501,
+              "queued_ns": 1183915321,
+              "round": 1,
+              "shard": 3,
+              "stage": "gather",
+              "start_ns": 1183915531,
+              "submit_ns": 1183915401,
+              "worker": 3
+            },
+            {
+              "end_ns": 1265257941,
+              "queued_ns": 1183954622,
+              "round": 1,
+              "shard": 3,
+              "stage": "mux",
+              "start_ns": 1265000743,
+              "submit_ns": 1265000663,
+              "worker": 3
+            },
+            {
+              "end_ns": 2205271035,
+              "queued_ns": 1183996113,
+              "round": 1,
+              "shard": 4,
+              "stage": "adapter",
+              "start_ns": 1695424154,
+              "submit_ns": 1695423604,
+              "worker": 0
+            },
+            {
+              "end_ns": 1774380252,
+              "queued_ns": 1184026644,
+              "round": 1,
+              "shard": 4,
+              "stage": "gather",
+              "start_ns": 1264481577,
+              "submit_ns": 1264481387,
+              "worker": 0
+            },
+            {
+              "end_ns": 1774382992,
+              "queued_ns": 1184055925,
+              "round": 1,
+              "shard": 4,
+              "stage": "mux",
+              "start_ns": 1265258471,
+              "submit_ns": 1265258381,
+              "worker": 0
+            },
+            {
+              "end_ns": 2204549414,
+              "queued_ns": 1184094566,
+              "round": 1,
+              "shard": 5,
+              "stage": "adapter",
+              "start_ns": 1694214727,
+              "submit_ns": 1694213877,
+              "worker": 1
+            },
+            {
+              "end_ns": 1774709512,
+              "queued_ns": 1184127267,
+              "round": 1,
+              "shard": 5,
+              "stage": "gather",
+              "start_ns": 1264777846,
+              "submit_ns": 1264777766,
+              "worker": 1
+            },
+            {
+              "end_ns": 1774712022,
+              "queued_ns": 1184154688,
+              "round": 1,
+              "shard": 5,
+              "stage": "mux",
+              "start_ns": 1774384982,
+              "submit_ns": 1774384562,
+              "worker": 1
+            },
+            {
+              "end_ns": 2205268685,
+              "queued_ns": 1184177289,
+              "round": 1,
+              "shard": 6,
+              "stage": "adapter",
+              "start_ns": 1694724383,
+              "submit_ns": 1694723853,
+              "worker": 2
+            },
+            {
+              "end_ns": 1775037821,
+              "queued_ns": 1184194749,
+              "round": 1,
+              "shard": 6,
+              "stage": "gather",
+              "start_ns": 1265021403,
+              "submit_ns": 1265021313,
+              "worker": 2
+            },
+            {
+              "end_ns": 1775040231,
+              "queued_ns": 1184212860,
+              "round": 1,
+              "shard": 6,
+              "stage": "mux",
+              "start_ns": 1774713742,
+              "submit_ns": 1774713442,
+              "worker": 2
+            },
+            {
+              "end_ns": 2203974747,
+              "queued_ns": 1184232650,
+              "round": 1,
+              "shard": 7,
+              "stage": "adapter",
+              "start_ns": 1694249268,
+              "submit_ns": 1694249008,
+              "worker": 3
+            },
+            {
+              "end_ns": 1775354721,
+              "queued_ns": 1184247191,
+              "round": 1,
+              "shard": 7,
+              "stage": "gather",
+              "start_ns": 1265265971,
+              "submit_ns": 1265265891,
+              "worker": 3
+            },
+            {
+              "end_ns": 1775355831,
+              "queued_ns": 1184264081,
+              "round": 1,
+              "shard": 7,
+              "stage": "mux",
+              "start_ns": 1775042092,
+              "submit_ns": 1775041631,
+              "worker": 3
+            }
+          ],
+          "result": {
+            "conversion_cost": "absent",
+            "destination_partitions": "8",
+            "executed_supersteps": "2",
+            "final_edges": "390855",
+            "hardware_converged": "1",
+            "k4_frontends": "4",
+            "logical_updates": "8",
+            "mismatches": "0",
+            "oracle_converged": "1",
+            "oracle_supersteps": "2",
+            "physical_updates": "8",
+            "pma_slots_total": "1843296",
+            "processed_edge_slots_per_superstep": "1843296",
+            "resident_state": "old_graph_converged",
+            "shared_regraph_downstream": "1",
+            "source_external": "11",
+            "source_internal": "5",
+            "status": "PASS",
+            "vertices": "515281"
+          },
+          "stages": {
+            "adapter": {
+              "max_concurrency": 4,
+              "sum_ms": 8168.509186,
+              "union_ms": 2052.839923
+            },
+            "apply": {
+              "max_concurrency": 1,
+              "sum_ms": 1192.093456,
+              "union_ms": 1192.093456
+            },
+            "gather": {
+              "max_concurrency": 4,
+              "sum_ms": 4750.987146,
+              "union_ms": 1191.896202
+            },
+            "hbm": {
+              "max_concurrency": 1,
+              "sum_ms": 1192.179159,
+              "union_ms": 1192.179159
+            },
+            "mux": {
+              "max_concurrency": 1,
+              "sum_ms": 1191.821148,
+              "union_ms": 1191.821148
+            }
+          },
+          "timing_ms": {
+            "adapter_ms": 8168.509186,
+            "apply_ms": 1192.093456,
+            "barrier_ms": 6.999809,
+            "convergence_readback_ms": 0.247537,
+            "event_e2e_ms": 2061.389599,
+            "grasu_ms": 7.978979,
+            "hbm_ms": 1192.179159,
+            "lksg_ms": 4750.987146,
+            "setup_inclusive_ms": 2062.308147
+          }
+        },
+        "arm": "trace_enabled",
+        "repeat": 0,
+        "resources": {
+          "available_before_bytes": 64883826688,
+          "command": [
+            "env",
+            "GRASU_SHARDED_EVENT_TRACE=1",
+            "GRASU_UPDATE_REPEATS=1",
+            "bash",
+            "/home/chuxiao/grasu-regraph-integration/scripts/run_pma_native_hw.sh",
+            "--algorithm",
+            "weighted_sssp",
+            "--host",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/trace_host/sharded_k4_sssp_native_host",
+            "--xclbin",
+            "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+            "--graph",
+            "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+            "--out-dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled",
+            "--source",
+            "11",
+            "--max-supersteps",
+            "256",
+            "--device-index",
+            "0",
+            "--timeout",
+            "580"
+          ],
+          "cwd": "/home/chuxiao/grasu-regraph-integration",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 618372,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled_process.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled_process.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 5.313894003164023
+        },
+        "result": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/board_helper_regression/r0_trace_enabled/result.txt",
+          "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+        }
+      }
+    ],
+    "checks": {
+      "all_result_bytes_equal": true,
+      "baseline_host": true,
+      "graph": true,
+      "matrix": true,
+      "same_correctness_and_rounds": true,
+      "source_unchanged_during_run": true,
+      "trace_host": true,
+      "xclbin": true
+    },
+    "claim": "observational_host_trace_of_unchanged_routed_K4_not_A4_or_publication_match",
+    "status": "PASS"
+  },
+  "not_complete": [
+    "optimized_routing_and_board_validation",
+    "optimized_production_simulator",
+    "matched_original_A4_vs_actual_K4",
+    "publication_speed_match"
+  ],
+  "retained_failures": {
+    "rtl_weighted": {
+      "available_before_bytes": 73617469440,
+      "command": [
+        "env",
+        "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/original",
+        "PMA_COSIM_MODE=weighted",
+        "PMA_COSIM_PREFETCH=0",
+        "PMA_COSIM_STOP=0",
+        "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+        "-f",
+        "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+      ],
+      "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/original",
+      "exit_code": 1,
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 375596,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/original/cosim.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted/original/cosim.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 10.623881418723613
+    },
+    "rtl_weighted_depth": {
+      "available_before_bytes": 78212431872,
+      "command": [
+        "env",
+        "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/original",
+        "PMA_COSIM_MODE=weighted",
+        "PMA_COSIM_PREFETCH=0",
+        "PMA_COSIM_STOP=0",
+        "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+        "-f",
+        "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+      ],
+      "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/original",
+      "exit_code": 1,
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 465084,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/original/cosim.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_depth/original/cosim.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 39.42621290171519
+    },
+    "rtl_weighted_pragma": {
+      "available_before_bytes": 76769464320,
+      "command": [
+        "env",
+        "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/original",
+        "PMA_COSIM_MODE=weighted",
+        "PMA_COSIM_PREFETCH=0",
+        "PMA_COSIM_STOP=0",
+        "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+        "-f",
+        "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+      ],
+      "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/original",
+      "exit_code": 1,
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 596500,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/original/cosim.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_pragma/original/cosim.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 64.53700373321772
+    },
+    "rtl_weighted_threads2": {
+      "available_before_bytes": 78134333440,
+      "command": [
+        "env",
+        "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/original",
+        "PMA_COSIM_MODE=weighted",
+        "PMA_COSIM_PREFETCH=0",
+        "PMA_COSIM_STOP=0",
+        "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+        "-f",
+        "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+      ],
+      "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/original",
+      "exit_code": 1,
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 465076,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/original/cosim.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_threads2/original/cosim.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 39.379188468679786
+    }
+  },
+  "rtl": {
+    "destination": {
+      "mode": "destination",
+      "runs": {
+        "combined": {
+          "analysis": {
+            "latency_avg_cycles": 8104,
+            "latency_max_cycles": 89878,
+            "latency_min_cycles": 39,
+            "raw_report": {
+              "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+              "sha256": "dd173659c50c41a1028a152ab58e0a87cc90feddeac0296d2d717633d4055472"
+            },
+            "status": "RTL_COSIM_PASS"
+          },
+          "execution": {
+            "available_before_bytes": 74286477312,
+            "command": [
+              "env",
+              "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined",
+              "PMA_COSIM_MODE=destination",
+              "PMA_COSIM_PREFETCH=1",
+              "PMA_COSIM_STOP=1",
+              "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+              "-f",
+              "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+            ],
+            "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined",
+            "exit_code": 0,
+            "memory_limit_gib": 8,
+            "peak_rss_kib": 601216,
+            "reserve_gib": 16,
+            "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+            "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/cosim.stderr.txt",
+            "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/combined/cosim.stdout.txt",
+            "timed_out": false,
+            "wall_seconds": 61.82712257001549
+          }
+        },
+        "original": {
+          "analysis": {
+            "latency_avg_cycles": 26915,
+            "latency_max_cycles": 155937,
+            "latency_min_cycles": 117,
+            "raw_report": {
+              "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+              "sha256": "61d2e8c8c3e120d6f945cc1f897b981247a49b005d9a47d931f63aaf7ea2d28c"
+            },
+            "status": "RTL_COSIM_PASS"
+          },
+          "execution": {
+            "available_before_bytes": 74329702400,
+            "command": [
+              "env",
+              "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original",
+              "PMA_COSIM_MODE=destination",
+              "PMA_COSIM_PREFETCH=0",
+              "PMA_COSIM_STOP=0",
+              "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+              "-f",
+              "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+            ],
+            "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original",
+            "exit_code": 0,
+            "memory_limit_gib": 8,
+            "peak_rss_kib": 599684,
+            "reserve_gib": 16,
+            "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+            "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/cosim.stderr.txt",
+            "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_destination_safe_index/original/cosim.stdout.txt",
+            "timed_out": false,
+            "wall_seconds": 64.37968204868957
+          }
+        }
+      },
+      "source": [
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+          "sha256": "fd29b356c0494b150ba6c8a26c279fe45c11648af746981869dfdfa2c9dd93f7"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+          "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim_tb.cpp",
+          "sha256": "1df196b22bc31597e132ebb52459a155f3250df00e138f97fe9e07a6fb7528f5"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl",
+          "sha256": "ab227577c6ea98ce0af35098051f91d49e7a76cc640c4f20276daa54c4ebb15a"
+        }
+      ],
+      "status": "RTL_COSIM_PASS_NOT_BOARD"
+    },
+    "unit": {
+      "mode": "unit",
+      "runs": {
+        "combined": {
+          "analysis": {
+            "latency_avg_cycles": 8104,
+            "latency_max_cycles": 89878,
+            "latency_min_cycles": 39,
+            "raw_report": {
+              "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+              "sha256": "fe74199435cb4e7b0085c17fa074de82390366edb228f311541573b41dba8793"
+            },
+            "status": "RTL_COSIM_PASS"
+          },
+          "execution": {
+            "available_before_bytes": 74842980352,
+            "command": [
+              "env",
+              "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined",
+              "PMA_COSIM_MODE=unit",
+              "PMA_COSIM_PREFETCH=1",
+              "PMA_COSIM_STOP=1",
+              "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+              "-f",
+              "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+            ],
+            "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined",
+            "exit_code": 0,
+            "memory_limit_gib": 8,
+            "peak_rss_kib": 601068,
+            "reserve_gib": 16,
+            "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+            "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/cosim.stderr.txt",
+            "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/combined/cosim.stdout.txt",
+            "timed_out": false,
+            "wall_seconds": 61.67202010890469
+          }
+        },
+        "original": {
+          "analysis": {
+            "latency_avg_cycles": 26915,
+            "latency_max_cycles": 155937,
+            "latency_min_cycles": 117,
+            "raw_report": {
+              "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+              "sha256": "a013cdf54ef42653a7f02fc41b240b430f61e577de55fdf875b112dd3663d5c5"
+            },
+            "status": "RTL_COSIM_PASS"
+          },
+          "execution": {
+            "available_before_bytes": 74883284992,
+            "command": [
+              "env",
+              "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original",
+              "PMA_COSIM_MODE=unit",
+              "PMA_COSIM_PREFETCH=0",
+              "PMA_COSIM_STOP=0",
+              "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+              "-f",
+              "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+            ],
+            "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original",
+            "exit_code": 0,
+            "memory_limit_gib": 8,
+            "peak_rss_kib": 599440,
+            "reserve_gib": 16,
+            "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+            "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/cosim.stderr.txt",
+            "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_unit_safe_index/original/cosim.stdout.txt",
+            "timed_out": false,
+            "wall_seconds": 64.11685570515692
+          }
+        }
+      },
+      "source": [
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+          "sha256": "fd29b356c0494b150ba6c8a26c279fe45c11648af746981869dfdfa2c9dd93f7"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+          "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim_tb.cpp",
+          "sha256": "1df196b22bc31597e132ebb52459a155f3250df00e138f97fe9e07a6fb7528f5"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl",
+          "sha256": "ab227577c6ea98ce0af35098051f91d49e7a76cc640c4f20276daa54c4ebb15a"
+        }
+      ],
+      "status": "RTL_COSIM_PASS_NOT_BOARD"
+    },
+    "weighted": {
+      "mode": "weighted",
+      "runs": {
+        "combined": {
+          "analysis": {
+            "latency_avg_cycles": 8104,
+            "latency_max_cycles": 89878,
+            "latency_min_cycles": 39,
+            "raw_report": {
+              "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+              "sha256": "612b6b0fbdcddb1879e7e5aa0de1dd89fce4093d9d2342ac55d8d47994ea9497"
+            },
+            "status": "RTL_COSIM_PASS"
+          },
+          "execution": {
+            "available_before_bytes": 80147795968,
+            "command": [
+              "env",
+              "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined",
+              "PMA_COSIM_MODE=weighted",
+              "PMA_COSIM_PREFETCH=1",
+              "PMA_COSIM_STOP=1",
+              "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+              "-f",
+              "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+            ],
+            "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined",
+            "exit_code": 0,
+            "memory_limit_gib": 8,
+            "peak_rss_kib": 600192,
+            "reserve_gib": 16,
+            "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+            "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/cosim.stderr.txt",
+            "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/combined/cosim.stdout.txt",
+            "timed_out": false,
+            "wall_seconds": 61.48233185661957
+          }
+        },
+        "original": {
+          "analysis": {
+            "latency_avg_cycles": 26915,
+            "latency_max_cycles": 155937,
+            "latency_min_cycles": 117,
+            "raw_report": {
+              "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+              "sha256": "65a6fa5bef796530b8914591698bf76e391f9ec2ce1fbf27452b50133c59680e"
+            },
+            "status": "RTL_COSIM_PASS"
+          },
+          "execution": {
+            "available_before_bytes": 77310984192,
+            "command": [
+              "env",
+              "PMA_COSIM_OUT=/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original",
+              "PMA_COSIM_MODE=weighted",
+              "PMA_COSIM_PREFETCH=0",
+              "PMA_COSIM_STOP=0",
+              "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/bin/vitis_hls",
+              "-f",
+              "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl"
+            ],
+            "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original",
+            "exit_code": 0,
+            "memory_limit_gib": 8,
+            "peak_rss_kib": 599268,
+            "reserve_gib": 16,
+            "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+            "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/cosim.stderr.txt",
+            "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/rtl_weighted_safe_index/original/cosim.stdout.txt",
+            "timed_out": false,
+            "wall_seconds": 63.62938375491649
+          }
+        }
+      },
+      "source": [
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+          "sha256": "fd29b356c0494b150ba6c8a26c279fe45c11648af746981869dfdfa2c9dd93f7"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+          "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim_tb.cpp",
+          "sha256": "1df196b22bc31597e132ebb52459a155f3250df00e138f97fe9e07a6fb7528f5"
+        },
+        {
+          "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_cosim.tcl",
+          "sha256": "ab227577c6ea98ce0af35098051f91d49e7a76cc640c4f20276daa54c4ebb15a"
+        }
+      ],
+      "status": "RTL_COSIM_PASS_NOT_BOARD"
+    }
+  },
+  "source_checks": {
+    "available_before_bytes": 78550892544,
+    "command": [
+      "bash",
+      "/home/chuxiao/grasu-regraph-integration/scripts/check_pma_to_regraph_adapter.sh",
+      "--out-dir",
+      "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index"
+    ],
+    "cwd": "/home/chuxiao/grasu-regraph-integration",
+    "exit_code": 0,
+    "memory_limit_gib": 4,
+    "peak_rss_kib": 285304,
+    "reserve_gib": 16,
+    "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+    "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index_execution.stderr.txt",
+    "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/source_safe_index_execution.stdout.txt",
+    "timed_out": false,
+    "wall_seconds": 14.745764154940844
+  },
+  "status": "SOURCE_RTL_HLS_AND_OLD_BOARD_REGRESSION_PASS_NOT_OPTIMIZED_FPGA",
+  "synthesis": {
+    "claim": "SSSP_adapter_HLS_scheduling_ablation_not_routed_FPGA_performance",
+    "runs": {
+      "combined": {
+        "analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "35bef56165750c0c8de25dd6715e110390278ad2ee406507db4438d3c2facdb4"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "",
+              "IterationLatency": {
+                "range": {
+                  "max": "536871072",
+                  "min": "6"
+                }
+              },
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef",
+              "name": "source_loop"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "c70e7e54e8b3a806a53e4dc469253cfd0de3eb6ebd7052ae1c455a2e8a7d0538"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 12183,
+            "LUT": 17202,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "scevgepseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:21:11",
+              "OrigDirection": "read",
+              "OrigID": "for.body.i.load.23",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "GreaterOrEqualAlignmentMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Could not widen since type i64 size is greater than or equal to alignment 8(bytes)",
+              "msg_id": "214-307",
+              "msg_severity": "INFO",
+              "resolution": "214-307",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            }
+          ]
+        },
+        "execution": {
+          "available_before_bytes": 76277796864,
+          "command": [
+            "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+            "--target",
+            "hw",
+            "--compile",
+            "--kernel_frequency",
+            "150",
+            "--kernel",
+            "pma_to_regraph_adapter",
+            "--platform",
+            "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+            "--save-temps",
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "--temp_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/build",
+            "--report_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/reports",
+            "--log_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/logs",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/adapter.hw.xo",
+            "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 875136,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 51.9113859301433
+        },
+        "xo": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/combined/adapter.hw.xo",
+          "sha256": "93aa6b76e441eda51ffc0a9bb25c1411cfab2be2bf18326371558a0cefb1863a"
+        }
+      },
+      "original": {
+        "analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "974da980f2ad0e6fea301d0e6a76d510e524d450b063974b01167a66d2bdf493"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "",
+              "IterationLatency": {
+                "range": {
+                  "max": "536871061",
+                  "min": "77"
+                }
+              },
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef",
+              "name": "source_loop"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "7129699efe27e56993fa386f65da5ff0cc5d3be75a9e49c782c91300c7a061ab"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 11294,
+            "LUT": 17023,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "row_offsetseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:226:5",
+              "LoopName": "source_loop",
+              "OrigDirection": "read",
+              "OrigID": "for.body.load.6",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:226:5"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:226:5",
+              "LoopName": "source_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:226:5",
+              "OrigDirection": "read",
+              "OrigID": "row_offsetseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BadAccessLenMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Sequential access length is not divisible by 2",
+              "msg_id": "214-234",
+              "msg_severity": "INFO",
+              "resolution": "214-234",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:226:5"
+            }
+          ]
+        },
+        "execution": {
+          "available_before_bytes": 77240012800,
+          "command": [
+            "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+            "--target",
+            "hw",
+            "--compile",
+            "--kernel_frequency",
+            "150",
+            "--kernel",
+            "pma_to_regraph_adapter",
+            "--platform",
+            "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+            "--save-temps",
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "--temp_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/build",
+            "--report_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/reports",
+            "--log_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/logs",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/adapter.hw.xo",
+            "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 874036,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 51.50644771801308
+        },
+        "xo": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/original/adapter.hw.xo",
+          "sha256": "4d8c7cc7a495dbc13b3b1176dfef3ad80dc4b72afba1a74621cc775215717460"
+        }
+      },
+      "prefetch": {
+        "analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "ef967d1e6dc2b0029c883c487c203337204f0b05efaf5e6ed61bedf2116d0332"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "",
+              "IterationLatency": {
+                "range": {
+                  "max": "536871072",
+                  "min": "6"
+                }
+              },
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef",
+              "name": "source_loop"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "d5c882702c7ea4f10b5b205c24e519ddd2b21021a852f6abeed904848c06a8cf"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 12150,
+            "LUT": 17090,
+            "URAM": 0
+          },
+          "row_burst_findings": [
+            {
+              "AccessID": "scevgepseq",
+              "BundleName": "gmem0",
+              "Direction": "read",
+              "Length": "variable",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:21:11",
+              "OrigDirection": "read",
+              "OrigID": "for.body.i.load.23",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "BurstInferredPassed",
+              "group": "BURST_VERBOSE_PASSED",
+              "msg_body": "Sequential read of variable length has been inferred",
+              "msg_id": "214-116",
+              "msg_severity": "INFO",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:226:5",
+              "LoopName": "source_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "AccessInCondBranchMissed",
+              "group": "BURST_VERBOSE_MISSED",
+              "msg_body": "Access call is in the conditional branch",
+              "msg_id": "214-232",
+              "msg_severity": "INFO",
+              "resolution": "214-232",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp:226:5"
+            },
+            {
+              "BundleName": "gmem0",
+              "LoopLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "LoopName": "row_prefetch_loop",
+              "OrigAccess-DebugLoc": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+              "OrigDirection": "read",
+              "OrigID": "scevgepseq",
+              "ParentFunc": "pma_to_regraph_adapter",
+              "VarName": "row_offset",
+              "fe_name": "GreaterOrEqualAlignmentMissed",
+              "group": "BURST_VERBOSE_WIDEN_MISSED",
+              "msg_body": "Could not widen since type i64 size is greater than or equal to alignment 8(bytes)",
+              "msg_id": "214-307",
+              "msg_severity": "INFO",
+              "resolution": "214-307",
+              "src_info": "../../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+            }
+          ]
+        },
+        "execution": {
+          "available_before_bytes": 76212543488,
+          "command": [
+            "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+            "--target",
+            "hw",
+            "--compile",
+            "--kernel_frequency",
+            "150",
+            "--kernel",
+            "pma_to_regraph_adapter",
+            "--platform",
+            "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+            "--save-temps",
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "--temp_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/build",
+            "--report_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/reports",
+            "--log_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/logs",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/adapter.hw.xo",
+            "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 874132,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 52.57636123802513
+        },
+        "xo": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/prefetch/adapter.hw.xo",
+          "sha256": "f6372cc819a633a50481f4fafb1fb92c3f42376a3be44e5a41895e3f13a5303b"
+        }
+      },
+      "stop_after_last": {
+        "analysis": {
+          "burst_report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+            "sha256": "f20e49a86f54d8955f8cba3cffa4bcd9d3ee4b526954e6228546e80ad186aa87"
+          },
+          "estimated_clock_ns": 4.867,
+          "loops": [
+            {
+              "AbsoluteTimeLatency": "undef",
+              "InstanceList": "",
+              "IterationLatency": {
+                "range": {
+                  "max": "536871061",
+                  "min": "77"
+                }
+              },
+              "Latency": "undef",
+              "Slack": "4.87",
+              "TripCount": "undef",
+              "name": "source_loop"
+            }
+          ],
+          "report": {
+            "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+            "sha256": "14e32911d4a97cc1f5334b09fe1f5f9d2f8a52a9a9c990388b56fd5d6f7b4912"
+          },
+          "resources": {
+            "BRAM_18K": 15,
+            "DSP": 0,
+            "FF": 11327,
+            "LUT": 17094,
+            "URAM": 0
+          },
+          "row_burst_findings": []
+        },
+        "execution": {
+          "available_before_bytes": 78621544448,
+          "command": [
+            "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+            "--target",
+            "hw",
+            "--compile",
+            "--kernel_frequency",
+            "150",
+            "--kernel",
+            "pma_to_regraph_adapter",
+            "--platform",
+            "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+            "--save-temps",
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "--temp_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/build",
+            "--report_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/reports",
+            "--log_dir",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/logs",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/adapter.hw.xo",
+            "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 874764,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 51.19930220814422
+        },
+        "xo": {
+          "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/ablations_safe_index/stop_after_last/adapter.hw.xo",
+          "sha256": "43af3ef3f4c8e212084f69c59b50697e61d4bd9292c0826dfb49f3ca04f3fe68"
+        }
+      }
+    },
+    "source": [
+      {
+        "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+        "sha256": "fd29b356c0494b150ba6c8a26c279fe45c11648af746981869dfdfa2c9dd93f7"
+      },
+      {
+        "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+        "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+      }
+    ],
+    "status": "HLS_PASS_NOT_ROUTED"
+  }
+}
