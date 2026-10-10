@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "scope": "Locally fetched complete reachable public Git history, not unavailable/private/unreachable artifacts",
+  "limits": {"memory_gib": 2, "reserve_gib": 16, "timeout_seconds": 180, "commits": 100, "tree_entries": 10000, "text_bytes": 2097152, "archive_bytes": 67108864, "archive_expanded_bytes": 268435456, "archive_members": 10000},
+  "grasu": {"checkout": "build/publication_sources/grasu", "head": "e95da256be9e7f2361449323b6fe0abf98c1b152", "expected_commits": 31, "source_prefixes": ["pma/src/", "GraSU/GraSU/src/", "GraSU/GraSU_kernels/src/"], "deleted_archive": {"revision": "0ebd62d2af91b068f45da275897b32c8f4b5bc53", "path": "GraSU.zip", "sha256": "049efb61af382117cd5e3faa7b5d35f36e2856f6788472718d0135480ef5fe83"}},
+  "regraph": {"checkout": "build/publication_sources/regraph", "head": "365456826cef495285383d939907f847e05ad74b", "release": "d04d971466bab71dd7c7a03ffd962546a7050814", "expected_commits": 21, "source_prefixes": ["host/", "acc_template/", "acc_udfs/", "autogen/", "global_para.mk", "dataset/"], "expected_changed_source_files": ["host/host.cpp"]},
+  "text_suffixes": [".cpp", ".hpp", ".h", ".py", ".sh", ".m", ".mk", ".cfg", ".ini"],
+  "archive_extra_text_prefixes": ["GraSU/.metadata/.plugins/org.eclipse.core.resources/.history/"],
+  "temporal_terms": ["timestamp", "time_stamp", "temporal", "sx-askubuntu", "wiki-talk", "stackoverflow"],
+  "not_claimed": ["unknown branches or private files inspected", "publication configuration or input converter recovered", "historical build logs are hardware performance measurements", "successful publication timing match"]
+}

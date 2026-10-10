@@ -1,0 +1,139 @@
+{
+  "code": [
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/history/__init__.py",
+      "sha256": "14b7cb8cf25b83a174fe98f706203ddc7ab728920138ace617d01ccb718c97c6"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/history/git_store.py",
+      "sha256": "737f80b8c2e780b5af758661fed5e2b560cdcb335fc17c006fe523b1ec4aa9c2"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/history/inspection.py",
+      "sha256": "f5b9685f3c98065549c301f612e216e40a5634f51278af173ca8e89981ad4973"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/publication_admission/history/study.py",
+      "sha256": "75bb144657d5be5d39e94b8b847dc8e858e2a20f5f75bb5f1f02be474ca3f5a4"
+    },
+    {
+      "path": "configs/experiments/upstream_publication_history_v1.json",
+      "sha256": "88c50011b0005a3211c1cb1d859d69d6b15fa3cdd25548cae94c6a490dd96777"
+    },
+    {
+      "path": "scripts/audit_upstream_publication_history.py",
+      "sha256": "57bfb1ae8c604a5b72cfb591bee09f90339d45631b09adc5487db8639725e266"
+    },
+    {
+      "path": "tests/test_upstream_publication_history.py",
+      "sha256": "6ba934ef4d6785bb47d1b273c4875c2729789f09ec6dd0ce5c4af0bac7d43d0c"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    }
+  ],
+  "full_report_in_raw_archive": "results/upstream_stage_controls/publication_history_final_v2/report.json",
+  "full_report_sha256": "c490f41acfa2e8bee88e09c30e122fac8c61a038d0891ed3edeed4c3e0efa7eb",
+  "git_version": "git version 2.53.0",
+  "publication_timing_match": null,
+  "repositories": {
+    "grasu": {
+      "author_path_blob_versions_inspected": 26,
+      "deleted_archive": {
+        "binaries_executed": false,
+        "compressed_bytes": 24046082,
+        "expanded_bytes": 92668852,
+        "geometry_values": [
+          16
+        ],
+        "members": 450,
+        "sha256": "049efb61af382117cd5e3faa7b5d35f36e2856f6788472718d0135480ef5fe83",
+        "temporal_keyword_hits": 0,
+        "texts_inspected": 18
+      },
+      "distinct_historical_paths": 78,
+      "geometry_values": [
+        16
+      ],
+      "head": "e95da256be9e7f2361449323b6fe0abf98c1b152",
+      "reachable_commits": 31,
+      "refs": [
+        "e95da256be9e7f2361449323b6fe0abf98c1b152 refs/heads/main",
+        "e95da256be9e7f2361449323b6fe0abf98c1b152 refs/remotes/origin/HEAD",
+        "e95da256be9e7f2361449323b6fe0abf98c1b152 refs/remotes/origin/main"
+      ],
+      "scope": "complete_reachable_local_refs_not_private_or_unreachable_objects",
+      "temporal_keyword_hits": []
+    },
+    "regraph": {
+      "author_path_blob_versions_inspected": 57,
+      "distinct_historical_paths": 135,
+      "geometry_values": [],
+      "head": "365456826cef495285383d939907f847e05ad74b",
+      "reachable_commits": 21,
+      "refs": [
+        "365456826cef495285383d939907f847e05ad74b refs/heads/main",
+        "365456826cef495285383d939907f847e05ad74b refs/remotes/origin/HEAD",
+        "365456826cef495285383d939907f847e05ad74b refs/remotes/origin/main",
+        "d04d971466bab71dd7c7a03ffd962546a7050814 refs/tags/AE",
+        "d04d971466bab71dd7c7a03ffd962546a7050814 refs/tags/Release"
+      ],
+      "release_source_changed_files": [
+        "host/host.cpp"
+      ],
+      "release_source_diff": "diff --git a/host/host.cpp b/host/host.cpp\nindex 2608116..503a96e 100644\n--- a/host/host.cpp\n+++ b/host/host.cpp\n@@ -79,8 +79,11 @@ int main(int argc, char **argv) {\n     DEBUG_PRINTF(\"Partitioning graph...\\n\");\n     partition_container_dt partition_container = partitionGraph(csr);\n     //********************************************************************************************************//\n-\n-    int numD = atoi(argv[3]);\n+    \n+    int numD = 1;\n+        \n+    if(argc > 3) numD = atoi(argv[3]);\n+     \n     partition_container.num_dense_partitions = numD;\n     // if(partition_container.num_dense_partitions > partition_container.num_partitions) return 1;\n     //******************************* Schedule Partitions to kernels *****************************************//\n",
+      "release_source_diff_sha256": "c9f08606f4a15de4b81792d301243e18eaf56dc6b3c80201ae4f4b86016ad38c",
+      "scope": "complete_reachable_local_refs_not_private_or_unreachable_objects",
+      "temporal_keyword_hits": [
+        {
+          "git_blob": "b11319b65d0a0a0e9888b90447ddcb4dcb93479f",
+          "hits": [
+            {
+              "line": 21,
+              "text": "else if (gName == \"wiki-talk\") {"
+            },
+            {
+              "line": 22,
+              "text": "gptr = new Graph(dir + \"wiki-Talk.txt\");"
+            },
+            {
+              "line": 57,
+              "text": "else if (gName == \"wiki-Talk\") {"
+            },
+            {
+              "line": 58,
+              "text": "gptr = new Graph(dir + \"soc-wiki-Talk-dir.mtx\");"
+            }
+          ],
+          "path": "host/graph_loader/graph_loader.cpp"
+        },
+        {
+          "git_blob": "503a96e9a0cee9d455c58bfe93f4a1605eb16310",
+          "hits": [
+            {
+              "line": 36,
+              "text": "//gName = \"wiki-talk\";"
+            }
+          ],
+          "path": "host/host.cpp"
+        },
+        {
+          "git_blob": "26081167d27cf1dbdc867e695f733c2c84d0364e",
+          "hits": [
+            {
+              "line": 36,
+              "text": "//gName = \"wiki-talk\";"
+            }
+          ],
+          "path": "host/host.cpp"
+        }
+      ]
+    }
+  },
+  "status": "REACHABLE_HISTORY_INSPECTED_NOT_PUBLICATION_RECOVERY"
+}

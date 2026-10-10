@@ -26,6 +26,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 | --- | --- |
 | What is the plan and what counts as a match? | [Execution gates](PLAN.md), [source/comparability audit](../grasu_regraph_publication_match/README.md) |
 | Do complete temporal inputs explain the publication denominator, and are the G/R timers comparable? | [Full AU/SU/WK counts, post-hoc arithmetic clue and event boundaries](PUBLICATION_WORKLOADS.md) |
+| Does an older public version recover the missing paper configuration or converter? | [Complete reachable history, deleted GraSU ZIP and ReGraph AE/Release comparison](PUBLICATION_HISTORY.md) |
 | Does the prepared original G kernel path agree? | [G source-path control](GRASU_SOURCE_PATH.md) |
 | Does trace-aware G host preparation compose with the original kernels? | [G host inputs, bounds failures and compatibility control](GRASU_HOST_INPUTS.md) |
 | Do original DDR RTL ports safely alias physical memory under finite pressure? | [Twelve source/RTL state controls, bus tests and event ordering](GRASU_DDR_RTL.md) |

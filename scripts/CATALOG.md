@@ -91,6 +91,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [audit_publication_workloads.py](audit_publication_workloads.py)
 - [audit_repository_structure.py](audit_repository_structure.py)
 - [audit_spine_hot_transition_successor.py](audit_spine_hot_transition_successor.py)
+- [audit_upstream_publication_history.py](audit_upstream_publication_history.py)
 
 ## Execution and experiment drivers
 

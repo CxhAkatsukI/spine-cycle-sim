@@ -30,6 +30,11 @@ a common post-hoc residual-count clue. This is progress on input admission,
 not recovery of the author's converted update sequence or a timing match.
 Original G and R source timers are also distinct; preserve those boundaries
 instead of treating reported Mupdates/s and MTEPS as interchangeable windows.
+The [public-history inspection](PUBLICATION_HISTORY.md) now rules out merely
+switching to the reachable earlier source/tag as a recovery strategy: inspected
+GraSU geometry remains sixteen slots, and ReGraph's released computation is
+unchanged. Original converter/input and publication-window evidence remain
+external admission requirements, not additional timing coefficients to fit.
 
 ## Separate Questions
 
