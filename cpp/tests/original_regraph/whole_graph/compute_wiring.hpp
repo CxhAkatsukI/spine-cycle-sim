@@ -1,5 +1,8 @@
 #pragma once
 
+#include <type_traits>
+
+#include "spine_sim/original_regraph/sssp_apply.hpp"
 #include "../frontend_wiring.hpp"
 #include "../state_support.hpp"
 #include "input.hpp"
@@ -11,6 +14,13 @@ using original_regraph_memory_test::MemoryLink;
 using spine::sim::Fifo;
 
 inline constexpr std::uint64_t kOutputAddress = 64ull * 1024 * 1024;
+
+struct ComputeOptions {
+  rg::Udf udf{rg::Udf::kFixedPointPr};
+  original_regraph_memory_test::MemoryServiceConfig memory{};
+  rg::PipelineTiming apply_timing{rg::kApplyPostReadTiming};
+  bool sssp_response_anchored{};
+};
 
 template <typename Reader>
 struct ComputePath {
@@ -41,12 +51,26 @@ struct ComputePath {
   }
 };
 
-template <typename InputSource>
+template <typename InputSource, typename Apply = rg::PrApply>
 class ComputeWiring {
  public:
   ComputeWiring(InputSource source, std::size_t state_parents, std::uint64_t latency, bool reverse,
-                std::size_t input_parents = 2)
-      : memory(8, latency), input(source.input()), source_(std::move(source)) {
+                std::size_t input_parents = 2, ComputeOptions options = {})
+      : memory(8, latency, options.memory), input(source.input()), source_(std::move(source)) {
+    static_assert(std::is_same_v<Apply, rg::PrApply> || std::is_same_v<Apply, rg::SsspApply>);
+    constexpr bool sssp = std::is_same_v<Apply, rg::SsspApply>;
+    require(options.udf == (sssp ? rg::Udf::kWeightedSssp : rg::Udf::kFixedPointPr),
+            "compute UDF and Apply type disagree");
+    require(sssp || !options.sssp_response_anchored, "response anchor requires SSSP Apply");
+    if constexpr (requires { source_.udf(); }) {
+      require(source_.udf() == options.udf, "compute and input source UDF disagree");
+    } else {
+      require(!sssp, "SSSP input source must declare its UDF");
+    }
+    if constexpr (sssp) {
+      require(input.published_vertices == input.aligned_vertices,
+              "SSSP round must publish the complete aligned state");
+    }
     require(state_parents > 0 && state_parents <= 16, "invalid state AXI parent credits");
     std::vector<Fifo<rg::VertexPair>*> outputs;
     for (unsigned index = 0; index < paths.size(); ++index) {
@@ -62,24 +86,34 @@ class ComputeWiring {
       p.source = memory.make<rg::LittleSourceMemory>(name + ".source", memory.clock, p.source_port.ports(),
           *p.requests, *p.responses, 0, input.aligned_vertices * 4ull);
       p.scatter = memory.make<rg::LittleScatter>(name + ".scatter", memory.clock, *p.edges,
-          *p.requests, *p.responses, *p.updates);
+          *p.requests, *p.responses, *p.updates, rg::kScatterTiming, 0, options.udf);
       for (unsigned lane = 0; lane < path.lanes.size(); ++lane) {
         path.lanes[lane] = memory.queue<rg::VertexPair>(name + ".lane" + std::to_string(lane));
       }
       path.output = memory.queue<rg::VertexPair>(name + ".output");
-      p.gather = memory.make<rg::LittleGather>(name + ".gather", memory.clock, *p.updates, path.lanes);
-      p.local_merge = memory.make<rg::LittleLocalMerge>(name + ".local", memory.clock, path.lanes, *path.output);
+      p.gather = memory.make<rg::LittleGather>(name + ".gather", memory.clock, *p.updates, path.lanes,
+          rg::LittleTiming{}, options.udf);
+      p.local_merge = memory.make<rg::LittleLocalMerge>(name + ".local", memory.clock, path.lanes, *path.output,
+          rg::PipelineTiming{3, 1, 4}, options.udf);
       outputs.push_back(path.output);
     }
     merged = memory.queue<rg::PropertyLine>("merged");
-    merger = memory.make<rg::LittleGlobalMerge>("global_merge", memory.clock, outputs, *merged);
+    merger = memory.make<rg::LittleGlobalMerge>("global_merge", memory.clock, outputs, *merged,
+        rg::PipelineTiming{4, 1, 5}, options.udf);
     auto* indexed = memory.queue<rg::PropertyWrite>("indexed");
     auto* applied = memory.queue<rg::PropertyWrite>("applied");
-    degree = memory.port("degree_axi", 100, 30, 16, state_parents);
+    degree = memory.port(sssp ? "old_state_axi" : "degree_axi", 100, 30, 16, state_parents);
     indexer = memory.make<rg::LittleWriteIndexer>("index", memory.clock, *merged, *indexed);
-    apply = memory.make<rg::PrApply>("apply", memory.clock,
-        rg::TransactionPort{*degree.requests, *degree.responses}, *indexed, *applied,
-        0, input.published_vertices * 4ull);
+    if constexpr (sssp) {
+      apply = memory.make<Apply>("apply", memory.clock,
+          rg::TransactionPort{*degree.requests, *degree.responses}, *indexed, *applied,
+          0, input.published_vertices * 4ull, options.apply_timing, rg::kApplyLineCredits,
+          options.sssp_response_anchored);
+    } else {
+      apply = memory.make<Apply>("apply", memory.clock,
+          rg::TransactionPort{*degree.requests, *degree.responses}, *indexed, *applied,
+          0, input.published_vertices * 4ull, options.apply_timing, rg::kApplyLineCredits);
+    }
     std::vector<rg::WriteTarget> targets;
     for (unsigned index = 0; index < paths.size(); ++index) {
       auto port = memory.port("write_axi" + std::to_string(index), 200 + index, index * 2 + 1, 16, state_parents);
@@ -101,7 +135,8 @@ class ComputeWiring {
         source_.initialize(memory, index * 2, *task);
       }
     }
-    memory.backend->initialize_payload(30, 0, degrees);
+    if constexpr (std::is_same_v<Apply, rg::SsspApply>) memory.backend->initialize_payload(30, 0, properties);
+    else memory.backend->initialize_payload(30, 0, degrees);
   }
 
   void begin() {
@@ -144,7 +179,7 @@ class ComputeWiring {
   MemoryLink degree;
   std::vector<MemoryLink> writers;
   rg::LittleWriteIndexer* indexer{};
-  rg::PrApply* apply{};
+  Apply* apply{};
   rg::PropertyBroadcastWriter* writer{};
   std::uint64_t overlapped_task_starts{};
 

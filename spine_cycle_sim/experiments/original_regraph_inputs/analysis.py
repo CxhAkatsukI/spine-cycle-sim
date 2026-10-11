@@ -18,6 +18,15 @@ def records(text: str, prefix: str) -> list[dict]:
 
 
 def analyze_layout(stdout: str, directory: Path, topology: dict, graph: dict, contract: dict) -> dict:
+    result = analyze_topology(stdout, directory, topology, graph, contract)
+    if result["summary"]["initial_arithmetic_rejections"]:
+        raise ValueError("original layout PR initial arithmetic admission failed")
+    return {key: value for key, value in {**result, "status": STATUS}.items()
+            if key != "pr_initial_arithmetic_admitted"}
+
+
+def analyze_topology(stdout: str, directory: Path, topology: dict, graph: dict, contract: dict) -> dict:
+    """Validate author geometry/captures without claiming its PR state is executable."""
     summaries = records(stdout, "PUBLICATION_LAYOUT ")
     if len(summaries) != 1:
         raise ValueError("original layout needs one summary")
@@ -32,7 +41,7 @@ def analyze_layout(stdout: str, directory: Path, topology: dict, graph: dict, co
             summary["aligned_vertices"] != (summary["vertices"] + 65535) // 65536 * 65536 or
             not 0 < summary["partitions"] <= summary["aligned_vertices"] // 65536 or
             summary["task_physical_edges"] - summary["task_dummy_edges"] != summary["logical_edges"] or
-            summary["source_allocation_rejections"] or summary["initial_arithmetic_rejections"] or
+            summary["source_allocation_rejections"] or
             summary["edge_bytes_max_channel"] >= 256 * 1024**2):
         raise ValueError("original layout work, extent, memory or initial arithmetic admission failed")
     dense = summary["partitions"] if topology["big"] == 0 else min(
@@ -60,7 +69,9 @@ def analyze_layout(stdout: str, directory: Path, topology: dict, graph: dict, co
             raise ValueError("layout capture extent or file type mismatch")
         files.append({"path": name, "words": expected_words[name], "bytes": path.stat().st_size,
                       "sha256": sha256_file(path), "format": "u32le"})
-    return {"status": STATUS, "summary": summary, "partitions": partitions, "tasks": tasks,
+    return {"status": "ORIGINAL_HOST_TOPOLOGY_PASS_NOT_PR_ARITHMETIC_OR_DEVICE_TIMING",
+            "pr_initial_arithmetic_admitted": False,
+            "summary": summary, "partitions": partitions, "tasks": tasks,
             "files": files, "device_cycles": None, "publication_rate_error_pct": None}
 
 

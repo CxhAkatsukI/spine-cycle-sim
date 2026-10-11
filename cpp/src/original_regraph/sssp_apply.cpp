@@ -11,9 +11,10 @@ namespace spine::sim::original_regraph {
 SsspApply::SsspApply(std::string name, ClockId clock, TransactionPort old_state,
                      Fifo<PropertyWrite>& input, Fifo<PropertyWrite>& output,
                      std::uint64_t address, std::uint64_t bytes,
-                     PipelineTiming timing, std::size_t line_credits)
+                     PipelineTiming timing, std::size_t line_credits, bool response_anchored)
     : Component(std::move(name), clock), old_state_(old_state), input_(input), output_(output),
-      address_(address), bytes_(bytes), line_credits_(line_credits), pipeline_(timing) {
+      address_(address), bytes_(bytes), line_credits_(line_credits),
+      response_anchored_(response_anchored), pipeline_(timing) {
   if (old_state.requests.clock_id() != clock || old_state.responses.clock_id() != clock ||
       input.clock_id() != clock || output.clock_id() != clock || !line_credits ||
       address % 64 || !bytes || bytes % 64 || bytes > std::numeric_limits<std::uint64_t>::max() - address) {
@@ -63,11 +64,20 @@ void SsspApply::evaluate(const CycleContext& context) {
     }
     staged_response_ = {response.transaction_id, detail::property_line(response.read_data)};
   }
-  if (!pending_.empty() && pending_.front().old_state && pipeline_.can_accept(context.domain_cycle)) {
+  const PropertyLine* old_state = nullptr;
+  if (!pending_.empty()) {
+    if (pending_.front().old_state) old_state = &*pending_.front().old_state;
+    else if (response_anchored_ && staged_response_ &&
+             staged_response_->first == pending_.front().transaction) {
+      // Anchor to response acceptance, without bypassing ordered pending work.
+      old_state = &staged_response_->second;
+    }
+  }
+  if (old_state && pipeline_.can_accept(context.domain_cycle)) {
     const auto& job = pending_.front();
     PropertyWrite result{{}, job.packet.index, false};
     for (std::size_t word = 0; word < result.data.size(); ++word) {
-      result.data[word] = apply_sssp_property(job.packet.data[word], (*job.old_state)[word]);
+      result.data[word] = apply_sssp_property(job.packet.data[word], (*old_state)[word]);
       staged_active_vertices_ += (result.data[word] & kSsspActive) != 0;
     }
     pipeline_.stage_accept(result, context.domain_cycle);

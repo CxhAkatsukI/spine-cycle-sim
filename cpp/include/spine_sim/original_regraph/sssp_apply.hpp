@@ -8,6 +8,10 @@
 
 namespace spine::sim::original_regraph {
 
+// Local SSSP HLS response-to-output schedule, not calibrated A4 timing.
+// Capacity two permits II=1 with registered retirement and latency one.
+inline constexpr PipelineTiming kSsspSchedulePostReadTiming{1, 1, 2};
+
 struct SsspApplyCounters {
   std::uint64_t lines{};
   std::uint64_t old_state_responses{};
@@ -23,11 +27,14 @@ struct SsspApplyCounters {
 class SsspApply final : public Component {
  public:
   // kApplyPostReadTiming is inherited from PR, not audited SSSP HLS timing.
+  // response_anchored explicitly starts timing on old-state response acceptance.
+  // Output stalls/order dependencies may extend the nominal schedule.
   SsspApply(std::string name, ClockId clock, TransactionPort old_state,
             Fifo<PropertyWrite>& input, Fifo<PropertyWrite>& output,
             std::uint64_t old_state_address, std::uint64_t old_state_bytes,
             PipelineTiming timing = kApplyPostReadTiming,
-            std::size_t line_credits = kApplyLineCredits);
+            std::size_t line_credits = kApplyLineCredits,
+            bool response_anchored = false);
   void begin(std::uint32_t lines,
              std::optional<std::uint64_t> old_state_address = std::nullopt);
   // Completion emits the terminator; downstream replica acks belong to the writer.
@@ -49,6 +56,7 @@ class SsspApply final : public Component {
   std::uint64_t address_{};
   std::uint64_t bytes_{};
   std::size_t line_credits_{};
+  bool response_anchored_{};
   detail::LatencyPipe<PropertyWrite> pipeline_;
   std::deque<Pending> pending_;
   std::uint64_t next_transaction_{1};

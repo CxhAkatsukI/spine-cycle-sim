@@ -62,6 +62,12 @@ struct Input {
   std::uint64_t physical_edges{}, dummy_edges{};
 
   static Input load(const std::filesystem::path& directory) {
+    auto input = load_layout(directory);
+    input.validate_values();
+    return input;
+  }
+
+  static Input load_layout(const std::filesystem::path& directory) {
     const auto descriptor = read_words(directory / "execution.u32le", 8 + 255 * 4 * 8);
     require(descriptor.size() >= 8 && descriptor[0] == 0x3447524fu && descriptor[1] == 1,
             "invalid original A4 descriptor header");
@@ -100,12 +106,11 @@ struct Input {
             input.degrees.size() == input.aligned_vertices && input.offsets.size() == input.vertices + 1 &&
             input.destinations.size() == input.logical_edges && input.offsets.front() == 0 &&
             input.offsets.back() == input.logical_edges, "A4 input capture extent mismatch");
-    input.validate_values();
+    input.validate_layout();
     return input;
   }
 
-  void validate_values() {
-    std::vector<std::uint64_t> total(aligned_vertices, 0);
+  void validate_layout() {
     for (unsigned source = 0; source < vertices; ++source) {
       require(offsets[source] <= offsets[source + 1] && offsets[source + 1] <= logical_edges &&
               degrees[source] == offsets[source + 1] - offsets[source] && initial[source] <= INT32_MAX,
@@ -113,19 +118,10 @@ struct Input {
       for (auto edge = offsets[source]; edge < offsets[source + 1]; ++edge) {
         require(destinations[edge] < published_vertices && destinations[edge] < vertices,
                 "destination exceeds admitted nonempty prefix");
-        total[destinations[edge]] += initial[source];
       }
     }
-    sums.resize(aligned_vertices); expected.resize(aligned_vertices);
-    for (unsigned vertex = 0; vertex < aligned_vertices; ++vertex) {
-      if (vertex >= vertices) require(initial[vertex] == 0 && degrees[vertex] == 0, "nonzero padded state");
-      const auto damped = total[vertex] * 108;
-      const auto product = (damped >> 7) * (degrees[vertex] ? 65536 / degrees[vertex] : 0);
-      require(total[vertex] <= INT32_MAX && damped <= INT32_MAX && product <= INT32_MAX,
-              "initial PR iteration exceeds original signed arithmetic domain");
-      sums[vertex] = static_cast<std::uint32_t>(total[vertex]);
-      expected[vertex] = static_cast<std::uint32_t>(product >> 16);
-    }
+    for (unsigned vertex = vertices; vertex < aligned_vertices; ++vertex)
+      require(initial[vertex] == 0 && degrees[vertex] == 0, "nonzero padded state");
     for (const auto& task : tasks) for (unsigned index = 0; index < task.words; index += 2) {
       const auto source = edge_words[task.offset_words + index] & 0x7fffffffu;
       const auto destination = edge_words[task.offset_words + index + 1];
@@ -139,6 +135,22 @@ struct Input {
                      "task destination exceeds its partition");
     }
     require(physical_edges - dummy_edges == logical_edges, "task logical/physical work mismatch");
+  }
+
+  void validate_values() {
+    std::vector<std::uint64_t> total(aligned_vertices, 0);
+    for (unsigned source = 0; source < vertices; ++source)
+      for (auto edge = offsets[source]; edge < offsets[source + 1]; ++edge)
+        total[destinations[edge]] += initial[source];
+    sums.resize(aligned_vertices); expected.resize(aligned_vertices);
+    for (unsigned vertex = 0; vertex < aligned_vertices; ++vertex) {
+      const auto damped = total[vertex] * 108;
+      const auto product = (damped >> 7) * (degrees[vertex] ? 65536 / degrees[vertex] : 0);
+      require(total[vertex] <= INT32_MAX && damped <= INT32_MAX && product <= INT32_MAX,
+              "initial PR iteration exceeds original signed arithmetic domain");
+      sums[vertex] = static_cast<std::uint32_t>(total[vertex]);
+      expected[vertex] = static_cast<std::uint32_t>(product >> 16);
+    }
   }
 };
 

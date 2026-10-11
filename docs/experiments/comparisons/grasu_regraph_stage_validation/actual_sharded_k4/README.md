@@ -10,8 +10,14 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 The [optional weighted-SSSP A4 control](matched_a4/sssp_control/README.md)
 now supplies a same-arithmetic building block instead of comparing original
 fixed-point PR with production SSSP. It checks complete padded resident-round
-states and replica acknowledgements. This is a local UDF correctness gate;
-matched whole-graph inputs, SSSP timing and A4/K4 performance remain open.
+states and replica acknowledgements. The subsequent
+[real-topology resident-round control](matched_a4/sssp_real_round/README.md)
+preserves author DBG/tasks on a 650-vertex Amazon slice and admits all twelve
+SSSP state/traffic runs under two common mock-memory services. It uses one
+destination partition and unequal state-copy/port resources; timing is
+diagnostic, not a strict matched-resource or update-to-convergence result.
+Multi-partition scheduling, real-HBM A4 timing and final A4/K4 performance
+remain open.
 
 The [controlled initial-residency checkpoint](model_sync/sst/input_residency/README.md)
 now retains all 30 complete outputs and rounds. XRT traces expose 16 late

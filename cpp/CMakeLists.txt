@@ -111,6 +111,10 @@ if(BUILD_TESTING)
       COMMAND original_regraph_sssp_${sssp_test}_tests)
   endforeach()
 
+  add_executable(original_regraph_sssp_real_round tests/original_regraph/sssp/real_round.cpp)
+  target_link_libraries(original_regraph_sssp_real_round PRIVATE original_regraph_cycle)
+  target_compile_options(original_regraph_sssp_real_round PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
   add_executable(axi_independent_channels_tests tests/axi/independent_channels_tests.cpp)
   target_link_libraries(axi_independent_channels_tests PRIVATE spine_cycle_core)
   target_compile_options(axi_independent_channels_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

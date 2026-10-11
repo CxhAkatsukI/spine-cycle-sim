@@ -151,6 +151,14 @@ resident-round state, padding and replica acknowledgements. Existing
 components default to PR. The external local-HLS UDF comparison is opt-in;
 diagnostic cycles do not admit an original-publication or A4/K4 timing match.
 
+The [real-topology resident-round extension](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_real_round/README.md)
+separates weighted capture decoding and the synchronous oracle in
+[real_input.hpp](tests/original_regraph/sssp/real_input.hpp) from execution and
+full replica/traffic checks in [real_round.cpp](tests/original_regraph/sssp/real_round.cpp).
+Its explicit memory service and response-anchored SSSP Apply option leave
+old PR defaults unchanged. One partition and differing publication/port
+resources limit its cycle ratios to diagnostics.
+
 The first C++ extraction separates two existing responsibilities without
 changing their public header or function bodies:
 

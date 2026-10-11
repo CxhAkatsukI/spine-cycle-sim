@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from spine_cycle_sim.experiments.original_regraph_inputs.analysis import analyze_layout
+from spine_cycle_sim.experiments.original_regraph_inputs.analysis import analyze_layout, analyze_topology
 from spine_cycle_sim.experiments.original_regraph_inputs.delivery import deliver
 from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 from spine_cycle_sim.experiments.original_regraph_inputs.preparation import compiler_command, inspect_graph, write_fixture
@@ -102,6 +102,17 @@ class OriginalLayoutAnalysisTests(unittest.TestCase):
             self.summary[key] = value
             with self.subTest(key=key), self.assertRaises(ValueError):
                 self.analyze()
+
+    def test_topology_only_does_not_claim_pr_arithmetic_and_keeps_other_guards(self):
+        self.summary["initial_arithmetic_rejections"] = 81
+        result = analyze_topology(self.stdout(), self.directory, self.topology, self.graph, self.contract)
+        self.assertFalse(result["pr_initial_arithmetic_admitted"])
+        self.assertEqual(result["summary"]["initial_arithmetic_rejections"], 81)
+        with self.assertRaisesRegex(ValueError, "PR initial arithmetic"):
+            self.analyze()
+        self.summary["source_allocation_rejections"] = 1
+        with self.assertRaises(ValueError):
+            analyze_topology(self.stdout(), self.directory, self.topology, self.graph, self.contract)
 
     def test_missing_duplicate_or_wrong_task_kernel_and_offset_rejected(self):
         original = copy.deepcopy(self.tasks)

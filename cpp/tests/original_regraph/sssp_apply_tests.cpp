@@ -67,6 +67,7 @@ struct ManualOptions {
   std::uint64_t address{kOldAddress};
   std::uint64_t bytes{256};
   bool reverse{};
+  bool response_anchored{};
 };
 
 struct ManualApply {
@@ -77,7 +78,7 @@ struct ManualApply {
     output = memory.queue<rg::PropertyWrite>("applied");
     apply = memory.make<rg::SsspApply>("sssp_apply", memory.clock,
         rg::TransactionPort{*requests, *responses}, *input, *output,
-        options.address, options.bytes, options.timing, options.credits);
+        options.address, options.bytes, options.timing, options.credits, options.response_anchored);
     memory.register_components(options.reverse);
   }
 
@@ -168,8 +169,9 @@ std::vector<std::uint64_t> test_full_line_restart(bool reverse) {
           path.apply->pipeline().output_stalls};
 }
 
-void test_out_of_order_and_pipeline_pressure() {
-  ManualApply path({.depth = 1, .credits = 2, .timing = {5, 2, 1}});
+void test_out_of_order_and_pipeline_pressure(bool response_anchored = false) {
+  ManualApply path({.depth = 1, .credits = 2, .timing = {5, 2, 1},
+                    .response_anchored = response_anchored});
   path.apply->begin(2);
   path.push(*path.input, rg::PropertyWrite{kGathered, 3, false});
   const auto first = path.take(*path.requests);
@@ -195,6 +197,72 @@ void test_out_of_order_and_pipeline_pressure() {
           "pressure run terminated before complete drain");
   require(path.apply->counters().old_state_bytes == 128 && path.apply->counters().active_vertices == 6,
           "pipeline stalls duplicated reads or active counts");
+}
+
+std::vector<std::uint64_t> test_response_schedule(bool reverse, bool anchored, bool stall = false) {
+  ManualApply path({.depth = stall ? 1u : 8u, .credits = 4,
+      .timing = rg::kSsspSchedulePostReadTiming, .reverse = reverse, .response_anchored = anchored});
+  path.apply->begin(4);
+  std::vector<AxiRequest> requests;
+  for (unsigned index = 0; index < 4; ++index) {
+    path.push(*path.input, rg::PropertyWrite{kGathered, index, false});
+    requests.push_back(path.take(*path.requests));
+  }
+  path.push(*path.input, rg::PropertyWrite{{}, 0, true});
+  if (stall) path.push(*path.output, rg::PropertyWrite{{}, 999, false});
+  std::vector<std::uint64_t> response_cycles, output_cycles;
+  // Measure Apply's successful FIFO push, not downstream consumption one edge later.
+  std::vector<rg::PropertyWrite> observed;
+  unsigned sent = 0;
+  bool done = false, removed_blocker = false;
+  for (unsigned step = 0; step < 200; ++step) {
+    if (sent < requests.size() && !path.responses->full()) {
+      require(path.responses->try_push(AxiResponse{.transaction_id = requests[sent].transaction_id,
+          .operation = MemoryOperation::kRead, .success = true, .read_data = encode(kOld)}),
+          "schedule response ownership");
+      ++sent;
+    }
+    if ((!stall || step >= 16) && !path.output->empty()) {
+      rg::PropertyWrite packet;
+      require(path.output->try_pop(packet), "schedule output ownership");
+      if (stall && !removed_blocker) {
+        require(packet.index == 999 && !packet.end, "schedule output blocker changed");
+        removed_blocker = true;
+      } else if (!packet.end) observed.push_back(packet);
+    }
+    const auto responses = path.apply->counters().old_state_responses;
+    const auto completed = path.apply->pipeline().completed;
+    path.memory.scheduler.step();
+    const auto cycle = path.memory.scheduler.clock(path.memory.clock).completed_cycles;
+    if (path.apply->counters().old_state_responses != responses) response_cycles.push_back(cycle);
+    if (path.apply->pipeline().completed != completed) output_cycles.push_back(cycle);
+    if (path.apply->finished() && path.memory.drained()) { done = true; break; }
+  }
+  require(done && response_cycles.size() == 4 && output_cycles.size() == 4 && observed.size() == 4,
+          "response-anchored schedule lost work or timed out");
+  for (unsigned index = 0; index < 4; ++index) {
+    require(observed[index].index == index && observed[index].data == kExpected,
+            "response-anchored schedule changed ordered numerics");
+    if (!stall) {
+      require(output_cycles[index] == response_cycles[index] + (anchored ? 1 : 2),
+              "wrong response-acceptance to output-acceptance cycle distance");
+      if (index) require(response_cycles[index] == response_cycles[index - 1] + 1 &&
+                         output_cycles[index] == output_cycles[index - 1] + 1,
+                         "unblocked schedule did not sustain II=1");
+    }
+  }
+  require(path.apply->counters().old_state_bytes == 256 && path.apply->counters().active_vertices == 24 &&
+          path.apply->pipeline().accepted == 4 && path.apply->pipeline().completed == 4 &&
+          path.apply->pipeline().max_inflight <= 2 && path.apply->counters().max_live_lines <= 4 &&
+          path.apply->counters().input_terminators == 1 && path.apply->counters().output_terminators == 1,
+          "response schedule did not conserve reads/activations/credits/terminals");
+  if (stall) require(path.apply->pipeline().output_stalls && path.apply->pipeline().capacity_stalls &&
+                     output_cycles.front() > response_cycles.front() + 1,
+                     "response schedule bypassed finite output/pipeline pressure");
+  response_cycles.insert(response_cycles.end(), output_cycles.begin(), output_cycles.end());
+  response_cycles.push_back(path.apply->pipeline().output_stalls);
+  response_cycles.push_back(path.apply->pipeline().capacity_stalls);
+  return response_cycles;
 }
 
 void test_request_backpressure() {
@@ -445,6 +513,13 @@ int main() {
     require(test_full_line_restart(false) == test_full_line_restart(true),
             "manual reverse registration changed protocol timing/counters");
     test_out_of_order_and_pipeline_pressure();
+    test_out_of_order_and_pipeline_pressure(true);
+    for (const bool anchored : {false, true}) {
+      require(test_response_schedule(false, anchored) == test_response_schedule(true, anchored),
+              "response schedule changed under reverse registration");
+    }
+    require(test_response_schedule(false, true, true) == test_response_schedule(true, true, true),
+            "stalled response schedule changed under reverse registration");
     test_request_backpressure();
     test_rejections();
     test_resident_replicas();

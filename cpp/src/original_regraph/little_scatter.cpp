@@ -50,11 +50,9 @@ UpdateBurst LittleScatter::map_edge(const Control& control) const {
     const auto destination = control.edge[lane].destination;
     const auto property = buffers_[lane][bank][line][source % 16];
     if (udf_ == Udf::kWeightedSssp) {
-      // Packed input uses bit 31 for dummy and bits 19..30 for weight;
+      // Destination bit 31 is authoritative, including unflagged-source padding.
+      // Packed input uses bits 19..30 for weight;
       // the original gather consumes bit 19 as dummy, with a 16-bit local ID.
-      if (static_cast<bool>(control.edge[lane].source & kSsspActive) !=
-          static_cast<bool>(destination & kSsspActive))
-        throw std::invalid_argument("weighted edge dummy markers disagree");
       const auto local = destination & 0x7ffffu;
       if (!(destination & kSsspActive) && local >= kLittleVertices)
         throw std::out_of_range("weighted destination exceeds Little partition");

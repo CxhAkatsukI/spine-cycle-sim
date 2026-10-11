@@ -29,14 +29,24 @@ struct MemoryLink {
   spine::sim::original_regraph::ReadPort ports() const { return {*requests, *responses, *beats}; }
 };
 
+struct MemoryServiceConfig {
+  double clock_mhz{210};
+  std::size_t max_outstanding_per_channel{512};
+  std::size_t response_queue_depth{64};
+};
+
+inline constexpr MemoryServiceConfig kMatchedMockService{150, 32, 32};
+
 class MemoryFixture {
  public:
-  MemoryFixture(std::size_t fifo_depth = 8, std::uint64_t memory_latency = 64)
-      : clock(scheduler.add_clock_mhz("core", 210)), depth_(fifo_depth) {
+  MemoryFixture(std::size_t fifo_depth = 8, std::uint64_t memory_latency = 64,
+                MemoryServiceConfig service = {})
+      : clock(scheduler.add_clock_mhz("core", service.clock_mhz)), depth_(fifo_depth) {
     backend = make<spine::sim::MockMemoryBackend>("memory", clock, spine::sim::MockMemoryConfig{
         .channels = 32, .latency_cycles = memory_latency,
-        .accepts_per_channel_per_cycle = 1, .max_outstanding_per_channel = 512,
-        .response_queue_depth = 64, .registered_round_robin_arbitration = true});
+        .accepts_per_channel_per_cycle = 1,
+        .max_outstanding_per_channel = service.max_outstanding_per_channel,
+        .response_queue_depth = service.response_queue_depth, .registered_round_robin_arbitration = true});
   }
 
   ~MemoryFixture() {
