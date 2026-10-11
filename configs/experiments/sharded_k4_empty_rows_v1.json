@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "study": "sharded_k4_empty_rows_v1",
+  "vertices": [4096, 8192, 16384, 32768],
+  "source": 0,
+  "initial_edges": [[0, 1, 8], [1, 2, 8], [2, 3, 8], [3, 4, 8]],
+  "updates": [[0, 4, 1, 1]],
+  "repeats": 3,
+  "expected_rounds": 2,
+  "profile": "configs/architectures/grasu_regraph_routed_sssp_compute_v2.json",
+  "timing_fit_allowed": false,
+  "claim": "controlled_empty_row_slope_not_exclusive_memory_latency_or_A4_match"
+}

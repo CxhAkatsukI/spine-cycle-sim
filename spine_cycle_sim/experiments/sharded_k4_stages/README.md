@@ -33,6 +33,9 @@ PMA timing control. Start with the
 | `sst_delivery.py` | Immutable six-row SST/board evidence, common-source legacy gate and nominal tail diagnostics |
 | `completion_delivery.py` | Separate capped-state and isolated read/write-blocking evidence; no model change or timing admission |
 | `channel_delivery.py` | Independent-channel correction: exact v1 replay, full v2 state/traffic gates and a separate immutable package; never upgrades nominal timing to calibration |
+| `row_sweep.py` | Predeclared four-size empty-row control using unchanged old/new FPGA bitstreams and the fixed v2 plugin |
+| `row_sweep_analysis.py` | Live-prefix/PMA/state invariants and descriptive incremental slopes; no parameter fitting |
+| `row_sweep_delivery.py` | Revalidate all 24 board / eight model outputs and freeze a portable raw package with explicit dependencies |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`. The distinct routed SST candidate

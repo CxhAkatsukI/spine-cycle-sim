@@ -1,6 +1,9 @@
-# Current K4 Diagnostic Results
+# Initial K4 Diagnostic Results
 
-This is a checkpoint, not completion of the revised comparison goal.
+This is the initial, pre-route checkpoint, not the current acceptance status
+or completion of the revised comparison goal. See the [study guide](README.md)
+for later routed-board, simulator and controlled-row evidence. The conclusions
+below are retained in their original experimental scope.
 
 ## Unchanged Hardware
 

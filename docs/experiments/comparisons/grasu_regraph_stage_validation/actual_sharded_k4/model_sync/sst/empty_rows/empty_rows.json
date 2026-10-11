@@ -1,0 +1,653 @@
+{
+  "claim": "controlled_empty_row_slope_not_exclusive_memory_latency_or_A4_match",
+  "hardware_timing_admitted": false,
+  "original_A4_match_admitted": false,
+  "rows": [
+    {
+      "arms": {
+        "candidate": {
+          "board_median_duration_ns": 90282.5,
+          "board_median_tail_ns": 0.0,
+          "board_samples": [
+            {
+              "duration_ns": [
+                95993,
+                89733
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            },
+            {
+              "duration_ns": [
+                68932,
+                79312
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            },
+            {
+              "duration_ns": [
+                90832,
+                98143
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            }
+          ],
+          "model_median_duration_ns": 3163.333333333333,
+          "model_median_tail_ns": 0.0,
+          "model_round_duration_ns": [
+            3166.6666666666665,
+            3160.0
+          ],
+          "model_round_tail_ns": [
+            0.0,
+            0.0
+          ],
+          "nominal_compute_diagnostic": {
+            "board_compute_span_ms": 1.458572,
+            "board_sum_round_spans_ms": 1.362939,
+            "hardware_timing_admitted": false,
+            "limits": [
+              "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+              "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+              "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+            ],
+            "nominal_predicted_over_board_span": 0.6010764866824081,
+            "predicted_no_host_ms": 0.8767133333333333,
+            "rounds": [
+              {
+                "board_kernel_span_ms": 0.69589,
+                "predicted_no_host_ms": 0.43838666666666665,
+                "round": 1
+              },
+              {
+                "board_kernel_span_ms": 0.667049,
+                "predicted_no_host_ms": 0.43832666666666664,
+                "round": 2
+              }
+            ],
+            "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+          }
+        },
+        "original": {
+          "board_median_duration_ns": 4197153.5,
+          "board_median_tail_ns": 3656179.0,
+          "board_samples": [
+            {
+              "duration_ns": [
+                4187149,
+                4185328
+              ],
+              "tail_ns": [
+                3645804,
+                3640743
+              ]
+            },
+            {
+              "duration_ns": [
+                4221199,
+                4196799
+              ],
+              "tail_ns": [
+                3639652,
+                3666554
+              ]
+            },
+            {
+              "duration_ns": [
+                4197508,
+                4198349
+              ],
+              "tail_ns": [
+                3667993,
+                3671754
+              ]
+            }
+          ],
+          "model_median_duration_ns": 2132373.3333333335,
+          "model_median_tail_ns": 1695353.3333333333,
+          "model_round_duration_ns": [
+            2132373.3333333335,
+            2132373.3333333335
+          ],
+          "model_round_tail_ns": [
+            1695353.3333333333,
+            1695353.3333333333
+          ],
+          "nominal_compute_diagnostic": {
+            "board_compute_span_ms": 8.622884,
+            "board_sum_round_spans_ms": 8.501541,
+            "hardware_timing_admitted": false,
+            "limits": [
+              "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+              "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+              "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+            ],
+            "nominal_predicted_over_board_span": 0.49458471976042656,
+            "predicted_no_host_ms": 4.2647466666666665,
+            "rounds": [
+              {
+                "board_kernel_span_ms": 4.254391,
+                "predicted_no_host_ms": 2.1323733333333332,
+                "round": 1
+              },
+              {
+                "board_kernel_span_ms": 4.24715,
+                "predicted_no_host_ms": 2.1323733333333332,
+                "round": 2
+              }
+            ],
+            "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+          }
+        }
+      },
+      "vertices": 4096
+    },
+    {
+      "arms": {
+        "candidate": {
+          "board_median_duration_ns": 89382.5,
+          "board_median_tail_ns": 0.0,
+          "board_samples": [
+            {
+              "duration_ns": [
+                89282,
+                89483
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            },
+            {
+              "duration_ns": [
+                90692,
+                85772
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            },
+            {
+              "duration_ns": [
+                103993,
+                72142
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            }
+          ],
+          "model_median_duration_ns": 3163.333333333333,
+          "model_median_tail_ns": 0.0,
+          "model_round_duration_ns": [
+            3166.6666666666665,
+            3160.0
+          ],
+          "model_round_tail_ns": [
+            0.0,
+            0.0
+          ],
+          "nominal_compute_diagnostic": {
+            "board_compute_span_ms": 1.510223,
+            "board_sum_round_spans_ms": 1.368329,
+            "hardware_timing_admitted": false,
+            "limits": [
+              "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+              "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+              "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+            ],
+            "nominal_predicted_over_board_span": 0.5805191242176376,
+            "predicted_no_host_ms": 0.8767133333333333,
+            "rounds": [
+              {
+                "board_kernel_span_ms": 0.7172,
+                "predicted_no_host_ms": 0.43838666666666665,
+                "round": 1
+              },
+              {
+                "board_kernel_span_ms": 0.651129,
+                "predicted_no_host_ms": 0.43832666666666664,
+                "round": 2
+              }
+            ],
+            "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+          }
+        },
+        "original": {
+          "board_median_duration_ns": 8214282.0,
+          "board_median_tail_ns": 7688857.0,
+          "board_samples": [
+            {
+              "duration_ns": [
+                8187551,
+                8213642
+              ],
+              "tail_ns": [
+                7670707,
+                7684147
+              ]
+            },
+            {
+              "duration_ns": [
+                8238163,
+                8244472
+              ],
+              "tail_ns": [
+                7718538,
+                7721717
+              ]
+            },
+            {
+              "duration_ns": [
+                8214922,
+                8166831
+              ],
+              "tail_ns": [
+                7693567,
+                7646226
+              ]
+            }
+          ],
+          "model_median_duration_ns": 4262293.333333333,
+          "model_median_tail_ns": 3825273.3333333335,
+          "model_round_duration_ns": [
+            4262293.333333333,
+            4262293.333333333
+          ],
+          "model_round_tail_ns": [
+            3825273.3333333335,
+            3825273.3333333335
+          ],
+          "nominal_compute_diagnostic": {
+            "board_compute_span_ms": 16.62639,
+            "board_sum_round_spans_ms": 16.533887,
+            "hardware_timing_admitted": false,
+            "limits": [
+              "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+              "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+              "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+            ],
+            "nominal_predicted_over_board_span": 0.51271422519661,
+            "predicted_no_host_ms": 8.524586666666666,
+            "rounds": [
+              {
+                "board_kernel_span_ms": 8.253223,
+                "predicted_no_host_ms": 4.262293333333333,
+                "round": 1
+              },
+              {
+                "board_kernel_span_ms": 8.280664,
+                "predicted_no_host_ms": 4.262293333333333,
+                "round": 2
+              }
+            ],
+            "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+          }
+        }
+      },
+      "vertices": 8192
+    },
+    {
+      "arms": {
+        "candidate": {
+          "board_median_duration_ns": 84478.0,
+          "board_median_tail_ns": 0.0,
+          "board_samples": [
+            {
+              "duration_ns": [
+                86453,
+                83303
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            },
+            {
+              "duration_ns": [
+                62392,
+                85653
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            },
+            {
+              "duration_ns": [
+                91223,
+                82572
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            }
+          ],
+          "model_median_duration_ns": 3163.333333333333,
+          "model_median_tail_ns": 0.0,
+          "model_round_duration_ns": [
+            3166.6666666666665,
+            3160.0
+          ],
+          "model_round_tail_ns": [
+            0.0,
+            0.0
+          ],
+          "nominal_compute_diagnostic": {
+            "board_compute_span_ms": 1.341668,
+            "board_sum_round_spans_ms": 1.250545,
+            "hardware_timing_admitted": false,
+            "limits": [
+              "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+              "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+              "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+            ],
+            "nominal_predicted_over_board_span": 0.6534502822854337,
+            "predicted_no_host_ms": 0.8767133333333333,
+            "rounds": [
+              {
+                "board_kernel_span_ms": 0.634738,
+                "predicted_no_host_ms": 0.43838666666666665,
+                "round": 1
+              },
+              {
+                "board_kernel_span_ms": 0.615807,
+                "predicted_no_host_ms": 0.43832666666666664,
+                "round": 2
+              }
+            ],
+            "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+          }
+        },
+        "original": {
+          "board_median_duration_ns": 16349262.0,
+          "board_median_tail_ns": 15812046.5,
+          "board_samples": [
+            {
+              "duration_ns": [
+                16348281,
+                16345082
+              ],
+              "tail_ns": [
+                15809646,
+                15805177
+              ]
+            },
+            {
+              "duration_ns": [
+                16345992,
+                16351052
+              ],
+              "tail_ns": [
+                15814447,
+                15819367
+              ]
+            },
+            {
+              "duration_ns": [
+                16352092,
+                16350243
+              ],
+              "tail_ns": [
+                15826057,
+                15793167
+              ]
+            }
+          ],
+          "model_median_duration_ns": 8522133.333333334,
+          "model_median_tail_ns": 8085113.333333333,
+          "model_round_duration_ns": [
+            8522133.333333334,
+            8522133.333333334
+          ],
+          "model_round_tail_ns": [
+            8085113.333333333,
+            8085113.333333333
+          ],
+          "nominal_compute_diagnostic": {
+            "board_compute_span_ms": 32.957112,
+            "board_sum_round_spans_ms": 32.841638,
+            "hardware_timing_admitted": false,
+            "limits": [
+              "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+              "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+              "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+            ],
+            "nominal_predicted_over_board_span": 0.517165055805456,
+            "predicted_no_host_ms": 17.044266666666665,
+            "rounds": [
+              {
+                "board_kernel_span_ms": 16.429934,
+                "predicted_no_host_ms": 8.522133333333333,
+                "round": 1
+              },
+              {
+                "board_kernel_span_ms": 16.411704,
+                "predicted_no_host_ms": 8.522133333333333,
+                "round": 2
+              }
+            ],
+            "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+          }
+        }
+      },
+      "vertices": 16384
+    },
+    {
+      "arms": {
+        "candidate": {
+          "board_median_duration_ns": 93793.0,
+          "board_median_tail_ns": 0.0,
+          "board_samples": [
+            {
+              "duration_ns": [
+                101703,
+                95043
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            },
+            {
+              "duration_ns": [
+                92543,
+                95993
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            },
+            {
+              "duration_ns": [
+                85053,
+                85853
+              ],
+              "tail_ns": [
+                0,
+                0
+              ]
+            }
+          ],
+          "model_median_duration_ns": 3163.333333333333,
+          "model_median_tail_ns": 0.0,
+          "model_round_duration_ns": [
+            3166.6666666666665,
+            3160.0
+          ],
+          "model_round_tail_ns": [
+            0.0,
+            0.0
+          ],
+          "nominal_compute_diagnostic": {
+            "board_compute_span_ms": 1.230834,
+            "board_sum_round_spans_ms": 1.124741,
+            "hardware_timing_admitted": false,
+            "limits": [
+              "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+              "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+              "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+            ],
+            "nominal_predicted_over_board_span": 0.7122920989616255,
+            "predicted_no_host_ms": 0.8767133333333333,
+            "rounds": [
+              {
+                "board_kernel_span_ms": 0.576956,
+                "predicted_no_host_ms": 0.43838666666666665,
+                "round": 1
+              },
+              {
+                "board_kernel_span_ms": 0.547785,
+                "predicted_no_host_ms": 0.43832666666666664,
+                "round": 2
+              }
+            ],
+            "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+          }
+        },
+        "original": {
+          "board_median_duration_ns": 32549210.5,
+          "board_median_tail_ns": 32002445.5,
+          "board_samples": [
+            {
+              "duration_ns": [
+                32531300,
+                32550880
+              ],
+              "tail_ns": [
+                31986705,
+                31994615
+              ]
+            },
+            {
+              "duration_ns": [
+                32569532,
+                32547541
+              ],
+              "tail_ns": [
+                32036807,
+                31079659
+              ]
+            },
+            {
+              "duration_ns": [
+                32539881,
+                32565651
+              ],
+              "tail_ns": [
+                32010276,
+                32010356
+              ]
+            }
+          ],
+          "model_median_duration_ns": 17041813.333333332,
+          "model_median_tail_ns": 16604793.333333334,
+          "model_round_duration_ns": [
+            17041813.333333332,
+            17041813.333333332
+          ],
+          "model_round_tail_ns": [
+            16604793.333333334,
+            16604793.333333334
+          ],
+          "nominal_compute_diagnostic": {
+            "board_compute_span_ms": 65.368028,
+            "board_sum_round_spans_ms": 65.222504,
+            "hardware_timing_admitted": false,
+            "limits": [
+              "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+              "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+              "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+            ],
+            "nominal_predicted_over_board_span": 0.5214112725974641,
+            "predicted_no_host_ms": 34.08362666666667,
+            "rounds": [
+              {
+                "board_kernel_span_ms": 32.611032,
+                "predicted_no_host_ms": 17.041813333333334,
+                "round": 1
+              },
+              {
+                "board_kernel_span_ms": 32.611472,
+                "predicted_no_host_ms": 17.041813333333334,
+                "round": 2
+              }
+            ],
+            "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+          }
+        }
+      },
+      "vertices": 32768
+    }
+  ],
+  "slopes": [
+    {
+      "arms": {
+        "candidate": {
+          "board_duration_ns_per_added_row": -0.2197265625,
+          "board_tail_ns_per_added_row": 0.0,
+          "model_duration_ns_per_added_row": 0.0,
+          "model_tail_ns_per_added_row": 0.0
+        },
+        "original": {
+          "board_duration_ns_per_added_row": 980.7442626953125,
+          "board_tail_ns_per_added_row": 984.54052734375,
+          "model_duration_ns_per_added_row": 519.9999999999999,
+          "model_tail_ns_per_added_row": 520.0
+        }
+      },
+      "from_vertices": 4096,
+      "to_vertices": 8192
+    },
+    {
+      "arms": {
+        "candidate": {
+          "board_duration_ns_per_added_row": -0.59869384765625,
+          "board_tail_ns_per_added_row": 0.0,
+          "model_duration_ns_per_added_row": 0.0,
+          "model_tail_ns_per_added_row": 0.0
+        },
+        "original": {
+          "board_duration_ns_per_added_row": 993.03955078125,
+          "board_tail_ns_per_added_row": 991.6002807617188,
+          "model_duration_ns_per_added_row": 520.0000000000001,
+          "model_tail_ns_per_added_row": 520.0
+        }
+      },
+      "from_vertices": 8192,
+      "to_vertices": 16384
+    },
+    {
+      "arms": {
+        "candidate": {
+          "board_duration_ns_per_added_row": 0.56854248046875,
+          "board_tail_ns_per_added_row": 0.0,
+          "model_duration_ns_per_added_row": 0.0,
+          "model_tail_ns_per_added_row": 0.0
+        },
+        "original": {
+          "board_duration_ns_per_added_row": 988.7663879394531,
+          "board_tail_ns_per_added_row": 988.1835327148438,
+          "model_duration_ns_per_added_row": 519.9999999999999,
+          "model_tail_ns_per_added_row": 520.0
+        }
+      },
+      "from_vertices": 16384,
+      "to_vertices": 32768
+    }
+  ],
+  "status": "EMPTY_ROW_SWEEP_FUNCTIONAL_PASS_TIMING_DIAGNOSTIC",
+  "timing_fit_performed": false
+}

@@ -5,7 +5,18 @@ control remains an independent layout/timing diagnostic, not a measurement
 of this implementation. Neither its 74--791x predicted slowdown nor its
 71-cycle memory assumption is assigned to the FPGA path.
 
-Start with [the measured checkpoint and remaining work](RESULTS.md).
+## Current Status
+
+The [controlled empty-row study](model_sync/sst/empty_rows/README.md) passes
+all 24 board and eight fixed-model runs. It confirms the optimized adapter
+removes trailing-row scaling in a fixed-PMA control. The old FPGA adds
+981--993 ns per empty row; the model adds 520 ns. This preserves a concrete
+timing mismatch, not a fitted calibration or original-A4 performance claim.
+The remaining gates are explained in that short report.
+
+## Evidence Trail
+
+The [initial measured checkpoint](RESULTS.md) remains a historical baseline.
 Continue with [adapter RTL/route validation](adapter_optimization/README.md)
 and the [paired SSSP board results](adapter_optimization/BOARD_RESULTS.md):
 AU/SU/WK now pass all 18 old/new executions, with measured setup-inclusive
