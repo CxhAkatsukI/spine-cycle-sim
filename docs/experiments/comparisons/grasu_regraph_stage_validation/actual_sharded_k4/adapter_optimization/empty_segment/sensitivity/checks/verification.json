@@ -1,0 +1,918 @@
+{
+  "archive": {
+    "bytes": 86038,
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/sensitivity/checks/raw_regression.tar.gz",
+    "sha256": "4f2e54176351abc6b7101da476901366b6df46a2f9979ff54dedf654ebb93152"
+  },
+  "cpp_scope": "existing_frozen_Release_build_replayed_not_recompiled",
+  "cpp_tests": 28,
+  "files": [
+    {
+      "bytes": 219,
+      "path": "raw/sensitivity-regression-v1.progress.json",
+      "sha256": "1242b859dd78f50baaf1bb3f386c698070f7c9457fef30e663818aa3263fd24f"
+    },
+    {
+      "bytes": 2192,
+      "path": "raw/sensitivity-regression-v1.resources.json",
+      "sha256": "073d0689d9b1f531b3173b65244eca19334c0740db0cef015d6b14640a7579b7"
+    },
+    {
+      "bytes": 460,
+      "path": "raw/sensitivity-regression-v1.stderr.txt",
+      "sha256": "853a724de9531753250bde4a6424a125e050bbb15e95127940a70c4dd1410756"
+    },
+    {
+      "bytes": 0,
+      "path": "raw/sensitivity-regression-v1.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 230,
+      "path": "raw/sensitivity-ctest-v1.progress.json",
+      "sha256": "5313c9e5f1d163581ab7280a9278abce57c9fdd840facb4ae0a18936d4b3cfee"
+    },
+    {
+      "bytes": 1974,
+      "path": "raw/sensitivity-ctest-v1.resources.json",
+      "sha256": "aa7f41c20fc48a92b62dd6413b878915f95ba53fd103cf0938b4a667b2a3450b"
+    },
+    {
+      "bytes": 0,
+      "path": "raw/sensitivity-ctest-v1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3680,
+      "path": "raw/sensitivity-ctest-v1.stdout.txt",
+      "sha256": "ed39a6408673e0d2e5f999667f9c3a01daf674b7bef65e1b84391d158f8b0d2a"
+    },
+    {
+      "bytes": 526,
+      "path": "sources/cpp/tests/routed_regraph/empty_segment/CMakeLists.txt",
+      "sha256": "ae989c7d7c1250a21bf99f12c2bf085129a1add5341e4b8622b884f3474e4266"
+    },
+    {
+      "bytes": 2447,
+      "path": "sources/cpp/tests/routed_regraph/empty_segment/README.md",
+      "sha256": "bfd6e13aae4f4829d5ed478bfe397a590565e107273f0903d9b8afbcf7aeaae7"
+    },
+    {
+      "bytes": 5854,
+      "path": "sources/cpp/tests/routed_regraph/empty_segment/round.cpp",
+      "sha256": "1da1839ec653670eb52133ea7a0a8d70514d18e3670e39fac2fef69c3f4ab913"
+    },
+    {
+      "bytes": 78,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/sensitivity/__init__.py",
+      "sha256": "7fd0d4e2debfd6001f50df1183f4e597ab916bf8cb337ca7d9dd01fc6417a258"
+    },
+    {
+      "bytes": 4961,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/sensitivity/analysis.py",
+      "sha256": "79bc74138cbf106655b39d407fbdc9dcb337dd7b268e7e0a68dfd894bf3ec955"
+    },
+    {
+      "bytes": 3048,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/sensitivity/delivery.py",
+      "sha256": "6ef5d7316d1c80d08f5ac7437c10b93259510a1a5281473dee382e32a1c76989"
+    },
+    {
+      "bytes": 6252,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/sensitivity/recheck.py",
+      "sha256": "eb48e4eeba0e95b0dfd822bb75b1b0d5f91c195c1aeb2db494e6cefa17554181"
+    },
+    {
+      "bytes": 8796,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/sensitivity/study.py",
+      "sha256": "2287dca44af6700c78e2dc6307d78031496da58cf6d1005fc34e5aa53ce45030"
+    },
+    {
+      "bytes": 1665,
+      "path": "sources/tests/test_artifact_transport.py",
+      "sha256": "18f88d6dea5ca9a7d396f68e8cb297ba0d7eb9e5579949afa7664d76a266f049"
+    },
+    {
+      "bytes": 5980,
+      "path": "sources/tests/test_original_regraph_adapter.py",
+      "sha256": "790969d184e721c37da84feae0c7f4d7c89c8ace934584a1e4773ed656be010c"
+    },
+    {
+      "bytes": 4108,
+      "path": "sources/tests/test_original_regraph_big_frontend.py",
+      "sha256": "a757e982efabe8cadcbe718bc4deefbc4ab11cf212af75131aa33667cc730867"
+    },
+    {
+      "bytes": 4411,
+      "path": "sources/tests/test_original_regraph_big_validation.py",
+      "sha256": "1a4761f3885e8eb7293f42f30c37e80e9c91c1ea199c58bf1f8f7b7508408ff0"
+    },
+    {
+      "bytes": 11407,
+      "path": "sources/tests/test_original_regraph_execution.py",
+      "sha256": "e507ad6653a7cf4df85f07c110fec9d064ca76cfc1f35754479ed32e3ca93d76"
+    },
+    {
+      "bytes": 9391,
+      "path": "sources/tests/test_original_regraph_frontend.py",
+      "sha256": "e001a06d252f8887617aeeb8270ad29f11ed12b20b7fac5beb90488c05a79bef"
+    },
+    {
+      "bytes": 10518,
+      "path": "sources/tests/test_original_regraph_inputs.py",
+      "sha256": "2602c0a654275fb7bb020f174e32a628a83a60f1df777f3eff11c4d6fe48ddb4"
+    },
+    {
+      "bytes": 6501,
+      "path": "sources/tests/test_original_regraph_mixed.py",
+      "sha256": "770917fd21de519887467aef5c0ebf4a08e1528250918537d74b0f6e5a3551cc"
+    },
+    {
+      "bytes": 5702,
+      "path": "sources/tests/test_original_regraph_partition_contract.py",
+      "sha256": "4ffe02065579061d6616e8a71cea5da80198f1877a213819286ab391e505cd9b"
+    },
+    {
+      "bytes": 2798,
+      "path": "sources/tests/test_original_regraph_partition_history.py",
+      "sha256": "466a549129b610552b197b6139fcbd3af8c3ee3c8aab3fb20c344eca37d11f76"
+    },
+    {
+      "bytes": 2217,
+      "path": "sources/tests/test_original_regraph_sssp_control.py",
+      "sha256": "d665d5c34e9b55cd6e017cd6bd9815fcd009940f870a2316872cddecc15f364e"
+    },
+    {
+      "bytes": 4561,
+      "path": "sources/tests/test_original_regraph_sssp_partition_round.py",
+      "sha256": "9ecbe7ac25c2c4a6afa6a648a859b94de9647b207eb2fe42e71b2947ae49b4c2"
+    },
+    {
+      "bytes": 7098,
+      "path": "sources/tests/test_original_regraph_sssp_real_round.py",
+      "sha256": "392ea11a67425c35a14fca911b6e0961dfceb43a939387f657843528c509f27e"
+    },
+    {
+      "bytes": 5126,
+      "path": "sources/tests/test_original_regraph_sssp_real_round_delivery.py",
+      "sha256": "73f7516b0f62196dfc00b2591d17c4e4c356ec62f188443e7144bbf42e205315"
+    },
+    {
+      "bytes": 9998,
+      "path": "sources/tests/test_original_regraph_state.py",
+      "sha256": "54d58e26d936070733de2720bb4bca6c67f7c4ad5b6c779e5cf12a0bd70d5991"
+    },
+    {
+      "bytes": 10269,
+      "path": "sources/tests/test_original_regraph_validation.py",
+      "sha256": "fc6c234114af6fc89f1973b39c7462744fc2fe8daa2c9d4e80fde3a788e60bdb"
+    },
+    {
+      "bytes": 7748,
+      "path": "sources/tests/test_repository_structure.py",
+      "sha256": "9e8232e71d4e9595a1ab443ba4327e0d99145e2f389151faf12dcc90a5f47c8f"
+    },
+    {
+      "bytes": 3513,
+      "path": "sources/tests/test_sharded_k4_adapter_delivery.py",
+      "sha256": "d5d589d3d415a16b54128b2d4129ce3496bd3d6a7c82aa54bf2c234d6dd1b6c5"
+    },
+    {
+      "bytes": 1382,
+      "path": "sources/tests/test_sharded_k4_adapter_model.py",
+      "sha256": "bb6ef492daadb3f61c7e7967800282f01773907abc7f927459130853f5622beb"
+    },
+    {
+      "bytes": 3947,
+      "path": "sources/tests/test_sharded_k4_board_delivery.py",
+      "sha256": "ad2ed7bda9115ecf5e06568429a2eb3d89665cc176925ac25eeaf8ffd60b61dc"
+    },
+    {
+      "bytes": 6709,
+      "path": "sources/tests/test_sharded_k4_channel_package.py",
+      "sha256": "aefec9921cd0dc66089b58b274037075f4d3f954ded55d1579248b03ae24278e"
+    },
+    {
+      "bytes": 2252,
+      "path": "sources/tests/test_sharded_k4_channels.py",
+      "sha256": "d640b18d0a63db2ad0f72c903f9970277acc226eabeaefb133574353e065d404"
+    },
+    {
+      "bytes": 2959,
+      "path": "sources/tests/test_sharded_k4_completion_evidence.py",
+      "sha256": "879fd1e3f7a9546f73bc50666f611e49ff47d46bf52ca1a5cf9de2fbec032884"
+    },
+    {
+      "bytes": 5744,
+      "path": "sources/tests/test_sharded_k4_compute_delivery.py",
+      "sha256": "840ca01854a8aee641dd91c6ec572d5d9342fd53a5d6039c2be7628022cca90e"
+    },
+    {
+      "bytes": 3833,
+      "path": "sources/tests/test_sharded_k4_dispatch_package.py",
+      "sha256": "57134066ff140ccf7df79dd6b2f43402f28e0c5a8026a868b6900fd640872e38"
+    },
+    {
+      "bytes": 1632,
+      "path": "sources/tests/test_sharded_k4_dispatch_sweep.py",
+      "sha256": "b7c88bb9a5ff61bfa6413b517d55c40cd4ecaec0ebea704fc4965b0486bcb90b"
+    },
+    {
+      "bytes": 6356,
+      "path": "sources/tests/test_sharded_k4_empty_exit_package.py",
+      "sha256": "6cebd26a169e1cd50029ba392f330cecf7a5838c42b16f480e99588db17f8d23"
+    },
+    {
+      "bytes": 4093,
+      "path": "sources/tests/test_sharded_k4_empty_rows.py",
+      "sha256": "4a32b19bd9e2f46c2482754b9ef3c3fb739bc1ef965064f6ca82de2cd5314767"
+    },
+    {
+      "bytes": 5726,
+      "path": "sources/tests/test_sharded_k4_empty_rows_package.py",
+      "sha256": "ffa83a11c18a574ed3b5c3b93bd2b3ce15317e448b1c30077f38f30e09947a8f"
+    },
+    {
+      "bytes": 3950,
+      "path": "sources/tests/test_sharded_k4_empty_segment.py",
+      "sha256": "6da8d5309d4ae8e20a57e91b860bbc09e32429e7e25e722adf0c86d535ad0527"
+    },
+    {
+      "bytes": 3463,
+      "path": "sources/tests/test_sharded_k4_empty_segment_production.py",
+      "sha256": "0625799065d23454a80daa921a333277af617f516ca51e6c331335d7497e59f4"
+    },
+    {
+      "bytes": 4916,
+      "path": "sources/tests/test_sharded_k4_empty_segment_production_package.py",
+      "sha256": "6735a425f6b38a15a9f64ebf91552b8e0ab864f31a4b2574b88814dfec9b5308"
+    },
+    {
+      "bytes": 5630,
+      "path": "sources/tests/test_sharded_k4_empty_segment_route.py",
+      "sha256": "8c3e54777c8bc4456772ded594e5b48c86dfe70c7c146505a607349796d50f40"
+    },
+    {
+      "bytes": 10024,
+      "path": "sources/tests/test_sharded_k4_empty_segment_route_execution.py",
+      "sha256": "d58344b8b7f8b9b0921427e5f1805344a680492161c599f22afff862fd8c3056"
+    },
+    {
+      "bytes": 15578,
+      "path": "sources/tests/test_sharded_k4_empty_segment_sensitivity.py",
+      "sha256": "bd981a51f6c37df4e2271daec06e639844d76babfa97f297df9e4877145b9239"
+    },
+    {
+      "bytes": 17662,
+      "path": "sources/tests/test_sharded_k4_empty_segment_sensitivity_provenance.py",
+      "sha256": "d31a972e68717da4e4a579504de03894a72ffa9bd2d9afd1082dff216a9b60c8"
+    },
+    {
+      "bytes": 4690,
+      "path": "sources/tests/test_sharded_k4_frontend_delivery.py",
+      "sha256": "d9e59e0f603f6b684c0411b39dd83f8ea1a1a7bb80f2af04a7d8e30cd7081aaf"
+    },
+    {
+      "bytes": 4325,
+      "path": "sources/tests/test_sharded_k4_frontend_model.py",
+      "sha256": "176e65769fa992a6800430fdb8f936afbf404e3c144ed1c034b81ca64a0673d3"
+    },
+    {
+      "bytes": 753,
+      "path": "sources/tests/test_sharded_k4_input_audit.py",
+      "sha256": "bf2fee0e6c7c1ee0e45616a5e008d215b5467a9f811feceae02bc89d0f0ae0ef"
+    },
+    {
+      "bytes": 1950,
+      "path": "sources/tests/test_sharded_k4_input_residency.py",
+      "sha256": "818e0f89c6dbc24f75ee12824e4eb1ba34b9ff6105efd0caf596644e5a4ebc50"
+    },
+    {
+      "bytes": 3477,
+      "path": "sources/tests/test_sharded_k4_invocation_timing.py",
+      "sha256": "e2d100b4fce0874cfe467e3ace64bbae75ab7995fde2de5b8abdb7712e42b25b"
+    },
+    {
+      "bytes": 1572,
+      "path": "sources/tests/test_sharded_k4_invocation_timing_package.py",
+      "sha256": "19183e7fcc418f4861dacba63556c511a85c482daa4dc9c40d44248455d0b7db"
+    },
+    {
+      "bytes": 4378,
+      "path": "sources/tests/test_sharded_k4_model_delivery.py",
+      "sha256": "084e080d48fe1bf88d6774a759c2d6da5220d45cf4250810a91ebd3311ba1e10"
+    },
+    {
+      "bytes": 3165,
+      "path": "sources/tests/test_sharded_k4_process_cleanup.py",
+      "sha256": "f2546e5c6ebde0ab003294137ca0a54bdacf5ca5196ff972631207d2e5586ba7"
+    },
+    {
+      "bytes": 1822,
+      "path": "sources/tests/test_sharded_k4_residency_matrix.py",
+      "sha256": "a5a50f96bdfa0c7d20a5a1b1f1f1141463574004a29a99c988f12d45bb797242"
+    },
+    {
+      "bytes": 5527,
+      "path": "sources/tests/test_sharded_k4_residency_package.py",
+      "sha256": "134660ff17799f0f57d71af68f2cd294b519e6dfa79acd350903dfc9e568f9dd"
+    },
+    {
+      "bytes": 8347,
+      "path": "sources/tests/test_sharded_k4_route_gates.py",
+      "sha256": "7ef98c81e27faefa99608baad93455b1f25c8c3ff92590ab3b0e530e2abcc9d5"
+    },
+    {
+      "bytes": 3579,
+      "path": "sources/tests/test_sharded_k4_route_recovery.py",
+      "sha256": "1e8316c2f3a97d232ebfa26f82789e09127025a1f755297f8e6e264ddfcd62c7"
+    },
+    {
+      "bytes": 4435,
+      "path": "sources/tests/test_sharded_k4_row_exit.py",
+      "sha256": "c8c9f01488619affa62dda8bdccf5245f5e6dd2b028352361c6ed22898ffa6c7"
+    },
+    {
+      "bytes": 2182,
+      "path": "sources/tests/test_sharded_k4_row_exit_delivery.py",
+      "sha256": "b2bc1cc9964580dcd3e8b3833068d19e61105b6542fc186cf73f210467a6b9bd"
+    },
+    {
+      "bytes": 2087,
+      "path": "sources/tests/test_sharded_k4_row_exit_matrix.py",
+      "sha256": "6f65709a2237f5a1cf71700e9b91259a8bb0c1d076cff172c2fe1ec97923808b"
+    },
+    {
+      "bytes": 7469,
+      "path": "sources/tests/test_sharded_k4_row_exit_matrix_package.py",
+      "sha256": "09b75fdfe8d05829e41264d4d7ad823a7089b0b33fe35f8ea1bf5b7f28652444"
+    },
+    {
+      "bytes": 2158,
+      "path": "sources/tests/test_sharded_k4_runtime_trace.py",
+      "sha256": "0f1eefe16fb9d0994a0eceb096e8ee7fcc0e7b9077be692e54f319522952aeac"
+    },
+    {
+      "bytes": 3397,
+      "path": "sources/tests/test_sharded_k4_segment_schedule.py",
+      "sha256": "4ae39d3f5978f42882bd8274d2b84911fac5abda13cde4069dbd3cece60924cd"
+    },
+    {
+      "bytes": 4584,
+      "path": "sources/tests/test_sharded_k4_segment_schedule_package.py",
+      "sha256": "cdc44efde13972ea71c257ad69d0c07cb22f678f5b8538d6385a700d8f518915"
+    },
+    {
+      "bytes": 5677,
+      "path": "sources/tests/test_sharded_k4_sst_candidate.py",
+      "sha256": "41157c0d80f2e782c356b3969b8c493df65c6597cf8890f852e81e4b92617f54"
+    },
+    {
+      "bytes": 1499,
+      "path": "sources/tests/test_sharded_k4_sst_delivery.py",
+      "sha256": "6c9382ce62df535c73022a74f993a5098e0f289ae9621a6445144e0b44b4ea1d"
+    },
+    {
+      "bytes": 4424,
+      "path": "sources/tests/test_sharded_k4_sst_package.py",
+      "sha256": "135392b8d79479e36908b137775f5172909b7f3bfd2d95188c3560106e65c640"
+    },
+    {
+      "bytes": 3677,
+      "path": "sources/tests/test_sharded_k4_stage_delivery.py",
+      "sha256": "99624a31a7cd0ee1977a9c509676fe8817e9769d6c4ed338f1d2f414c72bf135"
+    },
+    {
+      "bytes": 5198,
+      "path": "sources/tests/test_sharded_k4_stage_diagnostic.py",
+      "sha256": "82f43e3778d07a55b774e378dd86c28d6efe2e0727709a2e29ebdb08db005d23"
+    },
+    {
+      "bytes": 4356,
+      "path": "sources/tests/test_sharded_k4_stream_contract.py",
+      "sha256": "8635d4e21fa02de2c96de5a538cf50aeca36590bec5e84ca04a2fa7166a2ad5b"
+    },
+    {
+      "bytes": 2920,
+      "path": "sources/tests/test_sharded_k4_stream_delivery.py",
+      "sha256": "2c82f549e0f8ec31f38897644e849899f1997ca46eec092db8cc40b6887a24da"
+    },
+    {
+      "bytes": 6147,
+      "path": "sources/tests/test_sharded_k4_stream_package.py",
+      "sha256": "f1fa7e7f41cf44b1f9763b089d464cb0de071a2e2e127b7d2afcb787a43928f2"
+    },
+    {
+      "bytes": 3797,
+      "path": "sources/tests/test_sharded_k4_system_delivery.py",
+      "sha256": "d565f16cd9458219660473de4a92b8ce2837562ed32a94816880d78916be1344"
+    },
+    {
+      "bytes": 2751,
+      "path": "sources/tests/test_sharded_k4_system_model.py",
+      "sha256": "ac07345ee63a4bb641389bf33273c137697be234cf94b7be3f9d103bdcf99bc8"
+    },
+    {
+      "bytes": 383,
+      "path": "frozen_build/CTestTestfile.cmake",
+      "sha256": "b02b693d96575523c8ed4ff1f7f0635e92837af39fb3390e82259827dbd12bf0"
+    },
+    {
+      "bytes": 12604,
+      "path": "frozen_build/cpp/CTestTestfile.cmake",
+      "sha256": "311bc04a520d3423f033da6c18db3e341fe5cf9d7a87a7b8a7395f6951196c82"
+    }
+  ],
+  "frozen_ctest_binaries": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/axi_independent_channels_tests",
+      "sha256": "4aa12d794da4bc34c0ce089fd8cc3834ceddd7b220498f07c4a09e7bb255354b"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/grasu_cycle_tests",
+      "sha256": "7c441ff75480860d4b1729476bd81df1f75b7fbdecd043c24811e0b9d0edf070"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/grasu_runtime_tests",
+      "sha256": "bec3773b812d7d85cfe7f8c6f20b566333f5f30fcd920ddcf6be070241acf334"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_grasu_execution",
+      "sha256": "94336eb2e37aab4d386fda485bc0311748fcd122d37059d32b99d67debb5616a"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_grasu_tests",
+      "sha256": "6938201de0127ff75189be287fc5ee4f6d1f6ee9abeab6bf270d98f3531703e3"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_a4_execution",
+      "sha256": "6b711cfe023ffa5ae46144c6ddd1497721c41d98605fce12346681f059c1dfd9"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_big_comparison",
+      "sha256": "27ba6372e7c73d8dcad9f2125fce425969e536ee0dba7a98d86cd4de0753be36"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_big_frontend_comparison",
+      "sha256": "2ab4762e90674aa892089161a24076d972aaafde88da7f19c673c590bc85b981"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_big_frontend_tests",
+      "sha256": "f4df4681a271ae37fcf0e81ff06f4dbb43baf06dcd4e91cbaf34a77398f76a7c"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_big_tests",
+      "sha256": "dc901d3f13c754a35a3e2daabaebf2ea69fb2ba5458dbb7eca155b9f3fd676ba"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_frontend_tests",
+      "sha256": "18fd35e294aef8c3332cc77a75ce92242be12b6974ecfbb9f9b86a31400a82b4"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_gather_tests",
+      "sha256": "c8e86de8db7345d634a203f4dd34a9cce169bc7d4a3398c2b55641736c278226"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_iteration_tests",
+      "sha256": "549aa3e662c973248587522eb575a074581a5fcf8f9e6bdf9afdb4ef6fe50004"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_mixed_execution",
+      "sha256": "68ff5ca6ed8748e9a19b338410968ea487f05918751deb8fb28f6be5684c6428"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_mixed_tests",
+      "sha256": "30b143427d750972345f3c8acd28bf629bbfd81219664390f272ce593f4c391b"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_source_comparison",
+      "sha256": "a3057e3c4b4426607b5e0a383a7f7c207dcb8cce41b33d60e2a643e95715919c"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_apply_tests",
+      "sha256": "c00e139deb7ac15d0c5ac8a19fe3c160b6fe74fd0bd43436ccd3c043de2e6fde"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_frontend_tests",
+      "sha256": "65d12cc0659fc941832f0160e32058e3034c5120b935313e2bd75d218957f015"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_real_round",
+      "sha256": "10e90530044c2161f5077ccbcc2f83687778d735462effadf4168f30e94cde10"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_round_tests",
+      "sha256": "4892826482d23acd8385aa23c924c7bf2d19a8a8a683735cf1b1364b4c1cc193"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_source_comparison",
+      "sha256": "7aa1cf3aacb1084c171226e6b6a9c898c673f1b1cd08ba54aa4c80c5f4aed8de"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_udf_tests",
+      "sha256": "b708649e5e6fd36bcfef62531379b1f4af4a4c4b98264405aa6f62e5bcebfa47"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_state_comparison",
+      "sha256": "2528526e832c167cebc2d3d454495280564e30e3a919b84613d4d787a24ec861"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_state_tests",
+      "sha256": "a2780f32b820f4fccaebbc6694f9fcfdc595d82075d90fc6323803fe50bbca37"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/persistent_update_host_benchmark",
+      "sha256": "69d9b9448ca4aabf3588fd74c8bc9508817f76f8b1cad2f416f795f25a6a091f"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/pma_adapter_tests",
+      "sha256": "eacb71ef7f5eecedabb19d9a66c5b280e01ee68b4774dba25dfac06e0406173c"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/pma_regraph_execution",
+      "sha256": "657298765b9e16ab90a792c19b0d1e03626bf58e3573447ea888c3e4c6cd8218"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/regraph_compute_port_tests",
+      "sha256": "4ee8e01941221130824ab1d1bb6ab398bb1836b37c7af7371aeeffe038820ab0"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/routed_pma_adapter_tests",
+      "sha256": "363e007f31adb82467b6b9baa25b9a067ebe24d0b2670759c844ce8e7f99e95d"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/routed_regraph_fixture_tests",
+      "sha256": "a1f2c51239f65faf5dbe853b27e8550e6ba64104ed1aaa396ff30e21a3f6b45e"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/routed_regraph_system_tests",
+      "sha256": "e07f31d70cfa4a86af8b5d567718a446f30cd13c9149f0220375a010c16b4a92"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/routed_scatter_tests",
+      "sha256": "4affc53ca2acff395ee46d67186389f848a8cf0ae1c5f78ff8208af7bc6f1616"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/routed_source_service_tests",
+      "sha256": "0cc9d9611f4be71dbfb0c5c8089f74595036969d4529fa54f60b9b0ca621b25a"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/shared_axi_port_tests",
+      "sha256": "a3c32f82b4c08dff5b4f6e3f8ed1c8f7b98ae5b81e849b0ba1b8542a10486c97"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/spine_cycle_core_tests",
+      "sha256": "38e4c9df019cf69755190aa595550a054317c1d14c76be3e28e69750399a07e5"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/spine_owner_tests",
+      "sha256": "730a0809d9b1462137aa9e1f514ce144bb49e586610dc0de03caa22ecc0ae0a7"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/spine_vertex_lifecycle_tests",
+      "sha256": "814a77f963478c05f815e374e1db49341dfb585279cbf6ee4366ac468d7f6856"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/sst_hbm_mapper_tests",
+      "sha256": "9fd4e618591e286f123858e48ff460f57d1692c78177a3356fb8fef50677a4ce"
+    }
+  ],
+  "hardware_timing_admitted": false,
+  "isolated_harness_scope": "fresh_Release_build_and_twelve_real_input_cases_in_sensitivity_evidence",
+  "pilot_v1_to_final_v2_all_cycles_counters_complete_state_hashes_identical": true,
+  "production_profile_modified": false,
+  "python_tests": 359,
+  "python_unittest_seconds": 63.398,
+  "resources": {
+    "cpp": {
+      "available_before_bytes": 55201624064,
+      "cleanup_scope": "pidfd_bound_observed_workers_not_cgroup_containment",
+      "cleanup_signaled_pids": [],
+      "cleanup_snapshot_error": null,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build/original-a4-sssp-real-round-v3",
+        "--output-on-failure",
+        "-j2"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "host_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "minimum_available_bytes": 54602129408,
+      "observed_pids": [
+        1830858,
+        1830860,
+        1830861,
+        1831110,
+        1831271,
+        1831293,
+        1831308,
+        1831383,
+        1831396,
+        1831439,
+        1831450
+      ],
+      "peak_tree_rss_kib": 110312,
+      "per_process_address_space_gib": 64,
+      "reserve_gib": 16,
+      "rss_scope": "sampled_simultaneous_tree_sum_shared_pages_counted_per_process",
+      "stop_reason": "process_exit",
+      "timeout_seconds": 300,
+      "tree_memory_gib": 3,
+      "wall_seconds": 50.97969208564609
+    },
+    "python": {
+      "available_before_bytes": 55187742720,
+      "cleanup_scope": "pidfd_bound_observed_workers_not_cgroup_containment",
+      "cleanup_signaled_pids": [],
+      "cleanup_snapshot_error": null,
+      "command": [
+        "/usr/bin/python3",
+        "-c",
+        "import unittest; loader=unittest.TestLoader(); suite=unittest.TestSuite(loader.discover(\"tests\",pattern=p) for p in (\"test_original_regraph*.py\",\"test_sharded_k4*.py\",\"test_repository_structure.py\",\"test_artifact_transport.py\")); result=unittest.TextTestRunner(verbosity=1).run(suite); raise SystemExit(not result.wasSuccessful())"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "host_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "minimum_available_bytes": 53109792768,
+      "observed_pids": [
+        1836596,
+        1837286,
+        1837289,
+        1837296,
+        1837424,
+        1837428,
+        1837438
+      ],
+      "peak_tree_rss_kib": 2055872,
+      "per_process_address_space_gib": 64,
+      "reserve_gib": 16,
+      "rss_scope": "sampled_simultaneous_tree_sum_shared_pages_counted_per_process",
+      "stop_reason": "process_exit",
+      "timeout_seconds": 300,
+      "tree_memory_gib": 3,
+      "wall_seconds": 65.83695198083296
+    }
+  },
+  "schema_version": 1,
+  "status": "passed"
+}

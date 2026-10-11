@@ -18,6 +18,7 @@ before using its timings.
 | `route.py` | Preserve frozen single-XO preparation and memory-admission records |
 | `route_delivery.py` | Package a verified admission refusal as a non-start, not a route failure |
 | `route_execution.py` | Future route execution with pinned entry point and nonzero failure/refusal exit status |
+| `sensitivity/` | Isolated legacy-exact replay and uncalibrated empty-helper timing sensitivity; no production-profile change |
 
 Run these owners through `python3 -m ...empty_segment.MODULE --help`.
 Use fresh run and evidence paths; never replace a prior package. The v1 guard
@@ -29,3 +30,5 @@ repository. Source tests and C/RTL latencies do not admit FPGA, HBM or A4
 timing. Route, paired board tests and a separate model candidate remain open.
 The [production checkpoint](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/production/README.md)
 passes XO compile/ABI checks, but records a memory-refused route non-start.
+The [model sensitivity guide](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/sensitivity/README.md)
+defines a separate twelve-run matrix and its complete-state/traffic gates.

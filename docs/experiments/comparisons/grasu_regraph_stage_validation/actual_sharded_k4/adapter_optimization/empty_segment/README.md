@@ -145,3 +145,8 @@ behavior in a separate simulator candidate while replaying the legacy model
 exactly. Only then redo the four-partition A4/K4 comparison under documented
 resource and timing conditions. A local helper improvement does not close
 the whole-system, convergence or original-publication validation goals.
+
+The [isolated model sensitivity](sensitivity/README.md) tests removing only
+the empty-helper wait while requiring exact legacy replay and complete
+state/traffic conservation. It is not production timing calibration and
+does not replace the required routed/board comparison.

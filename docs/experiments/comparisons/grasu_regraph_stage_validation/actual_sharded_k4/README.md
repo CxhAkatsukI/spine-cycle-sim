@@ -37,6 +37,13 @@ started: 51.56 GiB available is below its 40+16 GiB budget. Board validation
 and a separate model candidate remain open. This does not replace the
 negative fixed-model comparison above.
 
+The subsequent [empty-helper model sensitivity](adapter_optimization/empty_segment/sensitivity/README.md)
+passes twelve complete-state/traffic runs with exact legacy replay. Removing
+only the 73-cycle empty-helper wait reduces predicted one-round time by
+15.50--24.42%, but K4/A4 remains 24.18--26.55x. This is an unfitted,
+single-parameter diagnostic, not FPGA timing or production calibration.
+The production profile and default SST plugin remain unchanged.
+
 The [controlled initial-residency checkpoint](model_sync/sst/input_residency/README.md)
 now retains all 30 complete outputs and rounds. XRT traces expose 16 late
 WK row-table transfers inside the previous compute window; explicit initial
