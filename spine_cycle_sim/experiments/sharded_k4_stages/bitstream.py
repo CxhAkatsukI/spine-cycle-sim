@@ -6,6 +6,7 @@ import subprocess
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from .execution import identity
+from .route_recovery import RECOVERED
 
 
 SECTIONS = {"CLOCK_FREQ_TOPOLOGY": "clock", "MEM_TOPOLOGY": "memory",
@@ -72,13 +73,13 @@ def _dump(binary: Path, output: Path) -> dict:
 
 def admit_bitstream(route: Path, original: Path, output: Path) -> dict:
     summary = json.loads((route / "summary.json").read_text())
-    if summary["status"] != "LINK_PASS_AWAITING_TIMING_AND_BOARD":
+    if summary["status"] not in ("LINK_PASS_AWAITING_TIMING_AND_BOARD", RECOVERED):
         raise ValueError("link must pass before routed admission")
     candidate = Path(summary["xclbin"]["path"])
     if identity(candidate) != summary["xclbin"]:
         raise ValueError("candidate changed after link")
     manifest = json.loads((route / "manifest.json").read_text())
-    pins = manifest["pins"] + [identity(original)]
+    pins = manifest["pins"] + summary.get("pins", []) + [identity(original), identity(route / "summary.json")]
     if any(identity(Path(pin["path"])) != pin for pin in pins):
         raise ValueError("link inputs changed")
     output.mkdir(parents=True, exist_ok=False)
@@ -96,6 +97,7 @@ def admit_bitstream(route: Path, original: Path, output: Path) -> dict:
     result = {"status": "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD",
               "original": identity(original), "candidate": identity(candidate),
               "clock_topology_connectivity_equal": True, "timing": timing,
+              "link_status": summary["status"], "link_recovery": summary.get("recovery"),
               "topology": new, "pins": pins,
               "claim": "routed_metadata_and_timing_not_board_correctness_or_speedup"}
     atomic_write_json(output / "summary.json", result)

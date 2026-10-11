@@ -13,10 +13,12 @@ PMA timing control. Start with the
 | `rtl.py` | Source-pinned baseline/candidate RTL co-simulation |
 | `routing.py` | Single-XO ABI gate, lossless connectivity config and link preparation |
 | `link_runtime.py` | Route-specific aggregate RSS, memory reserve and timeout watchdog |
+| `route_recovery.py` | Completed-artifact recovery after supervisor loss, with incomplete monitoring explicit |
 | `bitstream.py` | Routed timing, clock and normalized XRT connectivity admission |
 | `comparison.py` | Alternating original/candidate board runs with identical host/input |
 | `delivery.py` | Frozen initial diagnostic package; never replace its raw evidence |
 | `optimization_delivery.py` | Immutable pre-route raw evidence, including failed RTL attempts |
+| `board_delivery.py` | Raw-log revalidation and a separate immutable routed/paired-board package |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`; the production simulator is

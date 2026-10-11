@@ -7,7 +7,11 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 Start with [the measured checkpoint and remaining work](RESULTS.md).
 Continue with [adapter RTL/route validation](adapter_optimization/README.md)
-for the next optimization checkpoint. The initial raw package below remains
+and the [paired SSSP board results](adapter_optimization/BOARD_RESULTS.md):
+AU/SU/WK now pass all 18 old/new executions, with measured setup-inclusive
+improvements of 9.82x, 8.30x and 52.63x. Production-simulator synchronization,
+other optimized algorithms and matched original-A4 performance remain open.
+The initial raw package below remains
 frozen and does not contain the later candidate build.
 The [raw file index](raw_index.json) covers all 27 board logs and the
 four candidate HLS ablations. It does not certify an optimized bitstream.
@@ -113,8 +117,10 @@ The source baseline is integration commit
 `67f38dc981bb5830474004c7921bd1d0c501a5fa`, archived before diagnostic edits at
 `/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/baseline_source.tar`.
 
-Status: the initial AU three-algorithm hardware diagnosis is complete;
+Status of the initial frozen checkpoint: the AU three-algorithm hardware diagnosis is complete;
 candidate packet equivalence and four HLS ablations pass. Stage 3 still
 requires routing, board validation and simulator synchronization; no
-optimized FPGA or final A4/K4 timing comparison has been accepted.
+optimized FPGA or final A4/K4 timing comparison was accepted in that initial package.
+The later candidate SSSP board acceptance is documented in the linked
+`adapter_optimization` package; it does not rewrite the initial evidence.
 The existing figure handoff and paper are unchanged.

@@ -12,7 +12,10 @@ completed original-A4 comparison or a published-performance match.
    maps each responsibility to one module. CLI commands only delegate.
 4. [Pre-route gate results](pre_route.json), [raw evidence index](pre_route_raw_index.json)
    and [raw logs, RTL and source](raw_pre_route.tar.gz) freeze the completed gates.
-   The still-running route job is deliberately not included in that archive.
+   That immutable archive predates routing and remains unchanged.
+5. [Routed and paired-board results](BOARD_RESULTS.md), [machine-readable results](board.json),
+   [raw index](board_raw_index.json) and [raw board archive](raw_board.tar.gz)
+   contain the later SSSP hardware checkpoint.
 
 ## Candidate And Current Gates
 
@@ -54,10 +57,19 @@ XOs. Its complete kernel ABI matches the original. The connectivity section
 is preserved byte-for-byte, including repeated `nk`, `sp` and stream keys;
 only generated-output paths are relocated. Frequency remains 150 MHz.
 
-Link jobs use two synthesis/implementation workers, a 40-GiB sampled aggregate
+Link jobs are configured for two synthesis/implementation workers, a 40-GiB sampled aggregate
 RSS budget, a live 16-GiB host-memory reserve and a four-hour timeout. Shared
 pages count once per process, conservatively. Address-space limits are not
 misreported as aggregate RAM limits. Logs, progress and failures are retained.
+
+This link lost its Python supervisor during a session interruption. The last
+sample is at 12,119.95 seconds; the vendor completed after 15,775 seconds.
+Consequently, the four-hour limit and continuous memory monitoring were not
+enforced for the entire run. `recover` verifies completed vendor steps,
+unchanged inputs and the absence of surviving route processes, and records
+the missing exit code/resource coverage explicitly. It does not fabricate a
+successful monitored execution. Routed metadata/timing and all paired-board
+checks were subsequently run and passed normally.
 
 A successful link is not board admission. The next gate checks final routed
 setup/hold/pulse timing, the 150-MHz data clock, kernel/control inventory and
@@ -118,12 +130,13 @@ candidate profile for changed traffic/timing. No sparse-source list may be
 constructed free on the host. This remaining work has not been admitted by
 the RTL test or by whole-FPGA elapsed time.
 
-Candidate board timing, optimized production-simulator synchronization and
-matched original-A4 versus actual-K4 performance remain unaccepted until
-their evidence is delivered. Original A4 currently models one original
+Candidate SSSP board timing is now admitted for AU, SU and WK, with three
+original/candidate pairs per graph. Optimized production-simulator synchronization and
+matched original-A4 versus actual-K4 performance remain open. Original A4 currently models one original
 fixed-point PR iteration at 210 MHz; the production FullPR host executes
 three FP32 rounds with different state preparation. Their total times must not be compared as if
-already matched. No new K4 speedup or publication ~10% match is claimed here.
+already matched. The measured improvements in `BOARD_RESULTS.md` compare
+old and optimized K4; no publication ~10% match is claimed.
 
 The paper, figure package, frozen SST plugin and existing numerical models
 are unchanged. The unrelated calibration-v4 worktree edits are not included.
