@@ -12,10 +12,10 @@ AxiEndpoint RoutedReGraphSystem::Impl::Client::endpoint(bool stream) {
 
 RoutedReGraphSystem::Impl::Frontend::Frontend(std::size_t worker, ClockId clock,
     const RoutedReGraphConfig &config)
-    : raw("raw" + std::to_string(worker), clock, config.external_fifo_depth),
+    : raw("raw" + std::to_string(worker), clock, config.adapter_stream_depth),
       edges("edges" + std::to_string(worker), clock, config.internal_fifo_depth),
       updates("updates" + std::to_string(worker), clock, config.internal_fifo_depth),
-      rows("rows" + std::to_string(worker), clock, config.external_fifo_depth),
+      rows("rows" + std::to_string(worker), clock, config.gather_stream_depth),
       requests("requests" + std::to_string(worker), clock, config.external_fifo_depth),
       internal_requests("internal-requests" + std::to_string(worker), clock, config.internal_fifo_depth),
       responses("responses" + std::to_string(worker), clock, config.external_fifo_depth),
@@ -26,7 +26,7 @@ RoutedReGraphSystem::Impl::Impl(Scheduler &scheduler_, ClockId clock_, MemoryBac
     : scheduler(scheduler_), clock(clock_), backend(backend_), layout(std::move(layout_)),
       initial(std::move(initial_)), config(std::move(config_)),
       policy({.kind = GraphAlgorithmKind::kWeightedSssp, .vertices = layout.vertices}),
-      ordered_rows("ordered-rows", clock, config.external_fifo_depth),
+      ordered_rows("ordered-rows", clock, config.mux_stream_depth),
       merged("merged", clock, config.compute.merger_apply_fifo_depth),
       applied("applied", clock, config.compute.apply_wrapper_fifo_depth) {
   admit();

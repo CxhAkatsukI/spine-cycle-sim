@@ -7,6 +7,8 @@ from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 
 PROFILE_ID = "grasu_regraph_routed_sssp_compute_v1"
 INDEPENDENT_PROFILE_ID = "grasu_regraph_routed_sssp_compute_v2"
+STREAM_PROFILE_ID = "grasu_regraph_routed_sssp_compute_v3"
+STREAM_DEPTHS = {"adapter_stream_depth": 32, "gather_stream_depth": 32, "mux_stream_depth": 32}
 FIXED_MODEL = {
     "kernel_mhz": 150, "destination_partition_vertices": 65536, "source_buffer_vertices": 4096,
     "internal_fifo_depth": 8, "external_fifo_depth": 16, "apply_request_window": 16,
@@ -18,9 +20,11 @@ FIXED_MODEL = {
 
 def load_profile(root: Path, path: Path) -> dict:
     profile = json.loads(path.read_text())
-    independent = profile.get("profile_id") == INDEPENDENT_PROFILE_ID
-    expected_model = {**FIXED_MODEL, **({"independent_read_write": 1} if independent else {})}
-    if (profile.get("schema_version") != 1 or profile.get("profile_id") not in (PROFILE_ID, INDEPENDENT_PROFILE_ID)
+    streams = profile.get("profile_id") == STREAM_PROFILE_ID
+    independent = profile.get("profile_id") in (INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID)
+    expected_model = {**FIXED_MODEL, **({"independent_read_write": 1} if independent else {}),
+                      **(STREAM_DEPTHS if streams else {})}
+    if (profile.get("schema_version") != 1 or profile.get("profile_id") not in (PROFILE_ID, INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID)
             or profile.get("evidence_tier") != "simulator_prediction"
             or profile.get("boundary") != "resident_compute_no_host_launch_gaps"
             or profile.get("fixed_model") != expected_model):
@@ -35,6 +39,10 @@ def load_profile(root: Path, path: Path) -> dict:
             or memory.get("backend_response_credit_scope") != "per_read_write_direction"
             or profile["target"].get("wrapper_top_rtl_sha256") != "005f0b40523bd021034c90f179a7d2666001bc1bde1de6af5d6ef0638cc194c7"):
         raise ValueError("independent channels require measured RTL identity and explicit credit scopes")
+    if streams:
+        from .stream_contract import ROUTED_BD_HASHES
+        if profile["target"].get("routed_bd_sha256") != ROUTED_BD_HASHES:
+            raise ValueError("stream depths require both routed block-design identities")
     return profile
 
 
@@ -56,6 +64,8 @@ def component_parameters(root: Path, config: dict) -> dict:
     result = {"fixture": config["fixture"], "output": config["output"],
             "dram_config": str(root / profile["memory"]["config"]), "dram_output": config["dram_output"],
             "max_cycles": config["max_cycles"], "row_prefetch": int(optimized), "stop_after_last": int(optimized)}
-    if profile["profile_id"] == INDEPENDENT_PROFILE_ID:
-        result.update(profile_id=INDEPENDENT_PROFILE_ID, independent_read_write=1)
+    if profile["profile_id"] in (INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID):
+        result.update(profile_id=profile["profile_id"], independent_read_write=1)
+    if profile["profile_id"] == STREAM_PROFILE_ID:
+        result["routed_stream_depths"] = 1
     return result

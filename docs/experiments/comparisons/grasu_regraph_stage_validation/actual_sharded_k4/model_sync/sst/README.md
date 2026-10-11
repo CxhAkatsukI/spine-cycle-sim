@@ -103,6 +103,12 @@ The subsequent [independent-channel correction](independent_channels/README.md)
 selects a distinct v2 profile after checking the exact wrapper RTL. It retains
 this v1 evidence and requires separate legacy, complete-state and timing gates.
 
+The later [routed stream-capacity correction](routed_streams/README.md) uses an
+explicit v3 profile bound to both routed block designs. All 19 connections are
+checked; nine edge-path FIFO depths change from 16 to 32. All six full results
+and non-timing counters remain equal; cycle changes are below 0.101%. The
+earlier nominal timing mismatch remains open.
+
 ## Regression And Resources
 
 The same final plugin and numerical-source snapshot produced all six rows

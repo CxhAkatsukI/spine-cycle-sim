@@ -25,8 +25,11 @@ public:
     stop_ = params.find<bool>("stop_after_last", true);
     profile_id_ = params.find<std::string>("profile_id", "grasu_regraph_routed_sssp_compute_v1");
     independent_ = params.find<bool>("independent_read_write", false);
-    if (profile_id_ != (independent_ ? "grasu_regraph_routed_sssp_compute_v2" : "grasu_regraph_routed_sssp_compute_v1"))
-      throw std::invalid_argument("routed profile and AXI channel selection disagree");
+    routed_stream_depths_ = params.find<bool>("routed_stream_depths", false);
+    const auto expected_profile = routed_stream_depths_ ? "grasu_regraph_routed_sssp_compute_v3" :
+        independent_ ? "grasu_regraph_routed_sssp_compute_v2" : "grasu_regraph_routed_sssp_compute_v1";
+    if (profile_id_ != expected_profile || (routed_stream_depths_ && !independent_))
+      throw std::invalid_argument("routed profile, AXI channels and stream depths disagree");
     if (output_path_.empty() || dram_config_.empty() || dram_output_.empty() || !max_cycles_)
       throw std::invalid_argument("missing routed SST paths or cycle limit");
     registerClock("150MHz", new SST::Clock::Handler<RoutedReGraphProbe, &RoutedReGraphProbe::tick>(this));
@@ -53,6 +56,11 @@ public:
     config.compute.max_supersteps = 256;
     config.compute.apply_request_window = 16;
     config.independent_read_write = independent_;
+    if (routed_stream_depths_) {
+      config.adapter_stream_depth = 32;
+      config.gather_stream_depth = 32;
+      config.mux_stream_depth = 32;
+    }
     // Explicit, disjoint physical model offsets. These are not captured XRT
     // BO addresses and must not be described as exact board address replay.
     config.compute.vertex_state_base = 0;
@@ -98,7 +106,8 @@ public:
       {"row_prefetch", "Optimized row issue path", "1"},
       {"stop_after_last", "Stop at last occupied row", "1"},
       {"profile_id", "Explicit model identity", "grasu_regraph_routed_sssp_compute_v1"},
-      {"independent_read_write", "Separate shared-master AR/AW credits and R/B backpressure", "0"})
+      {"independent_read_write", "Separate shared-master AR/AW credits and R/B backpressure", "0"},
+      {"routed_stream_depths", "Routed depth-32 edge, Gather and mux streams; other queues unchanged", "0"})
 private:
   Scheduler scheduler_;
   RoutedReGraphFixture fixture_;
@@ -107,6 +116,6 @@ private:
   SST::TimeConverter picoseconds_;
   std::string output_path_, dram_config_, dram_output_, profile_id_;
   std::uint64_t max_cycles_{};
-  bool prefetch_{}, stop_{}, independent_{};
+  bool prefetch_{}, stop_{}, independent_{}, routed_stream_depths_{};
 };
 } // namespace spine::sim::sst_adapter

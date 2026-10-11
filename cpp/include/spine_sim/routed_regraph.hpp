@@ -13,6 +13,10 @@ struct RoutedReGraphConfig {
   ReGraphPmaAdapterConfig adapter;
   std::size_t internal_fifo_depth{8};
   std::size_t external_fifo_depth{16};
+  // v1/v2 retain 16; the routed v3 contract selects 32 on these three paths.
+  std::size_t adapter_stream_depth{16};
+  std::size_t gather_stream_depth{16};
+  std::size_t mux_stream_depth{16};
   std::size_t shared_master_capacity{32};
   std::uint32_t first_initiator_id{600};
   std::uint64_t status_address{0x4800'0000ULL};

@@ -51,7 +51,7 @@ struct Result {
 };
 
 Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t fixed = 0,
-           std::size_t limit = 128, bool independent = false) {
+           std::size_t limit = 128, bool independent = false, std::size_t stream_depth = 16) {
   const auto expected = oracle(f, fixed ? fixed : 0);
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("core", 150);
@@ -66,6 +66,9 @@ Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t
   config.compute.max_supersteps = limit;
   config.fixed_rounds = fixed;
   config.independent_read_write = independent;
+  config.adapter_stream_depth = stream_depth;
+  config.gather_stream_depth = stream_depth;
+  config.mux_stream_depth = stream_depth;
   if (pressure) {
     config.compute.max_pending_requests = 2;
     config.compute.max_outstanding_bursts = 2;
@@ -146,6 +149,7 @@ Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t
   std::cout << "case vertices=" << f.vertices << " reverse=" << reverse << " stop=" << stop
             << " pressure=" << pressure << " fixed=" << fixed << " limit=" << limit
             << " independent=" << independent
+            << " stream_depth=" << stream_depth
             << " rounds=" << expected_rounds << " failed=" << system.failed()
             << " cycles=" << c.end_cycle - c.start_cycle
             << " parents=" << c.axi_requests << " beats=" << c.axi_beats << '\n';
@@ -194,6 +198,9 @@ void rejection_tests() {
   check(fixture(129, false), [](auto &, auto &, auto &c) { c.fixed_rounds = c.compute.max_supersteps + 1; });
   check(fixture(129, false), [](auto &, auto &, auto &c) { c.compute.runtime_channel_capacity_bytes *= 2; });
   check(fixture(129, false), [](auto &, auto &s, auto &) { s.primary[1] = 0x7ffffffdU; });
+  check(fixture(129, false), [](auto &, auto &, auto &c) { c.adapter_stream_depth = 0; });
+  check(fixture(129, false), [](auto &, auto &, auto &c) { c.gather_stream_depth = 0; });
+  check(fixture(129, false), [](auto &, auto &, auto &c) { c.mux_stream_depth = 0; });
   auto edge_at_end = fixture(65536, false);
   edge_at_end.edges.push_back({65535, 2, 1, false});
   check(edge_at_end, [](auto &, auto &, auto &) {});
@@ -226,7 +233,14 @@ int main() {
       cases += 2;
     }
     rejection_tests();
-    std::cout << "PASS: " << cases + 3 << " whole routed SSSP cases (15 convergence, 1 fixed-round, 1 expected limit failure); full state, source replicas, padding, scheduling and traffic; 9 admission rejections PASS\n";
+    for (const auto depth : {1U, 32U}) {
+      const auto routed = fixture(65569, true);
+      const auto forward = run(routed, false, true, true, 0, 128, true, depth);
+      require(forward == run(routed, true, true, true, 0, 128, true, depth),
+              "per-path stream depth changed registration-order independence");
+      cases += 2;
+    }
+    std::cout << "PASS: " << cases + 3 << " whole routed SSSP cases; full state, source replicas, padding, scheduling and traffic; 12 admission rejections PASS\n";
   } catch (const std::exception &error) {
     std::cerr << error.what() << '\n';
     return 1;

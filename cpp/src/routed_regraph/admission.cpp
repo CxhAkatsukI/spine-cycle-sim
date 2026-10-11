@@ -28,6 +28,7 @@ void RoutedReGraphSystem::Impl::admit() {
       !c.gather_vertices_per_reset_cycle || c.gather_vertices_per_merge_cycle != 2 || !c.gather_pipeline_latency ||
       !c.apply_request_window || !c.apply_pipeline_capacity || !c.hbm_wrapper_pipeline_capacity ||
       !config.internal_fifo_depth || !config.external_fifo_depth || !config.shared_master_capacity ||
+      !config.adapter_stream_depth || !config.gather_stream_depth || !config.mux_stream_depth ||
       config.first_initiator_id > std::numeric_limits<std::uint32_t>::max() - 9 ||
       config.fixed_rounds > c.max_supersteps ||
       c.runtime_channel_capacity_bytes > kGraSuReGraphU55cChannelCapacityBytes ||

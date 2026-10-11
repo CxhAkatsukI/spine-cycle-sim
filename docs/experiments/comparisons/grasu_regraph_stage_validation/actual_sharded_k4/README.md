@@ -7,12 +7,16 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
-The [controlled empty-row study](model_sync/sst/empty_rows/README.md) passes
-all 24 board and eight fixed-model runs. It confirms the optimized adapter
-removes trailing-row scaling in a fixed-PMA control. The old FPGA adds
-981--993 ns per empty row; the model adds 520 ns. This preserves a concrete
-timing mismatch, not a fitted calibration or original-A4 performance claim.
-The remaining gates are explained in that short report.
+The [routed stream-capacity correction](model_sync/sst/routed_streams/README.md)
+matches all 19 inter-kernel FIFO connections in both measured builds. Its six
+old/new runs preserve full FPGA results and traffic; total cycles change by
+at most 0.101%. This fixes a structural mismatch, not the timing gap.
+
+The [controlled empty-row study](model_sync/sst/empty_rows/README.md) remains
+the next timing lead: 24 board and eight fixed-model runs preserve the live
+graph and PMA while extending only empty source rows. The old FPGA adds
+981--993 ns per empty row; the model adds 520 ns. The optimized adapter removes
+trailing-row scaling. Neither study admits calibration or original-A4 matching.
 
 ## Evidence Trail
 

@@ -26,7 +26,7 @@ PMA timing control. Start with the
 | `frontend_delivery.py` | Binary-source, finite frontend and unchanged-legacy evidence package |
 | `model_system.py` | Complete SSSP candidate state, schedule and conservation gates; not hardware timing |
 | `system_delivery.py` | Immutable complete-candidate and exact legacy SST evidence package |
-| `sst_candidate.py` | Strict explicit v1/v2 profile selection, memory and owning-HLS header admission |
+| `sst_candidate.py` | Strict explicit v1/v2/v3 profile selection, memory and owning-HLS header admission |
 | `sst_timing.py` | One bounded HLS-export/SST run, full FPGA-result comparison and explicit nominal timing limits |
 | `sst_campaign.py` | Complete predeclared old/new matrix, at most two memory-admitted workers, retained failures |
 | `sst_input_audit.py` | Independent bounded synchronous old-state/active oracle and empty-tail inventory |
@@ -36,6 +36,8 @@ PMA timing control. Start with the
 | `row_sweep.py` | Predeclared four-size empty-row control using unchanged old/new FPGA bitstreams and the fixed v2 plugin |
 | `row_sweep_analysis.py` | Live-prefix/PMA/state invariants and descriptive incremental slopes; no parameter fitting |
 | `row_sweep_delivery.py` | Revalidate all 24 board / eight model outputs and freeze a portable raw package with explicit dependencies |
+| `stream_contract.py` | Verify all 19 compute-stream connections and FIFO capacities against both pinned routed block designs |
+| `stream_delivery.py` | Exact v2 replay, unchanged full results/traffic, and separate v3 stream-depth evidence; no timing fit |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`. The distinct routed SST candidate
