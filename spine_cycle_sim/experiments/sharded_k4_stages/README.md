@@ -41,6 +41,10 @@ PMA timing control. Start with the
 | `row_exit_contract.py` | Pin both generated RTL helpers and their handshake tests; verify the measured 73-cycle empty-row exit |
 | `row_exit_sweep.py` | Replay the existing four-size board control with exact v2 and explicit v4 predictions; no new FPGA runs or fitting |
 | `row_exit_delivery.py` | Seal the focused empty-exit correction and its old-result gates; keep real-graph and A4 validation pending |
+| `row_exit_matrix.py` | Seal full v3/v4 real-graph replay with unchanged work and numerical sources; retain timing mismatches |
+| `segment_schedule.py` | Pinned occupied/empty helper RTL probes with controlled responses and backpressure; not HBM timing |
+| `segment_schedule_delivery.py` | Seal both twelve-case RTL traces and retain failed testbench attempts separately |
+| `invocation_timing.py` | Align all adapter/lksg invocations and same-CU gaps from frozen evidence; never sum overlapping gaps or fit model delays |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`. The distinct routed SST candidate

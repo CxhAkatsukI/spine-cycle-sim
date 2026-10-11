@@ -16,6 +16,14 @@ not be hidden by transferring the old path's local agreement to this path.
 The full six-row real-graph replay and v4 matrix are the next gate, not part
 of this sealed control checkpoint.
 
+That subsequent gate is recorded in the separate
+[real-graph matrix](../empty_exit_matrix/README.md): all six v4 results pass
+full FPGA equality and all six v3 replays remain exact. Nominal timing is
+closer on five rows; optimized WK and whole-path timing admission remain
+open. The [occupied-row RTL follow-up](../occupied_row_rtl/README.md) also
+checks why the 73-clock empty exit cannot be added after occupied output.
+Neither follow-up replaces this control's frozen data or original claims.
+
 ## What Changed
 
 The [generated-RTL experiment](../empty_row_rtl/README.md) observes 73 clocks

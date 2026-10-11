@@ -112,8 +112,18 @@ earlier nominal timing mismatch remains open.
 The [empty-exit control](empty_exit_model/README.md) adds only a generated-RTL
 73-cycle empty-row exit in explicit v4. It explains the old adapter's
 fixed-payload empty-tail slope while preserving old results and full outputs.
-The optimized path's residual timing discrepancy and real-graph validation
-remain open; local slope agreement does not admit system calibration.
+The optimized short path retains a timing discrepancy; local slope agreement
+does not admit system calibration.
+
+The subsequent [complete v4 matrix](empty_exit_matrix/README.md) closes the
+real-graph functional/replay gate: all six full FPGA results and non-timing
+ledgers pass, and every v3 replay is byte-identical. Five nominal spans are
+within -3.79% to +1.37% of the board spans; optimized WK remains -35.04%.
+Its saved invocation diagnostic exposes same-CU scheduling gaps that the
+predictive model does not include. No timing coefficient was fitted, and
+whole-path calibration remains open. The separate
+[occupied-row RTL probe](occupied_row_rtl/README.md) prevents incorrectly
+charging the empty helper's 73 clocks after an occupied row's last packet.
 
 ## Regression And Resources
 

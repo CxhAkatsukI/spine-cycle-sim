@@ -1,0 +1,434 @@
+{
+  "arms": {
+    "candidate": {
+      "trials": [
+        {
+          "count": 0,
+          "done": 84,
+          "elapsed": 73,
+          "exit": 12,
+          "first_packet": -1,
+          "last_packet": -1,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 11
+        },
+        {
+          "count": 1,
+          "done": 166,
+          "elapsed": 75,
+          "exit": 94,
+          "first_packet": 165,
+          "last_packet": 166,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 91
+        },
+        {
+          "count": 2,
+          "done": 250,
+          "elapsed": 77,
+          "exit": 178,
+          "first_packet": 247,
+          "last_packet": 250,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 173
+        },
+        {
+          "count": 8,
+          "done": 346,
+          "elapsed": 89,
+          "exit": 274,
+          "first_packet": 331,
+          "last_packet": 346,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 257
+        },
+        {
+          "count": 1,
+          "done": 428,
+          "elapsed": 75,
+          "exit": 356,
+          "first_packet": 427,
+          "last_packet": 428,
+          "latency": 64,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 353
+        },
+        {
+          "count": 8,
+          "done": 524,
+          "elapsed": 89,
+          "exit": 452,
+          "first_packet": 509,
+          "last_packet": 524,
+          "latency": 64,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 435
+        },
+        {
+          "count": 1,
+          "done": 636,
+          "elapsed": 105,
+          "exit": 534,
+          "first_packet": 635,
+          "last_packet": 636,
+          "latency": 100,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 531
+        },
+        {
+          "count": 8,
+          "done": 762,
+          "elapsed": 119,
+          "exit": 660,
+          "first_packet": 747,
+          "last_packet": 762,
+          "latency": 100,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 643
+        },
+        {
+          "count": 8,
+          "done": 934,
+          "elapsed": 165,
+          "exit": 786,
+          "first_packet": 919,
+          "last_packet": 934,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 150,
+          "start": 769
+        },
+        {
+          "count": 8,
+          "done": 1106,
+          "elapsed": 165,
+          "exit": 958,
+          "first_packet": 1091,
+          "last_packet": 1106,
+          "latency": 64,
+          "offset": 3,
+          "ready_delay": 150,
+          "start": 941
+        },
+        {
+          "count": 64,
+          "done": 1314,
+          "elapsed": 201,
+          "exit": 1242,
+          "first_packet": 1187,
+          "last_packet": 1314,
+          "latency": 64,
+          "offset": 3,
+          "ready_delay": 0,
+          "start": 1113
+        },
+        {
+          "count": 0,
+          "done": 1394,
+          "elapsed": 73,
+          "exit": 1322,
+          "first_packet": -1,
+          "last_packet": -1,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 100,
+          "start": 1321
+        }
+      ],
+      "verification": {
+        "compile": {
+          "available_before_bytes": 71877890048,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xvlog",
+            "--sv",
+            "--define",
+            "OPTIMIZED",
+            "occupied_segment_handshake_tb.sv",
+            "pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+            "pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 88012,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 1.307525689713657
+        },
+        "elaborate": {
+          "available_before_bytes": 71841665024,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xelab",
+            "occupied_segment_handshake_tb",
+            "-s",
+            "occupied_segment"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 160312,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate/elaborate.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate/elaborate.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.9640719378367066
+        },
+        "simulate": {
+          "available_before_bytes": 71820283904,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xsim",
+            "occupied_segment",
+            "-tclbatch",
+            "run.tcl"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 565812,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate/simulate.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/candidate/simulate.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 4.063953698147088
+        }
+      }
+    },
+    "original": {
+      "trials": [
+        {
+          "count": 0,
+          "done": 84,
+          "elapsed": 73,
+          "exit": 12,
+          "first_packet": -1,
+          "last_packet": -1,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 11
+        },
+        {
+          "count": 1,
+          "done": 166,
+          "elapsed": 75,
+          "exit": 94,
+          "first_packet": 165,
+          "last_packet": 166,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 91
+        },
+        {
+          "count": 2,
+          "done": 250,
+          "elapsed": 77,
+          "exit": 178,
+          "first_packet": 247,
+          "last_packet": 250,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 173
+        },
+        {
+          "count": 8,
+          "done": 346,
+          "elapsed": 89,
+          "exit": 274,
+          "first_packet": 331,
+          "last_packet": 346,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 257
+        },
+        {
+          "count": 1,
+          "done": 428,
+          "elapsed": 75,
+          "exit": 356,
+          "first_packet": 427,
+          "last_packet": 428,
+          "latency": 64,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 353
+        },
+        {
+          "count": 8,
+          "done": 524,
+          "elapsed": 89,
+          "exit": 452,
+          "first_packet": 509,
+          "last_packet": 524,
+          "latency": 64,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 435
+        },
+        {
+          "count": 1,
+          "done": 636,
+          "elapsed": 105,
+          "exit": 534,
+          "first_packet": 635,
+          "last_packet": 636,
+          "latency": 100,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 531
+        },
+        {
+          "count": 8,
+          "done": 762,
+          "elapsed": 119,
+          "exit": 660,
+          "first_packet": 747,
+          "last_packet": 762,
+          "latency": 100,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 643
+        },
+        {
+          "count": 8,
+          "done": 934,
+          "elapsed": 165,
+          "exit": 786,
+          "first_packet": 919,
+          "last_packet": 934,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 150,
+          "start": 769
+        },
+        {
+          "count": 8,
+          "done": 1106,
+          "elapsed": 165,
+          "exit": 958,
+          "first_packet": 1091,
+          "last_packet": 1106,
+          "latency": 64,
+          "offset": 3,
+          "ready_delay": 150,
+          "start": 941
+        },
+        {
+          "count": 64,
+          "done": 1314,
+          "elapsed": 201,
+          "exit": 1242,
+          "first_packet": 1187,
+          "last_packet": 1314,
+          "latency": 64,
+          "offset": 3,
+          "ready_delay": 0,
+          "start": 1113
+        },
+        {
+          "count": 0,
+          "done": 1394,
+          "elapsed": 73,
+          "exit": 1322,
+          "first_packet": -1,
+          "last_packet": -1,
+          "latency": 1,
+          "offset": 0,
+          "ready_delay": 100,
+          "start": 1321
+        }
+      ],
+      "verification": {
+        "compile": {
+          "available_before_bytes": 71782727680,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xvlog",
+            "--sv",
+            "occupied_segment_handshake_tb.sv",
+            "pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+            "pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 87944,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 1.3066715756431222
+        },
+        "elaborate": {
+          "available_before_bytes": 71762812928,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xelab",
+            "occupied_segment_handshake_tb",
+            "-s",
+            "occupied_segment"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 160284,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original/elaborate.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original/elaborate.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 4.011849489994347
+        },
+        "simulate": {
+          "available_before_bytes": 71754231808,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xsim",
+            "occupied_segment",
+            "-tclbatch",
+            "run.tcl"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 565824,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original/simulate.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_occupied_row_rtl_20261011/final/original/simulate.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 4.062710682861507
+        }
+      }
+    }
+  },
+  "claim": "73-clock empty exit must not be added after every occupied row",
+  "hardware_timing_admitted": false,
+  "limits": [
+    "isolated generated helper, not parent adapter or full kernel",
+    "synthetic internal memory response timing, not AXI/HBM timing",
+    "does not establish real transport credits or physical address mapping",
+    "no change to the frozen v4 real-graph campaign"
+  ],
+  "original_A4_match_admitted": false,
+  "simulator_profile_changed": false,
+  "status": "OCCUPIED_SEGMENT_ROUTED_RTL_COMPONENT_PASS",
+  "timing_fit_performed": false
+}

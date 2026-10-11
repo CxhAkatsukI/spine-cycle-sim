@@ -7,14 +7,25 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
+The [complete v4 real-graph matrix](model_sync/sst/empty_exit_matrix/README.md)
+now passes all six AU/SU/WK old/optimized full-output and traffic checks;
+all six v3 replays are byte-identical. Five nominal predicted compute spans
+differ from FPGA spans by -3.79% to +1.37%; optimized WK remains -35.04%.
+These are not identical-window calibration errors. The per-invocation trace
+exposes same-CU scheduling gaps absent from the model, without establishing
+their root cause or adding a fitted delay. Whole-path timing and original-A4
+matching remain open.
+
 The [RTL empty-exit model control](model_sync/sst/empty_exit_model/README.md)
 now represents a measured 73-clock generated-RTL wait for each actually
 visited empty row. Across four fixed-payload sizes, old-adapter lifetime
 predictions differ from FPGA medians by -1.75% to +1.35%, without fitting.
 Five legacy cases and eight old sweep replays remain exact; eight v4 runs
-retain full FPGA outputs and traffic. The optimized short path still has a
-large timing gap; real-graph v4 validation and original-A4 matching remain
-open. This is a local control result, not whole-system calibration.
+retain full FPGA outputs and traffic. The optimized short control still has
+a large timing gap. This is a local result, not whole-system calibration.
+The [occupied-row helper probe](model_sync/sst/occupied_row_rtl/README.md)
+also shows that the 73-clock empty exit must not be appended after each
+occupied row's final packet; helper pipeline delay overlaps output.
 
 The [routed stream-capacity correction](model_sync/sst/routed_streams/README.md)
 matches all 19 inter-kernel FIFO connections in both measured builds. Its six

@@ -29,6 +29,12 @@ It preserves complete HLS-prepared PMA inputs and checks complete FPGA result
 bytes. Nominal timing differences remain visible and are not a calibration
 pass; this earlier adapter archive and its original status table stay frozen.
 
+For the latest full-matrix status, use the
+[v4 real-graph replay and invocation diagnostic](sst/empty_exit_matrix/README.md).
+All six old/optimized runs preserve full FPGA outputs and traffic, but timing
+admission remains open, particularly optimized WK. This does not promote the
+historical component-only status table below to a system-calibration claim.
+
 ## Status And Reading Order
 
 | Gate | Status and scope |

@@ -1,0 +1,3576 @@
+{
+  "hardware_timing_admitted": false,
+  "limits": [
+    "per-worker gaps overlap; do not sum groups as an E2E penalty",
+    "queued/submit timestamps do not isolate CPU work or a scheduler root cause",
+    "gather denotes the whole lksg invocation, not an exclusive compute stage",
+    "observed gaps are not injected into the predictive simulator"
+  ],
+  "matrix_archive_sha256": "637e1ee527c132501073d85690320961d35066f64815d8aab0198b3250b94a31",
+  "rows": [
+    {
+      "groups": [
+        {
+          "board_gap_sum_ms": 3.332975,
+          "invocations": [
+            {
+              "board_duration_ms": 48.624667,
+              "board_end_ms": 48.687379,
+              "board_gap_ms": null,
+              "board_start_ms": 0.062712,
+              "model_duration_ms": 48.017606666666666,
+              "model_end_ms": 48.017606666666666,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 46.552337,
+              "board_end_ms": 98.572691,
+              "board_gap_ms": 3.332975,
+              "board_start_ms": 52.020354,
+              "model_duration_ms": 47.50744666666667,
+              "model_end_ms": 95.52505333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.017606666666666,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0001,
+              "submit_after_previous_end_ms": 3.332875
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00106,
+          "invocations": [
+            {
+              "board_duration_ms": 46.632438,
+              "board_end_ms": 49.306586,
+              "board_gap_ms": null,
+              "board_start_ms": 2.674148,
+              "model_duration_ms": 47.47855333333333,
+              "model_end_ms": 47.47855333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 46.673521,
+              "board_end_ms": 95.981167,
+              "board_gap_ms": 0.00106,
+              "board_start_ms": 49.307646,
+              "model_duration_ms": 48.20582,
+              "model_end_ms": 95.68437333333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 47.47855333333333,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00015,
+              "submit_after_previous_end_ms": 0.00091
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 2.830911,
+          "invocations": [
+            {
+              "board_duration_ms": 46.659189,
+              "board_end_ms": 51.678244,
+              "board_gap_ms": null,
+              "board_start_ms": 5.019055,
+              "model_duration_ms": 47.42110666666667,
+              "model_end_ms": 47.42110666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 46.593999,
+              "board_end_ms": 101.103154,
+              "board_gap_ms": 2.830911,
+              "board_start_ms": 54.509155,
+              "model_duration_ms": 48.3351,
+              "model_end_ms": 95.75620666666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 47.42110666666667,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00011,
+              "submit_after_previous_end_ms": 2.830801
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 2.803381,
+          "invocations": [
+            {
+              "board_duration_ms": 46.583857,
+              "board_end_ms": 53.911988,
+              "board_gap_ms": null,
+              "board_start_ms": 7.328131,
+              "model_duration_ms": 47.36814,
+              "model_end_ms": 47.36814,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 46.539127,
+              "board_end_ms": 103.254496,
+              "board_gap_ms": 2.803381,
+              "board_start_ms": 56.715369,
+              "model_duration_ms": 48.27692666666667,
+              "model_end_ms": 95.64506666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 47.36814,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00019,
+              "submit_after_previous_end_ms": 2.803191
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00091,
+          "invocations": [
+            {
+              "board_duration_ms": 49.009247,
+              "board_end_ms": 49.09534,
+              "board_gap_ms": null,
+              "board_start_ms": 0.086093,
+              "model_duration_ms": 48.23617333333333,
+              "model_end_ms": 48.23617333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 49.690917,
+              "board_end_ms": 98.787167,
+              "board_gap_ms": 0.00091,
+              "board_start_ms": 49.09625,
+              "model_duration_ms": 47.50744666666667,
+              "model_end_ms": 95.74362,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.23617333333333,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00015,
+              "submit_after_previous_end_ms": 0.00076
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00088,
+          "invocations": [
+            {
+              "board_duration_ms": 49.350928,
+              "board_end_ms": 49.524813,
+              "board_gap_ms": null,
+              "board_start_ms": 0.173885,
+              "model_duration_ms": 48.45442666666667,
+              "model_end_ms": 48.45442666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 49.599004,
+              "board_end_ms": 99.124697,
+              "board_gap_ms": 0.00088,
+              "board_start_ms": 49.525693,
+              "model_duration_ms": 47.50744666666667,
+              "model_end_ms": 95.96187333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.45442666666667,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00012,
+              "submit_after_previous_end_ms": 0.00076
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.000761,
+          "invocations": [
+            {
+              "board_duration_ms": 51.56942,
+              "board_end_ms": 51.824248,
+              "board_gap_ms": null,
+              "board_start_ms": 0.254828,
+              "model_duration_ms": 48.67288,
+              "model_end_ms": 48.67288,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 49.487611,
+              "board_end_ms": 101.31262,
+              "board_gap_ms": 0.000761,
+              "board_start_ms": 51.825009,
+              "model_duration_ms": 47.50744666666667,
+              "model_end_ms": 96.18032666666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.67288,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00012,
+              "submit_after_previous_end_ms": 0.000641
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00192,
+          "invocations": [
+            {
+              "board_duration_ms": 53.803405,
+              "board_end_ms": 54.132955,
+              "board_gap_ms": null,
+              "board_start_ms": 0.32955,
+              "model_duration_ms": 48.891333333333336,
+              "model_end_ms": 48.891333333333336,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 49.339207,
+              "board_end_ms": 103.474082,
+              "board_gap_ms": 0.00192,
+              "board_start_ms": 54.134875,
+              "model_duration_ms": 47.50744666666667,
+              "model_end_ms": 96.39878,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.891333333333336,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00025,
+              "submit_after_previous_end_ms": 0.00167
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00122,
+          "invocations": [
+            {
+              "board_duration_ms": 48.644867,
+              "board_end_ms": 48.74726,
+              "board_gap_ms": null,
+              "board_start_ms": 0.102393,
+              "model_duration_ms": 48.016313333333336,
+              "model_end_ms": 48.016313333333336,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 46.785203,
+              "board_end_ms": 95.533683,
+              "board_gap_ms": 0.00122,
+              "board_start_ms": 48.74848,
+              "model_duration_ms": 47.506613333333334,
+              "model_end_ms": 95.52292666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.016313333333336,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0002,
+              "submit_after_previous_end_ms": 0.00102
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00183,
+          "invocations": [
+            {
+              "board_duration_ms": 46.831495,
+              "board_end_ms": 47.067012,
+              "board_gap_ms": null,
+              "board_start_ms": 0.235517,
+              "model_duration_ms": 47.47826666666667,
+              "model_end_ms": 47.47826666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 48.684937,
+              "board_end_ms": 95.753779,
+              "board_gap_ms": 0.00183,
+              "board_start_ms": 47.068842,
+              "model_duration_ms": 48.20462,
+              "model_end_ms": 95.68288666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 47.47826666666667,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00028,
+              "submit_after_previous_end_ms": 0.00155
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.001,
+          "invocations": [
+            {
+              "board_duration_ms": 46.758452,
+              "board_end_ms": 47.115643,
+              "board_gap_ms": null,
+              "board_start_ms": 0.357191,
+              "model_duration_ms": 47.42004,
+              "model_end_ms": 47.42004,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 48.7484,
+              "board_end_ms": 95.865043,
+              "board_gap_ms": 0.001,
+              "board_start_ms": 47.116643,
+              "model_duration_ms": 48.334266666666664,
+              "model_end_ms": 95.75430666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 47.42004,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 9e-05,
+              "submit_after_previous_end_ms": 0.00091
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00113,
+          "invocations": [
+            {
+              "board_duration_ms": 46.67358,
+              "board_end_ms": 47.158324,
+              "board_gap_ms": null,
+              "board_start_ms": 0.484744,
+              "model_duration_ms": 47.36799333333333,
+              "model_end_ms": 47.36799333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 48.620516,
+              "board_end_ms": 95.77997,
+              "board_gap_ms": 0.00113,
+              "board_start_ms": 47.159454,
+              "model_duration_ms": 48.27616666666667,
+              "model_end_ms": 95.64416,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 47.36799333333333,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0001,
+              "submit_after_previous_end_ms": 0.00103
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00109,
+          "invocations": [
+            {
+              "board_duration_ms": 48.817202,
+              "board_end_ms": 48.958586,
+              "board_gap_ms": null,
+              "board_start_ms": 0.141384,
+              "model_duration_ms": 48.23488,
+              "model_end_ms": 48.23488,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 46.796243,
+              "board_end_ms": 95.755919,
+              "board_gap_ms": 0.00109,
+              "board_start_ms": 48.959676,
+              "model_duration_ms": 47.506613333333334,
+              "model_end_ms": 95.74149333333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.23488,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00011,
+              "submit_after_previous_end_ms": 0.00098
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00089,
+          "invocations": [
+            {
+              "board_duration_ms": 49.032118,
+              "board_end_ms": 49.307496,
+              "board_gap_ms": null,
+              "board_start_ms": 0.275378,
+              "model_duration_ms": 48.453133333333334,
+              "model_end_ms": 48.453133333333334,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 46.794213,
+              "board_end_ms": 96.102599,
+              "board_gap_ms": 0.00089,
+              "board_start_ms": 49.308386,
+              "model_duration_ms": 47.506613333333334,
+              "model_end_ms": 95.95974666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.453133333333334,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00013,
+              "submit_after_previous_end_ms": 0.00076
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00078,
+          "invocations": [
+            {
+              "board_duration_ms": 49.150541,
+              "board_end_ms": 49.554993,
+              "board_gap_ms": null,
+              "board_start_ms": 0.404452,
+              "model_duration_ms": 48.67158666666667,
+              "model_end_ms": 48.67158666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 46.848085,
+              "board_end_ms": 96.403858,
+              "board_gap_ms": 0.00078,
+              "board_start_ms": 49.555773,
+              "model_duration_ms": 47.506613333333334,
+              "model_end_ms": 96.1782,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.67158666666667,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00011,
+              "submit_after_previous_end_ms": 0.00067
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00072,
+          "invocations": [
+            {
+              "board_duration_ms": 49.425658,
+              "board_end_ms": 49.959104,
+              "board_gap_ms": null,
+              "board_start_ms": 0.533446,
+              "model_duration_ms": 48.89004,
+              "model_end_ms": 48.89004,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 46.769003,
+              "board_end_ms": 96.728827,
+              "board_gap_ms": 0.00072,
+              "board_start_ms": 49.959824,
+              "model_duration_ms": 47.506613333333334,
+              "model_end_ms": 96.39665333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 48.89004,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00011,
+              "submit_after_previous_end_ms": 0.00061
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 3
+        }
+      ],
+      "id": "au_candidate",
+      "timing": {
+        "board_compute_span_ms": 200.395434,
+        "board_sum_round_spans_ms": 200.20338900000002,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 0.962090051080372,
+        "predicted_no_host_ms": 192.79845333333333,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 103.474562,
+            "predicted_no_host_ms": 96.40028666666667,
+            "round": 1
+          },
+          {
+            "board_kernel_span_ms": 96.728827,
+            "predicted_no_host_ms": 96.39816666666667,
+            "round": 2
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      }
+    },
+    {
+      "groups": [
+        {
+          "board_gap_sum_ms": 3.673575,
+          "invocations": [
+            {
+              "board_duration_ms": 512.028537,
+              "board_end_ms": 512.095029,
+              "board_gap_ms": null,
+              "board_start_ms": 0.066492,
+              "model_duration_ms": 519.5171866666667,
+              "model_end_ms": 519.5171866666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 509.858844,
+              "board_end_ms": 1025.627448,
+              "board_gap_ms": 3.673575,
+              "board_start_ms": 515.768604,
+              "model_duration_ms": 518.76778,
+              "model_end_ms": 1038.2849666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 519.5171866666667,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00031,
+              "submit_after_previous_end_ms": 3.673265
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.0026,
+          "invocations": [
+            {
+              "board_duration_ms": 510.451612,
+              "board_end_ms": 512.993715,
+              "board_gap_ms": null,
+              "board_start_ms": 2.542103,
+              "model_duration_ms": 518.9434266666667,
+              "model_end_ms": 518.9434266666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 510.299906,
+              "board_end_ms": 1023.296221,
+              "board_gap_ms": 0.0026,
+              "board_start_ms": 512.996315,
+              "model_duration_ms": 518.7565933333333,
+              "model_end_ms": 1037.70002,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 518.9434266666667,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00033,
+              "submit_after_previous_end_ms": 0.00227
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 2.44938,
+          "invocations": [
+            {
+              "board_duration_ms": 510.875714,
+              "board_end_ms": 516.65703,
+              "board_gap_ms": null,
+              "board_start_ms": 5.781316,
+              "model_duration_ms": 518.8631333333333,
+              "model_end_ms": 518.8631333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 510.608616,
+              "board_end_ms": 1029.715026,
+              "board_gap_ms": 2.44938,
+              "board_start_ms": 519.10641,
+              "model_duration_ms": 518.75052,
+              "model_end_ms": 1037.6136533333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 518.8631333333333,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00054,
+              "submit_after_previous_end_ms": 2.44884
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 3.652995,
+          "invocations": [
+            {
+              "board_duration_ms": 510.273816,
+              "board_end_ms": 517.926826,
+              "board_gap_ms": null,
+              "board_start_ms": 7.65301,
+              "model_duration_ms": 518.7944733333334,
+              "model_end_ms": 518.7944733333334,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 509.761541,
+              "board_end_ms": 1031.341362,
+              "board_gap_ms": 3.652995,
+              "board_start_ms": 521.579821,
+              "model_duration_ms": 518.7357,
+              "model_end_ms": 1037.5301733333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 518.7944733333334,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00049,
+              "submit_after_previous_end_ms": 3.652505
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00063,
+          "invocations": [
+            {
+              "board_duration_ms": 81.073939,
+              "board_end_ms": 81.162732,
+              "board_gap_ms": null,
+              "board_start_ms": 0.088793,
+              "model_duration_ms": 80.82707333333333,
+              "model_end_ms": 80.82707333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 513.532569,
+              "board_end_ms": 594.695931,
+              "board_gap_ms": 0.00063,
+              "board_start_ms": 81.163362,
+              "model_duration_ms": 518.7567066666667,
+              "model_end_ms": 599.58378,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 80.82707333333333,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 8e-05,
+              "submit_after_previous_end_ms": 0.00055
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00066,
+          "invocations": [
+            {
+              "board_duration_ms": 81.519212,
+              "board_end_ms": 81.698037,
+              "board_gap_ms": null,
+              "board_start_ms": 0.178825,
+              "model_duration_ms": 81.04532666666667,
+              "model_end_ms": 81.04532666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 513.343024,
+              "board_end_ms": 595.041721,
+              "board_gap_ms": 0.00066,
+              "board_start_ms": 81.698697,
+              "model_duration_ms": 518.7567066666667,
+              "model_end_ms": 599.8020333333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 81.04532666666667,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 8e-05,
+              "submit_after_previous_end_ms": 0.00058
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00087,
+          "invocations": [
+            {
+              "board_duration_ms": 84.736003,
+              "board_end_ms": 84.990781,
+              "board_gap_ms": null,
+              "board_start_ms": 0.254778,
+              "model_duration_ms": 81.26378,
+              "model_end_ms": 81.26378,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 513.155639,
+              "board_end_ms": 598.14729,
+              "board_gap_ms": 0.00087,
+              "board_start_ms": 84.991651,
+              "model_duration_ms": 518.7567066666667,
+              "model_end_ms": 600.0204866666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 81.26378,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00014,
+              "submit_after_previous_end_ms": 0.00073
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.001,
+          "invocations": [
+            {
+              "board_duration_ms": 86.33703,
+              "board_end_ms": 86.66307,
+              "board_gap_ms": null,
+              "board_start_ms": 0.32604,
+              "model_duration_ms": 81.48223333333334,
+              "model_end_ms": 81.48223333333334,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 513.768016,
+              "board_end_ms": 600.432086,
+              "board_gap_ms": 0.001,
+              "board_start_ms": 86.66407,
+              "model_duration_ms": 518.7567066666667,
+              "model_end_ms": 600.23894,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 81.48223333333334,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00012,
+              "submit_after_previous_end_ms": 0.00088
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00279,
+          "invocations": [
+            {
+              "board_duration_ms": 512.125108,
+              "board_end_ms": 512.287423,
+              "board_gap_ms": null,
+              "board_start_ms": 0.162315,
+              "model_duration_ms": 519.5169533333333,
+              "model_end_ms": 519.5169533333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 509.774201,
+              "board_end_ms": 1022.064414,
+              "board_gap_ms": 0.00279,
+              "board_start_ms": 512.290213,
+              "model_duration_ms": 518.76788,
+              "model_end_ms": 1038.2848333333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 519.5169533333333,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00037,
+              "submit_after_previous_end_ms": 0.00242
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00117,
+          "invocations": [
+            {
+              "board_duration_ms": 510.612795,
+              "board_end_ms": 510.920744,
+              "board_gap_ms": null,
+              "board_start_ms": 0.307949,
+              "model_duration_ms": 518.94356,
+              "model_end_ms": 518.94356,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 510.310586,
+              "board_end_ms": 1021.2325,
+              "board_gap_ms": 0.00117,
+              "board_start_ms": 510.921914,
+              "model_duration_ms": 518.7563666666666,
+              "model_end_ms": 1037.6999266666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 518.94356,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 0.00101
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00258,
+          "invocations": [
+            {
+              "board_duration_ms": 510.981545,
+              "board_end_ms": 511.426108,
+              "board_gap_ms": null,
+              "board_start_ms": 0.444563,
+              "model_duration_ms": 518.86298,
+              "model_end_ms": 518.86298,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 510.571074,
+              "board_end_ms": 1021.999762,
+              "board_gap_ms": 0.00258,
+              "board_start_ms": 511.428688,
+              "model_duration_ms": 518.75082,
+              "model_end_ms": 1037.6138,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 518.86298,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00035,
+              "submit_after_previous_end_ms": 0.00223
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00261,
+          "invocations": [
+            {
+              "board_duration_ms": 510.310166,
+              "board_end_ms": 510.893043,
+              "board_gap_ms": null,
+              "board_start_ms": 0.582877,
+              "model_duration_ms": 518.79448,
+              "model_end_ms": 518.79448,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 509.744651,
+              "board_end_ms": 1020.640304,
+              "board_gap_ms": 0.00261,
+              "board_start_ms": 510.895653,
+              "model_duration_ms": 518.73566,
+              "model_end_ms": 1037.53014,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 518.79448,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00032,
+              "submit_after_previous_end_ms": 0.00229
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00265,
+          "invocations": [
+            {
+              "board_duration_ms": 81.091889,
+              "board_end_ms": 81.299885,
+              "board_gap_ms": null,
+              "board_start_ms": 0.207996,
+              "model_duration_ms": 80.82684,
+              "model_end_ms": 80.82684,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 509.904165,
+              "board_end_ms": 591.2067,
+              "board_gap_ms": 0.00265,
+              "board_start_ms": 81.302535,
+              "model_duration_ms": 518.7568066666666,
+              "model_end_ms": 599.5836466666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 80.82684,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00034,
+              "submit_after_previous_end_ms": 0.00231
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00104,
+          "invocations": [
+            {
+              "board_duration_ms": 81.282824,
+              "board_end_ms": 81.641854,
+              "board_gap_ms": null,
+              "board_start_ms": 0.35903,
+              "model_duration_ms": 81.04509333333333,
+              "model_end_ms": 81.04509333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 509.902616,
+              "board_end_ms": 591.54551,
+              "board_gap_ms": 0.00104,
+              "board_start_ms": 81.642894,
+              "model_duration_ms": 518.7568066666666,
+              "model_end_ms": 599.8019,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 81.04509333333333,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00015,
+              "submit_after_previous_end_ms": 0.00089
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.001,
+          "invocations": [
+            {
+              "board_duration_ms": 81.453189,
+              "board_end_ms": 81.943973,
+              "board_gap_ms": null,
+              "board_start_ms": 0.490784,
+              "model_duration_ms": 81.26354666666667,
+              "model_end_ms": 81.26354666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 509.918326,
+              "board_end_ms": 591.863299,
+              "board_gap_ms": 0.001,
+              "board_start_ms": 81.944973,
+              "model_duration_ms": 518.7568066666666,
+              "model_end_ms": 600.0203533333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 81.26354666666667,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00013,
+              "submit_after_previous_end_ms": 0.00087
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00268,
+          "invocations": [
+            {
+              "board_duration_ms": 81.594763,
+              "board_end_ms": 82.221391,
+              "board_gap_ms": null,
+              "board_start_ms": 0.626628,
+              "model_duration_ms": 81.482,
+              "model_end_ms": 81.482,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 509.911566,
+              "board_end_ms": 592.135637,
+              "board_gap_ms": 0.00268,
+              "board_start_ms": 82.224071,
+              "model_duration_ms": 518.7568066666666,
+              "model_end_ms": 600.2388066666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 81.482,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0003,
+              "submit_after_previous_end_ms": 0.00238
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 3
+        }
+      ],
+      "id": "au_original",
+      "timing": {
+        "board_compute_span_ms": 2053.707765,
+        "board_sum_round_spans_ms": 2053.405776,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 1.0111320779857889,
+        "predicted_no_host_ms": 2076.5698,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 1031.341362,
+            "predicted_no_host_ms": 1038.2849666666666,
+            "round": 1
+          },
+          {
+            "board_kernel_span_ms": 1022.064414,
+            "predicted_no_host_ms": 1038.2848333333334,
+            "round": 2
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      }
+    },
+    {
+      "groups": [
+        {
+          "board_gap_sum_ms": 6.322171,
+          "invocations": [
+            {
+              "board_duration_ms": 67.395659,
+              "board_end_ms": 67.462491,
+              "board_gap_ms": null,
+              "board_start_ms": 0.066832,
+              "model_duration_ms": 65.70946666666667,
+              "model_end_ms": 65.70946666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 63.566769,
+              "board_end_ms": 134.660044,
+              "board_gap_ms": 3.630784,
+              "board_start_ms": 71.093275,
+              "model_duration_ms": 64.72958666666666,
+              "model_end_ms": 130.43905333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 65.70946666666667,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00013,
+              "submit_after_previous_end_ms": 3.630654
+            },
+            {
+              "board_duration_ms": 63.57284,
+              "board_end_ms": 200.924271,
+              "board_gap_ms": 2.691387,
+              "board_start_ms": 137.351431,
+              "model_duration_ms": 64.58677333333333,
+              "model_end_ms": 195.02582666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 130.43905333333333,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00012,
+              "submit_after_previous_end_ms": 2.691267
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 2.959354,
+          "invocations": [
+            {
+              "board_duration_ms": 63.703734,
+              "board_end_ms": 63.846468,
+              "board_gap_ms": null,
+              "board_start_ms": 0.142734,
+              "model_duration_ms": 64.76397333333334,
+              "model_end_ms": 64.76397333333334,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 64.334762,
+              "board_end_ms": 131.140584,
+              "board_gap_ms": 2.959354,
+              "board_start_ms": 66.805822,
+              "model_duration_ms": 65.62513333333334,
+              "model_end_ms": 130.38910666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 64.76397333333334,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00027,
+              "submit_after_previous_end_ms": 2.959084
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00088,
+          "invocations": [
+            {
+              "board_duration_ms": 63.635991,
+              "board_end_ms": 66.764151,
+              "board_gap_ms": null,
+              "board_start_ms": 3.12816,
+              "model_duration_ms": 64.74235333333333,
+              "model_end_ms": 64.74235333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 64.587109,
+              "board_end_ms": 131.35214,
+              "board_gap_ms": 0.00088,
+              "board_start_ms": 66.765031,
+              "model_duration_ms": 65.83459333333333,
+              "model_end_ms": 130.57694666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 64.74235333333333,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00013,
+              "submit_after_previous_end_ms": 0.00075
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 4.331004,
+          "invocations": [
+            {
+              "board_duration_ms": 63.535899,
+              "board_end_ms": 68.751638,
+              "board_gap_ms": null,
+              "board_start_ms": 5.215739,
+              "model_duration_ms": 64.61796,
+              "model_end_ms": 64.61796,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 63.546119,
+              "board_end_ms": 136.628761,
+              "board_gap_ms": 4.331004,
+              "board_start_ms": 73.082642,
+              "model_duration_ms": 65.88854,
+              "model_end_ms": 130.5065,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 64.61796,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0001,
+              "submit_after_previous_end_ms": 4.330904
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.001351,
+          "invocations": [
+            {
+              "board_duration_ms": 67.592164,
+              "board_end_ms": 67.682757,
+              "board_gap_ms": null,
+              "board_start_ms": 0.090593,
+              "model_duration_ms": 65.92803333333333,
+              "model_end_ms": 65.92803333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 67.186523,
+              "board_end_ms": 134.86993,
+              "board_gap_ms": 0.00065,
+              "board_start_ms": 67.683407,
+              "model_duration_ms": 64.72958666666666,
+              "model_end_ms": 130.65762,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 65.92803333333333,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 7e-05,
+              "submit_after_previous_end_ms": 0.00058
+            },
+            {
+              "board_duration_ms": 66.247446,
+              "board_end_ms": 201.118077,
+              "board_gap_ms": 0.000701,
+              "board_start_ms": 134.870631,
+              "model_duration_ms": 64.58677333333333,
+              "model_end_ms": 195.24439333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 130.65762,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00017,
+              "submit_after_previous_end_ms": 0.000531
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00049,
+          "invocations": [
+            {
+              "board_duration_ms": 67.820931,
+              "board_end_ms": 67.990566,
+              "board_gap_ms": null,
+              "board_start_ms": 0.169635,
+              "model_duration_ms": 66.14628666666667,
+              "model_end_ms": 66.14628666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 67.174143,
+              "board_end_ms": 135.165199,
+              "board_gap_ms": 0.00049,
+              "board_start_ms": 67.991056,
+              "model_duration_ms": 64.72958666666666,
+              "model_end_ms": 130.87587333333335,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 66.14628666666667,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 6e-05,
+              "submit_after_previous_end_ms": 0.00043
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00046,
+          "invocations": [
+            {
+              "board_duration_ms": 68.029957,
+              "board_end_ms": 68.275504,
+              "board_gap_ms": null,
+              "board_start_ms": 0.245547,
+              "model_duration_ms": 66.36474,
+              "model_end_ms": 66.36474,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 67.184583,
+              "board_end_ms": 135.460547,
+              "board_gap_ms": 0.00046,
+              "board_start_ms": 68.275964,
+              "model_duration_ms": 64.72958666666666,
+              "model_end_ms": 131.09432666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 66.36474,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 6e-05,
+              "submit_after_previous_end_ms": 0.0004
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00046,
+          "invocations": [
+            {
+              "board_duration_ms": 68.661926,
+              "board_end_ms": 68.983535,
+              "board_gap_ms": null,
+              "board_start_ms": 0.321609,
+              "model_duration_ms": 66.58319333333333,
+              "model_end_ms": 66.58319333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 67.868912,
+              "board_end_ms": 136.852907,
+              "board_gap_ms": 0.00046,
+              "board_start_ms": 68.983995,
+              "model_duration_ms": 64.72958666666666,
+              "model_end_ms": 131.31278,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 66.58319333333333,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 8e-05,
+              "submit_after_previous_end_ms": 0.00038
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.0039,
+          "invocations": [
+            {
+              "board_duration_ms": 66.895944,
+              "board_end_ms": 66.961916,
+              "board_gap_ms": null,
+              "board_start_ms": 0.065972,
+              "model_duration_ms": 65.70767333333333,
+              "model_end_ms": 65.70767333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 63.704994,
+              "board_end_ms": 130.66816,
+              "board_gap_ms": 0.00125,
+              "board_start_ms": 66.963166,
+              "model_duration_ms": 64.73129333333333,
+              "model_end_ms": 130.43896666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 65.70767333333333,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00019,
+              "submit_after_previous_end_ms": 0.00106
+            },
+            {
+              "board_duration_ms": 63.602561,
+              "board_end_ms": 194.273371,
+              "board_gap_ms": 0.00265,
+              "board_start_ms": 130.67081,
+              "model_duration_ms": 64.58630666666667,
+              "model_end_ms": 195.02527333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 130.43896666666666,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00035,
+              "submit_after_previous_end_ms": 0.0023
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00153,
+          "invocations": [
+            {
+              "board_duration_ms": 63.727064,
+              "board_end_ms": 63.880278,
+              "board_gap_ms": null,
+              "board_start_ms": 0.153214,
+              "model_duration_ms": 64.7639,
+              "model_end_ms": 64.7639,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 67.284496,
+              "board_end_ms": 131.166304,
+              "board_gap_ms": 0.00153,
+              "board_start_ms": 63.881808,
+              "model_duration_ms": 65.62316666666666,
+              "model_end_ms": 130.38706666666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 64.7639,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00021,
+              "submit_after_previous_end_ms": 0.00132
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00153,
+          "invocations": [
+            {
+              "board_duration_ms": 63.795526,
+              "board_end_ms": 64.027852,
+              "board_gap_ms": null,
+              "board_start_ms": 0.232326,
+              "model_duration_ms": 64.74218,
+              "model_end_ms": 64.74218,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 67.139752,
+              "board_end_ms": 131.169134,
+              "board_gap_ms": 0.00153,
+              "board_start_ms": 64.029382,
+              "model_duration_ms": 65.83327333333334,
+              "model_end_ms": 130.57545333333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 64.74218,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00018,
+              "submit_after_previous_end_ms": 0.00135
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00058,
+          "invocations": [
+            {
+              "board_duration_ms": 63.58226,
+              "board_end_ms": 63.893289,
+              "board_gap_ms": null,
+              "board_start_ms": 0.311029,
+              "model_duration_ms": 64.61913333333334,
+              "model_end_ms": 64.61913333333334,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 67.274455,
+              "board_end_ms": 131.168324,
+              "board_gap_ms": 0.00058,
+              "board_start_ms": 63.893869,
+              "model_duration_ms": 65.88558666666667,
+              "model_end_ms": 130.50472,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 64.61913333333334,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 9e-05,
+              "submit_after_previous_end_ms": 0.00049
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.0027,
+          "invocations": [
+            {
+              "board_duration_ms": 67.05903,
+              "board_end_ms": 67.152352,
+              "board_gap_ms": null,
+              "board_start_ms": 0.093322,
+              "model_duration_ms": 65.92624,
+              "model_end_ms": 65.92624,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 63.652402,
+              "board_end_ms": 130.806104,
+              "board_gap_ms": 0.00135,
+              "board_start_ms": 67.153702,
+              "model_duration_ms": 64.73129333333333,
+              "model_end_ms": 130.65753333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 65.92624,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00018,
+              "submit_after_previous_end_ms": 0.00117
+            },
+            {
+              "board_duration_ms": 63.762565,
+              "board_end_ms": 194.570019,
+              "board_gap_ms": 0.00135,
+              "board_start_ms": 130.807454,
+              "model_duration_ms": 64.58630666666667,
+              "model_end_ms": 195.24384,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 130.65753333333333,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00019,
+              "submit_after_previous_end_ms": 0.00116
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00074,
+          "invocations": [
+            {
+              "board_duration_ms": 67.675727,
+              "board_end_ms": 67.861442,
+              "board_gap_ms": null,
+              "board_start_ms": 0.185715,
+              "model_duration_ms": 66.14449333333333,
+              "model_end_ms": 66.14449333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 63.622241,
+              "board_end_ms": 131.484423,
+              "board_gap_ms": 0.00074,
+              "board_start_ms": 67.862182,
+              "model_duration_ms": 64.73129333333333,
+              "model_end_ms": 130.87578666666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 66.14449333333333,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00011,
+              "submit_after_previous_end_ms": 0.00063
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00058,
+          "invocations": [
+            {
+              "board_duration_ms": 67.607385,
+              "board_end_ms": 67.867572,
+              "board_gap_ms": null,
+              "board_start_ms": 0.260187,
+              "model_duration_ms": 66.36294666666667,
+              "model_end_ms": 66.36294666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 63.93301,
+              "board_end_ms": 131.801162,
+              "board_gap_ms": 0.00058,
+              "board_start_ms": 67.868152,
+              "model_duration_ms": 64.73129333333333,
+              "model_end_ms": 131.09424,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 66.36294666666667,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 9e-05,
+              "submit_after_previous_end_ms": 0.00049
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.0006,
+          "invocations": [
+            {
+              "board_duration_ms": 67.832742,
+              "board_end_ms": 68.173861,
+              "board_gap_ms": null,
+              "board_start_ms": 0.341119,
+              "model_duration_ms": 66.5814,
+              "model_end_ms": 66.5814,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 63.961111,
+              "board_end_ms": 132.135572,
+              "board_gap_ms": 0.0006,
+              "board_start_ms": 68.174461,
+              "model_duration_ms": 64.73129333333333,
+              "model_end_ms": 131.31269333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 66.5814,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0001,
+              "submit_after_previous_end_ms": 0.0005
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 3
+        }
+      ],
+      "id": "su_candidate",
+      "timing": {
+        "board_compute_span_ms": 395.82404,
+        "board_sum_round_spans_ms": 395.689366,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 0.9865263531408214,
+        "predicted_no_host_ms": 390.49084666666664,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 201.118547,
+            "predicted_no_host_ms": 195.2457,
+            "round": 1
+          },
+          {
+            "board_kernel_span_ms": 194.570819,
+            "predicted_no_host_ms": 195.24514666666667,
+            "round": 2
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      }
+    },
+    {
+      "groups": [
+        {
+          "board_gap_sum_ms": 6.340402,
+          "invocations": [
+            {
+              "board_duration_ms": 564.875123,
+              "board_end_ms": 564.940485,
+              "board_gap_ms": null,
+              "board_start_ms": 0.065362,
+              "model_duration_ms": 572.2466733333333,
+              "model_end_ms": 572.2466733333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 561.383523,
+              "board_end_ms": 1128.916212,
+              "board_gap_ms": 2.592204,
+              "board_start_ms": 567.532689,
+              "model_duration_ms": 571.16568,
+              "model_end_ms": 1143.4123533333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 572.2466733333333,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00028,
+              "submit_after_previous_end_ms": 2.591924
+            },
+            {
+              "board_duration_ms": 561.612709,
+              "board_end_ms": 1694.277119,
+              "board_gap_ms": 3.748198,
+              "board_start_ms": 1132.66441,
+              "model_duration_ms": 571.11206,
+              "model_end_ms": 1714.5244133333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1143.4123533333334,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00035,
+              "submit_after_previous_end_ms": 3.747848
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 2.625776,
+          "invocations": [
+            {
+              "board_duration_ms": 562.474154,
+              "board_end_ms": 562.617708,
+              "board_gap_ms": null,
+              "board_start_ms": 0.143554,
+              "model_duration_ms": 571.2290333333333,
+              "model_end_ms": 571.2290333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 561.924138,
+              "board_end_ms": 1127.167622,
+              "board_gap_ms": 2.625776,
+              "board_start_ms": 565.243484,
+              "model_duration_ms": 571.147,
+              "model_end_ms": 1142.3760333333332,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 571.2290333333333,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00033,
+              "submit_after_previous_end_ms": 2.625446
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00145,
+          "invocations": [
+            {
+              "board_duration_ms": 562.67487,
+              "board_end_ms": 566.903161,
+              "board_gap_ms": null,
+              "board_start_ms": 4.228291,
+              "model_duration_ms": 571.2263733333333,
+              "model_end_ms": 571.2263733333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 562.095594,
+              "board_end_ms": 1129.000205,
+              "board_gap_ms": 0.00145,
+              "board_start_ms": 566.904611,
+              "model_duration_ms": 571.1355133333333,
+              "model_end_ms": 1142.3618866666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 571.2263733333333,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00022,
+              "submit_after_previous_end_ms": 0.00123
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 2.78361,
+          "invocations": [
+            {
+              "board_duration_ms": 561.847296,
+              "board_end_ms": 568.075195,
+              "board_gap_ms": null,
+              "board_start_ms": 6.227899,
+              "model_duration_ms": 571.1719466666667,
+              "model_end_ms": 571.1719466666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 561.264989,
+              "board_end_ms": 1132.123794,
+              "board_gap_ms": 2.78361,
+              "board_start_ms": 570.858805,
+              "model_duration_ms": 571.1273533333333,
+              "model_end_ms": 1142.2993,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 571.1719466666667,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00025,
+              "submit_after_previous_end_ms": 2.78336
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00401,
+          "invocations": [
+            {
+              "board_duration_ms": 111.302968,
+              "board_end_ms": 111.39158,
+              "board_gap_ms": null,
+              "board_start_ms": 0.088612,
+              "model_duration_ms": 110.48879333333333,
+              "model_end_ms": 110.48879333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 563.963087,
+              "board_end_ms": 675.355917,
+              "board_gap_ms": 0.00125,
+              "board_start_ms": 111.39283,
+              "model_duration_ms": 571.1536,
+              "model_end_ms": 681.6423933333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 110.48879333333333,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00013,
+              "submit_after_previous_end_ms": 0.00112
+            },
+            {
+              "board_duration_ms": 565.030977,
+              "board_end_ms": 1240.389654,
+              "board_gap_ms": 0.00276,
+              "board_start_ms": 675.358677,
+              "model_duration_ms": 571.1221266666666,
+              "model_end_ms": 1252.76452,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 681.6423933333333,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00042,
+              "submit_after_previous_end_ms": 0.00234
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00107,
+          "invocations": [
+            {
+              "board_duration_ms": 111.542564,
+              "board_end_ms": 111.709179,
+              "board_gap_ms": null,
+              "board_start_ms": 0.166615,
+              "model_duration_ms": 110.70704666666667,
+              "model_end_ms": 110.70704666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 563.968297,
+              "board_end_ms": 675.678546,
+              "board_gap_ms": 0.00107,
+              "board_start_ms": 111.710249,
+              "model_duration_ms": 571.1536,
+              "model_end_ms": 681.8606466666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 110.70704666666667,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00019,
+              "submit_after_previous_end_ms": 0.00088
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00127,
+          "invocations": [
+            {
+              "board_duration_ms": 112.244375,
+              "board_end_ms": 112.512982,
+              "board_gap_ms": null,
+              "board_start_ms": 0.268607,
+              "model_duration_ms": 110.9255,
+              "model_end_ms": 110.9255,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 563.482053,
+              "board_end_ms": 675.996305,
+              "board_gap_ms": 0.00127,
+              "board_start_ms": 112.514252,
+              "model_duration_ms": 571.1536,
+              "model_end_ms": 682.0791,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 110.9255,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00018,
+              "submit_after_previous_end_ms": 0.00109
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00119,
+          "invocations": [
+            {
+              "board_duration_ms": 113.738927,
+              "board_end_ms": 114.086637,
+              "board_gap_ms": null,
+              "board_start_ms": 0.34771,
+              "model_duration_ms": 111.14395333333333,
+              "model_end_ms": 111.14395333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 564.748959,
+              "board_end_ms": 678.836786,
+              "board_gap_ms": 0.00119,
+              "board_start_ms": 114.087827,
+              "model_duration_ms": 571.1536,
+              "model_end_ms": 682.2975533333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 111.14395333333333,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00019,
+              "submit_after_previous_end_ms": 0.001
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.0052,
+          "invocations": [
+            {
+              "board_duration_ms": 564.909165,
+              "board_end_ms": 565.002207,
+              "board_gap_ms": null,
+              "board_start_ms": 0.093042,
+              "model_duration_ms": 572.2469,
+              "model_end_ms": 572.2469,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 561.350972,
+              "board_end_ms": 1126.355889,
+              "board_gap_ms": 0.00271,
+              "board_start_ms": 565.004917,
+              "model_duration_ms": 571.1655266666667,
+              "model_end_ms": 1143.4124266666668,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 572.2469,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00035,
+              "submit_after_previous_end_ms": 0.00236
+            },
+            {
+              "board_duration_ms": 561.883217,
+              "board_end_ms": 1688.241596,
+              "board_gap_ms": 0.00249,
+              "board_start_ms": 1126.358379,
+              "model_duration_ms": 571.112,
+              "model_end_ms": 1714.5244266666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1143.4124266666668,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00037,
+              "submit_after_previous_end_ms": 0.00212
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00262,
+          "invocations": [
+            {
+              "board_duration_ms": 562.014012,
+              "board_end_ms": 562.203177,
+              "board_gap_ms": null,
+              "board_start_ms": 0.189165,
+              "model_duration_ms": 571.2293,
+              "model_end_ms": 571.2293,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 561.881726,
+              "board_end_ms": 1124.087523,
+              "board_gap_ms": 0.00262,
+              "board_start_ms": 562.205797,
+              "model_duration_ms": 571.14694,
+              "model_end_ms": 1142.37624,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 571.2293,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00033,
+              "submit_after_previous_end_ms": 0.00229
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00258,
+          "invocations": [
+            {
+              "board_duration_ms": 562.65475,
+              "board_end_ms": 562.923177,
+              "board_gap_ms": null,
+              "board_start_ms": 0.268427,
+              "model_duration_ms": 571.22666,
+              "model_end_ms": 571.22666,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 562.117644,
+              "board_end_ms": 1125.043401,
+              "board_gap_ms": 0.00258,
+              "board_start_ms": 562.925757,
+              "model_duration_ms": 571.1354933333333,
+              "model_end_ms": 1142.3621533333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 571.22666,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00035,
+              "submit_after_previous_end_ms": 0.00223
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00114,
+          "invocations": [
+            {
+              "board_duration_ms": 561.872267,
+              "board_end_ms": 562.224217,
+              "board_gap_ms": null,
+              "board_start_ms": 0.35195,
+              "model_duration_ms": 571.1720933333334,
+              "model_end_ms": 571.1720933333334,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 561.266229,
+              "board_end_ms": 1123.491586,
+              "board_gap_ms": 0.00114,
+              "board_start_ms": 562.225357,
+              "model_duration_ms": 571.1274333333333,
+              "model_end_ms": 1142.2995266666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 571.1720933333334,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00015,
+              "submit_after_previous_end_ms": 0.00099
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.0046300000000000004,
+          "invocations": [
+            {
+              "board_duration_ms": 111.322678,
+              "board_end_ms": 111.450311,
+              "board_gap_ms": null,
+              "board_start_ms": 0.127633,
+              "model_duration_ms": 110.48902,
+              "model_end_ms": 110.48902,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 561.369332,
+              "board_end_ms": 672.821713,
+              "board_gap_ms": 0.00207,
+              "board_start_ms": 111.452381,
+              "model_duration_ms": 571.1534466666667,
+              "model_end_ms": 681.6424666666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 110.48902,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00026,
+              "submit_after_previous_end_ms": 0.00181
+            },
+            {
+              "board_duration_ms": 561.736584,
+              "board_end_ms": 1234.560857,
+              "board_gap_ms": 0.00256,
+              "board_start_ms": 672.824273,
+              "model_duration_ms": 571.1220666666667,
+              "model_end_ms": 1252.7645333333332,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 681.6424666666667,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00031,
+              "submit_after_previous_end_ms": 0.00225
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.00092,
+          "invocations": [
+            {
+              "board_duration_ms": 111.562675,
+              "board_end_ms": 111.776801,
+              "board_gap_ms": null,
+              "board_start_ms": 0.214126,
+              "model_duration_ms": 110.70727333333333,
+              "model_end_ms": 110.70727333333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 561.370942,
+              "board_end_ms": 673.148663,
+              "board_gap_ms": 0.00092,
+              "board_start_ms": 111.777721,
+              "model_duration_ms": 571.1534466666667,
+              "model_end_ms": 681.86072,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 110.70727333333333,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00013,
+              "submit_after_previous_end_ms": 0.00079
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00085,
+          "invocations": [
+            {
+              "board_duration_ms": 111.780801,
+              "board_end_ms": 112.079069,
+              "board_gap_ms": null,
+              "board_start_ms": 0.298268,
+              "model_duration_ms": 110.92572666666666,
+              "model_end_ms": 110.92572666666666,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 561.430124,
+              "board_end_ms": 673.510043,
+              "board_gap_ms": 0.00085,
+              "board_start_ms": 112.079919,
+              "model_duration_ms": 571.1534466666667,
+              "model_end_ms": 682.0791733333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 110.92572666666666,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00013,
+              "submit_after_previous_end_ms": 0.00072
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00097,
+          "invocations": [
+            {
+              "board_duration_ms": 112.019137,
+              "board_end_ms": 112.402188,
+              "board_gap_ms": null,
+              "board_start_ms": 0.383051,
+              "model_duration_ms": 111.14418,
+              "model_end_ms": 111.14418,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 561.385803,
+              "board_end_ms": 673.788961,
+              "board_gap_ms": 0.00097,
+              "board_start_ms": 112.403158,
+              "model_duration_ms": 571.1534466666667,
+              "model_end_ms": 682.2976266666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 111.14418,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00014,
+              "submit_after_previous_end_ms": 0.00083
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 2,
+          "stage": "gather",
+          "worker": 3
+        }
+      ],
+      "id": "su_original",
+      "timing": {
+        "board_compute_span_ms": 3382.743252,
+        "board_sum_round_spans_ms": 3382.518715,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 1.0136887681241022,
+        "predicted_no_host_ms": 3429.04884,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 1694.277119,
+            "predicted_no_host_ms": 1714.5244133333333,
+            "round": 1
+          },
+          {
+            "board_kernel_span_ms": 1688.241596,
+            "predicted_no_host_ms": 1714.5244266666666,
+            "round": 2
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      }
+    },
+    {
+      "groups": [
+        {
+          "board_gap_sum_ms": 27.714203,
+          "invocations": [
+            {
+              "board_duration_ms": 59.939666,
+              "board_end_ms": 64.124755,
+              "board_gap_ms": null,
+              "board_start_ms": 4.185089,
+              "model_duration_ms": 56.23078666666667,
+              "model_end_ms": 56.23078666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 0.081312,
+              "board_end_ms": 73.289707,
+              "board_gap_ms": 9.08364,
+              "board_start_ms": 73.208395,
+              "model_duration_ms": 0.00158,
+              "model_end_ms": 56.232366666666664,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 56.23078666666667,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 9.08348
+            },
+            {
+              "board_duration_ms": 0.068422,
+              "board_end_ms": 81.097861,
+              "board_gap_ms": 7.739732,
+              "board_start_ms": 81.029439,
+              "model_duration_ms": 0.0015666666666666667,
+              "model_end_ms": 56.23393333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 56.232366666666664,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00014,
+              "submit_after_previous_end_ms": 7.739592
+            },
+            {
+              "board_duration_ms": 0.068632,
+              "board_end_ms": 88.644117,
+              "board_gap_ms": 7.477624,
+              "board_start_ms": 88.575485,
+              "model_duration_ms": 0.0015666666666666667,
+              "model_end_ms": 56.2355,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 56.23393333333333,
+              "partition": 12,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00014,
+              "submit_after_previous_end_ms": 7.477484
+            },
+            {
+              "board_duration_ms": 0.065012,
+              "board_end_ms": 92.122336,
+              "board_gap_ms": 3.413207,
+              "board_start_ms": 92.057324,
+              "model_duration_ms": 0.0015666666666666667,
+              "model_end_ms": 56.237066666666664,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 56.2355,
+              "partition": 16,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 8e-05,
+              "submit_after_previous_end_ms": 3.413127
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 13.030833,
+          "invocations": [
+            {
+              "board_duration_ms": 54.820299,
+              "board_end_ms": 54.985513,
+              "board_gap_ms": null,
+              "board_start_ms": 0.165214,
+              "model_duration_ms": 55.122953333333335,
+              "model_end_ms": 55.122953333333335,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 0.061122,
+              "board_end_ms": 55.047315,
+              "board_gap_ms": 0.00068,
+              "board_start_ms": 54.986193,
+              "model_duration_ms": 0.00156,
+              "model_end_ms": 55.12451333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 55.122953333333335,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 8e-05,
+              "submit_after_previous_end_ms": 0.0006
+            },
+            {
+              "board_duration_ms": 0.080162,
+              "board_end_ms": 58.559526,
+              "board_gap_ms": 3.432049,
+              "board_start_ms": 58.479364,
+              "model_duration_ms": 0.00156,
+              "model_end_ms": 55.12607333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 55.12451333333333,
+              "partition": 9,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0002,
+              "submit_after_previous_end_ms": 3.431849
+            },
+            {
+              "board_duration_ms": 0.074413,
+              "board_end_ms": 62.665244,
+              "board_gap_ms": 4.031305,
+              "board_start_ms": 62.590831,
+              "model_duration_ms": 0.00156,
+              "model_end_ms": 55.127633333333335,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 55.12607333333333,
+              "partition": 13,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 7e-05,
+              "submit_after_previous_end_ms": 4.031235
+            },
+            {
+              "board_duration_ms": 0.101143,
+              "board_end_ms": 68.333186,
+              "board_gap_ms": 5.566799,
+              "board_start_ms": 68.232043,
+              "model_duration_ms": 0.0015666666666666667,
+              "model_end_ms": 55.1292,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 55.127633333333335,
+              "partition": 17,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 7e-05,
+              "submit_after_previous_end_ms": 5.566729
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 23.132942,
+          "invocations": [
+            {
+              "board_duration_ms": 54.367356,
+              "board_end_ms": 60.969265,
+              "board_gap_ms": null,
+              "board_start_ms": 6.601909,
+              "model_duration_ms": 54.78906,
+              "model_end_ms": 54.78906,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 0.064762,
+              "board_end_ms": 64.751133,
+              "board_gap_ms": 3.717106,
+              "board_start_ms": 64.686371,
+              "model_duration_ms": 0.00156,
+              "model_end_ms": 54.79062,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 54.78906,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00015,
+              "submit_after_previous_end_ms": 3.716956
+            },
+            {
+              "board_duration_ms": 0.065532,
+              "board_end_ms": 75.575543,
+              "board_gap_ms": 10.758878,
+              "board_start_ms": 75.510011,
+              "model_duration_ms": 0.00156,
+              "model_end_ms": 54.79218,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 54.79062,
+              "partition": 10,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00017,
+              "submit_after_previous_end_ms": 10.758708
+            },
+            {
+              "board_duration_ms": 0.062971,
+              "board_end_ms": 84.295472,
+              "board_gap_ms": 8.656958,
+              "board_start_ms": 84.232501,
+              "model_duration_ms": 0.00156,
+              "model_end_ms": 54.79374,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 54.79218,
+              "partition": 14,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00012,
+              "submit_after_previous_end_ms": 8.656838
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 22.363979,
+          "invocations": [
+            {
+              "board_duration_ms": 54.393468,
+              "board_end_ms": 63.783166,
+              "board_gap_ms": null,
+              "board_start_ms": 9.389698,
+              "model_duration_ms": 55.063633333333335,
+              "model_end_ms": 55.063633333333335,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 0.071632,
+              "board_end_ms": 70.385004,
+              "board_gap_ms": 6.530206,
+              "board_start_ms": 70.313372,
+              "model_duration_ms": 0.00156,
+              "model_end_ms": 55.06519333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 55.063633333333335,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0001,
+              "submit_after_previous_end_ms": 6.530106
+            },
+            {
+              "board_duration_ms": 0.069852,
+              "board_end_ms": 78.931179,
+              "board_gap_ms": 8.476323,
+              "board_start_ms": 78.861327,
+              "model_duration_ms": 0.00156,
+              "model_end_ms": 55.06675333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 55.06519333333333,
+              "partition": 11,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00014,
+              "submit_after_previous_end_ms": 8.476183
+            },
+            {
+              "board_duration_ms": 0.061392,
+              "board_end_ms": 86.350021,
+              "board_gap_ms": 7.35745,
+              "board_start_ms": 86.288629,
+              "model_duration_ms": 0.0015666666666666667,
+              "model_end_ms": 55.06832,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 55.06675333333333,
+              "partition": 15,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 8e-05,
+              "submit_after_previous_end_ms": 7.35737
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00401,
+          "invocations": [
+            {
+              "board_duration_ms": 64.224378,
+              "board_end_ms": 64.323611,
+              "board_gap_ms": null,
+              "board_start_ms": 0.099233,
+              "model_duration_ms": 56.449353333333335,
+              "model_end_ms": 56.449353333333335,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 9.197563,
+              "board_end_ms": 73.521954,
+              "board_gap_ms": 0.00078,
+              "board_start_ms": 64.324391,
+              "model_duration_ms": 0.8736133333333334,
+              "model_end_ms": 57.322966666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 56.449353333333335,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0002,
+              "submit_after_previous_end_ms": 0.00058
+            },
+            {
+              "board_duration_ms": 7.800463,
+              "board_end_ms": 81.323617,
+              "board_gap_ms": 0.0012,
+              "board_start_ms": 73.523154,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 58.19678,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 57.322966666666666,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0002,
+              "submit_after_previous_end_ms": 0.001
+            },
+            {
+              "board_duration_ms": 7.549526,
+              "board_end_ms": 88.874213,
+              "board_gap_ms": 0.00107,
+              "board_start_ms": 81.324687,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 59.070593333333335,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 58.19678,
+              "partition": 12,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00017,
+              "submit_after_previous_end_ms": 0.0009
+            },
+            {
+              "board_duration_ms": 3.463839,
+              "board_end_ms": 92.339012,
+              "board_gap_ms": 0.00096,
+              "board_start_ms": 88.875173,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 59.944406666666666,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 59.070593333333335,
+              "partition": 16,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 0.0008
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.0038599999999999997,
+          "invocations": [
+            {
+              "board_duration_ms": 64.458655,
+              "board_end_ms": 64.65103,
+              "board_gap_ms": null,
+              "board_start_ms": 0.192375,
+              "model_duration_ms": 56.667606666666664,
+              "model_end_ms": 56.667606666666664,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 9.172153,
+              "board_end_ms": 73.823903,
+              "board_gap_ms": 0.00072,
+              "board_start_ms": 64.65175,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 57.54142,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 56.667606666666664,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 7e-05,
+              "submit_after_previous_end_ms": 0.00065
+            },
+            {
+              "board_duration_ms": 7.794123,
+              "board_end_ms": 81.619326,
+              "board_gap_ms": 0.0013,
+              "board_start_ms": 73.825203,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 58.41523333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 57.54142,
+              "partition": 9,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 0.00114
+            },
+            {
+              "board_duration_ms": 7.550586,
+              "board_end_ms": 89.171112,
+              "board_gap_ms": 0.0012,
+              "board_start_ms": 81.620526,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 59.289046666666664,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 58.41523333333333,
+              "partition": 13,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00015,
+              "submit_after_previous_end_ms": 0.00105
+            },
+            {
+              "board_duration_ms": 3.450349,
+              "board_end_ms": 92.622101,
+              "board_gap_ms": 0.00064,
+              "board_start_ms": 89.171752,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 60.16286,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 59.289046666666664,
+              "partition": 17,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 0.00048
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00264,
+          "invocations": [
+            {
+              "board_duration_ms": 64.618389,
+              "board_end_ms": 64.899767,
+              "board_gap_ms": null,
+              "board_start_ms": 0.281378,
+              "model_duration_ms": 56.88606,
+              "model_end_ms": 56.88606,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 9.187773,
+              "board_end_ms": 74.08822,
+              "board_gap_ms": 0.00068,
+              "board_start_ms": 64.900447,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 57.75987333333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 56.88606,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 6e-05,
+              "submit_after_previous_end_ms": 0.00062
+            },
+            {
+              "board_duration_ms": 7.795593,
+              "board_end_ms": 81.884683,
+              "board_gap_ms": 0.00087,
+              "board_start_ms": 74.08909,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 58.63368666666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 57.75987333333333,
+              "partition": 10,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 0.00071
+            },
+            {
+              "board_duration_ms": 7.548676,
+              "board_end_ms": 89.434449,
+              "board_gap_ms": 0.00109,
+              "board_start_ms": 81.885773,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 59.5075,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 58.63368666666667,
+              "partition": 14,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 0.00093
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.00299,
+          "invocations": [
+            {
+              "board_duration_ms": 64.802904,
+              "board_end_ms": 65.178935,
+              "board_gap_ms": null,
+              "board_start_ms": 0.376031,
+              "model_duration_ms": 57.10451333333334,
+              "model_end_ms": 57.10451333333334,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 9.131922,
+              "board_end_ms": 74.311687,
+              "board_gap_ms": 0.00083,
+              "board_start_ms": 65.179765,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 57.97832666666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 57.10451333333334,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.0001,
+              "submit_after_previous_end_ms": 0.00073
+            },
+            {
+              "board_duration_ms": 7.787723,
+              "board_end_ms": 82.10048,
+              "board_gap_ms": 0.00107,
+              "board_start_ms": 74.312757,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 58.85214,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 57.97832666666667,
+              "partition": 11,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 0.00091
+            },
+            {
+              "board_duration_ms": 7.572256,
+              "board_end_ms": 89.673826,
+              "board_gap_ms": 0.00109,
+              "board_start_ms": 82.10157,
+              "model_duration_ms": 0.8738133333333333,
+              "model_end_ms": 59.72595333333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 58.85214,
+              "partition": 15,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00015,
+              "submit_after_previous_end_ms": 0.00094
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 3
+        }
+      ],
+      "id": "wk_candidate",
+      "timing": {
+        "board_compute_span_ms": 92.622101,
+        "board_sum_round_spans_ms": 92.622101,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 0.6495681486070659,
+        "predicted_no_host_ms": 60.164366666666666,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 92.622101,
+            "predicted_no_host_ms": 60.164366666666666,
+            "round": 1
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      }
+    },
+    {
+      "groups": [
+        {
+          "board_gap_sum_ms": 21.706541,
+          "invocations": [
+            {
+              "board_duration_ms": 1133.638007,
+              "board_end_ms": 1137.776326,
+              "board_gap_ms": null,
+              "board_start_ms": 4.138319,
+              "model_duration_ms": 1149.27682,
+              "model_end_ms": 1149.27682,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 1127.541122,
+              "board_end_ms": 2272.850894,
+              "board_gap_ms": 7.533446,
+              "board_start_ms": 1145.309772,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 2297.0273,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1149.27682,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00023,
+              "submit_after_previous_end_ms": 7.533216
+            },
+            {
+              "board_duration_ms": 1127.522122,
+              "board_end_ms": 3406.394038,
+              "board_gap_ms": 6.021022,
+              "board_start_ms": 2278.871916,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 3444.77778,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 2297.0273,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00032,
+              "submit_after_previous_end_ms": 6.020702
+            },
+            {
+              "board_duration_ms": 1127.481279,
+              "board_end_ms": 4539.119397,
+              "board_gap_ms": 5.24408,
+              "board_start_ms": 3411.638118,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 4592.52826,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 3444.77778,
+              "partition": 12,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00023,
+              "submit_after_previous_end_ms": 5.24385
+            },
+            {
+              "board_duration_ms": 1128.391516,
+              "board_end_ms": 5670.418906,
+              "board_gap_ms": 2.907993,
+              "board_start_ms": 4542.02739,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 5740.27874,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 4592.52826,
+              "partition": 16,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00026,
+              "submit_after_previous_end_ms": 2.907733
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 10.432068,
+          "invocations": [
+            {
+              "board_duration_ms": 1129.849609,
+              "board_end_ms": 1130.005494,
+              "board_gap_ms": null,
+              "board_start_ms": 0.155885,
+              "model_duration_ms": 1148.17418,
+              "model_end_ms": 1148.17418,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 1128.584602,
+              "board_end_ms": 2258.595216,
+              "board_gap_ms": 0.00512,
+              "board_start_ms": 1130.010614,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 2295.92466,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1148.17418,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00043,
+              "submit_after_previous_end_ms": 0.00469
+            },
+            {
+              "board_duration_ms": 1128.582222,
+              "board_end_ms": 3390.489533,
+              "board_gap_ms": 3.312095,
+              "board_start_ms": 2261.907311,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 3443.67514,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 2295.92466,
+              "partition": 9,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00039,
+              "submit_after_previous_end_ms": 3.311705
+            },
+            {
+              "board_duration_ms": 1128.54259,
+              "board_end_ms": 4522.893193,
+              "board_gap_ms": 3.86107,
+              "board_start_ms": 3394.350603,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 4591.42562,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 3443.67514,
+              "partition": 13,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00024,
+              "submit_after_previous_end_ms": 3.86083
+            },
+            {
+              "board_duration_ms": 1129.214349,
+              "board_end_ms": 5655.361325,
+              "board_gap_ms": 3.253783,
+              "board_start_ms": 4526.146976,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 5739.1761,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 4591.42562,
+              "partition": 17,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00025,
+              "submit_after_previous_end_ms": 3.253533
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 13.178486,
+          "invocations": [
+            {
+              "board_duration_ms": 1130.609971,
+              "board_end_ms": 1137.137808,
+              "board_gap_ms": null,
+              "board_start_ms": 6.527837,
+              "model_duration_ms": 1148.1725733333333,
+              "model_end_ms": 1148.1725733333333,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 1129.975972,
+              "board_end_ms": 2272.605487,
+              "board_gap_ms": 5.491707,
+              "board_start_ms": 1142.629515,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 2295.9230533333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1148.1725733333333,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00038,
+              "submit_after_previous_end_ms": 5.491327
+            },
+            {
+              "board_duration_ms": 1129.515549,
+              "board_end_ms": 3405.696268,
+              "board_gap_ms": 3.575232,
+              "board_start_ms": 2276.180719,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 3443.673533333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 2295.9230533333334,
+              "partition": 10,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00041,
+              "submit_after_previous_end_ms": 3.574822
+            },
+            {
+              "board_duration_ms": 1129.674412,
+              "board_end_ms": 4539.482227,
+              "board_gap_ms": 4.111547,
+              "board_start_ms": 3409.807815,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 4591.424013333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 3443.673533333333,
+              "partition": 14,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00023,
+              "submit_after_previous_end_ms": 4.111317
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 18.708915,
+          "invocations": [
+            {
+              "board_duration_ms": 1129.17773,
+              "board_end_ms": 1138.427445,
+              "board_gap_ms": null,
+              "board_start_ms": 9.249715,
+              "model_duration_ms": 1148.10266,
+              "model_end_ms": 1148.10266,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 1128.812338,
+              "board_end_ms": 2277.134756,
+              "board_gap_ms": 9.894973,
+              "board_start_ms": 1148.322418,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 2295.85314,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1148.10266,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00044,
+              "submit_after_previous_end_ms": 9.894533
+            },
+            {
+              "board_duration_ms": 1128.410537,
+              "board_end_ms": 3409.526227,
+              "board_gap_ms": 3.980934,
+              "board_start_ms": 2281.11569,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 3443.60362,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 2295.85314,
+              "partition": 11,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00013,
+              "submit_after_previous_end_ms": 3.980804
+            },
+            {
+              "board_duration_ms": 1128.336104,
+              "board_end_ms": 4542.695339,
+              "board_gap_ms": 4.833008,
+              "board_start_ms": 3414.359235,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 4591.3541,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 3443.60362,
+              "partition": 15,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00034,
+              "submit_after_previous_end_ms": 4.832668
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "adapter",
+          "worker": 3
+        },
+        {
+          "board_gap_sum_ms": 0.00877,
+          "invocations": [
+            {
+              "board_duration_ms": 101.124925,
+              "board_end_ms": 101.219868,
+              "board_gap_ms": null,
+              "board_start_ms": 0.094943,
+              "model_duration_ms": 94.21980666666667,
+              "model_end_ms": 94.21980666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 0
+            },
+            {
+              "board_duration_ms": 1044.797384,
+              "board_end_ms": 1146.018932,
+              "board_gap_ms": 0.00168,
+              "board_start_ms": 101.221548,
+              "model_duration_ms": 1055.2787866666667,
+              "model_end_ms": 1149.4985933333332,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 94.21980666666667,
+              "partition": 4,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00017,
+              "submit_after_previous_end_ms": 0.00151
+            },
+            {
+              "board_duration_ms": 1133.460661,
+              "board_end_ms": 2279.483053,
+              "board_gap_ms": 0.00346,
+              "board_start_ms": 1146.022392,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 2297.2490733333334,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1149.4985933333332,
+              "partition": 8,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00052,
+              "submit_after_previous_end_ms": 0.00294
+            },
+            {
+              "board_duration_ms": 1132.531785,
+              "board_end_ms": 3412.016988,
+              "board_gap_ms": 0.00215,
+              "board_start_ms": 2279.485203,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 3444.9995533333336,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 2297.2490733333334,
+              "partition": 12,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00024,
+              "submit_after_previous_end_ms": 0.00191
+            },
+            {
+              "board_duration_ms": 1130.383313,
+              "board_end_ms": 4542.401781,
+              "board_gap_ms": 0.00148,
+              "board_start_ms": 3412.018468,
+              "model_duration_ms": 1147.7506066666667,
+              "model_end_ms": 4592.75016,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 3444.9995533333336,
+              "partition": 16,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00017,
+              "submit_after_previous_end_ms": 0.00131
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 0
+        },
+        {
+          "board_gap_sum_ms": 0.005581,
+          "invocations": [
+            {
+              "board_duration_ms": 102.024521,
+              "board_end_ms": 102.204626,
+              "board_gap_ms": null,
+              "board_start_ms": 0.180105,
+              "model_duration_ms": 94.43806,
+              "model_end_ms": 94.43806,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 1
+            },
+            {
+              "board_duration_ms": 1044.430383,
+              "board_end_ms": 1146.635879,
+              "board_gap_ms": 0.00087,
+              "board_start_ms": 102.205496,
+              "model_duration_ms": 1055.2787866666667,
+              "model_end_ms": 1149.7168466666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 94.43806,
+              "partition": 5,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00011,
+              "submit_after_previous_end_ms": 0.00076
+            },
+            {
+              "board_duration_ms": 1133.627256,
+              "board_end_ms": 2280.264826,
+              "board_gap_ms": 0.001691,
+              "board_start_ms": 1146.63757,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 2297.467326666667,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1149.7168466666667,
+              "partition": 9,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00023,
+              "submit_after_previous_end_ms": 0.001461
+            },
+            {
+              "board_duration_ms": 1132.102172,
+              "board_end_ms": 3412.368968,
+              "board_gap_ms": 0.00197,
+              "board_start_ms": 2280.266796,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 3445.2178066666665,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 2297.467326666667,
+              "partition": 13,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00048,
+              "submit_after_previous_end_ms": 0.00149
+            },
+            {
+              "board_duration_ms": 1130.344432,
+              "board_end_ms": 4542.71445,
+              "board_gap_ms": 0.00105,
+              "board_start_ms": 3412.370018,
+              "model_duration_ms": 1147.7506066666667,
+              "model_end_ms": 4592.968413333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 3445.2178066666665,
+              "partition": 17,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00016,
+              "submit_after_previous_end_ms": 0.00089
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 1
+        },
+        {
+          "board_gap_sum_ms": 0.00434,
+          "invocations": [
+            {
+              "board_duration_ms": 101.95741,
+              "board_end_ms": 102.213717,
+              "board_gap_ms": null,
+              "board_start_ms": 0.256307,
+              "model_duration_ms": 94.65651333333334,
+              "model_end_ms": 94.65651333333334,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 2
+            },
+            {
+              "board_duration_ms": 1044.801733,
+              "board_end_ms": 1147.01651,
+              "board_gap_ms": 0.00106,
+              "board_start_ms": 102.214777,
+              "model_duration_ms": 1055.2787866666667,
+              "model_end_ms": 1149.9353,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 94.65651333333334,
+              "partition": 6,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00011,
+              "submit_after_previous_end_ms": 0.00095
+            },
+            {
+              "board_duration_ms": 1133.629227,
+              "board_end_ms": 2280.647497,
+              "board_gap_ms": 0.00176,
+              "board_start_ms": 1147.01827,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 2297.68578,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1149.9353,
+              "partition": 10,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00019,
+              "submit_after_previous_end_ms": 0.00157
+            },
+            {
+              "board_duration_ms": 1131.989969,
+              "board_end_ms": 3412.638986,
+              "board_gap_ms": 0.00152,
+              "board_start_ms": 2280.649017,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 3445.43626,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 2297.68578,
+              "partition": 14,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00023,
+              "submit_after_previous_end_ms": 0.00129
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 2
+        },
+        {
+          "board_gap_sum_ms": 0.006529999999999999,
+          "invocations": [
+            {
+              "board_duration_ms": 101.888777,
+              "board_end_ms": 102.222107,
+              "board_gap_ms": null,
+              "board_start_ms": 0.33333,
+              "model_duration_ms": 94.87496666666667,
+              "model_end_ms": 94.87496666666667,
+              "model_gap_ms": null,
+              "model_start_ms": 0.0,
+              "partition": 3
+            },
+            {
+              "board_duration_ms": 1046.469721,
+              "board_end_ms": 1148.692638,
+              "board_gap_ms": 0.00081,
+              "board_start_ms": 102.222917,
+              "model_duration_ms": 1055.2787866666667,
+              "model_end_ms": 1150.1537533333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 94.87496666666667,
+              "partition": 7,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00011,
+              "submit_after_previous_end_ms": 0.0007
+            },
+            {
+              "board_duration_ms": 1132.787193,
+              "board_end_ms": 2281.481391,
+              "board_gap_ms": 0.00156,
+              "board_start_ms": 1148.694198,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 2297.904233333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 1150.1537533333333,
+              "partition": 11,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00023,
+              "submit_after_previous_end_ms": 0.00133
+            },
+            {
+              "board_duration_ms": 1133.259975,
+              "board_end_ms": 3414.745526,
+              "board_gap_ms": 0.00416,
+              "board_start_ms": 2281.485551,
+              "model_duration_ms": 1147.75048,
+              "model_end_ms": 3445.6547133333333,
+              "model_gap_ms": 0.0,
+              "model_start_ms": 2297.904233333333,
+              "partition": 15,
+              "queued_before_previous_end": true,
+              "start_after_submit_ms": 0.00047,
+              "submit_after_previous_end_ms": 0.00369
+            }
+          ],
+          "model_gap_sum_ms": 0,
+          "round": 1,
+          "stage": "gather",
+          "worker": 3
+        }
+      ],
+      "id": "wk_original",
+      "timing": {
+        "board_compute_span_ms": 5670.418906,
+        "board_sum_round_spans_ms": 5670.418906,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 1.012320048158361,
+        "predicted_no_host_ms": 5740.27874,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 5670.418906,
+            "predicted_no_host_ms": 5740.27874,
+            "round": 1
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      }
+    }
+  ],
+  "status": "INVOCATION_TIMING_DIAGNOSTIC",
+  "timing_fit_performed": false
+}

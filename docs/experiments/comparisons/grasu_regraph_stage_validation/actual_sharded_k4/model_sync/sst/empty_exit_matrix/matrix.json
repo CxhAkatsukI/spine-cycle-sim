@@ -1,0 +1,208 @@
+{
+  "claim": "same-input prediction with exact v3 replay, not identical-window FPGA calibration",
+  "hardware_timing_admitted": false,
+  "numerical_sources_unchanged_from_control": true,
+  "original_A4_match_admitted": false,
+  "plugin_reused": {
+    "path": "/data/chuxiao/experiments/sharded_k4_empty_exit_model_20261011/plugin/libspine_cycle.so",
+    "sha256": "f5e35639d9d59aa6aec51a3e5b9deceadffe83f5ce83bd9a60eddc29d77ade44"
+  },
+  "rows": [
+    {
+      "id": "au_candidate",
+      "ignored_result_fields": [],
+      "non_timing_counters_equal": true,
+      "timing": {
+        "board_compute_span_ms": 200.395434,
+        "board_sum_round_spans_ms": 200.20338900000002,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 0.962090051080372,
+        "predicted_no_host_ms": 192.79845333333333,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 103.474562,
+            "predicted_no_host_ms": 96.40028666666667,
+            "round": 1
+          },
+          {
+            "board_kernel_span_ms": 96.728827,
+            "predicted_no_host_ms": 96.39816666666667,
+            "round": 2
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      },
+      "v3_cycles": 15479318,
+      "v3_every_result_field_equal": true,
+      "v4_cycles": 28919768,
+      "v4_over_v3_cycles": 1.868284377903471
+    },
+    {
+      "id": "au_original",
+      "ignored_result_fields": [],
+      "non_timing_counters_equal": true,
+      "timing": {
+        "board_compute_span_ms": 2053.707765,
+        "board_sum_round_spans_ms": 2053.405776,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 1.0111320779857889,
+        "predicted_no_host_ms": 2076.5698,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 1031.341362,
+            "predicted_no_host_ms": 1038.2849666666666,
+            "round": 1
+          },
+          {
+            "board_kernel_span_ms": 1022.064414,
+            "predicted_no_host_ms": 1038.2848333333334,
+            "round": 2
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      },
+      "v3_cycles": 170695763,
+      "v3_every_result_field_equal": true,
+      "v4_cycles": 311485470,
+      "v4_over_v3_cycles": 1.8247990724878156
+    },
+    {
+      "id": "su_candidate",
+      "ignored_result_fields": [],
+      "non_timing_counters_equal": true,
+      "timing": {
+        "board_compute_span_ms": 395.82404,
+        "board_sum_round_spans_ms": 395.689366,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 0.9865263531408214,
+        "predicted_no_host_ms": 390.49084666666664,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 201.118547,
+            "predicted_no_host_ms": 195.2457,
+            "round": 1
+          },
+          {
+            "board_kernel_span_ms": 194.570819,
+            "predicted_no_host_ms": 195.24514666666667,
+            "round": 2
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      },
+      "v3_cycles": 25355911,
+      "v3_every_result_field_equal": true,
+      "v4_cycles": 58573627,
+      "v4_over_v3_cycles": 2.310058076793218
+    },
+    {
+      "id": "su_original",
+      "ignored_result_fields": [],
+      "non_timing_counters_equal": true,
+      "timing": {
+        "board_compute_span_ms": 3382.743252,
+        "board_sum_round_spans_ms": 3382.518715,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 1.0136887681241022,
+        "predicted_no_host_ms": 3429.04884,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 1694.277119,
+            "predicted_no_host_ms": 1714.5244133333333,
+            "round": 1
+          },
+          {
+            "board_kernel_span_ms": 1688.241596,
+            "predicted_no_host_ms": 1714.5244266666666,
+            "round": 2
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      },
+      "v3_cycles": 280052674,
+      "v3_every_result_field_equal": true,
+      "v4_cycles": 514357326,
+      "v4_over_v3_cycles": 1.8366449377305356
+    },
+    {
+      "id": "wk_candidate",
+      "ignored_result_fields": [],
+      "non_timing_counters_equal": true,
+      "timing": {
+        "board_compute_span_ms": 92.622101,
+        "board_sum_round_spans_ms": 92.622101,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 0.6495681486070659,
+        "predicted_no_host_ms": 60.164366666666666,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 92.622101,
+            "predicted_no_host_ms": 60.164366666666666,
+            "round": 1
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      },
+      "v3_cycles": 8745414,
+      "v3_every_result_field_equal": true,
+      "v4_cycles": 9024655,
+      "v4_over_v3_cycles": 1.0319299921078635
+    },
+    {
+      "id": "wk_original",
+      "ignored_result_fields": [],
+      "non_timing_counters_equal": true,
+      "timing": {
+        "board_compute_span_ms": 5670.418906,
+        "board_sum_round_spans_ms": 5670.418906,
+        "hardware_timing_admitted": false,
+        "limits": [
+          "XRT dispatch, same-CU relaunch and inter-round host gaps are absent from candidate",
+          "physical state BO addresses are deterministic model offsets, not captured FPGA addresses",
+          "kernel lifetimes include overlapping stalls and are not exclusive component counters"
+        ],
+        "nominal_predicted_over_board_span": 1.012320048158361,
+        "predicted_no_host_ms": 5740.27874,
+        "rounds": [
+          {
+            "board_kernel_span_ms": 5670.418906,
+            "predicted_no_host_ms": 5740.27874,
+            "round": 1
+          }
+        ],
+        "status": "DIAGNOSTIC_ONLY_WINDOWS_NOT_IDENTICAL"
+      },
+      "v3_cycles": 451314109,
+      "v3_every_result_field_equal": true,
+      "v4_cycles": 861041811,
+      "v4_over_v3_cycles": 1.9078548483845428
+    }
+  ],
+  "status": "EMPTY_EXIT_REAL_MATRIX_FUNCTIONAL_PASS_TIMING_DIAGNOSTIC",
+  "timing_fit_performed": false
+}
