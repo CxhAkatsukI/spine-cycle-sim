@@ -23,6 +23,10 @@ completed original-A4 comparison or a published-performance match.
    addresses interior empty rows. It retains an unsuccessful guard-only
    control and an effective explicit-helper RTL control. It is not routed or
    board-admitted and does not overwrite the earlier measured candidate.
+8. The [complete production-adapter AXI probe](adapter_axi/README.md)
+   binds the previous XO to the actual route manifest. Both twelve-case RTL
+   arms pass; eight row loads still repeat the same 64-byte memory line.
+   This identifies a further HLS input-path optimization, not FPGA timing.
 
 ## Candidate And Current Gates
 
@@ -32,7 +36,8 @@ The two independent HLS flags remain default-off:
   the known final edge packet, using the existing monotonic aligned-row ABI.
 - `GRASU_REGRAPH_ROW_PREFETCH`: read eight contiguous rows into a local cache
   before consuming them. This changes scheduling, not the AXI master width
-  or the update-maintained data structure.
+  or the update-maintained data structure. The later full-top AXI probe
+  confirms that these narrow row loads are not coalesced into one line read.
 
 No new sparse-source index is assumed free. The original implementation also
 has burst inference; the candidate must not be described as introducing

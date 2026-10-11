@@ -7,6 +7,14 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
+The [complete production-adapter AXI diagnostic](adapter_optimization/adapter_axi/README.md)
+now binds both test arms to their exact production XOs, including the
+previous routed version. All 24 full-top RTL cases pass. Eight row loads
+still reread one 64-byte line; skip-empty helps sparse rows but not the
+all-occupied path. This motivates explicit cache-line fetching in HLS.
+Synthetic RTL timing is not a new FPGA result; route, synchronized candidate
+timing and the final A4/K4 comparison remain open.
+
 The [optional weighted-SSSP A4 control](matched_a4/sssp_control/README.md)
 now supplies a same-arithmetic building block instead of comparing original
 fixed-point PR with production SSSP. It checks complete padded resident-round
