@@ -26,9 +26,12 @@ public:
     profile_id_ = params.find<std::string>("profile_id", "grasu_regraph_routed_sssp_compute_v1");
     independent_ = params.find<bool>("independent_read_write", false);
     routed_stream_depths_ = params.find<bool>("routed_stream_depths", false);
-    const auto expected_profile = routed_stream_depths_ ? "grasu_regraph_routed_sssp_compute_v3" :
+    routed_empty_exit_ = params.find<bool>("routed_empty_exit", false);
+    const auto expected_profile = routed_empty_exit_ ? "grasu_regraph_routed_sssp_compute_v4" :
+        routed_stream_depths_ ? "grasu_regraph_routed_sssp_compute_v3" :
         independent_ ? "grasu_regraph_routed_sssp_compute_v2" : "grasu_regraph_routed_sssp_compute_v1";
-    if (profile_id_ != expected_profile || (routed_stream_depths_ && !independent_))
+    if (profile_id_ != expected_profile || (routed_stream_depths_ && !independent_) ||
+        (routed_empty_exit_ && !routed_stream_depths_))
       throw std::invalid_argument("routed profile, AXI channels and stream depths disagree");
     if (output_path_.empty() || dram_config_.empty() || dram_output_.empty() || !max_cycles_)
       throw std::invalid_argument("missing routed SST paths or cycle limit");
@@ -51,6 +54,7 @@ public:
     RoutedReGraphConfig config;
     config.adapter.prefetch_rows = prefetch_;
     config.adapter.stop_after_last = stop_;
+    if (routed_empty_exit_) config.adapter.empty_segment_exit_cycles = 73;
     config.compute.cache_segments_per_half = fixture_.cache_segments;
     config.compute.runtime_physical_updates_per_shard = fixture_.physical_updates;
     config.compute.max_supersteps = 256;
@@ -107,7 +111,8 @@ public:
       {"stop_after_last", "Stop at last occupied row", "1"},
       {"profile_id", "Explicit model identity", "grasu_regraph_routed_sssp_compute_v1"},
       {"independent_read_write", "Separate shared-master AR/AW credits and R/B backpressure", "0"},
-      {"routed_stream_depths", "Routed depth-32 edge, Gather and mux streams; other queues unchanged", "0"})
+      {"routed_stream_depths", "Routed depth-32 edge, Gather and mux streams; other queues unchanged", "0"},
+      {"routed_empty_exit", "Routed RTL 73-cycle exit for each visited empty row", "0"})
 private:
   Scheduler scheduler_;
   RoutedReGraphFixture fixture_;
@@ -116,6 +121,6 @@ private:
   SST::TimeConverter picoseconds_;
   std::string output_path_, dram_config_, dram_output_, profile_id_;
   std::uint64_t max_cycles_{};
-  bool prefetch_{}, stop_{}, independent_{}, routed_stream_depths_{};
+  bool prefetch_{}, stop_{}, independent_{}, routed_stream_depths_{}, routed_empty_exit_{};
 };
 } // namespace spine::sim::sst_adapter

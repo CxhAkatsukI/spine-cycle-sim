@@ -41,12 +41,15 @@ struct ReGraphPmaAdapterConfig {
   std::uint64_t read_pipeline_cycles{71};
   std::uint64_t row_control_cycles{6};
   std::uint64_t segment_issue_interval{2};
+  std::uint64_t empty_segment_exit_cycles{0};
 };
 
 struct ReGraphPmaAdapterCounters {
   std::uint64_t extent_reads{};
   std::uint64_t row_reads{};
   std::uint64_t rows_visited{};
+  std::uint64_t empty_rows{};
+  std::uint64_t empty_exit_cycles{};
   std::uint64_t segment_reads{};
   std::uint64_t responses{};
   std::uint64_t packets{};
@@ -75,7 +78,7 @@ public:
   void commit(const CycleContext &context) override;
 
 private:
-  enum class Phase { kIdle, kExtent, kWaitExtent, kRows, kRowControl, kSegments, kDone };
+  enum class Phase { kIdle, kExtent, kWaitExtent, kRows, kRowControl, kEmptyExit, kSegments, kDone };
   enum class Kind { kExtent, kRow, kSegment };
   struct Pending {
     Kind kind{};
@@ -109,6 +112,7 @@ private:
   std::size_t end_segment_{};
   unsigned half_{};
   std::uint64_t remaining_control_{};
+  std::uint64_t remaining_empty_exit_{};
   std::uint64_t next_segment_issue_cycle_{};
   std::uint64_t next_id_{0x7a00'0000'0000'0000ULL};
   bool stream_complete_{};
@@ -116,6 +120,7 @@ private:
   std::optional<AxiResponse> staged_response_;
   std::optional<ReGraphPmaPacket> staged_packet_;
   bool staged_control_{};
+  bool staged_empty_exit_{};
   bool staged_output_stall_{};
   void *notifier_owner_{};
   Notifier notifier_{};

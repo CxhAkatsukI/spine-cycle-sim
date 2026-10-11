@@ -109,6 +109,12 @@ checked; nine edge-path FIFO depths change from 16 to 32. All six full results
 and non-timing counters remain equal; cycle changes are below 0.101%. The
 earlier nominal timing mismatch remains open.
 
+The [empty-exit control](empty_exit_model/README.md) adds only a generated-RTL
+73-cycle empty-row exit in explicit v4. It explains the old adapter's
+fixed-payload empty-tail slope while preserving old results and full outputs.
+The optimized path's residual timing discrepancy and real-graph validation
+remain open; local slope agreement does not admit system calibration.
+
 ## Regression And Resources
 
 The same final plugin and numerical-source snapshot produced all six rows

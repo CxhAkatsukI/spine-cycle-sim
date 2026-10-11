@@ -120,6 +120,12 @@ Result run(const Data &data, Options options) {
   require(count.extent_reads == options.partitions && count.row_reads == expected_reads * options.partitions &&
           count.rows_visited == visited * options.partitions,
           "extent or row accounting differs from the bounded prefetch/stop contract");
+  std::size_t empty_rows = 0;
+  for (std::size_t row = 0; row < visited; ++row)
+    empty_rows += data.rows[row * 2] == data.rows[row * 2 + 1];
+  require(count.empty_rows == empty_rows * options.partitions &&
+          count.empty_exit_cycles == count.empty_rows * options.adapter.empty_segment_exit_cycles,
+          "empty exit charged an occupied/skipped row, or did not retire fully");
   require(count.responses == requests && count.packets * 8 == data.partition.slots * options.partitions &&
           count.live_edges + count.dummy_edges == count.packets * 8 &&
           count.segment_reads == data.partition.slots / 16 * options.partitions, "adapter packet/read conservation failed");
@@ -153,7 +159,12 @@ int main() {
                 options.adapter.format = format;
                 options.adapter.prefetch_rows = prefetch;
                 options.adapter.stop_after_last = stop;
-                run(Data(vertices, at_end, empty, format), options);
+                const Data fixture(vertices, at_end, empty, format);
+                const auto prior = run(fixture, options);
+                options.adapter.empty_segment_exit_cycles = 73;
+                const auto corrected = run(fixture, options);
+                require(corrected.cycles == prior.cycles + 73 * prior.counters.empty_rows,
+                        "isolated empty-row correction is not exactly additive");
                 ++cases;
               }
     const Data data(65, false, false, ReGraphPmaFormat::kWeighted);
@@ -189,6 +200,20 @@ int main() {
     chained.sink_start = 2000;
     require(run(data, chained).restarted_with_pending_output,
             "adapter restart was serialized behind previous gather/AXIS drain");
+    for (auto options : {Options{}, reversed, delayed, pressured, serial, old, chained}) {
+      options.adapter.empty_segment_exit_cycles = 73;
+      const auto corrected = run(data, options);
+      options.reverse = !options.reverse;
+      const auto reordered = run(data, options);
+      require(corrected.cycles == reordered.cycles &&
+              corrected.counters.empty_exit_cycles == reordered.counters.empty_exit_cycles,
+              "empty-row exit changed with component registration order");
+    }
+    old.adapter.empty_segment_exit_cycles = 73;
+    const auto corrected_tail = run(Data(65, false, true, ReGraphPmaFormat::kWeighted), old);
+    require(corrected_tail.early_stream_notice && corrected_tail.stream_done == empty_tail.stream_done &&
+            corrected_tail.adapter_done == empty_tail.adapter_done + 65 * 73,
+            "empty exit incorrectly delayed early stream completion or skipped the tail");
     std::cout << "Routed shared-master PMA adapter PASS cases=" << cases
               << " pressure_latency_registration_and_completion_checks=PASS\n";
     return 0;

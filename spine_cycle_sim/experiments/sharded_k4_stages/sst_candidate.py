@@ -8,6 +8,7 @@ from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 PROFILE_ID = "grasu_regraph_routed_sssp_compute_v1"
 INDEPENDENT_PROFILE_ID = "grasu_regraph_routed_sssp_compute_v2"
 STREAM_PROFILE_ID = "grasu_regraph_routed_sssp_compute_v3"
+EMPTY_EXIT_PROFILE_ID = "grasu_regraph_routed_sssp_compute_v4"
 STREAM_DEPTHS = {"adapter_stream_depth": 32, "gather_stream_depth": 32, "mux_stream_depth": 32}
 FIXED_MODEL = {
     "kernel_mhz": 150, "destination_partition_vertices": 65536, "source_buffer_vertices": 4096,
@@ -20,11 +21,14 @@ FIXED_MODEL = {
 
 def load_profile(root: Path, path: Path) -> dict:
     profile = json.loads(path.read_text())
-    streams = profile.get("profile_id") == STREAM_PROFILE_ID
-    independent = profile.get("profile_id") in (INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID)
+    empty_exit = profile.get("profile_id") == EMPTY_EXIT_PROFILE_ID
+    streams = profile.get("profile_id") in (STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID)
+    independent = streams or profile.get("profile_id") == INDEPENDENT_PROFILE_ID
     expected_model = {**FIXED_MODEL, **({"independent_read_write": 1} if independent else {}),
-                      **(STREAM_DEPTHS if streams else {})}
-    if (profile.get("schema_version") != 1 or profile.get("profile_id") not in (PROFILE_ID, INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID)
+                      **(STREAM_DEPTHS if streams else {}),
+                      **({"adapter_empty_segment_exit_cycles": 73} if empty_exit else {})}
+    if (profile.get("schema_version") != 1 or profile.get("profile_id") not in
+            (PROFILE_ID, INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID)
             or profile.get("evidence_tier") != "simulator_prediction"
             or profile.get("boundary") != "resident_compute_no_host_launch_gaps"
             or profile.get("fixed_model") != expected_model):
@@ -43,6 +47,11 @@ def load_profile(root: Path, path: Path) -> dict:
         from .stream_contract import ROUTED_BD_HASHES
         if profile["target"].get("routed_bd_sha256") != ROUTED_BD_HASHES:
             raise ValueError("stream depths require both routed block-design identities")
+    if empty_exit:
+        from .row_exit_contract import RTL_HASHES, FLOW_HASH
+        if (profile["target"].get("empty_exit_rtl_sha256") != RTL_HASHES
+                or profile["target"].get("empty_exit_flow_sha256") != FLOW_HASH):
+            raise ValueError("empty exit requires both routed RTL and handshake-test identities")
     return profile
 
 
@@ -64,8 +73,10 @@ def component_parameters(root: Path, config: dict) -> dict:
     result = {"fixture": config["fixture"], "output": config["output"],
             "dram_config": str(root / profile["memory"]["config"]), "dram_output": config["dram_output"],
             "max_cycles": config["max_cycles"], "row_prefetch": int(optimized), "stop_after_last": int(optimized)}
-    if profile["profile_id"] in (INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID):
+    if profile["profile_id"] in (INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID):
         result.update(profile_id=profile["profile_id"], independent_read_write=1)
-    if profile["profile_id"] == STREAM_PROFILE_ID:
+    if profile["profile_id"] in (STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID):
         result["routed_stream_depths"] = 1
+    if profile["profile_id"] == EMPTY_EXIT_PROFILE_ID:
+        result["routed_empty_exit"] = 1
     return result

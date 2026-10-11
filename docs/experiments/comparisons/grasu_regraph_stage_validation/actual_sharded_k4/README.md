@@ -7,16 +7,25 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
+The [RTL empty-exit model control](model_sync/sst/empty_exit_model/README.md)
+now represents a measured 73-clock generated-RTL wait for each actually
+visited empty row. Across four fixed-payload sizes, old-adapter lifetime
+predictions differ from FPGA medians by -1.75% to +1.35%, without fitting.
+Five legacy cases and eight old sweep replays remain exact; eight v4 runs
+retain full FPGA outputs and traffic. The optimized short path still has a
+large timing gap; real-graph v4 validation and original-A4 matching remain
+open. This is a local control result, not whole-system calibration.
+
 The [routed stream-capacity correction](model_sync/sst/routed_streams/README.md)
 matches all 19 inter-kernel FIFO connections in both measured builds. Its six
 old/new runs preserve full FPGA results and traffic; total cycles change by
 at most 0.101%. This fixes a structural mismatch, not the timing gap.
 
-The [controlled empty-row study](model_sync/sst/empty_rows/README.md) remains
-the next timing lead: 24 board and eight fixed-model runs preserve the live
+The preceding [controlled empty-row study](model_sync/sst/empty_rows/README.md)
+isolated the timing lead: 24 board and eight fixed-model runs preserve the live
 graph and PMA while extending only empty source rows. The old FPGA adds
 981--993 ns per empty row; the model adds 520 ns. The optimized adapter removes
-trailing-row scaling. Neither study admits calibration or original-A4 matching.
+trailing-row scaling. Its frozen v2 results are not overwritten by v4.
 
 ## Evidence Trail
 

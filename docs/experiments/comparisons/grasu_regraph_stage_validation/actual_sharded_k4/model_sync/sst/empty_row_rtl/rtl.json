@@ -1,0 +1,263 @@
+{
+  "arms": {
+    "candidate": {
+      "trials": [
+        {
+          "done": 84,
+          "elapsed": 73,
+          "exit": 12,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 11
+        },
+        {
+          "done": 163,
+          "elapsed": 73,
+          "exit": 91,
+          "offset": 16,
+          "ready_delay": 0,
+          "start": 90
+        },
+        {
+          "done": 242,
+          "elapsed": 73,
+          "exit": 170,
+          "offset": 4096,
+          "ready_delay": 0,
+          "start": 169
+        },
+        {
+          "done": 321,
+          "elapsed": 73,
+          "exit": 249,
+          "offset": 16,
+          "ready_delay": 20,
+          "start": 248
+        },
+        {
+          "done": 400,
+          "elapsed": 73,
+          "exit": 328,
+          "offset": 16,
+          "ready_delay": 100,
+          "start": 327
+        },
+        {
+          "done": 479,
+          "elapsed": 73,
+          "exit": 407,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 406
+        }
+      ],
+      "verification": {
+        "compile": {
+          "available_before_bytes": 72023011328,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xvlog",
+            "--sv",
+            "empty_segment_handshake_tb.sv",
+            "pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+            "pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 87960,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/compile.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/compile.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 1.305884961038828
+        },
+        "elaborate": {
+          "available_before_bytes": 71986225152,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xelab",
+            "work.empty_segment_handshake_tb",
+            "-s",
+            "empty_segment_handshake",
+            "-debug",
+            "typical"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 172548,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/elaborate.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/elaborate.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 4.514719936065376
+        },
+        "simulate": {
+          "available_before_bytes": 71979999232,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xsim",
+            "empty_segment_handshake",
+            "-tclbatch",
+            "run.tcl"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 566268,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/simulate.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/simulate.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 4.1132554821670055
+        }
+      }
+    },
+    "original": {
+      "trials": [
+        {
+          "done": 84,
+          "elapsed": 73,
+          "exit": 12,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 11
+        },
+        {
+          "done": 163,
+          "elapsed": 73,
+          "exit": 91,
+          "offset": 16,
+          "ready_delay": 0,
+          "start": 90
+        },
+        {
+          "done": 242,
+          "elapsed": 73,
+          "exit": 170,
+          "offset": 4096,
+          "ready_delay": 0,
+          "start": 169
+        },
+        {
+          "done": 321,
+          "elapsed": 73,
+          "exit": 249,
+          "offset": 16,
+          "ready_delay": 20,
+          "start": 248
+        },
+        {
+          "done": 400,
+          "elapsed": 73,
+          "exit": 328,
+          "offset": 16,
+          "ready_delay": 100,
+          "start": 327
+        },
+        {
+          "done": 479,
+          "elapsed": 73,
+          "exit": 407,
+          "offset": 0,
+          "ready_delay": 0,
+          "start": 406
+        }
+      ],
+      "verification": {
+        "compile": {
+          "available_before_bytes": 72212426752,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xvlog",
+            "--sv",
+            "empty_segment_handshake_tb.sv",
+            "pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+            "pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 87996,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/compile_handshake.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/compile_handshake.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 1.3571363911032677
+        },
+        "elaborate": {
+          "available_before_bytes": 72175624192,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xelab",
+            "work.empty_segment_handshake_tb",
+            "-s",
+            "empty_segment_handshake",
+            "-debug",
+            "typical"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 172572,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/elaborate_handshake.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/elaborate_handshake.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 4.513794843107462
+        },
+        "simulate": {
+          "available_before_bytes": 72302706688,
+          "command": [
+            "/data/yxx/tools/xilinx/Vivado/2024.1/bin/xsim",
+            "empty_segment_handshake",
+            "-tclbatch",
+            "run.tcl"
+          ],
+          "cwd": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011",
+          "exit_code": 0,
+          "memory_limit_gib": 4,
+          "peak_rss_kib": 566320,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/simulate_handshake.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/simulate_handshake.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 4.112398787401617
+        }
+      }
+    }
+  },
+  "cycles": 73,
+  "excluded": "initial start-held-until-done test has an invalid handshake; its PASS is rejected",
+  "hardware_timing_admitted": false,
+  "original_A4_match_admitted": false,
+  "rtl_sha256": {
+    "candidate": {
+      "helper": "a84a90152cac1d18511fe059416898d69a7761f2243e8887706827823cd61e3a",
+      "parent": "17d3b318163404c18c0ba548e2b0d8784fbf930472b15b0bad0eb4f172f78c8c",
+      "testbench": "ce7d8921c1a3c7f2ce708604807168999df571d3af68c44f3651b75b106a36ee"
+    },
+    "original": {
+      "helper": "42b3b548bb1d2f4c13e15024f52efb03f36e29cd619fed6624c522ec76b0dcd1",
+      "parent": "9973065e35c6eaafa47c0e31425b793c4b40425efe7a07d47040d5d4c717a792",
+      "testbench": "d9f9bf2f1c48c45f26dbdd428ee5e45a2ed137eb3e19e1a9cca55cebfb9555c9"
+    }
+  },
+  "status": "EMPTY_ROW_ROUTED_RTL_COMPONENT_PASS",
+  "target_artifacts": {
+    "candidate_xclbin_sha256": "f26e0070b671e7b9f21623ea37d19814422d3c46e321f26147637178a66ec0d7",
+    "optimized_adapter_xo_sha256": "93aa6b76e441eda51ffc0a9bb25c1411cfab2be2bf18326371558a0cefb1863a",
+    "original_xclbin_sha256": "292ae9e468dda3d9d1941d1ab46e1696643956122d134ec366711e4acda2ceaf",
+    "route_manifest_sha256": "6d8b2ccb884b85632c60fde3e88e040cba609f5d0524d782b7d483374d5d3038",
+    "routed_bd_sha256": {
+      "candidate": "e03a277dea556b31c3fa6282b1af78b2fe7704f6919cc994bfc5ce62e6f7a344",
+      "original": "50ee61c6ec4c018d2c7d4d9f638cba8bfb1944d7e1eadd95dd5b78f3f17f6a46"
+    },
+    "wrapper_embedded_source_sha256": "70ac3a10f6affe107740ae0124294c28a23e1b6f9fbb906db76415da71732624",
+    "wrapper_top_rtl_sha256": "005f0b40523bd021034c90f179a7d2666001bc1bde1de6af5d6ef0638cc194c7",
+    "wrapper_xo_sha256": "1a67894d0c318ac75377a2d9a61d17251e666be468eb6354d611ed502831cb36"
+  },
+  "timing_fit_performed": false
+}

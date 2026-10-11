@@ -1,0 +1,203 @@
+{
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/sst/empty_row_rtl/raw_rtl.tar.gz",
+    "sha256": "41712e7ce0a7a55f7b1c3c03d959a15140c1c4dd3fffdec2f9f4e2e4a591f3f3"
+  },
+  "files": [
+    {
+      "archive_path": "candidate/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/compile.resources.json",
+      "sha256": "2c01863fff00506de60c81312828e13b0e1bd94bb963bdfadd01c380d667e3df"
+    },
+    {
+      "archive_path": "candidate/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "candidate/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/compile.stdout.txt",
+      "sha256": "b9323c5d594378d339b38f20379ebd7d5f614be9355f5555265c2dc9b81982f5"
+    },
+    {
+      "archive_path": "candidate/elaborate.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/elaborate.resources.json",
+      "sha256": "6c96e700634c9f796744f555799e8cee40415308fcdefc6727ee05122e10ac62"
+    },
+    {
+      "archive_path": "candidate/elaborate.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/elaborate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "candidate/elaborate.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/elaborate.stdout.txt",
+      "sha256": "862ed6a2ec169edffb6a09d415b1f84b3e6ba0fe022faf451ef80a999aeac9b7"
+    },
+    {
+      "archive_path": "candidate/empty_segment_handshake_tb.sv",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/empty_segment_handshake_tb.sv",
+      "sha256": "ce7d8921c1a3c7f2ce708604807168999df571d3af68c44f3651b75b106a36ee"
+    },
+    {
+      "archive_path": "candidate/pma_to_regraph_adapter.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/pma_to_regraph_adapter.v",
+      "sha256": "17d3b318163404c18c0ba548e2b0d8784fbf930472b15b0bad0eb4f172f78c8c"
+    },
+    {
+      "archive_path": "candidate/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "archive_path": "candidate/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "sha256": "a84a90152cac1d18511fe059416898d69a7761f2243e8887706827823cd61e3a"
+    },
+    {
+      "archive_path": "candidate/run.tcl",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/run.tcl",
+      "sha256": "6218ffa4f2392f3c61113605d4ab2cd023186e11f1da826b920e510a9a797efb"
+    },
+    {
+      "archive_path": "candidate/simulate.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/simulate.resources.json",
+      "sha256": "1f0234c4cfea214438086182c5e4a375f7c2a2658c29e5796d655c6487d55dff"
+    },
+    {
+      "archive_path": "candidate/simulate.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/simulate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "candidate/simulate.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/candidate/simulate.stdout.txt",
+      "sha256": "c03a591a06179661398e581f29a5852e888672abc60a570bf87ada8af9d70bb6"
+    },
+    {
+      "archive_path": "original/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/compile_handshake.resources.json",
+      "sha256": "3d4c21df2001f43304c6f4c8545ecb988d4676319e0ee6ab12e9042869f0ccaf"
+    },
+    {
+      "archive_path": "original/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/compile_handshake.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "original/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/compile_handshake.stdout.txt",
+      "sha256": "a1f62c4e7605e57bf76fc9119fec99fe0203b6cdae6073d7197e83c719c8fe8f"
+    },
+    {
+      "archive_path": "original/elaborate.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/elaborate_handshake.resources.json",
+      "sha256": "ab3113b2cb0b2166c462c93a082c1b4b9fa7c4359e46ad4fb3eac43a84263a0a"
+    },
+    {
+      "archive_path": "original/elaborate.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/elaborate_handshake.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "original/elaborate.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/elaborate_handshake.stdout.txt",
+      "sha256": "990fcc75b38ba2b2de4272e72fed2ef67b4601690eca9a9ce2bf71a349098bfa"
+    },
+    {
+      "archive_path": "original/empty_segment_handshake_tb.sv",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/empty_segment_handshake_tb.sv",
+      "sha256": "d9f9bf2f1c48c45f26dbdd428ee5e45a2ed137eb3e19e1a9cca55cebfb9555c9"
+    },
+    {
+      "archive_path": "original/pma_to_regraph_adapter.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/pma_to_regraph_adapter.v",
+      "sha256": "9973065e35c6eaafa47c0e31425b793c4b40425efe7a07d47040d5d4c717a792"
+    },
+    {
+      "archive_path": "original/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "archive_path": "original/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+      "sha256": "42b3b548bb1d2f4c13e15024f52efb03f36e29cd619fed6624c522ec76b0dcd1"
+    },
+    {
+      "archive_path": "original/run.tcl",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/run.tcl",
+      "sha256": "6218ffa4f2392f3c61113605d4ab2cd023186e11f1da826b920e510a9a797efb"
+    },
+    {
+      "archive_path": "original/simulate.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/simulate_handshake.resources.json",
+      "sha256": "5f41cdfb882956bd293ebd405a5282d0e550b83d9e3d12dd7c7005bdba3fa396"
+    },
+    {
+      "archive_path": "original/simulate.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/simulate_handshake.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "original/simulate.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/simulate_handshake.stdout.txt",
+      "sha256": "fb1272bdcedcf0f1450b7630dcdb2d8907bb0a7617ec73f31f70f55931246163"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/compile.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/compile.resources.json",
+      "sha256": "1f369bd7dd310cb84ef8ceda9f45daccb9b75f75c9372e488d2962800e961716"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/compile.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/compile.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/compile.stdout.txt",
+      "sha256": "f59872a55ee386db8bfd70985db51042870e0847ab3cf5f2f920431e3d8a40e2"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/elaborate.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/elaborate.resources.json",
+      "sha256": "77a66fa020747b5aa323ff35d4a2030c3912ea2e415107f7a00afadff49274bf"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/elaborate.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/elaborate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/elaborate.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/elaborate.stdout.txt",
+      "sha256": "90cc66dc31280a4a31773627c1ca4fdea69debedfb4052023b8d006fbb435477"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/empty_segment_tb.sv",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/empty_segment_tb.sv",
+      "sha256": "55d8ba2b27e5a4e0ac457820cbbf8462382262d1e905f93ef93b6f034acdd996"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/simulate.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/simulate.resources.json",
+      "sha256": "42b0f3a64dd67dd1f88dfa38677c7a4d6b81636e273d5e436ebae9a8c1af73d0"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/simulate.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/simulate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "rejected_start_held_until_done/simulate.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_row_rtl_20261011/simulate.stdout.txt",
+      "sha256": "1823beb4a276156f74451c36de07a1db30ded1462299a6f815291c6f35f1285a"
+    },
+    {
+      "archive_path": "source/row_exit_contract.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_contract.py",
+      "sha256": "6f5d5aeab0b4f7cf8a6602e1954ecbd0fcddf75ff376ea75f8f12ce0d306c940"
+    }
+  ]
+}

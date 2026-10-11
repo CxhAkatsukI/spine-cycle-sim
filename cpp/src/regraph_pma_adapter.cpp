@@ -80,7 +80,7 @@ void ReGraphPmaAdapter::evaluate(const CycleContext &context) {
   staged_issue_.reset();
   staged_response_.reset();
   staged_packet_.reset();
-  staged_control_ = staged_output_stall_ = false;
+  staged_control_ = staged_empty_exit_ = staged_output_stall_ = false;
   if (phase_ == Phase::kIdle || done()) return;
   if (const auto *front = memory_.responses().front()) {
     const auto found = pending_.find(front->transaction_id);
@@ -100,6 +100,8 @@ void ReGraphPmaAdapter::evaluate(const CycleContext &context) {
           partition_.row_channel, context);
   } else if (phase_ == Phase::kRowControl) {
     staged_control_ = true;
+  } else if (phase_ == Phase::kEmptyExit) {
+    staged_empty_exit_ = true;
   } else if (phase_ == Phase::kSegments) {
     if (segments_.contains(next_emit_segment_)) {
       auto value = packet();
@@ -182,8 +184,15 @@ void ReGraphPmaAdapter::start_row() {
   half_ = 0;
   next_segment_issue_cycle_ = 0;
   if (begin == end) {
-    ++source_;
-    select_source();
+    ++counters_.empty_rows;
+    // The routed helper must retire its exit pipeline even without a segment.
+    // Zero preserves earlier profiles; skipped tail rows never reach this call.
+    remaining_empty_exit_ = config_.empty_segment_exit_cycles;
+    if (remaining_empty_exit_) phase_ = Phase::kEmptyExit;
+    else {
+      ++source_;
+      select_source();
+    }
   } else phase_ = Phase::kSegments;
 }
 
@@ -223,6 +232,13 @@ void ReGraphPmaAdapter::commit(const CycleContext &context) {
     counters_.max_pending_reads = std::max(counters_.max_pending_reads, pending_.size());
   }
   if (staged_control_ && --remaining_control_ == 0) start_row();
+  if (staged_empty_exit_) {
+    ++counters_.empty_exit_cycles;
+    if (--remaining_empty_exit_ == 0) {
+      ++source_;
+      select_source();
+    }
+  }
   if (staged_output_stall_) ++counters_.output_stalls;
   if (staged_packet_) {
     ++counters_.packets;
