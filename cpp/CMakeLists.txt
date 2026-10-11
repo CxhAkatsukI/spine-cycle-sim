@@ -18,6 +18,12 @@ add_library(spine_cycle_core STATIC
   src/shared_axi_port.cpp
   src/routed_regraph/source_service.cpp
   src/routed_regraph/scatter.cpp
+  src/routed_regraph/transport.cpp
+  src/routed_regraph/admission.cpp
+  src/routed_regraph/resident_memory.cpp
+  src/routed_regraph/composition.cpp
+  src/routed_regraph/rounds.cpp
+  src/routed_regraph/system.cpp
   src/scheduler.cpp
   src/spine_dirty.cpp
   src/spine_l0.cpp
@@ -77,6 +83,11 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(routed_regraph_system_tests tests/routed_regraph/system_tests.cpp)
+  target_link_libraries(routed_regraph_system_tests PRIVATE spine_cycle_core)
+  target_compile_options(routed_regraph_system_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME routed_regraph_system_tests COMMAND routed_regraph_system_tests)
+
   add_executable(routed_scatter_tests tests/routed_regraph/scatter_tests.cpp)
   target_link_libraries(routed_scatter_tests PRIVATE spine_cycle_core)
   target_compile_options(routed_scatter_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

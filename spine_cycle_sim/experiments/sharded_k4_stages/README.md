@@ -24,6 +24,8 @@ PMA timing control. Start with the
 | `compute_delivery.py` | Compute extraction and finite shared-port evidence; not candidate system timing |
 | `model_frontend.py` | Connected Scatter/source gates; distinguish measured XO from later HLS worktree |
 | `frontend_delivery.py` | Binary-source, finite frontend and unchanged-legacy evidence package |
+| `model_system.py` | Complete SSSP candidate state, schedule and conservation gates; not hardware timing |
+| `system_delivery.py` | Immutable complete-candidate and exact legacy SST evidence package |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`; the production simulator is

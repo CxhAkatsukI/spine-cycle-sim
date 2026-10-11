@@ -1,0 +1,76 @@
+#pragma once
+
+#include "spine_sim/grasu_regraph.hpp"
+#include "spine_sim/regraph_pma_adapter.hpp"
+
+namespace spine::sim {
+
+// The four independent source masters in the SSSP XO retained by the paired
+// FPGA experiment. This is not the later two-service HLS worktree topology.
+struct RoutedReGraphConfig {
+  RoutedReGraphConfig();
+  GraSuReGraphConfig compute;
+  ReGraphPmaAdapterConfig adapter;
+  std::size_t internal_fifo_depth{8};
+  std::size_t external_fifo_depth{16};
+  std::size_t shared_master_capacity{32};
+  std::uint32_t first_initiator_id{600};
+  std::uint64_t status_address{0x4800'0000ULL};
+  std::size_t fixed_rounds{};
+};
+
+struct RoutedReGraphInvocation {
+  std::size_t round{}, partition{}, worker{};
+  bool adapter{};
+  std::uint64_t start{}, end{};
+  bool operator==(const RoutedReGraphInvocation &) const = default;
+};
+
+struct RoutedReGraphRound {
+  std::uint64_t start{}, apply_done{}, writeback_done{}, status_done{}, end{};
+  std::size_t active_vertices{};
+  bool operator==(const RoutedReGraphRound &) const = default;
+};
+
+struct RoutedReGraphCounters {
+  std::uint64_t extent_reads{}, row_reads{}, segment_reads{}, packets{}, live_edges{}, dummy_edges{};
+  std::uint64_t source_blocks{}, source_lines{}, source_terminators{}, gather_rows{}, mux_rows{};
+  std::uint64_t apply_reads{}, apply_writes{}, source_writes{}, status_writes{};
+  std::uint64_t axi_requests{}, axi_completions{}, axi_beats{}, axi_completed_beats{};
+  std::uint64_t start_cycle{}, end_cycle{};
+  bool operator==(const RoutedReGraphCounters &) const = default;
+};
+
+// Compute-only, with PMA and the old graph's state already resident. The caller
+// advances the controller after every scheduler step. No host/DMA time is
+// silently represented as device cycles. SSSP only until other routed XOs are
+// separately admitted.
+class RoutedReGraphSystem {
+public:
+  RoutedReGraphSystem(Scheduler &, ClockId, MemoryBackend &,
+                     GraSuPartitionedPmaLayout, AlgorithmInitialState,
+                     RoutedReGraphConfig = {});
+  ~RoutedReGraphSystem();
+  RoutedReGraphSystem(const RoutedReGraphSystem &) = delete;
+  RoutedReGraphSystem &operator=(const RoutedReGraphSystem &) = delete;
+  void register_components(bool reverse_order = false);
+  void unregister_components();
+  bool advance_if_complete();
+  [[nodiscard]] bool done() const noexcept;
+  [[nodiscard]] bool failed() const noexcept;
+  [[nodiscard]] const std::string &failure() const noexcept;
+  [[nodiscard]] std::vector<std::uint32_t> distances() const;
+  [[nodiscard]] std::vector<std::uint32_t> encoded_state() const;
+  [[nodiscard]] std::vector<std::uint32_t> source_state(std::size_t copy, std::size_t buffer) const;
+  [[nodiscard]] const GraSuReGraphRuntimePlan &runtime_plan() const noexcept;
+  [[nodiscard]] const std::vector<RoutedReGraphInvocation> &invocations() const noexcept;
+  [[nodiscard]] const std::vector<RoutedReGraphRound> &rounds() const noexcept;
+  [[nodiscard]] RoutedReGraphCounters counters() const;
+  [[nodiscard]] std::string diagnostic() const;
+
+private:
+  class Impl;
+  std::unique_ptr<Impl> impl_;
+};
+
+} // namespace spine::sim

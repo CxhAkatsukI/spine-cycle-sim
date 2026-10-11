@@ -11,6 +11,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.board_delivery import package
 from spine_cycle_sim.experiments.sharded_k4_stages.model_delivery import package_model_adapter
 from spine_cycle_sim.experiments.sharded_k4_stages.compute_delivery import package_model_compute
 from spine_cycle_sim.experiments.sharded_k4_stages.frontend_delivery import package_model_frontend
+from spine_cycle_sim.experiments.sharded_k4_stages.system_delivery import package_model_system
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
@@ -20,13 +21,18 @@ if __name__ == "__main__":
     parser.add_argument("--model-adapter", action="store_true", help="package model-component and legacy-regression gates")
     parser.add_argument("--model-compute", action="store_true", help="package compute extraction and shared-port gates")
     parser.add_argument("--model-frontend", action="store_true", help="package source artifact and frontend component gates")
+    parser.add_argument("--model-system", action="store_true", help="package complete candidate SSSP and unchanged legacy gates")
     args = vars(parser.parse_args())
     model = args.pop("model_adapter")
     compute = args.pop("model_compute")
     frontend = args.pop("model_frontend")
-    if sum((model, compute, frontend, bool(args["board_case"]))) > 1:
+    system = args.pop("model_system")
+    if sum((model, compute, frontend, system, bool(args["board_case"]))) > 1:
         parser.error("model and board evidence require separate packages")
-    if frontend:
+    if system:
+        args.pop("board_case")
+        result = package_model_system(**args)
+    elif frontend:
         args.pop("board_case")
         result = package_model_frontend(**args)
     elif compute:

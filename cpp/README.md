@@ -35,6 +35,7 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | Shared physical AXI clients | [queue view](include/spine_sim/axi_endpoint.hpp), [finite mux](include/spine_sim/shared_axi_port.hpp) | [shared_axi_port.cpp](src/shared_axi_port.cpp); candidate building block, not yet a selected production topology |
 | Routed shared-master PMA adapter building block | [regraph_pma_adapter.hpp](include/spine_sim/regraph_pma_adapter.hpp) | [regraph_pma_adapter.cpp](src/regraph_pma_adapter.cpp); not yet selected by a production topology |
 | Routed raw-packet Scatter and source-block service | [Scatter contract](src/detail/routed_regraph_scatter.hpp), [source contract](src/detail/routed_regraph_source.hpp) | [scatter](src/routed_regraph/scatter.cpp), [source service](src/routed_regraph/source_service.cpp); measured SSSP uses dedicated readers, later worktree uses pairwise readers |
+| Complete measured-topology SSSP candidate | [routed_regraph.hpp](include/spine_sim/routed_regraph.hpp) | [routed_regraph/](src/routed_regraph/); separate admission, serialization, composition, transport and round owners; no selected SST candidate profile yet |
 | Independent original-ReGraph Little path, PR state and separate Big omega/banks/merge | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
 | Independent finite PMA input for matched original A4 | [pma_adapter/](include/spine_sim/pma_adapter/) | [reader.cpp](src/pma_adapter/reader.cpp); separate library, not production SST |
 | Independent original-G search/cache/DDR composition | [original_grasu/](include/spine_sim/original_grasu/) | [original_grasu/](src/original_grasu/); shared four-bank control, separate library, not production SST |
@@ -160,6 +161,11 @@ changing their public header or function bodies:
    topology identity: the measured SSSP XO has four source masters, whereas
    the current HLS worktree has two pairwise masters. These variants must not
    be substituted during calibration. Full-system wiring remains open.
+6. The [complete SSSP candidate](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/system/README.md)
+   subsequently connects independent frontend chains and the whole-round
+   shared backend. Complete state, source replicas, scheduling and finite
+   ledgers pass in bounded tests. An explicit SST candidate profile and matched
+   FPGA timing remain open; earlier component checkpoints do not imply them.
 
 The [refactor record](../docs/repository/grasu_component_refactor/README.md)
 contains the fixed pre/post SST matrix and full-result comparison. This is

@@ -101,3 +101,8 @@ extracts Gather, merger, Apply and source-state writing and connects their
 arithmetic to finite shared-port clients in tests. Source service, per-kernel
 dispatch and whole-round backend composition still need further work; the
 new topology is not yet selected by a production profile.
+The [complete SSSP candidate composition](../../experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/system/README.md)
+now connects those components, with independent dispatch, one whole-round
+backend and complete state/traffic checks. It targets the measured four-master
+SSSP wrapper, not the later pairwise HLS source. SST selection and hardware
+timing admission remain separate open gates.

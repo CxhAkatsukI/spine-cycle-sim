@@ -18,6 +18,11 @@ pairwise masters in the later HLS worktree.** The compute checkpoint's
 pairwise-wrapper description is not the SSSP calibration target. Its frozen
 component evidence remains valid within its original scope.
 
+The subsequent [complete SSSP candidate checkpoint](system/README.md) connects
+four independently dispatched frontend chains and one whole-round backend.
+Its full-state, finite-traffic and convergence tests are separate from the
+still-open artifact-bound SST profile and matched hardware timing gates.
+
 ## Status And Reading Order
 
 | Gate | Status and scope |
@@ -174,11 +179,14 @@ hardware-performance measurement.
    The production host resets gather for every shard invocation, whereas the
    legacy controller currently chooses reset on the first algorithm round.
    Preserve this distinction in the candidate rather than silently changing v8.
-   The actual `regraph_k4_shared_hbm_wrapper` also services frontend pairs
+   The later worktree's `regraph_k4_shared_hbm_wrapper` services frontend pairs
    (0, 2) and (1, 3) through two shared AXI bundles, switching after a complete
    source block or terminator. Its writes share those bundles. Four independent
    source-reader ports are not an equivalent arbitration model merely because
-   their requests eventually reach the same physical HBM channels.
+   their requests eventually reach the same physical HBM channels. That
+   pairwise source is not the measured SSSP XO, as the subsequent frontend
+   provenance check establishes above; the complete SSSP candidate targets
+   the measured four-reader variant instead.
 3. Admit a distinct candidate profile and full-state/traffic/convergence gates.
    Check matched bounded FPGA timing cases, retaining all mismatches and
    separating device service from host launch/wait gaps.
