@@ -27,6 +27,12 @@ completed original-A4 comparison or a published-performance match.
    binds the previous XO to the actual route manifest. Both twelve-case RTL
    arms pass; eight row loads still repeat the same 64-byte memory line.
    This identifies a further HLS input-path optimization, not FPGA timing.
+9. The [explicit whole-line directory candidate](row_line/README.md)
+   passes production synthesis, exact external ABI, all 24 full-top RTL
+   invocations and four-algorithm padded-host checks. Directory requests
+   fall from 18 to 4 in the 17-source dense case, while synthetic RTL
+   cycles improve only 1.14%. It is not routed, board-admitted or modeled
+   by the default simulator.
 
 ## Candidate And Current Gates
 

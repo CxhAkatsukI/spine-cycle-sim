@@ -1,0 +1,298 @@
+{
+  "archive_sha256": "7841caf3bc9239b10564da7aec467099b421cd1e254ce911705718bdfe1df0bb",
+  "files": [
+    {
+      "bytes": 214,
+      "path": "regression/sharded.progress.json",
+      "sha256": "97b1e05ac90e5af9d57d4ec1f2016a6b341770ce72426911e3f29291c5ff46be"
+    },
+    {
+      "bytes": 1871,
+      "path": "regression/sharded.resources.json",
+      "sha256": "13ec12fac459a75a8aad3dc5253aff14d2c676194f4cb132f4fe68134f33bfcf"
+    },
+    {
+      "bytes": 377,
+      "path": "regression/sharded.stderr.txt",
+      "sha256": "fc3ce1a3009e294e05af694ee0485b1468f8d6930b4cb7d8fc39e5a926c59e58"
+    },
+    {
+      "bytes": 0,
+      "path": "regression/sharded.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 7581,
+      "path": "source/tests/test_sharded_k4_adapter_axi.py",
+      "sha256": "9b61d0990e36b85bcdac5f99f3860d4d507a46bf04224a935212b02e28511f8c"
+    },
+    {
+      "bytes": 5075,
+      "path": "source/tests/test_sharded_k4_adapter_axi_package.py",
+      "sha256": "017e5dd3a7d42cd51b96adaafe1b1aefa0caa81bd66f0d2a41b10ce315f70914"
+    },
+    {
+      "bytes": 3513,
+      "path": "source/tests/test_sharded_k4_adapter_delivery.py",
+      "sha256": "d5d589d3d415a16b54128b2d4129ce3496bd3d6a7c82aa54bf2c234d6dd1b6c5"
+    },
+    {
+      "bytes": 1382,
+      "path": "source/tests/test_sharded_k4_adapter_model.py",
+      "sha256": "bb6ef492daadb3f61c7e7967800282f01773907abc7f927459130853f5622beb"
+    },
+    {
+      "bytes": 3947,
+      "path": "source/tests/test_sharded_k4_board_delivery.py",
+      "sha256": "ad2ed7bda9115ecf5e06568429a2eb3d89665cc176925ac25eeaf8ffd60b61dc"
+    },
+    {
+      "bytes": 6709,
+      "path": "source/tests/test_sharded_k4_channel_package.py",
+      "sha256": "aefec9921cd0dc66089b58b274037075f4d3f954ded55d1579248b03ae24278e"
+    },
+    {
+      "bytes": 2252,
+      "path": "source/tests/test_sharded_k4_channels.py",
+      "sha256": "d640b18d0a63db2ad0f72c903f9970277acc226eabeaefb133574353e065d404"
+    },
+    {
+      "bytes": 2959,
+      "path": "source/tests/test_sharded_k4_completion_evidence.py",
+      "sha256": "879fd1e3f7a9546f73bc50666f611e49ff47d46bf52ca1a5cf9de2fbec032884"
+    },
+    {
+      "bytes": 5744,
+      "path": "source/tests/test_sharded_k4_compute_delivery.py",
+      "sha256": "840ca01854a8aee641dd91c6ec572d5d9342fd53a5d6039c2be7628022cca90e"
+    },
+    {
+      "bytes": 3833,
+      "path": "source/tests/test_sharded_k4_dispatch_package.py",
+      "sha256": "57134066ff140ccf7df79dd6b2f43402f28e0c5a8026a868b6900fd640872e38"
+    },
+    {
+      "bytes": 1632,
+      "path": "source/tests/test_sharded_k4_dispatch_sweep.py",
+      "sha256": "b7c88bb9a5ff61bfa6413b517d55c40cd4ecaec0ebea704fc4965b0486bcb90b"
+    },
+    {
+      "bytes": 6356,
+      "path": "source/tests/test_sharded_k4_empty_exit_package.py",
+      "sha256": "6cebd26a169e1cd50029ba392f330cecf7a5838c42b16f480e99588db17f8d23"
+    },
+    {
+      "bytes": 4093,
+      "path": "source/tests/test_sharded_k4_empty_rows.py",
+      "sha256": "4a32b19bd9e2f46c2482754b9ef3c3fb739bc1ef965064f6ca82de2cd5314767"
+    },
+    {
+      "bytes": 5726,
+      "path": "source/tests/test_sharded_k4_empty_rows_package.py",
+      "sha256": "ffa83a11c18a574ed3b5c3b93bd2b3ce15317e448b1c30077f38f30e09947a8f"
+    },
+    {
+      "bytes": 3950,
+      "path": "source/tests/test_sharded_k4_empty_segment.py",
+      "sha256": "6da8d5309d4ae8e20a57e91b860bbc09e32429e7e25e722adf0c86d535ad0527"
+    },
+    {
+      "bytes": 6941,
+      "path": "source/tests/test_sharded_k4_empty_segment_accounting.py",
+      "sha256": "678cc8a0e09de464e6cb9c48b44c277e42734a07e0e9e98c1c829e2466e5ac9e"
+    },
+    {
+      "bytes": 3463,
+      "path": "source/tests/test_sharded_k4_empty_segment_production.py",
+      "sha256": "0625799065d23454a80daa921a333277af617f516ca51e6c331335d7497e59f4"
+    },
+    {
+      "bytes": 4916,
+      "path": "source/tests/test_sharded_k4_empty_segment_production_package.py",
+      "sha256": "6735a425f6b38a15a9f64ebf91552b8e0ab864f31a4b2574b88814dfec9b5308"
+    },
+    {
+      "bytes": 5630,
+      "path": "source/tests/test_sharded_k4_empty_segment_route.py",
+      "sha256": "8c3e54777c8bc4456772ded594e5b48c86dfe70c7c146505a607349796d50f40"
+    },
+    {
+      "bytes": 10024,
+      "path": "source/tests/test_sharded_k4_empty_segment_route_execution.py",
+      "sha256": "d58344b8b7f8b9b0921427e5f1805344a680492161c599f22afff862fd8c3056"
+    },
+    {
+      "bytes": 15578,
+      "path": "source/tests/test_sharded_k4_empty_segment_sensitivity.py",
+      "sha256": "bd981a51f6c37df4e2271daec06e639844d76babfa97f297df9e4877145b9239"
+    },
+    {
+      "bytes": 17662,
+      "path": "source/tests/test_sharded_k4_empty_segment_sensitivity_provenance.py",
+      "sha256": "d31a972e68717da4e4a579504de03894a72ffa9bd2d9afd1082dff216a9b60c8"
+    },
+    {
+      "bytes": 4690,
+      "path": "source/tests/test_sharded_k4_frontend_delivery.py",
+      "sha256": "d9e59e0f603f6b684c0411b39dd83f8ea1a1a7bb80f2af04a7d8e30cd7081aaf"
+    },
+    {
+      "bytes": 4325,
+      "path": "source/tests/test_sharded_k4_frontend_model.py",
+      "sha256": "176e65769fa992a6800430fdb8f936afbf404e3c144ed1c034b81ca64a0673d3"
+    },
+    {
+      "bytes": 753,
+      "path": "source/tests/test_sharded_k4_input_audit.py",
+      "sha256": "bf2fee0e6c7c1ee0e45616a5e008d215b5467a9f811feceae02bc89d0f0ae0ef"
+    },
+    {
+      "bytes": 1950,
+      "path": "source/tests/test_sharded_k4_input_residency.py",
+      "sha256": "818e0f89c6dbc24f75ee12824e4eb1ba34b9ff6105efd0caf596644e5a4ebc50"
+    },
+    {
+      "bytes": 3477,
+      "path": "source/tests/test_sharded_k4_invocation_timing.py",
+      "sha256": "e2d100b4fce0874cfe467e3ace64bbae75ab7995fde2de5b8abdb7712e42b25b"
+    },
+    {
+      "bytes": 1572,
+      "path": "source/tests/test_sharded_k4_invocation_timing_package.py",
+      "sha256": "19183e7fcc418f4861dacba63556c511a85c482daa4dc9c40d44248455d0b7db"
+    },
+    {
+      "bytes": 4378,
+      "path": "source/tests/test_sharded_k4_model_delivery.py",
+      "sha256": "084e080d48fe1bf88d6774a759c2d6da5220d45cf4250810a91ebd3311ba1e10"
+    },
+    {
+      "bytes": 3165,
+      "path": "source/tests/test_sharded_k4_process_cleanup.py",
+      "sha256": "f2546e5c6ebde0ab003294137ca0a54bdacf5ca5196ff972631207d2e5586ba7"
+    },
+    {
+      "bytes": 1822,
+      "path": "source/tests/test_sharded_k4_residency_matrix.py",
+      "sha256": "a5a50f96bdfa0c7d20a5a1b1f1f1141463574004a29a99c988f12d45bb797242"
+    },
+    {
+      "bytes": 5527,
+      "path": "source/tests/test_sharded_k4_residency_package.py",
+      "sha256": "134660ff17799f0f57d71af68f2cd294b519e6dfa79acd350903dfc9e568f9dd"
+    },
+    {
+      "bytes": 10499,
+      "path": "source/tests/test_sharded_k4_route_environment.py",
+      "sha256": "43b2db43acc8bda4db9b9e8b74e0bd0a0192b9424360b9a4572c277d321b4084"
+    },
+    {
+      "bytes": 8347,
+      "path": "source/tests/test_sharded_k4_route_gates.py",
+      "sha256": "7ef98c81e27faefa99608baad93455b1f25c8c3ff92590ab3b0e530e2abcc9d5"
+    },
+    {
+      "bytes": 3579,
+      "path": "source/tests/test_sharded_k4_route_recovery.py",
+      "sha256": "1e8316c2f3a97d232ebfa26f82789e09127025a1f755297f8e6e264ddfcd62c7"
+    },
+    {
+      "bytes": 4435,
+      "path": "source/tests/test_sharded_k4_row_exit.py",
+      "sha256": "c8c9f01488619affa62dda8bdccf5245f5e6dd2b028352361c6ed22898ffa6c7"
+    },
+    {
+      "bytes": 2182,
+      "path": "source/tests/test_sharded_k4_row_exit_delivery.py",
+      "sha256": "b2bc1cc9964580dcd3e8b3833068d19e61105b6542fc186cf73f210467a6b9bd"
+    },
+    {
+      "bytes": 2087,
+      "path": "source/tests/test_sharded_k4_row_exit_matrix.py",
+      "sha256": "6f65709a2237f5a1cf71700e9b91259a8bb0c1d076cff172c2fe1ec97923808b"
+    },
+    {
+      "bytes": 7469,
+      "path": "source/tests/test_sharded_k4_row_exit_matrix_package.py",
+      "sha256": "09b75fdfe8d05829e41264d4d7ad823a7089b0b33fe35f8ea1bf5b7f28652444"
+    },
+    {
+      "bytes": 5464,
+      "path": "source/tests/test_sharded_k4_row_line.py",
+      "sha256": "29e18da724591dfc4ae05f9ef9bfe233520802f58940277c15e661b919a2a4b6"
+    },
+    {
+      "bytes": 3244,
+      "path": "source/tests/test_sharded_k4_row_line_evidence.py",
+      "sha256": "78c7d1bdb6d942eff18d8c6d463049d5e7f81d979eb2b4d0d5d4952209b8febe"
+    },
+    {
+      "bytes": 2158,
+      "path": "source/tests/test_sharded_k4_runtime_trace.py",
+      "sha256": "0f1eefe16fb9d0994a0eceb096e8ee7fcc0e7b9077be692e54f319522952aeac"
+    },
+    {
+      "bytes": 3397,
+      "path": "source/tests/test_sharded_k4_segment_schedule.py",
+      "sha256": "4ae39d3f5978f42882bd8274d2b84911fac5abda13cde4069dbd3cece60924cd"
+    },
+    {
+      "bytes": 4584,
+      "path": "source/tests/test_sharded_k4_segment_schedule_package.py",
+      "sha256": "cdc44efde13972ea71c257ad69d0c07cb22f678f5b8538d6385a700d8f518915"
+    },
+    {
+      "bytes": 5677,
+      "path": "source/tests/test_sharded_k4_sst_candidate.py",
+      "sha256": "41157c0d80f2e782c356b3969b8c493df65c6597cf8890f852e81e4b92617f54"
+    },
+    {
+      "bytes": 1499,
+      "path": "source/tests/test_sharded_k4_sst_delivery.py",
+      "sha256": "6c9382ce62df535c73022a74f993a5098e0f289ae9621a6445144e0b44b4ea1d"
+    },
+    {
+      "bytes": 4424,
+      "path": "source/tests/test_sharded_k4_sst_package.py",
+      "sha256": "135392b8d79479e36908b137775f5172909b7f3bfd2d95188c3560106e65c640"
+    },
+    {
+      "bytes": 3677,
+      "path": "source/tests/test_sharded_k4_stage_delivery.py",
+      "sha256": "99624a31a7cd0ee1977a9c509676fe8817e9769d6c4ed338f1d2f414c72bf135"
+    },
+    {
+      "bytes": 5198,
+      "path": "source/tests/test_sharded_k4_stage_diagnostic.py",
+      "sha256": "82f43e3778d07a55b774e378dd86c28d6efe2e0727709a2e29ebdb08db005d23"
+    },
+    {
+      "bytes": 4356,
+      "path": "source/tests/test_sharded_k4_stream_contract.py",
+      "sha256": "8635d4e21fa02de2c96de5a538cf50aeca36590bec5e84ca04a2fa7166a2ad5b"
+    },
+    {
+      "bytes": 2920,
+      "path": "source/tests/test_sharded_k4_stream_delivery.py",
+      "sha256": "2c82f549e0f8ec31f38897644e849899f1997ca46eec092db8cc40b6887a24da"
+    },
+    {
+      "bytes": 6147,
+      "path": "source/tests/test_sharded_k4_stream_package.py",
+      "sha256": "f1fa7e7f41cf44b1f9763b089d464cb0de071a2e2e127b7d2afcb787a43928f2"
+    },
+    {
+      "bytes": 3797,
+      "path": "source/tests/test_sharded_k4_system_delivery.py",
+      "sha256": "d565f16cd9458219660473de4a92b8ce2837562ed32a94816880d78916be1344"
+    },
+    {
+      "bytes": 2751,
+      "path": "source/tests/test_sharded_k4_system_model.py",
+      "sha256": "ac07345ee63a4bb641389bf33273c137697be234cf94b7be3f9d103bdcf99bc8"
+    }
+  ],
+  "scope": "focused_python_regression_not_numerical_calibration",
+  "status": "PASS",
+  "tests": 276
+}

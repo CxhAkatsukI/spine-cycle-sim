@@ -56,6 +56,7 @@ PMA timing control. Start with the
 | `residency_delivery.py` | Separate immutable input-residency archive, source snapshots and complete-output identities |
 | `empty_segment/` | Paired C/RTL empty-helper controls, effective compile-contract checks and immutable evidence delivery; no timing-model change |
 | `adapter_axi/` | Full production-XO external AXI probe, exact routed-version binding, conservation analysis and portable evidence delivery; synthetic memory, not board timing |
+| `row_line/` | Explicit whole-line HLS candidate: source/XO/RTL contracts, four-algorithm padded-host equivalence and portable delivery; no route, board or simulator timing admission |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`. The distinct routed SST candidate

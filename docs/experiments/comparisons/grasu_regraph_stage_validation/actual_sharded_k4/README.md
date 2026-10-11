@@ -7,6 +7,14 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
+The [whole-line directory HLS candidate](adapter_optimization/row_line/README.md)
+now removes the repeated row cache-line reads identified below. Production
+compile/ABI, complete AXI RTL and padded-host checks for four algorithms pass.
+On the 17-source dense synthetic test, directory traffic falls 4.5x but
+cycles only 1.14%; this is not a board speedup or a model timing correction.
+Route/board admission and matched A4/K4 comparison remain open. Existing
+measured hardware and frozen numerical-model evidence are unchanged.
+
 The [complete production-adapter AXI diagnostic](adapter_optimization/adapter_axi/README.md)
 now binds both test arms to their exact production XOs, including the
 previous routed version. All 24 full-top RTL cases pass. Eight row loads

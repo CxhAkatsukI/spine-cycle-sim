@@ -1,0 +1,23 @@
+{
+  "algorithms": {
+    "cc": {
+      "identical_prepare_output": true,
+      "output": "CC_PMA_NATIVE_SHARDED_INPUT vertices=327681 static_edges=6 logical_updates=2 physical_updates=2 final_edges=8 destination_partitions=6 pma_slots_total=160 hbm_graph_allocated_bytes=116588544 source_external=0 source_internal=2 oracle_supersteps=5 oracle_converged=1 resident_state=old_graph_converged\nGRASU_SHARDED_UPDATE_LAYOUT shard=0 destination_base=0 destination_vertices=65536 updates=2 unique_sources=2 pma_slots=80 source_segments=2 binary_probes=0 cache_updates=2 ddr_updates=0\nCC_PMA_NATIVE_SHARDED_PREP status=PASS vertices=327681 static_edges=6 logical_updates=2 physical_updates=2 destination_partitions=6 pma_slots_total=160 pma_slots_max_shard=80 hbm_graph_channels=23 hbm_graph_allocated_bytes=116588544 hbm_max_channel_bytes=8392704 source_external=0 source_internal=2 max_supersteps=16 oracle_supersteps=5 oracle_converged=1 reachable_vertices=327681 max_value=327680 components=327677 pma_destination_abi=local_dst19 partition_size=65536 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent"
+    },
+    "full_pr": {
+      "identical_prepare_output": true,
+      "output": "FULL_PR_PMA_NATIVE_SHARDED_INPUT vertices=327681 static_edges=3 logical_updates=1 physical_updates=1 final_edges=4 destination_partitions=6 pma_slots_total=144 hbm_graph_allocated_bytes=116588544 damping=0.85 rounds=3\nGRASU_SHARDED_UPDATE_LAYOUT shard=0 destination_base=0 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=64 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0\nFULL_PR_PMA_NATIVE_SHARDED_PREP status=PASS vertices=327681 destination_partitions=6 pma_slots_total=144 pma_slots_max_shard=64 rank_sum=0.9961750 pma_destination_abi=local_dst19 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent"
+    },
+    "residual_pr": {
+      "identical_prepare_output": true,
+      "output": "RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=327681 static_edges=3 logical_updates=1 physical_updates=1 final_edges=4 destination_partitions=6 pma_slots_total=144 hbm_graph_allocated_bytes=116588544 damping=0.85 epsilon=1e-06 threshold_semantics=direct_per_vertex oracle_propagation_rounds=1 oracle_converged=1\nGRASU_SHARDED_UPDATE_LAYOUT shard=0 destination_base=0 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=64 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0\nRESIDUAL_PR_PMA_NATIVE_SHARDED_PREP status=PASS vertices=327681 destination_partitions=6 pma_slots_total=144 pma_slots_max_shard=64 rank_sum=0.9961765 pma_destination_abi=local_dst19 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent"
+    },
+    "sssp": {
+      "identical_prepare_output": true,
+      "output": "WEIGHTED_PMA_NATIVE_SHARDED_INPUT vertices=327681 static_edges=3 logical_updates=1 physical_updates=1 final_edges=4 destination_partitions=6 pma_slots_total=144 hbm_graph_allocated_bytes=116588544 source_external=0 source_internal=1 oracle_supersteps=2 oracle_converged=1 resident_state=old_graph_converged\nGRASU_SHARDED_UPDATE_LAYOUT shard=0 destination_base=0 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=64 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0\nWEIGHTED_PMA_NATIVE_SHARDED_PREP status=PASS vertices=327681 static_edges=3 logical_updates=1 physical_updates=1 destination_partitions=6 pma_slots_total=144 pma_slots_max_shard=64 hbm_graph_channels=23 hbm_graph_allocated_bytes=116588544 hbm_max_channel_bytes=8392704 source_external=0 source_internal=1 max_supersteps=16 oracle_supersteps=2 oracle_converged=1 reachable_vertices=5 max_value=10 pma_destination_abi=local_dst19 partition_size=65536 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent"
+    }
+  },
+  "hardware_executed": false,
+  "padding_vertex_cases": 11,
+  "status": "FOUR_ALGORITHM_ROW_LINE_HOST_PASS_NOT_BOARD"
+}

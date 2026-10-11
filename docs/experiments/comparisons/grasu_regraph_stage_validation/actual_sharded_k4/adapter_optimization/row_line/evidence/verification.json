@@ -1,0 +1,1543 @@
+{
+  "FPGA_timing_admitted": false,
+  "archive_bytes": 2537246,
+  "archive_sha256": "5f0e80ba23b183a43031b91cfba587bb672c55973c5d5a64ecedd57d846fa40b",
+  "files": [
+    {
+      "bytes": 11316,
+      "path": "study/candidate/adapter_axi_tb.sv",
+      "sha256": "6b75c9ab0b263ba01f2d98d4c9c60d80347bb8c31c842fa1dd96679251c436bb"
+    },
+    {
+      "bytes": 241,
+      "path": "study/candidate/compile.progress.json",
+      "sha256": "7183675fea1485cfbc7ce7b47b621c38c3fb146fc3a48084a31eb32a8594f859"
+    },
+    {
+      "bytes": 2337,
+      "path": "study/candidate/compile.resources.json",
+      "sha256": "76aad29a36463169e1f0c7064987ede067a70a37af395b33c78db894f8f62d07"
+    },
+    {
+      "bytes": 0,
+      "path": "study/candidate/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3455,
+      "path": "study/candidate/compile.stdout.txt",
+      "sha256": "60578a9b0e6b3c9a497205259e0cf47de71aca4835b7718d6f404847abdcff87"
+    },
+    {
+      "bytes": 282,
+      "path": "study/candidate/elaborate.progress.json",
+      "sha256": "20418f28edb711152b4d10f804c88ab063c6dab8d3ee85c0678efbd9b2880b02"
+    },
+    {
+      "bytes": 1879,
+      "path": "study/candidate/elaborate.resources.json",
+      "sha256": "822f2934e102983824dc7a04ba1d2d6a496d4d2ee2af3c2df4c83ab0cdc035f6"
+    },
+    {
+      "bytes": 0,
+      "path": "study/candidate/elaborate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3020,
+      "path": "study/candidate/elaborate.stdout.txt",
+      "sha256": "2da10fb60f3d8c4d80af5b69cc4241f1b2a98d767d4db8efd6efecfaae2ff9e8"
+    },
+    {
+      "bytes": 3073,
+      "path": "study/candidate/inputs.json",
+      "sha256": "fa64c3a27ee04597fec9a3f87171751b48f244d514969dca8dabe0f3ca7266fd"
+    },
+    {
+      "bytes": 72710,
+      "path": "study/candidate/pma_to_regraph_adapter.v",
+      "sha256": "f81d80aa8a3a426e9e87f910eb9638037c1ec6080bb044bf15a178d455820c0a"
+    },
+    {
+      "bytes": 21964,
+      "path": "study/candidate/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "bytes": 22893,
+      "path": "study/candidate/pma_to_regraph_adapter_emit_row_segments.v",
+      "sha256": "c86b30ba4d00171a7ff2a1a07c42de02088a00eeb4ed616edde5f9f7b3786e87"
+    },
+    {
+      "bytes": 345984,
+      "path": "study/candidate/pma_to_regraph_adapter_emit_row_segments_Pipeline_segment_loop.v",
+      "sha256": "799158a0eeb00eba8f8a59b5b8d709ad9f687d30bc5fa27934f4d1b835d36e81"
+    },
+    {
+      "bytes": 2788,
+      "path": "study/candidate/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "bytes": 100997,
+      "path": "study/candidate/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "bytes": 1109,
+      "path": "study/candidate/pma_to_regraph_adapter_hls_deadlock_idx0_monitor.v",
+      "sha256": "24db5fb722a9c884b98737daa24ff69c6286c2eae8e3ca450a27a1634ac73c35"
+    },
+    {
+      "bytes": 1230,
+      "path": "study/candidate/pma_to_regraph_adapter_hls_deadlock_kernel_monitor_top.vh",
+      "sha256": "3db9547227000a96538a59e247dcd048acd7124d465924b19aaf9fb649f9ae4b"
+    },
+    {
+      "bytes": 3234,
+      "path": "study/candidate/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "bytes": 1907,
+      "path": "study/candidate/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "bytes": 13,
+      "path": "study/candidate/run.tcl",
+      "sha256": "6218ffa4f2392f3c61113605d4ab2cd023186e11f1da826b920e510a9a797efb"
+    },
+    {
+      "bytes": 257,
+      "path": "study/candidate/simulate.progress.json",
+      "sha256": "a9acc4d402b4d599d59fc42a31076bea4fd2bc8b5b99aa6929bbf2a193c90cc0"
+    },
+    {
+      "bytes": 1890,
+      "path": "study/candidate/simulate.resources.json",
+      "sha256": "5a364aaa5d407cc924b424ef2beef08373437dc34183e379441890ca69511cd8"
+    },
+    {
+      "bytes": 0,
+      "path": "study/candidate/simulate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 23821,
+      "path": "study/candidate/simulate.stdout.txt",
+      "sha256": "fb778336a16b43bddbc42a922c2e6444736337e91a587f11f469b617cd844d1a"
+    },
+    {
+      "bytes": 3020,
+      "path": "study/candidate/xelab.log",
+      "sha256": "2da10fb60f3d8c4d80af5b69cc4241f1b2a98d767d4db8efd6efecfaae2ff9e8"
+    },
+    {
+      "bytes": 5486,
+      "path": "study/candidate/xelab.pb",
+      "sha256": "489e3ccc25a8dbbefbeee999b292da668c3fc686ea852df297ecd249fcbdda9d"
+    },
+    {
+      "bytes": 1172,
+      "path": "study/candidate/xsim.jou",
+      "sha256": "0cad67a2b4a01d1a5dfb9e8c057c6cec1a30c3d07d832afa9b8248c0e6c92917"
+    },
+    {
+      "bytes": 24536,
+      "path": "study/candidate/xsim.log",
+      "sha256": "b0127f27631172e0c1820a8b61df07b6ef56b7c276f3f2f7642f054a1bc3ad17"
+    },
+    {
+      "bytes": 3455,
+      "path": "study/candidate/xvlog.log",
+      "sha256": "60578a9b0e6b3c9a497205259e0cf47de71aca4835b7718d6f404847abdcff87"
+    },
+    {
+      "bytes": 4456,
+      "path": "study/candidate/xvlog.pb",
+      "sha256": "7ef45896a7f29a59896309c1b431ae8be6e7c1abe1448065486c30c897380618"
+    },
+    {
+      "bytes": 3520,
+      "path": "study/functional/SHA256SUMS",
+      "sha256": "3349e413077efa3608d5070d2bf8cc426891e72da9119a3a1e334e89942ec078"
+    },
+    {
+      "bytes": 1206,
+      "path": "study/functional/manifest.env",
+      "sha256": "c93c6e54093f4415406c1a30bfdbe08c9882783961f84b284432495753f4592f"
+    },
+    {
+      "bytes": 175840,
+      "path": "study/functional/pma_to_regraph_adapter_destination_test",
+      "sha256": "25ec8cbd76451100da86fa99af147c41ba2d0612e44882bf7096fdb974bd059e"
+    },
+    {
+      "bytes": 175840,
+      "path": "study/functional/pma_to_regraph_adapter_legacy_test",
+      "sha256": "72627d73a1888b1b698088c73ceba94ed9c34f385bbf4b1ea65d86236fffc6ca"
+    },
+    {
+      "bytes": 170184,
+      "path": "study/functional/pma_to_regraph_adapter_sharded_destination_test",
+      "sha256": "c25a424f62c8bd615d118d594d9310f57b207f14a539ce292c4f7d8da9bf3231"
+    },
+    {
+      "bytes": 167192,
+      "path": "study/functional/pma_to_regraph_adapter_sharded_weighted_test",
+      "sha256": "8bdfb52487c943a498fc3564adb2e7703a4637c92edb20475102fdded51abf84"
+    },
+    {
+      "bytes": 167192,
+      "path": "study/functional/pma_to_regraph_adapter_shared_master_test",
+      "sha256": "8bdfb52487c943a498fc3564adb2e7703a4637c92edb20475102fdded51abf84"
+    },
+    {
+      "bytes": 176672,
+      "path": "study/functional/pma_to_regraph_adapter_weighted_test",
+      "sha256": "feff4a100d11e919e3a1255b6243fb63f6408477d2d575e3a38afe81aabb4069"
+    },
+    {
+      "bytes": 209352,
+      "path": "study/functional/row_line_destination_test",
+      "sha256": "eb4903a302978fc1e2856cb7002daf2f61287e69e43c47c9ba011b553bae798c"
+    },
+    {
+      "bytes": 201432,
+      "path": "study/functional/row_line_unit_test",
+      "sha256": "725664956cd7ba088566617a4908376028539b7daac5d78440078da848be2027"
+    },
+    {
+      "bytes": 202264,
+      "path": "study/functional/row_line_weighted_test",
+      "sha256": "fcf4ae612d41a1e8b7d604bef6fad211643f79a8f81b314dc4ebc890277e8a38"
+    },
+    {
+      "bytes": 203368,
+      "path": "study/functional/row_prefetch_destination_test",
+      "sha256": "b7c1eabaea31d11238eae751df5c220feafe030c6de658fecb458e8e270580f2"
+    },
+    {
+      "bytes": 199552,
+      "path": "study/functional/row_prefetch_unit_test",
+      "sha256": "d07651072530336e7a2cab9ca26cb6ae6337b9d56e5d40a266d65f1f67be472a"
+    },
+    {
+      "bytes": 200376,
+      "path": "study/functional/row_prefetch_weighted_test",
+      "sha256": "fe0ff0451e09479427cb5ba454e63aa6944cee49ceb21604e20e4ccdd674ac3c"
+    },
+    {
+      "bytes": 203368,
+      "path": "study/functional/skip_empty_destination_test",
+      "sha256": "fa2dbc3cd6c2e83773ea59b29e14c465b09ef51479276c91604f108b9f08830a"
+    },
+    {
+      "bytes": 199552,
+      "path": "study/functional/skip_empty_unit_test",
+      "sha256": "a88947d7bb1f030467bda6857dca683fa10ed3701a19122e8e3ccad2af45067b"
+    },
+    {
+      "bytes": 200376,
+      "path": "study/functional/skip_empty_weighted_test",
+      "sha256": "1d279e704190413e6fdf661f66888a7b57ed7473f1bc1b3687ad3aaff732cceb"
+    },
+    {
+      "bytes": 2073,
+      "path": "study/functional/test.log",
+      "sha256": "03601a40aa91b46fc262bd4d4cdecb6bcd384b0d8161cdd848fea1bbe5d69b01"
+    },
+    {
+      "bytes": 243,
+      "path": "study/functional.progress.json",
+      "sha256": "69b9e27409fd7537399964c213c6e189f64150464d84491995f4d0ec1bd18d32"
+    },
+    {
+      "bytes": 2170,
+      "path": "study/functional.resources.json",
+      "sha256": "f1b81f3f872c4c7ef953afea514695c8a646f13d5e5ed7dcaca67f34e935f860"
+    },
+    {
+      "bytes": 0,
+      "path": "study/functional.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 155,
+      "path": "study/functional.stdout.txt",
+      "sha256": "bf5db48d1f2237012c8028779f205348c95f0353ddcf671cbb16c40e61fb1f74"
+    },
+    {
+      "bytes": 760,
+      "path": "study/host_contract/SHA256SUMS",
+      "sha256": "aeb8a45182b356aabc967da16c980dc9ea7f48227928d089e2cd03b03958c053"
+    },
+    {
+      "bytes": 236,
+      "path": "study/host_contract/manifest.env",
+      "sha256": "f379e0bdc93eb883cded2e5438e5ac4e813a9e39335144d03d1fdc7a21c8f938"
+    },
+    {
+      "bytes": 0,
+      "path": "study/host_contract/test.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 362072,
+      "path": "study/host_contract/weighted_pma_runtime_plan_test",
+      "sha256": "8e9bcfa7485c2ec5f80e57aa45df0ad7cbfc9ec3add4413e881b3e37792fb4de"
+    },
+    {
+      "bytes": 243,
+      "path": "study/host_contract.progress.json",
+      "sha256": "65460e3c58b2263ab3da1bc52ca427eec3945dfa0d121cfd2bbde4d153c06d81"
+    },
+    {
+      "bytes": 1902,
+      "path": "study/host_contract.resources.json",
+      "sha256": "3048ffa018fe3c690f41b1a46c4d9521f8f6c7d13d507c6c7da419c5d402d2ff"
+    },
+    {
+      "bytes": 0,
+      "path": "study/host_contract.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 121,
+      "path": "study/host_contract.stdout.txt",
+      "sha256": "7e1084a5722d16857a75bbce86b28e3610c8ff0ce8b9c91303fce9414408fd4c"
+    },
+    {
+      "bytes": 53335,
+      "path": "study/manifest.json",
+      "sha256": "294ef297b42fc4412c4554877b60e454fd4e4d6a36aa0d39cb9063c3be9f433e"
+    },
+    {
+      "bytes": 199923,
+      "path": "study/production/adapter.hw.xo",
+      "sha256": "752a0395caa5b0117624e6a8055f738e6e608b2272be2d8d118c51b38efa80a2"
+    },
+    {
+      "bytes": 4524,
+      "path": "study/production/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "7cf8c512573e6b3b44e548c33bcfc42d337cc196d53c91079e9f71b854d381dc"
+    },
+    {
+      "bytes": 19802,
+      "path": "study/production/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "4bf89006ee5f2448bc7c172a8a9ccdb47302b1cff22c73844a3c5a839c4d9f87"
+    },
+    {
+      "bytes": 1188,
+      "path": "study/production/command.json",
+      "sha256": "b2bfc2ad2e201f625fdea0033aa31753020b378fb19d443c8d2605d87d25295a"
+    },
+    {
+      "bytes": 414,
+      "path": "study/production/compile.progress.json",
+      "sha256": "c24f3f6af644c69d8e79d25a06c1f83faecfa608529da9161490628238aa2489"
+    },
+    {
+      "bytes": 3280,
+      "path": "study/production/compile.resources.json",
+      "sha256": "27150291ff2829a701064156c9538af85885bb25d265ac5c629a5e04af333472"
+    },
+    {
+      "bytes": 0,
+      "path": "study/production/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3123,
+      "path": "study/production/compile.stdout.txt",
+      "sha256": "d9644c1c708af7fc4c884d32412f16d167bfcdb545c7da2a7193124141a909ed"
+    },
+    {
+      "bytes": 11418,
+      "path": "study/production/logs/adapter.hw/adapter.hw.steps.log",
+      "sha256": "a8a35e8101be21860313313d3546ebb0447e485e860da87665a51fdf76b08268"
+    },
+    {
+      "bytes": 32844,
+      "path": "study/production/logs/adapter.hw/pma_to_regraph_adapter_vitis_hls.log",
+      "sha256": "8c8f05c9909aa4be30b059cf6a39f43681909f8e044fdcc99d7b9d3049900a9d"
+    },
+    {
+      "bytes": 2685,
+      "path": "study/production/logs/adapter.hw/v++.log",
+      "sha256": "97d59d562d46e87c4094af1dae26208dcf3841cfada9bf9191ae93be11e65008"
+    },
+    {
+      "bytes": 2730,
+      "path": "study/production/logs/v++_adapter.hw.log",
+      "sha256": "204406b1d8ca6e536b747fb025fefe38b6eb7f336c490041251de6fa7dfd4201"
+    },
+    {
+      "bytes": 3144,
+      "path": "study/production/xcd.log",
+      "sha256": "83bb7ad319039f04b5ee541da230548d775165aef53dc1af37ec4fd32806901e"
+    },
+    {
+      "bytes": 11316,
+      "path": "study/reference/adapter_axi_tb.sv",
+      "sha256": "6b75c9ab0b263ba01f2d98d4c9c60d80347bb8c31c842fa1dd96679251c436bb"
+    },
+    {
+      "bytes": 212,
+      "path": "study/reference/compile.progress.json",
+      "sha256": "dfdb4b5c88d8c13812c34aa8932132179091e3eba9d217f23d5ae237f480d8fe"
+    },
+    {
+      "bytes": 2418,
+      "path": "study/reference/compile.resources.json",
+      "sha256": "980454b158249958ef804ad1378e4d19a8390c79bfdb07bd8ecf65244567ebba"
+    },
+    {
+      "bytes": 0,
+      "path": "study/reference/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3786,
+      "path": "study/reference/compile.stdout.txt",
+      "sha256": "4ca719a8192b0050c0ba207291e3a51e08c19b92ba30ba40c93c99fe199db017"
+    },
+    {
+      "bytes": 243,
+      "path": "study/reference/elaborate.progress.json",
+      "sha256": "f6c6ceeaf6c1b96b3df13b3f98497d0861d4f5fc1cf4574ed6f7a184cc5db81a"
+    },
+    {
+      "bytes": 1878,
+      "path": "study/reference/elaborate.resources.json",
+      "sha256": "d63459a0d3ab9fcfdf527af535dbd13686dbc903109c5e99bd9bd08ee638383f"
+    },
+    {
+      "bytes": 0,
+      "path": "study/reference/elaborate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3078,
+      "path": "study/reference/elaborate.stdout.txt",
+      "sha256": "18308b3fae11a5bf824387ce307110db6bf8bfb262fc5c6d6c33421014914431"
+    },
+    {
+      "bytes": 3331,
+      "path": "study/reference/inputs.json",
+      "sha256": "0377757bc62a1ebe7890df7103090b7466c32f0c7f2ba7394628201e5603446a"
+    },
+    {
+      "bytes": 70241,
+      "path": "study/reference/pma_to_regraph_adapter.v",
+      "sha256": "c8cdc046d3c3a5abfad8ef9af01076f5df044c1eb212efb32264e2475d523569"
+    },
+    {
+      "bytes": 21964,
+      "path": "study/reference/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "bytes": 22893,
+      "path": "study/reference/pma_to_regraph_adapter_emit_row_segments.v",
+      "sha256": "01c508952b035c6aa521c09492d8ddc76edd901f098f36610ded3708efe8bb4e"
+    },
+    {
+      "bytes": 345984,
+      "path": "study/reference/pma_to_regraph_adapter_emit_row_segments_Pipeline_segment_loop.v",
+      "sha256": "d18d2c92cd025802d8db82886de2c10da31b7e7eebadf873754e698a17bf4dcd"
+    },
+    {
+      "bytes": 2788,
+      "path": "study/reference/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "bytes": 100997,
+      "path": "study/reference/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "bytes": 1109,
+      "path": "study/reference/pma_to_regraph_adapter_hls_deadlock_idx0_monitor.v",
+      "sha256": "24db5fb722a9c884b98737daa24ff69c6286c2eae8e3ca450a27a1634ac73c35"
+    },
+    {
+      "bytes": 1230,
+      "path": "study/reference/pma_to_regraph_adapter_hls_deadlock_kernel_monitor_top.vh",
+      "sha256": "817a09f184661f81f9193c8766b8abf290aba591b4cbf843d972871321a534fc"
+    },
+    {
+      "bytes": 70641,
+      "path": "study/reference/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "sha256": "17722f0de2eff17383d23c107af5694da20a1e084d431dde7a7508e2251925c5"
+    },
+    {
+      "bytes": 3234,
+      "path": "study/reference/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "bytes": 1907,
+      "path": "study/reference/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "bytes": 13,
+      "path": "study/reference/run.tcl",
+      "sha256": "6218ffa4f2392f3c61113605d4ab2cd023186e11f1da826b920e510a9a797efb"
+    },
+    {
+      "bytes": 256,
+      "path": "study/reference/simulate.progress.json",
+      "sha256": "9e33bbc3f3586e08180a82ab4edf6f6f47a4e2df076c4fcd74793bbdecbbfe49"
+    },
+    {
+      "bytes": 1890,
+      "path": "study/reference/simulate.resources.json",
+      "sha256": "0da046402f061c39f69b2d60d9cb7f615d8173783894937423d77e7545ac174f"
+    },
+    {
+      "bytes": 0,
+      "path": "study/reference/simulate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 37329,
+      "path": "study/reference/simulate.stdout.txt",
+      "sha256": "8a93072c75d8b80c24993d99acd438799d566deaf65a446f4a56933a3e1b3420"
+    },
+    {
+      "bytes": 3078,
+      "path": "study/reference/xelab.log",
+      "sha256": "18308b3fae11a5bf824387ce307110db6bf8bfb262fc5c6d6c33421014914431"
+    },
+    {
+      "bytes": 5592,
+      "path": "study/reference/xelab.pb",
+      "sha256": "f4eed574443aea84fad6f3e682646dfcbd57f345a3dd1b54fad0d5bacb5aacc0"
+    },
+    {
+      "bytes": 1172,
+      "path": "study/reference/xsim.jou",
+      "sha256": "c77329da5ab80f449e040b2bfd806d93efebf65740c374324ff5a11aa5ad919c"
+    },
+    {
+      "bytes": 38044,
+      "path": "study/reference/xsim.log",
+      "sha256": "29aca134a0ca1da8e1d51b96d9e649daae77e64bdeddd9ef2042575661293283"
+    },
+    {
+      "bytes": 3786,
+      "path": "study/reference/xvlog.log",
+      "sha256": "4ca719a8192b0050c0ba207291e3a51e08c19b92ba30ba40c93c99fe199db017"
+    },
+    {
+      "bytes": 4860,
+      "path": "study/reference/xvlog.pb",
+      "sha256": "66bae7622e03239305b7a6de17e66d821e1566efac31bdd029e130e5b9cde796"
+    },
+    {
+      "bytes": 170854,
+      "path": "study/results.json",
+      "sha256": "076e276a091c30f08cdc604de0d43fa10e9a33204f2ad177e4c4e13ab7fa3b31"
+    },
+    {
+      "bytes": 24770,
+      "path": "study/sources/integration/include/weighted_pma_graph.hpp",
+      "sha256": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514"
+    },
+    {
+      "bytes": 12544,
+      "path": "study/sources/integration/include/weighted_pma_runtime_plan.hpp",
+      "sha256": "e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c"
+    },
+    {
+      "bytes": 4528,
+      "path": "study/sources/integration/include/weighted_pma_update_reference.hpp",
+      "sha256": "103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625"
+    },
+    {
+      "bytes": 14143,
+      "path": "study/sources/integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+      "sha256": "4007eb8d0504ce185a2395609e3801e6a85d26f3426b336e6d11fd7d3288bcfe"
+    },
+    {
+      "bytes": 941,
+      "path": "study/sources/integration/kernels/pma_to_regraph_adapter/row_line.hpp",
+      "sha256": "e1880be22792128493f2f03e9507eb4c4346f1afbd678401f9848ad35ac505b9"
+    },
+    {
+      "bytes": 958,
+      "path": "study/sources/integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+      "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+    },
+    {
+      "bytes": 5429,
+      "path": "study/sources/integration/scripts/check_pma_to_regraph_adapter.sh",
+      "sha256": "cd7fb60074c86d31b1f37271445e7a29ca4784b92ed661dbfe491f5114a1b001"
+    },
+    {
+      "bytes": 1119,
+      "path": "study/sources/integration/scripts/check_weighted_pma_runtime_plan.sh",
+      "sha256": "f74000820957c40a6432d33a4938a5ef83cf27374d312b54f873d8acfae6a87f"
+    },
+    {
+      "bytes": 472,
+      "path": "study/sources/integration/scripts/env.sh",
+      "sha256": "e9a7b13d8a878b7c27d86eb40c6914eaa02c9d651b6f9a75a1c875ac39590cb0"
+    },
+    {
+      "bytes": 7224,
+      "path": "study/sources/integration/tests/pma_adapter_row_prefetch_tb.cpp",
+      "sha256": "86dc6047ed0af662c482507bd8fcba75f3ce4ffcd81fde80b41d26c6a614073f"
+    },
+    {
+      "bytes": 4172,
+      "path": "study/sources/integration/tests/pma_to_regraph_adapter_tb.cpp",
+      "sha256": "75552a5e5123dbab95e3f1ef6def25520277d19c33653aa2782522d4abb749b0"
+    },
+    {
+      "bytes": 5436,
+      "path": "study/sources/integration/tests/weighted_pma_runtime_plan_test.cpp",
+      "sha256": "9fb1bb249834509f91df4daa020c493bc29af33645ae4784298e8c832f79cfaa"
+    },
+    {
+      "bytes": 11316,
+      "path": "study/sources/simulator/cpp/tests/routed_regraph/adapter_axi_tb.sv",
+      "sha256": "6b75c9ab0b263ba01f2d98d4c9c60d80347bb8c31c842fa1dd96679251c436bb"
+    },
+    {
+      "bytes": 213976,
+      "path": "study/sources/simulator/inputs/13_adapter.hw.xo",
+      "sha256": "4bae8791463a71f8b02ccad870d0178b2268cea8cfa6173c480e8a596a24417a"
+    },
+    {
+      "bytes": 204935,
+      "path": "study/sources/simulator/inputs/14_adapter.hw.xo",
+      "sha256": "93aa6b76e441eda51ffc0a9bb25c1411cfab2be2bf18326371558a0cefb1863a"
+    },
+    {
+      "bytes": 11681,
+      "path": "study/sources/simulator/inputs/15_manifest.json",
+      "sha256": "6d8b2ccb884b85632c60fde3e88e040cba609f5d0524d782b7d483374d5d3038"
+    },
+    {
+      "bytes": 42052,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 5190,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/original_regraph_execution/sssp_real_round/delivery.py",
+      "sha256": "ac3fdbd9f8a2fcbe515966ad4f87decf46a9e835dce7fbee8a397a9dd1c7dd2b"
+    },
+    {
+      "bytes": 9668,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/original_regraph_execution/sssp_real_round/recheck.py",
+      "sha256": "8a0d526ee1e8b2600b04877954829d6fe0a5194c77e7232753adf86833b64fe6"
+    },
+    {
+      "bytes": 6231,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/original_regraph_validation/analysis.py",
+      "sha256": "7a9bd80d341f06b6dee7953a4fe4f7af69b149bea0ad694858dfc6c958a2cbad"
+    },
+    {
+      "bytes": 78,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+      "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299"
+    },
+    {
+      "bytes": 77,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/__init__.py",
+      "sha256": "04bc79b011b358e9e9657bd3089588e1deb12cb855950a113ba65a272661e529"
+    },
+    {
+      "bytes": 5714,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/analysis.py",
+      "sha256": "7a4d526abc0333f622084309446f973e6b1780ff3c96e66c9a7f2e55974d2b4e"
+    },
+    {
+      "bytes": 8560,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/delivery.py",
+      "sha256": "281e66c10c48f7aa7c5c309475702a98b728415cbac27c4c35d3c6fb25e16637"
+    },
+    {
+      "bytes": 7464,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/study.py",
+      "sha256": "77c1cfda34a2d9b005dab2b7f887a272f6998d2e3d16bf118931a81c97e35c65"
+    },
+    {
+      "bytes": 5246,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/analysis.py",
+      "sha256": "04704dfa8a44357b2aba921be8ec38da8908b0619a7acec1265e5ccf3c4fce45"
+    },
+    {
+      "bytes": 5429,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/bitstream.py",
+      "sha256": "7535e6cee40a99da52ca10792353a1dc44ade6853cb6ec35470f809292438a48"
+    },
+    {
+      "bytes": 1510,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/board.py",
+      "sha256": "6e0ca5da78ad37559ba54a77b7e66b2e0b4c4c023d49ae6f8fe67bc3a6e0a065"
+    },
+    {
+      "bytes": 5971,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/board_delivery.py",
+      "sha256": "ba31fb330677b432d4d63a9f3af4d2d5d1ab54dabe371a087d8f5457cd7d22f6"
+    },
+    {
+      "bytes": 12463,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/channel_delivery.py",
+      "sha256": "e1af6693df3a4358758cf8eaf98c9c4a59d6599c3e46b316f200484fd43b2e08"
+    },
+    {
+      "bytes": 4810,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/comparison.py",
+      "sha256": "20f3e7fe4c0a58b8e2596350f71038dade9ab4b3cb5a4f1ca50be6e384860b27"
+    },
+    {
+      "bytes": 4423,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/completion_delivery.py",
+      "sha256": "1fd4eee383816ff22dc0d408209f45ff772c0754903443b34ee806e4b5e5f119"
+    },
+    {
+      "bytes": 5985,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/compute_delivery.py",
+      "sha256": "dfa5aa7476d5da2b3a0adbe97ee1042ef1a323d73f9a9ecd448ab194ec0b0020"
+    },
+    {
+      "bytes": 10083,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/delivery.py",
+      "sha256": "73d1f6799bf2a44f8c15dc5202931ab97d9a39cd38e24f2ac4b3c1e6c1e7490d"
+    },
+    {
+      "bytes": 6824,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_delivery.py",
+      "sha256": "ba4c9a6b8a51ad646b24f0ae12a2364061038257b84ecf2ec90e0656052faef1"
+    },
+    {
+      "bytes": 7022,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_sweep.py",
+      "sha256": "26dd71c825b0f28bc19d822e3dc7a5e4260b39d0835fde9a98d3473633cd72ff"
+    },
+    {
+      "bytes": 5464,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_trace.py",
+      "sha256": "72a86e013ebb3a4c4b019b97f60725e755962c63755cc072535303a117a51940"
+    },
+    {
+      "bytes": 67,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/__init__.py",
+      "sha256": "a3c727addf953eee87fd10381ec2473a87f11c0c30682a1e6a21d3869b9ef9d9"
+    },
+    {
+      "bytes": 2925,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/analysis.py",
+      "sha256": "51941ad22ffe4a40d465852112e3ccc20715a16a8a526acaba677b4f6aedb8f2"
+    },
+    {
+      "bytes": 3937,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/delivery.py",
+      "sha256": "b9d4f8370f8ee7768b11ee732df5a3d8d9d64a65e649f40922cb9253d5bb9c19"
+    },
+    {
+      "bytes": 5803,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/functional.py",
+      "sha256": "ceac968c8d9fd43fb28ef2a48193e58c2bc754ecb617fbb8df0950b3db484b35"
+    },
+    {
+      "bytes": 8282,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/production.py",
+      "sha256": "9bb8f97ab2f4fbbc68be89602d56b6e3ef7ad5778e658ee6877f41174fa26e12"
+    },
+    {
+      "bytes": 3047,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/production_delivery.py",
+      "sha256": "46eac1768c867483758d2e2afb4b860eaf582af85ee0f9758e063e8359cba73e"
+    },
+    {
+      "bytes": 4967,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/production_validation.py",
+      "sha256": "3a0f72282bca7ba048da6a835262556d5f1371f35a2a75a5df6eec748c411ded"
+    },
+    {
+      "bytes": 5547,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/route.py",
+      "sha256": "6e2869c7fb386c8216d55f2fc3d1dabd5c2564d0f1099500ca255db6700da481"
+    },
+    {
+      "bytes": 3052,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/route_delivery.py",
+      "sha256": "43e9b97f89f4af51520390e7d6f4482a87871b39147112e9d19b349abd420f5a"
+    },
+    {
+      "bytes": 3238,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/route_execution.py",
+      "sha256": "3b779ed3271d133295a68759bd75c70abca4bec9e3ee3e115db0bc05ad48a485"
+    },
+    {
+      "bytes": 5121,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/study.py",
+      "sha256": "723cdfa5cb7aae07eef6d772fa1ab049321637b7b093f0da75dac50919f323d2"
+    },
+    {
+      "bytes": 4919,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/validation.py",
+      "sha256": "0ba3f02702b2e1285b1ec0c6348d4338602c5e2b79f814a39b278219ca26065d"
+    },
+    {
+      "bytes": 5296,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "bytes": 5858,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/frontend_delivery.py",
+      "sha256": "ed2bffef2a61f8d59dce46cef5cec23ce00d84b61d835ad5b2056029b0f7dc06"
+    },
+    {
+      "bytes": 8043,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/input_residency.py",
+      "sha256": "6610122d022afc74a426acdfc7ec812d9d4d55c54807c77ca3cc3b76999c5855"
+    },
+    {
+      "bytes": 5730,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/invocation_timing.py",
+      "sha256": "339c55b0d16560e8bc4797404a7615e30ef3a57c86263094422b86c74ac69427"
+    },
+    {
+      "bytes": 5656,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+    },
+    {
+      "bytes": 4963,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/model_adapter.py",
+      "sha256": "5c5c76303da6cc18bfe49228a1c9a5a2a0b725b7f5890425f43dc18e88c01499"
+    },
+    {
+      "bytes": 5383,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/model_delivery.py",
+      "sha256": "182dfcfde6e4b7b8c76ed5b8f01a658a9ad03afffeace78d002935bd33c1bc4d"
+    },
+    {
+      "bytes": 7611,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/model_frontend.py",
+      "sha256": "a790f3a47eaaac38a27e15f9f22b952b20fc72405af45d51f717437e8ac40c71"
+    },
+    {
+      "bytes": 4744,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/model_system.py",
+      "sha256": "f2ac6c0377aa191f92b43a276c8d60ada505c3ef454dc76615d0bcfa7add77d1"
+    },
+    {
+      "bytes": 6063,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/optimization_delivery.py",
+      "sha256": "0bfa2605f909b9c76fc4fbf81275250fdfd330cc9a3d15d31bcf8afea497edfd"
+    },
+    {
+      "bytes": 1619,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+    },
+    {
+      "bytes": 3991,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/residency_delivery.py",
+      "sha256": "8ea6c0bc4dca97a6b6dbf0abdc2b3a8e7c54d99d89fcf0ee0f866163a097bc42"
+    },
+    {
+      "bytes": 7622,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/residency_matrix.py",
+      "sha256": "4acb9804d23d53a138ceb03275dcd09c7bfbe48ee76ff1814ad8851d33d607bb"
+    },
+    {
+      "bytes": 9099,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/residency_validation.py",
+      "sha256": "7b6e0792c4a575eae81595ab75128d6418f09b660e83b6ae6b569384571ceba1"
+    },
+    {
+      "bytes": 3760,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/route_recovery.py",
+      "sha256": "aad5007b6472864bbc356b45568de35dbfb9b73f94f3f38ae9ead17957fbb77c"
+    },
+    {
+      "bytes": 7743,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/routing.py",
+      "sha256": "569a83a1e07527433946433e3886db877790161ec6450bbbdb984d2e2e8a4214"
+    },
+    {
+      "bytes": 5397,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_contract.py",
+      "sha256": "6f5d5aeab0b4f7cf8a6602e1954ecbd0fcddf75ff376ea75f8f12ce0d306c940"
+    },
+    {
+      "bytes": 8336,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_delivery.py",
+      "sha256": "dc070418e4ff27c877cb4e4ddba5632a65ab46bcfbb2ab425db308f056292e44"
+    },
+    {
+      "bytes": 6967,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_matrix.py",
+      "sha256": "c0e4a01b3265f4484aee4c89776c1e34e2e2b56240fa855e971b6cd2e150a248"
+    },
+    {
+      "bytes": 4825,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_sweep.py",
+      "sha256": "8573b7075a867058a2f689521091cd55cfba7c3ea44c5f3ac68afe085d4019ba"
+    },
+    {
+      "bytes": 78,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py",
+      "sha256": "00cf8c7ae583dd02e107fc7581f9cdc09889896d2182bbec0063e114ed40e910"
+    },
+    {
+      "bytes": 1720,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_line/probe.py",
+      "sha256": "1fcf374e41ba527756c60a28ca990f72a7fe043343fc69911307f19948226438"
+    },
+    {
+      "bytes": 6800,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_line/study.py",
+      "sha256": "57817da41345288e8af8f797888c3b065161a32421c477ebf1eb2d07af758f41"
+    },
+    {
+      "bytes": 3727,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_line/validation.py",
+      "sha256": "04744e1419b2d778429c6855e4d5827641181630391be372dfc4aa7029e8093a"
+    },
+    {
+      "bytes": 6399,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_sweep.py",
+      "sha256": "4692c684fefcf08646b13b23ec8becf184c5baed26bbdc484617652744554522"
+    },
+    {
+      "bytes": 5420,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_sweep_analysis.py",
+      "sha256": "aeb36df6931006192b7d02ae8f0cb92bebef8be6fb4ed2fed4dd4bbf3477a126"
+    },
+    {
+      "bytes": 6947,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_sweep_delivery.py",
+      "sha256": "7bdac3084c7da4db6054220ef053866419c174fbdc5ca29b1f3ec2d25a066dba"
+    },
+    {
+      "bytes": 3360,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/rtl.py",
+      "sha256": "72eebef090cc6a2c6793d8ef3c0c7d9b0b2853766e776c4c9ffb6f34e3f55a48"
+    },
+    {
+      "bytes": 6510,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/runtime_trace.py",
+      "sha256": "c14ce4a21324f2a3f1a874cdf42da4b8663e3958cfe246701699e8d110bf1624"
+    },
+    {
+      "bytes": 4919,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/segment_schedule.py",
+      "sha256": "759b47ea7f078c1f5c3488d74d7cbc8cfb727a7224615cbe3b22fbe8ebc5d61e"
+    },
+    {
+      "bytes": 4462,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/segment_schedule_delivery.py",
+      "sha256": "d7b0a78958e997200ba66bce882a3867db7d773a5caf2dfa3a99f5f6be711e3f"
+    },
+    {
+      "bytes": 3580,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/sst_campaign.py",
+      "sha256": "097d867d4a26bbff9e1cd84346ffec8aaae4657ef383a1be3cf5fe032ac6016f"
+    },
+    {
+      "bytes": 4930,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/sst_candidate.py",
+      "sha256": "fce513679176d426a7e7b3fdd6167d16108b047e704ae3495eb150cc3db1baff"
+    },
+    {
+      "bytes": 10436,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/sst_delivery.py",
+      "sha256": "f001222899adcd29ae1754889263b739b6320116500a77ff98444fbd2cd751d6"
+    },
+    {
+      "bytes": 4689,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/sst_input_audit.py",
+      "sha256": "78c075ecabef4b572e3565c8ee9f789a02c7785a1626918f0328fb9897b8d765"
+    },
+    {
+      "bytes": 9787,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/sst_timing.py",
+      "sha256": "b1228d86063d095962862f664db7be58c4d752c0ebc18ad666e101da99a2863e"
+    },
+    {
+      "bytes": 2579,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/stream_contract.py",
+      "sha256": "aeed7ba69864c44441a0680e831862659180ebda252b8cb7c130eef5d74d81b9"
+    },
+    {
+      "bytes": 9244,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/stream_delivery.py",
+      "sha256": "862845b3a3fceb622b70d6e32dc3f3d40d557ad919c063aa56538758402f39d7"
+    },
+    {
+      "bytes": 4506,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/synthesis.py",
+      "sha256": "ffca22354e7e494dbc5017185fe39cf8c49775b8c846692771c0928bc953b759"
+    },
+    {
+      "bytes": 5447,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/system_delivery.py",
+      "sha256": "66d4092a5580d6ecbbfb458031c31eb0a999f236a5afd6a7f820ad7fcd1f80dd"
+    },
+    {
+      "bytes": 3456,
+      "path": "study/sources/simulator/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "bytes": 345,
+      "path": "host/candidate/cc/manifest.txt",
+      "sha256": "6d008e4a0f201471d24a7f4228a4e5526d31dd4473716345d70a701b90e5f3f9"
+    },
+    {
+      "bytes": 178336,
+      "path": "host/candidate/cc/sharded_k4_cc_native_host",
+      "sha256": "c586043cc83b2cfa5aeafc790b86142abe97ae39669c8deada39bd1772d5fda8"
+    },
+    {
+      "bytes": 877,
+      "path": "host/candidate/cc/weighted_pma_native_host.sha256",
+      "sha256": "6757805204a6438d76efb0fbe1819ebf46cf0ee5d991038e55c2cca11f044dd1"
+    },
+    {
+      "bytes": 325,
+      "path": "host/candidate/check_manifest.env",
+      "sha256": "f34cb3ea0f90cf85fff9b8bb0785d394a966fd5c291eb80acbadd9f80fbf8d65"
+    },
+    {
+      "bytes": 354,
+      "path": "host/candidate/full_pr/manifest.txt",
+      "sha256": "376f4162e841d4b0229b7d6c53bb48e686c087e59faca8054ba3062ac589e777"
+    },
+    {
+      "bytes": 186216,
+      "path": "host/candidate/full_pr/sharded_k4_full_pagerank_native_host",
+      "sha256": "5195c7bc2d833cf281e9cc3024662015fc04e97f5b0cff26c815ee2b3036da8e"
+    },
+    {
+      "bytes": 902,
+      "path": "host/candidate/full_pr/weighted_pma_native_host.sha256",
+      "sha256": "739a0a900a34b60ddddde06efd04f21b4e14aaf44266fe40c015acaffd7d63de"
+    },
+    {
+      "bytes": 366,
+      "path": "host/candidate/residual_pr/manifest.txt",
+      "sha256": "28cedb187de90031e5f7008716eabcf3a4f9e416810c0b89777f062cd11aa0a4"
+    },
+    {
+      "bytes": 195112,
+      "path": "host/candidate/residual_pr/sharded_k4_residual_pagerank_native_host",
+      "sha256": "f7e1e464c775bbc1522be21d6671d82730dd6114a7493f727a2142ec4d4f8760"
+    },
+    {
+      "bytes": 910,
+      "path": "host/candidate/residual_pr/weighted_pma_native_host.sha256",
+      "sha256": "0d93edd34b9bf2240a75c3f58a67603c726d0c50d7ffde2b8ce21dff1a7e3394"
+    },
+    {
+      "bytes": 119,
+      "path": "host/candidate/six_partition_cc.graph",
+      "sha256": "56e5f785ecfb5a8ad439ae24d3af585967a111b2f01f64d44fc5420097937480"
+    },
+    {
+      "bytes": 1023,
+      "path": "host/candidate/six_partition_cc.out",
+      "sha256": "d8a545a50f0cc2ab96e46abeb8b16b84fb3e16f0f483decaf788a6b7aee10a40"
+    },
+    {
+      "bytes": 649,
+      "path": "host/candidate/six_partition_full_pr.out",
+      "sha256": "f8b82cbc2d9d38bbc6951dc35bb486029ac22c15834448e12636be7d99cfcc0b"
+    },
+    {
+      "bytes": 747,
+      "path": "host/candidate/six_partition_residual_pr.out",
+      "sha256": "01e96357e465f8c4d1431b1e054332b44d5355baa544b840d3054b06698d1076"
+    },
+    {
+      "bytes": 65,
+      "path": "host/candidate/six_partition_sssp.graph",
+      "sha256": "256b64c3770f773f5fb927761b1c6dc6a39027e7e8a1f8afa5b9b33fa6142dd2"
+    },
+    {
+      "bytes": 1008,
+      "path": "host/candidate/six_partition_sssp.out",
+      "sha256": "5ecdec2f7a7d4dac46676d0dcf6a1554e2b3cafaa59e3a17ef349b72cd77295b"
+    },
+    {
+      "bytes": 342,
+      "path": "host/candidate/sssp/manifest.txt",
+      "sha256": "936e6461d9a271b4c154f9d3eb59c4784568caf0d7c129e349bff62227b00faa"
+    },
+    {
+      "bytes": 177792,
+      "path": "host/candidate/sssp/sharded_k4_sssp_native_host",
+      "sha256": "d1225bceec5116421db6f85868381a177b67e9d5d938a9fa3a3dd84167245ce9"
+    },
+    {
+      "bytes": 881,
+      "path": "host/candidate/sssp/weighted_pma_native_host.sha256",
+      "sha256": "63ab95436427a4187ac6603806a8fdcb8a8868f5340f7d3c8cd857a15e2b6470"
+    },
+    {
+      "bytes": 257,
+      "path": "host/candidate_check.progress.json",
+      "sha256": "6096fa3e09c0d55bb7ee2d787d0c1e0d0cfd97fabb2a65fd4e65e4f138fc453b"
+    },
+    {
+      "bytes": 1950,
+      "path": "host/candidate_check.resources.json",
+      "sha256": "1f88ad2bb9e8cccdb2ff57ebf7d3cabbe65fd4a1456857694c579ac9cb4205f1"
+    },
+    {
+      "bytes": 3062,
+      "path": "host/candidate_check.stderr.txt",
+      "sha256": "5f8d69f82964e9c5089f10c5da61e2191a152fa9dfe4c7e64d98addb602bd141"
+    },
+    {
+      "bytes": 7586,
+      "path": "host/candidate_check.stdout.txt",
+      "sha256": "07d0c70853225d04f6079398bf57f858ce80d13730f1a6451fce24fb9f681f3e"
+    },
+    {
+      "bytes": 343,
+      "path": "host/default/cc/manifest.txt",
+      "sha256": "64c3495d99d4092fb3f79e4a657abc55692a2a15764e21cc696b2c1700ed7396"
+    },
+    {
+      "bytes": 178336,
+      "path": "host/default/cc/sharded_k4_cc_native_host",
+      "sha256": "6421fbfbd67ac294950e24ac196fa57d8c5726144ba556fa8ce5232ffe7af743"
+    },
+    {
+      "bytes": 875,
+      "path": "host/default/cc/weighted_pma_native_host.sha256",
+      "sha256": "f6989568ba10852a1c5d269780830577e28dcda3d2248fba2891a890d8f51d64"
+    },
+    {
+      "bytes": 325,
+      "path": "host/default/check_manifest.env",
+      "sha256": "5fff039704b0c7b38f30964ad6d31a67d466b96819838f320c856be44ccbc99b"
+    },
+    {
+      "bytes": 352,
+      "path": "host/default/full_pr/manifest.txt",
+      "sha256": "8127c3ea3e0bd46ff3b3cf236ae1957d2e8d3b094a5d3ba56ee0c8c2692851e4"
+    },
+    {
+      "bytes": 186216,
+      "path": "host/default/full_pr/sharded_k4_full_pagerank_native_host",
+      "sha256": "c9aedec87c1e28cb1e63e460ef6401f838da287f8fbc7147681bfd7fcedaeaab"
+    },
+    {
+      "bytes": 900,
+      "path": "host/default/full_pr/weighted_pma_native_host.sha256",
+      "sha256": "0e7b319a3dde6ff1fc255b48e12200708d70d740a09dcf1ff1ac4bd9ab6d9f1f"
+    },
+    {
+      "bytes": 364,
+      "path": "host/default/residual_pr/manifest.txt",
+      "sha256": "6c2995f59d1ba0c501e51a392cfad8f75ab2dc9852ab01c59996016545ee81fb"
+    },
+    {
+      "bytes": 195112,
+      "path": "host/default/residual_pr/sharded_k4_residual_pagerank_native_host",
+      "sha256": "1addd9ee2b30e7068191f54a3e124085ac0bedef4c932c40548b16cc47d8f368"
+    },
+    {
+      "bytes": 908,
+      "path": "host/default/residual_pr/weighted_pma_native_host.sha256",
+      "sha256": "df7fc396a873698c136b01dd69fe6a52acbdb165f017f0911bcb1148fb3d9192"
+    },
+    {
+      "bytes": 119,
+      "path": "host/default/six_partition_cc.graph",
+      "sha256": "56e5f785ecfb5a8ad439ae24d3af585967a111b2f01f64d44fc5420097937480"
+    },
+    {
+      "bytes": 1023,
+      "path": "host/default/six_partition_cc.out",
+      "sha256": "d8a545a50f0cc2ab96e46abeb8b16b84fb3e16f0f483decaf788a6b7aee10a40"
+    },
+    {
+      "bytes": 649,
+      "path": "host/default/six_partition_full_pr.out",
+      "sha256": "f8b82cbc2d9d38bbc6951dc35bb486029ac22c15834448e12636be7d99cfcc0b"
+    },
+    {
+      "bytes": 747,
+      "path": "host/default/six_partition_residual_pr.out",
+      "sha256": "01e96357e465f8c4d1431b1e054332b44d5355baa544b840d3054b06698d1076"
+    },
+    {
+      "bytes": 65,
+      "path": "host/default/six_partition_sssp.graph",
+      "sha256": "256b64c3770f773f5fb927761b1c6dc6a39027e7e8a1f8afa5b9b33fa6142dd2"
+    },
+    {
+      "bytes": 1008,
+      "path": "host/default/six_partition_sssp.out",
+      "sha256": "5ecdec2f7a7d4dac46676d0dcf6a1554e2b3cafaa59e3a17ef349b72cd77295b"
+    },
+    {
+      "bytes": 340,
+      "path": "host/default/sssp/manifest.txt",
+      "sha256": "db5543270359cc9eb442fa7ed9e02e9e15c6a48ad36536332c294c58202322d1"
+    },
+    {
+      "bytes": 177792,
+      "path": "host/default/sssp/sharded_k4_sssp_native_host",
+      "sha256": "6bfcfd5bfbc28dfe51c9db6d54eb2f8362752d3e95b472525d8195938098e560"
+    },
+    {
+      "bytes": 879,
+      "path": "host/default/sssp/weighted_pma_native_host.sha256",
+      "sha256": "570f661ab579c6ee1f8a3e6355ad2f59b8c2097b719d97eb8f47b60a482fbedb"
+    },
+    {
+      "bytes": 256,
+      "path": "host/default_check.progress.json",
+      "sha256": "502f03ecdddcc7ae2899366869e1cfc0c5e0ecf4d696577496b0e7db3e46444d"
+    },
+    {
+      "bytes": 1953,
+      "path": "host/default_check.resources.json",
+      "sha256": "8a5c05060356e5ebc33a44acc2a7bac99d56e805a44931c10f69414696d8c31e"
+    },
+    {
+      "bytes": 3062,
+      "path": "host/default_check.stderr.txt",
+      "sha256": "5f8d69f82964e9c5089f10c5da61e2191a152fa9dfe4c7e64d98addb602bd141"
+    },
+    {
+      "bytes": 7568,
+      "path": "host/default_check.stdout.txt",
+      "sha256": "42d9ec0e11682782811f827cebf2f8be36da91302f419b1ccb08f3429db002b6"
+    },
+    {
+      "bytes": 10191,
+      "path": "host/manifest.json",
+      "sha256": "5a002bda807f7ca31de3c05969b6fcda04e11e063d089cbc9ce45592d05331a0"
+    },
+    {
+      "bytes": 212,
+      "path": "host/padding_compile.progress.json",
+      "sha256": "3c4e1f7dc1b2f20e967a4bb873eb1964cf57558bd9b2837ae40aac883017ba2f"
+    },
+    {
+      "bytes": 1965,
+      "path": "host/padding_compile.resources.json",
+      "sha256": "2150fb856aae88120ab75570b042def59521fcdacaf6a45b5d639706d4651801"
+    },
+    {
+      "bytes": 0,
+      "path": "host/padding_compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "host/padding_compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 209,
+      "path": "host/padding_run.progress.json",
+      "sha256": "0f76b00d7f055a752257020359e98f15c36e7984352c9f54fedf03b5f1ec48fe"
+    },
+    {
+      "bytes": 1789,
+      "path": "host/padding_run.resources.json",
+      "sha256": "88abf58515c67321fd78a276e65a1ef7159a764f75d510d8f62b8bdb8bafafed"
+    },
+    {
+      "bytes": 0,
+      "path": "host/padding_run.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "host/padding_run.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 76520,
+      "path": "host/padding_test",
+      "sha256": "cebe1a5bb193c81607e3d1f609a145a5e28989aacb7eb3af3c8b9580391d25ea"
+    },
+    {
+      "bytes": 3903,
+      "path": "host/results.json",
+      "sha256": "ba3997321e30fe1e40f4a70e67b19ee37c7c99044fc5918cae7f7185e7d2b215"
+    },
+    {
+      "bytes": 1704,
+      "path": "host/sources/integration/include/grasu_degree_delta.hpp",
+      "sha256": "e78b4349c7eff14738cdaef5c031fa8a92b40f38260711fb96b9ca0f42e05578"
+    },
+    {
+      "bytes": 692,
+      "path": "host/sources/integration/include/regraph_pagerank_apply.hpp",
+      "sha256": "6b3d5c0362a739da83c9ddb6b9b706df2c5402c5c9c4a22b979c21bd31877784"
+    },
+    {
+      "bytes": 2920,
+      "path": "host/sources/integration/include/sharded_event_trace.hpp",
+      "sha256": "6de549773ae778db7b3244238f305e489f874b0dd8a8c87ecc7a1e0d4afab638"
+    },
+    {
+      "bytes": 24770,
+      "path": "host/sources/integration/include/weighted_pma_graph.hpp",
+      "sha256": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514"
+    },
+    {
+      "bytes": 12544,
+      "path": "host/sources/integration/include/weighted_pma_runtime_plan.hpp",
+      "sha256": "e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c"
+    },
+    {
+      "bytes": 4528,
+      "path": "host/sources/integration/include/weighted_pma_update_reference.hpp",
+      "sha256": "103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625"
+    },
+    {
+      "bytes": 4303,
+      "path": "host/sources/integration/scripts/build_weighted_pma_native_host.sh",
+      "sha256": "d95c97a3414a1c48b8a56c620c3d0f9fb6d275b35d7ea5aeff448c2bf705fd71"
+    },
+    {
+      "bytes": 3949,
+      "path": "host/sources/integration/scripts/check_sharded_k4_native_host.sh",
+      "sha256": "98126a4b5430d574faebdbec8766dad27a8f7806ba36902c7a7ba93d711fbc3f"
+    },
+    {
+      "bytes": 472,
+      "path": "host/sources/integration/scripts/env.sh",
+      "sha256": "e9a7b13d8a878b7c27d86eb40c6914eaa02c9d651b6f9a75a1c875ac39590cb0"
+    },
+    {
+      "bytes": 1786,
+      "path": "host/sources/integration/tests/weighted_pma_row_line_plan_test.cpp",
+      "sha256": "f3c4bd3d53c53ed1f11714d0784201342e8e370200f498e71d3de49b66ddb6d4"
+    },
+    {
+      "bytes": 39096,
+      "path": "host/sources/integration/tools/pure_pipeline_host.cpp",
+      "sha256": "7afb084631c90d6d17924752011b8fa6df0b205d74875dded6ab3cccb4109192"
+    },
+    {
+      "bytes": 54029,
+      "path": "host/sources/integration/tools/sharded_k4_native_host.cpp",
+      "sha256": "19eba0e30b1d0527b668fd2fe59d88392c1dcc4afc70255400fceedd5ab05b4d"
+    },
+    {
+      "bytes": 47486,
+      "path": "host/sources/integration/tools/sharded_k4_pagerank_native_host.cpp",
+      "sha256": "459b8206f89a23d864fde2e19388f855d8ffdc13d8abbd0d74fe2cbe96348a4c"
+    },
+    {
+      "bytes": 92172,
+      "path": "host/sources/integration/tools/weighted_pma_native_host.cpp",
+      "sha256": "cf1acaef2d68ea2f80d8342df7c25c4369c67a4fd5a147b0ea805b3b25f6d488"
+    },
+    {
+      "bytes": 42052,
+      "path": "host/sources/simulator/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 5296,
+      "path": "host/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "bytes": 5656,
+      "path": "host/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+    },
+    {
+      "bytes": 1619,
+      "path": "host/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+    },
+    {
+      "bytes": 4671,
+      "path": "host/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_line/host.py",
+      "sha256": "458b6b87cfe26886fb6b9817ef05e6fae8c4dfe73b0899022c06a4d5ba7a2f98"
+    },
+    {
+      "bytes": 3456,
+      "path": "host/sources/simulator/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "bytes": 96,
+      "path": "development/host-v1/failure.json",
+      "sha256": "ebff8055c8e3e1abd87cc68ddbfb01f31e385d9acfff8501f8083aa091635358"
+    },
+    {
+      "bytes": 10191,
+      "path": "development/host-v1/manifest.json",
+      "sha256": "3a74cab4731d2036040f3b5dc50347bb9285d7b0fda5e3ae4a9d11b4e1b5c228"
+    },
+    {
+      "bytes": 211,
+      "path": "development/host-v1/padding_compile.progress.json",
+      "sha256": "6ad5069a85139ee46d2b7fbc765be61c2b4c21a2aafd59206ae541c20f940b11"
+    },
+    {
+      "bytes": 1966,
+      "path": "development/host-v1/padding_compile.resources.json",
+      "sha256": "bf536e4854c9edeb2e358a0b051c3d42a7c6776a3901aec1b96d9995e0d89a91"
+    },
+    {
+      "bytes": 0,
+      "path": "development/host-v1/padding_compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "development/host-v1/padding_compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 209,
+      "path": "development/host-v1/padding_run.progress.json",
+      "sha256": "db4458e95ae6306f0fd2a43cc095926c6e89c4e4932dcbaf5e0622cf0302b3f4"
+    },
+    {
+      "bytes": 1790,
+      "path": "development/host-v1/padding_run.resources.json",
+      "sha256": "279519b056f329a34af0f20a4de722ea3b078434479eed3b36e09ea6a9761648"
+    },
+    {
+      "bytes": 122,
+      "path": "development/host-v1/padding_run.stderr.txt",
+      "sha256": "ff73ae889fe4d9bbf3d5f05ee9b3f8d0a196970718911aa5ae3b9471168ec8ad"
+    },
+    {
+      "bytes": 0,
+      "path": "development/host-v1/padding_run.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 76528,
+      "path": "development/host-v1/padding_test",
+      "sha256": "cc9746dc46173a286a9ce27dc9988bca794a8f2869646830609bdf9661abaed2"
+    },
+    {
+      "bytes": 1704,
+      "path": "development/host-v1/sources/integration/include/grasu_degree_delta.hpp",
+      "sha256": "e78b4349c7eff14738cdaef5c031fa8a92b40f38260711fb96b9ca0f42e05578"
+    },
+    {
+      "bytes": 692,
+      "path": "development/host-v1/sources/integration/include/regraph_pagerank_apply.hpp",
+      "sha256": "6b3d5c0362a739da83c9ddb6b9b706df2c5402c5c9c4a22b979c21bd31877784"
+    },
+    {
+      "bytes": 2920,
+      "path": "development/host-v1/sources/integration/include/sharded_event_trace.hpp",
+      "sha256": "6de549773ae778db7b3244238f305e489f874b0dd8a8c87ecc7a1e0d4afab638"
+    },
+    {
+      "bytes": 24770,
+      "path": "development/host-v1/sources/integration/include/weighted_pma_graph.hpp",
+      "sha256": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514"
+    },
+    {
+      "bytes": 12544,
+      "path": "development/host-v1/sources/integration/include/weighted_pma_runtime_plan.hpp",
+      "sha256": "e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c"
+    },
+    {
+      "bytes": 4528,
+      "path": "development/host-v1/sources/integration/include/weighted_pma_update_reference.hpp",
+      "sha256": "103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625"
+    },
+    {
+      "bytes": 4303,
+      "path": "development/host-v1/sources/integration/scripts/build_weighted_pma_native_host.sh",
+      "sha256": "d95c97a3414a1c48b8a56c620c3d0f9fb6d275b35d7ea5aeff448c2bf705fd71"
+    },
+    {
+      "bytes": 3949,
+      "path": "development/host-v1/sources/integration/scripts/check_sharded_k4_native_host.sh",
+      "sha256": "98126a4b5430d574faebdbec8766dad27a8f7806ba36902c7a7ba93d711fbc3f"
+    },
+    {
+      "bytes": 472,
+      "path": "development/host-v1/sources/integration/scripts/env.sh",
+      "sha256": "e9a7b13d8a878b7c27d86eb40c6914eaa02c9d651b6f9a75a1c875ac39590cb0"
+    },
+    {
+      "bytes": 1791,
+      "path": "development/host-v1/sources/integration/tests/weighted_pma_row_line_plan_test.cpp",
+      "sha256": "21cda57bb8501ab5f03640b868b7581dcb8cf015abf51c2cb05cab5910abd414"
+    },
+    {
+      "bytes": 39096,
+      "path": "development/host-v1/sources/integration/tools/pure_pipeline_host.cpp",
+      "sha256": "7afb084631c90d6d17924752011b8fa6df0b205d74875dded6ab3cccb4109192"
+    },
+    {
+      "bytes": 54029,
+      "path": "development/host-v1/sources/integration/tools/sharded_k4_native_host.cpp",
+      "sha256": "19eba0e30b1d0527b668fd2fe59d88392c1dcc4afc70255400fceedd5ab05b4d"
+    },
+    {
+      "bytes": 47486,
+      "path": "development/host-v1/sources/integration/tools/sharded_k4_pagerank_native_host.cpp",
+      "sha256": "459b8206f89a23d864fde2e19388f855d8ffdc13d8abbd0d74fe2cbe96348a4c"
+    },
+    {
+      "bytes": 92172,
+      "path": "development/host-v1/sources/integration/tools/weighted_pma_native_host.cpp",
+      "sha256": "cf1acaef2d68ea2f80d8342df7c25c4369c67a4fd5a147b0ea805b3b25f6d488"
+    },
+    {
+      "bytes": 42052,
+      "path": "development/host-v1/sources/simulator/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 5296,
+      "path": "development/host-v1/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "bytes": 5656,
+      "path": "development/host-v1/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+    },
+    {
+      "bytes": 1619,
+      "path": "development/host-v1/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+    },
+    {
+      "bytes": 4671,
+      "path": "development/host-v1/sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/row_line/host.py",
+      "sha256": "458b6b87cfe26886fb6b9817ef05e6fae8c4dfe73b0899022c06a4d5ba7a2f98"
+    },
+    {
+      "bytes": 3456,
+      "path": "development/host-v1/sources/simulator/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    }
+  ],
+  "host_sha256": "ba3997321e30fe1e40f4a70e67b19ee37c7c99044fc5918cae7f7185e7d2b215",
+  "raw_host": "/data/chuxiao/experiments/sharded_k4_row_line_20261011/host-v2",
+  "raw_study": "/data/chuxiao/experiments/sharded_k4_row_line_20261011/attempt-v1",
+  "results_sha256": "076e276a091c30f08cdc604de0d43fa10e9a33204f2ad177e4c4e13ab7fa3b31",
+  "simulator_modified": false,
+  "status": "ROW_LINE_PRODUCTION_AXI_PASS_NOT_ROUTED"
+}

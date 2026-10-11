@@ -1,0 +1,7663 @@
+{
+  "FPGA_timing_admitted": false,
+  "arms": {
+    "candidate": [
+      {
+        "cycles": 2,
+        "done": 76,
+        "first_packet": -1,
+        "last_packet": -1,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 0,
+        "packets": 0,
+        "placement": 0,
+        "pma_beats": 0,
+        "pma_requests": 0,
+        "pma_transfer_bytes": 0,
+        "requests": [],
+        "responses": [],
+        "row_beats": 0,
+        "row_requests": 0,
+        "row_transfer_bytes": 0,
+        "stall": 0,
+        "start": 74,
+        "trial": 0,
+        "vertices": 0
+      },
+      {
+        "cycles": 227,
+        "done": 381,
+        "first_packet": 379,
+        "last_packet": 380,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 2,
+        "placement": 0,
+        "pma_beats": 1,
+        "pma_requests": 1,
+        "pma_transfer_bytes": 64,
+        "requests": [
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 162,
+            "size": 64,
+            "trial": 1
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 236,
+            "size": 64,
+            "trial": 1
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 313,
+            "size": 64,
+            "trial": 1
+          }
+        ],
+        "responses": [
+          {
+            "address": 524288,
+            "cycle": 164,
+            "last": 1,
+            "size": 64,
+            "trial": 1
+          },
+          {
+            "address": 524288,
+            "cycle": 238,
+            "last": 1,
+            "size": 64,
+            "trial": 1
+          },
+          {
+            "address": 65536,
+            "cycle": 315,
+            "last": 1,
+            "size": 64,
+            "trial": 1
+          }
+        ],
+        "row_beats": 2,
+        "row_requests": 2,
+        "row_transfer_bytes": 128,
+        "stall": 0,
+        "start": 154,
+        "trial": 1,
+        "vertices": 1
+      },
+      {
+        "cycles": 787,
+        "done": 1246,
+        "first_packet": 684,
+        "last_packet": 1245,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 16,
+        "placement": 0,
+        "pma_beats": 8,
+        "pma_requests": 8,
+        "pma_transfer_bytes": 512,
+        "requests": [
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 467,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 541,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 618,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 698,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 778,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 858,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 938,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 1018,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 1098,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 1178,
+            "size": 64,
+            "trial": 2
+          }
+        ],
+        "responses": [
+          {
+            "address": 524288,
+            "cycle": 469,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 543,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 65536,
+            "cycle": 620,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 196608,
+            "cycle": 700,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 65600,
+            "cycle": 780,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 196672,
+            "cycle": 860,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 131200,
+            "cycle": 940,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 262272,
+            "cycle": 1020,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 131264,
+            "cycle": 1100,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 262336,
+            "cycle": 1180,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          }
+        ],
+        "row_beats": 2,
+        "row_requests": 2,
+        "row_transfer_bytes": 128,
+        "stall": 0,
+        "start": 459,
+        "trial": 2,
+        "vertices": 8
+      },
+      {
+        "cycles": 939,
+        "done": 2263,
+        "first_packet": 1549,
+        "last_packet": 2262,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 18,
+        "placement": 0,
+        "pma_beats": 9,
+        "pma_requests": 9,
+        "pma_transfer_bytes": 576,
+        "requests": [
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 1332,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1406,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 1483,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 1563,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 1643,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 1723,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 1803,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 1883,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 1963,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 2043,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 2118,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 2195,
+            "size": 64,
+            "trial": 3
+          }
+        ],
+        "responses": [
+          {
+            "address": 524352,
+            "cycle": 1334,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1408,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 65536,
+            "cycle": 1485,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 196608,
+            "cycle": 1565,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 65600,
+            "cycle": 1645,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 196672,
+            "cycle": 1725,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131200,
+            "cycle": 1805,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 262272,
+            "cycle": 1885,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131264,
+            "cycle": 1965,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 262336,
+            "cycle": 2045,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524352,
+            "cycle": 2120,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131328,
+            "cycle": 2197,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          }
+        ],
+        "row_beats": 3,
+        "row_requests": 3,
+        "row_transfer_bytes": 192,
+        "stall": 0,
+        "start": 1324,
+        "trial": 3,
+        "vertices": 9
+      },
+      {
+        "cycles": 1651,
+        "done": 3992,
+        "first_packet": 2566,
+        "last_packet": 3991,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 34,
+        "placement": 0,
+        "pma_beats": 17,
+        "pma_requests": 17,
+        "pma_transfer_bytes": 1088,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 2349,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2423,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 2500,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 2580,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 2660,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 2740,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 2820,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 2900,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 2980,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 3060,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3135,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 3212,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 3292,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 3372,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 3452,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 3532,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 3612,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 3692,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 3772,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 3847,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 3924,
+            "size": 64,
+            "trial": 4
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 2351,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2425,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 65536,
+            "cycle": 2502,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 196608,
+            "cycle": 2582,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 65600,
+            "cycle": 2662,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 196672,
+            "cycle": 2742,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131200,
+            "cycle": 2822,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262272,
+            "cycle": 2902,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131264,
+            "cycle": 2982,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262336,
+            "cycle": 3062,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3137,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131328,
+            "cycle": 3214,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262400,
+            "cycle": 3294,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131392,
+            "cycle": 3374,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262464,
+            "cycle": 3454,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131456,
+            "cycle": 3534,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262528,
+            "cycle": 3614,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131520,
+            "cycle": 3694,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262592,
+            "cycle": 3774,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524416,
+            "cycle": 3849,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131584,
+            "cycle": 3926,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          }
+        ],
+        "row_beats": 4,
+        "row_requests": 4,
+        "row_transfer_bytes": 256,
+        "stall": 0,
+        "start": 2341,
+        "trial": 4,
+        "vertices": 17
+      },
+      {
+        "cycles": 1735,
+        "done": 5805,
+        "first_packet": 4307,
+        "last_packet": 5804,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 34,
+        "placement": 0,
+        "pma_beats": 17,
+        "pma_requests": 17,
+        "pma_transfer_bytes": 1088,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 4078,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4156,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 4237,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 4321,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 4405,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 4489,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 4573,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 4657,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 4741,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 4825,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4904,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 4985,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 5069,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 5153,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 5237,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 5321,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 5405,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 5489,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 5573,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 5652,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 5733,
+            "size": 64,
+            "trial": 5
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 4143,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4221,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 65536,
+            "cycle": 4302,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 196608,
+            "cycle": 4386,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 65600,
+            "cycle": 4470,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 196672,
+            "cycle": 4554,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131200,
+            "cycle": 4638,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262272,
+            "cycle": 4722,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131264,
+            "cycle": 4806,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262336,
+            "cycle": 4890,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 4969,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131328,
+            "cycle": 5050,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262400,
+            "cycle": 5134,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131392,
+            "cycle": 5218,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262464,
+            "cycle": 5302,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131456,
+            "cycle": 5386,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262528,
+            "cycle": 5470,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131520,
+            "cycle": 5554,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262592,
+            "cycle": 5638,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524416,
+            "cycle": 5717,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131584,
+            "cycle": 5798,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          }
+        ],
+        "row_beats": 4,
+        "row_requests": 4,
+        "row_transfer_bytes": 256,
+        "stall": 0,
+        "start": 4070,
+        "trial": 5,
+        "vertices": 17
+      },
+      {
+        "cycles": 3079,
+        "done": 8962,
+        "first_packet": 6312,
+        "last_packet": 8961,
+        "latency": 128,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 34,
+        "placement": 0,
+        "pma_beats": 17,
+        "pma_requests": 17,
+        "pma_transfer_bytes": 1088,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 5891,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6033,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 6178,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 6326,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 6474,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 6622,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 6770,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 6918,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 7066,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 7214,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7357,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 7502,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 7650,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 7798,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 7946,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 8094,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 8242,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 8390,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 8538,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 8681,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 8826,
+            "size": 64,
+            "trial": 6
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 6020,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6162,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 65536,
+            "cycle": 6307,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 196608,
+            "cycle": 6455,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 65600,
+            "cycle": 6603,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 196672,
+            "cycle": 6751,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131200,
+            "cycle": 6899,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262272,
+            "cycle": 7047,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131264,
+            "cycle": 7195,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262336,
+            "cycle": 7343,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7486,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131328,
+            "cycle": 7631,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262400,
+            "cycle": 7779,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131392,
+            "cycle": 7927,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262464,
+            "cycle": 8075,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131456,
+            "cycle": 8223,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262528,
+            "cycle": 8371,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131520,
+            "cycle": 8519,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262592,
+            "cycle": 8667,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524416,
+            "cycle": 8810,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131584,
+            "cycle": 8955,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          }
+        ],
+        "row_beats": 4,
+        "row_requests": 4,
+        "row_transfer_bytes": 256,
+        "stall": 0,
+        "start": 5883,
+        "trial": 6,
+        "vertices": 17
+      },
+      {
+        "cycles": 1803,
+        "done": 10843,
+        "first_packet": 9277,
+        "last_packet": 10842,
+        "latency": 64,
+        "length": 3,
+        "maximum_outstanding": 3,
+        "packets": 102,
+        "placement": 0,
+        "pma_beats": 51,
+        "pma_requests": 51,
+        "pma_transfer_bytes": 3264,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 9048,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9126,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 9207,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 9209,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 9211,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 9295,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 9297,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 9299,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 9383,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 9385,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 9387,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 9471,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 9473,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 9475,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 9559,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 9561,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 9563,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 9647,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 9649,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262656,
+            "beats": 1,
+            "cycle": 9651,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131648,
+            "beats": 1,
+            "cycle": 9735,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262720,
+            "beats": 1,
+            "cycle": 9737,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131712,
+            "beats": 1,
+            "cycle": 9739,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262784,
+            "beats": 1,
+            "cycle": 9823,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131776,
+            "beats": 1,
+            "cycle": 9825,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262848,
+            "beats": 1,
+            "cycle": 9827,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 9906,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131840,
+            "beats": 1,
+            "cycle": 9987,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262912,
+            "beats": 1,
+            "cycle": 9989,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131904,
+            "beats": 1,
+            "cycle": 9991,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262976,
+            "beats": 1,
+            "cycle": 10075,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131968,
+            "beats": 1,
+            "cycle": 10077,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263040,
+            "beats": 1,
+            "cycle": 10079,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132032,
+            "beats": 1,
+            "cycle": 10163,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263104,
+            "beats": 1,
+            "cycle": 10165,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132096,
+            "beats": 1,
+            "cycle": 10167,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263168,
+            "beats": 1,
+            "cycle": 10251,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132160,
+            "beats": 1,
+            "cycle": 10253,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263232,
+            "beats": 1,
+            "cycle": 10255,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132224,
+            "beats": 1,
+            "cycle": 10339,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263296,
+            "beats": 1,
+            "cycle": 10341,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132288,
+            "beats": 1,
+            "cycle": 10343,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263360,
+            "beats": 1,
+            "cycle": 10427,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132352,
+            "beats": 1,
+            "cycle": 10429,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263424,
+            "beats": 1,
+            "cycle": 10431,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132416,
+            "beats": 1,
+            "cycle": 10515,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263488,
+            "beats": 1,
+            "cycle": 10517,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132480,
+            "beats": 1,
+            "cycle": 10519,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263552,
+            "beats": 1,
+            "cycle": 10603,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132544,
+            "beats": 1,
+            "cycle": 10605,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263616,
+            "beats": 1,
+            "cycle": 10607,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 10686,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132608,
+            "beats": 1,
+            "cycle": 10767,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263680,
+            "beats": 1,
+            "cycle": 10769,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132672,
+            "beats": 1,
+            "cycle": 10771,
+            "size": 64,
+            "trial": 7
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 9113,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9191,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 65536,
+            "cycle": 9272,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 196608,
+            "cycle": 9274,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 65600,
+            "cycle": 9276,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 196672,
+            "cycle": 9360,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131200,
+            "cycle": 9362,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262272,
+            "cycle": 9364,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131264,
+            "cycle": 9448,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262336,
+            "cycle": 9450,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131328,
+            "cycle": 9452,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262400,
+            "cycle": 9536,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131392,
+            "cycle": 9538,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262464,
+            "cycle": 9540,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131456,
+            "cycle": 9624,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262528,
+            "cycle": 9626,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131520,
+            "cycle": 9628,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262592,
+            "cycle": 9712,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131584,
+            "cycle": 9714,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262656,
+            "cycle": 9716,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131648,
+            "cycle": 9800,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262720,
+            "cycle": 9802,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131712,
+            "cycle": 9804,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262784,
+            "cycle": 9888,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131776,
+            "cycle": 9890,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262848,
+            "cycle": 9892,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 9971,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131840,
+            "cycle": 10052,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262912,
+            "cycle": 10054,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131904,
+            "cycle": 10056,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262976,
+            "cycle": 10140,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131968,
+            "cycle": 10142,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263040,
+            "cycle": 10144,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132032,
+            "cycle": 10228,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263104,
+            "cycle": 10230,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132096,
+            "cycle": 10232,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263168,
+            "cycle": 10316,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132160,
+            "cycle": 10318,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263232,
+            "cycle": 10320,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132224,
+            "cycle": 10404,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263296,
+            "cycle": 10406,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132288,
+            "cycle": 10408,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263360,
+            "cycle": 10492,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132352,
+            "cycle": 10494,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263424,
+            "cycle": 10496,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132416,
+            "cycle": 10580,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263488,
+            "cycle": 10582,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132480,
+            "cycle": 10584,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263552,
+            "cycle": 10668,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132544,
+            "cycle": 10670,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263616,
+            "cycle": 10672,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524416,
+            "cycle": 10751,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132608,
+            "cycle": 10832,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263680,
+            "cycle": 10834,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132672,
+            "cycle": 10836,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          }
+        ],
+        "row_beats": 4,
+        "row_requests": 4,
+        "row_transfer_bytes": 256,
+        "stall": 0,
+        "start": 9040,
+        "trial": 7,
+        "vertices": 17
+      },
+      {
+        "cycles": 439,
+        "done": 11360,
+        "first_packet": 11358,
+        "last_packet": 11359,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 2,
+        "placement": 1,
+        "pma_beats": 1,
+        "pma_requests": 1,
+        "pma_transfer_bytes": 64,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 10929,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11007,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11107,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 11207,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 11288,
+            "size": 64,
+            "trial": 8
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 10994,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11072,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11172,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524416,
+            "cycle": 11272,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 65536,
+            "cycle": 11353,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          }
+        ],
+        "row_beats": 4,
+        "row_requests": 4,
+        "row_transfer_bytes": 256,
+        "stall": 0,
+        "start": 10921,
+        "trial": 8,
+        "vertices": 17
+      },
+      {
+        "cycles": 239,
+        "done": 11677,
+        "first_packet": 11675,
+        "last_packet": 11676,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 2,
+        "placement": 2,
+        "pma_beats": 1,
+        "pma_requests": 1,
+        "pma_transfer_bytes": 64,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 11446,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11524,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 11605,
+            "size": 64,
+            "trial": 9
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 11511,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11589,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 65536,
+            "cycle": 11670,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          }
+        ],
+        "row_beats": 2,
+        "row_requests": 2,
+        "row_transfer_bytes": 128,
+        "stall": 0,
+        "start": 11438,
+        "trial": 9,
+        "vertices": 17
+      },
+      {
+        "cycles": 519,
+        "done": 12274,
+        "first_packet": 11992,
+        "last_packet": 12273,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 6,
+        "placement": 3,
+        "pma_beats": 3,
+        "pma_requests": 3,
+        "pma_transfer_bytes": 192,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 11763,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11841,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 11922,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 12024,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12103,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 12202,
+            "size": 64,
+            "trial": 10
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 11828,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 11906,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 65536,
+            "cycle": 11987,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 196608,
+            "cycle": 12089,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12168,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 65600,
+            "cycle": 12267,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          }
+        ],
+        "row_beats": 3,
+        "row_requests": 3,
+        "row_transfer_bytes": 192,
+        "stall": 0,
+        "start": 11755,
+        "trial": 10,
+        "vertices": 17
+      },
+      {
+        "cycles": 2416,
+        "done": 14768,
+        "first_packet": 13352,
+        "last_packet": 14767,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 34,
+        "placement": 0,
+        "pma_beats": 17,
+        "pma_requests": 17,
+        "pma_transfer_bytes": 1088,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 12360,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12438,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 12519,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 12603,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 13368,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 13452,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 13536,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 13620,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 13704,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 13788,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 13867,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 13948,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 14032,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 14116,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 14200,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 14284,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 14368,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 14452,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 14536,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 14615,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 14696,
+            "size": 64,
+            "trial": 11
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 12425,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12503,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 65536,
+            "cycle": 12584,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 196608,
+            "cycle": 12668,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 65600,
+            "cycle": 13433,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 196672,
+            "cycle": 13517,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131200,
+            "cycle": 13601,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262272,
+            "cycle": 13685,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131264,
+            "cycle": 13769,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262336,
+            "cycle": 13853,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 13932,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131328,
+            "cycle": 14013,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262400,
+            "cycle": 14097,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131392,
+            "cycle": 14181,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262464,
+            "cycle": 14265,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131456,
+            "cycle": 14349,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262528,
+            "cycle": 14433,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131520,
+            "cycle": 14517,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262592,
+            "cycle": 14601,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524416,
+            "cycle": 14680,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131584,
+            "cycle": 14761,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          }
+        ],
+        "row_beats": 4,
+        "row_requests": 4,
+        "row_transfer_bytes": 256,
+        "stall": 1000,
+        "start": 12352,
+        "trial": 11,
+        "vertices": 17
+      }
+    ],
+    "reference": [
+      {
+        "cycles": 2,
+        "done": 76,
+        "first_packet": -1,
+        "last_packet": -1,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 0,
+        "packets": 0,
+        "placement": 0,
+        "pma_beats": 0,
+        "pma_requests": 0,
+        "pma_transfer_bytes": 0,
+        "requests": [],
+        "responses": [],
+        "row_beats": 0,
+        "row_requests": 0,
+        "row_transfer_bytes": 0,
+        "stall": 0,
+        "start": 74,
+        "trial": 0,
+        "vertices": 0
+      },
+      {
+        "cycles": 229,
+        "done": 383,
+        "first_packet": 381,
+        "last_packet": 382,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 1,
+        "packets": 2,
+        "placement": 0,
+        "pma_beats": 1,
+        "pma_requests": 1,
+        "pma_transfer_bytes": 64,
+        "requests": [
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 162,
+            "size": 64,
+            "trial": 1
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 237,
+            "size": 64,
+            "trial": 1
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 315,
+            "size": 64,
+            "trial": 1
+          }
+        ],
+        "responses": [
+          {
+            "address": 524288,
+            "cycle": 164,
+            "last": 1,
+            "size": 64,
+            "trial": 1
+          },
+          {
+            "address": 524288,
+            "cycle": 239,
+            "last": 1,
+            "size": 64,
+            "trial": 1
+          },
+          {
+            "address": 65536,
+            "cycle": 317,
+            "last": 1,
+            "size": 64,
+            "trial": 1
+          }
+        ],
+        "row_beats": 2,
+        "row_requests": 2,
+        "row_transfer_bytes": 128,
+        "stall": 0,
+        "start": 154,
+        "trial": 1,
+        "vertices": 1
+      },
+      {
+        "cycles": 796,
+        "done": 1257,
+        "first_packet": 695,
+        "last_packet": 1256,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 3,
+        "packets": 16,
+        "placement": 0,
+        "pma_beats": 8,
+        "pma_requests": 8,
+        "pma_transfer_bytes": 512,
+        "requests": [
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 469,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 544,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 545,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 546,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 547,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 548,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 549,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 550,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 551,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 629,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 709,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 789,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 869,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 949,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 1029,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 1109,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 1189,
+            "size": 64,
+            "trial": 2
+          }
+        ],
+        "responses": [
+          {
+            "address": 524288,
+            "cycle": 471,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 546,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 547,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 548,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 549,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 550,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 551,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 552,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 524288,
+            "cycle": 553,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 65536,
+            "cycle": 631,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 196608,
+            "cycle": 711,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 65600,
+            "cycle": 791,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 196672,
+            "cycle": 871,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 131200,
+            "cycle": 951,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 262272,
+            "cycle": 1031,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 131264,
+            "cycle": 1111,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          },
+          {
+            "address": 262336,
+            "cycle": 1191,
+            "last": 1,
+            "size": 64,
+            "trial": 2
+          }
+        ],
+        "row_beats": 9,
+        "row_requests": 9,
+        "row_transfer_bytes": 576,
+        "stall": 0,
+        "start": 461,
+        "trial": 2,
+        "vertices": 8
+      },
+      {
+        "cycles": 950,
+        "done": 2285,
+        "first_packet": 1569,
+        "last_packet": 2284,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 3,
+        "packets": 18,
+        "placement": 0,
+        "pma_beats": 9,
+        "pma_requests": 9,
+        "pma_transfer_bytes": 576,
+        "requests": [
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 1343,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1418,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1419,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1420,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1421,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1422,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1423,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1424,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 1425,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 1503,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 1583,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 1663,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 1743,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 1823,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 1903,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 1983,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 2063,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 2139,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 2217,
+            "size": 64,
+            "trial": 3
+          }
+        ],
+        "responses": [
+          {
+            "address": 524352,
+            "cycle": 1345,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1420,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1421,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1422,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1423,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1424,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1425,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1426,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524288,
+            "cycle": 1427,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 65536,
+            "cycle": 1505,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 196608,
+            "cycle": 1585,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 65600,
+            "cycle": 1665,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 196672,
+            "cycle": 1745,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131200,
+            "cycle": 1825,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 262272,
+            "cycle": 1905,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131264,
+            "cycle": 1985,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 262336,
+            "cycle": 2065,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 524352,
+            "cycle": 2141,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          },
+          {
+            "address": 131328,
+            "cycle": 2219,
+            "last": 1,
+            "size": 64,
+            "trial": 3
+          }
+        ],
+        "row_beats": 10,
+        "row_requests": 10,
+        "row_transfer_bytes": 640,
+        "stall": 0,
+        "start": 1335,
+        "trial": 3,
+        "vertices": 9
+      },
+      {
+        "cycles": 1671,
+        "done": 4034,
+        "first_packet": 2597,
+        "last_packet": 4033,
+        "latency": 1,
+        "length": 1,
+        "maximum_outstanding": 3,
+        "packets": 34,
+        "placement": 0,
+        "pma_beats": 17,
+        "pma_requests": 17,
+        "pma_transfer_bytes": 1088,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 2371,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2446,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2447,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2448,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2449,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2450,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2451,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2452,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 2453,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 2531,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 2611,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 2691,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 2771,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 2851,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 2931,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 3011,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 3091,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3167,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3168,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3169,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3170,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3171,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3172,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3173,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 3174,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 3252,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 3332,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 3412,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 3492,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 3572,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 3652,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 3732,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 3812,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 3888,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 3966,
+            "size": 64,
+            "trial": 4
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 2373,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2448,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2449,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2450,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2451,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2452,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2453,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2454,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524288,
+            "cycle": 2455,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 65536,
+            "cycle": 2533,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 196608,
+            "cycle": 2613,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 65600,
+            "cycle": 2693,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 196672,
+            "cycle": 2773,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131200,
+            "cycle": 2853,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262272,
+            "cycle": 2933,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131264,
+            "cycle": 3013,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262336,
+            "cycle": 3093,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3169,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3170,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3171,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3172,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3173,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3174,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3175,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524352,
+            "cycle": 3176,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131328,
+            "cycle": 3254,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262400,
+            "cycle": 3334,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131392,
+            "cycle": 3414,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262464,
+            "cycle": 3494,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131456,
+            "cycle": 3574,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262528,
+            "cycle": 3654,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131520,
+            "cycle": 3734,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 262592,
+            "cycle": 3814,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 524416,
+            "cycle": 3890,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          },
+          {
+            "address": 131584,
+            "cycle": 3968,
+            "last": 1,
+            "size": 64,
+            "trial": 4
+          }
+        ],
+        "row_beats": 18,
+        "row_requests": 18,
+        "row_transfer_bytes": 1152,
+        "stall": 0,
+        "start": 2363,
+        "trial": 4,
+        "vertices": 17
+      },
+      {
+        "cycles": 1755,
+        "done": 5867,
+        "first_packet": 4358,
+        "last_packet": 5866,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 8,
+        "packets": 34,
+        "placement": 0,
+        "pma_beats": 17,
+        "pma_requests": 17,
+        "pma_transfer_bytes": 1088,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 4120,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4199,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4200,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4201,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4202,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4203,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4204,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4205,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 4206,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 4288,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 4372,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 4456,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 4540,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 4624,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 4708,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 4792,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 4876,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4956,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4957,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4958,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4959,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4960,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4961,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4962,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 4963,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 5045,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 5129,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 5213,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 5297,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 5381,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 5465,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 5549,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 5633,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 5713,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 5795,
+            "size": 64,
+            "trial": 5
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 4185,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4264,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4265,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4266,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4267,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4268,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4269,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4270,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524288,
+            "cycle": 4271,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 65536,
+            "cycle": 4353,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 196608,
+            "cycle": 4437,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 65600,
+            "cycle": 4521,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 196672,
+            "cycle": 4605,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131200,
+            "cycle": 4689,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262272,
+            "cycle": 4773,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131264,
+            "cycle": 4857,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262336,
+            "cycle": 4941,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 5021,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 5022,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 5023,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 5024,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 5025,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 5026,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 5027,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524352,
+            "cycle": 5028,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131328,
+            "cycle": 5110,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262400,
+            "cycle": 5194,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131392,
+            "cycle": 5278,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262464,
+            "cycle": 5362,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131456,
+            "cycle": 5446,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262528,
+            "cycle": 5530,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131520,
+            "cycle": 5614,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 262592,
+            "cycle": 5698,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 524416,
+            "cycle": 5778,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          },
+          {
+            "address": 131584,
+            "cycle": 5860,
+            "last": 1,
+            "size": 64,
+            "trial": 5
+          }
+        ],
+        "row_beats": 18,
+        "row_requests": 18,
+        "row_transfer_bytes": 1152,
+        "stall": 0,
+        "start": 4112,
+        "trial": 5,
+        "vertices": 17
+      },
+      {
+        "cycles": 3099,
+        "done": 9044,
+        "first_packet": 6383,
+        "last_packet": 9043,
+        "latency": 128,
+        "length": 1,
+        "maximum_outstanding": 8,
+        "packets": 34,
+        "placement": 0,
+        "pma_beats": 17,
+        "pma_requests": 17,
+        "pma_transfer_bytes": 1088,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 5953,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6096,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6097,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6098,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6099,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6100,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6101,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6102,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 6103,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 6249,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 6397,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 6545,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 6693,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 6841,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 6989,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 7137,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 7285,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7429,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7430,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7431,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7432,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7433,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7434,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7435,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 7436,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 7582,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 7730,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 7878,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 8026,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 8174,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 8322,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 8470,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 8618,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 8762,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 8908,
+            "size": 64,
+            "trial": 6
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 6082,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6225,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6226,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6227,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6228,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6229,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6230,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6231,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524288,
+            "cycle": 6232,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 65536,
+            "cycle": 6378,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 196608,
+            "cycle": 6526,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 65600,
+            "cycle": 6674,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 196672,
+            "cycle": 6822,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131200,
+            "cycle": 6970,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262272,
+            "cycle": 7118,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131264,
+            "cycle": 7266,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262336,
+            "cycle": 7414,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7558,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7559,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7560,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7561,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7562,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7563,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7564,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524352,
+            "cycle": 7565,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131328,
+            "cycle": 7711,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262400,
+            "cycle": 7859,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131392,
+            "cycle": 8007,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262464,
+            "cycle": 8155,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131456,
+            "cycle": 8303,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262528,
+            "cycle": 8451,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131520,
+            "cycle": 8599,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 262592,
+            "cycle": 8747,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 524416,
+            "cycle": 8891,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          },
+          {
+            "address": 131584,
+            "cycle": 9037,
+            "last": 1,
+            "size": 64,
+            "trial": 6
+          }
+        ],
+        "row_beats": 18,
+        "row_requests": 18,
+        "row_transfer_bytes": 1152,
+        "stall": 0,
+        "start": 5945,
+        "trial": 6,
+        "vertices": 17
+      },
+      {
+        "cycles": 1823,
+        "done": 10945,
+        "first_packet": 9368,
+        "last_packet": 10944,
+        "latency": 64,
+        "length": 3,
+        "maximum_outstanding": 8,
+        "packets": 102,
+        "placement": 0,
+        "pma_beats": 51,
+        "pma_requests": 51,
+        "pma_transfer_bytes": 3264,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 9130,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9209,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9210,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9211,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9212,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9213,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9214,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9215,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 9216,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 9298,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 9300,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 9302,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 9386,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 9388,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 9390,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 9474,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 9476,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 9478,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 9562,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 9564,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 9566,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 9650,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 9652,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 9654,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 9738,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 9740,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262656,
+            "beats": 1,
+            "cycle": 9742,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131648,
+            "beats": 1,
+            "cycle": 9826,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262720,
+            "beats": 1,
+            "cycle": 9828,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131712,
+            "beats": 1,
+            "cycle": 9830,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262784,
+            "beats": 1,
+            "cycle": 9914,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131776,
+            "beats": 1,
+            "cycle": 9916,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262848,
+            "beats": 1,
+            "cycle": 9918,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 9998,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 9999,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 10000,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 10001,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 10002,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 10003,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 10004,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 10005,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131840,
+            "beats": 1,
+            "cycle": 10087,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262912,
+            "beats": 1,
+            "cycle": 10089,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131904,
+            "beats": 1,
+            "cycle": 10091,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262976,
+            "beats": 1,
+            "cycle": 10175,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131968,
+            "beats": 1,
+            "cycle": 10177,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263040,
+            "beats": 1,
+            "cycle": 10179,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132032,
+            "beats": 1,
+            "cycle": 10263,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263104,
+            "beats": 1,
+            "cycle": 10265,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132096,
+            "beats": 1,
+            "cycle": 10267,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263168,
+            "beats": 1,
+            "cycle": 10351,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132160,
+            "beats": 1,
+            "cycle": 10353,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263232,
+            "beats": 1,
+            "cycle": 10355,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132224,
+            "beats": 1,
+            "cycle": 10439,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263296,
+            "beats": 1,
+            "cycle": 10441,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132288,
+            "beats": 1,
+            "cycle": 10443,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263360,
+            "beats": 1,
+            "cycle": 10527,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132352,
+            "beats": 1,
+            "cycle": 10529,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263424,
+            "beats": 1,
+            "cycle": 10531,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132416,
+            "beats": 1,
+            "cycle": 10615,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263488,
+            "beats": 1,
+            "cycle": 10617,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132480,
+            "beats": 1,
+            "cycle": 10619,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263552,
+            "beats": 1,
+            "cycle": 10703,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132544,
+            "beats": 1,
+            "cycle": 10705,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263616,
+            "beats": 1,
+            "cycle": 10707,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 10787,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132608,
+            "beats": 1,
+            "cycle": 10869,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263680,
+            "beats": 1,
+            "cycle": 10871,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132672,
+            "beats": 1,
+            "cycle": 10873,
+            "size": 64,
+            "trial": 7
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 9195,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9274,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9275,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9276,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9277,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9278,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9279,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9280,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524288,
+            "cycle": 9281,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 65536,
+            "cycle": 9363,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 196608,
+            "cycle": 9365,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 65600,
+            "cycle": 9367,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 196672,
+            "cycle": 9451,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131200,
+            "cycle": 9453,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262272,
+            "cycle": 9455,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131264,
+            "cycle": 9539,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262336,
+            "cycle": 9541,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131328,
+            "cycle": 9543,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262400,
+            "cycle": 9627,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131392,
+            "cycle": 9629,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262464,
+            "cycle": 9631,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131456,
+            "cycle": 9715,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262528,
+            "cycle": 9717,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131520,
+            "cycle": 9719,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262592,
+            "cycle": 9803,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131584,
+            "cycle": 9805,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262656,
+            "cycle": 9807,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131648,
+            "cycle": 9891,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262720,
+            "cycle": 9893,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131712,
+            "cycle": 9895,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262784,
+            "cycle": 9979,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131776,
+            "cycle": 9981,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262848,
+            "cycle": 9983,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 10063,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 10064,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 10065,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 10066,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 10067,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 10068,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 10069,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524352,
+            "cycle": 10070,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131840,
+            "cycle": 10152,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262912,
+            "cycle": 10154,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131904,
+            "cycle": 10156,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 262976,
+            "cycle": 10240,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 131968,
+            "cycle": 10242,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263040,
+            "cycle": 10244,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132032,
+            "cycle": 10328,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263104,
+            "cycle": 10330,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132096,
+            "cycle": 10332,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263168,
+            "cycle": 10416,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132160,
+            "cycle": 10418,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263232,
+            "cycle": 10420,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132224,
+            "cycle": 10504,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263296,
+            "cycle": 10506,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132288,
+            "cycle": 10508,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263360,
+            "cycle": 10592,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132352,
+            "cycle": 10594,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263424,
+            "cycle": 10596,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132416,
+            "cycle": 10680,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263488,
+            "cycle": 10682,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132480,
+            "cycle": 10684,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263552,
+            "cycle": 10768,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132544,
+            "cycle": 10770,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263616,
+            "cycle": 10772,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 524416,
+            "cycle": 10852,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132608,
+            "cycle": 10934,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 263680,
+            "cycle": 10936,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          },
+          {
+            "address": 132672,
+            "cycle": 10938,
+            "last": 1,
+            "size": 64,
+            "trial": 7
+          }
+        ],
+        "row_beats": 18,
+        "row_requests": 18,
+        "row_transfer_bytes": 1152,
+        "stall": 0,
+        "start": 9122,
+        "trial": 7,
+        "vertices": 17
+      },
+      {
+        "cycles": 459,
+        "done": 11482,
+        "first_packet": 11480,
+        "last_packet": 11481,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 8,
+        "packets": 2,
+        "placement": 1,
+        "pma_beats": 1,
+        "pma_requests": 1,
+        "pma_transfer_bytes": 64,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 11031,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11110,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11111,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11112,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11113,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11114,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11115,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11116,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11117,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11219,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11220,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11221,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11222,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11223,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11224,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11225,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 11226,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 11328,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 11410,
+            "size": 64,
+            "trial": 8
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 11096,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11175,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11176,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11177,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11178,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11179,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11180,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11181,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524288,
+            "cycle": 11182,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11284,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11285,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11286,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11287,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11288,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11289,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11290,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524352,
+            "cycle": 11291,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 524416,
+            "cycle": 11393,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          },
+          {
+            "address": 65536,
+            "cycle": 11475,
+            "last": 1,
+            "size": 64,
+            "trial": 8
+          }
+        ],
+        "row_beats": 18,
+        "row_requests": 18,
+        "row_transfer_bytes": 1152,
+        "stall": 0,
+        "start": 11023,
+        "trial": 8,
+        "vertices": 17
+      },
+      {
+        "cycles": 248,
+        "done": 11808,
+        "first_packet": 11806,
+        "last_packet": 11807,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 8,
+        "packets": 2,
+        "placement": 2,
+        "pma_beats": 1,
+        "pma_requests": 1,
+        "pma_transfer_bytes": 64,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 11568,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11647,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11648,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11649,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11650,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11651,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11652,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11653,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11654,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 11736,
+            "size": 64,
+            "trial": 9
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 11633,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11712,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11713,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11714,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11715,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11716,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11717,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11718,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 524288,
+            "cycle": 11719,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          },
+          {
+            "address": 65536,
+            "cycle": 11801,
+            "last": 1,
+            "size": 64,
+            "trial": 9
+          }
+        ],
+        "row_beats": 9,
+        "row_requests": 9,
+        "row_transfer_bytes": 576,
+        "stall": 0,
+        "start": 11560,
+        "trial": 9,
+        "vertices": 17
+      },
+      {
+        "cycles": 537,
+        "done": 12423,
+        "first_packet": 12132,
+        "last_packet": 12422,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 8,
+        "packets": 6,
+        "placement": 3,
+        "pma_beats": 3,
+        "pma_requests": 3,
+        "pma_transfer_bytes": 192,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 11894,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11973,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11974,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11975,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11976,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11977,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11978,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11979,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 11980,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 12062,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 12164,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12244,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12245,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12246,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12247,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12248,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12249,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12250,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 12251,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 12351,
+            "size": 64,
+            "trial": 10
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 11959,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 12038,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 12039,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 12040,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 12041,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 12042,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 12043,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 12044,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524288,
+            "cycle": 12045,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 65536,
+            "cycle": 12127,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 196608,
+            "cycle": 12229,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12309,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12310,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12311,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12312,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12313,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12314,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12315,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 524352,
+            "cycle": 12316,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          },
+          {
+            "address": 65600,
+            "cycle": 12416,
+            "last": 1,
+            "size": 64,
+            "trial": 10
+          }
+        ],
+        "row_beats": 17,
+        "row_requests": 17,
+        "row_transfer_bytes": 1088,
+        "stall": 0,
+        "start": 11886,
+        "trial": 10,
+        "vertices": 17
+      },
+      {
+        "cycles": 2427,
+        "done": 14928,
+        "first_packet": 13501,
+        "last_packet": 14927,
+        "latency": 64,
+        "length": 1,
+        "maximum_outstanding": 8,
+        "packets": 34,
+        "placement": 0,
+        "pma_beats": 17,
+        "pma_requests": 17,
+        "pma_transfer_bytes": 1088,
+        "requests": [
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 12509,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12588,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12589,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12590,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12591,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12592,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12593,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12594,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "beats": 1,
+            "cycle": 12595,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 65536,
+            "beats": 1,
+            "cycle": 12677,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 196608,
+            "beats": 1,
+            "cycle": 12761,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 65600,
+            "beats": 1,
+            "cycle": 13517,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 196672,
+            "beats": 1,
+            "cycle": 13601,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131200,
+            "beats": 1,
+            "cycle": 13685,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262272,
+            "beats": 1,
+            "cycle": 13769,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131264,
+            "beats": 1,
+            "cycle": 13853,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262336,
+            "beats": 1,
+            "cycle": 13937,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 14017,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 14018,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 14019,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 14020,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 14021,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 14022,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 14023,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "beats": 1,
+            "cycle": 14024,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131328,
+            "beats": 1,
+            "cycle": 14106,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262400,
+            "beats": 1,
+            "cycle": 14190,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131392,
+            "beats": 1,
+            "cycle": 14274,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262464,
+            "beats": 1,
+            "cycle": 14358,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131456,
+            "beats": 1,
+            "cycle": 14442,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262528,
+            "beats": 1,
+            "cycle": 14526,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131520,
+            "beats": 1,
+            "cycle": 14610,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262592,
+            "beats": 1,
+            "cycle": 14694,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524416,
+            "beats": 1,
+            "cycle": 14774,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131584,
+            "beats": 1,
+            "cycle": 14856,
+            "size": 64,
+            "trial": 11
+          }
+        ],
+        "responses": [
+          {
+            "address": 524416,
+            "cycle": 12574,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12653,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12654,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12655,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12656,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12657,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12658,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12659,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524288,
+            "cycle": 12660,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 65536,
+            "cycle": 12742,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 196608,
+            "cycle": 12826,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 65600,
+            "cycle": 13582,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 196672,
+            "cycle": 13666,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131200,
+            "cycle": 13750,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262272,
+            "cycle": 13834,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131264,
+            "cycle": 13918,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262336,
+            "cycle": 14002,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 14082,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 14083,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 14084,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 14085,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 14086,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 14087,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 14088,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524352,
+            "cycle": 14089,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131328,
+            "cycle": 14171,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262400,
+            "cycle": 14255,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131392,
+            "cycle": 14339,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262464,
+            "cycle": 14423,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131456,
+            "cycle": 14507,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262528,
+            "cycle": 14591,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131520,
+            "cycle": 14675,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 262592,
+            "cycle": 14759,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 524416,
+            "cycle": 14839,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          },
+          {
+            "address": 131584,
+            "cycle": 14921,
+            "last": 1,
+            "size": 64,
+            "trial": 11
+          }
+        ],
+        "row_beats": 18,
+        "row_requests": 18,
+        "row_transfer_bytes": 1152,
+        "stall": 1000,
+        "start": 12501,
+        "trial": 11,
+        "vertices": 17
+      }
+    ]
+  },
+  "comparison": [
+    {
+      "candidate_cycles": 2,
+      "candidate_row_bytes": 0,
+      "candidate_row_requests": 0,
+      "latency": 1,
+      "length": 1,
+      "packets": 0,
+      "placement": 0,
+      "pma_requests_both": 0,
+      "reference_cycles": 2,
+      "reference_row_bytes": 0,
+      "reference_row_requests": 0,
+      "stall": 0,
+      "trial": 0,
+      "vertices": 0
+    },
+    {
+      "candidate_cycles": 227,
+      "candidate_row_bytes": 128,
+      "candidate_row_requests": 2,
+      "latency": 1,
+      "length": 1,
+      "packets": 2,
+      "placement": 0,
+      "pma_requests_both": 1,
+      "reference_cycles": 229,
+      "reference_row_bytes": 128,
+      "reference_row_requests": 2,
+      "stall": 0,
+      "trial": 1,
+      "vertices": 1
+    },
+    {
+      "candidate_cycles": 787,
+      "candidate_row_bytes": 128,
+      "candidate_row_requests": 2,
+      "latency": 1,
+      "length": 1,
+      "packets": 16,
+      "placement": 0,
+      "pma_requests_both": 8,
+      "reference_cycles": 796,
+      "reference_row_bytes": 576,
+      "reference_row_requests": 9,
+      "stall": 0,
+      "trial": 2,
+      "vertices": 8
+    },
+    {
+      "candidate_cycles": 939,
+      "candidate_row_bytes": 192,
+      "candidate_row_requests": 3,
+      "latency": 1,
+      "length": 1,
+      "packets": 18,
+      "placement": 0,
+      "pma_requests_both": 9,
+      "reference_cycles": 950,
+      "reference_row_bytes": 640,
+      "reference_row_requests": 10,
+      "stall": 0,
+      "trial": 3,
+      "vertices": 9
+    },
+    {
+      "candidate_cycles": 1651,
+      "candidate_row_bytes": 256,
+      "candidate_row_requests": 4,
+      "latency": 1,
+      "length": 1,
+      "packets": 34,
+      "placement": 0,
+      "pma_requests_both": 17,
+      "reference_cycles": 1671,
+      "reference_row_bytes": 1152,
+      "reference_row_requests": 18,
+      "stall": 0,
+      "trial": 4,
+      "vertices": 17
+    },
+    {
+      "candidate_cycles": 1735,
+      "candidate_row_bytes": 256,
+      "candidate_row_requests": 4,
+      "latency": 64,
+      "length": 1,
+      "packets": 34,
+      "placement": 0,
+      "pma_requests_both": 17,
+      "reference_cycles": 1755,
+      "reference_row_bytes": 1152,
+      "reference_row_requests": 18,
+      "stall": 0,
+      "trial": 5,
+      "vertices": 17
+    },
+    {
+      "candidate_cycles": 3079,
+      "candidate_row_bytes": 256,
+      "candidate_row_requests": 4,
+      "latency": 128,
+      "length": 1,
+      "packets": 34,
+      "placement": 0,
+      "pma_requests_both": 17,
+      "reference_cycles": 3099,
+      "reference_row_bytes": 1152,
+      "reference_row_requests": 18,
+      "stall": 0,
+      "trial": 6,
+      "vertices": 17
+    },
+    {
+      "candidate_cycles": 1803,
+      "candidate_row_bytes": 256,
+      "candidate_row_requests": 4,
+      "latency": 64,
+      "length": 3,
+      "packets": 102,
+      "placement": 0,
+      "pma_requests_both": 51,
+      "reference_cycles": 1823,
+      "reference_row_bytes": 1152,
+      "reference_row_requests": 18,
+      "stall": 0,
+      "trial": 7,
+      "vertices": 17
+    },
+    {
+      "candidate_cycles": 439,
+      "candidate_row_bytes": 256,
+      "candidate_row_requests": 4,
+      "latency": 64,
+      "length": 1,
+      "packets": 2,
+      "placement": 1,
+      "pma_requests_both": 1,
+      "reference_cycles": 459,
+      "reference_row_bytes": 1152,
+      "reference_row_requests": 18,
+      "stall": 0,
+      "trial": 8,
+      "vertices": 17
+    },
+    {
+      "candidate_cycles": 239,
+      "candidate_row_bytes": 128,
+      "candidate_row_requests": 2,
+      "latency": 64,
+      "length": 1,
+      "packets": 2,
+      "placement": 2,
+      "pma_requests_both": 1,
+      "reference_cycles": 248,
+      "reference_row_bytes": 576,
+      "reference_row_requests": 9,
+      "stall": 0,
+      "trial": 9,
+      "vertices": 17
+    },
+    {
+      "candidate_cycles": 519,
+      "candidate_row_bytes": 192,
+      "candidate_row_requests": 3,
+      "latency": 64,
+      "length": 1,
+      "packets": 6,
+      "placement": 3,
+      "pma_requests_both": 3,
+      "reference_cycles": 537,
+      "reference_row_bytes": 1088,
+      "reference_row_requests": 17,
+      "stall": 0,
+      "trial": 10,
+      "vertices": 17
+    },
+    {
+      "candidate_cycles": 2416,
+      "candidate_row_bytes": 256,
+      "candidate_row_requests": 4,
+      "latency": 64,
+      "length": 1,
+      "packets": 34,
+      "placement": 0,
+      "pma_requests_both": 17,
+      "reference_cycles": 2427,
+      "reference_row_bytes": 1152,
+      "reference_row_requests": 18,
+      "stall": 1000,
+      "trial": 11,
+      "vertices": 17
+    }
+  ],
+  "contract": {
+    "flags": {
+      "candidate": {
+        "GRASU_REGRAPH_ROW_LINE_READ": "1",
+        "GRASU_REGRAPH_ROW_PREFETCH": "1",
+        "GRASU_REGRAPH_SHARDED_PMA": "1",
+        "GRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS": "1",
+        "GRASU_REGRAPH_SKIP_EMPTY_SEGMENT": "1",
+        "GRASU_REGRAPH_STOP_AFTER_LAST": "1",
+        "GRASU_REGRAPH_WEIGHTED_PMA": "1",
+        "_GTHREAD_USE_COND_INIT_FUNC": "1"
+      },
+      "reference": {
+        "GRASU_REGRAPH_ROW_PREFETCH": "1",
+        "GRASU_REGRAPH_SHARDED_PMA": "1",
+        "GRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS": "1",
+        "GRASU_REGRAPH_SKIP_EMPTY_SEGMENT": "1",
+        "GRASU_REGRAPH_STOP_AFTER_LAST": "1",
+        "GRASU_REGRAPH_WEIGHTED_PMA": "1",
+        "_GTHREAD_USE_COND_INIT_FUNC": "1"
+      }
+    },
+    "interface": {
+      "args": [
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "0",
+          "name": "pma0",
+          "offset": "0x10",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "1",
+          "name": "pma1",
+          "offset": "0x1C",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "2",
+          "name": "pma2",
+          "offset": "0x28",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "3",
+          "name": "pma3",
+          "offset": "0x34",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "4",
+          "name": "row_offset",
+          "offset": "0x40",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "5",
+          "name": "node_count",
+          "offset": "0x4C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "6",
+          "name": "pma_slot_count",
+          "offset": "0x54",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "7",
+          "name": "max_cache_segment",
+          "offset": "0x5C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "8",
+          "name": "part_dst_offset",
+          "offset": "0x64",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "9",
+          "name": "part_vertex_count",
+          "offset": "0x6C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "4",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "10",
+          "memSize": "0x40",
+          "name": "edge_burst_out",
+          "offset": "0x0",
+          "origName": "edge_burst_out",
+          "origUse": "variable",
+          "port": "EDGE_BURST_OUT",
+          "size": "0x0",
+          "type": "stream<hls::axis<ap_uint<512>, 0, 0, 0, '8', false>, 0>&"
+        }
+      ],
+      "control": "ap_ctrl_chain",
+      "kernel": "pma_to_regraph_adapter",
+      "ports": [
+        {
+          "base": "0x0",
+          "dataWidth": "512",
+          "mode": "master",
+          "name": "M_AXI_GMEM0",
+          "portType": "addressable",
+          "range": "0xFFFFFFFF"
+        },
+        {
+          "dataWidth": "512",
+          "mode": "write_only",
+          "name": "EDGE_BURST_OUT",
+          "portType": "stream"
+        },
+        {
+          "base": "0x0",
+          "dataWidth": "32",
+          "mode": "slave",
+          "name": "S_AXI_CONTROL",
+          "portType": "addressable",
+          "range": "0x74"
+        }
+      ]
+    },
+    "row_memory_contract": "64B_aligned_padded_packed_le_u64_rows_with_8_entries_per_line"
+  },
+  "hls": {
+    "burst_report": {
+      "path": "/data/chuxiao/experiments/sharded_k4_row_line_20261011/attempt-v1/production/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "7cf8c512573e6b3b44e548c33bcfc42d337cc196d53c91079e9f71b854d381dc"
+    },
+    "estimated_clock_ns": 4.867,
+    "loops": [
+      {
+        "AbsoluteTimeLatency": "undef",
+        "InstanceList": "",
+        "IterationLatency": "undef",
+        "Latency": "undef",
+        "Slack": "4.87",
+        "TripCount": "undef",
+        "name": "source_loop"
+      }
+    ],
+    "report": {
+      "path": "/data/chuxiao/experiments/sharded_k4_row_line_20261011/attempt-v1/production/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "4bf89006ee5f2448bc7c172a8a9ccdb47302b1cff22c73844a3c5a839c4d9f87"
+    },
+    "resources": {
+      "BRAM_18K": 15,
+      "DSP": 0,
+      "FF": 11485,
+      "LUT": 15249,
+      "URAM": 0
+    },
+    "row_burst_findings": []
+  },
+  "simulator_modified": false,
+  "status": "ROW_LINE_PRODUCTION_AXI_PASS_NOT_ROUTED",
+  "xo": {
+    "path": "/data/chuxiao/experiments/sharded_k4_row_line_20261011/attempt-v1/production/adapter.hw.xo",
+    "sha256": "752a0395caa5b0117624e6a8055f738e6e608b2272be2d8d118c51b38efa80a2"
+  }
+}
