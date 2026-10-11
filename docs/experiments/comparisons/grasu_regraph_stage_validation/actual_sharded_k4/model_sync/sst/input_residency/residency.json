@@ -1,0 +1,593 @@
+{
+  "attempt_count": 30,
+  "control_medians": [
+    {
+      "arm": "frozen",
+      "compute_span_ms": 94.295862,
+      "initial_residency_wall_ms": null,
+      "range_ms": [
+        89.247303,
+        100.0925
+      ]
+    },
+    {
+      "arm": "off",
+      "compute_span_ms": 96.932997,
+      "initial_residency_wall_ms": null,
+      "range_ms": [
+        91.891351,
+        96.94956
+      ]
+    },
+    {
+      "arm": "on",
+      "compute_span_ms": 64.267825,
+      "initial_residency_wall_ms": 51.3257,
+      "range_ms": [
+        64.238495,
+        64.547183
+      ]
+    }
+  ],
+  "exclusive_stage_calibration_admitted": false,
+  "external_full_results": [
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_frozen/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_off/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_on/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_off/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_on/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_frozen/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_on/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_frozen/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_off/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_candidate/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_original/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_candidate/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_original/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_candidate/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_original/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_original/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_candidate/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_original/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_candidate/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_original/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_candidate/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_candidate/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_candidate/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_original/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_candidate/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/unprofiled/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    }
+  ],
+  "hardware_timing_admitted": false,
+  "limits": [
+    "initial migration is separately charged, not an architectural speedup",
+    "runtime profiles are diagnostics; medians use unprofiled runs only",
+    "fixed model omits dispatch/relaunch gaps and has uncalibrated physical mapping",
+    "all six warm-SSSP model rows checked, not other algorithms or original A4",
+    "kernel lifetimes include stream waits; transfer times must not be summed"
+  ],
+  "original_A4_match_admitted": false,
+  "peak_process_rss_kib": 1409296,
+  "resident_matrix": [
+    {
+      "id": "au_candidate",
+      "median_board_compute_span_ms": 192.907003,
+      "median_initial_residency_ms": 20.18,
+      "nominal_signed_error_percent": -0.05627046451324169,
+      "predicted_no_host_ms": 192.79845333333333,
+      "range_ms": [
+        192.749784,
+        193.105527
+      ]
+    },
+    {
+      "id": "au_original",
+      "median_board_compute_span_ms": 2044.19002,
+      "median_initial_residency_ms": 20.7096,
+      "nominal_signed_error_percent": 1.5839907094351346,
+      "predicted_no_host_ms": 2076.5698,
+      "range_ms": [
+        2043.844277,
+        2044.479884
+      ]
+    },
+    {
+      "id": "su_candidate",
+      "median_board_compute_span_ms": 389.498439,
+      "median_initial_residency_ms": 22.9812,
+      "nominal_signed_error_percent": 0.2547911794497981,
+      "predicted_no_host_ms": 390.49084666666664,
+      "range_ms": [
+        389.322065,
+        389.505128
+      ]
+    },
+    {
+      "id": "su_original",
+      "median_board_compute_span_ms": 3376.124403,
+      "median_initial_residency_ms": 23.5331,
+      "nominal_signed_error_percent": 1.5676092075568082,
+      "predicted_no_host_ms": 3429.04884,
+      "range_ms": [
+        3376.010759,
+        3376.418856
+      ]
+    },
+    {
+      "id": "wk_candidate",
+      "median_board_compute_span_ms": 64.279226,
+      "median_initial_residency_ms": 54.7754,
+      "nominal_signed_error_percent": -6.401538396453821,
+      "predicted_no_host_ms": 60.164366666666666,
+      "range_ms": [
+        64.01531,
+        64.306819
+      ]
+    },
+    {
+      "id": "wk_original",
+      "median_board_compute_span_ms": 5644.913454,
+      "median_initial_residency_ms": 54.682,
+      "nominal_signed_error_percent": 1.6894020922929132,
+      "predicted_no_host_ms": 5740.27874,
+      "range_ms": [
+        5644.884203,
+        5645.407628
+      ]
+    }
+  ],
+  "runtime_after": {
+    "aligned_kernels": 56,
+    "all_compute_writes_precede_dependent_adapter": true,
+    "all_compute_writes_row_sized": true,
+    "compute_window_ms": [
+      2282.699679,
+      2347.295753
+    ],
+    "compute_write_bytes": 0,
+    "compute_write_count": 0,
+    "last_compute_enqueue_api_end_ms": 2284.366668,
+    "limits": [
+      "XRT host trace, not AXI or exclusive stage counters",
+      "an earlier same-BO host write does not prove earlier PCIe DMA",
+      "transfer durations overlap and are not an additive total-time penalty"
+    ],
+    "writes": []
+  },
+  "runtime_before": {
+    "aligned_kernels": 56,
+    "all_compute_writes_precede_dependent_adapter": true,
+    "all_compute_writes_row_sized": true,
+    "compute_window_ms": [
+      2141.698491,
+      2239.479244
+    ],
+    "compute_write_bytes": 145939200,
+    "compute_write_count": 16,
+    "last_compute_enqueue_api_end_ms": 2143.35164,
+    "limits": [
+      "XRT host trace, not AXI or exclusive stage counters",
+      "an earlier same-BO host write does not prove earlier PCIe DMA",
+      "transfer durations overlap and are not an additive total-time penalty"
+    ],
+    "writes": [
+      {
+        "bank": "HBM[0]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 0,
+            "stage": "adapter",
+            "worker": 0
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          146
+        ],
+        "end_id": 3035,
+        "end_ms": 2146.190605,
+        "physical_bo_address": "0x801000",
+        "start_id": 2195,
+        "start_ms": 2141.797994
+      },
+      {
+        "bank": "HBM[2]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 2,
+            "stage": "adapter",
+            "worker": 2
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          266
+        ],
+        "end_id": 3038,
+        "end_ms": 2148.69809,
+        "physical_bo_address": "0x40801000",
+        "start_id": 3034,
+        "start_ms": 2144.115493
+      },
+      {
+        "bank": "HBM[3]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 3,
+            "stage": "adapter",
+            "worker": 3
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          327
+        ],
+        "end_id": 3040,
+        "end_ms": 2151.480803,
+        "physical_bo_address": "0x60801000",
+        "start_id": 3037,
+        "start_ms": 2148.567716
+      },
+      {
+        "bank": "HBM[9]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 9,
+            "stage": "adapter",
+            "worker": 1
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          687
+        ],
+        "end_id": 3050,
+        "end_ms": 2200.432047,
+        "physical_bo_address": "0x120003000",
+        "start_id": 3049,
+        "start_ms": 2196.942332
+      },
+      {
+        "bank": "HBM[13]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 13,
+            "stage": "adapter",
+            "worker": 1
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          927
+        ],
+        "end_id": 3073,
+        "end_ms": 2205.90498,
+        "physical_bo_address": "0x1a1803000",
+        "start_id": 3055,
+        "start_ms": 2200.594852
+      },
+      {
+        "bank": "HBM[6]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 6,
+            "stage": "adapter",
+            "worker": 2
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          505
+        ],
+        "end_id": 3104,
+        "end_ms": 2208.196598,
+        "physical_bo_address": "0xc0003000",
+        "start_id": 3059,
+        "start_ms": 2203.192639
+      },
+      {
+        "bank": "HBM[4]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 4,
+            "stage": "adapter",
+            "worker": 0
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          386
+        ],
+        "end_id": 3110,
+        "end_ms": 2212.699923,
+        "physical_bo_address": "0x80801000",
+        "start_id": 3103,
+        "start_ms": 2208.023653
+      },
+      {
+        "bank": "HBM[7]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 7,
+            "stage": "adapter",
+            "worker": 3
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          565
+        ],
+        "end_id": 3140,
+        "end_ms": 2214.981242,
+        "physical_bo_address": "0xe0003000",
+        "start_id": 3109,
+        "start_ms": 2210.363293
+      },
+      {
+        "bank": "HBM[17]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 17,
+            "stage": "adapter",
+            "worker": 1
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          1165
+        ],
+        "end_id": 3154,
+        "end_ms": 2219.858147,
+        "physical_bo_address": "0x221803000",
+        "start_id": 3139,
+        "start_ms": 2214.848008
+      },
+      {
+        "bank": "HBM[10]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 10,
+            "stage": "adapter",
+            "worker": 2
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          747
+        ],
+        "end_id": 3160,
+        "end_ms": 2222.29293,
+        "physical_bo_address": "0x140003000",
+        "start_id": 3153,
+        "start_ms": 2217.219288
+      },
+      {
+        "bank": "HBM[8]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 8,
+            "stage": "adapter",
+            "worker": 0
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          627
+        ],
+        "end_id": 3166,
+        "end_ms": 2225.896178,
+        "physical_bo_address": "0x100003000",
+        "start_id": 3159,
+        "start_ms": 2222.064034
+      },
+      {
+        "bank": "HBM[11]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 11,
+            "stage": "adapter",
+            "worker": 3
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          805
+        ],
+        "end_id": 3196,
+        "end_ms": 2228.30348,
+        "physical_bo_address": "0x160004000",
+        "start_id": 3165,
+        "start_ms": 2224.330421
+      },
+      {
+        "bank": "HBM[14]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 14,
+            "stage": "adapter",
+            "worker": 2
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          985
+        ],
+        "end_id": 3210,
+        "end_ms": 2231.682341,
+        "physical_bo_address": "0x1c1803000",
+        "start_id": 3195,
+        "start_ms": 2227.961809
+      },
+      {
+        "bank": "HBM[12]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 12,
+            "stage": "adapter",
+            "worker": 0
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          867
+        ],
+        "end_id": 3216,
+        "end_ms": 2233.547477,
+        "physical_bo_address": "0x181803000",
+        "start_id": 3209,
+        "start_ms": 2229.9914
+      },
+      {
+        "bank": "HBM[15]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 15,
+            "stage": "adapter",
+            "worker": 3
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          1045
+        ],
+        "end_id": 3245,
+        "end_ms": 2237.031401,
+        "physical_bo_address": "0x1e1803000",
+        "start_id": 3215,
+        "start_ms": 2233.217747
+      },
+      {
+        "bank": "HBM[16]",
+        "bytes": 9121200,
+        "dependent_kernels": [
+          {
+            "round": 0,
+            "shard": 16,
+            "stage": "adapter",
+            "worker": 0
+          }
+        ],
+        "earlier_same_bo_write_ids": [
+          1105
+        ],
+        "end_id": 3257,
+        "end_ms": 2238.838575,
+        "physical_bo_address": "0x201803000",
+        "start_id": 3244,
+        "start_ms": 2235.367441
+      }
+    ]
+  },
+  "status": "INITIAL_RESIDENCY_INTERVENTION_VALIDATED",
+  "timing_fit_performed": false,
+  "total_process_wall_seconds": 359.24168088426813
+}

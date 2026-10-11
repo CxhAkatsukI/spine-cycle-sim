@@ -45,6 +45,14 @@ PMA timing control. Start with the
 | `segment_schedule.py` | Pinned occupied/empty helper RTL probes with controlled responses and backpressure; not HBM timing |
 | `segment_schedule_delivery.py` | Seal both twelve-case RTL traces and retain failed testbench attempts separately |
 | `invocation_timing.py` | Align all adapter/lksg invocations and same-CU gaps from frozen evidence; never sum overlapping gaps or fit model delays |
+| `dispatch_sweep.py` | Rotating, bounded CPU-affinity control with unchanged admitted host/bitstream and complete-result checks |
+| `dispatch_delivery.py` | Revalidate all nine dispatch runs and seal logs/identities; retain the negative result without claiming a runtime root cause |
+| `dispatch_trace.py` | Unprofiled/profiled XRT trace control with fixed host, input, bitstream and complete outputs |
+| `runtime_trace.py` | Structured VTF parsing, unique kernel-event alignment and compute-window transfer dependencies |
+| `input_residency.py` | Rotating frozen/off/on host control; initial migration separately charged and profile kept diagnostic |
+| `residency_matrix.py` | All six fixed-model rows on FPGA after initial residency, three repetitions and no fitting |
+| `residency_validation.py` | Recompute all 30 raw attempts, complete results, unchanged model predictions and transfer findings |
+| `residency_delivery.py` | Separate immutable input-residency archive, source snapshots and complete-output identities |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`. The distinct routed SST candidate

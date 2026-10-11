@@ -7,6 +7,15 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
+The [controlled initial-residency checkpoint](model_sync/sst/input_residency/README.md)
+now retains all 30 complete outputs and rounds. XRT traces expose 16 late
+WK row-table transfers inside the previous compute window; explicit initial
+migration before updates removes the observed transfers. All six unchanged
+v4 model predictions then differ nominally from three-repeat resident FPGA
+medians by -6.40% to +1.69%. Initial migration is separately timed, not free.
+This advances aggregate-window validation without admitting exclusive
+stages, other algorithms, or the still-pending original-A4 comparison.
+
 The [complete v4 real-graph matrix](model_sync/sst/empty_exit_matrix/README.md)
 now passes all six AU/SU/WK old/optimized full-output and traffic checks;
 all six v3 replays are byte-identical. Five nominal predicted compute spans
@@ -15,6 +24,13 @@ These are not identical-window calibration errors. The per-invocation trace
 exposes same-CU scheduling gaps absent from the model, without establishing
 their root cause or adding a fitted delay. Whole-path timing and original-A4
 matching remain open.
+
+The [nine-run CPU-affinity control](model_sync/sst/dispatch_affinity/README.md)
+preserves all complete WK outputs. Expanding the unchanged host from two to
+eight or 32 allowed CPUs leaves median spans at 94.32, 92.47 and 95.48 ms;
+it does not close the 60.16-ms model prediction. Same-CU gaps remain despite
+early enqueueing. That negative control motivates the later runtime trace
+and residency intervention above; it does not itself establish the cause.
 
 The [RTL empty-exit model control](model_sync/sst/empty_exit_model/README.md)
 now represents a measured 73-clock generated-RTL wait for each actually

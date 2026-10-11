@@ -1,0 +1,1576 @@
+{
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/sst/input_residency/raw_residency.tar.gz",
+    "sha256": "19763bfbb927cc3d2445da7745548ed8cfca01c3ef9a27540b4a6827eb9c12f6"
+  },
+  "dependencies": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/sst/empty_exit_matrix/matrix_raw_index.json",
+      "sha256": "8bd4fe07bff3bab52f53fd6d19c9afff903a13ae36c4cbd1316e9f7370db19bb"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/sst/dispatch_affinity/dispatch_raw_index.json",
+      "sha256": "681b828bea2d857cf13f3118b4b5e6ee4bb889649d61f08dbe8fefe6881d20b5"
+    }
+  ],
+  "external_full_results": [
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_frozen/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_off/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_on/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_off/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_on/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_frozen/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_on/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_frozen/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_off/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_candidate/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_original/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_candidate/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_original/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_candidate/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_original/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_original/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_candidate/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_original/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_candidate/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_original/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_candidate/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_candidate/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_candidate/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_original/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_candidate/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/unprofiled/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    }
+  ],
+  "external_large_inputs": "graph/xclbin/runtime/SST identities remain in archived manifests; not duplicated",
+  "files": [
+    {
+      "archive_path": "build/build.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/build.resources.json",
+      "sha256": "5dfec2e44b86ecd8b6b0eb9e0d744e1dfe139f5f353846dc097838d90b6e428f"
+    },
+    {
+      "archive_path": "build/build.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/build.stderr.txt",
+      "sha256": "d65f7a264844f57ba8c5721dc4d5398a5079608c4d9d304ff973c57f457611fb"
+    },
+    {
+      "archive_path": "build/build.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/build.stdout.txt",
+      "sha256": "b3d85f60e768842477ae2de14c657847ac7213fb55f5f5fabfa37930bdd70311"
+    },
+    {
+      "archive_path": "build/build_sources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/build_sources.json",
+      "sha256": "b8b870932bb6d11dde2f475ad9af5483546906cdad9ebb520e2d42c81ee6eab5"
+    },
+    {
+      "archive_path": "build/host/manifest.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/host/manifest.txt",
+      "sha256": "fc8345acaf424fdc2efed51f05b38c85dbf12a3f721da5946a701e6dd14e762e"
+    },
+    {
+      "archive_path": "build/host/sharded_k4_sssp_native_host",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/host/sharded_k4_sssp_native_host",
+      "sha256": "4b48537fa2f65130a356690c50ca0c909e0351314a4ab3e15996daed46f3bf85"
+    },
+    {
+      "archive_path": "build/host/weighted_pma_native_host.sha256",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/host/weighted_pma_native_host.sha256",
+      "sha256": "ec135bc486047deb80868b406b00dbe7dd8214f7bc2307bef44952bf8ef8bc3c"
+    },
+    {
+      "archive_path": "complete_results/0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/board/result.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "archive_path": "complete_results/1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/board/result.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "archive_path": "complete_results/bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/board/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "archive_path": "control/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/attempts.json",
+      "sha256": "b0ddb0be9390ef0e93db048cadffe38fd27e715be1e5e3b1da9e82f15a3a5cd2"
+    },
+    {
+      "archive_path": "control/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/manifest.json",
+      "sha256": "90580be110cb8b433d0452dcad839429ea6f22f82031382cd10d025b09d76ab1"
+    },
+    {
+      "archive_path": "control/profiled_on/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/board/run.env",
+      "sha256": "a62b1841b30372aebf0065f5f733476cde69043ad2ea1258e4015bfd41f4c464"
+    },
+    {
+      "archive_path": "control/profiled_on/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/board/run.log",
+      "sha256": "fd65e4b31e9cf79f17958bbfb6d7a61f47f94f9de486c02551ca779b2b994855"
+    },
+    {
+      "archive_path": "control/profiled_on/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/board/summary.tsv",
+      "sha256": "1fea4038c10f5024a1cdb696df7fe00c916fce8cf24b3bcef91410d88260e4a2"
+    },
+    {
+      "archive_path": "control/profiled_on/hal_host_trace.csv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/hal_host_trace.csv",
+      "sha256": "f5b61f16878fe3e4ffc2d21414969e5b5bed86194bfb5490ff916ccab199748c"
+    },
+    {
+      "archive_path": "control/profiled_on/opencl_trace.csv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/opencl_trace.csv",
+      "sha256": "99c32dabcbb6a1a511a3e58284621901779ed5c9624a1d050e2b9c5556bd1178"
+    },
+    {
+      "archive_path": "control/profiled_on/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/process.resources.json",
+      "sha256": "bc2a1dc838794cbd6fcd61d073c553a1cc69395617b8aadf8f2fc0a797af21a0"
+    },
+    {
+      "archive_path": "control/profiled_on/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/profiled_on/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/process.stdout.txt",
+      "sha256": "5aec6a270b9a42bde50042662f4d4562e5ed6a0ff557f88d01b956497ad4304a"
+    },
+    {
+      "archive_path": "control/profiled_on/summary.csv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/summary.csv",
+      "sha256": "ce6f8425668fd1bc45ec59094b97cb033faf3c9412f7f200544b54f6eeec1a26"
+    },
+    {
+      "archive_path": "control/profiled_on/xrt.run_summary",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/profiled_on/xrt.run_summary",
+      "sha256": "555435c640e08f17aeea8e47bdf4d6b69b169e4f487df2ccd4ec740f71dcb9a8"
+    },
+    {
+      "archive_path": "control/r0_frozen/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_frozen/board/run.env",
+      "sha256": "1d0dcd9c59b44554610cb9969d6e74ccf62d1268edf2d92cf13a8c1f867830c7"
+    },
+    {
+      "archive_path": "control/r0_frozen/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_frozen/board/run.log",
+      "sha256": "8922e185bc471d2dbd48b299f498c33c31c29a310ca620a268bc06530567e4d4"
+    },
+    {
+      "archive_path": "control/r0_frozen/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_frozen/board/summary.tsv",
+      "sha256": "320c2023ff378df6adae3764c728f09a775ce7728c32c5c3a8d738811261c6e6"
+    },
+    {
+      "archive_path": "control/r0_frozen/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_frozen/process.resources.json",
+      "sha256": "fe183c3e15fe86f6e31bf3b0d222ebdb4d66073f7b38fdb1c0492ed61dfe2d82"
+    },
+    {
+      "archive_path": "control/r0_frozen/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_frozen/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r0_frozen/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_frozen/process.stdout.txt",
+      "sha256": "a90402cc52a542c9d5b897fcb062bf8f17c8d6d130e7fa8bd603595ef657daf6"
+    },
+    {
+      "archive_path": "control/r0_off/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_off/board/run.env",
+      "sha256": "8e4ae7174dcee295c7848df72b960c284e30d629efbff6937ec2f8493ccf0da2"
+    },
+    {
+      "archive_path": "control/r0_off/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_off/board/run.log",
+      "sha256": "079fda82b877791dd8b1e34dfb241f057cfc4976a1abae217b4d1f7e59d3e169"
+    },
+    {
+      "archive_path": "control/r0_off/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_off/board/summary.tsv",
+      "sha256": "c2637aa6b728101911f92064fb664a362b998005d67bb09fccc60f26084b2bc6"
+    },
+    {
+      "archive_path": "control/r0_off/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_off/process.resources.json",
+      "sha256": "7e86bf345d955eba9f61f31546ce8bdf2132f8e87ee1020afc84b8b253ce5a62"
+    },
+    {
+      "archive_path": "control/r0_off/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_off/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r0_off/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_off/process.stdout.txt",
+      "sha256": "d3a794d29d425c51beb7875ca6544f2c0b4889ae352891c0fd8f35d50a199d69"
+    },
+    {
+      "archive_path": "control/r0_on/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_on/board/run.env",
+      "sha256": "9b84237f12ece6e601807c7911c76e0519463f90cb3cb65f9d43c8ced9463c51"
+    },
+    {
+      "archive_path": "control/r0_on/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_on/board/run.log",
+      "sha256": "ad15f697d89819f9eee953e146e8e9bdc4ef62086d5e8f85434ed8b4239c806e"
+    },
+    {
+      "archive_path": "control/r0_on/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_on/board/summary.tsv",
+      "sha256": "8b434737f257bee2b1adc6ce9fdee77402a5032ccebca644d4e396d972789745"
+    },
+    {
+      "archive_path": "control/r0_on/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_on/process.resources.json",
+      "sha256": "ca10ae2303b5f8b8713657f8ad268d273c67e5e5d74ef6cda306b734c2aa933d"
+    },
+    {
+      "archive_path": "control/r0_on/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_on/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r0_on/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r0_on/process.stdout.txt",
+      "sha256": "d059d104b2125f28d0745641f39056dea7fade716dbd6df3dbf950d9adcbc64b"
+    },
+    {
+      "archive_path": "control/r1_frozen/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_frozen/board/run.env",
+      "sha256": "9132325fa69fb3da7e7d6760dff7a17648b64d02913fb73f4e3a751a1a1b3750"
+    },
+    {
+      "archive_path": "control/r1_frozen/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_frozen/board/run.log",
+      "sha256": "1d079f0c5a515634ccd225e613d585fd91ae82f0813906cd7c79a7135b4912af"
+    },
+    {
+      "archive_path": "control/r1_frozen/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_frozen/board/summary.tsv",
+      "sha256": "8b6d5d0e5f436378c4857d599d4a78fcb2a9609603bf939f3545b627a1492e11"
+    },
+    {
+      "archive_path": "control/r1_frozen/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_frozen/process.resources.json",
+      "sha256": "5fbdcf126c97039d7e23bb08b179a006dac0fe0ad88604797b3f0ae9e07d1576"
+    },
+    {
+      "archive_path": "control/r1_frozen/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_frozen/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r1_frozen/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_frozen/process.stdout.txt",
+      "sha256": "40f4a3aaba2415238ec23a5085e2b22e315c4fce8ea33b8eca9e2b344328a1eb"
+    },
+    {
+      "archive_path": "control/r1_off/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_off/board/run.env",
+      "sha256": "83499f6ce1b8950acca11ca977832bc0a77247e2d318798c5676340cc289722b"
+    },
+    {
+      "archive_path": "control/r1_off/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_off/board/run.log",
+      "sha256": "ab004be474c7d90442e1906d70d92063194523b37a0446b03a057223c72a8b07"
+    },
+    {
+      "archive_path": "control/r1_off/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_off/board/summary.tsv",
+      "sha256": "61ff5ef919bc45c619950ee9c575e77603c88b0b8080f25de4da6163b485acb2"
+    },
+    {
+      "archive_path": "control/r1_off/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_off/process.resources.json",
+      "sha256": "3b68177f297beb46357a096316a20eb863360377f6179fd06cb96c33f2f13aa8"
+    },
+    {
+      "archive_path": "control/r1_off/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_off/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r1_off/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_off/process.stdout.txt",
+      "sha256": "1798f93caac1e5cea46b2ad21ad9e7f5b46a48e0da35c6db83c21178fe4ce105"
+    },
+    {
+      "archive_path": "control/r1_on/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_on/board/run.env",
+      "sha256": "074ec4a891b03416f1778dd8b6d66a591cb05deb6ceebbf6542afb132ca85d62"
+    },
+    {
+      "archive_path": "control/r1_on/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_on/board/run.log",
+      "sha256": "197396aa146be63669cfa0d8925f00c46f75a342bc6e0249abefdc8b79440e87"
+    },
+    {
+      "archive_path": "control/r1_on/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_on/board/summary.tsv",
+      "sha256": "d6fe47fdd8b94738032ed1c52d944699156c38207987e0156e6b2d5b2c058b81"
+    },
+    {
+      "archive_path": "control/r1_on/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_on/process.resources.json",
+      "sha256": "347fdbb2a8ca731937175d30a545c6205674e5090c56ff713cdc44f9f4ff2c6e"
+    },
+    {
+      "archive_path": "control/r1_on/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_on/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r1_on/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r1_on/process.stdout.txt",
+      "sha256": "cbbcf7b540b292dcd944470d5d2fbbe6d41d1aa0c3e960e71cb7648b4ff3f835"
+    },
+    {
+      "archive_path": "control/r2_frozen/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_frozen/board/run.env",
+      "sha256": "5a0a55efd588b90e806bf17be802a3a0429bbde7c672721343c0f658e29b6320"
+    },
+    {
+      "archive_path": "control/r2_frozen/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_frozen/board/run.log",
+      "sha256": "0b31187a4a3edcd625b9b5ce7c709cf996d95d42456b3c2d3519dd2c40ce885c"
+    },
+    {
+      "archive_path": "control/r2_frozen/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_frozen/board/summary.tsv",
+      "sha256": "c2e185a0bf259e7d9ced1d4f262f0e92b0d9231777f2c909ef29f1b7ccdb8a1a"
+    },
+    {
+      "archive_path": "control/r2_frozen/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_frozen/process.resources.json",
+      "sha256": "abc2eb0f9583200760f8906d2198664967c82c97b45cbcf74043440d18940dc1"
+    },
+    {
+      "archive_path": "control/r2_frozen/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_frozen/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r2_frozen/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_frozen/process.stdout.txt",
+      "sha256": "160ca22eca17d26cd83447934d7d0516a2f484c8c6452ee7537f6ca95526a0ef"
+    },
+    {
+      "archive_path": "control/r2_off/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_off/board/run.env",
+      "sha256": "a0bbee1e5bb7f7039227295c4d989856f5c782beb03ac4a2ede50f63b0dff927"
+    },
+    {
+      "archive_path": "control/r2_off/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_off/board/run.log",
+      "sha256": "30e25886e0f48f82b9b843ad4c52aefe08098c2db6ec9d38f9c37c15e6f8c990"
+    },
+    {
+      "archive_path": "control/r2_off/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_off/board/summary.tsv",
+      "sha256": "f1b67a85252a7b34f8af58c73e062eadafb1720481e8a9ba32921dff74f698bc"
+    },
+    {
+      "archive_path": "control/r2_off/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_off/process.resources.json",
+      "sha256": "bfde23141a362107c20d1dce51366d07739edf81369241a5266a4f4d50e35661"
+    },
+    {
+      "archive_path": "control/r2_off/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_off/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r2_off/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_off/process.stdout.txt",
+      "sha256": "66d805c2800f38d01f745b905bade8530d6476cd65035a10430073bf18e48cd6"
+    },
+    {
+      "archive_path": "control/r2_on/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_on/board/run.env",
+      "sha256": "57a1525b81a631a0545e26ce6313f64fa895d03a433ce12a08218600dc95a6a2"
+    },
+    {
+      "archive_path": "control/r2_on/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_on/board/run.log",
+      "sha256": "7dfb683d6e72a453c04e081cd3a0bc62815d1de3ca48a33f320113f6ea2e8cf9"
+    },
+    {
+      "archive_path": "control/r2_on/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_on/board/summary.tsv",
+      "sha256": "0eb853f5c49c55ad1c921251d957bc1b26a80e85d8d047d6eafae26d43cf9987"
+    },
+    {
+      "archive_path": "control/r2_on/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_on/process.resources.json",
+      "sha256": "ca89afefc5bbfd5dc94687070d6943f9cf17196ecb0dd1203b1cc591ee7ebb99"
+    },
+    {
+      "archive_path": "control/r2_on/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_on/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "control/r2_on/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/r2_on/process.stdout.txt",
+      "sha256": "d6807d8471ce633b1ca260c169c21cd2d89966109b5358015bbc52fb676bbbf3"
+    },
+    {
+      "archive_path": "control/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/summary.json",
+      "sha256": "352dc3b53d552ff0f67a0dc621846b3af325942b08e9f127e69129b8f31236aa"
+    },
+    {
+      "archive_path": "matrix/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/attempts.json",
+      "sha256": "2421fd1f2da94f5b4021845387659f33e11dfdcb05741118ee40091b15fed4e0"
+    },
+    {
+      "archive_path": "matrix/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/manifest.json",
+      "sha256": "0ca5cbe6232c4a52e1c51c7a1c8ebe36c87c944dd3cfc52bb44ac68313061366"
+    },
+    {
+      "archive_path": "matrix/r0_au_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_candidate/board/run.env",
+      "sha256": "4f64c66ae73aa75f957ba57746f68d9992c99959101bc774b4dee8bae92aff4e"
+    },
+    {
+      "archive_path": "matrix/r0_au_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_candidate/board/run.log",
+      "sha256": "f0763c96750b7598fc629e856691048336d8bd91c09009256b3e79c677d4caaa"
+    },
+    {
+      "archive_path": "matrix/r0_au_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_candidate/board/summary.tsv",
+      "sha256": "d4abde612d67df20348226818cc8e817f5ee546998247bc93d03b0caefc92e70"
+    },
+    {
+      "archive_path": "matrix/r0_au_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_candidate/process.resources.json",
+      "sha256": "fbb9cf3d3fcac091e499f258086cb21ce381e51b162476aa4fec1b5cf8c7c51e"
+    },
+    {
+      "archive_path": "matrix/r0_au_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r0_au_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_candidate/process.stdout.txt",
+      "sha256": "9e7becdc840ab8f2bd61a5e7680234e7039511e21d17a25a023f5f90bd678360"
+    },
+    {
+      "archive_path": "matrix/r0_au_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_original/board/run.env",
+      "sha256": "f15779bf62aba58201170f067c7ba89c7a6eb004de7ee7823b3b32c8378268fd"
+    },
+    {
+      "archive_path": "matrix/r0_au_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_original/board/run.log",
+      "sha256": "096e4d3a1145ec953a98680a1771391bd13062bf9b7c6bdb6b491474bd0f2351"
+    },
+    {
+      "archive_path": "matrix/r0_au_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_original/board/summary.tsv",
+      "sha256": "1f6e609767b96b972c6e920979f116a014090c94004e00d47abddf501cba9039"
+    },
+    {
+      "archive_path": "matrix/r0_au_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_original/process.resources.json",
+      "sha256": "5ce8253cbe8a3a9a1da95e016e7cfedb30e3a4cf1ab9500186f98ad9c7406f49"
+    },
+    {
+      "archive_path": "matrix/r0_au_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r0_au_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_au_original/process.stdout.txt",
+      "sha256": "a5e9512afc8e08b5debe0527ef626bb7ff5e5c93b9dc059f8ae933c3506b3d9c"
+    },
+    {
+      "archive_path": "matrix/r0_su_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_candidate/board/run.env",
+      "sha256": "1e98c50dd5c87d99b6b00f1edc16ef3e39e65433f7f1913c20f1529f30dcb269"
+    },
+    {
+      "archive_path": "matrix/r0_su_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_candidate/board/run.log",
+      "sha256": "cd490465e26c7a1a0ac2924bb9cf1239cff198c7dddd8f2d46df328141f49132"
+    },
+    {
+      "archive_path": "matrix/r0_su_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_candidate/board/summary.tsv",
+      "sha256": "69817c4911b3b2abd3ee1cc38f50965b8fe09514ad3bd9db98588f1e33ad892d"
+    },
+    {
+      "archive_path": "matrix/r0_su_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_candidate/process.resources.json",
+      "sha256": "43992e550a70a89f69de336b1550b1b5d18d7ed846a8501067c877fc1bddb0e1"
+    },
+    {
+      "archive_path": "matrix/r0_su_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r0_su_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_candidate/process.stdout.txt",
+      "sha256": "cfbcc462e8a33abccddeae6eb6ddd0e23cd036580cf8169f02b8ec17af340115"
+    },
+    {
+      "archive_path": "matrix/r0_su_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_original/board/run.env",
+      "sha256": "96243b258502dd57af4634b9a1591af3b39b7af33616aa6553bdcb1b4863a276"
+    },
+    {
+      "archive_path": "matrix/r0_su_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_original/board/run.log",
+      "sha256": "37c75533c4af87548e19000c623ec6d05e160cf797c9e7142c53487a28f75e22"
+    },
+    {
+      "archive_path": "matrix/r0_su_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_original/board/summary.tsv",
+      "sha256": "0a0319a02dcfa85cae68cd351538ead776f6ba002e194cc24cdbe265493a7ee2"
+    },
+    {
+      "archive_path": "matrix/r0_su_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_original/process.resources.json",
+      "sha256": "9cf189974c318e280755b0e66f7b5376e68333704e6a2c5ffbd9247d54c71b0b"
+    },
+    {
+      "archive_path": "matrix/r0_su_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r0_su_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_su_original/process.stdout.txt",
+      "sha256": "a9b527816207865ab5be89a3b56ff9958338449ce5fb76c1c27c7d4f62c273d2"
+    },
+    {
+      "archive_path": "matrix/r0_wk_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_candidate/board/run.env",
+      "sha256": "e673d585a0c126fe700d95bab521518b9d61368927762e51a0ec4116ebefdf6d"
+    },
+    {
+      "archive_path": "matrix/r0_wk_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_candidate/board/run.log",
+      "sha256": "cda1082437ec6fcfcd4e950dcddc9c91cdbbc728e355e08ae3dc2b357e060d9e"
+    },
+    {
+      "archive_path": "matrix/r0_wk_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_candidate/board/summary.tsv",
+      "sha256": "8799163e7058d65a463533593c2e5d8bb8630d86d6f52d2ba7995ab216c9603f"
+    },
+    {
+      "archive_path": "matrix/r0_wk_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_candidate/process.resources.json",
+      "sha256": "c2001053e652c2a488888c1685f3e56e1f7b52a1833414043bb8fb870c70a823"
+    },
+    {
+      "archive_path": "matrix/r0_wk_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r0_wk_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_candidate/process.stdout.txt",
+      "sha256": "67ac35efb34851feec12f221509d02b8527db0c70629b1abeb5fd7c97a4f2a6c"
+    },
+    {
+      "archive_path": "matrix/r0_wk_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_original/board/run.env",
+      "sha256": "f4e7331c4014f178f1368c66ff9b529c71eb187d3359d96b8cca176cc12148bd"
+    },
+    {
+      "archive_path": "matrix/r0_wk_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_original/board/run.log",
+      "sha256": "28ee172765596a830935d416d2cf55d10501b2343f659ab7304c1bb0caa38dbf"
+    },
+    {
+      "archive_path": "matrix/r0_wk_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_original/board/summary.tsv",
+      "sha256": "c53232892ab69220d0cf97d0508380d40a3fe916d4ecb2c8fcb18bfb1bf7e74f"
+    },
+    {
+      "archive_path": "matrix/r0_wk_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_original/process.resources.json",
+      "sha256": "79f5ef6f12c031c07a686c4f99d92c0c7bc894907f860fcde043462cf5c21351"
+    },
+    {
+      "archive_path": "matrix/r0_wk_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r0_wk_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r0_wk_original/process.stdout.txt",
+      "sha256": "e798769c5c91212f5479f707095c727ca7fd177c3dde7628ecefdd15c2792e4a"
+    },
+    {
+      "archive_path": "matrix/r1_au_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_candidate/board/run.env",
+      "sha256": "ceee1889181da430a07b9bae5a5ac4df18e9b2e2a22352303eb5a6acc662cfe9"
+    },
+    {
+      "archive_path": "matrix/r1_au_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_candidate/board/run.log",
+      "sha256": "6bd471c863b2817fb2b785d68b32f28c0b44ff5cf220deffafac59714adaacf4"
+    },
+    {
+      "archive_path": "matrix/r1_au_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_candidate/board/summary.tsv",
+      "sha256": "4c5cbeda59b3ae7a0a5f2080d44d2bb95bc040014bbd0d5a2fdc975ecf29ec2a"
+    },
+    {
+      "archive_path": "matrix/r1_au_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_candidate/process.resources.json",
+      "sha256": "949bbeb07a4740083e6fac002958a2e4164f93fa07e618f8e8f0160ac0a6cd9e"
+    },
+    {
+      "archive_path": "matrix/r1_au_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r1_au_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_candidate/process.stdout.txt",
+      "sha256": "629ea9c817fd7915c25cc20600e80ab648583e17351221d0fc4bcd8001d1370e"
+    },
+    {
+      "archive_path": "matrix/r1_au_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_original/board/run.env",
+      "sha256": "5b827ed0ec183b288c4648fddbab7b5049f7e7cec367fee5259b601db5e5572c"
+    },
+    {
+      "archive_path": "matrix/r1_au_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_original/board/run.log",
+      "sha256": "8f8c8ee5390008983f96f5cc5054c097bacb983885a827dacc317ddd4ada4b74"
+    },
+    {
+      "archive_path": "matrix/r1_au_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_original/board/summary.tsv",
+      "sha256": "c96f10ac0f6659a038955aabe0ebb53ee98d1dfa1e11f58fec0c06d15e4fdceb"
+    },
+    {
+      "archive_path": "matrix/r1_au_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_original/process.resources.json",
+      "sha256": "28e195269c8a5b3029fde4503578afdeb676b5db4a2bd8839149290fc284dcab"
+    },
+    {
+      "archive_path": "matrix/r1_au_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r1_au_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_au_original/process.stdout.txt",
+      "sha256": "d704de2b0fcc79ed94fbc0f92c8903f80b7787af37308a9f2a31f7187311b1f9"
+    },
+    {
+      "archive_path": "matrix/r1_su_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_candidate/board/run.env",
+      "sha256": "31be6fcff98cf697256b736e4366044a34a8a0854aa8f47d8e425220d8625660"
+    },
+    {
+      "archive_path": "matrix/r1_su_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_candidate/board/run.log",
+      "sha256": "111ed58a6dfa3e84b458a94d9c4295d4515a486dc4aabbd488ece84c48b27a84"
+    },
+    {
+      "archive_path": "matrix/r1_su_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_candidate/board/summary.tsv",
+      "sha256": "d0139af9d6077837d537fcc0492603062502b0e4f8e13d82468c31942b170ed1"
+    },
+    {
+      "archive_path": "matrix/r1_su_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_candidate/process.resources.json",
+      "sha256": "2a456070175f1de9b725e9eea3e26cbce1f155aeba0250b3326430d5ba7910e4"
+    },
+    {
+      "archive_path": "matrix/r1_su_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r1_su_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_candidate/process.stdout.txt",
+      "sha256": "ab61c419db6cba5a9ca87d6a0f72471689845d42e5a660c14283ec6be713ddea"
+    },
+    {
+      "archive_path": "matrix/r1_su_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_original/board/run.env",
+      "sha256": "a54d294af10d7cf543750cd47fe83d8129deecbb220d89ff578d1a0732ad71d2"
+    },
+    {
+      "archive_path": "matrix/r1_su_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_original/board/run.log",
+      "sha256": "59105d9cf139a55aafc9887d62797c16bb0e75dad8536a5611fb85a273a6083f"
+    },
+    {
+      "archive_path": "matrix/r1_su_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_original/board/summary.tsv",
+      "sha256": "5ebe8f0cc9ce471496e44ad7334240bffa169f8ec313234b5509529097414b37"
+    },
+    {
+      "archive_path": "matrix/r1_su_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_original/process.resources.json",
+      "sha256": "6fafd62b44428d8feaf5d770be5857284ec8d893d3fd29671ff9cb9611c8caee"
+    },
+    {
+      "archive_path": "matrix/r1_su_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r1_su_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_su_original/process.stdout.txt",
+      "sha256": "c350c13ed35a94cad93d287279ec1da805bb892081ee1c29f232592b842a9c40"
+    },
+    {
+      "archive_path": "matrix/r1_wk_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_candidate/board/run.env",
+      "sha256": "2ff4f23529c67ddc5aec49a3cf532536135e2b39022f05e6169a78730044bfd9"
+    },
+    {
+      "archive_path": "matrix/r1_wk_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_candidate/board/run.log",
+      "sha256": "481ee075be3c524c7e9a1f951c02e3f81bb07395679258138662b17453311d5e"
+    },
+    {
+      "archive_path": "matrix/r1_wk_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_candidate/board/summary.tsv",
+      "sha256": "e594d4e4cf5be96b93746257c17c1ffc691aed0e9fbcb93d5988e80d78bf2e38"
+    },
+    {
+      "archive_path": "matrix/r1_wk_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_candidate/process.resources.json",
+      "sha256": "9d7ab12d20fc5bfa01e6419e2d715638a1aba5160d3c97134bc48f64a6225276"
+    },
+    {
+      "archive_path": "matrix/r1_wk_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r1_wk_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_candidate/process.stdout.txt",
+      "sha256": "175b97944972f7c827c628899e30b1cdde3c106203db4c67ff218ea7433988ab"
+    },
+    {
+      "archive_path": "matrix/r1_wk_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_original/board/run.env",
+      "sha256": "fc8568fbdc49f6966d9c252a7021da1ae3cedb44c6f1263e2389420508fa9bfe"
+    },
+    {
+      "archive_path": "matrix/r1_wk_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_original/board/run.log",
+      "sha256": "47ee0f294d626d4bbd741e7b795648820c2dd504706e38f3a22003f7499db902"
+    },
+    {
+      "archive_path": "matrix/r1_wk_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_original/board/summary.tsv",
+      "sha256": "80cacf488c2f7482936a32958b22859ce70768e65aa5ffb32b2236ca83c966dd"
+    },
+    {
+      "archive_path": "matrix/r1_wk_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_original/process.resources.json",
+      "sha256": "74542ca39aca69f270a4d050b92d730e91299ca6ffbaa10a9f2b81dfd846abfb"
+    },
+    {
+      "archive_path": "matrix/r1_wk_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r1_wk_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r1_wk_original/process.stdout.txt",
+      "sha256": "33281f1ad0fe5301d8c11d64cf2d786604f81ae739753dff524a3164157d933a"
+    },
+    {
+      "archive_path": "matrix/r2_au_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_candidate/board/run.env",
+      "sha256": "cc303e20a17109c92ba11afc6ef55f5e5ee96ff581e8ce370f18860df1461192"
+    },
+    {
+      "archive_path": "matrix/r2_au_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_candidate/board/run.log",
+      "sha256": "cd10fc911010260544384e0a5cf56c036398f0ecc7f0aefeb4ef08c3040f500d"
+    },
+    {
+      "archive_path": "matrix/r2_au_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_candidate/board/summary.tsv",
+      "sha256": "1a899c5dc7c6374ee14301b9683cb47c71b4f1a7c7fde13a63f43c49e30e745a"
+    },
+    {
+      "archive_path": "matrix/r2_au_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_candidate/process.resources.json",
+      "sha256": "a805da9f12604524e58ec6188803dc2fb2e9745c4f7e71520c13230f52b40d23"
+    },
+    {
+      "archive_path": "matrix/r2_au_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r2_au_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_candidate/process.stdout.txt",
+      "sha256": "06b074419053ddc86f06cd82af5f047bb4c5d3fb5afbf21ef65c1d5021d4e666"
+    },
+    {
+      "archive_path": "matrix/r2_au_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/board/run.env",
+      "sha256": "07d22ab9f306c6cd3fe9e91098a9b989e54dce81dbefa31bed81bebb19652d0e"
+    },
+    {
+      "archive_path": "matrix/r2_au_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/board/run.log",
+      "sha256": "4d9f25b5dbd65c3e7a9afb1b939f9b1607226025273fb2abce3cb04863aca81d"
+    },
+    {
+      "archive_path": "matrix/r2_au_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/board/summary.tsv",
+      "sha256": "0d5033613dc7e602ba7300fe0a2480cad3511ecc375df02e2d0b9d5e191b8fcf"
+    },
+    {
+      "archive_path": "matrix/r2_au_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/process.resources.json",
+      "sha256": "84b1fa2aef0362ee932fee466c9b91e59bb33fb59674f4c7c498cb2124f07bd3"
+    },
+    {
+      "archive_path": "matrix/r2_au_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r2_au_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_au_original/process.stdout.txt",
+      "sha256": "ded66b98193b987ce309282dbcb9b19e88e1b388684bcf5d6dec5394a3cdbee8"
+    },
+    {
+      "archive_path": "matrix/r2_su_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_candidate/board/run.env",
+      "sha256": "70400f71faaec6f77e3b2212be758ba5a737b1af90d7466287246e56d338fe51"
+    },
+    {
+      "archive_path": "matrix/r2_su_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_candidate/board/run.log",
+      "sha256": "78ac568f84bd76dd998a037cafdcd8175107bd00f2077ac912640b3fa29c044a"
+    },
+    {
+      "archive_path": "matrix/r2_su_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_candidate/board/summary.tsv",
+      "sha256": "55e413d1c81cdf002ab9ab7eb658ab0e7155c377d08caa5f4f6fd1cdebc6d2e1"
+    },
+    {
+      "archive_path": "matrix/r2_su_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_candidate/process.resources.json",
+      "sha256": "21848e96579006b3e6de9e4520eb6c467bed981e66abfe29011d3a17d7c81a3d"
+    },
+    {
+      "archive_path": "matrix/r2_su_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r2_su_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_candidate/process.stdout.txt",
+      "sha256": "fca29f2768c46cc99ee02166ea51ad5adff2fc86391942e83f222c67ab6871d1"
+    },
+    {
+      "archive_path": "matrix/r2_su_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/board/run.env",
+      "sha256": "5ecc628f25bf6d8c976433dbae8885e95e899c189c6aec660baa2120f4ab726b"
+    },
+    {
+      "archive_path": "matrix/r2_su_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/board/run.log",
+      "sha256": "97d51190de84c7a552a6560ab7b1092e36126b5d3ff917a82b2a2f0686c47993"
+    },
+    {
+      "archive_path": "matrix/r2_su_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/board/summary.tsv",
+      "sha256": "fa88235144722d255ea0caaac51c8932d18874f761c6fb2610fbf70cbb3cca4f"
+    },
+    {
+      "archive_path": "matrix/r2_su_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/process.resources.json",
+      "sha256": "9d7995e0f3d809c7139efff68585496e74b23fa146ea874b99039b6727f39c64"
+    },
+    {
+      "archive_path": "matrix/r2_su_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r2_su_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_su_original/process.stdout.txt",
+      "sha256": "bc3b0fb684d1e1482e1157c3388a8b75c05972b65aa28fbf01fea9783a8bdc6f"
+    },
+    {
+      "archive_path": "matrix/r2_wk_candidate/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_candidate/board/run.env",
+      "sha256": "e48294365133fff17996cea1e15e73fd4c983daa1a6ea5fac5fd2474d727672a"
+    },
+    {
+      "archive_path": "matrix/r2_wk_candidate/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_candidate/board/run.log",
+      "sha256": "7bd62ff12aa26430cd1d23f06799d193c8790ed1c3156250759eb964cd7d4d71"
+    },
+    {
+      "archive_path": "matrix/r2_wk_candidate/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_candidate/board/summary.tsv",
+      "sha256": "421abfc5ff176454961ab54dbe1658dfa9eb62bf3cfa441c8b31d4f3bba11a3a"
+    },
+    {
+      "archive_path": "matrix/r2_wk_candidate/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_candidate/process.resources.json",
+      "sha256": "08ae9237b8b0d4b377ccb1aea2b8805b62e8d00baa9d07a01c1bebbbd5e4002c"
+    },
+    {
+      "archive_path": "matrix/r2_wk_candidate/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_candidate/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r2_wk_candidate/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_candidate/process.stdout.txt",
+      "sha256": "f9461e5fea769264d2ac1560567dbf18e7388d0ba3588e2627d504fbe5dd0ee9"
+    },
+    {
+      "archive_path": "matrix/r2_wk_original/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_original/board/run.env",
+      "sha256": "8ccf1cd0442459237124a1892b3e94c548314c044ccb727b382b340c113865cb"
+    },
+    {
+      "archive_path": "matrix/r2_wk_original/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_original/board/run.log",
+      "sha256": "e949f39948922c05562a832ea7fa777774a799455ab37f256efbfbc3b8602767"
+    },
+    {
+      "archive_path": "matrix/r2_wk_original/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_original/board/summary.tsv",
+      "sha256": "8fb83b1a869af1ad71f88ad36851a7e1d838c579518c78b512653fed89e311f4"
+    },
+    {
+      "archive_path": "matrix/r2_wk_original/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_original/process.resources.json",
+      "sha256": "199f06c8d9d786238e9a8cb3705f58225a71bf2742d54152f059e0b9e77841c1"
+    },
+    {
+      "archive_path": "matrix/r2_wk_original/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_original/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "matrix/r2_wk_original/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/r2_wk_original/process.stdout.txt",
+      "sha256": "45f725c29c9e370909ad00208e8e2ec7ff646dbb07e59f136d504f99e1e4e3fb"
+    },
+    {
+      "archive_path": "matrix/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/matrix/summary.json",
+      "sha256": "815c357225272f7ccd0da9ddd8056fbd14c117513f1e71db20857b7fbc434df0"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/manifest.json",
+      "sha256": "90580be110cb8b433d0452dcad839429ea6f22f82031382cd10d025b09d76ab1"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_input_residency_20261011/control/summary.json",
+      "sha256": "352dc3b53d552ff0f67a0dc621846b3af325942b08e9f127e69129b8f31236aa"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_au_sssp_candidate/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_au_sssp_candidate/manifest.json",
+      "sha256": "0243e0c38225b008d8402dd127ea00f5beadb4f8156df388c35a090e92d2c797"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_au_sssp_candidate/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_au_sssp_candidate/summary.json",
+      "sha256": "b8626f2eb8f5c6d1225b537d095a30ccdad46a1ff098412bb807ef129eb80625"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_su_sssp_candidate/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_su_sssp_candidate/manifest.json",
+      "sha256": "2824384407c5f4505fb7ccd47cc89ac899ec00aae136e249171efcece93e0549"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_su_sssp_candidate/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_su_sssp_candidate/summary.json",
+      "sha256": "13b71854d18296f27fe695916e9c5141ea5260dae12ab79c33bb0797779af2c3"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_wk_sssp_candidate/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_wk_sssp_candidate/manifest.json",
+      "sha256": "a2cfd2a794be6b997c2ce08b55b8cd58c84e1a6b20325887b5010723433a61f9"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_wk_sssp_candidate/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_wk_sssp_candidate/summary.json",
+      "sha256": "e106cc04764b7b133a9ac3b3fa8b5039b9c2b0c3e8300bfdafb826d18cf5c8f1"
+    },
+    {
+      "archive_path": "reference/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/route_combined_sssp_admission/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/route_combined_sssp_admission/summary.json",
+      "sha256": "49db531469ddbf694c1309d9437687c9c556f03bb827b67c6a5c349fee756bc3"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806/sssp_fullgraph_u55c/matrix.tsv",
+      "path": "/home/chuxiao/grasu-regraph-integration/docs/evidence/sharded_k4_fullgraph_20260806/sssp_fullgraph_u55c/matrix.tsv",
+      "sha256": "c2b02da3af9d50d5dedef7f0ae065837a11e653555a94ab097ddc3afb2a633fb"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/grasu-regraph-integration/include/weighted_pma_graph.hpp",
+      "path": "/home/chuxiao/grasu-regraph-integration/include/weighted_pma_graph.hpp",
+      "sha256": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/grasu-regraph-integration/include/weighted_pma_runtime_plan.hpp",
+      "path": "/home/chuxiao/grasu-regraph-integration/include/weighted_pma_runtime_plan.hpp",
+      "sha256": "583755fd8e5c4ccfe28dfa3b77870bc09f1725bd610c583ffe251197faffebd0"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/grasu-regraph-integration/include/weighted_pma_update_reference.hpp",
+      "path": "/home/chuxiao/grasu-regraph-integration/include/weighted_pma_update_reference.hpp",
+      "sha256": "103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/grasu-regraph-integration/scripts/build_weighted_pma_native_host.sh",
+      "path": "/home/chuxiao/grasu-regraph-integration/scripts/build_weighted_pma_native_host.sh",
+      "sha256": "4a3d90a8a524f8acda615a0bc472b3a2e8e5633851999c86286b34dc175f3d3b"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/grasu-regraph-integration/scripts/run_pma_native_hw.sh",
+      "path": "/home/chuxiao/grasu-regraph-integration/scripts/run_pma_native_hw.sh",
+      "sha256": "0b86346132c5de94a4061668dfdffad11da90d1ab4abff1cb0b895450fad1e53"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/configs/experiments/sharded_k4_dispatch_trace_v1.ini",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/configs/experiments/sharded_k4_dispatch_trace_v1.ini",
+      "sha256": "942a075bebff408babbb5a2086c194f0b23313f10a8527a311a30edd5bb635d9"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/configs/experiments/sharded_k4_routed_sssp_timing_v1.json",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/configs/experiments/sharded_k4_routed_sssp_timing_v1.json",
+      "sha256": "a23640c5cf98deb80029fd82b09a77209004b7a3788cb7e9c20892b22b300bb3"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/sst/empty_exit_matrix/matrix.json",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/sst/empty_exit_matrix/matrix.json",
+      "sha256": "9fe9e5b49b6beedfbdae5960e6af46c99cf44933c9e4e570297754d14e309da1"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/analysis.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/analysis.py",
+      "sha256": "04704dfa8a44357b2aba921be8ec38da8908b0619a7acec1265e5ccf3c4fce45"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/board.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/board.py",
+      "sha256": "6e0ca5da78ad37559ba54a77b7e66b2e0b4c4c023d49ae6f8fe67bc3a6e0a065"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/comparison.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/comparison.py",
+      "sha256": "20f3e7fe4c0a58b8e2596350f71038dade9ab4b3cb5a4f1ca50be6e384860b27"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_sweep.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_sweep.py",
+      "sha256": "26dd71c825b0f28bc19d822e3dc7a5e4260b39d0835fde9a98d3473633cd72ff"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_trace.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_trace.py",
+      "sha256": "72a86e013ebb3a4c4b019b97f60725e755962c63755cc072535303a117a51940"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/input_residency.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/input_residency.py",
+      "sha256": "6610122d022afc74a426acdfc7ec812d9d4d55c54807c77ca3cc3b76999c5855"
+    },
+    {
+      "archive_path": "reference/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/residency_matrix.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/residency_matrix.py",
+      "sha256": "4acb9804d23d53a138ceb03275dcd09c7bfbe48ee76ff1814ad8851d33d607bb"
+    },
+    {
+      "archive_path": "source/experiments/campaign_runtime.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "archive_path": "source/experiments/upstream_controls/execution.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/__init__.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+      "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/analysis.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/analysis.py",
+      "sha256": "04704dfa8a44357b2aba921be8ec38da8908b0619a7acec1265e5ccf3c4fce45"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/bitstream.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/bitstream.py",
+      "sha256": "7535e6cee40a99da52ca10792353a1dc44ade6853cb6ec35470f809292438a48"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/board.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/board.py",
+      "sha256": "6e0ca5da78ad37559ba54a77b7e66b2e0b4c4c023d49ae6f8fe67bc3a6e0a065"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/board_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/board_delivery.py",
+      "sha256": "ba31fb330677b432d4d63a9f3af4d2d5d1ab54dabe371a087d8f5457cd7d22f6"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/channel_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/channel_delivery.py",
+      "sha256": "e1af6693df3a4358758cf8eaf98c9c4a59d6599c3e46b316f200484fd43b2e08"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/comparison.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/comparison.py",
+      "sha256": "20f3e7fe4c0a58b8e2596350f71038dade9ab4b3cb5a4f1ca50be6e384860b27"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/completion_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/completion_delivery.py",
+      "sha256": "1fd4eee383816ff22dc0d408209f45ff772c0754903443b34ee806e4b5e5f119"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/compute_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/compute_delivery.py",
+      "sha256": "dfa5aa7476d5da2b3a0adbe97ee1042ef1a323d73f9a9ecd448ab194ec0b0020"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/delivery.py",
+      "sha256": "73d1f6799bf2a44f8c15dc5202931ab97d9a39cd38e24f2ac4b3c1e6c1e7490d"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/dispatch_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_delivery.py",
+      "sha256": "ba4c9a6b8a51ad646b24f0ae12a2364061038257b84ecf2ec90e0656052faef1"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/dispatch_sweep.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_sweep.py",
+      "sha256": "26dd71c825b0f28bc19d822e3dc7a5e4260b39d0835fde9a98d3473633cd72ff"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/dispatch_trace.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/dispatch_trace.py",
+      "sha256": "72a86e013ebb3a4c4b019b97f60725e755962c63755cc072535303a117a51940"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/execution.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/frontend_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/frontend_delivery.py",
+      "sha256": "ed2bffef2a61f8d59dce46cef5cec23ce00d84b61d835ad5b2056029b0f7dc06"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/input_residency.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/input_residency.py",
+      "sha256": "6610122d022afc74a426acdfc7ec812d9d4d55c54807c77ca3cc3b76999c5855"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/invocation_timing.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/invocation_timing.py",
+      "sha256": "339c55b0d16560e8bc4797404a7615e30ef3a57c86263094422b86c74ac69427"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/link_runtime.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "40eac743cd5b450df31441307b073c8a4401c9c074e5fb87caefde27a86c71e1"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/model_adapter.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/model_adapter.py",
+      "sha256": "5c5c76303da6cc18bfe49228a1c9a5a2a0b725b7f5890425f43dc18e88c01499"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/model_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/model_delivery.py",
+      "sha256": "182dfcfde6e4b7b8c76ed5b8f01a658a9ad03afffeace78d002935bd33c1bc4d"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/model_frontend.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/model_frontend.py",
+      "sha256": "a790f3a47eaaac38a27e15f9f22b952b20fc72405af45d51f717437e8ac40c71"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/model_system.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/model_system.py",
+      "sha256": "f2ac6c0377aa191f92b43a276c8d60ada505c3ef454dc76615d0bcfa7add77d1"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/optimization_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/optimization_delivery.py",
+      "sha256": "0bfa2605f909b9c76fc4fbf81275250fdfd330cc9a3d15d31bcf8afea497edfd"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/residency_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/residency_delivery.py",
+      "sha256": "8ea6c0bc4dca97a6b6dbf0abdc2b3a8e7c54d99d89fcf0ee0f866163a097bc42"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/residency_matrix.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/residency_matrix.py",
+      "sha256": "4acb9804d23d53a138ceb03275dcd09c7bfbe48ee76ff1814ad8851d33d607bb"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/residency_validation.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/residency_validation.py",
+      "sha256": "7b6e0792c4a575eae81595ab75128d6418f09b660e83b6ae6b569384571ceba1"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/route_recovery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/route_recovery.py",
+      "sha256": "aad5007b6472864bbc356b45568de35dbfb9b73f94f3f38ae9ead17957fbb77c"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/routing.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/routing.py",
+      "sha256": "00fbf2d2da34735ad054c4b0fc2d5276a9a374e11111b041dd50f1b52d46c664"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/row_exit_contract.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_contract.py",
+      "sha256": "6f5d5aeab0b4f7cf8a6602e1954ecbd0fcddf75ff376ea75f8f12ce0d306c940"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/row_exit_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_delivery.py",
+      "sha256": "dc070418e4ff27c877cb4e4ddba5632a65ab46bcfbb2ab425db308f056292e44"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/row_exit_matrix.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_matrix.py",
+      "sha256": "c0e4a01b3265f4484aee4c89776c1e34e2e2b56240fa855e971b6cd2e150a248"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/row_exit_sweep.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/row_exit_sweep.py",
+      "sha256": "8573b7075a867058a2f689521091cd55cfba7c3ea44c5f3ac68afe085d4019ba"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/row_sweep.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/row_sweep.py",
+      "sha256": "4692c684fefcf08646b13b23ec8becf184c5baed26bbdc484617652744554522"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/row_sweep_analysis.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/row_sweep_analysis.py",
+      "sha256": "aeb36df6931006192b7d02ae8f0cb92bebef8be6fb4ed2fed4dd4bbf3477a126"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/row_sweep_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/row_sweep_delivery.py",
+      "sha256": "7bdac3084c7da4db6054220ef053866419c174fbdc5ca29b1f3ec2d25a066dba"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/rtl.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/rtl.py",
+      "sha256": "72eebef090cc6a2c6793d8ef3c0c7d9b0b2853766e776c4c9ffb6f34e3f55a48"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/runtime_trace.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/runtime_trace.py",
+      "sha256": "c14ce4a21324f2a3f1a874cdf42da4b8663e3958cfe246701699e8d110bf1624"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/segment_schedule.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/segment_schedule.py",
+      "sha256": "759b47ea7f078c1f5c3488d74d7cbc8cfb727a7224615cbe3b22fbe8ebc5d61e"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/segment_schedule_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/segment_schedule_delivery.py",
+      "sha256": "d7b0a78958e997200ba66bce882a3867db7d773a5caf2dfa3a99f5f6be711e3f"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/sst_campaign.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/sst_campaign.py",
+      "sha256": "097d867d4a26bbff9e1cd84346ffec8aaae4657ef383a1be3cf5fe032ac6016f"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/sst_candidate.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/sst_candidate.py",
+      "sha256": "fce513679176d426a7e7b3fdd6167d16108b047e704ae3495eb150cc3db1baff"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/sst_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/sst_delivery.py",
+      "sha256": "f001222899adcd29ae1754889263b739b6320116500a77ff98444fbd2cd751d6"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/sst_input_audit.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/sst_input_audit.py",
+      "sha256": "78c075ecabef4b572e3565c8ee9f789a02c7785a1626918f0328fb9897b8d765"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/sst_timing.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/sst_timing.py",
+      "sha256": "b1228d86063d095962862f664db7be58c4d752c0ebc18ad666e101da99a2863e"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/stream_contract.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/stream_contract.py",
+      "sha256": "aeed7ba69864c44441a0680e831862659180ebda252b8cb7c130eef5d74d81b9"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/stream_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/stream_delivery.py",
+      "sha256": "862845b3a3fceb622b70d6e32dc3f3d40d557ad919c063aa56538758402f39d7"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/synthesis.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/synthesis.py",
+      "sha256": "ffca22354e7e494dbc5017185fe39cf8c49775b8c846692771c0928bc953b759"
+    },
+    {
+      "archive_path": "source/sharded_k4_stages/system_delivery.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/system_delivery.py",
+      "sha256": "66d4092a5580d6ecbbfb458031c31eb0a999f236a5afd6a7f820ad7fcd1f80dd"
+    },
+    {
+      "archive_path": "tests/test_sharded_k4_input_residency.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_sharded_k4_input_residency.py",
+      "sha256": "818e0f89c6dbc24f75ee12824e4eb1ba34b9ff6105efd0caf596644e5a4ebc50"
+    },
+    {
+      "archive_path": "tests/test_sharded_k4_residency_matrix.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_sharded_k4_residency_matrix.py",
+      "sha256": "a5a50f96bdfa0c7d20a5a1b1f1f1141463574004a29a99c988f12d45bb797242"
+    },
+    {
+      "archive_path": "tests/test_sharded_k4_residency_package.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_sharded_k4_residency_package.py",
+      "sha256": "134660ff17799f0f57d71af68f2cd294b519e6dfa79acd350903dfc9e568f9dd"
+    },
+    {
+      "archive_path": "tests/test_sharded_k4_runtime_trace.py",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_sharded_k4_runtime_trace.py",
+      "sha256": "0f1eefe16fb9d0994a0eceb096e8ee7fcc0e7b9077be692e54f319522952aeac"
+    },
+    {
+      "archive_path": "trace/attempts.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/attempts.json",
+      "sha256": "e14fc9e65733a50da9f0a7e68b2bb17e4bd2d09879fffbd567cff707321ab864"
+    },
+    {
+      "archive_path": "trace/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/manifest.json",
+      "sha256": "ec0603dbc1127e0d24cbe8b2bb17547bae9df9b0f8e1e89743b71045e6d49d80"
+    },
+    {
+      "archive_path": "trace/profiled/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/board/run.env",
+      "sha256": "eaa50476871f106caa76e115887c6ff02e594ec91cc67ed3a7c8b0cd556995d8"
+    },
+    {
+      "archive_path": "trace/profiled/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/board/run.log",
+      "sha256": "d7e63f5aa367f1aa9490ee8bc8d33de93112b1187d04112af997341719814ba2"
+    },
+    {
+      "archive_path": "trace/profiled/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/board/summary.tsv",
+      "sha256": "9e928082a71f65646396b7842f6694f0c0e8e9825ec4b7d96a13f161a65e2841"
+    },
+    {
+      "archive_path": "trace/profiled/hal_host_trace.csv",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/hal_host_trace.csv",
+      "sha256": "5521aded133eda86144f84d7cc3f9391c8273ebe746ca8f1f7d1355e07d77fc5"
+    },
+    {
+      "archive_path": "trace/profiled/opencl_trace.csv",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/opencl_trace.csv",
+      "sha256": "ce669aa4441d45b156aa13a0505e7befd7819ebc5b8d08ff9c1cf1d936c76e0f"
+    },
+    {
+      "archive_path": "trace/profiled/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/process.resources.json",
+      "sha256": "a2558b9f8a415c766207de755b925b47a80e0ed904ad4d0fbd066a1b749b0db0"
+    },
+    {
+      "archive_path": "trace/profiled/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "trace/profiled/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/process.stdout.txt",
+      "sha256": "78a666433edde9217f7805f75b8464a2ef02c76baed290ad64a530c6083b785a"
+    },
+    {
+      "archive_path": "trace/profiled/summary.csv",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/summary.csv",
+      "sha256": "4bad922c03062d30f4a3964f1bf6dd07ffbc1649446f21ad0007277f8a9d97da"
+    },
+    {
+      "archive_path": "trace/profiled/xrt.run_summary",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/profiled/xrt.run_summary",
+      "sha256": "5c1fc6714808aa88474e0d4d85f128c255336371616b4565e98772e8844f2892"
+    },
+    {
+      "archive_path": "trace/summary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/summary.json",
+      "sha256": "ff7269c144e79c23f4fa06a02902aca1c7e2746a0c05e2937b3849d08c46694d"
+    },
+    {
+      "archive_path": "trace/unprofiled/board/run.env",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/unprofiled/board/run.env",
+      "sha256": "6c1e92fcab76f0b3706653df2b566c3ed26f4393f373d5ff0f4721f6338945ba"
+    },
+    {
+      "archive_path": "trace/unprofiled/board/run.log",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/unprofiled/board/run.log",
+      "sha256": "868218482a0c79f9f204af88177f4a0fe8865349e2494979a0cb5867e6c389e1"
+    },
+    {
+      "archive_path": "trace/unprofiled/board/summary.tsv",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/unprofiled/board/summary.tsv",
+      "sha256": "b41502b983c4c91c8196b99873526f3047966abdaddce3c792a9e78c1c30a187"
+    },
+    {
+      "archive_path": "trace/unprofiled/process.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/unprofiled/process.resources.json",
+      "sha256": "28c809f0743a8e291714ef641185ec3c5f57cba16eae80c50c8eb968ced4d824"
+    },
+    {
+      "archive_path": "trace/unprofiled/process.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/unprofiled/process.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "trace/unprofiled/process.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_runtime_trace_20261011/unprofiled/process.stdout.txt",
+      "sha256": "df4d4f340b116a95e60b8e5f17146ff37e7af8d0a61f720b52912d87a744e0fe"
+    },
+    {
+      "archive_path": "source/frozen_host/sharded_k4_native_host.cpp",
+      "git_object": "429185d:tools/sharded_k4_native_host.cpp",
+      "sha256": "5c3180ffe1ebe8ee074818940b3e53768cb200a7f3da0c75238af00a4f396da1"
+    }
+  ]
+}

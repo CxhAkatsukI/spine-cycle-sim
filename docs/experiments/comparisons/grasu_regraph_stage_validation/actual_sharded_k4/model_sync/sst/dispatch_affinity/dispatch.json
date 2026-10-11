@@ -1,0 +1,122 @@
+{
+  "all_successors_queued_before_previous_end": true,
+  "attempt_count": 9,
+  "compute_span_range_ms": [
+    90.5604,
+    98.914068
+  ],
+  "full_result_pins": [
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r0_arm0/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r0_arm1/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r0_arm2/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r1_arm1/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r1_arm2/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r1_arm0/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r2_arm2/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r2_arm0/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_dispatch_affinity_20261011/r2_arm1/result.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    }
+  ],
+  "hardware_timing_admitted": false,
+  "limits": [
+    "three repetitions per affinity, not a causal or statistical certificate",
+    "kernel lifetimes include stream waits; gather denotes whole lksg",
+    "same-worker gap sums are not additive end-to-end penalties",
+    "CPU count alone does not explain the remaining WK timing gap",
+    "identical full result files are externally hash-indexed, not duplicated in archive"
+  ],
+  "medians_ms": [
+    {
+      "arm": 0,
+      "compute_span_ms": 94.319117,
+      "cpus": [
+        122,
+        123
+      ]
+    },
+    {
+      "arm": 1,
+      "compute_span_ms": 92.467194,
+      "cpus": [
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123
+      ]
+    },
+    {
+      "arm": 2,
+      "compute_span_ms": 95.4788,
+      "cpus": [
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ]
+    }
+  ],
+  "original_A4_match_admitted": false,
+  "peak_process_rss_kib": 1404728,
+  "root_cause_proven": false,
+  "status": "DISPATCH_AFFINITY_CONTROL_FUNCTIONAL_PASS",
+  "timing_fit_performed": false,
+  "total_process_wall_seconds": 45.42362152878195
+}

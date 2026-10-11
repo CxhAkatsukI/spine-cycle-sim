@@ -125,6 +125,21 @@ whole-path calibration remains open. The separate
 [occupied-row RTL probe](occupied_row_rtl/README.md) prevents incorrectly
 charging the empty helper's 73 clocks after an occupied row's last packet.
 
+The [CPU-affinity negative control](dispatch_affinity/README.md) keeps the
+admitted WK binary and complete outputs unchanged across nine board runs.
+Two, eight and 32 allowed CPUs give median compute spans of 94.32, 92.47
+and 95.48 ms. The gap is not resolved by allowing more host CPUs; its root
+cause is not established and no fitted dispatch delay is introduced.
+
+The subsequent [initial-residency intervention](input_residency/README.md)
+finds 16 late row-table transfers inside the frozen WK compute window.
+Explicit initial migration before updates removes those observed transfers;
+all 30 control/matrix/trace executions retain complete results and rounds.
+With the same fixed v4 predictions, all six nominal resident-window
+differences are now -6.40% to +1.69%. Migration is separately charged
+(approximately 20--55 ms), not a free end-to-end optimization. This bounded
+aggregate result does not admit exclusive-stage or original-A4 calibration.
+
 ## Regression And Resources
 
 The same final plugin and numerical-source snapshot produced all six rows
