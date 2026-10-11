@@ -94,6 +94,11 @@ physical memory behavior. They do not isolate an AXI read latency or prove
 which waiting condition is wrong. Neither this tail nor overlapping kernel
 lifetimes can serve as exclusive stage calibration.
 
+A subsequent [bounded completion diagnostic](completion_diagnostic/README.md)
+reproduces shared-port write blocking behind a held streamed read, with
+isolated non-stall controls. It preserves this checkpoint, changes no model
+parameters and does not claim to resolve the overall timing gap.
+
 ## Regression And Resources
 
 The same final plugin and numerical-source snapshot produced all six rows

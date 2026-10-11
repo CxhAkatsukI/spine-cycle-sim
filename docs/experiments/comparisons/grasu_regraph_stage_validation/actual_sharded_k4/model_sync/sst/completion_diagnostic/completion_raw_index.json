@@ -1,0 +1,623 @@
+{
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/sst/completion_diagnostic/raw_completion.tar.gz",
+    "sha256": "fd7907cfcad0f2be99d2a133f5649ea2b420a2ead96fa63405280f1a17f35961"
+  },
+  "files": [
+    {
+      "archive_path": "campaign/isolated_axi/build.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi/build.resources.json",
+      "sha256": "5de269f223074ffafdf2e02cb4ca7e12a52d2b4dcf4415e9d1f71e639357adad"
+    },
+    {
+      "archive_path": "campaign/isolated_axi/build.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "campaign/isolated_axi/build.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi/build.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "campaign/isolated_axi/diagnose_stream_write",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi/diagnose_stream_write",
+      "sha256": "1b96c00a24a7917157fba778a74a3c448fd5be73c13a92a508a925373e26f8f0"
+    },
+    {
+      "archive_path": "campaign/isolated_axi/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi/manifest.json",
+      "sha256": "4a4f841097c0c632c88d36760a62ec8725e51113d57b5f9eaec1b4f3fb8aa8fc"
+    },
+    {
+      "archive_path": "campaign/isolated_axi/run.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi/run.resources.json",
+      "sha256": "793255e73e26e6dcb7570d6ca2a8d5007986377e8c97182376f03e07bbcd75be"
+    },
+    {
+      "archive_path": "campaign/isolated_axi/run.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi/run.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "campaign/isolated_axi/run.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi/run.stdout.txt",
+      "sha256": "67c316282bea18636c6de364d53afcf757518e8c8f60d528d881459456293fa9"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/binary.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/binary.json",
+      "sha256": "5c5ac700783abdb78d9d5fd5740ae552f3b2815855016e44d9a3226ccb8b9de8"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/build.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/build.resources.json",
+      "sha256": "5238f71e4ecd172245f769765ee345ab4fb37bd3c28f58917ccf7fcc6bdf89f1"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/build.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/build.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/build.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/diagnose_stream_write",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/diagnose_stream_write",
+      "sha256": "1b96c00a24a7917157fba778a74a3c448fd5be73c13a92a508a925373e26f8f0"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/manifest.json",
+      "sha256": "11cd11b3a2cdd2d1ae84060004f4fbe5014ae62508adbf095aef2fd1c008c287"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/run.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/run.resources.json",
+      "sha256": "a7807903d5fa6f2e5ee8e7e154fbb993e95ef5077fbfb2b59dbc1f192a29b019"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/run.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/run.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "campaign/isolated_axi_final/run.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/isolated_axi_final/run.stdout.txt",
+      "sha256": "67c316282bea18636c6de364d53afcf757518e8c8f60d528d881459456293fa9"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel0/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel0/dramsim3.json",
+      "sha256": "70db784b8996041ab9dd71830fe5c49bd0e69494e3a375c4d40abdd1c6a1c4e4"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel0/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel0/dramsim3.txt",
+      "sha256": "f6c5665495c383c8bc103d9bb5ecbdd82cf6ab5beff4b455b2d7707833280903"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel0/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel0/dramsim3epoch.json",
+      "sha256": "9b902cb5ed2d036e1244f5deaafe252e87518195dae18344da87dbc4ee2676e0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel1/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel1/dramsim3.json",
+      "sha256": "18835f12b4254034b282bdbe71193c50f67e739c286faa74e3201666890ee0c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel1/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel1/dramsim3.txt",
+      "sha256": "6c21ae386c59d9ceb41fa51a19c76f6d75769496711c1903e28299fe98a8e60b"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel1/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel1/dramsim3epoch.json",
+      "sha256": "2c80f2f5fd0d0dc63585c48d05fca2fb5e7e6aad426d921cc471c1f1b95e1b46"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel10/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel10/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel10/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel10/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel10/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel10/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel11/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel11/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel11/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel11/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel11/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel11/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel12/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel12/dramsim3.json",
+      "sha256": "ef9f413645ce31c6581e62f00687fa796fa0ac415bc5ea23fbc7dd622b38617e"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel12/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel12/dramsim3.txt",
+      "sha256": "9e1d8c2441a9babe013b3bc9eae0a0707760098e4c8361fd0a6fbcade0c1d573"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel12/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel12/dramsim3epoch.json",
+      "sha256": "9d0de1f4da211ec317be8be6178e95edbaa1884973af3c6e613479c648478976"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel13/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel13/dramsim3.json",
+      "sha256": "fd94ad194a40fb9c453f3ba8e7771262ca593ba530a51114ca27493e6f9835b1"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel13/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel13/dramsim3.txt",
+      "sha256": "d5cfe7fc55400c2dd5cc8f617c787e9242e5c6a9948142d2deb24fff594549c5"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel13/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel13/dramsim3epoch.json",
+      "sha256": "8fd74b2cdf9032f3107bd81df728409facb2e758a7874986fac23f6f53115bc1"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel14/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel14/dramsim3.json",
+      "sha256": "caf7652f1ab0b6709f49e2183f9746456fadf37d15e9171686efb38ea37f4bfd"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel14/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel14/dramsim3.txt",
+      "sha256": "97da9d1fe7adfe89ed803d365c40d42ac3f1c7acff13658d4344f1e26692348f"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel14/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel14/dramsim3epoch.json",
+      "sha256": "963e6a82bb273cda59348a21d72fdd718018073755fcd844d98bda227a04f718"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel15/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel15/dramsim3.json",
+      "sha256": "3e4492135efc39ec5e396679fe6a7de423c9818eb6c5d21a82f4ceb8eee8248b"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel15/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel15/dramsim3.txt",
+      "sha256": "c9b80ccd86e0c8a36542cd0da08499d53e6a736a9450110936c0c14b75dc1825"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel15/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel15/dramsim3epoch.json",
+      "sha256": "a0aaa2cf4027e4beef6a71a7812d097219e0deaf8237841c7dc8e5403ea107c8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel16/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel16/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel16/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel16/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel16/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel16/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel17/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel17/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel17/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel17/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel17/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel17/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel18/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel18/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel18/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel18/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel18/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel18/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel19/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel19/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel19/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel19/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel19/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel19/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel2/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel2/dramsim3.json",
+      "sha256": "576484c7785033a0321354b1de89d8df99f83ae7b1e349eb690740b38288a2b5"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel2/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel2/dramsim3.txt",
+      "sha256": "673ca8ad221d07ff9b98606a9721afb450289ec610e07f2d26a1ef78887f3e41"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel2/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel2/dramsim3epoch.json",
+      "sha256": "244bb329bd8288f4c260fea149b8c072b53dfa0e040e1da3e542d8686bf516b1"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel20/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel20/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel20/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel20/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel20/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel20/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel21/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel21/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel21/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel21/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel21/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel21/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel22/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel22/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel22/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel22/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel22/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel22/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel23/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel23/dramsim3.json",
+      "sha256": "9b82f9fbb5b5b7ba8111d5e777d8747fc8ffb85d81b59b6b5aadc4d384b294f3"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel23/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel23/dramsim3.txt",
+      "sha256": "4e092033bf535b34eeded5a7fbd1fb7af02513420f5fc84e43ac46bc67755e0a"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel23/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel23/dramsim3epoch.json",
+      "sha256": "fc68688c71e32a5964f0639c9ca2108c831d408b8a5ff466ad37255011053e17"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel24/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel24/dramsim3.json",
+      "sha256": "ad750d1098f2359f633a80e0ead407fdbaf5b5aeaf7db61d646ce1a6f9654987"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel24/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel24/dramsim3.txt",
+      "sha256": "05ccbf9e455c9a83547a79fda8b4f24e4e6bb71457d4b42865a7c6fd6f52d1cc"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel24/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel24/dramsim3epoch.json",
+      "sha256": "4c7c200cb579e107ee327e8c8e4a0e88cfe14d3035dc3de86ea685fef8d17927"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel25/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel25/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel25/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel25/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel25/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel25/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel26/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel26/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel26/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel26/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel26/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel26/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel27/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel27/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel27/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel27/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel27/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel27/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel28/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel28/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel28/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel28/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel28/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel28/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel29/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel29/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel29/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel29/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel29/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel29/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel3/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel3/dramsim3.json",
+      "sha256": "9da81288aaa91ee50892e58c4500d30faf7ae54e11fe42601eaf9048b19d011a"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel3/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel3/dramsim3.txt",
+      "sha256": "8b1f1ff1b58280963771a17d77e63083f7b60883d36b1eca5fcadfa702af030c"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel3/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel3/dramsim3epoch.json",
+      "sha256": "4f9c87470eebc77bbc01169fb9cb8a6b8e87b9fa88687a07860385db0a22c3de"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel30/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel30/dramsim3.json",
+      "sha256": "a9828ea296b04f193808f86fc042bd0a065a8981dd9f3b96a8c4b8656efd6bc4"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel30/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel30/dramsim3.txt",
+      "sha256": "f5b3f8b7766153485872fee74190804b0e1d1cfc196bac52dc805b632df318f0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel30/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel30/dramsim3epoch.json",
+      "sha256": "26bd5ea263e64a63b843c12707015c92df04bba4c53399a102a0f6dd773821b4"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel31/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel31/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel31/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel31/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel31/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel31/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel4/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel4/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel4/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel4/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel4/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel4/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel5/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel5/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel5/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel5/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel5/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel5/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel6/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel6/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel6/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel6/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel6/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel6/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel7/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel7/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel7/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel7/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel7/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel7/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel8/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel8/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel8/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel8/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel8/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel8/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel9/dramsim3.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel9/dramsim3.json",
+      "sha256": "1eaaf47dd1be7e3167b711ccd73ae7e304b6bae703c6d04f0ecaa5a845fa92d0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel9/dramsim3.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel9/dramsim3.txt",
+      "sha256": "980dfe7139de86af7c78d27f433999274ae9aa2e0d65d44df25a22fe87c7aed8"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/dram/channel9/dramsim3epoch.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/dram/channel9/dramsim3epoch.json",
+      "sha256": "1ac950912e3c3029116a3c7f4d49174501c71f712a3ad16a2a9c30f3e74580c0"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/manifest.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/manifest.json",
+      "sha256": "be8361022e1cb935a2cac0a7cc9d1b4d7ac81f081c1ce760f71f420a0ca73eac"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/result.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/result.json",
+      "sha256": "27eb0047634fe75dc22d26b5f03fbe3d968edcae2a323fb78c4a45b18d43f62c"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/result.json.diagnostic.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/result.json.diagnostic.txt",
+      "sha256": "fcd27a0d8828149ddb432c68f1d77653beef6394da94bcad08f616a98a98a0fa"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/result.json.values.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/result.json.values.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/run_config.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/run_config.json",
+      "sha256": "1c334464e2965abed8289859170011129b30054f93051f6be91ac03593f101dc"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/sst.resources.json",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/sst.resources.json",
+      "sha256": "537328a40b4c18875b0ac86e0343ff4464be568a0319fd969d8f8bb0d7cc72f4"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/sst.stderr.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/sst.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archive_path": "campaign/wk_original_20m/sst.stdout.txt",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_completion_20261011/wk_original_20m/sst.stdout.txt",
+      "sha256": "413d2857f15b63de7bf804aef5ee6f219cc170658f402c60bde0603644f3f17c"
+    },
+    {
+      "archive_path": "tested/diagnose_stream_write.cpp",
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tools/routed_regraph/diagnose_stream_write.cpp",
+      "sha256": "807064715373f2aefaa6d09557ef523db527d7980615a7c33bcba40bb346e0e6"
+    },
+    {
+      "archive_path": "tested/libspine_cycle_core.a",
+      "path": "/data/chuxiao/experiments/sharded_k4_sst_sync_20261011/core/cpp/libspine_cycle_core.a",
+      "sha256": "1e18298ff7971d4ffc9838742267d9db88c5495927f0ac812b96888556aae880"
+    }
+  ]
+}

@@ -31,6 +31,7 @@ PMA timing control. Start with the
 | `sst_campaign.py` | Complete predeclared old/new matrix, at most two memory-admitted workers, retained failures |
 | `sst_input_audit.py` | Independent bounded synchronous old-state/active oracle and empty-tail inventory |
 | `sst_delivery.py` | Immutable six-row SST/board evidence, common-source legacy gate and nominal tail diagnostics |
+| `completion_delivery.py` | Separate capped-state and isolated read/write-blocking evidence; no model change or timing admission |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`. The distinct routed SST candidate
