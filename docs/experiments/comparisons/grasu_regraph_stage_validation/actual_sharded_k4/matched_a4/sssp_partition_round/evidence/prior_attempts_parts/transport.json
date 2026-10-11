@@ -1,0 +1,24 @@
+{
+  "archive_bytes": 120936692,
+  "archive_name": "prior_attempts.tar.xz",
+  "archive_sha256": "c80328f170de0bc9edaa593feea267c982ef94730df4ae30fff87b456216e716",
+  "chunk_bytes": 50331648,
+  "parts": [
+    {
+      "bytes": 50331648,
+      "name": "part000",
+      "sha256": "8cd952a9023ea0b148c2341d7a03ccb54932bbaf13cc960ca2305476a5894e21"
+    },
+    {
+      "bytes": 50331648,
+      "name": "part001",
+      "sha256": "2a87fec5a228ccac0f7840aba18808c1793aa51cb71ca655d016905256eb9714"
+    },
+    {
+      "bytes": 20273396,
+      "name": "part002",
+      "sha256": "315c7bf59d46fdfa4011f40279306a7fa91bc989144d854551cfdb01f4e51026"
+    }
+  ],
+  "schema_version": 1
+}

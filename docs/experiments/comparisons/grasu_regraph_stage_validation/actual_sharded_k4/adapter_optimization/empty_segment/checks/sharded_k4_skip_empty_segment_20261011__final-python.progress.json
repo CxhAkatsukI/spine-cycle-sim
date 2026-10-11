@@ -1,0 +1,11 @@
+{
+  "available_bytes": 53629575168,
+  "owned_pids": [
+    1750501
+  ],
+  "peak_tree_rss_kib": 2054800,
+  "pid": 1750501,
+  "stop_reason": "process_exit",
+  "tree_rss_kib": 1454832,
+  "wall_seconds": 59.311176982242614
+}

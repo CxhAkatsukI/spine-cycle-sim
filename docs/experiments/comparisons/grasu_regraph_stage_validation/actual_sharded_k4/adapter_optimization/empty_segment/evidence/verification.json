@@ -1,0 +1,1514 @@
+{
+  "cases": [
+    {
+      "baseline_over_candidate": 1.0,
+      "candidate_cycles": 349,
+      "length": 7,
+      "packets": 14,
+      "placement": 0,
+      "rtl_cycles": 349,
+      "vertices": 1
+    },
+    {
+      "baseline_over_candidate": 1.0,
+      "candidate_cycles": 280,
+      "length": 7,
+      "packets": 14,
+      "placement": 1,
+      "rtl_cycles": 280,
+      "vertices": 1
+    },
+    {
+      "baseline_over_candidate": 1.0,
+      "candidate_cycles": 297,
+      "length": 7,
+      "packets": 14,
+      "placement": 0,
+      "rtl_cycles": 297,
+      "vertices": 8
+    },
+    {
+      "baseline_over_candidate": 2.664516129032258,
+      "candidate_cycles": 310,
+      "length": 7,
+      "packets": 14,
+      "placement": 1,
+      "rtl_cycles": 826,
+      "vertices": 8
+    },
+    {
+      "baseline_over_candidate": 1.0,
+      "candidate_cycles": 297,
+      "length": 7,
+      "packets": 14,
+      "placement": 0,
+      "rtl_cycles": 297,
+      "vertices": 9
+    },
+    {
+      "baseline_over_candidate": 2.515463917525773,
+      "candidate_cycles": 388,
+      "length": 7,
+      "packets": 14,
+      "placement": 1,
+      "rtl_cycles": 976,
+      "vertices": 9
+    },
+    {
+      "baseline_over_candidate": 1.0,
+      "candidate_cycles": 297,
+      "length": 7,
+      "packets": 14,
+      "placement": 0,
+      "rtl_cycles": 297,
+      "vertices": 65
+    },
+    {
+      "baseline_over_candidate": 5.111304347826087,
+      "candidate_cycles": 1150,
+      "length": 7,
+      "packets": 14,
+      "placement": 1,
+      "rtl_cycles": 5878,
+      "vertices": 65
+    },
+    {
+      "baseline_over_candidate": 1.0,
+      "candidate_cycles": 297,
+      "length": 7,
+      "packets": 14,
+      "placement": 0,
+      "rtl_cycles": 297,
+      "vertices": 1025
+    },
+    {
+      "baseline_over_candidate": 6.316092761770906,
+      "candidate_cycles": 14230,
+      "length": 7,
+      "packets": 14,
+      "placement": 1,
+      "rtl_cycles": 89878,
+      "vertices": 1025
+    },
+    {
+      "baseline_over_candidate": 3.1572668112798263,
+      "candidate_cycles": 1844,
+      "length": 3,
+      "packets": 60,
+      "placement": 2,
+      "rtl_cycles": 5822,
+      "vertices": 65
+    },
+    {
+      "baseline_over_candidate": 1.0,
+      "candidate_cycles": 122,
+      "length": 0,
+      "packets": 0,
+      "placement": 0,
+      "rtl_cycles": 122,
+      "vertices": 9
+    },
+    {
+      "baseline_over_candidate": 1.0,
+      "candidate_cycles": 39,
+      "length": 0,
+      "packets": 0,
+      "placement": 0,
+      "rtl_cycles": 39,
+      "vertices": 0
+    }
+  ],
+  "not_admitted": [
+    "FPGA_speedup",
+    "HBM_timing",
+    "original_A4_matching",
+    "new_simulator_timing"
+  ],
+  "packaging": {
+    "archive": {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/evidence/packaging_sources.tar.gz",
+      "sha256": "4c7d26ff2c31e33ad535a794dc4c7696b6eb8f645fa7ed65b6cd82d576e0b041"
+    },
+    "files": [
+      {
+        "bytes": 67,
+        "path": "packaging/__init__.py",
+        "sha256": "a3c727addf953eee87fd10381ec2473a87f11c0c30682a1e6a21d3869b9ef9d9"
+      },
+      {
+        "bytes": 2925,
+        "path": "packaging/analysis.py",
+        "sha256": "51941ad22ffe4a40d465852112e3ccc20715a16a8a526acaba677b4f6aedb8f2"
+      },
+      {
+        "bytes": 3937,
+        "path": "packaging/delivery.py",
+        "sha256": "b9d4f8370f8ee7768b11ee732df5a3d8d9d64a65e649f40922cb9253d5bb9c19"
+      },
+      {
+        "bytes": 5121,
+        "path": "packaging/study.py",
+        "sha256": "723cdfa5cb7aae07eef6d772fa1ab049321637b7b093f0da75dac50919f323d2"
+      },
+      {
+        "bytes": 4919,
+        "path": "packaging/validation.py",
+        "sha256": "0ba3f02702b2e1285b1ec0c6348d4338602c5e2b79f814a39b278219ca26065d"
+      }
+    ]
+  },
+  "runs": {
+    "paired-v1": {
+      "archive": {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/evidence/paired-v1.tar.gz",
+        "sha256": "57384799ec0f589579560793340da5661a9affafd4eceb0906265175bf39bf36"
+      },
+      "execution_source_bytes_rechecked": true,
+      "files": [
+        {
+          "bytes": 4339,
+          "path": "manifest.json",
+          "sha256": "f1c9809b6de61fd66ad820b38186ff27b4aa0b153e88647efca57d0836081aa5"
+        },
+        {
+          "bytes": 13949,
+          "path": "results.json",
+          "sha256": "953f040e7653a81afa456f67ebe6b0d7458252ed2cb8f3ffd8bca6f61ca504a9"
+        },
+        {
+          "bytes": 12248,
+          "path": "sources/integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+          "sha256": "6f1a436654c2ac0e77e193f1aa2cfe6a758882dcaf0225fa751d62ad901997f6"
+        },
+        {
+          "bytes": 958,
+          "path": "sources/integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+          "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+        },
+        {
+          "bytes": 1599,
+          "path": "sources/integration/tests/pma_adapter_cosim.tcl",
+          "sha256": "2a354c2b0a4efb68a545a9e4f4ac83faf66eeee834aeb8172cd13e5a5fb27232"
+        },
+        {
+          "bytes": 3556,
+          "path": "sources/integration/tests/pma_adapter_cosim_tb.cpp",
+          "sha256": "6e929865b584bf29480a63c9241cef561caa1e04f91a0ad9141010819f1222e8"
+        },
+        {
+          "bytes": 42052,
+          "path": "sources/simulator/spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 67,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/__init__.py",
+          "sha256": "a3c727addf953eee87fd10381ec2473a87f11c0c30682a1e6a21d3869b9ef9d9"
+        },
+        {
+          "bytes": 2925,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/analysis.py",
+          "sha256": "51941ad22ffe4a40d465852112e3ccc20715a16a8a526acaba677b4f6aedb8f2"
+        },
+        {
+          "bytes": 5121,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/study.py",
+          "sha256": "723cdfa5cb7aae07eef6d772fa1ab049321637b7b093f0da75dac50919f323d2"
+        },
+        {
+          "bytes": 5296,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+          "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+        },
+        {
+          "bytes": 5656,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+          "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+        },
+        {
+          "bytes": 1619,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+          "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+        },
+        {
+          "bytes": 3360,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/rtl.py",
+          "sha256": "72eebef090cc6a2c6793d8ef3c0c7d9b0b2853766e776c4c9ffb6f34e3f55a48"
+        },
+        {
+          "bytes": 3456,
+          "path": "sources/simulator/spine_cycle_sim/experiments/upstream_controls/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 218,
+          "path": "watchdog/paired-v1_watchdog.progress.json",
+          "sha256": "8d4da8fafa13e1b3cd532a2203da9390c131aa2b08bf180003f690003bc8d435"
+        },
+        {
+          "bytes": 2998,
+          "path": "watchdog/paired-v1_watchdog.resources.json",
+          "sha256": "a6b1e5fe705a42b8e31ed8cbb231a2826f9acadebfebe3b487f3dde325fff26d"
+        },
+        {
+          "bytes": 0,
+          "path": "watchdog/paired-v1_watchdog.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 86,
+          "path": "watchdog/paired-v1_watchdog.stdout.txt",
+          "sha256": "ca5f35536bc955e03132b0fdf9250b8b94bd5df3b71ec5a645b1ef72d906468e"
+        },
+        {
+          "bytes": 986,
+          "path": "combined/cosim.resources.json",
+          "sha256": "ccf98df4788848755180c71cf836fab0f41a8de6053a2915805a38c9862cca06"
+        },
+        {
+          "bytes": 0,
+          "path": "combined/cosim.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 41293,
+          "path": "combined/cosim.stdout.txt",
+          "sha256": "b2e7a78f2408c9d0ae30fc9edbbbbcb2d8d2e1540ae23635ade0ce73b6034347"
+        },
+        {
+          "bytes": 1460,
+          "path": "combined/project/hls.app",
+          "sha256": "5488c55ed30386a335f275c2d57e704f1d741f2b8a2e089e00b23e8e691bfadb"
+        },
+        {
+          "bytes": 1969,
+          "path": "combined/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 1254,
+          "path": "combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+          "sha256": "1da5c116071b2060105bd27e6cfebe01435ca6ac7f3437eccf4377b9c56b3413"
+        },
+        {
+          "bytes": 173,
+          "path": "combined/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "dafae215b883d06e2c9e219c885f28b8f5ab538834a52b83ae9e285193802c52"
+        },
+        {
+          "bytes": 15450,
+          "path": "combined/project/solution/sim/report/verilog/pma_to_regraph_adapter.log",
+          "sha256": "a28d17d6d7308234ca9e873f80028052cbf6273b73e8c253e7e7048d42442d3e"
+        },
+        {
+          "bytes": 742,
+          "path": "combined/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "c84c7862a9d9d9ad58b4c83c8de7895c224bc6dc8e46fe62ddd3d382edf19970"
+        },
+        {
+          "bytes": 959408,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_gmem0.dat",
+          "sha256": "a40cc9c87d9d78ba3eaaa94b01b08b2b2d7287ecf22b4ffc498b0346d883ddee"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_max_cache_segment.dat",
+          "sha256": "155bb097e7c63d3bff44debd486d39c29b395ecb2a458b11827320669b43e52a"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_node_count.dat",
+          "sha256": "4c7e6e471fd61bc8b706e29939dc8b0962296347c1bf0d1a759d4b015afcd93a"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_part_dst_offset.dat",
+          "sha256": "a4452e0d046571b77e8bfa440fb6d574ec532216eb7a84034a7b6621ab6485b8"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_part_vertex_count.dat",
+          "sha256": "1e57719b625f958b66668f98b933f9df5ef2978d2e49fce076c027046f410e53"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma0.dat",
+          "sha256": "a1c0e6f7c67d4a7c277aa95e377ff23217d20bacf517219b8876e25a49a97906"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma1.dat",
+          "sha256": "f9403cadb1ea25b0cca0fcaa22e31cc6deb57999316dc4332b8b9087fda6f2d2"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma2.dat",
+          "sha256": "00762468dbd5c6469e893557c08e448c56e0d3621661069aec0310e25d43619b"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma3.dat",
+          "sha256": "ce2a029e110dd7a2b067ecfe754b58f729bcd39ec36f8369ba0f971b010e93c3"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma_slot_count.dat",
+          "sha256": "56d1dc58892ea0f769ad350287e39bf7efbd6ea381ba2137f3ce88d7bf1601d4"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_row_offset.dat",
+          "sha256": "a4452e0d046571b77e8bfa440fb6d574ec532216eb7a84034a7b6621ab6485b8"
+        },
+        {
+          "bytes": 26817,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_data_V.dat",
+          "sha256": "f3a04701cbdf3cb6a5d3b2eb8ec81852efb8988e4f42ce897b3288ef4352ecdb"
+        },
+        {
+          "bytes": 4417,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_keep_V.dat",
+          "sha256": "cf0aff1bbf768bb8f1b61f1355c693dcf6171828a2744c7030b86de3bd64bc8b"
+        },
+        {
+          "bytes": 1417,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_last_V.dat",
+          "sha256": "c3b9e2a093ffc56df5867d396a7a970c8c2b09c62891db4b009c06b518627dc2"
+        },
+        {
+          "bytes": 4417,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_strb_V.dat",
+          "sha256": "cf0aff1bbf768bb8f1b61f1355c693dcf6171828a2744c7030b86de3bd64bc8b"
+        },
+        {
+          "bytes": 344,
+          "path": "combined/project/solution/sim/tv/cdatafile/ref.tcl",
+          "sha256": "317fee69e8b2a48e983f5bea5266e06d2b2b584224869702e2790c1a0045e585"
+        },
+        {
+          "bytes": 26801,
+          "path": "combined/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_data_V.dat",
+          "sha256": "97aa36ceb607f37f6423a5a2238da0b87e7a1f673660bd865c708eafb7d52639"
+        },
+        {
+          "bytes": 4401,
+          "path": "combined/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_keep_V.dat",
+          "sha256": "541e3fc4d5dda6d6c108ce3da5990f075aab0656bc7811e4f19d253355548b54"
+        },
+        {
+          "bytes": 1401,
+          "path": "combined/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_last_V.dat",
+          "sha256": "9a70d85ce33e2636173027a4038bdb46f6385876331d65a7f0e05e05d6f0ad83"
+        },
+        {
+          "bytes": 4401,
+          "path": "combined/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_strb_V.dat",
+          "sha256": "541e3fc4d5dda6d6c108ce3da5990f075aab0656bc7811e4f19d253355548b54"
+        },
+        {
+          "bytes": 29,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_data_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_keep_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_last_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_strb_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 654,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_data_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_keep_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_last_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_strb_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 742,
+          "path": "combined/project/solution/sim/verilog/pma_to_regraph_adapter.performance.result.transaction.xml",
+          "sha256": "c84c7862a9d9d9ad58b4c83c8de7895c224bc6dc8e46fe62ddd3d382edf19970"
+        },
+        {
+          "bytes": 59080,
+          "path": "combined/project/solution/syn/report/csynth.rpt",
+          "sha256": "bdd421694b22f63d0ca459579fd96ed1a2e8206a87359528effb094b9ed37165"
+        },
+        {
+          "bytes": 188430,
+          "path": "combined/project/solution/syn/report/csynth.xml",
+          "sha256": "56b45cb42efabe919c035478b27b72683af99edbfb431c2653166ce9b0821bbc"
+        },
+        {
+          "bytes": 6562,
+          "path": "combined/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "5cbc72a1bfe4f2431c07808728a454fc89ad5e8988e9e33c0064d33fab676ddd"
+        },
+        {
+          "bytes": 4164,
+          "path": "combined/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "ee8ece57435263cac189d68d2e3775064087d29e92be0cc99413559e9702a25b"
+        },
+        {
+          "bytes": 26469,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.rpt",
+          "sha256": "9a2f0a89f085a68ff06a5dc3bde9a66f97044d31d7dbb23a13cbd02aa6274e90"
+        },
+        {
+          "bytes": 19341,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+          "sha256": "b20c73ab527a04deb9a3c29d7adc736e2a23c7b59697d61c7b8d9ba3e5a0ea9d"
+        },
+        {
+          "bytes": 52539,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.rpt",
+          "sha256": "c40af4fa475601d49aaa6426e3fd7e271db8c294c0b5239c928bac1fd7f5a366"
+        },
+        {
+          "bytes": 19217,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+          "sha256": "2a05702d8cefc9abce915a09a46130f7ef3e5597b711c26cf79dbe03c31274c6"
+        },
+        {
+          "bytes": 25540,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_csynth.rpt",
+          "sha256": "92e44cddedd72c55aeaf843920fc4bf458cfb64b0aecbbae20ad1d201c93022a"
+        },
+        {
+          "bytes": 19831,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+          "sha256": "e1941498079e4bd97013f4b51fc60a59a9ae0b05ef8c550847efb2a58d8567ac"
+        },
+        {
+          "bytes": 73906,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+          "sha256": "65ed90262f22fb4ed1df9fde71680c79feca6d9485949e6825cc62b706f4706a"
+        },
+        {
+          "bytes": 21964,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+          "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+        },
+        {
+          "bytes": 2788,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+          "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+        },
+        {
+          "bytes": 100997,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+          "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+        },
+        {
+          "bytes": 70647,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+          "sha256": "ca9c97118a596a5af5e2f115d28540c2713ce6736db246ada9676d1ca72da47d"
+        },
+        {
+          "bytes": 345621,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+          "sha256": "c9d9271393a4931d756812a1a6c9819973678b2119b4cce2fe4397b80b4148e7"
+        },
+        {
+          "bytes": 3234,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+          "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+        },
+        {
+          "bytes": 1907,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+          "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+        },
+        {
+          "bytes": 993,
+          "path": "skip_empty/cosim.resources.json",
+          "sha256": "b38d48b8e66445ffbcb9fa753011f7305071a1ff4015a3a549d6f6fc59adb313"
+        },
+        {
+          "bytes": 0,
+          "path": "skip_empty/cosim.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 41354,
+          "path": "skip_empty/cosim.stdout.txt",
+          "sha256": "64da3b69e61b48cc3bc74bfb248818ca4276a5673a9eda51a38980bb527f6feb"
+        },
+        {
+          "bytes": 1460,
+          "path": "skip_empty/project/hls.app",
+          "sha256": "8ca3dbc53fe641e9aa544bff7cb2e7ac19c555897149bbedc35a598fb19b1f06"
+        },
+        {
+          "bytes": 1969,
+          "path": "skip_empty/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 1254,
+          "path": "skip_empty/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+          "sha256": "9ccfbef2e79999bd59a24e1e9f4e514e71eab6077ce51ba7f27935799394dd76"
+        },
+        {
+          "bytes": 173,
+          "path": "skip_empty/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "dafae215b883d06e2c9e219c885f28b8f5ab538834a52b83ae9e285193802c52"
+        },
+        {
+          "bytes": 15487,
+          "path": "skip_empty/project/solution/sim/report/verilog/pma_to_regraph_adapter.log",
+          "sha256": "262cb2b61efb6c4174e14aa4ff155f428c43f4b0469f7aa3f4dbdf607e075471"
+        },
+        {
+          "bytes": 742,
+          "path": "skip_empty/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "c84c7862a9d9d9ad58b4c83c8de7895c224bc6dc8e46fe62ddd3d382edf19970"
+        },
+        {
+          "bytes": 959408,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_gmem0.dat",
+          "sha256": "4a6ba0dcf7c2f8c85856393b43b57a55430287e6f5a81265c43a4f2c0bfed9e7"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_max_cache_segment.dat",
+          "sha256": "155bb097e7c63d3bff44debd486d39c29b395ecb2a458b11827320669b43e52a"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_node_count.dat",
+          "sha256": "4c7e6e471fd61bc8b706e29939dc8b0962296347c1bf0d1a759d4b015afcd93a"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_part_dst_offset.dat",
+          "sha256": "a4452e0d046571b77e8bfa440fb6d574ec532216eb7a84034a7b6621ab6485b8"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_part_vertex_count.dat",
+          "sha256": "1e57719b625f958b66668f98b933f9df5ef2978d2e49fce076c027046f410e53"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma0.dat",
+          "sha256": "a1c0e6f7c67d4a7c277aa95e377ff23217d20bacf517219b8876e25a49a97906"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma1.dat",
+          "sha256": "f9403cadb1ea25b0cca0fcaa22e31cc6deb57999316dc4332b8b9087fda6f2d2"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma2.dat",
+          "sha256": "00762468dbd5c6469e893557c08e448c56e0d3621661069aec0310e25d43619b"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma3.dat",
+          "sha256": "ce2a029e110dd7a2b067ecfe754b58f729bcd39ec36f8369ba0f971b010e93c3"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma_slot_count.dat",
+          "sha256": "56d1dc58892ea0f769ad350287e39bf7efbd6ea381ba2137f3ce88d7bf1601d4"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_row_offset.dat",
+          "sha256": "a4452e0d046571b77e8bfa440fb6d574ec532216eb7a84034a7b6621ab6485b8"
+        },
+        {
+          "bytes": 26817,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_data_V.dat",
+          "sha256": "f3a04701cbdf3cb6a5d3b2eb8ec81852efb8988e4f42ce897b3288ef4352ecdb"
+        },
+        {
+          "bytes": 4417,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_keep_V.dat",
+          "sha256": "cf0aff1bbf768bb8f1b61f1355c693dcf6171828a2744c7030b86de3bd64bc8b"
+        },
+        {
+          "bytes": 1417,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_last_V.dat",
+          "sha256": "c3b9e2a093ffc56df5867d396a7a970c8c2b09c62891db4b009c06b518627dc2"
+        },
+        {
+          "bytes": 4417,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_strb_V.dat",
+          "sha256": "cf0aff1bbf768bb8f1b61f1355c693dcf6171828a2744c7030b86de3bd64bc8b"
+        },
+        {
+          "bytes": 344,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/ref.tcl",
+          "sha256": "317fee69e8b2a48e983f5bea5266e06d2b2b584224869702e2790c1a0045e585"
+        },
+        {
+          "bytes": 26801,
+          "path": "skip_empty/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_data_V.dat",
+          "sha256": "97aa36ceb607f37f6423a5a2238da0b87e7a1f673660bd865c708eafb7d52639"
+        },
+        {
+          "bytes": 4401,
+          "path": "skip_empty/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_keep_V.dat",
+          "sha256": "541e3fc4d5dda6d6c108ce3da5990f075aab0656bc7811e4f19d253355548b54"
+        },
+        {
+          "bytes": 1401,
+          "path": "skip_empty/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_last_V.dat",
+          "sha256": "9a70d85ce33e2636173027a4038bdb46f6385876331d65a7f0e05e05d6f0ad83"
+        },
+        {
+          "bytes": 4401,
+          "path": "skip_empty/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_strb_V.dat",
+          "sha256": "541e3fc4d5dda6d6c108ce3da5990f075aab0656bc7811e4f19d253355548b54"
+        },
+        {
+          "bytes": 29,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_data_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_keep_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_last_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_strb_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 654,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_data_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_keep_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_last_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_strb_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 742,
+          "path": "skip_empty/project/solution/sim/verilog/pma_to_regraph_adapter.performance.result.transaction.xml",
+          "sha256": "c84c7862a9d9d9ad58b4c83c8de7895c224bc6dc8e46fe62ddd3d382edf19970"
+        },
+        {
+          "bytes": 59204,
+          "path": "skip_empty/project/solution/syn/report/csynth.rpt",
+          "sha256": "68c41b02aff20d6d4bd2875636ea196da565ba3ee5f79d13b9767398f3ebba7b"
+        },
+        {
+          "bytes": 188841,
+          "path": "skip_empty/project/solution/syn/report/csynth.xml",
+          "sha256": "da355f3847a0f02f753c5121a26e0e94932fd00c64fc26f6e5e7cd6962054c23"
+        },
+        {
+          "bytes": 6562,
+          "path": "skip_empty/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "ccd44e07b25592c1c231d2d9447b821878f6ba2f01f7c8a9705ac89f55dff55a"
+        },
+        {
+          "bytes": 4164,
+          "path": "skip_empty/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "87b32879d98c0f6ecc0ddbdf75ed9901986645e0a9ee280640562268ba33f033"
+        },
+        {
+          "bytes": 26469,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.rpt",
+          "sha256": "77189de518b409a82983959a649f4f15f6801e7d37a3b27f2522c73b3304e464"
+        },
+        {
+          "bytes": 19341,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+          "sha256": "b20c73ab527a04deb9a3c29d7adc736e2a23c7b59697d61c7b8d9ba3e5a0ea9d"
+        },
+        {
+          "bytes": 52539,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.rpt",
+          "sha256": "3edb1b60867f3ab909d06e439e3ceff18ac6d5f1df51e647329773b03006ae32"
+        },
+        {
+          "bytes": 19217,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+          "sha256": "2a05702d8cefc9abce915a09a46130f7ef3e5597b711c26cf79dbe03c31274c6"
+        },
+        {
+          "bytes": 25679,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_csynth.rpt",
+          "sha256": "f6843811baa0ad5377250a9221b7a488b2b0683337897792b995715999f4407b"
+        },
+        {
+          "bytes": 19831,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+          "sha256": "19105afbb40dea75ea6a03b90f466d4f61d68f52ebebc4fac18a4748ed96ebec"
+        },
+        {
+          "bytes": 74000,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+          "sha256": "c600d3a1c5a2a2fca8eca241b0f55a07b5467efb9656f49773be55f425a1fe1e"
+        },
+        {
+          "bytes": 21964,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+          "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+        },
+        {
+          "bytes": 2788,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+          "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+        },
+        {
+          "bytes": 100997,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+          "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+        },
+        {
+          "bytes": 70647,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+          "sha256": "ca9c97118a596a5af5e2f115d28540c2713ce6736db246ada9676d1ca72da47d"
+        },
+        {
+          "bytes": 345621,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+          "sha256": "c9d9271393a4931d756812a1a6c9819973678b2119b4cce2fe4397b80b4148e7"
+        },
+        {
+          "bytes": 3234,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+          "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+        },
+        {
+          "bytes": 1907,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+          "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+        }
+      ],
+      "results": {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/evidence/paired-v1.json",
+        "sha256": "953f040e7653a81afa456f67ebe6b0d7458252ed2cb8f3ffd8bca6f61ca504a9"
+      }
+    },
+    "paired-v2": {
+      "archive": {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/evidence/paired-v2.tar.gz",
+        "sha256": "4b1a7f774687b0587eaf0ec450b785078824367e606737f80701fea0331c3a6f"
+      },
+      "execution_source_bytes_rechecked": true,
+      "files": [
+        {
+          "bytes": 4339,
+          "path": "manifest.json",
+          "sha256": "4dbff3244fe18418957d84ac862d908e35376f7f2c54db23b1508308f604bc4c"
+        },
+        {
+          "bytes": 13948,
+          "path": "results.json",
+          "sha256": "87e580e20294954f6c2b7367c75c36be42f4739e0e62989ea05d4aa4e026e91e"
+        },
+        {
+          "bytes": 13302,
+          "path": "sources/integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+          "sha256": "18888511674387dcab9129f3aa26fde7b849628cba0a078151b9fd41cf7b94fd"
+        },
+        {
+          "bytes": 958,
+          "path": "sources/integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+          "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+        },
+        {
+          "bytes": 1599,
+          "path": "sources/integration/tests/pma_adapter_cosim.tcl",
+          "sha256": "2a354c2b0a4efb68a545a9e4f4ac83faf66eeee834aeb8172cd13e5a5fb27232"
+        },
+        {
+          "bytes": 3556,
+          "path": "sources/integration/tests/pma_adapter_cosim_tb.cpp",
+          "sha256": "6e929865b584bf29480a63c9241cef561caa1e04f91a0ad9141010819f1222e8"
+        },
+        {
+          "bytes": 42052,
+          "path": "sources/simulator/spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 67,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/__init__.py",
+          "sha256": "a3c727addf953eee87fd10381ec2473a87f11c0c30682a1e6a21d3869b9ef9d9"
+        },
+        {
+          "bytes": 2925,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/analysis.py",
+          "sha256": "51941ad22ffe4a40d465852112e3ccc20715a16a8a526acaba677b4f6aedb8f2"
+        },
+        {
+          "bytes": 5121,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/study.py",
+          "sha256": "723cdfa5cb7aae07eef6d772fa1ab049321637b7b093f0da75dac50919f323d2"
+        },
+        {
+          "bytes": 5296,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+          "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+        },
+        {
+          "bytes": 5656,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+          "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+        },
+        {
+          "bytes": 1619,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+          "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+        },
+        {
+          "bytes": 3360,
+          "path": "sources/simulator/spine_cycle_sim/experiments/sharded_k4_stages/rtl.py",
+          "sha256": "72eebef090cc6a2c6793d8ef3c0c7d9b0b2853766e776c4c9ffb6f34e3f55a48"
+        },
+        {
+          "bytes": 3456,
+          "path": "sources/simulator/spine_cycle_sim/experiments/upstream_controls/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 284,
+          "path": "watchdog/paired-v2_watchdog.progress.json",
+          "sha256": "4c4e445619814ac4ab6808d17979739a21f3405e98645ee461323c9db110701c"
+        },
+        {
+          "bytes": 2946,
+          "path": "watchdog/paired-v2_watchdog.resources.json",
+          "sha256": "b5f0bd9c249a5723811337f44b2e40ec269f1b501444ed5abf73802f259ddc50"
+        },
+        {
+          "bytes": 0,
+          "path": "watchdog/paired-v2_watchdog.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 86,
+          "path": "watchdog/paired-v2_watchdog.stdout.txt",
+          "sha256": "ca5f35536bc955e03132b0fdf9250b8b94bd5df3b71ec5a645b1ef72d906468e"
+        },
+        {
+          "bytes": 985,
+          "path": "combined/cosim.resources.json",
+          "sha256": "8dc62a5e76cb9b53b3e7d8e5a6824cb1faac7e6681de089913517039f4f02134"
+        },
+        {
+          "bytes": 0,
+          "path": "combined/cosim.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 43306,
+          "path": "combined/cosim.stdout.txt",
+          "sha256": "43db5af7398a2a678fc56f3e075acbc063febacc15eaa0e9741a0f81fd71bfe9"
+        },
+        {
+          "bytes": 1460,
+          "path": "combined/project/hls.app",
+          "sha256": "5488c55ed30386a335f275c2d57e704f1d741f2b8a2e089e00b23e8e691bfadb"
+        },
+        {
+          "bytes": 1969,
+          "path": "combined/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 1254,
+          "path": "combined/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+          "sha256": "c86309fb74439e513f0e4e60ea287b11a544b220e7572ffab2e7d7a78b58b6cf"
+        },
+        {
+          "bytes": 173,
+          "path": "combined/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "dafae215b883d06e2c9e219c885f28b8f5ab538834a52b83ae9e285193802c52"
+        },
+        {
+          "bytes": 15451,
+          "path": "combined/project/solution/sim/report/verilog/pma_to_regraph_adapter.log",
+          "sha256": "2682ed29e5d25ec59242520402d15b691d2fcc6988c5dff1878fe3a9f06844c4"
+        },
+        {
+          "bytes": 742,
+          "path": "combined/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "c84c7862a9d9d9ad58b4c83c8de7895c224bc6dc8e46fe62ddd3d382edf19970"
+        },
+        {
+          "bytes": 959408,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_gmem0.dat",
+          "sha256": "ec122755f8dea8384a44b64c6fd9fd0101666027c0ce780791469786f479e4f5"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_max_cache_segment.dat",
+          "sha256": "155bb097e7c63d3bff44debd486d39c29b395ecb2a458b11827320669b43e52a"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_node_count.dat",
+          "sha256": "4c7e6e471fd61bc8b706e29939dc8b0962296347c1bf0d1a759d4b015afcd93a"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_part_dst_offset.dat",
+          "sha256": "a4452e0d046571b77e8bfa440fb6d574ec532216eb7a84034a7b6621ab6485b8"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_part_vertex_count.dat",
+          "sha256": "1e57719b625f958b66668f98b933f9df5ef2978d2e49fce076c027046f410e53"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma0.dat",
+          "sha256": "a1c0e6f7c67d4a7c277aa95e377ff23217d20bacf517219b8876e25a49a97906"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma1.dat",
+          "sha256": "f9403cadb1ea25b0cca0fcaa22e31cc6deb57999316dc4332b8b9087fda6f2d2"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma2.dat",
+          "sha256": "00762468dbd5c6469e893557c08e448c56e0d3621661069aec0310e25d43619b"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma3.dat",
+          "sha256": "ce2a029e110dd7a2b067ecfe754b58f729bcd39ec36f8369ba0f971b010e93c3"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma_slot_count.dat",
+          "sha256": "56d1dc58892ea0f769ad350287e39bf7efbd6ea381ba2137f3ce88d7bf1601d4"
+        },
+        {
+          "bytes": 760,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_row_offset.dat",
+          "sha256": "a4452e0d046571b77e8bfa440fb6d574ec532216eb7a84034a7b6621ab6485b8"
+        },
+        {
+          "bytes": 26817,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_data_V.dat",
+          "sha256": "f3a04701cbdf3cb6a5d3b2eb8ec81852efb8988e4f42ce897b3288ef4352ecdb"
+        },
+        {
+          "bytes": 4417,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_keep_V.dat",
+          "sha256": "cf0aff1bbf768bb8f1b61f1355c693dcf6171828a2744c7030b86de3bd64bc8b"
+        },
+        {
+          "bytes": 1417,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_last_V.dat",
+          "sha256": "c3b9e2a093ffc56df5867d396a7a970c8c2b09c62891db4b009c06b518627dc2"
+        },
+        {
+          "bytes": 4417,
+          "path": "combined/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_strb_V.dat",
+          "sha256": "cf0aff1bbf768bb8f1b61f1355c693dcf6171828a2744c7030b86de3bd64bc8b"
+        },
+        {
+          "bytes": 344,
+          "path": "combined/project/solution/sim/tv/cdatafile/ref.tcl",
+          "sha256": "317fee69e8b2a48e983f5bea5266e06d2b2b584224869702e2790c1a0045e585"
+        },
+        {
+          "bytes": 26801,
+          "path": "combined/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_data_V.dat",
+          "sha256": "97aa36ceb607f37f6423a5a2238da0b87e7a1f673660bd865c708eafb7d52639"
+        },
+        {
+          "bytes": 4401,
+          "path": "combined/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_keep_V.dat",
+          "sha256": "541e3fc4d5dda6d6c108ce3da5990f075aab0656bc7811e4f19d253355548b54"
+        },
+        {
+          "bytes": 1401,
+          "path": "combined/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_last_V.dat",
+          "sha256": "9a70d85ce33e2636173027a4038bdb46f6385876331d65a7f0e05e05d6f0ad83"
+        },
+        {
+          "bytes": 4401,
+          "path": "combined/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_strb_V.dat",
+          "sha256": "541e3fc4d5dda6d6c108ce3da5990f075aab0656bc7811e4f19d253355548b54"
+        },
+        {
+          "bytes": 29,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_data_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_keep_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_last_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_strb_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 654,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_data_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_keep_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_last_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "combined/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_strb_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 742,
+          "path": "combined/project/solution/sim/verilog/pma_to_regraph_adapter.performance.result.transaction.xml",
+          "sha256": "c84c7862a9d9d9ad58b4c83c8de7895c224bc6dc8e46fe62ddd3d382edf19970"
+        },
+        {
+          "bytes": 59327,
+          "path": "combined/project/solution/syn/report/csynth.rpt",
+          "sha256": "172449a6677cd5cf9b81724f25a272bda19082b9051ed273ced281ba78211abc"
+        },
+        {
+          "bytes": 189076,
+          "path": "combined/project/solution/syn/report/csynth.xml",
+          "sha256": "4f16338a6cc3ace96c502ed4e113a8f3cbc0248a4adcdcbeffde459094f6c164"
+        },
+        {
+          "bytes": 6702,
+          "path": "combined/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "4df88085d9be7ba049f724b5a5f347227379d1ccdccdca4aedf52b68048d5298"
+        },
+        {
+          "bytes": 4343,
+          "path": "combined/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "947e543cfa3c0af940b310061258179cfc221c5507ae16d15cd3d7ca3b2bfd09"
+        },
+        {
+          "bytes": 26469,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.rpt",
+          "sha256": "e3c0134facf8242d2fc381e1eebb3201cbb61fb30c26cac861cc8b8414f8a52b"
+        },
+        {
+          "bytes": 19341,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+          "sha256": "d6df08dc2246701fbea13d04c46a619e7b1282e2543fd791586cbd673151fec3"
+        },
+        {
+          "bytes": 52539,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.rpt",
+          "sha256": "25974aabc5c6566b68d6a356f21041d21303874c0b2eba9b7f9e05adb4c7f4a4"
+        },
+        {
+          "bytes": 19574,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_segment_loop_csynth.xml",
+          "sha256": "ac5226866f50189f2393a8d8bcf39d4b2d78fe57a4f46c1e2749beadef6a894e"
+        },
+        {
+          "bytes": 25540,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_csynth.rpt",
+          "sha256": "95e915bf6b166c5da20cb29b5a4bcfbdbf9501628f1835da55b23cdd7c05bd02"
+        },
+        {
+          "bytes": 19831,
+          "path": "combined/project/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+          "sha256": "44a4d00fa344bb8b91d9b2dd886b6e28e79160be0fa89dd0ae13bb76cc8f90c9"
+        },
+        {
+          "bytes": 73906,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+          "sha256": "3292fe3e019701a5f4835429d69651372805a96465959a403b31b7f0b44ae841"
+        },
+        {
+          "bytes": 21964,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+          "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+        },
+        {
+          "bytes": 2788,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+          "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+        },
+        {
+          "bytes": 100997,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+          "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+        },
+        {
+          "bytes": 70647,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+          "sha256": "319009f2c3c7991b27277b331aa1eb0fde2b5b618fc06aa21f15de43819e6b09"
+        },
+        {
+          "bytes": 345557,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_segment_loop.v",
+          "sha256": "0e7c0c146b8b8f32a4f4b1f79a7f228eeaf69999a5fbad4ba616243d70c172e0"
+        },
+        {
+          "bytes": 3234,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+          "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+        },
+        {
+          "bytes": 1907,
+          "path": "combined/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+          "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+        },
+        {
+          "bytes": 993,
+          "path": "skip_empty/cosim.resources.json",
+          "sha256": "96b8d6b9ff1d7afeecda1f93cccad4c98168932c7ea9ecfbbcb490f268c33e9a"
+        },
+        {
+          "bytes": 0,
+          "path": "skip_empty/cosim.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 44348,
+          "path": "skip_empty/cosim.stdout.txt",
+          "sha256": "e1d112b6f1aff7bd48271978cc077aee9a7da385cea05f792ad81244c6f9ff76"
+        },
+        {
+          "bytes": 1460,
+          "path": "skip_empty/project/hls.app",
+          "sha256": "8ca3dbc53fe641e9aa544bff7cb2e7ac19c555897149bbedc35a598fb19b1f06"
+        },
+        {
+          "bytes": 1969,
+          "path": "skip_empty/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 1254,
+          "path": "skip_empty/project/solution/sim/report/pma_to_regraph_adapter_cosim.rpt",
+          "sha256": "ff69c2a4e5b4fecc26503c0430d08c3c4f90447a4097394ae0b35694fbbc9aa9"
+        },
+        {
+          "bytes": 172,
+          "path": "skip_empty/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "bb46076e15b3d42c0df524a8f36cae8fc7b187a25edb6e60c9890292e3cdb159"
+        },
+        {
+          "bytes": 15713,
+          "path": "skip_empty/project/solution/sim/report/verilog/pma_to_regraph_adapter.log",
+          "sha256": "1b8f29ed7fcdb1cee380d98af3f58b73511654eb96b3a3a721a86a873a58c687"
+        },
+        {
+          "bytes": 742,
+          "path": "skip_empty/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "4e3b914032af253a27988e0b6efffd4af12a124cc4d7f08c6786e8fce8c0b059"
+        },
+        {
+          "bytes": 959408,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_gmem0.dat",
+          "sha256": "9a550dfdcc20ef53e29751c2ee11694f2d1e0e438973a171936d0d94c8f2c18a"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_max_cache_segment.dat",
+          "sha256": "155bb097e7c63d3bff44debd486d39c29b395ecb2a458b11827320669b43e52a"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_node_count.dat",
+          "sha256": "4c7e6e471fd61bc8b706e29939dc8b0962296347c1bf0d1a759d4b015afcd93a"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_part_dst_offset.dat",
+          "sha256": "a4452e0d046571b77e8bfa440fb6d574ec532216eb7a84034a7b6621ab6485b8"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_part_vertex_count.dat",
+          "sha256": "1e57719b625f958b66668f98b933f9df5ef2978d2e49fce076c027046f410e53"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma0.dat",
+          "sha256": "a1c0e6f7c67d4a7c277aa95e377ff23217d20bacf517219b8876e25a49a97906"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma1.dat",
+          "sha256": "f9403cadb1ea25b0cca0fcaa22e31cc6deb57999316dc4332b8b9087fda6f2d2"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma2.dat",
+          "sha256": "00762468dbd5c6469e893557c08e448c56e0d3621661069aec0310e25d43619b"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma3.dat",
+          "sha256": "ce2a029e110dd7a2b067ecfe754b58f729bcd39ec36f8369ba0f971b010e93c3"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_pma_slot_count.dat",
+          "sha256": "56d1dc58892ea0f769ad350287e39bf7efbd6ea381ba2137f3ce88d7bf1601d4"
+        },
+        {
+          "bytes": 760,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvin_row_offset.dat",
+          "sha256": "a4452e0d046571b77e8bfa440fb6d574ec532216eb7a84034a7b6621ab6485b8"
+        },
+        {
+          "bytes": 26817,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_data_V.dat",
+          "sha256": "f3a04701cbdf3cb6a5d3b2eb8ec81852efb8988e4f42ce897b3288ef4352ecdb"
+        },
+        {
+          "bytes": 4417,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_keep_V.dat",
+          "sha256": "cf0aff1bbf768bb8f1b61f1355c693dcf6171828a2744c7030b86de3bd64bc8b"
+        },
+        {
+          "bytes": 1417,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_last_V.dat",
+          "sha256": "c3b9e2a093ffc56df5867d396a7a970c8c2b09c62891db4b009c06b518627dc2"
+        },
+        {
+          "bytes": 4417,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/c.pma_to_regraph_adapter.autotvout_edge_burst_out_V_strb_V.dat",
+          "sha256": "cf0aff1bbf768bb8f1b61f1355c693dcf6171828a2744c7030b86de3bd64bc8b"
+        },
+        {
+          "bytes": 344,
+          "path": "skip_empty/project/solution/sim/tv/cdatafile/ref.tcl",
+          "sha256": "317fee69e8b2a48e983f5bea5266e06d2b2b584224869702e2790c1a0045e585"
+        },
+        {
+          "bytes": 26801,
+          "path": "skip_empty/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_data_V.dat",
+          "sha256": "97aa36ceb607f37f6423a5a2238da0b87e7a1f673660bd865c708eafb7d52639"
+        },
+        {
+          "bytes": 4401,
+          "path": "skip_empty/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_keep_V.dat",
+          "sha256": "541e3fc4d5dda6d6c108ce3da5990f075aab0656bc7811e4f19d253355548b54"
+        },
+        {
+          "bytes": 1401,
+          "path": "skip_empty/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_last_V.dat",
+          "sha256": "9a70d85ce33e2636173027a4038bdb46f6385876331d65a7f0e05e05d6f0ad83"
+        },
+        {
+          "bytes": 4401,
+          "path": "skip_empty/project/solution/sim/tv/rtldatafile/rtl.pma_to_regraph_adapter.autotvout_edge_burst_out_V_strb_V.dat",
+          "sha256": "541e3fc4d5dda6d6c108ce3da5990f075aab0656bc7811e4f19d253355548b54"
+        },
+        {
+          "bytes": 29,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_data_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_keep_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_last_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 29,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_egress_status_edge_burst_out_V_strb_V.dat",
+          "sha256": "696da4d57dc1568fe15339901e127961a5c09be01968a47afe1458af441760be"
+        },
+        {
+          "bytes": 654,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_data_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_keep_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_last_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 654,
+          "path": "skip_empty/project/solution/sim/tv/stream_size/stream_size_out_edge_burst_out_V_strb_V.dat",
+          "sha256": "e3045b0067bf6ff79602b82fa997e92af5ff635976a538ca3b7aca121e378965"
+        },
+        {
+          "bytes": 742,
+          "path": "skip_empty/project/solution/sim/verilog/pma_to_regraph_adapter.performance.result.transaction.xml",
+          "sha256": "4e3b914032af253a27988e0b6efffd4af12a124cc4d7f08c6786e8fce8c0b059"
+        },
+        {
+          "bytes": 60371,
+          "path": "skip_empty/project/solution/syn/report/csynth.rpt",
+          "sha256": "112472fc78016ce85ae06bf2497454460cfdad51110dea03033ab2585575e76a"
+        },
+        {
+          "bytes": 193641,
+          "path": "skip_empty/project/solution/syn/report/csynth.xml",
+          "sha256": "5aab9f6ef28a5e62aa3344fd385e44a76b4a616b5955235eb55f9e43c114180b"
+        },
+        {
+          "bytes": 6702,
+          "path": "skip_empty/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "80f02559c3ec9b4f9f214568bb47bfacc3c48c4f228a00777f2e42d57c164c4a"
+        },
+        {
+          "bytes": 4355,
+          "path": "skip_empty/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "7f5433fab0442cf335537f5ba893bc83b03e39a3e5b23baef5ed6064c910afea"
+        },
+        {
+          "bytes": 53336,
+          "path": "skip_empty/project/solution/syn/report/emit_row_segments_Pipeline_segment_loop_csynth.rpt",
+          "sha256": "e6bdbdd5b3038776d1ac752e4ab70840e5c394af4a98deac43bedfea50abf5d6"
+        },
+        {
+          "bytes": 19173,
+          "path": "skip_empty/project/solution/syn/report/emit_row_segments_Pipeline_segment_loop_csynth.xml",
+          "sha256": "78512b96baeb6fed52074ddfb40760f9ebd0e16da2d40d7cbfd36d78b4a29eb0"
+        },
+        {
+          "bytes": 16761,
+          "path": "skip_empty/project/solution/syn/report/emit_row_segments_csynth.rpt",
+          "sha256": "2e951e1832134b11d5b51c1898306494462ca58c5bf6b97a5c8d9fbef5429893"
+        },
+        {
+          "bytes": 18168,
+          "path": "skip_empty/project/solution/syn/report/emit_row_segments_csynth.xml",
+          "sha256": "c9018af552e4f43811346cbaad84efb5df2e918eaa90d3969947dc56fc31299d"
+        },
+        {
+          "bytes": 26469,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.rpt",
+          "sha256": "7e99deb65c38855ad48d50b31c86328f68b6901e4f71429da057362652f1a1cc"
+        },
+        {
+          "bytes": 19341,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+          "sha256": "d6df08dc2246701fbea13d04c46a619e7b1282e2543fd791586cbd673151fec3"
+        },
+        {
+          "bytes": 23868,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_csynth.rpt",
+          "sha256": "90ce66546d9ad59745c08556937989f409b9200d9cd7749e2e62cb6555015d63"
+        },
+        {
+          "bytes": 19784,
+          "path": "skip_empty/project/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+          "sha256": "3e4bedb080ea1946e7d474accd6377b84c386dba41898535ab08f22ec4565acb"
+        },
+        {
+          "bytes": 70089,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter.v",
+          "sha256": "6b91d24dc07ae883650f08dd86c141b31167c0dba1b60696644f37cc5a1b9df6"
+        },
+        {
+          "bytes": 21964,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+          "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+        },
+        {
+          "bytes": 22893,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_emit_row_segments.v",
+          "sha256": "2ecde1248b5ac92d6440f3bf0f14fffbece4b6702ae83ec7f159ae8bce478297"
+        },
+        {
+          "bytes": 345984,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_emit_row_segments_Pipeline_segment_loop.v",
+          "sha256": "d18d2c92cd025802d8db82886de2c10da31b7e7eebadf873754e698a17bf4dcd"
+        },
+        {
+          "bytes": 2788,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+          "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+        },
+        {
+          "bytes": 100997,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+          "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+        },
+        {
+          "bytes": 70641,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+          "sha256": "89730360b04376bb9d942b5bdd66e51cc44bc5dafc040ae908ad0a07a852f985"
+        },
+        {
+          "bytes": 3234,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+          "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+        },
+        {
+          "bytes": 1907,
+          "path": "skip_empty/project/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+          "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+        }
+      ],
+      "results": {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/evidence/paired-v2.json",
+        "sha256": "87e580e20294954f6c2b7367c75c36be42f4739e0e62989ea05d4aa4e026e91e"
+      }
+    }
+  },
+  "status": "paired_RTL_control_rechecked_not_routed_not_board"
+}

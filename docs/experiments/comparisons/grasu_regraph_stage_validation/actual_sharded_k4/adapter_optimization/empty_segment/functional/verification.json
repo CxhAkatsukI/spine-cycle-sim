@@ -1,0 +1,341 @@
+{
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/functional/raw_functional.tar.gz",
+    "sha256": "f5358719d27397b12c1789b7b38e7adb62b3d6b1bb05c5541383ec7b757c3044"
+  },
+  "compiled_executables": "hash_indexed_not_bundled",
+  "execution": {
+    "available_before_bytes": 55141089280,
+    "command": [
+      "bash",
+      "scripts/check_pma_to_regraph_adapter.sh",
+      "--out-dir",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/functional-v4/checks"
+    ],
+    "cwd": "/home/chuxiao/grasu-regraph-integration",
+    "exit_code": 0,
+    "memory_limit_gib": 8,
+    "peak_rss_kib": 288508,
+    "reserve_gib": 16,
+    "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+    "stderr": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/functional-v4/execution.stderr.txt",
+    "stdout": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/functional-v4/execution.stdout.txt",
+    "timed_out": false,
+    "wall_seconds": 19.851597073022276
+  },
+  "files": [
+    {
+      "bytes": 734,
+      "path": "execution.resources.json",
+      "sha256": "1282b2f15ea43eaee307f3f224038e8fc35a6ecb4375980dd575ca7b8f19b837"
+    },
+    {
+      "bytes": 0,
+      "path": "execution.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 164,
+      "path": "execution.stdout.txt",
+      "sha256": "abce60a3879eb8ea0d3d99a179d8ade6af81eff67a77e84b5cf3c3519bc41c1e"
+    },
+    {
+      "bytes": 2161,
+      "path": "manifest.json",
+      "sha256": "4dca1bfd66733738c4e9b3e086e87a4939d90f40e1dae24a5b4b64a607f9757c"
+    },
+    {
+      "bytes": 13302,
+      "path": "sources/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+      "sha256": "18888511674387dcab9129f3aa26fde7b849628cba0a078151b9fd41cf7b94fd"
+    },
+    {
+      "bytes": 958,
+      "path": "sources/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+      "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+    },
+    {
+      "bytes": 5803,
+      "path": "sources/runner/functional.py",
+      "sha256": "ceac968c8d9fd43fb28ef2a48193e58c2bc754ecb617fbb8df0950b3db484b35"
+    },
+    {
+      "bytes": 5011,
+      "path": "sources/scripts/check_pma_to_regraph_adapter.sh",
+      "sha256": "27fb445a182f9e2533c73fcf97aa05a826b9a2a95422d0c7bef72bbbeccad3e3"
+    },
+    {
+      "bytes": 472,
+      "path": "sources/scripts/env.sh",
+      "sha256": "e9a7b13d8a878b7c27d86eb40c6914eaa02c9d651b6f9a75a1c875ac39590cb0"
+    },
+    {
+      "bytes": 6345,
+      "path": "sources/tests/pma_adapter_row_prefetch_tb.cpp",
+      "sha256": "8abcd4440022ca7559ef574847c2a484cf65ba6eee6e8f4a6a5833191f797e11"
+    },
+    {
+      "bytes": 4172,
+      "path": "sources/tests/pma_to_regraph_adapter_tb.cpp",
+      "sha256": "75552a5e5123dbab95e3f1ef6def25520277d19c33653aa2782522d4abb749b0"
+    },
+    {
+      "bytes": 1542,
+      "path": "checks/test.log",
+      "sha256": "d19cfdc42ce08c29059a57d28bde886aaefebc446135519bdb4363e5c6094191"
+    },
+    {
+      "bytes": 1260,
+      "path": "checks/manifest.env",
+      "sha256": "53bb94aa4aebc1f0736d38f9e472698c38415c1fccaaba0c4f847b0f54c6d18e"
+    },
+    {
+      "bytes": 2990,
+      "path": "checks/SHA256SUMS",
+      "sha256": "c51bdac876117f0fa11dfe2f7903ca477a90fec8c341a5af141587d0660aa632"
+    },
+    {
+      "bytes": 257,
+      "path": "watchdog/functional-v4_watchdog.progress.json",
+      "sha256": "87913925e120639e3a4c099e064174b6240030757b2959ad3caa68f3487fa472"
+    },
+    {
+      "bytes": 2489,
+      "path": "watchdog/functional-v4_watchdog.resources.json",
+      "sha256": "ac34a23f375d87e635ffb362dff138943c5f070a75f2c67d8850a294ef2134da"
+    },
+    {
+      "bytes": 0,
+      "path": "watchdog/functional-v4_watchdog.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "watchdog/functional-v4_watchdog.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "manifest": {
+    "claim": "CXX_packet_equivalence_not_RTL_or_board",
+    "compiler": "g++ (Debian 15.2.0-14) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+    "source": [
+      {
+        "archive_path": "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+        "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
+        "sha256": "18888511674387dcab9129f3aa26fde7b849628cba0a078151b9fd41cf7b94fd"
+      },
+      {
+        "archive_path": "kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+        "path": "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp",
+        "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+      },
+      {
+        "archive_path": "tests/pma_to_regraph_adapter_tb.cpp",
+        "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_to_regraph_adapter_tb.cpp",
+        "sha256": "75552a5e5123dbab95e3f1ef6def25520277d19c33653aa2782522d4abb749b0"
+      },
+      {
+        "archive_path": "tests/pma_adapter_row_prefetch_tb.cpp",
+        "path": "/home/chuxiao/grasu-regraph-integration/tests/pma_adapter_row_prefetch_tb.cpp",
+        "sha256": "8abcd4440022ca7559ef574847c2a484cf65ba6eee6e8f4a6a5833191f797e11"
+      },
+      {
+        "archive_path": "scripts/check_pma_to_regraph_adapter.sh",
+        "path": "/home/chuxiao/grasu-regraph-integration/scripts/check_pma_to_regraph_adapter.sh",
+        "sha256": "27fb445a182f9e2533c73fcf97aa05a826b9a2a95422d0c7bef72bbbeccad3e3"
+      },
+      {
+        "archive_path": "scripts/env.sh",
+        "path": "/home/chuxiao/grasu-regraph-integration/scripts/env.sh",
+        "sha256": "e9a7b13d8a878b7c27d86eb40c6914eaa02c9d651b6f9a75a1c875ac39590cb0"
+      },
+      {
+        "archive_path": "runner/functional.py",
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/functional.py",
+        "sha256": "ceac968c8d9fd43fb28ef2a48193e58c2bc754ecb617fbb8df0950b3db484b35"
+      }
+    ]
+  },
+  "status": "twelve_CXX_configs_passed_not_RTL_or_board",
+  "watchdog": {
+    "available_before_bytes": 55158312960,
+    "cleanup_scope": "pidfd_bound_observed_workers_not_cgroup_containment",
+    "cleanup_signaled_pids": [],
+    "cleanup_snapshot_error": null,
+    "command": [
+      "/usr/bin/python3",
+      "-m",
+      "spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.functional",
+      "--worker",
+      "--integration",
+      "/home/chuxiao/grasu-regraph-integration",
+      "--output",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/functional-v4",
+      "--destination",
+      "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/functional"
+    ],
+    "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+    "exit_code": 0,
+    "host_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127
+    ],
+    "minimum_available_bytes": 54843985920,
+    "observed_pids": [
+      1746504,
+      1746507,
+      1746550,
+      1746551,
+      1746558,
+      1746559,
+      1746641,
+      1746642,
+      1746683,
+      1746684,
+      1746698,
+      1746699,
+      1746771,
+      1746916,
+      1746935,
+      1746936,
+      1746949,
+      1746950,
+      1747036,
+      1747037
+    ],
+    "peak_tree_rss_kib": 295184,
+    "per_process_address_space_gib": 64,
+    "reserve_gib": 16,
+    "rss_scope": "sampled_simultaneous_tree_sum_shared_pages_counted_per_process",
+    "stop_reason": "process_exit",
+    "timeout_seconds": 240,
+    "tree_memory_gib": 3,
+    "wall_seconds": 21.250514592975378
+  }
+}

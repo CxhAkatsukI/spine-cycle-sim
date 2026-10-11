@@ -15,6 +15,12 @@ checks complete state/traffic under two explicit mock-memory services. Its
 single-partition cycles are diagnostic; it is not a resource-matched speed
 claim or an update-to-convergence comparison.
 
+The [four-partition extension](sssp_partition_round/README.md) keeps that
+numerical executor unchanged and exercises all four destination shards on
+1.45M real-topology edges. It finds a substantial modeled slowdown and
+preserves failed attempts, complete states and traffic. This negative result
+is diagnostic, not a measured FPGA slowdown or original-publication match.
+
 The production candidate's preceding hardware/model evidence remains in the
 [initial-residency study](../model_sync/sst/input_residency/README.md).
 Correcting that path's observed input migration does not establish the

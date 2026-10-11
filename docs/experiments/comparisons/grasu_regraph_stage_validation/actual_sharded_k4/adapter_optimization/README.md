@@ -19,6 +19,10 @@ completed original-A4 comparison or a published-performance match.
 6. [Production-model synchronization](../model_sync/README.md) records the
    later reader extraction and raw-adapter functional tests, with system
    integration and timing admission still open.
+7. The later [empty-segment helper candidate](empty_segment/README.md)
+   addresses interior empty rows. It retains an unsuccessful guard-only
+   control and an effective explicit-helper RTL control. It is not routed or
+   board-admitted and does not overwrite the earlier measured candidate.
 
 ## Candidate And Current Gates
 

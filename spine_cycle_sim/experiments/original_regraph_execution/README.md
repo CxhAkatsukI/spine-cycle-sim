@@ -17,6 +17,7 @@ not establish realistic HBM timing or the original mixed topology's speed.
 | `delivery.py` | Recheck raw evidence and package logs/indexes without large captures |
 | `sssp_control.py` | Optional local weighted-SSSP arithmetic/resident-round admission and exact default regression; no timing ratio |
 | `sssp_real_round/` | Author-layout SSSP overlays, common-service single-round sensitivity, full-state/traffic admission and old PR regression |
+| `sssp_partition_round/` | Four-partition extension with the frozen executor, command contracts, static PMA work audit and complete negative-attempt delivery |
 
 The thin CLI is `scripts/run_original_regraph_a4.py`. C++ input decoding,
 wiring/partition progress, and execution/observation are separate units in

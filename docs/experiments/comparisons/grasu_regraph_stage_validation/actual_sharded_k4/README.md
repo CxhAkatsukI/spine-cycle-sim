@@ -19,6 +19,21 @@ diagnostic, not a strict matched-resource or update-to-convergence result.
 Multi-partition scheduling, real-HBM A4 timing and final A4/K4 performance
 remain open.
 
+The subsequent [four-partition resident-round diagnostic](matched_a4/sssp_partition_round/README.md)
+extends this check to 258,046 vertices and 1,450,899 induced Amazon edges.
+All six full-state/traffic runs pass, but the frozen K4 model takes
+28.6--35.1 times the A4 cycles. Static layout accounting exposes many empty
+source rows and padded slots; this is a negative fixed-model finding, not
+an FPGA slowdown measurement. Convergence and strict resource matching
+remain open. Earlier single-partition results are not overwritten.
+
+The follow-up [empty-segment helper optimization](adapter_optimization/empty_segment/README.md)
+preserves its unsuccessful guard-only control and measures a 6.316x local
+RTL improvement for 1,025 sources with only the last row occupied. All
+thirteen calls preserve exact packets; twelve C++ configurations pass.
+Production route, board validation and a separate model candidate remain
+open. This does not replace the negative fixed-model comparison above.
+
 The [controlled initial-residency checkpoint](model_sync/sst/input_residency/README.md)
 now retains all 30 complete outputs and rounds. XRT traces expose 16 late
 WK row-table transfers inside the previous compute window; explicit initial

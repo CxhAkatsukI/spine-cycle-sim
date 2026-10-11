@@ -13,6 +13,7 @@ PMA timing control. Start with the
 | `rtl.py` | Source-pinned baseline/candidate RTL co-simulation |
 | `routing.py` | Single-XO ABI gate, lossless connectivity config and link preparation |
 | `link_runtime.py` | Route-specific aggregate RSS, memory reserve and timeout watchdog |
+| `process_cleanup.py` | pidfd-bound cleanup of observed descendants across nested sessions; not cgroup containment |
 | `route_recovery.py` | Completed-artifact recovery after supervisor loss, with incomplete monitoring explicit |
 | `bitstream.py` | Routed timing, clock and normalized XRT connectivity admission |
 | `comparison.py` | Alternating original/candidate board runs with identical host/input |
@@ -53,6 +54,7 @@ PMA timing control. Start with the
 | `residency_matrix.py` | All six fixed-model rows on FPGA after initial residency, three repetitions and no fitting |
 | `residency_validation.py` | Recompute all 30 raw attempts, complete results, unchanged model predictions and transfer findings |
 | `residency_delivery.py` | Separate immutable input-residency archive, source snapshots and complete-output identities |
+| `empty_segment/` | Paired C/RTL empty-helper controls, effective compile-contract checks and immutable evidence delivery; no timing-model change |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`. The distinct routed SST candidate

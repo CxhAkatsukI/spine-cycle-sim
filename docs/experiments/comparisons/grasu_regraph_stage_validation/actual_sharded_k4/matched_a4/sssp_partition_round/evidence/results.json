@@ -1,0 +1,1407 @@
+{
+  "admission": {
+    "cases": 6,
+    "complete_state_and_traffic": true,
+    "convergence_comparison": false,
+    "hardware_timing_admitted": false,
+    "partitions": 4,
+    "publication_match_admitted": false,
+    "registration_order_identical": true,
+    "status": "passed_four_partition_resident_round_diagnostic_only",
+    "strict_resource_matched_performance_admitted": false,
+    "warm_latency_sensitivity_checked": true
+  },
+  "basis": {
+    "path": "/data/chuxiao/experiments/a4_actual_sssp_real_round_20261011/run-v3/results.json",
+    "sha256": "2d459d2bb54ac4b71059a8023ccc5c71a7ac9c337521e11a226177e977d46784"
+  },
+  "basis_git_head": "895b19da8ee5fe26e338a87854c22aac5f51a623",
+  "boundary": "resident_input_first_component_tick_to_all_state_write_acknowledgements_one_round",
+  "cases": [
+    {
+      "hardware_timing_admitted": false,
+      "k4_over_a4_cycles_diagnostic_only": 35.13265138161065,
+      "latency": 64,
+      "mode": "cold",
+      "outputs": [
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse0/a4_replica0.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse0/a4_replica1.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse0/a4_replica2.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse0/a4_replica3.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse0/k4_primary.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse0/k4_source0.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse0/k4_source1.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        }
+      ],
+      "paths": [
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 668278,
+          "dummy_edges": 813,
+          "edge_read_bytes": 11613696,
+          "full_state_and_traffic_pass": true,
+          "passed": true,
+          "path": "a4",
+          "physical_edges": 1451712,
+          "read_bytes": 17446400,
+          "replicas": 4,
+          "source_read_bytes": 4784128,
+          "write_bytes": 4194304
+        },
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 23478378,
+          "dummy_edges": 6158893,
+          "extent_reads": 4,
+          "full_state_and_traffic_pass": true,
+          "live_edges": 1450899,
+          "passed": true,
+          "path": "actual_k4",
+          "physical_packets": 951224,
+          "read_bytes": 101741312,
+          "replicas": 3,
+          "row_reads": 1032172,
+          "segment_reads": 475612,
+          "source_lines": 65536,
+          "write_bytes": 3145732
+        }
+      ],
+      "publication_match_admitted": false,
+      "reverse": 0
+    },
+    {
+      "hardware_timing_admitted": false,
+      "k4_over_a4_cycles_diagnostic_only": 35.13265138161065,
+      "latency": 64,
+      "mode": "cold",
+      "outputs": [
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse1/a4_replica0.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse1/a4_replica1.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse1/a4_replica2.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse1/a4_replica3.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse1/k4_primary.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse1/k4_source0.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse1/k4_source1.u32le",
+          "sha256": "beb9172cd429ef9a62cda7f5c922e11441d943c0a7ba1fa44a5cd4eae5905ba4"
+        }
+      ],
+      "paths": [
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 668278,
+          "dummy_edges": 813,
+          "edge_read_bytes": 11613696,
+          "full_state_and_traffic_pass": true,
+          "passed": true,
+          "path": "a4",
+          "physical_edges": 1451712,
+          "read_bytes": 17446400,
+          "replicas": 4,
+          "source_read_bytes": 4784128,
+          "write_bytes": 4194304
+        },
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 23478378,
+          "dummy_edges": 6158893,
+          "extent_reads": 4,
+          "full_state_and_traffic_pass": true,
+          "live_edges": 1450899,
+          "passed": true,
+          "path": "actual_k4",
+          "physical_packets": 951224,
+          "read_bytes": 101741312,
+          "replicas": 3,
+          "row_reads": 1032172,
+          "segment_reads": 475612,
+          "source_lines": 65536,
+          "write_bytes": 3145732
+        }
+      ],
+      "publication_match_admitted": false,
+      "reverse": 1
+    },
+    {
+      "hardware_timing_admitted": false,
+      "k4_over_a4_cycles_diagnostic_only": 35.13265138161065,
+      "latency": 64,
+      "mode": "warm_update",
+      "outputs": [
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse0/a4_replica0.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse0/a4_replica1.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse0/a4_replica2.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse0/a4_replica3.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse0/k4_primary.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse0/k4_source0.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse0/k4_source1.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        }
+      ],
+      "paths": [
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 668278,
+          "dummy_edges": 813,
+          "edge_read_bytes": 11613696,
+          "full_state_and_traffic_pass": true,
+          "passed": true,
+          "path": "a4",
+          "physical_edges": 1451712,
+          "read_bytes": 17446400,
+          "replicas": 4,
+          "source_read_bytes": 4784128,
+          "write_bytes": 4194304
+        },
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 23478378,
+          "dummy_edges": 6158893,
+          "extent_reads": 4,
+          "full_state_and_traffic_pass": true,
+          "live_edges": 1450899,
+          "passed": true,
+          "path": "actual_k4",
+          "physical_packets": 951224,
+          "read_bytes": 101741312,
+          "replicas": 3,
+          "row_reads": 1032172,
+          "segment_reads": 475612,
+          "source_lines": 65536,
+          "write_bytes": 3145732
+        }
+      ],
+      "publication_match_admitted": false,
+      "reverse": 0
+    },
+    {
+      "hardware_timing_admitted": false,
+      "k4_over_a4_cycles_diagnostic_only": 35.13265138161065,
+      "latency": 64,
+      "mode": "warm_update",
+      "outputs": [
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse1/a4_replica0.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse1/a4_replica1.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse1/a4_replica2.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse1/a4_replica3.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse1/k4_primary.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse1/k4_source0.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse1/k4_source1.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        }
+      ],
+      "paths": [
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 668278,
+          "dummy_edges": 813,
+          "edge_read_bytes": 11613696,
+          "full_state_and_traffic_pass": true,
+          "passed": true,
+          "path": "a4",
+          "physical_edges": 1451712,
+          "read_bytes": 17446400,
+          "replicas": 4,
+          "source_read_bytes": 4784128,
+          "write_bytes": 4194304
+        },
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 23478378,
+          "dummy_edges": 6158893,
+          "extent_reads": 4,
+          "full_state_and_traffic_pass": true,
+          "live_edges": 1450899,
+          "passed": true,
+          "path": "actual_k4",
+          "physical_packets": 951224,
+          "read_bytes": 101741312,
+          "replicas": 3,
+          "row_reads": 1032172,
+          "segment_reads": 475612,
+          "source_lines": 65536,
+          "write_bytes": 3145732
+        }
+      ],
+      "publication_match_admitted": false,
+      "reverse": 1
+    },
+    {
+      "hardware_timing_admitted": false,
+      "k4_over_a4_cycles_diagnostic_only": 28.61794269573797,
+      "latency": 128,
+      "mode": "warm_update",
+      "outputs": [
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse0/a4_replica0.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse0/a4_replica1.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse0/a4_replica2.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse0/a4_replica3.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse0/k4_primary.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse0/k4_source0.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse0/k4_source1.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        }
+      ],
+      "paths": [
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 1292225,
+          "dummy_edges": 813,
+          "edge_read_bytes": 11613696,
+          "full_state_and_traffic_pass": true,
+          "passed": true,
+          "path": "a4",
+          "physical_edges": 1451712,
+          "read_bytes": 17446400,
+          "replicas": 4,
+          "source_read_bytes": 4784128,
+          "write_bytes": 4194304
+        },
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 36980821,
+          "dummy_edges": 6158893,
+          "extent_reads": 4,
+          "full_state_and_traffic_pass": true,
+          "live_edges": 1450899,
+          "passed": true,
+          "path": "actual_k4",
+          "physical_packets": 951224,
+          "read_bytes": 101741312,
+          "replicas": 3,
+          "row_reads": 1032172,
+          "segment_reads": 475612,
+          "source_lines": 65536,
+          "write_bytes": 3145732
+        }
+      ],
+      "publication_match_admitted": false,
+      "reverse": 0
+    },
+    {
+      "hardware_timing_admitted": false,
+      "k4_over_a4_cycles_diagnostic_only": 28.61794269573797,
+      "latency": 128,
+      "mode": "warm_update",
+      "outputs": [
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse1/a4_replica0.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse1/a4_replica1.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse1/a4_replica2.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse1/a4_replica3.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse1/k4_primary.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse1/k4_source0.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        },
+        {
+          "bytes": 1048576,
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse1/k4_source1.u32le",
+          "sha256": "5412f23e63be9be9966d887f0548f96dfea7d7e2b6a0979b2658a19b65e3df98"
+        }
+      ],
+      "paths": [
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 1292225,
+          "dummy_edges": 813,
+          "edge_read_bytes": 11613696,
+          "full_state_and_traffic_pass": true,
+          "passed": true,
+          "path": "a4",
+          "physical_edges": 1451712,
+          "read_bytes": 17446400,
+          "replicas": 4,
+          "source_read_bytes": 4784128,
+          "write_bytes": 4194304
+        },
+        {
+          "active_vertices": 3,
+          "checked_words_per_replica": 262144,
+          "cycles": 36980821,
+          "dummy_edges": 6158893,
+          "extent_reads": 4,
+          "full_state_and_traffic_pass": true,
+          "live_edges": 1450899,
+          "passed": true,
+          "path": "actual_k4",
+          "physical_packets": 951224,
+          "read_bytes": 101741312,
+          "replicas": 3,
+          "row_reads": 1032172,
+          "segment_reads": 475612,
+          "source_lines": 65536,
+          "write_bytes": 3145732
+        }
+      ],
+      "publication_match_admitted": false,
+      "reverse": 1
+    }
+  ],
+  "cmake_cache": "# This is the CMakeCache file.\n# For build in directory: /home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3\n# It was generated by CMake: /usr/bin/cmake\n# You can edit this file to change values found and used by cmake.\n# If you do not want to change any of the values, simply exit the editor.\n# If you do want to change a value, simply edit, save, and exit the editor.\n# The syntax for the file is as follows:\n# KEY:TYPE=VALUE\n# KEY is the name of a variable in the cache.\n# TYPE is a hint to GUIs for the type of VALUE, DO NOT EDIT TYPE!.\n# VALUE is the current value for the KEY.\n\n########################\n# EXTERNAL cache entries\n########################\n\n//Build the testing tree.\nBUILD_TESTING:BOOL=ON\n\n//Path to a program.\nCMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line\n\n//Path to a program.\nCMAKE_AR:FILEPATH=/usr/bin/ar\n\n//Choose the type of build, options are: None Debug Release RelWithDebInfo\n// MinSizeRel ...\nCMAKE_BUILD_TYPE:STRING=Release\n\n//Enable/Disable color output during build.\nCMAKE_COLOR_MAKEFILE:BOOL=ON\n\n//CXX compiler\nCMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++\n\n//A wrapper around 'ar' adding the appropriate '--plugin' option\n// for the GCC compiler\nCMAKE_CXX_COMPILER_AR:FILEPATH=/usr/bin/gcc-ar-15\n\n//A wrapper around 'ranlib' adding the appropriate '--plugin' option\n// for the GCC compiler\nCMAKE_CXX_COMPILER_RANLIB:FILEPATH=/usr/bin/gcc-ranlib-15\n\n//Flags used by the CXX compiler during all build types.\nCMAKE_CXX_FLAGS:STRING=\n\n//Flags used by the CXX compiler during DEBUG builds.\nCMAKE_CXX_FLAGS_DEBUG:STRING=-g\n\n//Flags used by the CXX compiler during MINSIZEREL builds.\nCMAKE_CXX_FLAGS_MINSIZEREL:STRING=-Os -DNDEBUG\n\n//Flags used by the CXX compiler during RELEASE builds.\nCMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG\n\n//Flags used by the CXX compiler during RELWITHDEBINFO builds.\nCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG\n\n//Path to a program.\nCMAKE_DLLTOOL:FILEPATH=CMAKE_DLLTOOL-NOTFOUND\n\n//Flags used by the linker during all build types.\nCMAKE_EXE_LINKER_FLAGS:STRING=\n\n//Flags used by the linker during DEBUG builds.\nCMAKE_EXE_LINKER_FLAGS_DEBUG:STRING=\n\n//Flags used by the linker during MINSIZEREL builds.\nCMAKE_EXE_LINKER_FLAGS_MINSIZEREL:STRING=\n\n//Flags used by the linker during RELEASE builds.\nCMAKE_EXE_LINKER_FLAGS_RELEASE:STRING=\n\n//Flags used by the linker during RELWITHDEBINFO builds.\nCMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=\n\n//Enable/Disable output of compile commands during generation.\nCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=\n\n//Value Computed by CMake.\nCMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/CMakeFiles/pkgRedirects\n\n//Install path prefix, prepended onto install directories.\nCMAKE_INSTALL_PREFIX:PATH=/usr/local\n\n//Path to a program.\nCMAKE_LINKER:FILEPATH=/usr/bin/ld\n\n//Path to a program.\nCMAKE_MAKE_PROGRAM:FILEPATH=/usr/bin/gmake\n\n//Flags used by the linker during the creation of modules during\n// all build types.\nCMAKE_MODULE_LINKER_FLAGS:STRING=\n\n//Flags used by the linker during the creation of modules during\n// DEBUG builds.\nCMAKE_MODULE_LINKER_FLAGS_DEBUG:STRING=\n\n//Flags used by the linker during the creation of modules during\n// MINSIZEREL builds.\nCMAKE_MODULE_LINKER_FLAGS_MINSIZEREL:STRING=\n\n//Flags used by the linker during the creation of modules during\n// RELEASE builds.\nCMAKE_MODULE_LINKER_FLAGS_RELEASE:STRING=\n\n//Flags used by the linker during the creation of modules during\n// RELWITHDEBINFO builds.\nCMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO:STRING=\n\n//Path to a program.\nCMAKE_NM:FILEPATH=/usr/bin/nm\n\n//Path to a program.\nCMAKE_OBJCOPY:FILEPATH=/usr/bin/objcopy\n\n//Path to a program.\nCMAKE_OBJDUMP:FILEPATH=/usr/bin/objdump\n\n//Value Computed by CMake\nCMAKE_PROJECT_COMPAT_VERSION:STATIC=\n\n//Value Computed by CMake\nCMAKE_PROJECT_DESCRIPTION:STATIC=\n\n//Value Computed by CMake\nCMAKE_PROJECT_HOMEPAGE_URL:STATIC=\n\n//Value Computed by CMake\nCMAKE_PROJECT_NAME:STATIC=spine_cycle_sim\n\n//Value Computed by CMake\nCMAKE_PROJECT_SPDX_LICENSE:STATIC=\n\n//Path to a program.\nCMAKE_RANLIB:FILEPATH=/usr/bin/ranlib\n\n//Path to a program.\nCMAKE_READELF:FILEPATH=/usr/bin/readelf\n\n//Flags used by the linker during the creation of shared libraries\n// during all build types.\nCMAKE_SHARED_LINKER_FLAGS:STRING=\n\n//Flags used by the linker during the creation of shared libraries\n// during DEBUG builds.\nCMAKE_SHARED_LINKER_FLAGS_DEBUG:STRING=\n\n//Flags used by the linker during the creation of shared libraries\n// during MINSIZEREL builds.\nCMAKE_SHARED_LINKER_FLAGS_MINSIZEREL:STRING=\n\n//Flags used by the linker during the creation of shared libraries\n// during RELEASE builds.\nCMAKE_SHARED_LINKER_FLAGS_RELEASE:STRING=\n\n//Flags used by the linker during the creation of shared libraries\n// during RELWITHDEBINFO builds.\nCMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO:STRING=\n\n//If set, runtime paths are not added when installing shared libraries,\n// but are added when building.\nCMAKE_SKIP_INSTALL_RPATH:BOOL=NO\n\n//If set, runtime paths are not added when using shared libraries.\nCMAKE_SKIP_RPATH:BOOL=NO\n\n//Flags used by the archiver during the creation of static libraries\n// during all build types.\nCMAKE_STATIC_LINKER_FLAGS:STRING=\n\n//Flags used by the archiver during the creation of static libraries\n// during DEBUG builds.\nCMAKE_STATIC_LINKER_FLAGS_DEBUG:STRING=\n\n//Flags used by the archiver during the creation of static libraries\n// during MINSIZEREL builds.\nCMAKE_STATIC_LINKER_FLAGS_MINSIZEREL:STRING=\n\n//Flags used by the archiver during the creation of static libraries\n// during RELEASE builds.\nCMAKE_STATIC_LINKER_FLAGS_RELEASE:STRING=\n\n//Flags used by the archiver during the creation of static libraries\n// during RELWITHDEBINFO builds.\nCMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=\n\n//Path to a program.\nCMAKE_STRIP:FILEPATH=/usr/bin/strip\n\n//Path to a program.\nCMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND\n\n//If this value is on, makefiles will be generated without the\n// .SILENT directive, and all commands will be echoed to the console\n// during the make.  This is useful for debugging only. With Visual\n// Studio IDE projects all commands are done without /nologo.\nCMAKE_VERBOSE_MAKEFILE:BOOL=FALSE\n\n//Path to the coverage program that CTest uses for performing coverage\n// inspection\nCOVERAGE_COMMAND:FILEPATH=/usr/bin/gcov\n\n//Extra command line flags to pass to the coverage tool\nCOVERAGE_EXTRA_FLAGS:STRING=-l\n\n//How many times to retry timed-out CTest submissions.\nCTEST_SUBMIT_RETRY_COUNT:STRING=3\n\n//How long to wait between timed-out CTest submissions.\nCTEST_SUBMIT_RETRY_DELAY:STRING=5\n\n//Maximum time allowed before CTest will kill the test.\nDART_TESTING_TIMEOUT:STRING=1500\n\n//Path to a program.\nGITCOMMAND:FILEPATH=/usr/bin/git\n\n//Command to build the project\nMAKECOMMAND:STRING=/usr/bin/cmake --build . --config \"${CTEST_CONFIGURATION_TYPE}\"\n\n//Path to the memory checking command, used for memory error detection.\nMEMORYCHECK_COMMAND:FILEPATH=MEMORYCHECK_COMMAND-NOTFOUND\n\n//File that contains suppressions for the memory checker\nMEMORYCHECK_SUPPRESSIONS_FILE:FILEPATH=\n\n//Name of the computer/site where compile is being run\nSITE:STRING=trifoliate\n\n//Optional local HLS SSSP UDF correctness reference\nSPINE_SSSP_UDF_REFERENCE:FILEPATH=/home/chuxiao/regraph/ReGraph/acc_udfs/sssp/l2.h\n\n//Value Computed by CMake\nspine_cycle_sim_BINARY_DIR:STATIC=/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3\n\n//Value Computed by CMake\nspine_cycle_sim_IS_TOP_LEVEL:STATIC=ON\n\n//Value Computed by CMake\nspine_cycle_sim_SOURCE_DIR:STATIC=/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3\n\n\n########################\n# INTERNAL cache entries\n########################\n\n//ADVANCED property for variable: CMAKE_ADDR2LINE\nCMAKE_ADDR2LINE-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_AR\nCMAKE_AR-ADVANCED:INTERNAL=1\n//This is the directory where this CMakeCache.txt was created\nCMAKE_CACHEFILE_DIR:INTERNAL=/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3\n//Major version of cmake used to create the current loaded cache\nCMAKE_CACHE_MAJOR_VERSION:INTERNAL=4\n//Minor version of cmake used to create the current loaded cache\nCMAKE_CACHE_MINOR_VERSION:INTERNAL=3\n//Patch version of cmake used to create the current loaded cache\nCMAKE_CACHE_PATCH_VERSION:INTERNAL=4\n//ADVANCED property for variable: CMAKE_COLOR_MAKEFILE\nCMAKE_COLOR_MAKEFILE-ADVANCED:INTERNAL=1\n//Path to CMake executable.\nCMAKE_COMMAND:INTERNAL=/usr/bin/cmake\n//Path to cpack program executable.\nCMAKE_CPACK_COMMAND:INTERNAL=/usr/bin/cpack\n//ADVANCED property for variable: CMAKE_CTEST_COMMAND\nCMAKE_CTEST_COMMAND-ADVANCED:INTERNAL=1\n//Path to ctest program executable.\nCMAKE_CTEST_COMMAND:INTERNAL=/usr/bin/ctest\n//ADVANCED property for variable: CMAKE_CXX_COMPILER\nCMAKE_CXX_COMPILER-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_CXX_COMPILER_AR\nCMAKE_CXX_COMPILER_AR-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_CXX_COMPILER_RANLIB\nCMAKE_CXX_COMPILER_RANLIB-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_CXX_FLAGS\nCMAKE_CXX_FLAGS-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_CXX_FLAGS_DEBUG\nCMAKE_CXX_FLAGS_DEBUG-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_CXX_FLAGS_MINSIZEREL\nCMAKE_CXX_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_CXX_FLAGS_RELEASE\nCMAKE_CXX_FLAGS_RELEASE-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_CXX_FLAGS_RELWITHDEBINFO\nCMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_DLLTOOL\nCMAKE_DLLTOOL-ADVANCED:INTERNAL=1\n//Executable file format\nCMAKE_EXECUTABLE_FORMAT:INTERNAL=ELF\n//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS\nCMAKE_EXE_LINKER_FLAGS-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_DEBUG\nCMAKE_EXE_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_MINSIZEREL\nCMAKE_EXE_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_RELEASE\nCMAKE_EXE_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO\nCMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_EXPORT_COMPILE_COMMANDS\nCMAKE_EXPORT_COMPILE_COMMANDS-ADVANCED:INTERNAL=1\n//Name of external makefile project generator.\nCMAKE_EXTRA_GENERATOR:INTERNAL=\n//Name of generator.\nCMAKE_GENERATOR:INTERNAL=Unix Makefiles\n//Generator instance identifier.\nCMAKE_GENERATOR_INSTANCE:INTERNAL=\n//Name of generator platform.\nCMAKE_GENERATOR_PLATFORM:INTERNAL=\n//Name of generator toolset.\nCMAKE_GENERATOR_TOOLSET:INTERNAL=\n//Source directory with the top level CMakeLists.txt file for this\n// project\nCMAKE_HOME_DIRECTORY:INTERNAL=/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3\n//Install .so files without execute permission.\nCMAKE_INSTALL_SO_NO_EXE:INTERNAL=1\n//ADVANCED property for variable: CMAKE_LINKER\nCMAKE_LINKER-ADVANCED:INTERNAL=1\n//Name of CMakeLists files to read\nCMAKE_LIST_FILE_NAME:INTERNAL=CMakeLists.txt\n//ADVANCED property for variable: CMAKE_MAKE_PROGRAM\nCMAKE_MAKE_PROGRAM-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS\nCMAKE_MODULE_LINKER_FLAGS-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_DEBUG\nCMAKE_MODULE_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_MINSIZEREL\nCMAKE_MODULE_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_RELEASE\nCMAKE_MODULE_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO\nCMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_NM\nCMAKE_NM-ADVANCED:INTERNAL=1\n//number of local generators\nCMAKE_NUMBER_OF_MAKEFILES:INTERNAL=2\n//ADVANCED property for variable: CMAKE_OBJCOPY\nCMAKE_OBJCOPY-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_OBJDUMP\nCMAKE_OBJDUMP-ADVANCED:INTERNAL=1\n//Platform information initialized\nCMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_RANLIB\nCMAKE_RANLIB-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_READELF\nCMAKE_READELF-ADVANCED:INTERNAL=1\n//Path to CMake installation.\nCMAKE_ROOT:INTERNAL=/usr/share/cmake-4.3\n//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS\nCMAKE_SHARED_LINKER_FLAGS-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_DEBUG\nCMAKE_SHARED_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL\nCMAKE_SHARED_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_RELEASE\nCMAKE_SHARED_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO\nCMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_SKIP_INSTALL_RPATH\nCMAKE_SKIP_INSTALL_RPATH-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_SKIP_RPATH\nCMAKE_SKIP_RPATH-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS\nCMAKE_STATIC_LINKER_FLAGS-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS_DEBUG\nCMAKE_STATIC_LINKER_FLAGS_DEBUG-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS_MINSIZEREL\nCMAKE_STATIC_LINKER_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS_RELEASE\nCMAKE_STATIC_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO\nCMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_STRIP\nCMAKE_STRIP-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CMAKE_TAPI\nCMAKE_TAPI-ADVANCED:INTERNAL=1\n//uname command\nCMAKE_UNAME:INTERNAL=/usr/bin/uname\n//ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE\nCMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: COVERAGE_COMMAND\nCOVERAGE_COMMAND-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: COVERAGE_EXTRA_FLAGS\nCOVERAGE_EXTRA_FLAGS-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CTEST_SUBMIT_RETRY_COUNT\nCTEST_SUBMIT_RETRY_COUNT-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: CTEST_SUBMIT_RETRY_DELAY\nCTEST_SUBMIT_RETRY_DELAY-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: DART_TESTING_TIMEOUT\nDART_TESTING_TIMEOUT-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: GITCOMMAND\nGITCOMMAND-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: MAKECOMMAND\nMAKECOMMAND-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: MEMORYCHECK_COMMAND\nMEMORYCHECK_COMMAND-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: MEMORYCHECK_SUPPRESSIONS_FILE\nMEMORYCHECK_SUPPRESSIONS_FILE-ADVANCED:INTERNAL=1\n//ADVANCED property for variable: SITE\nSITE-ADVANCED:INTERNAL=1\n\n",
+  "compiler_version": "g++ (Debian 15.2.0-14) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "coverage": {
+    "independent_runtime_per_worker_counters_available": false,
+    "k4_partition_to_worker_from_frozen_controller": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "logical_edges_by_destination_partition": [
+      848130,
+      370883,
+      170898,
+      60988
+    ],
+    "partitions": 4
+  },
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "declared_matrix": [
+    [
+      "cold",
+      64,
+      0
+    ],
+    [
+      "cold",
+      64,
+      1
+    ],
+    [
+      "warm_update",
+      64,
+      0
+    ],
+    [
+      "warm_update",
+      64,
+      1
+    ],
+    [
+      "warm_update",
+      128,
+      0
+    ],
+    [
+      "warm_update",
+      128,
+      1
+    ]
+  ],
+  "default_plugin_sha256_after": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "default_plugin_sha256_before": "9a26e1fb51ecf7b99ccf0784c9e5bbc459cf857d293add557b9c52770b2c9d79",
+  "executor": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_real_round",
+    "sha256": "10e90530044c2161f5077ccbcc2f83687778d735462effadf4168f30e94cde10"
+  },
+  "git_head": "002ad6a2ad507dff40c5f6cf1c32d9b2aec4ffa2",
+  "inputs": [
+    {
+      "active_initial": 1,
+      "changed_weights": 0,
+      "convergence_comparison": false,
+      "files": [
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/csr_destinations.u32le",
+          "sha256": "23b0d9fb08d49778179cef50dc09b6873a1aede8bc6437de59c09fc154a29ba9"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/csr_offsets.u32le",
+          "sha256": "d95fb029da4c365923ff6ffbf89a34df1a0935f7aa90a41bda17e9e85577ecd2"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/degrees.u32le",
+          "sha256": "b8b774a85c12fc5578cdc191e7e9b6d148dd1b9e9b31133bb6799c24c212b75a"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/execution.u32le",
+          "sha256": "79b2ef8c759d46b0fa0eeaf5046eb5361186547151005b1dd5c86637dcb34dd9"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/initial.u32le",
+          "sha256": "fd94399bf97a53a92b2216ca9b2c53654c75d986eac19fdd07c2ae64a4b75ec0"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/sssp_initial.u32le",
+          "sha256": "72126bb55db5631562c6c5920002f8c2929980032767d300713cb5ba6d1dee91"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/sssp_tasks.u32le",
+          "sha256": "791726a3f86ca2d5aaaea2828d5ce95767a0ae5e60de5a6ad4abe76748f62d2b"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/sssp_weights.u32le",
+          "sha256": "4e5f64f961b1e115e704d37cefd09ae574f73e59a2b6ed2125c6d8d7d32038f1"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold/tasks.u32le",
+          "sha256": "8f74dae3b7c9a0c5505f10dffbdabbe23ec1c2d9a5138b37cfca13b26b032425"
+        }
+      ],
+      "logical_edges": 1450899,
+      "mode": "cold",
+      "old_state_converged": false,
+      "padded_vertices": 262144,
+      "partitions": 4,
+      "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold",
+      "root_reordered": 169560,
+      "rounds": 1,
+      "vertices": 258046,
+      "weighted_task_multiset_verified": true
+    },
+    {
+      "active_initial": 1,
+      "changed_weights": 3,
+      "convergence_comparison": false,
+      "files": [
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/csr_destinations.u32le",
+          "sha256": "23b0d9fb08d49778179cef50dc09b6873a1aede8bc6437de59c09fc154a29ba9"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/csr_offsets.u32le",
+          "sha256": "d95fb029da4c365923ff6ffbf89a34df1a0935f7aa90a41bda17e9e85577ecd2"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/degrees.u32le",
+          "sha256": "b8b774a85c12fc5578cdc191e7e9b6d148dd1b9e9b31133bb6799c24c212b75a"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/execution.u32le",
+          "sha256": "79b2ef8c759d46b0fa0eeaf5046eb5361186547151005b1dd5c86637dcb34dd9"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/initial.u32le",
+          "sha256": "fd94399bf97a53a92b2216ca9b2c53654c75d986eac19fdd07c2ae64a4b75ec0"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/sssp_initial.u32le",
+          "sha256": "36711858691d194c94e9866726faf11867b2dee6c95674e3c7d7a34fa75aaa2c"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/sssp_tasks.u32le",
+          "sha256": "280e4c0391fb528336a23b4f150e4c75eee09d2c8c4f9462c0e2048bece43259"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/sssp_weights.u32le",
+          "sha256": "b3a593f9eba99eac62256e13fa55c7f9fe361466d935fc875fd3dcfee1f7ea5d"
+        },
+        {
+          "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update/tasks.u32le",
+          "sha256": "8f74dae3b7c9a0c5505f10dffbdabbe23ec1c2d9a5138b37cfca13b26b032425"
+        }
+      ],
+      "logical_edges": 1450899,
+      "mode": "warm_update",
+      "old_state_converged": true,
+      "padded_vertices": 262144,
+      "partitions": 4,
+      "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update",
+      "root_reordered": 169560,
+      "rounds": 1,
+      "vertices": 258046,
+      "weighted_task_multiset_verified": true
+    }
+  ],
+  "layout": {
+    "device_cycles": null,
+    "files": [
+      {
+        "bytes": 1032184,
+        "format": "u32le",
+        "path": "original_to_reordered.u32le",
+        "sha256": "bd483ef8d9a885ac516e3139364ac57d4284cb72b957dbf20796f2a50baaafa3",
+        "words": 258046
+      },
+      {
+        "bytes": 1032188,
+        "format": "u32le",
+        "path": "csr_offsets.u32le",
+        "sha256": "d95fb029da4c365923ff6ffbf89a34df1a0935f7aa90a41bda17e9e85577ecd2",
+        "words": 258047
+      },
+      {
+        "bytes": 5803596,
+        "format": "u32le",
+        "path": "csr_destinations.u32le",
+        "sha256": "23b0d9fb08d49778179cef50dc09b6873a1aede8bc6437de59c09fc154a29ba9",
+        "words": 1450899
+      },
+      {
+        "bytes": 1048576,
+        "format": "u32le",
+        "path": "initial.u32le",
+        "sha256": "fd94399bf97a53a92b2216ca9b2c53654c75d986eac19fdd07c2ae64a4b75ec0",
+        "words": 262144
+      },
+      {
+        "bytes": 1048576,
+        "format": "u32le",
+        "path": "degrees.u32le",
+        "sha256": "b8b774a85c12fc5578cdc191e7e9b6d148dd1b9e9b31133bb6799c24c212b75a",
+        "words": 262144
+      },
+      {
+        "bytes": 11613696,
+        "format": "u32le",
+        "path": "partitions.u32le",
+        "sha256": "8f74dae3b7c9a0c5505f10dffbdabbe23ec1c2d9a5138b37cfca13b26b032425",
+        "words": 2903424
+      },
+      {
+        "bytes": 11613696,
+        "format": "u32le",
+        "path": "tasks.u32le",
+        "sha256": "8f74dae3b7c9a0c5505f10dffbdabbe23ec1c2d9a5138b37cfca13b26b032425",
+        "words": 2903424
+      }
+    ],
+    "partitions": [
+      {
+        "dst_len": 65536,
+        "dst_offset": 0,
+        "id": 0,
+        "offset_words": 0,
+        "words": 1696688
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 65536,
+        "id": 1,
+        "offset_words": 1696688,
+        "words": 742160
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 131072,
+        "id": 2,
+        "offset_words": 2438848,
+        "words": 342208
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 196608,
+        "id": 3,
+        "offset_words": 2781056,
+        "words": 122368
+      }
+    ],
+    "pr_initial_arithmetic_admitted": false,
+    "publication_rate_error_pct": null,
+    "status": "ORIGINAL_HOST_TOPOLOGY_PASS_NOT_PR_ARITHMETIC_OR_DEVICE_TIMING",
+    "summary": {
+      "aligned_vertices": 262144,
+      "big": 0,
+      "dense_partitions": 4,
+      "edge_bytes_max_channel": 3049984,
+      "initial_arithmetic_rejections": 6,
+      "kind": "original_regraph_host_layout",
+      "little": 4,
+      "logical_edges": 1450899,
+      "max_initial_sum": 185325,
+      "partitions": 4,
+      "passed": true,
+      "seed": 73,
+      "source_allocation_rejections": 0,
+      "sparse_groups": 0,
+      "task_dummy_edges": 813,
+      "task_physical_edges": 1451712,
+      "vertices": 258046
+    },
+    "tasks": [
+      {
+        "dst_len": 65536,
+        "dst_offset": 0,
+        "kernel": 0,
+        "kind": "dense",
+        "offset_words": 0,
+        "partition": 0,
+        "subpartition": 0,
+        "words": 424320
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 0,
+        "kernel": 1,
+        "kind": "dense",
+        "offset_words": 424320,
+        "partition": 0,
+        "subpartition": 1,
+        "words": 424192
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 0,
+        "kernel": 2,
+        "kind": "dense",
+        "offset_words": 848512,
+        "partition": 0,
+        "subpartition": 2,
+        "words": 424320
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 0,
+        "kernel": 3,
+        "kind": "dense",
+        "offset_words": 1272832,
+        "partition": 0,
+        "subpartition": 3,
+        "words": 423856
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 65536,
+        "kernel": 3,
+        "kind": "dense",
+        "offset_words": 1696688,
+        "partition": 1,
+        "subpartition": 0,
+        "words": 196864
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 65536,
+        "kernel": 2,
+        "kind": "dense",
+        "offset_words": 1893552,
+        "partition": 1,
+        "subpartition": 1,
+        "words": 196736
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 65536,
+        "kernel": 1,
+        "kind": "dense",
+        "offset_words": 2090288,
+        "partition": 1,
+        "subpartition": 2,
+        "words": 196736
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 65536,
+        "kernel": 0,
+        "kind": "dense",
+        "offset_words": 2287024,
+        "partition": 1,
+        "subpartition": 3,
+        "words": 151824
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 131072,
+        "kernel": 0,
+        "kind": "dense",
+        "offset_words": 2438848,
+        "partition": 2,
+        "subpartition": 0,
+        "words": 82944
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 131072,
+        "kernel": 1,
+        "kind": "dense",
+        "offset_words": 2521792,
+        "partition": 2,
+        "subpartition": 1,
+        "words": 105216
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 131072,
+        "kernel": 2,
+        "kind": "dense",
+        "offset_words": 2627008,
+        "partition": 2,
+        "subpartition": 2,
+        "words": 106624
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 131072,
+        "kernel": 3,
+        "kind": "dense",
+        "offset_words": 2733632,
+        "partition": 2,
+        "subpartition": 3,
+        "words": 47424
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 196608,
+        "kernel": 3,
+        "kind": "dense",
+        "offset_words": 2781056,
+        "partition": 3,
+        "subpartition": 0,
+        "words": 22784
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 196608,
+        "kernel": 2,
+        "kind": "dense",
+        "offset_words": 2803840,
+        "partition": 3,
+        "subpartition": 1,
+        "words": 34816
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 196608,
+        "kernel": 1,
+        "kind": "dense",
+        "offset_words": 2838656,
+        "partition": 3,
+        "subpartition": 2,
+        "words": 36096
+      },
+      {
+        "dst_len": 65536,
+        "dst_offset": 196608,
+        "kernel": 0,
+        "kind": "dense",
+        "offset_words": 2874752,
+        "partition": 3,
+        "subpartition": 3,
+        "words": 28672
+      }
+    ]
+  },
+  "layout_audit": {
+    "assumptions": {
+      "empty_segment_exit_cycles": 73,
+      "prefetch_rows": 8,
+      "row_control_cycles": 6,
+      "segment_slots": 16,
+      "stop_after_last": true,
+      "unique_pairs_no_reserved_updates": true
+    },
+    "longest_worker_serial_row_and_empty_cycle_lower_bound": 17372511,
+    "partitions": [
+      {
+        "dummy_slots": 2023998,
+        "empty_rows_visited": 78538,
+        "forced_dummy_source_zero_segments": 0,
+        "last_nonempty_source": 258045,
+        "live_edges": 848130,
+        "nonempty_sources": 179508,
+        "partition": 0,
+        "physical_slots": 2872128,
+        "row_read_requests": 258046,
+        "rows_visited": 258046,
+        "segments": 179508,
+        "serial_empty_exit_cycles": 5733274,
+        "serial_row_control_cycles": 1548276,
+        "source_zero_live_edges": 8
+      },
+      {
+        "dummy_slots": 2123933,
+        "empty_rows_visited": 102119,
+        "forced_dummy_source_zero_segments": 0,
+        "last_nonempty_source": 258044,
+        "live_edges": 370883,
+        "nonempty_sources": 155926,
+        "partition": 1,
+        "physical_slots": 2494816,
+        "row_read_requests": 258046,
+        "rows_visited": 258045,
+        "segments": 155926,
+        "serial_empty_exit_cycles": 7454687,
+        "serial_row_control_cycles": 1548270,
+        "source_zero_live_edges": 2
+      },
+      {
+        "dummy_slots": 1411678,
+        "empty_rows_visited": 159126,
+        "forced_dummy_source_zero_segments": 1,
+        "last_nonempty_source": 258036,
+        "live_edges": 170898,
+        "nonempty_sources": 98910,
+        "partition": 2,
+        "physical_slots": 1582576,
+        "row_read_requests": 258040,
+        "rows_visited": 258037,
+        "segments": 98911,
+        "serial_empty_exit_cycles": 11616198,
+        "serial_row_control_cycles": 1548222,
+        "source_zero_live_edges": 0
+      },
+      {
+        "dummy_slots": 599284,
+        "empty_rows_visited": 216771,
+        "forced_dummy_source_zero_segments": 1,
+        "last_nonempty_source": 258037,
+        "live_edges": 60988,
+        "nonempty_sources": 41266,
+        "partition": 3,
+        "physical_slots": 660272,
+        "row_read_requests": 258040,
+        "rows_visited": 258038,
+        "segments": 41267,
+        "serial_empty_exit_cycles": 15824283,
+        "serial_row_control_cycles": 1548228,
+        "source_zero_live_edges": 0
+      }
+    ],
+    "scope": "static_CSR_layout_work_not_runtime_stall_or_FPGA_attribution"
+  },
+  "maximum_cycles_per_path": 100000000,
+  "memory": {
+    "backend": "MockMemoryBackend_not_DRAMSim3_or_FPGA",
+    "clock_mhz": 150,
+    "issue_interval": 1,
+    "latencies": [
+      64,
+      128
+    ],
+    "outstanding_per_channel": 32,
+    "response_credits_per_channel": 32
+  },
+  "model": {
+    "a4_apply_post_read": [
+      1,
+      1,
+      2
+    ],
+    "a4_apply_response_anchored": true,
+    "a4_axi_independent_read_write": false,
+    "k4_axi_independent_read_write": true,
+    "k4_profile_reference": "configs/architectures/grasu_regraph_routed_sssp_compute_v4.json",
+    "k4_profile_sha256": "9a521a8fdefae9b50586ad8ba4560079c40a6b0dccc85f6bbd78957fa1547fd7"
+  },
+  "python_executable": "/usr/bin/python3",
+  "runs": [
+    {
+      "available_before_bytes": 52455510016,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/probe",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/topology.txt",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/author_capture",
+        "73",
+        "1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "label": "author_layout",
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 383820,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/author_layout.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/author_layout.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.1324635837227106
+    },
+    {
+      "available_before_bytes": 52656336896,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_real_round",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse0",
+        "64",
+        "0",
+        "100000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "label": "cold_lat64_reverse0",
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 215780,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/cold_lat64_reverse0.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/cold_lat64_reverse0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 21.816590952686965
+    },
+    {
+      "available_before_bytes": 52560162816,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_real_round",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/cold",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/cold_lat64_reverse1",
+        "64",
+        "1",
+        "100000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "label": "cold_lat64_reverse1",
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 216048,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/cold_lat64_reverse1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/cold_lat64_reverse1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 21.510699761100113
+    },
+    {
+      "available_before_bytes": 52570861568,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_real_round",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse0",
+        "64",
+        "0",
+        "100000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "label": "warm_update_lat64_reverse0",
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 215760,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/warm_update_lat64_reverse0.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/warm_update_lat64_reverse0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 22.065581303089857
+    },
+    {
+      "available_before_bytes": 52646486016,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_real_round",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat64_reverse1",
+        "64",
+        "1",
+        "100000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "label": "warm_update_lat64_reverse1",
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 215812,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/warm_update_lat64_reverse1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/warm_update_lat64_reverse1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 21.81492406129837
+    },
+    {
+      "available_before_bytes": 52497510400,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_real_round",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse0",
+        "128",
+        "0",
+        "100000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "label": "warm_update_lat128_reverse0",
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 216024,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/warm_update_lat128_reverse0.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/warm_update_lat128_reverse0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 29.82965192804113
+    },
+    {
+      "available_before_bytes": 52482461696,
+      "command": [
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/cpp/original_regraph_sssp_real_round",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/inputs/warm_update",
+        "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/states/warm_update_lat128_reverse1",
+        "128",
+        "1",
+        "100000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "label": "warm_update_lat128_reverse1",
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 215688,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/warm_update_lat128_reverse1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/raw/warm_update_lat128_reverse1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 28.92854336835444
+    }
+  ],
+  "schema_version": 2,
+  "scope": "multi_partition_extension_of_unchanged_single_round_model_not_hardware_performance",
+  "selection": {
+    "duplicate_rows_removed": 0,
+    "excluded_rows": 3707489,
+    "external_id_range_inclusive": [
+      1,
+      258048
+    ],
+    "id_transform": "subtract_one_then_author_DBG",
+    "logical_edges": 1450899,
+    "not_claimed": [
+      "full_original_graph",
+      "physical_ID_locality",
+      "original_published_SSSP_weights"
+    ],
+    "original_source_lookahead_padding_vertices": 4096,
+    "requested_external_id_upper_bound": 258048,
+    "selection": "directed_induced_unique_pairs_no_degree_cap_no_synthetic_edges",
+    "source": {
+      "path": "/data/feiyang/ReGraph/dataset/amazon-2008.mtx",
+      "sha256": "60b383901873b49883d0c67d8b524244ada1977719d25c834014b75238f3a815"
+    },
+    "source_rows": 5158388,
+    "topology": {
+      "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/topology.txt",
+      "sha256": "53050c7767b66b1461246aae2bb87685174d97e2049f853fca97b9494ef8d258"
+    },
+    "trailing_unused_IDs_omitted_by_author_loader": 2,
+    "vertices": 258046,
+    "weight_rule": "1 + ((normalized_source * 17 + normalized_destination * 13) % 31)"
+  },
+  "sources": [
+    {
+      "path": "configs/experiments/original_regraph_inputs_v1.json",
+      "sha256": "4137531f160db62024e72f4fc4cb129c63fea8810c92f18b0e48f1fc6246ba38"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/__init__.py",
+      "sha256": "df165d06dd32f6c2daff86860d985aea296f072c0b380286c9291eede9450468"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/analysis.py",
+      "sha256": "868c5ae276a79614fa2d78f7e89fcabce9654792b1f0c660904e002294209d80"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/archive.py",
+      "sha256": "3c0a4f9b31d21986dd96e3bae020ec28278288b57a5b3270811c52627d77390d"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/contract.py",
+      "sha256": "1701da859a1c4abac72b3d071e45a4ac6e95b10aab0f1d31a44d97cd57a3da23"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/delivery.py",
+      "sha256": "b713e071c962497f5906abf8b4d50eb851685d60e5f97f14fe0a2a3f9e7c2b7b"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/history.py",
+      "sha256": "1a88a95d7ea0360bc4ce2c1b7a9565b8ead130254d187b0699958f47b9a8124a"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/layout_audit.py",
+      "sha256": "63ea65b89fc3c8da637dd0eae59a5771afedfbe4f4b06c3f79e4d240e3d2fac8"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/preparation.py",
+      "sha256": "7eda525081dbd9370f887612373afc048af796844b4189e2eba0c04724065741"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/original_regraph_execution/sssp_partition_round/study.py",
+      "sha256": "49836360f23a4c904ca403cf277d4283578fcbd3b43986152c6ba8111d305609"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+    },
+    {
+      "path": "spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+    }
+  ],
+  "status": "passed_four_partition_resident_round_diagnostic_only",
+  "subprocess_timeout_seconds": 180
+}

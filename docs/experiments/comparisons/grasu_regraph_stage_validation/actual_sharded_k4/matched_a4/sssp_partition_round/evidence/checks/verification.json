@@ -1,0 +1,34 @@
+{
+  "cpp_build": "build/original-a4-sssp-real-round-v3",
+  "cpp_status": "passed",
+  "cpp_tests": 28,
+  "files": [
+    {
+      "file": "verification-v6-python.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/verification-v6-python.stdout.txt"
+    },
+    {
+      "file": "verification-v6-python.stderr.txt",
+      "sha256": "485ab501d9b0743a535c10a8bdf0aba94b1c6c557c1e5940667ce88733dd20d8",
+      "source": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/verification-v6-python.stderr.txt"
+    },
+    {
+      "file": "verification-v6-python.resources.json",
+      "sha256": "6e9e6a9850b146543cf3379c95254675fd8f9f5c4a23b7efbd8683938bc34a68",
+      "source": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/verification-v6-python.resources.json"
+    },
+    {
+      "file": "verification-v6-python.progress.json",
+      "sha256": "996ac6dc19498a6f13e92d457f7fc96f81f9e3766dacb108b65fc382b34a7c16",
+      "source": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/verification-v6-python.progress.json"
+    },
+    {
+      "file": "LastTest.log",
+      "sha256": "39a6ac270bcc4e6cf6c84dab9be156e7a1bee9683fd1af794ee370b1965ea2d6",
+      "source": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-real-round-v3/Testing/Temporary/LastTest.log"
+    }
+  ],
+  "python_status": "passed",
+  "python_tests": 299
+}

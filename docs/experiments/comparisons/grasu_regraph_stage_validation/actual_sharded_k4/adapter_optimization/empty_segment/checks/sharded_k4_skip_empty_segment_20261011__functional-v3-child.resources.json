@@ -1,0 +1,19 @@
+{
+  "available_before_bytes": 55108620288,
+  "command": [
+    "bash",
+    "scripts/check_pma_to_regraph_adapter.sh",
+    "--out-dir",
+    "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/functional-v3"
+  ],
+  "cwd": "/home/chuxiao/grasu-regraph-integration",
+  "exit_code": 0,
+  "memory_limit_gib": 8,
+  "peak_rss_kib": 288504,
+  "reserve_gib": 16,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/functional-v3-child.stderr.txt",
+  "stdout": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/functional-v3-child.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 20.10393449710682
+}
