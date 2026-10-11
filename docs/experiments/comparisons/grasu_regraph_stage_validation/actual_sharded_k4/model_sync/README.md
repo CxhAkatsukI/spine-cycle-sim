@@ -5,6 +5,12 @@ production simulator, timing calibration, or original-A4 performance match.
 The [paired FPGA results](../adapter_optimization/BOARD_RESULTS.md) remain
 unchanged. No paper, figure inputs, v8 profile or frozen plugin is replaced.
 
+The later [compute/port checkpoint](compute_ports/README.md) also extracts
+Gather, merger, Apply and source-state writing and validates finite shared
+AXI clients. It preserves the five legacy results separately; complete K4
+composition and hardware timing admission remain open. The archive and
+adapter-checkpoint claims on this page remain frozen.
+
 ## Status And Reading Order
 
 | Gate | Status and scope |

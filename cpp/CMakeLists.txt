@@ -6,11 +6,16 @@ add_library(spine_cycle_core STATIC
   src/grasu.cpp
   src/grasu_native.cpp
   src/grasu_regraph.cpp
+  src/grasu_regraph_gather.cpp
+  src/grasu_regraph_merger.cpp
+  src/grasu_regraph_apply.cpp
+  src/grasu_regraph_writeback.cpp
   src/grasu_regraph_legacy_reader.cpp
   src/grasu_regraph_runtime.cpp
   src/grasu_sharded_update.cpp
   src/memory_backend.cpp
   src/regraph_pma_adapter.cpp
+  src/shared_axi_port.cpp
   src/scheduler.cpp
   src/spine_dirty.cpp
   src/spine_l0.cpp
@@ -74,6 +79,16 @@ if(BUILD_TESTING)
   target_link_libraries(routed_pma_adapter_tests PRIVATE spine_cycle_core)
   target_compile_options(routed_pma_adapter_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME routed_pma_adapter_tests COMMAND routed_pma_adapter_tests)
+
+  add_executable(shared_axi_port_tests tests/routed_regraph/shared_axi_tests.cpp)
+  target_link_libraries(shared_axi_port_tests PRIVATE spine_cycle_core)
+  target_compile_options(shared_axi_port_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME shared_axi_port_tests COMMAND shared_axi_port_tests)
+
+  add_executable(regraph_compute_port_tests tests/routed_regraph/compute_ports_tests.cpp)
+  target_link_libraries(regraph_compute_port_tests PRIVATE spine_cycle_core)
+  target_compile_options(regraph_compute_port_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME regraph_compute_port_tests COMMAND regraph_compute_port_tests)
 
   add_executable(original_grasu_execution tests/original_grasu/execution.cpp)
   target_link_libraries(original_grasu_execution PRIVATE original_grasu_cycle)

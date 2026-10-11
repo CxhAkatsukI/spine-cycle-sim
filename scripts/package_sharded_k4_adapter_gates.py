@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from spine_cycle_sim.experiments.sharded_k4_stages.optimization_delivery import package_pre_route
 from spine_cycle_sim.experiments.sharded_k4_stages.board_delivery import package_board
 from spine_cycle_sim.experiments.sharded_k4_stages.model_delivery import package_model_adapter
+from spine_cycle_sim.experiments.sharded_k4_stages.compute_delivery import package_model_compute
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
@@ -16,11 +17,16 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--board-case", action="append", help="completed paired-run child directory; repeat for each case")
     parser.add_argument("--model-adapter", action="store_true", help="package model-component and legacy-regression gates")
+    parser.add_argument("--model-compute", action="store_true", help="package compute extraction and shared-port gates")
     args = vars(parser.parse_args())
     model = args.pop("model_adapter")
-    if model and args["board_case"]:
+    compute = args.pop("model_compute")
+    if sum((model, compute, bool(args["board_case"]))) > 1:
         parser.error("model and board evidence require separate packages")
-    if model:
+    if compute:
+        args.pop("board_case")
+        result = package_model_compute(**args)
+    elif model:
         args.pop("board_case")
         result = package_model_adapter(**args)
     elif args["board_case"]:

@@ -21,6 +21,7 @@ PMA timing control. Start with the
 | `board_delivery.py` | Raw-log revalidation and a separate immutable routed/paired-board package |
 | `model_adapter.py` | Finite adapter and production-HLS shared-fixture checks; no timing admission |
 | `model_delivery.py` | Exact legacy regression and adapter-component evidence package |
+| `compute_delivery.py` | Compute extraction and finite shared-port evidence; not candidate system timing |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`; the production simulator is

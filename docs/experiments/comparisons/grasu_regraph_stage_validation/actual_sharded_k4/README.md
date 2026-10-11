@@ -14,6 +14,9 @@ other optimized algorithms and matched original-A4 performance remain open.
 The [model synchronization checkpoint](model_sync/README.md) records the
 behavior-preserving reader extraction and new shared-master adapter tests;
 it does not claim complete system integration or timing calibration.
+The next [compute/port checkpoint](model_sync/compute_ports/README.md) extracts
+the compute stages and validates finite shared-master clients with their
+arithmetic, while retaining the same open system/timing gates.
 The initial raw package below remains
 frozen and does not contain the later candidate build.
 The [raw file index](raw_index.json) covers all 27 board logs and the

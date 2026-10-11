@@ -96,5 +96,8 @@ documents the fixed regression matrix; readers, compute, and round control
 previously shared a larger implementation file. The subsequent
 [actual-K4 model checkpoint](../../experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/README.md)
 extracts the legacy PMA reader and validates a separately owned raw AXIS
-adapter. Source service, compute and round control still need further work;
-the new adapter is not yet selected by a production profile.
+adapter. The subsequent [compute/port checkpoint](../../experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/compute_ports/README.md)
+extracts Gather, merger, Apply and source-state writing and connects their
+arithmetic to finite shared-port clients in tests. Source service, per-kernel
+dispatch and whole-round backend composition still need further work; the
+new topology is not yet selected by a production profile.

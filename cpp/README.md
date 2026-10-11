@@ -30,7 +30,9 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | G+R HBM buffer placement and capacity checks | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph_runtime.cpp](src/grasu_regraph_runtime.cpp) |
 | G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
 | G+R legacy PMA reader | [private stream contract](src/detail/grasu_regraph_streams.hpp) | [grasu_regraph_legacy_reader.cpp](src/grasu_regraph_legacy_reader.cpp) |
-| G+R source service, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
+| G+R legacy source service, composition and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
+| G+R Gather, merger, Apply and source-state writer | [private compute contract](src/detail/grasu_regraph_compute.hpp) | [gather](src/grasu_regraph_gather.cpp), [merger](src/grasu_regraph_merger.cpp), [apply](src/grasu_regraph_apply.cpp), [writeback](src/grasu_regraph_writeback.cpp) |
+| Shared physical AXI clients | [queue view](include/spine_sim/axi_endpoint.hpp), [finite mux](include/spine_sim/shared_axi_port.hpp) | [shared_axi_port.cpp](src/shared_axi_port.cpp); candidate building block, not yet a selected production topology |
 | Routed shared-master PMA adapter building block | [regraph_pma_adapter.hpp](include/spine_sim/regraph_pma_adapter.hpp) | [regraph_pma_adapter.cpp](src/regraph_pma_adapter.cpp); not yet selected by a production topology |
 | Independent original-ReGraph Little path, PR state and separate Big omega/banks/merge | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
 | Independent finite PMA input for matched original A4 | [pma_adapter/](include/spine_sim/pma_adapter/) | [reader.cpp](src/pma_adapter/reader.cpp); separate library, not production SST |
@@ -141,13 +143,17 @@ changing their public header or function bodies:
 2. Sharded update orchestration consumes that placement and the update batch;
    it launches the existing native update engine one destination shard at a
    time, preserves degree initialization, and combines counters.
-3. The legacy combined PMA reader is now separately owned; source service,
-   gather/merge/apply and round control remain in `grasu_regraph.cpp`.
-   Their next extraction must preserve registration order, FIFO ownership,
-   and shared-downstream backpressure. The separate
+3. The legacy combined PMA reader is separately owned. Gather, merger, Apply
+   and the source-state writer now have separate implementations as well;
+   source service, legacy composition and round control remain in
+   `grasu_regraph.cpp`. The separate
    [adapter synchronization checkpoint](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/README.md)
    records a new full-result equivalence gate and a raw-adapter building block,
    not a completed candidate system or timing calibration.
+4. The [compute/port checkpoint](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/compute_ports/README.md)
+   preserves all five legacy results and tests finite shared-master clients
+   with the extracted arithmetic. Actual per-kernel dispatch, source-block
+   scheduling and one-round backend integration remain open.
 
 The [refactor record](../docs/repository/grasu_component_refactor/README.md)
 contains the fixed pre/post SST matrix and full-result comparison. This is

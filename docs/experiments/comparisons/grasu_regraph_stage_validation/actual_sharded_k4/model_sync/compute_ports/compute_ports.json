@@ -1,0 +1,489 @@
+{
+  "claim": "extracted_arithmetic_and_finite_shared_ports_not_complete_routed_system",
+  "component_cases": {
+    "connected_compute": 25,
+    "ctest_executables": 18,
+    "shared_axi": 72
+  },
+  "legacy": {
+    "extracted": {
+      "cases": [
+        {
+          "backend_requests": 33848,
+          "case": "sssp_mixed_cold",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 99885,
+          "equivalent": true,
+          "result_hashes": [
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+          ]
+        },
+        {
+          "backend_requests": 1775700,
+          "case": "sssp_multipart_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 5997674,
+          "equivalent": true,
+          "result_hashes": [
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+          ]
+        },
+        {
+          "backend_requests": 50741,
+          "case": "cc_reciprocal",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 133841,
+          "equivalent": true,
+          "result_hashes": [
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+          ]
+        },
+        {
+          "backend_requests": 997048,
+          "case": "residual_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 1487890,
+          "equivalent": true,
+          "result_hashes": [
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+          ]
+        },
+        {
+          "backend_requests": 48,
+          "case": "residual_update_only",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 200,
+          "equivalent": true,
+          "result_hashes": [
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+          ]
+        }
+      ],
+      "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+      "correctness_admitted_cases": 5,
+      "ignored_result_fields": [],
+      "known_rejections": 0,
+      "status": "PASS"
+    },
+    "shared": {
+      "cases": [
+        {
+          "backend_requests": 33848,
+          "case": "sssp_mixed_cold",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 99885,
+          "equivalent": true,
+          "result_hashes": [
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+          ]
+        },
+        {
+          "backend_requests": 1775700,
+          "case": "sssp_multipart_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 5997674,
+          "equivalent": true,
+          "result_hashes": [
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+          ]
+        },
+        {
+          "backend_requests": 50741,
+          "case": "cc_reciprocal",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 133841,
+          "equivalent": true,
+          "result_hashes": [
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+          ]
+        },
+        {
+          "backend_requests": 997048,
+          "case": "residual_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 1487890,
+          "equivalent": true,
+          "result_hashes": [
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+          ]
+        },
+        {
+          "backend_requests": 48,
+          "case": "residual_update_only",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 200,
+          "equivalent": true,
+          "result_hashes": [
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+          ]
+        }
+      ],
+      "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+      "correctness_admitted_cases": 5,
+      "ignored_result_fields": [],
+      "known_rejections": 0,
+      "status": "PASS"
+    },
+    "shared_final": {
+      "cases": [
+        {
+          "backend_requests": 33848,
+          "case": "sssp_mixed_cold",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 99885,
+          "equivalent": true,
+          "result_hashes": [
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+          ]
+        },
+        {
+          "backend_requests": 1775700,
+          "case": "sssp_multipart_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 5997674,
+          "equivalent": true,
+          "result_hashes": [
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+          ]
+        },
+        {
+          "backend_requests": 50741,
+          "case": "cc_reciprocal",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 133841,
+          "equivalent": true,
+          "result_hashes": [
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+          ]
+        },
+        {
+          "backend_requests": 997048,
+          "case": "residual_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 1487890,
+          "equivalent": true,
+          "result_hashes": [
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+          ]
+        },
+        {
+          "backend_requests": 48,
+          "case": "residual_update_only",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 200,
+          "equivalent": true,
+          "result_hashes": [
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+          ]
+        }
+      ],
+      "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+      "correctness_admitted_cases": 5,
+      "ignored_result_fields": [],
+      "known_rejections": 0,
+      "status": "PASS"
+    }
+  },
+  "remaining": [
+    "production_candidate_scatter_and_pairwise_source_service",
+    "independent_adapter_gather_dispatch_and_ordered_mux",
+    "one_round_shared_apply_hbm_lifetime_and_status_write",
+    "distinct_candidate_profile_and_complete_system_gates",
+    "matched_hardware_component_and_system_timing",
+    "matched_original_A4_vs_actual_K4",
+    "publication_speed_match"
+  ],
+  "schema_version": 1,
+  "status": "LEGACY_EQUIVALENCE_AND_SHARED_COMPUTE_PORT_PASS",
+  "verification": {
+    "core_build_fixed": {
+      "available_before_bytes": 79065944064,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/core",
+        "-j2"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 12,
+      "peak_rss_kib": 689640,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/core_build_fixed.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/core_build_fixed.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 86.3198454962112
+    },
+    "extracted_plugin_build": {
+      "available_before_bytes": 79091892224,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "BUILD_DIR=/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extracted_plugin",
+        "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 12,
+      "peak_rss_kib": 1018656,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extracted_plugin_build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extracted_plugin_build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 103.92174472520128
+    },
+    "extraction_ctest": {
+      "available_before_bytes": 79112060928,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/core",
+        "--output-on-failure",
+        "--timeout",
+        "120"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 12,
+      "peak_rss_kib": 95160,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extraction_ctest.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extraction_ctest.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.571732566226274
+    },
+    "extraction_regression": {
+      "available_before_bytes": 79225655296,
+      "command": [
+        "taskset",
+        "-c",
+        "112-115",
+        "python3",
+        "scripts/run_grasu_refactor_regression.py",
+        "--lib-dir",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extracted_plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extracted",
+        "--baseline-dir",
+        "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_final",
+        "--jobs",
+        "2",
+        "--case-timeout-seconds",
+        "600"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 147660,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extraction_regression.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/extraction_regression.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 239.06566632725298
+    },
+    "final_connected_compute_test": {
+      "available_before_bytes": 79750688768,
+      "command": [
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/core/cpp/regraph_compute_port_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 15820,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/final_connected_compute_test.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/final_connected_compute_test.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05294092930853367
+    },
+    "final_core_build": {
+      "available_before_bytes": 79568637952,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/core",
+        "-j2"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 12,
+      "peak_rss_kib": 234384,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/final_core_build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/final_core_build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 2.6601265966892242
+    },
+    "final_core_ctest": {
+      "available_before_bytes": 79531106304,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/core",
+        "--output-on-failure",
+        "--timeout",
+        "120"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 12,
+      "peak_rss_kib": 95180,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/final_core_ctest.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/final_core_ctest.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.773026762064546
+    },
+    "final_shared_axi_test": {
+      "available_before_bytes": 79759228928,
+      "command": [
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/core/cpp/shared_axi_port_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 8,
+      "peak_rss_kib": 15820,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/final_shared_axi_test.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/final_shared_axi_test.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05310832476243377
+    },
+    "shared_final_regression": {
+      "available_before_bytes": 79781560320,
+      "command": [
+        "taskset",
+        "-c",
+        "112-115",
+        "python3",
+        "scripts/run_grasu_refactor_regression.py",
+        "--lib-dir",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_final",
+        "--baseline-dir",
+        "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_final",
+        "--jobs",
+        "2",
+        "--case-timeout-seconds",
+        "600"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 147664,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_final_regression.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_final_regression.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 242.24941676203161
+    },
+    "shared_plugin_build": {
+      "available_before_bytes": 79882637312,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "BUILD_DIR=/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_plugin",
+        "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 12,
+      "peak_rss_kib": 1018656,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_plugin_build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_plugin_build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 106.07111080409959
+    },
+    "shared_regression": {
+      "available_before_bytes": 79866621952,
+      "command": [
+        "taskset",
+        "-c",
+        "112-115",
+        "python3",
+        "scripts/run_grasu_refactor_regression.py",
+        "--lib-dir",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared",
+        "--baseline-dir",
+        "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_final",
+        "--jobs",
+        "2",
+        "--case-timeout-seconds",
+        "600"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 146760,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_regression.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_system_sync_20261011/shared_regression.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 235.8602939429693
+    }
+  }
+}
