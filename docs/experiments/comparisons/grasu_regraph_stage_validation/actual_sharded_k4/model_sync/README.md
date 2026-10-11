@@ -11,6 +11,13 @@ AXI clients. It preserves the five legacy results separately; complete K4
 composition and hardware timing admission remain open. The archive and
 adapter-checkpoint claims on this page remain frozen.
 
+The [frontend checkpoint and source-topology correction](frontend/README.md)
+adds connected Scatter/source tests and binary-bound provenance checks.
+**The measured SSSP XO has four independent source masters, not the two
+pairwise masters in the later HLS worktree.** The compute checkpoint's
+pairwise-wrapper description is not the SSSP calibration target. Its frozen
+component evidence remains valid within its original scope.
+
 ## Status And Reading Order
 
 | Gate | Status and scope |

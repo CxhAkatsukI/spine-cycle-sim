@@ -22,6 +22,8 @@ PMA timing control. Start with the
 | `model_adapter.py` | Finite adapter and production-HLS shared-fixture checks; no timing admission |
 | `model_delivery.py` | Exact legacy regression and adapter-component evidence package |
 | `compute_delivery.py` | Compute extraction and finite shared-port evidence; not candidate system timing |
+| `model_frontend.py` | Connected Scatter/source gates; distinguish measured XO from later HLS worktree |
+| `frontend_delivery.py` | Binary-source, finite frontend and unchanged-legacy evidence package |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`; the production simulator is

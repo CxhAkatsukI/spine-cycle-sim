@@ -58,6 +58,8 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/memory_backend.cpp \
            $(ROOT)/cpp/src/regraph_pma_adapter.cpp \
            $(ROOT)/cpp/src/shared_axi_port.cpp \
+           $(ROOT)/cpp/src/routed_regraph/source_service.cpp \
+           $(ROOT)/cpp/src/routed_regraph/scatter.cpp \
            $(ROOT)/cpp/src/scheduler.cpp \
            $(ROOT)/cpp/src/spine_dirty.cpp \
            $(ROOT)/cpp/src/spine_l0.cpp \

@@ -93,6 +93,7 @@ Read the [script guide](README.md) and the owning contract before execution.
 - [audit_spine_hot_transition_successor.py](audit_spine_hot_transition_successor.py)
 - [audit_upstream_publication_history.py](audit_upstream_publication_history.py)
 - [validate_sharded_k4_adapter_model.py](validate_sharded_k4_adapter_model.py)
+- [validate_sharded_k4_frontend_model.py](validate_sharded_k4_frontend_model.py)
 
 ## Execution and experiment drivers
 

@@ -17,6 +17,11 @@ it does not claim complete system integration or timing calibration.
 The next [compute/port checkpoint](model_sync/compute_ports/README.md) extracts
 the compute stages and validates finite shared-master clients with their
 arithmetic, while retaining the same open system/timing gates.
+The [frontend checkpoint](model_sync/frontend/README.md) adds connected
+Scatter/source gates and an important binary-identity correction: measured
+SSSP retains four independent source masters; the later HLS worktree uses
+two pairwise masters. Calibration must follow the measured XO, not that
+later source file. Whole-system scheduling and timing remain open.
 The initial raw package below remains
 frozen and does not contain the later candidate build.
 The [raw file index](raw_index.json) covers all 27 board logs and the

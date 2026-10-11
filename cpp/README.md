@@ -34,6 +34,7 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | G+R Gather, merger, Apply and source-state writer | [private compute contract](src/detail/grasu_regraph_compute.hpp) | [gather](src/grasu_regraph_gather.cpp), [merger](src/grasu_regraph_merger.cpp), [apply](src/grasu_regraph_apply.cpp), [writeback](src/grasu_regraph_writeback.cpp) |
 | Shared physical AXI clients | [queue view](include/spine_sim/axi_endpoint.hpp), [finite mux](include/spine_sim/shared_axi_port.hpp) | [shared_axi_port.cpp](src/shared_axi_port.cpp); candidate building block, not yet a selected production topology |
 | Routed shared-master PMA adapter building block | [regraph_pma_adapter.hpp](include/spine_sim/regraph_pma_adapter.hpp) | [regraph_pma_adapter.cpp](src/regraph_pma_adapter.cpp); not yet selected by a production topology |
+| Routed raw-packet Scatter and source-block service | [Scatter contract](src/detail/routed_regraph_scatter.hpp), [source contract](src/detail/routed_regraph_source.hpp) | [scatter](src/routed_regraph/scatter.cpp), [source service](src/routed_regraph/source_service.cpp); measured SSSP uses dedicated readers, later worktree uses pairwise readers |
 | Independent original-ReGraph Little path, PR state and separate Big omega/banks/merge | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
 | Independent finite PMA input for matched original A4 | [pma_adapter/](include/spine_sim/pma_adapter/) | [reader.cpp](src/pma_adapter/reader.cpp); separate library, not production SST |
 | Independent original-G search/cache/DDR composition | [original_grasu/](include/spine_sim/original_grasu/) | [original_grasu/](src/original_grasu/); shared four-bank control, separate library, not production SST |
@@ -154,6 +155,11 @@ changing their public header or function bodies:
    preserves all five legacy results and tests finite shared-master clients
    with the extracted arithmetic. Actual per-kernel dispatch, source-block
    scheduling and one-round backend integration remain open.
+5. The [frontend checkpoint](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/frontend/README.md)
+   adds connected raw-packet Scatter/source gates and corrects the source
+   topology identity: the measured SSSP XO has four source masters, whereas
+   the current HLS worktree has two pairwise masters. These variants must not
+   be substituted during calibration. Full-system wiring remains open.
 
 The [refactor record](../docs/repository/grasu_component_refactor/README.md)
 contains the fixed pre/post SST matrix and full-result comparison. This is
