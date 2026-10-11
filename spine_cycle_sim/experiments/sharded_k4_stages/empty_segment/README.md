@@ -18,6 +18,7 @@ before using its timings.
 | `route.py` | Preserve frozen single-XO preparation and memory-admission records |
 | `route_delivery.py` | Package a verified admission refusal as a non-start, not a route failure |
 | `route_execution.py` | Future route execution with pinned entry point and nonzero failure/refusal exit status |
+| `route_environment/` | Fresh route entry point with explicit vendor environment, bounded compatibility smoke, pins and honest memory refusal; leaves frozen wrappers intact |
 | `sensitivity/` | Isolated legacy-exact replay and uncalibrated empty-helper timing sensitivity; no production-profile change |
 
 Run these owners through `python3 -m ...empty_segment.MODULE --help`.
@@ -32,3 +33,6 @@ The [production checkpoint](../../../../docs/experiments/comparisons/grasu_regra
 passes XO compile/ABI checks, but records a memory-refused route non-start.
 The [model sensitivity guide](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/sensitivity/README.md)
 defines a separate twelve-run matrix and its complete-state/traffic gates.
+Use `python3 -m ...empty_segment.route_environment --help` for future route
+attempts; the [environment checkpoint](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/production/environment-admission/README.md)
+passes launcher/host-compiler smoke checks but still records a memory non-start.

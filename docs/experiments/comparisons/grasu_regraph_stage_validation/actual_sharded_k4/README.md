@@ -37,6 +37,12 @@ started: 51.56 GiB available is below its 40+16 GiB budget. Board validation
 and a separate model candidate remain open. This does not replace the
 negative fixed-model comparison above.
 
+The subsequent [route-environment checkpoint](adapter_optimization/empty_segment/production/environment-admission/README.md)
+passes six bounded launcher/host-compiler checks under explicitly pinned
+Vitis settings and GCC compatibility paths. Its fresh route-v2 was still
+not started: 51.73 GiB available is below the unchanged 56-GiB admission
+threshold. No new xclbin or board timing is admitted.
+
 The subsequent [empty-helper model sensitivity](adapter_optimization/empty_segment/sensitivity/README.md)
 passes twelve complete-state/traffic runs with exact legacy replay. Removing
 only the 73-cycle empty-helper wait reduces predicted one-round time by

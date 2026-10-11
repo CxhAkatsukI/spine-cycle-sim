@@ -38,6 +38,7 @@ production compile explicitly enables the candidate.
 | [current-v2](current-v2/verification.json) | Recompiled candidate with the prerequisite raw inputs and validation dependencies pinned before execution |
 | [route-preparation](route-preparation/verification.json) | Exact prepared command/configuration, original XO identities and recorded memory non-start |
 | [checks](checks/verification.json) | 327-test Python regression, sampled execution resources and reviewed owner snapshots |
+| [environment-admission](environment-admission/README.md) | Subsequent explicit environment/compatibility preflight; fresh route-v2 remains memory-refused, not routed |
 
 The v1 record is not silently replaced. Its ABI and compile checks passed,
 but some validation code and prerequisite raw inputs were not included in
@@ -95,14 +96,13 @@ timeout, a ten-GiB outer budget and 1,350-second timeout, and the same
 sixteen-GiB live reserve. Source changes require fresh gates/builds; do not
 edit a frozen manifest to make a new checkout satisfy it.
 
-Use `empty_segment.route_execution` for future prepare/admit/execute runs.
-It preserves link failures and returns a nonzero process status for failed
-or refused requested execution. The older `route` entry point is retained
-for the frozen non-start record; do not rely on its execution exit status.
-The production-v2 owner snapshots are intentionally unchanged by this
-execution-wrapper correction. The original link script's vendor environment
-and GCC compatibility include setup still require checking before a real
-launch; preparation alone has not tested that environment.
+The earlier `empty_segment.route_execution` fixes execution exit statuses
+but still inherits an unchecked caller environment. For future attempts use
+`empty_segment.route_environment`; its [subsequent checkpoint](environment-admission/README.md)
+passes explicit vendor-settings and GCC compatibility smoke checks while
+retaining the same refused memory budget. The older entry points and
+production-v2 owner snapshots remain unchanged for historical evidence.
+Neither preflight nor preparation admits routed timing.
 
 ## Verification Scope
 
