@@ -1,0 +1,539 @@
+{
+  "abi": {
+    "flags": {
+      "GRASU_REGRAPH_ROW_PREFETCH": "1",
+      "GRASU_REGRAPH_SHARDED_PMA": "1",
+      "GRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS": "1",
+      "GRASU_REGRAPH_SKIP_EMPTY_SEGMENT": "1",
+      "GRASU_REGRAPH_STOP_AFTER_LAST": "1",
+      "GRASU_REGRAPH_WEIGHTED_PMA": "1",
+      "_GTHREAD_USE_COND_INIT_FUNC": "1"
+    },
+    "interface": {
+      "args": [
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "0",
+          "name": "pma0",
+          "offset": "0x10",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "1",
+          "name": "pma1",
+          "offset": "0x1C",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "2",
+          "name": "pma2",
+          "offset": "0x28",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "3",
+          "name": "pma3",
+          "offset": "0x34",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "4",
+          "name": "row_offset",
+          "offset": "0x40",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "5",
+          "name": "node_count",
+          "offset": "0x4C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "6",
+          "name": "pma_slot_count",
+          "offset": "0x54",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "7",
+          "name": "max_cache_segment",
+          "offset": "0x5C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "8",
+          "name": "part_dst_offset",
+          "offset": "0x64",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "9",
+          "name": "part_vertex_count",
+          "offset": "0x6C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "4",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "10",
+          "memSize": "0x40",
+          "name": "edge_burst_out",
+          "offset": "0x0",
+          "origName": "edge_burst_out",
+          "origUse": "variable",
+          "port": "EDGE_BURST_OUT",
+          "size": "0x0",
+          "type": "stream<hls::axis<ap_uint<512>, 0, 0, 0, '8', false>, 0>&"
+        }
+      ],
+      "control": "ap_ctrl_chain",
+      "kernel": "pma_to_regraph_adapter",
+      "ports": [
+        {
+          "base": "0x0",
+          "dataWidth": "512",
+          "mode": "master",
+          "name": "M_AXI_GMEM0",
+          "portType": "addressable",
+          "range": "0xFFFFFFFF"
+        },
+        {
+          "dataWidth": "512",
+          "mode": "write_only",
+          "name": "EDGE_BURST_OUT",
+          "portType": "stream"
+        },
+        {
+          "base": "0x0",
+          "dataWidth": "32",
+          "mode": "slave",
+          "name": "S_AXI_CONTROL",
+          "portType": "addressable",
+          "range": "0x74"
+        }
+      ]
+    }
+  },
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/production/prior-v1/raw_production.tar.gz",
+    "sha256": "0fb53d4bfd5195887d44deef1b24376839a6713e38c4f39d1f6135ad4eb91d29"
+  },
+  "files": [
+    {
+      "bytes": 213976,
+      "path": "adapter.hw.xo",
+      "sha256": "9e03aa182bade0c36c0b1f675eeec11baab6ce48549000e872ab11724b5427d9"
+    },
+    {
+      "bytes": 780,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/hls.app",
+      "sha256": "0713b2831f926b92160fe94e86405fdbf3baea218a09001a5a8640d88bcfe7c9"
+    },
+    {
+      "bytes": 6041,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "4790f5ebdb2d5f26936684b586773479a99f400ac46882d6f172d743a0c4098a"
+    },
+    {
+      "bytes": 60351,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.rpt",
+      "sha256": "a7ac77d10b8fee0706d8e709ed6b3aafe85ccd8936e8e84491341676a017eee1"
+    },
+    {
+      "bytes": 195520,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth.xml",
+      "sha256": "c537c1ef51fcbf003e30fdf7ed8712b6830fcd0959b7c594459c4444d0734b66"
+    },
+    {
+      "bytes": 6702,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth_design_size.rpt",
+      "sha256": "8b471d26452fcfd9aae9d990423400785361c09a393cf69a543bc3dc04435db7"
+    },
+    {
+      "bytes": 4355,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/csynth_design_size.xml",
+      "sha256": "8a9b8d9a26cdbbbc7390dfea302d2592f639a1dbff38d5279458d9fb623281c1"
+    },
+    {
+      "bytes": 53351,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/emit_row_segments_Pipeline_segment_loop_csynth.rpt",
+      "sha256": "98fd52988b3bd08ddb4cdfb1ca41c896250c8a8250b3fd2d4bdc613ab8b0cd0d"
+    },
+    {
+      "bytes": 19191,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/emit_row_segments_Pipeline_segment_loop_csynth.xml",
+      "sha256": "961af7fb1372f23504a0aaf64bb9b3d1d3cbd0615b6c8a4303605b0e4f225053"
+    },
+    {
+      "bytes": 16776,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/emit_row_segments_csynth.rpt",
+      "sha256": "8929bc6a09d2e5c1ccbd93584f74675f9d10b50d8ed79d6322070117b7ee769f"
+    },
+    {
+      "bytes": 18174,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/emit_row_segments_csynth.xml",
+      "sha256": "5ada1bd88f17d46e9c7887edd528d379fddc6e4fd59f87851955c5a84c170043"
+    },
+    {
+      "bytes": 26484,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.rpt",
+      "sha256": "8e89f8f77eb43dc3e457a75eca8fb87f90eabc77842483f6d5867dfe2013c131"
+    },
+    {
+      "bytes": 19365,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_Pipeline_row_prefetch_loop_csynth.xml",
+      "sha256": "88d9feed2a8d7d35487c3533f5f942e3680d0ade40d921e1e393ce3cb56cb5c9"
+    },
+    {
+      "bytes": 23883,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.rpt",
+      "sha256": "9a80c613f730d99edbfee4eea62ad5756eb59e43b47190a49ece65ae6b028846"
+    },
+    {
+      "bytes": 19796,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "2dff18594da73287fad310e3e0508ac8fb0210a4d950f9ff3dda0458976f8086"
+    },
+    {
+      "bytes": 70089,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter.v",
+      "sha256": "8bb37f11f4b98c813b8e0905370e28f7be45e3bb4df4f50d542b8199b9b7533a"
+    },
+    {
+      "bytes": 21964,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "bytes": 22893,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter_emit_row_segments.v",
+      "sha256": "01c508952b035c6aa521c09492d8ddc76edd901f098f36610ded3708efe8bb4e"
+    },
+    {
+      "bytes": 345984,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter_emit_row_segments_Pipeline_segment_loop.v",
+      "sha256": "d18d2c92cd025802d8db82886de2c10da31b7e7eebadf873754e698a17bf4dcd"
+    },
+    {
+      "bytes": 2788,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "bytes": 100997,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "bytes": 70641,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "sha256": "17722f0de2eff17383d23c107af5694da20a1e084d431dde7a7508e2251925c5"
+    },
+    {
+      "bytes": 3234,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "bytes": 1907,
+      "path": "build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/verilog/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "bytes": 414,
+      "path": "compile.progress.json",
+      "sha256": "73b458bd3674a61d3ecafce8e6638539f47624caea74c091e3ec1bfe21adeca2"
+    },
+    {
+      "bytes": 2249,
+      "path": "compile.resources.json",
+      "sha256": "3b843777f325415d939caa7e44aa3e42656793ac2e92deaa711a4443d7bac7b3"
+    },
+    {
+      "bytes": 0,
+      "path": "compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3302,
+      "path": "compile.stdout.txt",
+      "sha256": "70be30da9258cac7f630187b388bf2bc68f8c1aa83282692f8d7fa956516779d"
+    },
+    {
+      "bytes": 12496,
+      "path": "functional_gate/raw_functional.tar.gz",
+      "sha256": "e479956a6446ff186d58718f704a4f242b114bdb584e4fbfbf95b52abb10a485"
+    },
+    {
+      "bytes": 9296,
+      "path": "functional_gate/verification.json",
+      "sha256": "678de8b3343abbea60061721008c574f102d4cc38291a36d880c1039814070f6"
+    },
+    {
+      "bytes": 11348,
+      "path": "logs/adapter.hw/adapter.hw.steps.log",
+      "sha256": "55eca04fbe298fa7970d5b4f42c088bfc0ccf16af43256244251f658ab569a5e"
+    },
+    {
+      "bytes": 33750,
+      "path": "logs/adapter.hw/pma_to_regraph_adapter_vitis_hls.log",
+      "sha256": "4eabb32b3237982564e4ec78ad5f6f2b5b6a3f05767f9b57f3aeecb5c5de8ba6"
+    },
+    {
+      "bytes": 2864,
+      "path": "logs/adapter.hw/v++.log",
+      "sha256": "b3bc5a16bf77950b18bddc00224413a8f314e9f5856dd4c7e5629f2483d2383d"
+    },
+    {
+      "bytes": 2909,
+      "path": "logs/v++_adapter.hw.log",
+      "sha256": "c27d612a24da74d0c46e93e4257c54d69b96d44c31f61265d36910e9bc4e25de"
+    },
+    {
+      "bytes": 15952,
+      "path": "manifest.json",
+      "sha256": "025a635a257750fa1ff5420f890dd6196ed979c24c1f657ea59425f36006cabb"
+    },
+    {
+      "bytes": 23883,
+      "path": "reports/adapter.hw/hls_reports/pma_to_regraph_adapter_csynth.rpt",
+      "sha256": "9a80c613f730d99edbfee4eea62ad5756eb59e43b47190a49ece65ae6b028846"
+    },
+    {
+      "bytes": 3999,
+      "path": "reports/adapter.hw/system_estimate_adapter.hw.xtxt",
+      "sha256": "e4acf357780538697467d9d8b6610f92b1f0845f94c7eaffde81693609422eb1"
+    },
+    {
+      "bytes": 342784,
+      "path": "reports/adapter.hw/v++_compile_adapter.hw_guidance.html",
+      "sha256": "ba0b6da5d28518c7abace67ece7498f76bcd041d20b3896e03d697e6291b73d4"
+    },
+    {
+      "bytes": 10124,
+      "path": "results.json",
+      "sha256": "206c3976e984c1f73217fc0553451470eafbd55aefce277d3b62e2693fda56b7"
+    },
+    {
+      "bytes": 13302,
+      "path": "sources/00_pma_to_regraph_adapter.cpp",
+      "sha256": "18888511674387dcab9129f3aa26fde7b849628cba0a078151b9fd41cf7b94fd"
+    },
+    {
+      "bytes": 958,
+      "path": "sources/01_row_prefetch.hpp",
+      "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+    },
+    {
+      "bytes": 3556,
+      "path": "sources/02_pma_adapter_cosim_tb.cpp",
+      "sha256": "6e929865b584bf29480a63c9241cef561caa1e04f91a0ad9141010819f1222e8"
+    },
+    {
+      "bytes": 1599,
+      "path": "sources/03_pma_adapter_cosim.tcl",
+      "sha256": "2a354c2b0a4efb68a545a9e4f4ac83faf66eeee834aeb8172cd13e5a5fb27232"
+    },
+    {
+      "bytes": 4172,
+      "path": "sources/04_pma_to_regraph_adapter_tb.cpp",
+      "sha256": "75552a5e5123dbab95e3f1ef6def25520277d19c33653aa2782522d4abb749b0"
+    },
+    {
+      "bytes": 6345,
+      "path": "sources/05_pma_adapter_row_prefetch_tb.cpp",
+      "sha256": "8abcd4440022ca7559ef574847c2a484cf65ba6eee6e8f4a6a5833191f797e11"
+    },
+    {
+      "bytes": 5011,
+      "path": "sources/06_check_pma_to_regraph_adapter.sh",
+      "sha256": "27fb445a182f9e2533c73fcf97aa05a826b9a2a95422d0c7bef72bbbeccad3e3"
+    },
+    {
+      "bytes": 472,
+      "path": "sources/07_env.sh",
+      "sha256": "e9a7b13d8a878b7c27d86eb40c6914eaa02c9d651b6f9a75a1c875ac39590cb0"
+    },
+    {
+      "bytes": 4339,
+      "path": "sources/08_manifest.json",
+      "sha256": "4dbff3244fe18418957d84ac862d908e35376f7f2c54db23b1508308f604bc4c"
+    },
+    {
+      "bytes": 13948,
+      "path": "sources/09_results.json",
+      "sha256": "87e580e20294954f6c2b7367c75c36be42f4739e0e62989ea05d4aa4e026e91e"
+    },
+    {
+      "bytes": 2161,
+      "path": "sources/10_manifest.json",
+      "sha256": "4dca1bfd66733738c4e9b3e086e87a4939d90f40e1dae24a5b4b64a607f9757c"
+    },
+    {
+      "bytes": 734,
+      "path": "sources/11_execution.resources.json",
+      "sha256": "1282b2f15ea43eaee307f3f224038e8fc35a6ecb4375980dd575ca7b8f19b837"
+    },
+    {
+      "bytes": 186509,
+      "path": "sources/12_pma_to_regraph_adapter.hw.xo",
+      "sha256": "73720f3bd0469421feee58bb8754c40854acc1babedd404c017f5cf1fb2d6c7a"
+    },
+    {
+      "bytes": 42052,
+      "path": "sources/15_campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 3456,
+      "path": "sources/16_execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "bytes": 5296,
+      "path": "sources/17_execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "bytes": 5656,
+      "path": "sources/18_link_runtime.py",
+      "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+    },
+    {
+      "bytes": 1619,
+      "path": "sources/19_process_cleanup.py",
+      "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+    },
+    {
+      "bytes": 7230,
+      "path": "sources/20_routing.py",
+      "sha256": "00fbf2d2da34735ad054c4b0fc2d5276a9a374e11111b041dd50f1b52d46c664"
+    },
+    {
+      "bytes": 4506,
+      "path": "sources/21_synthesis.py",
+      "sha256": "ffca22354e7e494dbc5017185fe39cf8c49775b8c846692771c0928bc953b759"
+    },
+    {
+      "bytes": 67,
+      "path": "sources/22___init__.py",
+      "sha256": "a3c727addf953eee87fd10381ec2473a87f11c0c30682a1e6a21d3869b9ef9d9"
+    },
+    {
+      "bytes": 2925,
+      "path": "sources/23_analysis.py",
+      "sha256": "51941ad22ffe4a40d465852112e3ccc20715a16a8a526acaba677b4f6aedb8f2"
+    },
+    {
+      "bytes": 3937,
+      "path": "sources/24_delivery.py",
+      "sha256": "b9d4f8370f8ee7768b11ee732df5a3d8d9d64a65e649f40922cb9253d5bb9c19"
+    },
+    {
+      "bytes": 5803,
+      "path": "sources/25_functional.py",
+      "sha256": "ceac968c8d9fd43fb28ef2a48193e58c2bc754ecb617fbb8df0950b3db484b35"
+    },
+    {
+      "bytes": 7772,
+      "path": "sources/26_production.py",
+      "sha256": "c2c401eb18720101743a5bf9806e7dc0ba87418d7f575827ca80216610441153"
+    },
+    {
+      "bytes": 5121,
+      "path": "sources/27_study.py",
+      "sha256": "723cdfa5cb7aae07eef6d772fa1ab049321637b7b093f0da75dac50919f323d2"
+    },
+    {
+      "bytes": 4919,
+      "path": "sources/28_validation.py",
+      "sha256": "0ba3f02702b2e1285b1ec0c6348d4338602c5e2b79f814a39b278219ca26065d"
+    },
+    {
+      "bytes": 229,
+      "path": "watchdog/production-v1_watchdog.progress.json",
+      "sha256": "1b9dc565ad60b3ab0f180fe7be30a6929bf307b06b97139edaad93e242766428"
+    },
+    {
+      "bytes": 1716,
+      "path": "watchdog/production-v1_watchdog.resources.json",
+      "sha256": "cca7000ee45be115573562c7ff39ef3b95c2812080ec7765b95c5ce107fd1a22"
+    },
+    {
+      "bytes": 0,
+      "path": "watchdog/production-v1_watchdog.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 48,
+      "path": "watchdog/production-v1_watchdog.stdout.txt",
+      "sha256": "21e52a08df8a42fe1a0e90411fdbd6c1721e1e02cdd0372a65881cdaa98f50b7"
+    }
+  ],
+  "not_admitted": [
+    "routed_timing",
+    "FPGA_speedup",
+    "original_A4_matching",
+    "simulator_timing"
+  ],
+  "prerequisite_paired_report": {
+    "path": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/paired-v2/results.json",
+    "sha256": "87e580e20294954f6c2b7367c75c36be42f4739e0e62989ea05d4aa4e026e91e"
+  },
+  "results": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/production/prior-v1/results.json",
+    "sha256": "206c3976e984c1f73217fc0553451470eafbd55aefce277d3b62e2693fda56b7"
+  },
+  "source_snapshots_rechecked": true,
+  "status": "production_XO_ABI_rechecked_not_routed"
+}

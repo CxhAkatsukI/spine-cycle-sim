@@ -1,0 +1,299 @@
+{
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/production/checks/raw_regression.tar.gz",
+    "sha256": "685543cd82bf1e7758071f7f427e483ec813f0e7a564075e5dc20b48bf9b7c62"
+  },
+  "cpp_tests": "28-test earlier frozen gate retained; not rerun in this Python-only checkpoint",
+  "files": [
+    {
+      "bytes": 2179,
+      "path": "raw/production-regression-v1.resources.json",
+      "sha256": "cb3435827bef03210af7a0b5f8d30837efe1c5d73b3ba78831cd249150724afb"
+    },
+    {
+      "bytes": 428,
+      "path": "raw/production-regression-v1.stderr.txt",
+      "sha256": "4eaf4bc0aae4395785ff67a65940d2d3d3f429b37752f5975a8a0b3c712f2288"
+    },
+    {
+      "bytes": 0,
+      "path": "raw/production-regression-v1.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 220,
+      "path": "raw/production-regression-v1.progress.json",
+      "sha256": "807e4334c0cddb137c449ef6765f71930c220e849572964b8e412e57962e3de7"
+    },
+    {
+      "bytes": 67,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/__init__.py",
+      "sha256": "a3c727addf953eee87fd10381ec2473a87f11c0c30682a1e6a21d3869b9ef9d9"
+    },
+    {
+      "bytes": 2925,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/analysis.py",
+      "sha256": "51941ad22ffe4a40d465852112e3ccc20715a16a8a526acaba677b4f6aedb8f2"
+    },
+    {
+      "bytes": 3937,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/delivery.py",
+      "sha256": "b9d4f8370f8ee7768b11ee732df5a3d8d9d64a65e649f40922cb9253d5bb9c19"
+    },
+    {
+      "bytes": 5803,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/functional.py",
+      "sha256": "ceac968c8d9fd43fb28ef2a48193e58c2bc754ecb617fbb8df0950b3db484b35"
+    },
+    {
+      "bytes": 8282,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/production.py",
+      "sha256": "9bb8f97ab2f4fbbc68be89602d56b6e3ef7ad5778e658ee6877f41174fa26e12"
+    },
+    {
+      "bytes": 3047,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/production_delivery.py",
+      "sha256": "46eac1768c867483758d2e2afb4b860eaf582af85ee0f9758e063e8359cba73e"
+    },
+    {
+      "bytes": 4967,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/production_validation.py",
+      "sha256": "3a0f72282bca7ba048da6a835262556d5f1371f35a2a75a5df6eec748c411ded"
+    },
+    {
+      "bytes": 5547,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/route.py",
+      "sha256": "6e2869c7fb386c8216d55f2fc3d1dabd5c2564d0f1099500ca255db6700da481"
+    },
+    {
+      "bytes": 3052,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/route_delivery.py",
+      "sha256": "43e9b97f89f4af51520390e7d6f4482a87871b39147112e9d19b349abd420f5a"
+    },
+    {
+      "bytes": 3238,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/route_execution.py",
+      "sha256": "3b779ed3271d133295a68759bd75c70abca4bec9e3ee3e115db0bc05ad48a485"
+    },
+    {
+      "bytes": 5121,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/study.py",
+      "sha256": "723cdfa5cb7aae07eef6d772fa1ab049321637b7b093f0da75dac50919f323d2"
+    },
+    {
+      "bytes": 4919,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/validation.py",
+      "sha256": "0ba3f02702b2e1285b1ec0c6348d4338602c5e2b79f814a39b278219ca26065d"
+    },
+    {
+      "bytes": 5656,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+    },
+    {
+      "bytes": 1619,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+    },
+    {
+      "bytes": 7743,
+      "path": "sources/spine_cycle_sim/experiments/sharded_k4_stages/routing.py",
+      "sha256": "569a83a1e07527433946433e3886db877790161ec6450bbbdb984d2e2e8a4214"
+    },
+    {
+      "bytes": 3950,
+      "path": "sources/tests/test_sharded_k4_empty_segment.py",
+      "sha256": "6da8d5309d4ae8e20a57e91b860bbc09e32429e7e25e722adf0c86d535ad0527"
+    },
+    {
+      "bytes": 3463,
+      "path": "sources/tests/test_sharded_k4_empty_segment_production.py",
+      "sha256": "0625799065d23454a80daa921a333277af617f516ca51e6c331335d7497e59f4"
+    },
+    {
+      "bytes": 4916,
+      "path": "sources/tests/test_sharded_k4_empty_segment_production_package.py",
+      "sha256": "6735a425f6b38a15a9f64ebf91552b8e0ab864f31a4b2574b88814dfec9b5308"
+    },
+    {
+      "bytes": 5630,
+      "path": "sources/tests/test_sharded_k4_empty_segment_route.py",
+      "sha256": "8c3e54777c8bc4456772ded594e5b48c86dfe70c7c146505a607349796d50f40"
+    },
+    {
+      "bytes": 10024,
+      "path": "sources/tests/test_sharded_k4_empty_segment_route_execution.py",
+      "sha256": "d58344b8b7f8b9b0921427e5f1805344a680492161c599f22afff862fd8c3056"
+    }
+  ],
+  "not_admitted": [
+    "route",
+    "FPGA_timing",
+    "simulator_timing",
+    "A4_matching"
+  ],
+  "numerical_CXX_changed": false,
+  "python_tests": 327,
+  "resources": {
+    "available_before_bytes": 55384670208,
+    "cleanup_scope": "pidfd_bound_observed_workers_not_cgroup_containment",
+    "cleanup_signaled_pids": [],
+    "cleanup_snapshot_error": null,
+    "command": [
+      "/usr/bin/python3",
+      "-c",
+      "import unittest; loader=unittest.TestLoader(); suite=unittest.TestSuite(loader.discover(\"tests\",pattern=p) for p in (\"test_original_regraph*.py\",\"test_sharded_k4*.py\",\"test_repository_structure.py\",\"test_artifact_transport.py\")); result=unittest.TextTestRunner(verbosity=1).run(suite); raise SystemExit(not result.wasSuccessful())"
+    ],
+    "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+    "exit_code": 0,
+    "host_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127
+    ],
+    "minimum_available_bytes": 53238796288,
+    "observed_pids": [
+      1799412,
+      1800125,
+      1800127,
+      1800136,
+      1800157,
+      1800162
+    ],
+    "peak_tree_rss_kib": 2054816,
+    "per_process_address_space_gib": 64,
+    "reserve_gib": 16,
+    "rss_scope": "sampled_simultaneous_tree_sum_shared_pages_counted_per_process",
+    "stop_reason": "process_exit",
+    "timeout_seconds": 300,
+    "tree_memory_gib": 3,
+    "wall_seconds": 64.74053800478578
+  },
+  "status": "passed",
+  "unittest_seconds": 62.036
+}

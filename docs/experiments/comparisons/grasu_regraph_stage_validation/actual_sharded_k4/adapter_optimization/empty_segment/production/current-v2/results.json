@@ -1,0 +1,319 @@
+{
+  "analysis": {
+    "burst_report": {
+      "path": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/.autopilot/db/burst.xml",
+      "sha256": "4790f5ebdb2d5f26936684b586773479a99f400ac46882d6f172d743a0c4098a"
+    },
+    "estimated_clock_ns": 4.867,
+    "loops": [
+      {
+        "AbsoluteTimeLatency": "undef",
+        "InstanceList": "",
+        "IterationLatency": "undef",
+        "Latency": "undef",
+        "Slack": "4.87",
+        "TripCount": "undef",
+        "name": "source_loop"
+      }
+    ],
+    "report": {
+      "path": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2/build/adapter.hw/pma_to_regraph_adapter/pma_to_regraph_adapter/solution/syn/report/pma_to_regraph_adapter_csynth.xml",
+      "sha256": "2dff18594da73287fad310e3e0508ac8fb0210a4d950f9ff3dda0458976f8086"
+    },
+    "resources": {
+      "BRAM_18K": 15,
+      "DSP": 0,
+      "FF": 12314,
+      "LUT": 17473,
+      "URAM": 0
+    },
+    "row_burst_findings": [
+      {
+        "AccessID": "scevgepseq",
+        "BundleName": "gmem0",
+        "Direction": "read",
+        "Length": "variable",
+        "LoopLoc": "../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+        "LoopName": "row_prefetch_loop",
+        "OrigAccess-DebugLoc": "../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:21:11",
+        "OrigDirection": "read",
+        "OrigID": "for.body.i.load.23",
+        "ParentFunc": "pma_to_regraph_adapter",
+        "VarName": "row_offset",
+        "fe_name": "BurstInferredPassed",
+        "group": "BURST_VERBOSE_PASSED",
+        "msg_body": "Sequential read of variable length has been inferred",
+        "msg_id": "214-116",
+        "msg_severity": "INFO",
+        "src_info": "../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+      },
+      {
+        "BundleName": "gmem0",
+        "LoopLoc": "../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+        "LoopName": "row_prefetch_loop",
+        "OrigAccess-DebugLoc": "../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9",
+        "OrigDirection": "read",
+        "OrigID": "scevgepseq",
+        "ParentFunc": "pma_to_regraph_adapter",
+        "VarName": "row_offset",
+        "fe_name": "GreaterOrEqualAlignmentMissed",
+        "group": "BURST_VERBOSE_WIDEN_MISSED",
+        "msg_body": "Could not widen since type i64 size is greater than or equal to alignment 8(bytes)",
+        "msg_id": "214-307",
+        "msg_severity": "INFO",
+        "resolution": "214-307",
+        "src_info": "../../../../../../../../home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/row_prefetch.hpp:19:9"
+      }
+    ]
+  },
+  "execution": {
+    "available_before_bytes": 55319764992,
+    "cleanup_scope": "pidfd_bound_observed_workers_not_cgroup_containment",
+    "cleanup_signaled_pids": [],
+    "cleanup_snapshot_error": null,
+    "command": [
+      "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+      "--target",
+      "hw",
+      "--compile",
+      "--kernel_frequency",
+      "150",
+      "--kernel",
+      "pma_to_regraph_adapter",
+      "--platform",
+      "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+      "--save-temps",
+      "-D_GTHREAD_USE_COND_INIT_FUNC",
+      "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+      "-DGRASU_REGRAPH_SHARDED_PMA=1",
+      "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+      "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+      "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+      "-DGRASU_REGRAPH_SKIP_EMPTY_SEGMENT=1",
+      "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+      "--temp_dir",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2/build",
+      "--report_dir",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2/reports",
+      "--log_dir",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2/logs",
+      "-o",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2/adapter.hw.xo",
+      "/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"
+    ],
+    "cwd": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2",
+    "exit_code": 0,
+    "host_affinity": [
+      104,
+      105,
+      106,
+      107,
+      108,
+      109
+    ],
+    "minimum_available_bytes": 54163931136,
+    "observed_pids": [
+      1778628,
+      1778689,
+      1778744,
+      1778747,
+      1778867,
+      1778929,
+      1779002,
+      1779004,
+      1779005,
+      1779026,
+      1779027,
+      1779076,
+      1779183,
+      1779184,
+      1779257,
+      1779318,
+      1779320,
+      1779639,
+      1779640,
+      1779656,
+      1779705
+    ],
+    "peak_tree_rss_kib": 1726168,
+    "per_process_address_space_gib": 64,
+    "reserve_gib": 16,
+    "rss_scope": "sampled_simultaneous_tree_sum_shared_pages_counted_per_process",
+    "stop_reason": "process_exit",
+    "timeout_seconds": 1200,
+    "tree_memory_gib": 8,
+    "wall_seconds": 52.68880194798112
+  },
+  "hardware_timing_admitted": false,
+  "simulator_modified": false,
+  "status": "production_XO_ABI_pass_not_routed",
+  "xo": {
+    "path": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2/adapter.hw.xo",
+    "sha256": "4bae8791463a71f8b02ccad870d0178b2268cea8cfa6173c480e8a596a24417a"
+  },
+  "xo_contract": {
+    "flags": {
+      "GRASU_REGRAPH_ROW_PREFETCH": "1",
+      "GRASU_REGRAPH_SHARDED_PMA": "1",
+      "GRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS": "1",
+      "GRASU_REGRAPH_SKIP_EMPTY_SEGMENT": "1",
+      "GRASU_REGRAPH_STOP_AFTER_LAST": "1",
+      "GRASU_REGRAPH_WEIGHTED_PMA": "1",
+      "_GTHREAD_USE_COND_INIT_FUNC": "1"
+    },
+    "interface": {
+      "args": [
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "0",
+          "name": "pma0",
+          "offset": "0x10",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "1",
+          "name": "pma1",
+          "offset": "0x1C",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "2",
+          "name": "pma2",
+          "offset": "0x28",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "3",
+          "name": "pma3",
+          "offset": "0x34",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "1",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "4",
+          "name": "row_offset",
+          "offset": "0x40",
+          "port": "M_AXI_GMEM0",
+          "size": "0x8",
+          "type": "void*"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "5",
+          "name": "node_count",
+          "offset": "0x4C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "6",
+          "name": "pma_slot_count",
+          "offset": "0x54",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "7",
+          "name": "max_cache_segment",
+          "offset": "0x5C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "8",
+          "name": "part_dst_offset",
+          "offset": "0x64",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "0",
+          "hostOffset": "0x0",
+          "hostSize": "0x4",
+          "id": "9",
+          "name": "part_vertex_count",
+          "offset": "0x6C",
+          "port": "S_AXI_CONTROL",
+          "size": "0x4",
+          "type": "unsigned int"
+        },
+        {
+          "addressQualifier": "4",
+          "hostOffset": "0x0",
+          "hostSize": "0x8",
+          "id": "10",
+          "memSize": "0x40",
+          "name": "edge_burst_out",
+          "offset": "0x0",
+          "origName": "edge_burst_out",
+          "origUse": "variable",
+          "port": "EDGE_BURST_OUT",
+          "size": "0x0",
+          "type": "stream<hls::axis<ap_uint<512>, 0, 0, 0, '8', false>, 0>&"
+        }
+      ],
+      "control": "ap_ctrl_chain",
+      "kernel": "pma_to_regraph_adapter",
+      "ports": [
+        {
+          "base": "0x0",
+          "dataWidth": "512",
+          "mode": "master",
+          "name": "M_AXI_GMEM0",
+          "portType": "addressable",
+          "range": "0xFFFFFFFF"
+        },
+        {
+          "dataWidth": "512",
+          "mode": "write_only",
+          "name": "EDGE_BURST_OUT",
+          "portType": "stream"
+        },
+        {
+          "base": "0x0",
+          "dataWidth": "32",
+          "mode": "slave",
+          "name": "S_AXI_CONTROL",
+          "portType": "addressable",
+          "range": "0x74"
+        }
+      ]
+    }
+  }
+}

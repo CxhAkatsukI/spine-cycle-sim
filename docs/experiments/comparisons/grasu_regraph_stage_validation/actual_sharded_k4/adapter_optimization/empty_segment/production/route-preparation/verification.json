@@ -1,0 +1,86 @@
+{
+  "admission": {
+    "available_bytes": 55360135168,
+    "command": [
+      "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+      "--target",
+      "hw",
+      "--link",
+      "--kernel_frequency",
+      "150",
+      "--config",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/route-v1/link.cfg",
+      "-D_GTHREAD_USE_COND_INIT_FUNC",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_udfs/sssp",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_template",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_template/common",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_udfs",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_template/kernel_apply",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_template/kernel_hbm_wrapper",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_template/kernel_little_gs_merger",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_template/kernel_big_gs",
+      "-I/home/chuxiao/grasu-regraph-integration/repos/ReGraph/acc_template/kernel_big_gs_merger",
+      "-o",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/route-v1/candidate.hw.xclbin",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/bin_search.hw.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/dispatch.hw.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/kernelApply.hw.xilinx_u55c_gen3x16_xdma_3_202210_1.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/kernelHBMWrapper.hw.xilinx_u55c_gen3x16_xdma_3_202210_1.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/kernelLittleGSMerger.hw.xilinx_u55c_gen3x16_xdma_3_202210_1.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/process_cache.hw.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/process_ddr.hw.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/pma_completion_barrier.hw.xo",
+      "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/production-v2/adapter.hw.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/lksg_stream.hw.xo",
+      "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/build/regraph_frontend_mux.hw.xo",
+      "--vivado.synth.jobs",
+      "2",
+      "--vivado.impl.jobs",
+      "2"
+    ],
+    "required_bytes": 60129542144,
+    "reserve_gib": 16,
+    "route_started": false,
+    "status": "ADMISSION_REJECTED_NOT_STARTED",
+    "tree_memory_gib": 40
+  },
+  "archive": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/production/route-preparation/raw_preparation.tar.gz",
+    "sha256": "ef1ffe0c7a85406949a4683d1b4217d266106ccd04f04ce3c61fe8aa011e9a18"
+  },
+  "files": [
+    {
+      "bytes": 60272,
+      "path": "manifest.json",
+      "sha256": "b887e5aad3c6cce9d4a77affb689852039584daffbc18fd39e9bdfd8ee70980d"
+    },
+    {
+      "bytes": 2732,
+      "path": "admission.json",
+      "sha256": "9dd33b83616457b1506a3fbe66a871fb25e3b695978e7b43dbe78297882c0b30"
+    },
+    {
+      "bytes": 8248,
+      "path": "link.cfg",
+      "sha256": "9065ba0b785f8be9212431d7eed6b4a31491ca400a01288b570e5b64528af88b"
+    },
+    {
+      "bytes": 3052,
+      "path": "packaging/route_delivery.py",
+      "sha256": "43e9b97f89f4af51520390e7d6f4482a87871b39147112e9d19b349abd420f5a"
+    }
+  ],
+  "not_admitted": [
+    "routed_timing",
+    "FPGA_speedup",
+    "original_A4_matching"
+  ],
+  "original_XOs": "hash_indexed_not_bundled",
+  "production_dependency": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/production/current-v2/verification.json",
+    "sha256": "bc685f9fab3ffbbc7686c04565222b55afe420125eb8825a0aa803682d875664"
+  },
+  "route_started": false,
+  "status": "ADMISSION_REJECTED_NOT_STARTED"
+}

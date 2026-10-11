@@ -7,9 +7,12 @@ exit by making the segment-bound decision **before starting a non-inlined
 helper**. A caller-side `continue` alone did not change RTL timing. Both
 attempts, including that unsuccessful control, are retained here.
 
-This is **C/RTL co-simulation evidence, not routed or measured FPGA speedup**.
-No SST timing parameter, frozen plugin, paper or existing board result was
-changed. The new candidate is default-off in its owning HLS repository.
+The paired results below are **C/RTL co-simulation evidence, not routed or
+measured FPGA speedup**. A subsequent [production XO checkpoint](production/README.md)
+passes compile and frozen-K4 ABI checks; route was not started because its
+memory admission was refused. No SST timing parameter, frozen plugin, paper
+or existing board result was changed. The candidate remains default-off in
+its owning HLS repository.
 
 The motivation is the [four-partition A4/K4 diagnostic](../../matched_a4/sssp_partition_round/README.md):
 its frozen K4 model visits many interior empty rows, not just an empty tail.
@@ -135,8 +138,8 @@ revalidates and seals the paired controls without rerunning or retiming them.
 
 ## Remaining Acceptance
 
-Compile a production XO without test-only interface depths, validate its ABI,
-route and check final timing/connectivity, then run alternating paired board
+The production XO without test-only interface depths now passes ABI checks.
+Route and check final timing/connectivity, then run alternating paired board
 tests with complete-result and resident-boundary checks. Synchronize this new
 behavior in a separate simulator candidate while replaying the legacy model
 exactly. Only then redo the four-partition A4/K4 comparison under documented

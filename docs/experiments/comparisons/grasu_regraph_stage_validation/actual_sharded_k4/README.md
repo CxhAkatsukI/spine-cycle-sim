@@ -31,8 +31,11 @@ The follow-up [empty-segment helper optimization](adapter_optimization/empty_seg
 preserves its unsuccessful guard-only control and measures a 6.316x local
 RTL improvement for 1,025 sources with only the last row occupied. All
 thirteen calls preserve exact packets; twelve C++ configurations pass.
-Production route, board validation and a separate model candidate remain
-open. This does not replace the negative fixed-model comparison above.
+Its [production XO and route-admission checkpoint](adapter_optimization/empty_segment/production/README.md)
+now passes compile and ABI checks. The prepared single-XO route was not
+started: 51.56 GiB available is below its 40+16 GiB budget. Board validation
+and a separate model candidate remain open. This does not replace the
+negative fixed-model comparison above.
 
 The [controlled initial-residency checkpoint](model_sync/sst/input_residency/README.md)
 now retains all 30 complete outputs and rounds. XRT traces expose 16 late

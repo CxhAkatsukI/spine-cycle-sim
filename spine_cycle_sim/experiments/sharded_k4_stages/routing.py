@@ -23,9 +23,16 @@ def adapter_interface(xo: Path) -> tuple[dict, dict]:
     options = shlex.split(kernel.get("compileOptions", ""))
     defines = {}
     for index, option in enumerate(options):
+        undefined = options[index + 1] if option == "-U" and index + 1 < len(options) else option[2:] if option.startswith("-U") else ""
+        if undefined.startswith("GRASU_"):
+            raise ValueError("ambiguous GRASU undefine in kernel compilation")
+        if option in ("-D", "-U") and index + 1 == len(options):
+            raise ValueError("missing kernel macro name")
         value = options[index + 1] if option == "-D" else option[2:] if option.startswith("-D") else ""
         if value:
             key, _, flag = value.partition("=")
+            if key.startswith("GRASU_") and key in defines:
+                raise ValueError("ambiguous GRASU macro redefinition")
             defines[key] = flag or "1"
     interface = {"kernel": kernel.get("name"), "control": kernel.get("hwControlProtocol"),
                  "ports": [dict(port.attrib) for port in kernel.findall("ports/port")],

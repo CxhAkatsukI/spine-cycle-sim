@@ -12,6 +12,12 @@ before using its timings.
 | `validation.py` | Recheck frozen historical execution, effective flags and part/clock |
 | `delivery.py` | Preserve unsuccessful/effective paired controls as separate raw archives |
 | `functional.py` | Freeze, execute and package twelve C++ format/equivalence gates |
+| `production.py` | Source-bound production XO compilation and frozen K4 ABI/flag checks; no route |
+| `production_validation.py` | Recheck compile resources, exact flags/ABI, snapshots and source bindings |
+| `production_delivery.py` | Seal successful production compilations without admitting routed timing |
+| `route.py` | Preserve frozen single-XO preparation and memory-admission records |
+| `route_delivery.py` | Package a verified admission refusal as a non-start, not a route failure |
+| `route_execution.py` | Future route execution with pinned entry point and nonzero failure/refusal exit status |
 
 Run these owners through `python3 -m ...empty_segment.MODULE --help`.
 Use fresh run and evidence paths; never replace a prior package. The v1 guard
@@ -21,3 +27,5 @@ checks each against its own snapshot, not against today's checkout.
 `GRASU_REGRAPH_SKIP_EMPTY_SEGMENT` remains default-off in the integration
 repository. Source tests and C/RTL latencies do not admit FPGA, HBM or A4
 timing. Route, paired board tests and a separate model candidate remain open.
+The [production checkpoint](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/empty_segment/production/README.md)
+passes XO compile/ABI checks, but records a memory-refused route non-start.
