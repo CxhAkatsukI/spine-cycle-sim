@@ -55,6 +55,9 @@ public:
 
   bool stage_pop_responses(std::uint32_t initiator_id,
                            std::size_t count) override;
+  void enable_independent_response_channels(std::uint32_t initiator_id) override;
+  bool stage_select_responses(std::uint32_t initiator_id,
+                               std::span<const std::size_t> indices) override;
 
   [[nodiscard]] std::size_t outstanding() const noexcept override;
 
@@ -93,6 +96,9 @@ private:
     std::deque<BackendResponse> responses;
     std::vector<BackendResponse> retired_responses;
     std::size_t staged_response_pop{};
+    std::vector<std::size_t> staged_response_indices;
+    bool independent_response_channels{};
+    std::array<std::size_t, 2> response_direction_counts{};
     std::size_t staged_submissions{};
     std::size_t outstanding{};
   };

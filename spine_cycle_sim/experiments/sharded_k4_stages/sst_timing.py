@@ -42,6 +42,42 @@ def timing_diagnostic(result: dict, board: dict) -> dict:
                        "kernel lifetimes include overlapping stalls and are not exclusive component counters"]}
 
 
+def run_capped_equivalence(root: Path, plugin_dir: Path, parent: Path, output: Path) -> dict:
+    """Replay two preserved partial observations; this is not a correctness gate."""
+    output.mkdir(parents=True, exist_ok=False)
+    binding = forced_sst_library_binding(Path("/data/feiyang/sst/bin/sst"), plugin_dir)
+    rows = []
+    for name in ("au_original", "su_original"):
+        before_dir = parent / "matrix_final" / name
+        before = json.loads((before_dir / "result.json").read_text())
+        config = json.loads((before_dir / "run_config.json").read_text())
+        if before["done"] or before["failed"] or before["observed_cycles"] <= 0:
+            raise ValueError("expected preserved incomplete, non-failed observation")
+        directory = output / name
+        directory.mkdir()
+        config.update(max_cycles=before["observed_cycles"], output=str(directory / "result.json"),
+                      dram_output=str(directory / "dram"))
+        component_parameters(root, config)
+        config_path = directory / "run_config.json"
+        atomic_write_json(config_path, config)
+        command = ["taskset", "-c", "114-115", "env", f"ROUTED_K4_RUN_CONFIG={config_path}",
+                   "/data/feiyang/sst/bin/sst", binding["command_option"], str(root / "sst/routed_k4_compute.py")]
+        resource = run_bounded(command, root, directory / "sst", timeout=300, memory_gib=8, reserve_gib=16)
+        if resource["exit_code"] or resource["timed_out"]:
+            raise ValueError("partial runtime-equivalence replay process failed")
+        after = json.loads((directory / "result.json").read_text())
+        changed = sorted(key for key in before.keys() | after.keys() if before.get(key) != after.get(key))
+        if changed or sha256_file(before_dir / "result.json.values.txt") != sha256_file(directory / "result.json.values.txt"):
+            raise ValueError(f"partial runtime optimization changed result fields: {changed}")
+        rows.append({"id": name, "observed_cycles": before["observed_cycles"], "every_result_field_equal": True,
+                     "complete_state_bytes_equal": True, "ignored_fields": [], "resources": resource,
+                     "parent": identity(before_dir / "result.json")})
+    report = {"status": "PASS", "claim": "partial_observation_equivalence_not_workload_correctness",
+              "plugin": binding, "rows": rows}
+    atomic_write_json(output / "summary.json", report)
+    return report
+
+
 def run_sst_case(*, root: Path, integration: Path, plugin_dir: Path, exporter: Path, profile_path: Path,
                  graph: Path, source: int, board_run: Path, output: Path, arm: str,
                  timeout: int = 600, max_cycles: int = 300000000) -> dict:

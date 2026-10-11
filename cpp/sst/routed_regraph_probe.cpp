@@ -23,6 +23,10 @@ public:
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 300000000);
     prefetch_ = params.find<bool>("row_prefetch", true);
     stop_ = params.find<bool>("stop_after_last", true);
+    profile_id_ = params.find<std::string>("profile_id", "grasu_regraph_routed_sssp_compute_v1");
+    independent_ = params.find<bool>("independent_read_write", false);
+    if (profile_id_ != (independent_ ? "grasu_regraph_routed_sssp_compute_v2" : "grasu_regraph_routed_sssp_compute_v1"))
+      throw std::invalid_argument("routed profile and AXI channel selection disagree");
     if (output_path_.empty() || dram_config_.empty() || dram_output_.empty() || !max_cycles_)
       throw std::invalid_argument("missing routed SST paths or cycle limit");
     registerClock("150MHz", new SST::Clock::Handler<RoutedReGraphProbe, &RoutedReGraphProbe::tick>(this));
@@ -48,6 +52,7 @@ public:
     config.compute.runtime_physical_updates_per_shard = fixture_.physical_updates;
     config.compute.max_supersteps = 256;
     config.compute.apply_request_window = 16;
+    config.independent_read_write = independent_;
     // Explicit, disjoint physical model offsets. These are not captured XRT
     // BO addresses and must not be described as exact board address replay.
     config.compute.vertex_state_base = 0;
@@ -61,7 +66,7 @@ public:
 
   void finish() override {
     if (!system_) return;
-    write_routed_regraph_report(output_path_, fixture_, *system_, *backend_, scheduler_.clock(0).completed_cycles);
+    write_routed_regraph_report(output_path_, fixture_, *system_, *backend_, scheduler_.clock(0).completed_cycles, profile_id_);
     std::ofstream diagnostic(output_path_ + ".diagnostic.txt");
     diagnostic << system_->failure() << '\n' << system_->diagnostic() << '\n';
     backend_->print_direct_stats();
@@ -91,15 +96,17 @@ public:
       {"dram_output", "DRAMSim3 output directory", ""},
       {"max_cycles", "Explicit device cycle cap", "300000000"},
       {"row_prefetch", "Optimized row issue path", "1"},
-      {"stop_after_last", "Stop at last occupied row", "1"})
+      {"stop_after_last", "Stop at last occupied row", "1"},
+      {"profile_id", "Explicit model identity", "grasu_regraph_routed_sssp_compute_v1"},
+      {"independent_read_write", "Separate shared-master AR/AW credits and R/B backpressure", "0"})
 private:
   Scheduler scheduler_;
   RoutedReGraphFixture fixture_;
   std::unique_ptr<SstMemoryBackend> backend_;
   std::unique_ptr<RoutedReGraphSystem> system_;
   SST::TimeConverter picoseconds_;
-  std::string output_path_, dram_config_, dram_output_;
+  std::string output_path_, dram_config_, dram_output_, profile_id_;
   std::uint64_t max_cycles_{};
-  bool prefetch_{}, stop_{};
+  bool prefetch_{}, stop_{}, independent_{};
 };
 } // namespace spine::sim::sst_adapter

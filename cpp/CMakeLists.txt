@@ -2,6 +2,7 @@ add_library(spine_cycle_core STATIC
   src/algorithm.cpp
   src/algorithm_pipeline.cpp
   src/axi.cpp
+  src/axi_independent_channels.cpp
   src/banked_memory.cpp
   src/grasu.cpp
   src/grasu_native.cpp
@@ -84,6 +85,11 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(axi_independent_channels_tests tests/axi/independent_channels_tests.cpp)
+  target_link_libraries(axi_independent_channels_tests PRIVATE spine_cycle_core)
+  target_compile_options(axi_independent_channels_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME axi_independent_channels_tests COMMAND axi_independent_channels_tests)
+
   add_executable(routed_regraph_fixture_tests tests/routed_regraph/fixture_tests.cpp)
   target_link_libraries(routed_regraph_fixture_tests PRIVATE spine_cycle_core)
   target_compile_options(routed_regraph_fixture_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

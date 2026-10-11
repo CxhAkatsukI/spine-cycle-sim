@@ -29,6 +29,32 @@ class CandidateContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             load_profile(ROOT, ROOT / "configs/architectures/grasu_regraph_sharded_k4_weighted_hls_v8.json")
 
+    def test_independent_channels_require_version_two(self):
+        path = ROOT / "configs/architectures/grasu_regraph_routed_sssp_compute_v2.json"
+        config = {"profile": str(path), "fixture": "input.bin", "output": "out.json",
+                  "dram_output": "dram", "max_cycles": 1000, "arm": "candidate"}
+        parameters = component_parameters(ROOT, config)
+        self.assertEqual(parameters["profile_id"], "grasu_regraph_routed_sssp_compute_v2")
+        self.assertEqual(parameters["independent_read_write"], 1)
+        old = component_parameters(ROOT, {**config, "profile": str(PROFILE)})
+        self.assertNotIn("independent_read_write", old)
+        self.assertNotIn("profile_id", old)
+
+    def test_independent_channels_cannot_hide_credit_or_clock_changes(self):
+        profile = json.loads((ROOT / "configs/architectures/grasu_regraph_routed_sssp_compute_v2.json").read_text())
+        for mutation in (lambda p: p["fixed_model"].update(kernel_mhz=300),
+                         lambda p: p["fixed_model"].update(independent_read_write=0),
+                         lambda p: p["memory"].update(axi_credit_scope="shared"),
+                         lambda p: p["memory"].update(physical_master_count=11),
+                         lambda p: p["target"].update(wrapper_top_rtl_sha256="unknown")):
+            changed = copy.deepcopy(profile)
+            mutation(changed)
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "profile.json"
+                path.write_text(json.dumps(changed))
+                with self.assertRaises(ValueError):
+                    load_profile(ROOT, path)
+
     def test_silent_model_change_rejected(self):
         profile = json.loads(PROFILE.read_text())
         for mutation in (lambda p: p["fixed_model"].update(apply_latency=1),

@@ -5,7 +5,7 @@
 namespace spine::sim::sst_adapter {
 void write_routed_regraph_report(const std::string &path, const RoutedReGraphFixture &fixture,
                                 const RoutedReGraphSystem &system, const SstMemoryBackend &backend,
-                                std::uint64_t observed_cycles) {
+                                std::uint64_t observed_cycles, const std::string &profile_id) {
   const auto state = system.encoded_state();
   std::uint64_t mismatches = 0;
   for (std::size_t v = 0; v < state.size(); ++v) {
@@ -37,7 +37,7 @@ void write_routed_regraph_report(const std::string &path, const RoutedReGraphFix
                        system.rounds().size() == fixture.expected_rounds;
   std::ofstream output(path);
   if (!output) throw std::invalid_argument("cannot write routed SST result");
-  output << "{\"schema_version\":1,\"profile_id\":\"grasu_regraph_routed_sssp_compute_v1\","
+  output << "{\"schema_version\":1,\"profile_id\":\"" << profile_id << "\","
       "\"boundary\":\"resident_compute_no_host_launch_gaps\","
       "\"evidence\":\"simulator_prediction_not_hardware_timing_admission\","
       "\"success\":" << (success ? "true" : "false") << ",\"done\":" << (system.done() ? "true" : "false")

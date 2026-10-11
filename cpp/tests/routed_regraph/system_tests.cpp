@@ -51,7 +51,7 @@ struct Result {
 };
 
 Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t fixed = 0,
-           std::size_t limit = 128) {
+           std::size_t limit = 128, bool independent = false) {
   const auto expected = oracle(f, fixed ? fixed : 0);
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("core", 150);
@@ -65,6 +65,7 @@ Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t
   config.compute.cache_segments_per_half = 1;
   config.compute.max_supersteps = limit;
   config.fixed_rounds = fixed;
+  config.independent_read_write = independent;
   if (pressure) {
     config.compute.max_pending_requests = 2;
     config.compute.max_outstanding_bursts = 2;
@@ -144,6 +145,7 @@ Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t
   Result result{c, system.invocations(), system.rounds(), system.encoded_state()};
   std::cout << "case vertices=" << f.vertices << " reverse=" << reverse << " stop=" << stop
             << " pressure=" << pressure << " fixed=" << fixed << " limit=" << limit
+            << " independent=" << independent
             << " rounds=" << expected_rounds << " failed=" << system.failed()
             << " cycles=" << c.end_cycle - c.start_cycle
             << " parents=" << c.axi_requests << " beats=" << c.axi_beats << '\n';
@@ -216,8 +218,15 @@ int main() {
     run(f, false, true, false);
     run(fixture(129, false), false, true, false, 2);
     run(fixture(129, false), false, true, false, 0, 1);
+    for (auto [vertices, pressure] : {std::pair{129U, true}, std::pair{262273U, false}}) {
+      const auto independent_fixture = fixture(vertices, true);
+      require(run(independent_fixture, false, true, pressure, 0, 128, true) ==
+              run(independent_fixture, true, true, pressure, 0, 128, true),
+              "independent-channel whole-system registration order differs");
+      cases += 2;
+    }
     rejection_tests();
-    std::cout << "PASS: " << cases + 3 << " whole routed SSSP cases (11 convergence, 1 fixed-round, 1 expected limit failure); full state, source replicas, padding, scheduling and traffic; 9 admission rejections PASS\n";
+    std::cout << "PASS: " << cases + 3 << " whole routed SSSP cases (15 convergence, 1 fixed-round, 1 expected limit failure); full state, source replicas, padding, scheduling and traffic; 9 admission rejections PASS\n";
   } catch (const std::exception &error) {
     std::cerr << error.what() << '\n';
     return 1;

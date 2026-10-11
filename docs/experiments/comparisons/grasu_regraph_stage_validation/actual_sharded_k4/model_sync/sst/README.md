@@ -99,6 +99,10 @@ reproduces shared-port write blocking behind a held streamed read, with
 isolated non-stall controls. It preserves this checkpoint, changes no model
 parameters and does not claim to resolve the overall timing gap.
 
+The subsequent [independent-channel correction](independent_channels/README.md)
+selects a distinct v2 profile after checking the exact wrapper RTL. It retains
+this v1 evidence and requires separate legacy, complete-state and timing gates.
+
 ## Regression And Resources
 
 The same final plugin and numerical-source snapshot produced all six rows

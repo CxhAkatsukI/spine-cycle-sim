@@ -21,6 +21,7 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | --- | --- | --- |
 | Algorithm arithmetic and finite compute pipeline | [algorithm.hpp](include/spine_sim/algorithm.hpp), [algorithm_pipeline.hpp](include/spine_sim/algorithm_pipeline.hpp) | [algorithm.cpp](src/algorithm.cpp), [algorithm_pipeline.cpp](src/algorithm_pipeline.cpp) |
 | AXI and memory service | [axi.hpp](include/spine_sim/axi.hpp), [memory_backend.hpp](include/spine_sim/memory_backend.hpp) | [axi.cpp](src/axi.cpp), [memory_backend.cpp](src/memory_backend.cpp) |
+| Explicit independent read/write channels | [version-2 profile](../configs/architectures/grasu_regraph_routed_sssp_compute_v2.json) | [axi_independent_channels.cpp](src/axi_independent_channels.cpp), [response selection](src/detail/backend_response_selection.hpp); default-off, one physical initiator and unchanged issue bandwidth |
 | Spine maintenance and carry | [spine_l0.hpp](include/spine_sim/spine_l0.hpp) | [spine_l0.cpp](src/spine_l0.cpp) |
 | Spine dirty frontier and owner scheduling | [spine_dirty.hpp](include/spine_sim/spine_dirty.hpp), [spine_owner.hpp](include/spine_sim/spine_owner.hpp) | [spine_dirty.cpp](src/spine_dirty.cpp), [spine_owner.cpp](src/spine_owner.cpp) |
 | Spine range resolution and edge/value stream reading | [spine_split.hpp](include/spine_sim/spine_split.hpp) | [spine_split.cpp](src/spine_split.cpp) |
@@ -67,6 +68,7 @@ used by existing experiments.
 | GraSU and G+R execution | [grasu_tests.cpp](tests/grasu_tests.cpp) |
 | G+R placement, capacity, and empty-shard invariants | [grasu_runtime_tests.cpp](tests/grasu_runtime_tests.cpp) |
 | Routed adapter packet, pressure, completion and optional production-HLS checks | [routed_regraph/](tests/routed_regraph/) via [model runner](../scripts/validate_sharded_k4_adapter_model.py) |
+| Independent-channel pressure and legacy behavior | [axi/](tests/axi/); paused read consumer, independent R/B/W stalls, finite credits, complete payload and registration-order checks |
 | Owner/reactivation protocol | [spine_owner_tests.cpp](tests/spine_owner_tests.cpp) |
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
 | SST address mapping without an SST installation | [sst_hbm_mapper_tests.cpp](tests/sst_hbm_mapper_tests.cpp) |

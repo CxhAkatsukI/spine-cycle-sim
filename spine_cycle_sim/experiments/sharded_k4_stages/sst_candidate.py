@@ -6,6 +6,7 @@ from pathlib import Path
 from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 
 PROFILE_ID = "grasu_regraph_routed_sssp_compute_v1"
+INDEPENDENT_PROFILE_ID = "grasu_regraph_routed_sssp_compute_v2"
 FIXED_MODEL = {
     "kernel_mhz": 150, "destination_partition_vertices": 65536, "source_buffer_vertices": 4096,
     "internal_fifo_depth": 8, "external_fifo_depth": 16, "apply_request_window": 16,
@@ -17,17 +18,23 @@ FIXED_MODEL = {
 
 def load_profile(root: Path, path: Path) -> dict:
     profile = json.loads(path.read_text())
-    if (profile.get("schema_version") != 1 or profile.get("profile_id") != PROFILE_ID
+    independent = profile.get("profile_id") == INDEPENDENT_PROFILE_ID
+    expected_model = {**FIXED_MODEL, **({"independent_read_write": 1} if independent else {})}
+    if (profile.get("schema_version") != 1 or profile.get("profile_id") not in (PROFILE_ID, INDEPENDENT_PROFILE_ID)
             or profile.get("evidence_tier") != "simulator_prediction"
             or profile.get("boundary") != "resident_compute_no_host_launch_gaps"
-            or profile.get("fixed_model") != FIXED_MODEL):
-        raise ValueError("profile is not the explicit version-1 routed SSSP candidate contract")
+            or profile.get("fixed_model") != expected_model):
+        raise ValueError("profile is not an explicit routed SSSP candidate contract")
     memory = profile["memory"]
     if (memory["backend"] != "direct_dramsim3_transport" or memory["channels"] != 32
             or memory["physical_master_count"] != 9 or memory["axi_outstanding_per_master"] != 16
             or memory["channel_capacity_bytes"] != 512 << 20 or memory["backend_outstanding_per_channel"] != 32
             or sha256_file(root / memory["config"]) != memory["sha256"]):
         raise ValueError("candidate memory contract differs")
+    if independent and (memory.get("axi_credit_scope") != "per_read_write_direction"
+            or memory.get("backend_response_credit_scope") != "per_read_write_direction"
+            or profile["target"].get("wrapper_top_rtl_sha256") != "005f0b40523bd021034c90f179a7d2666001bc1bde1de6af5d6ef0638cc194c7"):
+        raise ValueError("independent channels require measured RTL identity and explicit credit scopes")
     return profile
 
 
@@ -46,6 +53,9 @@ def component_parameters(root: Path, config: dict) -> dict:
     if config["arm"] not in ("original", "candidate") or config["max_cycles"] <= 0:
         raise ValueError("invalid candidate arm or cycle cap")
     optimized = config["arm"] == "candidate"
-    return {"fixture": config["fixture"], "output": config["output"],
+    result = {"fixture": config["fixture"], "output": config["output"],
             "dram_config": str(root / profile["memory"]["config"]), "dram_output": config["dram_output"],
             "max_cycles": config["max_cycles"], "row_prefetch": int(optimized), "stop_after_last": int(optimized)}
+    if profile["profile_id"] == INDEPENDENT_PROFILE_ID:
+        result.update(profile_id=INDEPENDENT_PROFILE_ID, independent_read_write=1)
+    return result

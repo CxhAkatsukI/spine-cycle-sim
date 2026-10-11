@@ -3,6 +3,7 @@
 // clang-format on
 
 #include "sst_memory_backend.hpp"
+#include "../src/detail/backend_response_selection.hpp"
 
 #include <algorithm>
 #include <sstream>
@@ -127,16 +128,38 @@ SstMemoryBackend::staged_response_at(std::uint32_t initiator_id,
   if (state != nullptr && index < state->retired_responses.size()) {
     return state->retired_responses[index];
   }
+  if (state != nullptr && !state->staged_response_indices.empty())
+    return response_at(initiator_id, state->staged_response_indices.at(index));
   return response_at(initiator_id, index);
 }
 
 bool SstMemoryBackend::stage_pop_responses(std::uint32_t initiator_id,
                                            std::size_t count) {
   InitiatorState &state = ensure_initiator_state(initiator_id);
-  if (state.staged_response_pop != 0 || count > state.responses.size()) {
+  if (state.staged_response_pop != 0 || !state.staged_response_indices.empty() || count > state.responses.size()) {
     return false;
   }
   state.staged_response_pop = count;
+  active_response_pops_.push_back(initiator_id);
+  return true;
+}
+
+void SstMemoryBackend::enable_independent_response_channels(std::uint32_t initiator_id) {
+  if (!initiator_registered(initiator_id)) throw std::invalid_argument("unknown response-channel initiator");
+  auto &state = ensure_initiator_state(initiator_id);
+  state.independent_response_channels = true;
+  state.response_direction_counts = {
+      detail::operation_response_count(state.responses, MemoryOperation::kRead),
+      detail::operation_response_count(state.responses, MemoryOperation::kWrite)};
+}
+
+bool SstMemoryBackend::stage_select_responses(std::uint32_t initiator_id,
+    std::span<const std::size_t> indices) {
+  auto &state = ensure_initiator_state(initiator_id);
+  if (!state.independent_response_channels || state.staged_response_pop ||
+      !state.staged_response_indices.empty() || !detail::valid_response_selection(indices, state.responses.size()))
+    return false;
+  state.staged_response_indices = {indices.begin(), indices.end()};
   active_response_pops_.push_back(initiator_id);
   return true;
 }
@@ -179,13 +202,18 @@ void SstMemoryBackend::prepare(const CycleContext &) {
   active_retired_initiators_.clear();
   for (auto iterator = external_arrivals_.begin();
        iterator != external_arrivals_.end();) {
-    auto &queue = ensure_initiator_state(iterator->initiator_id).responses;
-    if (queue.size() >= response_queue_depth_) {
+    auto &state = ensure_initiator_state(iterator->initiator_id);
+    auto &queue = state.responses;
+    const auto occupied = state.independent_response_channels
+        ? state.response_direction_counts[iterator->operation == MemoryOperation::kWrite] : queue.size();
+    if (occupied >= response_queue_depth_) {
       ++response_queue_stalls_;
       ++iterator;
       continue;
     }
     queue.push_back(*iterator);
+    if (state.independent_response_channels)
+      ++state.response_direction_counts[iterator->operation == MemoryOperation::kWrite];
     notify_response_available(iterator->initiator_id);
     iterator = external_arrivals_.erase(iterator);
   }
@@ -199,12 +227,19 @@ void SstMemoryBackend::commit(const CycleContext &) {
     const std::size_t count = state.staged_response_pop;
     auto &queue = state.responses;
     auto &retired = state.retired_responses;
-    retired.clear();
-    retired.reserve(count);
-    for (std::size_t index = 0; index < count; ++index) {
-      retired.push_back(std::move(queue.front()));
-      queue.pop_front();
+    if (!state.staged_response_indices.empty()) {
+      detail::retire_selected_responses(queue, state.staged_response_indices, retired);
+      state.staged_response_indices.clear();
+    } else {
+      retired.clear();
+      retired.reserve(count);
+      for (std::size_t index = 0; index < count; ++index) {
+        retired.push_back(std::move(queue.front()));
+        queue.pop_front();
+      }
     }
+    if (state.independent_response_channels)
+      detail::retire_response_credits(state.response_direction_counts, retired, queue.size());
     state.staged_response_pop = 0;
     active_retired_initiators_.push_back(initiator_id);
   }
@@ -404,6 +439,7 @@ void SstMemoryBackend::complete_inflight(const Inflight &inflight,
       .request_id = inflight.backend_request_id,
       .success = success,
       .read_data = std::move(read_data),
+      .operation = inflight.operation,
   });
   if (channel_outstanding_[inflight.channel] == 0) {
     throw std::logic_error("SST channel outstanding count underflow");

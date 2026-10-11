@@ -34,6 +34,7 @@ struct FixedAxiPortConfig {
   std::uint64_t read_data_pipeline_cycles{};
   std::uint64_t write_buffer_pipeline_cycles{};
   bool serialize_write_bursts{};
+  bool independent_read_write{};
   std::size_t write_ingress_fifo_depth{};
   std::size_t write_throttle_fifo_depth{};
   std::uint64_t write_ingress_pipeline_cycles{};
@@ -75,6 +76,7 @@ class FixedAxiPort {
                 .write_buffer_pipeline_cycles =
                     config.write_buffer_pipeline_cycles,
                 .serialize_write_bursts = config.serialize_write_bursts,
+                .independent_read_write = config.independent_read_write,
                 .write_ingress_fifo_depth = config.write_ingress_fifo_depth,
                 .write_throttle_fifo_depth =
                     config.write_throttle_fifo_depth,

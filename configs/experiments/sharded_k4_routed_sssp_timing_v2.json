@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "study_id": "sharded_k4_routed_sssp_timing_v2",
+  "profile": "configs/architectures/grasu_regraph_routed_sssp_compute_v2.json",
+  "claim": "same_input_functionality_and_nominal_timing_diagnostic_not_identical_window_calibration",
+  "arms": ["candidate", "original"],
+  "timeout_seconds": 900,
+  "max_cycles": 1000000000,
+  "memory_limit_gib": 8,
+  "reserve_gib": 16,
+  "cases": [
+    {
+      "id": "au",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+      "graph_sha256": "c59f311efc83dc1c748b7e1121cca055c3b86aaca4e04c5d1de57e694022e734",
+      "source": 11,
+      "board_pair": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_au_sssp_candidate"
+    },
+    {
+      "id": "su",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_weighted_sssp_insert_u8.graph",
+      "graph_sha256": "9e137a0a4f44163c04d18219577093b93b4426d182cf017ecce7aa1e2560b6a2",
+      "source": 23,
+      "board_pair": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_su_sssp_candidate"
+    },
+    {
+      "id": "wk",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+      "graph_sha256": "e23457cd3dcb6c15c0a7c4379072ed12051f0230c3158e4e812807e1bc5bdcb7",
+      "source": 0,
+      "board_pair": "/data/chuxiao/experiments/sharded_k4_stage_diagnostic_20261010/paired_wk_sssp_candidate"
+    }
+  ]
+}

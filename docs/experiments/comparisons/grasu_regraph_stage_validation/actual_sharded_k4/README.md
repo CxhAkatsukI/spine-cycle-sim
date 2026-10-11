@@ -26,6 +26,11 @@ Subsequent [complete composition](model_sync/system/README.md) and
 [explicit SST diagnostic](model_sync/sst/README.md) checkpoints connect that
 measured topology and admit HLS-exported full-state/traffic checks. Hardware
 timing admission and original-A4 performance matching remain open.
+The subsequent [independent-channel correction](model_sync/sst/independent_channels/README.md)
+preserves all five legacy results and all six v1 matrix rows exactly, while
+all six explicit-v2 runs pass full FPGA output equality and conservation.
+It corrects a demonstrated read/write dependency, but nominal times still
+underpredict the board span; it is not timing admission or an A4 match.
 The initial raw package below remains
 frozen and does not contain the later candidate build.
 The [raw file index](raw_index.json) covers all 27 board logs and the

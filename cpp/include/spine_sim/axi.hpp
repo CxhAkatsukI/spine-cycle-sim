@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -85,6 +86,9 @@ struct AxiConfig {
   std::uint64_t read_data_pipeline_cycles{};
   std::uint64_t write_buffer_pipeline_cycles{};
   bool serialize_write_bursts{};
+  // Separate AR/AW credits and R/B backpressure, retaining one physical
+  // initiator and the configured aggregate address/data issue budgets.
+  bool independent_read_write{};
   // Optional structural model for Vitis' generated write ingress:
   // child W beats -> store FIFO -> elastic register -> throttle FIFO.
   // A zero store depth disables the model and preserves aggregate writes.
@@ -305,9 +309,12 @@ class AxiMaster final : public Component {
   void evaluate_output();
   void evaluate_read_beat_output(const CycleContext &context);
   void evaluate_backend_responses(const CycleContext &context);
+  void evaluate_independent_responses(const CycleContext &context);
   void evaluate_request_input(const CycleContext &context);
   void evaluate_write_ingress(const CycleContext &context);
   void evaluate_address_channel(const CycleContext &context);
+  void evaluate_independent_addresses(const CycleContext &context);
+  [[nodiscard]] std::size_t independent_issue_index(const CycleContext &context);
   void evaluate_data_channel(const CycleContext &context);
   void commit_backend_responses(const CycleContext &context);
   void commit_request_input();
@@ -349,6 +356,7 @@ class AxiMaster final : public Component {
   std::vector<Burst> active_bursts_;
   std::size_t active_issueable_bursts_{};
   std::size_t active_stream_bursts_{};
+  std::array<std::size_t, 2> active_direction_bursts_{};
   std::size_t active_write_data_bursts_{};
   std::unordered_map<std::uint64_t, BackendMapping> backend_mappings_;
   std::deque<ReadyResponse> ready_responses_;
@@ -357,6 +365,7 @@ class AxiMaster final : public Component {
   std::vector<AxiBeatTrace> beat_trace_;
   std::vector<AxiWriteIngressTrace> write_ingress_trace_;
   std::size_t issue_round_robin_{};
+  bool independent_prefer_write_{};
   std::deque<WriteIngressBeat> pending_write_input_;
   std::deque<WriteIngressBeat> write_store_fifo_;
   std::optional<WriteIngressBeat> write_bridge_;

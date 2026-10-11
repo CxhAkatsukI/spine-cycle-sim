@@ -1,4 +1,5 @@
 #include "spine_sim/memory_backend.hpp"
+#include "detail/backend_response_selection.hpp"
 
 #include <algorithm>
 #include <bit>
@@ -602,16 +603,36 @@ const BackendResponse& MockMemoryBackend::staged_response_at(
   if (retired != retired_responses_.end() && index < retired->second.size()) {
     return retired->second[index];
   }
+  const auto selected = staged_response_selections_.find(initiator_id);
+  if (selected != staged_response_selections_.end())
+    return response_at(initiator_id, selected->second.at(index));
   return response_at(initiator_id, index);
 }
 
 bool MockMemoryBackend::stage_pop_responses(std::uint32_t initiator_id,
                                             std::size_t count) {
   const std::size_t staged = staged_response_pops_[initiator_id];
-  if (staged != 0 || count > response_count(initiator_id)) {
+  if (staged != 0 || staged_response_selections_.contains(initiator_id) || count > response_count(initiator_id)) {
     return false;
   }
   staged_response_pops_[initiator_id] = count;
+  return true;
+}
+
+void MockMemoryBackend::enable_independent_response_channels(std::uint32_t initiator_id) {
+  if (!initiator_registered(initiator_id)) throw std::invalid_argument("unknown response-channel initiator");
+  const auto &queue = responses_[initiator_id];
+  independent_response_counts_[initiator_id] = {
+      detail::operation_response_count(queue, MemoryOperation::kRead),
+      detail::operation_response_count(queue, MemoryOperation::kWrite)};
+}
+
+bool MockMemoryBackend::stage_select_responses(std::uint32_t initiator_id,
+    std::span<const std::size_t> indices) {
+  if (!independent_response_counts_.contains(initiator_id) || staged_response_pops_[initiator_id] ||
+      staged_response_selections_.contains(initiator_id) ||
+      !detail::valid_response_selection(indices, response_count(initiator_id))) return false;
+  staged_response_selections_[initiator_id] = {indices.begin(), indices.end()};
   return true;
 }
 
@@ -654,7 +675,10 @@ void MockMemoryBackend::prepare(const CycleContext& context) {
       iterator->completed = true;
     }
     auto& queue = responses_[iterator->request.initiator_id];
-    if (queue.size() >= config_.response_queue_depth) {
+    const auto counts = independent_response_counts_.find(iterator->request.initiator_id);
+    const auto op = iterator->request.operation == MemoryOperation::kWrite;
+    const auto occupied = counts == independent_response_counts_.end() ? queue.size() : counts->second[op];
+    if (occupied >= config_.response_queue_depth) {
       ++stats_.response_queue_stalls;
       ++iterator;
       continue;
@@ -666,7 +690,9 @@ void MockMemoryBackend::prepare(const CycleContext& context) {
         .read_data = iterator->request.operation == MemoryOperation::kRead
                          ? complete_read_payload(iterator->request)
                          : std::vector<std::uint8_t>{},
+        .operation = iterator->request.operation,
     });
+    if (counts != independent_response_counts_.end()) ++counts->second[op];
     notify_response_available(iterator->request.initiator_id);
     iterator = pending_.erase(iterator);
   }
@@ -682,8 +708,17 @@ void MockMemoryBackend::commit(const CycleContext& context) {
       retired.push_back(std::move(queue.front()));
       queue.pop_front();
     }
+    if (const auto counts = independent_response_counts_.find(initiator_id);
+        counts != independent_response_counts_.end())
+      detail::retire_response_credits(counts->second, retired, queue.size());
   }
   staged_response_pops_.clear();
+  for (const auto &[initiator_id, indices] : staged_response_selections_) {
+    detail::retire_selected_responses(responses_[initiator_id], indices, retired_responses_[initiator_id]);
+    detail::retire_response_credits(independent_response_counts_.at(initiator_id),
+                                   retired_responses_[initiator_id], responses_[initiator_id].size());
+  }
+  staged_response_selections_.clear();
   for (const BackendRequest& request : staged_submissions_) {
     pending_.push_back(Pending{
         .request = request,

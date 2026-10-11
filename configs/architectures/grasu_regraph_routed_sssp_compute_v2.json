@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_routed_sssp_compute_v2",
+  "status": "candidate",
+  "architecture": "routed_sssp_four_dedicated_source_masters",
+  "evidence_tier": "simulator_prediction",
+  "boundary": "resident_compute_no_host_launch_gaps",
+  "target": {
+    "candidate_xclbin_sha256": "f26e0070b671e7b9f21623ea37d19814422d3c46e321f26147637178a66ec0d7",
+    "original_xclbin_sha256": "292ae9e468dda3d9d1941d1ab46e1696643956122d134ec366711e4acda2ceaf",
+    "wrapper_xo_sha256": "1a67894d0c318ac75377a2d9a61d17251e666be468eb6354d611ed502831cb36",
+    "wrapper_embedded_source_sha256": "70ac3a10f6affe107740ae0124294c28a23e1b6f9fbb906db76415da71732624",
+    "wrapper_top_rtl_sha256": "005f0b40523bd021034c90f179a7d2666001bc1bde1de6af5d6ef0638cc194c7",
+    "optimized_adapter_xo_sha256": "93aa6b76e441eda51ffc0a9bb25c1411cfab2be2bf18326371558a0cefb1863a",
+    "route_manifest_sha256": "6d8b2ccb884b85632c60fde3e88e040cba609f5d0524d782b7d483374d5d3038"
+  },
+  "input_export": {
+    "weighted_pma_graph.hpp": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514",
+    "weighted_pma_update_reference.hpp": "103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625"
+  },
+  "memory": {
+    "backend": "direct_dramsim3_transport",
+    "config": "configs/memory/HBM2_1ch_x128.ini",
+    "sha256": "d1e865c6528acbc41f0768667063702bfb4033f24bcd46119ad25bfc5ad4fb5f",
+    "channels": 32,
+    "physical_master_count": 9,
+    "channel_capacity_bytes": 536870912,
+    "backend_outstanding_per_channel": 32,
+    "axi_outstanding_per_master": 16,
+    "axi_credit_scope": "per_read_write_direction",
+    "backend_response_credit_scope": "per_read_write_direction",
+    "address_mapping": "disjoint_deterministic_offsets_not_captured_XRT_BO_addresses"
+  },
+  "fixed_model": {
+    "kernel_mhz": 150,
+    "destination_partition_vertices": 65536,
+    "source_buffer_vertices": 4096,
+    "internal_fifo_depth": 8,
+    "external_fifo_depth": 16,
+    "apply_request_window": 16,
+    "apply_latency": 100,
+    "apply_capacity": 100,
+    "writeback_latency": 71,
+    "writeback_capacity": 71,
+    "adapter_min_read_to_use": 71,
+    "adapter_row_control": 6,
+    "adapter_segment_issue_interval": 2,
+    "scatter_latency": 4,
+    "scatter_ii": 1,
+    "scatter_capacity": 5,
+    "max_supersteps": 256,
+    "independent_read_write": 1
+  },
+  "limitations": [
+    "Only source-state masters select independent read/write channels; the unchanged version-1 default remains available.",
+    "Measured wrapper RTL has independent AR/AW credits of 16; modeled address/data issue bandwidth and physical initiator count are not doubled.",
+    "Parent and stream buffers remain finite model assumptions; this is not a full generated-RTL replay or timing calibration.",
+    "Post-update PMA is resident; GraSU maintenance, DMA and host/XRT gaps remain outside this window.",
+    "Deterministic BO offsets, DRAMSim3 timing and stage latencies are unchanged assumptions."
+  ]
+}

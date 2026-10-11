@@ -53,7 +53,8 @@ FixedAxiPort &RoutedReGraphSystem::Impl::port(std::string name, std::size_t chan
       .initiator_id = config.first_initiator_id + static_cast<std::uint32_t>(ports.size()),
       .stream_read_beats = stream, .max_pending_requests = c.max_pending_requests,
       .max_outstanding_bursts = c.max_outstanding_bursts,
-      .response_beats_per_cycle = c.response_beats_per_cycle}, backend));
+      .response_beats_per_cycle = c.response_beats_per_cycle,
+      .independent_read_write = stream && config.independent_read_write}, backend));
   auto &value = *ports.back();
   components.insert(components.end(), {&value.requests(), &value.responses(), &value.read_beats(), &value.master()});
   return value;

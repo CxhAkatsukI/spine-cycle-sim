@@ -43,6 +43,7 @@ struct BackendResponse {
   std::uint64_t request_id{};
   bool success{true};
   std::vector<std::uint8_t> read_data;
+  MemoryOperation operation{MemoryOperation::kRead};
 };
 
 struct MemoryLocalityStats {
@@ -125,6 +126,13 @@ class MemoryBackend : public Component {
       std::uint32_t initiator_id, std::size_t index) const = 0;
   virtual bool stage_pop_responses(std::uint32_t initiator_id,
                                    std::size_t count) = 0;
+  virtual void enable_independent_response_channels(std::uint32_t) {
+    throw std::logic_error("backend does not support independent read/write responses");
+  }
+  virtual bool stage_select_responses(std::uint32_t,
+                                       std::span<const std::size_t>) {
+    return false;
+  }
   [[nodiscard]] virtual std::size_t outstanding() const noexcept = 0;
   [[nodiscard]] virtual std::size_t outstanding_for(
       std::uint32_t initiator_id) const noexcept = 0;
@@ -312,6 +320,9 @@ class MockMemoryBackend final : public MemoryBackend {
       std::uint32_t initiator_id, std::size_t index) const override;
   bool stage_pop_responses(std::uint32_t initiator_id,
                            std::size_t count) override;
+  void enable_independent_response_channels(std::uint32_t initiator_id) override;
+  bool stage_select_responses(std::uint32_t initiator_id,
+                               std::span<const std::size_t> indices) override;
   [[nodiscard]] std::size_t outstanding() const noexcept override;
   [[nodiscard]] std::size_t outstanding_for(
       std::uint32_t initiator_id) const noexcept override;
@@ -343,6 +354,8 @@ class MockMemoryBackend final : public MemoryBackend {
       retired_responses_;
   std::vector<BackendRequest> staged_submissions_;
   std::unordered_map<std::uint32_t, std::size_t> staged_response_pops_;
+  std::unordered_map<std::uint32_t, std::vector<std::size_t>> staged_response_selections_;
+  std::unordered_map<std::uint32_t, std::array<std::size_t, 2>> independent_response_counts_;
   MockMemoryStats stats_;
 };
 

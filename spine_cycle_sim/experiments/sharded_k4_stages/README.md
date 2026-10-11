@@ -26,12 +26,13 @@ PMA timing control. Start with the
 | `frontend_delivery.py` | Binary-source, finite frontend and unchanged-legacy evidence package |
 | `model_system.py` | Complete SSSP candidate state, schedule and conservation gates; not hardware timing |
 | `system_delivery.py` | Immutable complete-candidate and exact legacy SST evidence package |
-| `sst_candidate.py` | Strict version-1 profile selection, memory and owning-HLS header admission |
+| `sst_candidate.py` | Strict explicit v1/v2 profile selection, memory and owning-HLS header admission |
 | `sst_timing.py` | One bounded HLS-export/SST run, full FPGA-result comparison and explicit nominal timing limits |
 | `sst_campaign.py` | Complete predeclared old/new matrix, at most two memory-admitted workers, retained failures |
 | `sst_input_audit.py` | Independent bounded synchronous old-state/active oracle and empty-tail inventory |
 | `sst_delivery.py` | Immutable six-row SST/board evidence, common-source legacy gate and nominal tail diagnostics |
 | `completion_delivery.py` | Separate capped-state and isolated read/write-blocking evidence; no model change or timing admission |
+| `channel_delivery.py` | Independent-channel correction: exact v1 replay, full v2 state/traffic gates and a separate immutable package; never upgrades nominal timing to calibration |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`. The distinct routed SST candidate

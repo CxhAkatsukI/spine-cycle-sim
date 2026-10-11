@@ -6,5 +6,5 @@
 namespace spine::sim::sst_adapter {
 void write_routed_regraph_report(const std::string &path, const RoutedReGraphFixture &,
                                 const RoutedReGraphSystem &, const SstMemoryBackend &,
-                                std::uint64_t observed_cycles);
+                                std::uint64_t observed_cycles, const std::string &profile_id);
 }

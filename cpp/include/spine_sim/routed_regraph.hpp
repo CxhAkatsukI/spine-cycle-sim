@@ -17,6 +17,7 @@ struct RoutedReGraphConfig {
   std::uint32_t first_initiator_id{600};
   std::uint64_t status_address{0x4800'0000ULL};
   std::size_t fixed_rounds{};
+  bool independent_read_write{};
 };
 
 struct RoutedReGraphInvocation {
