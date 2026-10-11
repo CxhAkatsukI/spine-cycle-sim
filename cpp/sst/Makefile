@@ -48,9 +48,11 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/grasu.cpp \
            $(ROOT)/cpp/src/grasu_native.cpp \
            $(ROOT)/cpp/src/grasu_regraph.cpp \
+           $(ROOT)/cpp/src/grasu_regraph_legacy_reader.cpp \
            $(ROOT)/cpp/src/grasu_regraph_runtime.cpp \
            $(ROOT)/cpp/src/grasu_sharded_update.cpp \
            $(ROOT)/cpp/src/memory_backend.cpp \
+           $(ROOT)/cpp/src/regraph_pma_adapter.cpp \
            $(ROOT)/cpp/src/scheduler.cpp \
            $(ROOT)/cpp/src/spine_dirty.cpp \
            $(ROOT)/cpp/src/spine_l0.cpp \

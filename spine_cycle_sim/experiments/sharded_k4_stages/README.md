@@ -19,6 +19,8 @@ PMA timing control. Start with the
 | `delivery.py` | Frozen initial diagnostic package; never replace its raw evidence |
 | `optimization_delivery.py` | Immutable pre-route raw evidence, including failed RTL attempts |
 | `board_delivery.py` | Raw-log revalidation and a separate immutable routed/paired-board package |
+| `model_adapter.py` | Finite adapter and production-HLS shared-fixture checks; no timing admission |
+| `model_delivery.py` | Exact legacy regression and adapter-component evidence package |
 
 CLI files under `scripts/` parse arguments and delegate here. Numerical HLS
 changes belong to `grasu-regraph-integration`; the production simulator is

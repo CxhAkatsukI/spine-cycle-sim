@@ -16,6 +16,9 @@ completed original-A4 comparison or a published-performance match.
 5. [Routed and paired-board results](BOARD_RESULTS.md), [machine-readable results](board.json),
    [raw index](board_raw_index.json) and [raw board archive](raw_board.tar.gz)
    contain the later SSSP hardware checkpoint.
+6. [Production-model synchronization](../model_sync/README.md) records the
+   later reader extraction and raw-adapter functional tests, with system
+   integration and timing admission still open.
 
 ## Candidate And Current Gates
 
@@ -115,7 +118,7 @@ not be reset or killed to obtain a board.
 ## Remaining Gates
 
 The production simulator is not silently changed or retimed by this study.
-Its current `PmaNativeReader` in `cpp/src/grasu_regraph.cpp` combines row
+Its legacy `PmaNativeReader`, now extracted to `cpp/src/grasu_regraph_legacy_reader.cpp`, combines row
 reading, source-cache consumption and edge emission. `ReGraphGather` drains
 only after that reader is done. The actual hardware consumes a known packet
 count and can finish gather before the adapter finishes trailing empty rows,

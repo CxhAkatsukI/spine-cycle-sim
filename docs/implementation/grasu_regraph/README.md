@@ -93,4 +93,8 @@ placement and destination-shard update sequencing now have separate source
 files behind the existing public header. The
 [extraction record](../../repository/grasu_component_refactor/README.md)
 documents the fixed regression matrix; readers, compute, and round control
-still share a larger implementation file.
+previously shared a larger implementation file. The subsequent
+[actual-K4 model checkpoint](../../experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/README.md)
+extracts the legacy PMA reader and validates a separately owned raw AXIS
+adapter. Source service, compute and round control still need further work;
+the new adapter is not yet selected by a production profile.

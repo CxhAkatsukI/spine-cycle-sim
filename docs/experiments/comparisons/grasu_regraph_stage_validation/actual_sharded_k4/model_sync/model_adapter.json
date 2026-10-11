@@ -1,0 +1,1045 @@
+{
+  "adapter": {
+    "attempts": [
+      {
+        "name": "cycle_model",
+        "resources": {
+          "available_before_bytes": 78981672960,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/core_extract/cpp/routed_pma_adapter_tests"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19200,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/cycle_model.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/cycle_model.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.2030006879940629
+        }
+      },
+      {
+        "name": "weighted_prefetch0_stop0_build",
+        "resources": {
+          "available_before_bytes": 78932643840,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=0",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 371696,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop0_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop0_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.26028406387195
+        }
+      },
+      {
+        "name": "weighted_prefetch0_stop0_run",
+        "resources": {
+          "available_before_bytes": 78986784768,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19212,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop0_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop0_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.0525773074477911
+        }
+      },
+      {
+        "name": "weighted_prefetch0_stop1_build",
+        "resources": {
+          "available_before_bytes": 78977835008,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=0",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 372580,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop1_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop1_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.3109106048941612
+        }
+      },
+      {
+        "name": "weighted_prefetch0_stop1_run",
+        "resources": {
+          "available_before_bytes": 79071940608,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19224,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop1_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch0_stop1_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.05263514909893274
+        }
+      },
+      {
+        "name": "weighted_prefetch1_stop0_build",
+        "resources": {
+          "available_before_bytes": 79061417984,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=0",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 372272,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop0_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop0_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.1603157678619027
+        }
+      },
+      {
+        "name": "weighted_prefetch1_stop0_run",
+        "resources": {
+          "available_before_bytes": 79048212480,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19228,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop0_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop0_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.052678349893540144
+        }
+      },
+      {
+        "name": "weighted_prefetch1_stop1_build",
+        "resources": {
+          "available_before_bytes": 79041753088,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=1",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=0",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 371640,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop1_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop1_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.2104502371512353
+        }
+      },
+      {
+        "name": "weighted_prefetch1_stop1_run",
+        "resources": {
+          "available_before_bytes": 79085039616,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19228,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop1_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/weighted_prefetch1_stop1_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.052815963979810476
+        }
+      },
+      {
+        "name": "destination_prefetch0_stop0_build",
+        "resources": {
+          "available_before_bytes": 79072722944,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=0",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 374904,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop0_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop0_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.3128976030275226
+        }
+      },
+      {
+        "name": "destination_prefetch0_stop0_run",
+        "resources": {
+          "available_before_bytes": 79049265152,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19240,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop0_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop0_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.0528599857352674
+        }
+      },
+      {
+        "name": "destination_prefetch0_stop1_build",
+        "resources": {
+          "available_before_bytes": 79041859584,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=0",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 374984,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop1_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop1_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.2594372630119324
+        }
+      },
+      {
+        "name": "destination_prefetch0_stop1_run",
+        "resources": {
+          "available_before_bytes": 79149752320,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19248,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop1_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch0_stop1_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.052606137935072184
+        }
+      },
+      {
+        "name": "destination_prefetch1_stop0_build",
+        "resources": {
+          "available_before_bytes": 79148171264,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=0",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 375040,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop0_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop0_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.2597907832823694
+        }
+      },
+      {
+        "name": "destination_prefetch1_stop0_run",
+        "resources": {
+          "available_before_bytes": 79085236224,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19260,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop0_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop0_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.05258410610258579
+        }
+      },
+      {
+        "name": "destination_prefetch1_stop1_build",
+        "resources": {
+          "available_before_bytes": 79079600128,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=0",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=1",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 375024,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop1_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop1_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.2621496319770813
+        }
+      },
+      {
+        "name": "destination_prefetch1_stop1_run",
+        "resources": {
+          "available_before_bytes": 78988443648,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19260,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop1_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/destination_prefetch1_stop1_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.05255590472370386
+        }
+      },
+      {
+        "name": "unit_prefetch0_stop0_build",
+        "resources": {
+          "available_before_bytes": 78986141696,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=0",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=0",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 371700,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop0_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop0_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.3619342329911888
+        }
+      },
+      {
+        "name": "unit_prefetch0_stop0_run",
+        "resources": {
+          "available_before_bytes": 78885777408,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19264,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop0_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop0_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.05275025172159076
+        }
+      },
+      {
+        "name": "unit_prefetch0_stop1_build",
+        "resources": {
+          "available_before_bytes": 78888652800,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=0",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=0",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=0",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 371720,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop1_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop1_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.26034127920866
+        }
+      },
+      {
+        "name": "unit_prefetch0_stop1_run",
+        "resources": {
+          "available_before_bytes": 79071469568,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19268,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop1_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch0_stop1_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.052523025777190924
+        }
+      },
+      {
+        "name": "unit_prefetch1_stop0_build",
+        "resources": {
+          "available_before_bytes": 79068917760,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=0",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=0",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=0",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 371940,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop0_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop0_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.1585008720867336
+        }
+      },
+      {
+        "name": "unit_prefetch1_stop0_run",
+        "resources": {
+          "available_before_bytes": 79067299840,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop0"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19268,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop0_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop0_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.052705991081893444
+        }
+      },
+      {
+        "name": "unit_prefetch1_stop1_build",
+        "resources": {
+          "available_before_bytes": 79065055232,
+          "command": [
+            "g++",
+            "-std=c++20",
+            "-O2",
+            "-Wno-unknown-pragmas",
+            "-I",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/include",
+            "-isystem",
+            "/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include",
+            "-DGRASU_REGRAPH_WEIGHTED_PMA=0",
+            "-DGRASU_REGRAPH_DESTINATION_ONLY=0",
+            "-DGRASU_REGRAPH_SHARDED_PMA=1",
+            "-DGRASU_REGRAPH_SHARE_ALL_MEMORY_PORTS=1",
+            "-DGRASU_REGRAPH_ROW_PREFETCH=1",
+            "-DGRASU_REGRAPH_STOP_AFTER_LAST=1",
+            "-DGRASU_ADAPTER_SOURCE=\"/home/chuxiao/grasu-regraph-integration/kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp\"",
+            "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/cpp/tests/routed_regraph/adapter_hls_test.cpp",
+            "-lgmp",
+            "-o",
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 371804,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop1_build.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop1_build.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 3.3101539299823344
+        }
+      },
+      {
+        "name": "unit_prefetch1_stop1_run",
+        "resources": {
+          "available_before_bytes": 79056887808,
+          "command": [
+            "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop1"
+          ],
+          "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+          "exit_code": 0,
+          "memory_limit_gib": 8,
+          "peak_rss_kib": 19272,
+          "reserve_gib": 16,
+          "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+          "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop1_run.stderr.txt",
+          "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/shared_fixture_completion/unit_prefetch1_stop1_run.stdout.txt",
+          "timed_out": false,
+          "wall_seconds": 0.05271189101040363
+        }
+      }
+    ],
+    "claim": "packet_equivalence_and_finite_resources_not_hardware_timing",
+    "hls_fixture_calls": 324,
+    "hls_variants": 12,
+    "schema_version": 1,
+    "simulator_primary_cases": 288,
+    "source_unchanged": true,
+    "status": "PASS"
+  },
+  "claim": "new_component_packet_and_finite_resource_checks_not_system_timing",
+  "legacy": {
+    "candidate": {
+      "cases": [
+        {
+          "backend_requests": 33848,
+          "case": "sssp_mixed_cold",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 99885,
+          "equivalent": true,
+          "result_hashes": [
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+          ]
+        },
+        {
+          "backend_requests": 1775700,
+          "case": "sssp_multipart_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 5997674,
+          "equivalent": true,
+          "result_hashes": [
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+          ]
+        },
+        {
+          "backend_requests": 50741,
+          "case": "cc_reciprocal",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 133841,
+          "equivalent": true,
+          "result_hashes": [
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+          ]
+        },
+        {
+          "backend_requests": 997048,
+          "case": "residual_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 1487890,
+          "equivalent": true,
+          "result_hashes": [
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+          ]
+        },
+        {
+          "backend_requests": 48,
+          "case": "residual_update_only",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 200,
+          "equivalent": true,
+          "result_hashes": [
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+          ]
+        }
+      ],
+      "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+      "correctness_admitted_cases": 5,
+      "ignored_result_fields": [],
+      "known_rejections": 0,
+      "status": "PASS"
+    },
+    "candidate_final": {
+      "cases": [
+        {
+          "backend_requests": 33848,
+          "case": "sssp_mixed_cold",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 99885,
+          "equivalent": true,
+          "result_hashes": [
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+          ]
+        },
+        {
+          "backend_requests": 1775700,
+          "case": "sssp_multipart_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 5997674,
+          "equivalent": true,
+          "result_hashes": [
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+          ]
+        },
+        {
+          "backend_requests": 50741,
+          "case": "cc_reciprocal",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 133841,
+          "equivalent": true,
+          "result_hashes": [
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+          ]
+        },
+        {
+          "backend_requests": 997048,
+          "case": "residual_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 1487890,
+          "equivalent": true,
+          "result_hashes": [
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+          ]
+        },
+        {
+          "backend_requests": 48,
+          "case": "residual_update_only",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 200,
+          "equivalent": true,
+          "result_hashes": [
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+          ]
+        }
+      ],
+      "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+      "correctness_admitted_cases": 5,
+      "ignored_result_fields": [],
+      "known_rejections": 0,
+      "status": "PASS"
+    },
+    "extracted": {
+      "cases": [
+        {
+          "backend_requests": 33848,
+          "case": "sssp_mixed_cold",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 99885,
+          "equivalent": true,
+          "result_hashes": [
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+            "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+          ]
+        },
+        {
+          "backend_requests": 1775700,
+          "case": "sssp_multipart_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 5997674,
+          "equivalent": true,
+          "result_hashes": [
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+            "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+          ]
+        },
+        {
+          "backend_requests": 50741,
+          "case": "cc_reciprocal",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 133841,
+          "equivalent": true,
+          "result_hashes": [
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+            "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+          ]
+        },
+        {
+          "backend_requests": 997048,
+          "case": "residual_warm",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 1487890,
+          "equivalent": true,
+          "result_hashes": [
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+            "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+          ]
+        },
+        {
+          "backend_requests": 48,
+          "case": "residual_update_only",
+          "changed_fields": [],
+          "changed_manifest_identities": [],
+          "correctness_admitted": true,
+          "cycles": 200,
+          "equivalent": true,
+          "result_hashes": [
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+            "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+          ]
+        }
+      ],
+      "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+      "correctness_admitted_cases": 5,
+      "ignored_result_fields": [],
+      "known_rejections": 0,
+      "status": "PASS"
+    }
+  },
+  "remaining": [
+    "production_candidate_scatter_and_completion_wiring",
+    "independent_frontend_dispatch_and_shared_round_backend",
+    "matched_hardware_component_and_system_timing",
+    "matched_original_A4_vs_actual_K4",
+    "publication_speed_match"
+  ],
+  "schema_version": 1,
+  "status": "LEGACY_EQUIVALENCE_AND_ADAPTER_FUNCTIONAL_PASS",
+  "verification": {
+    "baseline_build": {
+      "available_before_bytes": 79880630272,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "BUILD_DIR=/data/chuxiao/experiments/sharded_k4_model_sync_20261010/baseline_plugin",
+        "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "-j1"
+      ],
+      "cwd": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/baseline",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 1018132,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/baseline_build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/baseline_build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 97.57645615609363
+    },
+    "candidate_build": {
+      "available_before_bytes": 79094054912,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "BUILD_DIR=/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_plugin",
+        "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 1018676,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 99.2939957450144
+    },
+    "candidate_final_build": {
+      "available_before_bytes": 78975352832,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "BUILD_DIR=/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_final_plugin",
+        "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 1018728,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_final_build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/candidate_final_build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 100.04344914108515
+    },
+    "core_final_ctest": {
+      "available_before_bytes": 79029002240,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/core_extract",
+        "--output-on-failure",
+        "--timeout",
+        "120"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 12,
+      "peak_rss_kib": 95152,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/core_final_ctest.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/core_final_ctest.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.620409188326448
+    },
+    "extracted_build": {
+      "available_before_bytes": 79533236224,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "BUILD_DIR=/data/chuxiao/experiments/sharded_k4_model_sync_20261010/extracted_plugin",
+        "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 1018584,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/extracted_build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_model_sync_20261010/extracted_build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 98.53594956407323
+    }
+  }
+}

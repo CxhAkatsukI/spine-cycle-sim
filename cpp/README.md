@@ -29,7 +29,9 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | GraSU PMA layout and update paths | [grasu.hpp](include/spine_sim/grasu.hpp), [grasu_native.hpp](include/spine_sim/grasu_native.hpp) | [grasu.cpp](src/grasu.cpp), [grasu_native.cpp](src/grasu_native.cpp) |
 | G+R HBM buffer placement and capacity checks | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph_runtime.cpp](src/grasu_regraph_runtime.cpp) |
 | G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
-| G+R readers, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
+| G+R legacy PMA reader | [private stream contract](src/detail/grasu_regraph_streams.hpp) | [grasu_regraph_legacy_reader.cpp](src/grasu_regraph_legacy_reader.cpp) |
+| G+R source service, compute, and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
+| Routed shared-master PMA adapter building block | [regraph_pma_adapter.hpp](include/spine_sim/regraph_pma_adapter.hpp) | [regraph_pma_adapter.cpp](src/regraph_pma_adapter.cpp); not yet selected by a production topology |
 | Independent original-ReGraph Little path, PR state and separate Big omega/banks/merge | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
 | Independent finite PMA input for matched original A4 | [pma_adapter/](include/spine_sim/pma_adapter/) | [reader.cpp](src/pma_adapter/reader.cpp); separate library, not production SST |
 | Independent original-G search/cache/DDR composition | [original_grasu/](include/spine_sim/original_grasu/) | [original_grasu/](src/original_grasu/); shared four-bank control, separate library, not production SST |
@@ -57,6 +59,7 @@ used by existing experiments.
 | Shared core and Spine execution | [core_tests.cpp](tests/core_tests.cpp) |
 | GraSU and G+R execution | [grasu_tests.cpp](tests/grasu_tests.cpp) |
 | G+R placement, capacity, and empty-shard invariants | [grasu_runtime_tests.cpp](tests/grasu_runtime_tests.cpp) |
+| Routed adapter packet, pressure, completion and optional production-HLS checks | [routed_regraph/](tests/routed_regraph/) via [model runner](../scripts/validate_sharded_k4_adapter_model.py) |
 | Owner/reactivation protocol | [spine_owner_tests.cpp](tests/spine_owner_tests.cpp) |
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |
 | SST address mapping without an SST installation | [sst_hbm_mapper_tests.cpp](tests/sst_hbm_mapper_tests.cpp) |
@@ -138,9 +141,13 @@ changing their public header or function bodies:
 2. Sharded update orchestration consumes that placement and the update batch;
    it launches the existing native update engine one destination shard at a
    time, preserves degree initialization, and combines counters.
-3. Readers, source service, gather/merge/apply, and round control remain in
-   `grasu_regraph.cpp`. Their next extraction must preserve registration
-   order, FIFO ownership, and shared-downstream backpressure.
+3. The legacy combined PMA reader is now separately owned; source service,
+   gather/merge/apply and round control remain in `grasu_regraph.cpp`.
+   Their next extraction must preserve registration order, FIFO ownership,
+   and shared-downstream backpressure. The separate
+   [adapter synchronization checkpoint](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/README.md)
+   records a new full-result equivalence gate and a raw-adapter building block,
+   not a completed candidate system or timing calibration.
 
 The [refactor record](../docs/repository/grasu_component_refactor/README.md)
 contains the fixed pre/post SST matrix and full-result comparison. This is

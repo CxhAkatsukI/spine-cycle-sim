@@ -6,9 +6,11 @@ add_library(spine_cycle_core STATIC
   src/grasu.cpp
   src/grasu_native.cpp
   src/grasu_regraph.cpp
+  src/grasu_regraph_legacy_reader.cpp
   src/grasu_regraph_runtime.cpp
   src/grasu_sharded_update.cpp
   src/memory_backend.cpp
+  src/regraph_pma_adapter.cpp
   src/scheduler.cpp
   src/spine_dirty.cpp
   src/spine_l0.cpp
@@ -68,6 +70,11 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(routed_pma_adapter_tests tests/routed_regraph/adapter_tests.cpp)
+  target_link_libraries(routed_pma_adapter_tests PRIVATE spine_cycle_core)
+  target_compile_options(routed_pma_adapter_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME routed_pma_adapter_tests COMMAND routed_pma_adapter_tests)
+
   add_executable(original_grasu_execution tests/original_grasu/execution.cpp)
   target_link_libraries(original_grasu_execution PRIVATE original_grasu_cycle)
   target_compile_options(original_grasu_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)

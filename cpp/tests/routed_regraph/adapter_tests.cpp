@@ -1,0 +1,199 @@
+#include "adapter_fixture.hpp"
+
+#include <iostream>
+#include <limits>
+#include <stdexcept>
+
+namespace {
+using namespace routed_adapter_test;
+
+void require(bool value, const char *message) {
+  if (!value) throw std::runtime_error(message);
+}
+
+class Sink final : public Component {
+public:
+  Sink(ClockId clock, Fifo<ReGraphPmaPacket> &input, std::uint64_t start, std::uint64_t interval)
+      : Component("sink", clock), input_(input), start_(start), interval_(interval) {}
+  void evaluate(const CycleContext &context) override {
+    staged_.reset();
+    if (context.domain_cycle >= start_ && context.domain_cycle % interval_ == 0 && !input_.empty()) {
+      ReGraphPmaPacket packet;
+      if (input_.try_pop(packet)) staged_ = packet;
+    }
+  }
+  void commit(const CycleContext &) override {
+    if (staged_) packets.push_back(*staged_);
+  }
+  std::vector<ReGraphPmaPacket> packets;
+private:
+  Fifo<ReGraphPmaPacket> &input_;
+  std::uint64_t start_, interval_;
+  std::optional<ReGraphPmaPacket> staged_;
+};
+
+struct Options {
+  ReGraphPmaAdapterConfig adapter;
+  std::size_t depth{8};
+  std::uint64_t memory_latency{20}, sink_start{}, sink_interval{1};
+  bool reverse{};
+  unsigned partitions{1};
+};
+struct Result {
+  std::uint64_t cycles{}, stream_done{}, adapter_done{};
+  ReGraphPmaAdapterCounters counters;
+  bool restarted_with_pending_output{};
+  bool early_stream_notice{};
+};
+
+Result run(const Data &data, Options options) {
+  Scheduler scheduler;
+  const auto clock = scheduler.add_clock_mhz("core", 150);
+  MockMemoryBackend backend("memory", clock, MockMemoryConfig{
+      .channels = 32, .latency_cycles = options.memory_latency,
+      .accepts_per_channel_per_cycle = 1, .max_outstanding_per_channel = 32,
+      .response_queue_depth = 32, .registered_round_robin_arbitration = true});
+  FixedAxiPort memory("shared", clock, FixedAxiPortConfig{
+      .memory_channels = 32, .channel = 0, .initiator_id = 1,
+      .data_width_bytes = 64, .max_burst_beats = 16,
+      .request_fifo_depth = 16, .response_fifo_depth = 16,
+      .read_beat_fifo_depth = 16, .read_reorder_capacity = 16,
+      .max_pending_requests = 16, .max_outstanding_bursts = 16}, backend);
+  Fifo<ReGraphPmaPacket> output("edges", clock, options.depth);
+  ReGraphPmaAdapter adapter("adapter", clock, options.adapter, memory, output);
+  struct Notice {
+    ReGraphPmaAdapter *adapter;
+    bool early_stream{};
+  } notice{&adapter};
+  adapter.bind_completion_notifier(&notice, [](void *owner) noexcept {
+    auto &value = *static_cast<Notice *>(owner);
+    value.early_stream |= value.adapter->stream_complete() && !value.adapter->done();
+  });
+  Sink sink(clock, output, options.sink_start, options.sink_interval);
+  backend.initialize_payload(data.partition.row_channel, data.partition.row_base, bytes(data.rows));
+  for (std::size_t bank = 0; bank < 4; ++bank)
+    backend.initialize_payload(data.partition.pma_channel[bank], data.partition.pma_base[bank], bytes(data.pma[bank]));
+  if (options.reverse) {
+    scheduler.add_component(sink);
+    scheduler.add_component(adapter);
+    scheduler.add_component(output);
+    memory.register_components(scheduler);
+    scheduler.add_component(backend);
+  } else {
+    scheduler.add_component(backend);
+    memory.register_components(scheduler);
+    scheduler.add_component(output);
+    scheduler.add_component(adapter);
+    scheduler.add_component(sink);
+  }
+  adapter.start_partition(data.partition);
+  bool rejected = false;
+  try { adapter.start_partition(data.partition); } catch (const std::logic_error &) { rejected = true; }
+  require(rejected, "active adapter restart accepted");
+  Result result;
+  unsigned started = 1;
+  for (; result.cycles < 200000; ++result.cycles) {
+    scheduler.step();
+    if (adapter.stream_complete() && !result.stream_done) result.stream_done = result.cycles + 1;
+    if (adapter.done() && !result.adapter_done) result.adapter_done = result.cycles + 1;
+    if (adapter.done() && memory.idle()) {
+      if (started < options.partitions) {
+        result.restarted_with_pending_output |= !output.empty();
+        adapter.start_partition(data.partition);
+        ++started;
+      } else if (output.empty()) { ++result.cycles; break; }
+    }
+  }
+  require(adapter.done() && memory.idle() && backend.outstanding() == 0, "adapter timed out or leaked requests");
+  std::vector<ReGraphPmaPacket> expected;
+  for (unsigned partition = 0; partition < options.partitions; ++partition)
+    expected.insert(expected.end(), data.expected.begin(), data.expected.end());
+  require(sink.packets == expected, "routed adapter packet words or last differ");
+  result.counters = adapter.counters();
+  result.early_stream_notice = notice.early_stream;
+  const auto &count = result.counters;
+  const auto visited = options.adapter.stop_after_last
+      ? (data.expected.empty() ? 0 : data.last_source + 1) : data.partition.vertices;
+  const auto expected_reads = options.adapter.prefetch_rows
+      ? std::min(data.partition.vertices, (visited + 7) / 8 * 8) : visited;
+  const auto requests = (1 + expected_reads + data.partition.slots / 16) * options.partitions;
+  require(count.extent_reads == options.partitions && count.row_reads == expected_reads * options.partitions &&
+          count.rows_visited == visited * options.partitions,
+          "extent or row accounting differs from the bounded prefetch/stop contract");
+  require(count.responses == requests && count.packets * 8 == data.partition.slots * options.partitions &&
+          count.live_edges + count.dummy_edges == count.packets * 8 &&
+          count.segment_reads == data.partition.slots / 16 * options.partitions, "adapter packet/read conservation failed");
+  require(memory.master().stats().requests_accepted == requests &&
+          memory.master().stats().requests_completed == requests &&
+          backend.traffic_stats().reads.bytes == requests * 64 &&
+          backend.traffic_stats().writes.bytes == 0, "shared AXI traffic conservation failed");
+  require(count.max_pending_reads <= options.adapter.pending_read_capacity &&
+          count.max_buffered_segments <= options.adapter.segment_buffer_capacity &&
+          output.stats().max_occupancy <= options.depth, "adapter exceeded a finite capacity");
+  scheduler.remove_component(sink);
+  adapter.unbind_completion_notifier(&notice);
+  scheduler.remove_component(adapter);
+  scheduler.remove_component(output);
+  memory.unregister_components(scheduler);
+  scheduler.remove_component(backend);
+  return result;
+}
+} // namespace
+
+int main() {
+  try {
+    std::size_t cases = 0;
+    for (const auto format : {ReGraphPmaFormat::kWeighted, ReGraphPmaFormat::kDestination, ReGraphPmaFormat::kUnitWeight})
+      for (const auto vertices : {0U, 1U, 8U, 9U, 65U, 1025U})
+        for (bool at_end : {false, true})
+          for (bool empty : {false, true})
+            for (bool prefetch : {false, true})
+              for (bool stop : {false, true}) {
+                Options options;
+                options.adapter.format = format;
+                options.adapter.prefetch_rows = prefetch;
+                options.adapter.stop_after_last = stop;
+                run(Data(vertices, at_end, empty, format), options);
+                ++cases;
+              }
+    const Data data(65, false, false, ReGraphPmaFormat::kWeighted);
+    const auto baseline = run(data, {});
+    Options reversed;
+    reversed.reverse = true;
+    const auto reverse = run(data, reversed);
+    require(reverse.cycles == baseline.cycles, "registration order changed adapter timing");
+    Options delayed;
+    delayed.memory_latency = 200;
+    require(run(data, delayed).cycles > baseline.cycles, "memory latency was bypassed");
+    Options pressured;
+    pressured.depth = 1;
+    pressured.sink_start = 1000;
+    pressured.sink_interval = 73;
+    const auto pressure = run(data, pressured);
+    require(pressure.cycles > baseline.cycles && pressure.counters.output_stalls, "FIFO backpressure was bypassed");
+    Options serial;
+    serial.adapter.pending_read_capacity = 1;
+    require(run(data, serial).cycles > baseline.cycles, "outstanding budget was bypassed");
+    Options old;
+    old.adapter.stop_after_last = false;
+    const auto trailing = run(data, old);
+    require(trailing.adapter_done > trailing.stream_done && trailing.cycles > baseline.cycles,
+            "adapter and edge-stream completion were incorrectly coupled");
+    const auto empty_tail = run(Data(65, false, true, ReGraphPmaFormat::kWeighted), old);
+    require(empty_tail.early_stream_notice && empty_tail.adapter_done > empty_tail.stream_done,
+            "empty stream completion did not wake its consumer before trailing rows completed");
+    for (const auto cache : {0U, 1U, 4U}) run(Data(9, true, false, ReGraphPmaFormat::kWeighted, cache), {});
+    Options chained;
+    chained.partitions = 2;
+    chained.depth = 32;
+    chained.sink_start = 2000;
+    require(run(data, chained).restarted_with_pending_output,
+            "adapter restart was serialized behind previous gather/AXIS drain");
+    std::cout << "Routed shared-master PMA adapter PASS cases=" << cases
+              << " pressure_latency_registration_and_completion_checks=PASS\n";
+    return 0;
+  } catch (const std::exception &error) {
+    std::cerr << error.what() << '\n';
+    return 1;
+  }
+}

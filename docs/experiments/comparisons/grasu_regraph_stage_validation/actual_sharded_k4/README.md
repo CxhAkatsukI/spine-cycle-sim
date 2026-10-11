@@ -11,6 +11,9 @@ and the [paired SSSP board results](adapter_optimization/BOARD_RESULTS.md):
 AU/SU/WK now pass all 18 old/new executions, with measured setup-inclusive
 improvements of 9.82x, 8.30x and 52.63x. Production-simulator synchronization,
 other optimized algorithms and matched original-A4 performance remain open.
+The [model synchronization checkpoint](model_sync/README.md) records the
+behavior-preserving reader extraction and new shared-master adapter tests;
+it does not claim complete system integration or timing calibration.
 The initial raw package below remains
 frozen and does not contain the later candidate build.
 The [raw file index](raw_index.json) covers all 27 board logs and the
