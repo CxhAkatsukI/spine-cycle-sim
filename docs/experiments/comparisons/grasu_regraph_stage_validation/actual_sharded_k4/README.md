@@ -22,6 +22,10 @@ Scatter/source gates and an important binary-identity correction: measured
 SSSP retains four independent source masters; the later HLS worktree uses
 two pairwise masters. Calibration must follow the measured XO, not that
 later source file. Whole-system scheduling and timing remain open.
+Subsequent [complete composition](model_sync/system/README.md) and
+[explicit SST diagnostic](model_sync/sst/README.md) checkpoints connect that
+measured topology and admit HLS-exported full-state/traffic checks. Hardware
+timing admission and original-A4 performance matching remain open.
 The initial raw package below remains
 frozen and does not contain the later candidate build.
 The [raw file index](raw_index.json) covers all 27 board logs and the

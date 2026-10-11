@@ -23,6 +23,12 @@ four independently dispatched frontend chains and one whole-round backend.
 Its full-state, finite-traffic and convergence tests are separate from the
 still-open artifact-bound SST profile and matched hardware timing gates.
 
+The subsequent [explicit SST candidate diagnostic](sst/README.md) selects
+that composition through a separate component and artifact-bound profile.
+It preserves complete HLS-prepared PMA inputs and checks complete FPGA result
+bytes. Nominal timing differences remain visible and are not a calibration
+pass; this earlier adapter archive and its original status table stay frozen.
+
 ## Status And Reading Order
 
 | Gate | Status and scope |

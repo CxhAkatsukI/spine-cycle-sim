@@ -24,6 +24,7 @@ add_library(spine_cycle_core STATIC
   src/routed_regraph/composition.cpp
   src/routed_regraph/rounds.cpp
   src/routed_regraph/system.cpp
+  src/routed_regraph/fixture.cpp
   src/scheduler.cpp
   src/spine_dirty.cpp
   src/spine_l0.cpp
@@ -83,6 +84,11 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(routed_regraph_fixture_tests tests/routed_regraph/fixture_tests.cpp)
+  target_link_libraries(routed_regraph_fixture_tests PRIVATE spine_cycle_core)
+  target_compile_options(routed_regraph_fixture_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME routed_regraph_fixture_tests COMMAND routed_regraph_fixture_tests)
+
   add_executable(routed_regraph_system_tests tests/routed_regraph/system_tests.cpp)
   target_link_libraries(routed_regraph_system_tests PRIVATE spine_cycle_core)
   target_compile_options(routed_regraph_system_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

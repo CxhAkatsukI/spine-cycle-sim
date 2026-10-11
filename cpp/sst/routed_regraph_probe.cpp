@@ -1,0 +1,105 @@
+// clang-format off
+#include "sst/core/sst_config.h"
+// clang-format on
+
+#include "routed_regraph_report.hpp"
+#include "sst/core/component.h"
+#include "sst/core/output.h"
+#include "sst/core/params.h"
+#include "sst/core/timeConverter.h"
+
+#include <fstream>
+#include <iostream>
+#include <numeric>
+
+namespace spine::sim::sst_adapter {
+class RoutedReGraphProbe final : public SST::Component {
+public:
+  RoutedReGraphProbe(SST::ComponentId_t id, SST::Params &params) : SST::Component(id) {
+    fixture_ = load_routed_regraph_fixture(params.find<std::string>("fixture", ""));
+    output_path_ = params.find<std::string>("output", "");
+    dram_config_ = params.find<std::string>("dram_config", "");
+    dram_output_ = params.find<std::string>("dram_output", "");
+    max_cycles_ = params.find<std::uint64_t>("max_cycles", 300000000);
+    prefetch_ = params.find<bool>("row_prefetch", true);
+    stop_ = params.find<bool>("stop_after_last", true);
+    if (output_path_.empty() || dram_config_.empty() || dram_output_.empty() || !max_cycles_)
+      throw std::invalid_argument("missing routed SST paths or cycle limit");
+    registerClock("150MHz", new SST::Clock::Handler<RoutedReGraphProbe, &RoutedReGraphProbe::tick>(this));
+    picoseconds_ = getTimeConverter("1ps");
+    registerAsPrimaryComponent();
+    primaryComponentDoNotEndSim();
+  }
+
+  void setup() override {
+    const auto clock = scheduler_.add_clock_mhz("kernel", 150);
+    std::vector<std::size_t> channels(32);
+    std::iota(channels.begin(), channels.end(), 0);
+    auto engine = std::make_unique<DirectDramSim3Engine>(DirectDramSim3Engine::Config{
+        .channels = 32, .active_channels = channels, .dram_config_path = dram_config_, .output_root = dram_output_});
+    backend_ = std::make_unique<SstMemoryBackend>(clock,
+        std::vector<SST::Interfaces::StandardMem *>(32, nullptr), 512ULL << 20, 1, 32, 128,
+        "identity", "", 0, 0, 64, std::move(engine));
+    scheduler_.add_component(*backend_);
+    RoutedReGraphConfig config;
+    config.adapter.prefetch_rows = prefetch_;
+    config.adapter.stop_after_last = stop_;
+    config.compute.cache_segments_per_half = fixture_.cache_segments;
+    config.compute.runtime_physical_updates_per_shard = fixture_.physical_updates;
+    config.compute.max_supersteps = 256;
+    config.compute.apply_request_window = 16;
+    // Explicit, disjoint physical model offsets. These are not captured XRT
+    // BO addresses and must not be described as exact board address replay.
+    config.compute.vertex_state_base = 0;
+    config.compute.source_state_base = 0;
+    config.compute.source_state_buffer_stride = fixture_.layout.partitions.size() * 65536 * 4;
+    config.status_address = (config.compute.source_state_buffer_stride + 4095) / 4096 * 4096;
+    system_ = std::make_unique<RoutedReGraphSystem>(scheduler_, clock, *backend_, fixture_.layout,
+                                                  fixture_.initial, config);
+    system_->register_components();
+  }
+
+  void finish() override {
+    if (!system_) return;
+    write_routed_regraph_report(output_path_, fixture_, *system_, *backend_, scheduler_.clock(0).completed_cycles);
+    std::ofstream diagnostic(output_path_ + ".diagnostic.txt");
+    diagnostic << system_->failure() << '\n' << system_->diagnostic() << '\n';
+    backend_->print_direct_stats();
+  }
+
+  bool tick(SST::Cycle_t) {
+    backend_->advance_direct_to(getCurrentSimTime(picoseconds_));
+    scheduler_.step();
+    system_->advance_if_complete();
+    const auto cycle = scheduler_.clock(0).completed_cycles;
+    if (cycle % 1000000 == 0)
+      std::cout << "routed_progress cycles=" << cycle << " rounds=" << system_->rounds().size() << std::endl;
+    if (system_->done() || cycle >= max_cycles_) {
+      primaryComponentOKToEndSim();
+      return true;
+    }
+    return false;
+  }
+
+  SST_ELI_REGISTER_COMPONENT(RoutedReGraphProbe, "spine_cycle", "RoutedReGraphProbe",
+      SST_ELI_ELEMENT_VERSION(1, 0, 0), "Artifact-bound resident routed SSSP compute candidate",
+      COMPONENT_CATEGORY_MEMORY)
+  SST_ELI_DOCUMENT_PARAMS(
+      {"fixture", "Version-1 HLS-exported resident fixture", ""},
+      {"output", "Candidate JSON result", ""},
+      {"dram_config", "Pinned DRAMSim3 INI", ""},
+      {"dram_output", "DRAMSim3 output directory", ""},
+      {"max_cycles", "Explicit device cycle cap", "300000000"},
+      {"row_prefetch", "Optimized row issue path", "1"},
+      {"stop_after_last", "Stop at last occupied row", "1"})
+private:
+  Scheduler scheduler_;
+  RoutedReGraphFixture fixture_;
+  std::unique_ptr<SstMemoryBackend> backend_;
+  std::unique_ptr<RoutedReGraphSystem> system_;
+  SST::TimeConverter picoseconds_;
+  std::string output_path_, dram_config_, dram_output_;
+  std::uint64_t max_cycles_{};
+  bool prefetch_{}, stop_{};
+};
+} // namespace spine::sim::sst_adapter

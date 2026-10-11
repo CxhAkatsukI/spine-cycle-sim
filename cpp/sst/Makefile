@@ -39,6 +39,8 @@ CXXFLAGS += -DSPINE_HAVE_DIRECT_DRAMSIM3 -I$(DRAMSIM3_ROOT)/src
 LDFLAGS += -L$(DRAMSIM3_ROOT) -Wl,-rpath,$(DRAMSIM3_ROOT) -ldramsim3
 endif
 SOURCES := online_memory_probe.cpp \
+           routed_regraph_probe.cpp \
+           routed_regraph_report.cpp \
            physical_hbm_mapper.cpp \
            sst_memory_backend.cpp \
            direct_dramsim3_engine.cpp \
@@ -66,6 +68,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/routed_regraph/composition.cpp \
            $(ROOT)/cpp/src/routed_regraph/rounds.cpp \
            $(ROOT)/cpp/src/routed_regraph/system.cpp \
+           $(ROOT)/cpp/src/routed_regraph/fixture.cpp \
            $(ROOT)/cpp/src/scheduler.cpp \
            $(ROOT)/cpp/src/spine_dirty.cpp \
            $(ROOT)/cpp/src/spine_l0.cpp \

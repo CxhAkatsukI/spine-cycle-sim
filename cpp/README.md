@@ -32,14 +32,16 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | G+R legacy PMA reader | [private stream contract](src/detail/grasu_regraph_streams.hpp) | [grasu_regraph_legacy_reader.cpp](src/grasu_regraph_legacy_reader.cpp) |
 | G+R legacy source service, composition and iteration control | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph.cpp](src/grasu_regraph.cpp) |
 | G+R Gather, merger, Apply and source-state writer | [private compute contract](src/detail/grasu_regraph_compute.hpp) | [gather](src/grasu_regraph_gather.cpp), [merger](src/grasu_regraph_merger.cpp), [apply](src/grasu_regraph_apply.cpp), [writeback](src/grasu_regraph_writeback.cpp) |
-| Shared physical AXI clients | [queue view](include/spine_sim/axi_endpoint.hpp), [finite mux](include/spine_sim/shared_axi_port.hpp) | [shared_axi_port.cpp](src/shared_axi_port.cpp); candidate building block, not yet a selected production topology |
-| Routed shared-master PMA adapter building block | [regraph_pma_adapter.hpp](include/spine_sim/regraph_pma_adapter.hpp) | [regraph_pma_adapter.cpp](src/regraph_pma_adapter.cpp); not yet selected by a production topology |
+| Shared physical AXI clients | [queue view](include/spine_sim/axi_endpoint.hpp), [finite mux](include/spine_sim/shared_axi_port.hpp) | [shared_axi_port.cpp](src/shared_axi_port.cpp); selected only by the explicit routed compute candidate, not legacy v8 |
+| Routed shared-master PMA adapter | [regraph_pma_adapter.hpp](include/spine_sim/regraph_pma_adapter.hpp) | [regraph_pma_adapter.cpp](src/regraph_pma_adapter.cpp); explicit candidate selection, legacy defaults unchanged |
 | Routed raw-packet Scatter and source-block service | [Scatter contract](src/detail/routed_regraph_scatter.hpp), [source contract](src/detail/routed_regraph_source.hpp) | [scatter](src/routed_regraph/scatter.cpp), [source service](src/routed_regraph/source_service.cpp); measured SSSP uses dedicated readers, later worktree uses pairwise readers |
-| Complete measured-topology SSSP candidate | [routed_regraph.hpp](include/spine_sim/routed_regraph.hpp) | [routed_regraph/](src/routed_regraph/); separate admission, serialization, composition, transport and round owners; no selected SST candidate profile yet |
+| Complete measured-topology SSSP candidate | [routed_regraph.hpp](include/spine_sim/routed_regraph.hpp) | [routed_regraph/](src/routed_regraph/); separate admission, serialization, composition, transport and round owners |
+| HLS-exported resident input | [routed_regraph_fixture.hpp](include/spine_sim/routed_regraph_fixture.hpp) | [fixture loader](src/routed_regraph/fixture.cpp), [owning-HLS exporter](tools/routed_regraph/export_hls_fixture.cpp); preserves reserved slots and update result |
 | Independent original-ReGraph Little path, PR state and separate Big omega/banks/merge | [original_regraph/](include/spine_sim/original_regraph/) | [original_regraph/](src/original_regraph/) |
 | Independent finite PMA input for matched original A4 | [pma_adapter/](include/spine_sim/pma_adapter/) | [reader.cpp](src/pma_adapter/reader.cpp); separate library, not production SST |
 | Independent original-G search/cache/DDR composition | [original_grasu/](include/spine_sim/original_grasu/) | [original_grasu/](src/original_grasu/); shared four-bank control, separate library, not production SST |
 | SST setup and run serialization | SST component registration | [online_memory_probe.cpp](sst/online_memory_probe.cpp) |
+| Explicit routed SSSP SST candidate | [version-1 profile](../configs/architectures/grasu_regraph_routed_sssp_compute_v1.json) | [probe](sst/routed_regraph_probe.cpp), [report](sst/routed_regraph_report.cpp); separate component, no legacy probe branch |
 | SST physical HBM address mapping | [physical_hbm_mapper.hpp](sst/physical_hbm_mapper.hpp) | [physical_hbm_mapper.cpp](sst/physical_hbm_mapper.cpp) |
 | SST memory reservation, transport and completion | [sst_memory_backend.hpp](sst/sst_memory_backend.hpp) | [sst_memory_backend.cpp](sst/sst_memory_backend.cpp) |
 | Direct DRAMSim3 bridge | [direct_dramsim3_engine.hpp](sst/direct_dramsim3_engine.hpp) | [direct_dramsim3_engine.cpp](sst/direct_dramsim3_engine.cpp) |
@@ -164,8 +166,11 @@ changing their public header or function bodies:
 6. The [complete SSSP candidate](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/system/README.md)
    subsequently connects independent frontend chains and the whole-round
    shared backend. Complete state, source replicas, scheduling and finite
-   ledgers pass in bounded tests. An explicit SST candidate profile and matched
-   FPGA timing remain open; earlier component checkpoints do not imply them.
+   ledgers pass in bounded tests. The subsequent
+   [SST diagnostic](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/sst/README.md)
+   selects a distinct artifact-bound candidate and compares complete HLS-exported
+   inputs with FPGA results. Matched FPGA timing remains unadmitted; the
+   diagnostic preserves the nominal timing discrepancies instead of fitting them.
 
 The [refactor record](../docs/repository/grasu_component_refactor/README.md)
 contains the fixed pre/post SST matrix and full-result comparison. This is
