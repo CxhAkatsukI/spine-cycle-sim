@@ -50,6 +50,8 @@ their overlap remain modeled. No production profile was changed or fitted.
 | [Raw evidence](evidence/raw_sensitivity.tar.gz) | Logs, all complete states, execution sources, standalone binary, compiler flags and watchdog records |
 | [Regression verification](checks/verification.json) | 359 Python tests and 28 frozen-build C++ tests, with raw logs and reviewed test sources |
 | [Prior pilot](prior-pilot-v1/verification.json) | Preserved first replay; superseded by v2 for execution-provenance closure |
+| [Retained-work accounting](evidence/work_accounting.json) | Exact modeled read-byte categories and serial phase floors; no new numerical execution or FPGA stall attribution |
+| [Accounting regression](checks/work_accounting_regression.resources.json) | 383 related Python tests, including eight accounting checks; [test log](checks/work_accounting_regression.stderr.txt) |
 
 The pilot recorded fewer reused-owner pins and did not rehash its executable
 before every launch. It is retained as historical evidence, not presented as
@@ -91,6 +93,69 @@ The underlying A4/K4 memory-master topology and state replication are not
 strictly resource matched. Neither arm establishes original-publication
 matching, convergence performance, or a calibrated production candidate.
 
+## Why A Gap Remains In This Model
+
+The data-only `sensitivity.accounting` owner rechecks the existing evidence,
+then derives the following identities without rerunning or retiming either
+numerical path. All twelve cases preserve the same traffic.
+
+| Modeled read category | A4 bytes | K4 bytes |
+| --- | ---: | ---: |
+| Edge/PMA payload | 11,613,696 | 30,439,168 |
+| Row metadata | 0 | 66,059,008 |
+| Extent metadata | 0 | 256 |
+| Source state | 4,784,128 | 4,194,304 |
+| Old state | 1,048,576 | 1,048,576 |
+| Total | 17,446,400 | 101,741,312 |
+
+Thus modeled reads grow **5.832x**, with row metadata accounting for 64.93%
+of K4's reads. These are the model's 64-byte request counts, not a new
+capture of physical FPGA/HBM utilization. Physical slots also increase
+from 1,451,712 to 7,609,792; PMA holes and per-source segment alignment
+are real work in this retained layout, but do not alone explain the cycle ratio.
+
+The current adapter model processes source rows serially. Each row-cache
+group waits for its reads, each source has six control cycles, and each
+occupied source must wait at least 71 cycles for its first segment read.
+The next source cannot start that read while the current source emits.
+These are disjoint phases *within one adapter*, giving the conservative floor:
+
+```text
+floor(worker) = 71 + 71 * row_groups + 6 * visited_rows
+                + 71 * occupied_rows + empty_exit * empty_rows
+system_floor = max(floor(worker))
+```
+
+Here `occupied_rows` includes the reserved source-zero dummy segment.
+The four workers run concurrently, so their floors are **not summed**.
+The bound ignores extra memory service, issue gaps, packet emission,
+downstream backpressure and completion overhead. It uses the adapter's
+fixed 71-cycle assumption even in the 128-cycle memory arm.
+
+| Empty exit | Worker with largest floor | Serial floor | Observed model cycles, 64-cycle memory |
+| --- | ---: | ---: | ---: |
+| 73 | 3 | 22,592,644 | 23,478,378 |
+| 0 | 0 | 16,583,591 | 17,745,396 |
+
+Removing empty waits changes which worker has the largest floor. In the
+zero arm, worker 0 has 179,508 occupied rows: their first-read waits alone
+contribute 12,745,068 cycles to its floor. This identifies a remaining
+**model scheduling constraint**, not a measured FPGA stage percentage.
+It is not evidence that PMA inherently requires a 26.55x slowdown, nor a
+license to lower the 71-cycle parameter. Any cross-source overlap or
+metadata-line reuse must first be implemented and checked in the actual
+HLS, then represented in an explicit simulator candidate.
+
+The [accounting watchdog](evidence/work_accounting.resources.json) records
+17.91 seconds and 975,192 KiB peak sampled tree RSS under a three-GiB cap
+and sixteen-GiB live reserve. The existing source/input/state gates pass;
+no numerical C++ source, profile, HLS or default SST plugin changed.
+The related Python suite passes all 383 tests, including eight new accounting
+checks, in 60.28 seconds of watchdog wall time. Peak sampled tree RSS is
+2,055,564 KiB and minimum available memory is 49.79 GiB, under the same
+three-GiB cap and sixteen-GiB reserve. This is analysis-code regression;
+the numerical C++ executors were not rebuilt or rerun for this data-only step.
+
 ## Reproduction
 
 The owning modules are
@@ -111,6 +176,12 @@ python3 -m spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.sensitivi
   --destination results/empty-helper-sensitivity-package
 
 python3 -m unittest discover -s tests -p 'test_sharded_k4_empty_segment_sensitivity*.py'
+
+python3 -m spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.sensitivity.accounting \
+  --run /data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/sensitivity-v2 \
+  --output results/empty-helper-work-accounting-fresh.json
+
+python3 -m unittest discover -s tests -p 'test_sharded_k4_empty_segment_accounting.py'
 ```
 
 Execution is sequential, with at most two compiler workers, an eight-GiB
@@ -127,8 +198,9 @@ Route the production candidate with the original toolchain environment,
 clock and connectivity, then check final timing/resources and alternate
 paired board runs with complete results. The preserved route attempt was
 not started: its 40-GiB tree budget plus 16-GiB reserve exceeded available
-memory. The future route wrapper also requires explicit toolchain-environment
-validation; it does not source the original link shell automatically.
+memory. The subsequent [environment checkpoint](../production/environment-admission/README.md)
+now passes six bounded toolchain preflights with explicit exports, but route
+remains unstarted because the unchanged memory admission still fails.
 
 Only matched FPGA evidence can admit the candidate's hardware timing. A
 production simulator candidate must then represent all confirmed scheduling

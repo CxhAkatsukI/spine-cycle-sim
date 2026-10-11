@@ -1,0 +1,289 @@
+{
+  "cases": [
+    {
+      "a4_cycles": 668278,
+      "empty_exit": 73,
+      "floor_over_observed_cycles": 0.9622744808010162,
+      "floor_worker": 3,
+      "k4_cycles": 23478378,
+      "k4_over_a4_cycles": 35.13265138161065,
+      "latency": 64,
+      "mode": "cold",
+      "reverse": 0,
+      "serial_model_floor": 22592644
+    },
+    {
+      "a4_cycles": 668278,
+      "empty_exit": 0,
+      "floor_over_observed_cycles": 0.9345292153525343,
+      "floor_worker": 0,
+      "k4_cycles": 17745396,
+      "k4_over_a4_cycles": 26.553913191815383,
+      "latency": 64,
+      "mode": "cold",
+      "reverse": 0,
+      "serial_model_floor": 16583591
+    },
+    {
+      "a4_cycles": 668278,
+      "empty_exit": 73,
+      "floor_over_observed_cycles": 0.9622744808010162,
+      "floor_worker": 3,
+      "k4_cycles": 23478378,
+      "k4_over_a4_cycles": 35.13265138161065,
+      "latency": 64,
+      "mode": "cold",
+      "reverse": 1,
+      "serial_model_floor": 22592644
+    },
+    {
+      "a4_cycles": 668278,
+      "empty_exit": 0,
+      "floor_over_observed_cycles": 0.9345292153525343,
+      "floor_worker": 0,
+      "k4_cycles": 17745396,
+      "k4_over_a4_cycles": 26.553913191815383,
+      "latency": 64,
+      "mode": "cold",
+      "reverse": 1,
+      "serial_model_floor": 16583591
+    },
+    {
+      "a4_cycles": 668278,
+      "empty_exit": 73,
+      "floor_over_observed_cycles": 0.9622744808010162,
+      "floor_worker": 3,
+      "k4_cycles": 23478378,
+      "k4_over_a4_cycles": 35.13265138161065,
+      "latency": 64,
+      "mode": "warm_update",
+      "reverse": 0,
+      "serial_model_floor": 22592644
+    },
+    {
+      "a4_cycles": 668278,
+      "empty_exit": 0,
+      "floor_over_observed_cycles": 0.9345292153525343,
+      "floor_worker": 0,
+      "k4_cycles": 17745396,
+      "k4_over_a4_cycles": 26.553913191815383,
+      "latency": 64,
+      "mode": "warm_update",
+      "reverse": 0,
+      "serial_model_floor": 16583591
+    },
+    {
+      "a4_cycles": 668278,
+      "empty_exit": 73,
+      "floor_over_observed_cycles": 0.9622744808010162,
+      "floor_worker": 3,
+      "k4_cycles": 23478378,
+      "k4_over_a4_cycles": 35.13265138161065,
+      "latency": 64,
+      "mode": "warm_update",
+      "reverse": 1,
+      "serial_model_floor": 22592644
+    },
+    {
+      "a4_cycles": 668278,
+      "empty_exit": 0,
+      "floor_over_observed_cycles": 0.9345292153525343,
+      "floor_worker": 0,
+      "k4_cycles": 17745396,
+      "k4_over_a4_cycles": 26.553913191815383,
+      "latency": 64,
+      "mode": "warm_update",
+      "reverse": 1,
+      "serial_model_floor": 16583591
+    },
+    {
+      "a4_cycles": 1292225,
+      "empty_exit": 73,
+      "floor_over_observed_cycles": 0.6109286757046308,
+      "floor_worker": 3,
+      "k4_cycles": 36980821,
+      "k4_over_a4_cycles": 28.61794269573797,
+      "latency": 128,
+      "mode": "warm_update",
+      "reverse": 0,
+      "serial_model_floor": 22592644
+    },
+    {
+      "a4_cycles": 1292225,
+      "empty_exit": 0,
+      "floor_over_observed_cycles": 0.5307116117693771,
+      "floor_worker": 0,
+      "k4_cycles": 31247839,
+      "k4_over_a4_cycles": 24.181422739847935,
+      "latency": 128,
+      "mode": "warm_update",
+      "reverse": 0,
+      "serial_model_floor": 16583591
+    },
+    {
+      "a4_cycles": 1292225,
+      "empty_exit": 73,
+      "floor_over_observed_cycles": 0.6109286757046308,
+      "floor_worker": 3,
+      "k4_cycles": 36980821,
+      "k4_over_a4_cycles": 28.61794269573797,
+      "latency": 128,
+      "mode": "warm_update",
+      "reverse": 1,
+      "serial_model_floor": 22592644
+    },
+    {
+      "a4_cycles": 1292225,
+      "empty_exit": 0,
+      "floor_over_observed_cycles": 0.5307116117693771,
+      "floor_worker": 0,
+      "k4_cycles": 31247839,
+      "k4_over_a4_cycles": 24.181422739847935,
+      "latency": 128,
+      "mode": "warm_update",
+      "reverse": 1,
+      "serial_model_floor": 16583591
+    }
+  ],
+  "exclusive_stage_attribution_admitted": false,
+  "hardware_timing_admitted": false,
+  "numerical_executor_rerun": false,
+  "production_model_modified": false,
+  "retained_evidence_rechecked": true,
+  "schema_version": 1,
+  "scope": "one_resident_synchronous_SSSP_round_uncalibrated_mock_memory",
+  "sources": [
+    {
+      "path": "/data/chuxiao/experiments/sharded_k4_skip_empty_segment_20261011/sensitivity-v2/results.json",
+      "sha256": "d9bf7cc5b4c150ae52ab00877310f3c28319d27cae2093163fb02ab1b5cdf2a4"
+    },
+    {
+      "path": "/data/chuxiao/experiments/a4_actual_sssp_partition_round_20261011/run-v6/results.json",
+      "sha256": "54ef87271652f4bb35096799d92940667a18fbfd53d900731105c4e02dca8206"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/configs/architectures/grasu_regraph_routed_sssp_compute_v4.json",
+      "sha256": "9a521a8fdefae9b50586ad8ba4560079c40a6b0dccc85f6bbd78957fa1547fd7"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/empty_segment/sensitivity/accounting.py",
+      "sha256": "b37e7e734f1df6d5f917aa61bf236ea71797cb685d3e5fc3c9a07f5cd2e3d777"
+    }
+  ],
+  "status": "retained_work_accounted_not_FPGA_stall_attribution",
+  "strict_resource_match_admitted": false,
+  "traffic": {
+    "a4_physical_slots": 1451712,
+    "a4_read_bytes": 17446400,
+    "a4_reads": {
+      "edges": 11613696,
+      "old_state": 1048576,
+      "source_state": 4784128
+    },
+    "k4_over_a4_read_bytes": 5.831650770359501,
+    "k4_physical_slots": 7609792,
+    "k4_read_bytes": 101741312,
+    "k4_reads": {
+      "extent": 256,
+      "old_state": 1048576,
+      "rows": 66059008,
+      "segments": 30439168,
+      "source_state": 4194304
+    },
+    "k4_row_share_of_read_bytes": 0.6492840194551452
+  },
+  "worker_floors": {
+    "0": [
+      {
+        "empty_helper_floor": 0,
+        "extent_read_floor": 71,
+        "occupied_row_first_read_floor": 12745068,
+        "occupied_rows": 179508,
+        "row_control_floor": 1548276,
+        "row_group_read_floor": 2290176,
+        "row_groups": 32256,
+        "serial_model_floor": 16583591,
+        "worker": 0
+      },
+      {
+        "empty_helper_floor": 0,
+        "extent_read_floor": 71,
+        "occupied_row_first_read_floor": 11070746,
+        "occupied_rows": 155926,
+        "row_control_floor": 1548270,
+        "row_group_read_floor": 2290176,
+        "row_groups": 32256,
+        "serial_model_floor": 14909263,
+        "worker": 1
+      },
+      {
+        "empty_helper_floor": 0,
+        "extent_read_floor": 71,
+        "occupied_row_first_read_floor": 7022681,
+        "occupied_rows": 98911,
+        "row_control_floor": 1548222,
+        "row_group_read_floor": 2290105,
+        "row_groups": 32255,
+        "serial_model_floor": 10861079,
+        "worker": 2
+      },
+      {
+        "empty_helper_floor": 0,
+        "extent_read_floor": 71,
+        "occupied_row_first_read_floor": 2929957,
+        "occupied_rows": 41267,
+        "row_control_floor": 1548228,
+        "row_group_read_floor": 2290105,
+        "row_groups": 32255,
+        "serial_model_floor": 6768361,
+        "worker": 3
+      }
+    ],
+    "73": [
+      {
+        "empty_helper_floor": 5733274,
+        "extent_read_floor": 71,
+        "occupied_row_first_read_floor": 12745068,
+        "occupied_rows": 179508,
+        "row_control_floor": 1548276,
+        "row_group_read_floor": 2290176,
+        "row_groups": 32256,
+        "serial_model_floor": 22316865,
+        "worker": 0
+      },
+      {
+        "empty_helper_floor": 7454687,
+        "extent_read_floor": 71,
+        "occupied_row_first_read_floor": 11070746,
+        "occupied_rows": 155926,
+        "row_control_floor": 1548270,
+        "row_group_read_floor": 2290176,
+        "row_groups": 32256,
+        "serial_model_floor": 22363950,
+        "worker": 1
+      },
+      {
+        "empty_helper_floor": 11616198,
+        "extent_read_floor": 71,
+        "occupied_row_first_read_floor": 7022681,
+        "occupied_rows": 98911,
+        "row_control_floor": 1548222,
+        "row_group_read_floor": 2290105,
+        "row_groups": 32255,
+        "serial_model_floor": 22477277,
+        "worker": 2
+      },
+      {
+        "empty_helper_floor": 15824283,
+        "extent_read_floor": 71,
+        "occupied_row_first_read_floor": 2929957,
+        "occupied_rows": 41267,
+        "row_control_floor": 1548228,
+        "row_group_read_floor": 2290105,
+        "row_groups": 32255,
+        "serial_model_floor": 22592644,
+        "worker": 3
+      }
+    ]
+  }
+}
