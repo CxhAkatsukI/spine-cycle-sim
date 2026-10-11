@@ -1,0 +1,2 @@
+SSSP Apply checks passed: full lines, strict min, stale-active clear, finite reads, pipeline/credit pressure, terminals, restart, reverse registration, replica acks
+Timing assumption: kApplyPostReadTiming inherited from PR; not SSSP HLS calibrated

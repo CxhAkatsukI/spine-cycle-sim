@@ -5,9 +5,9 @@ namespace spine::sim::original_regraph {
 LittleScatter::LittleScatter(std::string name, ClockId clock, Fifo<EdgeBurst>& edges,
                              Fifo<SourceRequest>& requests, Fifo<SourceResponse>& responses,
                              Fifo<UpdateBurst>& updates, PipelineTiming timing,
-                             std::size_t trace_limit)
+                             std::size_t trace_limit, Udf udf)
     : Component(std::move(name), clock), edges_(edges), requests_(requests),
-      responses_(responses), updates_(updates), pipeline_(timing), trace_limit_(trace_limit) {
+      responses_(responses), updates_(updates), udf_(udf), pipeline_(timing), trace_limit_(trace_limit) {
   if (edges.clock_id() != clock || requests.clock_id() != clock ||
       responses.clock_id() != clock || updates.clock_id() != clock) {
     throw std::invalid_argument("Little Scatter port clock mismatch");
@@ -47,7 +47,22 @@ UpdateBurst LittleScatter::map_edge(const Control& control) const {
     if (round != control.read_round || valid_[bank][line] != round) {
       throw std::logic_error("Little source cache read is uninitialized or spans source windows");
     }
-    updates[lane] = {control.edge[lane].destination, buffers_[lane][bank][line][source % 16]};
+    const auto destination = control.edge[lane].destination;
+    const auto property = buffers_[lane][bank][line][source % 16];
+    if (udf_ == Udf::kWeightedSssp) {
+      // Packed input uses bit 31 for dummy and bits 19..30 for weight;
+      // the original gather consumes bit 19 as dummy, with a 16-bit local ID.
+      if (static_cast<bool>(control.edge[lane].source & kSsspActive) !=
+          static_cast<bool>(destination & kSsspActive))
+        throw std::invalid_argument("weighted edge dummy markers disagree");
+      const auto local = destination & 0x7ffffu;
+      if (!(destination & kSsspActive) && local >= kLittleVertices)
+        throw std::out_of_range("weighted destination exceeds Little partition");
+      updates[lane] = {destination & kSsspActive ? kDummyDestination : local,
+                      scatter_sssp_property(property, (destination >> 19) & 0xfffu)};
+    } else {
+      updates[lane] = {destination, property};
+    }
   }
   return updates;
 }

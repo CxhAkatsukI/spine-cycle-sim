@@ -7,9 +7,9 @@ namespace spine::sim::original_regraph {
 
 LittleGather::LittleGather(std::string name, ClockId clock,
                            Fifo<UpdateBurst>& input, GatherOutputs outputs,
-                           LittleTiming timing)
+                           LittleTiming timing, Udf udf)
     : Component(std::move(name), clock), input_(input), outputs_(outputs),
-      updates_(timing.gather), drain_(timing.drain) {
+      udf_(udf), updates_(timing.gather), drain_(timing.drain) {
   if (input.clock_id() != clock) {
     throw std::invalid_argument("gather input clock mismatch");
   }
@@ -113,9 +113,9 @@ LittleGather::Writes LittleGather::map_updates(const UpdateBurst& burst) {
     }
     counters_.forwarded_reads += forwarded;
     if (destination & 1u) {
-      value.high += update.value;
+      value.high = reduce_property(udf_, value.high, update.value);
     } else {
-      value.low += update.value;
+      value.low = reduce_property(udf_, value.low, update.value);
     }
     auto& history = forwarding_[lane];
     std::move(history.begin() + 1, history.end(), history.begin());

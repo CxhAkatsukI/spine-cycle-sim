@@ -57,6 +57,7 @@ add_library(original_regraph_cycle STATIC
   src/original_regraph/little_scatter.cpp
   src/original_regraph/write_indexer.cpp
   src/original_regraph/pr_apply.cpp
+  src/original_regraph/sssp_apply.cpp
   src/original_regraph/property_writer.cpp
   src/original_regraph/little_gather.cpp
   src/original_regraph/little_merge.cpp)
@@ -85,6 +86,31 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  set(SPINE_SSSP_UDF_REFERENCE "" CACHE FILEPATH "Optional local HLS SSSP UDF correctness reference")
+  if(SPINE_SSSP_UDF_REFERENCE)
+    if(NOT EXISTS "${SPINE_SSSP_UDF_REFERENCE}")
+      message(FATAL_ERROR "SSSP UDF reference does not exist")
+    endif()
+    add_executable(original_regraph_sssp_source_comparison
+      tests/original_regraph/sssp_source_comparison.cpp)
+    target_link_libraries(original_regraph_sssp_source_comparison PRIVATE original_regraph_cycle)
+    target_compile_definitions(original_regraph_sssp_source_comparison PRIVATE
+      SPINE_SSSP_UDF_REFERENCE="${SPINE_SSSP_UDF_REFERENCE}")
+    target_compile_options(original_regraph_sssp_source_comparison PRIVATE
+      -Wall -Wextra -Wpedantic -Werror)
+    add_test(NAME original_regraph_sssp_source_comparison COMMAND original_regraph_sssp_source_comparison)
+  endif()
+
+  foreach(sssp_test IN ITEMS udf frontend apply round)
+    add_executable(original_regraph_sssp_${sssp_test}_tests
+      tests/original_regraph/sssp_${sssp_test}_tests.cpp)
+    target_link_libraries(original_regraph_sssp_${sssp_test}_tests PRIVATE original_regraph_cycle)
+    target_compile_options(original_regraph_sssp_${sssp_test}_tests PRIVATE
+      -Wall -Wextra -Wpedantic -Werror)
+    add_test(NAME original_regraph_sssp_${sssp_test}_tests
+      COMMAND original_regraph_sssp_${sssp_test}_tests)
+  endforeach()
+
   add_executable(axi_independent_channels_tests tests/axi/independent_channels_tests.cpp)
   target_link_libraries(axi_independent_channels_tests PRIVATE spine_cycle_core)
   target_compile_options(axi_independent_channels_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

@@ -66,6 +66,10 @@ The [A4 whole-graph execution owner](original_regraph_a4_execution.md) connects
 all admitted partitions through four state replicas, with nonintrusive
 pre-Apply validation, explicit AXI capacities and exact old-default regression.
 Its finite mock-memory cycles remain predictions, not publication matching.
+The optional [weighted-SSSP four-Little control](../../experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_control/README.md)
+adds a local UDF and separately owned finite old-state Apply. It checks
+complete one-round A4/K4 states and exact PR regression; SSSP HLS timing,
+matched resources and performance admission remain separate gates.
 The [PMA adapter input control](original_regraph_adapter_source.md) preserves
 the A4 task multiset, checks existing HLS packets and extracts shared wiring
 with exact regression. That source checkpoint does not establish finite B

@@ -143,6 +143,14 @@ old helper default while exposing single-line state-port concurrency.
 
 ## G+R Extraction Boundary
 
+The optional [weighted-SSSP four-Little control](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_control/README.md)
+keeps arithmetic in [udf.hpp](include/spine_sim/original_regraph/udf.hpp) and
+finite indexed old-state handling in [sssp_apply.cpp](src/original_regraph/sssp_apply.cpp).
+Its [composed tests](tests/original_regraph/sssp/) check complete A4/K4
+resident-round state, padding and replica acknowledgements. Existing
+components default to PR. The external local-HLS UDF comparison is opt-in;
+diagnostic cycles do not admit an original-publication or A4/K4 timing match.
+
 The first C++ extraction separates two existing responsibilities without
 changing their public header or function bodies:
 

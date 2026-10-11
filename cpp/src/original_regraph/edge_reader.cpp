@@ -7,8 +7,8 @@
 namespace spine::sim::original_regraph {
 
 LittleEdgeReader::LittleEdgeReader(std::string name, ClockId clock, ReadPort memory,
-                                   Fifo<EdgeBurst>& output, PipelineTiming timing)
-    : Component(std::move(name), clock), memory_(memory), output_(output), pipeline_(timing) {
+                                   Fifo<EdgeBurst>& output, PipelineTiming timing, Udf udf)
+    : Component(std::move(name), clock), memory_(memory), output_(output), udf_(udf), pipeline_(timing) {
   detail::validate_port(memory, clock);
   if (output.clock_id() != clock) throw std::invalid_argument("edge output clock mismatch");
 }
@@ -23,6 +23,8 @@ void LittleEdgeReader::begin_partition(std::uint64_t address, std::uint64_t edge
       edges > (std::numeric_limits<std::uint64_t>::max() - address) / 8) {
     throw std::invalid_argument("edge partition requires aligned nonempty padded bursts");
   }
+  if (udf_ == Udf::kWeightedSssp && destination_offset)
+    throw std::invalid_argument("weighted compact input requires prelocalized destinations");
   started_ = true;
   issued_ = acknowledged_ = false;
   address_ = address;
@@ -69,6 +71,7 @@ void LittleEdgeReader::evaluate(const CycleContext& context) {
       const auto global = detail::word(beat.read_data, lane * 2 + 1);
       const auto local = ((global & 0x7fffffffu) - destination_offset_) & 0x7ffffu;
       edges[lane] = {detail::word(beat.read_data, lane * 2),
+                    udf_ == Udf::kWeightedSssp ? global :
                     local | ((global >> 31) ? kDummyDestination : 0)};
     }
     pipeline_.stage_accept(edges, context.domain_cycle);

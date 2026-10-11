@@ -7,6 +7,12 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
+The [optional weighted-SSSP A4 control](matched_a4/sssp_control/README.md)
+now supplies a same-arithmetic building block instead of comparing original
+fixed-point PR with production SSSP. It checks complete padded resident-round
+states and replica acknowledgements. This is a local UDF correctness gate;
+matched whole-graph inputs, SSSP timing and A4/K4 performance remain open.
+
 The [controlled initial-residency checkpoint](model_sync/sst/input_residency/README.md)
 now retains all 30 complete outputs and rounds. XRT traces expose 16 late
 WK row-table transfers inside the previous compute window; explicit initial
@@ -111,7 +117,9 @@ SSSP/CC/ResPR production-hardware diagnostics are useful for stages 1--2;
 they do not substitute for original ReGraph's one-iteration PageRank A4
 comparison. The production FullPR host currently executes three rounds.
 FullPR availability and matching arithmetic/initial state must be established
-before the final A4 comparison is admitted.
+before that PR comparison is admitted. The separate local weighted-SSSP
+control above offers another same-algorithm route, without claiming a
+published ReGraph SSSP workload or inheriting the PR timing acceptance.
 
 ## Owners And Reproduction
 

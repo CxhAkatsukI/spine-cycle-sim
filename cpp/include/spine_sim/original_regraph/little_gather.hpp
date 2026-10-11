@@ -7,6 +7,7 @@
 #include "spine_sim/component.hpp"
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/original_regraph/detail/latency_pipe.hpp"
+#include "spine_sim/original_regraph/udf.hpp"
 
 namespace spine::sim::original_regraph {
 
@@ -28,7 +29,8 @@ struct GatherCounters {
 class LittleGather final : public Component {
  public:
   LittleGather(std::string name, ClockId clock, Fifo<UpdateBurst>& input,
-               GatherOutputs outputs, LittleTiming timing = {});
+               GatherOutputs outputs, LittleTiming timing = {},
+               Udf udf = Udf::kFixedPointPr);
   void begin_partition(std::uint64_t bursts);
   bool finished() const noexcept;
   const GatherCounters& counters() const noexcept { return counters_; }
@@ -53,6 +55,7 @@ class LittleGather final : public Component {
 
   Fifo<UpdateBurst>& input_;
   GatherOutputs outputs_;
+  Udf udf_;
   std::array<std::vector<VertexPair>, kGatherLanes> memory_;
   std::array<std::array<Write, kForwardingEntries>, kGatherLanes> forwarding_{};
   detail::LatencyPipe<UpdateBurst> updates_;

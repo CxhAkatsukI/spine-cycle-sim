@@ -1,0 +1,9 @@
+MODEL_CONFIG {"clock_mhz":210,"partition_vertices":65536,"gather_lanes":8,"default_fifo_depth":8,"uram_write_latency":3,"forwarding_entries_per_lane":4,"timing":{"gather":{"latency":6,"initiation_interval":1,"capacity":7},"drain":{"latency":3,"initiation_interval":1,"capacity":4},"local_merge":{"latency":3,"initiation_interval":1,"capacity":4},"global_merge":{"latency":4,"initiation_interval":1,"capacity":5}}}
+GATHER_CASE {"id":"a4_registered","cycles":33788,"output_stalls":0,"capacity_stalls":0,"checked_words":65536}
+GATHER_CASE {"id":"a4_reverse_registration","cycles":33788,"output_stalls":0,"capacity_stalls":0,"checked_words":65536}
+GATHER_CASE {"id":"a4_depth1_skew_slow_sink","cycles":144188,"output_stalls":964989,"capacity_stalls":813406,"checked_words":65536}
+GATHER_CASE {"id":"a4_one_inflight_gather","cycles":39782,"output_stalls":0,"capacity_stalls":23976,"checked_words":65536}
+GATHER_CASE {"id":"a11_little_component","cycles":33355,"output_stalls":3230,"capacity_stalls":3230,"checked_words":65536}
+GATHER_CASE {"id":"a4_reused_zero_burst_partition","cycles":32781,"output_stalls":0,"capacity_stalls":0,"checked_words":65536}
+GATHER_CASE {"id":"a4_reused_nonzero_partition","cycles":33788,"output_stalls":0,"capacity_stalls":0,"checked_words":65536}
+Original ReGraph finite gather/merge tests passed

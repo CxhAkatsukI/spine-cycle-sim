@@ -32,6 +32,7 @@ struct Options {
   std::uint64_t sink_start{};
   std::uint64_t max_cycles{1000000};
   std::uint32_t destination_offset{};
+  rg::Udf udf{rg::Udf::kFixedPointPr};
 };
 
 inline spine::sim::AxiConfig axi_config(unsigned initiator, std::size_t channel,
@@ -44,13 +45,15 @@ inline void append_word(std::vector<std::uint8_t>& bytes, std::uint32_t value) {
 }
 
 inline std::vector<std::uint8_t> edge_bytes(const std::vector<rg::EdgeBurst>& edges,
-                                           std::uint32_t destination_offset) {
+                                           std::uint32_t destination_offset,
+                                           rg::Udf udf = rg::Udf::kFixedPointPr) {
   std::vector<std::uint8_t> result;
   for (const auto& burst : edges) {
     for (const auto edge : burst) {
       append_word(result, edge.source);
-      append_word(result, edge.destination & rg::kDummyDestination
-          ? 0xffffffffu : edge.destination + destination_offset);
+      append_word(result, udf == rg::Udf::kWeightedSssp ? edge.destination :
+          edge.destination & rg::kDummyDestination ? 0xffffffffu :
+          edge.destination + destination_offset);
     }
   }
   return result;

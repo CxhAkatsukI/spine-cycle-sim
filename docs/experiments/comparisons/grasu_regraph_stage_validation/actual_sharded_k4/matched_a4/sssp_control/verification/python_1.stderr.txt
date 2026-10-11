@@ -1,0 +1,31 @@
+..................................................................................E..............................................................................
+======================================================================
+ERROR: test_watchdog_saves_exit_and_timeout (test_sharded_k4_route_gates.RouteGateTests.test_watchdog_saves_exit_and_timeout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_sharded_k4_route_gates.py", line 65, in test_watchdog_saves_exit_and_timeout
+    complete = run_link([sys.executable, "-c", "print('done')"], root,
+                        root / "complete", timeout=5, tree_memory_gib=1,
+                        reserve_gib=0, poll_seconds=0.02)
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py", line 53, in run_link
+    process = subprocess.Popen(command, cwd=cwd, env=environment, stdout=stdout,
+                               stderr=stderr, start_new_session=True,
+                               preexec_fn=_child_limits)
+  File "/usr/lib/python3.13/subprocess.py", line 1039, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/subprocess.py", line 1994, in _execute_child
+    raise child_exception_type(err_msg)
+subprocess.SubprocessError: Exception occurred in preexec_fn.
+
+----------------------------------------------------------------------
+Ran 161 tests in 58.306s
+
+FAILED (errors=1)

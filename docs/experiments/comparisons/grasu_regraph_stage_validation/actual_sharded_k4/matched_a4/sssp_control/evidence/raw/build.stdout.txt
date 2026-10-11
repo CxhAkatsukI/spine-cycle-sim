@@ -1,0 +1,39 @@
+[ 67%] Built target spine_cycle_core
+[ 97%] Built target original_regraph_cycle
+[100%] Built target original_regraph_sssp_udf_tests
+[ 67%] Built target spine_cycle_core
+[ 97%] Built target original_regraph_cycle
+[100%] Built target original_regraph_sssp_frontend_tests
+[ 65%] Built target spine_cycle_core
+[ 95%] Built target original_regraph_cycle
+[100%] Built target original_regraph_sssp_apply_tests
+[ 67%] Built target spine_cycle_core
+[ 97%] Built target original_regraph_cycle
+[100%] Built target original_regraph_sssp_round_tests
+[ 65%] Built target spine_cycle_core
+[ 95%] Built target original_regraph_cycle
+[100%] Built target original_regraph_sssp_source_comparison
+[ 67%] Built target spine_cycle_core
+[ 97%] Built target original_regraph_cycle
+[ 97%] Linking CXX executable original_regraph_gather_tests
+[100%] Built target original_regraph_gather_tests
+[ 65%] Built target spine_cycle_core
+[ 95%] Built target original_regraph_cycle
+[ 97%] Linking CXX executable original_regraph_frontend_tests
+[100%] Built target original_regraph_frontend_tests
+[ 67%] Built target spine_cycle_core
+[ 97%] Built target original_regraph_cycle
+[ 97%] Linking CXX executable original_regraph_state_tests
+[100%] Built target original_regraph_state_tests
+[ 65%] Built target spine_cycle_core
+[ 95%] Built target original_regraph_cycle
+[ 97%] Linking CXX executable original_regraph_iteration_tests
+[100%] Built target original_regraph_iteration_tests
+[ 67%] Built target spine_cycle_core
+[ 97%] Built target original_regraph_cycle
+[100%] Linking CXX executable original_regraph_source_comparison
+[100%] Built target original_regraph_source_comparison
+[ 65%] Built target spine_cycle_core
+[ 95%] Built target original_regraph_cycle
+[ 97%] Linking CXX executable original_regraph_state_comparison
+[100%] Built target original_regraph_state_comparison

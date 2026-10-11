@@ -1,0 +1,32 @@
+{
+  "available_before_bytes": 54628167680,
+  "command": [
+    "cmake",
+    "--build",
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-review",
+    "--target",
+    "original_regraph_sssp_udf_tests",
+    "original_regraph_sssp_frontend_tests",
+    "original_regraph_sssp_apply_tests",
+    "original_regraph_sssp_round_tests",
+    "original_regraph_sssp_source_comparison",
+    "original_regraph_gather_tests",
+    "original_regraph_frontend_tests",
+    "original_regraph_state_tests",
+    "original_regraph_iteration_tests",
+    "original_regraph_source_comparison",
+    "original_regraph_state_comparison",
+    "-j",
+    "2"
+  ],
+  "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+  "exit_code": 0,
+  "memory_limit_gib": 8,
+  "peak_rss_kib": 23596,
+  "reserve_gib": 16,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_control/evidence/raw/build.stderr.txt",
+  "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_control/evidence/raw/build.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 3.260730986017734
+}

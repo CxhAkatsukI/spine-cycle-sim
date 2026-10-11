@@ -1,0 +1,14 @@
+MODEL_CONFIG {"clock_mhz":210,"partition_vertices":65536,"gather_lanes":8,"default_fifo_depth":8,"uram_write_latency":3,"forwarding_entries_per_lane":4,"timing":{"gather":{"latency":6,"initiation_interval":1,"capacity":7},"drain":{"latency":3,"initiation_interval":1,"capacity":4},"local_merge":{"latency":3,"initiation_interval":1,"capacity":4},"global_merge":{"latency":4,"initiation_interval":1,"capacity":5}}}
+SOURCE_COMPARISON {"little":4,"source_base":0,"iteration":0,"cycles":32835,"checked_words":65536,"output_stalls":100,"capacity_stalls":100}
+SOURCE_COMPARISON {"little":4,"source_base":0,"iteration":1,"cycles":32835,"checked_words":65536,"output_stalls":100,"capacity_stalls":100}
+SOURCE_COMPARISON {"little":4,"source_base":0,"iteration":2,"cycles":32835,"checked_words":65536,"output_stalls":100,"capacity_stalls":100}
+SOURCE_COMPARISON {"little":4,"source_base":4096,"iteration":0,"cycles":32835,"checked_words":65536,"output_stalls":100,"capacity_stalls":100}
+SOURCE_COMPARISON {"little":4,"source_base":4096,"iteration":1,"cycles":32835,"checked_words":65536,"output_stalls":100,"capacity_stalls":100}
+SOURCE_COMPARISON {"little":4,"source_base":4096,"iteration":2,"cycles":32835,"checked_words":65536,"output_stalls":100,"capacity_stalls":100}
+SOURCE_COMPARISON {"little":11,"source_base":0,"iteration":0,"cycles":32921,"checked_words":65536,"output_stalls":1250,"capacity_stalls":1250}
+SOURCE_COMPARISON {"little":11,"source_base":0,"iteration":1,"cycles":32921,"checked_words":65536,"output_stalls":1250,"capacity_stalls":1250}
+SOURCE_COMPARISON {"little":11,"source_base":0,"iteration":2,"cycles":32921,"checked_words":65536,"output_stalls":1250,"capacity_stalls":1250}
+SOURCE_COMPARISON {"little":11,"source_base":4096,"iteration":0,"cycles":32921,"checked_words":65536,"output_stalls":1250,"capacity_stalls":1250}
+SOURCE_COMPARISON {"little":11,"source_base":4096,"iteration":1,"cycles":32921,"checked_words":65536,"output_stalls":1250,"capacity_stalls":1250}
+SOURCE_COMPARISON {"little":11,"source_base":4096,"iteration":2,"cycles":32921,"checked_words":65536,"output_stalls":1250,"capacity_stalls":1250}
+Original ReGraph source comparison passed: 786432 words

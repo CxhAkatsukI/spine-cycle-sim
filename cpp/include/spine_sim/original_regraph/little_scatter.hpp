@@ -5,6 +5,7 @@
 
 #include "spine_sim/original_regraph/frontend_types.hpp"
 #include "spine_sim/original_regraph/detail/latency_pipe.hpp"
+#include "spine_sim/original_regraph/udf.hpp"
 
 namespace spine::sim::original_regraph {
 
@@ -28,7 +29,7 @@ class LittleScatter final : public Component {
   LittleScatter(std::string name, ClockId clock, Fifo<EdgeBurst>& edges,
                 Fifo<SourceRequest>& requests, Fifo<SourceResponse>& responses,
                 Fifo<UpdateBurst>& updates, PipelineTiming timing = kScatterTiming,
-                std::size_t trace_limit = 0);
+                std::size_t trace_limit = 0, Udf udf = Udf::kFixedPointPr);
   void begin_partition(std::uint32_t physical_edges);
   bool finished() const noexcept;
   const ScatterCounters& counters() const noexcept { return counters_; }
@@ -57,6 +58,7 @@ class LittleScatter final : public Component {
   Fifo<SourceRequest>& requests_;
   Fifo<SourceResponse>& responses_;
   Fifo<UpdateBurst>& updates_;
+  Udf udf_;
   detail::LatencyPipe<UpdateBurst> pipeline_;
   std::array<std::array<std::array<PropertyLine, kSourceWindowLines>, 2>, 8> buffers_{};
   std::array<std::array<std::optional<std::uint32_t>, kSourceWindowLines>, 2> valid_{};

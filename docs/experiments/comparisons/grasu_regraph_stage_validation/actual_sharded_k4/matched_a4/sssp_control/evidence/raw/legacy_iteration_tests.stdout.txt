@@ -1,0 +1,4 @@
+STATE_CONFIG {"clock_mhz":210,"axi_data_bytes":64,"outstanding":16,"memory_latency":64,"write_index_latency":2,"apply_post_read_latency":26,"apply_line_credits":100,"writer_line_credits":72,"degree_channel":30,"source_writer_share_odd_channels":true}
+ITERATION_CASE {"id":"a4_complete_rounds","iterations":3,"little":4,"big":0,"checked_words":196608,"read_bytes":1582080,"write_bytes":3145728,"shared_channel_contended_cycles":60,"cycles":[143281,143281,143281]}
+ITERATION_CASE {"id":"a4_complete_rounds_reverse","iterations":3,"little":4,"big":0,"checked_words":196608,"read_bytes":1582080,"write_bytes":3145728,"shared_channel_contended_cycles":60,"cycles":[143281,143281,143281]}
+Three complete original A4 rounds pass, with resident ping-pong state and shared channels

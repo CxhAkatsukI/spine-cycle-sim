@@ -2,6 +2,7 @@
 
 #include "spine_sim/original_regraph/frontend_types.hpp"
 #include "spine_sim/original_regraph/detail/latency_pipe.hpp"
+#include "spine_sim/original_regraph/udf.hpp"
 
 namespace spine::sim::original_regraph {
 
@@ -15,7 +16,8 @@ struct EdgeReaderCounters {
 class LittleEdgeReader final : public Component {
  public:
   LittleEdgeReader(std::string name, ClockId clock, ReadPort memory,
-                   Fifo<EdgeBurst>& output, PipelineTiming timing = kEdgeReaderTiming);
+                   Fifo<EdgeBurst>& output, PipelineTiming timing = kEdgeReaderTiming,
+                   Udf udf = Udf::kFixedPointPr);
   void begin_partition(std::uint64_t address, std::uint64_t physical_edges,
                        std::uint32_t destination_offset);
   bool finished() const noexcept;
@@ -27,6 +29,7 @@ class LittleEdgeReader final : public Component {
  private:
   ReadPort memory_;
   Fifo<EdgeBurst>& output_;
+  Udf udf_;
   detail::LatencyPipe<EdgeBurst> pipeline_;
   std::uint64_t next_transaction_{1};
   std::uint64_t transaction_{};

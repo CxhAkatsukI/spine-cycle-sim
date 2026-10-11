@@ -15,6 +15,7 @@ not establish realistic HBM timing or the original mixed topology's speed.
 | `negative_controls.py` | Deliberately damaged copies with required rejection diagnostics |
 | `instrumentation.py` | One independent UBSan build over all three graph inputs |
 | `delivery.py` | Recheck raw evidence and package logs/indexes without large captures |
+| `sssp_control.py` | Optional local weighted-SSSP arithmetic/resident-round admission and exact default regression; no timing ratio |
 
 The thin CLI is `scripts/run_original_regraph_a4.py`. C++ input decoding,
 wiring/partition progress, and execution/observation are separate units in
@@ -28,3 +29,8 @@ The separate [mixed owner](mixed/README.md) connects the artifact's 11+3
 example. It audits original output allocation and explicitly declares any
 zero-extension control; it does not change this A4 executor or establish
 publication timing by comparing two model totals.
+
+The [weighted-SSSP control](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_control/README.md)
+is a separate local UDF extension. It checks all source-state replicas against
+the routed K4 composition for a bounded one-round fixture and preserves PR
+outputs exactly. Its diagnostic cycles are not an admitted A4/K4 speedup.

@@ -105,3 +105,18 @@ depth-eight streams and the existing finite elastic pipes are declared model
 assumptions. The 64-cycle latency is not an observed HBM latency. Original
 publication-speed matching requires memory/topology/window admission rather
 than treating these functional results as calibration.
+
+## Optional Weighted-SSSP Control
+
+The [local weighted-SSSP extension](../../experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_control/README.md)
+does not change the whole-graph PR binary interface or its default arithmetic.
+Reader/Scatter/Gather/merge select SSSP only through an explicit final UDF
+argument. `SsspApply` separately owns finite indexed old-state reads, strict
+min updates, activity clearing and terminator handling; the existing writer
+still owns replica acknowledgement completion.
+
+Full padded one-round states agree with the routed K4 composition on three
+bounded fixtures. The test's compact source-modulo mapping is not the author
+whole-graph scheduler. Post-read Apply timing is inherited from PR and not
+SSSP-HLS calibrated. The independently declared mock-memory clocks and replica
+budgets differ, so no A4/K4 performance ratio is admitted by those tests.

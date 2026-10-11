@@ -7,9 +7,9 @@ namespace spine::sim::original_regraph {
 
 LittleLocalMerge::LittleLocalMerge(std::string name, ClockId clock,
                                  GatherOutputs inputs,
-                                 Fifo<VertexPair>& output, PipelineTiming timing)
+                                 Fifo<VertexPair>& output, PipelineTiming timing, Udf udf)
     : Component(std::move(name), clock), inputs_(inputs), output_(output),
-      pipeline_(timing) {
+      udf_(udf), pipeline_(timing) {
   if (output.clock_id() != clock) {
     throw std::invalid_argument("local merge output clock mismatch");
   }
@@ -41,8 +41,8 @@ void LittleLocalMerge::evaluate(const CycleContext& context) {
     if (!input->try_pop(pair)) {
       throw std::logic_error("local merger lost exclusive input ownership");
     }
-    merged.low += pair.low;
-    merged.high += pair.high;
+    merged.low = reduce_property(udf_, merged.low, pair.low);
+    merged.high = reduce_property(udf_, merged.high, pair.high);
   }
   pipeline_.stage_accept(merged, context.domain_cycle);
 }
@@ -54,9 +54,9 @@ void LittleLocalMerge::commit(const CycleContext& context) {
 LittleGlobalMerge::LittleGlobalMerge(std::string name, ClockId clock,
                                    std::vector<Fifo<VertexPair>*> inputs,
                                    Fifo<PropertyLine>& output,
-                                   PipelineTiming timing)
+                                   PipelineTiming timing, Udf udf)
     : Component(std::move(name), clock), inputs_(std::move(inputs)),
-      output_(output), held_(inputs_.size()), captured_(inputs_.size()),
+      output_(output), udf_(udf), held_(inputs_.size()), captured_(inputs_.size()),
       pipeline_(timing) {
   if (inputs_.empty() || inputs_.size() > 14 || output.clock_id() != clock) {
     throw std::invalid_argument("invalid Little merger topology or clock");
@@ -110,8 +110,8 @@ void LittleGlobalMerge::evaluate(const CycleContext& context) {
     if (!pair) {
       all_present = false;
     } else {
-      merged.low += pair->low;
-      merged.high += pair->high;
+      merged.low = reduce_property(udf_, merged.low, pair->low);
+      merged.high = reduce_property(udf_, merged.high, pair->high);
     }
   }
   if (all_present && pipeline_.can_accept(context.domain_cycle)) {

@@ -1,0 +1,16 @@
+{
+  "available_before_bytes": 54619512832,
+  "command": [
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/original-a4-sssp-review/cpp/original_regraph_frontend_tests"
+  ],
+  "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+  "exit_code": 0,
+  "memory_limit_gib": 8,
+  "peak_rss_kib": 19560,
+  "reserve_gib": 16,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_control/evidence/raw/legacy_frontend_tests.stderr.txt",
+  "stdout": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/matched_a4/sssp_control/evidence/raw/legacy_frontend_tests.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 0.1550017143599689
+}

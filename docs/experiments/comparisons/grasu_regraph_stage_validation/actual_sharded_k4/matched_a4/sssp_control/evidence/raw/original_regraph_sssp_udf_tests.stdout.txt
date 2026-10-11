@@ -1,0 +1,1 @@
+SSSP_GATHER {"checked_words":65536,"paths":4,"cycles":33301,"stalled_cycles":127814,"restart_passed":true}

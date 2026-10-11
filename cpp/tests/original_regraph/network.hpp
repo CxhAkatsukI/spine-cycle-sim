@@ -63,7 +63,8 @@ struct Observation {
 class Network {
  public:
   Network(std::size_t little, std::size_t fifo_depth = kDefaultFifoDepth,
-          rg::LittleTiming timing = {}, bool reverse_registration = false)
+          rg::LittleTiming timing = {}, bool reverse_registration = false,
+          rg::Udf udf = rg::Udf::kFixedPointPr)
       : clock_(scheduler_.add_clock_mhz("original_little", kClockMHz)) {
     std::vector<Fifo<rg::VertexPair>*> local_outputs;
     for (std::size_t pipeline = 0; pipeline < little; ++pipeline) {
@@ -76,15 +77,15 @@ class Network {
       }
       path.local = make<Fifo<rg::VertexPair>>(prefix + ".local", clock_, fifo_depth);
       path.gather = make<rg::LittleGather>(prefix + ".gather", clock_,
-                                          *path.input, path.rows, timing);
+                                          *path.input, path.rows, timing, udf);
       path.merge = make<rg::LittleLocalMerge>(prefix + ".merge", clock_,
-                                             path.rows, *path.local, timing.local_merge);
+                                             path.rows, *path.local, timing.local_merge, udf);
       local_outputs.push_back(path.local);
       paths_.push_back(path);
     }
     output_ = make<Fifo<rg::PropertyLine>>("merged", clock_, fifo_depth);
     merger_ = make<rg::LittleGlobalMerge>("global_merge", clock_, local_outputs,
-                                         *output_, timing.global_merge);
+                                         *output_, timing.global_merge, udf);
     if (reverse_registration) {
       for (auto iterator = owned_.rbegin(); iterator != owned_.rend(); ++iterator) {
         scheduler_.add_component(**iterator);

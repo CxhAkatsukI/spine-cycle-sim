@@ -39,26 +39,30 @@ class Wiring {
       path.requests = memory.queue<rg::SourceRequest>(name + ".requests");
       path.responses = memory.queue<rg::SourceResponse>(name + ".responses");
       path.updates = memory.queue<rg::UpdateBurst>(name + ".updates");
-      path.reader = memory.make<rg::LittleEdgeReader>(name + ".reader", clock, path.edge_port.ports(), *path.edges);
+      path.reader = memory.make<rg::LittleEdgeReader>(name + ".reader", clock,
+          path.edge_port.ports(), *path.edges, rg::kEdgeReaderTiming, options.udf);
       path.source = memory.make<rg::LittleSourceMemory>(name + ".source", clock, path.source_port.ports(),
           *path.requests, *path.responses, 0, options.property_vertices * 4);
       path.scatter = memory.make<rg::LittleScatter>(name + ".scatter", clock, *path.edges,
-          *path.requests, *path.responses, *path.updates, rg::kScatterTiming, 64);
+          *path.requests, *path.responses, *path.updates, rg::kScatterTiming, 64, options.udf);
       if (options.gather) {
         rg::GatherOutputs lanes;
         for (std::size_t lane = 0; lane < lanes.size(); ++lane) {
           lanes[lane] = memory.queue<rg::VertexPair>(name + ".lane" + std::to_string(lane));
         }
         auto* local_output = memory.queue<rg::VertexPair>(name + ".local_output");
-        path.gather = memory.make<rg::LittleGather>(name + ".gather", clock, *path.updates, lanes);
-        path.local_merge = memory.make<rg::LittleLocalMerge>(name + ".local_merge", clock, lanes, *local_output);
+        path.gather = memory.make<rg::LittleGather>(name + ".gather", clock,
+            *path.updates, lanes, rg::LittleTiming{}, options.udf);
+        path.local_merge = memory.make<rg::LittleLocalMerge>(name + ".local_merge", clock,
+            lanes, *local_output, rg::PipelineTiming{3, 1, 4}, options.udf);
         local_outputs.push_back(local_output);
       }
       paths.push_back(path);
     }
     if (options.gather) {
       merged_output = memory.queue<rg::PropertyLine>("global_output");
-      global_merge = memory.make<rg::LittleGlobalMerge>("global_merge", clock, local_outputs, *merged_output);
+      global_merge = memory.make<rg::LittleGlobalMerge>("global_merge", clock,
+          local_outputs, *merged_output, rg::PipelineTiming{4, 1, 5}, options.udf);
     }
     memory.register_components(options.reverse_registration);
   }
@@ -66,13 +70,16 @@ class Wiring {
   void begin(const std::vector<std::vector<rg::EdgeBurst>>& edges,
              bool initialize_properties = true, std::uint64_t property_address = 0) {
     require(edges.size() == paths.size(), "frontend fixture topology mismatch");
+    require(options.udf == rg::Udf::kFixedPointPr || !initialize_properties,
+            "weighted frontend requires explicit resident SSSP state");
     std::vector<std::uint8_t> properties;
     for (std::size_t vertex = 0; vertex < options.property_vertices; ++vertex) {
       append_word(properties, 17 + vertex % 31);
     }
     for (std::size_t index = 0; index < paths.size(); ++index) {
       auto& path = paths[index];
-      backend->initialize_payload(index * 2, 0, edge_bytes(edges[index], options.destination_offset));
+      backend->initialize_payload(index * 2, 0,
+          edge_bytes(edges[index], options.destination_offset, options.udf));
       if (initialize_properties) backend->initialize_payload(index * 2 + 1, property_address, properties);
       path.reader->begin_partition(0, edges[index].size() * 8, options.destination_offset);
       path.source->begin_partitions(1, property_address);
