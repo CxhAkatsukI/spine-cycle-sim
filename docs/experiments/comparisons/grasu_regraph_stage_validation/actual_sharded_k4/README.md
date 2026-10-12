@@ -24,6 +24,12 @@ unchanged predicted total cycles. Its portable raw archive is independently
 rechecked. This is functional/traffic admission, not new hardware timing or
 the still-pending original-A4 performance conclusion.
 
+The [whole-line resident-graph matrix](adapter_optimization/row_line/model/real_graph/README.md)
+now extends that model check to the three complete pinned AU/SU/WK fixtures.
+All six runs preserve full state, work, rounds and traffic conservation.
+Directory traffic falls approximately 8x, but predicted total cycles only
+1.42--3.31%; this is neither a new FPGA result nor an original-A4 match.
+
 The [complete production-adapter AXI diagnostic](adapter_optimization/adapter_axi/README.md)
 now binds both test arms to their exact production XOs, including the
 previous routed version. All 24 full-top RTL cases pass. Eight row loads

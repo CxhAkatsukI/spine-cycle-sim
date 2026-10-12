@@ -7,12 +7,12 @@ from ..sst_input_audit import _words
 from .model_contract import PROFILE_ID
 
 
-def inventory(path: Path) -> dict:
-    if not 28 <= path.stat().st_size <= 64 * 1024**2:
-        raise ValueError("resident smoke fixture exceeds the declared 64-MiB bound")
+def inventory(path: Path, *, max_fixture_bytes: int = 64 * 1024**2, max_vertices: int = 300000) -> dict:
+    if not 28 <= path.stat().st_size <= max_fixture_bytes:
+        raise ValueError("resident fixture exceeds its declared byte bound")
     with path.open("rb") as stream:
         magic, version, vertices, partitions, cache, rounds, active = struct.unpack("<7I", stream.read(28))
-        if (magic != 0x4b345331 or version != 1 or not 0 < vertices <= 300000
+        if (magic != 0x4b345331 or version != 1 or not 0 < vertices <= max_vertices
                 or partitions != (vertices + 65535) // 65536 or not 1 <= rounds <= 256
                 or active > vertices or not cache):
             raise ValueError("unsupported bounded resident fixture geometry")

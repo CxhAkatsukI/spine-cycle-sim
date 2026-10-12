@@ -11,7 +11,29 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha2
 from spine_cycle_sim.experiments.original_regraph_execution.sssp_real_round.delivery import seal
 from spine_cycle_sim.experiments.original_regraph_validation.analysis import same_typed
 from .delivery import raw_files
-from .model_recheck import recheck
+from .model_recheck import read_json, recheck, recheck_study
+from .model_scope import RESIDENT
+
+
+def deliver_resident(run: Path, plugin: Path, destination: Path) -> dict:
+    if destination.exists():
+        raise FileExistsError("fresh resident delivery directory required")
+    if read_json(run / "manifest.json").get("study_scope") != RESIDENT.name:
+        raise ValueError("resident package requires the pinned real-graph scope")
+    report = recheck_study(run, plugin)
+    destination.mkdir(parents=True)
+    archive = destination / "raw_model.tar.gz"
+    files = raw_files(run, "sst") + [(plugin, "plugin/libspine_cycle.so")]
+    index = seal(files, archive)
+    atomic_write_json(destination / "results.json", report)
+    record = {"schema_version": 1, "package_kind": RESIDENT.name, "status": report["status"], "files": index,
+              "archive_sha256": sha256_file(archive), "archive_bytes": archive.stat().st_size,
+              "results_sha256": sha256_file(destination / "results.json"),
+              "hardware_timing_admitted": False, "original_A4_comparison_complete": False,
+              "indexed_not_redistributed": ["SST executable", "DRAMSim3 library", "toolchains"],
+              "claim": "portable_resident_prediction_recheck_not_FPGA_calibration_or_A4_comparison"}
+    atomic_write_json(destination / "verification.json", record)
+    return record
 
 
 def deliver(run: Path, destination: Path) -> dict:
@@ -56,13 +78,17 @@ def deliver(run: Path, destination: Path) -> dict:
 
 def verify(destination: Path) -> dict:
     record = json.loads((destination / "verification.json").read_text())
+    kind = record.get("package_kind", "legacy_and_smoke")
+    if kind not in ("legacy_and_smoke", RESIDENT.name):
+        raise ValueError("unknown model evidence package kind")
+    max_bytes = (1024 if kind == RESIDENT.name else 128) * 1024**2
     archive = destination / "raw_model.tar.gz"
     if (sha256_file(archive) != record["archive_sha256"] or archive.stat().st_size != record["archive_bytes"]
             or sha256_file(destination / "results.json") != record["results_sha256"]):
         raise ValueError("sealed model evidence differs")
     entries = record["files"]
     expected = {row["path"]: row for row in entries}
-    if (len(expected) != len(entries) or sum(row["bytes"] for row in entries) > 128 * 1024**2
+    if (len(expected) != len(entries) or sum(row["bytes"] for row in entries) > max_bytes
             or any(Path(name).is_absolute() or ".." in Path(name).parts for name in expected)):
         raise ValueError("unsafe or duplicate evidence index")
     with tempfile.TemporaryDirectory() as temporary, tarfile.open(archive, "r:gz") as stream:
@@ -81,7 +107,12 @@ def verify(destination: Path) -> dict:
             path = root / member.name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
-        report = recheck(root)
+        if kind == RESIDENT.name:
+            if read_json(root / "sst/manifest.json").get("study_scope") != RESIDENT.name:
+                raise ValueError("resident evidence scope differs")
+            report = recheck_study(root / "sst", root / "plugin/libspine_cycle.so")
+        else:
+            report = recheck(root)
     if (not same_typed(report, json.loads((destination / "results.json").read_text()))
             or record["status"] != report["status"] or record["hardware_timing_admitted"] is not False
             or record["original_A4_comparison_complete"] is not False):
@@ -94,11 +125,18 @@ def main() -> None:
     parser.add_argument("--run", type=Path)
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--verify-only", action="store_true")
+    parser.add_argument("--resident-only", action="store_true")
+    parser.add_argument("--plugin", type=Path, help="isolated plugin file for resident-only delivery")
     args = parser.parse_args()
     if args.verify_only:
         result = verify(args.destination.resolve())
     elif args.run:
-        result = deliver(args.run.resolve(), args.destination.resolve())
+        if args.resident_only:
+            if not args.plugin:
+                parser.error("--plugin is required with --resident-only")
+            result = deliver_resident(args.run.resolve(), args.plugin.resolve(), args.destination.resolve())
+        else:
+            result = deliver(args.run.resolve(), args.destination.resolve())
         verify(args.destination.resolve())
     else:
         parser.error("--run is required for delivery")

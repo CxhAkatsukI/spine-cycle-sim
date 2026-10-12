@@ -1,5 +1,11 @@
 # Whole-Line Model Checkpoint
 
+The subsequent [resident-graph matrix](real_graph/README.md) extends this
+checkpoint to all three pinned AU/SU/WK inputs. It preserves full outputs
+and reduces directory traffic approximately 8x, but predicted total cycles
+only 1.42--3.31%. It is a separate archive and explicit execution scope;
+the small-fixture results and legacy evidence below remain unchanged.
+
 ## Scope
 
 This continues the [production HLS/RTL checkpoint](../README.md). It changes
@@ -33,6 +39,7 @@ Historical FPGA replay rejects this unrouted profile before creating output.
 | Strict version, immutable basis and separate arm selection | `row_line/model_contract.py`, explicit architecture JSON |
 | SST component selection | `sst_candidate.py`, `cpp/sst/routed_regraph_probe.cpp` |
 | Bounded execution and pre-run source/input/plugin freeze | `row_line/model_study.py` |
+| Separate smoke/resident limits and fixed graph identities | `row_line/model_scope.py` |
 | Independent fixture inventory and traffic equations | `row_line/model_validation.py` |
 | Offline source, complete-result and regression recheck | `row_line/model_recheck.py` |
 | Immutable raw archive and portable delivery verification | `row_line/model_delivery.py` |

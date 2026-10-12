@@ -1,4 +1,4 @@
-"""Freeze and replay small resident fixtures with an isolated whole-line plugin."""
+"""Freeze and replay explicitly bounded resident fixtures with an isolated plugin."""
 
 import argparse
 import json
@@ -13,12 +13,16 @@ from ..execution import identity
 from ..link_runtime import run_link
 from ..sst_candidate import component_parameters, load_profile
 from .model_contract import BASIS, PROFILE_ID
+from .model_scope import RESIDENT, SMOKE, study_scope
 from .model_validation import compare, inventory
 
 
-def run(root: Path, plugin: Path, fixtures: list[Path], output: Path) -> dict:
+def run(root: Path, plugin: Path, fixtures: list[Path], output: Path, *, scope_name: str = SMOKE.name) -> dict:
+    scope = study_scope(scope_name)
     if not fixtures or len(fixtures) > 4 or len(set(fixtures)) != len(fixtures):
         raise ValueError("declare one to four distinct bounded resident fixture directories")
+    if scope.cases and len(fixtures) != len(scope.cases):
+        raise ValueError("resident scope requires the complete predeclared graph matrix")
     profile_path = root / f"configs/architectures/{PROFILE_ID}.json"
     profile = load_profile(root, profile_path)
     contract_path = root / "configs/experiments/grasu_component_refactor_v1.json"
@@ -29,11 +33,12 @@ def run(root: Path, plugin: Path, fixtures: list[Path], output: Path) -> dict:
     pins = [identity(path) for path in (profile_path, root / BASIS["path"], plugin / "libspine_cycle.so", *test_files)]
     declarations = []
     for index, directory in enumerate(fixtures):
-        geometry = inventory(directory / "resident.bin")
+        geometry = inventory(directory / "resident.bin", **scope.inventory_limits)
         values = directory / "result.json.values.txt"
         pins += [identity(directory / "resident.bin"), identity(values)]
-        declarations.append({"id": f"case{index + 1}", "geometry": geometry,
+        declarations.append({"id": scope.case_id(index), "geometry": geometry,
                              "fixture": identity(directory / "resident.bin"), "expected_values": identity(values)})
+    scope.require_cases(declarations)
     output.mkdir(parents=True, exist_ok=False)
     archive = output / "source.tar.gz"
     with tarfile.open(archive, "w:gz") as stream:
@@ -43,10 +48,9 @@ def run(root: Path, plugin: Path, fixtures: list[Path], output: Path) -> dict:
             stream.add(path, arcname=path.relative_to(root), recursive=False)
     manifest = {"schema": 1, "source": source, "source_archive": identity(archive), "pins": pins,
                 "plugin": binding, "profile": profile, "cases": declarations,
-                "claim": "bounded_whole_line_SST_smoke_not_FPGA_calibration_or_A4_comparison",
+                "study_scope": scope.name, "claim": scope.claim,
                 "reference": "unrouted_skip_empty_prefetch_not_historical_routed_original",
-                "limits": {"timeout_seconds": 180, "max_cycles": 1000000, "tree_memory_gib": 3,
-                           "reserve_gib": 16, "affinity": "112-113", "parallel_workers": 1}}
+                "limits": scope.limits}
     atomic_write_json(output / "manifest.json", manifest)
 
     def require_pins():
@@ -70,13 +74,14 @@ def run(root: Path, plugin: Path, fixtures: list[Path], output: Path) -> dict:
             target.mkdir()
             config = {"profile": str(profile_path), "fixture": str(directory / "resident.bin"),
                       "output": str(target / "result.json"), "dram_output": str(target / "dram"),
-                      "arm": arm, "max_cycles": 1000000}
+                      "arm": arm, "max_cycles": scope.max_cycles}
             component_parameters(root, config)
             atomic_write_json(target / "run_config.json", config)
-            command = ["taskset", "-c", "112-113", "env", f"ROUTED_K4_RUN_CONFIG={target}/run_config.json",
+            command = ["taskset", "-c", scope.limits["affinity"], "env", f"ROUTED_K4_RUN_CONFIG={target}/run_config.json",
                        "/data/feiyang/sst/bin/sst", binding["command_option"], str(root / "sst/routed_k4_compute.py")]
-            record = run_link(command, root, target / "sst", timeout=180,
-                              tree_memory_gib=3, reserve_gib=16, poll_seconds=1)
+            record = run_link(command, root, target / "sst", timeout=scope.limits["timeout_seconds"],
+                              tree_memory_gib=scope.limits["tree_memory_gib"],
+                              reserve_gib=scope.limits["reserve_gib"], poll_seconds=1)
             if (record["exit_code"] != 0 or record["stop_reason"] != "process_exit"
                     or record["cleanup_snapshot_error"] is not None):
                 raise ValueError("bounded SST replay failed; raw attempt retained")
@@ -100,10 +105,12 @@ def main() -> None:
     parser.add_argument("--plugin", type=Path, required=True)
     parser.add_argument("--fixture", type=Path, action="append", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--scope", choices=(SMOKE.name, RESIDENT.name), default=SMOKE.name)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[4]
     try:
-        result = run(root, args.plugin.resolve(), [p.resolve() for p in args.fixture], args.output.resolve())
+        result = run(root, args.plugin.resolve(), [p.resolve() for p in args.fixture], args.output.resolve(),
+                     scope_name=args.scope)
         print(result["status"], flush=True)
     except Exception as error:
         if args.output.is_dir():

@@ -12,10 +12,10 @@ from spine_cycle_sim.experiments.refactor_equivalence import compare_runs
 from ..sst_candidate import load_profile
 from .evidence import bounded
 from .model_contract import BASIS, PROFILE_ID
+from .model_scope import SMOKE, study_scope
 from .model_validation import compare, inventory
 
-LIMITS = {"timeout_seconds": 180, "max_cycles": 1000000, "tree_memory_gib": 3,
-          "reserve_gib": 16, "affinity": "112-113", "parallel_workers": 1}
+LIMITS = SMOKE.limits
 
 
 def read_json(path: Path) -> dict:
@@ -61,7 +61,7 @@ def smoke_sources(run: Path, manifest: dict) -> tuple[Path, dict[str, bytes]]:
     if sha256_file(run / "source.tar.gz") != manifest["source_archive"]["sha256"]:
         raise ValueError("executed model source archive differs")
     pins = {pin["path"]: pin["sha256"] for pin in manifest["pins"]}
-    root = Path(read_json(run / "case1/original/sst.resources.json")["cwd"])
+    root = Path(read_json(run / manifest["cases"][0]["id"] / "original/sst.resources.json")["cwd"])
     if len(pins) != len(manifest["pins"]):
         raise ValueError("duplicate model pin")
     extras = {str(Path(name).relative_to(root)): digest for name, digest in pins.items()
@@ -69,10 +69,12 @@ def smoke_sources(run: Path, manifest: dict) -> tuple[Path, dict[str, bytes]]:
     return root, source_files(run / "source.tar.gz", manifest["source"], extras)
 
 
-def recheck_smoke(run: Path, plugin: Path) -> dict:
+def recheck_study(run: Path, plugin: Path) -> dict:
     manifest, stored = read_json(run / "manifest.json"), read_json(run / "results.json")
-    if ((run / "failure.json").exists() or manifest["limits"] != LIMITS
-            or manifest["claim"] != "bounded_whole_line_SST_smoke_not_FPGA_calibration_or_A4_comparison"
+    scope = study_scope(manifest.get("study_scope", SMOKE.name))
+    scope.require_cases(manifest["cases"])
+    if ((run / "failure.json").exists() or manifest["limits"] != scope.limits
+            or manifest["claim"] != scope.claim
             or manifest["reference"] != "unrouted_skip_empty_prefetch_not_historical_routed_original"
             or sha256_file(plugin) != manifest["plugin"]["plugin_sha256"]):
         raise ValueError("model smoke identity or boundary differs")
@@ -89,12 +91,10 @@ def recheck_smoke(run: Path, plugin: Path) -> dict:
         if not same_typed(load_profile(copy_root, copy_root / profile_name), manifest["profile"]):
             raise ValueError("expanded model profile differs")
     cases = manifest["cases"]
-    if not 1 <= len(cases) <= 4 or [row["id"] for row in cases] != [f"case{i + 1}" for i in range(len(cases))]:
-        raise ValueError("declared model matrix differs")
     rows = []
     for case in cases:
         directory = run / case["id"]
-        geometry = inventory(directory / "resident.bin")
+        geometry = inventory(directory / "resident.bin", **scope.inventory_limits)
         for key, filename in (("fixture", "resident.bin"), ("expected_values", "expected.values.txt")):
             pin = case[key]
             if pins.get(pin["path"]) != pin["sha256"] or sha256_file(directory / filename) != pin["sha256"]:
@@ -109,12 +109,13 @@ def recheck_smoke(run: Path, plugin: Path) -> dict:
             recorded_fixture = recorded_target.parent / "resident.bin"
             expected_config = {"profile": str(root / profile_name), "fixture": str(recorded_fixture),
                                "output": str(recorded_target / "result.json"),
-                               "dram_output": str(recorded_target / "dram"), "arm": arm, "max_cycles": 1000000}
+                               "dram_output": str(recorded_target / "dram"), "arm": arm, "max_cycles": scope.max_cycles}
             if not same_typed(config, expected_config) or recorded_target.name != arm or recorded_target.parent.name != case["id"]:
                 raise ValueError("executed model configuration differs")
-            command = ["taskset", "-c", "112-113", "env", f"ROUTED_K4_RUN_CONFIG={recorded_target}/run_config.json",
+            command = ["taskset", "-c", scope.limits["affinity"], "env", f"ROUTED_K4_RUN_CONFIG={recorded_target}/run_config.json",
                        "/data/feiyang/sst/bin/sst", manifest["plugin"]["command_option"], str(root / "sst/routed_k4_compute.py")]
-            bounded(target / "sst.resources.json", command, str(root), 180, 3)
+            bounded(target / "sst.resources.json", command, str(root), scope.limits["timeout_seconds"],
+                    scope.limits["tree_memory_gib"])
             if sha256_file(target / "result.json.values.txt") != case["expected_values"]["sha256"]:
                 raise ValueError("complete external result state differs")
             arms[arm] = read_json(target / "result.json")
@@ -128,6 +129,12 @@ def recheck_smoke(run: Path, plugin: Path) -> dict:
     if not same_typed(result, stored):
         raise ValueError("stored model summary differs")
     return result
+
+
+def recheck_smoke(run: Path, plugin: Path) -> dict:
+    if read_json(run / "manifest.json").get("study_scope", SMOKE.name) != SMOKE.name:
+        raise ValueError("legacy checkpoint requires the smoke scope")
+    return recheck_study(run, plugin)
 
 
 def recheck(run: Path) -> dict:
