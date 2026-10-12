@@ -1,8 +1,10 @@
 #include "adapter_fixture.hpp"
+#include "adapter_timing_matrix.hpp"
 
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <string_view>
 
 namespace {
 using namespace routed_adapter_test;
@@ -148,8 +150,21 @@ Result run(const Data &data, Options options) {
 }
 } // namespace
 
-int main() {
+int main(int argc, char **argv) {
   try {
+    if (argc == 2 && std::string_view(argv[1]) == "--rtl-matrix") {
+      timing_matrix([](const Data &data, bool candidate, unsigned latency, unsigned stall) {
+        Options options;
+        options.adapter.row_line_reads = true;
+        options.adapter.cross_row_pipeline = candidate;
+        options.memory_latency = latency;
+        options.sink_start = stall;
+        options.depth = 32;
+        return run(data, options);
+      });
+      return 0;
+    }
+    require(argc == 1, "unknown adapter test argument");
     std::size_t cases = 0;
     for (const auto format : {ReGraphPmaFormat::kWeighted, ReGraphPmaFormat::kDestination, ReGraphPmaFormat::kUnitWeight})
       for (const auto vertices : {0U, 1U, 8U, 9U, 65U, 1025U})
@@ -259,6 +274,49 @@ int main() {
     require(run(data, wide).counters.output_stalls > 0, "whole-line backpressure bypassed");
     std::cout << "Whole-line directory PASS cases=" << wide_cases
               << " exact_packets_tail_extent_pressure_chained_and_conservation=PASS\n";
+    std::size_t cross_cases = 0;
+    for (const auto format : {ReGraphPmaFormat::kWeighted, ReGraphPmaFormat::kDestination, ReGraphPmaFormat::kUnitWeight})
+      for (const auto vertices : {0U, 1U, 7U, 8U, 9U, 15U, 16U, 17U, 65U, 1025U})
+        for (bool at_end : {false, true})
+          for (bool empty : {false, true}) {
+            Options options;
+            options.adapter.format = format;
+            options.adapter.row_line_reads = options.adapter.cross_row_pipeline = true;
+            const Data fixture(vertices, at_end, empty, format);
+            const auto cross = run(fixture, options);
+            options.reverse = true;
+            require(run(fixture, options).cycles == cross.cycles,
+                    "cross-row registration order changed timing");
+            ++cross_cases;
+          }
+    for (const auto format : {ReGraphPmaFormat::kWeighted, ReGraphPmaFormat::kDestination, ReGraphPmaFormat::kUnitWeight})
+      for (const auto stride : {1U, 7U})
+        for (const auto segments : {1U, 3U, 20U}) {
+          const Data dense(17, true, false, format, 4, stride, segments);
+          Options options;
+          options.adapter.format = format;
+          options.adapter.row_line_reads = options.adapter.cross_row_pipeline = true;
+          const auto base = run(dense, options);
+          require(base.counters.max_pending_reads > 1, "cross-row overlap was not exercised");
+          for (unsigned stress = 0; stress < 5; ++stress) {
+            auto test = options;
+            if (stress == 0) test.adapter.pending_read_capacity = 1;
+            if (stress == 1) test.adapter.cross_row.loaded_fifo_capacity = 1;
+            if (stress == 2) test.adapter.cross_row.reader_pipeline_capacity = 1;
+            if (stress == 3) test.memory_latency = 200;
+            if (stress == 4) { test.depth = 1; test.sink_start = 1000; test.sink_interval = 73; }
+            const auto result = run(dense, test);
+            require(result.cycles >= base.cycles, "cross-row stress bypassed a finite constraint");
+            if (stress == 4) require(result.counters.output_stalls > 0, "cross-row output pressure lost");
+            test.reverse = true;
+            require(run(dense, test).cycles == result.cycles, "cross-row stress registration differs");
+            ++cross_cases;
+          }
+        }
+    chained.adapter.row_line_reads = chained.adapter.cross_row_pipeline = true;
+    require(run(data, chained).restarted_with_pending_output, "cross-row restart waited for AXIS tail");
+    std::cout << "Cross-row structural model PASS cases=" << cross_cases
+              << " exact_packets_credits_pipeline_loaded_fifo_latency_pressure_restart=PASS\n";
     return 0;
   } catch (const std::exception &error) {
     std::cerr << error.what() << '\n';

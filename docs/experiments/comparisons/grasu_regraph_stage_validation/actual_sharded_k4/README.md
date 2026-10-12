@@ -7,6 +7,14 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
+The [cross-row HLS and model checkpoint](adapter_optimization/row_line/cross_row/model/README.md)
+now overlaps occupied rows within each directory block using finite resources.
+All 27 core executables, five exact legacy replays and six complete AU/SU/WK
+state/traffic runs pass. Predicted resident cycles improve 2.48--3.28x versus
+the sequential whole-line reference, with identical traffic. The complete
+24-row synthetic RTL diagnostic retains its timing failures: this is not
+FPGA calibration, a new board speedup or an original-A4 performance match.
+
 The [whole-line directory HLS candidate](adapter_optimization/row_line/README.md)
 now removes the repeated row cache-line reads identified below. Production
 compile/ABI, complete AXI RTL and padded-host checks for four algorithms pass.

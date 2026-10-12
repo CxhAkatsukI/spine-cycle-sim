@@ -16,6 +16,9 @@ add_library(spine_cycle_core STATIC
   src/grasu_sharded_update.cpp
   src/memory_backend.cpp
   src/regraph_pma_adapter.cpp
+  src/regraph_pma_cross_row/reader.cpp
+  src/regraph_pma_cross_row/publisher.cpp
+  src/regraph_pma_cross_row/control.cpp
   src/shared_axi_port.cpp
   src/routed_regraph/source_service.cpp
   src/routed_regraph/scatter.cpp

@@ -1,0 +1,3203 @@
+{
+  "archive_bytes": 33371698,
+  "archive_sha256": "1153e93e3d48355ca5a5b428cac94bcf03689ae88c213b8574ae24065bd2dd27",
+  "claim": "portable_resident_prediction_recheck_not_FPGA_calibration_or_A4_comparison",
+  "files": [
+    {
+      "bytes": 11646,
+      "path": "sst/au/candidate/dram/channel0/dramsim3.json",
+      "sha256": "c4bc782a4929343fe7fbdc8908339c3fd7687961ea760e0508fdb14ef530667a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel0/dramsim3.txt",
+      "sha256": "a0cf8e6bbd212023db4f160c2b89d6b7e89d1e4e2d49b3f20e2bb1137554df59"
+    },
+    {
+      "bytes": 68362,
+      "path": "sst/au/candidate/dram/channel0/dramsim3epoch.json",
+      "sha256": "47f4297c0a5a2e2cd220e2ee65d0daa144855b1e458292e073ecd2cebacf2657"
+    },
+    {
+      "bytes": 11576,
+      "path": "sst/au/candidate/dram/channel1/dramsim3.json",
+      "sha256": "19e37cf1b713fc3f9f0463cd52f1d31254d0debb067bae15b6da85f7f903b272"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel1/dramsim3.txt",
+      "sha256": "31e1487c439856c2627be8154da142c4ad7e19b24ca41eec1e3547e8c5d2fbb2"
+    },
+    {
+      "bytes": 67464,
+      "path": "sst/au/candidate/dram/channel1/dramsim3epoch.json",
+      "sha256": "6acab6431512f5b2e30e69c2f1e328b30aad2aba21cd1b8a785de54a181e4db3"
+    },
+    {
+      "bytes": 4458,
+      "path": "sst/au/candidate/dram/channel10/dramsim3.json",
+      "sha256": "1c80a87d488c37a4d3193b6d782219d13dc29864cf368e76f06ef7c70e22abf0"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel10/dramsim3.txt",
+      "sha256": "b2549b2790510899db9f8cf40a60d54c0834e28943f9770c69577a8bd6bdab8f"
+    },
+    {
+      "bytes": 66588,
+      "path": "sst/au/candidate/dram/channel10/dramsim3epoch.json",
+      "sha256": "81ad9727718bb443aff8f908641d2dfbdd3318a3b1701c495c09ec8a14706178"
+    },
+    {
+      "bytes": 4444,
+      "path": "sst/au/candidate/dram/channel11/dramsim3.json",
+      "sha256": "2fb053cf68f47ea88d4a2b8d427339a0f0f88b1cf3507b6cd2fdc8b4f7f950eb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel11/dramsim3.txt",
+      "sha256": "7ed79ed9817e86bf61d0732c6036d65bb161c61fe3522b09b51adcc29cea56de"
+    },
+    {
+      "bytes": 66609,
+      "path": "sst/au/candidate/dram/channel11/dramsim3epoch.json",
+      "sha256": "542b0041f2bf84314677b812900419bde02519db7e591a5ef6317669185fb223"
+    },
+    {
+      "bytes": 11576,
+      "path": "sst/au/candidate/dram/channel12/dramsim3.json",
+      "sha256": "acc33ce9d69af72a07b60cdddc00de4afb07a364a75cdf7fce03561fe81671ad"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel12/dramsim3.txt",
+      "sha256": "947436b356773b550bbe222912e57991dfb13a042e7a3bd0da73c13b7ee77006"
+    },
+    {
+      "bytes": 68362,
+      "path": "sst/au/candidate/dram/channel12/dramsim3epoch.json",
+      "sha256": "dfb0034ed344c1afc9d6e0c6b24b9d8c06c51930b560b070a915efb95e523035"
+    },
+    {
+      "bytes": 11734,
+      "path": "sst/au/candidate/dram/channel13/dramsim3.json",
+      "sha256": "269c12380dd0a972a69f76112b98a5e179b4ead0f889389821707f9711d6a910"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel13/dramsim3.txt",
+      "sha256": "562ed05640e844031e7610f69e4f7f62991ca8a141a6117a41da9ea33b5bc65a"
+    },
+    {
+      "bytes": 67447,
+      "path": "sst/au/candidate/dram/channel13/dramsim3epoch.json",
+      "sha256": "2a1fdc84f832f4bc45e8d273910a77232113214333d83b2700190601e56a7b35"
+    },
+    {
+      "bytes": 7873,
+      "path": "sst/au/candidate/dram/channel14/dramsim3.json",
+      "sha256": "e7213070503e94270248fd02755a43c73d2d1dd78d1f64a5497d701f99bc832a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel14/dramsim3.txt",
+      "sha256": "5a77fcb216fda913f5c54c884f69b350c2339bc4cf84e9861e55ca16fa5aa6d3"
+    },
+    {
+      "bytes": 66544,
+      "path": "sst/au/candidate/dram/channel14/dramsim3epoch.json",
+      "sha256": "c023142374ecb39af81086a1f2049051680145cca03a877df9b247cc75ba1800"
+    },
+    {
+      "bytes": 8297,
+      "path": "sst/au/candidate/dram/channel15/dramsim3.json",
+      "sha256": "ae709a05919a489b0ed5f0f936e39e9528fd1ceaeb46f5c2bfb54e591bb55b48"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel15/dramsim3.txt",
+      "sha256": "c26e2d6a4d80ed7ee8283fffaad0332e17171b784a941c4f09262ab24d9c08dc"
+    },
+    {
+      "bytes": 66461,
+      "path": "sst/au/candidate/dram/channel15/dramsim3epoch.json",
+      "sha256": "987576e839c699362256bfe6a2bc341909fcba7441de07e55b905533aa4dbd29"
+    },
+    {
+      "bytes": 8850,
+      "path": "sst/au/candidate/dram/channel16/dramsim3.json",
+      "sha256": "0ebf501440cf19bb6e556d2577ae51f5d140ec81463233442e0e6140ec9b4c64"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel16/dramsim3.txt",
+      "sha256": "98cf6f0c6cbbe83f36c890e513c03e2fa97c074be9529805dbd4da9a691629ba"
+    },
+    {
+      "bytes": 66518,
+      "path": "sst/au/candidate/dram/channel16/dramsim3epoch.json",
+      "sha256": "f15ef4dd1e5f9eed7f1d9516aab28840cda70e506bf27ab9c76ee2009077a7c5"
+    },
+    {
+      "bytes": 9158,
+      "path": "sst/au/candidate/dram/channel17/dramsim3.json",
+      "sha256": "5838bd7a38568a2492c930a06d53f50352a54fa110954267d2c50c9eac11764f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel17/dramsim3.txt",
+      "sha256": "4f0a71fdcded67f86ea0ce0152e851fb0b202d271145c863f3f1b94ea80a825a"
+    },
+    {
+      "bytes": 66509,
+      "path": "sst/au/candidate/dram/channel17/dramsim3epoch.json",
+      "sha256": "fe8ceb10a3caa1d1a11a830647ddedbbddd90b6d7a2284d5356b65f036c849b6"
+    },
+    {
+      "bytes": 4463,
+      "path": "sst/au/candidate/dram/channel18/dramsim3.json",
+      "sha256": "7a0627f62de56d2727ca4b6ffb29afce5f6b7e0d81eaa317ac9e7fa612ec3528"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel18/dramsim3.txt",
+      "sha256": "f1014e6ca7cfd2721152c2c670db0dc6413409ad41ce84b04753baeb53401d5b"
+    },
+    {
+      "bytes": 66604,
+      "path": "sst/au/candidate/dram/channel18/dramsim3epoch.json",
+      "sha256": "885e685f25d730182cf17f4ab5246348b16c064f4e3c1d8c75aa571c491bbb3c"
+    },
+    {
+      "bytes": 4382,
+      "path": "sst/au/candidate/dram/channel19/dramsim3.json",
+      "sha256": "48104278c37cbab167efc1e259df810832b1a15260187146d2d904a2494bb987"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel19/dramsim3.txt",
+      "sha256": "afc7cdf0b91beac2042361136a447b9a1f7d156cf5a046a1a8999a97d18c0267"
+    },
+    {
+      "bytes": 66459,
+      "path": "sst/au/candidate/dram/channel19/dramsim3epoch.json",
+      "sha256": "abe5d78dc763b03252cb00d1f71066c4ffb0049eee539774283435093ebcfd01"
+    },
+    {
+      "bytes": 7913,
+      "path": "sst/au/candidate/dram/channel2/dramsim3.json",
+      "sha256": "1d79fe0630ddc8b615bcc9ce76b640fe538b1a35236dd99def6e676e6e0fe2b6"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel2/dramsim3.txt",
+      "sha256": "cab8efde172d468fd85565c2c9f8172ee2d2ca7e509c4f3181f76ea8e8017f54"
+    },
+    {
+      "bytes": 66538,
+      "path": "sst/au/candidate/dram/channel2/dramsim3epoch.json",
+      "sha256": "6b65bdc10310ddecedb50268679e284a97255199d67c3d4d0b25f060c0eca194"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel20/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel20/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel20/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel21/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel21/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel21/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel22/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel22/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel22/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 13232,
+      "path": "sst/au/candidate/dram/channel23/dramsim3.json",
+      "sha256": "fd0cbbd1db28832bdc051f1c1254ed2fa4438748ca0fbc451e2d5145df9759b4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel23/dramsim3.txt",
+      "sha256": "b57991d36440d85d4ca703fbe3742e2c9179ef01c88b9e6ddb1d8c49cc6f1439"
+    },
+    {
+      "bytes": 68083,
+      "path": "sst/au/candidate/dram/channel23/dramsim3epoch.json",
+      "sha256": "a23de1cbccbce4ced003cee8a8cbb19a81234fbb8d4224bbb0e5e0331466b022"
+    },
+    {
+      "bytes": 13329,
+      "path": "sst/au/candidate/dram/channel24/dramsim3.json",
+      "sha256": "9f3f51498d73149feef1ff84781828c99e150624c9ef399851c20e5f099ef0d9"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel24/dramsim3.txt",
+      "sha256": "c3edc2aac08597bd03b34efe0b47e84fa0a65ebad9ed6baa33e9a75dd1a970aa"
+    },
+    {
+      "bytes": 67894,
+      "path": "sst/au/candidate/dram/channel24/dramsim3epoch.json",
+      "sha256": "dcf84dd384b6380cf32cbfb1c05fe93ff41a2dc80ce82e754962c251e97e9a54"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel25/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel25/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel25/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel26/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel26/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel26/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel27/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel27/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel27/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel28/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel28/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel28/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel29/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel29/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel29/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 8137,
+      "path": "sst/au/candidate/dram/channel3/dramsim3.json",
+      "sha256": "892bbe0daa98b40e97d04113d5431319af204357d8250cb0401e0b22ebffdc6f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel3/dramsim3.txt",
+      "sha256": "af9766335f9b43873803add8ede1a4545c684d6a8f8de5276276c6b33877603c"
+    },
+    {
+      "bytes": 66493,
+      "path": "sst/au/candidate/dram/channel3/dramsim3epoch.json",
+      "sha256": "39dcb8762f9321428f6269592086bfc0763e5b7dbbbbb757e94e6d0a677d4296"
+    },
+    {
+      "bytes": 10792,
+      "path": "sst/au/candidate/dram/channel30/dramsim3.json",
+      "sha256": "f3614cea4eca58e5179a29b4e30b5d99539979ccb564848bd1d15cf59ccace74"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel30/dramsim3.txt",
+      "sha256": "346672051428b1ede5f387aa1ca90db4107379cce9d1720844c65100ee8361f3"
+    },
+    {
+      "bytes": 66240,
+      "path": "sst/au/candidate/dram/channel30/dramsim3epoch.json",
+      "sha256": "d2a09ad181ef48adab8d15d4a4eba17a15d8ce9bbff00157e1f6531d0909f63d"
+    },
+    {
+      "bytes": 1809,
+      "path": "sst/au/candidate/dram/channel31/dramsim3.json",
+      "sha256": "e2140a5b409f6da3cc45bcb173a5c9a3ea69eff8777dbc926162b2cc833422a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel31/dramsim3.txt",
+      "sha256": "a02b03fe53798db2142858111a78c2870a8e0001d4974b667331a97c054efc95"
+    },
+    {
+      "bytes": 65314,
+      "path": "sst/au/candidate/dram/channel31/dramsim3epoch.json",
+      "sha256": "59d61f18f74071ab89abf6afafebc4c551003c9b658d557f1f28e98dbe31614f"
+    },
+    {
+      "bytes": 8785,
+      "path": "sst/au/candidate/dram/channel4/dramsim3.json",
+      "sha256": "cced1915991ded803d3759c71611fa832cdca75894f0d0e4da212ca0e9141978"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel4/dramsim3.txt",
+      "sha256": "c229dd9fde4e003c8fce79a7313ab41e1c35250eb6754ceeb32eb66ef22f09d4"
+    },
+    {
+      "bytes": 66525,
+      "path": "sst/au/candidate/dram/channel4/dramsim3epoch.json",
+      "sha256": "4c751760e5f4ad124a2fadf7fd1f1ab3e38ed94e5306fa7cfd0f01ac50be5c89"
+    },
+    {
+      "bytes": 8923,
+      "path": "sst/au/candidate/dram/channel5/dramsim3.json",
+      "sha256": "a8f9e80e116dd16c62c097532f1438af8611273bf059fd04e054ef884a740e3f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel5/dramsim3.txt",
+      "sha256": "2941d712bb64dd04107abdad42668e2f07ae1fa4786e19b20c3b6ea5f8963dc6"
+    },
+    {
+      "bytes": 66518,
+      "path": "sst/au/candidate/dram/channel5/dramsim3epoch.json",
+      "sha256": "d48b161c994c5adc034e0fa52d5e483cfafba738ab10e7e9805baf8fd4bd952a"
+    },
+    {
+      "bytes": 5996,
+      "path": "sst/au/candidate/dram/channel6/dramsim3.json",
+      "sha256": "3eef9a15aa81938cd1c29116e78e9f3e7f1cd307a500049ed93682425a47a2a2"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel6/dramsim3.txt",
+      "sha256": "e3b94fccf985f10e3ee1d2f7c2dda7b372185a211d45428713be94612069cd5a"
+    },
+    {
+      "bytes": 66955,
+      "path": "sst/au/candidate/dram/channel6/dramsim3epoch.json",
+      "sha256": "51bd5408c4d46991756387da054eca75e69dbfe71a6c3608fcaf944723af8032"
+    },
+    {
+      "bytes": 4605,
+      "path": "sst/au/candidate/dram/channel7/dramsim3.json",
+      "sha256": "62fbcd75e5ed8cbda3032f9a72ec9da9f2bb700bcf00b1023eff4c5aa36efd46"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel7/dramsim3.txt",
+      "sha256": "9d4fc9d57ee4f7edc47d8967b08448ba34c99bdce1aee37fb97cea0d6ea783f9"
+    },
+    {
+      "bytes": 66675,
+      "path": "sst/au/candidate/dram/channel7/dramsim3epoch.json",
+      "sha256": "ac90c086a4c8b3bff0b278fed099c2a8af6ff525a837daad7bcf210d5a76a465"
+    },
+    {
+      "bytes": 4519,
+      "path": "sst/au/candidate/dram/channel8/dramsim3.json",
+      "sha256": "21d1375e10cdd86ff9b60acee519c4c5e85268d6cc28f646a27b4f9cc93923ff"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel8/dramsim3.txt",
+      "sha256": "521e86f7e4750697c5178ce9ab4542124066f7e6d5bdca242e4c73184e9bbd43"
+    },
+    {
+      "bytes": 66593,
+      "path": "sst/au/candidate/dram/channel8/dramsim3epoch.json",
+      "sha256": "93521142b2b7b6b92560948063afb70a589fe029315767a64738db77b3bc5174"
+    },
+    {
+      "bytes": 4538,
+      "path": "sst/au/candidate/dram/channel9/dramsim3.json",
+      "sha256": "8887f27142b66282716b0a9070f189385b37f6d5fd8980acd11ea1c8f683ebbb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/candidate/dram/channel9/dramsim3.txt",
+      "sha256": "c8929903232fda510ccbbf386bfcfdc7fff33d3863a6f56bde23b014a6ce5f4e"
+    },
+    {
+      "bytes": 66534,
+      "path": "sst/au/candidate/dram/channel9/dramsim3epoch.json",
+      "sha256": "68e4a7b4c7a5c438ddebcbbd0c451026015e26fe35c4952897c4da0711d7eca0"
+    },
+    {
+      "bytes": 4167,
+      "path": "sst/au/candidate/result.json",
+      "sha256": "37125e22fbf21ad83e947a716190d909c1dddceacd943e90b253a3575ff60135"
+    },
+    {
+      "bytes": 1864,
+      "path": "sst/au/candidate/result.json.diagnostic.txt",
+      "sha256": "9a2dba6fc552dd9f28c45ce2a3cb0c792efcecb0133a1fd375c5fdf6bd83ad30"
+    },
+    {
+      "bytes": 8475012,
+      "path": "sst/au/candidate/result.json.values.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "bytes": 518,
+      "path": "sst/au/candidate/run_config.json",
+      "sha256": "cf399f843be4ff41b45697a88a5b114272ecfba1532ea47135a763ad885773b1"
+    },
+    {
+      "bytes": 217,
+      "path": "sst/au/candidate/sst.progress.json",
+      "sha256": "6080ad7d93a2300bc23d319c8ee3feeb4cf0ba01cffa64052b04bf5a5b9c4466"
+    },
+    {
+      "bytes": 2165,
+      "path": "sst/au/candidate/sst.resources.json",
+      "sha256": "e712c872a359e5a9cd08878b2199209308a2fc63a838ba4fb1c92a401bbbee88"
+    },
+    {
+      "bytes": 0,
+      "path": "sst/au/candidate/sst.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 323,
+      "path": "sst/au/candidate/sst.stdout.txt",
+      "sha256": "6de1dafc96ad55bd841438c90d3bd63993ade6658cc8cc3625b5a6fccbd7c842"
+    },
+    {
+      "bytes": 2712,
+      "path": "sst/au/comparison.json",
+      "sha256": "c09fcc424dfb133484638339ff7c45a4c34736e165b8859b2d68fbc506ee814b"
+    },
+    {
+      "bytes": 8475012,
+      "path": "sst/au/expected.values.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "bytes": 10638,
+      "path": "sst/au/original/dram/channel0/dramsim3.json",
+      "sha256": "dbc332be26f4075050fba162dba8167bd29ad9244c7dade01277626a2f5c3164"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel0/dramsim3.txt",
+      "sha256": "dfc1cdddff3194072f3950ea46a351f46addb57bab83ebb55c7b6f6c7f2c383b"
+    },
+    {
+      "bytes": 178899,
+      "path": "sst/au/original/dram/channel0/dramsim3epoch.json",
+      "sha256": "5b5cb12b4ecaab15fb2864e01dccb25c75f32662ff385696c52711743af3986c"
+    },
+    {
+      "bytes": 10978,
+      "path": "sst/au/original/dram/channel1/dramsim3.json",
+      "sha256": "16c57927336698c9fc4dc238bef9de7eadcea00a8c9d087cc7cfdac2739cd1ce"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel1/dramsim3.txt",
+      "sha256": "b9f0d668cafb1c11b860cdb8a94cadfd46881a81d70940349c03091db2883218"
+    },
+    {
+      "bytes": 175042,
+      "path": "sst/au/original/dram/channel1/dramsim3epoch.json",
+      "sha256": "397d4121aefbdda545861ac4fe40515f229ac335067b83506b41394107a8f2cf"
+    },
+    {
+      "bytes": 5034,
+      "path": "sst/au/original/dram/channel10/dramsim3.json",
+      "sha256": "c268dc0be09b847e0ebf9b80ee5adde0b44a604be5c1bd862b1c1f3f58da89a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel10/dramsim3.txt",
+      "sha256": "02fabca59373d9f269ea1f74d12b0c835cbcfdb1c079f64457eaa12efec7801d"
+    },
+    {
+      "bytes": 173740,
+      "path": "sst/au/original/dram/channel10/dramsim3epoch.json",
+      "sha256": "05b3e7b8ce2c611ee95d2826cc73b28317580a9162040149737f345f0dd9c6c1"
+    },
+    {
+      "bytes": 4858,
+      "path": "sst/au/original/dram/channel11/dramsim3.json",
+      "sha256": "0865d0466c9458d98da931869067e259cea2a9633129ec625ce4d5950288e60c"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel11/dramsim3.txt",
+      "sha256": "35f0b5c96df74d925290f3e8a979f4eb9f281fc5986bcb995530d21c654e1f10"
+    },
+    {
+      "bytes": 173607,
+      "path": "sst/au/original/dram/channel11/dramsim3epoch.json",
+      "sha256": "9fb0c1e336f5291da41268a7da3e3b8ef7938e469201901067d157ab37728de7"
+    },
+    {
+      "bytes": 10578,
+      "path": "sst/au/original/dram/channel12/dramsim3.json",
+      "sha256": "bde1133dc5c6448d972036fa5d6828168f9fa7016cfa6b1aa02516f614ebc9be"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel12/dramsim3.txt",
+      "sha256": "850b6dab6363132f77cc568d2445bc01277937f91b0fc69123f4a9f56ce07343"
+    },
+    {
+      "bytes": 178840,
+      "path": "sst/au/original/dram/channel12/dramsim3epoch.json",
+      "sha256": "614b44722f14af17e9c16ac9b41255eb5cab0c5657d90faf667d4f0d5767a5b1"
+    },
+    {
+      "bytes": 10645,
+      "path": "sst/au/original/dram/channel13/dramsim3.json",
+      "sha256": "f7ec96789f8faa3fa550630e826f10649221d4465bd1d740c92a40f4d69db2de"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel13/dramsim3.txt",
+      "sha256": "7fe3170ea9a9c236c9fa2d82a8cff2396b387634d5e405488c7b707e9a41f57a"
+    },
+    {
+      "bytes": 174999,
+      "path": "sst/au/original/dram/channel13/dramsim3epoch.json",
+      "sha256": "1b488507f6ee6ddb387c6db6a4dff97f54f2b4bff6b93be41489c5bb5bbe447a"
+    },
+    {
+      "bytes": 7924,
+      "path": "sst/au/original/dram/channel14/dramsim3.json",
+      "sha256": "766403c39107049cdb28f8c7961d89d652c5f3d326e2de10f0fb3246de4c6e6a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel14/dramsim3.txt",
+      "sha256": "f6d7dc53458c861b83dac394ac9c12f2c2a64305903e34e7340a573073788533"
+    },
+    {
+      "bytes": 173677,
+      "path": "sst/au/original/dram/channel14/dramsim3epoch.json",
+      "sha256": "151644315df6cb17c5ab8a4000eda5c2baf388e52b8417adaf5c8373d8cc4270"
+    },
+    {
+      "bytes": 8140,
+      "path": "sst/au/original/dram/channel15/dramsim3.json",
+      "sha256": "dcc9054743b47d791042caf9a0094e15ab087f5200cf2b366cd33508b8f95cc0"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel15/dramsim3.txt",
+      "sha256": "f98a950e5cbbdc23a9f1c3cd8eb63072719778a43fbc008034933a802d8ff8df"
+    },
+    {
+      "bytes": 173582,
+      "path": "sst/au/original/dram/channel15/dramsim3epoch.json",
+      "sha256": "2be393ce08301a71ba105ded418ed6a5ef425c86bd8f5c67282e754de5ac9061"
+    },
+    {
+      "bytes": 8552,
+      "path": "sst/au/original/dram/channel16/dramsim3.json",
+      "sha256": "7354a5dd92c06a0ccda2a709f9632b4368ac1fa7dc5d4ea130d66a2af5f5c4eb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel16/dramsim3.txt",
+      "sha256": "b76cf850e38c49f8ad0790c9937f6ae4a5c9491f1abb3beaa25462f3854218a3"
+    },
+    {
+      "bytes": 173670,
+      "path": "sst/au/original/dram/channel16/dramsim3epoch.json",
+      "sha256": "1db63d42d0525056da1b90cb6f110fea763ea2ccc32fafe43695efcb1f04e792"
+    },
+    {
+      "bytes": 8526,
+      "path": "sst/au/original/dram/channel17/dramsim3.json",
+      "sha256": "ef6562ca56129d26e0d9057a4254f2aaeab925f2e1cb344cfdb6a5fd8d1d2da4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel17/dramsim3.txt",
+      "sha256": "49a29d1f5dc6f087f712a0b6d424fd79246efec38772bdda843deefc7e33cf23"
+    },
+    {
+      "bytes": 173442,
+      "path": "sst/au/original/dram/channel17/dramsim3epoch.json",
+      "sha256": "4aba52507cc495e806e2578687ded047868e237ec3b3d57689889eb59b315a5c"
+    },
+    {
+      "bytes": 4848,
+      "path": "sst/au/original/dram/channel18/dramsim3.json",
+      "sha256": "0eff66987ee5e69c051708fcb7324a44aada40efbac5266e37479b3211d71b67"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel18/dramsim3.txt",
+      "sha256": "2bfcebd81a65607c6ec77d428b8dd9ca526198034e18933561be9f38d33a75ed"
+    },
+    {
+      "bytes": 173612,
+      "path": "sst/au/original/dram/channel18/dramsim3epoch.json",
+      "sha256": "b00a93d129b2b8c1a17dc4f0776d8cc7fdb45e1c07977ef74d316c834645ba90"
+    },
+    {
+      "bytes": 4556,
+      "path": "sst/au/original/dram/channel19/dramsim3.json",
+      "sha256": "364ce8b9737d7c9a449ab71355f73dd4fe7023a2ff00eb5bcb4514d8b0022d2b"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel19/dramsim3.txt",
+      "sha256": "b3f57df22f6be034c9c312c967cc4c54ae2cd5d9f93dcba3cbf198467d6bc312"
+    },
+    {
+      "bytes": 173475,
+      "path": "sst/au/original/dram/channel19/dramsim3epoch.json",
+      "sha256": "4549b903a898447ae4928dd55a2b978f521319187e8cedd3d228c47ff40cea88"
+    },
+    {
+      "bytes": 7696,
+      "path": "sst/au/original/dram/channel2/dramsim3.json",
+      "sha256": "74292006b3fb10cbabd21b1d5afb9184478b05d97795e8a007cd8bfcec758789"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel2/dramsim3.txt",
+      "sha256": "5d00531e8ae639e2e8fc7d41d35480751c9d478707e845a8108da316056dfea1"
+    },
+    {
+      "bytes": 173673,
+      "path": "sst/au/original/dram/channel2/dramsim3epoch.json",
+      "sha256": "ffc2bdbbac4f81ea6181fbf8e3c5c9f2c2bb175ecdada189f752a056630f9336"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel20/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel20/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel20/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel21/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel21/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel21/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel22/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel22/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel22/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 13339,
+      "path": "sst/au/original/dram/channel23/dramsim3.json",
+      "sha256": "d8f1658958fc9a7526abdb69c35db74f720c7cbb10732364a50ad21da407d676"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel23/dramsim3.txt",
+      "sha256": "f1d0aeba2aada47f52faf93add63b396bbacff2bc70f7e747deb0f74ba9d6176"
+    },
+    {
+      "bytes": 176618,
+      "path": "sst/au/original/dram/channel23/dramsim3epoch.json",
+      "sha256": "cbf725d6e801dd2150f25e2b4f78317b2cc68570070c7b4878caf1658ce3b49e"
+    },
+    {
+      "bytes": 13393,
+      "path": "sst/au/original/dram/channel24/dramsim3.json",
+      "sha256": "db32bc4275b8a263a3378d3f55ff13f9b4a3adfbb665429a07c1a374d038bd48"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel24/dramsim3.txt",
+      "sha256": "4cc5a284bb293d862a4f019e509053c408ab96768459a760269fd40c8f4d8b12"
+    },
+    {
+      "bytes": 175436,
+      "path": "sst/au/original/dram/channel24/dramsim3epoch.json",
+      "sha256": "6c02f3cd817a4f86491663ba2463da46e045287c83133397c7b339993b055336"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel25/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel25/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel25/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel26/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel26/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel26/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel27/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel27/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel27/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel28/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel28/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel28/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel29/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel29/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel29/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 8043,
+      "path": "sst/au/original/dram/channel3/dramsim3.json",
+      "sha256": "55b23eace86f020685d9be1b240a8b595ec2540d392752b08f828de99b154bcf"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel3/dramsim3.txt",
+      "sha256": "f2275b7aba2692fa9391c4d131c80abcd5a9d994f4717c73ffb3b7252d7269f4"
+    },
+    {
+      "bytes": 173582,
+      "path": "sst/au/original/dram/channel3/dramsim3epoch.json",
+      "sha256": "4158dd79ac9fbaed50e091fd4dd966d7e4f5014cd42f686a4137f9c407ee3830"
+    },
+    {
+      "bytes": 10702,
+      "path": "sst/au/original/dram/channel30/dramsim3.json",
+      "sha256": "e53038143c5c9252cedac9bbf0c4fe707eb55573044d7f9f6665655e2f2608f8"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel30/dramsim3.txt",
+      "sha256": "0912f207fe3cf7cb90efbc14d24f759f7380591142e9f24b88b5080bedc50179"
+    },
+    {
+      "bytes": 172841,
+      "path": "sst/au/original/dram/channel30/dramsim3epoch.json",
+      "sha256": "c7467e69b374c22a33a757cb8db8c77d5e9ae34de13c7a0c3c384c71a4ec9dd3"
+    },
+    {
+      "bytes": 1814,
+      "path": "sst/au/original/dram/channel31/dramsim3.json",
+      "sha256": "92b384500971a3e8732d1e1264ea2d2cfe304599452582bdad0a320618598e4a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel31/dramsim3.txt",
+      "sha256": "0d6e109f9ea60be5db29d8e01bf0962ad7825d3cf59c4b244c98c636f52e581c"
+    },
+    {
+      "bytes": 171893,
+      "path": "sst/au/original/dram/channel31/dramsim3epoch.json",
+      "sha256": "675cd240b023ac06ee301459ae3fb6c6b705a3595fa8054076670430d31e7a33"
+    },
+    {
+      "bytes": 8507,
+      "path": "sst/au/original/dram/channel4/dramsim3.json",
+      "sha256": "b13623cef75edf89831e851df9aca2ba219d3b453800e21004c06d3d5595a05d"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel4/dramsim3.txt",
+      "sha256": "8dc08fbd47b6b24cf21802d94a8375a42fcffbeaccfa2ae2720bd2bab7f1a5e2"
+    },
+    {
+      "bytes": 173668,
+      "path": "sst/au/original/dram/channel4/dramsim3epoch.json",
+      "sha256": "95ef5a415ea5fa5aa2c29aaa59eeec2996850f573d34ee6cb6d606ecdcce6787"
+    },
+    {
+      "bytes": 8720,
+      "path": "sst/au/original/dram/channel5/dramsim3.json",
+      "sha256": "b8a5ddbd21b402c33e4e7f87ca8e0a689f1b4707f4a77c4df2811e979e8edaaf"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel5/dramsim3.txt",
+      "sha256": "7b1ce7c2cbbfa2a372eddb5b644c6769b123cd0a8540575d07103e2244cc9e69"
+    },
+    {
+      "bytes": 173391,
+      "path": "sst/au/original/dram/channel5/dramsim3epoch.json",
+      "sha256": "30fb57b112b8a5b1636d96471282bc0416be3090c91afd0a45e885519a9403c0"
+    },
+    {
+      "bytes": 7138,
+      "path": "sst/au/original/dram/channel6/dramsim3.json",
+      "sha256": "fc1911f06870c0cc40e3d8b652f4c22a49e96ee4e2f39c591d5108d59040553e"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel6/dramsim3.txt",
+      "sha256": "454cc4369016bd3974621a4962f535bec67d97a6c506ddca2020b8a65ab3eaeb"
+    },
+    {
+      "bytes": 176969,
+      "path": "sst/au/original/dram/channel6/dramsim3epoch.json",
+      "sha256": "d974f696546153336e58080728bce7692f5cf50bedbaff08b74b11b818f0df8a"
+    },
+    {
+      "bytes": 5392,
+      "path": "sst/au/original/dram/channel7/dramsim3.json",
+      "sha256": "6078ed6b208751e43ace80797ed3363eb225edf772c13c60a366e595bcd57413"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel7/dramsim3.txt",
+      "sha256": "74c89d46ebb2867e0e348702a594b018f6bf68d67327c34b590e5ac6695a5216"
+    },
+    {
+      "bytes": 173897,
+      "path": "sst/au/original/dram/channel7/dramsim3epoch.json",
+      "sha256": "b2a2d7775aead3e59f3587d537b107073f7a9a396f8386b8d6bf210619ce55f4"
+    },
+    {
+      "bytes": 5078,
+      "path": "sst/au/original/dram/channel8/dramsim3.json",
+      "sha256": "84bbf9e521e659d4c5c6ebc76e0852e51e89150f5f2f10936495c5ab9c58df70"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel8/dramsim3.txt",
+      "sha256": "e538f0e452a53f92d8865917326d9ff69d3f0c9abb5cdfa17b1dcc5ac7e80c11"
+    },
+    {
+      "bytes": 173747,
+      "path": "sst/au/original/dram/channel8/dramsim3epoch.json",
+      "sha256": "57f61712a029c9d111fae7197678bef92c9263b8d30a3259e5a7c53e728ae89c"
+    },
+    {
+      "bytes": 5020,
+      "path": "sst/au/original/dram/channel9/dramsim3.json",
+      "sha256": "964c83947c376a8946a6e16c304aec8d8fb58a5101191d64f4bf4bae009a7753"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/au/original/dram/channel9/dramsim3.txt",
+      "sha256": "4b8e4e454b23b5b736e6821787b657238cdabe421812ab2f73712d2c0f5e784b"
+    },
+    {
+      "bytes": 173638,
+      "path": "sst/au/original/dram/channel9/dramsim3epoch.json",
+      "sha256": "c97fb4a99f76b9c3c80aa16993823a2b60bc7be2bbc30325de1a8d3dfc07688c"
+    },
+    {
+      "bytes": 4191,
+      "path": "sst/au/original/result.json",
+      "sha256": "2cabf9ed328f217fed2549e686657c65e8a684e850954e5b255fdefb39291c5b"
+    },
+    {
+      "bytes": 1865,
+      "path": "sst/au/original/result.json.diagnostic.txt",
+      "sha256": "facc7f9bf8553961766c35c56ff3c55bdf88c9035c668c575aafaa144d38dd50"
+    },
+    {
+      "bytes": 8475012,
+      "path": "sst/au/original/result.json.values.txt",
+      "sha256": "0a51baed88066630c0162cdc2645cf929ce8f75b56cca3cb759abdee53aac768"
+    },
+    {
+      "bytes": 515,
+      "path": "sst/au/original/run_config.json",
+      "sha256": "4705a2b069703f5a8b552a30f53eb6ca5b65234b5b9f9c78385d3849a827ea0b"
+    },
+    {
+      "bytes": 218,
+      "path": "sst/au/original/sst.progress.json",
+      "sha256": "1ddc967df74fc0cacf08a8dd62f911ca2f8c432ed240ba40fd2b708ce3c3637e"
+    },
+    {
+      "bytes": 2165,
+      "path": "sst/au/original/sst.resources.json",
+      "sha256": "4c41d75a352daead3480fddebf5b8b8d9aa306105c864ad7a84b217738653f38"
+    },
+    {
+      "bytes": 0,
+      "path": "sst/au/original/sst.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 729,
+      "path": "sst/au/original/sst.stdout.txt",
+      "sha256": "54b9211e508e975b6fb908b5d9aacde6995987f5e6e6d15969d853c28a08b163"
+    },
+    {
+      "bytes": 46534640,
+      "path": "sst/au/resident.bin",
+      "sha256": "7dce4b07f5eae3d556cf5b9699c199fa55392bc802bc6f514d01e9b727cdd11a"
+    },
+    {
+      "bytes": 118808,
+      "path": "sst/manifest.json",
+      "sha256": "876d44e50c513d703e979cdc1fca3e4388115f20dc3d659a8cb8f7e1f32f5290"
+    },
+    {
+      "bytes": 12488,
+      "path": "sst/results.json",
+      "sha256": "47d8a546a4073eb674a8724d3c21a942726e08473184693b514d0fb0ac3cb816"
+    },
+    {
+      "bytes": 1005465,
+      "path": "sst/source.tar.gz",
+      "sha256": "9932e4a26a2cae2f0465f4e7a300db56766bab9a9bef6e0496b6a37a2be5c836"
+    },
+    {
+      "bytes": 12268,
+      "path": "sst/su/candidate/dram/channel0/dramsim3.json",
+      "sha256": "c275036b46176563b327f903a35f64ea66a8ed551f202aebc07b0dfee583f36a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel0/dramsim3.txt",
+      "sha256": "e450324f895a84112292b65f80a69814dcf3ec93370699a81c19b9348179ad36"
+    },
+    {
+      "bytes": 115918,
+      "path": "sst/su/candidate/dram/channel0/dramsim3epoch.json",
+      "sha256": "0169602323aa72cb1efb23594f8c69b6b735df2172d91744c5da1f4ea5ca0f4b"
+    },
+    {
+      "bytes": 12313,
+      "path": "sst/su/candidate/dram/channel1/dramsim3.json",
+      "sha256": "c1e07d665f1921aaf6904c7e58373b82934e7221249bc8b2889b6a173adee6fd"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel1/dramsim3.txt",
+      "sha256": "688fda18f0dbe3e4149ae4cf489f4fe141c7ee13ea563fe92153255eba1bce15"
+    },
+    {
+      "bytes": 114590,
+      "path": "sst/su/candidate/dram/channel1/dramsim3epoch.json",
+      "sha256": "4cba0dcd33d7a5b6b32476ff26330e81ae061b18b28f9ed66746e9f4443e0652"
+    },
+    {
+      "bytes": 4518,
+      "path": "sst/su/candidate/dram/channel10/dramsim3.json",
+      "sha256": "91356d8dadee594862fd57b6470c27d34bd48548e57587e02605511fa1042f91"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel10/dramsim3.txt",
+      "sha256": "6ed4a3f840cd533056bb4937295c72c83af35a92e8020072e51864fd9f695afd"
+    },
+    {
+      "bytes": 113392,
+      "path": "sst/su/candidate/dram/channel10/dramsim3epoch.json",
+      "sha256": "ac68b410ac0df584421285b2071503fc9460ddde50752130faeee7c7f8e9e0f6"
+    },
+    {
+      "bytes": 4472,
+      "path": "sst/su/candidate/dram/channel11/dramsim3.json",
+      "sha256": "13f359b5abae74b01ebc9112e41ae4a96064af49056ca22520e7f3d9314ad674"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel11/dramsim3.txt",
+      "sha256": "6c4192e3e483314781342752621b757b977829330f259f44e933c3b8754b214a"
+    },
+    {
+      "bytes": 113414,
+      "path": "sst/su/candidate/dram/channel11/dramsim3epoch.json",
+      "sha256": "34a57d7f0f346c49fc1c7a289cd79caa3fc6bf0a2cc246ba30e2cd9ae388e42d"
+    },
+    {
+      "bytes": 12402,
+      "path": "sst/su/candidate/dram/channel12/dramsim3.json",
+      "sha256": "73f5a7f20b4cddb3e2bf201273622fcddea2ed4bd3fdff72040a95b972261580"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel12/dramsim3.txt",
+      "sha256": "c6465bc727b900a3a61c5428e783e3de1304ee4da58b97e50d33ef9b8fb458b4"
+    },
+    {
+      "bytes": 115913,
+      "path": "sst/su/candidate/dram/channel12/dramsim3epoch.json",
+      "sha256": "7581d68351f4cfdf8a7b9665b42415cf396e91775131bbb5b46e102a37d95da3"
+    },
+    {
+      "bytes": 12243,
+      "path": "sst/su/candidate/dram/channel13/dramsim3.json",
+      "sha256": "e20b4df6c18cd5bdf67ff0f9b482e1705b7253ab8ea6dac6162e810a78e44111"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel13/dramsim3.txt",
+      "sha256": "9ddd12b13648126f2eff52ebbfa57c1ee2bf83f44bb6ddec3dd0020f68d8e5ca"
+    },
+    {
+      "bytes": 114587,
+      "path": "sst/su/candidate/dram/channel13/dramsim3epoch.json",
+      "sha256": "b829b5d99ac9c054c33574ae49afd78eff339d2d5b572b608a12f697d312926c"
+    },
+    {
+      "bytes": 12351,
+      "path": "sst/su/candidate/dram/channel14/dramsim3.json",
+      "sha256": "422fd6857f80ac36fe63328cd9bd9d851873418895cae3f8291424e245f23403"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel14/dramsim3.txt",
+      "sha256": "ad89d476dddcc4fb3bb2171de6e71ea98a4e84cd969d26b5733c206d084e1f9f"
+    },
+    {
+      "bytes": 114201,
+      "path": "sst/su/candidate/dram/channel14/dramsim3epoch.json",
+      "sha256": "bd7e8cb2a149c6bfce294022b0e68a08669605eb55c7a468d263cae9c6e20c64"
+    },
+    {
+      "bytes": 8630,
+      "path": "sst/su/candidate/dram/channel15/dramsim3.json",
+      "sha256": "af34e908cefcd0f77b4d463b25d5d07baf39ab6953798a43bb6b105017d4d254"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel15/dramsim3.txt",
+      "sha256": "92c7421e93e48bd0cd68c072ef97ab5228d91b141542025f5be9e170f1477fca"
+    },
+    {
+      "bytes": 113398,
+      "path": "sst/su/candidate/dram/channel15/dramsim3epoch.json",
+      "sha256": "23b1ddc9e5eeeecf3102212196a1b05c3d6a8fb245d90ddfba35171cd791380f"
+    },
+    {
+      "bytes": 9301,
+      "path": "sst/su/candidate/dram/channel16/dramsim3.json",
+      "sha256": "90eb32e7b10e2fc191fe9d22298dea142c717bc720e57a5dc91dff01a59b7bac"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel16/dramsim3.txt",
+      "sha256": "dd9aae4f30efaa03bf00c9c6ef3dea6bdd8cd4159d731249e64f2a1c8b8676f2"
+    },
+    {
+      "bytes": 113276,
+      "path": "sst/su/candidate/dram/channel16/dramsim3epoch.json",
+      "sha256": "c3933baf3a37e535fcb61376a73e7a43201d7ee453de481c2c5319c84756f162"
+    },
+    {
+      "bytes": 9806,
+      "path": "sst/su/candidate/dram/channel17/dramsim3.json",
+      "sha256": "ef097f749153f78489653f90250f188447c38244fadc5d30c5e3eba32f763666"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel17/dramsim3.txt",
+      "sha256": "82791fb5c9797006994e9a9fc78a7fc06b75595fd182c5ab0fe5031336b72063"
+    },
+    {
+      "bytes": 113212,
+      "path": "sst/su/candidate/dram/channel17/dramsim3epoch.json",
+      "sha256": "1980d4c480df69e5ecb3c706431fa02bc0de6808e334b84bfd9bf176d440e4cd"
+    },
+    {
+      "bytes": 4472,
+      "path": "sst/su/candidate/dram/channel18/dramsim3.json",
+      "sha256": "d4edd772d540d1e07b63a9275d1c42bde380f32683007c944ebd3cccd7232f5c"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel18/dramsim3.txt",
+      "sha256": "12719923fb58d6bf3dbd154ea4f661d803a12948b64ffb2d0801e251fdff6bf3"
+    },
+    {
+      "bytes": 113411,
+      "path": "sst/su/candidate/dram/channel18/dramsim3epoch.json",
+      "sha256": "5cc8d4228b30f5424fd2540edade981f841df739b0f78e3804cf0787eb38794c"
+    },
+    {
+      "bytes": 4437,
+      "path": "sst/su/candidate/dram/channel19/dramsim3.json",
+      "sha256": "8eb0e495b67c2623d4dd375579e44cfb68c3f461c636cb7aeaddb2dc017788f5"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel19/dramsim3.txt",
+      "sha256": "42854626fac990bb5ac47b8c566f0a8b8af9504c8e6ed02d0109d0c4c8bb61a3"
+    },
+    {
+      "bytes": 113294,
+      "path": "sst/su/candidate/dram/channel19/dramsim3epoch.json",
+      "sha256": "399f69634565e125d48200c4ab5f6491ca924b9bb1c0ac4da492a074f0176e82"
+    },
+    {
+      "bytes": 12556,
+      "path": "sst/su/candidate/dram/channel2/dramsim3.json",
+      "sha256": "4cca4cc14faedf450d4ac4201efd9a34218d9a08c3c3bf1b45e407d36be46056"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel2/dramsim3.txt",
+      "sha256": "cdf3e82e09ac8b4ca157d3193bd256624b3124548ace724f512c6ab2bce386e4"
+    },
+    {
+      "bytes": 114199,
+      "path": "sst/su/candidate/dram/channel2/dramsim3epoch.json",
+      "sha256": "0e919841dcaa1f2672a964fd0ab9ea56d3abd742b5740b223bb3fb6474939516"
+    },
+    {
+      "bytes": 4339,
+      "path": "sst/su/candidate/dram/channel20/dramsim3.json",
+      "sha256": "cc3a9c5a5e0ed932b3eabeade84d55d4f403bec6d55380448ad1bebee2bc3504"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel20/dramsim3.txt",
+      "sha256": "2f5d8835f3c7b4086ebd0fde7db5b3ee4a76ff08433dd98dc7dd8af78d7bbdfd"
+    },
+    {
+      "bytes": 112924,
+      "path": "sst/su/candidate/dram/channel20/dramsim3epoch.json",
+      "sha256": "edf79fdae0739c8018a1d49947631f8e23dd678df7c423f9a9a9b4dcd54edf42"
+    },
+    {
+      "bytes": 1811,
+      "path": "sst/su/candidate/dram/channel21/dramsim3.json",
+      "sha256": "1b118a20faf1da8ca8d9b5b6cd89f68f2d24dc44645e46d4eec3423674ffacdb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel21/dramsim3.txt",
+      "sha256": "e959a39c0a68689974f05aa5d9e1546d317f8ad8d0fe3f94a2606a0fb4b495d9"
+    },
+    {
+      "bytes": 111727,
+      "path": "sst/su/candidate/dram/channel21/dramsim3epoch.json",
+      "sha256": "923479a0a0deba6abf63fae80c4c62b28a4ec76a1efd31bc86b42ef6cd29cabc"
+    },
+    {
+      "bytes": 1811,
+      "path": "sst/su/candidate/dram/channel22/dramsim3.json",
+      "sha256": "1b118a20faf1da8ca8d9b5b6cd89f68f2d24dc44645e46d4eec3423674ffacdb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel22/dramsim3.txt",
+      "sha256": "e959a39c0a68689974f05aa5d9e1546d317f8ad8d0fe3f94a2606a0fb4b495d9"
+    },
+    {
+      "bytes": 111727,
+      "path": "sst/su/candidate/dram/channel22/dramsim3epoch.json",
+      "sha256": "923479a0a0deba6abf63fae80c4c62b28a4ec76a1efd31bc86b42ef6cd29cabc"
+    },
+    {
+      "bytes": 14507,
+      "path": "sst/su/candidate/dram/channel23/dramsim3.json",
+      "sha256": "985d785376d81a803ae03b7fda17bd0488c0f8a5d8d610dff6c6f3550cb7da49"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel23/dramsim3.txt",
+      "sha256": "c513641a3421cd5423a813e09ab55664251a13fa59d0b58b36e564738b3372e9"
+    },
+    {
+      "bytes": 116217,
+      "path": "sst/su/candidate/dram/channel23/dramsim3epoch.json",
+      "sha256": "951041d78cb35f0f87884ebf829a693e66ee227c5f61dd4608c02098b5b6af3e"
+    },
+    {
+      "bytes": 13970,
+      "path": "sst/su/candidate/dram/channel24/dramsim3.json",
+      "sha256": "0fda6cedda592feb72c8f79bcc4558b8a7dfa04fb239145424186b764430a42c"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel24/dramsim3.txt",
+      "sha256": "6bb10db01c6f60c8bb0be81e01ee80cf1eddd3d341359adbf6e1baa1d290b2bf"
+    },
+    {
+      "bytes": 115101,
+      "path": "sst/su/candidate/dram/channel24/dramsim3epoch.json",
+      "sha256": "e00543a9d3404ef588635dbf8d84000dff9fc47e72022bd230cfd80c9ae14f8f"
+    },
+    {
+      "bytes": 1811,
+      "path": "sst/su/candidate/dram/channel25/dramsim3.json",
+      "sha256": "1b118a20faf1da8ca8d9b5b6cd89f68f2d24dc44645e46d4eec3423674ffacdb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel25/dramsim3.txt",
+      "sha256": "e959a39c0a68689974f05aa5d9e1546d317f8ad8d0fe3f94a2606a0fb4b495d9"
+    },
+    {
+      "bytes": 111727,
+      "path": "sst/su/candidate/dram/channel25/dramsim3epoch.json",
+      "sha256": "923479a0a0deba6abf63fae80c4c62b28a4ec76a1efd31bc86b42ef6cd29cabc"
+    },
+    {
+      "bytes": 1811,
+      "path": "sst/su/candidate/dram/channel26/dramsim3.json",
+      "sha256": "1b118a20faf1da8ca8d9b5b6cd89f68f2d24dc44645e46d4eec3423674ffacdb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel26/dramsim3.txt",
+      "sha256": "e959a39c0a68689974f05aa5d9e1546d317f8ad8d0fe3f94a2606a0fb4b495d9"
+    },
+    {
+      "bytes": 111727,
+      "path": "sst/su/candidate/dram/channel26/dramsim3epoch.json",
+      "sha256": "923479a0a0deba6abf63fae80c4c62b28a4ec76a1efd31bc86b42ef6cd29cabc"
+    },
+    {
+      "bytes": 1811,
+      "path": "sst/su/candidate/dram/channel27/dramsim3.json",
+      "sha256": "1b118a20faf1da8ca8d9b5b6cd89f68f2d24dc44645e46d4eec3423674ffacdb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel27/dramsim3.txt",
+      "sha256": "e959a39c0a68689974f05aa5d9e1546d317f8ad8d0fe3f94a2606a0fb4b495d9"
+    },
+    {
+      "bytes": 111727,
+      "path": "sst/su/candidate/dram/channel27/dramsim3epoch.json",
+      "sha256": "923479a0a0deba6abf63fae80c4c62b28a4ec76a1efd31bc86b42ef6cd29cabc"
+    },
+    {
+      "bytes": 1811,
+      "path": "sst/su/candidate/dram/channel28/dramsim3.json",
+      "sha256": "1b118a20faf1da8ca8d9b5b6cd89f68f2d24dc44645e46d4eec3423674ffacdb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel28/dramsim3.txt",
+      "sha256": "e959a39c0a68689974f05aa5d9e1546d317f8ad8d0fe3f94a2606a0fb4b495d9"
+    },
+    {
+      "bytes": 111727,
+      "path": "sst/su/candidate/dram/channel28/dramsim3epoch.json",
+      "sha256": "923479a0a0deba6abf63fae80c4c62b28a4ec76a1efd31bc86b42ef6cd29cabc"
+    },
+    {
+      "bytes": 1811,
+      "path": "sst/su/candidate/dram/channel29/dramsim3.json",
+      "sha256": "1b118a20faf1da8ca8d9b5b6cd89f68f2d24dc44645e46d4eec3423674ffacdb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel29/dramsim3.txt",
+      "sha256": "e959a39c0a68689974f05aa5d9e1546d317f8ad8d0fe3f94a2606a0fb4b495d9"
+    },
+    {
+      "bytes": 111727,
+      "path": "sst/su/candidate/dram/channel29/dramsim3epoch.json",
+      "sha256": "923479a0a0deba6abf63fae80c4c62b28a4ec76a1efd31bc86b42ef6cd29cabc"
+    },
+    {
+      "bytes": 8510,
+      "path": "sst/su/candidate/dram/channel3/dramsim3.json",
+      "sha256": "e109381dcc0c0b5d9b482c6774c0d57db2e34e54d1b1cda921e8f01902768fa2"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel3/dramsim3.txt",
+      "sha256": "3247536828bebe25011cc3b8bd3d5d1038bc81f3743c356cac6e73c68d6828f2"
+    },
+    {
+      "bytes": 113368,
+      "path": "sst/su/candidate/dram/channel3/dramsim3epoch.json",
+      "sha256": "b3f5e8ad8a5a06a6aa97dcdda163b3401fad4882578d19f163007ff5b45e4ed4"
+    },
+    {
+      "bytes": 10989,
+      "path": "sst/su/candidate/dram/channel30/dramsim3.json",
+      "sha256": "57bbe09b2697a5bff4cf17922a6eb9aa48bca72b4d236dd7c2242a27124dee96"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel30/dramsim3.txt",
+      "sha256": "5f767452d579e60bccb2c43ec5c7082d163161c909dd5f2cefdeb0879c34fe71"
+    },
+    {
+      "bytes": 112718,
+      "path": "sst/su/candidate/dram/channel30/dramsim3epoch.json",
+      "sha256": "b7cc537f53e68aeb6d4ceb18bf753ae7886f4f51af9ecd5ae1a5261a5dbc1b14"
+    },
+    {
+      "bytes": 1811,
+      "path": "sst/su/candidate/dram/channel31/dramsim3.json",
+      "sha256": "1b118a20faf1da8ca8d9b5b6cd89f68f2d24dc44645e46d4eec3423674ffacdb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel31/dramsim3.txt",
+      "sha256": "e959a39c0a68689974f05aa5d9e1546d317f8ad8d0fe3f94a2606a0fb4b495d9"
+    },
+    {
+      "bytes": 111727,
+      "path": "sst/su/candidate/dram/channel31/dramsim3epoch.json",
+      "sha256": "923479a0a0deba6abf63fae80c4c62b28a4ec76a1efd31bc86b42ef6cd29cabc"
+    },
+    {
+      "bytes": 9199,
+      "path": "sst/su/candidate/dram/channel4/dramsim3.json",
+      "sha256": "8ebbe106adde56ace361e274bfee02229e4f02c2c0a423ddfd8f216deb02b1b0"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel4/dramsim3.txt",
+      "sha256": "f4122c9e93ee45a70d97bdf81a52fa9cf04439316c28db5a2379e61d157c12ff"
+    },
+    {
+      "bytes": 113299,
+      "path": "sst/su/candidate/dram/channel4/dramsim3epoch.json",
+      "sha256": "17c72b30e4be29a4187860a22b66b7b1d64e5629ee5529d9e404fbe38bf94db1"
+    },
+    {
+      "bytes": 9996,
+      "path": "sst/su/candidate/dram/channel5/dramsim3.json",
+      "sha256": "42032a696621b8cc82d348930c692338dd6a91dc978a9a118c81047c4d58f18e"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel5/dramsim3.txt",
+      "sha256": "1bf62c92c5dd83cb8f6c4f7f049689b852c175cf6535b4906f0397912678fde0"
+    },
+    {
+      "bytes": 113219,
+      "path": "sst/su/candidate/dram/channel5/dramsim3epoch.json",
+      "sha256": "6ae4493a1d775697f73998d9c6b6e6749c306bb71c5af738e4c74e23ef20b1b4"
+    },
+    {
+      "bytes": 6683,
+      "path": "sst/su/candidate/dram/channel6/dramsim3.json",
+      "sha256": "67d50522fc8521f4392f3c16e31b5e4246e3d4e3637064fdb9d7aaf0c41f0181"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel6/dramsim3.txt",
+      "sha256": "c58f1dbb9b05a2196b39f365027983cb9f858038ac14c9c6fc35899af3c56f91"
+    },
+    {
+      "bytes": 114013,
+      "path": "sst/su/candidate/dram/channel6/dramsim3epoch.json",
+      "sha256": "3a1d0dcc47f525c14a2f8223e6d4ca8d7c28ede38355e8caf07ac16a39b4d04f"
+    },
+    {
+      "bytes": 4498,
+      "path": "sst/su/candidate/dram/channel7/dramsim3.json",
+      "sha256": "f5f121d573a61b95e619aabe063f2706e7a48845c0457a9952cb7019031eef1d"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel7/dramsim3.txt",
+      "sha256": "f6246b27530fd19dd1dd5075f218ff452fcbb2fcd10263d8cf9f24fbc7a446f4"
+    },
+    {
+      "bytes": 113512,
+      "path": "sst/su/candidate/dram/channel7/dramsim3epoch.json",
+      "sha256": "c8faea53eff9002de6817fe106e1f1fa4a25299d5081d95e661df11bce638ff4"
+    },
+    {
+      "bytes": 4577,
+      "path": "sst/su/candidate/dram/channel8/dramsim3.json",
+      "sha256": "e820992942aaa3ea85d69029690e406ad93e399eca5934caf92fc463fb1cd742"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel8/dramsim3.txt",
+      "sha256": "2bfbe2ce2162d534a7dda0b928ef1a53c71b212ae8159277692b4362fb081ea7"
+    },
+    {
+      "bytes": 113454,
+      "path": "sst/su/candidate/dram/channel8/dramsim3epoch.json",
+      "sha256": "fd0d0e2ae194265a50cf19f568ff72ecf0dbaaf2b5dba3a6c6a77c3c85a04d17"
+    },
+    {
+      "bytes": 4559,
+      "path": "sst/su/candidate/dram/channel9/dramsim3.json",
+      "sha256": "4f49b36203b4ebc8dc1f686d8a6ea0bf69151d765bf5439d91f5756871182167"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/candidate/dram/channel9/dramsim3.txt",
+      "sha256": "c788b9bcd505443b5a97f15672b4a7446821b2967bc3388538568af8c6d4e031"
+    },
+    {
+      "bytes": 113447,
+      "path": "sst/su/candidate/dram/channel9/dramsim3epoch.json",
+      "sha256": "82dc7b7262e87cfcf89ed0e3f329cebd8c2698e0975ba9db82cecd287384eca2"
+    },
+    {
+      "bytes": 4508,
+      "path": "sst/su/candidate/result.json",
+      "sha256": "a9d50fa56ebb6b564cc39d3e315852aecf9b1b5563476417a01e647adf3312a1"
+    },
+    {
+      "bytes": 1861,
+      "path": "sst/su/candidate/result.json.diagnostic.txt",
+      "sha256": "19489a39daa8beb8a55302686fa2cb14adbea31692013fd35efe86f749cbfef4"
+    },
+    {
+      "bytes": 9337534,
+      "path": "sst/su/candidate/result.json.values.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "bytes": 518,
+      "path": "sst/su/candidate/run_config.json",
+      "sha256": "ce8097bf5883d41e14ba66f6f734382250e7a85b7cfe38355f9f1d4913892833"
+    },
+    {
+      "bytes": 213,
+      "path": "sst/su/candidate/sst.progress.json",
+      "sha256": "a10fcc92ae443f85c37e862ae06463901e78df86d8e4d69affb89fa0227778af"
+    },
+    {
+      "bytes": 2164,
+      "path": "sst/su/candidate/sst.resources.json",
+      "sha256": "472fcc7244d59007ba5bc224e785a4fd0fe9dc50a7adf12a25627dcd773406b7"
+    },
+    {
+      "bytes": 0,
+      "path": "sst/su/candidate/sst.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 483,
+      "path": "sst/su/candidate/sst.stdout.txt",
+      "sha256": "c7dc212e6180926c7070e016356b06c98547ef376178a66da49355ad09e50fa0"
+    },
+    {
+      "bytes": 3001,
+      "path": "sst/su/comparison.json",
+      "sha256": "9677055f20e71e1235903c464b1f1b0c4374849e0c11f761d43e38cb2b3d37ab"
+    },
+    {
+      "bytes": 9337534,
+      "path": "sst/su/expected.values.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "bytes": 12052,
+      "path": "sst/su/original/dram/channel0/dramsim3.json",
+      "sha256": "893232cf7b3e7a5c75f3d92c21c94f357e32e1ed718994a52b099b6d24d441f5"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel0/dramsim3.txt",
+      "sha256": "040186a81bd83737cf744ccca965150cc03ec6e63fde65b2d26ab4a636e14554"
+    },
+    {
+      "bytes": 290111,
+      "path": "sst/su/original/dram/channel0/dramsim3epoch.json",
+      "sha256": "5482cc125e975cf12a87df991eacb64b79d33451c2226b27c6cf2d411246b8e2"
+    },
+    {
+      "bytes": 12785,
+      "path": "sst/su/original/dram/channel1/dramsim3.json",
+      "sha256": "486168f8eb49ad557ae21b9bc4badab3675f49632f3867e7c3a4d5cef6d0fba2"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel1/dramsim3.txt",
+      "sha256": "a94de8ce7d28979e414919bb2911d314655505b787dc80acad37ec0c564d6980"
+    },
+    {
+      "bytes": 284329,
+      "path": "sst/su/original/dram/channel1/dramsim3epoch.json",
+      "sha256": "a054cfdf9938d00d181a9ee83fc73a21260ad07fb3141f4db7fbfe5334e60808"
+    },
+    {
+      "bytes": 4953,
+      "path": "sst/su/original/dram/channel10/dramsim3.json",
+      "sha256": "293ff11adc46805e123b34755720efff2f7bd9e5c5947b1767530823423aa2fa"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel10/dramsim3.txt",
+      "sha256": "0ef5bf564a535533eb6f9112b480599792a8991014ec5e38dd40356f6a8ba10c"
+    },
+    {
+      "bytes": 282642,
+      "path": "sst/su/original/dram/channel10/dramsim3epoch.json",
+      "sha256": "71db56f24d9ddbf8ac4a2a228d7dcfa099cd1ab7e186cca225d2cefb23614a4d"
+    },
+    {
+      "bytes": 4907,
+      "path": "sst/su/original/dram/channel11/dramsim3.json",
+      "sha256": "d971f065b6d01d674a6091ae774914c286d39a38c9339065c8d3831fea51c5a4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel11/dramsim3.txt",
+      "sha256": "2d867dc4de7a8a6b70e340fd5a772784abbc8df7e02c9f87d741b176846e172e"
+    },
+    {
+      "bytes": 282573,
+      "path": "sst/su/original/dram/channel11/dramsim3epoch.json",
+      "sha256": "42e49bcae60bd4d308292dd65194b636341c1aa76fd966ea1673300ac0b1347e"
+    },
+    {
+      "bytes": 12313,
+      "path": "sst/su/original/dram/channel12/dramsim3.json",
+      "sha256": "9e12b4873d1f2cf5a0cb898f39fd1314359f5078bbbf3eea1ed49e12a9785c75"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel12/dramsim3.txt",
+      "sha256": "b1a5c43f871219b0cc611c17036f9346c5a7754a830ccfd8b30fe9ebea1790bb"
+    },
+    {
+      "bytes": 290062,
+      "path": "sst/su/original/dram/channel12/dramsim3epoch.json",
+      "sha256": "693885be94834b08496e0fcd4cf86b8074a4303c06d8a562487a37647a8e75f2"
+    },
+    {
+      "bytes": 12997,
+      "path": "sst/su/original/dram/channel13/dramsim3.json",
+      "sha256": "3ea58cc59456737ef9b85a3a31792478f68672dd53106f2b74b43aab37120fce"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel13/dramsim3.txt",
+      "sha256": "32ce8cda11f8af5ecb2a45d0617d0e2889180392bb07fdf135878b9eb85e9203"
+    },
+    {
+      "bytes": 284324,
+      "path": "sst/su/original/dram/channel13/dramsim3epoch.json",
+      "sha256": "33492fbaccafb29f0a5baafb6211198ae1cb9b8b79f7e836dd7c2a93966f1674"
+    },
+    {
+      "bytes": 11852,
+      "path": "sst/su/original/dram/channel14/dramsim3.json",
+      "sha256": "894f645b57451a0fe61dfa68615ec72a8c9f0c33f04b8d333acb0643231faa4e"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel14/dramsim3.txt",
+      "sha256": "5bc29fed6e7ebc4fb1d847c07abd94e50b610cb9f1733489b83d1ac65824abc0"
+    },
+    {
+      "bytes": 284026,
+      "path": "sst/su/original/dram/channel14/dramsim3epoch.json",
+      "sha256": "8d90a134b63dad0c3e48bf3058950408032cc0a35c4284978096af0115a183c1"
+    },
+    {
+      "bytes": 8314,
+      "path": "sst/su/original/dram/channel15/dramsim3.json",
+      "sha256": "8598cc2d1a9feb645ed561e827ca0e2b68dcdbfcc4e5493aaa2539eee587d373"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel15/dramsim3.txt",
+      "sha256": "1ec6172e74670c494ca88fe2d0269278bed930e532f5eb89a310ab7cc8917017"
+    },
+    {
+      "bytes": 282477,
+      "path": "sst/su/original/dram/channel15/dramsim3epoch.json",
+      "sha256": "e9cb4f21fd4087cd16fa758604454a7013297b8380e34faa7be173b3f151f6fb"
+    },
+    {
+      "bytes": 9423,
+      "path": "sst/su/original/dram/channel16/dramsim3.json",
+      "sha256": "1743b1aab1574b5ea41febce44084a9852c24a73b605f4acb81e9aef9434e009"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel16/dramsim3.txt",
+      "sha256": "8f28d7502579e6028f20071817a655a4384445ce37fab4539cc05a75c3ace886"
+    },
+    {
+      "bytes": 282527,
+      "path": "sst/su/original/dram/channel16/dramsim3epoch.json",
+      "sha256": "fa6f4631ac565736c2fbb9b2c3bf1252426314184b84ea9af0dbb03286620b33"
+    },
+    {
+      "bytes": 9580,
+      "path": "sst/su/original/dram/channel17/dramsim3.json",
+      "sha256": "f6c8c72ab295b942be6bd514ebe2e3948e7f8c7cfb323aa19c6cce81abf023e8"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel17/dramsim3.txt",
+      "sha256": "0e46a816b443a94ce771ac2663c626759d411359874241eea96e31365c3cf537"
+    },
+    {
+      "bytes": 282336,
+      "path": "sst/su/original/dram/channel17/dramsim3epoch.json",
+      "sha256": "1fe385738464076876df42df19df097b3698bc1576f355f71ef808b162f8c75e"
+    },
+    {
+      "bytes": 4755,
+      "path": "sst/su/original/dram/channel18/dramsim3.json",
+      "sha256": "031f1f781aef3a144ba9463bfb3296bb61c5cc1222c8669d72cf9087a67ef1fb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel18/dramsim3.txt",
+      "sha256": "37c46b2709a592ce575cfb361ad1b1942ce9794d8825aedf966cc37ca65a45f4"
+    },
+    {
+      "bytes": 282466,
+      "path": "sst/su/original/dram/channel18/dramsim3epoch.json",
+      "sha256": "3f1e4a6e05703a3935352c757cb3d3ee8809527f51a3be6195444045f365c259"
+    },
+    {
+      "bytes": 4769,
+      "path": "sst/su/original/dram/channel19/dramsim3.json",
+      "sha256": "2de092e36cecda5ed95e2859a2ed87bf3953569cd425f6c795028007881b0870"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel19/dramsim3.txt",
+      "sha256": "ae2a635da2aa44bf1f0d0336b04c93fd10ed2227f6a468c0195e5c6a60c5f88c"
+    },
+    {
+      "bytes": 282439,
+      "path": "sst/su/original/dram/channel19/dramsim3epoch.json",
+      "sha256": "c072e85dd2c4c7d609bde9452ef9060d9ece4dba0c8763d3099f9e9a61782615"
+    },
+    {
+      "bytes": 12067,
+      "path": "sst/su/original/dram/channel2/dramsim3.json",
+      "sha256": "d465ebd412361f2ade85b935051cfecee956555925e76ff9effcaeac92244889"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel2/dramsim3.txt",
+      "sha256": "fcc49b49d45e4f2c7e4bdde815138deb9fd04e95568502458afa64c9189bc21e"
+    },
+    {
+      "bytes": 284014,
+      "path": "sst/su/original/dram/channel2/dramsim3epoch.json",
+      "sha256": "62ee83f04a465fded36094e22b1b3aae570643a6233f1ee9bd83472c32b4ba56"
+    },
+    {
+      "bytes": 4519,
+      "path": "sst/su/original/dram/channel20/dramsim3.json",
+      "sha256": "2e353c64befb848d4db67e5bf82848fad4ec43596837bbc3e0bc132a1f84be78"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel20/dramsim3.txt",
+      "sha256": "0fa2fda91efc859c97d763f4a7087fcd99911c80a6710b0fc10ce224fb329336"
+    },
+    {
+      "bytes": 282109,
+      "path": "sst/su/original/dram/channel20/dramsim3epoch.json",
+      "sha256": "c066da7402b253fa8d930e45e00124451cdca27dde4713560afee2a0c3d1ca0d"
+    },
+    {
+      "bytes": 1815,
+      "path": "sst/su/original/dram/channel21/dramsim3.json",
+      "sha256": "05934a771e382880f79f3fc2bf0eb1e33d23e67f2c74528fabc7cb4e2de1740f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel21/dramsim3.txt",
+      "sha256": "49f04869fe95ab8f8346f6f2800798aa33821241b0de3b5399aff9c32c38ff0e"
+    },
+    {
+      "bytes": 280253,
+      "path": "sst/su/original/dram/channel21/dramsim3epoch.json",
+      "sha256": "ef1777305823cb3ef8f66b1e01b1e17b5f12618c01e9ede68a541f1f33eab77d"
+    },
+    {
+      "bytes": 1815,
+      "path": "sst/su/original/dram/channel22/dramsim3.json",
+      "sha256": "05934a771e382880f79f3fc2bf0eb1e33d23e67f2c74528fabc7cb4e2de1740f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel22/dramsim3.txt",
+      "sha256": "49f04869fe95ab8f8346f6f2800798aa33821241b0de3b5399aff9c32c38ff0e"
+    },
+    {
+      "bytes": 280253,
+      "path": "sst/su/original/dram/channel22/dramsim3epoch.json",
+      "sha256": "ef1777305823cb3ef8f66b1e01b1e17b5f12618c01e9ede68a541f1f33eab77d"
+    },
+    {
+      "bytes": 14773,
+      "path": "sst/su/original/dram/channel23/dramsim3.json",
+      "sha256": "2c0d6dffa90b1a6a3c0116da952a15a6106e4ac5a0c5a9ab6920b97949824778"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel23/dramsim3.txt",
+      "sha256": "3b1e714d2a08a5b39879b079c8b4dc9ffa8f6e7f6a4812a578440bfb93d51b68"
+    },
+    {
+      "bytes": 287706,
+      "path": "sst/su/original/dram/channel23/dramsim3epoch.json",
+      "sha256": "f88d68a79d1643f6382033c8df0901c859ffbb6894ca5550cde941bac482225f"
+    },
+    {
+      "bytes": 14233,
+      "path": "sst/su/original/dram/channel24/dramsim3.json",
+      "sha256": "896583a3f225c149351ca0a64a03a0fe60c8abffb44ab0499586ad4561b2c5ea"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel24/dramsim3.txt",
+      "sha256": "c1780e21a82d0988b6c603b91134482a7ce5d2211ef9809301854320eff540c6"
+    },
+    {
+      "bytes": 284793,
+      "path": "sst/su/original/dram/channel24/dramsim3epoch.json",
+      "sha256": "9d1e7a8524e2baee370f7231bdb3930bae4cb65ff7817493a7a416700fb30d80"
+    },
+    {
+      "bytes": 1815,
+      "path": "sst/su/original/dram/channel25/dramsim3.json",
+      "sha256": "05934a771e382880f79f3fc2bf0eb1e33d23e67f2c74528fabc7cb4e2de1740f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel25/dramsim3.txt",
+      "sha256": "49f04869fe95ab8f8346f6f2800798aa33821241b0de3b5399aff9c32c38ff0e"
+    },
+    {
+      "bytes": 280253,
+      "path": "sst/su/original/dram/channel25/dramsim3epoch.json",
+      "sha256": "ef1777305823cb3ef8f66b1e01b1e17b5f12618c01e9ede68a541f1f33eab77d"
+    },
+    {
+      "bytes": 1815,
+      "path": "sst/su/original/dram/channel26/dramsim3.json",
+      "sha256": "05934a771e382880f79f3fc2bf0eb1e33d23e67f2c74528fabc7cb4e2de1740f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel26/dramsim3.txt",
+      "sha256": "49f04869fe95ab8f8346f6f2800798aa33821241b0de3b5399aff9c32c38ff0e"
+    },
+    {
+      "bytes": 280253,
+      "path": "sst/su/original/dram/channel26/dramsim3epoch.json",
+      "sha256": "ef1777305823cb3ef8f66b1e01b1e17b5f12618c01e9ede68a541f1f33eab77d"
+    },
+    {
+      "bytes": 1815,
+      "path": "sst/su/original/dram/channel27/dramsim3.json",
+      "sha256": "05934a771e382880f79f3fc2bf0eb1e33d23e67f2c74528fabc7cb4e2de1740f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel27/dramsim3.txt",
+      "sha256": "49f04869fe95ab8f8346f6f2800798aa33821241b0de3b5399aff9c32c38ff0e"
+    },
+    {
+      "bytes": 280253,
+      "path": "sst/su/original/dram/channel27/dramsim3epoch.json",
+      "sha256": "ef1777305823cb3ef8f66b1e01b1e17b5f12618c01e9ede68a541f1f33eab77d"
+    },
+    {
+      "bytes": 1815,
+      "path": "sst/su/original/dram/channel28/dramsim3.json",
+      "sha256": "05934a771e382880f79f3fc2bf0eb1e33d23e67f2c74528fabc7cb4e2de1740f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel28/dramsim3.txt",
+      "sha256": "49f04869fe95ab8f8346f6f2800798aa33821241b0de3b5399aff9c32c38ff0e"
+    },
+    {
+      "bytes": 280253,
+      "path": "sst/su/original/dram/channel28/dramsim3epoch.json",
+      "sha256": "ef1777305823cb3ef8f66b1e01b1e17b5f12618c01e9ede68a541f1f33eab77d"
+    },
+    {
+      "bytes": 1815,
+      "path": "sst/su/original/dram/channel29/dramsim3.json",
+      "sha256": "05934a771e382880f79f3fc2bf0eb1e33d23e67f2c74528fabc7cb4e2de1740f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel29/dramsim3.txt",
+      "sha256": "49f04869fe95ab8f8346f6f2800798aa33821241b0de3b5399aff9c32c38ff0e"
+    },
+    {
+      "bytes": 280253,
+      "path": "sst/su/original/dram/channel29/dramsim3epoch.json",
+      "sha256": "ef1777305823cb3ef8f66b1e01b1e17b5f12618c01e9ede68a541f1f33eab77d"
+    },
+    {
+      "bytes": 8223,
+      "path": "sst/su/original/dram/channel3/dramsim3.json",
+      "sha256": "ffadfb31973583c03f61253e9d512df113a44265cb504445eac329c413fb7ffe"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel3/dramsim3.txt",
+      "sha256": "9caa74a041c424bd319204abe5e0cbf432e117c260013508f02d58d6d1defcbe"
+    },
+    {
+      "bytes": 282523,
+      "path": "sst/su/original/dram/channel3/dramsim3epoch.json",
+      "sha256": "353722e5d94507e4eb86136c2708f4ee5c5cf2612824fce7027ca17fba393cb7"
+    },
+    {
+      "bytes": 10887,
+      "path": "sst/su/original/dram/channel30/dramsim3.json",
+      "sha256": "ecfd444d2dd488348b397b0f2bf51acbfdfe3a0fe5456e8db21b82e65f790e8f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel30/dramsim3.txt",
+      "sha256": "58e8d721cb6a3e1c4fb9f13204723ff47d5eadd9be450c83fabc9e488dc13bd2"
+    },
+    {
+      "bytes": 281359,
+      "path": "sst/su/original/dram/channel30/dramsim3epoch.json",
+      "sha256": "7a95d2348bb34338eb2cc643ef5da293a3824ccbe1a877c3e26c88765fb84662"
+    },
+    {
+      "bytes": 1815,
+      "path": "sst/su/original/dram/channel31/dramsim3.json",
+      "sha256": "05934a771e382880f79f3fc2bf0eb1e33d23e67f2c74528fabc7cb4e2de1740f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel31/dramsim3.txt",
+      "sha256": "49f04869fe95ab8f8346f6f2800798aa33821241b0de3b5399aff9c32c38ff0e"
+    },
+    {
+      "bytes": 280253,
+      "path": "sst/su/original/dram/channel31/dramsim3epoch.json",
+      "sha256": "ef1777305823cb3ef8f66b1e01b1e17b5f12618c01e9ede68a541f1f33eab77d"
+    },
+    {
+      "bytes": 9245,
+      "path": "sst/su/original/dram/channel4/dramsim3.json",
+      "sha256": "a715c6f258172b2f59ccc9d94b5fd3063ecfed777ce986ee78be027830672dc8"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel4/dramsim3.txt",
+      "sha256": "bdc7555f2d44b83397ddf25982064ececdc2058c28bc8dd82f96991f7cfbbd04"
+    },
+    {
+      "bytes": 282539,
+      "path": "sst/su/original/dram/channel4/dramsim3epoch.json",
+      "sha256": "5437045a8d01afa66b2d4426df820c492caa198fb63d5fdd98f098d44497f363"
+    },
+    {
+      "bytes": 9664,
+      "path": "sst/su/original/dram/channel5/dramsim3.json",
+      "sha256": "dc4c46921f8c6b363f64cff9f0281926b405b9340ba06da5fa38a6c18970920e"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel5/dramsim3.txt",
+      "sha256": "0d56774373a8f61d2ffb8418cf48f1c2712d86a5918aada07c4dfefc7680c932"
+    },
+    {
+      "bytes": 282329,
+      "path": "sst/su/original/dram/channel5/dramsim3epoch.json",
+      "sha256": "6b152b3b1b9f20eba92814fcca1ced29531543ac058a0b808bdebf560cb92f6d"
+    },
+    {
+      "bytes": 7928,
+      "path": "sst/su/original/dram/channel6/dramsim3.json",
+      "sha256": "f39a7403efa7c3f70d1e725289cb64c91ab4dbd051a4e343da0bfb29de8c1339"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel6/dramsim3.txt",
+      "sha256": "c0da91c642a8c040b118b25d21582bb7dabb5ee3643ba9cca0b82aaecb2bed96"
+    },
+    {
+      "bytes": 287618,
+      "path": "sst/su/original/dram/channel6/dramsim3epoch.json",
+      "sha256": "f820fe7d1ef28e5e99274af855bd926cbdb1317c16d24350672f9f199b2c4f6a"
+    },
+    {
+      "bytes": 5085,
+      "path": "sst/su/original/dram/channel7/dramsim3.json",
+      "sha256": "84393fe14976cbf27d14c2386a4369e6769745eb2b566657a8a4726ae25ef46c"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel7/dramsim3.txt",
+      "sha256": "51239a20d71368164c0233699f3335b57744bd01dfdbee575d048328c4acb870"
+    },
+    {
+      "bytes": 282746,
+      "path": "sst/su/original/dram/channel7/dramsim3epoch.json",
+      "sha256": "5953aab919aa5ede2267b51ef03a2b7177d8503a5770401fad7ddf3a1fc16eff"
+    },
+    {
+      "bytes": 5191,
+      "path": "sst/su/original/dram/channel8/dramsim3.json",
+      "sha256": "28ab280bdc054ee4a19bd1d7f38c6eedf9d4dd6b7d256cf469af56bd9f2b2403"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel8/dramsim3.txt",
+      "sha256": "e15552a0df84cdc6f72a34a7420e26fbbda4999cf37d57da9e4e29dbf871d96c"
+    },
+    {
+      "bytes": 282770,
+      "path": "sst/su/original/dram/channel8/dramsim3epoch.json",
+      "sha256": "805927acc793c0d780be194b8e50f8d0d8ab71e0ea3445540ec47c0287331f33"
+    },
+    {
+      "bytes": 5028,
+      "path": "sst/su/original/dram/channel9/dramsim3.json",
+      "sha256": "ce6877c2ea4d4a8c243a824232c2e2db214b7e88fe4f8638f67ac4e44508d56a"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/su/original/dram/channel9/dramsim3.txt",
+      "sha256": "63007332ee069822abd7fcae54c0d4c13a8cdf15cdce0cbb9411ed1d64458e84"
+    },
+    {
+      "bytes": 282606,
+      "path": "sst/su/original/dram/channel9/dramsim3epoch.json",
+      "sha256": "cf0f6a19c1157fcdc0002b38cb348bb40d9ddcc2d1592d12efbba7b5643ceab1"
+    },
+    {
+      "bytes": 4567,
+      "path": "sst/su/original/result.json",
+      "sha256": "02ee872aee92a32e0a7a58a3e975809c0d32a9d9e596c7c0531c9c40052f6e77"
+    },
+    {
+      "bytes": 1862,
+      "path": "sst/su/original/result.json.diagnostic.txt",
+      "sha256": "0357c9ec5ab745d2f6c9de40de2260e02f53930c1efd44a4afbaacb7e9dd0bb4"
+    },
+    {
+      "bytes": 9337534,
+      "path": "sst/su/original/result.json.values.txt",
+      "sha256": "1b64fbed80a4bd506579583e4672ceeafbfa5d70a12c7e10ccf81959ae519b23"
+    },
+    {
+      "bytes": 515,
+      "path": "sst/su/original/run_config.json",
+      "sha256": "17b8cb4188f58174da2c51f2c172eae24db7ff072ac9a7ab3e24e51f14f66d10"
+    },
+    {
+      "bytes": 218,
+      "path": "sst/su/original/sst.progress.json",
+      "sha256": "148eab69f07c06141bf0e42859f87e15608278c700efd81f21c00885a246df9a"
+    },
+    {
+      "bytes": 2165,
+      "path": "sst/su/original/sst.resources.json",
+      "sha256": "2cd03b9c24be41a3f7e8c8e36797eed8a963f5d60bd718fb99fb3b2a510deb56"
+    },
+    {
+      "bytes": 0,
+      "path": "sst/su/original/sst.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1098,
+      "path": "sst/su/original/sst.stdout.txt",
+      "sha256": "d60e59266c2f4991cb2b6ec710c7d336b5bb415ab9d0a816c3a586e374099de3"
+    },
+    {
+      "bytes": 58156480,
+      "path": "sst/su/resident.bin",
+      "sha256": "02a19b038fc1c78e7c2b27ae7486f0e37816da8a7acf1192637cfd98b8677fb0"
+    },
+    {
+      "bytes": 5894,
+      "path": "sst/wk/candidate/dram/channel0/dramsim3.json",
+      "sha256": "a8d7cda014594403f2f075652546699d92d135429485d988ba08e77988ac3d90"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel0/dramsim3.txt",
+      "sha256": "88855018f49ab12b358911c7111c8df89503d9dce16491d644fb72d12c965679"
+    },
+    {
+      "bytes": 30555,
+      "path": "sst/wk/candidate/dram/channel0/dramsim3epoch.json",
+      "sha256": "ce100725d4fa35261a7df8e247523ea0791c4c07fbecef1bcd28bcbeb755f313"
+    },
+    {
+      "bytes": 5080,
+      "path": "sst/wk/candidate/dram/channel1/dramsim3.json",
+      "sha256": "ffa627de0585f6204db15a4517e9a5d832ece5f4da7a4a153985cd9ed7667ea6"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel1/dramsim3.txt",
+      "sha256": "a4818c490b669688ccfb2ace8488d72b7f4f71652bcb5a97ae1251a2991899ab"
+    },
+    {
+      "bytes": 30091,
+      "path": "sst/wk/candidate/dram/channel1/dramsim3epoch.json",
+      "sha256": "32072b55403a1c81f87f7bd81428e94c5b6da1e051cc3816616c40206ca1c0b5"
+    },
+    {
+      "bytes": 1868,
+      "path": "sst/wk/candidate/dram/channel10/dramsim3.json",
+      "sha256": "b7bc6c75a4ed3607ab3371cb7af0165dd508a508c38c54edafd942f854682e14"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel10/dramsim3.txt",
+      "sha256": "c6cdc55c7585a0fd784d2af52195a1a28d03a759b0011c11c17b995fbd33a6ea"
+    },
+    {
+      "bytes": 29241,
+      "path": "sst/wk/candidate/dram/channel10/dramsim3epoch.json",
+      "sha256": "e92923629b1a630f4c6e4252687e56b6d052e51b87d142548c4e5825543b3587"
+    },
+    {
+      "bytes": 1868,
+      "path": "sst/wk/candidate/dram/channel11/dramsim3.json",
+      "sha256": "f9383ecb1034a211c0ab636c1e1f21963e9bacf754ce39492851bad8f0f6eeed"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel11/dramsim3.txt",
+      "sha256": "0bc2cd5d72b3f3e0a6824f7e7c401c57be5d7222ba2f55a372446f7dd731a022"
+    },
+    {
+      "bytes": 29241,
+      "path": "sst/wk/candidate/dram/channel11/dramsim3epoch.json",
+      "sha256": "b0f72ce555d92c8756b927d145861962431d9fb522837d75204d56327a6e1e27"
+    },
+    {
+      "bytes": 5938,
+      "path": "sst/wk/candidate/dram/channel12/dramsim3.json",
+      "sha256": "b30f0f771380e43814fcf822b18771983f2f0f1cc70b19641830264ca66921e8"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel12/dramsim3.txt",
+      "sha256": "09be8163107209c7b399068133dda58db3e70d6b9dbecce931efd41769ad1cfa"
+    },
+    {
+      "bytes": 30525,
+      "path": "sst/wk/candidate/dram/channel12/dramsim3epoch.json",
+      "sha256": "1671d38d991b0c58d651bb48f3f4164c4254775d6b822e8e2e31ebff11646601"
+    },
+    {
+      "bytes": 8603,
+      "path": "sst/wk/candidate/dram/channel13/dramsim3.json",
+      "sha256": "9c185fe1e04694aa5e0fb5ebf33401f5d5d2a4a95b723f8fd8d38eb8a0ceccfd"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel13/dramsim3.txt",
+      "sha256": "410972dc0399348ba0b738603092653fa24beae9fd996b8eb3985276634f5195"
+    },
+    {
+      "bytes": 29969,
+      "path": "sst/wk/candidate/dram/channel13/dramsim3epoch.json",
+      "sha256": "529dd7e3eefae5b294bca58d91adc3e44c31a64047e77acd84eccf4b749208a1"
+    },
+    {
+      "bytes": 8806,
+      "path": "sst/wk/candidate/dram/channel14/dramsim3.json",
+      "sha256": "0dfc4d4ee5d66956f1073dc224c0df39a0bf7c7de09e000c7b4c9fea982b6a5e"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel14/dramsim3.txt",
+      "sha256": "f164ccb7d124e2f5ca6be5849e5849e470bfdcf5d8c229f7d57fe7ebc92aa80f"
+    },
+    {
+      "bytes": 29906,
+      "path": "sst/wk/candidate/dram/channel14/dramsim3epoch.json",
+      "sha256": "f8433284842ed604c308ec9270568cd593956331e8818cedd89a6172745bf40d"
+    },
+    {
+      "bytes": 8868,
+      "path": "sst/wk/candidate/dram/channel15/dramsim3.json",
+      "sha256": "a5032f48695eff56f44404593993ae6c06ea597a6ac7ad12c9de148697096612"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel15/dramsim3.txt",
+      "sha256": "895e7c95ea564a07cc55f9a1fb9331ac3e0a4e42a6c7835d573cae1caf3fc528"
+    },
+    {
+      "bytes": 29887,
+      "path": "sst/wk/candidate/dram/channel15/dramsim3epoch.json",
+      "sha256": "42d2db41e3eeba1f0fe5d61896e4108907492b158bdc758d446a87ae2d2d58cf"
+    },
+    {
+      "bytes": 1878,
+      "path": "sst/wk/candidate/dram/channel16/dramsim3.json",
+      "sha256": "8ac85b957f09fd94b8e6713d71d99866b7608d8646d992203e82d41fe6c70856"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel16/dramsim3.txt",
+      "sha256": "cabcd71327abc01f55e46dcd847b1b0de7e74927dac51e8495877818a07a3ead"
+    },
+    {
+      "bytes": 29242,
+      "path": "sst/wk/candidate/dram/channel16/dramsim3epoch.json",
+      "sha256": "11d3c51181584121d33b2f26ce8b14bb41b7b7f1959945266c85381e108cbdb1"
+    },
+    {
+      "bytes": 1868,
+      "path": "sst/wk/candidate/dram/channel17/dramsim3.json",
+      "sha256": "bb96edfe7b40318d8a2cee7b9231f939618a15df34de845695aa352be1a626b1"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel17/dramsim3.txt",
+      "sha256": "0fdc1d62440cba0e7d26a330a8ff6b6c38191b686ca8ac21d8353e984ddb52b2"
+    },
+    {
+      "bytes": 29240,
+      "path": "sst/wk/candidate/dram/channel17/dramsim3epoch.json",
+      "sha256": "11f0682a85371eab0322644b858c80a9deed0066727a0ac8a9d847814927adf5"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel18/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel18/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel18/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel19/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel19/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel19/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 5182,
+      "path": "sst/wk/candidate/dram/channel2/dramsim3.json",
+      "sha256": "a5fcf961b5bc7c232687ec1c0f8daa0d6bf94172efe1abd64da683f8bbcb7bdc"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel2/dramsim3.txt",
+      "sha256": "9edbcb8ee91f6a1cc482ddfa45cae8c07097d22ffb95aa85914f5c1c9c06e18d"
+    },
+    {
+      "bytes": 30016,
+      "path": "sst/wk/candidate/dram/channel2/dramsim3epoch.json",
+      "sha256": "8f26e5272460bef306437739e6bbcd53a99b83ab4829b4f308d902bf82b8f163"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel20/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel20/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel20/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel21/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel21/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel21/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel22/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel22/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel22/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 11877,
+      "path": "sst/wk/candidate/dram/channel23/dramsim3.json",
+      "sha256": "cb81b225d625542f9a30eef6a6a15773ccede7f899f4ebffec57ef64a7757fe6"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel23/dramsim3.txt",
+      "sha256": "b4e8acf69b7f7552346774eb4fd98225d94cfc795eda9ada2e03b89889089a4a"
+    },
+    {
+      "bytes": 30531,
+      "path": "sst/wk/candidate/dram/channel23/dramsim3epoch.json",
+      "sha256": "af74c7b2dd88b5e45336cbd4c8b993f8ed6d98ef51487843d762ebece8edb412"
+    },
+    {
+      "bytes": 11887,
+      "path": "sst/wk/candidate/dram/channel24/dramsim3.json",
+      "sha256": "1a0ad13c5e98bff4f7e5312bb7d58b1aac5a279ae5d06878d2da36057c911883"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel24/dramsim3.txt",
+      "sha256": "b6b92d1db920b1189e9e7c456a6875ec7c18b342006fb5a14d6a20052e1963c1"
+    },
+    {
+      "bytes": 30365,
+      "path": "sst/wk/candidate/dram/channel24/dramsim3epoch.json",
+      "sha256": "f3ae762f3ee817449cb2a3f3ccd51db478a91fcea55b690a7a581f2790a4ca64"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel25/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel25/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel25/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel26/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel26/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel26/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel27/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel27/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel27/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel28/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel28/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel28/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel29/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel29/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel29/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 5038,
+      "path": "sst/wk/candidate/dram/channel3/dramsim3.json",
+      "sha256": "3ec61bb2f0fd0853740ca093a67c3f42fde6e035549a637eaf7144f3d364b523"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel3/dramsim3.txt",
+      "sha256": "5b12bbbaaa46c62fe955e320cc5b5fc4fce6d0676f67e57d9f62ea2bbacd3267"
+    },
+    {
+      "bytes": 29991,
+      "path": "sst/wk/candidate/dram/channel3/dramsim3epoch.json",
+      "sha256": "2e7f99abaaf3f02d7e21968e498f55c52fd2affcc0f1d331d51af868dd27ff0a"
+    },
+    {
+      "bytes": 10681,
+      "path": "sst/wk/candidate/dram/channel30/dramsim3.json",
+      "sha256": "da2e4a24c41e660502c7553471b6d19a4b82c8d788a1f0e43be5f3e7b61fcdd4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel30/dramsim3.txt",
+      "sha256": "cfa8db26fd3a7673a9a7b6ce44589ac3910f3195c25152b6707ea7e2cd48f3ad"
+    },
+    {
+      "bytes": 29827,
+      "path": "sst/wk/candidate/dram/channel30/dramsim3epoch.json",
+      "sha256": "cfdf5965990f04f593f586f83f17d69add3ab7bf0b0c9cd37a0d29b698d6f4d4"
+    },
+    {
+      "bytes": 1807,
+      "path": "sst/wk/candidate/dram/channel31/dramsim3.json",
+      "sha256": "351964308c2349d1e1c1522cb6c6ed71ede18001ca903a9204bb3f82ee4dab27"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel31/dramsim3.txt",
+      "sha256": "ca4eedabe7d0f500bebdc62e1c3711b338175376c3e967702fcc49b4c3c05e17"
+    },
+    {
+      "bytes": 29215,
+      "path": "sst/wk/candidate/dram/channel31/dramsim3epoch.json",
+      "sha256": "56422495b257eaba762f0166db44d7f2783f11961b5cdbeeb50db4995a4fc60a"
+    },
+    {
+      "bytes": 1891,
+      "path": "sst/wk/candidate/dram/channel4/dramsim3.json",
+      "sha256": "fd83d0f1e1b757c1934ec649fea914555bbc0b24365975d88f42733610bfdd6d"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel4/dramsim3.txt",
+      "sha256": "5667c07ea8140bbf68a47900ca28a6d1ce9ad5f5681bdbb5afaefe727f3254f2"
+    },
+    {
+      "bytes": 29264,
+      "path": "sst/wk/candidate/dram/channel4/dramsim3epoch.json",
+      "sha256": "0170bb0d8dbc7953ed3750f59e2cb2c1ff9087c1f066b2e1e67291f763866ad2"
+    },
+    {
+      "bytes": 1898,
+      "path": "sst/wk/candidate/dram/channel5/dramsim3.json",
+      "sha256": "a218fa90923677c7e2448f0391eeaf859fcfa7a223fe1cced23b9299ec33d7db"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel5/dramsim3.txt",
+      "sha256": "03ac2ff52de1bbf26cb466afe7b32b2691938fd842fd9cfdb70bec6d59f37730"
+    },
+    {
+      "bytes": 29265,
+      "path": "sst/wk/candidate/dram/channel5/dramsim3epoch.json",
+      "sha256": "035ec1bbf2cb7fc2085b135fd88afd9c668cafc499b2bc64301c9df2dce9164f"
+    },
+    {
+      "bytes": 1868,
+      "path": "sst/wk/candidate/dram/channel6/dramsim3.json",
+      "sha256": "9eeb121d7688f712ce4f39b412f47304ecce22599f0098a5cea3a38c19acb09d"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel6/dramsim3.txt",
+      "sha256": "f24f03a3e1d256cbdc5edfb2b457cf3fb34b23dc61eae4960a78eb77ac24ae1e"
+    },
+    {
+      "bytes": 29240,
+      "path": "sst/wk/candidate/dram/channel6/dramsim3epoch.json",
+      "sha256": "37dbdc53089b8f323f9a785f3fc020c3a0a20dbdae935a8fea6ea37d72cf2c51"
+    },
+    {
+      "bytes": 1867,
+      "path": "sst/wk/candidate/dram/channel7/dramsim3.json",
+      "sha256": "fa977fc3e10329f9019fdc8fda1b4a2ebffd69cfed3d01f2ba09b42d40c7c260"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel7/dramsim3.txt",
+      "sha256": "029a5d9a39976ebc9d425ca7eda6e3d32a40afcf6b8d8d17626ec940809b959e"
+    },
+    {
+      "bytes": 29239,
+      "path": "sst/wk/candidate/dram/channel7/dramsim3epoch.json",
+      "sha256": "ac9b8d19504f53aa9ae576a62a4ae65deedb256710bebfc8d886c6be388c5016"
+    },
+    {
+      "bytes": 1870,
+      "path": "sst/wk/candidate/dram/channel8/dramsim3.json",
+      "sha256": "7e77a1203df786944891dc1040e938bac7a26d1c360b0b43bccf15661d0fb11d"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel8/dramsim3.txt",
+      "sha256": "ed90f2ffb6c578d09a323ed43e1a23ce46e611aef168b2b1c0328125b72d9456"
+    },
+    {
+      "bytes": 29241,
+      "path": "sst/wk/candidate/dram/channel8/dramsim3epoch.json",
+      "sha256": "fb6a2230a621cbe08eb0fcc649a534096027a86b64484d0c573ecf25f9584c02"
+    },
+    {
+      "bytes": 1868,
+      "path": "sst/wk/candidate/dram/channel9/dramsim3.json",
+      "sha256": "603384af084d0b20debaf04ec9f204186bfb13109cc31551a3f8d6ff3f4a7ca9"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/candidate/dram/channel9/dramsim3.txt",
+      "sha256": "79c164a518b60895cc8aec3d20085f656da786c0db05619c1cafaef7d9c70a3b"
+    },
+    {
+      "bytes": 29240,
+      "path": "sst/wk/candidate/dram/channel9/dramsim3epoch.json",
+      "sha256": "33f63add16b82e5bc4bfad8fab31eef5346acefb40567c2f8a988d254325617d"
+    },
+    {
+      "bytes": 4405,
+      "path": "sst/wk/candidate/result.json",
+      "sha256": "427994d5efc656d4c058b48f309d900cf2a716fc56eeea7a59f151927cb683c2"
+    },
+    {
+      "bytes": 1864,
+      "path": "sst/wk/candidate/result.json.diagnostic.txt",
+      "sha256": "72df75538c9c827f0845770c4a776f2410debc21d013b611f70608c2cfa95fbc"
+    },
+    {
+      "bytes": 20551703,
+      "path": "sst/wk/candidate/result.json.values.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "bytes": 518,
+      "path": "sst/wk/candidate/run_config.json",
+      "sha256": "2f0da896bff3356d7a6bfa55f643f8c0d9db701196ad777d6e5c9b16dbe40623"
+    },
+    {
+      "bytes": 216,
+      "path": "sst/wk/candidate/sst.progress.json",
+      "sha256": "234168baa951ebc91d9d018f21bde636a01474ce1e6c58ca167cf245007051a4"
+    },
+    {
+      "bytes": 2165,
+      "path": "sst/wk/candidate/sst.resources.json",
+      "sha256": "0815df4c75fa3fe6ca7d460a8abdbd3690c95b66958d3fde697938fc4eda1164"
+    },
+    {
+      "bytes": 0,
+      "path": "sst/wk/candidate/sst.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 203,
+      "path": "sst/wk/candidate/sst.stdout.txt",
+      "sha256": "bb4ce0476025660de289c0598551a2c44bfb27615e04f39c5adef136ab1feeb9"
+    },
+    {
+      "bytes": 4989,
+      "path": "sst/wk/comparison.json",
+      "sha256": "381753548238f49c87af18b66b2b36d5c0cc8761323a5fa71ffc78a4b8099b96"
+    },
+    {
+      "bytes": 20551703,
+      "path": "sst/wk/expected.values.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "bytes": 5784,
+      "path": "sst/wk/original/dram/channel0/dramsim3.json",
+      "sha256": "b98cc94dde9d529dfdc6acd2cff8c00fd23392c11c717f98ddd17fbeeea772c9"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel0/dramsim3.txt",
+      "sha256": "00f8edde1e1d1b15fc21037bf1437983233a8eca303a7c6984f9daec489401a3"
+    },
+    {
+      "bytes": 102173,
+      "path": "sst/wk/original/dram/channel0/dramsim3epoch.json",
+      "sha256": "f25e6be1217a9df235c8ee8bb0bc595ae6ff512d8c780aca2d94922493321e89"
+    },
+    {
+      "bytes": 5419,
+      "path": "sst/wk/original/dram/channel1/dramsim3.json",
+      "sha256": "07f58e88a2868b4191fa98faa4a8be0d3347dc3f39ccd3a0e0c63924e4df4216"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel1/dramsim3.txt",
+      "sha256": "865316149a3c815e29ca8305851704ef43df39a45c7374bc3e32bcf2ccf28695"
+    },
+    {
+      "bytes": 99291,
+      "path": "sst/wk/original/dram/channel1/dramsim3epoch.json",
+      "sha256": "6ecde5048b8cabc8e5c32679475889d175c956e12872bedd387f1c45c06d7740"
+    },
+    {
+      "bytes": 1879,
+      "path": "sst/wk/original/dram/channel10/dramsim3.json",
+      "sha256": "676c031fcb81cd92ea35108bccf223d3dc5dca71dfda9b819d526a18844fd2c3"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel10/dramsim3.txt",
+      "sha256": "a75a7d3c5198175c33bda255f3cfeb5a649ce241a6d375a0ed4027bc7af75309"
+    },
+    {
+      "bytes": 98001,
+      "path": "sst/wk/original/dram/channel10/dramsim3epoch.json",
+      "sha256": "2c1949d0713213ad7bc8e82893e17c4602477c3571a22e720809bbf7aa11e634"
+    },
+    {
+      "bytes": 1871,
+      "path": "sst/wk/original/dram/channel11/dramsim3.json",
+      "sha256": "8ca057cce15a7cdce59b9fcf4491ad22e7b94292c476eb7f2f257061bad95768"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel11/dramsim3.txt",
+      "sha256": "61b509c36ecc57d88b87f56074ba7edc3f89de0f3a6a8e1d49df3ab9ed9273a3"
+    },
+    {
+      "bytes": 98001,
+      "path": "sst/wk/original/dram/channel11/dramsim3epoch.json",
+      "sha256": "c948104d30b64b0971e5159125d919f34c8ec09ac3be81a2c9ff005d0ec05aa9"
+    },
+    {
+      "bytes": 5687,
+      "path": "sst/wk/original/dram/channel12/dramsim3.json",
+      "sha256": "8d3cf9ff0b4ef382e76f59fc80334e8fc89b3b0093ce77d9bcbdccf9a3053c74"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel12/dramsim3.txt",
+      "sha256": "574a1e6527613169e92d5872ccab78f02fa0eb78571c1a42eebdc8d6d7630c4d"
+    },
+    {
+      "bytes": 102005,
+      "path": "sst/wk/original/dram/channel12/dramsim3epoch.json",
+      "sha256": "c950ad50be5c2af2c0e07d70e2023ec3bac172418701c04b7fb7c22a4c8d114e"
+    },
+    {
+      "bytes": 7824,
+      "path": "sst/wk/original/dram/channel13/dramsim3.json",
+      "sha256": "ed284cfc183a3e8799f7362cc8d85723926b6e6a9cf5cdda03e44a0060b6960b"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel13/dramsim3.txt",
+      "sha256": "b36295a06892276fb5c988c55bb824ae46abe5a7910b5f1922b88e8b955f7463"
+    },
+    {
+      "bytes": 99208,
+      "path": "sst/wk/original/dram/channel13/dramsim3epoch.json",
+      "sha256": "4ef6f01d5ce931a0c3fb6320ed30fdf0d73bb816efce1a9b40efa9c5beca2c9f"
+    },
+    {
+      "bytes": 8180,
+      "path": "sst/wk/original/dram/channel14/dramsim3.json",
+      "sha256": "f8d8c1a9c83a3a30c125763874e204397b485811943beedb67078939fa393b83"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel14/dramsim3.txt",
+      "sha256": "c8cba5eef947bb3140ee639fa583d02104fbb9d345068e050a3dd8a8fc5c5a4b"
+    },
+    {
+      "bytes": 99027,
+      "path": "sst/wk/original/dram/channel14/dramsim3epoch.json",
+      "sha256": "605af2e0a912fbc79c5807b130d81730cffbce1ce48bcd7f9d3fd43affd446b7"
+    },
+    {
+      "bytes": 8603,
+      "path": "sst/wk/original/dram/channel15/dramsim3.json",
+      "sha256": "14c9fba14e04468c090386ca59c3184c0638229f0d38162e32b9a49c60f5b3ca"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel15/dramsim3.txt",
+      "sha256": "2ac9d769cc8891713b3286fa69a80742284d80fc7707f7094507c8f5cd9252e1"
+    },
+    {
+      "bytes": 98911,
+      "path": "sst/wk/original/dram/channel15/dramsim3epoch.json",
+      "sha256": "bfcf22ac024331d4949bc40361fd82d507c44ed59321cb586b55d782dc96553f"
+    },
+    {
+      "bytes": 1871,
+      "path": "sst/wk/original/dram/channel16/dramsim3.json",
+      "sha256": "ed21456daa0a9aa337b5fe0d02288c3848980774b53fb73e04c29a3a6c2e8f3e"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel16/dramsim3.txt",
+      "sha256": "cca58e2f9977faae9faad31aa616d4755ef0761776699d515410cdf43a240919"
+    },
+    {
+      "bytes": 98001,
+      "path": "sst/wk/original/dram/channel16/dramsim3epoch.json",
+      "sha256": "c593df605a83dc5d31ad354c6fa393a4fd4f22f407ae13627e76e9550c951cfc"
+    },
+    {
+      "bytes": 1870,
+      "path": "sst/wk/original/dram/channel17/dramsim3.json",
+      "sha256": "0518e4877df99066c1147957c73e12cff24652aa2c5075c3d52b033482c80fca"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel17/dramsim3.txt",
+      "sha256": "693b3516621a99a8d5009e0072be4f89829b4011073600dc6f50e86943f284c9"
+    },
+    {
+      "bytes": 97999,
+      "path": "sst/wk/original/dram/channel17/dramsim3epoch.json",
+      "sha256": "3c2ff9bc73c6d77ad281461f56186467dbc461006b1daf5c777e647448e7a268"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel18/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel18/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel18/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel19/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel19/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel19/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 5623,
+      "path": "sst/wk/original/dram/channel2/dramsim3.json",
+      "sha256": "746258386ac685ed9727972672d15cbcafd15a7b80039c8e3d30ee32b64a5ed2"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel2/dramsim3.txt",
+      "sha256": "70162cf97bb3d1d62625d374ccd22007e33daae447d6790fc87e9cd17f515e03"
+    },
+    {
+      "bytes": 99165,
+      "path": "sst/wk/original/dram/channel2/dramsim3epoch.json",
+      "sha256": "7238a6c18af5eb330d1fa1eafbd4d63d8b2e1e260f1e0b02beb8a3e135640d34"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel20/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel20/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel20/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel21/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel21/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel21/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel22/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel22/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel22/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 11836,
+      "path": "sst/wk/original/dram/channel23/dramsim3.json",
+      "sha256": "153d9b2d1abd40ac1146751f01709f92a35e45fe6040d77c5080ee83dd275260"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel23/dramsim3.txt",
+      "sha256": "d711c7016d031a3f10de82b5626fce943f531b1925279b65f38cb15a45e2f796"
+    },
+    {
+      "bytes": 100152,
+      "path": "sst/wk/original/dram/channel23/dramsim3epoch.json",
+      "sha256": "751b907fe7a0ff346347cc17680fbb13dabd5fc3ab0e6166688e965a59b83640"
+    },
+    {
+      "bytes": 11859,
+      "path": "sst/wk/original/dram/channel24/dramsim3.json",
+      "sha256": "5e626af97d50187c34a973a7cb79328d85ec0a70016137754a1280b0e184b391"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel24/dramsim3.txt",
+      "sha256": "a9d3058b0bff55173809a7d00fb725e70dcaf1caecdd0bd60f518b062a3cdbc3"
+    },
+    {
+      "bytes": 99502,
+      "path": "sst/wk/original/dram/channel24/dramsim3epoch.json",
+      "sha256": "61d57b0fab1ac663096f25be6dcb068022c05813a8b81b277a669a4ad25d0176"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel25/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel25/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel25/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel26/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel26/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel26/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel27/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel27/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel27/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel28/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel28/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel28/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel29/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel29/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel29/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 5467,
+      "path": "sst/wk/original/dram/channel3/dramsim3.json",
+      "sha256": "57ab4074ab87236c9833df41ac03c9e01784bab56b42f179b192fbe593a16dae"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel3/dramsim3.txt",
+      "sha256": "6a7d9a16e4f8448d0651c5fc2f44bad58c6f2f666163adcdf97a38280086b790"
+    },
+    {
+      "bytes": 99064,
+      "path": "sst/wk/original/dram/channel3/dramsim3epoch.json",
+      "sha256": "c710251fdc82277ad5b9ce05619038e500b22b6b865db88acefde4c4f537de83"
+    },
+    {
+      "bytes": 10637,
+      "path": "sst/wk/original/dram/channel30/dramsim3.json",
+      "sha256": "7709e73fbc1941bd0a150a55af34d72985373ccbe2dfe2f7b9e8e9589fe5112b"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel30/dramsim3.txt",
+      "sha256": "50be8f143b2783a3b554a60f4e293675cf36cf59ffb086c27b320c9d600cd93c"
+    },
+    {
+      "bytes": 98579,
+      "path": "sst/wk/original/dram/channel30/dramsim3epoch.json",
+      "sha256": "2f9744deed6521bb5afd483e8ff9dd40f4eaf28f80b0efcd96f112c925238987"
+    },
+    {
+      "bytes": 1810,
+      "path": "sst/wk/original/dram/channel31/dramsim3.json",
+      "sha256": "1917e4dd87d24e24ff9e1928d098af7cfa70527a7ff6fb90afbbff02a45c7c2f"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel31/dramsim3.txt",
+      "sha256": "b69ba8c327295ea8e54892f6444a9bbf83546aa26f6dabfd8e3ab280c692e207"
+    },
+    {
+      "bytes": 97975,
+      "path": "sst/wk/original/dram/channel31/dramsim3epoch.json",
+      "sha256": "fcc00ef2de914f4789d5aef2caacb6e16404a695176dda3efd081eb6547776d2"
+    },
+    {
+      "bytes": 1903,
+      "path": "sst/wk/original/dram/channel4/dramsim3.json",
+      "sha256": "3e0395e00c241b62dcb131a9a3ac1ae2ee43c563111ec4aad823e854cae083b2"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel4/dramsim3.txt",
+      "sha256": "2209cd010fa52a6c2d61a8f70bddf224c2d4ec24237f5bbb138a1259473b2555"
+    },
+    {
+      "bytes": 98026,
+      "path": "sst/wk/original/dram/channel4/dramsim3epoch.json",
+      "sha256": "3e4cfb25e9653120d73d11b6fd0c6433969600c99045c3f0793cbd31c0a013cf"
+    },
+    {
+      "bytes": 1899,
+      "path": "sst/wk/original/dram/channel5/dramsim3.json",
+      "sha256": "4a75660e178141cfd62cbf7728f098932e41d0afc25980a5a588a2ae12354513"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel5/dramsim3.txt",
+      "sha256": "7f6e66bf9e648c2bb9b669acd43eac589e161426e68623f2f87ea110368b74bf"
+    },
+    {
+      "bytes": 98025,
+      "path": "sst/wk/original/dram/channel5/dramsim3epoch.json",
+      "sha256": "3197359ee4c374953c6156fdd0b3eae78cdf05960fc5a8ff90b90a0e4a6f1dc3"
+    },
+    {
+      "bytes": 1871,
+      "path": "sst/wk/original/dram/channel6/dramsim3.json",
+      "sha256": "d97d7378c5e9b76866e96564c7c0415e882bab2f35cf0e85cf851242b1fa6db3"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel6/dramsim3.txt",
+      "sha256": "09ca22d1f13a7f04035914b41c47d2dbf11f25b0be5cafa1a59f9f9c0df1ead9"
+    },
+    {
+      "bytes": 98000,
+      "path": "sst/wk/original/dram/channel6/dramsim3epoch.json",
+      "sha256": "8d11d60d439af643cf062ddc2889347de3457dd385c176e06ef21e9da9f7e267"
+    },
+    {
+      "bytes": 1869,
+      "path": "sst/wk/original/dram/channel7/dramsim3.json",
+      "sha256": "af38f87259e731e50017186189ed82793e27474f1e989c5f0cd627124fe6a3c4"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel7/dramsim3.txt",
+      "sha256": "a904a22cc0a50572fb14588dc71c7756f649ed53aed0b1c41b2adb514626dd66"
+    },
+    {
+      "bytes": 97999,
+      "path": "sst/wk/original/dram/channel7/dramsim3epoch.json",
+      "sha256": "4a568f00506e2d695388c498ccf9fab0d78759d62074f8064f74accdc1b25fef"
+    },
+    {
+      "bytes": 1879,
+      "path": "sst/wk/original/dram/channel8/dramsim3.json",
+      "sha256": "597b7582b011eeb3b9b9a41c35f831896ade3072c0c33233f8d3e40e419bd5f1"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel8/dramsim3.txt",
+      "sha256": "f6b8b4419610e92643a83e061c8989ae3e4fb648b7355044b4ee6fdf9e9d0ab7"
+    },
+    {
+      "bytes": 98001,
+      "path": "sst/wk/original/dram/channel8/dramsim3epoch.json",
+      "sha256": "965756f189a6e3affefe585baf03a2320773ef3fc9a8609ccce5da2b4bb31276"
+    },
+    {
+      "bytes": 1871,
+      "path": "sst/wk/original/dram/channel9/dramsim3.json",
+      "sha256": "522c17754e66a9194e8d467f102e132efe981e258e09f98ea94cfeb36c8e55eb"
+    },
+    {
+      "bytes": 5565,
+      "path": "sst/wk/original/dram/channel9/dramsim3.txt",
+      "sha256": "b8fb1fc4f35fab9d158b0cf2cae0f660ab6b6f6fede2a2c232129ceb7b90ff86"
+    },
+    {
+      "bytes": 98000,
+      "path": "sst/wk/original/dram/channel9/dramsim3epoch.json",
+      "sha256": "aa4d8c8adfb2d38bd62276ee1cc4cab82d1359a8a69ab81221ad6be68ae5d930"
+    },
+    {
+      "bytes": 4404,
+      "path": "sst/wk/original/result.json",
+      "sha256": "48a693223e496e9110da13c8cc7864e5dd286c9500ad9b1e5b9607f1c12cf3be"
+    },
+    {
+      "bytes": 1864,
+      "path": "sst/wk/original/result.json.diagnostic.txt",
+      "sha256": "284898937ee828bcf92beeb43efee77fd27318e9e102f45e766f57c443a4ac8d"
+    },
+    {
+      "bytes": 20551703,
+      "path": "sst/wk/original/result.json.values.txt",
+      "sha256": "bacf28a1074678929e10c293b6d621eea4b8c86208bde1e958d0ce16c57a0280"
+    },
+    {
+      "bytes": 515,
+      "path": "sst/wk/original/run_config.json",
+      "sha256": "16e9fecfc88e92193fcb63e45965055346c48dbde9c8c5a7518d291ef21e0e94"
+    },
+    {
+      "bytes": 217,
+      "path": "sst/wk/original/sst.progress.json",
+      "sha256": "1766a31224557f699e8baf0a3a83aa6c0300e67591d31028e54f12dab9cd3eaf"
+    },
+    {
+      "bytes": 2165,
+      "path": "sst/wk/original/sst.resources.json",
+      "sha256": "5b7442525e36677db719f2fe275cc41ef2d0550fbefae4bc976094e30617e07a"
+    },
+    {
+      "bytes": 0,
+      "path": "sst/wk/original/sst.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 442,
+      "path": "sst/wk/original/sst.stdout.txt",
+      "sha256": "14d3d70d70df5686e3ec5884c9abbd4fe20a87f9ad320c2b9f3a98dd5d439d5e"
+    },
+    {
+      "bytes": 188774076,
+      "path": "sst/wk/resident.bin",
+      "sha256": "9b4b1f7ea62fa0f5509b3997666f29021afc3bf97fbe9833d0fc5264c0dda003"
+    },
+    {
+      "bytes": 3613608,
+      "path": "plugin/libspine_cycle.so",
+      "sha256": "19bab64b9ee0ec09f04686d8e8f9cf99254558bb052b54650c836b312749751d"
+    }
+  ],
+  "hardware_timing_admitted": false,
+  "indexed_not_redistributed": [
+    "SST executable",
+    "DRAMSim3 library",
+    "toolchains"
+  ],
+  "original_A4_comparison_complete": false,
+  "package_kind": "resident_matrix_v1",
+  "results_sha256": "47d8a546a4073eb674a8724d3c21a942726e08473184693b514d0fb0ac3cb816",
+  "schema_version": 1,
+  "status": "FUNCTIONAL_AND_TRAFFIC_PASS_NOT_HARDWARE_TIMING"
+}

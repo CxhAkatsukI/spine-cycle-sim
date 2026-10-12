@@ -12,8 +12,12 @@ has not been established.** No independent stage in this delivery has an
 admitted original-paper timing comparison. Functional agreement, HLS schedule
 constraints and predicted cycles do not close that gap. Complete-system host
 orchestration and an actual G-produced-PMA-to-R handoff were not measured.
-The stage-performance objective remains blocked, not completed by these
-control experiments.
+These original-publication gaps are not completed by the control experiments.
+The revised actual-path optimization objective is active: see the
+[cross-row model checkpoint](actual_sharded_k4/adapter_optimization/row_line/cross_row/model/README.md)
+for exact legacy replay, complete-state/traffic gates and explicit timing
+limits. Its 2.48--3.28x predicted improvement is not a new FPGA speedup or
+an original-A4 performance match.
 
 ## What Was Verified
 

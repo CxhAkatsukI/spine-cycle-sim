@@ -6,7 +6,10 @@ The default-off cross-row candidate passes production HLS synthesis, exact
 external ABI checks, three-format C++ packet equivalence and the complete
 twelve-case production-RTL AXI matrix. The unchanged whole-line reference
 replays all original request/response timestamps and outputs exactly.
-**No route, FPGA speedup, numerical-simulator change or A4 match is admitted.**
+**This HLS checkpoint admits no route, FPGA speedup or A4 match.** A subsequent
+[separately versioned model checkpoint](model/README.md) now passes exact
+legacy replay and complete AU/SU/WK state/traffic checks. Its 2.48--3.28x
+predicted improvement is not an FPGA result or timing-calibration claim.
 
 This is a real HLS input-path change, not a timing correction factor. Within
 each cached eight-source directory line, one memory process flattens source
@@ -129,6 +132,7 @@ Only weighted production RTL is tested; the other formats have C++ evidence.
 The responder has no HBM banks, refresh or real interconnect; each invocation
 resets the adapter, and the sink is not the actual ReGraph backend. Route
 still requires 40 GiB plus a 16-GiB reserve; it is not started while available
-memory is below 56 GiB. FPGA admission, a separately versioned synchronized
-simulator and original-A4 performance comparison remain unfinished. The
+memory is below 56 GiB. FPGA timing admission and original-A4 performance
+comparison remain unfinished; the linked structural model retains its
+explicit timing mismatches and scope limits. The
 default plugin, existing bitstreams, figure handoff and paper are unchanged.

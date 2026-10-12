@@ -11,9 +11,9 @@ from spine_cycle_sim.experiments.original_regraph_validation.analysis import sam
 from spine_cycle_sim.experiments.refactor_equivalence import compare_runs
 from ..sst_candidate import load_profile
 from .evidence import bounded
-from .model_contract import BASIS, PROFILE_ID
 from .model_scope import SMOKE, study_scope
-from .model_validation import compare, inventory
+from .model_study import ModelStudy, ROW_LINE
+from .model_validation import inventory
 
 LIMITS = SMOKE.limits
 
@@ -69,22 +69,22 @@ def smoke_sources(run: Path, manifest: dict) -> tuple[Path, dict[str, bytes]]:
     return root, source_files(run / "source.tar.gz", manifest["source"], extras)
 
 
-def recheck_study(run: Path, plugin: Path) -> dict:
+def recheck_study(run: Path, plugin: Path, *, model: ModelStudy = ROW_LINE) -> dict:
     manifest, stored = read_json(run / "manifest.json"), read_json(run / "results.json")
     scope = study_scope(manifest.get("study_scope", SMOKE.name))
     scope.require_cases(manifest["cases"])
     if ((run / "failure.json").exists() or manifest["limits"] != scope.limits
             or manifest["claim"] != scope.claim
-            or manifest["reference"] != "unrouted_skip_empty_prefetch_not_historical_routed_original"
+            or manifest["reference"] != model.reference
             or sha256_file(plugin) != manifest["plugin"]["plugin_sha256"]):
         raise ValueError("model smoke identity or boundary differs")
     root, sources = smoke_sources(run, manifest)
     pins = {pin["path"]: pin["sha256"] for pin in manifest["pins"]}
-    profile_name = f"configs/architectures/{PROFILE_ID}.json"
+    profile_name = f"configs/architectures/{model.profile_id}.json"
     with tempfile.TemporaryDirectory() as temporary:
         copy_root = Path(temporary)
-        memory_name = json.loads(sources[BASIS["path"]])["memory"]["config"]
-        for name in (profile_name, BASIS["path"], memory_name):
+        memory_name = json.loads(sources[model.basis["path"]])["memory"]["config"]
+        for name in (profile_name, model.basis["path"], memory_name):
             path = copy_root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(sources[name])
@@ -120,7 +120,7 @@ def recheck_study(run: Path, plugin: Path) -> dict:
                 raise ValueError("complete external result state differs")
             arms[arm] = read_json(target / "result.json")
         row = {"id": case["id"], "geometry": geometry, "complete_external_state_equal": True,
-               **compare(arms["original"], arms["candidate"], geometry)}
+               **model.compare(arms["original"], arms["candidate"], geometry)}
         if not same_typed(row, read_json(directory / "comparison.json")):
             raise ValueError("stored model comparison differs")
         rows.append(row)

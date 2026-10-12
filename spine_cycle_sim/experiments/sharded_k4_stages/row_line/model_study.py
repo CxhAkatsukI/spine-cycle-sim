@@ -1,10 +1,12 @@
 """Freeze and replay explicitly bounded resident fixtures with an isolated plugin."""
 
 import argparse
+from dataclasses import dataclass
 import json
 from pathlib import Path
 import shutil
 import tarfile
+from typing import Callable
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from spine_cycle_sim.experiments.refactor_equivalence import source_snapshot, verify_source_snapshot
@@ -17,20 +19,34 @@ from .model_scope import RESIDENT, SMOKE, study_scope
 from .model_validation import compare, inventory
 
 
-def run(root: Path, plugin: Path, fixtures: list[Path], output: Path, *, scope_name: str = SMOKE.name) -> dict:
+@dataclass(frozen=True)
+class ModelStudy:
+    profile_id: str
+    basis: dict
+    reference: str
+    test_glob: str
+    compare: Callable
+
+
+ROW_LINE = ModelStudy(PROFILE_ID, BASIS, "unrouted_skip_empty_prefetch_not_historical_routed_original",
+                      "test_sharded_k4_row_line_model*.py", compare)
+
+
+def run(root: Path, plugin: Path, fixtures: list[Path], output: Path, *, scope_name: str = SMOKE.name,
+        model: ModelStudy = ROW_LINE) -> dict:
     scope = study_scope(scope_name)
     if not fixtures or len(fixtures) > 4 or len(set(fixtures)) != len(fixtures):
         raise ValueError("declare one to four distinct bounded resident fixture directories")
     if scope.cases and len(fixtures) != len(scope.cases):
         raise ValueError("resident scope requires the complete predeclared graph matrix")
-    profile_path = root / f"configs/architectures/{PROFILE_ID}.json"
+    profile_path = root / f"configs/architectures/{model.profile_id}.json"
     profile = load_profile(root, profile_path)
     contract_path = root / "configs/experiments/grasu_component_refactor_v1.json"
     source = source_snapshot(root, contract_path, json.loads(contract_path.read_text()))
     binding = forced_sst_library_binding(Path("/data/feiyang/sst/bin/sst"), plugin)
     test_files = [root / f"cpp/tests/routed_regraph/{name}_tests.cpp" for name in ("adapter", "system")]
-    test_files += sorted((root / "tests").glob("test_sharded_k4_row_line_model*.py"))
-    pins = [identity(path) for path in (profile_path, root / BASIS["path"], plugin / "libspine_cycle.so", *test_files)]
+    test_files += sorted((root / "tests").glob(model.test_glob))
+    pins = [identity(path) for path in (profile_path, root / model.basis["path"], plugin / "libspine_cycle.so", *test_files)]
     declarations = []
     for index, directory in enumerate(fixtures):
         geometry = inventory(directory / "resident.bin", **scope.inventory_limits)
@@ -44,12 +60,12 @@ def run(root: Path, plugin: Path, fixtures: list[Path], output: Path, *, scope_n
     with tarfile.open(archive, "w:gz") as stream:
         for row in source["files"]:
             stream.add(root / row["path"], arcname=row["path"], recursive=False)
-        for path in (profile_path, root / BASIS["path"], *test_files):
+        for path in (profile_path, root / model.basis["path"], *test_files):
             stream.add(path, arcname=path.relative_to(root), recursive=False)
     manifest = {"schema": 1, "source": source, "source_archive": identity(archive), "pins": pins,
                 "plugin": binding, "profile": profile, "cases": declarations,
                 "study_scope": scope.name, "claim": scope.claim,
-                "reference": "unrouted_skip_empty_prefetch_not_historical_routed_original",
+                "reference": model.reference,
                 "limits": scope.limits}
     atomic_write_json(output / "manifest.json", manifest)
 
@@ -90,7 +106,8 @@ def run(root: Path, plugin: Path, fixtures: list[Path], output: Path, *, scope_n
                 raise ValueError("complete external state differs from preserved fixture oracle")
             print(declaration["id"], arm, "COMPLETE_STATE_PASS", flush=True)
         row = {"id": declaration["id"], "geometry": declaration["geometry"],
-               "complete_external_state_equal": True, **compare(arms["original"], arms["candidate"], declaration["geometry"])}
+               "complete_external_state_equal": True,
+               **model.compare(arms["original"], arms["candidate"], declaration["geometry"])}
         atomic_write_json(directory / "comparison.json", row)
         rows.append(row)
     require_pins()
@@ -100,7 +117,7 @@ def run(root: Path, plugin: Path, fixtures: list[Path], output: Path, *, scope_n
     return result
 
 
-def main() -> None:
+def main(model: ModelStudy = ROW_LINE) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plugin", type=Path, required=True)
     parser.add_argument("--fixture", type=Path, action="append", required=True)
@@ -110,7 +127,7 @@ def main() -> None:
     root = Path(__file__).resolve().parents[4]
     try:
         result = run(root, args.plugin.resolve(), [p.resolve() for p in args.fixture], args.output.resolve(),
-                     scope_name=args.scope)
+                     scope_name=args.scope, model=model)
         print(result["status"], flush=True)
     except Exception as error:
         if args.output.is_dir():

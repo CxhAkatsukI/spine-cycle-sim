@@ -29,13 +29,18 @@ public:
     routed_empty_exit_ = params.find<bool>("routed_empty_exit", false);
     row_line_model_ = params.find<bool>("row_line_model", false);
     row_line_read_ = params.find<bool>("row_line_read", false);
-    const auto expected_profile = row_line_model_ ? "grasu_regraph_row_line_sssp_compute_v1" :
+    cross_row_model_ = params.find<bool>("cross_row_model", false);
+    cross_row_pipeline_ = params.find<bool>("cross_row_pipeline", false);
+    const auto expected_profile = cross_row_model_ ? "grasu_regraph_cross_row_sssp_compute_v1" :
+        row_line_model_ ? "grasu_regraph_row_line_sssp_compute_v1" :
         routed_empty_exit_ ? "grasu_regraph_routed_sssp_compute_v4" :
         routed_stream_depths_ ? "grasu_regraph_routed_sssp_compute_v3" :
         independent_ ? "grasu_regraph_routed_sssp_compute_v2" : "grasu_regraph_routed_sssp_compute_v1";
     if (profile_id_ != expected_profile || (routed_stream_depths_ && !independent_) ||
-        (routed_empty_exit_ && !routed_stream_depths_) || (row_line_read_ && !row_line_model_) ||
-        (row_line_model_ && (!routed_stream_depths_ || !prefetch_ || !stop_ || routed_empty_exit_)))
+        (routed_empty_exit_ && !routed_stream_depths_) || (row_line_read_ && !row_line_model_ && !cross_row_model_) ||
+        ((row_line_model_ || cross_row_model_) && (!routed_stream_depths_ || !prefetch_ || !stop_ || routed_empty_exit_)) ||
+        (cross_row_pipeline_ && !cross_row_model_) ||
+        (cross_row_model_ && (row_line_model_ || !row_line_read_)))
       throw std::invalid_argument("routed profile, AXI channels and stream depths disagree");
     if (output_path_.empty() || dram_config_.empty() || dram_output_.empty() || !max_cycles_)
       throw std::invalid_argument("missing routed SST paths or cycle limit");
@@ -59,6 +64,7 @@ public:
     config.adapter.prefetch_rows = prefetch_;
     config.adapter.stop_after_last = stop_;
     config.adapter.row_line_reads = row_line_read_;
+    config.adapter.cross_row_pipeline = cross_row_pipeline_;
     if (routed_empty_exit_) config.adapter.empty_segment_exit_cycles = 73;
     config.compute.cache_segments_per_half = fixture_.cache_segments;
     config.compute.runtime_physical_updates_per_shard = fixture_.physical_updates;
@@ -119,7 +125,9 @@ public:
       {"routed_stream_depths", "Routed depth-32 edge, Gather and mux streams; other queues unchanged", "0"},
       {"routed_empty_exit", "Routed RTL 73-cycle exit for each visited empty row", "0"},
       {"row_line_model", "Explicit unrouted skip-empty/whole-line comparison identity", "0"},
-      {"row_line_read", "Decode eight directory entries per read; requires row_line_model", "0"})
+      {"row_line_read", "Decode eight directory entries per read; requires an explicit line/cross-row model", "0"},
+      {"cross_row_model", "Explicit unrouted whole-line/cross-row structural comparison identity", "0"},
+      {"cross_row_pipeline", "Separate cross-row reader and finite loaded-FIFO publisher", "0"})
 private:
   Scheduler scheduler_;
   RoutedReGraphFixture fixture_;
@@ -130,5 +138,6 @@ private:
   std::uint64_t max_cycles_{};
   bool prefetch_{}, stop_{}, independent_{}, routed_stream_depths_{}, routed_empty_exit_{};
   bool row_line_model_{}, row_line_read_{};
+  bool cross_row_model_{}, cross_row_pipeline_{};
 };
 } // namespace spine::sim::sst_adapter

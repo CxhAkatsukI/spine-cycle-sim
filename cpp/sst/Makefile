@@ -60,6 +60,9 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/grasu_sharded_update.cpp \
            $(ROOT)/cpp/src/memory_backend.cpp \
            $(ROOT)/cpp/src/regraph_pma_adapter.cpp \
+           $(ROOT)/cpp/src/regraph_pma_cross_row/reader.cpp \
+           $(ROOT)/cpp/src/regraph_pma_cross_row/publisher.cpp \
+           $(ROOT)/cpp/src/regraph_pma_cross_row/control.cpp \
            $(ROOT)/cpp/src/shared_axi_port.cpp \
            $(ROOT)/cpp/src/routed_regraph/source_service.cpp \
            $(ROOT)/cpp/src/routed_regraph/scatter.cpp \
@@ -80,7 +83,8 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/spine_system.cpp \
            $(ROOT)/cpp/src/spine_vertex_lifecycle.cpp
 HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp) $(wildcard *.hpp) \
-           $(wildcard $(ROOT)/cpp/src/detail/*.hpp)
+           $(wildcard $(ROOT)/cpp/src/detail/*.hpp) \
+           $(wildcard $(ROOT)/cpp/src/regraph_pma_cross_row/*.hpp)
 
 .PHONY: all clean native pgo-generate pgo-use pgo-native-generate \
         pgo-native-use

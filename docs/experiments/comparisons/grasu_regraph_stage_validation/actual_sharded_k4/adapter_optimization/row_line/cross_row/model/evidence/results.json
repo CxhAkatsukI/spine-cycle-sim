@@ -1,0 +1,305 @@
+{
+  "core_executables_passed": 27,
+  "failed_default_plugin_baseline_retained": true,
+  "hardware_timing_admitted": false,
+  "legacy_cases": [
+    {
+      "backend_requests": 33848,
+      "case": "sssp_mixed_cold",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 99885,
+      "equivalent": true,
+      "result_hashes": [
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+      ]
+    },
+    {
+      "backend_requests": 1775700,
+      "case": "sssp_multipart_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 5997674,
+      "equivalent": true,
+      "result_hashes": [
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+      ]
+    },
+    {
+      "backend_requests": 50741,
+      "case": "cc_reciprocal",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 133841,
+      "equivalent": true,
+      "result_hashes": [
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+      ]
+    },
+    {
+      "backend_requests": 997048,
+      "case": "residual_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 1487890,
+      "equivalent": true,
+      "result_hashes": [
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+      ]
+    },
+    {
+      "backend_requests": 48,
+      "case": "residual_update_only",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 200,
+      "equivalent": true,
+      "result_hashes": [
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+      ]
+    }
+  ],
+  "original_A4_comparison_complete": false,
+  "rtl_diagnostic": {
+    "all_rows_within_10_percent": false,
+    "fitted_parameters": [],
+    "hardware_timing_admitted": false,
+    "rows": [
+      {
+        "absolute_percentage_error": 50.0,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 1,
+        "rtl_cycles": 2,
+        "trial": 0,
+        "within_10_percent": false
+      },
+      {
+        "absolute_percentage_error": 1.3215859030837005,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 224,
+        "rtl_cycles": 227,
+        "trial": 1,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 0.3811944091486658,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 784,
+        "rtl_cycles": 787,
+        "trial": 2,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 0.3194888178913738,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 936,
+        "rtl_cycles": 939,
+        "trial": 3,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 0.18170805572380377,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 1648,
+        "rtl_cycles": 1651,
+        "trial": 4,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 5.014409221902017,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 1648,
+        "rtl_cycles": 1735,
+        "trial": 5,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 3.5076323481649885,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 2971,
+        "rtl_cycles": 3079,
+        "trial": 6,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 4.825291181364393,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 1716,
+        "rtl_cycles": 1803,
+        "trial": 7,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 5.694760820045558,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 464,
+        "rtl_cycles": 439,
+        "trial": 8,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 6.2761506276150625,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 224,
+        "rtl_cycles": 239,
+        "trial": 9,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 1.7341040462427744,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 528,
+        "rtl_cycles": 519,
+        "trial": 10,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 31.788079470198678,
+        "arm": "reference",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 1648,
+        "rtl_cycles": 2416,
+        "trial": 11,
+        "within_10_percent": false
+      },
+      {
+        "absolute_percentage_error": 66.66666666666666,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 2,
+        "rtl_cycles": 6,
+        "trial": 0,
+        "within_10_percent": false
+      },
+      {
+        "absolute_percentage_error": 4.310344827586207,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 222,
+        "rtl_cycles": 232,
+        "trial": 1,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 6.367041198501873,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 250,
+        "rtl_cycles": 267,
+        "trial": 2,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 3.0303030303030303,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 384,
+        "rtl_cycles": 396,
+        "trial": 3,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 2.5,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 546,
+        "rtl_cycles": 560,
+        "trial": 4,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 7.142857142857142,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 546,
+        "rtl_cycles": 588,
+        "trial": 5,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 5.308880308880308,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 981,
+        "rtl_cycles": 1036,
+        "trial": 6,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 4.10958904109589,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 700,
+        "rtl_cycles": 730,
+        "trial": 7,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 8.955223880597014,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 366,
+        "rtl_cycles": 402,
+        "trial": 8,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 9.01639344262295,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 222,
+        "rtl_cycles": 244,
+        "trial": 9,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 7.6923076923076925,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 384,
+        "rtl_cycles": 416,
+        "trial": 10,
+        "within_10_percent": true
+      },
+      {
+        "absolute_percentage_error": 7.037037037037037,
+        "arm": "candidate",
+        "exact_packets_and_traffic": true,
+        "model_cycles": 1004,
+        "rtl_cycles": 1080,
+        "trial": 11,
+        "within_10_percent": true
+      }
+    ],
+    "scope_limits": [
+      "RTL start-to-done versus registered C++ invocation-to-done",
+      "RTL ordered AXI responder versus FixedAxiPort and MockMemory",
+      "C++ depth-32 output FIFO versus direct RTL sink",
+      "71-cycle minimum read-to-use retained, not inferred from these rows",
+      "no real HBM banks, refresh, routed interconnect or ReGraph downstream"
+    ],
+    "status": "STRUCTURAL_TIMING_DIAGNOSTIC_NOT_CALIBRATION"
+  },
+  "status": "CROSS_ROW_MODEL_FUNCTIONAL_TRAFFIC_AND_LEGACY_PASS_NOT_CALIBRATED"
+}

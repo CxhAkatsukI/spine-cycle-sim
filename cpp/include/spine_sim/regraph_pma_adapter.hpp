@@ -4,12 +4,15 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <optional>
 #include <vector>
 
 #include "spine_sim/fixed_axi_port.hpp"
 
 namespace spine::sim {
+
+namespace detail { class CrossRowPmaAdapter; }
 
 enum class ReGraphPmaFormat { kWeighted, kDestination, kUnitWeight };
 
@@ -32,6 +35,14 @@ struct ReGraphPmaPartition {
   std::array<std::size_t, 4> pma_channel{};
 };
 
+// Nominal structural schedule, not a fitted or FPGA-calibrated timing model.
+struct ReGraphPmaCrossRowSchedule {
+  std::size_t loaded_fifo_capacity{16};
+  std::size_t reader_pipeline_capacity{74};
+  std::uint64_t block_drain_cycles{74};
+  std::uint64_t publisher_pipeline_cycles{2};
+};
+
 struct ReGraphPmaAdapterConfig {
   ReGraphPmaFormat format{ReGraphPmaFormat::kWeighted};
   bool prefetch_rows{true};
@@ -43,6 +54,8 @@ struct ReGraphPmaAdapterConfig {
   std::uint64_t segment_issue_interval{2};
   std::uint64_t empty_segment_exit_cycles{0};
   bool row_line_reads{false};
+  bool cross_row_pipeline{false};
+  ReGraphPmaCrossRowSchedule cross_row{};
 };
 
 struct ReGraphPmaAdapterCounters {
@@ -70,6 +83,7 @@ public:
   ReGraphPmaAdapter(std::string name, ClockId clock_id,
                     ReGraphPmaAdapterConfig config, FixedAxiPort &memory,
                     Fifo<ReGraphPmaPacket> &output);
+  ~ReGraphPmaAdapter() override;
   void start_partition(ReGraphPmaPartition partition);
   void bind_completion_notifier(void *owner, Notifier notifier);
   void unbind_completion_notifier(void *owner) noexcept;
@@ -127,6 +141,7 @@ private:
   void *notifier_owner_{};
   Notifier notifier_{};
   ReGraphPmaAdapterCounters counters_;
+  std::unique_ptr<detail::CrossRowPmaAdapter> cross_row_;
 };
 
 } // namespace spine::sim

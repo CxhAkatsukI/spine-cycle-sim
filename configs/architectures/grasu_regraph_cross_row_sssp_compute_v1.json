@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_cross_row_sssp_compute_v1",
+  "status": "unrouted_structural_candidate",
+  "evidence_tier": "simulator_prediction",
+  "boundary": "resident_compute_no_host_launch_gaps",
+  "basis": {
+    "path": "configs/architectures/grasu_regraph_routed_sssp_compute_v3.json",
+    "sha256": "123813ff6db3ea88c2e5b842799da82b1e383f84d90fb97d7c67a5e5c12a8843"
+  },
+  "target": {
+    "reference_adapter_xo_sha256": "752a0395caa5b0117624e6a8055f738e6e608b2272be2d8d118c51b38efa80a2",
+    "candidate_adapter_xo_sha256": "7d1785677ca7b54861688d7670d813ca2a4cfdc1e2c83cbc53151cd03ad02b6b",
+    "routed": false
+  },
+  "cross_row_schedule": {
+    "loaded_fifo_capacity": 16,
+    "reader_pipeline_capacity": 74,
+    "block_drain_cycles": 74,
+    "publisher_pipeline_cycles": 2,
+    "minimum_read_to_use": 71,
+    "segment_issue_interval": 1,
+    "row_advance_cycles": 1
+  },
+  "limitations": [
+    "Original is the whole-line reference; candidate is cross-row v3 with empty-block bypass, not the historical routed pair.",
+    "Reader II=1, loop depth=74 and publisher half-loop depth=2 are synthesis facts, not a complete cycle-exact state-machine extraction.",
+    "The 71-cycle minimum read-to-use floor is inherited and uncalibrated; treating loop depth as block drain remains an explicit nominal assumption.",
+    "The structural reader holds at most 74 segment descriptors, the shared AXI master has at most 16 pending reads, and the loaded FIFO has depth 16.",
+    "One registered loaded dequeue and two publisher startup cycles precede two II=1 packet writes; full publisher/control timing is not calibrated.",
+    "Only contiguous segment-aligned row intervals are admitted by this model; production HLS also masks historical unaligned intervals.",
+    "A later pairwise source-reader topology is not substituted for the frozen dedicated-reader basis.",
+    "DMA, launch/wait, inter-round host relaunch, GraSU maintenance and exact physical BO addresses are excluded. No FPGA or original-A4 timing match is asserted."
+  ]
+}

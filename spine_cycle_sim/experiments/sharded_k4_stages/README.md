@@ -27,7 +27,7 @@ PMA timing control. Start with the
 | `frontend_delivery.py` | Binary-source, finite frontend and unchanged-legacy evidence package |
 | `model_system.py` | Complete SSSP candidate state, schedule and conservation gates; not hardware timing |
 | `system_delivery.py` | Immutable complete-candidate and exact legacy SST evidence package |
-| `sst_candidate.py` | Strict explicit v1-v4 profile selection, memory and owning-HLS header admission |
+| `sst_candidate.py` | Strict explicit routed v1-v4 and unrouted whole-line/cross-row profile selection, memory and owning-HLS header admission |
 | `sst_timing.py` | One bounded HLS-export/SST run, full FPGA-result comparison and explicit nominal timing limits |
 | `sst_campaign.py` | Complete predeclared old/new matrix, at most two memory-admitted workers, retained failures |
 | `sst_input_audit.py` | Independent bounded synchronous old-state/active oracle and empty-tail inventory |
@@ -63,6 +63,16 @@ changes belong to `grasu-regraph-integration`. The distinct routed SST candidate
 uses `RoutedReGraphSystem`; these runners do not replace the legacy v8 probe.
 Original-paper reproduction, resource-matched
 A4, old K4 and optimized K4 remain distinct evidence boundaries.
+
+Within `row_line/cross_row/`, `model_contract.py` owns strict profile and
+synthesis-identity admission. `model_study.py` and `model_delivery.py` select
+the shared bounded resident runner and conservation/portable recheck gates;
+`model_timing.py` compares all twelve logical RTL shapes without fitting,
+and `model_timing_evidence.py` rechecks those preserved inputs and outputs.
+`model_checkpoint.py` packages exact legacy equivalence, complete core tests
+and the timing diagnostic. Shared safe extraction belongs to
+`row_line/model_archive.py`, not each delivery CLI. Start with the
+[cross-row model guide](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/cross_row/model/README.md).
 
 Within `row_line/`, `route_preparation.py` binds the checked production XO,
 padded SSSP host and unchanged historical kernels/connectivity; `route.py`

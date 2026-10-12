@@ -5,22 +5,23 @@ import hashlib
 import json
 from pathlib import Path
 import tarfile
-import tempfile
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from spine_cycle_sim.experiments.original_regraph_execution.sssp_real_round.delivery import seal
 from spine_cycle_sim.experiments.original_regraph_validation.analysis import same_typed
 from .delivery import raw_files
+from .model_archive import extracted
 from .model_recheck import read_json, recheck, recheck_study
 from .model_scope import RESIDENT
+from .model_study import ModelStudy, ROW_LINE
 
 
-def deliver_resident(run: Path, plugin: Path, destination: Path) -> dict:
+def deliver_resident(run: Path, plugin: Path, destination: Path, *, model: ModelStudy = ROW_LINE) -> dict:
     if destination.exists():
         raise FileExistsError("fresh resident delivery directory required")
     if read_json(run / "manifest.json").get("study_scope") != RESIDENT.name:
         raise ValueError("resident package requires the pinned real-graph scope")
-    report = recheck_study(run, plugin)
+    report = recheck_study(run, plugin, model=model)
     destination.mkdir(parents=True)
     archive = destination / "raw_model.tar.gz"
     files = raw_files(run, "sst") + [(plugin, "plugin/libspine_cycle.so")]
@@ -76,7 +77,7 @@ def deliver(run: Path, destination: Path) -> dict:
     return result
 
 
-def verify(destination: Path) -> dict:
+def verify(destination: Path, *, model: ModelStudy = ROW_LINE) -> dict:
     record = json.loads((destination / "verification.json").read_text())
     kind = record.get("package_kind", "legacy_and_smoke")
     if kind not in ("legacy_and_smoke", RESIDENT.name):
@@ -86,31 +87,11 @@ def verify(destination: Path) -> dict:
     if (sha256_file(archive) != record["archive_sha256"] or archive.stat().st_size != record["archive_bytes"]
             or sha256_file(destination / "results.json") != record["results_sha256"]):
         raise ValueError("sealed model evidence differs")
-    entries = record["files"]
-    expected = {row["path"]: row for row in entries}
-    if (len(expected) != len(entries) or sum(row["bytes"] for row in entries) > max_bytes
-            or any(Path(name).is_absolute() or ".." in Path(name).parts for name in expected)):
-        raise ValueError("unsafe or duplicate evidence index")
-    with tempfile.TemporaryDirectory() as temporary, tarfile.open(archive, "r:gz") as stream:
-        members = stream.getmembers()
-        if len(members) != len(entries) or {row.name for row in members} != expected.keys():
-            raise ValueError("evidence archive membership differs")
-        root = Path(temporary)
-        for member in members:
-            item = expected[member.name]
-            if not member.isfile() or member.size != item["bytes"]:
-                raise ValueError("evidence member type or size differs")
-            with stream.extractfile(member) as content:
-                data = content.read()
-            if hashlib.sha256(data).hexdigest() != item["sha256"]:
-                raise ValueError("evidence member hash differs")
-            path = root / member.name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(data)
+    with extracted(archive, record, max_bytes=max_bytes) as root:
         if kind == RESIDENT.name:
             if read_json(root / "sst/manifest.json").get("study_scope") != RESIDENT.name:
                 raise ValueError("resident evidence scope differs")
-            report = recheck_study(root / "sst", root / "plugin/libspine_cycle.so")
+            report = recheck_study(root / "sst", root / "plugin/libspine_cycle.so", model=model)
         else:
             report = recheck(root)
     if (not same_typed(report, json.loads((destination / "results.json").read_text()))

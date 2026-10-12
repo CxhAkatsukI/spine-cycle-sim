@@ -1,0 +1,412 @@
+{
+  "hardware_timing_admitted": false,
+  "original_A4_comparison_complete": false,
+  "rows": [
+    {
+      "arms": {
+        "candidate": {
+          "directory_bytes": 10147840,
+          "directory_requests": 158560,
+          "predicted_cycles": 5777668,
+          "status": "PASS"
+        },
+        "original": {
+          "directory_bytes": 10147840,
+          "directory_requests": 158560,
+          "predicted_cycles": 15063595,
+          "status": "PASS"
+        }
+      },
+      "complete_external_state_equal": true,
+      "geometry": {
+        "live_edges_per_round": 390855,
+        "partitions": 8,
+        "pma_slots": 1843296,
+        "rounds": 2,
+        "tails": [
+          {
+            "candidate_reads_per_round": 9910,
+            "last_occupied_source": 79278,
+            "partition": 0,
+            "physical_updates": 7,
+            "reference_reads_per_round": 79280,
+            "slots": 1090992,
+            "visited_rows": 79279
+          },
+          {
+            "candidate_reads_per_round": 9910,
+            "last_occupied_source": 79279,
+            "partition": 1,
+            "physical_updates": 0,
+            "reference_reads_per_round": 79280,
+            "slots": 181632,
+            "visited_rows": 79280
+          },
+          {
+            "candidate_reads_per_round": 9910,
+            "last_occupied_source": 79275,
+            "partition": 2,
+            "physical_updates": 0,
+            "reference_reads_per_round": 79280,
+            "slots": 140944,
+            "visited_rows": 79276
+          },
+          {
+            "candidate_reads_per_round": 9908,
+            "last_occupied_source": 79263,
+            "partition": 3,
+            "physical_updates": 0,
+            "reference_reads_per_round": 79264,
+            "slots": 117264,
+            "visited_rows": 79264
+          },
+          {
+            "candidate_reads_per_round": 9909,
+            "last_occupied_source": 79267,
+            "partition": 4,
+            "physical_updates": 0,
+            "reference_reads_per_round": 79272,
+            "slots": 113360,
+            "visited_rows": 79268
+          },
+          {
+            "candidate_reads_per_round": 9905,
+            "last_occupied_source": 79232,
+            "partition": 5,
+            "physical_updates": 1,
+            "reference_reads_per_round": 79240,
+            "slots": 86336,
+            "visited_rows": 79233
+          },
+          {
+            "candidate_reads_per_round": 9910,
+            "last_occupied_source": 79274,
+            "partition": 6,
+            "physical_updates": 0,
+            "reference_reads_per_round": 79280,
+            "slots": 71376,
+            "visited_rows": 79275
+          },
+          {
+            "candidate_reads_per_round": 9910,
+            "last_occupied_source": 79276,
+            "partition": 7,
+            "physical_updates": 0,
+            "reference_reads_per_round": 79280,
+            "slots": 41392,
+            "visited_rows": 79277
+          }
+        ],
+        "vertices": 515281
+      },
+      "hardware_timing_admitted": false,
+      "id": "au",
+      "status": "FUNCTIONAL_AND_TRAFFIC_PASS_NOT_HARDWARE_TIMING",
+      "work_and_round_activity_equal": true
+    },
+    {
+      "arms": {
+        "candidate": {
+          "directory_bytes": 15608576,
+          "directory_requests": 243884,
+          "predicted_cycles": 9879419,
+          "status": "PASS"
+        },
+        "original": {
+          "directory_bytes": 15608576,
+          "directory_requests": 243884,
+          "predicted_cycles": 24516942,
+          "status": "PASS"
+        }
+      },
+      "complete_external_state_equal": true,
+      "geometry": {
+        "live_edges_per_round": 616126,
+        "partitions": 9,
+        "pma_slots": 2625456,
+        "rounds": 2,
+        "tails": [
+          {
+            "candidate_reads_per_round": 13550,
+            "last_occupied_source": 108398,
+            "partition": 0,
+            "physical_updates": 6,
+            "reference_reads_per_round": 108400,
+            "slots": 1644608,
+            "visited_rows": 108399
+          },
+          {
+            "candidate_reads_per_round": 13550,
+            "last_occupied_source": 108395,
+            "partition": 1,
+            "physical_updates": 1,
+            "reference_reads_per_round": 108400,
+            "slots": 194256,
+            "visited_rows": 108396
+          },
+          {
+            "candidate_reads_per_round": 13546,
+            "last_occupied_source": 108360,
+            "partition": 2,
+            "physical_updates": 0,
+            "reference_reads_per_round": 108368,
+            "slots": 192800,
+            "visited_rows": 108361
+          },
+          {
+            "candidate_reads_per_round": 13542,
+            "last_occupied_source": 108334,
+            "partition": 3,
+            "physical_updates": 0,
+            "reference_reads_per_round": 108336,
+            "slots": 159056,
+            "visited_rows": 108335
+          },
+          {
+            "candidate_reads_per_round": 13549,
+            "last_occupied_source": 108386,
+            "partition": 4,
+            "physical_updates": 0,
+            "reference_reads_per_round": 108392,
+            "slots": 149776,
+            "visited_rows": 108387
+          },
+          {
+            "candidate_reads_per_round": 13549,
+            "last_occupied_source": 108385,
+            "partition": 5,
+            "physical_updates": 0,
+            "reference_reads_per_round": 108392,
+            "slots": 108896,
+            "visited_rows": 108386
+          },
+          {
+            "candidate_reads_per_round": 13548,
+            "last_occupied_source": 108377,
+            "partition": 6,
+            "physical_updates": 1,
+            "reference_reads_per_round": 108384,
+            "slots": 82160,
+            "visited_rows": 108378
+          },
+          {
+            "candidate_reads_per_round": 13549,
+            "last_occupied_source": 108387,
+            "partition": 7,
+            "physical_updates": 0,
+            "reference_reads_per_round": 108392,
+            "slots": 63968,
+            "visited_rows": 108388
+          },
+          {
+            "candidate_reads_per_round": 13550,
+            "last_occupied_source": 108396,
+            "partition": 8,
+            "physical_updates": 0,
+            "reference_reads_per_round": 108400,
+            "slots": 29936,
+            "visited_rows": 108397
+          }
+        ],
+        "vertices": 567316
+      },
+      "hardware_timing_admitted": false,
+      "id": "su",
+      "status": "FUNCTIONAL_AND_TRAFFIC_PASS_NOT_HARDWARE_TIMING",
+      "work_and_round_activity_equal": true
+    },
+    {
+      "arms": {
+        "candidate": {
+          "directory_bytes": 2936512,
+          "directory_requests": 45883,
+          "predicted_cycles": 2625590,
+          "status": "PASS"
+        },
+        "original": {
+          "directory_bytes": 2936512,
+          "directory_requests": 45883,
+          "predicted_cycles": 8621421,
+          "status": "PASS"
+        }
+      },
+      "complete_external_state_equal": true,
+      "geometry": {
+        "live_edges_per_round": 1142360,
+        "partitions": 18,
+        "pma_slots": 2727664,
+        "rounds": 1,
+        "tails": [
+          {
+            "candidate_reads_per_round": 11483,
+            "last_occupied_source": 91861,
+            "partition": 0,
+            "physical_updates": 0,
+            "reference_reads_per_round": 91864,
+            "slots": 1969024,
+            "visited_rows": 91862
+          },
+          {
+            "candidate_reads_per_round": 11479,
+            "last_occupied_source": 91828,
+            "partition": 1,
+            "physical_updates": 1,
+            "reference_reads_per_round": 91832,
+            "slots": 314176,
+            "visited_rows": 91829
+          },
+          {
+            "candidate_reads_per_round": 11409,
+            "last_occupied_source": 91268,
+            "partition": 2,
+            "physical_updates": 0,
+            "reference_reads_per_round": 91272,
+            "slots": 257120,
+            "visited_rows": 91269
+          },
+          {
+            "candidate_reads_per_round": 11480,
+            "last_occupied_source": 91833,
+            "partition": 3,
+            "physical_updates": 0,
+            "reference_reads_per_round": 91840,
+            "slots": 187120,
+            "visited_rows": 91834
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 4,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 5,
+            "physical_updates": 7,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 6,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 7,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 8,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 9,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 10,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 11,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 12,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 13,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 14,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 15,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 16,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          },
+          {
+            "candidate_reads_per_round": 1,
+            "last_occupied_source": 0,
+            "partition": 17,
+            "physical_updates": 0,
+            "reference_reads_per_round": 8,
+            "slots": 16,
+            "visited_rows": 1
+          }
+        ],
+        "vertices": 1140149
+      },
+      "hardware_timing_admitted": false,
+      "id": "wk",
+      "status": "FUNCTIONAL_AND_TRAFFIC_PASS_NOT_HARDWARE_TIMING",
+      "work_and_round_activity_equal": true
+    }
+  ],
+  "status": "FUNCTIONAL_AND_TRAFFIC_PASS_NOT_HARDWARE_TIMING"
+}

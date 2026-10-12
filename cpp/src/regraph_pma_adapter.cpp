@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "detail/grasu_regraph_payload.hpp"
+#include "regraph_pma_cross_row/state.hpp"
 #include "spine_sim/grasu_native.hpp"
 
 namespace spine::sim {
@@ -21,11 +22,15 @@ ReGraphPmaAdapter::ReGraphPmaAdapter(std::string name, ClockId clock_id,
   if (memory_.requests().clock_id() != clock_id || output_.clock_id() != clock_id) {
     throw std::invalid_argument("routed PMA adapter port clock mismatch");
   }
+  if (config_.cross_row_pipeline)
+    cross_row_ = std::make_unique<detail::CrossRowPmaAdapter>(clock_id, config_, memory_, output_, counters_, stream_complete_);
 }
 
+ReGraphPmaAdapter::~ReGraphPmaAdapter() = default;
+
 void ReGraphPmaAdapter::start_partition(ReGraphPmaPartition partition) {
-  if ((phase_ != Phase::kIdle && phase_ != Phase::kDone) || !pending_.empty() ||
-      !segments_.empty() || !memory_.idle()) {
+  if (!cross_row_ && ((phase_ != Phase::kIdle && phase_ != Phase::kDone) || !pending_.empty() ||
+      !segments_.empty() || !memory_.idle())) {
     throw std::logic_error("routed PMA adapter restarted while busy");
   }
   // AXIS may still contain the previous partition's tail. The next invocation
@@ -36,6 +41,10 @@ void ReGraphPmaAdapter::start_partition(ReGraphPmaPartition partition) {
       partition.row_base % 64 || std::any_of(partition.pma_base.begin(), partition.pma_base.end(),
                                           [](auto base) { return base % 64 != 0; })) {
     throw std::invalid_argument("invalid aligned destination-sharded PMA geometry");
+  }
+  if (cross_row_) {
+    cross_row_->start(partition);
+    return;
   }
   partition_ = partition;
   source_ = row_begin_ = row_count_ = rows_issued_ = rows_received_ = 0;
@@ -64,7 +73,7 @@ void ReGraphPmaAdapter::notify() const noexcept {
   if (notifier_) notifier_(notifier_owner_);
 }
 
-bool ReGraphPmaAdapter::done() const noexcept { return phase_ == Phase::kDone; }
+bool ReGraphPmaAdapter::done() const noexcept { return cross_row_ ? cross_row_->done() : phase_ == Phase::kDone; }
 
 bool ReGraphPmaAdapter::issue(Kind kind, std::size_t index, std::uint64_t address,
                             std::size_t channel, const CycleContext &context) {
@@ -78,6 +87,10 @@ bool ReGraphPmaAdapter::issue(Kind kind, std::size_t index, std::uint64_t addres
 }
 
 void ReGraphPmaAdapter::evaluate(const CycleContext &context) {
+  if (cross_row_) {
+    cross_row_->evaluate(context);
+    return;
+  }
   staged_issue_.reset();
   staged_response_.reset();
   staged_packet_.reset();
@@ -225,6 +238,12 @@ ReGraphPmaPacket ReGraphPmaAdapter::packet() const {
 }
 
 void ReGraphPmaAdapter::commit(const CycleContext &context) {
+  if (cross_row_) {
+    const bool stream_before = stream_complete_, done_before = done();
+    cross_row_->commit(context);
+    if (stream_before != stream_complete_ || done_before != done()) notify();
+    return;
+  }
   if (phase_ == Phase::kEmptyPartition) {
     phase_ = Phase::kDone;
     stream_complete_ = true;

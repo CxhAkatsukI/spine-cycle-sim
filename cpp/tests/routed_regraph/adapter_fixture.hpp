@@ -26,7 +26,7 @@ struct Data {
   std::size_t last_source{};
 
   Data(std::size_t vertices, bool at_end, bool empty, ReGraphPmaFormat format,
-       std::size_t cache = 1) {
+       std::size_t cache = 1, std::size_t occupied_stride = 0, std::size_t segments_per_row = 3) {
     partition.vertices = vertices;
     partition.cache_segments_per_half = cache;
     partition.destination_base = 65536;
@@ -37,9 +37,15 @@ struct Data {
     rows.resize(std::max<std::size_t>(16, (vertices + 7) / 8 * 16), 0);
     for (auto &words : pma) words.resize(128, 0xdeadbeefU);
     if (vertices && !empty) last_source = at_end ? vertices - 1 : std::min<std::size_t>(2, vertices - 1);
+    if (vertices && !empty && occupied_stride) {
+      last_source = (vertices - 1) / occupied_stride * occupied_stride;
+      for (auto &words : pma)
+        words.resize(std::max<std::size_t>(128, (vertices * segments_per_row + 1) / 2 * 16), 0xdeadbeefU);
+    }
     std::size_t cursor = 0;
     for (std::size_t source = 0; source < vertices; ++source) {
-      const auto count = !empty && (source == 0 || source == last_source) ? 48U : 0U;
+      const auto count = !empty && (occupied_stride ? source % occupied_stride == 0
+          : source == 0 || source == last_source) ? segments_per_row * 16 : 0U;
       rows[source * 2] = cursor + count;
       rows[source * 2 + 1] = cursor;
       for (std::size_t local_slot = 0; local_slot < count; local_slot += 8) {

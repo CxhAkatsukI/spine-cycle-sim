@@ -21,6 +21,9 @@ FIXED_MODEL = {
 
 def load_profile(root: Path, path: Path) -> dict:
     profile = json.loads(path.read_text())
+    from .row_line.cross_row.model_contract import PROFILE_ID as CROSS_ROW_PROFILE_ID, expand as expand_cross_row
+    if profile.get("profile_id") == CROSS_ROW_PROFILE_ID:
+        return expand_cross_row(root, profile)
     from .row_line.model_contract import PROFILE_ID as ROW_LINE_PROFILE_ID, expand
     if profile.get("profile_id") == ROW_LINE_PROFILE_ID:
         return expand(root, profile)
@@ -79,6 +82,9 @@ def component_parameters(root: Path, config: dict) -> dict:
     from .row_line.model_contract import PROFILE_ID as ROW_LINE_PROFILE_ID, parameters
     if profile["profile_id"] == ROW_LINE_PROFILE_ID:
         return {**result, **parameters(profile, config)}
+    from .row_line.cross_row.model_contract import PROFILE_ID as CROSS_ROW_PROFILE_ID, parameters as cross_parameters
+    if profile["profile_id"] == CROSS_ROW_PROFILE_ID:
+        return {**result, **cross_parameters(profile, config)}
     if profile["profile_id"] in (INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID):
         result.update(profile_id=profile["profile_id"], independent_read_write=1)
     if profile["profile_id"] in (STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID):

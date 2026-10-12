@@ -45,10 +45,11 @@ def inventory(path: Path, *, max_fixture_bytes: int = 64 * 1024**2, max_vertices
             "pma_slots": sum(row["slots"] for row in tails), "live_edges_per_round": edges, "tails": tails}
 
 
-def require_result(result: dict, geometry: dict, arm: str) -> dict:
+def require_result(result: dict, geometry: dict, arm: str, *, profile_id: str = PROFILE_ID,
+                   whole_line_reference: bool = False) -> dict:
     if arm not in ("original", "candidate"):
         raise ValueError("unknown whole-line arm")
-    if (result.get("profile_id") != PROFILE_ID
+    if (result.get("profile_id") != profile_id
             or result.get("boundary") != "resident_compute_no_host_launch_gaps"
             or result.get("evidence") != "simulator_prediction_not_hardware_timing_admission"
             or any(result.get(key) is not True for key in ("success", "done", "replicas_equal", "ledger_closed"))
@@ -62,7 +63,7 @@ def require_result(result: dict, geometry: dict, arm: str) -> dict:
     c = result["counters"]
     padded = geometry["partitions"] * 65536
     expected = {"extent_reads": geometry["partitions"] * rounds,
-                "row_reads": sum(row[f"{('reference' if arm == 'original' else 'candidate')}_reads_per_round"]
+                "row_reads": sum(row[f"{('reference' if arm == 'original' and not whole_line_reference else 'candidate')}_reads_per_round"]
                                  for row in geometry["tails"]) * rounds,
                 "segment_reads": geometry["pma_slots"] // 16 * rounds,
                 "packets": geometry["pma_slots"] // 8 * rounds,
@@ -93,8 +94,10 @@ def require_result(result: dict, geometry: dict, arm: str) -> dict:
             "predicted_cycles": c["end_cycle"] - c["start_cycle"]}
 
 
-def compare(reference: dict, candidate: dict, geometry: dict) -> dict:
-    admitted = {arm: require_result(value, geometry, arm)
+def compare(reference: dict, candidate: dict, geometry: dict, *, profile_id: str = PROFILE_ID,
+            whole_line_reference: bool = False) -> dict:
+    admitted = {arm: require_result(value, geometry, arm, profile_id=profile_id,
+                                  whole_line_reference=whole_line_reference)
                 for arm, value in (("original", reference), ("candidate", candidate))}
     changed = [key for key in reference["counters"] if key not in
                {"row_reads", "axi_requests", "axi_completions", "axi_beats", "axi_completed_beats", "start_cycle", "end_cycle"}
