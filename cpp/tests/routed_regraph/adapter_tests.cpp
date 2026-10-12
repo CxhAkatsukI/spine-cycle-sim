@@ -114,10 +114,12 @@ Result run(const Data &data, Options options) {
   const auto &count = result.counters;
   const auto visited = options.adapter.stop_after_last
       ? (data.expected.empty() ? 0 : data.last_source + 1) : data.partition.vertices;
-  const auto expected_reads = options.adapter.prefetch_rows
+  const auto prefetched_rows = options.adapter.prefetch_rows
       ? std::min(data.partition.vertices, (visited + 7) / 8 * 8) : visited;
-  const auto requests = (1 + expected_reads + data.partition.slots / 16) * options.partitions;
-  require(count.extent_reads == options.partitions && count.row_reads == expected_reads * options.partitions &&
+  const auto expected_reads = options.adapter.row_line_reads ? (prefetched_rows + 7) / 8 : prefetched_rows;
+  const auto extents = options.adapter.row_line_reads && !data.partition.vertices ? 0U : 1U;
+  const auto requests = (extents + expected_reads + data.partition.slots / 16) * options.partitions;
+  require(count.extent_reads == extents * options.partitions && count.row_reads == expected_reads * options.partitions &&
           count.rows_visited == visited * options.partitions,
           "extent or row accounting differs from the bounded prefetch/stop contract");
   std::size_t empty_rows = 0;
@@ -216,6 +218,47 @@ int main() {
             "empty exit incorrectly delayed early stream completion or skipped the tail");
     std::cout << "Routed shared-master PMA adapter PASS cases=" << cases
               << " pressure_latency_registration_and_completion_checks=PASS\n";
+    std::size_t wide_cases = 0;
+    for (const auto format : {ReGraphPmaFormat::kWeighted, ReGraphPmaFormat::kDestination, ReGraphPmaFormat::kUnitWeight})
+      for (const auto vertices : {0U, 1U, 7U, 8U, 9U, 15U, 16U, 17U, 65U, 1025U})
+        for (bool at_end : {false, true})
+          for (bool empty : {false, true})
+            for (bool stop : {false, true}) {
+              Options options;
+              options.adapter.format = format;
+              options.adapter.stop_after_last = stop;
+              const Data fixture(vertices, at_end, empty, format);
+              const auto narrow = run(fixture, options);
+              options.adapter.row_line_reads = true;
+              const auto wide = run(fixture, options);
+              require(wide.counters.row_reads <= narrow.counters.row_reads &&
+                      wide.counters.segment_reads == narrow.counters.segment_reads &&
+                      wide.counters.rows_visited == narrow.counters.rows_visited,
+                      "whole-line reads changed PMA scan or source traversal");
+              options.reverse = true;
+              require(run(fixture, options).cycles == wide.cycles,
+                      "whole-line timing depends on registration order");
+              ++wide_cases;
+            }
+    for (auto options : {Options{}, delayed, pressured, serial, old, chained}) {
+      options.adapter.row_line_reads = true;
+      const auto wide = run(data, options);
+      options.reverse = true;
+      const auto reordered = run(data, options);
+      require(wide.cycles == reordered.cycles, "whole-line pressure or chained order differs");
+    }
+    Options wide;
+    wide.adapter.row_line_reads = true;
+    const auto wide_baseline = run(data, wide);
+    wide.memory_latency = 200;
+    require(run(data, wide).cycles > wide_baseline.cycles, "whole-line memory latency bypassed");
+    wide.memory_latency = 20;
+    wide.depth = 1;
+    wide.sink_start = 1000;
+    wide.sink_interval = 73;
+    require(run(data, wide).counters.output_stalls > 0, "whole-line backpressure bypassed");
+    std::cout << "Whole-line directory PASS cases=" << wide_cases
+              << " exact_packets_tail_extent_pressure_chained_and_conservation=PASS\n";
     return 0;
   } catch (const std::exception &error) {
     std::cerr << error.what() << '\n';

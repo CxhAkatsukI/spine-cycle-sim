@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_row_line_sssp_compute_v1",
+  "status": "unrouted_candidate",
+  "evidence_tier": "simulator_prediction",
+  "boundary": "resident_compute_no_host_launch_gaps",
+  "basis": {
+    "path": "configs/architectures/grasu_regraph_routed_sssp_compute_v3.json",
+    "sha256": "123813ff6db3ea88c2e5b842799da82b1e383f84d90fb97d7c67a5e5c12a8843"
+  },
+  "target": {
+    "reference_adapter_xo_sha256": "4bae8791463a71f8b02ccad870d0178b2268cea8cfa6173c480e8a596a24417a",
+    "candidate_adapter_xo_sha256": "752a0395caa5b0117624e6a8055f738e6e608b2272be2d8d118c51b38efa80a2",
+    "routed": false
+  },
+  "shared_adapter_flags": {
+    "row_prefetch": 1,
+    "stop_after_last": 1,
+    "empty_segment_exit_cycles": 0
+  },
+  "arm_row_line_read": {
+    "original": 0,
+    "candidate": 1
+  },
+  "limitations": [
+    "The reference arm is the skip-empty XO, not the historical original/combined routed pair.",
+    "Both arms inherit the pinned v3 memory, dedicated source-master topology, streams and fixed pipeline assumptions; no latency is fitted.",
+    "Only the candidate decodes up to eight row entries from one 64B response; the extent is still a separate read.",
+    "Zero-vertex candidates issue no AXI request; simulator commit overhead is not calibrated to the two-cycle RTL invocation.",
+    "Full-line row storage must be aligned and padded, including the last partial line; resident initialization is outside this boundary.",
+    "Neither arm is linked or routed here. Historical wrapper and block-design identities are topology references, not a new bitstream identity.",
+    "GraSU maintenance, DMA, XRT dispatch, inter-round host relaunch and physical BO address capture remain outside this model."
+  ]
+}

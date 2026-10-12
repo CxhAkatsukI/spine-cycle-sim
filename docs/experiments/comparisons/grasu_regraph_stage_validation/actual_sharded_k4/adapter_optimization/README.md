@@ -33,6 +33,10 @@ completed original-A4 comparison or a published-performance match.
    fall from 18 to 4 in the 17-source dense case, while synthetic RTL
    cycles improve only 1.14%. It is not routed, board-admitted or modeled
    by the default simulator.
+   The subsequent [default-off model checkpoint](row_line/model/README.md)
+   selects a distinct unrouted profile and verifies complete state and
+   independent request conservation; it does not promote the candidate to
+   FPGA timing evidence.
 
 ## Candidate And Current Gates
 
@@ -156,5 +160,7 @@ three FP32 rounds with different state preparation. Their total times must not b
 already matched. The measured improvements in `BOARD_RESULTS.md` compare
 old and optimized K4; no publication ~10% match is claimed.
 
-The paper, figure package, frozen SST plugin and existing numerical models
-are unchanged. The unrelated calibration-v4 worktree edits are not included.
+The paper, figure package and frozen default SST plugin are unchanged.
+Existing profiles retain their numerical behavior; the later whole-line
+model is explicitly selected and is not a routed identity. The unrelated
+calibration-v4 worktree edits are not included.

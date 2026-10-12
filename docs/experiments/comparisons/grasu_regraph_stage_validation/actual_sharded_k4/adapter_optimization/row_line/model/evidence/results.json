@@ -1,0 +1,159 @@
+{
+  "core_executables_passed": 27,
+  "hardware_timing_admitted": false,
+  "legacy_cases": [
+    {
+      "backend_requests": 33848,
+      "case": "sssp_mixed_cold",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 99885,
+      "equivalent": true,
+      "result_hashes": [
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+        "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+      ]
+    },
+    {
+      "backend_requests": 1775700,
+      "case": "sssp_multipart_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 5997674,
+      "equivalent": true,
+      "result_hashes": [
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+        "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+      ]
+    },
+    {
+      "backend_requests": 50741,
+      "case": "cc_reciprocal",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 133841,
+      "equivalent": true,
+      "result_hashes": [
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+        "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+      ]
+    },
+    {
+      "backend_requests": 997048,
+      "case": "residual_warm",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 1487890,
+      "equivalent": true,
+      "result_hashes": [
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+        "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+      ]
+    },
+    {
+      "backend_requests": 48,
+      "case": "residual_update_only",
+      "changed_fields": [],
+      "changed_manifest_identities": [],
+      "correctness_admitted": true,
+      "cycles": 200,
+      "equivalent": true,
+      "result_hashes": [
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+        "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+      ]
+    }
+  ],
+  "original_A4_comparison_complete": false,
+  "pre_edit_archive_note": "Five omitted thin scripts recovered from executed source archive; each matches its pre-edit hash.",
+  "smoke": {
+    "hardware_timing_admitted": false,
+    "original_A4_comparison_complete": false,
+    "rows": [
+      {
+        "arms": {
+          "candidate": {
+            "directory_bytes": 256,
+            "directory_requests": 4,
+            "predicted_cycles": 131507,
+            "status": "PASS"
+          },
+          "original": {
+            "directory_bytes": 1152,
+            "directory_requests": 18,
+            "predicted_cycles": 131507,
+            "status": "PASS"
+          }
+        },
+        "complete_external_state_equal": true,
+        "geometry": {
+          "live_edges_per_round": 5,
+          "partitions": 1,
+          "pma_slots": 64,
+          "rounds": 2,
+          "tails": [
+            {
+              "candidate_reads_per_round": 1,
+              "last_occupied_source": 3,
+              "partition": 0,
+              "physical_updates": 1,
+              "reference_reads_per_round": 8,
+              "slots": 64,
+              "visited_rows": 4
+            }
+          ],
+          "vertices": 4096
+        },
+        "hardware_timing_admitted": false,
+        "id": "case1",
+        "status": "FUNCTIONAL_AND_TRAFFIC_PASS_NOT_HARDWARE_TIMING",
+        "work_and_round_activity_equal": true
+      },
+      {
+        "arms": {
+          "candidate": {
+            "directory_bytes": 256,
+            "directory_requests": 4,
+            "predicted_cycles": 131507,
+            "status": "PASS"
+          },
+          "original": {
+            "directory_bytes": 1152,
+            "directory_requests": 18,
+            "predicted_cycles": 131507,
+            "status": "PASS"
+          }
+        },
+        "complete_external_state_equal": true,
+        "geometry": {
+          "live_edges_per_round": 5,
+          "partitions": 1,
+          "pma_slots": 64,
+          "rounds": 2,
+          "tails": [
+            {
+              "candidate_reads_per_round": 1,
+              "last_occupied_source": 3,
+              "partition": 0,
+              "physical_updates": 1,
+              "reference_reads_per_round": 8,
+              "slots": 64,
+              "visited_rows": 4
+            }
+          ],
+          "vertices": 32768
+        },
+        "hardware_timing_admitted": false,
+        "id": "case2",
+        "status": "FUNCTIONAL_AND_TRAFFIC_PASS_NOT_HARDWARE_TIMING",
+        "work_and_round_activity_equal": true
+      }
+    ],
+    "status": "FUNCTIONAL_AND_TRAFFIC_PASS_NOT_HARDWARE_TIMING"
+  },
+  "status": "MODEL_FUNCTIONAL_TRAFFIC_AND_LEGACY_EQUALITY_PASS_NOT_HARDWARE_TIMING"
+}

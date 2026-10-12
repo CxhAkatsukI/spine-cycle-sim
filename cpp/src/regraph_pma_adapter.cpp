@@ -14,7 +14,8 @@ ReGraphPmaAdapter::ReGraphPmaAdapter(std::string name, ClockId clock_id,
     ReGraphPmaAdapterConfig config, FixedAxiPort &memory, Fifo<ReGraphPmaPacket> &output)
     : Component(std::move(name), clock_id), config_(config), memory_(memory), output_(output) {
   if (!config_.pending_read_capacity || !config_.segment_buffer_capacity ||
-      !config_.row_control_cycles || !config_.segment_issue_interval) {
+      !config_.row_control_cycles || !config_.segment_issue_interval ||
+      (config_.row_line_reads && !config_.prefetch_rows)) {
     throw std::invalid_argument("invalid routed PMA adapter capacity or schedule");
   }
   if (memory_.requests().clock_id() != clock_id || output_.clock_id() != clock_id) {
@@ -41,7 +42,7 @@ void ReGraphPmaAdapter::start_partition(ReGraphPmaPartition partition) {
   total_slots_ = emitted_slots_ = 0;
   half_ = 0;
   stream_complete_ = false;
-  phase_ = Phase::kExtent;
+  phase_ = config_.row_line_reads && !partition_.vertices ? Phase::kEmptyPartition : Phase::kExtent;
 }
 
 void ReGraphPmaAdapter::bind_completion_notifier(void *owner, Notifier notifier) {
@@ -143,8 +144,17 @@ void ReGraphPmaAdapter::consume(const AxiResponse &response) {
     select_source();
     return;
   }
-  rows_.at(pending.index - row_begin_) = row;
-  ++rows_received_;
+  if (config_.row_line_reads) {
+    if (pending.index != row_begin_ || row_begin_ % 8 || rows_received_)
+      throw std::logic_error("whole-line directory response is not a fresh aligned block");
+    for (std::size_t index = 0; index < row_count_; ++index)
+      rows_.at(index) = detail::decode_u32(response.read_data, index * 8) |
+          (std::uint64_t(detail::decode_u32(response.read_data, index * 8 + 4)) << 32);
+    rows_received_ = row_count_;
+  } else {
+    rows_.at(pending.index - row_begin_) = row;
+    ++rows_received_;
+  }
   if (rows_received_ == row_count_) {
     phase_ = Phase::kRowControl;
     remaining_control_ = config_.row_control_cycles;
@@ -215,6 +225,12 @@ ReGraphPmaPacket ReGraphPmaAdapter::packet() const {
 }
 
 void ReGraphPmaAdapter::commit(const CycleContext &context) {
+  if (phase_ == Phase::kEmptyPartition) {
+    phase_ = Phase::kDone;
+    stream_complete_ = true;
+    notify();
+    return;
+  }
   if (staged_response_) consume(*staged_response_);
   if (staged_issue_) {
     pending_.emplace(next_id_++, *staged_issue_);
@@ -222,7 +238,8 @@ void ReGraphPmaAdapter::commit(const CycleContext &context) {
       ++counters_.extent_reads;
       phase_ = Phase::kWaitExtent;
     } else if (staged_issue_->kind == Kind::kRow) {
-      ++rows_issued_;
+      if (config_.row_line_reads) rows_issued_ = row_count_;
+      else ++rows_issued_;
       ++counters_.row_reads;
     } else {
       ++next_segment_;

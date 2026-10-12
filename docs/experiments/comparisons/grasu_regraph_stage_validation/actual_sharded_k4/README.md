@@ -15,6 +15,15 @@ cycles only 1.14%; this is not a board speedup or a model timing correction.
 Route/board admission and matched A4/K4 comparison remain open. Existing
 measured hardware and frozen numerical-model evidence are unchanged.
 
+The separate [whole-line model checkpoint](adapter_optimization/row_line/model/README.md)
+now adds a default-off actual-adapter implementation and an explicit unrouted
+profile on the pinned dedicated-source topology. All 27 core executables and
+five all-field legacy SST regressions pass. Two tiny resident fixtures retain
+complete outputs and work, with directory requests reduced from 18 to 4 but
+unchanged predicted total cycles. Its portable raw archive is independently
+rechecked. This is functional/traffic admission, not new hardware timing or
+the still-pending original-A4 performance conclusion.
+
 The [complete production-adapter AXI diagnostic](adapter_optimization/adapter_axi/README.md)
 now binds both test arms to their exact production XOs, including the
 previous routed version. All 24 full-top RTL cases pass. Eight row loads

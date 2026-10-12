@@ -51,7 +51,8 @@ struct Result {
 };
 
 Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t fixed = 0,
-           std::size_t limit = 128, bool independent = false, std::size_t stream_depth = 16) {
+           std::size_t limit = 128, bool independent = false, std::size_t stream_depth = 16,
+           bool row_line_reads = false) {
   const auto expected = oracle(f, fixed ? fixed : 0);
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("core", 150);
@@ -62,6 +63,7 @@ Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t
   scheduler.add_component(backend);
   RoutedReGraphConfig config;
   config.adapter.stop_after_last = stop;
+  config.adapter.row_line_reads = row_line_reads;
   config.compute.cache_segments_per_half = 1;
   config.compute.max_supersteps = limit;
   config.fixed_rounds = fixed;
@@ -152,7 +154,9 @@ Result run(const Fixture &f, bool reverse, bool stop, bool pressure, std::size_t
             << " stream_depth=" << stream_depth
             << " rounds=" << expected_rounds << " failed=" << system.failed()
             << " cycles=" << c.end_cycle - c.start_cycle
-            << " parents=" << c.axi_requests << " beats=" << c.axi_beats << '\n';
+            << " parents=" << c.axi_requests << " beats=" << c.axi_beats;
+  if (row_line_reads) std::cout << " row_line_reads=1";
+  std::cout << '\n';
   system.unregister_components();
   scheduler.remove_component(backend);
   require(scheduler.component_count() == 0, "whole routed system leaked scheduler components");
@@ -241,6 +245,19 @@ int main() {
       cases += 2;
     }
     std::cout << "PASS: " << cases + 3 << " whole routed SSSP cases; full state, source replicas, padding, scheduling and traffic; 12 admission rejections PASS\n";
+    for (auto [vertices, pressure] : {std::pair{129U, true}, std::pair{65569U, false}, std::pair{262273U, false}}) {
+      const auto f = fixture(vertices, true);
+      const auto narrow = run(f, false, true, pressure, 0, 128, true, 32);
+      const auto wide = run(f, false, true, pressure, 0, 128, true, 32, true);
+      require(wide == run(f, true, true, pressure, 0, 128, true, 32, true),
+              "whole-line whole-system registration order differs");
+      require(wide.state == narrow.state && wide.rounds.size() == narrow.rounds.size() &&
+              wide.counters.row_reads < narrow.counters.row_reads &&
+              wide.counters.segment_reads == narrow.counters.segment_reads &&
+              wide.counters.live_edges == narrow.counters.live_edges,
+              "whole-line model changed full state, convergence or edge traffic");
+    }
+    std::cout << "PASS: 9 whole-line/reference executions; complete oracle, replicas and traffic checks\n";
   } catch (const std::exception &error) {
     std::cerr << error.what() << '\n';
     return 1;

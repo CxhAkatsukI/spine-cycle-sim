@@ -42,6 +42,7 @@ struct ReGraphPmaAdapterConfig {
   std::uint64_t row_control_cycles{6};
   std::uint64_t segment_issue_interval{2};
   std::uint64_t empty_segment_exit_cycles{0};
+  bool row_line_reads{false};
 };
 
 struct ReGraphPmaAdapterCounters {
@@ -61,7 +62,8 @@ struct ReGraphPmaAdapterCounters {
 };
 
 // The routed adapter has one 512-bit AXI master for rows and all PMA banks.
-// Each prefetched row still causes a full-line load in the generated RTL.
+// Legacy prefetch repeats a line load per row; the explicit whole-line
+// candidate decodes up to eight rows from one response. Extent stays separate.
 class ReGraphPmaAdapter final : public Component {
 public:
   using Notifier = void (*)(void *) noexcept;
@@ -78,7 +80,7 @@ public:
   void commit(const CycleContext &context) override;
 
 private:
-  enum class Phase { kIdle, kExtent, kWaitExtent, kRows, kRowControl, kEmptyExit, kSegments, kDone };
+  enum class Phase { kIdle, kEmptyPartition, kExtent, kWaitExtent, kRows, kRowControl, kEmptyExit, kSegments, kDone };
   enum class Kind { kExtent, kRow, kSegment };
   struct Pending {
     Kind kind{};

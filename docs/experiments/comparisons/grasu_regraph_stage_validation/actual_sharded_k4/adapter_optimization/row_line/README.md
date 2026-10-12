@@ -10,8 +10,10 @@ It does not introduce a free sparse-source index or change PMA edge storage.
 
 All functional, production-XO ABI, full-top AXI RTL and four-algorithm host
 preparation gates pass. **This is not a routed/board timing result, simulator
-calibration, or completed original-A4 comparison.** The numerical simulator,
-default SST plugin, previous measured bitstreams and paper remain unchanged.
+calibration, or completed original-A4 comparison.** At that HLS checkpoint the
+numerical simulator was unchanged. The later, explicitly separate
+[model checkpoint](model/README.md) adds default-off whole-line requests and
+preserves the default plugin, previous measured bitstreams and paper.
 
 ## Review Package
 
@@ -147,6 +149,7 @@ Route/link still requires the unchanged 40-GiB tree budget plus 16-GiB reserve.
 No new route or board timing is admitted here. Once resources permit, bind
 this candidate's exact XO and padded host to a new immutable route study,
 check routed timing/connectivity, and measure paired resident executions.
-Then represent the new input traffic and completion in an explicit simulator
-candidate, preserving exact legacy outputs. The final matched original-A4
-versus actual adapter+K4 comparison remains a separate unfinished gate.
+The [model checkpoint](model/README.md) separately checks new input traffic
+and completion while preserving exact legacy outputs. It does not discharge
+the route/board gate. The final matched original-A4 versus actual adapter+K4
+comparison remains a separate unfinished gate.

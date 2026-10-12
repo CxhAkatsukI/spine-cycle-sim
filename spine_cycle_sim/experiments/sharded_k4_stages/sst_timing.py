@@ -82,6 +82,8 @@ def run_sst_case(*, root: Path, integration: Path, plugin_dir: Path, exporter: P
                  graph: Path, source: int, board_run: Path, output: Path, arm: str,
                  timeout: int = 600, max_cycles: int = 300000000) -> dict:
     profile = load_profile(root, profile_path)
+    if profile["target"].get("routed") is False:
+        raise ValueError("unrouted candidate cannot be compared to historical FPGA identities")
     if timeout <= 0 or source < 0:
         raise ValueError("positive timeout and nonnegative source required")
     headers = require_export_headers(integration, profile)

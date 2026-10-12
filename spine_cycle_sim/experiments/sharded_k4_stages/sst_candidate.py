@@ -21,6 +21,9 @@ FIXED_MODEL = {
 
 def load_profile(root: Path, path: Path) -> dict:
     profile = json.loads(path.read_text())
+    from .row_line.model_contract import PROFILE_ID as ROW_LINE_PROFILE_ID, expand
+    if profile.get("profile_id") == ROW_LINE_PROFILE_ID:
+        return expand(root, profile)
     empty_exit = profile.get("profile_id") == EMPTY_EXIT_PROFILE_ID
     streams = profile.get("profile_id") in (STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID)
     independent = streams or profile.get("profile_id") == INDEPENDENT_PROFILE_ID
@@ -73,6 +76,9 @@ def component_parameters(root: Path, config: dict) -> dict:
     result = {"fixture": config["fixture"], "output": config["output"],
             "dram_config": str(root / profile["memory"]["config"]), "dram_output": config["dram_output"],
             "max_cycles": config["max_cycles"], "row_prefetch": int(optimized), "stop_after_last": int(optimized)}
+    from .row_line.model_contract import PROFILE_ID as ROW_LINE_PROFILE_ID, parameters
+    if profile["profile_id"] == ROW_LINE_PROFILE_ID:
+        return {**result, **parameters(profile, config)}
     if profile["profile_id"] in (INDEPENDENT_PROFILE_ID, STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID):
         result.update(profile_id=profile["profile_id"], independent_read_write=1)
     if profile["profile_id"] in (STREAM_PROFILE_ID, EMPTY_EXIT_PROFILE_ID):
