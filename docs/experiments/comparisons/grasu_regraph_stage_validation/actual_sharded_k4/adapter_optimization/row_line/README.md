@@ -153,5 +153,9 @@ no route was started. Once resources permit, retry in a fresh directory,
 check routed timing/connectivity, and measure paired resident executions.
 The [model checkpoint](model/README.md) separately checks new input traffic
 and completion while preserving exact legacy outputs. It does not discharge
-the route/board gate. The final matched original-A4 versus actual adapter+K4
-comparison remains a separate unfinished gate.
+the route/board gate. The [original-A4 model control](a4_control/README.md)
+adds 24 complete-state/traffic runs with exact legacy replay: whole-line
+reads save only 1.44--2.36% total cycles beyond skip-empty, and the candidate
+remains 23.83--25.93x slower than A4 in the declared model. This is not FPGA
+timing or isolated adapter overhead. The final resource-matched original-A4
+versus actual adapter+K4 comparison remains a separate unfinished gate.

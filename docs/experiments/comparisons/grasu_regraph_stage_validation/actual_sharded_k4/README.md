@@ -30,6 +30,14 @@ All six runs preserve full state, work, rounds and traffic conservation.
 Directory traffic falls approximately 8x, but predicted total cycles only
 1.42--3.31%; this is neither a new FPGA result nor an original-A4 match.
 
+The [whole-line original-A4 control](adapter_optimization/row_line/a4_control/README.md)
+now passes all 24 fixed-model resident-round runs and exact pre-extraction
+replays on the 1,450,899-edge, four-shard Amazon input. Whole-line reads
+reduce input bytes by 56.81%, but total cycles only 1.44--2.36% beyond
+skip-empty. The candidate still takes 23.83--25.93x the original-A4 cycles.
+This negative model finding is not a board slowdown, an isolated adapter
+overhead, a strict resource match or update-to-convergence evidence.
+
 The [complete production-adapter AXI diagnostic](adapter_optimization/adapter_axi/README.md)
 now binds both test arms to their exact production XOs, including the
 previous routed version. All 24 full-top RTL cases pass. Eight row loads
