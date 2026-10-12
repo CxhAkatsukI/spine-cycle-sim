@@ -45,12 +45,52 @@ minimum issue-to-use floor. No parameter was fitted to the new results.
 
 This harness uses the actual adapter and modified K4 **numerical components
 and PMA layout**, not an exact replica of the routed 23-channel system.
-Original A4 has thirteen logical AXI masters, four state copies and shared
-read/write credits; this K4 control has nine masters, three state copies plus
-status, two source-state masters and independent read/write credits. The
-cross-row profile pins the candidate's implementation identity; it does not
-turn these harness resources into the routed hardware resources. Four
+Original A4 has thirteen **modeled AXI endpoints**, not thirteen physical HLS
+masters. Its synthesized interfaces comprise nine physical masters: four
+Little readers, four source-read/state-write interfaces and one Apply reader.
+The A4 model represents each source read and state write as separate masters
+on the same bank. Consequently, `independent_read_write=false` on those
+read-only/write-only endpoints does not establish a shared read/write credit
+pool across the pair.
+
+This K4 control models nine masters, including **four source-state masters
+on two source banks** (workers 0/2 on channel 23, workers 1/3 on channel 24).
+Two source masters also serve state writes. They enable independent
+read/write directions; Apply/state/status share another master without that
+option. K4 publishes three state replicas plus status, whereas A4 publishes
+four replicas. Published replicas are not the total allocated BO count:
+K4 source storage is ping-ponged. The later two-service HLS worktree topology
+is not the pinned historical four-master wrapper used here.
+
+The cross-row profile pins the candidate's implementation identity; it does
+not turn these harness resources into the routed hardware resources. Four
 frontends alone do not establish a strict resource match.
+
+### Resource Check
+
+The separately generated [resource audit](resource_audit.json) binds these
+reviewed assignments to thirteen source/profile hashes in the unchanged raw
+package. It rechecks all eighteen numerical runs before producing its
+resource record. Source drift requires a new review, not silent acceptance.
+
+| Property | Original A4 control | Cross-row K4 control |
+| --- | --- | --- |
+| Modeled AXI endpoints | 13, with separate source-read/write endpoints | 9, with physical client sharing |
+| Source readers / active source banks | 4 / 4 | 4 / 2 |
+| Parent-request capacity | 2 per endpoint | 16 per physical master |
+| Published state replicas | 4 | 3 plus status |
+| Stream depths | 8 in this test fixture | Internal 8, external 16, adapter/gather/mux 32 |
+| Task/merge organization | Four task paths per destination partition | Shards modulo four, ordered gather mux |
+
+Both use the same 150-MHz, 32-channel Mock service geometry and 16 outstanding
+bursts per modeled AXI interface. These common settings do not eliminate the
+differences above. In particular, 32 backend credits, 16 AXI burst credits,
+parent-request capacity and FIFO depth are separate limits. Neither the
+current cycle ratio nor these resource counts isolate the adapter's cost.
+The original nine-interface count is synthesis evidence, not an original
+A4 FPGA timing measurement. The unchanged numerical results remain a valid
+integrated-path **diagnostic**, not a strict resource-matched performance
+claim. This audit changes no numerical implementation or frozen artifact.
 
 The candidate preserves all whole-line traffic: 129,022 directory reads,
 475,612 segment reads, 951,224 output packets, 6,158,893 dummy edges,
@@ -91,6 +131,7 @@ The Python owner is
 | `study.py` | Bounded orchestration and source/tool/plugin preservation |
 | `recheck.py` | Independently recompute the conclusion from relocatable raw files |
 | `delivery.py` | Seal and recheck one immutable portable package |
+| `resources.py` | Recheck pinned sources and numerical evidence; distinguish endpoints, physical interfaces, banks and unsupported performance claims |
 
 Before the harness edit, 358 source files were archived with SHA-256
 `5fb7b23690ed312d86057b2c36dcebbbfd02a277d923fe23bdf3c56d91743478`.
@@ -118,6 +159,12 @@ altered reference cycles, candidate traffic, full output state, executed
 source and sealed summaries are rejected. These later tests and their logs
 are sealed separately; the original numerical snapshot is not rewritten.
 
+The subsequent resource audit adds ten focused checks covering source drift,
+interface capacities, replica counts and unsupported claims. Its current
+working-tree regression passes all 394 sharded-K4 tests and fifteen structure
+tests; these counts do not relabel the earlier frozen regression archive.
+No numerical C++/SST source or default plugin was changed for this audit.
+
 Portable verification needs no FPGA, proprietary tools or original external
 paths. Run from the simulator repository root:
 
@@ -125,6 +172,7 @@ paths. Run from the simulator repository root:
 D=docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/cross_row/a4_control
 python3 -m spine_cycle_sim.experiments.sharded_k4_stages.row_line.cross_row.a4_control.delivery --destination "$D/evidence" --verify-only
 python3 -m unittest discover -s tests -p 'test_sharded_k4_cross_row_a4*.py'
+python3 -m spine_cycle_sim.experiments.sharded_k4_stages.row_line.cross_row.a4_control.resources --check "$D/resource_audit.json"
 ```
 
 For a fresh execution, extract the archived pre-edit snapshot and its

@@ -1,0 +1,272 @@
+{
+  "admission": {
+    "FPGA_timing": false,
+    "integrated_path_diagnostic": true,
+    "isolated_adapter_overhead": false,
+    "published_performance_match": false,
+    "strict_resource_match": false,
+    "update_to_convergence": false
+  },
+  "basis_verification_sha256": "1c90d2a3dd64d07a088ded17eedd3c210ca84a56cfd8680bdf983d51dcb269ec",
+  "common": {
+    "algorithm": "weighted_SSSP",
+    "axi_data_bytes": 64,
+    "axi_max_burst_beats": 16,
+    "axi_outstanding": 16,
+    "backend_channels": 32,
+    "backend_outstanding_per_channel": 32,
+    "backend_response_queue_depth": 32,
+    "boundary": "resident_input_first_component_tick_to_all_state_write_acknowledgements_one_round",
+    "channel_issue_per_cycle": 1,
+    "clock_mhz": 150,
+    "frontends": 4,
+    "memory_backend": "MockMemoryBackend",
+    "rounds": 1,
+    "same_initial_state_batch_and_complete_oracle": true
+  },
+  "credit_interpretation": "A4's independent_read_write=false is per separate read-only/write-only endpoint, not a shared source-read/state-write credit pool. K4 source masters enable independent directions; Apply/status does not. Backend channel arbitration remains separate.",
+  "endpoint_bindings": {
+    "cross_row": [
+      {
+        "channel": "runtime_PMA_row_channels_0_to_22",
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "adapter0",
+        "parent_credits": 16
+      },
+      {
+        "channel": 23,
+        "direction": "read_write",
+        "independent_read_write": true,
+        "name": "source0",
+        "parent_credits": 16
+      },
+      {
+        "channel": "runtime_PMA_row_channels_0_to_22",
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "adapter1",
+        "parent_credits": 16
+      },
+      {
+        "channel": 24,
+        "direction": "read_write",
+        "independent_read_write": true,
+        "name": "source1",
+        "parent_credits": 16
+      },
+      {
+        "channel": "runtime_PMA_row_channels_0_to_22",
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "adapter2",
+        "parent_credits": 16
+      },
+      {
+        "channel": 23,
+        "direction": "read",
+        "independent_read_write": true,
+        "name": "source2",
+        "parent_credits": 16
+      },
+      {
+        "channel": "runtime_PMA_row_channels_0_to_22",
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "adapter3",
+        "parent_credits": 16
+      },
+      {
+        "channel": 24,
+        "direction": "read",
+        "independent_read_write": true,
+        "name": "source3",
+        "parent_credits": 16
+      },
+      {
+        "channel": 30,
+        "direction": "read_write",
+        "independent_read_write": false,
+        "name": "apply_state_status",
+        "parent_credits": 16
+      }
+    ],
+    "original": [
+      {
+        "channel": 0,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "edge0",
+        "parent_credits": 2
+      },
+      {
+        "channel": 1,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "source0",
+        "parent_credits": 2
+      },
+      {
+        "channel": 1,
+        "direction": "write",
+        "independent_read_write": false,
+        "name": "state_write0",
+        "parent_credits": 2
+      },
+      {
+        "channel": 2,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "edge1",
+        "parent_credits": 2
+      },
+      {
+        "channel": 3,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "source1",
+        "parent_credits": 2
+      },
+      {
+        "channel": 3,
+        "direction": "write",
+        "independent_read_write": false,
+        "name": "state_write1",
+        "parent_credits": 2
+      },
+      {
+        "channel": 4,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "edge2",
+        "parent_credits": 2
+      },
+      {
+        "channel": 5,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "source2",
+        "parent_credits": 2
+      },
+      {
+        "channel": 5,
+        "direction": "write",
+        "independent_read_write": false,
+        "name": "state_write2",
+        "parent_credits": 2
+      },
+      {
+        "channel": 6,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "edge3",
+        "parent_credits": 2
+      },
+      {
+        "channel": 7,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "source3",
+        "parent_credits": 2
+      },
+      {
+        "channel": 7,
+        "direction": "write",
+        "independent_read_write": false,
+        "name": "state_write3",
+        "parent_credits": 2
+      },
+      {
+        "channel": 30,
+        "direction": "read",
+        "independent_read_write": false,
+        "name": "old_state",
+        "parent_credits": 2
+      }
+    ]
+  },
+  "interface_counts": {
+    "K4_modeled_physical": 9,
+    "K4_source_banks": 2,
+    "K4_source_masters": 4,
+    "original_modeled_endpoints": 13,
+    "original_synthesized_physical": 9
+  },
+  "limitations": [
+    "This audits reviewed configuration/source bindings, not dynamic stalls or FPGA speed.",
+    "Original RTL interface evidence is synthesis evidence, not an original A4 routed measurement.",
+    "A later two-service HLS worktree topology is not substituted for the pinned four-master wrapper.",
+    "Three K4 published replicas do not mean three total BO allocations: source buffers are ping-ponged.",
+    "No numerical source, frozen result, model parameter or paper artifact is changed."
+  ],
+  "original_axi_evidence_sha256": "da34da9d64fb8db7f061a93e3204c4074b15f393541302dc43166c53b150ca18",
+  "publication_bytes_per_round": {
+    "cross_row": 3145732,
+    "original": 4194304
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "cpp/tests/original_regraph/whole_graph/compute_wiring.hpp",
+      "sha256": "eb85d3c267ad305ce9729a0e6a8a9d293d67754bf7b45cbc4b69170cd0c3f9c4"
+    },
+    {
+      "path": "cpp/tests/original_regraph/memory_fixture.hpp",
+      "sha256": "9a6c1ff078f57b6083e2cd8d6c786e582d935d9bf7212988ba26475663908db3"
+    },
+    {
+      "path": "cpp/tests/original_regraph/sssp/real_round.cpp",
+      "sha256": "1938caaf41295afa57a294221cec3f1fc5f6b1809db0aa9dfdd3adf710cd17da"
+    },
+    {
+      "path": "cpp/tests/routed_regraph/round_execution.hpp",
+      "sha256": "51bc39c3ed9c691f744671487387e46a9825041b71b1ea5a617338affcaa5bc5"
+    },
+    {
+      "path": "cpp/src/routed_regraph/composition.cpp",
+      "sha256": "74e667ead109743ed07aab98d5c53bcd50632d75271f10a7f25527aa50e907bf"
+    },
+    {
+      "path": "cpp/src/routed_regraph/resident_memory.cpp",
+      "sha256": "66b8f830b02b75591fc6c4084b27b21adbbf0898d51987e8811f2ec26c3a7f3d"
+    },
+    {
+      "path": "cpp/src/routed_regraph/transport.cpp",
+      "sha256": "3a0d20e78338933ecf6c76d92af866ded54c4c96a846388be6660c4ea3c05921"
+    },
+    {
+      "path": "cpp/src/grasu_regraph_runtime.cpp",
+      "sha256": "0cd0af809c14917f863b6d5f7da983f99403eff84bf54b351fc80c784182818c"
+    },
+    {
+      "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+      "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+    },
+    {
+      "path": "cpp/include/spine_sim/routed_regraph.hpp",
+      "sha256": "95c64cb4428c6b1f6cd928c3456eaa433fda6db9a3e0fdd51c8e5e5feefcabed"
+    },
+    {
+      "path": "cpp/include/spine_sim/axi.hpp",
+      "sha256": "3eed58f1fcbc0fceef511e55323843cbc1014b75b7b64694addfcf2d5c987c41"
+    },
+    {
+      "path": "configs/architectures/grasu_regraph_routed_sssp_compute_v3.json",
+      "sha256": "123813ff6db3ea88c2e5b842799da82b1e383f84d90fb97d7c67a5e5c12a8843"
+    },
+    {
+      "path": "configs/architectures/grasu_regraph_cross_row_sssp_compute_v1.json",
+      "sha256": "3ed68a70d692df65b358af70ad5e4f4f0246045b0e28547ba84f49767746e2b1"
+    }
+  ],
+  "status": "audited_diagnostic_not_strict_resource_match",
+  "unmatched": {
+    "parent_credit_capacity": "A4: two parent requests per endpoint; K4: sixteen per physical master, with shared clients where applicable.",
+    "physical_interface_composition": "A4 splits each source-read/state-write pair into separate modeled masters; K4 shares two such pairs.",
+    "publication": "A4 publishes four replicas; K4 publishes primary plus two source replicas and status, sharing primary read/write/status.",
+    "source_state_banks": "A4: four banks 1/3/5/7; K4: four readers on two banks 23/24.",
+    "stream_capacity": "A4 test fixture: depth eight; K4: internal eight, external sixteen, adapter/gather/mux thirty-two.",
+    "task_and_merge_schedule": "A4: four task paths per destination partition; K4: destination shards assigned modulo four, ordered gather mux and shared backend."
+  },
+  "version": "cross_row_A4_resource_audit_v1"
+}
