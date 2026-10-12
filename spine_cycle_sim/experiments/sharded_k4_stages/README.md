@@ -95,3 +95,11 @@ and the existing environment, admission and link owners. The
 [V3 route checkpoint](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/cross_row/route/README.md)
 preserves the memory-refused non-start; no new route supervisor, simulator
 timing factor or FPGA claim is introduced.
+
+`row_line/continuous_directory/` keeps the rejected single-loop candidate
+separate: `study.py` and `hls.py` execute frozen controls, `analysis.py` checks
+full numerical replay, `decision.py` rejects unrealized HLS schedules,
+`recheck.py` revalidates portable raw evidence, and `delivery.py` seals it.
+Its default-off model option is counterfactual, not production calibration.
+The [decision guide](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/continuous_directory/README.md)
+retains negative RTL timing instead of promoting nominal speedups.

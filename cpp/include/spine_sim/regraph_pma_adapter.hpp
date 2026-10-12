@@ -41,6 +41,8 @@ struct ReGraphPmaCrossRowSchedule {
   std::size_t reader_pipeline_capacity{74};
   std::uint64_t block_drain_cycles{74};
   std::uint64_t publisher_pipeline_cycles{2};
+  // Counterfactual candidate: current single-loop HLS fails II=1. Default off.
+  bool continuous_directory{false};
 };
 
 struct ReGraphPmaAdapterConfig {

@@ -1,0 +1,104 @@
+{
+  "SST_cases": 5,
+  "candidate_state_and_work_pass": true,
+  "core_tests": 27,
+  "decision": {
+    "default_mode": "unchanged",
+    "hardware_timing_admitted": false,
+    "hls_schedule": {
+      "achieved_ii": 71,
+      "depth_cycles": 74,
+      "estimated_period_ns": 13.845,
+      "loop": "read_continuous_sources_loop",
+      "target_period_ns": 6.67
+    },
+    "nominal_prediction_admitted": false,
+    "production_promotion": false,
+    "reasons": [
+      "nominal_II1_schedule_not_realized",
+      "estimated_clock_target_not_met",
+      "synthetic_RTL_regressions"
+    ],
+    "rtl_cases": [
+      {
+        "candidate_cycles": 12,
+        "candidate_over_reference": 2.0,
+        "reference_cycles": 6,
+        "trial": 0
+      },
+      {
+        "candidate_cycles": 230,
+        "candidate_over_reference": 0.9913793103448276,
+        "reference_cycles": 232,
+        "trial": 1
+      },
+      {
+        "candidate_cycles": 1224,
+        "candidate_over_reference": 4.584269662921348,
+        "reference_cycles": 267,
+        "trial": 2
+      },
+      {
+        "candidate_cycles": 1437,
+        "candidate_over_reference": 3.628787878787879,
+        "reference_cycles": 396,
+        "trial": 3
+      },
+      {
+        "candidate_cycles": 2644,
+        "candidate_over_reference": 4.7214285714285715,
+        "reference_cycles": 560,
+        "trial": 4
+      },
+      {
+        "candidate_cycles": 2728,
+        "candidate_over_reference": 4.639455782312925,
+        "reference_cycles": 588,
+        "trial": 5
+      },
+      {
+        "candidate_cycles": 4072,
+        "candidate_over_reference": 3.9305019305019306,
+        "reference_cycles": 1036,
+        "trial": 6
+      },
+      {
+        "candidate_cycles": 5278,
+        "candidate_over_reference": 7.23013698630137,
+        "reference_cycles": 730,
+        "trial": 7
+      },
+      {
+        "candidate_cycles": 392,
+        "candidate_over_reference": 0.9751243781094527,
+        "reference_cycles": 402,
+        "trial": 8
+      },
+      {
+        "candidate_cycles": 242,
+        "candidate_over_reference": 0.9918032786885246,
+        "reference_cycles": 244,
+        "trial": 9
+      },
+      {
+        "candidate_cycles": 1461,
+        "candidate_over_reference": 3.512019230769231,
+        "reference_cycles": 416,
+        "trial": 10
+      },
+      {
+        "candidate_cycles": 2728,
+        "candidate_over_reference": 2.525925925925926,
+        "reference_cycles": 1080,
+        "trial": 11
+      }
+    ],
+    "status": "REJECTED_CANDIDATE"
+  },
+  "default_plugin_unchanged": true,
+  "hardware_timing_admitted": false,
+  "model_runs": 18,
+  "original_A4_and_V3_exact_replay": true,
+  "paper_modified": false,
+  "status": "REJECTED_CANDIDATE"
+}

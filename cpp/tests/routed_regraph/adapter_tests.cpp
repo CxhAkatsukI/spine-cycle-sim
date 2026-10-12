@@ -152,11 +152,14 @@ Result run(const Data &data, Options options) {
 
 int main(int argc, char **argv) {
   try {
-    if (argc == 2 && std::string_view(argv[1]) == "--rtl-matrix") {
-      timing_matrix([](const Data &data, bool candidate, unsigned latency, unsigned stall) {
+    if (argc == 2 && (std::string_view(argv[1]) == "--rtl-matrix" ||
+                     std::string_view(argv[1]) == "--rtl-continuous-matrix")) {
+      const bool continuous = std::string_view(argv[1]) == "--rtl-continuous-matrix";
+      timing_matrix([continuous](const Data &data, bool candidate, unsigned latency, unsigned stall) {
         Options options;
         options.adapter.row_line_reads = true;
         options.adapter.cross_row_pipeline = candidate;
+        options.adapter.cross_row.continuous_directory = candidate && continuous;
         options.memory_latency = latency;
         options.sink_start = stall;
         options.depth = 32;
@@ -164,7 +167,8 @@ int main(int argc, char **argv) {
       });
       return 0;
     }
-    require(argc == 1, "unknown adapter test argument");
+    const bool continuous = argc == 2 && std::string_view(argv[1]) == "--continuous-directory";
+    require(argc == 1 || continuous, "unknown adapter test argument");
     std::size_t cases = 0;
     for (const auto format : {ReGraphPmaFormat::kWeighted, ReGraphPmaFormat::kDestination, ReGraphPmaFormat::kUnitWeight})
       for (const auto vertices : {0U, 1U, 8U, 9U, 65U, 1025U})
@@ -282,6 +286,7 @@ int main(int argc, char **argv) {
             Options options;
             options.adapter.format = format;
             options.adapter.row_line_reads = options.adapter.cross_row_pipeline = true;
+            options.adapter.cross_row.continuous_directory = continuous;
             const Data fixture(vertices, at_end, empty, format);
             const auto cross = run(fixture, options);
             options.reverse = true;
@@ -296,6 +301,7 @@ int main(int argc, char **argv) {
           Options options;
           options.adapter.format = format;
           options.adapter.row_line_reads = options.adapter.cross_row_pipeline = true;
+          options.adapter.cross_row.continuous_directory = continuous;
           const auto base = run(dense, options);
           require(base.counters.max_pending_reads > 1, "cross-row overlap was not exercised");
           for (unsigned stress = 0; stress < 5; ++stress) {
@@ -314,8 +320,10 @@ int main(int argc, char **argv) {
           }
         }
     chained.adapter.row_line_reads = chained.adapter.cross_row_pipeline = true;
+    chained.adapter.cross_row.continuous_directory = continuous;
     require(run(data, chained).restarted_with_pending_output, "cross-row restart waited for AXIS tail");
-    std::cout << "Cross-row structural model PASS cases=" << cross_cases
+    std::cout << (continuous ? "Continuous-directory structural model PASS cases=" :
+                              "Cross-row structural model PASS cases=") << cross_cases
               << " exact_packets_credits_pipeline_loaded_fifo_latency_pressure_restart=PASS\n";
     return 0;
   } catch (const std::exception &error) {

@@ -25,6 +25,7 @@ struct AdapterOptions {
   bool row_line{};
   bool trace_invocations{};
   bool cross_row{};
+  bool continuous_directory{};
 };
 
 inline void execute(const st::Input& input, const std::filesystem::path& output,
@@ -44,6 +45,7 @@ inline void execute(const st::Input& input, const std::filesystem::path& output,
   config.adapter.empty_segment_exit_cycles = options.empty_exit;
   config.adapter.row_line_reads = options.row_line;
   config.adapter.cross_row_pipeline = options.cross_row;
+  config.adapter.cross_row.continuous_directory = options.continuous_directory;
   config.adapter_stream_depth = config.gather_stream_depth = config.mux_stream_depth = 32;
   config.compute.apply_request_window = 16;
   config.compute.vertex_state_base = config.compute.source_state_base = 0;

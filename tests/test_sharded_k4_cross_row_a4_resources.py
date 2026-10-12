@@ -7,6 +7,7 @@ import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.cross_row.a4_control import resources
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.model_archive import extracted
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -14,7 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 class CrossRowA4ResourceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.result = resources.audit(ROOT)
+        evidence = ROOT / resources.DIRECTORY / "evidence"
+        record = json.loads((evidence / "verification.json").read_text())
+        archive = extracted(evidence / "raw_cross_row_A4.tar.gz", record, max_bytes=512 * 1024**2)
+        cls.addClassCleanup(archive.__exit__, None, None, None)
+        cls.source_root = archive.__enter__() / "run/sources"
+        cls.result = resources.audit(ROOT, cls.source_root)
 
     def test_complete_raw_matrix_precedes_resource_admission(self):
         self.assertEqual(self.result["status"], "audited_diagnostic_not_strict_resource_match")
@@ -65,7 +71,7 @@ class CrossRowA4ResourceTests(unittest.TestCase):
             for relative in resources.SOURCES:
                 target = copy / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes((ROOT / relative).read_bytes())
+                target.write_bytes((self.source_root / relative).read_bytes())
             self.assertEqual(resources.source_pins(copy, index), self.result["sources"])
             target = copy / resources.SOURCES[0]
             target.write_bytes(target.read_bytes() + b"\n")
@@ -78,9 +84,24 @@ class CrossRowA4ResourceTests(unittest.TestCase):
             copy = Path(directory)
             path = copy / resources.SOURCES[0]
             path.parent.mkdir(parents=True)
-            path.symlink_to(ROOT / resources.SOURCES[0])
+            path.symlink_to(self.source_root / resources.SOURCES[0])
             with self.assertRaisesRegex(ValueError, "source changed; review required"):
                 resources.source_pins(copy, index)
+
+    def test_default_audit_still_rejects_unreviewed_live_sources(self):
+        with tempfile.TemporaryDirectory() as directory:
+            live = Path(directory)
+            index = live / resources.DIRECTORY / "evidence/verification.json"
+            index.parent.mkdir(parents=True)
+            index.write_bytes((ROOT / resources.DIRECTORY / "evidence/verification.json").read_bytes())
+            for relative in resources.SOURCES:
+                target = live / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((self.source_root / relative).read_bytes())
+            changed = live / resources.SOURCES[0]
+            changed.write_bytes(changed.read_bytes() + b"\n")
+            with self.assertRaisesRegex(ValueError, "source changed; review required"):
+                resources.audit(live)
 
     def test_changed_AXI_interface_capacity_is_rejected(self):
         evidence = json.loads((ROOT / resources.ORIGINAL_AXI).read_text())

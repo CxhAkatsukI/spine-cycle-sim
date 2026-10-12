@@ -70,6 +70,13 @@ void CrossRowPmaAdapter::receive(const AxiResponse &response) {
 }
 
 void CrossRowPmaAdapter::finish_block(const CycleContext &context) {
+  // The continuous reader crosses line boundaries with segment requests still
+  // live; the same finite port/FIFO retain their traffic and backpressure.
+  if (config_.cross_row.continuous_directory && issued_slots_ < total_slots_) {
+    block_ += block_count_;
+    phase_ = Phase::kDirectory;
+    return;
+  }
   phase_ = Phase::kDrain;
   drain_until_ = context.domain_cycle + config_.cross_row.block_drain_cycles;
 }

@@ -169,3 +169,7 @@ The retained v2 last-only case regresses 28.47%; v3's empty-block bypass reduces
 it from 564 to 402 clocks, with the other eleven rows unchanged. Estimated LUT
 use approximately doubles. Both versions are retained; neither is routed or
 a numerical-model correction.
+The [continuous-directory investigation](continuous_directory/README.md) is
+explicitly rejected: production synthesis realizes II=71 rather than II=1,
+and nine of twelve RTL cases regress. Its nominal model improvement is not
+admitted and does not supersede the V3 control or any measured bitstream.

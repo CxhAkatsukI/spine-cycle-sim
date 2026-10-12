@@ -172,8 +172,17 @@ paths. Run from the simulator repository root:
 D=docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/cross_row/a4_control
 python3 -m spine_cycle_sim.experiments.sharded_k4_stages.row_line.cross_row.a4_control.delivery --destination "$D/evidence" --verify-only
 python3 -m unittest discover -s tests -p 'test_sharded_k4_cross_row_a4*.py'
-python3 -m spine_cycle_sim.experiments.sharded_k4_stages.row_line.cross_row.a4_control.resources --check "$D/resource_audit.json"
 ```
+
+The historical resource inventory is tied to the archived source, not a later
+working tree. Its tests explicitly extract and hash-check that source before
+recomputing the unchanged audit. After a numerical harness change, the live
+`resources --check` command must reject source drift. For an independently
+verified extraction, pass `--source-root /path/to/run/sources` explicitly;
+this does not accept changed sources or update the old inventory. The later
+[continuous-directory study](../../continuous_directory/README.md) retains
+the regression failure that exposed this distinction and a new test ensuring
+that the default live-source audit still rejects drift.
 
 For a fresh execution, extract the archived pre-edit snapshot and its
 adjacent `pre_edit_source_index.json`, then use new output paths:

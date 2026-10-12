@@ -89,13 +89,14 @@ def endpoints():
     return {"original": original, "cross_row": candidate}
 
 
-def audit(root):
+def audit(root, source_root=None):
     directory = root / DIRECTORY
     index = checked_json(root, DIRECTORY / "evidence/verification.json", INDEX_SHA)
-    sources = source_pins(root, index)
+    source_root = source_root if source_root is not None else root
+    sources = source_pins(source_root, index)
     report = verify(directory / "evidence")
     axi = checked_json(root, ORIGINAL_AXI, ORIGINAL_AXI_SHA)
-    selected = profile(root)
+    selected = profile(source_root)
     memory, fixed = selected["memory"], selected["fixed_model"]
     sample = {row["arm"]: row for row in report["cases"]
               if (row["mode"], row["latency"], row["reverse"]) == ("warm_update", 64, 0)}
@@ -148,11 +149,13 @@ def require_claim(result, claim):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument("--source-root", type=Path,
+                        help="Explicit frozen source tree for a historical audit; live source drift remains rejected")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--output", type=Path)
     group.add_argument("--check", type=Path)
     args = parser.parse_args()
-    result = audit(args.root.resolve())
+    result = audit(args.root.resolve(), args.source_root.resolve() if args.source_root else None)
     if args.check and not same_typed(json.loads(args.check.read_text()), result):
         raise ValueError("stored resource audit differs from current audited evidence")
     if args.output:

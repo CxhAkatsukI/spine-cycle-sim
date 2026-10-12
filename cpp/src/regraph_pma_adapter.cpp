@@ -16,7 +16,8 @@ ReGraphPmaAdapter::ReGraphPmaAdapter(std::string name, ClockId clock_id,
     : Component(std::move(name), clock_id), config_(config), memory_(memory), output_(output) {
   if (!config_.pending_read_capacity || !config_.segment_buffer_capacity ||
       !config_.row_control_cycles || !config_.segment_issue_interval ||
-      (config_.row_line_reads && !config_.prefetch_rows)) {
+      (config_.row_line_reads && !config_.prefetch_rows) ||
+      (config_.cross_row.continuous_directory && !config_.cross_row_pipeline)) {
     throw std::invalid_argument("invalid routed PMA adapter capacity or schedule");
   }
   if (memory_.requests().clock_id() != clock_id || output_.clock_id() != clock_id) {
