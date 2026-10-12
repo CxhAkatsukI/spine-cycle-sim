@@ -136,7 +136,11 @@ as passing baselines.
 1. Check the cross-row actual adapter+modified K4 against original A4 under
    the same logical state and round, retaining the existing negative controls.
    List port/state-copy differences rather than calling four frontends a
-   strict resource match. This comparison is not yet in this checkpoint.
+   strict resource match. The separate [18-run A4 control](../a4_control/README.md)
+   now preserves all states and traffic, with exact reference replay. Its
+   cross-row candidate is 3.26--3.28x faster than whole-line K4 but still
+   takes 7.26--7.95x the A4 cycles. This is a fixed-model one-round finding;
+   routed resources and hardware timing remain unmatched.
 2. Route and measure V3 when the unchanged 40-GiB job plus 16-GiB reserve can
    be admitted. Preserve old/new board results; do not substitute model
    ratios for FPGA speedups.

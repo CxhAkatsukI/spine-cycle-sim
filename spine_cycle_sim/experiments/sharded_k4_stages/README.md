@@ -74,6 +74,13 @@ and the timing diagnostic. Shared safe extraction belongs to
 `row_line/model_archive.py`, not each delivery CLI. Start with the
 [cross-row model guide](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/cross_row/model/README.md).
 
+`row_line/cross_row/a4_control/` owns the separate original-A4/whole-line/
+cross-row resident-round control. Its contract, preparation, execution,
+analysis, raw recheck and portable delivery remain separate responsibilities;
+the [control guide](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/cross_row/a4_control/README.md)
+retains the negative timing prediction and explicit resource/window limits.
+It does not alter the previous whole-line control or its validator.
+
 Within `row_line/`, `route_preparation.py` binds the checked production XO,
 padded SSSP host and unchanged historical kernels/connectivity; `route.py`
 composes the existing environment, admission and link owners. Its separate

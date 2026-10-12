@@ -7,6 +7,13 @@ of this implementation. Neither its 74--791x predicted slowdown nor its
 
 ## Current Status
 
+The [cross-row original-A4 control](adapter_optimization/row_line/cross_row/a4_control/README.md)
+passes all 18 predeclared resident-round state/traffic checks, including exact
+original-A4 and whole-line K4 replay. Cross-row K4 improves predicted time
+3.26--3.28x, but still takes 7.26--7.95x the A4 cycles. The negative result
+is retained. Mock-memory, logical-port and state-copy differences prevent
+a strict resource match; this is neither FPGA timing nor convergence data.
+
 The [cross-row HLS and model checkpoint](adapter_optimization/row_line/cross_row/model/README.md)
 now overlaps occupied rows within each directory block using finite resources.
 All 27 core executables, five exact legacy replays and six complete AU/SU/WK

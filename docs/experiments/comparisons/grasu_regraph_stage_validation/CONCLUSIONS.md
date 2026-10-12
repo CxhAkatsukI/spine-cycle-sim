@@ -18,6 +18,11 @@ The revised actual-path optimization objective is active: see the
 for exact legacy replay, complete-state/traffic gates and explicit timing
 limits. Its 2.48--3.28x predicted improvement is not a new FPGA speedup or
 an original-A4 performance match.
+The separate [cross-row A4 control](actual_sharded_k4/adapter_optimization/row_line/cross_row/a4_control/README.md)
+now passes all 18 resident-round runs, retaining exact A4/whole-line replay
+and full candidate state/traffic. Cross-row K4 still takes 7.26--7.95x the
+A4 cycles under the declared mock-memory and unequal resources. This
+negative prediction is not an FPGA slowdown or a publication-match result.
 
 ## What Was Verified
 

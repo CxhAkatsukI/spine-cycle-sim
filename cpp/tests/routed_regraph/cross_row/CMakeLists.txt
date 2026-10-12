@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(spine_cross_row_round LANGUAGES CXX)
+get_filename_component(SPINE_REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE)
+add_subdirectory("${SPINE_REPO_ROOT}" "${CMAKE_CURRENT_BINARY_DIR}/simulator" EXCLUDE_FROM_ALL)
+add_executable(routed_regraph_cross_row_round round.cpp)
+target_link_libraries(routed_regraph_cross_row_round PRIVATE original_regraph_cycle)
+target_compile_options(routed_regraph_cross_row_round PRIVATE -Wall -Wextra -Wpedantic -Werror)
