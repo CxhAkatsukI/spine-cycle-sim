@@ -114,6 +114,11 @@ comparison with original-publication measurements remain unverified.
 HLS/RTL proves realizability and behavior of the adapter under the tested
 synthetic conditions; it does not validate whole-system cycle prediction.
 
+The separate [memory-contained SSSP route](hardware/README.md) prepares the
+complete four-adapter design with unchanged remaining kernels/connectivity.
+It queues below the 64-GiB availability gate and enforces a 40-GiB cgroup
+hard limit plus a 24-GiB live reserve. A queued build is not routed evidence.
+
 ## Review And Reproduce
 
 The experiment package separates `contract.py` (fixed scope), `hls.py` (tool
