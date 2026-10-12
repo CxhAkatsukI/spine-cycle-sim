@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / (
     "docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/"
     "adapter_optimization/row_line/cross_row/evidence")
+CURRENT_EVIDENCE = EVIDENCE.with_name("evidence_v3")
 
 
 class CrossRowTests(unittest.TestCase):
@@ -93,6 +94,43 @@ class CrossRowTests(unittest.TestCase):
                 with self.subTest(name=name), self.assertRaises(ValueError):
                     verify(copy)
                 path.write_bytes(original)
+
+    def test_empty_block_bypass_preserves_complete_matrix_and_traffic(self):
+        previous = verify(EVIDENCE)
+        current = verify(CURRENT_EVIDENCE)
+        self.assertEqual(previous["arms"]["reference"], current["arms"]["reference"])
+        old_rows = previous["arms"]["candidate"]
+        new_rows = current["arms"]["candidate"]
+        self.assertEqual(len(new_rows), 12)
+        def normalized(row, *, keep_timing=True):
+            row = deepcopy(row)
+            start = row["start"]
+            for key in ("start", "done", "first_packet", "last_packet"):
+                if keep_timing:
+                    if row[key] >= 0:
+                        row[key] -= start
+                else:
+                    del row[key]
+            for key in ("requests", "responses"):
+                for event in row[key]:
+                    if keep_timing:
+                        event["cycle"] -= start
+                    else:
+                        del event["cycle"]
+            if not keep_timing:
+                del row["cycles"]
+            return row
+        for index, (old, new) in enumerate(zip(old_rows, new_rows)):
+            self.assertEqual(normalized(old, keep_timing=False),
+                             normalized(new, keep_timing=False))
+            if index == 8:
+                self.assertEqual((old["cycles"], new["cycles"]), (564, 402))
+            else:
+                self.assertEqual(normalized(old), normalized(new))
+        self.assertLess(current["comparison"][8]["candidate_cycles"],
+                        current["comparison"][8]["reference_cycles"])
+        self.assertFalse(current["FPGA_timing_admitted"])
+        self.assertFalse(current["simulator_modified"])
 
     def test_raw_changes_rejected_even_without_outer_seal(self):
         with tempfile.TemporaryDirectory() as temporary:
