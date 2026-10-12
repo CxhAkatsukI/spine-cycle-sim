@@ -63,3 +63,10 @@ changes belong to `grasu-regraph-integration`. The distinct routed SST candidate
 uses `RoutedReGraphSystem`; these runners do not replace the legacy v8 probe.
 Original-paper reproduction, resource-matched
 A4, old K4 and optimized K4 remain distinct evidence boundaries.
+
+Within `row_line/`, `route_preparation.py` binds the checked production XO,
+padded SSSP host and unchanged historical kernels/connectivity; `route.py`
+composes the existing environment, admission and link owners. Its separate
+[route checkpoint](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/route/README.md)
+records a successful environment preflight and memory-refused non-start,
+not routed timing or an FPGA speedup.

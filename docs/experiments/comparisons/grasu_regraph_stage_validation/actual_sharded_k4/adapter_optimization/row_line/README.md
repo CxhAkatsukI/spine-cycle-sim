@@ -146,8 +146,10 @@ Only weighted production RTL was probed; the other edge formats have C++
 packet evidence. Host tests use CPU oracles, not FPGA execution.
 
 Route/link still requires the unchanged 40-GiB tree budget plus 16-GiB reserve.
-No new route or board timing is admitted here. Once resources permit, bind
-this candidate's exact XO and padded host to a new immutable route study,
+The [route checkpoint](route/README.md) binds this exact XO and padded host
+to the unchanged historical connectivity. All six environment preflights
+pass, but the 53.74-GiB available-memory observation fails 56-GiB admission;
+no route was started. Once resources permit, retry in a fresh directory,
 check routed timing/connectivity, and measure paired resident executions.
 The [model checkpoint](model/README.md) separately checks new input traffic
 and completion while preserving exact legacy outputs. It does not discharge
