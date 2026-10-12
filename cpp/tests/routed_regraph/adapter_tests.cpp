@@ -1,5 +1,6 @@
 #include "adapter_fixture.hpp"
 #include "adapter_timing_matrix.hpp"
+#include "bank_fixture.hpp"
 
 #include <iostream>
 #include <limits>
@@ -60,6 +61,7 @@ Result run(const Data &data, Options options) {
       .data_width_bytes = 64, .max_burst_beats = 16,
       .request_fifo_depth = 16, .response_fifo_depth = 16,
       .read_beat_fifo_depth = 16, .read_reorder_capacity = 16,
+      .stream_read_beats = options.adapter.cross_row.bank_read_beats,
       .max_pending_requests = 16, .max_outstanding_bursts = 16}, backend);
   Fifo<ReGraphPmaPacket> output("edges", clock, options.depth);
   ReGraphPmaAdapter adapter("adapter", clock, options.adapter, memory, output);
@@ -116,11 +118,15 @@ Result run(const Data &data, Options options) {
   const auto &count = result.counters;
   const auto visited = options.adapter.stop_after_last
       ? (data.expected.empty() ? 0 : data.last_source + 1) : data.partition.vertices;
+  const auto cache_rows = options.adapter.cross_row_pipeline ? options.adapter.cross_row.directory_cache_rows : 8;
   const auto prefetched_rows = options.adapter.prefetch_rows
-      ? std::min(data.partition.vertices, (visited + 7) / 8 * 8) : visited;
+      ? std::min(data.partition.vertices, (visited + cache_rows - 1) / cache_rows * cache_rows) : visited;
   const auto expected_reads = options.adapter.row_line_reads ? (prefetched_rows + 7) / 8 : prefetched_rows;
   const auto extents = options.adapter.row_line_reads && !data.partition.vertices ? 0U : 1U;
-  const auto requests = (extents + expected_reads + data.partition.slots / 16) * options.partitions;
+  const auto directories = (prefetched_rows + cache_rows - 1) / cache_rows;
+  const auto requests = (extents + (cache_rows == 8 ? expected_reads : directories) +
+                         (options.adapter.cross_row.bank_stream ? bank_requests(data, options.adapter.cross_row.bank_fifo_lines) :
+                          data.partition.slots / 16)) * options.partitions;
   require(count.extent_reads == extents * options.partitions && count.row_reads == expected_reads * options.partitions &&
           count.rows_visited == visited * options.partitions,
           "extent or row accounting differs from the bounded prefetch/stop contract");
@@ -135,7 +141,8 @@ Result run(const Data &data, Options options) {
           count.segment_reads == data.partition.slots / 16 * options.partitions, "adapter packet/read conservation failed");
   require(memory.master().stats().requests_accepted == requests &&
           memory.master().stats().requests_completed == requests &&
-          backend.traffic_stats().reads.bytes == requests * 64 &&
+          backend.traffic_stats().reads.bytes ==
+              (extents + expected_reads + data.partition.slots / 16) * options.partitions * 64 &&
           backend.traffic_stats().writes.bytes == 0, "shared AXI traffic conservation failed");
   require(count.max_pending_reads <= options.adapter.pending_read_capacity &&
           count.max_buffered_segments <= options.adapter.segment_buffer_capacity &&
@@ -152,6 +159,74 @@ Result run(const Data &data, Options options) {
 
 int main(int argc, char **argv) {
   try {
+    if (argc == 2 && (std::string_view(argv[1]) == "--directory-tile" ||
+                     std::string_view(argv[1]) == "--packet-pipeline" ||
+                     std::string_view(argv[1]) == "--bank-stream" ||
+                     std::string_view(argv[1]) == "--bank-read-beats" ||
+                     std::string_view(argv[1]) == "--bank-read-beats-wide")) {
+      const bool wide_bank = std::string_view(argv[1]) == "--bank-read-beats-wide";
+      const bool beats = wide_bank || std::string_view(argv[1]) == "--bank-read-beats";
+      const bool bank_stream = beats || std::string_view(argv[1]) == "--bank-stream";
+      const bool packet_pipeline = bank_stream || std::string_view(argv[1]) == "--packet-pipeline";
+      std::size_t cases = 0;
+      for (const auto format : {ReGraphPmaFormat::kWeighted, ReGraphPmaFormat::kDestination, ReGraphPmaFormat::kUnitWeight})
+        for (const auto vertices : {0U, 1U, 7U, 8U, 9U, 17U, 127U, 128U, 129U, 257U, 1025U})
+          for (bool at_end : {false, true})
+            for (bool empty : {false, true}) {
+              const Data data(vertices, at_end, empty, format);
+              Options options;
+              options.adapter.format = format;
+              options.adapter.row_line_reads = options.adapter.cross_row_pipeline = true;
+              options.adapter.cross_row.directory_cache_rows = packet_pipeline ? 1024 : 128;
+              options.adapter.cross_row.packet_pipeline = packet_pipeline;
+              options.adapter.cross_row.bank_stream = bank_stream;
+              options.adapter.cross_row.bank_read_beats = beats;
+              options.adapter.cross_row.bank_fifo_lines = wide_bank ? 256 : 128;
+              if (bank_stream) {
+                options.adapter.cross_row.reader_pipeline_capacity = 2;
+                options.adapter.cross_row.block_drain_cycles = 2;
+              }
+              const auto result = run(data, options);
+              options.reverse = true;
+              const auto reverse = run(data, options);
+              require(result.cycles == reverse.cycles, "directory tile changed with registration order");
+              options.depth = 1;
+              options.sink_start = 1000;
+              options.sink_interval = 7;
+              run(data, options);
+              options.memory_latency = 128;
+              options.partitions = 2;
+              run(data, options);
+              ++cases;
+            }
+      if (bank_stream) {
+        for (const auto format : {ReGraphPmaFormat::kWeighted, ReGraphPmaFormat::kDestination, ReGraphPmaFormat::kUnitWeight})
+          for (const auto vertices : {129U, 257U, 1025U})
+            for (const auto cache : {0U, 1U, 4U, 129U}) {
+              const Data data(vertices, false, false, format, cache, 1, 3);
+              Options options;
+              options.adapter.format = format;
+              options.adapter.row_line_reads = options.adapter.cross_row_pipeline = true;
+              options.adapter.cross_row.directory_cache_rows = 1024;
+              options.adapter.cross_row.packet_pipeline = options.adapter.cross_row.bank_stream = true;
+              options.adapter.cross_row.bank_read_beats = beats;
+              options.adapter.cross_row.bank_fifo_lines = wide_bank ? 256 : 128;
+              options.adapter.cross_row.reader_pipeline_capacity = options.adapter.cross_row.block_drain_cycles = 2;
+              const auto result = run(data, options);
+              options.reverse = true;
+              require(run(data, options).cycles == result.cycles, "dense bank order changed timing");
+              options.depth = 1;
+              options.sink_start = 1000;
+              options.sink_interval = 7;
+              options.memory_latency = 128;
+              options.partitions = 2;
+              run(data, options);
+              ++cases;
+            }
+      }
+      std::cout << "Directory tile PASS cases=" << cases << " packet_traffic_order_backpressure_restart=PASS\n";
+      return 0;
+    }
     if (argc == 2 && (std::string_view(argv[1]) == "--rtl-matrix" ||
                      std::string_view(argv[1]) == "--rtl-continuous-matrix")) {
       const bool continuous = std::string_view(argv[1]) == "--rtl-continuous-matrix";

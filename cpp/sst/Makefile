@@ -61,6 +61,11 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/memory_backend.cpp \
            $(ROOT)/cpp/src/regraph_pma_adapter.cpp \
            $(ROOT)/cpp/src/regraph_pma_cross_row/reader.cpp \
+           $(ROOT)/cpp/src/regraph_pma_cross_row/directory_tile.cpp \
+           $(ROOT)/cpp/src/regraph_pma_cross_row/bank_loader.cpp \
+           $(ROOT)/cpp/src/regraph_pma_cross_row/bank_returns.cpp \
+           $(ROOT)/cpp/src/regraph_pma_cross_row/bank_join.cpp \
+           $(ROOT)/cpp/src/regraph_pma_cross_row/packet_pipeline.cpp \
            $(ROOT)/cpp/src/regraph_pma_cross_row/publisher.cpp \
            $(ROOT)/cpp/src/regraph_pma_cross_row/control.cpp \
            $(ROOT)/cpp/src/shared_axi_port.cpp \

@@ -25,15 +25,16 @@ def _records(text: str, prefix: str, fields: tuple) -> list[dict]:
     return rows
 
 
-def parse_trace(text: str) -> list[dict]:
+def parse_trace(text: str, trials=None) -> list[dict]:
+    trials = TRIALS if trials is None else trials
     cases = _records(text, "AXI_CASE", CASE)
     requests, responses = _records(text, "AXI_AR", AR), _records(text, "AXI_R", R)
-    if (text.count("ADAPTER_AXI_PASS cases=12") != 1
+    if (text.count(f"ADAPTER_AXI_PASS cases={len(trials)}") != 1
             or re.search(r"\b(?:fatal|error|fail)\b", text, re.I)
-            or [tuple(case[key] for key in CONFIG) for case in cases] != TRIALS
-            or [case["trial"] for case in cases] != list(range(len(TRIALS)))
-            or any(row["trial"] not in range(len(TRIALS)) for row in requests + responses)):
-        raise ValueError("complete twelve-case production AXI transcript required")
+            or [tuple(case[key] for key in CONFIG) for case in cases] != trials
+            or [case["trial"] for case in cases] != list(range(len(trials)))
+            or any(row["trial"] not in range(len(trials)) for row in requests + responses)):
+        raise ValueError("complete declared production AXI transcript required")
     for case in cases:
         trial = case["trial"]
         if (case["cycles"] != case["done"] - case["start"] or case["cycles"] <= 0
@@ -59,7 +60,8 @@ def parse_trace(text: str) -> list[dict]:
             cycles = [row["cycle"] for row in events]
             if any(right <= left for left, right in zip(cycles, cycles[1:])):
                 raise ValueError("AXI channel timeline is not strictly ordered")
-        for kind, lower, upper in (("row", ROW_BASE, ROW_BASE + 576), ("pma", 0x10000, ROW_BASE)):
+        row_limit = ROW_BASE + max(576, ((case["vertices"] + 7) // 8) * 64)
+        for kind, lower, upper in (("row", ROW_BASE, row_limit), ("pma", 0x10000, ROW_BASE)):
             selected = [row for row in reads if lower <= row["address"] < upper]
             if (case[kind + "_requests"] != len(selected)
                     or case[kind + "_beats"] != sum(row["beats"] for row in selected)

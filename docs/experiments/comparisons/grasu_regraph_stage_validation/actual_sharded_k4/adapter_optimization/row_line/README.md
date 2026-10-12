@@ -1,5 +1,9 @@
 # Whole-Line Row Directory Candidate
 
+Next bounded-cache investigation: [directory tiles and finite bank streams](directory_tile/README.md).
+The later default-off candidate meets the narrow original-A4 prediction gate
+on the fixed one-round Amazon control; it is not routed or FPGA-calibrated.
+
 ## Decision
 
 The production HLS now has an explicit, default-off whole-line directory

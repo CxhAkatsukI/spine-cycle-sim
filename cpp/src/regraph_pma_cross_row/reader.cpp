@@ -8,18 +8,18 @@
 namespace spine::sim::detail {
 
 bool CrossRowPmaAdapter::issue(Kind kind, Task task, std::uint64_t address,
-                             std::size_t channel, const CycleContext &context) {
+                             std::size_t channel, const CycleContext &context, std::size_t bytes) {
   if (pending_.size() >= config_.pending_read_capacity) return false;
   if (!memory_.requests().try_push(AxiRequest{
           .transaction_id = next_id_, .operation = MemoryOperation::kRead,
-          .address = address, .bytes = 64, .stream_read_beats = false,
+          .address = address, .bytes = bytes, .stream_read_beats = false,
           .target_channel = channel, .write_data = {}})) return false;
   staged_issue_ = Pending{kind, task, context.domain_cycle + config_.read_pipeline_cycles};
   return true;
 }
 
 void CrossRowPmaAdapter::begin_row() {
-  const auto row = rows_.at(source_ - block_);
+  const auto row = tile_ ? tile_->row(source_ - block_) : rows_.at(source_ - block_);
   begin_ = row >> 32;
   end_ = std::min<std::size_t>(std::uint32_t(row), partition_.slots);
   if (begin_ != issued_slots_ || end_ < begin_ || end_ > total_slots_ || begin_ % 16 || end_ % 16)
@@ -30,9 +30,11 @@ void CrossRowPmaAdapter::begin_row() {
 }
 
 void CrossRowPmaAdapter::receive(const AxiResponse &response) {
-  if (!response.success || response.read_data.size() != 64)
-    throw std::runtime_error("cross-row adapter requires a successful full-line response");
   const auto pending = pending_.at(response.transaction_id);
+  const auto bytes = tile_ && pending.kind == Kind::kDirectory
+      ? PmaDirectoryTile::bytes(block_, partition_.vertices, config_.cross_row.directory_cache_rows) : 64;
+  if (!response.success || response.read_data.size() != bytes)
+    throw std::runtime_error("cross-row adapter requires a successful full-line response");
   pending_.erase(response.transaction_id);
   ++counters_.responses;
   if (pending.kind == Kind::kSegment) {
@@ -48,9 +50,10 @@ void CrossRowPmaAdapter::receive(const AxiResponse &response) {
     phase_ = total_slots_ ? Phase::kDirectory : Phase::kTerminal;
     return;
   }
-  block_count_ = std::min<std::size_t>(8, partition_.vertices - block_);
+  block_count_ = std::min<std::size_t>(config_.cross_row.directory_cache_rows, partition_.vertices - block_);
   bool occupied = false;
-  for (std::size_t lane = 0; lane < block_count_; ++lane) {
+  if (tile_) occupied = tile_->load(response.read_data, block_count_, partition_.slots);
+  else for (std::size_t lane = 0; lane < block_count_; ++lane) {
     rows_[lane] = decode_u32(response.read_data, lane * 8) |
         (std::uint64_t(decode_u32(response.read_data, lane * 8 + 4)) << 32);
     const auto begin = rows_[lane] >> 32;

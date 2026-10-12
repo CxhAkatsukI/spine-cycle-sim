@@ -45,12 +45,12 @@ module adapter_axi_tb;
   );
 
   localparam [63:0] ROW_BASE = 64'h80000;
-  reg [63:0] rows [0:71];
-  reg [511:0] banks [0:3][0:127];
-  reg [511:0] expected [0:255];
-  reg [63:0] request_address [0:511];
-  integer request_length [0:511], request_size [0:511], due [0:511];
-  reg request_id [0:511];
+  reg [63:0] rows [0:1031];
+  reg [511:0] banks [0:3][0:511];
+  reg [511:0] expected [0:2047];
+  reg [63:0] request_address [0:2047];
+  integer request_length [0:2047], request_size [0:2047], due [0:2047];
+  reg request_id [0:2047];
   integer cycle = 0, trial = -1, vertices = 0, slots = 0;
   integer issued = 0, retired = 0, beat = 0, responses = 0, packets = 0;
   integer row_requests = 0, row_beats = 0, pma_requests = 0, pma_beats = 0;
@@ -70,13 +70,13 @@ module adapter_axi_tb;
     begin
       aligned = byte_address & ~64'd63;
       read_word = 0;
-      if (aligned >= ROW_BASE && aligned < ROW_BASE + 576) begin
+      if (aligned >= ROW_BASE && aligned < ROW_BASE + 8256) begin
         i = (aligned - ROW_BASE) / 8;
         for (j = 0; j < 8; j = j + 1) read_word[j*64 +: 64] = rows[i+j];
       end else begin
         b = (aligned / 65536) - 1;
         i = (aligned % 65536) / 64;
-        if (b < 0 || b > 3 || i >= 128) $fatal(1, "unmapped read %h", byte_address);
+        if (b < 0 || b > 3 || i >= 512) $fatal(1, "unmapped read %h", byte_address);
         read_word = banks[b][i];
       end
     end
@@ -95,7 +95,7 @@ module adapter_axi_tb;
       if (dut.ap_start && accepted < 0) accepted = cycle;
       if (dut.ap_done && completed < 0) completed = cycle;
       if (arvalid) begin
-        if (issued >= 512 || arsize > 6 || arburst !== 2'b01
+        if (issued >= 2048 || arsize > 6 || arburst !== 2'b01
             || araddr % (1 << arsize) != 0
             || (araddr % 4096) + ((arlen + 1) << arsize) > 4096)
           $fatal(1, "invalid AXI read burst");
@@ -177,9 +177,9 @@ module adapter_axi_tb;
       row_transfer_bytes = 0; pma_transfer_bytes = 0;
       accepted = -1; completed = -1; first_packet = -1; last_packet = -1;
       delay_cycles = latency; sink_delay = stall; outready = stall == 0;
-      for (index = 0; index < 72; index = index + 1) rows[index] = 0;
+      for (index = 0; index < 1032; index = index + 1) rows[index] = 0;
       for (bank = 0; bank < 4; bank = bank + 1)
-        for (index = 0; index < 128; index = index + 1) banks[bank][index] = 0;
+        for (index = 0; index < 512; index = index + 1) banks[bank][index] = 0;
       for (source = 0; source < count; source = source + 1) begin
         cursor = slots;
         if (placement == 0 || (placement == 1 && source + 1 == count)
@@ -238,7 +238,30 @@ module adapter_axi_tb;
     run_case(17, 2, 1, 64, 0);
     run_case(17, 3, 1, 64, 0);
     run_case(17, 0, 1, 64, 1000);
+`ifdef PMA_ADAPTER_DIRECTORY_TILE_TEST
+    run_case(127, 0, 1, 64, 0);
+    run_case(128, 0, 1, 64, 0);
+    run_case(129, 0, 1, 64, 0);
+    run_case(257, 1, 1, 64, 0);
+    run_case(257, 2, 1, 64, 0);
+    run_case(129, 3, 1, 128, 1000);
+`ifdef PMA_ADAPTER_PACKET_PIPELINE_TEST
+    run_case(1023, 1, 1, 64, 0);
+    run_case(1024, 2, 1, 64, 0);
+    run_case(1025, 1, 1, 128, 1000);
+`ifdef PMA_ADAPTER_BANK_STREAM_TEST
+    run_case(257, 0, 3, 64, 0);
+    run_case(129, 0, 3, 128, 1000);
+    $display("ADAPTER_AXI_PASS cases=23");
+`else
+    $display("ADAPTER_AXI_PASS cases=21");
+`endif
+`else
+    $display("ADAPTER_AXI_PASS cases=18");
+`endif
+`else
     $display("ADAPTER_AXI_PASS cases=12");
+`endif
     $finish;
   end
 endmodule

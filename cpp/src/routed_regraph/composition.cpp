@@ -80,7 +80,7 @@ void RoutedReGraphSystem::Impl::build() {
     auto &f = *frontends[worker];
     components.insert(components.end(), {&f.raw, &f.edges, &f.updates, &f.rows,
         &f.requests, &f.internal_requests, &f.responses, &f.internal_responses});
-    auto &adapter_port = port("adapter-master" + suffix, 0);
+    auto &adapter_port = port("adapter-master" + suffix, 0, config.adapter.cross_row.bank_read_beats);
     auto &source_port = port("source-master" + suffix, worker % 2 == 0 ? 23 : 24, true);
     AxiEndpoint source_endpoint(source_port);
     if (worker < 2) {

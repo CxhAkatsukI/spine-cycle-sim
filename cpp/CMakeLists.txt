@@ -17,6 +17,11 @@ add_library(spine_cycle_core STATIC
   src/memory_backend.cpp
   src/regraph_pma_adapter.cpp
   src/regraph_pma_cross_row/reader.cpp
+  src/regraph_pma_cross_row/directory_tile.cpp
+  src/regraph_pma_cross_row/bank_loader.cpp
+  src/regraph_pma_cross_row/bank_returns.cpp
+  src/regraph_pma_cross_row/bank_join.cpp
+  src/regraph_pma_cross_row/packet_pipeline.cpp
   src/regraph_pma_cross_row/publisher.cpp
   src/regraph_pma_cross_row/control.cpp
   src/shared_axi_port.cpp

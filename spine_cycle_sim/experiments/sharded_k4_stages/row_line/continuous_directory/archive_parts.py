@@ -11,14 +11,16 @@ ARCHIVE = "raw_continuous_directory.tar.gz"
 PART_BYTES = 64 * 1024**2
 
 
-def split(archive, destination, *, part_bytes=PART_BYTES):
+def split(archive, destination, *, part_bytes=PART_BYTES, archive_name=ARCHIVE):
+    if Path(archive_name).name != archive_name or archive_name in {"", ".", ".."}:
+        raise ValueError("local archive filename required")
     if not 0 < part_bytes <= PART_BYTES or destination.exists():
         raise ValueError("bounded parts and a fresh destination required")
     destination.mkdir(parents=True)
     parts = []
     with archive.open("rb") as source:
         while data := source.read(part_bytes):
-            name = f"{ARCHIVE}.part{len(parts) + 1:02d}"
+            name = f"{archive_name}.part{len(parts) + 1:02d}"
             path = destination / name
             with path.open("xb") as output:
                 output.write(data)
@@ -29,19 +31,21 @@ def split(archive, destination, *, part_bytes=PART_BYTES):
 
 
 @contextmanager
-def assembled(destination, record):
+def assembled(destination, record, *, archive_name=ARCHIVE):
+    if Path(archive_name).name != archive_name or archive_name in {"", ".", ".."}:
+        raise ValueError("local archive filename required")
     if "archive_parts" not in record:
-        yield destination / ARCHIVE
+        yield destination / archive_name
         return
     parts = record["archive_parts"]
     if (not parts or len(parts) > 8 or type(record["archive_bytes"]) is not int
             or sum(item["bytes"] for item in parts) != record["archive_bytes"]):
         raise ValueError("archive part geometry differs")
     with tempfile.TemporaryDirectory(prefix="continuous-archive-") as temporary:
-        archive = Path(temporary) / ARCHIVE
+        archive = Path(temporary) / archive_name
         with archive.open("xb") as output:
             for number, item in enumerate(parts, 1):
-                name = f"{ARCHIVE}.part{number:02d}"
+                name = f"{archive_name}.part{number:02d}"
                 path = destination / name
                 if (item["path"] != name or type(item["bytes"]) is not int
                         or not 0 < item["bytes"] <= PART_BYTES

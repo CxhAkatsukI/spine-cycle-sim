@@ -1,0 +1,34 @@
+{
+  "RTL_cases": 23,
+  "adapter_resources": {
+    "BRAM_18K": 76,
+    "DSP": 0,
+    "FF": 16854,
+    "LUT": 39326,
+    "URAM": 0
+  },
+  "core_tests": 27,
+  "hardware_timing_admitted": false,
+  "legacy_SST_cases": 5,
+  "model_runs": 18,
+  "paper_modified": false,
+  "production_promotion": false,
+  "publication_match_admitted": false,
+  "status": "PREDICTION_TARGET_MET_NOT_FPGA",
+  "strict_resource_match_admitted": false,
+  "target_met": true,
+  "warm_results": [
+    {
+      "candidate_over_A4": 1.0461828759887353,
+      "cycles": 699141,
+      "latency": 64,
+      "v3_over_candidate": 7.59532626465906
+    },
+    {
+      "candidate_over_A4": 0.9687121050900579,
+      "cycles": 1251794,
+      "latency": 128,
+      "v3_over_candidate": 7.495424167235184
+    }
+  ]
+}

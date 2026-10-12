@@ -3,6 +3,11 @@
 This continues the [frozen hardware diagnostic](../RESULTS.md). It is not a
 completed original-A4 comparison or a published-performance match.
 
+The later [finite-directory/bank-stream study](row_line/directory_tile/README.md)
+meets a separately declared **prediction-only** A4 gate on one fixed Amazon
+resident SSSP round. It does not complete the hardware or publication match
+described here. Earlier evidence and failed candidates remain unchanged.
+
 ## Reading Order
 
 1. The parent diagnostic explains why the actual routed path, not the old

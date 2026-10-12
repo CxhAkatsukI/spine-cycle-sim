@@ -43,6 +43,12 @@ struct ReGraphPmaCrossRowSchedule {
   std::uint64_t publisher_pipeline_cycles{2};
   // Counterfactual candidate: current single-loop HLS fails II=1. Default off.
   bool continuous_directory{false};
+  // Explicit production-HLS candidate; 8 is the unchanged legacy line cache.
+  std::size_t directory_cache_rows{8};
+  bool packet_pipeline{false};
+  bool bank_stream{false};
+  bool bank_read_beats{false};
+  std::size_t bank_fifo_lines{128};
 };
 
 struct ReGraphPmaAdapterConfig {
@@ -63,6 +69,8 @@ struct ReGraphPmaAdapterConfig {
 struct ReGraphPmaAdapterCounters {
   std::uint64_t extent_reads{};
   std::uint64_t row_reads{};
+  std::uint64_t directory_requests{};
+  std::uint64_t pma_requests{};
   std::uint64_t rows_visited{};
   std::uint64_t empty_rows{};
   std::uint64_t empty_exit_cycles{};

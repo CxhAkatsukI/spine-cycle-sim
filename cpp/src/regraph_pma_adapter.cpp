@@ -17,7 +17,12 @@ ReGraphPmaAdapter::ReGraphPmaAdapter(std::string name, ClockId clock_id,
   if (!config_.pending_read_capacity || !config_.segment_buffer_capacity ||
       !config_.row_control_cycles || !config_.segment_issue_interval ||
       (config_.row_line_reads && !config_.prefetch_rows) ||
-      (config_.cross_row.continuous_directory && !config_.cross_row_pipeline)) {
+      ((config_.cross_row.continuous_directory || config_.cross_row.packet_pipeline ||
+        config_.cross_row.bank_stream) && !config_.cross_row_pipeline) ||
+      (config_.cross_row.bank_read_beats &&
+       (!config_.cross_row.bank_stream || !memory_.read_beat_stream_enabled())) ||
+      (config_.cross_row.bank_fifo_lines != 128 && config_.cross_row.bank_fifo_lines != 256) ||
+      (config_.cross_row.bank_fifo_lines != 128 && !config_.cross_row.bank_stream)) {
     throw std::invalid_argument("invalid routed PMA adapter capacity or schedule");
   }
   if (memory_.requests().clock_id() != clock_id || output_.clock_id() != clock_id) {

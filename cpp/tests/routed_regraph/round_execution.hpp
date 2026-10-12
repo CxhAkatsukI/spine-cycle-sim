@@ -26,6 +26,11 @@ struct AdapterOptions {
   bool trace_invocations{};
   bool cross_row{};
   bool continuous_directory{};
+  std::size_t directory_cache_rows{8};
+  bool packet_pipeline{};
+  bool bank_stream{};
+  bool bank_read_beats{};
+  std::size_t bank_fifo_lines{128};
 };
 
 inline void execute(const st::Input& input, const std::filesystem::path& output,
@@ -46,6 +51,15 @@ inline void execute(const st::Input& input, const std::filesystem::path& output,
   config.adapter.row_line_reads = options.row_line;
   config.adapter.cross_row_pipeline = options.cross_row;
   config.adapter.cross_row.continuous_directory = options.continuous_directory;
+  config.adapter.cross_row.directory_cache_rows = options.directory_cache_rows;
+  config.adapter.cross_row.packet_pipeline = options.packet_pipeline;
+  config.adapter.cross_row.bank_stream = options.bank_stream;
+  config.adapter.cross_row.bank_read_beats = options.bank_read_beats;
+  config.adapter.cross_row.bank_fifo_lines = options.bank_fifo_lines;
+  if (options.bank_stream) {
+    config.adapter.cross_row.reader_pipeline_capacity = 2;
+    config.adapter.cross_row.block_drain_cycles = 2;
+  }
   config.adapter_stream_depth = config.gather_stream_depth = config.mux_stream_depth = 32;
   config.compute.apply_request_window = 16;
   config.compute.vertex_state_base = config.compute.source_state_base = 0;
