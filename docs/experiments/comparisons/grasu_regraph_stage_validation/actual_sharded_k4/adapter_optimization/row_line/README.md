@@ -163,3 +163,7 @@ The [passive occupied-row probe](occupied_rows/README.md) now reproduces all
 original handshakes exactly and observes repeated serial helper lifetimes.
 It motivates testing cross-row pipelining in actual HLS; it does not change
 the simulator or establish a board-level bottleneck attribution.
+The [cross-row production HLS study](cross_row/README.md) now passes complete
+RTL/ABI/packet gates: dense synthetic cases improve approximately 2.5--3x,
+but last-only sparsity regresses 28.47% and estimated LUT use doubles. These
+are retained side by side; this candidate is not routed or a model correction.
