@@ -15,6 +15,11 @@ from .route_preparation import prepare
 
 def run(build: Path, study: Path, host: Path, integration: Path, output: Path, *, requested: bool) -> dict:
     manifest = prepare(build, study, host, integration, output)
+    return run_prepared(build, output, manifest, requested=requested)
+
+
+def run_prepared(build: Path, output: Path, manifest: dict, *, requested: bool) -> dict:
+    """Execute only after the owning candidate's fresh preparation succeeds."""
     stage = "environment"
     try:
         (output / "tmp").mkdir()

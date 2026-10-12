@@ -87,3 +87,11 @@ composes the existing environment, admission and link owners. Its separate
 [route checkpoint](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/route/README.md)
 records a successful environment preflight and memory-refused non-start,
 not routed timing or an FPGA speedup.
+
+`row_line/cross_row/route_preparation.py` independently admits the V3 XO,
+unchanged ABI/connectivity and checked padded host against an immutable
+whole-line basis. Its thin `route.py` uses `row_line/route.py::run_prepared`
+and the existing environment, admission and link owners. The
+[V3 route checkpoint](../../../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/cross_row/route/README.md)
+preserves the memory-refused non-start; no new route supervisor, simulator
+timing factor or FPGA claim is introduced.

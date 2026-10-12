@@ -10,6 +10,9 @@ replays all original request/response timestamps and outputs exactly.
 [separately versioned model checkpoint](model/README.md) now passes exact
 legacy replay and complete AU/SU/WK state/traffic checks. Its 2.48--3.28x
 predicted improvement is not an FPGA result or timing-calibration claim.
+The [V3 route checkpoint](route/README.md) binds the exact candidate, padded
+host and historical connectivity; six environment checks pass, but the
+unchanged memory guard refuses to start route. It delivers no new bitstream.
 
 This is a real HLS input-path change, not a timing correction factor. Within
 each cached eight-source directory line, one memory process flattens source
