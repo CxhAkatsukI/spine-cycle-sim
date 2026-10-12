@@ -1,0 +1,226 @@
+{
+  "baseline_admitted": false,
+  "g_nonempty_comparisons": [
+    {
+      "current_over_original": 0.03014176082058824,
+      "cycles": {
+        "current": 16068,
+        "original": 533081
+      },
+      "latency": 64,
+      "updates": 64
+    },
+    {
+      "current_over_original": 2.496731052661659,
+      "cycles": {
+        "current": 1441620,
+        "original": 577403
+      },
+      "latency": 64,
+      "updates": 4096
+    },
+    {
+      "current_over_original": 0.028863215471107005,
+      "cycles": {
+        "current": 30532,
+        "original": 1057817
+      },
+      "latency": 128,
+      "updates": 64
+    },
+    {
+      "current_over_original": 2.3988962300407874,
+      "cycles": {
+        "current": 2740180,
+        "original": 1142267
+      },
+      "latency": 128,
+      "updates": 4096
+    }
+  ],
+  "g_source_references": [
+    {
+      "bytes": 26068,
+      "excerpts": [
+        {
+          "line": 194,
+          "text": "#if defined(GRASU_COMPACT_HBM_PORTS) || (defined(SW_EMU) && !defined(__SYNTHESIS__))"
+        },
+        {
+          "line": 195,
+          "text": "void bin_search_direct("
+        },
+        {
+          "line": 261,
+          "text": "#ifdef GRASU_COMPACT_HBM_PORTS"
+        },
+        {
+          "line": 302,
+          "text": "#if defined(GRASU_COMPACT_HBM_PORTS) || (defined(SW_EMU) && !defined(__SYNTHESIS__))"
+        },
+        {
+          "line": 303,
+          "text": "bin_search_direct(edges, binary_0, row_offset_0, edge_size, segment_head_stream_out);"
+        }
+      ],
+      "path": "/home/chuxiao/grasu-regraph-integration/repos/GraSU/GraSU/GraSU_kernels/src/kernel_bin_search.cpp",
+      "sha256": "c1b8f084518dbaacebb033458b056d7354df6b25489a20e9cf4800f97e100957"
+    },
+    {
+      "bytes": 12718,
+      "excerpts": [
+        {
+          "line": 88,
+          "text": "void process_cache_direct("
+        },
+        {
+          "line": 283,
+          "text": "process_cache_direct(pma_cache, update_stream);"
+        },
+        {
+          "line": 284,
+          "text": "#elif defined(GRASU_PURE_PIPELINE_DIRECT_CACHE)"
+        },
+        {
+          "line": 285,
+          "text": "process_cache_direct(pma_cache, update_stream);"
+        }
+      ],
+      "path": "/home/chuxiao/grasu-regraph-integration/repos/GraSU/GraSU/GraSU_kernels/src/kernel_process_cache.cpp",
+      "sha256": "eccb7ea04f56772af6d59ca058db35458e97a8e571c10c241699f67697c054a0"
+    },
+    {
+      "bytes": 33902,
+      "excerpts": [
+        {
+          "line": 21,
+          "text": "INFO: [HLS 200-1510] Running: add_files /home/chuxiao/grasu-regraph-integration/repos/GraSU/GraSU/GraSU_kernels/src/kernel_bin_search.cpp -cflags  -D _GTHREAD_USE_COND_INIT_FUNC -D GRASU_MAX_CACHE_SEGMENT=131072 -D GRASU_COMPACT_HBM_PORTS -I /home/chuxiao/grasu-regraph-integration/repos/GraSU/GraSU/GraSU_kernels/src -I /home/chuxiao/grasu-regraph-integration/repos/GraSU/GraSU/GraSU/src -I /data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc"
+        }
+      ],
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/logs/bin_search/bin_search/bin_search_vitis_hls.log",
+      "sha256": "196c77b13316abe9d541f744ddce0969ceaf37c75077f136804cc9aa3e564395"
+    },
+    {
+      "bytes": 34963,
+      "excerpts": [
+        {
+          "line": 21,
+          "text": "INFO: [HLS 200-1510] Running: add_files /home/chuxiao/grasu-regraph-integration/repos/GraSU/GraSU/GraSU_kernels/src/kernel_process_cache.cpp -cflags  -D _GTHREAD_USE_COND_INIT_FUNC -D GRASU_MAX_CACHE_SEGMENT=131072 -D GRASU_COMPACT_HBM_PORTS -D GRASU_ENABLE_COMPLETION_TOKEN -D GRASU_PURE_PIPELINE_DIRECT_CACHE -I /home/chuxiao/grasu-regraph-integration/repos/GraSU/GraSU/GraSU_kernels/src -I /home/chuxiao/grasu-regraph-integration/repos/GraSU/GraSU/GraSU/src -I /data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc"
+        }
+      ],
+      "path": "/data/tmp/chuxiao/grasu_regraph_sharded_k4_sssp_hw_b8d2ba3_20260806/logs/process_cache/process_cache/process_cache_vitis_hls.log",
+      "sha256": "ef99f6fbab2707c034fd3f05b719779a22a071f8d29c3bb7d04550d1132d5ba2"
+    }
+  ],
+  "g_ten_percent_prediction_target_met": false,
+  "limitations": [
+    "G original-source16 and paper8 are distinct; neither timing model is publication-calibrated",
+    "G diagnostic uses one destination window, not the complete 23-channel production layout",
+    "R endpoint, source-state bank, replica and parent-credit budgets are not strictly equal",
+    "R is warm compute-only SSSP; G, host and seed preparation are excluded on every arm",
+    "Candidate is not a routed FPGA measurement or a promoted production plugin"
+  ],
+  "new_spine_comparison_executed": false,
+  "publication_match_admitted": false,
+  "r": {
+    "comparisons": [
+      {
+        "arms": {
+          "a4": {
+            "arm": "a4",
+            "cycles": 30740788,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "candidate": {
+            "arm": "candidate",
+            "cycles": 32160486,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "cross_row": {
+            "arm": "cross_row",
+            "cycles": 244269384,
+            "passed": true,
+            "read_bytes": 2021226752,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.0461828759887353,
+        "candidate_over_cross_row_read_bytes": 1.0000029130823616,
+        "cross_row_over_candidate": 7.59532626465906,
+        "latency": 64
+      },
+      {
+        "arms": {
+          "a4": {
+            "arm": "a4",
+            "cycles": 59442350,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "candidate": {
+            "arm": "candidate",
+            "cycles": 57582524,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "cross_row": {
+            "arm": "cross_row",
+            "cycles": 431605442,
+            "passed": true,
+            "read_bytes": 2021226752,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 0.9687121050900579,
+        "candidate_over_cross_row_read_bytes": 1.0000029130823616,
+        "cross_row_over_candidate": 7.495424167235184,
+        "latency": 128
+      }
+    ],
+    "complete_spine_gr_comparison": false,
+    "hardware_timing_admitted": false,
+    "publication_match_admitted": false,
+    "status": "R_CONVERGENCE_DIAGNOSTIC_PASS_NOT_BASELINE_ADMISSION",
+    "strict_resource_match_admitted": false,
+    "ten_percent_compute_target_met": true
+  },
+  "reports": [
+    {
+      "bytes": 61348,
+      "file": "matched_g.json",
+      "sha256": "f2b7f1fa608028793549dbf1eea3e7d284d540ecc3800bfe61c0b7f9efff4449",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/common-g-v1/results.json"
+    },
+    {
+      "bytes": 296374,
+      "file": "r_convergence.json",
+      "sha256": "c3cbeae0c532b79fef95253f888f4c6c927df5e89509cc0715d20b0da9ae9a6a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/attempt-v2/results.json"
+    },
+    {
+      "bytes": 201034,
+      "file": "failed_attempt_v1.json",
+      "sha256": "3e19827ea712af0cec9f5f8b71d2ad793d5932e7bca0cca1cd0fcd1d51eb35ee",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/attempt-v1/results.json"
+    }
+  ],
+  "status": "DIAGNOSTIC_CHECKPOINT_NOT_BASELINE_ADMISSION"
+}

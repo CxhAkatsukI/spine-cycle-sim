@@ -10,6 +10,12 @@ The revised next step is [actual sharded-K4 validation](actual_sharded_k4/README
 freeze and observe the production path, diagnose it, then optimize and compare
 it with original A4. The independent PMA+A4 control below is not that hardware.
 
+For the current **G retention -> R retention -> integration -> Spine** sequence,
+use the [baseline admission checkpoint](evaluation_impact/README.md) and its
+[implementation plan](evaluation_impact/PLAN.md). The new common-input G
+diagnostic exposes a performance mismatch; source/finite agreement below
+must not be read as a passing current-G/original-G timing comparison.
+
 ## Current Status
 
 SST/Spine extraction passed exact regression in `51565fc`. Independent G/R

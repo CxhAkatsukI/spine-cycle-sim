@@ -1,5 +1,11 @@
 # Delivery Conclusions
 
+The historical controls below retain their original scope. For the subsequent
+current-G and actual-K4 admission work, start with the
+[baseline validation checkpoint](evaluation_impact/README.md). It adds a
+matched-input G comparison and full R convergence diagnostic, without promoting
+the baseline or replacing the frozen evaluation.
+
 ## Bottom Line
 
 The incremental G+R, SST integration and Spine extractions preserve every

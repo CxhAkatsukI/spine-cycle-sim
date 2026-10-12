@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.20)
+project(common_g_diagnostic LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+get_filename_component(ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE)
+if(NOT CORE_BUILD)
+  message(FATAL_ERROR "CORE_BUILD must name the frozen diagnostic simulator/cpp build")
+endif()
+add_executable(common_g_execution execution.cpp)
+target_include_directories(common_g_execution PRIVATE "${ROOT}/cpp/include")
+target_link_libraries(common_g_execution PRIVATE
+  "${CORE_BUILD}/liboriginal_grasu_cycle.a" "${CORE_BUILD}/libspine_cycle_core.a")
+target_compile_options(common_g_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)

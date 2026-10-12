@@ -1,0 +1,135 @@
+# Baseline Admission Plan
+
+## Objective
+
+Establish that the implemented GraSU update path and ReGraph computation path
+retain defensible performance relative to their independent originals before
+using their composition as a baseline against Spine. A requested 10% match is
+a testable outcome, not a promise or a tuning objective. A failed row is a
+finding to explain and fix, never a reason to modify a timing coefficient.
+
+Two distinct claims need separate decisions:
+
+- **Implementation retention:** same-input, common-memory comparisons against
+  independent source-derived original models, with explicit resource changes.
+- **Published-performance reproduction:** original paper workload, topology,
+  clock, device/memory, numerator and event window, plus an admitted timing
+  model or original FPGA measurement. The first does not establish the second.
+
+## Phase 1: Freeze And Inspect
+
+Status: implemented for the bounded diagnostics.
+
+Pin component source, unchanged SST plugin, initial graph/state, update batch,
+compiled binary, compiler/flags, clocks, memory issue/credit/latency settings,
+event windows and resource ledgers. Keep A (original mixed ReGraph), A4
+(original four Little), B (actual adapter plus modified K4), and complete G+R
+as distinct identities. The queued adapter-only route is not a G correction.
+
+The production G build logs confirm `GRASU_COMPACT_HBM_PORTS` and
+`GRASU_PURE_PIPELINE_DIRECT_CACHE`. These select sequential direct search and
+direct HBM hot updates instead of the original parallel search/URAM path.
+This is a real hardware-port difference, not only a plotting problem.
+
+## Phase 2: Validate G Separately
+
+Status: source/finite replay passed; matched-input performance gate failed.
+
+The first common-input diagnostic covers batch sizes 0, 64 and 4096, both
+64/128-cycle memory assumptions, identical prepared full-word PMA and updates,
+200 MHz, four physical banks and resident update-to-drain windows. Complete
+state, physical traffic and hot/cold routing are checked. Empty input is a
+fixed-overhead control, never an updates-per-second data point.
+
+Required next implementation work:
+
+1. Keep the current direct path as a frozen control. Test original parallel
+   search and hot-cache behavior with the same local-destination/weighted ABI;
+   weight packing must not silently change search order or delete semantics.
+2. Choose an actual HLS resource-feasible G path: restore the original cached
+   path, or implement bounded parallel HBM search/update with RAW conflict
+   handling. Confirm storage/ports, schedules and completion tokens. Do not
+   silently model URAM that the hardware does not contain.
+3. Mirror that chosen path in a separate reviewable simulator component;
+   compare source/RTL state, requests, backpressure and timing assumptions.
+   Rebuild core/SST in fresh directories and retain all old pins.
+4. Rerun common inputs, larger/neighboring batches and hot/cold/conflicting
+   keys, plus actual temporal workloads. Report both faster and slower rows.
+   Thresholds apply to the complete declared nonempty matrix.
+5. Admit original timing from published or board evidence separately. The
+   reachable source16 configuration is not the paper's eight-slot geometry;
+   the missing temporal conversion/denominator cannot be fitted away.
+
+Exit: per-input state/work parity, documented resources and event window,
+then a passing performance-retention decision. Failure retains the gate open.
+
+## Phase 3: Validate R Separately
+
+Status: all twelve full-convergence executions passed state/traffic gates;
+the candidate meets the 10% A4 prediction target on this fixed SSSP slice.
+Broader workload, resource and publication timing admission remains open.
+
+Run original A4, unchanged cross-row K4 and bank-stream candidate on the fixed
+Amazon real-ID slice: old converged SSSP state, three source-0 weight decreases,
+same post-update graph, propagation to zero active vertices. Check the
+synchronous per-round oracle, independent shortest-path closure, final
+replicas, active trajectory, traffic and request conservation. Predeclare
+64/128-cycle assumptions and both registration orders; retain all 12 rows.
+
+Then add neighboring graph/degree/occupancy cases and supported CC/ResPR
+semantics before generalizing. Original ReGraph's published PR/BFS/Closeness
+Centrality are not all identical to our algorithms. In particular, original
+PR fixed sweeps cannot be compared to residual PR convergence as the same work.
+
+List masters, physical banks, outstanding parents, state replicas, buffers,
+merge/apply widths and clock: A4 and K4 are not strictly resource-identical.
+Compare A with A4 separately; never pretend four Little reproduces 11+3.
+Use an admitted publication case to test the original R model's timing,
+independently of the A4/B retention control.
+
+Exit: no hidden resource/work advantage and passing retention on the declared
+matrix. Simulation-only closeness remains prediction evidence until timing
+admission. R success cannot compensate for failed G.
+
+## Phase 4: Compose The Baseline
+
+Status: not admitted; do not bypass the G/R gates.
+
+Feed G-produced PMA directly into the actual adapter/K4 path. Check extents,
+row metadata, local/global destination translation, degree/correction seeds,
+state replicas and completion barriers. G ends before adapter/R begins in
+the selected sequential implementation. Adapter and R overlap internally;
+do not add their elapsed times as though they were sequential.
+
+Measure host preparation/rebin/relaunch separately with a fixed Release host
+binary, CPU affinity and repetitions. State exactly which preparation, DMA,
+launch/wait and publication events each resident/setup-inclusive result covers.
+Prove the windows close without missing or double-counted work.
+
+## Phase 5: Spine Demo And Figure Review
+
+Status: bounded R diagnostic available; complete admitted Spine/G+R demo pending.
+
+Only after admission, compare common old converged state plus one batch until
+convergence, first on a memory-bounded real case, then the declared matrix.
+No cold/warm mixing and no substitution of one-hop for convergence. Report
+Spine/G/R/adapter/host windows and their shares, not just a total speedup.
+
+Fig. 7 needs new FPGA runs for a newly routed baseline. Fig. 8 must be rerun if
+G or host preparation changes. Fig. 9 needs fresh complete request traces and
+energy replay. G/R-only changes do not numerically invalidate Spine-only
+Fig. 10 attribution or Fig. 11 fitting; their existing evidence limits remain.
+Keep paper and frozen handoffs unchanged. Deliver a separate evidence package.
+
+## Execution And Delivery
+
+Use unique raw attempt paths under `/data/chuxiao/experiments/`, process time
+and address-space bounds, explicit memory reserve and whole-service cgroups.
+R parallelism is bounded by measured RSS; routing waits for its own 64-GiB
+admission threshold. No other users' processes or system caches are changed.
+
+This folder owns the plan, interpretation, compact evidence and reproduction
+guide. Code has one owner at `spine_cycle_sim/experiments/evaluation_impact/`
+and `cpp/tests/evaluation_impact/`; preparation, execution and analysis are
+separate. Push reviewed checkpoints with their failures and remaining gates.
+Do not mark the overall baseline objective complete because a harness passes.

@@ -20,6 +20,7 @@ Contributors and coding agents must follow [the repository working rules](AGENTS
 | Review current isolated G / original R / matched A4 / adapter studies | [Stage-validation status and evidence](docs/experiments/comparisons/grasu_regraph_stage_validation/README.md) |
 | Read the stage-study conclusion and what remains unverified | [Delivery conclusions](docs/experiments/comparisons/grasu_regraph_stage_validation/CONCLUSIONS.md) |
 | Review the bounded PMA/K4 optimization toward original A4 | [Fixed one-round prediction study](docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/directory_tile/README.md) |
+| Validate current G/R before a new Spine comparison | [Baseline admission plan and bounded diagnostics](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/README.md) |
 
 ## Repository Boundaries
 
