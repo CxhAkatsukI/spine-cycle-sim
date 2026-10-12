@@ -72,6 +72,7 @@ used by existing experiments.
 | G+R placement, capacity, and empty-shard invariants | [grasu_runtime_tests.cpp](tests/grasu_runtime_tests.cpp) |
 | Routed adapter packet, pressure, completion and optional production-HLS checks | [routed_regraph/](tests/routed_regraph/) via [model runner](../scripts/validate_sharded_k4_adapter_model.py) |
 | Shared resident K4 round-test composition | [round_execution.hpp](tests/routed_regraph/round_execution.hpp), with thin [legacy](tests/routed_regraph/empty_segment/round.cpp) and [whole-line](tests/routed_regraph/row_line/round.cpp) CLIs; exact historical cycles, counters and full-state replay, not a production topology change |
+| Passive production adapter observation | [occupied_row_monitor.sv](tests/routed_regraph/occupied_row_monitor.sv); read-only helper/packet events beside the unchanged AXI bench, with [complete raw replay](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/occupied_rows/README.md), not FPGA stage calibration |
 | Independent-channel pressure and legacy behavior | [axi/](tests/axi/); paused read consumer, independent R/B/W stalls, finite credits, complete payload and registration-order checks |
 | Owner/reactivation protocol | [spine_owner_tests.cpp](tests/spine_owner_tests.cpp) |
 | Vertex lifecycle | [spine_vertex_lifecycle_tests.cpp](tests/spine_vertex_lifecycle_tests.cpp) |

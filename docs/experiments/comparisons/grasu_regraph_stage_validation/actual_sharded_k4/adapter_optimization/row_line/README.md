@@ -159,3 +159,7 @@ reads save only 1.44--2.36% total cycles beyond skip-empty, and the candidate
 remains 23.83--25.93x slower than A4 in the declared model. This is not FPGA
 timing or isolated adapter overhead. The final resource-matched original-A4
 versus actual adapter+K4 comparison remains a separate unfinished gate.
+The [passive occupied-row probe](occupied_rows/README.md) now reproduces all
+original handshakes exactly and observes repeated serial helper lifetimes.
+It motivates testing cross-row pipelining in actual HLS; it does not change
+the simulator or establish a board-level bottleneck attribution.

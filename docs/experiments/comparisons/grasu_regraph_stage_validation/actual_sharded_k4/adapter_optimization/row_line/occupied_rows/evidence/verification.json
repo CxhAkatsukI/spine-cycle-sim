@@ -1,0 +1,712 @@
+{
+  "archive_bytes": 1047769,
+  "archive_sha256": "db57cc76673ed0b78e14f5eac65eca429fab3c4eb49aeb28e88628a87527fa9e",
+  "claim": "complete_RTL_handshake_replay_not_FPGA_timing",
+  "files": [
+    {
+      "bytes": 14873,
+      "path": "run/manifest.json",
+      "sha256": "d42056691e298da6ac816f9b6c3c1f6d2bfc1aa69224ac091fdb6f02f7ddd219"
+    },
+    {
+      "bytes": 76261,
+      "path": "run/results.json",
+      "sha256": "051b9b3f8c235ec014038e9059870eb72669b368738e8ce488ef96d99ee093c3"
+    },
+    {
+      "bytes": 11316,
+      "path": "run/sources/cpp/tests/routed_regraph/adapter_axi_tb.sv",
+      "sha256": "6b75c9ab0b263ba01f2d98d4c9c60d80347bb8c31c842fa1dd96679251c436bb"
+    },
+    {
+      "bytes": 1233,
+      "path": "run/sources/cpp/tests/routed_regraph/occupied_row_monitor.sv",
+      "sha256": "66440dd307bf630c70ff3c4814377c7094ca40a1f2ee47d1fd6d5c7b71622722"
+    },
+    {
+      "bytes": 170854,
+      "path": "run/sources/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/evidence/results.json",
+      "sha256": "076e276a091c30f08cdc604de0d43fa10e9a33204f2ad177e4c4e13ab7fa3b31"
+    },
+    {
+      "bytes": 213976,
+      "path": "run/sources/external/3_adapter.hw.xo",
+      "sha256": "4bae8791463a71f8b02ccad870d0178b2268cea8cfa6173c480e8a596a24417a"
+    },
+    {
+      "bytes": 199923,
+      "path": "run/sources/external/4_adapter.hw.xo",
+      "sha256": "752a0395caa5b0117624e6a8055f738e6e608b2272be2d8d118c51b38efa80a2"
+    },
+    {
+      "bytes": 42052,
+      "path": "run/sources/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 5190,
+      "path": "run/sources/spine_cycle_sim/experiments/original_regraph_execution/sssp_real_round/delivery.py",
+      "sha256": "ac3fdbd9f8a2fcbe515966ad4f87decf46a9e835dce7fbee8a397a9dd1c7dd2b"
+    },
+    {
+      "bytes": 77,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/__init__.py",
+      "sha256": "04bc79b011b358e9e9657bd3089588e1deb12cb855950a113ba65a272661e529"
+    },
+    {
+      "bytes": 5714,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/analysis.py",
+      "sha256": "7a4d526abc0333f622084309446f973e6b1780ff3c96e66c9a7f2e55974d2b4e"
+    },
+    {
+      "bytes": 8560,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/delivery.py",
+      "sha256": "281e66c10c48f7aa7c5c309475702a98b728415cbac27c4c35d3c6fb25e16637"
+    },
+    {
+      "bytes": 7464,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/study.py",
+      "sha256": "77c1cfda34a2d9b005dab2b7f887a272f6998d2e3d16bf118931a81c97e35c65"
+    },
+    {
+      "bytes": 5296,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "bytes": 5656,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+    },
+    {
+      "bytes": 1619,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+    },
+    {
+      "bytes": 7743,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/routing.py",
+      "sha256": "569a83a1e07527433946433e3886db877790161ec6450bbbdb984d2e2e8a4214"
+    },
+    {
+      "bytes": 4357,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/evidence.py",
+      "sha256": "61bf318193f98a99b8ce9d94f7060a8ba0f53ebac6f68043b9d3cc5fcf1c257b"
+    },
+    {
+      "bytes": 82,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/__init__.py",
+      "sha256": "e7a5fcabac87e33eb2b1ce4205381eb0d3eafa5e94a7b9645079c7e1d62b6d93"
+    },
+    {
+      "bytes": 4470,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/analysis.py",
+      "sha256": "64d679028ace1ac671003563ae7045429ad3ff93dabe8b3f57c7e789368df131"
+    },
+    {
+      "bytes": 4955,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/delivery.py",
+      "sha256": "33a8e6eb42f939091af3113dd0c30c560ce3c663b280bd134c55cd9a1ce44dbc"
+    },
+    {
+      "bytes": 3668,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/recheck.py",
+      "sha256": "b06ff4676a96222dea9e26877328f481cfe1d0fdd0894544ff1101d878c39424"
+    },
+    {
+      "bytes": 5954,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/study.py",
+      "sha256": "d486140842939108fbce2b609a7dd520fa6c29197412842b39954e1edb1258df"
+    },
+    {
+      "bytes": 3727,
+      "path": "run/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/validation.py",
+      "sha256": "04744e1419b2d778429c6855e4d5827641181630391be372dfc4aa7029e8093a"
+    },
+    {
+      "bytes": 3456,
+      "path": "run/sources/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "bytes": 11316,
+      "path": "run/reference/adapter_axi_tb.sv",
+      "sha256": "6b75c9ab0b263ba01f2d98d4c9c60d80347bb8c31c842fa1dd96679251c436bb"
+    },
+    {
+      "bytes": 1048,
+      "path": "run/reference/commands.json",
+      "sha256": "eef683b2ce477bd3c6ad17e27d083a919bd39ef432337afd40b347ece8119b69"
+    },
+    {
+      "bytes": 212,
+      "path": "run/reference/compile.progress.json",
+      "sha256": "750035b4bbbc93d841e6bf89c8378da8cf5a71abd685d9c8bfcf66c22e94f7e9"
+    },
+    {
+      "bytes": 2511,
+      "path": "run/reference/compile.resources.json",
+      "sha256": "209ef6bfdb95ea34a80ff07b1f4c9c94299072fe4a9fed0e2dad526517dd4800"
+    },
+    {
+      "bytes": 0,
+      "path": "run/reference/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 4026,
+      "path": "run/reference/compile.stdout.txt",
+      "sha256": "8a307f84c190baffac050f5e53feea938462eb069d8a0733d9e6dd93cb4f7b64"
+    },
+    {
+      "bytes": 243,
+      "path": "run/reference/elaborate.progress.json",
+      "sha256": "aa41789f869191dea38546301ab760576622d08ab8e6f3d9e236af14df4b8ff2"
+    },
+    {
+      "bytes": 1912,
+      "path": "run/reference/elaborate.resources.json",
+      "sha256": "b98b5a6ef522c5466155485586fec791a4ddd980d9087a1fda646c409a0e9589"
+    },
+    {
+      "bytes": 0,
+      "path": "run/reference/elaborate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3153,
+      "path": "run/reference/elaborate.stdout.txt",
+      "sha256": "3268d8d57f27d229f0e9102de65284a8d9bb27ed8140a3ad5ea4453335ff2119"
+    },
+    {
+      "bytes": 3144,
+      "path": "run/reference/inputs.json",
+      "sha256": "cabe689611ceab92644e9eaca13a7c7aa48992bc77e57da929db154ae0ca5630"
+    },
+    {
+      "bytes": 1233,
+      "path": "run/reference/occupied_row_monitor.sv",
+      "sha256": "66440dd307bf630c70ff3c4814377c7094ca40a1f2ee47d1fd6d5c7b71622722"
+    },
+    {
+      "bytes": 70241,
+      "path": "run/reference/pma_to_regraph_adapter.v",
+      "sha256": "c8cdc046d3c3a5abfad8ef9af01076f5df044c1eb212efb32264e2475d523569"
+    },
+    {
+      "bytes": 21964,
+      "path": "run/reference/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "bytes": 22893,
+      "path": "run/reference/pma_to_regraph_adapter_emit_row_segments.v",
+      "sha256": "01c508952b035c6aa521c09492d8ddc76edd901f098f36610ded3708efe8bb4e"
+    },
+    {
+      "bytes": 345984,
+      "path": "run/reference/pma_to_regraph_adapter_emit_row_segments_Pipeline_segment_loop.v",
+      "sha256": "d18d2c92cd025802d8db82886de2c10da31b7e7eebadf873754e698a17bf4dcd"
+    },
+    {
+      "bytes": 2788,
+      "path": "run/reference/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "bytes": 100997,
+      "path": "run/reference/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "bytes": 1109,
+      "path": "run/reference/pma_to_regraph_adapter_hls_deadlock_idx0_monitor.v",
+      "sha256": "24db5fb722a9c884b98737daa24ff69c6286c2eae8e3ca450a27a1634ac73c35"
+    },
+    {
+      "bytes": 1230,
+      "path": "run/reference/pma_to_regraph_adapter_hls_deadlock_kernel_monitor_top.vh",
+      "sha256": "817a09f184661f81f9193c8766b8abf290aba591b4cbf843d972871321a534fc"
+    },
+    {
+      "bytes": 70641,
+      "path": "run/reference/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "sha256": "17722f0de2eff17383d23c107af5694da20a1e084d431dde7a7508e2251925c5"
+    },
+    {
+      "bytes": 3234,
+      "path": "run/reference/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "bytes": 1907,
+      "path": "run/reference/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "bytes": 13,
+      "path": "run/reference/run.tcl",
+      "sha256": "6218ffa4f2392f3c61113605d4ab2cd023186e11f1da826b920e510a9a797efb"
+    },
+    {
+      "bytes": 212,
+      "path": "run/reference/simulate.progress.json",
+      "sha256": "42f46d31afadde69b8f621a6e43d1b8e97a76523097af3f330fc19c0b44afcfb"
+    },
+    {
+      "bytes": 1896,
+      "path": "run/reference/simulate.resources.json",
+      "sha256": "d23bda0c923381bc6c71a2f44d15a2cdce559951237ea0d2a6775986979c6965"
+    },
+    {
+      "bytes": 0,
+      "path": "run/reference/simulate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 58749,
+      "path": "run/reference/simulate.stdout.txt",
+      "sha256": "5364b8398d8cc34ff6f55948963ffd62dca707dc34dd3b86af9e9911532caf64"
+    },
+    {
+      "bytes": 3153,
+      "path": "run/reference/xelab.log",
+      "sha256": "3268d8d57f27d229f0e9102de65284a8d9bb27ed8140a3ad5ea4453335ff2119"
+    },
+    {
+      "bytes": 59472,
+      "path": "run/reference/xsim.log",
+      "sha256": "8635623b14570d7b3d35d83fbc24d365c0187a6d437e1323168868ff54c33e6b"
+    },
+    {
+      "bytes": 4026,
+      "path": "run/reference/xvlog.log",
+      "sha256": "8a307f84c190baffac050f5e53feea938462eb069d8a0733d9e6dd93cb4f7b64"
+    },
+    {
+      "bytes": 11316,
+      "path": "run/candidate/adapter_axi_tb.sv",
+      "sha256": "6b75c9ab0b263ba01f2d98d4c9c60d80347bb8c31c842fa1dd96679251c436bb"
+    },
+    {
+      "bytes": 966,
+      "path": "run/candidate/commands.json",
+      "sha256": "8278a62f72504716f320a3bc3232dbec2db781fbbd05702101798de42e07f05a"
+    },
+    {
+      "bytes": 240,
+      "path": "run/candidate/compile.progress.json",
+      "sha256": "f2a24acac6eec9db917f16b03592dee9c23ba878bd4643bc2730f9b973956d4b"
+    },
+    {
+      "bytes": 2428,
+      "path": "run/candidate/compile.resources.json",
+      "sha256": "1b55bbdcea0d166b779ecd64324b3f1bc0e20103fd91dfe4e62f4b598656d30b"
+    },
+    {
+      "bytes": 0,
+      "path": "run/candidate/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3694,
+      "path": "run/candidate/compile.stdout.txt",
+      "sha256": "ddf6bf061a8e096af693c5e758a24a3dfbf8084cd77be220642d74fb06c3b449"
+    },
+    {
+      "bytes": 212,
+      "path": "run/candidate/elaborate.progress.json",
+      "sha256": "d7293be7e19391277633013bafc3c1515771811a0455874d3e01113af18603d0"
+    },
+    {
+      "bytes": 1912,
+      "path": "run/candidate/elaborate.resources.json",
+      "sha256": "faf6f8e2e8919ebe145bbd46e9274b4714aae36f40b4071ee9d5e5f6eae37e90"
+    },
+    {
+      "bytes": 0,
+      "path": "run/candidate/elaborate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3095,
+      "path": "run/candidate/elaborate.stdout.txt",
+      "sha256": "0897c9619d3e27abb01f06b314bf76dff2219bc47a5de08aea01489f6623118d"
+    },
+    {
+      "bytes": 2887,
+      "path": "run/candidate/inputs.json",
+      "sha256": "e9de16c3dff8b494c6adde735c0fdc4909b62c7a3d14c88dc96ea13773dfc341"
+    },
+    {
+      "bytes": 1233,
+      "path": "run/candidate/occupied_row_monitor.sv",
+      "sha256": "66440dd307bf630c70ff3c4814377c7094ca40a1f2ee47d1fd6d5c7b71622722"
+    },
+    {
+      "bytes": 72710,
+      "path": "run/candidate/pma_to_regraph_adapter.v",
+      "sha256": "f81d80aa8a3a426e9e87f910eb9638037c1ec6080bb044bf15a178d455820c0a"
+    },
+    {
+      "bytes": 21964,
+      "path": "run/candidate/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "bytes": 22893,
+      "path": "run/candidate/pma_to_regraph_adapter_emit_row_segments.v",
+      "sha256": "c86b30ba4d00171a7ff2a1a07c42de02088a00eeb4ed616edde5f9f7b3786e87"
+    },
+    {
+      "bytes": 345984,
+      "path": "run/candidate/pma_to_regraph_adapter_emit_row_segments_Pipeline_segment_loop.v",
+      "sha256": "799158a0eeb00eba8f8a59b5b8d709ad9f687d30bc5fa27934f4d1b835d36e81"
+    },
+    {
+      "bytes": 2788,
+      "path": "run/candidate/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "bytes": 100997,
+      "path": "run/candidate/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "bytes": 1109,
+      "path": "run/candidate/pma_to_regraph_adapter_hls_deadlock_idx0_monitor.v",
+      "sha256": "24db5fb722a9c884b98737daa24ff69c6286c2eae8e3ca450a27a1634ac73c35"
+    },
+    {
+      "bytes": 1230,
+      "path": "run/candidate/pma_to_regraph_adapter_hls_deadlock_kernel_monitor_top.vh",
+      "sha256": "3db9547227000a96538a59e247dcd048acd7124d465924b19aaf9fb649f9ae4b"
+    },
+    {
+      "bytes": 3234,
+      "path": "run/candidate/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "bytes": 1907,
+      "path": "run/candidate/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "bytes": 13,
+      "path": "run/candidate/run.tcl",
+      "sha256": "6218ffa4f2392f3c61113605d4ab2cd023186e11f1da826b920e510a9a797efb"
+    },
+    {
+      "bytes": 256,
+      "path": "run/candidate/simulate.progress.json",
+      "sha256": "0e4ff38aee8393d8f0ee71c3064d14d8784fafc769d675030bf21e8b717fde08"
+    },
+    {
+      "bytes": 1897,
+      "path": "run/candidate/simulate.resources.json",
+      "sha256": "d70f067d8fee20f549a22079b5d59bdb4551b7ac1de556c9ff940b983a58e367"
+    },
+    {
+      "bytes": 0,
+      "path": "run/candidate/simulate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 45240,
+      "path": "run/candidate/simulate.stdout.txt",
+      "sha256": "48edcbd7857fb84f447a11fd7dc5a7ed14c7429ad8cff4deaafcdd7e1319cc50"
+    },
+    {
+      "bytes": 3095,
+      "path": "run/candidate/xelab.log",
+      "sha256": "0897c9619d3e27abb01f06b314bf76dff2219bc47a5de08aea01489f6623118d"
+    },
+    {
+      "bytes": 45963,
+      "path": "run/candidate/xsim.log",
+      "sha256": "ebbc47532e269a15f335c1b4c4b8fd994868c36aca512e3722132f75b9db43bc"
+    },
+    {
+      "bytes": 3694,
+      "path": "run/candidate/xvlog.log",
+      "sha256": "ddf6bf061a8e096af693c5e758a24a3dfbf8084cd77be220642d74fb06c3b449"
+    },
+    {
+      "bytes": 13665,
+      "path": "development/0_run-v1/manifest.json",
+      "sha256": "74f5743dfce81de4e38222e8a7af5e49bedb8f023cdf1863bb58c58cfdbbac7c"
+    },
+    {
+      "bytes": 118,
+      "path": "development/0_run-v1/failure.json",
+      "sha256": "0dee1e90fdeaaa9983a716c3e248ad02053b74d92c5a7fc070407571d9975c15"
+    },
+    {
+      "bytes": 11316,
+      "path": "development/0_run-v1/sources/cpp/tests/routed_regraph/adapter_axi_tb.sv",
+      "sha256": "6b75c9ab0b263ba01f2d98d4c9c60d80347bb8c31c842fa1dd96679251c436bb"
+    },
+    {
+      "bytes": 1228,
+      "path": "development/0_run-v1/sources/cpp/tests/routed_regraph/occupied_row_monitor.sv",
+      "sha256": "30cbc1dfd5c31f9efbf4d818772010924259c257e5c451e457a0320f107513b7"
+    },
+    {
+      "bytes": 170854,
+      "path": "development/0_run-v1/sources/docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/evidence/results.json",
+      "sha256": "076e276a091c30f08cdc604de0d43fa10e9a33204f2ad177e4c4e13ab7fa3b31"
+    },
+    {
+      "bytes": 213976,
+      "path": "development/0_run-v1/sources/external/3_adapter.hw.xo",
+      "sha256": "4bae8791463a71f8b02ccad870d0178b2268cea8cfa6173c480e8a596a24417a"
+    },
+    {
+      "bytes": 199923,
+      "path": "development/0_run-v1/sources/external/4_adapter.hw.xo",
+      "sha256": "752a0395caa5b0117624e6a8055f738e6e608b2272be2d8d118c51b38efa80a2"
+    },
+    {
+      "bytes": 42052,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 77,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/__init__.py",
+      "sha256": "04bc79b011b358e9e9657bd3089588e1deb12cb855950a113ba65a272661e529"
+    },
+    {
+      "bytes": 5714,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/analysis.py",
+      "sha256": "7a4d526abc0333f622084309446f973e6b1780ff3c96e66c9a7f2e55974d2b4e"
+    },
+    {
+      "bytes": 8560,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/delivery.py",
+      "sha256": "281e66c10c48f7aa7c5c309475702a98b728415cbac27c4c35d3c6fb25e16637"
+    },
+    {
+      "bytes": 7464,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/adapter_axi/study.py",
+      "sha256": "77c1cfda34a2d9b005dab2b7f887a272f6998d2e3d16bf118931a81c97e35c65"
+    },
+    {
+      "bytes": 5296,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "bytes": 5656,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "65f09dcacbc1b3f09af2ee7f9ecd7cd06c9d270c6f99c8072f01fce02ba16a5d"
+    },
+    {
+      "bytes": 1619,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "f2247af11fed884d207800fff097d57bd6049997023bd087b2ee2ba3de75ba25"
+    },
+    {
+      "bytes": 7743,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/routing.py",
+      "sha256": "569a83a1e07527433946433e3886db877790161ec6450bbbdb984d2e2e8a4214"
+    },
+    {
+      "bytes": 82,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/__init__.py",
+      "sha256": "e7a5fcabac87e33eb2b1ce4205381eb0d3eafa5e94a7b9645079c7e1d62b6d93"
+    },
+    {
+      "bytes": 4470,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/analysis.py",
+      "sha256": "64d679028ace1ac671003563ae7045429ad3ff93dabe8b3f57c7e789368df131"
+    },
+    {
+      "bytes": 4309,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/delivery.py",
+      "sha256": "bd881af31f41601cca289fe6f34c8cb3b447419512b43bc6bb406e1b5918a900"
+    },
+    {
+      "bytes": 3707,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/recheck.py",
+      "sha256": "a20f569d2940c0ad6a38fa3c50ce20d6205e91e2b2271590d865cf55a8576d7c"
+    },
+    {
+      "bytes": 5799,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/occupied_rows/study.py",
+      "sha256": "8e6ef9d55bb3b1dbf2430afbaebfa8ceb9ca70551fbb85c45982526c540bcdc1"
+    },
+    {
+      "bytes": 3727,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/sharded_k4_stages/row_line/validation.py",
+      "sha256": "04744e1419b2d778429c6855e4d5827641181630391be372dfc4aa7029e8093a"
+    },
+    {
+      "bytes": 3456,
+      "path": "development/0_run-v1/sources/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "bytes": 11316,
+      "path": "development/0_run-v1/reference/adapter_axi_tb.sv",
+      "sha256": "6b75c9ab0b263ba01f2d98d4c9c60d80347bb8c31c842fa1dd96679251c436bb"
+    },
+    {
+      "bytes": 1048,
+      "path": "development/0_run-v1/reference/commands.json",
+      "sha256": "eef683b2ce477bd3c6ad17e27d083a919bd39ef432337afd40b347ece8119b69"
+    },
+    {
+      "bytes": 242,
+      "path": "development/0_run-v1/reference/compile.progress.json",
+      "sha256": "50dcb8743ab31a71311bfc46a1625f5d74eb08d59c9846596d9fe9b74a38d1dc"
+    },
+    {
+      "bytes": 2512,
+      "path": "development/0_run-v1/reference/compile.resources.json",
+      "sha256": "4444395d62e23b7d52658081ea64b9517f1f93f1bc15695650ae90588e7b3fce"
+    },
+    {
+      "bytes": 0,
+      "path": "development/0_run-v1/reference/compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 4026,
+      "path": "development/0_run-v1/reference/compile.stdout.txt",
+      "sha256": "3433fafc7fc15e707c8c2a7eef5fe7096fd562bac59538e935d8145012231444"
+    },
+    {
+      "bytes": 243,
+      "path": "development/0_run-v1/reference/elaborate.progress.json",
+      "sha256": "169f19fb15d6621250ead0729683be47bbfdcfd3c51af04dce1046aebb3a0e75"
+    },
+    {
+      "bytes": 1911,
+      "path": "development/0_run-v1/reference/elaborate.resources.json",
+      "sha256": "80c5740e4d6c38a94ea4da40f865c81e60b322ef9184578a3da403b6e6601d17"
+    },
+    {
+      "bytes": 0,
+      "path": "development/0_run-v1/reference/elaborate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3153,
+      "path": "development/0_run-v1/reference/elaborate.stdout.txt",
+      "sha256": "00b6d4ebaf08fbea374db5344d3f593fb10cb6f26a3986448beb0c012d05e085"
+    },
+    {
+      "bytes": 3144,
+      "path": "development/0_run-v1/reference/inputs.json",
+      "sha256": "2d9401ac13a67d2705757618f05297850d3ea78a8441c9624f43b53610dd4305"
+    },
+    {
+      "bytes": 1228,
+      "path": "development/0_run-v1/reference/occupied_row_monitor.sv",
+      "sha256": "30cbc1dfd5c31f9efbf4d818772010924259c257e5c451e457a0320f107513b7"
+    },
+    {
+      "bytes": 70241,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter.v",
+      "sha256": "c8cdc046d3c3a5abfad8ef9af01076f5df044c1eb212efb32264e2475d523569"
+    },
+    {
+      "bytes": 21964,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_control_s_axi.v",
+      "sha256": "17cb06e08d15ad8e6ca0807657b9db3db9ca19f2891ec2cd8e8e6f8f2842af8b"
+    },
+    {
+      "bytes": 22893,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_emit_row_segments.v",
+      "sha256": "01c508952b035c6aa521c09492d8ddc76edd901f098f36610ded3708efe8bb4e"
+    },
+    {
+      "bytes": 345984,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_emit_row_segments_Pipeline_segment_loop.v",
+      "sha256": "d18d2c92cd025802d8db82886de2c10da31b7e7eebadf873754e698a17bf4dcd"
+    },
+    {
+      "bytes": 2788,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_flow_control_loop_pipe_sequential_init.v",
+      "sha256": "9f6aa7446ff5854481d7932964355d76fab2a3e3d4af26243cf8f3fbb04bcf6a"
+    },
+    {
+      "bytes": 100997,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_gmem0_m_axi.v",
+      "sha256": "54a5e74fa213a19d32edb575f47be3a5eb735202f0138d3ac9a133088fd2fa09"
+    },
+    {
+      "bytes": 1109,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_hls_deadlock_idx0_monitor.v",
+      "sha256": "24db5fb722a9c884b98737daa24ff69c6286c2eae8e3ca450a27a1634ac73c35"
+    },
+    {
+      "bytes": 1230,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_hls_deadlock_kernel_monitor_top.vh",
+      "sha256": "817a09f184661f81f9193c8766b8abf290aba591b4cbf843d972871321a534fc"
+    },
+    {
+      "bytes": 70641,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_pma_to_regraph_adapter_Pipeline_row_prefetch_loop.v",
+      "sha256": "17722f0de2eff17383d23c107af5694da20a1e084d431dde7a7508e2251925c5"
+    },
+    {
+      "bytes": 3234,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_regslice_both.v",
+      "sha256": "074331305e81b50823e4c37f961543d611cacf99876bcecacbf305479c876f67"
+    },
+    {
+      "bytes": 1907,
+      "path": "development/0_run-v1/reference/pma_to_regraph_adapter_sparsemux_17_3_64_1_1.v",
+      "sha256": "54fe82311e2940201e299e9421a6751b7cf4c2aab25c7865c4bbd0cd931d6759"
+    },
+    {
+      "bytes": 13,
+      "path": "development/0_run-v1/reference/run.tcl",
+      "sha256": "6218ffa4f2392f3c61113605d4ab2cd023186e11f1da826b920e510a9a797efb"
+    },
+    {
+      "bytes": 257,
+      "path": "development/0_run-v1/reference/simulate.progress.json",
+      "sha256": "b48c28325b4d1eac4215d7763624f225d3cc3f1072f07dca6794d4737d907d93"
+    },
+    {
+      "bytes": 1896,
+      "path": "development/0_run-v1/reference/simulate.resources.json",
+      "sha256": "ebef16f0675757e46531fe2985501e9731fb2b9146303b85f45e3211e4043776"
+    },
+    {
+      "bytes": 0,
+      "path": "development/0_run-v1/reference/simulate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 931,
+      "path": "development/0_run-v1/reference/simulate.stdout.txt",
+      "sha256": "b5c8af1aecc8151cb09f24e873262cf43316bfe68b2a37bf7c125c1726bbc452"
+    },
+    {
+      "bytes": 3153,
+      "path": "development/0_run-v1/reference/xelab.log",
+      "sha256": "00b6d4ebaf08fbea374db5344d3f593fb10cb6f26a3986448beb0c012d05e085"
+    },
+    {
+      "bytes": 1654,
+      "path": "development/0_run-v1/reference/xsim.log",
+      "sha256": "e8b97b24e1e1041caeea8dccac9645e16cc38d6901791639bdcb6b2e92974ec2"
+    },
+    {
+      "bytes": 4026,
+      "path": "development/0_run-v1/reference/xvlog.log",
+      "sha256": "3433fafc7fc15e707c8c2a7eef5fe7096fd562bac59538e935d8145012231444"
+    }
+  ],
+  "indexed_not_redistributed": [
+    "proprietary_Xilinx_tools_and_compiled_simulation_images"
+  ],
+  "results_sha256": "051b9b3f8c235ec014038e9059870eb72669b368738e8ce488ef96d99ee093c3",
+  "status": "OCCUPIED_ROW_RTL_REPLAY_PASS_NOT_BOARD"
+}
