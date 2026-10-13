@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "FOCUSED_REGRESSION_PASS_NOT_HARDWARE_ADMISSION",
+  "test_count": 76,
+  "passed": 76,
+  "failed": 0,
+  "evidence_boundary": "Python runner, analysis, source controls, portable capsule and repository structure tests; not RTL execution, timing calibration or integrated-G admission",
+  "core_or_sst_numerical_code_changed": false,
+  "fresh_core_or_sst_regression_claimed": false,
+  "retained_first_attempt": {
+    "passed": 75,
+    "errors": 1,
+    "cause": "The capsule test ran before packaging had created evidence/index.json; rerun after packaging passed with no numerical change or relaxed assertion"
+  },
+  "files": [
+    {
+      "path": "focused-tests-v2.resources.json",
+      "sha256": "187ee5fcef0c9c2f2e75bb3fb8109053c3823a265d802a74a39f141a693d7bce"
+    },
+    {
+      "path": "focused-tests-v2.stderr.txt",
+      "sha256": "5977c8db8885ff938d1492fc0345239ff192ec4aac75d4a8a5a9673859dd4fad"
+    },
+    {
+      "path": "focused-tests-v2.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "focused-tests.resources.json",
+      "sha256": "589f506666a50e10fe4464e49a97d2b09f27d2c4d0760de3b5a43116919d6233"
+    },
+    {
+      "path": "focused-tests.stderr.txt",
+      "sha256": "28ff959dae72daf47af5cd6db0a452b6a0ffe7435a5d806c7d51e14f0994a731"
+    },
+    {
+      "path": "focused-tests.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -25,6 +25,13 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [finite search pipeline](search_pipeline/README.md) is the isolated HLS
+feasibility follow-up: 64 ordered contexts, hierarchical arbitration, explicit
+32-entry metadata FIFOs and bounded source backpressure controls. It does not
+change the production core/SST or inherit the model's timing-retention result.
+Its HLS/RTL job waits behind the cache comparison and reserves the pending
+route's memory budget. The complete-G and publication gates remain open.
+
 The [metadata-buffer controls](metadata_credits/README.md) retain the complete
 diagnostic declaration and add 32/64-slot controls on the candidate's single
 metadata master per CU. Physical banks, issue bandwidth, cache timing and all

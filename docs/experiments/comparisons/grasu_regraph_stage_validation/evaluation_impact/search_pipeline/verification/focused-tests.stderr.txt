@@ -1,0 +1,99 @@
+test_analysis_refuses_missing_work_or_false_admission (tests.test_grasu_search_pipeline.SearchPipelineTests.test_analysis_refuses_missing_work_or_false_admission) ... ok
+test_committed_capsule_keeps_complete_controls_and_closed_admission (tests.test_grasu_search_pipeline.SearchPipelineTests.test_committed_capsule_keeps_complete_controls_and_closed_admission) ... ERROR
+test_complete_declaration_without_timing_admission (tests.test_grasu_search_pipeline.SearchPipelineTests.test_complete_declaration_without_timing_admission) ... ok
+test_hls_keeps_clock_and_finite_rtl_gate (tests.test_grasu_search_pipeline.SearchPipelineTests.test_hls_keeps_clock_and_finite_rtl_gate) ... ok
+test_no_launch_during_previous_component_or_route_reservation (tests.test_grasu_search_pipeline.SearchPipelineTests.test_no_launch_during_previous_component_or_route_reservation) ... ok
+test_parse_rejects_scope_topology_and_ledger_errors (tests.test_grasu_search_pipeline.SearchPipelineTests.test_parse_rejects_scope_topology_and_ledger_errors) ... ok
+test_rtl_state_pass_cannot_hide_clock_failure_or_promote_whole_g (tests.test_grasu_search_pipeline.SearchPipelineTests.test_rtl_state_pass_cannot_hide_clock_failure_or_promote_whole_g) ... ok
+test_rtl_transactions_require_all_18_calls (tests.test_grasu_search_pipeline.SearchPipelineTests.test_rtl_transactions_require_all_18_calls) ... ok
+test_testbench_source_is_not_rtl_or_finite_fifo_evidence (tests.test_grasu_search_pipeline.SearchPipelineTests.test_testbench_source_is_not_rtl_or_finite_fifo_evidence) ... ok
+test_complete_190_row_scope_and_exact_114_row_replay (tests.test_grasu_metadata_credits.MetadataCreditsTests.test_complete_190_row_scope_and_exact_114_row_replay) ... ok
+test_no_row_selection_to_promote_performance (tests.test_grasu_metadata_credits.MetadataCreditsTests.test_no_row_selection_to_promote_performance) ... ok
+test_reject_scope_defaults_resources_traffic_and_false_admission (tests.test_grasu_metadata_credits.MetadataCreditsTests.test_reject_scope_defaults_resources_traffic_and_false_admission) ... ok
+test_all_114_rows_exact_without_promoting_failed_gate (tests.test_grasu_search_diagnostics.SearchDiagnosticsTests.test_all_114_rows_exact_without_promoting_failed_gate) ... ok
+test_delivery_archives_exact_sidecars_and_rejects_tampering (tests.test_grasu_search_diagnostics.SearchDiagnosticsTests.test_delivery_archives_exact_sidecars_and_rejects_tampering) ... ok
+test_missing_markers_drain_traffic_and_pressure_rejected (tests.test_grasu_search_diagnostics.SearchDiagnosticsTests.test_missing_markers_drain_traffic_and_pressure_rejected) ... ok
+test_scope_identity_resource_and_admission_rejections (tests.test_grasu_search_diagnostics.SearchDiagnosticsTests.test_scope_identity_resource_and_admission_rejections) ... ok
+test_changed_context_budget_cannot_be_reported_as_same_experiment (tests.test_grasu_search_concurrency.SearchConcurrencyTests.test_changed_context_budget_cannot_be_reported_as_same_experiment) ... ok
+test_complete_266_with_190_exact_unchanged (tests.test_grasu_search_concurrency.SearchConcurrencyTests.test_complete_266_with_190_exact_unchanged) ... ok
+test_new_control_work_state_time_and_traffic_cannot_be_omitted (tests.test_grasu_search_concurrency.SearchConcurrencyTests.test_new_control_work_state_time_and_traffic_cannot_be_omitted) ... ok
+test_one_conflict_failure_does_not_pass_by_averaging (tests.test_grasu_search_concurrency.SearchConcurrencyTests.test_one_conflict_failure_does_not_pass_by_averaging) ... ok
+test_scope_historical_drift_failure_and_unsupported_promotion (tests.test_grasu_search_concurrency.SearchConcurrencyTests.test_scope_historical_drift_failure_and_unsupported_promotion) ... ok
+test_complete_scope_exact_replay_and_prediction (tests.test_grasu_cached_hot.CachedHotMatrixTests.test_complete_scope_exact_replay_and_prediction) ... ok
+test_delivery_rechecks_pins_summary_and_complete_output (tests.test_grasu_cached_hot.CachedHotMatrixTests.test_delivery_rechecks_pins_summary_and_complete_output) ... ok
+test_empty_cache_transfer_cannot_be_free (tests.test_grasu_cached_hot.CachedHotMatrixTests.test_empty_cache_transfer_cannot_be_free) ... ok
+test_empty_direct_paths_are_not_charged_an_implicit_cache (tests.test_grasu_cached_hot.CachedHotMatrixTests.test_empty_direct_paths_are_not_charged_an_implicit_cache) ... ok
+test_missing_duplicate_old_drift_and_failed_rows_rejected (tests.test_grasu_cached_hot.CachedHotMatrixTests.test_missing_duplicate_old_drift_and_failed_rows_rejected) ... ok
+test_one_large_conflict_failure_is_not_averaged_away (tests.test_grasu_cached_hot.CachedHotMatrixTests.test_one_large_conflict_failure_is_not_averaged_away) ... ok
+test_work_state_traffic_and_promotion_rejected (tests.test_grasu_cached_hot.CachedHotMatrixTests.test_work_state_traffic_and_promotion_rejected) ... ok
+test_capsule_keeps_predictions_separate_from_admission (tests.test_grasu_hot_lanes.HotOwnerMatrixTests.test_capsule_keeps_predictions_separate_from_admission) ... ok
+test_complete_scope_and_prediction_kind (tests.test_grasu_hot_lanes.HotOwnerMatrixTests.test_complete_scope_and_prediction_kind) ... ok
+test_hardware_promotion_and_free_traffic_rejected (tests.test_grasu_hot_lanes.HotOwnerMatrixTests.test_hardware_promotion_and_free_traffic_rejected) ... ok
+test_large_conflicts_and_owner_aliases_are_declared (tests.test_grasu_hot_lanes.HotOwnerMatrixTests.test_large_conflicts_and_owner_aliases_are_declared) ... ok
+test_missing_duplicate_scope_reduction_and_old_drift_rejected (tests.test_grasu_hot_lanes.HotOwnerMatrixTests.test_missing_duplicate_scope_reduction_and_old_drift_rejected) ... ok
+test_one_large_conflict_failure_cannot_be_hidden (tests.test_grasu_hot_lanes.HotOwnerMatrixTests.test_one_large_conflict_failure_cannot_be_hidden) ... ok
+test_bad_work_or_hardware_claim_rejected (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_bad_work_or_hardware_claim_rejected) ... ok
+test_committed_capsules_are_complete_and_not_promoted (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_committed_capsules_are_complete_and_not_promoted) ... ok
+test_declared_scope_cannot_be_reduced (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_declared_scope_cannot_be_reduced) ... ok
+test_empty_overhead_control_is_not_a_performance_gate (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_empty_overhead_control_is_not_a_performance_gate) ... ok
+test_entire_missing_case_and_duplicate_rejected (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_entire_missing_case_and_duplicate_rejected) ... ok
+test_faster_is_not_automatically_two_sided_match (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_faster_is_not_automatically_two_sided_match) ... ok
+test_full_matrix_is_prediction_only (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_full_matrix_is_prediction_only) ... ok
+test_larger_amortized_batches_not_omitted (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_larger_amortized_batches_not_omitted) ... ok
+test_logical_difference_not_called_speedup (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_logical_difference_not_called_speedup) ... ok
+test_packager_rechecks_summary_and_frozen_identities (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_packager_rechecks_summary_and_frozen_identities) ... ok
+test_validated_runner_replay_preserves_all_84_observations (tests.test_grasu_parallel_search.ParallelSearchMatrixTests.test_validated_runner_replay_preserves_all_84_observations) ... ok
+test_adapter_flags_are_explicit (tests.test_grasu_weighted_source_abi.WeightedAbiTests.test_adapter_flags_are_explicit) ... ok
+test_changed_scope_and_timing_promotion_rejected (tests.test_grasu_weighted_source_abi.WeightedAbiTests.test_changed_scope_and_timing_promotion_rejected) ... ok
+test_complete_matrix (tests.test_grasu_weighted_source_abi.WeightedAbiTests.test_complete_matrix) ... ok
+test_missing_duplicate_reordered_and_diagnostics_rejected (tests.test_grasu_weighted_source_abi.WeightedAbiTests.test_missing_duplicate_reordered_and_diagnostics_rejected) ... ok
+test_width_warnings_are_not_silently_ignored (tests.test_grasu_weighted_source_abi.WeightedAbiTests.test_width_warnings_are_not_silently_ignored) ... ok
+test_declared_arms_and_unchanged_source_wrapper (tests.test_grasu_cache_probe.CacheProbeTests.test_declared_arms_and_unchanged_source_wrapper) ... ok
+test_extended_full_scope_and_same_bank_case (tests.test_grasu_cache_probe.CacheProbeTests.test_extended_full_scope_and_same_bank_case) ... ok
+test_failed_rtl_cannot_be_analyzed_as_success (tests.test_grasu_cache_probe.CacheProbeTests.test_failed_rtl_cannot_be_analyzed_as_success) ... ok
+test_full_scope_not_summarized_as_single_bank (tests.test_grasu_cache_probe.CacheProbeTests.test_full_scope_not_summarized_as_single_bank) ... ok
+test_functional_pass_does_not_promote_failed_clock_or_integrated_g (tests.test_grasu_cache_probe.CacheProbeTests.test_functional_pass_does_not_promote_failed_clock_or_integrated_g) ... ok
+test_incomplete_duplicate_or_unexpected_report_rejected (tests.test_grasu_cache_probe.CacheProbeTests.test_incomplete_duplicate_or_unexpected_report_rejected) ... ok
+test_invalid_wait_rejected_before_freezing_or_sampling (tests.test_grasu_cache_probe.CacheProbeTests.test_invalid_wait_rejected_before_freezing_or_sampling) ... ok
+test_long_wait_keeps_all_resource_limits_and_refuses_source_drift (tests.test_grasu_cache_probe.CacheProbeTests.test_long_wait_keeps_all_resource_limits_and_refuses_source_drift) ... ok
+test_low_memory_never_launches_or_shrinks_the_reserve (tests.test_grasu_cache_probe.CacheProbeTests.test_low_memory_never_launches_or_shrinks_the_reserve) ... ok
+test_memory_wait_recovers_without_changing_resource_budget (tests.test_grasu_cache_probe.CacheProbeTests.test_memory_wait_recovers_without_changing_resource_budget) ... ok
+test_transaction_scope_and_same_row_trajectory (tests.test_grasu_cache_probe.CacheProbeTests.test_transaction_scope_and_same_row_trajectory) ... ok
+test_catalog_generation_includes_new_audit_entry_once (tests.test_repository_structure.RepositoryStructureTests.test_catalog_generation_includes_new_audit_entry_once) ... ok
+test_catalog_order_is_deterministic (tests.test_repository_structure.RepositoryStructureTests.test_catalog_order_is_deterministic) ... ok
+test_document_catalog_excludes_nested_evidence_and_encodes_paths (tests.test_repository_structure.RepositoryStructureTests.test_document_catalog_excludes_nested_evidence_and_encodes_paths) ... ok
+test_document_catalog_includes_relocated_records_but_not_archives_or_guides (tests.test_repository_structure.RepositoryStructureTests.test_document_catalog_includes_relocated_records_but_not_archives_or_guides) ... ok
+test_failure_record_is_classified_by_topic_not_admitted_as_current (tests.test_repository_structure.RepositoryStructureTests.test_failure_record_is_classified_by_topic_not_admitted_as_current) ... ok
+test_inventory_does_not_count_fixture_rows_as_code (tests.test_repository_structure.RepositoryStructureTests.test_inventory_does_not_count_fixture_rows_as_code) ... ok
+test_layout_check_rejects_a_copy_left_at_the_old_path (tests.test_repository_structure.RepositoryStructureTests.test_layout_check_rejects_a_copy_left_at_the_old_path) ... ok
+test_layout_check_rejects_incomplete_relocation (tests.test_repository_structure.RepositoryStructureTests.test_layout_check_rejects_incomplete_relocation) ... ok
+test_layout_check_rejects_new_flat_document (tests.test_repository_structure.RepositoryStructureTests.test_layout_check_rejects_new_flat_document) ... ok
+test_layout_check_requires_the_human_reading_guide (tests.test_repository_structure.RepositoryStructureTests.test_layout_check_requires_the_human_reading_guide) ... ok
+test_line_count_handles_empty_and_unterminated_files (tests.test_repository_structure.RepositoryStructureTests.test_line_count_handles_empty_and_unterminated_files) ... ok
+test_relocation_map_and_reading_guides_pass_layout_check (tests.test_repository_structure.RepositoryStructureTests.test_relocation_map_and_reading_guides_pass_layout_check) ... ok
+test_relocation_map_cannot_move_documents_into_frozen_evidence (tests.test_repository_structure.RepositoryStructureTests.test_relocation_map_cannot_move_documents_into_frozen_evidence) ... ok
+test_script_catalog_keeps_versioned_commands (tests.test_repository_structure.RepositoryStructureTests.test_script_catalog_keeps_versioned_commands) ... ok
+test_tracked_inventory_handles_unstaged_document_relocations (tests.test_repository_structure.RepositoryStructureTests.test_tracked_inventory_handles_unstaged_document_relocations) ... ok
+
+======================================================================
+ERROR: test_committed_capsule_keeps_complete_controls_and_closed_admission (tests.test_grasu_search_pipeline.SearchPipelineTests.test_committed_capsule_keeps_complete_controls_and_closed_admission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_grasu_search_pipeline.py", line 23, in test_committed_capsule_keeps_complete_controls_and_closed_admission
+    index = json.loads((folder / "index.json").read_text())
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/pathlib/_local.py", line 548, in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/pathlib/_abc.py", line 632, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/pathlib/_local.py", line 539, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/search_pipeline/evidence/index.json'
+
+----------------------------------------------------------------------
+Ran 76 tests in 1.634s
+
+FAILED (errors=1)

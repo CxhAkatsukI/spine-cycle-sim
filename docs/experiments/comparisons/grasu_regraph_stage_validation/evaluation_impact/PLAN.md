@@ -73,6 +73,15 @@ search/cache schedules, finite buffers and whole-G resource/clock fit, then
 actual temporal inputs and composition. Production, publication and integration
 decisions remain separately required.
 
+The [finite search pipeline](search_pipeline/README.md) now gives that next
+HLS check a separate implementation owner: 64 contexts with hierarchical
+arbitration and explicit 32-entry metadata buffering. The full nineteen-input
+declaration is exercised with and without bounded output stalls. Its isolated
+synthesis/RTL attempt is queued behind the complete-cache check and preserves
+the pending route's memory reservation. New arbitration-stage latency is not
+yet mirrored in the cycle engine; source/work parity cannot close the clock,
+integrated-G or timing-retention gates.
+
 The [cache component controls](cache_probe/README.md) now examine original
 URAM behavior rather than making cached timing an assumption. Original
 single-bank and complete 16-bank C/RTL state checks pass; lower-LUT static
