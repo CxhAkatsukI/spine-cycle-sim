@@ -22,6 +22,9 @@ struct RoutedReGraphConfig {
   std::uint64_t status_address{0x4800'0000ULL};
   std::size_t fixed_rounds{};
   bool independent_read_write{};
+  // Inspect, but never rewrite, the PMA/rows left by a drained G invocation.
+  // State/seed initialization is still caller-prepared, outside device timing.
+  bool reuse_resident_pma{};
 };
 
 struct RoutedReGraphInvocation {

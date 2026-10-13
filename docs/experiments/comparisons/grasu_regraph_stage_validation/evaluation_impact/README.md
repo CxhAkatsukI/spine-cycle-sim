@@ -25,6 +25,14 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [resident G-to-R handoff](composition/README.md) adds an explicit,
+default-off route that validates and reuses G's physical PMA rather than
+rebuilding R input from logical edges. Its complete small matrix covers
+updated and untouched shards, reserved slots, empty batches and registration
+order; seven invalid handoffs must fail without repair. It uses unchanged
+direct G, not the finite cached candidate. This is physical correctness,
+not complete-G timing, seed/host admission or a new Spine performance claim.
+
 The [finite G search cycle model](search_pipeline/finite_model/README.md)
 now pays explicit registered arbitration, response routing, bounded reorder
 holding and complete drain. All 228 executions pass state/work/traffic checks;

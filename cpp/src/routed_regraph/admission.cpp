@@ -17,6 +17,8 @@ RoutedReGraphConfig::RoutedReGraphConfig() {
 
 void RoutedReGraphSystem::Impl::admit() {
   const auto &c = config.compute;
+  if (config.reuse_resident_pma && backend.outstanding() != 0)
+    throw std::invalid_argument("resident PMA handoff requires a drained memory backend");
   if (layout.vertices == 0 || layout.vertices > std::numeric_limits<std::uint32_t>::max() ||
       layout.partition_vertices != 65536 || layout.partitions.empty() || layout.partitions.size() > 1020 ||
       layout.partitions.size() != (layout.vertices + 65535) / 65536 ||
@@ -91,6 +93,8 @@ void RoutedReGraphSystem::Impl::admit() {
     // The routed host reserves a real all-dummy source-0 segment even if that
     // row has no live edge. Keep its traffic and source-cache cost visible.
     if (part.row_slot_bounds[0].second == 0) {
+      if (config.reuse_resident_pma)
+        throw std::invalid_argument("resident PMA must already contain the routed source-0 dummy reservation");
       if (part.segments.size() == std::numeric_limits<std::uint32_t>::max() / 16)
         throw std::invalid_argument("dummy reservation would overflow PMA slot count");
       std::array<std::uint32_t, 16> dummy;

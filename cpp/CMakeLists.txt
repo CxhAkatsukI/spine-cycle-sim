@@ -144,6 +144,11 @@ if(BUILD_TESTING)
   target_compile_options(routed_regraph_system_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME routed_regraph_system_tests COMMAND routed_regraph_system_tests)
 
+  add_executable(grasu_routed_handoff_tests tests/evaluation_impact/handoff/tests.cpp)
+  target_link_libraries(grasu_routed_handoff_tests PRIVATE spine_cycle_core)
+  target_compile_options(grasu_routed_handoff_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME grasu_routed_handoff_tests COMMAND grasu_routed_handoff_tests)
+
   add_executable(routed_scatter_tests tests/routed_regraph/scatter_tests.cpp)
   target_link_libraries(routed_scatter_tests PRIVATE spine_cycle_core)
   target_compile_options(routed_scatter_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

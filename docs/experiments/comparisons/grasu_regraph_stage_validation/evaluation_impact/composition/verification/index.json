@@ -1,0 +1,247 @@
+{
+  "archive": {
+    "bytes": 3694,
+    "file": "checks.tar.gz",
+    "sha256": "5bb6a5044b50bdb89dce2b69f5e71f3737a4d7ad0dbc5fee214896fc78354e44"
+  },
+  "baseline_admitted": false,
+  "checks": [
+    {
+      "available_before_bytes": 28982185984,
+      "command": [
+        "python3",
+        "-m",
+        "spine_cycle_sim.experiments.evaluation_impact.composition.delivery",
+        "--report",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/attempt-v2/results.json",
+        "--output",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/composition/evidence",
+        "--retained",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/pre_edit",
+        "--retained",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/attempt-v1",
+        "--previous-sst",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "label": "delivery",
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 28192,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/delivery.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/delivery.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.2528165760450065
+    },
+    {
+      "available_before_bytes": 29187993600,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_repository_structure",
+        "tests.test_grasu_routed_handoff",
+        "tests.test_regraph_resource_audit",
+        "tests.test_evaluation_impact",
+        "tests.test_grasu_finite_search_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "label": "focused-tests",
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 67664,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/focused-tests.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/focused-tests.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.555698798969388
+    },
+    {
+      "available_before_bytes": 29239730176,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_repository_structure",
+        "tests.test_grasu_routed_handoff",
+        "tests.test_regraph_resource_audit",
+        "tests.test_evaluation_impact",
+        "tests.test_grasu_finite_search_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "label": "focused-tests-v2",
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 67384,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/focused-tests-v2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/focused-tests-v2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.5556102166883647
+    },
+    {
+      "available_before_bytes": 29232074752,
+      "command": [
+        "python3",
+        "scripts/audit_repository_structure.py",
+        "--check-docs"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "label": "check-docs",
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 15788,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/check-docs.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/check-docs.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.10327454283833504
+    },
+    {
+      "available_before_bytes": 29233184768,
+      "command": [
+        "python3",
+        "scripts/audit_repository_structure.py",
+        "--check-catalogs"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "label": "check-catalogs",
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 21812,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/check-catalogs.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/check-catalogs.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.15324991894885898
+    },
+    {
+      "available_before_bytes": 29228576768,
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "label": "diff-check",
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 15792,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/diff-check.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/gr-handoff-v1/verification-v1/diff-check.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.053060528822243214
+    }
+  ],
+  "focused_python_tests": 54,
+  "members": [
+    {
+      "bytes": 110,
+      "member": "delivery.stdout.txt",
+      "sha256": "e6bc30d0c5f2169a69cd3ff35341914bf25c2c149722309e47f58c20329431b0"
+    },
+    {
+      "bytes": 0,
+      "member": "delivery.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1370,
+      "member": "delivery.resources.json",
+      "sha256": "7d1f57e12797c2f3988c3dbf500735888660be0bcff7bd4b82bcb8bb2f2d0fe6"
+    },
+    {
+      "bytes": 65,
+      "member": "focused-tests.stdout.txt",
+      "sha256": "058a97024d85c37e49533bec3e735929b64bfe4f65cc7cd243b8543a24197359"
+    },
+    {
+      "bytes": 9603,
+      "member": "focused-tests.stderr.txt",
+      "sha256": "d8a6c9fbb4cfd677479152d50a159960f4c1a821ebe78100d5041591073f9674"
+    },
+    {
+      "bytes": 871,
+      "member": "focused-tests.resources.json",
+      "sha256": "70d1076e8e405e9057a53104984bb0bc76de768f575cc04c091acf3895288f87"
+    },
+    {
+      "bytes": 65,
+      "member": "focused-tests-v2.stdout.txt",
+      "sha256": "058a97024d85c37e49533bec3e735929b64bfe4f65cc7cd243b8543a24197359"
+    },
+    {
+      "bytes": 8627,
+      "member": "focused-tests-v2.stderr.txt",
+      "sha256": "7ab84c3ef4a0c73760093011facd2b3274a59e19ccd837292db9eb85f0d8b7e3"
+    },
+    {
+      "bytes": 878,
+      "member": "focused-tests-v2.resources.json",
+      "sha256": "504e9c516d76e4daae417899bbb680f3f90f0881e0e1a255b860e5d9e0738ab1"
+    },
+    {
+      "bytes": 61,
+      "member": "check-docs.stdout.txt",
+      "sha256": "64102c098bc722c7cf4bb5be8ec5fc63e486be0ff860750f8c4e834713e8fe79"
+    },
+    {
+      "bytes": 0,
+      "member": "check-docs.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 694,
+      "member": "check-docs.resources.json",
+      "sha256": "2481f65bcafb60e7293119548d33079d1d5277c4b9c92ae390d7bf7e84fc939e"
+    },
+    {
+      "bytes": 39,
+      "member": "check-catalogs.stdout.txt",
+      "sha256": "a804a509d05304ad9182d1df7fda38b01039c8b921cd3ef96f942d0c23d3bec3"
+    },
+    {
+      "bytes": 0,
+      "member": "check-catalogs.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 706,
+      "member": "check-catalogs.resources.json",
+      "sha256": "1dec2f8f6644ae8f9070214dde29ab9f4e90a661e20422f2fddc2c8e424bedfd"
+    },
+    {
+      "bytes": 0,
+      "member": "diff-check.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "member": "diff-check.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 653,
+      "member": "diff-check.resources.json",
+      "sha256": "a53ed4e847a7dc585e70474387ea16faa0f4f7977b5056efef0fb1476dfd3c53"
+    }
+  ],
+  "retained_failure": "test expected build.stderr.txt; preserved file is build-run.stderr.txt",
+  "status": "HANDOFF_DELIVERY_CHECKS_PASS"
+}

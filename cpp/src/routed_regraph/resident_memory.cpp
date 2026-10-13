@@ -21,22 +21,35 @@ void RoutedReGraphSystem::Impl::initialize_memory() {
       const auto region = find_grasu_regraph_runtime_region(plan, p, "pma" + std::to_string(bank));
       partition.pma_base[bank] = region.channel_offset_bytes;
       partition.pma_channel[bank] = region.channel;
-      backend.fill_payload(region.channel, region.channel_offset_bytes, region.allocated_bytes, 0xff);
+      if (!config.reuse_resident_pma)
+        backend.fill_payload(region.channel, region.channel_offset_bytes, region.allocated_bytes, 0xff);
     }
-    backend.fill_payload(row.channel, row.channel_offset_bytes, row.allocated_bytes, 0);
+    if (!config.reuse_resident_pma)
+      backend.fill_payload(row.channel, row.channel_offset_bytes, row.allocated_bytes, 0);
     std::vector<std::uint8_t> rows;
     rows.reserve((layout.vertices + 1) * 8);
     for (const auto &[begin, end] : part.row_slot_bounds)
       append(rows, (static_cast<std::uint64_t>(begin) << 32) | end, 8);
     append(rows, (static_cast<std::uint64_t>(partition.slots) << 32) | partition.slots, 8);
-    backend.initialize_payload(row.channel, partition.row_base, rows);
+    if (config.reuse_resident_pma) {
+      if (backend.inspect_payload(row.channel, partition.row_base, rows.size()) != rows)
+        throw std::invalid_argument("resident PMA row bounds or extent differ from the G handoff");
+    } else {
+      backend.initialize_payload(row.channel, partition.row_base, rows);
+    }
     for (std::size_t segment = 0; segment < part.segments.size(); ++segment) {
       const auto local = segment >> 1;
       const auto bank = (segment & 1U) * 2 + (local < partition.cache_segments_per_half ? 0 : 1);
       std::vector<std::uint8_t> data;
       data.reserve(64);
       for (auto word : part.segments[segment]) append(data, word, 4);
-      backend.initialize_payload(partition.pma_channel[bank], partition.pma_base[bank] + local * 64, data);
+      const auto address = partition.pma_base[bank] + local * 64;
+      if (config.reuse_resident_pma) {
+        if (backend.inspect_payload(partition.pma_channel[bank], address, data.size()) != data)
+          throw std::invalid_argument("resident PMA segment differs from the G handoff");
+      } else {
+        backend.initialize_payload(partition.pma_channel[bank], address, data);
+      }
     }
     partitions.push_back(partition);
   }
