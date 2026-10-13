@@ -156,6 +156,8 @@ struct GraSuNativeConfig {
   bool compact_parallel_search{};
   // Experimental sixteen-owner hot RMW path, sharing the existing AXI master.
   bool compact_parallel_hot{};
+  // Default-off source16 full-preload/writeback URAM experiment, not routed G.
+  bool compact_cached_hot{};
   std::size_t memory_channels{32};
   std::size_t cache_segments_per_half{131072};
   std::size_t axis_fifo_depth{16};

@@ -17,6 +17,7 @@
 #include "spine_sim/fixed_axi_port.hpp"
 #include "spine_sim/grasu_update/search.hpp"
 #include "spine_sim/grasu_update/processor.hpp"
+#include "spine_sim/grasu_update/cached_processor.hpp"
 #include "spine_sim/grasu_update/pma_word.hpp"
 
 namespace spine::sim {
@@ -1607,8 +1608,8 @@ public:
       result.ddr_updates = dispatch_->ddr_updates();
     }
     for (const auto &processor : processors_) {
-      result.pma_reads += processor->completed();
-      result.pma_writes += processor->completed();
+      result.pma_reads += processor->pma_reads();
+      result.pma_writes += processor->pma_writes();
       result.lane_queue_stalls += processor->lane_queue_stalls();
     }
     result.update_read_bytes = result.updates * result.update_record_bytes;
@@ -1743,6 +1744,13 @@ private:
   };
 
   void validate_config() const {
+    if (config_.compact_cached_hot &&
+        (!config_.compact_parallel_search || config_.compact_parallel_hot ||
+         config_.cache_segments_per_half != grasu_update_detail::kCachedHotSegments ||
+         layout_.partitions.size() != 1 ||
+         layout_.partitions.front().segments.size() < 2 * grasu_update_detail::kCachedHotSegments)) {
+      throw std::invalid_argument("cached hot candidate requires source16 single-window capacity and parallel search only");
+    }
     if (config_.compact_parallel_hot && !config_.compact_parallel_search) {
       throw std::invalid_argument("parallel hot processor requires parallel search candidate");
     }
@@ -1864,11 +1872,12 @@ private:
   }
 
   std::unique_ptr<FixedAxiPort>
-  make_port(const std::string &name, std::size_t channel, std::uint32_t width) {
+  make_port(const std::string &name, std::size_t channel, std::uint32_t width,
+            bool stream_read_beats = false) {
+    auto port_config = grasu_port_config(config_, channel, next_initiator_++, width);
+    port_config.stream_read_beats = stream_read_beats;
     return std::make_unique<FixedAxiPort>(
-        name, clock_id_,
-        grasu_port_config(config_, channel, next_initiator_++, width),
-        backend_);
+        name, clock_id_, port_config, backend_);
   }
 
   void construct_links_and_ports() {
@@ -1907,7 +1916,8 @@ private:
                                       ? config_.pma_channels[pma_lane]
                                       : pma_lane;
       processor_ports_[index].reads[0] =
-          make_port("grasu-cache" + std::to_string(index), channel, 64);
+          make_port("grasu-cache" + std::to_string(index), channel, 64,
+                    config_.compact_cached_hot);
       processor_ports_[index].writes[0].reset();
       processor_ports_[index].owned_registration_order = {
           processor_ports_[index].reads[0].get()};
@@ -2036,6 +2046,18 @@ private:
                                    : index == 2 ? 1
                                                 : 3;
       auto &ports = processor_ports_[index];
+      if (cache && config_.compact_cached_hot) {
+        processors_[index] = grasu_update_detail::make_cached_processor(
+            "grasu-cached-processor" + std::to_string(index), clock_id_,
+            config_.explicit_runtime_regions ? config_.pma_bases[pma_lane]
+                                             : address_plan_.pma_bases.at(0),
+            {.input = process_inputs_[index].get(),
+             .reads = {ports.reads[0].get(), nullptr},
+             .writes = {ports.reads[0].get(), nullptr},
+             .degree_output = degree_outputs_[index].get()},
+            [this] { return dispatch_->done(); });
+        continue;
+      }
       processors_[index] = grasu_update_detail::make_direct_processor(
           "grasu-processor" + std::to_string(index), clock_id_,
           cache ? (config_.compact_parallel_hot

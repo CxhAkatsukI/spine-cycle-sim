@@ -51,6 +51,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/grasu.cpp \
            $(ROOT)/cpp/src/grasu_update/parallel_search.cpp \
            $(ROOT)/cpp/src/grasu_update/direct_processor.cpp \
+           $(ROOT)/cpp/src/grasu_update/cached_processor.cpp \
            $(ROOT)/cpp/src/grasu_native.cpp \
            $(ROOT)/cpp/src/grasu_regraph.cpp \
            $(ROOT)/cpp/src/grasu_regraph_gather.cpp \

@@ -25,6 +25,12 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [explicit cached-G study](cached_hot/README.md) adds a separately owned,
+default-off full-depth cache processor and a 190-observation matrix. It pays
+complete preload/writeback and preserves every earlier control. Legacy
+original-G same-row timing, integrated HLS and production/publication
+admission remain separate open gates; model closeness does not close them.
+
 The [weighted source compatibility check](weighted_abi/README.md) passes all
 16 declared hot-region rows: actual host layout, original search, current
 dispatch, original/candidate cache edits and actual adapter output. Complete

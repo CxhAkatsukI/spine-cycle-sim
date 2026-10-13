@@ -31,6 +31,8 @@ public:
   virtual const std::string& failure() const noexcept = 0;
   virtual std::uint64_t completed() const noexcept = 0;
   virtual std::uint64_t lane_queue_stalls() const noexcept = 0;
+  virtual std::uint64_t pma_reads() const noexcept { return completed(); }
+  virtual std::uint64_t pma_writes() const noexcept { return completed(); }
 };
 
 std::unique_ptr<Processor> make_direct_processor(

@@ -50,6 +50,7 @@ Observation current(const cg::Fixture& fixture, unsigned latency, unsigned maxim
   config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
   config.compact_parallel_search = arm != "current";
   config.compact_parallel_hot = arm == "parallel_hot";
+  config.compact_cached_hot = arm == "cached_hot";
   GraSuPmaUpdateSystem system(scheduler, clock, backend, cg::layout(fixture), cg::updates(fixture.batches[0]), config);
   system.register_components();
   Observation result;
@@ -81,7 +82,7 @@ int main(int argc, char** argv) {
     const auto latency = std::stoul(argv[3]);
     if (latency != 64 && latency != 128) throw std::invalid_argument("undeclared memory latency");
     const std::string arm(argv[4]);
-    if (arm != "original" && arm != "current" && arm != "parallel" && arm != "parallel_hot")
+    if (arm != "original" && arm != "current" && arm != "parallel" && arm != "parallel_hot" && arm != "cached_hot")
       throw std::invalid_argument("unknown common G arm");
     constexpr unsigned maximum = 128000000;
     auto result = arm == "original" ? original(fixture, latency, maximum)

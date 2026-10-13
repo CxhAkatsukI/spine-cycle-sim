@@ -33,7 +33,13 @@ This is a real hardware-port difference, not only a plotting problem.
 
 ## Phase 2: Validate G Separately
 
-Status: source/finite replay passed; matched-input performance gate failed.
+Status: source/finite replay passed; the direct-HBM performance gate failed.
+An explicit [cached-G candidate](cached_hot/README.md) now has a separate
+finite processor and completed 190-observation matrix. State/work/traffic pass,
+all 152 old observations are exact, and 30 fresh CTest targets pass. Large
+cached batches remain 60--65% slower than the legacy original, so the 10%
+retention gate still fails. Production baseline admission remains open,
+including reference same-row timing and integrated HLS.
 
 The [cache component controls](cache_probe/README.md) now examine original
 URAM behavior rather than making cached timing an assumption. Original

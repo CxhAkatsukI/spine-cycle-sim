@@ -1,0 +1,665 @@
+{
+  "archive": {
+    "bytes": 101652,
+    "file": "regressions.tar.gz",
+    "sha256": "ee9fc9738a8ef5a14cd40f73d0ad1e44e73a4a0922b1d2d4a37d7fe1788043e6"
+  },
+  "baseline_admitted": false,
+  "candidate_sst_timing_admitted": false,
+  "checks": [
+    {
+      "available_before_bytes": 12725395456,
+      "command": [
+        "cmake",
+        "-S",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "-B",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "configure",
+      "peak_rss_kib": 151964,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/configure.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/configure.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.6549716820009053
+    },
+    {
+      "available_before_bytes": 12777574400,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "build",
+      "peak_rss_kib": 701448,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 268.70552499126643
+    },
+    {
+      "available_before_bytes": 12879163392,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core",
+        "--output-on-failure",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 8,
+      "expected_exit_code": 8,
+      "memory_limit_gib": 1,
+      "name": "ctest",
+      "peak_rss_kib": 95164,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 105.58401432167739
+    },
+    {
+      "available_before_bytes": 12662665216,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core",
+        "--target",
+        "grasu_cached_processor_tests",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "test-diagnostic-build",
+      "peak_rss_kib": 250304,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic-build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic-build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 2.7078007687814534
+    },
+    {
+      "available_before_bytes": 12959547392,
+      "command": [
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core/cpp/grasu_cached_processor_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "memory_limit_gib": 1,
+      "name": "test-diagnostic",
+      "peak_rss_kib": 47140,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.1531804110854864
+    },
+    {
+      "available_before_bytes": 13017440256,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "ack-fix-build",
+      "peak_rss_kib": 206516,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ack-fix-build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ack-fix-build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.566529585048556
+    },
+    {
+      "available_before_bytes": 13053992960,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core",
+        "--output-on-failure",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "ctest-v2",
+      "peak_rss_kib": 95092,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest-v2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest-v2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 108.18842771276832
+    },
+    {
+      "available_before_bytes": 10915971072,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "-j1",
+        "BUILD_DIR=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "fresh-sst-build",
+      "peak_rss_kib": 1019608,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 146.45049560070038
+    },
+    {
+      "available_before_bytes": 11700592640,
+      "command": [
+        "/data/feiyang/sst/bin/sst-info",
+        "--add-lib-path=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst",
+        "spine_cycle"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "default-sst/0",
+      "peak_rss_kib": 15860,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/info-run.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/info-run.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.8215084439143538
+    },
+    {
+      "available_before_bytes": 11791990784,
+      "command": [
+        "python3",
+        "scripts/run_sst_memory_smoke.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/memory",
+        "--channels",
+        "4",
+        "--requests",
+        "64"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "default-sst/1",
+      "peak_rss_kib": 41012,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/memory-run.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/memory-run.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.35336121590808034
+    },
+    {
+      "available_before_bytes": 11749732352,
+      "command": [
+        "python3",
+        "scripts/run_sst_grasu_regraph_native.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/native",
+        "--max-cycles",
+        "1000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "default-sst/2",
+      "peak_rss_kib": 84960,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/native-run.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/native-run.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.6556391068734229
+    },
+    {
+      "available_before_bytes": 11515817984,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_cached_hot",
+        "tests.test_grasu_hot_lanes",
+        "tests.test_grasu_parallel_search",
+        "tests.test_grasu_cache_probe",
+        "tests.test_grasu_cache_probe_delivery",
+        "tests.test_grasu_weighted_source_abi",
+        "tests.test_grasu_weighted_source_abi_delivery",
+        "tests.test_evaluation_impact",
+        "tests.test_repository_structure",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "focused-python",
+      "peak_rss_kib": 69056,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/focused.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/focused.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.6541879973374307
+    },
+    {
+      "available_before_bytes": 11577851904,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_refactor_equivalence",
+        "tests.test_stage_validation_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "memory_limit_gib": 1,
+      "name": "retained-historical-identities",
+      "peak_rss_kib": 68012,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/historical.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/historical.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.26483024796471
+    }
+  ],
+  "core_tests": 30,
+  "failed_analyzer_attempt_exact_replay_rows": 190,
+  "focused_python_tests": 80,
+  "hardware_timing_admitted": false,
+  "historical_identity": {
+    "already_mismatched_subassertions_at_d510ea3": 27,
+    "current_mismatched_subassertions": 27,
+    "frozen_manifests_rewritten": false,
+    "mismatched_paths_with_repetitions": [
+      "cpp/include/spine_sim/axi.hpp",
+      "cpp/include/spine_sim/fixed_axi_port.hpp",
+      "cpp/include/spine_sim/grasu.hpp",
+      "cpp/include/spine_sim/memory_backend.hpp",
+      "cpp/src/axi.cpp",
+      "cpp/src/grasu.cpp",
+      "cpp/src/grasu_regraph.cpp",
+      "cpp/src/memory_backend.cpp",
+      "cpp/sst/sst_memory_backend.cpp",
+      "cpp/sst/sst_memory_backend.hpp",
+      "cpp/CMakeLists.txt",
+      "cpp/include/spine_sim/axi.hpp",
+      "cpp/include/spine_sim/fixed_axi_port.hpp",
+      "cpp/include/spine_sim/grasu.hpp",
+      "cpp/include/spine_sim/memory_backend.hpp",
+      "cpp/include/spine_sim/original_regraph/edge_reader.hpp",
+      "cpp/include/spine_sim/original_regraph/little_gather.hpp",
+      "cpp/include/spine_sim/original_regraph/little_merge.hpp",
+      "cpp/include/spine_sim/original_regraph/little_scatter.hpp",
+      "cpp/src/axi.cpp",
+      "cpp/src/grasu.cpp",
+      "cpp/src/grasu_regraph.cpp",
+      "cpp/src/memory_backend.cpp",
+      "cpp/src/original_regraph/edge_reader.cpp",
+      "cpp/src/original_regraph/little_gather.cpp",
+      "cpp/src/original_regraph/little_merge.cpp",
+      "cpp/src/original_regraph/little_scatter.cpp"
+    ],
+    "suite_reported_green": false
+  },
+  "machine_local_identities": [
+    {
+      "bytes": 20423054,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sources.tar.gz",
+      "sha256": "bb9d96fc0260a7ed1fe860ed9184f9de4438118f3b057af151ca55a37801f6db"
+    },
+    {
+      "bytes": 20429534,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/analyzer-fix-freeze/sources.tar.gz",
+      "sha256": "a95c3ac86d092074297c9f9f39bc08b784504ca3125bf95ef4b721d43f231da2"
+    },
+    {
+      "bytes": 3869018,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core/cpp/libspine_cycle_core.a",
+      "sha256": "6bb89e5c20a6666f7fa8331df4a3c90aae8a6bb58ba341d4626b1f496895ba8a"
+    },
+    {
+      "bytes": 163312,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core/cpp/liboriginal_grasu_cycle.a",
+      "sha256": "8ffba6d84f9a05fb6fe98cf2b3a38ce85b75c29d6766e3ada658c8f692bb62ba"
+    },
+    {
+      "bytes": 3666680,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst/libspine_cycle.so",
+      "sha256": "c5bf110bf669fe912523d453f2aa4f2d92747768499bf2a4d3858606e4f83f38"
+    },
+    {
+      "bytes": 583032,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/matrix-v2/build/common_g_execution",
+      "sha256": "f447b27e134827a924f2f444c64cba2bfd92f5ea3aed4c5f9d9880177465859e"
+    }
+  ],
+  "members": [
+    {
+      "bytes": 217387,
+      "member": "analyzer-fix-freeze/manifest.json",
+      "sha256": "f7094f4a76068692562ab32283f6fd20918e1c1b61168b96d4f3fb267c1dae6f",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/analyzer-fix-freeze/manifest.json"
+    },
+    {
+      "bytes": 761,
+      "member": "before.json",
+      "sha256": "4a18af95a38980a3cecf9d2752a860d506897721c1f4a374a3c291b2f521d473",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/before.json"
+    },
+    {
+      "bytes": 14979,
+      "member": "core/CMakeCache.txt",
+      "sha256": "376632c481233adfa4c37f16dc07684226e9f041fe476756daaab9da61451647",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core/CMakeCache.txt"
+    },
+    {
+      "bytes": 73832,
+      "member": "core/compile_commands.json",
+      "sha256": "c2d7799a19aaf5570b16eb6e856935b700a5660fdcdb1c72ebef3de346ddba9a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/core/compile_commands.json"
+    },
+    {
+      "bytes": 409103,
+      "member": "matrix-v1/results.json",
+      "sha256": "0b40b96131fbf3afd1f9032ac6e7e8cb62ef29e9d6323b52b7dce04da9708eaa",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/matrix-v1/results.json"
+    },
+    {
+      "bytes": 13147,
+      "member": "python-verification-v2/focused.stderr.txt",
+      "sha256": "738993deb57b387d9212d0068c168c65efc8516ec62de1c2ee8ade2b0e3a9a94",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/focused.stderr.txt"
+    },
+    {
+      "bytes": 65,
+      "member": "python-verification-v2/focused.stdout.txt",
+      "sha256": "058a97024d85c37e49533bec3e735929b64bfe4f65cc7cd243b8543a24197359",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/focused.stdout.txt"
+    },
+    {
+      "bytes": 2312,
+      "member": "python-verification-v2/historical.json",
+      "sha256": "e3c5a23c5465f76e651a32140e8fccb53a13dfd05b358bff770a7d3dd244bc0c",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/historical.json"
+    },
+    {
+      "bytes": 37497,
+      "member": "python-verification-v2/historical.stderr.txt",
+      "sha256": "ab2731471954f56e5a6ca312e01725faddc964b3432aa449496ae442787138a4",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/historical.stderr.txt"
+    },
+    {
+      "bytes": 0,
+      "member": "python-verification-v2/historical.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/historical.stdout.txt"
+    },
+    {
+      "bytes": 1209,
+      "member": "python-verification-v2/results.json",
+      "sha256": "8fad59c6c868b209d664b215aeb3d06840f6ce310d58d204f1066d6c074aca0f",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/results.json"
+    },
+    {
+      "bytes": 744,
+      "member": "raw/ack-fix-build.resources.json",
+      "sha256": "2d31ed2a580993ce3d00d8e8d1d16c8e2232bb837fbefc378535ebf1b1683c89",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ack-fix-build.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/ack-fix-build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ack-fix-build.stderr.txt"
+    },
+    {
+      "bytes": 4539,
+      "member": "raw/ack-fix-build.stdout.txt",
+      "sha256": "5b91a7f0c61a2d10887424f1d8420833e291bb289efacecdb044b6c846d694d6",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ack-fix-build.stdout.txt"
+    },
+    {
+      "bytes": 729,
+      "member": "raw/build.resources.json",
+      "sha256": "09769dc76d1e53c756fca8fab9fedd5154ea8e89cfccc9ee9b58d32d8ccce763",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/build.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/build.stderr.txt"
+    },
+    {
+      "bytes": 16331,
+      "member": "raw/build.stdout.txt",
+      "sha256": "36647bbc5196aa5cc34925619dd8ddad01c146b2792e9047eb5c15a9f4cc03a0",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/build.stdout.txt"
+    },
+    {
+      "bytes": 874,
+      "member": "raw/configure.resources.json",
+      "sha256": "0433e1746b518e3a0bbe73ca40ab11415cc674adf7c7423ea14894e64856438e",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/configure.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/configure.stderr.txt"
+    },
+    {
+      "bytes": 438,
+      "member": "raw/configure.stdout.txt",
+      "sha256": "d4bb81e78ce92b11e33bc0ef687ccfa5de19ea7c03a8cc45a34d122eacbdbc43",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/configure.stdout.txt"
+    },
+    {
+      "bytes": 764,
+      "member": "raw/ctest-v2.resources.json",
+      "sha256": "9a253694cfaeffe5bc5478e20857a1e0b25fb06cc469e510d6dc8d8a80c9b40a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest-v2.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/ctest-v2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest-v2.stderr.txt"
+    },
+    {
+      "bytes": 3822,
+      "member": "raw/ctest-v2.stdout.txt",
+      "sha256": "5c2db4bde5888c6e28ce931da79ca9cc1517a61b9a02627e5d43cfc66922a51b",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest-v2.stdout.txt"
+    },
+    {
+      "bytes": 758,
+      "member": "raw/ctest.resources.json",
+      "sha256": "3397540ec1836cac4d2c03a01a0b0a3fc2f56910c0866cb02c374331b23b9e7f",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest.resources.json"
+    },
+    {
+      "bytes": 27,
+      "member": "raw/ctest.stderr.txt",
+      "sha256": "18e00877dc1071c85cd4f479d451bebeef8309022e46cf8c63b0bed5151984a4",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest.stderr.txt"
+    },
+    {
+      "bytes": 3936,
+      "member": "raw/ctest.stdout.txt",
+      "sha256": "4d14cc84e3305bdf5a9ea632e45ee296e96729730a38f7881b4511458a16e206",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/ctest.stdout.txt"
+    },
+    {
+      "bytes": 813,
+      "member": "raw/test-diagnostic-build.resources.json",
+      "sha256": "854f42822badbacd0658ccc80b996136577e65db934570aa374e99155bdd259c",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic-build.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/test-diagnostic-build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic-build.stderr.txt"
+    },
+    {
+      "bytes": 261,
+      "member": "raw/test-diagnostic-build.stdout.txt",
+      "sha256": "b3dbe9bd3541e6e321a5ce001bf9b838de4cd5e3bee010bd54bc2845f63eb5a3",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic-build.stdout.txt"
+    },
+    {
+      "bytes": 742,
+      "member": "raw/test-diagnostic.resources.json",
+      "sha256": "0f547ca3cd2b663545d381b179a4b18278ce00e6c87a3c6ddf7a95017e878324",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic.resources.json"
+    },
+    {
+      "bytes": 45,
+      "member": "raw/test-diagnostic.stderr.txt",
+      "sha256": "d3c4f3ab9c4931f80801042a69881aa559e77a10a498f6340543496e4b6e2d8a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic.stderr.txt"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/test-diagnostic.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/raw/test-diagnostic.stdout.txt"
+    },
+    {
+      "bytes": 774,
+      "member": "sst-verification/build.resources.json",
+      "sha256": "1871573ea30d20954781dc9930b35a3205251fcdc3f4e669cc4305b5301c1a28",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/build.resources.json"
+    },
+    {
+      "bytes": 8223,
+      "member": "sst-verification/build.stderr.txt",
+      "sha256": "0eb79a292ea5cc3b9a83d1ec080b7b68e5a618aef07ef145af95adf30647a93a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/build.stderr.txt"
+    },
+    {
+      "bytes": 2561,
+      "member": "sst-verification/build.stdout.txt",
+      "sha256": "5ff54b5855fec002f08710900e4f28d7f821ce6bf67a18ea91c6f3c343595c66",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/build.stdout.txt"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/info-run.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/info-run.stderr.txt"
+    },
+    {
+      "bytes": 16325,
+      "member": "sst-verification/info-run.stdout.txt",
+      "sha256": "46d880bff4e5210f39d08dcb107f48a950dced30a1e7ac51115d7a4809c606f2",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/info-run.stdout.txt"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/memory-run.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/memory-run.stderr.txt"
+    },
+    {
+      "bytes": 321,
+      "member": "sst-verification/memory-run.stdout.txt",
+      "sha256": "cdd454442e3caea2ee0f445f4a32a48e83b53c1a90e3de8d3879fb927caf3425",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/memory-run.stdout.txt"
+    },
+    {
+      "bytes": 3971,
+      "member": "sst-verification/memory/summary.json",
+      "sha256": "077a2d3625971071afcbb1e6f89155e814f41da4ee8b83dc586eb268fbd5bba8",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/memory/summary.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/native-run.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/native-run.stderr.txt"
+    },
+    {
+      "bytes": 84,
+      "member": "sst-verification/native-run.stdout.txt",
+      "sha256": "64073bace3c2f4fd68851a4fbe1989b69870a5e81201d44bf69fbd91c7c1fe3c",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/native-run.stdout.txt"
+    },
+    {
+      "bytes": 2879,
+      "member": "sst-verification/native/result.json",
+      "sha256": "febadbe1513eb4d1efa84d40629a78615bb6ff9b07270700e62ab2d6e5857559",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/native/result.json"
+    },
+    {
+      "bytes": 3136,
+      "member": "sst-verification/results.json",
+      "sha256": "12d6ce05a76cde4d22f974012d9d072afce4b9d782d062383baf4169e575af60",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/results.json"
+    }
+  ],
+  "new_spine_comparison_executed": false,
+  "old_checkpoint_exact_rows": 152,
+  "prediction_rows": 190,
+  "publication_match_admitted": false,
+  "sst_exact_default_smokes": [
+    {
+      "file": "memory/summary.json",
+      "previous": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/memory/summary.json",
+      "previous_sha256": "077a2d3625971071afcbb1e6f89155e814f41da4ee8b83dc586eb268fbd5bba8"
+    },
+    {
+      "file": "native/result.json",
+      "previous": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/native/result.json",
+      "previous_sha256": "febadbe1513eb4d1efa84d40629a78615bb6ff9b07270700e62ab2d6e5857559"
+    }
+  ],
+  "status": "REGRESSIONS_PASS_PERFORMANCE_REFERENCE_AND_HARDWARE_GATES_OPEN"
+}
