@@ -104,6 +104,19 @@ and emitted logical graph, not finite timing, cold edits or whole-G synthesis.
 The fresh complete-cache comparison is queued behind unchanged memory limits;
 its `WAITING_FOR_MEMORY` state does not close any performance or RTL gate.
 
+The [prepared whole-batch G study](sharded_batch/README.md) now adds 24
+observations covering one, three and five updated destination shards,
+hot/DDR edits, an empty control, both latencies, four-bank controls and the
+actual 23-channel runtime map. All complete state/work/traffic checks pass;
+maximum absolute cycle differences from the prepared-shard original are
+0.342% (four banks) and 0.173% (runtime mapping). Full preload/writeback is
+paid once per touched shard. Fixed cache cost dominates these small batches,
+and updated rows have no binary probes: real temporal input and multi-segment
+whole-batch performance still need separate validation. Candidate HLS,
+hardware and publication admission remain open. The adapter route's prior
+24-hour memory queue expired before starting; its 64-GiB safety gate is not
+lowered by this small simulator study.
+
 The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
 share each unchanged hot AXI master, with no implicit cache. Large dispersed

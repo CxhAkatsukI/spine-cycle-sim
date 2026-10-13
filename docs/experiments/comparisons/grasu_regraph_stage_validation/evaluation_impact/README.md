@@ -27,15 +27,17 @@ same-source controls cannot silently stand in for that claim.
 
 | Gate | Evidence now | Decision still open |
 | --- | --- | --- |
-| G, single prepared PMA window | Finite candidate/original cycle ratios are 0.9840--1.0455 at latency 64 and 0.9924--1.0217 at latency 128; all 228 observations pass state/work/traffic | Real temporal inputs, actual sharded batch performance, HLS II/clock/resource fit, original-paper timing |
+| G, prepared PMA windows and complete shards | All 228 single-window observations pass. A separate 24-row whole-batch study passes complete state/traffic, with maximum cycle difference 0.342% for four banks and 0.173% for actual runtime mapping | Real temporal inputs, multi-segment whole-batch coverage, HLS II/clock/resource fit, original-paper timing |
 | R, fixed Amazon warm SSSP | All 12 full-convergence executions pass; candidate is 4.62% slower / 3.13% faster than A4 at latency 64 / 128 | A4 has 13 masters on 9 banks; K4 has 9 masters; 28 credit/window controls are queued with zero timing rows; broader inputs and original topology A remain separate |
 | Physical G-to-R handoff | All 12 complete-cache executions pass high source IDs, hot/DDR edits, full preload/writeback and exact downstream convergence; 34 CTest targets, 228 old G rows and default SST regressions pass | Correctness alone cannot admit realistic batch performance; cache cost is paid once per updated shard |
 | Host/seed and complete baseline | Device windows and excluded preparation are defined explicitly | Host/seed timing and complete baseline admission are not established |
 | New Spine comparison | No replacement evaluation claimed | Requires the preceding gates and a common warm-state-to-convergence run |
 
 These are simulator predictions and correctness checks, not new measured FPGA
-speedups. The passing G window is co-located, not the actual 23-bank sharded
-batch. The R case preloads the post-update graph, old converged state and
+speedups. The original G window is co-located; the newer whole-batch study
+separately checks synthetic prepared shards and actual runtime mapping, with
+complete cache cost but limited search-depth coverage. The R case preloads
+the post-update graph, old converged state and
 prepared seed; it excludes G, DMA and host work on every arm. Separate passing
 predictions cannot be added and called a validated complete-system result.
 
@@ -53,6 +55,7 @@ scope; they are not overwritten when a later candidate improves.
 | What did full caching and concurrency change? | [Complete cache](cached_hot/README.md), [search concurrency](search_concurrency/README.md) |
 | Where was the remaining G delay? | [Read-only search diagnostics](search_diagnostics/README.md) |
 | What buffers and finite timing does the close G prediction pay? | [Metadata credits](metadata_credits/README.md), [finite cycle model](search_pipeline/finite_model/README.md) |
+| Does that G prediction hold across complete updated shards and runtime mapping? | [Prepared whole-batch study](sharded_batch/README.md), including complete cache cost, untouched state and retained preflight failures |
 | Which HLS/source checks are independent of that prediction? | [Finite search HLS](search_pipeline/README.md), [cache probes](cache_probe/README.md), [weighted ABI](weighted_abi/README.md) |
 | What differs between A4 and actual K4 resources? | [Resource audit](r_resources/README.md), [credit/window controls](r_credits/README.md) |
 | Does R read the physical PMA produced by G? | [Direct handoff](composition/README.md), [finite bank routing](composition/banked/README.md), [complete-cache handoff](composition/cached/README.md) |
