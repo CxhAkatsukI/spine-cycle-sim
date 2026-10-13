@@ -34,6 +34,7 @@ std::unique_ptr<Search> make_parallel_search(
     std::string name, ClockId clock, std::size_t cu, std::size_t count,
     std::uint64_t update_base, std::uint64_t row_base,
     std::uint64_t binary_base, FixedAxiPort& updates,
-    FixedAxiPort& metadata, Fifo<LocatedUpdate>& output);
+    FixedAxiPort& metadata, Fifo<LocatedUpdate>& output,
+    std::size_t contexts = 16);
 
 }  // namespace spine::sim::grasu_update_detail

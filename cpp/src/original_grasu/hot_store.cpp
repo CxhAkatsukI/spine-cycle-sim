@@ -80,11 +80,15 @@ void CachePe::evaluate(const CycleContext& context) {
   else {
     const auto index = item.slot >> 5;
     if (index >= kHotSegments || index % 16 != bank_) throw std::logic_error("G cache bank/address route");
+    const auto dependency = std::find_if(pending_.rbegin(), pending_.rend(),
+        [index](const auto& pending) { return pending.index == index; });
     if (pending_.size() >= (timing_.cache_latency + timing_.cache_interval - 1) / timing_.cache_interval ||
-        std::any_of(pending_.begin(), pending_.end(), [index](const auto& pending) { return pending.index == index; })) {
+        (!timing_.cache_forward_pending && dependency != pending_.rend())) {
       ++counters_.dependency_stalls; return;
     }
-    staged_ = Pending{context.domain_cycle + timing_.cache_latency, index, apply_update(store_.segment(index), item)};
+    const auto& prior = timing_.cache_forward_pending && dependency != pending_.rend()
+        ? dependency->value : store_.segment(index);
+    staged_ = Pending{context.domain_cycle + timing_.cache_latency, index, apply_update(prior, item)};
   }
   Update consumed; input_.try_pop(consumed);
 }

@@ -25,6 +25,14 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [search-concurrency controls](search_concurrency/README.md) retain all
+190 cached-G observations and add explicit 64-context and original same-row
+forwarding arms. All 266 observations pass state/work/traffic checks and the
+190 earlier rows reproduce exactly. Fresh checks pass 31 CTest targets,
+92 focused Python tests and three default SST checks. Large 64K batches remain
+52--55% slower than the forwarded original, so the complete performance gate
+still fails. Default paths and production admission are unchanged.
+
 The [explicit cached-G study](cached_hot/README.md) adds a separately owned,
 default-off full-depth cache processor and a 190-observation matrix. It pays
 complete preload/writeback and preserves every earlier control. Legacy

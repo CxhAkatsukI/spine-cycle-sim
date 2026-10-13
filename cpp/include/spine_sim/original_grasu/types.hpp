@@ -39,6 +39,8 @@ struct Timing {
   std::uint64_t ddr_compute{18};
   std::uint64_t ddr_sweep_minimum{161};
   std::uint64_t ddr_restart{4};
+  // Explicit isolated-RTL control; preserve the legacy RAW-stalling default.
+  bool cache_forward_pending{};
 };
 
 struct Counters {

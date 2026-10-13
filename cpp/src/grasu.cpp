@@ -1744,6 +1744,10 @@ private:
   };
 
   void validate_config() const {
+    if ((config_.compact_search_contexts != 16 && config_.compact_search_contexts != 64) ||
+        (!config_.compact_parallel_search && config_.compact_search_contexts != 16)) {
+      throw std::invalid_argument("search contexts require explicit parallel-search geometry 16 or 64");
+    }
     if (config_.compact_cached_hot &&
         (!config_.compact_parallel_search || config_.compact_parallel_hot ||
          config_.cache_segments_per_half != grasu_update_detail::kCachedHotSegments ||
@@ -2021,7 +2025,7 @@ private:
             counts[index], config_.explicit_runtime_regions ? config_.update_bases[index] : config_.update_base,
             address_plan_.row_bases.at(0), address_plan_.binary_bases.at(0),
             *search_ports_[index].updates, *search_ports_[index].rows,
-            *search_outputs_[index]);
+            *search_outputs_[index], config_.compact_search_contexts);
         continue;
       }
       searches_[index] = std::make_unique<GraSuDirectSearch>(

@@ -154,6 +154,8 @@ struct GraSuNativeConfig {
   GraSuPmaWordAbi pma_word_abi{GraSuPmaWordAbi::kNormalizedWeighted};
   // Experimental single-window source16 path; never selected by an SST profile.
   bool compact_parallel_search{};
+  // Explicit concurrency control; does not add AXI ports or bank credits.
+  std::size_t compact_search_contexts{16};
   // Experimental sixteen-owner hot RMW path, sharing the existing AXI master.
   bool compact_parallel_hot{};
   // Default-off source16 full-preload/writeback URAM experiment, not routed G.

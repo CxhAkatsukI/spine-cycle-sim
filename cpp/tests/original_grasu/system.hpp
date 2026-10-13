@@ -11,7 +11,7 @@ inline constexpr std::uint32_t kHalf = g::kHotSegments + 32, kSegments = kHalf *
 inline constexpr std::uint64_t kBinary = 32ull << 20, kRows = 48ull << 20, kEdges = 64ull << 20;
 
 struct System {
-  System(unsigned depth, unsigned latency, unsigned credits, bool reverse)
+  System(unsigned depth, unsigned latency, unsigned credits, bool reverse, g::Timing timing = {})
       : memory(depth, latency, credits) {
     std::array<Fifo<g::Update>*, 4> search_outputs{}, routes{};
     for (unsigned kernel = 0; kernel < 4; ++kernel) {
@@ -40,7 +40,7 @@ struct System {
       for (unsigned lane = 0; lane < 16; ++lane) {
         cache_inputs.push_back(memory.queue<g::Update>(prefix + ".cache" + std::to_string(lane)));
         cache[half][lane] = memory.make<g::CachePe>(prefix + ".pe" + std::to_string(lane), memory.clock,
-            lane, *stores[half], *cache_inputs.back());
+            lane, *stores[half], *cache_inputs.back(), timing);
       }
       stores[half]->connect(cache[half]);
       for (unsigned lane = 0; lane < 32; ++lane)

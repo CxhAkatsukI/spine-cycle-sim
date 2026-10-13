@@ -20,7 +20,8 @@ std::vector<std::uint8_t> bytes(const std::vector<std::uint64_t>& words) {
   return result;
 }
 
-std::uint64_t run(unsigned count, bool reverse, bool invalid_row = false) {
+std::uint64_t run(unsigned count, bool reverse, bool invalid_row = false,
+                  std::size_t contexts = 16) {
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("G", 200);
   MockMemoryBackend backend("memory", clock, {1, 64, 1, 4, 64, true});
@@ -42,7 +43,7 @@ std::uint64_t run(unsigned count, bool reverse, bool invalid_row = false) {
   backend.initialize_payload(0, 0x2000, bytes({invalid_row ? 0ULL : 64ULL}));
   backend.initialize_payload(0, 0x4000, bytes(heads));
   auto search = make_parallel_search("search", clock, 1, count, 0,
-                                    0x2000, 0x4000, updates, metadata, output);
+                                    0x2000, 0x4000, updates, metadata, output, contexts);
   if (reverse) {
     scheduler.add_component(*search); scheduler.add_component(output);
     metadata.register_components(scheduler); updates.register_components(scheduler);
@@ -108,9 +109,16 @@ void reject_unsupported_configuration(unsigned kind) {
 
 int main() {
   try {
-    for (const auto count : {0U, 1U, 16U, 17U, 65U, 257U})
-      require(run(count, false) == run(count, true), "registration order changed cycles");
-    run(1, false, true);
+    for (const auto contexts : {16U, 64U}) {
+      for (const auto count : {0U, 1U, 16U, 17U, 63U, 64U, 65U, 257U})
+        require(run(count, false, false, contexts) == run(count, true, false, contexts),
+                "registration order changed cycles");
+      run(1, false, true, contexts);
+    }
+    bool rejected = false;
+    try { run(1, false, false, 17); }
+    catch (const std::invalid_argument&) { rejected = true; }
+    require(rejected, "unsupported context count accepted");
     for (unsigned kind = 0; kind < 3; ++kind) reject_unsupported_configuration(kind);
     std::cout << "parallel search finite/backpressure/order/weight/error tests pass\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

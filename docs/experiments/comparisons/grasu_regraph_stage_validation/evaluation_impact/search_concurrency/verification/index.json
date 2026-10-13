@@ -1,0 +1,724 @@
+{
+  "archive": {
+    "bytes": 73797,
+    "file": "regressions.tar.gz",
+    "sha256": "875a8410a2e017bce85c328d065f5c0a4544eba0a1b1d69ba06730efb07288b8"
+  },
+  "baseline_admitted": false,
+  "candidate_sst_timing_admitted": false,
+  "checks": [
+    {
+      "available_before_bytes": 11468804096,
+      "command": [
+        "cmake",
+        "-S",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "-B",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/core",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "core/0",
+      "peak_rss_kib": 152260,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/configure.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/configure.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.6039830972440541
+    },
+    {
+      "available_before_bytes": 11467825152,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/core",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "core/1",
+      "peak_rss_kib": 701716,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 270.55078069120646
+    },
+    {
+      "available_before_bytes": 12174561280,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/core",
+        "--output-on-failure",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "core/2",
+      "peak_rss_kib": 95096,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/ctest.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/ctest.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 112.69567844411358
+    },
+    {
+      "available_before_bytes": 12951560192,
+      "command": [
+        "/data/feiyang/sst/bin/sst-info",
+        "--add-lib-path=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst",
+        "spine_cycle"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "default-sst/0",
+      "peak_rss_kib": 15904,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke0.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.0530095249414444
+    },
+    {
+      "available_before_bytes": 12950274048,
+      "command": [
+        "python3",
+        "scripts/run_sst_memory_smoke.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/memory",
+        "--channels",
+        "4",
+        "--requests",
+        "64"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "default-sst/1",
+      "peak_rss_kib": 40920,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.25345071498304605
+    },
+    {
+      "available_before_bytes": 12943736832,
+      "command": [
+        "python3",
+        "scripts/run_sst_grasu_regraph_native.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/native",
+        "--max-cycles",
+        "1000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "default-sst/2",
+      "peak_rss_kib": 84976,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.1049509677104652
+    },
+    {
+      "available_before_bytes": 12819402752,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_cached_hot",
+        "tests.test_grasu_hot_lanes",
+        "tests.test_grasu_parallel_search",
+        "tests.test_grasu_cache_probe",
+        "tests.test_grasu_cache_probe_delivery",
+        "tests.test_grasu_weighted_source_abi",
+        "tests.test_grasu_weighted_source_abi_delivery",
+        "tests.test_evaluation_impact",
+        "tests.test_repository_structure",
+        "tests.test_grasu_search_concurrency",
+        "tests.test_common_g_runner",
+        "tests.test_grasu_search_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "python/0",
+      "peak_rss_kib": 69468,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v4.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v4.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.8038399559445679
+    },
+    {
+      "available_before_bytes": 12717961216,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "-j1",
+        "BUILD_DIR=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "fresh-sst-build",
+      "peak_rss_kib": 1020224,
+      "reserve_gib": 9,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 144.90232685767114
+    },
+    {
+      "available_before_bytes": 12853940224,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_refactor_equivalence",
+        "tests.test_stage_validation_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "memory_limit_gib": 1,
+      "name": "retained-historical-identities",
+      "peak_rss_kib": 68024,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/historical.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/historical.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.214804883114994
+    },
+    {
+      "available_before_bytes": 12871340032,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_cached_hot",
+        "tests.test_grasu_hot_lanes",
+        "tests.test_grasu_parallel_search",
+        "tests.test_grasu_cache_probe",
+        "tests.test_grasu_cache_probe_delivery",
+        "tests.test_grasu_weighted_source_abi",
+        "tests.test_grasu_weighted_source_abi_delivery",
+        "tests.test_evaluation_impact",
+        "tests.test_repository_structure",
+        "tests.test_grasu_search_concurrency",
+        "tests.test_common_g_runner",
+        "tests.test_grasu_search_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "retained-focused-attempt-v1",
+      "peak_rss_kib": 69236,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.8047475023195148
+    },
+    {
+      "available_before_bytes": 12843757568,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_cached_hot",
+        "tests.test_grasu_hot_lanes",
+        "tests.test_grasu_parallel_search",
+        "tests.test_grasu_cache_probe",
+        "tests.test_grasu_cache_probe_delivery",
+        "tests.test_grasu_weighted_source_abi",
+        "tests.test_grasu_weighted_source_abi_delivery",
+        "tests.test_evaluation_impact",
+        "tests.test_repository_structure",
+        "tests.test_grasu_search_concurrency",
+        "tests.test_common_g_runner",
+        "tests.test_grasu_search_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "memory_limit_gib": 1,
+      "name": "retained-focused-attempt-v2",
+      "peak_rss_kib": 69432,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.8544657751917839
+    },
+    {
+      "available_before_bytes": 12993843200,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_cached_hot",
+        "tests.test_grasu_hot_lanes",
+        "tests.test_grasu_parallel_search",
+        "tests.test_grasu_cache_probe",
+        "tests.test_grasu_cache_probe_delivery",
+        "tests.test_grasu_weighted_source_abi",
+        "tests.test_grasu_weighted_source_abi_delivery",
+        "tests.test_evaluation_impact",
+        "tests.test_repository_structure",
+        "tests.test_grasu_search_concurrency",
+        "tests.test_common_g_runner",
+        "tests.test_grasu_search_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "retained-focused-attempt-v3",
+      "peak_rss_kib": 69396,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v3.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v3.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.8043048731051385
+    }
+  ],
+  "core_tests": 31,
+  "focused_python_tests": 92,
+  "hardware_timing_admitted": false,
+  "historical_identity": {
+    "current_mismatched_subassertions": 30,
+    "frozen_manifests_rewritten": false,
+    "mismatched_paths_with_repetitions": [
+      "cpp/include/spine_sim/axi.hpp",
+      "cpp/include/spine_sim/fixed_axi_port.hpp",
+      "cpp/include/spine_sim/grasu.hpp",
+      "cpp/include/spine_sim/memory_backend.hpp",
+      "cpp/src/axi.cpp",
+      "cpp/src/grasu.cpp",
+      "cpp/src/grasu_regraph.cpp",
+      "cpp/src/memory_backend.cpp",
+      "cpp/sst/sst_memory_backend.cpp",
+      "cpp/sst/sst_memory_backend.hpp",
+      "cpp/CMakeLists.txt",
+      "cpp/include/spine_sim/axi.hpp",
+      "cpp/include/spine_sim/fixed_axi_port.hpp",
+      "cpp/include/spine_sim/grasu.hpp",
+      "cpp/include/spine_sim/memory_backend.hpp",
+      "cpp/include/spine_sim/original_grasu/types.hpp",
+      "cpp/include/spine_sim/original_regraph/edge_reader.hpp",
+      "cpp/include/spine_sim/original_regraph/little_gather.hpp",
+      "cpp/include/spine_sim/original_regraph/little_merge.hpp",
+      "cpp/include/spine_sim/original_regraph/little_scatter.hpp",
+      "cpp/src/axi.cpp",
+      "cpp/src/grasu.cpp",
+      "cpp/src/grasu_regraph.cpp",
+      "cpp/src/memory_backend.cpp",
+      "cpp/src/original_grasu/hot_store.cpp",
+      "cpp/src/original_regraph/edge_reader.cpp",
+      "cpp/src/original_regraph/little_gather.cpp",
+      "cpp/src/original_regraph/little_merge.cpp",
+      "cpp/src/original_regraph/little_scatter.cpp",
+      "cpp/tests/original_grasu/system.hpp"
+    ],
+    "newly_changed_paths": [
+      "cpp/include/spine_sim/original_grasu/types.hpp",
+      "cpp/src/original_grasu/hot_store.cpp",
+      "cpp/tests/original_grasu/system.hpp"
+    ],
+    "previous_audit": {
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/python-verification-v2/historical.json",
+      "sha256": "e3c5a23c5465f76e651a32140e8fccb53a13dfd05b358bff770a7d3dd244bc0c"
+    },
+    "previous_mismatched_subassertions": 27,
+    "reason": "default-off reference forwarding and explicit timing injection; 190 old observations replay exactly",
+    "suite_reported_green": false
+  },
+  "machine_local_identities": [
+    {
+      "bytes": 20430756,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/freeze/sources.tar.gz",
+      "sha256": "0119fd98097090be57fed7463fbf42d01c1e2dc40f89210052f12b293b3f6363"
+    },
+    {
+      "bytes": 3868204,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/core/cpp/libspine_cycle_core.a",
+      "sha256": "4a2aea434371a37d84b479d26ca9c5fdacbca4c7d0596f6a1915304ef7f8ff3d"
+    },
+    {
+      "bytes": 163512,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/core/cpp/liboriginal_grasu_cycle.a",
+      "sha256": "5eb025de5f7e93d61d1e5fda5e625b3c9cb6ac59858a1967e24e70a6821de07d"
+    },
+    {
+      "bytes": 3666760,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst/libspine_cycle.so",
+      "sha256": "3c6acd72aec8e5144242a208a2cf045394d814c0199f7e756867ba499d01adb0"
+    },
+    {
+      "bytes": 583104,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/matrix/build/common_g_execution",
+      "sha256": "a000279a5f88fdc8e2bcb7c20f8597a26a6928268c4766e61641559039055811"
+    }
+  ],
+  "members": [
+    {
+      "bytes": 2689,
+      "member": "core-verification.json",
+      "sha256": "066c1b4ddf9b72bd7f890c813947e115bb707955b9dfb69af58fdbd16320e3e6",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/core-verification.json"
+    },
+    {
+      "bytes": 14987,
+      "member": "core/CMakeCache.txt",
+      "sha256": "3585895b65188905903e94178f6fafcf576bbba6b1dd67bd7036e503e325020d",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/core/CMakeCache.txt"
+    },
+    {
+      "bytes": 74736,
+      "member": "core/compile_commands.json",
+      "sha256": "058d73c0f4bbd94890eb75039bd7106ad84fe10837e03045289a940ac3f0b4ee",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/core/compile_commands.json"
+    },
+    {
+      "bytes": 207269,
+      "member": "freeze/manifest.json",
+      "sha256": "eadcf1d8b0725471807255dc73e6d13d6cde5bed4d20581225dba2edd4039dcb",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/freeze/manifest.json"
+    },
+    {
+      "bytes": 1355,
+      "member": "python-verification/focused-attempt-v1.json",
+      "sha256": "1674866b374fae510c31eeaa627daf6dec950b01166befec49f745af06b13f59",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-attempt-v1.json"
+    },
+    {
+      "bytes": 1364,
+      "member": "python-verification/focused-attempt-v2.json",
+      "sha256": "46176083444bcd787529387c898dc433b97dd686c0a91752f994744dd27b0b2c",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-attempt-v2.json"
+    },
+    {
+      "bytes": 1361,
+      "member": "python-verification/focused-attempt-v3.json",
+      "sha256": "6413a60abe7143bde5becc2d6b04dcb29e9c3a36503c53a1c4469a560c8a5c05",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-attempt-v3.json"
+    },
+    {
+      "bytes": 1169,
+      "member": "python-verification/focused-v2.resources.json",
+      "sha256": "fa77b9e92f3585f11b6159f765d66f654200d73a9ff9777d0c43bc621c3b0faa",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v2.resources.json"
+    },
+    {
+      "bytes": 16391,
+      "member": "python-verification/focused-v2.stderr.txt",
+      "sha256": "4dc9a637345e645bf124c3e7201adc1cf591ca1ae8a67734bc1d63ca807a72ea",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v2.stderr.txt"
+    },
+    {
+      "bytes": 488,
+      "member": "python-verification/focused-v2.stdout.txt",
+      "sha256": "cc24f0aad263f477e5a74fc239fdfd77eaeb9face931652415dcee85086f1a04",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v2.stdout.txt"
+    },
+    {
+      "bytes": 1169,
+      "member": "python-verification/focused-v3.resources.json",
+      "sha256": "e84614759c3a52948cc74a98ca76f9d183b694deeb0c48ff181d4f66f9942326",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v3.resources.json"
+    },
+    {
+      "bytes": 15282,
+      "member": "python-verification/focused-v3.stderr.txt",
+      "sha256": "cf141379b8fd99b5a84eedb3990786c44b9b044a64f699260d65be2de72396e0",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v3.stderr.txt"
+    },
+    {
+      "bytes": 488,
+      "member": "python-verification/focused-v3.stdout.txt",
+      "sha256": "cc24f0aad263f477e5a74fc239fdfd77eaeb9face931652415dcee85086f1a04",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v3.stdout.txt"
+    },
+    {
+      "bytes": 1169,
+      "member": "python-verification/focused-v4.resources.json",
+      "sha256": "843c3b188bf4698808c4bff08528a5b2d168e2e9ebf5ba878bee631fb2ed5ae7",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v4.resources.json"
+    },
+    {
+      "bytes": 15282,
+      "member": "python-verification/focused-v4.stderr.txt",
+      "sha256": "e98fe976aa0b2128124d6c8c2904d784705ad9f4fc9c7e84137b8183f7204141",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v4.stderr.txt"
+    },
+    {
+      "bytes": 488,
+      "member": "python-verification/focused-v4.stdout.txt",
+      "sha256": "cc24f0aad263f477e5a74fc239fdfd77eaeb9face931652415dcee85086f1a04",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused-v4.stdout.txt"
+    },
+    {
+      "bytes": 1163,
+      "member": "python-verification/focused.resources.json",
+      "sha256": "f498eaae5640207d3f3d61dd81ae625c3f27664b1caf49fa1fe1aeba346be5a9",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused.resources.json"
+    },
+    {
+      "bytes": 15116,
+      "member": "python-verification/focused.stderr.txt",
+      "sha256": "5adf5ef16eda2286b5f5e838020cba17afe80eef7d6c8677bb7c04913acb18b2",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused.stderr.txt"
+    },
+    {
+      "bytes": 488,
+      "member": "python-verification/focused.stdout.txt",
+      "sha256": "cc24f0aad263f477e5a74fc239fdfd77eaeb9face931652415dcee85086f1a04",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/focused.stdout.txt"
+    },
+    {
+      "bytes": 942,
+      "member": "python-verification/historical-audit-attempt.json",
+      "sha256": "2ea8d4f58209621fc8a2240948747c3c7294bb8a26a9bbd83f9f89f4104f89b8",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/historical-audit-attempt.json"
+    },
+    {
+      "bytes": 3001,
+      "member": "python-verification/historical.json",
+      "sha256": "6a25aae8240e29f7b74884ffd405a86047e386f06f5e3cd75dffa1f2b014ea5e",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/historical.json"
+    },
+    {
+      "bytes": 772,
+      "member": "python-verification/historical.resources.json",
+      "sha256": "cce66094dd164144e97462810b5152a5b8702e892802a7d80525de0f4490f569",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/historical.resources.json"
+    },
+    {
+      "bytes": 41361,
+      "member": "python-verification/historical.stderr.txt",
+      "sha256": "b24b34863f71f8858aceaca8342e748504fb069eda56909a40285391742b05aa",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/historical.stderr.txt"
+    },
+    {
+      "bytes": 0,
+      "member": "python-verification/historical.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/historical.stdout.txt"
+    },
+    {
+      "bytes": 1361,
+      "member": "python-verification/results.json",
+      "sha256": "ecf4a0b96197d2226376203c82b17ffc3b2353f905a4d57e0f24e8b2d1e47e59",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/results.json"
+    },
+    {
+      "bytes": 735,
+      "member": "raw/build.resources.json",
+      "sha256": "338529758c2ec0d2227e4388c970bba2e42ece6de7252a5f0d3621d0db9387b1",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/build.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/build.stderr.txt"
+    },
+    {
+      "bytes": 16547,
+      "member": "raw/build.stdout.txt",
+      "sha256": "fd73722b21f4f1b09eda50df143fdaa25602edf0b69939693e1d933d921e3011",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/build.stdout.txt"
+    },
+    {
+      "bytes": 880,
+      "member": "raw/configure.resources.json",
+      "sha256": "5b17de56af7674c6294d58c74d2acbb640647cbd10adcdcb671f3b6bc7118d1a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/configure.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/configure.stderr.txt"
+    },
+    {
+      "bytes": 440,
+      "member": "raw/configure.stdout.txt",
+      "sha256": "be10d01026fd4819e189bf0b589b4e69db77428bb100c0ee67f0de3117e0ebb5",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/configure.stdout.txt"
+    },
+    {
+      "bytes": 764,
+      "member": "raw/ctest.resources.json",
+      "sha256": "28b12ab27312bba4591970bd64040f3dd4c7b89faf8da9a328ee0842b77604ef",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/ctest.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "raw/ctest.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/ctest.stderr.txt"
+    },
+    {
+      "bytes": 3945,
+      "member": "raw/ctest.stdout.txt",
+      "sha256": "52736c4ccf10d4f6fb34dddd0a7ecab9c348871f36235ccae8bc16a19178933f",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/raw/ctest.stdout.txt"
+    },
+    {
+      "bytes": 780,
+      "member": "sst-verification/build.json",
+      "sha256": "4ea2f1a83e3fac31b6082dc70740f1f370c37b763db82039a1bea0fff92adfe4",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/build.json"
+    },
+    {
+      "bytes": 780,
+      "member": "sst-verification/build.resources.json",
+      "sha256": "4ea2f1a83e3fac31b6082dc70740f1f370c37b763db82039a1bea0fff92adfe4",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/build.resources.json"
+    },
+    {
+      "bytes": 8223,
+      "member": "sst-verification/build.stderr.txt",
+      "sha256": "0eb79a292ea5cc3b9a83d1ec080b7b68e5a618aef07ef145af95adf30647a93a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/build.stderr.txt"
+    },
+    {
+      "bytes": 2565,
+      "member": "sst-verification/build.stdout.txt",
+      "sha256": "b9603cbad32478e19eec5e5e6b8e604b2738a9d125003a24f41f65ef1ac67f7a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/build.stdout.txt"
+    },
+    {
+      "bytes": 3971,
+      "member": "sst-verification/memory/summary.json",
+      "sha256": "077a2d3625971071afcbb1e6f89155e814f41da4ee8b83dc586eb268fbd5bba8",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/memory/summary.json"
+    },
+    {
+      "bytes": 2879,
+      "member": "sst-verification/native/result.json",
+      "sha256": "febadbe1513eb4d1efa84d40629a78615bb6ff9b07270700e62ab2d6e5857559",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/native/result.json"
+    },
+    {
+      "bytes": 3138,
+      "member": "sst-verification/results.json",
+      "sha256": "d99151c1f9be6f6bb1a8775a09677677e5a3daf6eac932d83b42c4287f2c7a70",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/results.json"
+    },
+    {
+      "bytes": 794,
+      "member": "sst-verification/smoke0.resources.json",
+      "sha256": "b081ff52e6a8a2457b09cffa7e5cb5b57b38990c6a5bb75442aea57de7e007f1",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke0.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/smoke0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke0.stderr.txt"
+    },
+    {
+      "bytes": 16327,
+      "member": "sst-verification/smoke0.stdout.txt",
+      "sha256": "6a73359e3b57edb6a00bf35ec470276ee1052fb61e54b3295ff431002e232d28",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke0.stdout.txt"
+    },
+    {
+      "bytes": 1001,
+      "member": "sst-verification/smoke1.resources.json",
+      "sha256": "ef12d7e4fed9b48dcf082c09288ae8a7a4433297c08f2b124a39fe924563aff3",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke1.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/smoke1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke1.stderr.txt"
+    },
+    {
+      "bytes": 323,
+      "member": "sst-verification/smoke1.stdout.txt",
+      "sha256": "88a6d4738d13bb043afdaaa4b28c81d03ee2fa5e65b4c6a8c0aa001c1da64383",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke1.stdout.txt"
+    },
+    {
+      "bytes": 988,
+      "member": "sst-verification/smoke2.resources.json",
+      "sha256": "e88447e2b22b14d92f66daaf66d49dc468dae50ce1ac22a129e56e7ac895a56a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke2.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/smoke2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke2.stderr.txt"
+    },
+    {
+      "bytes": 84,
+      "member": "sst-verification/smoke2.stdout.txt",
+      "sha256": "64073bace3c2f4fd68851a4fbe1989b69870a5e81201d44bf69fbd91c7c1fe3c",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/smoke2.stdout.txt"
+    }
+  ],
+  "new_spine_comparison_executed": false,
+  "publication_match_admitted": false,
+  "sst_exact_default_smokes": [
+    {
+      "file": "memory/summary.json",
+      "previous": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/memory/summary.json",
+      "previous_sha256": "077a2d3625971071afcbb1e6f89155e814f41da4ee8b83dc586eb268fbd5bba8"
+    },
+    {
+      "file": "native/result.json",
+      "previous": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cached-processor-v1/sst-verification/native/result.json",
+      "previous_sha256": "febadbe1513eb4d1efa84d40629a78615bb6ff9b07270700e62ab2d6e5857559"
+    }
+  ],
+  "status": "REGRESSIONS_PASS_PERFORMANCE_REFERENCE_AND_HARDWARE_GATES_OPEN"
+}

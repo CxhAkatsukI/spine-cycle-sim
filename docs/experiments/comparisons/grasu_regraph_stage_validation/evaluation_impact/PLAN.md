@@ -41,6 +41,16 @@ cached batches remain 60--65% slower than the legacy original, so the 10%
 retention gate still fails. Production baseline admission remains open,
 including reference same-row timing and integrated HLS.
 
+The separate [search-concurrency controls](search_concurrency/README.md) now
+test source-grounded reference forwarding and 64 candidate contexts without
+adding ports or credits. All 31 fresh core tests pass; all 266 observations
+pass state/work/traffic checks and reproduce the complete 190-row checkpoint.
+The large 64K cases still take 52--55% more cycles than the forwarded original.
+The complete performance gate fails. Next isolate port/queue contention and
+stage overlap before choosing a resource-accounted correction; do not infer
+its cause solely from the different master counts. Production admission
+remains open, separately from these prediction and regression checks.
+
 The [cache component controls](cache_probe/README.md) now examine original
 URAM behavior rather than making cached timing an assumption. Original
 single-bank and complete 16-bank C/RTL state checks pass; lower-LUT static

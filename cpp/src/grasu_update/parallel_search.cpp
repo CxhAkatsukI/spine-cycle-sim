@@ -1,14 +1,13 @@
 #include "spine_sim/grasu_update/search.hpp"
 
-#include <array>
 #include <optional>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 namespace spine::sim::grasu_update_detail {
 namespace {
 
-constexpr std::size_t kLanes = 16;
 enum class Phase { kUpdate, kWaitUpdate, kRow, kWaitRow, kBinary,
                    kWaitBinary, kEmit, kDone };
 
@@ -36,12 +35,13 @@ public:
                  std::size_t count, std::uint64_t update_base,
                  std::uint64_t row_base, std::uint64_t binary_base,
                  FixedAxiPort& updates, FixedAxiPort& metadata,
-                 Fifo<LocatedUpdate>& output)
+                 Fifo<LocatedUpdate>& output, std::size_t contexts)
       : Search(std::move(name), clock), cu_(cu), count_(count),
         update_base_(update_base), row_base_(row_base), binary_base_(binary_base),
-        updates_(updates), metadata_(metadata), output_(output) {
-    if (cu >= 4) throw std::invalid_argument("parallel search CU out of range");
-    for (std::size_t lane = 0; lane < kLanes; ++lane)
+        updates_(updates), metadata_(metadata), output_(output), contexts_(contexts) {
+    if (cu >= 4 || (contexts != 16 && contexts != 64))
+      throw std::invalid_argument("parallel search CU/context geometry out of range");
+    for (std::size_t lane = 0; lane < contexts_.size(); ++lane)
       contexts_[lane] = {.index = lane,
                         .phase = lane < count ? Phase::kUpdate : Phase::kDone};
   }
@@ -58,16 +58,16 @@ public:
     if (failed() || done()) return;
     take_response(updates_, update_response_);
     take_response(metadata_, metadata_response_);
-    for (std::size_t offset = 0; offset < kLanes; ++offset) {
-      const auto lane = (update_rr_ + offset) % kLanes;
+    for (std::size_t offset = 0; offset < contexts_.size(); ++offset) {
+      const auto lane = (update_rr_ + offset) % contexts_.size();
       const auto& context = contexts_[lane];
       if (context.phase != Phase::kUpdate) continue;
       if (issue(updates_, context, 0, update_base_ + context.index * 8))
         update_issue_ = lane;
       break;
     }
-    for (std::size_t offset = 0; offset < kLanes; ++offset) {
-      const auto lane = (metadata_rr_ + offset) % kLanes;
+    for (std::size_t offset = 0; offset < contexts_.size(); ++offset) {
+      const auto lane = (metadata_rr_ + offset) % contexts_.size();
       const auto& context = contexts_[lane];
       if (context.phase != Phase::kRow && context.phase != Phase::kBinary) continue;
       const bool binary = context.phase == Phase::kBinary;
@@ -76,7 +76,7 @@ public:
       if (issue(metadata_, context, binary ? 2 : 1, address)) metadata_issue_ = lane;
       break;
     }
-    const auto lane = emitted_ % kLanes;
+    const auto lane = emitted_ % contexts_.size();
     const auto& context = contexts_[lane];
     if (context.phase == Phase::kEmit && context.index == emitted_) {
       const auto encoded = static_cast<std::uint32_t>(context.edge);
@@ -98,18 +98,18 @@ public:
       if (metadata_response_) consume(*metadata_response_, false);
       if (update_issue_) {
         contexts_[*update_issue_].phase = Phase::kWaitUpdate;
-        update_rr_ = (*update_issue_ + 1) % kLanes;
+        update_rr_ = (*update_issue_ + 1) % contexts_.size();
       }
       if (metadata_issue_) {
         auto& context = contexts_[*metadata_issue_];
         const bool binary = context.phase == Phase::kBinary;
         context.phase = binary ? Phase::kWaitBinary : Phase::kWaitRow;
         (binary ? probes_ : rows_)++;
-        metadata_rr_ = (*metadata_issue_ + 1) % kLanes;
+        metadata_rr_ = (*metadata_issue_ + 1) % contexts_.size();
       }
       if (emitted_lane_) {
         auto& context = contexts_[*emitted_lane_];
-        context.index += kLanes;
+        context.index += contexts_.size();
         context.phase = context.index < count_ ? Phase::kUpdate : Phase::kDone;
         ++emitted_;
       }
@@ -131,7 +131,7 @@ private:
   void consume(const AxiResponse& response, bool update_port) {
     const auto index = response.transaction_id >> 2;
     const auto kind = response.transaction_id & 3;
-    auto& context = contexts_[index % kLanes];
+    auto& context = contexts_[index % contexts_.size()];
     const auto expected = kind == 0 ? Phase::kWaitUpdate :
                           kind == 1 ? Phase::kWaitRow : Phase::kWaitBinary;
     if (kind > 2 || update_port != (kind == 0) ||
@@ -161,7 +161,7 @@ private:
   FixedAxiPort& updates_;
   FixedAxiPort& metadata_;
   Fifo<LocatedUpdate>& output_;
-  std::array<Context, kLanes> contexts_{};
+  std::vector<Context> contexts_;
   std::optional<AxiResponse> update_response_, metadata_response_;
   std::optional<std::size_t> update_issue_, metadata_issue_, emitted_lane_;
   std::string failure_;
@@ -171,8 +171,9 @@ private:
 std::unique_ptr<Search> make_parallel_search(
     std::string name, ClockId clock, std::size_t cu, std::size_t count,
     std::uint64_t update_base, std::uint64_t row_base, std::uint64_t binary_base,
-    FixedAxiPort& updates, FixedAxiPort& metadata, Fifo<LocatedUpdate>& output) {
+    FixedAxiPort& updates, FixedAxiPort& metadata, Fifo<LocatedUpdate>& output,
+    std::size_t contexts) {
   return std::make_unique<ParallelSearch>(std::move(name), clock, cu, count,
-      update_base, row_base, binary_base, updates, metadata, output);
+      update_base, row_base, binary_base, updates, metadata, output, contexts);
 }
 }  // namespace spine::sim::grasu_update_detail

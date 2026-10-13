@@ -9,8 +9,10 @@ struct Observation {
   std::vector<std::uint8_t> state;
 };
 
-Observation original(const cg::Fixture& fixture, unsigned latency, unsigned maximum) {
-  cg::System system(16, latency, 32, false);
+Observation original(const cg::Fixture& fixture, unsigned latency, unsigned maximum, bool forward) {
+  cg::g::Timing timing;
+  timing.cache_forward_pending = forward;
+  cg::System system(16, latency, 32, false, timing);
   fixture.initialize(system);
   system.begin(fixture.batches[0].updates);
   Observation result;
@@ -50,7 +52,8 @@ Observation current(const cg::Fixture& fixture, unsigned latency, unsigned maxim
   config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
   config.compact_parallel_search = arm != "current";
   config.compact_parallel_hot = arm == "parallel_hot";
-  config.compact_cached_hot = arm == "cached_hot";
+  config.compact_cached_hot = arm == "cached_hot" || arm == "cached_hot64";
+  config.compact_search_contexts = arm == "cached_hot64" ? 64 : 16;
   GraSuPmaUpdateSystem system(scheduler, clock, backend, cg::layout(fixture), cg::updates(fixture.batches[0]), config);
   system.register_components();
   Observation result;
@@ -82,10 +85,12 @@ int main(int argc, char** argv) {
     const auto latency = std::stoul(argv[3]);
     if (latency != 64 && latency != 128) throw std::invalid_argument("undeclared memory latency");
     const std::string arm(argv[4]);
-    if (arm != "original" && arm != "current" && arm != "parallel" && arm != "parallel_hot" && arm != "cached_hot")
+    if (arm != "original" && arm != "original_forwarded" && arm != "current" &&
+        arm != "parallel" && arm != "parallel_hot" && arm != "cached_hot" && arm != "cached_hot64")
       throw std::invalid_argument("unknown common G arm");
     constexpr unsigned maximum = 128000000;
-    auto result = arm == "original" ? original(fixture, latency, maximum)
+    auto result = arm == "original" || arm == "original_forwarded"
+        ? original(fixture, latency, maximum, arm == "original_forwarded")
         : current(fixture, latency, maximum, arm);
     if (result.state != cg::expected(fixture) || result.cache + result.ddr != fixture.batches[0].updates.size())
       throw std::runtime_error("common G full state or update ledger mismatch");
