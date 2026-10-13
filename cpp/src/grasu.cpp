@@ -1777,6 +1777,13 @@ private:
   };
 
   void validate_config() const {
+    if (config_.compact_metadata_credits &&
+        (!config_.compact_parallel_search ||
+         (config_.compact_metadata_credits != 16 &&
+          config_.compact_metadata_credits != 32 &&
+          config_.compact_metadata_credits != 64))) {
+      throw std::invalid_argument("metadata credits require explicit parallel-search budget 16, 32 or 64");
+    }
     if ((config_.compact_search_contexts != 16 && config_.compact_search_contexts != 64) ||
         (!config_.compact_parallel_search && config_.compact_search_contexts != 16)) {
       throw std::invalid_argument("search contexts require explicit parallel-search geometry 16 or 64");
@@ -1910,8 +1917,15 @@ private:
 
   std::unique_ptr<FixedAxiPort>
   make_port(const std::string &name, std::size_t channel, std::uint32_t width,
-            bool stream_read_beats = false) {
+            bool stream_read_beats = false, std::size_t metadata_credits = 0) {
     auto port_config = grasu_port_config(config_, channel, next_initiator_++, width);
+    if (metadata_credits) {
+      port_config.request_fifo_depth = metadata_credits;
+      port_config.response_fifo_depth = metadata_credits;
+      port_config.read_reorder_capacity = metadata_credits;
+      port_config.max_pending_requests = metadata_credits;
+      port_config.max_outstanding_bursts = metadata_credits;
+    }
     port_config.stream_read_beats = stream_read_beats;
     return std::make_unique<FixedAxiPort>(
         name, clock_id_, port_config, backend_);
@@ -1939,7 +1953,7 @@ private:
                                             config_.explicit_runtime_regions
                                                 ? config_.row_channels[index]
                                                 : index,
-                                            8);
+                                            8, false, config_.compact_metadata_credits);
       if (!config_.compact_parallel_search) search_ports_[index].binary = make_port(
           "grasu-binary" + std::to_string(index),
           config_.explicit_runtime_regions ? config_.binary_channels[index]

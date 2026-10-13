@@ -156,6 +156,8 @@ struct GraSuNativeConfig {
   bool compact_parallel_search{};
   // Explicit concurrency control; does not add AXI ports or bank credits.
   std::size_t compact_search_contexts{16};
+  // Default zero inherits AXI budgets; explicit metadata-only buffer control.
+  std::size_t compact_metadata_credits{};
   // Experimental sixteen-owner hot RMW path, sharing the existing AXI master.
   bool compact_parallel_hot{};
   // Default-off source16 full-preload/writeback URAM experiment, not routed G.

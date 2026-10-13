@@ -105,6 +105,35 @@ void reject_unsupported_configuration(unsigned kind) {
   }
   require(rejected, "unsupported parallel-search composition accepted");
 }
+
+void metadata_budget_configuration(unsigned credits, bool parallel, bool valid) {
+  Scheduler scheduler;
+  const auto clock = scheduler.add_clock_mhz("G", 200);
+  MockMemoryBackend backend("memory", clock, {32, 3, 1, 32, 64, true});
+  GraSuNativeConfig config;
+  config.compact_parallel_search = parallel;
+  config.compact_metadata_credits = credits;
+  config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
+  const auto layout = GraSuPartitionedPmaLayout::build(8, 65536, {}, {});
+  bool rejected = false;
+  try {
+    GraSuPmaUpdateSystem system(scheduler, clock, backend, layout, {}, config);
+    const auto ports = system.port_observations();
+    require(ports.size() == (parallel ? 18 : 22), "metadata control added masters");
+    for (const auto& port : ports) {
+      const auto limit = credits && port.name.starts_with("grasu-row") ? credits : 16;
+      require(port.config.max_pending_requests == limit &&
+          port.config.max_outstanding_bursts == limit &&
+          port.config.read_reorder_capacity == limit &&
+          port.config.beat_issues_per_cycle == 1 &&
+          port.config.response_beats_per_cycle == 1,
+          "metadata control changed unrelated credits or issue bandwidth");
+    }
+  } catch (const std::invalid_argument& error) {
+    rejected = std::string(error.what()).find("metadata credits") != std::string::npos;
+  }
+  require(rejected != valid, "invalid metadata budget admission");
+}
 }  // namespace
 
 int main() {
@@ -120,6 +149,11 @@ int main() {
     catch (const std::invalid_argument&) { rejected = true; }
     require(rejected, "unsupported context count accepted");
     for (unsigned kind = 0; kind < 3; ++kind) reject_unsupported_configuration(kind);
+    for (const auto credits : {0U, 16U, 32U, 64U})
+      metadata_budget_configuration(credits, true, true);
+    metadata_budget_configuration(0, false, true);
+    metadata_budget_configuration(32, false, false);
+    metadata_budget_configuration(17, true, false);
     std::cout << "parallel search finite/backpressure/order/weight/error tests pass\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

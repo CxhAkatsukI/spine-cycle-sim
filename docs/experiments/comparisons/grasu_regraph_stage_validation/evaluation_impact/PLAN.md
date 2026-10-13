@@ -60,6 +60,19 @@ metadata-parent/burst/FIFO budgets without changing physical banks or timing,
 retaining old arms and recording added buffering resources. Pressure alone
 does not prove a fix or authorize production/FPGA admission.
 
+The [metadata-buffer study](metadata_credits/README.md) implements that
+separate control: the full nineteen-input, two-latency declaration retains
+all 114 diagnostic rows and adds 76 observations with explicit 32/64-slot
+metadata buffers. Default configuration, physical-bank capacity and unrelated
+masters are unchanged. All 190 observations now pass state/work/traffic and
+the old 114 rows replay exactly. Both new controls stay within 2% of the
+forwarded original on every nonempty declared input. M32 suffices for this
+prediction target; M64 remains a sensitivity control. This closes the declared
+single-window prediction gate, not HLS feasibility. Next verify integrated
+search/cache schedules, finite buffers and whole-G resource/clock fit, then
+actual temporal inputs and composition. Production, publication and integration
+decisions remain separately required.
+
 The [cache component controls](cache_probe/README.md) now examine original
 URAM behavior rather than making cached timing an assumption. Original
 single-bank and complete 16-bank C/RTL state checks pass; lower-LUT static

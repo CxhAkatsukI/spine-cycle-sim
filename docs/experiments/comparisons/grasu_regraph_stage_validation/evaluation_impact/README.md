@@ -25,13 +25,23 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [metadata-buffer controls](metadata_credits/README.md) retain the complete
+diagnostic declaration and add 32/64-slot controls on the candidate's single
+metadata master per CU. Physical banks, issue bandwidth, cache timing and all
+other masters are unchanged. All 190 state/work/traffic observations pass;
+114 preceding rows replay exactly. Both controls are within 2% of the
+forwarded original over the complete nonempty matrix. This closes this
+declared prediction-retention gate, not HLS feasibility, original-publication
+timing, production baseline or composition admission.
+
 The [read-only search/port diagnostics](search_diagnostics/README.md) exactly
 replay 114 original/16-context/64-context observations across all nineteen
 inputs and both memory assumptions. Large-batch differences precede cache
 writeback, with the candidate's search ending later despite earlier preload.
 Per-port credit observations motivate a separate resource-accounted control;
 they are not proof that extra credits solve the gap or FPGA timing calibration.
-The complete performance gate remains failed.
+Those diagnostics alone did not close the performance gate; the subsequent
+metadata-buffer study supplies the separately resource-accounted control.
 
 The [search-concurrency controls](search_concurrency/README.md) retain all
 190 cached-G observations and add explicit 64-context and original same-row
