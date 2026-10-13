@@ -187,6 +187,12 @@ admission. R success cannot compensate for failed G.
 
 Status: not admitted; do not bypass the G/R gates.
 
+The direct and finite-bank-routing physical handoffs now pass their declared
+correctness matrices. The [complete-cache sharded matrix](composition/cached/README.md)
+adds high source IDs, hot/DDR operations and full preload/writeback accounting.
+These are integration checks, not admission of realistic batch performance,
+host/seed timing or a new Spine comparison.
+
 Feed G-produced PMA directly into the actual adapter/K4 path. Check extents,
 row metadata, local/global destination translation, degree/correction seeds,
 state replicas and completion barriers. G ends before adapter/R begins in

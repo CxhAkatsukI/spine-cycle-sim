@@ -2,6 +2,7 @@
 
 #include "spine_sim/routed_regraph.hpp"
 
+#include <algorithm>
 #include <queue>
 #include <set>
 #include <stdexcept>
@@ -45,6 +46,27 @@ struct Fixture {
   std::vector<std::uint32_t> expected;
   std::vector<std::size_t> physical_counts;
 };
+
+inline GraSuPartitionedPmaLayout edited_layout(const Fixture &f) {
+  auto result = f.layout;
+  for (const auto &update : f.updates) {
+    auto &part = result.partitions[result.partition_for_destination(update.destination)];
+    auto &segment = part.segments[part.segment_for(update)];
+    const auto word = encode_grasu_pma_edge(part.local_destination(update.destination), update.weight);
+    const auto position = std::lower_bound(segment.begin(), segment.end(), word);
+    if (update.delete_op) {
+      require(position != segment.end() && *position == word, "oracle deletion is not live");
+      std::move(position + 1, segment.end(), position);
+      segment.back() = kGraSuPmaEmpty;
+    } else {
+      require(position != segment.end() && *position != word && segment.back() == kGraSuPmaEmpty,
+              "oracle insertion has no distinct reservation");
+      std::move_backward(position, segment.end() - 1, segment.end());
+      *position = word;
+    }
+  }
+  return result;
+}
 
 inline Fixture fixture(std::size_t vertices, bool empty) {
   Fixture f{};

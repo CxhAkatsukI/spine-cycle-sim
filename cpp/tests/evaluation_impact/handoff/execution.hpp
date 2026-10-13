@@ -11,46 +11,57 @@ struct Result {
   bool operator==(const Result &) const = default;
 };
 
-inline Result run(std::size_t vertices, std::size_t cache, bool empty, bool reverse,
-                  bool finite = false) {
-  const auto f = fixture(vertices, empty);
+struct Observation {
+  Result timing;
+  GraSuUpdateCounters update;
+};
+
+inline Observation execute(const Fixture &f, GraSuNativeConfig g_config, bool reverse) {
+  const auto cache = g_config.cache_segments_per_half;
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("handoff-correctness", 150);
   MockMemoryBackend backend("memory", clock, {32, 7, 1, 16, 32, true});
   scheduler.add_component(backend);
-  GraSuNativeConfig g_config;
-  g_config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
-  g_config.cache_segments_per_half = cache;
-  if (finite) {
-    g_config.compact_parallel_search = true;
-    g_config.compact_finite_search = true;
-    g_config.compact_search_contexts = 64;
-    g_config.compact_metadata_credits = 32;
-  }
   GraSuShardedPmaUpdateSystem g(scheduler, clock, backend, f.layout, f.updates, g_config,
                                 kGraSuReGraphU55cChannelCapacityBytes);
   const auto plan = g.runtime_plan();
   // Cold graph allocation is outside both windows, including untouched shards.
   for (std::size_t p = 0; p < f.layout.partitions.size(); ++p) {
     const auto config = shard_config(plan, p, cache);
-    if (finite) require(config.row_channels != config.binary_channels,
+    if (g_config.compact_finite_search) require(config.row_channels != config.binary_channels,
                         "finite handoff did not exercise independent metadata banks");
     initialize_grasu_pma_layout_payloads(backend, f.layout.partitions[p], config);
   }
   g.register_components();
-  for (std::uint64_t step = 0; step < 1000000 && !g.done() && !g.failed(); ++step) {
+  // Full-cache tests transfer both 8-MiB halves of every updated shard.
+  const std::uint64_t g_limit = g_config.compact_cached_hot ? 4000000 : 1000000;
+  for (std::uint64_t step = 0; step < g_limit && !g.done() && !g.failed(); ++step) {
     scheduler.step();
     g.advance_if_complete();
   }
-  require(g.done() && !g.failed() && backend.outstanding() == 0, "G did not drain before handoff");
+  if (!g.done() || g.failed() || backend.outstanding() != 0) {
+    const auto c = g.counters();
+    throw std::runtime_error("G did not drain: " + g.failure() + " cycles=" + std::to_string(c.end_cycle) +
+        " updates=" + std::to_string(c.updates) + " cache=" + std::to_string(c.cache_updates) +
+        " pma_reads=" + std::to_string(c.pma_reads) + " pma_writes=" + std::to_string(c.pma_writes) +
+        " outstanding=" + std::to_string(backend.outstanding()));
+  }
   require(edge_set(g.live_edges()) == edge_set(f.after), "G post-batch graph mismatch");
   const auto updated = g.materialized_partitioned_layout();
-  for (std::size_t p = 0; p < updated.partitions.size(); ++p)
+  const auto expected_layout = edited_layout(f);
+  for (std::size_t p = 0; p < updated.partitions.size(); ++p) {
     require(updated.partitions[p].row_slot_bounds == f.layout.partitions[p].row_slot_bounds &&
                 updated.partitions[p].segments.size() == f.layout.partitions[p].segments.size(),
                 "G changed reserved PMA geometry");
+    require(updated.partitions[p].segments == expected_layout.partitions[p].segments,
+                "G complete physical PMA state differs from the functional edit oracle");
+  }
   const auto g_counters = g.counters();
   require(g_counters.updates == f.updates.size(), "G physical-operation count mismatch");
+  const auto g_traffic = backend.traffic_stats();
+  require(g_traffic.reads.bytes == g_counters.update_read_bytes + g_counters.row_read_bytes +
+              g_counters.binary_read_bytes + g_counters.pma_read_bytes &&
+              g_traffic.writes.bytes == g_counters.pma_write_bytes, "G byte ledger is not conserved");
   g.unregister_components();
   const auto graph_before = graph_bytes(backend, updated, plan);
   const auto traffic_before = backend.traffic_stats();
@@ -84,6 +95,24 @@ inline Result run(std::size_t vertices, std::size_t cache, bool empty, bool reve
     require(r.source_state(copy, final_buffer) == r.encoded_state(), "final source replica mismatch");
   Result result{g_counters.end_cycle - g_counters.start_cycle, c.end_cycle - c.start_cycle,
                 traffic.reads.bytes, traffic.writes.bytes, r.rounds().size()};
+  r.unregister_components();
+  scheduler.remove_component(backend);
+  require(scheduler.component_count() == 0, "handoff leaked scheduler components");
+  return {result, g_counters};
+}
+
+inline Result run(std::size_t vertices, std::size_t cache, bool empty, bool reverse,
+                  bool finite = false) {
+  GraSuNativeConfig config;
+  config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
+  config.cache_segments_per_half = cache;
+  if (finite) {
+    config.compact_parallel_search = true;
+    config.compact_finite_search = true;
+    config.compact_search_contexts = 64;
+    config.compact_metadata_credits = 32;
+  }
+  const auto result = execute(fixture(vertices, empty), config, reverse).timing;
   std::cout << (finite ? "BANKED_HANDOFF_RESULT " : "HANDOFF_RESULT ")
             << "{\"vertices\":" << vertices << ",\"cache_segments\":" << cache
             << ",\"empty\":" << (empty ? "true" : "false") << ",\"reverse\":" << (reverse ? "true" : "false")
@@ -91,9 +120,6 @@ inline Result run(std::size_t vertices, std::size_t cache, bool empty, bool reve
             << ",\"rounds\":" << result.rounds << ",\"r_read_bytes\":" << result.reads
             << ",\"r_write_bytes\":" << result.writes
             << ",\"physical_handoff_pass\":true,\"performance_admitted\":false}\n";
-  r.unregister_components();
-  scheduler.remove_component(backend);
-  require(scheduler.component_count() == 0, "handoff leaked scheduler components");
   return result;
 }
 } // namespace handoff_test

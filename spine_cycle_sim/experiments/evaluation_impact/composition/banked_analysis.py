@@ -1,6 +1,8 @@
 """Check banked handoff separately from single-window performance retention."""
 
 import json
+import re
+from pathlib import Path
 
 from ..common_g.finite_search.preparation import matrix
 from ..common_g.finite_search.study import settings
@@ -8,6 +10,14 @@ from ..common_g.search_diagnostics.analysis import key
 from .analysis import FIXTURES, MEASUREMENTS
 
 STATUS = "FINITE_BANKED_HANDOFF_CORRECTNESS_PASS_NOT_BASELINE_ADMISSION"
+
+
+def core_tests(compatibility):
+    step = next(step for step in compatibility["steps"] if step["label"] == "ctest")
+    matches = re.findall(r"100% tests passed, 0 tests failed out of (\d+)", Path(step["stdout"]).read_text())
+    if step["exit_code"] or step["timed_out"] or len(matches) != 1 or int(matches[0]) < 33:
+        raise ValueError("complete core regression required")
+    return int(matches[0])
 
 
 def analyze(stdout):

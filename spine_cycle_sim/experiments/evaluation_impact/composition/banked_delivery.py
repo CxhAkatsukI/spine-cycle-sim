@@ -16,7 +16,7 @@ def deliver(report_path, output, pre_edit, previous_matrix, previous_sst):
     report = json.loads(report_path.read_text())
     required = ("pins_unchanged", "legacy_handoff_stdout_exact", "default_sst_json_fields_exact")
     if report["status"] != analysis.STATUS or any(report.get(name) is not True for name in required) or \
-            report.get("core_tests") != 33 or report.get("exact_previous_g_rows") != 228:
+            type(report.get("core_tests")) is not int or report["core_tests"] < 33 or report.get("exact_previous_g_rows") != 228:
         raise ValueError("complete banked correctness and exact-replay gates required")
     verify_pins(report["pins"])
     base = report_path.parent
@@ -32,9 +32,8 @@ def deliver(report_path, output, pre_edit, previous_matrix, previous_sst):
     for step in core_steps + report["steps"]:
         if step["exit_code"] or step["timed_out"] or not 0 < step["memory_limit_gib"] <= 2 or step["reserve_gib"] < 8:
             raise ValueError("failed or unbounded banked verification")
-    ctest = next(step for step in core_steps if step["label"] == "ctest")
-    if "100% tests passed, 0 tests failed out of 33" not in Path(ctest["stdout"]).read_text():
-        raise ValueError("missing complete 33-target regression")
+    if analysis.core_tests(compatibility) != report["core_tests"]:
+        raise ValueError("core regression count differs from report")
     checked = analysis.analyze((base / "raw/banked-handoff.stdout.txt").read_text())
     if checked != report["analysis"]:
         raise ValueError("banked analysis differs from raw observations")
@@ -71,7 +70,7 @@ def deliver(report_path, output, pre_edit, previous_matrix, previous_sst):
             archive.add(path, arcname=name, recursive=False)
             members.append({"member": name, "bytes": path.stat().st_size, "sha256": sha256_file(path)})
     files = [p for p in output.rglob("*") if p.is_file()]
-    index = {**checked, "core_tests": 33, "exact_previous_g_rows": replay["exact_replayed_rows"],
+    index = {**checked, "core_tests": report["core_tests"], "exact_previous_g_rows": replay["exact_replayed_rows"],
              **{name: True for name in required}, "sst_scope": report["sst_scope"],
              "raw_members": members, "steps": core_steps + report["steps"],
              "files": [{"file": str(p.relative_to(output)), "bytes": p.stat().st_size,

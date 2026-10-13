@@ -10,6 +10,9 @@ a matched-performance, original-publication or FPGA claim.
 This page preserves the **direct-G checkpoint**. The subsequent
 [finite-search bank-routing study](banked/README.md) tests independent metadata
 banks and sharded physical handoff, separately from full cached performance.
+The [complete-cache sharded study](cached/README.md) follows with high source
+IDs, hot/DDR updates and explicit whole-cache traffic. Its declaration and
+results distinguish physical correctness from performance admission.
 
 The preceding independent R study constructs its post-update PMA from logical
 edges before timing. That remains valid for its stated compute-only boundary,

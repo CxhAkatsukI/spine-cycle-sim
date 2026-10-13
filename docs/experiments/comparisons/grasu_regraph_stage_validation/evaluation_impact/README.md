@@ -23,155 +23,53 @@ latency, credits or an upstream control to manufacture agreement. Original
 paper reproduction additionally requires its actual workload and denominator;
 same-source controls cannot silently stand in for that claim.
 
-## This Checkpoint
+## Current Decisions
 
-The [finite-search bank-routing study](composition/banked/README.md) connects
-independently placed row/binary metadata without adding masters, credits or
-issue bandwidth. It checks physical G-to-R handoff and exact replay separately
-from the full cached candidate's still-open sharded performance gate.
+| Gate | Evidence now | Decision still open |
+| --- | --- | --- |
+| G, single prepared PMA window | Finite candidate/original cycle ratios are 0.9840--1.0455 at latency 64 and 0.9924--1.0217 at latency 128; all 228 observations pass state/work/traffic | Real temporal inputs, actual sharded batch performance, HLS II/clock/resource fit, original-paper timing |
+| R, fixed Amazon warm SSSP | All 12 full-convergence executions pass; candidate is 4.62% slower / 3.13% faster than A4 at latency 64 / 128 | A4 has 13 masters on 9 banks; K4 has 9 masters; 28 credit/window controls are queued with zero timing rows; broader inputs and original topology A remain separate |
+| Physical G-to-R handoff | All 12 complete-cache executions pass high source IDs, hot/DDR edits, full preload/writeback and exact downstream convergence; 34 CTest targets, 228 old G rows and default SST regressions pass | Correctness alone cannot admit realistic batch performance; cache cost is paid once per updated shard |
+| Host/seed and complete baseline | Device windows and excluded preparation are defined explicitly | Host/seed timing and complete baseline admission are not established |
+| New Spine comparison | No replacement evaluation claimed | Requires the preceding gates and a common warm-state-to-convergence run |
 
-The [resident G-to-R handoff](composition/README.md) adds an explicit,
-default-off route that validates and reuses G's physical PMA rather than
-rebuilding R input from logical edges. Its complete small matrix covers
-updated and untouched shards, reserved slots, empty batches and registration
-order; seven invalid handoffs must fail without repair. It uses unchanged
-direct G, not the finite cached candidate. This is physical correctness,
-not complete-G timing, seed/host admission or a new Spine performance claim.
+These are simulator predictions and correctness checks, not new measured FPGA
+speedups. The passing G window is co-located, not the actual 23-bank sharded
+batch. The R case preloads the post-update graph, old converged state and
+prepared seed; it excludes G, DMA and host work on every arm. Separate passing
+predictions cannot be added and called a validated complete-system result.
 
-The [finite G search cycle model](search_pipeline/finite_model/README.md)
-now pays explicit registered arbitration, response routing, bounded reorder
-holding and complete drain. All 228 executions pass state/work/traffic checks;
-190 preceding observations replay exactly. Across every declared nonempty
-input, finite G takes 0.9840--1.0455x the forwarded original at latency 64 and
-0.9924--1.0217x at latency 128. The finite-stage prediction gate passes without
-changing original timing or physical banks. Fresh core/SST default regressions
-pass. The declared II=1/register assumptions still need HLS verification;
-whole-G, original-publication, temporal/composition and production admission
-remain open. No paper or frozen figure package changes.
+## Evidence Map
 
-The [R credit/window controls](r_credits/README.md) now predeclare 28
-full-convergence executions to test the different A4/K4 outstanding budgets.
-The pre-extraction source and twelve reference results are frozen. New arms
-retain the old controls and explicitly vary parent credits or Apply window;
-no strict resource match or numerical equivalence is claimed before replay.
-The fresh Release build, eight C++ checks and 58 focused Python tests passed.
-Timing execution has produced zero rows and waits for the existing memory
-and competing-build reserves; the study guide links its persistent service
-and retained raw logs.
+Read the [execution plan](PLAN.md) for acceptance order. Each guide below owns
+its numerical findings, retained failures, resource assumptions, reproduction
+commands and compact raw evidence. Earlier checkpoints keep their original
+scope; they are not overwritten when a later candidate improves.
 
-The [R resource audit](r_resources/README.md) corrects a summary-table error:
-original A4 has 13 distinct masters on 9 physical banks, while K4 registers
-9 masters. It verifies constructed resources without executing a round or
-changing model timing. Different credits, banks and replicas still prevent
-strict resource-match admission for the preceding close R prediction.
+| Question | Guide |
+| --- | --- |
+| What failed in the first matched G/R diagnostic? | [Initial results](RESULTS.md), [frozen evidence index](evidence/index.json) |
+| Did parallel search alone solve G? | [Parallel search](parallel_search/README.md), [hot owners](hot_lanes/README.md) |
+| What did full caching and concurrency change? | [Complete cache](cached_hot/README.md), [search concurrency](search_concurrency/README.md) |
+| Where was the remaining G delay? | [Read-only search diagnostics](search_diagnostics/README.md) |
+| What buffers and finite timing does the close G prediction pay? | [Metadata credits](metadata_credits/README.md), [finite cycle model](search_pipeline/finite_model/README.md) |
+| Which HLS/source checks are independent of that prediction? | [Finite search HLS](search_pipeline/README.md), [cache probes](cache_probe/README.md), [weighted ABI](weighted_abi/README.md) |
+| What differs between A4 and actual K4 resources? | [Resource audit](r_resources/README.md), [credit/window controls](r_credits/README.md) |
+| Does R read the physical PMA produced by G? | [Direct handoff](composition/README.md), [finite bank routing](composition/banked/README.md), [complete-cache handoff](composition/cached/README.md) |
 
-The [finite search pipeline](search_pipeline/README.md) is the isolated HLS
-feasibility follow-up: 64 ordered contexts, hierarchical arbitration, explicit
-32-entry metadata FIFOs and bounded source backpressure controls. It does not
-change the production core/SST or inherit the model's timing-retention result.
-Its HLS/RTL job waits behind the cache comparison and reserves the pending
-route's memory budget. The complete-G and publication gates remain open.
-
-The [metadata-buffer controls](metadata_credits/README.md) retain the complete
-diagnostic declaration and add 32/64-slot controls on the candidate's single
-metadata master per CU. Physical banks, issue bandwidth, cache timing and all
-other masters are unchanged. All 190 state/work/traffic observations pass;
-114 preceding rows replay exactly. Both controls are within 2% of the
-forwarded original over the complete nonempty matrix. This closes this
-declared prediction-retention gate, not HLS feasibility, original-publication
-timing, production baseline or composition admission.
-
-The [read-only search/port diagnostics](search_diagnostics/README.md) exactly
-replay 114 original/16-context/64-context observations across all nineteen
-inputs and both memory assumptions. Large-batch differences precede cache
-writeback, with the candidate's search ending later despite earlier preload.
-Per-port credit observations motivate a separate resource-accounted control;
-they are not proof that extra credits solve the gap or FPGA timing calibration.
-Those diagnostics alone did not close the performance gate; the subsequent
-metadata-buffer study supplies the separately resource-accounted control.
-
-The [search-concurrency controls](search_concurrency/README.md) retain all
-190 cached-G observations and add explicit 64-context and original same-row
-forwarding arms. All 266 observations pass state/work/traffic checks and the
-190 earlier rows reproduce exactly. Fresh checks pass 31 CTest targets,
-92 focused Python tests and three default SST checks. Large 64K batches remain
-52--55% slower than the forwarded original, so the complete performance gate
-still fails. Default paths and production admission are unchanged.
-
-The [explicit cached-G study](cached_hot/README.md) adds a separately owned,
-default-off full-depth cache processor and a 190-observation matrix. It pays
-complete preload/writeback and preserves every earlier control. Legacy
-original-G same-row timing, integrated HLS and production/publication
-admission remain separate open gates; model closeness does not close them.
-
-The [weighted source compatibility check](weighted_abi/README.md) passes all
-16 declared hot-region rows: actual host layout, original search, current
-dispatch, original/candidate cache edits and actual adapter output. Complete
-intermediate state and independent logical graph agree. This is not timing or
-whole-G admission; all three earlier failed attempts remain in its capsule.
-
-The [hot-cache HLS/RTL controls](cache_probe/README.md) test the original
-full-depth URAM path and a separately registered lower-LUT candidate. Complete
-cache state, finite FIFO correctness and estimated clock are separate gates;
-neither the production G implementation nor simulator timing is changed by
-these component probes. Full G and publication admission remain open.
-
-The preceding [hot-owner G checkpoint](hot_lanes/README.md) extends the study to
-152 observations with explicit segment-ordered parallel RMW and unchanged
-physical traffic. It reproduces the old 84 observations exactly, but the
-complete performance gate still fails on large batches and same-key hazards.
-It is not a production HLS change or a new Spine/G+R comparison.
-
-The subsequent [parallel-search G checkpoint](parallel_search/README.md)
-retains a complete 84-run three-arm matrix and two isolated HLS attempts.
-It improves search throughput but fails the large-batch performance gate and
-the 200-MHz HLS clock estimate. It is not a promoted baseline or a replacement
-for the immutable evidence below.
-
-Read the [execution plan](PLAN.md) and [diagnostic findings](RESULTS.md).
-The [evidence index](evidence/index.json) owns report identities and admission
-flags. It contains the [matched-G report](evidence/matched_g.json),
-[complete R report](evidence/r_convergence.json) and
-[failed first attempt](evidence/failed_attempt_v1.json), not just passing rows.
-This study first replays all twelve finite-G configurations against original
-source16 probes and frozen observations. That is an exact regression check,
-not a current-G timing comparison or a measurement of FPGA cycles from C++
-source-probe wall time.
-
-A separate matched-input G diagnostic then runs unchanged
-`GraSuPmaUpdateSystem` and the independent `original_grasu` model on the same
-prepared PMA and updates. All twelve runs pass state/traffic gates, but
-nonempty batches do **not** meet the declared performance-retention target.
-It covers a single destination window, not the complete 23-channel sharded G
-system. Original-G publication/FPGA timing admission remains open as well.
-
-The R diagnostic extends the fixed Amazon warm-update case from one round to
-convergence for original A4, unchanged cross-row K4 and the bank-stream
-candidate. It checks each A4 round, all final state words/replicas, active-count
-trajectories, independent shortest-path closure and physical request ledgers.
-It is a compute-only prediction: the graph after three source-0 weight
-decreases and the old resident state are preloaded. G, seed preparation,
-DMA/launch and host orchestration are excluded on all arms. It is **not** a
-complete Spine/G+R E2E demonstration.
-
-All twelve R executions now pass. The candidate is 4.62% slower / 3.13%
-faster than A4 at latency 64 / 128, respectively, over 46 rounds to convergence.
-That meets the declared prediction target on this case; resource differences
-and unadmitted publication/FPGA timing prevent a general baseline claim.
-
-Predeclared R matrix: latencies 64 and 128, both registration orders, all
-three arms, maximum 128 rounds / 1.5 billion cycles per arm. Attempt v1 reached
-the earlier 200-million-cycle budget during cross-row round 38, before the
-46-round oracle closure. Its failure is retained. Attempt v2 changes only the
-execution budget (1800 seconds per case) and parallelism, not model timing.
-Resources and
-numerical components are unchanged from the fixed one-round study. The
-candidate uses 1024-row tiles, two 256-line banks and progressive AXI beats.
-Neither the production SST plugin nor existing bitstreams are replaced.
+The original [matched-G](evidence/matched_g.json),
+[R convergence](evidence/r_convergence.json) and
+[failed first attempt](evidence/failed_attempt_v1.json) remain intact. The first
+G timing gate failed; the subsequent finite candidate does not retroactively
+make that implementation pass. The first R run exhausted its cycle budget
+before convergence; its failure remains indexed, not silently dropped.
 
 ## Safety And Reproduction
 
-Use up to four independent processes, with a 4-GiB per-process address-space
+The commands below reproduce the **initial diagnostic**, not the latest
+complete-cache handoff. Use the individual study guides for current commands
+and their stricter admission rules. For the initial diagnostic, use up to
+four independent processes, with a 4-GiB per-process address-space
 limit, a 24-GiB system reserve, bounded timeouts and an outer 8-GiB cgroup.
 Parallel launch additionally requires memory for all process limits plus the
 reserve; measured v1 peak was below 1 GiB for the complete service. Record compiler,

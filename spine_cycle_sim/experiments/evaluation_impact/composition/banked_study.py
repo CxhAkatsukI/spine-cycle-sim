@@ -62,7 +62,7 @@ def run(output, pre_edit, previous_routed, previous_matrix, previous_sst):
                            pin(output / "compatibility/results.json"), pin(output / "g-replay/results.json")]
         if any(sha256_file(Path(p["path"])) != p["sha256"] for p in report["pins"]):
             raise ValueError("banked study frozen identity changed")
-        report.update(status=analysis.STATUS, pins_unchanged=True, core_tests=33,
+        report.update(status=analysis.STATUS, pins_unchanged=True, core_tests=analysis.core_tests(compatibility),
                       sst_scope="default-only exact compatibility, not banked G timing calibration")
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
