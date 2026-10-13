@@ -1,0 +1,100 @@
+In file included from /data/feiyang/sst/include/sst/core/interfaces/stdMem.h:17,
+                 from sst_memory_backend.hpp:15,
+                 from online_memory_probe.cpp:31:
+/data/feiyang/sst/include/sst/core/link.h:27:28: warning: ISO C++ does not permit named variadic macros [-Wvariadic-macros]
+   27 | #define _LINK_DBG(fmt, args...) __DBG(DBG_LINK, Link, fmt, ##args)
+      |                            ^~~
+In file included from /data/feiyang/sst/include/sst/core/baseComponent.h:15,
+                 from /data/feiyang/sst/include/sst/core/subcomponent.h:15,
+                 from /data/feiyang/sst/include/sst/core/interfaces/stdMem.h:22:
+/data/feiyang/sst/include/sst/core/clock.h:23:27: warning: ISO C++ does not permit named variadic macros [-Wvariadic-macros]
+   23 | #define _CLE_DBG(fmt, args...) __DBG(DBG_CLOCK, Clock, fmt, ##args)
+      |                           ^~~
+In file included from /data/feiyang/sst/include/sst/core/serialization/serialize.h:22,
+                 from /data/feiyang/sst/include/sst/core/serialization/serializable.h:16,
+                 from /data/feiyang/sst/include/sst/core/mempool.h:15,
+                 from /data/feiyang/sst/include/sst/core/activity.h:15,
+                 from /data/feiyang/sst/include/sst/core/event.h:15,
+                 from /data/feiyang/sst/include/sst/core/link.h:15:
+/data/feiyang/sst/include/sst/core/serialization/impl/serialize_utility.h:234:51: warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+  234 | inline constexpr bool is_trivially_serializable_v<__int128, false> = true;
+      |                                                   ^~~~~~~~
+/data/feiyang/sst/include/sst/core/serialization/impl/serialize_utility.h:237:60: warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+  237 | inline constexpr bool is_trivially_serializable_v<unsigned __int128, false> = true;
+      |                                                            ^~~~~~~~
+In file included from /data/feiyang/sst/include/sst/core/interfaces/stdMem.h:17,
+                 from sst_memory_backend.hpp:15,
+                 from routed_regraph_report.hpp:4,
+                 from routed_regraph_probe.cpp:5:
+/data/feiyang/sst/include/sst/core/link.h:27:28: warning: ISO C++ does not permit named variadic macros [-Wvariadic-macros]
+   27 | #define _LINK_DBG(fmt, args...) __DBG(DBG_LINK, Link, fmt, ##args)
+      |                            ^~~
+In file included from /data/feiyang/sst/include/sst/core/baseComponent.h:15,
+                 from /data/feiyang/sst/include/sst/core/subcomponent.h:15,
+                 from /data/feiyang/sst/include/sst/core/interfaces/stdMem.h:22:
+/data/feiyang/sst/include/sst/core/clock.h:23:27: warning: ISO C++ does not permit named variadic macros [-Wvariadic-macros]
+   23 | #define _CLE_DBG(fmt, args...) __DBG(DBG_CLOCK, Clock, fmt, ##args)
+      |                           ^~~
+In file included from /data/feiyang/sst/include/sst/core/serialization/serialize.h:22,
+                 from /data/feiyang/sst/include/sst/core/serialization/serializable.h:16,
+                 from /data/feiyang/sst/include/sst/core/mempool.h:15,
+                 from /data/feiyang/sst/include/sst/core/activity.h:15,
+                 from /data/feiyang/sst/include/sst/core/event.h:15,
+                 from /data/feiyang/sst/include/sst/core/link.h:15:
+/data/feiyang/sst/include/sst/core/serialization/impl/serialize_utility.h:234:51: warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+  234 | inline constexpr bool is_trivially_serializable_v<__int128, false> = true;
+      |                                                   ^~~~~~~~
+/data/feiyang/sst/include/sst/core/serialization/impl/serialize_utility.h:237:60: warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+  237 | inline constexpr bool is_trivially_serializable_v<unsigned __int128, false> = true;
+      |                                                            ^~~~~~~~
+In file included from /data/feiyang/sst/include/sst/core/interfaces/stdMem.h:17,
+                 from sst_memory_backend.hpp:15,
+                 from routed_regraph_report.hpp:4,
+                 from routed_regraph_report.cpp:1:
+/data/feiyang/sst/include/sst/core/link.h:27:28: warning: ISO C++ does not permit named variadic macros [-Wvariadic-macros]
+   27 | #define _LINK_DBG(fmt, args...) __DBG(DBG_LINK, Link, fmt, ##args)
+      |                            ^~~
+In file included from /data/feiyang/sst/include/sst/core/baseComponent.h:15,
+                 from /data/feiyang/sst/include/sst/core/subcomponent.h:15,
+                 from /data/feiyang/sst/include/sst/core/interfaces/stdMem.h:22:
+/data/feiyang/sst/include/sst/core/clock.h:23:27: warning: ISO C++ does not permit named variadic macros [-Wvariadic-macros]
+   23 | #define _CLE_DBG(fmt, args...) __DBG(DBG_CLOCK, Clock, fmt, ##args)
+      |                           ^~~
+In file included from /data/feiyang/sst/include/sst/core/serialization/serialize.h:22,
+                 from /data/feiyang/sst/include/sst/core/serialization/serializable.h:16,
+                 from /data/feiyang/sst/include/sst/core/mempool.h:15,
+                 from /data/feiyang/sst/include/sst/core/activity.h:15,
+                 from /data/feiyang/sst/include/sst/core/event.h:15,
+                 from /data/feiyang/sst/include/sst/core/link.h:15:
+/data/feiyang/sst/include/sst/core/serialization/impl/serialize_utility.h:234:51: warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+  234 | inline constexpr bool is_trivially_serializable_v<__int128, false> = true;
+      |                                                   ^~~~~~~~
+/data/feiyang/sst/include/sst/core/serialization/impl/serialize_utility.h:237:60: warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+  237 | inline constexpr bool is_trivially_serializable_v<unsigned __int128, false> = true;
+      |                                                            ^~~~~~~~
+In file included from /data/feiyang/sst/include/sst/core/interfaces/stdMem.h:17,
+                 from sst_memory_backend.hpp:15,
+                 from sst_memory_backend.cpp:5:
+/data/feiyang/sst/include/sst/core/link.h:27:28: warning: ISO C++ does not permit named variadic macros [-Wvariadic-macros]
+   27 | #define _LINK_DBG(fmt, args...) __DBG(DBG_LINK, Link, fmt, ##args)
+      |                            ^~~
+In file included from /data/feiyang/sst/include/sst/core/baseComponent.h:15,
+                 from /data/feiyang/sst/include/sst/core/subcomponent.h:15,
+                 from /data/feiyang/sst/include/sst/core/interfaces/stdMem.h:22:
+/data/feiyang/sst/include/sst/core/clock.h:23:27: warning: ISO C++ does not permit named variadic macros [-Wvariadic-macros]
+   23 | #define _CLE_DBG(fmt, args...) __DBG(DBG_CLOCK, Clock, fmt, ##args)
+      |                           ^~~
+In file included from /data/feiyang/sst/include/sst/core/serialization/serialize.h:22,
+                 from /data/feiyang/sst/include/sst/core/serialization/serializable.h:16,
+                 from /data/feiyang/sst/include/sst/core/mempool.h:15,
+                 from /data/feiyang/sst/include/sst/core/activity.h:15,
+                 from /data/feiyang/sst/include/sst/core/event.h:15,
+                 from /data/feiyang/sst/include/sst/core/link.h:15:
+/data/feiyang/sst/include/sst/core/serialization/impl/serialize_utility.h:234:51: warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+  234 | inline constexpr bool is_trivially_serializable_v<__int128, false> = true;
+      |                                                   ^~~~~~~~
+/data/feiyang/sst/include/sst/core/serialization/impl/serialize_utility.h:237:60: warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+  237 | inline constexpr bool is_trivially_serializable_v<unsigned __int128, false> = true;
+      |                                                            ^~~~~~~~
+lto-wrapper: warning: using serial compilation of 44 LTRANS jobs
+lto-wrapper: note: see the ‘-flto’ option documentation for more information

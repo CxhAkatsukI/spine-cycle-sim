@@ -1,0 +1,51 @@
+{
+  "status": "FOCUSED_PASS_HISTORICAL_IDENTITY_REVIEW_REQUIRED",
+  "steps": [
+    {
+      "available_before_bytes": 60310937600,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_hot_lanes",
+        "tests.test_grasu_parallel_search",
+        "tests.test_evaluation_impact",
+        "tests.test_repository_structure",
+        "tests.test_sst_library",
+        "tests.test_sst_memory_smoke",
+        "tests.test_grasu_plugin_transition",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 67652,
+      "reserve_gib": 24,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/python-verification/focused.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/python-verification/focused.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.35318161733448505
+    },
+    {
+      "available_before_bytes": 60317904896,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_stage_validation_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 68148,
+      "reserve_gib": 24,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/python-verification/historical.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/python-verification/historical.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.164946928154677
+    }
+  ]
+}

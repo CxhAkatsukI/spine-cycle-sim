@@ -1,0 +1,73 @@
+{
+  "status": "DEFAULT_SST_SMOKES_PASS_NOT_CANDIDATE_TIMING",
+  "steps": [
+    {
+      "available_before_bytes": 60216131584,
+      "command": [
+        "/data/feiyang/sst/bin/sst-info",
+        "--add-lib-path=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst",
+        "spine_cycle"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 15920,
+      "reserve_gib": 24,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/load.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/load.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.05243933806195855
+    },
+    {
+      "available_before_bytes": 60217974784,
+      "command": [
+        "python3",
+        "scripts/run_sst_memory_smoke.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/memory",
+        "--channels",
+        "4",
+        "--requests",
+        "64"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 41004,
+      "reserve_gib": 24,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/memory.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/memory.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.2528776009567082
+    },
+    {
+      "available_before_bytes": 60212539392,
+      "command": [
+        "python3",
+        "scripts/run_sst_grasu_regraph_native.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/native",
+        "--max-cycles",
+        "1000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "memory_limit_gib": 4,
+      "peak_rss_kib": 85156,
+      "reserve_gib": 24,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/native.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/sst-verification/native.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.0548668000847101
+    }
+  ]
+}

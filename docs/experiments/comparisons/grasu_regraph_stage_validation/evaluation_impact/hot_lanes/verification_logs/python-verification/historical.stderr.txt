@@ -1,0 +1,362 @@
+test_B_uses_the_same_A4_state_and_downstream_budget (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_B_uses_the_same_A4_state_and_downstream_budget) ... ok
+test_G_complete_repetitions_are_exact_without_claiming_timing (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_G_complete_repetitions_are_exact_without_claiming_timing) ... ok
+test_complete_stage_archives_and_result_identities_match (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_complete_stage_archives_and_result_identities_match) ... ok
+test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) ... 
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/axi.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/fixed_axi_port.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/grasu.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/memory_backend.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/axi.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/grasu.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/grasu_regraph.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/memory_backend.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/sst/sst_memory_backend.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/sst/sst_memory_backend.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/CMakeLists.txt') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/axi.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/fixed_axi_port.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/grasu.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/memory_backend.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/original_regraph/edge_reader.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/original_regraph/little_gather.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/original_regraph/little_merge.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/original_regraph/little_scatter.hpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/axi.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/grasu.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/grasu_regraph.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/memory_backend.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/original_regraph/edge_reader.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/original_regraph/little_gather.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/original_regraph/little_merge.cpp') ... FAIL
+  test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/original_regraph/little_scatter.cpp') ... FAIL
+test_original_R_controls_repeat_complete_state_and_ledgers (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_original_R_controls_repeat_complete_state_and_ledgers) ... ok
+test_refactor_raw_results_match_every_field_and_preserve_rejections (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_refactor_raw_results_match_every_field_and_preserve_rejections) ... ok
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/axi.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '3eed58f1fcbc0fceef511e55323843cbc1014b75b7b64694addfcf2d5c987c41' != '47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb'
+- 3eed58f1fcbc0fceef511e55323843cbc1014b75b7b64694addfcf2d5c987c41
++ 47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/fixed_axi_port.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '94b43d3f0583b78fcb279cbb6d8df1adec34b3c16bae520b6ffa8e19c1c0b614' != '6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f'
+- 94b43d3f0583b78fcb279cbb6d8df1adec34b3c16bae520b6ffa8e19c1c0b614
++ 6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/grasu.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'bf1617115bfae7c79cc8b150028fe8b7d6495757cc9da490973d7b879c5679e7' != 'a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2'
+- bf1617115bfae7c79cc8b150028fe8b7d6495757cc9da490973d7b879c5679e7
++ a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/memory_backend.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '1ea3493191f9defeb52d9271d1b5eab2f8950c8e91f4e3df1fa5eecc35777784' != '067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e'
+- 1ea3493191f9defeb52d9271d1b5eab2f8950c8e91f4e3df1fa5eecc35777784
++ 067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/axi.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '6e9f9e2b561f9281d3c1daa44569ea4e5b5133c11d20257147a37819fffb8b8c' != 'c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd'
+- 6e9f9e2b561f9281d3c1daa44569ea4e5b5133c11d20257147a37819fffb8b8c
++ c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/grasu.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'c8332b179e9f982d7f7e997fcbac31faedd366433fa232c8bb2f9889515cec63' != '352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915'
+- c8332b179e9f982d7f7e997fcbac31faedd366433fa232c8bb2f9889515cec63
++ 352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/grasu_regraph.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '5abc7114598a7bd5fc457c428510367b1f77f0642d26200821c3f05d46875c3a' != 'f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7'
+- 5abc7114598a7bd5fc457c428510367b1f77f0642d26200821c3f05d46875c3a
++ f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/memory_backend.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '28fb03428c6191b9281d0f7ed36eb3a594eceab3585c11b3f7e3ded09c8882c6' != '4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20'
+- 28fb03428c6191b9281d0f7ed36eb3a594eceab3585c11b3f7e3ded09c8882c6
++ 4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/sst/sst_memory_backend.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '70bd9d0319ce1d94fc93830c1475d5c846ae342f486ba58e9c1d7796557ebef3' != '255eaa99be3ae0ea7b39d1aa1a24224a88d3e6f40fc478c720024b3c7d392e6a'
+- 70bd9d0319ce1d94fc93830c1475d5c846ae342f486ba58e9c1d7796557ebef3
++ 255eaa99be3ae0ea7b39d1aa1a24224a88d3e6f40fc478c720024b3c7d392e6a
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/sst/sst_memory_backend.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '38ee9f7273ccab7ee3be773d08c5b5e28ba124180a864fa5275854224147368d' != 'e2356d8698da00cac3d07a0562fe305d7d3bb883225ce72a3a19504466cc275e'
+- 38ee9f7273ccab7ee3be773d08c5b5e28ba124180a864fa5275854224147368d
++ e2356d8698da00cac3d07a0562fe305d7d3bb883225ce72a3a19504466cc275e
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/CMakeLists.txt')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'caa83ffb61ea935b7ed9ef34511a4b6a4a4a26bd8b8d24344a9ac84f757c90f5' != '2e8f589ad5f7d250d0ed8137264ffb13d3237a745a4a3002f4bcb254e25483b4'
+- caa83ffb61ea935b7ed9ef34511a4b6a4a4a26bd8b8d24344a9ac84f757c90f5
++ 2e8f589ad5f7d250d0ed8137264ffb13d3237a745a4a3002f4bcb254e25483b4
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/axi.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '3eed58f1fcbc0fceef511e55323843cbc1014b75b7b64694addfcf2d5c987c41' != '47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb'
+- 3eed58f1fcbc0fceef511e55323843cbc1014b75b7b64694addfcf2d5c987c41
++ 47b3bc25fba54160f11fcd5b72bf10d28ba27e1566bc462c516fae41f76ca8cb
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/fixed_axi_port.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '94b43d3f0583b78fcb279cbb6d8df1adec34b3c16bae520b6ffa8e19c1c0b614' != '6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f'
+- 94b43d3f0583b78fcb279cbb6d8df1adec34b3c16bae520b6ffa8e19c1c0b614
++ 6f044cf0897f158d85185415e58806608fa8f5ec41d4174f37c7100816e7166f
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/grasu.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'bf1617115bfae7c79cc8b150028fe8b7d6495757cc9da490973d7b879c5679e7' != 'a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2'
+- bf1617115bfae7c79cc8b150028fe8b7d6495757cc9da490973d7b879c5679e7
++ a98960809322834350f94b64c7e810de61e0eee84bed8baf21b8c3942a53fed2
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/memory_backend.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '1ea3493191f9defeb52d9271d1b5eab2f8950c8e91f4e3df1fa5eecc35777784' != '067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e'
+- 1ea3493191f9defeb52d9271d1b5eab2f8950c8e91f4e3df1fa5eecc35777784
++ 067eb47e95e384a52a35195e9b13708768326b193ea8e25d230fcec53c635a4e
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/original_regraph/edge_reader.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'e371ba5de6fce21cc60f9dfe749cf771a46f86cada5427b9e4422b52a6656fd1' != '655729932e87da5d7c06317c305d5412629acd28ec7f144db1fcc3b26f64074b'
+- e371ba5de6fce21cc60f9dfe749cf771a46f86cada5427b9e4422b52a6656fd1
++ 655729932e87da5d7c06317c305d5412629acd28ec7f144db1fcc3b26f64074b
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/original_regraph/little_gather.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '5947e0b57c46387a5cb58b209df266ddab4590aa50dfa474664d9a0cb88a6ce1' != 'c216b397448567f5a55ca44756c278e39c2cf38f7866ba189f5b7a45b9ec09fd'
+- 5947e0b57c46387a5cb58b209df266ddab4590aa50dfa474664d9a0cb88a6ce1
++ c216b397448567f5a55ca44756c278e39c2cf38f7866ba189f5b7a45b9ec09fd
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/original_regraph/little_merge.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '7a819031225b828e6761fc55186fd5ff6e97b4e72d1460db66466c2a528f8ea1' != '16d37cd38685b45610905c7976354a59dad1f3a9cc3b2681e6c54e90f6398ff3'
+- 7a819031225b828e6761fc55186fd5ff6e97b4e72d1460db66466c2a528f8ea1
++ 16d37cd38685b45610905c7976354a59dad1f3a9cc3b2681e6c54e90f6398ff3
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/include/spine_sim/original_regraph/little_scatter.hpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'a55ead954c8a8fd95053baf7f95031a94e8abced678a9f14c59f0b35f6f4ea71' != 'b9438ee2684515934a508d5bf1fa3d66b0e725a041dcf530bf40cffb4fb0b640'
+- a55ead954c8a8fd95053baf7f95031a94e8abced678a9f14c59f0b35f6f4ea71
++ b9438ee2684515934a508d5bf1fa3d66b0e725a041dcf530bf40cffb4fb0b640
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/axi.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '6e9f9e2b561f9281d3c1daa44569ea4e5b5133c11d20257147a37819fffb8b8c' != 'c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd'
+- 6e9f9e2b561f9281d3c1daa44569ea4e5b5133c11d20257147a37819fffb8b8c
++ c584133378ef193e21fa99928da9c0afc1e571791e5351cce5fd972ef4472bcd
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/grasu.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'c8332b179e9f982d7f7e997fcbac31faedd366433fa232c8bb2f9889515cec63' != '352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915'
+- c8332b179e9f982d7f7e997fcbac31faedd366433fa232c8bb2f9889515cec63
++ 352ba0a01833adef4b69943d94586b64dc8b8b70fd9563cd05424c3657ae6915
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/grasu_regraph.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '5abc7114598a7bd5fc457c428510367b1f77f0642d26200821c3f05d46875c3a' != 'f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7'
+- 5abc7114598a7bd5fc457c428510367b1f77f0642d26200821c3f05d46875c3a
++ f3915552d57c802763aa78661a91430a6adc3ad5232c844679e8b3bbfa7bd3d7
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/memory_backend.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '28fb03428c6191b9281d0f7ed36eb3a594eceab3585c11b3f7e3ded09c8882c6' != '4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20'
+- 28fb03428c6191b9281d0f7ed36eb3a594eceab3585c11b3f7e3ded09c8882c6
++ 4819d973146a6a5effc04f5812271ea19c8f2131aba05f6e9d52220b8ef7ca20
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/original_regraph/edge_reader.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '50f0d3c0e5e62471903bcddfa4d246e5749ce3d4c52e6e97921e36e5924a473f' != 'e5dcb67282bbcb2b72793b8e5e6518d567826ad8e1376bb4e7e5310dd4ee633e'
+- 50f0d3c0e5e62471903bcddfa4d246e5749ce3d4c52e6e97921e36e5924a473f
++ e5dcb67282bbcb2b72793b8e5e6518d567826ad8e1376bb4e7e5310dd4ee633e
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/original_regraph/little_gather.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '26260dbf1c2ee583ee6b8fefe8d6b9ead0e49e857fa744d6303420869a9a392f' != '875831ca14a8bdd4dc4fd9fcdc8eaa6bb4d5521f045a6f0f5c5365905f34fb8e'
+- 26260dbf1c2ee583ee6b8fefe8d6b9ead0e49e857fa744d6303420869a9a392f
++ 875831ca14a8bdd4dc4fd9fcdc8eaa6bb4d5521f045a6f0f5c5365905f34fb8e
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/original_regraph/little_merge.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'e642bed303c440e754a1a030b99c0596c97f4323172aecaed408d775b4f20521' != 'd2268878b6b33e33dcf641c4e7b97d702826e91236261f018ae3c2a873986cf0'
+- e642bed303c440e754a1a030b99c0596c97f4323172aecaed408d775b4f20521
++ d2268878b6b33e33dcf641c4e7b97d702826e91236261f018ae3c2a873986cf0
+
+
+======================================================================
+FAIL: test_current_numerical_sources_retain_the_accepted_identities (tests.test_stage_validation_delivery.StageValidationDeliveryTests.test_current_numerical_sources_retain_the_accepted_identities) (path='cpp/src/original_regraph/little_scatter.cpp')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/tests/test_stage_validation_delivery.py", line 145, in test_current_numerical_sources_retain_the_accepted_identities
+    self.assertEqual(sha256_file(ROOT / row["path"]), row["sha256"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'a312484372958520a2116b9733967da3d83adddfd3cb8fcfe16b3784993da13b' != 'e664c1f588afd474f5a89085583b6e3804e02112088bb1c8a4b443bc3c46974e'
+- a312484372958520a2116b9733967da3d83adddfd3cb8fcfe16b3784993da13b
++ e664c1f588afd474f5a89085583b6e3804e02112088bb1c8a4b443bc3c46974e
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 7.040s
+
+FAILED (failures=27)

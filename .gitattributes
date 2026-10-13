@@ -1,2 +1,5 @@
 /docs/evidence/onchip_energy_20260725/raw/cacti/*.out binary
 /docs/evidence/refactor31_real_slice_transfer_v3/*.csv binary
+/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hot_lanes/evidence/raw/*.txt -whitespace
+/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hot_lanes/verification_logs/**/*.txt -whitespace
+/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hot_lanes/verification_logs/*.txt -whitespace

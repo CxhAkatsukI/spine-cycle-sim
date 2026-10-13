@@ -35,12 +35,21 @@ This is a real hardware-port difference, not only a plotting problem.
 
 Status: source/finite replay passed; matched-input performance gate failed.
 
+The subsequent [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
+observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
+share each unchanged hot AXI master, with no implicit cache. Large dispersed
+batches improve further but remain 17--23% slower than original G; large
+same-segment batches are 7.4--7.8x slower. State/work/traffic and all 84 old
+observations agree exactly. No hot-owner HLS timing or production baseline
+admission follows from this default-off single-window prediction.
+
 The [parallel-search checkpoint](parallel_search/README.md) now tests an
 explicit default-off core candidate on 84 runs. It preserves state/work and
 improves larger-batch predictions by about 5x, but the 16K/64K cases still miss
 the original-G retention target. Two isolated HLS compiles also miss the
-200-MHz estimated clock. Hot-update concurrency and arbiter timing remain
-implementation work, not admitted baseline changes.
+200-MHz estimated clock. The hot-owner model investigates update concurrency;
+its HLS implementation, caching/forwarding costs and search arbiter timing
+remain open, not admitted baseline changes.
 
 The first common-input diagnostic covers batch sizes 0, 64 and 4096, both
 64/128-cycle memory assumptions, identical prepared full-word PMA and updates,

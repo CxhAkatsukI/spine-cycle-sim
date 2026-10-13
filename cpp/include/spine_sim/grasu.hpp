@@ -154,6 +154,8 @@ struct GraSuNativeConfig {
   GraSuPmaWordAbi pma_word_abi{GraSuPmaWordAbi::kNormalizedWeighted};
   // Experimental single-window source16 path; never selected by an SST profile.
   bool compact_parallel_search{};
+  // Experimental sixteen-owner hot RMW path, sharing the existing AXI master.
+  bool compact_parallel_hot{};
   std::size_t memory_channels{32};
   std::size_t cache_segments_per_half{131072};
   std::size_t axis_fifo_depth{16};

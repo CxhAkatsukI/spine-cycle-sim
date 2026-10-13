@@ -1,0 +1,1 @@
+COMMON_G_RESULT {"arm":"current","cycles":23282238,"read_bytes":14680064,"write_bytes":4194304,"cache_updates":65536,"ddr_updates":0,"row_reads":65536,"binary_probes":1179648,"state_pass":true,"timing_kind":"declared_prediction"}

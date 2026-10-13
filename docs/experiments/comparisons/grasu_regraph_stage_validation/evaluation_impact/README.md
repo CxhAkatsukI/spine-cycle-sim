@@ -25,6 +25,12 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The latest [hot-owner G checkpoint](hot_lanes/README.md) extends the study to
+152 observations with explicit segment-ordered parallel RMW and unchanged
+physical traffic. It reproduces the old 84 observations exactly, but the
+complete performance gate still fails on large batches and same-key hazards.
+It is not a production HLS change or a new Spine/G+R comparison.
+
 The subsequent [parallel-search G checkpoint](parallel_search/README.md)
 retains a complete 84-run three-arm matrix and two isolated HLS attempts.
 It improves search throughput but fails the large-batch performance gate and

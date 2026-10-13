@@ -1,0 +1,63 @@
+Test project /data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-hot-lanes-v1/core
+      Start  1: original_regraph_sssp_udf_tests
+ 1/29 Test  #1: original_regraph_sssp_udf_tests ........   Passed    0.23 sec
+      Start  2: original_regraph_sssp_frontend_tests
+ 2/29 Test  #2: original_regraph_sssp_frontend_tests ...   Passed    1.09 sec
+      Start  3: original_regraph_sssp_apply_tests
+ 3/29 Test  #3: original_regraph_sssp_apply_tests ......   Passed    0.01 sec
+      Start  4: original_regraph_sssp_round_tests
+ 4/29 Test  #4: original_regraph_sssp_round_tests ......   Passed    2.39 sec
+      Start  5: axi_independent_channels_tests
+ 5/29 Test  #5: axi_independent_channels_tests .........   Passed    0.01 sec
+      Start  6: routed_regraph_fixture_tests
+ 6/29 Test  #6: routed_regraph_fixture_tests ...........   Passed    0.00 sec
+      Start  7: routed_regraph_system_tests
+ 7/29 Test  #7: routed_regraph_system_tests ............   Passed   85.31 sec
+      Start  8: routed_scatter_tests
+ 8/29 Test  #8: routed_scatter_tests ...................   Passed    6.66 sec
+      Start  9: routed_source_service_tests
+ 9/29 Test  #9: routed_source_service_tests ............   Passed    0.11 sec
+      Start 10: routed_pma_adapter_tests
+10/29 Test #10: routed_pma_adapter_tests ...............   Passed    0.81 sec
+      Start 11: shared_axi_port_tests
+11/29 Test #11: shared_axi_port_tests ..................   Passed    0.03 sec
+      Start 12: regraph_compute_port_tests
+12/29 Test #12: regraph_compute_port_tests .............   Passed    0.01 sec
+      Start 13: original_grasu_tests
+13/29 Test #13: original_grasu_tests ...................   Passed    0.00 sec
+      Start 14: pma_adapter_tests
+14/29 Test #14: pma_adapter_tests ......................   Passed    0.01 sec
+      Start 15: original_regraph_mixed_tests
+15/29 Test #15: original_regraph_mixed_tests ...........   Passed    0.00 sec
+      Start 16: original_regraph_big_frontend_tests
+16/29 Test #16: original_regraph_big_frontend_tests ....   Passed    0.04 sec
+      Start 17: original_regraph_big_tests
+17/29 Test #17: original_regraph_big_tests .............   Passed    1.62 sec
+      Start 18: original_regraph_iteration_tests
+18/29 Test #18: original_regraph_iteration_tests .......   Passed    0.96 sec
+      Start 19: original_regraph_state_tests
+19/29 Test #19: original_regraph_state_tests ...........   Passed    0.02 sec
+      Start 20: original_regraph_frontend_tests
+20/29 Test #20: original_regraph_frontend_tests ........   Passed    0.10 sec
+      Start 21: original_regraph_gather_tests
+21/29 Test #21: original_regraph_gather_tests ..........   Passed    0.40 sec
+      Start 22: sst_hbm_mapper_tests
+22/29 Test #22: sst_hbm_mapper_tests ...................   Passed    0.00 sec
+      Start 23: spine_cycle_core_tests
+23/29 Test #23: spine_cycle_core_tests .................   Passed    4.10 sec
+      Start 24: spine_owner_tests
+24/29 Test #24: spine_owner_tests ......................   Passed    0.00 sec
+      Start 25: spine_vertex_lifecycle_tests
+25/29 Test #25: spine_vertex_lifecycle_tests ...........   Passed    0.00 sec
+      Start 26: grasu_cycle_tests
+26/29 Test #26: grasu_cycle_tests ......................   Passed    0.51 sec
+      Start 27: grasu_parallel_search_tests
+27/29 Test #27: grasu_parallel_search_tests ............   Passed    0.05 sec
+      Start 28: grasu_direct_processor_tests
+28/29 Test #28: grasu_direct_processor_tests ...........   Passed    0.14 sec
+      Start 29: grasu_runtime_tests
+29/29 Test #29: grasu_runtime_tests ....................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 29
+
+Total Test time (real) = 104.64 sec

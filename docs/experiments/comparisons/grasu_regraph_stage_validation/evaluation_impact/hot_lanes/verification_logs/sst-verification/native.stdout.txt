@@ -1,0 +1,1 @@
+PASS grasu_regraph_native_sst: cycles=100390 update=58 conversion=549 compute=99783
