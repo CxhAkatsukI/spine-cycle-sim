@@ -12,18 +12,20 @@ from .analysis import analyze
 from .preparation import STATUS
 
 
-def package(output, matrix):
+def package(output, matrix, *, status=STATUS, analyze_rows=analyze):
     report = json.loads(matrix.read_text())
-    if report["status"] != STATUS or report["errors"]:
+    if report["status"] != status or report["errors"]:
         raise ValueError("complete successful sharded-G diagnostic required")
-    summary = analyze(report["rows"])
+    summary = analyze_rows(report["rows"])
     if any(report.get(key) != value for key, value in summary.items()):
         raise ValueError("summary differs from full sharded-G matrix")
     verify_pins(report["pins"])
+    verify_pins(report.get("input_pins", []))
     for row in report["rows"]:
         if sha256_file(Path(row["state_path"])) != row["state_sha256"]:
             raise ValueError("canonical full-state artifact changed")
     sources = [("input_contract.json", matrix.parent / "input_contract.json")]
+    sources.extend((item["member"], Path(item["path"])) for item in report.get("input_pins", []))
     for step in report["steps"]:
         for key in ("stdout", "stderr"):
             path = Path(step[key])
@@ -41,7 +43,7 @@ def package(output, matrix):
         for name, path in sources:
             handle.add(path, arcname=name, recursive=False)
             members.append({"member": name, "sha256": sha256_file(path), "bytes": path.stat().st_size})
-    index = {"status": STATUS, **summary,
+    index = {"status": status, **summary,
         "new_spine_comparison_executed": False, "raw_members": members,
         "reports": [{"file": p.name, "sha256": sha256_file(p), "bytes": p.stat().st_size}
                     for p in (target, archive)],

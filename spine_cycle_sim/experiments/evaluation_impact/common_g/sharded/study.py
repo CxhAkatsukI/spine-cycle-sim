@@ -9,13 +9,23 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha2
 from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 from ..study import ROOT
 from .analysis import analyze
-from .preparation import STATUS, input_contract, matrix
+from .preparation import STATUS, input_contract
 
 
-def run(output, core_build):
+def input_arguments(item, contract, target):
+    if target == "sharded_g_execution":
+        return []
+    if target != "real_sharded_g_execution":
+        raise ValueError("undeclared sharded-G execution target")
+    return [contract["cases"][item["case"]][key] for key in ("graph", "updates")]
+
+
+def run(output, core_build, *, contract=None, analyze_rows=analyze,
+        target="sharded_g_execution", tag="SHARDED_G_RESULT", status=STATUS):
     output.mkdir(parents=True, exist_ok=False)
+    contract = input_contract() if contract is None else contract
     report = {"status": "RUNNING", "rows": [], "steps": [], "errors": [], "pins": [],
-              "contract": input_contract(), "matrix": matrix()}
+              "contract": contract, "matrix": contract["matrix"]}
 
     def pin(paths):
         report["pins"].extend({"path": str(p), "sha256": sha256_file(p)} for p in paths)
@@ -40,6 +50,10 @@ def run(output, core_build):
     config_root = core_build if (core_build / "CMakeCache.txt").is_file() else core_build.parent
     pin([core_build / name for name in ("liboriginal_grasu_cycle.a", "libspine_cycle_core.a")])
     pin([config_root / name for name in ("CMakeCache.txt", "compile_commands.json")])
+    report["input_pins"] = contract.get("input_pins", [])
+    if any(sha256_file(Path(item["path"])) != item["sha256"] for item in report["input_pins"]):
+        raise ValueError("declared input hash differs before execution")
+    pin([Path(item["path"]) for item in report["input_pins"]])
     atomic_write_json(output / "input_contract.json", report["contract"])
     pin([output / "input_contract.json"])
     save()
@@ -50,8 +64,8 @@ def run(output, core_build):
         execute(["cmake", "-S", str(ROOT / "cpp/tests/evaluation_impact/common_g"), "-B", str(build),
                  "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
                  "-DCORE_BUILD=" + str(core_build)], "configure")
-        execute(["cmake", "--build", str(build), "--target", "sharded_g_execution", "-j1"], "build")
-        binary = build / "sharded_g_execution"
+        execute(["cmake", "--build", str(build), "--target", target, "-j1"], "build")
+        binary = build / target
         pin([binary, build / "CMakeCache.txt", build / "compile_commands.json"])
         affinity = str(sorted(os.sched_getaffinity(0))[-1])
         report["affinity"] = affinity
@@ -59,21 +73,22 @@ def run(output, core_build):
             label = f"lat{item['latency']}_{item['case']}_{item['arm']}"
             state = output / (label + ".u32le")
             try:
+                extra = input_arguments(item, contract, target)
                 step = execute(["taskset", "-c", affinity, str(binary), item["case"], str(item["latency"]),
-                                item["arm"], str(state)], label)
+                                item["arm"], str(state), *extra], label)
                 text = Path(step["stdout"]).read_text().strip()
-                tag, _, body = text.partition(" ")
-                if tag != "SHARDED_G_RESULT":
+                observed_tag, _, body = text.partition(" ")
+                if observed_tag != tag:
                     raise ValueError("missing unique sharded-G result")
                 report["rows"].append({**item, "observation": json.loads(body),
                                        "state_sha256": sha256_file(state), "state_path": str(state)})
             except (ValueError, RuntimeError) as error:
                 report["errors"].append({**item, "error": str(error)})
             save()
-        report.update(analyze(report["rows"]))
+        report.update(analyze_rows(report["rows"]))
         if any(sha256_file(Path(p["path"])) != p["sha256"] for p in report["pins"]):
             raise ValueError("frozen source, library, input or binary changed")
-        report["status"] = STATUS
+        report["status"] = status
     except BaseException as error:
         report["status"] = "FAILED_RETAINED"
         report["error"] = repr(error)

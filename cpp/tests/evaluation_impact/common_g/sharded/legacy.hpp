@@ -77,7 +77,8 @@ inline void begin_original(gt::System &system, const GraSuPmaLayout &part,
   system.started = true;
 }
 
-inline Observation original(const Fixture &f, unsigned latency) {
+template <class Input>
+inline Observation original(const Input &f, unsigned latency) {
   Observation result;
   for (std::size_t shard = 0; shard < f.by_shard.size(); ++shard) {
     if (f.by_shard[shard].empty()) continue;

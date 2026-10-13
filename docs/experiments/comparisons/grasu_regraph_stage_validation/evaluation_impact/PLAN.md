@@ -117,6 +117,16 @@ hardware and publication admission remain open. The adapter route's prior
 24-hour memory queue expired before starting; its 64-GiB safety gate is not
 lowered by this small simulator study.
 
+The [compact real-topology extension](sharded_batch/real_inputs/README.md)
+adds 36 AU/SU/WK observations with nonzero multi-segment binary searches,
+unchanged frozen mixed/weight-change batches and exact replay of all 24
+synthetic rows. Complete physical state, work and traffic pass; maximum
+cycle differences are 0.8971% for four banks and 2.3669% for runtime mapping.
+Both prediction gates pass. IDs are compact, edits are derived and all edited
+segments are hot; cache cost still dominates. This closes this declared
+real-topology prediction diagnostic, not actual-temporal, broader-occupancy,
+host, HLS, hardware or publication gates.
+
 The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
 share each unchanged hot AXI master, with no implicit cache. Large dispersed

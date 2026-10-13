@@ -16,3 +16,8 @@ target_include_directories(sharded_g_execution PRIVATE "${ROOT}/cpp/include")
 target_link_libraries(sharded_g_execution PRIVATE
   "${CORE_BUILD}/liboriginal_grasu_cycle.a" "${CORE_BUILD}/libspine_cycle_core.a")
 target_compile_options(sharded_g_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_executable(real_sharded_g_execution sharded/real_execution.cpp)
+target_include_directories(real_sharded_g_execution PRIVATE "${ROOT}/cpp/include")
+target_link_libraries(real_sharded_g_execution PRIVATE
+  "${CORE_BUILD}/liboriginal_grasu_cycle.a" "${CORE_BUILD}/libspine_cycle_core.a")
+target_compile_options(real_sharded_g_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)

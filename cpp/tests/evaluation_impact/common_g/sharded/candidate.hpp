@@ -19,7 +19,8 @@ inline void collect(Observation &result, const GraSuUpdateCounters &c, MemoryBac
   result.pma_writes += c.pma_write_bytes;
 }
 
-inline Observation candidate_four_banks(const Fixture &f, unsigned latency) {
+template <class Input>
+inline Observation candidate_four_banks(const Input &f, unsigned latency) {
   Observation result;
   for (std::size_t shard = 0; shard < f.by_shard.size(); ++shard) {
     if (f.by_shard[shard].empty()) continue;
@@ -80,7 +81,8 @@ struct Snapshot {
   std::vector<std::uint8_t> bytes;
 };
 
-inline Observation candidate_sharded(const Fixture &f, unsigned latency) {
+template <class Input>
+inline Observation candidate_sharded(const Input &f, unsigned latency) {
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("G", 200);
   MockMemoryBackend backend("memory", clock, {32, latency, 1, 32, 64, true});

@@ -37,6 +37,14 @@ workloads. All updated rows have one segment, so **binary search probes are
 zero**; the earlier nineteen-input single-window study is still needed for
 search-depth, repeated-row and large-batch coverage.
 
+The separate [compact real-topology extension](real_inputs/README.md) now
+adds 36 AU/SU/WK observations with multi-segment searches and exact replay of
+these 24 synthetic rows. It passes the same complete state/traffic and 10%
+prediction gates; maximum differences are 0.8971% for four banks and 2.3669%
+for runtime mapping. Its derived compact batches are not original temporal
+operations, and cache cost still dominates. This frozen synthetic capsule is
+unchanged; the extension has its own raw evidence and regression capsule.
+
 The complete cache requires 262,144 segments per shard. Smaller fixtures
 therefore reserve empty tail segments in the last, non-updated source row.
 The same layout is supplied to every arm. No live edge or update is added,
@@ -168,8 +176,9 @@ Code ownership is deliberately split:
 
 ## Next Admission Gates
 
-1. Actual temporal inputs, multi-segment search and broader hot/cold coverage
-   under the same whole-batch contract.
+1. Actual temporal inputs and broader hot/cold occupancy under the same
+   whole-batch contract. Multi-segment search now has separate compact
+   real-topology coverage; it does not close the actual-temporal gate.
 2. Search/cache HLS schedules, resource fit and hardware timing; no simulator
    agreement can substitute for these.
 3. R credit/window controls and broader original-A/A4 comparisons, with all
