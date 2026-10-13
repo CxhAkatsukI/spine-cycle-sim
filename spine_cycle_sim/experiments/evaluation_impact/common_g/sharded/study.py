@@ -15,7 +15,7 @@ from .preparation import STATUS, input_contract
 def input_arguments(item, contract, target):
     if target in ("sharded_g_execution", "resident_metadata_g_execution"):
         return []
-    if target not in ("real_sharded_g_execution", "metadata_layout_g_execution"):
+    if target not in ("real_sharded_g_execution", "metadata_layout_g_execution", "resident_real_metadata_g_execution"):
         raise ValueError("undeclared sharded-G execution target")
     return [contract["cases"][item["case"]][key] for key in ("graph", "updates")]
 

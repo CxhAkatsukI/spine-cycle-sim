@@ -9,7 +9,8 @@ public:
   GraSuReGraphRuntimePlan plan;
   std::size_t extra_bytes{}, metadata_upload_bytes{};
 
-  Residency(MemoryBackend &backend, const Fixture &fixture, bool replicated)
+  template <class Input>
+  Residency(MemoryBackend &backend, const Input &fixture, bool replicated)
       : plan(build_grasu_regraph_runtime_plan(fixture.batches[0].initial, fixture.maximum_updates, kCache)) {
     const auto original = plan.regions;
     for (const auto &region : original) {

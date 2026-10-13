@@ -6,16 +6,16 @@ BASE_NAMES = tuple(name + str(i) for name in ("pma", "update") for i in range(4)
 COPY_NAMES = tuple(name + "-cu" + str(i) for name in ("row", "binary") for i in range(4))
 
 
-def check_resources(value, replicated):
+def check_resources(value, replicated, *, shards=3):
     regions = value["regions"]
-    expected = {(shard, name) for shard in range(3)
+    expected = {(shard, name) for shard in range(shards)
                 for name in BASE_NAMES + (COPY_NAMES if replicated else ())}
     if (len(regions) != len(expected)
             or {(r["shard"], r["name"]) for r in regions} != expected
             or any(not 0 <= r["channel"] < 23 for r in regions)):
         raise ValueError("resident region set or channel differs")
     originals = {(r["shard"], r["name"]): r for r in regions if "-cu" not in r["name"]}
-    for shard in range(3):
+    for shard in range(shards):
         for name in ("row", "binary"):
             copies = [r for r in regions if r["shard"] == shard and r["name"].startswith(name + "-cu")]
             source = originals[shard, name]

@@ -70,6 +70,13 @@ hash in this 72-row study exactly after replica-allocation helper extraction.
 That small, cache-dominated check is not larger multi-shard performance or
 changed-reservation coherence admission. This earlier evidence is unchanged.
 
+The subsequent [resident chronological check](resident_real/README.md) covers
+4K/empty/61,440 insertions on two or three 8K shards. All 18 executions pass;
+both-copy predictions differ by at most 0.7432% per nonempty batch. Shared
+last batches still fail. It retains fixed future-union metadata, all-hot edits,
+extra storage and excluded host time, so it is a bounded extension rather than
+production/HLS/publication admission. Neither earlier capsule is overwritten.
+
 Read-only progress observations support the placement explanation. For AU64K
 at latency 64, the latest search completion moves from cycle 571,984 to
 408,110 with both tables copied, while cache preload remains cycle 266,308.

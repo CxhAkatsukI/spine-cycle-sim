@@ -163,6 +163,18 @@ and measured host preparation, then implement actual HLS binding with verified
 search/cache schedules and whole-G fit. Small cache-dominated batches and
 fixed-table consistency do not close those admission gates.
 
+The [resident chronological check](sharded_batch/metadata_layout/resident_real/README.md)
+extends that diagnostic to all three AU/SU/WK prefixes, 4K/empty/61,440 updates,
+and two or three 8K-vertex shards. All 18 executions/54 batch observations pass
+state/work/traffic/resource checks. Both copies keep every nonempty-batch
+prediction within 0.7432% of original; shared last batches remain 10.2--12.8%
+slower despite passing sequence totals. Both shared-helper extractions replay
+the preceding 12 lifecycle observations and all batch hashes exactly. The
+retained SU validator failure is explained with paired same-layout checks,
+not erased or fixed with a timing factor. Next close changed-reservation,
+mixed-occupancy, host and HLS gates; future-union all-hot 8K diagnostics do
+not admit routed 64K performance or original-publication reproduction.
+
 The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
 share each unchanged hot AXI master, with no implicit cache. Large dispersed

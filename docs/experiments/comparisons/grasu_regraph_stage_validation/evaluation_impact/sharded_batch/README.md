@@ -69,6 +69,15 @@ All 72 preceding metadata-layout observations replay exactly. Reservation is
 fixed and batches are small, so broader performance, dynamic metadata refresh,
 host costs and HLS implementation remain open.
 
+The [resident chronological extension](metadata_layout/resident_real/README.md)
+now checks 18 AU/SU/WK executions and 54 batches across two or three 8K shards.
+Both-table copies pass every nonempty-batch/sequence prediction test, with
+maximum absolute batch difference 0.7432%; all six shared last batches remain
+10.2--12.8% slower. Exact old lifecycle replay and the failed first SU layout
+assertion are retained. All-hot future-union reservations, bounded partition
+geometry, excluded host timing and unimplemented HLS binding still prevent
+production admission.
+
 The complete cache requires 262,144 segments per shard. Smaller fixtures
 therefore reserve empty tail segments in the last, non-updated source row.
 The same layout is supplied to every arm. No live edge or update is added,
@@ -203,7 +212,8 @@ Code ownership is deliberately split:
 1. Validate an actual resource-accounted correction before admitting G.
    The metadata-placement control supports shared row/binary bank pressure;
    the resident extension now checks multi-shard allocation and coherence
-   for fixed metadata. Broader performance, changed-reservation refresh,
+   for fixed metadata. Bounded chronological multi-shard predictions now pass
+   with both copies; routed geometry, changed-reservation refresh,
    measured host cost and actual HLS binding are not established.
    Original temporal conversion and broader hot/cold occupancy still need
    validation; first-contact insertion prefixes do not close those gates.

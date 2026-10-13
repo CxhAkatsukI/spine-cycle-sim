@@ -104,6 +104,10 @@ The C++ owner is
 `fixture.hpp` prepares inputs and an independent edit oracle; `residency.hpp`
 owns persistent allocation, copies and full physical checks; `execution.hpp`
 owns bounded batch execution and traffic checks; `main.cpp` is the thin CLI.
+The [chronological extension](../resident_real/README.md) later extracts
+shared edit oracles into `batches.hpp` and sequence/result writing into
+`run.hpp`. Its first and final full replays each preserve all 12 observations
+and all intermediate/final state hashes exactly; this capsule stays unchanged.
 The shared `metadata_layout/replicas.hpp` owns replica allocation only.
 Python declaration, resource validation, analysis and execution/packaging are
 separate modules under the corresponding `lifecycle/` package.
@@ -165,5 +169,9 @@ regression checks, not a new full core/SST run or new hardware validation.
 3. Finite-search/cache schedules, whole-G clock/resource fit and board evidence.
 4. R resource/publication controls, measured host/seed windows and physical
    integration, then an honestly admitted warm-state Spine comparison.
+
+The later [AU/SU/WK resident check](../resident_real/README.md) supplies bounded
+larger multi-shard predictions with fixed reservations. It does not close
+mixed hot/cold, changed-reservation, host or HLS admission gates above.
 
 No new Spine demo or replacement Figure 7--11 follows from this lifecycle check.
