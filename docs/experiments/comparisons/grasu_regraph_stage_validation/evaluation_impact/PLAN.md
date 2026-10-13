@@ -42,6 +42,10 @@ wiring has a separately checked registered option. This does not close whole-G
 search timing, weighted ABI, two-half resource fit, or production admission.
 The probes also expose conservative same-row serialization in the independent
 reference model; any timing correction must preserve old evidence explicitly.
+The [weighted source compatibility check](weighted_abi/README.md) now passes
+16 hot-region rows across original/candidate cache edits and both adapter
+modes. It checks original search, current dispatch, complete intermediate PMA
+and emitted logical graph, not finite timing, cold edits or whole-G synthesis.
 
 The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
@@ -70,6 +74,8 @@ Required next implementation work:
 1. Keep the current direct path as a frozen control. Test original parallel
    search and hot-cache behavior with the same local-destination/weighted ABI;
    weight packing must not silently change search order or delete semantics.
+   The hot source-functional subset now passes; full parallel-search control,
+   cold paths, finite schedules and integrated hardware remain open.
 2. Choose an actual HLS resource-feasible G path: restore the original cached
    path, or implement bounded parallel HBM search/update with RAW conflict
    handling. Confirm storage/ports, schedules and completion tokens. Do not

@@ -25,6 +25,12 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [weighted source compatibility check](weighted_abi/README.md) passes all
+16 declared hot-region rows: actual host layout, original search, current
+dispatch, original/candidate cache edits and actual adapter output. Complete
+intermediate state and independent logical graph agree. This is not timing or
+whole-G admission; all three earlier failed attempts remain in its capsule.
+
 The [hot-cache HLS/RTL controls](cache_probe/README.md) test the original
 full-depth URAM path and a separately registered lower-LUT candidate. Complete
 cache state, finite FIFO correctness and estimated clock are separate gates;
