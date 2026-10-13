@@ -15,6 +15,7 @@
 
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
+#include "spine_sim/grasu_update/search.hpp"
 
 namespace spine::sim {
 
@@ -161,16 +162,7 @@ std::uint32_t pma_word_sort_key(std::uint32_t encoded, GraSuPmaWordAbi abi) {
                                      : decode_pma_destination(encoded, abi);
 }
 
-struct LocatedUpdate {
-  std::uint64_t global_index{};
-  std::uint32_t source{};
-  std::size_t partition{};
-  std::uint32_t segment_head_slot{};
-  std::uint32_t destination{};
-  std::uint16_t weight{1};
-  bool delete_op{};
-  std::uint64_t last_binary_head{};
-};
+using grasu_update_detail::LocatedUpdate;
 
 struct DegreeDelta {
   std::uint64_t global_index{};
@@ -178,7 +170,7 @@ struct DegreeDelta {
   std::int32_t delta{};
 };
 
-class GraSuDirectSearch final : public Component {
+class GraSuDirectSearch final : public grasu_update_detail::Search {
 public:
   struct Ports {
     FixedAxiPort *updates{};
@@ -191,7 +183,7 @@ public:
                     std::size_t update_count, std::size_t partition_vertices,
                     bool partitioned_updates, const GraSuNativeConfig &config,
                     const GraSuPartitionAddressPlan &address_plan, Ports ports)
-      : Component(std::move(name), clock_id), cu_(cu),
+      : Search(std::move(name), clock_id), cu_(cu),
         update_count_(update_count), partition_vertices_(partition_vertices),
         partitioned_updates_(partitioned_updates), config_(config),
         address_plan_(address_plan), ports_(ports) {
@@ -1945,7 +1937,7 @@ public:
     for (auto &ports : search_ports_) {
       ports.updates->register_components(scheduler_);
       ports.rows->register_components(scheduler_);
-      ports.binary->register_components(scheduler_);
+      if (ports.binary) ports.binary->register_components(scheduler_);
     }
     for (auto &processor : processor_ports_) {
       for (FixedAxiPort *port : processor.owned_registration_order) {
@@ -1994,7 +1986,7 @@ public:
       }
     }
     for (auto &ports : search_ports_) {
-      ports.binary->unregister_components(scheduler_);
+      if (ports.binary) ports.binary->unregister_components(scheduler_);
       ports.rows->unregister_components(scheduler_);
       ports.updates->unregister_components(scheduler_);
     }
@@ -2145,7 +2137,7 @@ public:
     for (const auto &ports : search_ports_) {
       account_axi_port(*ports.updates);
       account_axi_port(*ports.rows);
-      account_axi_port(*ports.binary);
+      if (ports.binary) account_axi_port(*ports.binary);
     }
     for (const auto &ports : processor_ports_) {
       for (const FixedAxiPort *port : ports.owned_registration_order) {
@@ -2255,6 +2247,12 @@ private:
   };
 
   void validate_config() const {
+    if (config_.compact_parallel_search &&
+        (layout_.partitions.size() != 1 ||
+         config_.pma_word_abi != GraSuPmaWordAbi::kWeightedFullWord ||
+         (config_.explicit_runtime_regions && config_.row_channels != config_.binary_channels))) {
+      throw std::invalid_argument("parallel search requires one full-word destination window");
+    }
     if (config_.memory_channels < 4 || config_.cache_segments_per_half == 0 ||
         config_.axis_fifo_depth == 0 || config_.lane_fifo_depth == 0 ||
         config_.max_pending_requests == 0 ||
@@ -2397,7 +2395,7 @@ private:
                                                 ? config_.row_channels[index]
                                                 : index,
                                             8);
-      search_ports_[index].binary = make_port(
+      if (!config_.compact_parallel_search) search_ports_[index].binary = make_port(
           "grasu-binary" + std::to_string(index),
           config_.explicit_runtime_regions ? config_.binary_channels[index]
                                            : index,
@@ -2508,6 +2506,15 @@ private:
     for (std::size_t index = 0; index < 4; ++index) {
       search_outputs[index] = search_outputs_[index].get();
       process_inputs[index] = process_inputs_[index].get();
+      if (config_.compact_parallel_search) {
+        searches_[index] = grasu_update_detail::make_parallel_search(
+            "grasu-parallel-search" + std::to_string(index), clock_id_, index,
+            counts[index], config_.explicit_runtime_regions ? config_.update_bases[index] : config_.update_base,
+            address_plan_.row_bases.at(0), address_plan_.binary_bases.at(0),
+            *search_ports_[index].updates, *search_ports_[index].rows,
+            *search_outputs_[index]);
+        continue;
+      }
       searches_[index] = std::make_unique<GraSuDirectSearch>(
           "grasu-bin-search" + std::to_string(index), clock_id_, index,
           counts[index], layout_.partition_vertices, partitioned_updates(),
@@ -2561,7 +2568,7 @@ private:
   [[nodiscard]] bool all_ports_idle() const noexcept {
     for (const auto &ports : search_ports_) {
       if (!ports.updates->idle() || !ports.rows->idle() ||
-          !ports.binary->idle()) {
+          (ports.binary && !ports.binary->idle())) {
         return false;
       }
     }
@@ -2590,7 +2597,7 @@ private:
   std::array<std::unique_ptr<Fifo<DegreeDelta>>, 4> degree_outputs_;
   std::array<SearchPortSet, 4> search_ports_;
   std::array<ProcessorPortSet, 4> processor_ports_;
-  std::array<std::unique_ptr<GraSuDirectSearch>, 4> searches_;
+  std::array<std::unique_ptr<grasu_update_detail::Search>, 4> searches_;
   std::unique_ptr<GraSuDispatch> dispatch_;
   std::array<std::unique_ptr<GraSuPmaProcessor>, 4> processors_;
   std::unique_ptr<FixedAxiPort> degree_port_;

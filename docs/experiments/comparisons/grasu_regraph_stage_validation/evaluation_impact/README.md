@@ -25,6 +25,12 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The subsequent [parallel-search G checkpoint](parallel_search/README.md)
+retains a complete 84-run three-arm matrix and two isolated HLS attempts.
+It improves search throughput but fails the large-batch performance gate and
+the 200-MHz HLS clock estimate. It is not a promoted baseline or a replacement
+for the immutable evidence below.
+
 Read the [execution plan](PLAN.md) and [diagnostic findings](RESULTS.md).
 The [evidence index](evidence/index.json) owns report identities and admission
 flags. It contains the [matched-G report](evidence/matched_g.json),

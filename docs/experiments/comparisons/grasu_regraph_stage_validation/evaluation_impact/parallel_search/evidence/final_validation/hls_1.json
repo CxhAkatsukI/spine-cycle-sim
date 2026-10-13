@@ -1,0 +1,1907 @@
+{
+  "claim": "isolated_search_HLS_schedule_not_routed_G_performance",
+  "command": [
+    "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+    "--target",
+    "hw",
+    "--compile",
+    "--kernel_frequency",
+    "200",
+    "--kernel",
+    "bin_search_parallel",
+    "--platform",
+    "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+    "--save-temps",
+    "-D_GTHREAD_USE_COND_INIT_FUNC",
+    "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+    "--temp_dir",
+    "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build",
+    "--report_dir",
+    "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/reports",
+    "--log_dir",
+    "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/logs",
+    "-o",
+    "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/search.hw.xo",
+    "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/source/parallel_search.cpp"
+  ],
+  "execution": {
+    "available_before_bytes": 59652562944,
+    "command": [
+      "/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++",
+      "--target",
+      "hw",
+      "--compile",
+      "--kernel_frequency",
+      "200",
+      "--kernel",
+      "bin_search_parallel",
+      "--platform",
+      "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm",
+      "--save-temps",
+      "-D_GTHREAD_USE_COND_INIT_FUNC",
+      "-I/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc",
+      "--temp_dir",
+      "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build",
+      "--report_dir",
+      "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/reports",
+      "--log_dir",
+      "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/logs",
+      "-o",
+      "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/search.hw.xo",
+      "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/source/parallel_search.cpp"
+    ],
+    "cwd": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1",
+    "exit_code": 0,
+    "memory_limit_gib": 8,
+    "peak_rss_kib": 932420,
+    "reserve_gib": 24,
+    "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+    "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/compile.stderr.txt",
+    "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/compile.stdout.txt",
+    "timed_out": false,
+    "wall_seconds": 131.79149191919714
+  },
+  "hardware_timing_admitted": false,
+  "production_baseline_admitted": false,
+  "reports": [
+    {
+      "clock_ns": "12.193",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_14_1",
+          "PipelineDepth": "74",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_14_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_23_1",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_23_1"
+        },
+        {
+          "AbsoluteTimeLatency": "80.000 ns",
+          "InstanceList": null,
+          "Latency": "16",
+          "Name": "VITIS_LOOP_29_2",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "16",
+          "name": "VITIS_LOOP_29_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_77_1",
+          "PipelineDepth": "73",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_77_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_104_1",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_104_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/impl/misc/hls_files/bin_search_parallel/solution/syn/report/csynth.xml",
+      "resources": {
+        "BRAM_18K": "4",
+        "DSP": "0",
+        "FF": "22430",
+        "LUT": "24986",
+        "URAM": "0"
+      },
+      "sha256": "bfe2af468612f79ae6242d566a218976cd1d62c81b0e9b13931f8a28a0e9e3cb"
+    },
+    {
+      "clock_ns": "12.193",
+      "loops": [],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/bin_search_parallel_csynth.xml",
+      "resources": {
+        "BRAM_18K": "4",
+        "DSP": "0",
+        "FF": "22430",
+        "LUT": "24986",
+        "URAM": "0"
+      },
+      "sha256": "87e469669e2b1b9ddd86b9e6dc918992a2f3dc5ed5ace750752037efa801983c"
+    },
+    {
+      "clock_ns": "12.193",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_14_1",
+          "PipelineDepth": "74",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_14_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_23_1",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_23_1"
+        },
+        {
+          "AbsoluteTimeLatency": "80.000 ns",
+          "InstanceList": null,
+          "Latency": "16",
+          "Name": "VITIS_LOOP_29_2",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "16",
+          "name": "VITIS_LOOP_29_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_52_2",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n                            ",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_40_1",
+          "PipelineDepth": "undef",
+          "PipelineType": "no",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_77_1",
+          "PipelineDepth": "73",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_77_1"
+        },
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": null,
+          "Latency": "undef",
+          "Name": "VITIS_LOOP_104_1",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "PipelineType": "yes",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_104_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/csynth.xml",
+      "resources": {
+        "BRAM_18K": "4",
+        "DSP": "0",
+        "FF": "22430",
+        "LUT": "24986",
+        "URAM": "0"
+      },
+      "sha256": "bfe2af468612f79ae6242d566a218976cd1d62c81b0e9b13931f8a28a0e9e3cb"
+    },
+    {
+      "clock_ns": "2.818",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_23_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/distribute_Pipeline_VITIS_LOOP_23_1_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "40",
+        "LUT": "484",
+        "URAM": "0"
+      },
+      "sha256": "2d2bec0be9b1bd98bfe7921814ee2906b47c9b2ec8811edf687769c553f5b7ed"
+    },
+    {
+      "clock_ns": "1.481",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "80",
+          "InstanceList": "\n",
+          "Latency": "16",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "Slack": "3.65",
+          "TripCount": "16",
+          "name": "VITIS_LOOP_29_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/distribute_Pipeline_VITIS_LOOP_29_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "12",
+        "LUT": "211",
+        "URAM": "0"
+      },
+      "sha256": "dc6a965f4fcdb9b1f97921cc65bfe1102daca50dbac1b7f53e74f7fb7f075a7f"
+    },
+    {
+      "clock_ns": "2.818",
+      "loops": [],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/distribute_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "62",
+        "LUT": "1282",
+        "URAM": "0"
+      },
+      "sha256": "9912285caf87171b921425527667cf8173f512082eb212b59639caa3d916238b"
+    },
+    {
+      "clock_ns": "2.517",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "1",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_104_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/merge_Pipeline_VITIS_LOOP_104_1_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "41",
+        "LUT": "642",
+        "URAM": "0"
+      },
+      "sha256": "14cce901cfaf54551967a225985dd170c1fadd874fb910b9c4a78dacb51f00e6"
+    },
+    {
+      "clock_ns": "2.517",
+      "loops": [],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/merge_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "79",
+        "LUT": "978",
+        "URAM": "0"
+      },
+      "sha256": "e9a7a843ddc8db24d70699cc8788baa1cad44e164f9e3fde4878dc8d526b1e9e"
+    },
+    {
+      "clock_ns": "3.650",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "74",
+          "PipelineII": "1",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_14_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/read_updates_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "405",
+        "LUT": "189",
+        "URAM": "0"
+      },
+      "sha256": "15cf925ce7235316b3dea579b6caca2a0e51a38ff84cb32fadaf36c1d2c1de0f"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_10_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "eef12c177a4523fcb46ceb361eaee97e13375596ba1fb7dffb4432adcafefd02"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_10_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "718e3665032ece0c0433e5906f019721428b72e14bd5adb342460f36d12bdcf7"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_11_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "f7aafd9e3e72c05cba9a6b7c868265b2dc8f2415554aea190669b80e1cbe9c81"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_11_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "696422e923149947d1949b6f87bf0bdef3fca0a01e48a810f079697fe3e9c863"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_12_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "9bdef1927d2fee2bb162fe30a2c8a407b4e72efd52e7c97f90adb1122ac15270"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_12_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "267610672fb1967b39eb3cb62b72d166db1c2adec25e4a48ca6598a8d86ae961"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_13_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "51e56e3d01ee8036887a67d266b805357d44864acd6944a100669361ba5e3b09"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_13_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "b817537dafc9805ed921d6133e2eebdc0c34bbf6c96175536604214e1a795005"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_14_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "b9ac8880cb6d9a59cfbee51d53f544e0069f2fce416c0b0e1468c5a11904e065"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_14_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "5eab085a896eb2c4a21f35c996995b9177bdd4e3f32e4ac5cd78d34abd203bcb"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_15_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "4df3ac4195db3b7771e69befb4ce2133aa300582f9c04444d4a2635d2eaadc20"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_15_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "f8da90d89e93e0b6deb4d358e2a3bcbe828d8291e2c71caada3e266a946a2b3c"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_1_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "8b5db7c6209ff0ee54762cf2c8486f2041243efd59cbf9c9a93ebb0d17a5b146"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_1_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "5d1b4961c3c942931ce12d958f8970e5ee2f7bd4067c1cbe257c302c0951700e"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_2_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "09adc31a6cb69b1a8cdfb577453fd0f63119680edd79d800acee90f2592bf422"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "afc41f0e2f452227a6073f7844d7c6bf573c13f8d328eb9165265017c41e0f59"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_3_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "8649011798cad6072934f5022a284db490c3c3c75c1ce7139de9da5321f7f261"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_3_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "10a1d4f99abed6c1409f2765caba11b625092a9cf69356f3897853e2ece8e79b"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_4_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "21a457d0e641e9a787240ef8d8a448e5613cf72f5a2027a36179c239cb992309"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_4_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "27bd3e53d713a5b97d465bad83c24d43a947e8be47efab75765e0fd08f66b9d4"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_5_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "55e55febff2eeedf99098cfd205cc2b510eb6c75c6f9877a06465aa496b81f91"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_5_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "199c6508de99d61c35f2b6817826712a5a56b25353928ac86a636ec76263a730"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_6_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "0a0e9fdcfcec81e801d0032c7ebbc4b5756bf0382333ee1d89a06ac0fbcbbc28"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_6_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "307035d3db1cbbdfc045c45b8c3193c28458b2e86dde389cb597af3a35da4e13"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_7_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "5a9470929ffad894f2cd013924598f0a9039925289d86c86f5c68bba2bd71efd"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_7_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "b8c27f897a1ed084e4624344c821a18fb3d3618c185ec4ba57da7fbafce9532c"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_8_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "5b1cf1efcc22eb52b529001606e2646256625753dc72a6e3ed4611fea46f0dce"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_8_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "2f35594b78d96dff29c090b52bf93572cc13bbf6fa17792e5c41a4951cbc6cd4"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_9_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "d8566a05174330f77ed9cd85b795b354a6070623ae92a4ee656c9945b8b6b57b"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_9_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "9118a3393cd246b1c0c0bd470861338b3eef2c3d6c67555877c3770a9ff65d9b"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "2",
+          "PipelineII": "2",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_52_2"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_Pipeline_VITIS_LOOP_52_2_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "261",
+        "LUT": "310",
+        "URAM": "0"
+      },
+      "sha256": "88ec3059310a11aedc1b75fba1ed6614259b6952adfcf60c3a58c36cbba654ba"
+    },
+    {
+      "clock_ns": "2.763",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "IterationLatency": "undef",
+          "Latency": "undef",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_40_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/search_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "482",
+        "LUT": "586",
+        "URAM": "0"
+      },
+      "sha256": "23b5538587873a2ff8ac96165356eadaae594d6462ffbfc04892a38fc271c386"
+    },
+    {
+      "clock_ns": "12.193",
+      "loops": [
+        {
+          "AbsoluteTimeLatency": "undef",
+          "InstanceList": "\n",
+          "Latency": "undef",
+          "PipelineDepth": "73",
+          "PipelineII": "1",
+          "Slack": "3.65",
+          "TripCount": "undef",
+          "name": "VITIS_LOOP_77_1"
+        }
+      ],
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/build/search.hw/bin_search_parallel/bin_search_parallel/solution/syn/report/service_csynth.xml",
+      "resources": {
+        "BRAM_18K": "0",
+        "DSP": "0",
+        "FF": "1628",
+        "LUT": "4969",
+        "URAM": "0"
+      },
+      "sha256": "8fb1c4efbae7bfd7be1c1a5caae03137bdb2a3b1aa4ef29e2b2d081460c98041"
+    }
+  ],
+  "source": [
+    {
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/source/parallel_search.cpp",
+      "sha256": "e59c30a6ec8114d97c1fc4c0b2d946a41fd06fabbcd96fe6e22367f7b66e533f"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/source/parallel_search.hpp",
+      "sha256": "73eb7126727c5a29c9ed450e43936b10dfdc683ec43454adb623219516dc4e5c"
+    }
+  ],
+  "status": "SYNTHESIZED_REQUIRES_SCHEDULE_REVIEW_AND_RTL_VALIDATION",
+  "xo_sha256": "ee440f46903d7f0f91bd768d2fc04b2295acb2ea562b45c343b27622fd131dc3"
+}

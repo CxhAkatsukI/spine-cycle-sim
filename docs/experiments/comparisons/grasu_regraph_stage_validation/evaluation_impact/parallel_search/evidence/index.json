@@ -1,0 +1,423 @@
+{
+  "baseline_admitted": false,
+  "comparisons": [
+    {
+      "case": "amortized",
+      "cycles": {
+        "current": 5806932,
+        "original": 700900,
+        "parallel": 1168334
+      },
+      "latency": 64,
+      "parallel_over_current": 0.2011964321262932,
+      "parallel_over_original": 1.6669054073334284,
+      "updates": 16384
+    },
+    {
+      "case": "amortized_large",
+      "cycles": {
+        "current": 23268180,
+        "original": 1206069,
+        "parallel": 4682702
+      },
+      "latency": 64,
+      "parallel_over_current": 0.20124917376434254,
+      "parallel_over_original": 3.8826153395867067,
+      "updates": 65536
+    },
+    {
+      "case": "cold_boundary",
+      "cycles": {
+        "current": 9818,
+        "original": 532896,
+        "parallel": 1313
+      },
+      "latency": 64,
+      "parallel_over_current": 0.13373395803625993,
+      "parallel_over_original": 0.002463895394223263,
+      "updates": 65
+    },
+    {
+      "case": "cold_small",
+      "cycles": {
+        "current": 9252,
+        "original": 532879,
+        "parallel": 807
+      },
+      "latency": 64,
+      "parallel_over_current": 0.08722438391699092,
+      "parallel_over_original": 0.0015144150923568015,
+      "updates": 64
+    },
+    {
+      "case": "empty",
+      "cycles": {
+        "current": 0,
+        "original": 532619,
+        "parallel": 0
+      },
+      "latency": 64,
+      "parallel_over_current": null,
+      "parallel_over_original": 0.0,
+      "updates": 0
+    },
+    {
+      "case": "hot_small",
+      "cycles": {
+        "current": 23025,
+        "original": 533279,
+        "parallel": 6030
+      },
+      "latency": 64,
+      "parallel_over_current": 0.26188925081433223,
+      "parallel_over_original": 0.011307401941572797,
+      "updates": 64
+    },
+    {
+      "case": "lane_boundary",
+      "cycles": {
+        "current": 5973,
+        "original": 532789,
+        "parallel": 2574
+      },
+      "latency": 64,
+      "parallel_over_current": 0.430939226519337,
+      "parallel_over_original": 0.004831180823928422,
+      "updates": 16
+    },
+    {
+      "case": "large",
+      "cycles": {
+        "current": 1441620,
+        "original": 577403,
+        "parallel": 289742
+      },
+      "latency": 64,
+      "parallel_over_current": 0.2009836156546108,
+      "parallel_over_original": 0.5018020342810827,
+      "updates": 4096
+    },
+    {
+      "case": "larger",
+      "cycles": {
+        "current": 2896724,
+        "original": 616852,
+        "parallel": 582606
+      },
+      "latency": 64,
+      "parallel_over_current": 0.20112582351649658,
+      "parallel_over_original": 0.9444826311659847,
+      "updates": 8192
+    },
+    {
+      "case": "neighbor",
+      "cycles": {
+        "current": 78878,
+        "original": 534895,
+        "parallel": 15324
+      },
+      "latency": 64,
+      "parallel_over_current": 0.19427470270544386,
+      "parallel_over_original": 0.02864861327924172,
+      "updates": 257
+    },
+    {
+      "case": "one",
+      "cycles": {
+        "current": 1566,
+        "original": 532667,
+        "parallel": 1566
+      },
+      "latency": 64,
+      "parallel_over_current": 1.0,
+      "parallel_over_original": 0.00293992306638106,
+      "updates": 1
+    },
+    {
+      "case": "same_key",
+      "cycles": {
+        "current": 92510,
+        "original": 537315,
+        "parallel": 38204
+      },
+      "latency": 64,
+      "parallel_over_current": 0.4129715706410118,
+      "parallel_over_original": 0.0711016815089845,
+      "updates": 257
+    },
+    {
+      "case": "small",
+      "cycles": {
+        "current": 16068,
+        "original": 533081,
+        "parallel": 3742
+      },
+      "latency": 64,
+      "parallel_over_current": 0.23288523773960668,
+      "parallel_over_original": 0.007019571134593054,
+      "updates": 64
+    },
+    {
+      "case": "three",
+      "cycles": {
+        "current": 1568,
+        "original": 532667,
+        "parallel": 1568
+      },
+      "latency": 64,
+      "parallel_over_current": 1.0,
+      "parallel_over_original": 0.0029436777573981494,
+      "updates": 3
+    },
+    {
+      "case": "amortized",
+      "cycles": {
+        "current": 11037652,
+        "original": 1389287,
+        "parallel": 2214094
+      },
+      "latency": 128,
+      "parallel_over_current": 0.2005946554575194,
+      "parallel_over_original": 1.5936908644506138,
+      "updates": 16384
+    },
+    {
+      "case": "amortized_large",
+      "cycles": {
+        "current": 44227540,
+        "original": 2384885,
+        "parallel": 8874190
+      },
+      "latency": 128,
+      "parallel_over_current": 0.20064850995556163,
+      "parallel_over_original": 3.7210138015040557,
+      "updates": 65536
+    },
+    {
+      "case": "cold_boundary",
+      "cycles": {
+        "current": 18650,
+        "original": 1057504,
+        "parallel": 2465
+      },
+      "latency": 128,
+      "parallel_over_current": 0.132171581769437,
+      "parallel_over_original": 0.0023309604502678005,
+      "updates": 65
+    },
+    {
+      "case": "cold_small",
+      "cycles": {
+        "current": 17572,
+        "original": 1057423,
+        "parallel": 1447
+      },
+      "latency": 128,
+      "parallel_over_current": 0.08234691554746187,
+      "parallel_over_original": 0.0013684211521784566,
+      "updates": 64
+    },
+    {
+      "case": "empty",
+      "cycles": {
+        "current": 0,
+        "original": 1056907,
+        "parallel": 0
+      },
+      "latency": 128,
+      "parallel_over_current": null,
+      "parallel_over_original": 0.0,
+      "updates": 0
+    },
+    {
+      "case": "hot_small",
+      "cycles": {
+        "current": 43761,
+        "original": 1058207,
+        "parallel": 11406
+      },
+      "latency": 128,
+      "parallel_over_current": 0.26064303832179336,
+      "parallel_over_original": 0.01077860947810778,
+      "updates": 64
+    },
+    {
+      "case": "lane_boundary",
+      "cycles": {
+        "current": 11349,
+        "original": 1057269,
+        "parallel": 4878
+      },
+      "latency": 128,
+      "parallel_over_current": 0.42981760507533706,
+      "parallel_over_original": 0.00461377378888438,
+      "updates": 16
+    },
+    {
+      "case": "large",
+      "cycles": {
+        "current": 2740180,
+        "original": 1142267,
+        "parallel": 549070
+      },
+      "latency": 128,
+      "parallel_over_current": 0.20037734747352365,
+      "parallel_over_original": 0.48068446343980875,
+      "updates": 4096
+    },
+    {
+      "case": "larger",
+      "cycles": {
+        "current": 5506004,
+        "original": 1222885,
+        "parallel": 1104078
+      },
+      "latency": 128,
+      "parallel_over_current": 0.20052255683068881,
+      "parallel_over_original": 0.9028469561733115,
+      "updates": 8192
+    },
+    {
+      "case": "neighbor",
+      "cycles": {
+        "current": 149918,
+        "original": 1061423,
+        "parallel": 29020
+      },
+      "latency": 128,
+      "parallel_over_current": 0.19357248629250656,
+      "parallel_over_original": 0.027340654950947927,
+      "updates": 257
+    },
+    {
+      "case": "one",
+      "cycles": {
+        "current": 2974,
+        "original": 1057019,
+        "parallel": 2974
+      },
+      "latency": 128,
+      "parallel_over_current": 1.0,
+      "parallel_over_original": 0.0028135728875261466,
+      "updates": 1
+    },
+    {
+      "case": "same_key",
+      "cycles": {
+        "current": 175838,
+        "original": 1064227,
+        "parallel": 72380
+      },
+      "latency": 128,
+      "parallel_over_current": 0.4116288856788635,
+      "parallel_over_original": 0.06801180575196833,
+      "updates": 257
+    },
+    {
+      "case": "small",
+      "cycles": {
+        "current": 30532,
+        "original": 1057817,
+        "parallel": 7070
+      },
+      "latency": 128,
+      "parallel_over_current": 0.23156033014542118,
+      "parallel_over_original": 0.006683575703547967,
+      "updates": 64
+    },
+    {
+      "case": "three",
+      "cycles": {
+        "current": 2976,
+        "original": 1057019,
+        "parallel": 2976
+      },
+      "latency": 128,
+      "parallel_over_current": 1.0,
+      "parallel_over_original": 0.002815465001102156,
+      "updates": 3
+    }
+  ],
+  "default_regression_rows": 12,
+  "hardware_timing_admitted": false,
+  "new_spine_comparison_executed": false,
+  "prediction_no_more_than_ten_percent_slower": false,
+  "prediction_rows": 84,
+  "publication_match_admitted": false,
+  "reports": [
+    {
+      "bytes": 219514,
+      "file": "matrix.json",
+      "sha256": "5afc2496f8392b8ab176f9cff14057b4fbb70d32bab610d462b7907944e67747",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/matrix-v4/results.json"
+    },
+    {
+      "bytes": 61348,
+      "file": "previous_g.json",
+      "sha256": "f2b7f1fa608028793549dbf1eea3e7d284d540ecc3800bfe61c0b7f9efff4449",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/common-g-v1/results.json"
+    },
+    {
+      "bytes": 61583,
+      "file": "hls_1.json",
+      "sha256": "03483d40a6698405e590df31d3d9b771c6101f91f4c6c8a50d40bb05bf760371",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v1/results.json"
+    },
+    {
+      "bytes": 61577,
+      "file": "hls_2.json",
+      "sha256": "6daa81bff2e0afcbb0b205857e242b75c50a6691de8614be9175e993f4bb7817",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/hls-v2/results.json"
+    },
+    {
+      "bytes": 56635,
+      "file": "retained_1.json",
+      "sha256": "1ab619f3cf02034cc2c71ca156e46d479f9bbb6909eaf88f31349bfc84e5f126",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/matrix-v1/results.json"
+    },
+    {
+      "bytes": 56634,
+      "file": "retained_2.json",
+      "sha256": "564919b4935bd728345af17202e09702b4314eb162d203eddf25afeae1f1e4b6",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/matrix-v2/results.json"
+    },
+    {
+      "bytes": 192918,
+      "file": "retained_3.json",
+      "sha256": "82d8f16c1e3c244db897c2e3c9291a23463cc1a2d010c592e1b81616d01314d3",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-parallel-v1/matrix-v3/results.json"
+    }
+  ],
+  "status": "G_SEARCH_DIAGNOSTIC_PERFORMANCE_AND_HARDWARE_GATES_OPEN",
+  "synthesis": [
+    {
+      "estimated_clock_ns": 12.193,
+      "estimated_clock_target_met": false,
+      "integrated_or_routed": false,
+      "resources": {
+        "BRAM_18K": 4,
+        "DSP": 0,
+        "FF": 22430,
+        "LUT": 24986,
+        "URAM": 0
+      },
+      "rtl_cosimulation_passed": false,
+      "target_clock_ns": 5.0
+    },
+    {
+      "estimated_clock_ns": 8.036,
+      "estimated_clock_target_met": false,
+      "integrated_or_routed": false,
+      "resources": {
+        "BRAM_18K": 4,
+        "DSP": 0,
+        "FF": 21455,
+        "LUT": 21195,
+        "URAM": 0
+      },
+      "rtl_cosimulation_passed": false,
+      "target_clock_ns": 5.0
+    }
+  ],
+  "within_ten_percent_both_directions": false
+}

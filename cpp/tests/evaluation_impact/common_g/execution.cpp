@@ -39,7 +39,7 @@ Observation original(const cg::Fixture& fixture, unsigned latency, unsigned maxi
   return result;
 }
 
-Observation current(const cg::Fixture& fixture, unsigned latency, unsigned maximum) {
+Observation current(const cg::Fixture& fixture, unsigned latency, unsigned maximum, bool parallel) {
   using namespace spine::sim;
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("G", 200);
@@ -48,6 +48,7 @@ Observation current(const cg::Fixture& fixture, unsigned latency, unsigned maxim
   GraSuNativeConfig config;
   config.memory_channels = 4;
   config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
+  config.compact_parallel_search = parallel;
   GraSuPmaUpdateSystem system(scheduler, clock, backend, cg::layout(fixture), cg::updates(fixture.batches[0]), config);
   system.register_components();
   Observation result;
@@ -79,8 +80,11 @@ int main(int argc, char** argv) {
     const auto latency = std::stoul(argv[3]);
     if (latency != 64 && latency != 128) throw std::invalid_argument("undeclared memory latency");
     const std::string arm(argv[4]);
-    if (arm != "original" && arm != "current") throw std::invalid_argument("unknown common G arm");
-    auto result = arm == "original" ? original(fixture, latency, 4000000) : current(fixture, latency, 4000000);
+    if (arm != "original" && arm != "current" && arm != "parallel")
+      throw std::invalid_argument("unknown common G arm");
+    constexpr unsigned maximum = 128000000;
+    auto result = arm == "original" ? original(fixture, latency, maximum)
+        : current(fixture, latency, maximum, arm == "parallel");
     if (result.state != cg::expected(fixture) || result.cache + result.ddr != fixture.batches[0].updates.size())
       throw std::runtime_error("common G full state or update ledger mismatch");
     cg::write_file(argv[2], result.state);

@@ -28,6 +28,7 @@ The Python layer prepares and checks runs; it is not the current C++ engine.
 | Spine SSSP/CC state update and owner publication | [spine_split.hpp](include/spine_sim/spine_split.hpp) | [spine_sssp_compute.cpp](src/spine_sssp_compute.cpp) |
 | Spine system/algorithm orchestration | [spine_system.hpp](include/spine_sim/spine_system.hpp) | [spine_system.cpp](src/spine_system.cpp), [spine_pagerank.cpp](src/spine_pagerank.cpp) |
 | GraSU PMA layout and update paths | [grasu.hpp](include/spine_sim/grasu.hpp), [grasu_native.hpp](include/spine_sim/grasu_native.hpp) | [grasu.cpp](src/grasu.cpp), [grasu_native.cpp](src/grasu_native.cpp) |
+| Experimental finite parallel G search | [search interface](include/spine_sim/grasu_update/search.hpp) | [parallel search](src/grasu_update/parallel_search.cpp); explicit default-off single-window candidate, [prediction/HLS limits](../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/parallel_search/README.md), not production or FPGA timing admission |
 | G+R HBM buffer placement and capacity checks | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_regraph_runtime.cpp](src/grasu_regraph_runtime.cpp) |
 | G+R destination-shard update sequencing | [grasu_regraph.hpp](include/spine_sim/grasu_regraph.hpp) | [grasu_sharded_update.cpp](src/grasu_sharded_update.cpp) |
 | G+R legacy PMA reader | [private stream contract](src/detail/grasu_regraph_streams.hpp) | [grasu_regraph_legacy_reader.cpp](src/grasu_regraph_legacy_reader.cpp) |

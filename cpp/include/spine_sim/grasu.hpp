@@ -152,6 +152,8 @@ struct GraSuPartitionAddressPlan {
 
 struct GraSuNativeConfig {
   GraSuPmaWordAbi pma_word_abi{GraSuPmaWordAbi::kNormalizedWeighted};
+  // Experimental single-window source16 path; never selected by an SST profile.
+  bool compact_parallel_search{};
   std::size_t memory_channels{32};
   std::size_t cache_segments_per_half{131072};
   std::size_t axis_fifo_depth{16};

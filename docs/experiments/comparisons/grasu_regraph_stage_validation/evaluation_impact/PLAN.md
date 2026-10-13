@@ -35,6 +35,13 @@ This is a real hardware-port difference, not only a plotting problem.
 
 Status: source/finite replay passed; matched-input performance gate failed.
 
+The [parallel-search checkpoint](parallel_search/README.md) now tests an
+explicit default-off core candidate on 84 runs. It preserves state/work and
+improves larger-batch predictions by about 5x, but the 16K/64K cases still miss
+the original-G retention target. Two isolated HLS compiles also miss the
+200-MHz estimated clock. Hot-update concurrency and arbiter timing remain
+implementation work, not admitted baseline changes.
+
 The first common-input diagnostic covers batch sizes 0, 64 and 4096, both
 64/128-cycle memory assumptions, identical prepared full-word PMA and updates,
 200 MHz, four physical banks and resident update-to-drain windows. Complete

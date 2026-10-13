@@ -10,6 +10,13 @@ rates. The paper, frozen figure package and production SST plugins are unchanged
 This checkpoint implements the first bounded tests in [the plan](PLAN.md).
 It does not finish the overall original-performance validation objective.
 
+**Subsequent checkpoint:** the [parallel-search study](parallel_search/README.md)
+adds a default-off core candidate, 84 prediction runs and isolated HLS attempts.
+Its larger batches still fail performance retention and its estimated clock
+misses 200 MHz. The numerical observations and verification counts below
+describe the initial diagnostic; the linked checkpoint owns the new results
+and updated regression limitations. Neither checkpoint admits complete G+R.
+
 ## G: Same Inputs, Different Performance
 
 The current single-window `GraSuPmaUpdateSystem` and independent original

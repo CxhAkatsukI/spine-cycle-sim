@@ -26,6 +26,14 @@ def selected(count):
 
 
 def prepare(root, count):
+    prepare_segments(root, selected(count))
+
+
+def prepare_segments(root, segments):
+    """Encode an explicit ordered workload; repeated keys test RAW hazards."""
+    segments = list(segments)
+    if any(not 0 <= segment < SEGMENTS for segment in segments):
+        raise ValueError("G segment outside reserved capacity")
     root.mkdir(parents=True, exist_ok=False)
     words = array.array("I", [EMPTY]) * (SEGMENTS * 16)
     for segment in range(SEGMENTS):
@@ -40,7 +48,7 @@ def prepare(root, count):
     (root / "rows.u64le").write_bytes(struct.pack("<QQ", HOT * 2 * 16,
         ((HOT * 2 * 16) << 32) | (SEGMENTS * 16)))
     operations, changes = [], {}
-    for segment in selected(count):
+    for segment in segments:
         values = changes.setdefault(segment, {base(segment)})
         target = base(segment) + 1
         deletion = target in values
