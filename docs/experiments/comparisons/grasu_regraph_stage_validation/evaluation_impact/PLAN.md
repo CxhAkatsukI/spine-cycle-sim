@@ -140,6 +140,17 @@ do not promote the candidate or interpret small-batch success as general
 admission. Original temporal conversion, mixed occupancy, host costs and HLS
 feasibility remain separate gates.
 
+The [metadata-placement diagnostic](sharded_batch/metadata_layout/README.md)
+now runs 72 observations, replaying the old 36 exactly and retaining every
+state/work/traffic check. Row-only or binary-only copies fail the complete
+prediction gate; both-table copies pass with maximum absolute difference
+4.3618%. Added storage is 8.30--8.61 MiB, and used channels increase from
+10 to 13. This supports metadata-bank contention without changing a timing
+parameter. The original runtime still fails. Next implement and verify an
+explicit multi-shard correction, replica coherence and host costs with legal
+HLS connectivity; immutable one-shard controls cannot promote themselves
+to the production baseline or close hardware/publication gates.
+
 The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
 share each unchanged hot AXI master, with no implicit cache. Large dispersed

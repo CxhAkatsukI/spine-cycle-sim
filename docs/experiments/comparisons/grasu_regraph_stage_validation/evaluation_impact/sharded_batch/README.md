@@ -54,6 +54,13 @@ Timestamp ordering is real; contact-to-insertion conversion, compaction and
 all-hot reservation remain explicit transformations, not original-publication
 workload reproduction. Small-batch success does not admit the runtime path.
 
+The [metadata-placement diagnostic](metadata_layout/README.md) now replays
+those 36 rows exactly and adds 36 copy controls. All 72 state/work/traffic
+checks pass. Copying both immutable tables across four banks puts every
+declared comparison within 4.3618% of original; copying either alone fails.
+This costs 8.30--8.61 MiB extra metadata and more active banks. It is not yet
+the production layout, a host-inclusive result or an HLS/hardware admission.
+
 The complete cache requires 262,144 segments per shard. Smaller fixtures
 therefore reserve empty tail segments in the last, non-updated source row.
 The same layout is supplied to every arm. No live edge or update is added,
@@ -185,9 +192,10 @@ Code ownership is deliberately split:
 
 ## Next Admission Gates
 
-1. Diagnose the chronological 64K runtime mismatch before admitting G.
-   Shared row/binary regions versus the four-bank metadata copies are a
-   specific contention hypothesis, not yet measured stage attribution.
+1. Validate an actual resource-accounted correction before admitting G.
+   The metadata-placement control supports shared row/binary bank pressure;
+   actual multi-shard layout, replica coherence, host cost and HLS mapping
+   are not established by a one-shard immutable-table experiment.
    Original temporal conversion and broader hot/cold occupancy still need
    validation; first-contact insertion prefixes do not close those gates.
 2. Search/cache HLS schedules, resource fit and hardware timing; no simulator
