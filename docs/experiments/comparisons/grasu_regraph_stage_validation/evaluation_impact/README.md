@@ -27,7 +27,7 @@ same-source controls cannot silently stand in for that claim.
 
 | Gate | Evidence now | Decision still open |
 | --- | --- | --- |
-| G, prepared PMA windows and complete shards | Earlier single-window/small-batch controls pass. Chronological runtime still fails all six 64K comparisons (22.7--35.5% slower). The 72-row metadata diagnostic replays all 36 old rows exactly; copying both tables reduces maximum difference to 4.3618%, with explicit added storage/banks | Actual multi-shard metadata correction, coherence/host costs, original temporal conversion, broader occupancy, HLS II/clock/resource fit, original-paper timing |
+| G, prepared PMA windows and complete shards | Chronological runtime still fails all six 64K comparisons (22.7--35.5% slower). Both-table copy controls reduce maximum difference to 4.3618%. The resident extension passes 12 three-batch executions with charged copies/uploads and exact 72-row replay | Larger multi-shard performance, changed-reservation refresh, measured host costs, original temporal conversion, broader occupancy, actual HLS binding/II/clock/resource fit, original-paper timing |
 | R, fixed Amazon warm SSSP | All 12 full-convergence executions pass; candidate is 4.62% slower / 3.13% faster than A4 at latency 64 / 128 | A4 has 13 masters on 9 banks; K4 has 9 masters; 28 credit/window controls are queued with zero timing rows; broader inputs and original topology A remain separate |
 | Physical G-to-R handoff | All 12 complete-cache executions pass high source IDs, hot/DDR edits, full preload/writeback and exact downstream convergence; 34 CTest targets, 228 old G rows and default SST regressions pass | Correctness alone cannot admit realistic batch performance; cache cost is paid once per updated shard |
 | Host/seed and complete baseline | Device windows and excluded preparation are defined explicitly | Host/seed timing and complete baseline admission are not established |
@@ -44,6 +44,10 @@ runtime mismatch; it does not recover original GraSU temporal semantics.
 Copy controls now support a shared-metadata contention explanation, but
 their extra storage and excluded replica preparation prevent production
 or host-inclusive admission from that result alone.
+The resident extension verifies fixed-reservation replica coherence across
+three shards and consecutive batches, not arbitrary metadata changes or
+large-batch multi-shard performance. Its initialization ledger is bytes,
+not measured CPU/DMA time.
 The R case preloads
 the post-update graph, old converged state and
 prepared seed; it excludes G, DMA and host work on every arm. Separate passing
@@ -67,6 +71,7 @@ scope; they are not overwritten when a later candidate improves.
 | Does G still match with real-topology, multi-segment searches? | [Compact AU/SU/WK controls](sharded_batch/real_inputs/README.md), all 36 observations plus exact 24-row regression; derived batches, not publication reproduction |
 | Does that extend to larger timestamp-ordered batches? | [Chronological first-contact diagnostic](sharded_batch/chronological_inputs/README.md), all 36 new rows and exact old replay; four-bank passes, 64K runtime fails |
 | Can metadata placement explain the larger-batch runtime gap? | [Metadata layout controls](sharded_batch/metadata_layout/README.md), 72 rows, exact old replay and explicit copy costs; both-copy prediction passes, production admission remains open |
+| Do copies remain coherent across resident batches and shards? | [Resident lifecycle](sharded_batch/metadata_layout/lifecycle/README.md), 12 executions and exact 72-row regression; fixed reservations, explicit initialization costs and separate HLS connectivity audit |
 | Which HLS/source checks are independent of that prediction? | [Finite search HLS](search_pipeline/README.md), [cache probes](cache_probe/README.md), [weighted ABI](weighted_abi/README.md) |
 | What differs between A4 and actual K4 resources? | [Resource audit](r_resources/README.md), [credit/window controls](r_credits/README.md) |
 | Does R read the physical PMA produced by G? | [Direct handoff](composition/README.md), [finite bank routing](composition/banked/README.md), [complete-cache handoff](composition/cached/README.md) |

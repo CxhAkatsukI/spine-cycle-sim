@@ -61,6 +61,14 @@ declared comparison within 4.3618% of original; copying either alone fails.
 This costs 8.30--8.61 MiB extra metadata and more active banks. It is not yet
 the production layout, a host-inclusive result or an HLS/hardware admission.
 
+The separate [resident lifecycle extension](metadata_layout/lifecycle/README.md)
+checks three consecutive batches on three shards without restoring runtime
+PMA. All 12 executions and 36 batch observations pass full state/traffic
+checks; replica allocation and initialization upload are charged explicitly.
+All 72 preceding metadata-layout observations replay exactly. Reservation is
+fixed and batches are small, so broader performance, dynamic metadata refresh,
+host costs and HLS implementation remain open.
+
 The complete cache requires 262,144 segments per shard. Smaller fixtures
 therefore reserve empty tail segments in the last, non-updated source row.
 The same layout is supplied to every arm. No live edge or update is added,
@@ -194,8 +202,9 @@ Code ownership is deliberately split:
 
 1. Validate an actual resource-accounted correction before admitting G.
    The metadata-placement control supports shared row/binary bank pressure;
-   actual multi-shard layout, replica coherence, host cost and HLS mapping
-   are not established by a one-shard immutable-table experiment.
+   the resident extension now checks multi-shard allocation and coherence
+   for fixed metadata. Broader performance, changed-reservation refresh,
+   measured host cost and actual HLS binding are not established.
    Original temporal conversion and broader hot/cold occupancy still need
    validation; first-contact insertion prefixes do not close those gates.
 2. Search/cache HLS schedules, resource fit and hardware timing; no simulator

@@ -1,0 +1,398 @@
+{
+  "accepted_full_matrix_rows": 0,
+  "attempts": [
+    {
+      "accepted_rows": 0,
+      "attempt": "attempt-v1",
+      "error": "ValueError('bounded sharded-G execution failed: build')",
+      "errors": [],
+      "status": "FAILED_RETAINED"
+    },
+    {
+      "accepted_rows": 4,
+      "attempt": "attempt-v2",
+      "error": "ValueError('resident matrix is incomplete or undeclared')",
+      "errors": [
+        {
+          "arm": "candidate-runtime-23",
+          "case": "staggered",
+          "error": "bounded sharded-G execution failed: lat64_staggered_candidate-runtime-23",
+          "latency": 64
+        },
+        {
+          "arm": "runtime-both-copies",
+          "case": "staggered",
+          "error": "bounded sharded-G execution failed: lat64_staggered_runtime-both-copies",
+          "latency": 64
+        },
+        {
+          "arm": "candidate-runtime-23",
+          "case": "all-active",
+          "error": "bounded sharded-G execution failed: lat64_all-active_candidate-runtime-23",
+          "latency": 64
+        },
+        {
+          "arm": "runtime-both-copies",
+          "case": "all-active",
+          "error": "bounded sharded-G execution failed: lat64_all-active_runtime-both-copies",
+          "latency": 64
+        },
+        {
+          "arm": "candidate-runtime-23",
+          "case": "staggered",
+          "error": "bounded sharded-G execution failed: lat128_staggered_candidate-runtime-23",
+          "latency": 128
+        },
+        {
+          "arm": "runtime-both-copies",
+          "case": "staggered",
+          "error": "bounded sharded-G execution failed: lat128_staggered_runtime-both-copies",
+          "latency": 128
+        },
+        {
+          "arm": "candidate-runtime-23",
+          "case": "all-active",
+          "error": "bounded sharded-G execution failed: lat128_all-active_candidate-runtime-23",
+          "latency": 128
+        },
+        {
+          "arm": "runtime-both-copies",
+          "case": "all-active",
+          "error": "bounded sharded-G execution failed: lat128_all-active_runtime-both-copies",
+          "latency": 128
+        }
+      ],
+      "status": "FAILED_RETAINED"
+    }
+  ],
+  "raw_members": [
+    {
+      "bytes": 73046,
+      "member": "attempt-v1/results.json",
+      "sha256": "b256eb9678ce18199eafbca939ec7b97863b1918ea3d31f57545670d33d2a1fb"
+    },
+    {
+      "bytes": 2588,
+      "member": "attempt-v1/input_contract.json",
+      "sha256": "1e4816302ee844a79e5d23b1d7621ee202f7081f3f863e163dbc8c9a07f8ff63"
+    },
+    {
+      "bytes": 823,
+      "member": "attempt-v1/raw/build.resources.json",
+      "sha256": "14cbd52e40583c4ae42774836ff42543e0c4a6515a3d6641362d37f1a166ea4a"
+    },
+    {
+      "bytes": 3462,
+      "member": "attempt-v1/raw/build.stderr.txt",
+      "sha256": "139c21a03334e446c733dec08ced6d7c602b3a1b4a006a1e95e65f8b4d62956f"
+    },
+    {
+      "bytes": 117,
+      "member": "attempt-v1/raw/build.stdout.txt",
+      "sha256": "90e641bc8fd5ada79923ca13fe4f141df785a98af5b83f417e6a54ea6470da03"
+    },
+    {
+      "bytes": 652,
+      "member": "attempt-v1/raw/cmake.resources.json",
+      "sha256": "b53bc2b343bdb36cd4773b5aaab2a05e046fccfa7dd35ac218c3bfb5766caab0"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/cmake.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 90,
+      "member": "attempt-v1/raw/cmake.stdout.txt",
+      "sha256": "315e1daa4023afda33e316c6e2b57fa1fd67fffd2fc9cd86c5f47fab4ff746d6"
+    },
+    {
+      "bytes": 656,
+      "member": "attempt-v1/raw/compiler.resources.json",
+      "sha256": "a78f231bf8a9e43435166acdac29a2549cebc88e521b1da49d3a42a2dbcf8e76"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/compiler.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 232,
+      "member": "attempt-v1/raw/compiler.stdout.txt",
+      "sha256": "adc65bddd7a1527d17857b11f691971851f6f6454e1c58603a593b0af64805ef"
+    },
+    {
+      "bytes": 1100,
+      "member": "attempt-v1/raw/configure.resources.json",
+      "sha256": "6765190d04811e36928a3a3e1dd11eef9852659f9a2b0c7d9c556905a590d541"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 452,
+      "member": "attempt-v1/raw/configure.stdout.txt",
+      "sha256": "df33b0a318b7418b74e4c730be2bc81835362dc5b55d698bf5b1a1117d884d44"
+    },
+    {
+      "bytes": 101004,
+      "member": "attempt-v2/results.json",
+      "sha256": "4c4b2298c6ee84b3818e8372087f343ef27b1f19ade3b3ddc35be21a7b2b8333"
+    },
+    {
+      "bytes": 2588,
+      "member": "attempt-v2/input_contract.json",
+      "sha256": "1e4816302ee844a79e5d23b1d7621ee202f7081f3f863e163dbc8c9a07f8ff63"
+    },
+    {
+      "bytes": 823,
+      "member": "attempt-v2/raw/build.resources.json",
+      "sha256": "a0f1bc324846c11bf0ecb8a925582f1c91f05ffa798cf58e4632877529351f90"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v2/raw/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 227,
+      "member": "attempt-v2/raw/build.stdout.txt",
+      "sha256": "0e1f3dcdfa7bd220d8dd665ad21cd294ae45ff69aaa6cbb58df1bb32ebfc0b83"
+    },
+    {
+      "bytes": 652,
+      "member": "attempt-v2/raw/cmake.resources.json",
+      "sha256": "017d967cc29e1d2907ce117f335723a9c2811d193cc4369d8b56f154432655f0"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v2/raw/cmake.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 90,
+      "member": "attempt-v2/raw/cmake.stdout.txt",
+      "sha256": "315e1daa4023afda33e316c6e2b57fa1fd67fffd2fc9cd86c5f47fab4ff746d6"
+    },
+    {
+      "bytes": 657,
+      "member": "attempt-v2/raw/compiler.resources.json",
+      "sha256": "1c32b6eb1cacfedb721032a099bccdaaded35ee43a870e80be9094aa4dd98785"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v2/raw/compiler.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 232,
+      "member": "attempt-v2/raw/compiler.stdout.txt",
+      "sha256": "adc65bddd7a1527d17857b11f691971851f6f6454e1c58603a593b0af64805ef"
+    },
+    {
+      "bytes": 1100,
+      "member": "attempt-v2/raw/configure.resources.json",
+      "sha256": "e5e0ee895003335745398d167a9469991b6bd7c3227478c3bd63cf5068686f3e"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v2/raw/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 452,
+      "member": "attempt-v2/raw/configure.stdout.txt",
+      "sha256": "c683bce2b5fc30fbcb663b2f882b848cb7924696bea0a8860de0cd09fc148e0a"
+    },
+    {
+      "bytes": 1071,
+      "member": "attempt-v2/raw/lat128_all-active_candidate-runtime-23.resources.json",
+      "sha256": "dd2be765bc50ac7d0415a67000c10a02698f2a193bc4fbf6eb157c0439a8d44b"
+    },
+    {
+      "bytes": 42,
+      "member": "attempt-v2/raw/lat128_all-active_candidate-runtime-23.stderr.txt",
+      "sha256": "74aaed919e1343ef84797d2f056b6c488fb24224dbd2d224a4573ff9d028ea42"
+    },
+    {
+      "bytes": 684,
+      "member": "attempt-v2/raw/lat128_all-active_candidate-runtime-23.stdout.txt",
+      "sha256": "3d08b9324077a0402bcba2f373f28880019d51b68f52e64bbc6cb0e6b4b25f28"
+    },
+    {
+      "bytes": 1086,
+      "member": "attempt-v2/raw/lat128_all-active_original-prepared-shards.resources.json",
+      "sha256": "a52473f05ce34a9c21448527b948dacbf4a90a69a94ee3ada9f57661312d164d"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v2/raw/lat128_all-active_original-prepared-shards.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 992,
+      "member": "attempt-v2/raw/lat128_all-active_original-prepared-shards.stdout.txt",
+      "sha256": "dcb0476ea897c3f4a8bca2506bc7bf5f184c9e04fe9572323eeb8896a62f6dc7"
+    },
+    {
+      "bytes": 1066,
+      "member": "attempt-v2/raw/lat128_all-active_runtime-both-copies.resources.json",
+      "sha256": "a493498d270d63100c72ab72292538aa04d4ac1852cdd5f393cbfdc38ca07cb4"
+    },
+    {
+      "bytes": 42,
+      "member": "attempt-v2/raw/lat128_all-active_runtime-both-copies.stderr.txt",
+      "sha256": "74aaed919e1343ef84797d2f056b6c488fb24224dbd2d224a4573ff9d028ea42"
+    },
+    {
+      "bytes": 683,
+      "member": "attempt-v2/raw/lat128_all-active_runtime-both-copies.stdout.txt",
+      "sha256": "c4cdd9d53b717c0d81e48f8dd117bc543891932a524caa96396b69743bdf5fbc"
+    },
+    {
+      "bytes": 1066,
+      "member": "attempt-v2/raw/lat128_staggered_candidate-runtime-23.resources.json",
+      "sha256": "3575e5dcd8d744f04729b282dd6120c27eb5afeda875fbf242598b6907c02ea7"
+    },
+    {
+      "bytes": 42,
+      "member": "attempt-v2/raw/lat128_staggered_candidate-runtime-23.stderr.txt",
+      "sha256": "74aaed919e1343ef84797d2f056b6c488fb24224dbd2d224a4573ff9d028ea42"
+    },
+    {
+      "bytes": 683,
+      "member": "attempt-v2/raw/lat128_staggered_candidate-runtime-23.stdout.txt",
+      "sha256": "6be33be251b25239c2ea91e011a1acf3dc6a39632447e7b9cf1b572cb702068f"
+    },
+    {
+      "bytes": 1081,
+      "member": "attempt-v2/raw/lat128_staggered_original-prepared-shards.resources.json",
+      "sha256": "d17438728f2160c4af2801404a68e3e8c77af5ac0b5e7e129427fc42da2b6592"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v2/raw/lat128_staggered_original-prepared-shards.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 991,
+      "member": "attempt-v2/raw/lat128_staggered_original-prepared-shards.stdout.txt",
+      "sha256": "f697326fcf73034c18e9a6cf47d035e1ff9bf6fcfb8a7c73087300f1c05b6fab"
+    },
+    {
+      "bytes": 1061,
+      "member": "attempt-v2/raw/lat128_staggered_runtime-both-copies.resources.json",
+      "sha256": "33b5a6ddb8e6d7205904514a4e3bc9d809d488512cf9a0743ea115f81684fbb7"
+    },
+    {
+      "bytes": 42,
+      "member": "attempt-v2/raw/lat128_staggered_runtime-both-copies.stderr.txt",
+      "sha256": "74aaed919e1343ef84797d2f056b6c488fb24224dbd2d224a4573ff9d028ea42"
+    },
+    {
+      "bytes": 682,
+      "member": "attempt-v2/raw/lat128_staggered_runtime-both-copies.stdout.txt",
+      "sha256": "16a4d9473e1cb84264046f23d72f5e83a8440c4b790fae1d2925f408da483921"
+    },
+    {
+      "bytes": 1067,
+      "member": "attempt-v2/raw/lat64_all-active_candidate-runtime-23.resources.json",
+      "sha256": "9eaef2f9cc670ba00f3b7622784b74638588d5c1635a19effdf4454df281c6a8"
+    },
+    {
+      "bytes": 42,
+      "member": "attempt-v2/raw/lat64_all-active_candidate-runtime-23.stderr.txt",
+      "sha256": "74aaed919e1343ef84797d2f056b6c488fb24224dbd2d224a4573ff9d028ea42"
+    },
+    {
+      "bytes": 683,
+      "member": "attempt-v2/raw/lat64_all-active_candidate-runtime-23.stdout.txt",
+      "sha256": "11518c29ec9a04a6fc2cff4c47b50256272362029c97abc1437a0d180eaacda5"
+    },
+    {
+      "bytes": 1081,
+      "member": "attempt-v2/raw/lat64_all-active_original-prepared-shards.resources.json",
+      "sha256": "ce6c1986fa3a6e7e974edc95fe379d5dae6869ac54e460e45706d6d00929e6e1"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v2/raw/lat64_all-active_original-prepared-shards.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 991,
+      "member": "attempt-v2/raw/lat64_all-active_original-prepared-shards.stdout.txt",
+      "sha256": "d138c56275906382dd1c1b10065601f85750321a3dd99451821c2e1cc8e74162"
+    },
+    {
+      "bytes": 1061,
+      "member": "attempt-v2/raw/lat64_all-active_runtime-both-copies.resources.json",
+      "sha256": "a157e89331c1acd2236c05f59067612b64309dcb119b2c76a9899f53c2bb60f6"
+    },
+    {
+      "bytes": 42,
+      "member": "attempt-v2/raw/lat64_all-active_runtime-both-copies.stderr.txt",
+      "sha256": "74aaed919e1343ef84797d2f056b6c488fb24224dbd2d224a4573ff9d028ea42"
+    },
+    {
+      "bytes": 682,
+      "member": "attempt-v2/raw/lat64_all-active_runtime-both-copies.stdout.txt",
+      "sha256": "50c6991097a4b92095b883d842f69a0f9c0648604b7628163d2ff2e23e4dcbdd"
+    },
+    {
+      "bytes": 1062,
+      "member": "attempt-v2/raw/lat64_staggered_candidate-runtime-23.resources.json",
+      "sha256": "b6df8d0912743cdac4d0ebfe704534bfb4fa34b4ab797f87ff5884ecc9429338"
+    },
+    {
+      "bytes": 42,
+      "member": "attempt-v2/raw/lat64_staggered_candidate-runtime-23.stderr.txt",
+      "sha256": "74aaed919e1343ef84797d2f056b6c488fb24224dbd2d224a4573ff9d028ea42"
+    },
+    {
+      "bytes": 682,
+      "member": "attempt-v2/raw/lat64_staggered_candidate-runtime-23.stdout.txt",
+      "sha256": "6e822d17a0fa15b8e67b86b8bfb45b4a4243ac68bf6c3409cf931a8ccb728d52"
+    },
+    {
+      "bytes": 1077,
+      "member": "attempt-v2/raw/lat64_staggered_original-prepared-shards.resources.json",
+      "sha256": "a4296bacf8695d6a6f768cd2d7148a99d0bf059924d74323185bebdcae74d607"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v2/raw/lat64_staggered_original-prepared-shards.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 990,
+      "member": "attempt-v2/raw/lat64_staggered_original-prepared-shards.stdout.txt",
+      "sha256": "62b84c5f4d4ff6f3503b49a7f613226884b2f7c689f6ecf87b902b6ebd69718e"
+    },
+    {
+      "bytes": 1056,
+      "member": "attempt-v2/raw/lat64_staggered_runtime-both-copies.resources.json",
+      "sha256": "80ae218447441842207df3b47b604e98d3dc43665f37e119e5aeb0bc88654a47"
+    },
+    {
+      "bytes": 42,
+      "member": "attempt-v2/raw/lat64_staggered_runtime-both-copies.stderr.txt",
+      "sha256": "74aaed919e1343ef84797d2f056b6c488fb24224dbd2d224a4573ff9d028ea42"
+    },
+    {
+      "bytes": 681,
+      "member": "attempt-v2/raw/lat64_staggered_runtime-both-copies.stdout.txt",
+      "sha256": "51ab33f60cd89ef029823fd6bf3f2a3491d26ecd35ae22724eb98094f96ea21b"
+    }
+  ],
+  "reports": [
+    {
+      "bytes": 40454,
+      "file": "raw_runs.tar.gz",
+      "sha256": "ac16a40498fba1464fba739016e57668b8d030de00edf8a2d878e37d36da8a87"
+    }
+  ],
+  "status": "FAILED_PREFLIGHT_RETAINED"
+}

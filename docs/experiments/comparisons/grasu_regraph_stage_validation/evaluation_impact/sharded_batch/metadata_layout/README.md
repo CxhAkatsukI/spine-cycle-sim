@@ -62,6 +62,14 @@ the larger batches. The [decision index](evidence/index.json) is independently
 recomputed by delivery tests; all 36 preceding observations, traffic ledgers
 and canonical full-state hashes replay exactly.
 
+The separate [resident lifecycle check](lifecycle/README.md) extends coherence
+coverage to three shards across three consecutive batches, with persistent
+PMA, fixed reservation metadata and explicit initialization upload bytes.
+All 12 executions pass; its capsule also replays every observation and state
+hash in this 72-row study exactly after replica-allocation helper extraction.
+That small, cache-dominated check is not larger multi-shard performance or
+changed-reservation coherence admission. This earlier evidence is unchanged.
+
 Read-only progress observations support the placement explanation. For AU64K
 at latency 64, the latest search completion moves from cycle 571,984 to
 408,110 with both tables copied, while cache preload remains cycle 266,308.
@@ -85,10 +93,11 @@ bytes. The controls do not increase AXI masters or credits and do not make
 metadata accesses free. Original buffers, replicas, PMA ownership copies,
 untouched data and padding are all checked against full physical payloads.
 
-Before choosing this for actual G, verify multi-shard allocation, metadata
-coherence across batches, real host replication costs, legal HLS connectivity
-and the finite search/cache clock and whole-G resource fit. The current
-one-shard immutable-table control does not establish those conditions.
+Before choosing this for actual G, verify broader multi-shard performance,
+changed-reservation coherence, real host replication costs, actual HLS buffer
+binding and the finite search/cache clock and whole-G resource fit. The
+resident extension checks fixed-reservation allocation/coherence and existing
+legal connectivity only. Neither study establishes the remaining conditions.
 Published source16/paper8 differences and temporal conversion also remain
 open. Use this result to choose an implementation experiment, not to replace
 Figure 7 or rescale Figures 8--11.

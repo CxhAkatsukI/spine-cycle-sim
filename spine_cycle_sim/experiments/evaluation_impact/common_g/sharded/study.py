@@ -13,7 +13,7 @@ from .preparation import STATUS, input_contract
 
 
 def input_arguments(item, contract, target):
-    if target == "sharded_g_execution":
+    if target in ("sharded_g_execution", "resident_metadata_g_execution"):
         return []
     if target not in ("real_sharded_g_execution", "metadata_layout_g_execution"):
         raise ValueError("undeclared sharded-G execution target")
@@ -80,8 +80,12 @@ def run(output, core_build, *, contract=None, analyze_rows=analyze,
                 observed_tag, _, body = text.partition(" ")
                 if observed_tag != tag:
                     raise ValueError("missing unique sharded-G result")
-                report["rows"].append({**item, "observation": json.loads(body),
-                                       "state_sha256": sha256_file(state), "state_path": str(state)})
+                row = {**item, "observation": json.loads(body),
+                       "state_sha256": sha256_file(state), "state_path": str(state)}
+                if contract.get("batch_count"):
+                    row["batch_states"] = [{"path": str(path), "sha256": sha256_file(path)}
+                        for path in (Path(str(state) + ".batch" + str(i)) for i in range(contract["batch_count"]))]
+                report["rows"].append(row)
             except (ValueError, RuntimeError) as error:
                 report["errors"].append({**item, "error": str(error)})
             save()

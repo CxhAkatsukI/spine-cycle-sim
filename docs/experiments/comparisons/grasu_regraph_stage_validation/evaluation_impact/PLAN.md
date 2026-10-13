@@ -151,6 +151,18 @@ explicit multi-shard correction, replica coherence and host costs with legal
 HLS connectivity; immutable one-shard controls cannot promote themselves
 to the production baseline or close hardware/publication gates.
 
+The [resident lifecycle extension](sharded_batch/metadata_layout/lifecycle/README.md)
+now checks fixed-reservation coherence with three shards and three consecutive
+batches on one runtime backend. All 12 executions and 36 batch observations
+pass full payload, untouched-copy and traffic checks; every preceding
+metadata-layout observation and full-state hash replays exactly (72 rows).
+Replica storage and logical initialization upload are explicit. Legal routed
+SSSP port ranges are checked read-only; the actual host still binds shared
+tables. Next validate larger multi-shard batches, changed-reservation refresh
+and measured host preparation, then implement actual HLS binding with verified
+search/cache schedules and whole-G fit. Small cache-dominated batches and
+fixed-table consistency do not close those admission gates.
+
 The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
 share each unchanged hot AXI master, with no implicit cache. Large dispersed

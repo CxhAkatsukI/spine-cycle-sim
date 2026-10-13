@@ -2,6 +2,7 @@
 
 #include "../candidate.hpp"
 #include "../real_fixture.hpp"
+#include "replicas.hpp"
 
 namespace sharded_g_test {
 struct MetadataLayout {
@@ -44,26 +45,13 @@ struct MetadataLayout {
   void replicate(MemoryBackend &backend, const std::string &name) {
     const auto source = find_grasu_regraph_runtime_region(plan, 0, name);
     const auto bytes = backend.inspect_payload(source.channel, source.channel_offset_bytes, source.allocated_bytes);
-    constexpr std::array<std::size_t, 4> channels{3, 9, 15, 20};
-    // The finite CU config has a common metadata base, so every copy uses one
-    // aligned offset beyond all existing allocations. Original buffers remain.
-    const auto maximum = *std::max_element(plan.channel_load_bytes.begin(), plan.channel_load_bytes.end());
-    const auto base = (maximum + 4095) / 4096 * 4096;
-    require(base <= plan.channel_capacity_bytes && source.allocated_bytes <= plan.channel_capacity_bytes - base,
-            "metadata replicas exceed physical bank capacity");
-    for (std::size_t cu = 0; cu < channels.size(); ++cu) {
-      auto copy = source;
-      copy.name = name + "-cu" + std::to_string(cu);
-      copy.channel = channels[cu];
-      copy.channel_offset_bytes = base;
-      plan.regions.push_back(copy);
-      plan.channel_load_bytes[copy.channel] = base + copy.allocated_bytes;
-      plan.total_allocated_bytes += copy.allocated_bytes;
+    const auto copies = append_metadata_replicas(plan, 0, name);
+    for (const auto &copy : copies) {
       extra_metadata_bytes += copy.allocated_bytes;
-      backend.initialize_payload(copy.channel, base, bytes);
+      backend.initialize_payload(copy.channel, copy.channel_offset_bytes, bytes);
     }
-    if (name == "row") { config.row_channels = channels; config.row_offset_base = base; }
-    else { config.binary_channels = channels; config.binary_base = base; }
+    if (name == "row") { config.row_channels = kMetadataChannels; config.row_offset_base = copies[0].channel_offset_bytes; }
+    else { config.binary_channels = kMetadataChannels; config.binary_base = copies[0].channel_offset_bytes; }
   }
 
   void verify(MemoryBackend &backend, const RealFixture &f) {

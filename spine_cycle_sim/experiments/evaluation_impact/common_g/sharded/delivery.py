@@ -24,6 +24,7 @@ def package(output, matrix, *, status=STATUS, analyze_rows=analyze):
     for row in report["rows"]:
         if sha256_file(Path(row["state_path"])) != row["state_sha256"]:
             raise ValueError("canonical full-state artifact changed")
+        verify_pins(row.get("batch_states", []))
     sources = [("input_contract.json", matrix.parent / "input_contract.json")]
     sources.extend((item["member"], Path(item["path"])) for item in report.get("input_pins", []))
     for step in report["steps"]:

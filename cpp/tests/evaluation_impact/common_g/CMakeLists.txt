@@ -31,3 +31,8 @@ target_include_directories(metadata_layout_g_execution PRIVATE "${ROOT}/cpp/incl
 target_link_libraries(metadata_layout_g_execution PRIVATE
   "${CORE_BUILD}/liboriginal_grasu_cycle.a" "${CORE_BUILD}/libspine_cycle_core.a")
 target_compile_options(metadata_layout_g_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_executable(resident_metadata_g_execution sharded/metadata_layout/lifecycle/main.cpp)
+target_include_directories(resident_metadata_g_execution PRIVATE "${ROOT}/cpp/include")
+target_link_libraries(resident_metadata_g_execution PRIVATE
+  "${CORE_BUILD}/liboriginal_grasu_cycle.a" "${CORE_BUILD}/libspine_cycle_core.a")
+target_compile_options(resident_metadata_g_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)
