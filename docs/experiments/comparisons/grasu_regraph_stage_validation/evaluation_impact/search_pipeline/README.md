@@ -46,9 +46,12 @@ hot cache and implementation overhead. This is not a whole-G area estimate.
 
 Separate arbitration/FIFO stages shorten the combinational selection path in
 source structure. Whether they meet the target clock and what latency they add
-must be measured from HLS/RTL. **Their added latency is not yet incorporated
-into the cycle engine.** Work parity below does not justify carrying over the
-earlier model's 2% timing result to this HLS implementation.
+must be measured from HLS/RTL. At this isolated HLS checkpoint their added
+latency was not incorporated into the cycle engine. Work parity below does not
+justify carrying over the earlier model's 2% timing result to this HLS implementation. The subsequent
+[finite cycle-model checkpoint](finite_model/README.md) adds these declared
+stages behind a default-off configuration. Its explicit cycle assumptions do
+not replace the pending HLS schedule measurement.
 
 ## Controls And Evidence
 

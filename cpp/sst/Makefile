@@ -50,6 +50,9 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/axi_independent_channels.cpp \
            $(ROOT)/cpp/src/grasu.cpp \
            $(ROOT)/cpp/src/grasu_update/parallel_search.cpp \
+           $(ROOT)/cpp/src/grasu_update/finite_search.cpp \
+           $(ROOT)/cpp/src/grasu_update/finite_search/workers.cpp \
+           $(ROOT)/cpp/src/grasu_update/finite_search/transport.cpp \
            $(ROOT)/cpp/src/grasu_update/direct_processor.cpp \
            $(ROOT)/cpp/src/grasu_update/cached_processor.cpp \
            $(ROOT)/cpp/src/grasu_native.cpp \
@@ -92,6 +95,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/spine_vertex_lifecycle.cpp
 HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp) $(wildcard *.hpp) \
            $(wildcard $(ROOT)/cpp/include/spine_sim/grasu_update/*.hpp) \
+           $(wildcard $(ROOT)/cpp/src/grasu_update/finite_search/*.hpp) \
            $(wildcard $(ROOT)/cpp/src/detail/*.hpp) \
            $(wildcard $(ROOT)/cpp/src/regraph_pma_cross_row/*.hpp)
 

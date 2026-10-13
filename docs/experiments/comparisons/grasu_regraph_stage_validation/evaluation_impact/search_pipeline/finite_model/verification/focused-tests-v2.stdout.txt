@@ -1,0 +1,28 @@
+RUN toy compiler_version
+RUN toy cmake_version
+RUN toy configure
+RUN toy build
+RUN toy compiler_version
+RUN toy cmake_version
+RUN toy configure
+RUN toy build
+RUN toy lat64_one_new
+RUN toy compiler_version
+RUN toy cmake_version
+RUN toy configure
+RUN toy build
+RUN toy lat64_one_new
+RUN toy compiler_version
+RUN toy cmake_version
+RUN toy configure
+RUN toy build
+RUN toy lat64_one_new
+{"status": "TOY_COMPLETE", "marker": 12}
+RUN toy compiler_version
+RUN toy cmake_version
+RUN toy configure
+RUN toy build
+RUN toy lat64_one_new
+{"status": "TOY_COMPLETE", "marker": 12}
+RUN r_lat64_reverse0_a4
+DONE r_lat64_reverse0_a4 FAILED_RETAINED

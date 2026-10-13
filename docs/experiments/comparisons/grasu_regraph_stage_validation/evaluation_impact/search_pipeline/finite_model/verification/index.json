@@ -1,0 +1,739 @@
+{
+  "archive": {
+    "bytes": 181257,
+    "file": "regressions.tar.gz",
+    "sha256": "64b483172243f112a179b94c5060dbfcf9417759dac8d655da937b09bc9b9120"
+  },
+  "baseline_admitted": false,
+  "candidate_sst_timing_admitted": false,
+  "checks": [
+    {
+      "available_before_bytes": 27654107136,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "cmake",
+        "-S",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+        "-B",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "configure",
+      "peak_rss_kib": 151992,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/configure.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/configure.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.5540074678137898
+    },
+    {
+      "available_before_bytes": 27643928576,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build",
+        "-j1",
+        "--target",
+        "grasu_parallel_search_tests",
+        "common_g_execution"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "memory_limit_gib": 2,
+      "name": "build",
+      "peak_rss_kib": 459164,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 99.0205041798763
+    },
+    {
+      "available_before_bytes": 29071667200,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "build-all-v2",
+      "peak_rss_kib": 701352,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 177.59072935581207
+    },
+    {
+      "available_before_bytes": 30193598464,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build",
+        "-j1",
+        "--target",
+        "grasu_parallel_search_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "test-diagnostic-build",
+      "peak_rss_kib": 249144,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/test-diagnostic-build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/test-diagnostic-build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 6.363597675226629
+    },
+    {
+      "available_before_bytes": 30275256320,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build",
+        "--output-on-failure",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 8,
+      "expected_exit_code": 8,
+      "memory_limit_gib": 2,
+      "name": "ctest-v1",
+      "peak_rss_kib": 95240,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 114.6785532059148
+    },
+    {
+      "available_before_bytes": 30331744256,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build",
+        "-j1",
+        "--target",
+        "grasu_parallel_search_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "finite-reorder-build-v1",
+      "peak_rss_kib": 254820,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-reorder-build-v1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-reorder-build-v1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.816145664080977
+    },
+    {
+      "available_before_bytes": 30289182720,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "build-all-v3",
+      "peak_rss_kib": 254160,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v3.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v3.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 10.871660579927266
+    },
+    {
+      "available_before_bytes": 30327074816,
+      "command": [
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build/cpp/grasu_parallel_search_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "finite-tests-v2",
+      "peak_rss_kib": 18120,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-tests-v2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-tests-v2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.35399879701435566
+    },
+    {
+      "available_before_bytes": 30314659840,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build",
+        "--output-on-failure",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "ctest-v2",
+      "peak_rss_kib": 95240,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 184.25935553293675
+    },
+    {
+      "available_before_bytes": 29946912768,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "make",
+        "-C",
+        "cpp/sst",
+        "-j1",
+        "BUILD_DIR=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "sst-build-v1",
+      "peak_rss_kib": 1020388,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-build-v1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-build-v1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 225.08251263014972
+    },
+    {
+      "available_before_bytes": 29761912832,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_finite_search",
+        "tests.test_common_g_runner",
+        "tests.test_grasu_metadata_credits",
+        "tests.test_grasu_search_diagnostics",
+        "tests.test_grasu_search_concurrency",
+        "tests.test_grasu_search_pipeline",
+        "tests.test_grasu_parallel_search",
+        "tests.test_grasu_hot_lanes",
+        "tests.test_grasu_cached_hot",
+        "tests.test_grasu_cached_hot_delivery",
+        "tests.test_grasu_cache_probe",
+        "tests.test_grasu_cache_probe_delivery",
+        "tests.test_grasu_weighted_source_abi",
+        "tests.test_grasu_weighted_source_abi_delivery",
+        "tests.test_evaluation_impact",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "focused-tests-v1",
+      "peak_rss_kib": 74312,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/focused-tests-v1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/focused-tests-v1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 5.512450425885618
+    },
+    {
+      "available_before_bytes": 29843894272,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "/data/feiyang/sst/bin/sst-info",
+        "--add-lib-path=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst",
+        "spine_cycle"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "default-sst/0",
+      "peak_rss_kib": 15896,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-0.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.052860151045024395
+    },
+    {
+      "available_before_bytes": 29840904192,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "python3",
+        "scripts/run_sst_memory_smoke.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/memory",
+        "--channels",
+        "4",
+        "--requests",
+        "64"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "default-sst/1",
+      "peak_rss_kib": 41040,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.2534063942730427
+    },
+    {
+      "available_before_bytes": 29806170112,
+      "command": [
+        "taskset",
+        "-c",
+        "126",
+        "python3",
+        "scripts/run_sst_grasu_regraph_native.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/native",
+        "--max-cycles",
+        "1000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-finite-search",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "default-sst/2",
+      "peak_rss_kib": 84896,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.0549851031973958
+    }
+  ],
+  "core_tests": 31,
+  "exact_replayed_rows": 190,
+  "focused_python_tests": 95,
+  "hardware_timing_admitted": false,
+  "machine_local_identities": [
+    {
+      "bytes": 900420,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/pre_edit/sources.tar.gz",
+      "sha256": "4dd49ec975801330d80fad59c984a93761cf94ece7658f681dcf0e313ba0a8d7"
+    },
+    {
+      "bytes": 4069162,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build/cpp/libspine_cycle_core.a",
+      "sha256": "e149fbc8e483dcb64c27207b928ab198d1f011e8d2f5e849604373f4e8bf6d82"
+    },
+    {
+      "bytes": 163512,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build/cpp/liboriginal_grasu_cycle.a",
+      "sha256": "5eb025de5f7e93d61d1e5fda5e625b3c9cb6ac59858a1967e24e70a6821de07d"
+    },
+    {
+      "bytes": 3764960,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst/libspine_cycle.so",
+      "sha256": "b30a28ccf52db4d9519416548cb54f7cbf74987e8aefe83a5c0b27a647e5d885"
+    },
+    {
+      "bytes": 685800,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/matrix-v1/build/common_g_execution",
+      "sha256": "8e4a0b57831459ebc806c422788851f947f790f9d934193de3e0c737cd01e8e9"
+    }
+  ],
+  "members": [
+    {
+      "bytes": 783,
+      "member": "build-all-v2.resources.json",
+      "sha256": "a09d72f577e188a343d0aa49ca9b7b1189f8dc056b082c0bc2f509be7f2a76ef",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v2.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "build-all-v2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v2.stderr.txt"
+    },
+    {
+      "bytes": 12080,
+      "member": "build-all-v2.stdout.txt",
+      "sha256": "741f9474fe323fdc78b538a647f503899b4f451dde24b6bcbb421714fde972c1",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v2.stdout.txt"
+    },
+    {
+      "bytes": 783,
+      "member": "build-all-v3.resources.json",
+      "sha256": "3bab954821b3189964ecd547dcccaa0e880a11b3cbe3d81743e076a57179ebf7",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v3.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "build-all-v3.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v3.stderr.txt"
+    },
+    {
+      "bytes": 4754,
+      "member": "build-all-v3.stdout.txt",
+      "sha256": "c65e799164b244883bb73b831cace942b31a79f71af675a4a42200e4308176cd",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build-all-v3.stdout.txt"
+    },
+    {
+      "bytes": 844,
+      "member": "build.resources.json",
+      "sha256": "4108cb940bccfbe4903bcd074bbb7d0539c791fcd904ed3ccd09a50a8dd2ac17",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build.resources.json"
+    },
+    {
+      "bytes": 63,
+      "member": "build.stderr.txt",
+      "sha256": "f4a062f9946657479ad3202f91797fe3dc36e82916b0c522c0087747e98bf9bb",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build.stderr.txt"
+    },
+    {
+      "bytes": 5084,
+      "member": "build.stdout.txt",
+      "sha256": "511cd9cec892ffd9c8962d4e785fafef2f38d590f629dd52c531c64b32687ab2",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build.stdout.txt"
+    },
+    {
+      "bytes": 14999,
+      "member": "build/CMakeCache.txt",
+      "sha256": "a5d172b26bb80d52614f60e0df21acdfbe80a1a3b2a99fe200aa62f75587778b",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build/CMakeCache.txt"
+    },
+    {
+      "bytes": 77710,
+      "member": "build/compile_commands.json",
+      "sha256": "38d5025de99eef453c522551ef64b248c644cf8434c6e592e3061ce0cd9e32d5",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/build/compile_commands.json"
+    },
+    {
+      "bytes": 916,
+      "member": "configure.resources.json",
+      "sha256": "52d2f88420c3674f29e1d1785d51916c67e5f2537240f090547fa67f514ea9ed",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/configure.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/configure.stderr.txt"
+    },
+    {
+      "bytes": 442,
+      "member": "configure.stdout.txt",
+      "sha256": "e016d9838d59e240762659be6c0556fe80241e52b4071d5bef9e17b53fb604cb",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/configure.stdout.txt"
+    },
+    {
+      "bytes": 803,
+      "member": "ctest-v1.resources.json",
+      "sha256": "1c9159dc3031354e24400f9cb858ebb12428a82927f932cf65f5681ba1280b39",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v1.resources.json"
+    },
+    {
+      "bytes": 27,
+      "member": "ctest-v1.stderr.txt",
+      "sha256": "18e00877dc1071c85cd4f479d451bebeef8309022e46cf8c63b0bed5151984a4",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v1.stderr.txt"
+    },
+    {
+      "bytes": 4159,
+      "member": "ctest-v1.stdout.txt",
+      "sha256": "77444dfc6b965bf22f5fa0da396024e1d9a6b2f1b2ddaa2d69df4676f31fa76d",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v1.stdout.txt"
+    },
+    {
+      "bytes": 804,
+      "member": "ctest-v2.resources.json",
+      "sha256": "57d6986017fca53b37a6895b946b5589a37f3aebe43258bd2c07b8ac5460279a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v2.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "ctest-v2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v2.stderr.txt"
+    },
+    {
+      "bytes": 3947,
+      "member": "ctest-v2.stdout.txt",
+      "sha256": "a05886be1a94cd729d76e2e8a11c159c6ca5c79a6efa37eac31821491813eedf",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/ctest-v2.stdout.txt"
+    },
+    {
+      "bytes": 855,
+      "member": "finite-reorder-build-v1.resources.json",
+      "sha256": "4a621cd3d2b96237b87b2d5815a86c24259cc60733beb3f3e17dceee2dad28da",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-reorder-build-v1.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "finite-reorder-build-v1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-reorder-build-v1.stderr.txt"
+    },
+    {
+      "bytes": 631,
+      "member": "finite-reorder-build-v1.stdout.txt",
+      "sha256": "f980652fcaede194917eac15a85f427113fa058883aea8dbde46aae34e9841d1",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-reorder-build-v1.stdout.txt"
+    },
+    {
+      "bytes": 746,
+      "member": "finite-tests-v2.resources.json",
+      "sha256": "dae0e08f012ecad1f4254adf701714997636d20374bfb257219250c2da6fbd19",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-tests-v2.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "finite-tests-v2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-tests-v2.stderr.txt"
+    },
+    {
+      "bytes": 66,
+      "member": "finite-tests-v2.stdout.txt",
+      "sha256": "5eceb4592e4905e7ecd3d90f8f22f7fea89376b4b9a394e5e2c1e99f72b1c0d5",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/finite-tests-v2.stdout.txt"
+    },
+    {
+      "bytes": 1307,
+      "member": "focused-tests-v1.resources.json",
+      "sha256": "1f92a66b66053a794423311eb2f9b16fb0b092a334b68d967eeaf50697a7f348",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/focused-tests-v1.resources.json"
+    },
+    {
+      "bytes": 15685,
+      "member": "focused-tests-v1.stderr.txt",
+      "sha256": "14a051e9c40fab35a7ee6b860c10d6bbc33975dbba11340fdb5be6227639aecf",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/focused-tests-v1.stderr.txt"
+    },
+    {
+      "bytes": 630,
+      "member": "focused-tests-v1.stdout.txt",
+      "sha256": "380e8dfd9f6f1210ecfe7fb8f1438c2bdd0696fbd5b35848bd25b71d581f0a25",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/focused-tests-v1.stdout.txt"
+    },
+    {
+      "bytes": 120603,
+      "member": "pre_edit/freeze.json",
+      "sha256": "7641f130d83ed68aa60efb763d2825a205fea1bc8a6f928a4d0c4ee4c46aa252",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/pre_edit/freeze.json"
+    },
+    {
+      "bytes": 3424236,
+      "member": "pre_edit/matrix-results.json",
+      "sha256": "33d754229e8fe20d6e48d8f79dfc7fb5592fb2224ca9d004ac0769c9ca49e6f1",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/pre_edit/matrix-results.json"
+    },
+    {
+      "bytes": 0,
+      "member": "pre_edit/pre_edit.diff",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/pre_edit/pre_edit.diff"
+    },
+    {
+      "bytes": 151106,
+      "member": "pre_edit/source-controls-v4-results.json",
+      "sha256": "85ae10d29558d575f6548cf7e288e1be9702e1c707b1e6b8e2df2e2709acb075",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/pre_edit/source-controls-v4-results.json"
+    },
+    {
+      "bytes": 801,
+      "member": "sst-build-v1.resources.json",
+      "sha256": "eb5f0efe445ec29df1b294e942bf75a936a2db164381c6998a5e6ce7bb16891a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-build-v1.resources.json"
+    },
+    {
+      "bytes": 10000,
+      "member": "sst-build-v1.stderr.txt",
+      "sha256": "f1d246604d31c0fa3eb8b50d128ef8051278865e88fd380a56dbe891492158e6",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-build-v1.stderr.txt"
+    },
+    {
+      "bytes": 2724,
+      "member": "sst-build-v1.stdout.txt",
+      "sha256": "75219650cf721561d27c1135b19d1359ee9c567c1e6bb9c45a3a789e784f39aa",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-build-v1.stdout.txt"
+    },
+    {
+      "bytes": 3971,
+      "member": "sst-verification/memory/summary.json",
+      "sha256": "077a2d3625971071afcbb1e6f89155e814f41da4ee8b83dc586eb268fbd5bba8",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/memory/summary.json"
+    },
+    {
+      "bytes": 2879,
+      "member": "sst-verification/native/result.json",
+      "sha256": "febadbe1513eb4d1efa84d40629a78615bb6ff9b07270700e62ab2d6e5857559",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/native/result.json"
+    },
+    {
+      "bytes": 3300,
+      "member": "sst-verification/results.json",
+      "sha256": "b6bdd10b19168304691c1462d382a38d3508b858d619ed2ae5c75d2d2bd6b845",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/results.json"
+    },
+    {
+      "bytes": 837,
+      "member": "sst-verification/step-0.resources.json",
+      "sha256": "55f3a46884bb2471443e11f4a73dec7b525e1c374a46b6a64707d33be6a14b7d",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-0.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/step-0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-0.stderr.txt"
+    },
+    {
+      "bytes": 16328,
+      "member": "sst-verification/step-0.stdout.txt",
+      "sha256": "c38527dcf68ab57f6cc9f85b43ace8a1bac8538c9ef6e487d78eb6732f374649",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-0.stdout.txt"
+    },
+    {
+      "bytes": 1042,
+      "member": "sst-verification/step-1.resources.json",
+      "sha256": "7d192574a5c93b8ac34692c36f4ad8aa3546e32c272b5242f776dd8a27208639",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-1.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/step-1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-1.stderr.txt"
+    },
+    {
+      "bytes": 324,
+      "member": "sst-verification/step-1.stdout.txt",
+      "sha256": "7d04e89bc22e66fbc0162f314d9c078d51f93b5edd19c578a21fcb139a866870",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-1.stdout.txt"
+    },
+    {
+      "bytes": 1030,
+      "member": "sst-verification/step-2.resources.json",
+      "sha256": "48a07476e3ce98414d4d3ae8b009557f765135ce9363cb118876ebb41dc775e2",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-2.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/step-2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-2.stderr.txt"
+    },
+    {
+      "bytes": 84,
+      "member": "sst-verification/step-2.stdout.txt",
+      "sha256": "64073bace3c2f4fd68851a4fbe1989b69870a5e81201d44bf69fbd91c7c1fe3c",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/sst-verification/step-2.stdout.txt"
+    },
+    {
+      "bytes": 851,
+      "member": "test-diagnostic-build.resources.json",
+      "sha256": "4ca959ac23d0c4a15ce506a0639191a3d944eaaf3ab9c043a85a9d60808a1fbd",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/test-diagnostic-build.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "test-diagnostic-build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/test-diagnostic-build.stderr.txt"
+    },
+    {
+      "bytes": 257,
+      "member": "test-diagnostic-build.stdout.txt",
+      "sha256": "fcb430cb5d8f1e88c5ac1b38f01213efc6f1c59a19a750d6e259bdbad34757f8",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/test-diagnostic-build.stdout.txt"
+    }
+  ],
+  "new_spine_comparison_executed": false,
+  "prediction_rows": 228,
+  "publication_match_admitted": false,
+  "retained_failures": [
+    "invalid root build target",
+    "valid out-of-order AXI rejected"
+  ],
+  "sst_exact_default_smokes": [
+    {
+      "file": "memory/summary.json",
+      "previous": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-metadata-credits-v1/sst-verification/memory/summary.json",
+      "previous_sha256": "077a2d3625971071afcbb1e6f89155e814f41da4ee8b83dc586eb268fbd5bba8"
+    },
+    {
+      "file": "native/result.json",
+      "previous": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-metadata-credits-v1/sst-verification/native/result.json",
+      "previous_sha256": "febadbe1513eb4d1efa84d40629a78615bb6ff9b07270700e62ab2d6e5857559"
+    }
+  ],
+  "status": "FINITE_SEARCH_REGRESSIONS_PASS_HARDWARE_AND_PUBLICATION_OPEN"
+}

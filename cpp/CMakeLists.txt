@@ -6,6 +6,9 @@ add_library(spine_cycle_core STATIC
   src/banked_memory.cpp
   src/grasu.cpp
   src/grasu_update/parallel_search.cpp
+  src/grasu_update/finite_search.cpp
+  src/grasu_update/finite_search/workers.cpp
+  src/grasu_update/finite_search/transport.cpp
   src/grasu_update/direct_processor.cpp
   src/grasu_update/cached_processor.cpp
   src/grasu_native.cpp

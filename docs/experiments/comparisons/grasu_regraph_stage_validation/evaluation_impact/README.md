@@ -25,6 +25,17 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [finite G search cycle model](search_pipeline/finite_model/README.md)
+now pays explicit registered arbitration, response routing, bounded reorder
+holding and complete drain. All 228 executions pass state/work/traffic checks;
+190 preceding observations replay exactly. Across every declared nonempty
+input, finite G takes 0.9840--1.0455x the forwarded original at latency 64 and
+0.9924--1.0217x at latency 128. The finite-stage prediction gate passes without
+changing original timing or physical banks. Fresh core/SST default regressions
+pass. The declared II=1/register assumptions still need HLS verification;
+whole-G, original-publication, temporal/composition and production admission
+remain open. No paper or frozen figure package changes.
+
 The [R credit/window controls](r_credits/README.md) now predeclare 28
 full-convergence executions to test the different A4/K4 outstanding budgets.
 The pre-extraction source and twelve reference results are frozen. New arms

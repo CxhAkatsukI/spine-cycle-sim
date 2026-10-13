@@ -1777,6 +1777,11 @@ private:
   };
 
   void validate_config() const {
+    if (config_.compact_finite_search &&
+        (!config_.compact_parallel_search || config_.compact_search_contexts != 64 ||
+         config_.compact_metadata_credits != 32)) {
+      throw std::invalid_argument("finite search requires explicit parallel 64-context/M32 geometry");
+    }
     if (config_.compact_metadata_credits &&
         (!config_.compact_parallel_search ||
          (config_.compact_metadata_credits != 16 &&
@@ -2067,6 +2072,15 @@ private:
       search_outputs[index] = search_outputs_[index].get();
       process_inputs[index] = process_inputs_[index].get();
       if (config_.compact_parallel_search) {
+        if (config_.compact_finite_search) {
+          searches_[index] = grasu_update_detail::make_finite_search(
+              "grasu-finite-search" + std::to_string(index), clock_id_, index,
+              counts[index], config_.explicit_runtime_regions ? config_.update_bases[index] : config_.update_base,
+              address_plan_.row_bases.at(0), address_plan_.binary_bases.at(0),
+              *search_ports_[index].updates, *search_ports_[index].rows,
+              *search_outputs_[index]);
+          continue;
+        }
         searches_[index] = grasu_update_detail::make_parallel_search(
             "grasu-parallel-search" + std::to_string(index), clock_id_, index,
             counts[index], config_.explicit_runtime_regions ? config_.update_bases[index] : config_.update_base,

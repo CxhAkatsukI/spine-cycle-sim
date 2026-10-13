@@ -1,0 +1,27 @@
+{
+  "baseline_admitted": false,
+  "focused_python_tests": 98,
+  "hardware_timing_admitted": false,
+  "includes_committed_capsule_validation": true,
+  "reports": [
+    {
+      "bytes": 1354,
+      "file": "focused-tests-v2.resources.json",
+      "sha256": "cd619da889ee67e04618b6f21222736f9ab1a0b49e3fee549c3c2a0c05e7edc9",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/focused-tests-v2.resources.json"
+    },
+    {
+      "bytes": 630,
+      "file": "focused-tests-v2.stdout.txt",
+      "sha256": "380e8dfd9f6f1210ecfe7fb8f1438c2bdd0696fbd5b35848bd25b71d581f0a25",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/focused-tests-v2.stdout.txt"
+    },
+    {
+      "bytes": 16203,
+      "file": "focused-tests-v2.stderr.txt",
+      "sha256": "125be5e304c39080a71fca2c4d59ccddcfd7f8a9f52237ef80d459bd49df7630",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-finite-search-model-v1/focused-tests-v2.stderr.txt"
+    }
+  ],
+  "status": "POST_PACKAGE_98_FOCUSED_TESTS_PASS"
+}

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "spine_sim/fifo.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
@@ -20,6 +21,12 @@ struct LocatedUpdate {
   std::uint64_t last_binary_head{};
 };
 
+struct SearchChannelObservation {
+  std::string name;
+  std::size_t depth{}, token_bits{}, occupancy{};
+  FifoStats stats;
+};
+
 class Search : public Component {
 public:
   using Component::Component;
@@ -28,6 +35,7 @@ public:
   virtual const std::string& failure() const noexcept = 0;
   virtual std::uint64_t row_reads() const noexcept = 0;
   virtual std::uint64_t binary_probes() const noexcept = 0;
+  virtual std::vector<SearchChannelObservation> channels() const { return {}; }
 };
 
 std::unique_ptr<Search> make_parallel_search(
@@ -36,5 +44,12 @@ std::unique_ptr<Search> make_parallel_search(
     std::uint64_t binary_base, FixedAxiPort& updates,
     FixedAxiPort& metadata, Fifo<LocatedUpdate>& output,
     std::size_t contexts = 16);
+
+// Explicit finite-stage HLS candidate; legacy parallel search is unchanged.
+std::unique_ptr<Search> make_finite_search(
+    std::string name, ClockId clock, std::size_t cu, std::size_t count,
+    std::uint64_t update_base, std::uint64_t row_base,
+    std::uint64_t binary_base, FixedAxiPort& updates,
+    FixedAxiPort& metadata, Fifo<LocatedUpdate>& output);
 
 }  // namespace spine::sim::grasu_update_detail

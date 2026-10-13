@@ -78,9 +78,17 @@ HLS check a separate implementation owner: 64 contexts with hierarchical
 arbitration and explicit 32-entry metadata buffering. The full nineteen-input
 declaration is exercised with and without bounded output stalls. Its isolated
 synthesis/RTL attempt is queued behind the complete-cache check and preserves
-the pending route's memory reservation. New arbitration-stage latency is not
-yet mirrored in the cycle engine; source/work parity cannot close the clock,
-integrated-G or timing-retention gates.
+the pending route's memory reservation. At that HLS checkpoint the new
+arbitration-stage latency was not mirrored in the cycle engine. The subsequent
+[finite cycle-model study](search_pipeline/finite_model/README.md) explicitly
+models those stages with bounded queues, ordered responses and complete drain.
+All 228 observations pass with exact replay of the preceding 190; all 38 new
+observations preserve state/work/traffic and fit the declared +/-10% prediction
+band. Worst slowdown versus forwarded original is 4.55% at latency 64 and
+2.17% at latency 128. The fresh 31-target core suite and default SST regressions
+pass. Its one-register, II=1 assumptions still require schedule verification;
+prediction retention and source/work parity cannot close clock, publication
+or integrated-G gates. The isolated worktree preserves queued-job source pins.
 
 The [cache component controls](cache_probe/README.md) now examine original
 URAM behavior rather than making cached timing an assumption. Original
