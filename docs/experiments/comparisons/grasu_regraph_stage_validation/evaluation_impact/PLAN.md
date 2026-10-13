@@ -127,6 +127,19 @@ segments are hot; cache cost still dominates. This closes this declared
 real-topology prediction diagnostic, not actual-temporal, broader-occupancy,
 host, HLS, hardware or publication gates.
 
+The next [chronological first-contact diagnostic](sharded_batch/chronological_inputs/README.md)
+adds 36 AU/SU/WK rows at 4K/64K insertions, with actual timestamp order and
+explicit loop/repeat filtering, compact IDs and trace-aware all-hot reservation.
+State/work/traffic pass; all 36 preceding real-topology observations replay
+exactly both before and after an experiment-only order-preserving reader fix.
+Four-bank maximum cycle difference is 4.71%, but runtime is 22.7--35.5% slower
+on all six 64K comparisons and fails its declared gate. The initial sorted-input
+rejection and zero numerical observations are retained. Next isolate shared
+row/binary bank pressure and search progress with explicit resource controls;
+do not promote the candidate or interpret small-batch success as general
+admission. Original temporal conversion, mixed occupancy, host costs and HLS
+feasibility remain separate gates.
+
 The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
 share each unchanged hot AXI master, with no implicit cache. Large dispersed

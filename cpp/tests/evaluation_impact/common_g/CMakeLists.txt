@@ -21,3 +21,8 @@ target_include_directories(real_sharded_g_execution PRIVATE "${ROOT}/cpp/include
 target_link_libraries(real_sharded_g_execution PRIVATE
   "${CORE_BUILD}/liboriginal_grasu_cycle.a" "${CORE_BUILD}/libspine_cycle_core.a")
 target_compile_options(real_sharded_g_execution PRIVATE -Wall -Wextra -Wpedantic -Werror)
+enable_testing()
+add_executable(ordered_g_input_test sharded/ordered_input_test.cpp)
+target_include_directories(ordered_g_input_test PRIVATE "${ROOT}/cpp/include")
+target_compile_options(ordered_g_input_test PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_test(NAME ordered_g_input_test COMMAND ordered_g_input_test)

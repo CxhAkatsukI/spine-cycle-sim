@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fixture.hpp"
-#include "spine_sim/spine_l0.hpp"
+#include "ordered_input.hpp"
 
 #include <set>
 #include <tuple>
@@ -14,8 +14,8 @@ struct RealFixture {
   std::vector<std::vector<GraSuEdge>> by_shard;
 
   RealFixture(const std::string &graph_path, const std::string &update_path) {
-    const auto graph = load_spine_edge_slice(graph_path);
-    const auto batch = load_spine_edge_slice(update_path);
+    const auto graph = load_ordered_g_slice(graph_path);
+    const auto batch = load_ordered_g_slice(update_path);
     require(graph.vertices == batch.vertices && graph.vertices < 65535,
             "real input must share one destination shard");
     // An isolated final source owns only cache-footprint padding, never edits.

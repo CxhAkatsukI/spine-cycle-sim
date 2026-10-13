@@ -27,7 +27,7 @@ same-source controls cannot silently stand in for that claim.
 
 | Gate | Evidence now | Decision still open |
 | --- | --- | --- |
-| G, prepared PMA windows and complete shards | All 228 single-window observations pass. The 24-row synthetic whole-batch study passes; 36 additional compact AU/SU/WK observations exercise multi-segment searches and replay all 24 old rows exactly. Maximum new cycle differences are 0.897% for four banks and 2.367% for runtime mapping | Actual temporal operations, broader occupancy, HLS II/clock/resource fit, original-paper timing |
+| G, prepared PMA windows and complete shards | All 228 single-window observations and 24 synthetic whole-batch rows pass. Compact derived-batch controls pass. The new 36-row chronological first-contact matrix passes state/work/traffic; four-bank maximum difference is 4.71%, but runtime fails the 10% gate on all six 64K comparisons (22.7--35.5% slower) | Runtime metadata contention diagnosis/correction, original temporal conversion, broader occupancy, HLS II/clock/resource fit, original-paper timing |
 | R, fixed Amazon warm SSSP | All 12 full-convergence executions pass; candidate is 4.62% slower / 3.13% faster than A4 at latency 64 / 128 | A4 has 13 masters on 9 banks; K4 has 9 masters; 28 credit/window controls are queued with zero timing rows; broader inputs and original topology A remain separate |
 | Physical G-to-R handoff | All 12 complete-cache executions pass high source IDs, hot/DDR edits, full preload/writeback and exact downstream convergence; 34 CTest targets, 228 old G rows and default SST regressions pass | Correctness alone cannot admit realistic batch performance; cache cost is paid once per updated shard |
 | Host/seed and complete baseline | Device windows and excluded preparation are defined explicitly | Host/seed timing and complete baseline admission are not established |
@@ -38,7 +38,10 @@ speedups. The original G window is co-located; the newer whole-batch study
 separately checks synthetic prepared shards and actual runtime mapping, with
 complete cache cost. Its separate compact real-topology extension covers
 multi-segment searches but still has cache-dominated timing and derived
-updates, not actual temporal operations. The R case preloads
+updates. The newer chronological first-contact study retains actual timestamp
+order with explicit insertion-only conversion and exposes a larger-batch
+runtime mismatch; it does not recover original GraSU temporal semantics.
+The R case preloads
 the post-update graph, old converged state and
 prepared seed; it excludes G, DMA and host work on every arm. Separate passing
 predictions cannot be added and called a validated complete-system result.
@@ -59,6 +62,7 @@ scope; they are not overwritten when a later candidate improves.
 | What buffers and finite timing does the close G prediction pay? | [Metadata credits](metadata_credits/README.md), [finite cycle model](search_pipeline/finite_model/README.md) |
 | Does that G prediction hold across complete updated shards and runtime mapping? | [Prepared whole-batch study](sharded_batch/README.md), including complete cache cost, untouched state and retained preflight failures |
 | Does G still match with real-topology, multi-segment searches? | [Compact AU/SU/WK controls](sharded_batch/real_inputs/README.md), all 36 observations plus exact 24-row regression; derived batches, not publication reproduction |
+| Does that extend to larger timestamp-ordered batches? | [Chronological first-contact diagnostic](sharded_batch/chronological_inputs/README.md), all 36 new rows and exact old replay; four-bank passes, 64K runtime fails |
 | Which HLS/source checks are independent of that prediction? | [Finite search HLS](search_pipeline/README.md), [cache probes](cache_probe/README.md), [weighted ABI](weighted_abi/README.md) |
 | What differs between A4 and actual K4 resources? | [Resource audit](r_resources/README.md), [credit/window controls](r_credits/README.md) |
 | Does R read the physical PMA produced by G? | [Direct handoff](composition/README.md), [finite bank routing](composition/banked/README.md), [complete-cache handoff](composition/cached/README.md) |

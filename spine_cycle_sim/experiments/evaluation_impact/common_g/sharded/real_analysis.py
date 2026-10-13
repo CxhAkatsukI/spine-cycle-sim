@@ -4,8 +4,9 @@ from .preparation import ARMS, LATENCIES
 from .real_inputs import SCENARIOS, SELECTION
 
 
-def analyze(rows, contract):
-    names = {f"{label}-{scenario}-{size}" for label, _ in SELECTION for scenario, size in SCENARIOS}
+def analyze(rows, contract, *, names=None):
+    names = ({f"{label}-{scenario}-{size}" for label, _ in SELECTION for scenario, size in SCENARIOS}
+             if names is None else set(names))
     expected = {(case, latency, arm) for latency in LATENCIES for case in names for arm in ARMS}
     identities = [(r["case"], r["latency"], r["arm"]) for r in rows]
     declared = [(r["case"], r["latency"], r["arm"]) for r in contract["matrix"]]

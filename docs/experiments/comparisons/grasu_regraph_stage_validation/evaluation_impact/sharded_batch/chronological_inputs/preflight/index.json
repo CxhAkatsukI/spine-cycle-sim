@@ -1,0 +1,783 @@
+{
+  "external_pre_edit": {
+    "commit": "14b9557",
+    "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-chronological-v1/pre-edit-14b9557.tar.gz",
+    "scope": "recoverable parent commit; full duplicate evidence archive stays outside Git",
+    "sha256": "b3d79b5e171903c2af14eff28bc8305c96a1e05b2b802315bbe1296a5a900315"
+  },
+  "hardware_timing_admitted": false,
+  "numerical_observations": 0,
+  "production_baseline_admitted": false,
+  "raw_members": [
+    {
+      "bytes": 82246,
+      "member": "source-v1.tar.gz",
+      "sha256": "65400ee1e158e4eb9d8858c94940b6c6f25b69d7ce14a496814ae33b7fa5ef51"
+    },
+    {
+      "bytes": 85384,
+      "member": "source-v2.tar.gz",
+      "sha256": "959327d82530d02ff19e8f46db863dd218713c655dc6946349ff6de8f068d541"
+    },
+    {
+      "bytes": 17061,
+      "member": "attempt-v1/input_contract.json",
+      "sha256": "62f7fbd85ffe31134ab7f681bc03806c6502237575ffcefe822ec4cbefbd7b7c"
+    },
+    {
+      "bytes": 7947,
+      "member": "smoke-v2/steps.json",
+      "sha256": "1f00d92eacb6f177167c9557cda3da05306d799f34c87a663fa1f1da16927ba0"
+    },
+    {
+      "bytes": 803,
+      "member": "attempt-v1/raw/build.resources.json",
+      "sha256": "ae004c51b486102ddfcffd681897762a8316ab2da266e60a9403464cce454ae0"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 196,
+      "member": "attempt-v1/raw/build.stdout.txt",
+      "sha256": "f3ad3cb3652f21ce57c82ad1f5bf97432336d599e6336b97427a18d92d5c96c9"
+    },
+    {
+      "bytes": 642,
+      "member": "attempt-v1/raw/cmake.resources.json",
+      "sha256": "9cc93ce2d0f96001187398045bdcc2778dd33953b4bc349fbd537210e9f5ec79"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/cmake.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 90,
+      "member": "attempt-v1/raw/cmake.stdout.txt",
+      "sha256": "315e1daa4023afda33e316c6e2b57fa1fd67fffd2fc9cd86c5f47fab4ff746d6"
+    },
+    {
+      "bytes": 646,
+      "member": "attempt-v1/raw/compiler.resources.json",
+      "sha256": "2ca2601ebddc64f710a8022dc5abf240530d4555762f3c7b5717ef4f4e634f98"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/compiler.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 232,
+      "member": "attempt-v1/raw/compiler.stdout.txt",
+      "sha256": "adc65bddd7a1527d17857b11f691971851f6f6454e1c58603a593b0af64805ef"
+    },
+    {
+      "bytes": 1085,
+      "member": "attempt-v1/raw/configure.resources.json",
+      "sha256": "88eebd117fa5ea67a6df97ab4172e1d219e151b9af9d6226dc1668b9f9ee5b9e"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 447,
+      "member": "attempt-v1/raw/configure.stdout.txt",
+      "sha256": "280a2c5e82d08fafdded7cc5899266e7d1d38f60c42726f7056b4ca628a5928a"
+    },
+    {
+      "bytes": 1351,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_candidate-four-banks.resources.json",
+      "sha256": "95cd52eb70e89766200b591af9589d43ffccc80fe8d34179a28f5d0639f8599a"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1352,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_candidate-runtime-23.resources.json",
+      "sha256": "13da120422eece35e7f400aefb4c037f5f7569408eeea9b9bb53b2ec8301c384"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1369,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_original-prepared-shards.resources.json",
+      "sha256": "6a12ebe3a37f1adc79311d429172fc9a86d13ac34844a13f0b0f220e557bddb9"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-4096_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1358,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_candidate-four-banks.resources.json",
+      "sha256": "5a06e5f97c7dd072cd879e3a4deb0afcff45ffae3b7fb333d8fc3617a60abc96"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1357,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_candidate-runtime-23.resources.json",
+      "sha256": "8d50620cd3ae242a816b9e34b3cb3c8a8afaff0503cb37e383d8b73b993b4234"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1373,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_original-prepared-shards.resources.json",
+      "sha256": "3489830bf472235fd4d7fe2492c15de6496f7d38370d84930b954b415473955e"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_AU-chronological-insert-65536_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1352,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_candidate-four-banks.resources.json",
+      "sha256": "03ce9446cc94cd38450047171d1784d9f40aee541fd875a636d95ae668bc2597"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1352,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_candidate-runtime-23.resources.json",
+      "sha256": "1872c0b648fe0a0db2d5c7009d3c86d92177340339e7681b2708de2b4a9a069d"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1369,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_original-prepared-shards.resources.json",
+      "sha256": "74c19e1b824af1ed0128f39fba0ccb12e2d6d81353ceb88fe43bf9c98aee2463"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-4096_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1357,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_candidate-four-banks.resources.json",
+      "sha256": "a728c16627c751877cca55a2980644e6d04a03aeed91fe351ddf56c1a194240d"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1357,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_candidate-runtime-23.resources.json",
+      "sha256": "f240d9de19c8394e986e6f11fd0fc53e8d52769b575f8965548fe6a0c4c8635e"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1373,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_original-prepared-shards.resources.json",
+      "sha256": "81ac6cd9e3fae68911b8ac99bfd82a3b417526c65e8eff8ffd108d1ba16a92d3"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_SU-chronological-insert-65536_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1352,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_candidate-four-banks.resources.json",
+      "sha256": "35b865b0742f98a2607d310ee1011f2a62125b25b57ef4a6bf1f86d7d1f74bef"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1353,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_candidate-runtime-23.resources.json",
+      "sha256": "3e916a1aa307ad3dba3d19aa4521a31398bd806de89495fc2b4a92414e7fc8bc"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1368,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_original-prepared-shards.resources.json",
+      "sha256": "ed6b8ad287d2d254bde0d39c6b2c64d98ddf25dfecf0b73a249e51796d5d2f56"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-4096_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1358,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_candidate-four-banks.resources.json",
+      "sha256": "27940342751e376a96defa0b3097b2b674a4b25d4e6b6e1626024adbdf5c6f07"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1357,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_candidate-runtime-23.resources.json",
+      "sha256": "9f2214735ee6bf32d0d8435194f68e082b931b7789ec4f75a2a0a67a4fbe0742"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1373,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_original-prepared-shards.resources.json",
+      "sha256": "f70209c3edf1e896f846acece69ff2afdd262d972f8ea3b9ec96a1941988fe04"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat128_WK-chronological-insert-65536_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1348,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_candidate-four-banks.resources.json",
+      "sha256": "bdae1117bf98f2459f782d035d39407d740503fbf8fdaa7ec2ba44825621271b"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1348,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_candidate-runtime-23.resources.json",
+      "sha256": "65d64218502fe8059fee106245861e9d287e9fcaa748a519462196b9638aee6b"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1364,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_original-prepared-shards.resources.json",
+      "sha256": "5469979cb5be82a324cbdd24261eebd53771d47c28a5c940c528841526b601b9"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-4096_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1353,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_candidate-four-banks.resources.json",
+      "sha256": "87b40c6ceefabe512ede21cb99a3303f9dba4b8ca71e3fc331058748205af784"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1354,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_candidate-runtime-23.resources.json",
+      "sha256": "b769ae9827bfff1ce9518b0bff183604ca8bf1a0efeaa8c35e588bff64fd7255"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1370,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_original-prepared-shards.resources.json",
+      "sha256": "22574975b12a43dd3538e12d8af7e33cbc130ed78856fb58702c1a4344b286ca"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_AU-chronological-insert-65536_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1348,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_candidate-four-banks.resources.json",
+      "sha256": "1c90de6d67f71f6dde3dca36f885aec3c865f98440ec79ee45325a401a4fb65a"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1348,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_candidate-runtime-23.resources.json",
+      "sha256": "a149a25628a782dff9066d0c7abfc056f30d0647e83e9871f4d1784d8ddc7c24"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1363,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_original-prepared-shards.resources.json",
+      "sha256": "8f22f3db9ce08e3d841c23c9f3d238a46801dc0e7c8f7163f653e376b3a5d02f"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-4096_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1353,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_candidate-four-banks.resources.json",
+      "sha256": "bbe4295b05d474f0db315b0a4c556194b9083c3343a8543d13a0094b56c3603b"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1354,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_candidate-runtime-23.resources.json",
+      "sha256": "a1825108a1bf0849e9445d1bc2b321531341300cff64cb67fa718748dfa634a0"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1370,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_original-prepared-shards.resources.json",
+      "sha256": "97c231e4b7858badddb53474c58d448b19730f5ce6765a11bd8056e2a1cc2947"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_SU-chronological-insert-65536_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1349,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_candidate-four-banks.resources.json",
+      "sha256": "e4561eebc22948e3385b691fc3dff8415c26c912ad2759b946e827c7be517c33"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1347,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_candidate-runtime-23.resources.json",
+      "sha256": "07652f18bf4ff3ed6c4e9625d23808a16f0bcc3100bd095e198065e96c46429f"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1363,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_original-prepared-shards.resources.json",
+      "sha256": "e9bdfb54d167cffef5b221d54e8a95ace3f838d2540f4c7ec6f830a74e7eb9f0"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-4096_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1353,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_candidate-four-banks.resources.json",
+      "sha256": "263413f02813f677c07573d3cf84ed0adc3fb7aac2fc8f9723ad7494b6e1be07"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_candidate-four-banks.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_candidate-four-banks.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1353,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_candidate-runtime-23.resources.json",
+      "sha256": "03ff2e811967dd600002b799c1381017ca15eb4512b4e215b66bcae8b91ab212"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_candidate-runtime-23.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_candidate-runtime-23.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1369,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_original-prepared-shards.resources.json",
+      "sha256": "faef902989dbcafaaf687c931381f04a8887d5c05dcbeb98f920b62564f409f5"
+    },
+    {
+      "bytes": 50,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_original-prepared-shards.stderr.txt",
+      "sha256": "33f75ff04a66ce09140dbae277c6afb628fca10360f09743715e35619de8ae26"
+    },
+    {
+      "bytes": 0,
+      "member": "attempt-v1/raw/lat64_WK-chronological-insert-65536_original-prepared-shards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 846,
+      "member": "reader-tests-v1/raw/build.resources.json",
+      "sha256": "3547f1eb7f3ecc97a9a9addd1222169eca244a7b1f4e95eb376632e1f57e154d"
+    },
+    {
+      "bytes": 0,
+      "member": "reader-tests-v1/raw/build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 384,
+      "member": "reader-tests-v1/raw/build.stdout.txt",
+      "sha256": "a7bf0a254a2b1266e5bd7979298a3ad64d6c777dcb58b31f057f77b580f3f094"
+    },
+    {
+      "bytes": 1058,
+      "member": "reader-tests-v1/raw/configure.resources.json",
+      "sha256": "50332d98f7aee2c5755fde404161b97561a3bb3b0e0073e7d94c98364c59bd6f"
+    },
+    {
+      "bytes": 0,
+      "member": "reader-tests-v1/raw/configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 452,
+      "member": "reader-tests-v1/raw/configure.stdout.txt",
+      "sha256": "692ce988c36c0dc765e7ffd65841954147ee9b8eb8dc88df1bb16c6b777455e1"
+    },
+    {
+      "bytes": 788,
+      "member": "reader-tests-v1/raw/test.resources.json",
+      "sha256": "0a36e234239c4881a3d2045015ab37dac9d49ac25fdaf372d90ec378feffbdf3"
+    },
+    {
+      "bytes": 0,
+      "member": "reader-tests-v1/raw/test.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 300,
+      "member": "reader-tests-v1/raw/test.stdout.txt",
+      "sha256": "83cd0f1e234562be37f57bd5dfb389736d5c774c24c22abcb82c56740362e47c"
+    },
+    {
+      "bytes": 1266,
+      "member": "smoke-v2/raw/AU-4096-candidate-four-banks.resources.json",
+      "sha256": "1eacdd19aad29badbacb38e161921262bfffef8d34199f7639f17742b87b69a2"
+    },
+    {
+      "bytes": 0,
+      "member": "smoke-v2/raw/AU-4096-candidate-four-banks.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 470,
+      "member": "smoke-v2/raw/AU-4096-candidate-four-banks.stdout.txt",
+      "sha256": "696c3b4ae1a55b24b5b400dfbcda0a6dabaf9570dd5c0e6e092baed8e1b923a5"
+    },
+    {
+      "bytes": 1265,
+      "member": "smoke-v2/raw/AU-4096-candidate-runtime-23.resources.json",
+      "sha256": "12bb11bcc7cb9fc289f8494435415e49699b6bac11991095f1c6f9e5a31f33c6"
+    },
+    {
+      "bytes": 0,
+      "member": "smoke-v2/raw/AU-4096-candidate-runtime-23.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 470,
+      "member": "smoke-v2/raw/AU-4096-candidate-runtime-23.stdout.txt",
+      "sha256": "ffa38009032923c55b32e667e03f620e6c6ba443369710ce3812500454dd2d56"
+    },
+    {
+      "bytes": 1282,
+      "member": "smoke-v2/raw/AU-4096-original-prepared-shards.resources.json",
+      "sha256": "dced91b68314efc1c719971ecb089c66f805f1381e4b30b5ff1cbc5ef9ac377b"
+    },
+    {
+      "bytes": 0,
+      "member": "smoke-v2/raw/AU-4096-original-prepared-shards.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 474,
+      "member": "smoke-v2/raw/AU-4096-original-prepared-shards.stdout.txt",
+      "sha256": "7038b9bacbf3d67c851be57b81700d36c1426faf69b5f24b86536c755aeeacdc"
+    },
+    {
+      "bytes": 1270,
+      "member": "smoke-v2/raw/AU-65536-candidate-four-banks.resources.json",
+      "sha256": "37f3c27899ce75d05093f83372a7aae11c21f82f3d5b87858278954943197da4"
+    },
+    {
+      "bytes": 0,
+      "member": "smoke-v2/raw/AU-65536-candidate-four-banks.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 477,
+      "member": "smoke-v2/raw/AU-65536-candidate-four-banks.stdout.txt",
+      "sha256": "3e847aa8f4963815e17349683b2db9ca6d879867e1c4e5d7895fdaf9c2a061d9"
+    },
+    {
+      "bytes": 1269,
+      "member": "smoke-v2/raw/AU-65536-candidate-runtime-23.resources.json",
+      "sha256": "4649d72e8605239ca55a3f1b57e6aed8e2af4c4e41e3e5010e944ed4398f85a8"
+    },
+    {
+      "bytes": 0,
+      "member": "smoke-v2/raw/AU-65536-candidate-runtime-23.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 477,
+      "member": "smoke-v2/raw/AU-65536-candidate-runtime-23.stdout.txt",
+      "sha256": "09f012391821f9142d55a919564ce26a5bd2bf31fdcdb4973eb1d6ca7b6676dc"
+    },
+    {
+      "bytes": 1286,
+      "member": "smoke-v2/raw/AU-65536-original-prepared-shards.resources.json",
+      "sha256": "3e66e0c814e9b402d87428bb7c78aea4cb5b4518071aa6a1161997db2c017d5b"
+    },
+    {
+      "bytes": 0,
+      "member": "smoke-v2/raw/AU-65536-original-prepared-shards.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 481,
+      "member": "smoke-v2/raw/AU-65536-original-prepared-shards.stdout.txt",
+      "sha256": "5819d2cfee5a3da72b015f87c98cd06b4b93bf11be348bfb3308b58f05e4ec7f"
+    }
+  ],
+  "reason": "Spine maintenance loader required src,dst sort; chronological order was retained and the experiment-only reader was fixed instead",
+  "rejected_matrix_rows": 36,
+  "reports": [
+    {
+      "bytes": 162122,
+      "file": "failed_matrix.json",
+      "sha256": "084edae33625436575e9b2c3076f7dd0971b091fb369a542a782f03432fd33c8"
+    },
+    {
+      "bytes": 182095,
+      "file": "raw_runs.tar.gz",
+      "sha256": "3332777b2d9d2babd88d495e28c5f4d83b275393d74c53a832f58467d4c36659"
+    }
+  ],
+  "status": "PRETIMING_INPUT_REJECTION_RETAINED"
+}

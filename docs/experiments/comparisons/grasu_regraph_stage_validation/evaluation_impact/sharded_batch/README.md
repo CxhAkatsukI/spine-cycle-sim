@@ -45,6 +45,15 @@ for runtime mapping. Its derived compact batches are not original temporal
 operations, and cache cost still dominates. This frozen synthetic capsule is
 unchanged; the extension has its own raw evidence and regression capsule.
 
+The subsequent [chronological first-contact diagnostic](chronological_inputs/README.md)
+adds 36 larger AU/SU/WK observations and exact 36-row replay before and after
+an experiment-only reader fix. All state/work/traffic checks pass. Four-bank
+prediction remains within 4.71%, but the 23-channel runtime layout is
+22.7--35.5% slower on all six 64K comparisons and **fails** the 10% gate.
+Timestamp ordering is real; contact-to-insertion conversion, compaction and
+all-hot reservation remain explicit transformations, not original-publication
+workload reproduction. Small-batch success does not admit the runtime path.
+
 The complete cache requires 262,144 segments per shard. Smaller fixtures
 therefore reserve empty tail segments in the last, non-updated source row.
 The same layout is supplied to every arm. No live edge or update is added,
@@ -176,9 +185,11 @@ Code ownership is deliberately split:
 
 ## Next Admission Gates
 
-1. Actual temporal inputs and broader hot/cold occupancy under the same
-   whole-batch contract. Multi-segment search now has separate compact
-   real-topology coverage; it does not close the actual-temporal gate.
+1. Diagnose the chronological 64K runtime mismatch before admitting G.
+   Shared row/binary regions versus the four-bank metadata copies are a
+   specific contention hypothesis, not yet measured stage attribution.
+   Original temporal conversion and broader hot/cold occupancy still need
+   validation; first-contact insertion prefixes do not close those gates.
 2. Search/cache HLS schedules, resource fit and hardware timing; no simulator
    agreement can substitute for these.
 3. R credit/window controls and broader original-A/A4 comparisons, with all
