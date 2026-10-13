@@ -1,0 +1,2230 @@
+{
+  "attempts": [
+    {
+      "archive": "g-cache-bank-v1.tar.gz",
+      "arms": [
+        {
+          "arm": "original",
+          "error": "ValueError('cache-bank HLS attempt failed; retain raw logs')"
+        },
+        {
+          "arm": "lane_wiring",
+          "error": "ValueError('cache-bank HLS attempt failed; retain raw logs')"
+        }
+      ],
+      "attempt": "g-cache-bank-v1",
+      "bytes": 7950,
+      "files": [
+        {
+          "bytes": 812,
+          "path": "lane_wiring/execution.resources.json",
+          "sha256": "76f19deb039241ed35b179aa4bdcff58ceb9b55d988eb2ca2db638b454b7b8dd"
+        },
+        {
+          "bytes": 0,
+          "path": "lane_wiring/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 5965,
+          "path": "lane_wiring/execution.stdout.txt",
+          "sha256": "69c08c3e332379d1c913c072e8967cc7c3b48b7c40b12893c803633ace368afa"
+        },
+        {
+          "bytes": 2265,
+          "path": "lane_wiring/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "165c18c4b845a737c2b9247641bcbefbdfa978ad5476702de049ef34d92b5198"
+        },
+        {
+          "bytes": 555,
+          "path": "lane_wiring/run.tcl",
+          "sha256": "9f428ab6e8f103dba33bb53b9bcebdcbd896b974a5d07ac7ab6588ce339ecb3c"
+        },
+        {
+          "bytes": 5965,
+          "path": "lane_wiring/vitis_hls.log",
+          "sha256": "69c08c3e332379d1c913c072e8967cc7c3b48b7c40b12893c803633ace368afa"
+        },
+        {
+          "bytes": 800,
+          "path": "original/execution.resources.json",
+          "sha256": "fa44f5a3d5d79dd2cb1b0ab573e9246114f998d6cd5335c1d4d403be27d81b77"
+        },
+        {
+          "bytes": 0,
+          "path": "original/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 5903,
+          "path": "original/execution.stdout.txt",
+          "sha256": "1eb7fffb0ba7287d9d39055ac4835b58a5cb7883a8735c9c8bef83ed0c33024f"
+        },
+        {
+          "bytes": 2265,
+          "path": "original/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "29193ec0d449c2531bc0cb6cd6059108fa759fb4ce31791bf7dfe9f7e180a0a2"
+        },
+        {
+          "bytes": 509,
+          "path": "original/run.tcl",
+          "sha256": "afe44bd4bbdf3b4b29cc0af33756833fc1db7e9ea4110d434beefdb2ab02fa04"
+        },
+        {
+          "bytes": 5903,
+          "path": "original/vitis_hls.log",
+          "sha256": "1eb7fffb0ba7287d9d39055ac4835b58a5cb7883a8735c9c8bef83ed0c33024f"
+        },
+        {
+          "bytes": 3813,
+          "path": "results.json",
+          "sha256": "7347ab5ac863323bf31b6b340c6d52b93dac82d7bd93b63db16a8f6a77bea700"
+        },
+        {
+          "bytes": 2380,
+          "path": "source/cache_bank.cpp",
+          "sha256": "0e1894ab2fa0df0f23fa2249a331cade2f28a6aa1e272f026d116b10c581b160"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 2923,
+          "path": "source/cache_bank_control.cpp",
+          "sha256": "e47f4b0a79e7013deda223930e448769b034a3169c32d6cacb4c7d215b2df4b8"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "sha256": "8a1f732a6ff108694ec4cdef0236a9d31cec3dfd89f725a40e845d8e26aca500",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-bank-v1",
+      "status": "FAILED_RETAINED"
+    },
+    {
+      "archive": "g-cache-bank-v2.tar.gz",
+      "arms": [
+        {
+          "arm": "original",
+          "error": "ValueError('cache-bank HLS attempt failed; retain raw logs')"
+        },
+        {
+          "arm": "lane_wiring",
+          "error": "ValueError('cache-bank HLS attempt failed; retain raw logs')"
+        }
+      ],
+      "attempt": "g-cache-bank-v2",
+      "bytes": 77544,
+      "files": [
+        {
+          "bytes": 1008,
+          "path": "lane_wiring/execution.resources.json",
+          "sha256": "5e7f9d2f447ddbd3c8d9456d40614414779ada8d5dfd9717090fee435f491a31"
+        },
+        {
+          "bytes": 0,
+          "path": "lane_wiring/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 27589,
+          "path": "lane_wiring/execution.stdout.txt",
+          "sha256": "2d01a84cf61741ab36b69e2e211e49f537885738cf5e67f5ccc92edc4b4da177"
+        },
+        {
+          "bytes": 765,
+          "path": "lane_wiring/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "7a91ff1e156d7848e15a84c5b8cdae7ef9164cfed7bc63d5202c68697357df52"
+        },
+        {
+          "bytes": 1228,
+          "path": "lane_wiring/project/solution/sim/report/cache_bank_probe_cosim.rpt",
+          "sha256": "d5563ccb4662fbc41dbaee8f73453a780fef425e6bec38337bbf595f4296610a"
+        },
+        {
+          "bytes": 1969,
+          "path": "lane_wiring/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 795,
+          "path": "lane_wiring/project/solution/sim/report/verilog/cache_bank_probe.log",
+          "sha256": "51ca677fdc8b0b63d1518db5b3b60daea7e6dea0ce80bab59af985be0f7d894b"
+        },
+        {
+          "bytes": 12908,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.rpt",
+          "sha256": "fa2ee8903e2db29c7442a070b9c314dc93a7b7a02e4e41a9917c5b842dad4e17"
+        },
+        {
+          "bytes": 15253,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.xml",
+          "sha256": "d1c2cf9e97a0b3e6e83805294c87ec2c50af5bb8f4cc79505ea2cf703e880562"
+        },
+        {
+          "bytes": 12801,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.rpt",
+          "sha256": "02137a352437136eb45fd15e968a9a6c1de8eafcac6d04449f3c95ddd22418b4"
+        },
+        {
+          "bytes": 15054,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.xml",
+          "sha256": "7d81759c70c9d16108dd3413e8c8d73a96e31955da22531c2270fd299a6e9074"
+        },
+        {
+          "bytes": 17207,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_csynth.rpt",
+          "sha256": "ae2dbaf2c9c12a9739f1c8b0f4ee28470649677a8107756209a50be383cc82dd"
+        },
+        {
+          "bytes": 18156,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_csynth.xml",
+          "sha256": "e9a69933db876b2d0587c27f1ec20fa35a8f6ba3e24bc15b6e5bf4ea87e6eb5d"
+        },
+        {
+          "bytes": 36660,
+          "path": "lane_wiring/project/solution/syn/report/csynth.rpt",
+          "sha256": "900d960cd9271d009a76995bb9a8a217607691cc8d8db664574338a3308fc442"
+        },
+        {
+          "bytes": 106511,
+          "path": "lane_wiring/project/solution/syn/report/csynth.xml",
+          "sha256": "4b7b4122b95db6939d8b235578a0cfc0de50cbe10e306dab8f238e611ec86136"
+        },
+        {
+          "bytes": 5876,
+          "path": "lane_wiring/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "a72ad29a310ee44bf666a265e860ac57b05fe2208348cc8dab76612afcc21f3b"
+        },
+        {
+          "bytes": 3564,
+          "path": "lane_wiring/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "de160df6173594c0cd5921613501060fd863be4d59e5d8666857a828de847df7"
+        },
+        {
+          "bytes": 18136,
+          "path": "lane_wiring/project/solution/syn/report/p_anonymous_namespace_lane_update_csynth.rpt",
+          "sha256": "378bea39d7d0d7c9887b89f4323717e25362b0ee005b004b45e404996fdb09ef"
+        },
+        {
+          "bytes": 5483,
+          "path": "lane_wiring/project/solution/syn/report/p_anonymous_namespace_lane_update_csynth.xml",
+          "sha256": "69b7ca43ed317a06afe7e9d460e011e75074a82a9cc0b1908d906337477bbcef"
+        },
+        {
+          "bytes": 555,
+          "path": "lane_wiring/run.tcl",
+          "sha256": "9f428ab6e8f103dba33bb53b9bcebdcbd896b974a5d07ac7ab6588ce339ecb3c"
+        },
+        {
+          "bytes": 27589,
+          "path": "lane_wiring/vitis_hls.log",
+          "sha256": "2d01a84cf61741ab36b69e2e211e49f537885738cf5e67f5ccc92edc4b4da177"
+        },
+        {
+          "bytes": 996,
+          "path": "original/execution.resources.json",
+          "sha256": "a5083d69d629608d02d39d30db70d972876f3a7913b2a6508273d5cd4fe69731"
+        },
+        {
+          "bytes": 0,
+          "path": "original/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 152948,
+          "path": "original/execution.stdout.txt",
+          "sha256": "aea4780abd439fc37dbb9f4b46427509d69063c2a634451c3f7083c51894593f"
+        },
+        {
+          "bytes": 126765,
+          "path": "original/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "fdf250715af5a6c5e2d0f7eeb214979a824e0b9fb9f734c3428a8f14d176b51f"
+        },
+        {
+          "bytes": 1228,
+          "path": "original/project/solution/sim/report/cache_bank_probe_cosim.rpt",
+          "sha256": "87f15e2b9bfa1754c9c1c7b503fe650a9dffaee112d27e71b2721d7f3be0b1aa"
+        },
+        {
+          "bytes": 1969,
+          "path": "original/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 795,
+          "path": "original/project/solution/sim/report/verilog/cache_bank_probe.log",
+          "sha256": "51ca677fdc8b0b63d1518db5b3b60daea7e6dea0ce80bab59af985be0f7d894b"
+        },
+        {
+          "bytes": 12908,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.rpt",
+          "sha256": "c5ed048c9e65a860364ec9e165bbfb3e9d7c47c1b7cfbf1718bef13e62b6cb91"
+        },
+        {
+          "bytes": 15253,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.xml",
+          "sha256": "d1c2cf9e97a0b3e6e83805294c87ec2c50af5bb8f4cc79505ea2cf703e880562"
+        },
+        {
+          "bytes": 12801,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.rpt",
+          "sha256": "e54cc43dca60e1b99fb6acea3679307f0e6ec23f455a344f03efade0feda4883"
+        },
+        {
+          "bytes": 15054,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.xml",
+          "sha256": "7d81759c70c9d16108dd3413e8c8d73a96e31955da22531c2270fd299a6e9074"
+        },
+        {
+          "bytes": 17218,
+          "path": "original/project/solution/syn/report/cache_bank_probe_csynth.rpt",
+          "sha256": "e841078c5f3dbab3c6283fc84297947e343802c24306ba505820537ccfab139b"
+        },
+        {
+          "bytes": 18157,
+          "path": "original/project/solution/syn/report/cache_bank_probe_csynth.xml",
+          "sha256": "a1c14c62506e4ebe0ac87e969aff213a2033ca453b51b02d33bfe11a5b8ecd19"
+        },
+        {
+          "bytes": 30036,
+          "path": "original/project/solution/syn/report/csynth.rpt",
+          "sha256": "577e78ea01849bf3db8df0e86876169b0acafe9550e1b0ce60c00b2f43d06094"
+        },
+        {
+          "bytes": 85077,
+          "path": "original/project/solution/syn/report/csynth.xml",
+          "sha256": "9a9ab40d0c7304bf141b7604170718a8eb9d13498bb42574856deeda89c6c9f5"
+        },
+        {
+          "bytes": 5936,
+          "path": "original/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "8a83592a52a753229efbb28d76e9061a576dc7e66f64e3a09bee144b25b80e60"
+        },
+        {
+          "bytes": 3575,
+          "path": "original/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "a25d46933da8dd18b996f3270ae0957ac6986c33bdfe67b2fe171385d308029a"
+        },
+        {
+          "bytes": 14196,
+          "path": "original/project/solution/syn/report/process_1_csynth.rpt",
+          "sha256": "ecc7c74ac58480f8a5a48d91f654de570e1701eea9769b3fdb927147f5a7d37a"
+        },
+        {
+          "bytes": 5341,
+          "path": "original/project/solution/syn/report/process_1_csynth.xml",
+          "sha256": "f8a32380e5f94984ec7bf9a251fead4f4a4265c44597501d95470bdcc8e67d46"
+        },
+        {
+          "bytes": 509,
+          "path": "original/run.tcl",
+          "sha256": "afe44bd4bbdf3b4b29cc0af33756833fc1db7e9ea4110d434beefdb2ab02fa04"
+        },
+        {
+          "bytes": 152948,
+          "path": "original/vitis_hls.log",
+          "sha256": "aea4780abd439fc37dbb9f4b46427509d69063c2a634451c3f7083c51894593f"
+        },
+        {
+          "bytes": 4325,
+          "path": "results.json",
+          "sha256": "3024dfa4a32ae3d688c430560e16c24bb11e6c0339371af16e6311ca08aa47f7"
+        },
+        {
+          "bytes": 2380,
+          "path": "source/cache_bank.cpp",
+          "sha256": "0e1894ab2fa0df0f23fa2249a331cade2f28a6aa1e272f026d116b10c581b160"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 2923,
+          "path": "source/cache_bank_control.cpp",
+          "sha256": "e47f4b0a79e7013deda223930e448769b034a3169c32d6cacb4c7d215b2df4b8"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "sha256": "670def85a61f4fc25fa527901afc94ad16e9b1b1ab404b8a4aacd95b2a5039a9",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-bank-v2",
+      "status": "FAILED_RETAINED"
+    },
+    {
+      "archive": "g-cache-bank-v3.tar.gz",
+      "arms": [
+        {
+          "arm": "original",
+          "same_row_incremental_cycles_per_update": 3.0,
+          "state_control_calls": 6,
+          "target_5ns_met": true,
+          "top_clock_ns": 3.65,
+          "top_resources": {
+            "BRAM_18K": "30",
+            "DSP": "0",
+            "FF": "8878",
+            "LUT": "17174",
+            "URAM": "16"
+          }
+        },
+        {
+          "arm": "lane_wiring",
+          "same_row_incremental_cycles_per_update": 2.0,
+          "state_control_calls": 6,
+          "target_5ns_met": false,
+          "top_clock_ns": 6.804,
+          "top_resources": {
+            "BRAM_18K": "30",
+            "DSP": "0",
+            "FF": "5613",
+            "LUT": "8386",
+            "URAM": "16"
+          }
+        }
+      ],
+      "attempt": "g-cache-bank-v3",
+      "bytes": 97090,
+      "files": [
+        {
+          "bytes": 1009,
+          "path": "lane_wiring/execution.resources.json",
+          "sha256": "9c4b92d92e92b291c2fd7e95b0aa76a77f99d62c10fb4d724411661a343a9d9f"
+        },
+        {
+          "bytes": 0,
+          "path": "lane_wiring/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 39782,
+          "path": "lane_wiring/execution.stdout.txt",
+          "sha256": "96f81c614b11036f73ac469de43a2fa6bab580a04cd08c67a97f529242f8acdc"
+        },
+        {
+          "bytes": 765,
+          "path": "lane_wiring/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "b92a7d189932ac7e06df42d759c3ac2f198e93f21c8b6df23296fb1ebc7ae38b"
+        },
+        {
+          "bytes": 1254,
+          "path": "lane_wiring/project/solution/sim/report/cache_bank_probe_cosim.rpt",
+          "sha256": "a95df4196874d547d4a83cd6fb22dc8873e74606f40d98dc35a6aed0d0b7a7ab"
+        },
+        {
+          "bytes": 1969,
+          "path": "lane_wiring/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 13387,
+          "path": "lane_wiring/project/solution/sim/report/verilog/cache_bank_probe.log",
+          "sha256": "2b755ea168305d8aee46fc62095165d29fa6eaa04844fd8f5c4b89cab1e0e858"
+        },
+        {
+          "bytes": 180,
+          "path": "lane_wiring/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "10ad9df88f1bb0ccf35870b744043d68bdcfabc57c588d88e2d7eca90674b8fe"
+        },
+        {
+          "bytes": 371,
+          "path": "lane_wiring/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "0405ed6a81e79ba373fc4e8ab9f73689b664d374656fca14c5d691a7e0320299"
+        },
+        {
+          "bytes": 1098,
+          "path": "lane_wiring/project/solution/sim/verilog/AESL_deadlock_idx0_monitor.v",
+          "sha256": "471716f74a5fc969438a1b65bef0668572b96ac2f178ecc4b878e2c50e96a1f5"
+        },
+        {
+          "bytes": 1065,
+          "path": "lane_wiring/project/solution/sim/verilog/AESL_deadlock_kernel_monitor_top.v",
+          "sha256": "0e97d924cc3af5ccd3442a17a6fbec37cf3466f1b253256d02fc3a5fb55aa6f4"
+        },
+        {
+          "bytes": 3178,
+          "path": "lane_wiring/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_idx0_monitor.sdb",
+          "sha256": "7a4a1cf65b91f47444d32d373d864e4bfa394142e4ccacdc9a1f3ebe4bce4232"
+        },
+        {
+          "bytes": 3069,
+          "path": "lane_wiring/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_kernel_monitor_top.sdb",
+          "sha256": "f9dd77550694a3da9dc94ab5587ba8a9a24add8add815f31eedc1cb74e393942"
+        },
+        {
+          "bytes": 2532,
+          "path": "lane_wiring/project/solution/sim/verilog/xsim.log",
+          "sha256": "7dbe2d470c9d211a5c8a557b219b0902c2c88418a2aa6336645668a536951d12"
+        },
+        {
+          "bytes": 12908,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.rpt",
+          "sha256": "bf96bba8de39f286fd4fc69e59a2068177abc992cd728b271675ccd897ef7210"
+        },
+        {
+          "bytes": 15253,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.xml",
+          "sha256": "d1c2cf9e97a0b3e6e83805294c87ec2c50af5bb8f4cc79505ea2cf703e880562"
+        },
+        {
+          "bytes": 12801,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.rpt",
+          "sha256": "637d4dd81dae7555bbd9fcb3e69563a29465ac8bea65aa4e31de77fff4c0d3ea"
+        },
+        {
+          "bytes": 15054,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.xml",
+          "sha256": "7d81759c70c9d16108dd3413e8c8d73a96e31955da22531c2270fd299a6e9074"
+        },
+        {
+          "bytes": 17207,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_csynth.rpt",
+          "sha256": "05c04384d5a7040d80a571f61748f17313a963f9c368c3eff60ea4bd4ea029fb"
+        },
+        {
+          "bytes": 18156,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_csynth.xml",
+          "sha256": "e9a69933db876b2d0587c27f1ec20fa35a8f6ba3e24bc15b6e5bf4ea87e6eb5d"
+        },
+        {
+          "bytes": 37144,
+          "path": "lane_wiring/project/solution/syn/report/csynth.rpt",
+          "sha256": "67c95f29c86dfa11d61e0b083f2b7658629323719630660d66bff237d78caed4"
+        },
+        {
+          "bytes": 106526,
+          "path": "lane_wiring/project/solution/syn/report/csynth.xml",
+          "sha256": "0197840b5eb0b19f952b17c9191f0778b09c42fbc07a5e841fa0b4cbc5386424"
+        },
+        {
+          "bytes": 5876,
+          "path": "lane_wiring/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "d0bb6b959934d8fc33c40f8afed515acc411a15e122235b0e0ebdf22ea71c355"
+        },
+        {
+          "bytes": 3564,
+          "path": "lane_wiring/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "17ad893cd17585b4a0c7715b693a774c9e8ba120e8d01b5f3c71309d7de20582"
+        },
+        {
+          "bytes": 18136,
+          "path": "lane_wiring/project/solution/syn/report/p_anonymous_namespace_lane_update_csynth.rpt",
+          "sha256": "b3dac1776536be92545f81caff03af1c3a7a5e4bc81e04c3d18974167d5645ab"
+        },
+        {
+          "bytes": 5483,
+          "path": "lane_wiring/project/solution/syn/report/p_anonymous_namespace_lane_update_csynth.xml",
+          "sha256": "69b7ca43ed317a06afe7e9d460e011e75074a82a9cc0b1908d906337477bbcef"
+        },
+        {
+          "bytes": 555,
+          "path": "lane_wiring/run.tcl",
+          "sha256": "9f428ab6e8f103dba33bb53b9bcebdcbd896b974a5d07ac7ab6588ce339ecb3c"
+        },
+        {
+          "bytes": 39782,
+          "path": "lane_wiring/vitis_hls.log",
+          "sha256": "96f81c614b11036f73ac469de43a2fa6bab580a04cd08c67a97f529242f8acdc"
+        },
+        {
+          "bytes": 996,
+          "path": "original/execution.resources.json",
+          "sha256": "917559915a40f5a26c0cf7323751413bd536a4e812cab639c3a0e220be5beca3"
+        },
+        {
+          "bytes": 0,
+          "path": "original/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 292085,
+          "path": "original/execution.stdout.txt",
+          "sha256": "78c0b88fb6609ea865f4f52873b92dac7a32aa55272786ee20664a207ac92111"
+        },
+        {
+          "bytes": 127185,
+          "path": "original/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "e52b24b001782d9df96311fc95be82e9b421cbfc61b6637066c80f988522a040"
+        },
+        {
+          "bytes": 1254,
+          "path": "original/project/solution/sim/report/cache_bank_probe_cosim.rpt",
+          "sha256": "c3a970377a6f2fed13c47cb789f7a97109891363260469169257bb0992b61a60"
+        },
+        {
+          "bytes": 1969,
+          "path": "original/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 140079,
+          "path": "original/project/solution/sim/report/verilog/cache_bank_probe.log",
+          "sha256": "d2a521a551a29358b2b03b9e2613e0ea24da650d5f41e238ef6abae72a0e7936"
+        },
+        {
+          "bytes": 180,
+          "path": "original/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "29f0b3bd775b2d7b539c489ab05212ac68749362984ae8ac343fabd7383cea80"
+        },
+        {
+          "bytes": 371,
+          "path": "original/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "d96084c18f3074f45e5410dbe78b81a962e07b331011619eff07a7906752903a"
+        },
+        {
+          "bytes": 1098,
+          "path": "original/project/solution/sim/verilog/AESL_deadlock_idx0_monitor.v",
+          "sha256": "471716f74a5fc969438a1b65bef0668572b96ac2f178ecc4b878e2c50e96a1f5"
+        },
+        {
+          "bytes": 1017,
+          "path": "original/project/solution/sim/verilog/AESL_deadlock_kernel_monitor_top.v",
+          "sha256": "6db16d30fd6afac447627ae801869e88eba3e142ca22518cd34499cdd24389b4"
+        },
+        {
+          "bytes": 3172,
+          "path": "original/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_idx0_monitor.sdb",
+          "sha256": "6e4bc72bcc5a5e37f1791e87559bddfc192486dbedbae615b32128cd838e876f"
+        },
+        {
+          "bytes": 3015,
+          "path": "original/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_kernel_monitor_top.sdb",
+          "sha256": "f4c311b7643fdf067f8b07afe67b45b8fe922a0da47a92cdb3f8b6d600523f29"
+        },
+        {
+          "bytes": 2520,
+          "path": "original/project/solution/sim/verilog/xsim.log",
+          "sha256": "7f235e51893dfbad968c1c43c4bea080f93e3d4c1d6385a40c1a17ff760975d1"
+        },
+        {
+          "bytes": 12908,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.rpt",
+          "sha256": "baed6cdf22d9c7b10d1f309978075c11e027ca323417456c604a514c73fb07d0"
+        },
+        {
+          "bytes": 15253,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.xml",
+          "sha256": "d1c2cf9e97a0b3e6e83805294c87ec2c50af5bb8f4cc79505ea2cf703e880562"
+        },
+        {
+          "bytes": 12801,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.rpt",
+          "sha256": "a50159dab450514127bb00e33c20daf0f61a734596a1a6d2472dc9021f5066e2"
+        },
+        {
+          "bytes": 15054,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.xml",
+          "sha256": "7d81759c70c9d16108dd3413e8c8d73a96e31955da22531c2270fd299a6e9074"
+        },
+        {
+          "bytes": 17218,
+          "path": "original/project/solution/syn/report/cache_bank_probe_csynth.rpt",
+          "sha256": "4a11ec6e3c8d88d57fcac3ec741e88ed19a4ab86b998c889efdd7ead55ea23df"
+        },
+        {
+          "bytes": 18157,
+          "path": "original/project/solution/syn/report/cache_bank_probe_csynth.xml",
+          "sha256": "a1c14c62506e4ebe0ac87e969aff213a2033ca453b51b02d33bfe11a5b8ecd19"
+        },
+        {
+          "bytes": 30520,
+          "path": "original/project/solution/syn/report/csynth.rpt",
+          "sha256": "0a189e481181e42b8aa0b16f99dd98296d34ca5a1a4534bae13173f17f589ea0"
+        },
+        {
+          "bytes": 85092,
+          "path": "original/project/solution/syn/report/csynth.xml",
+          "sha256": "8ed686a18a0f4712ed71398d0c97eb3866a8d3be626ca250ea1cf4689a6dd92d"
+        },
+        {
+          "bytes": 5936,
+          "path": "original/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "2c21b06815f0a476826ea4520a7b667322584022ab30f45f1824bf60040a2a92"
+        },
+        {
+          "bytes": 3575,
+          "path": "original/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "93e7a9ee3ff5e6472ebee033424727fa81798972e397838bf6653c0d251f476a"
+        },
+        {
+          "bytes": 14196,
+          "path": "original/project/solution/syn/report/process_1_csynth.rpt",
+          "sha256": "60d74ef2bfc92d8a6c38c3c54ab58db0c63f1d0e695687e5ded10eee60f843a4"
+        },
+        {
+          "bytes": 5341,
+          "path": "original/project/solution/syn/report/process_1_csynth.xml",
+          "sha256": "f8a32380e5f94984ec7bf9a251fead4f4a4265c44597501d95470bdcc8e67d46"
+        },
+        {
+          "bytes": 509,
+          "path": "original/run.tcl",
+          "sha256": "afe44bd4bbdf3b4b29cc0af33756833fc1db7e9ea4110d434beefdb2ab02fa04"
+        },
+        {
+          "bytes": 292085,
+          "path": "original/vitis_hls.log",
+          "sha256": "78c0b88fb6609ea865f4f52873b92dac7a32aa55272786ee20664a207ac92111"
+        },
+        {
+          "bytes": 18015,
+          "path": "results.json",
+          "sha256": "9013c350a154683006968aeb5a6db468d86c968a33e4ec1e9f3fe658804071ea"
+        },
+        {
+          "bytes": 2391,
+          "path": "source/cache_bank.cpp",
+          "sha256": "4d99ce683a8ee71dcdf3280dce6a3eacdc57ca6a972d30129d69c8847c444739"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 3169,
+          "path": "source/cache_bank_control.cpp",
+          "sha256": "d790078c551cba34cbb3e32cad09d405a9a08d57d345e9756132d04f79922933"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "sha256": "480e29f36f1c123ba0b5038494d40971637e23a143a54afc35aa42e2080736ed",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-bank-v3",
+      "status": "ISOLATED_BANK_RTL_PASS_NOT_INTEGRATED"
+    },
+    {
+      "archive": "g-cache-bank-v4.tar.gz",
+      "arms": [
+        {
+          "arm": "original",
+          "same_row_incremental_cycles_per_update": 3.0,
+          "state_control_calls": 6,
+          "target_5ns_met": true,
+          "top_clock_ns": 3.65,
+          "top_resources": {
+            "BRAM_18K": "30",
+            "DSP": "0",
+            "FF": "8878",
+            "LUT": "17174",
+            "URAM": "16"
+          }
+        },
+        {
+          "arm": "lane_wiring",
+          "same_row_incremental_cycles_per_update": 2.0,
+          "state_control_calls": 6,
+          "target_5ns_met": false,
+          "top_clock_ns": 6.804,
+          "top_resources": {
+            "BRAM_18K": "30",
+            "DSP": "0",
+            "FF": "5613",
+            "LUT": "8386",
+            "URAM": "16"
+          }
+        },
+        {
+          "arm": "registered_wiring",
+          "same_row_incremental_cycles_per_update": 3.0,
+          "state_control_calls": 6,
+          "target_5ns_met": true,
+          "top_clock_ns": 3.65,
+          "top_resources": {
+            "BRAM_18K": "30",
+            "DSP": "0",
+            "FF": "7682",
+            "LUT": "8930",
+            "URAM": "16"
+          }
+        }
+      ],
+      "attempt": "g-cache-bank-v4",
+      "bytes": 143932,
+      "files": [
+        {
+          "bytes": 1008,
+          "path": "lane_wiring/execution.resources.json",
+          "sha256": "0239cd416a3433f218659c680c3e9ed4ae4389873ee2d7e47db4e78253545f45"
+        },
+        {
+          "bytes": 0,
+          "path": "lane_wiring/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 39971,
+          "path": "lane_wiring/execution.stdout.txt",
+          "sha256": "1cfd39aaeb5f64e2306b9af6cb8586ebd7b9df8ef7234caee24e4d41eed2639a"
+        },
+        {
+          "bytes": 765,
+          "path": "lane_wiring/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "b92a7d189932ac7e06df42d759c3ac2f198e93f21c8b6df23296fb1ebc7ae38b"
+        },
+        {
+          "bytes": 1254,
+          "path": "lane_wiring/project/solution/sim/report/cache_bank_probe_cosim.rpt",
+          "sha256": "67dd8ba82553bf483a01289e0bceb978253d7065ae787ebfc51e5b53529490cd"
+        },
+        {
+          "bytes": 1969,
+          "path": "lane_wiring/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 13387,
+          "path": "lane_wiring/project/solution/sim/report/verilog/cache_bank_probe.log",
+          "sha256": "6a99df62ef54fd9cf69e1bd8f51039a919488024187d21aa02b66737675b0a29"
+        },
+        {
+          "bytes": 180,
+          "path": "lane_wiring/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "10ad9df88f1bb0ccf35870b744043d68bdcfabc57c588d88e2d7eca90674b8fe"
+        },
+        {
+          "bytes": 371,
+          "path": "lane_wiring/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "0405ed6a81e79ba373fc4e8ab9f73689b664d374656fca14c5d691a7e0320299"
+        },
+        {
+          "bytes": 1098,
+          "path": "lane_wiring/project/solution/sim/verilog/AESL_deadlock_idx0_monitor.v",
+          "sha256": "471716f74a5fc969438a1b65bef0668572b96ac2f178ecc4b878e2c50e96a1f5"
+        },
+        {
+          "bytes": 1065,
+          "path": "lane_wiring/project/solution/sim/verilog/AESL_deadlock_kernel_monitor_top.v",
+          "sha256": "0e97d924cc3af5ccd3442a17a6fbec37cf3466f1b253256d02fc3a5fb55aa6f4"
+        },
+        {
+          "bytes": 3178,
+          "path": "lane_wiring/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_idx0_monitor.sdb",
+          "sha256": "25a3e03fddeba057a7e10c832eb926c0a86463aaaf718e5e522b9b24da46a9c3"
+        },
+        {
+          "bytes": 3069,
+          "path": "lane_wiring/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_kernel_monitor_top.sdb",
+          "sha256": "3a3bc3b15235380bc96a0948739135dda4e4145b6c602e6ac3d73b116e642053"
+        },
+        {
+          "bytes": 2532,
+          "path": "lane_wiring/project/solution/sim/verilog/xsim.log",
+          "sha256": "0c796f71b0716568b01e76fb3298c56a986cea5dd846f0e234b63bc62c6895ff"
+        },
+        {
+          "bytes": 12908,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.rpt",
+          "sha256": "57e0f1e0811bbb9f0027ad341360910de777172a3f8d6106338b0e6910a7e40d"
+        },
+        {
+          "bytes": 15253,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.xml",
+          "sha256": "2d792ae598c5955b6300a45e493fe4629ba0fb15f5a29815bfd38ef51b820026"
+        },
+        {
+          "bytes": 12801,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.rpt",
+          "sha256": "33236625fbc4b0e0412ca64e0e1c1d7fa76fb2c3d2e173045c51775a0b378a6a"
+        },
+        {
+          "bytes": 15054,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.xml",
+          "sha256": "3458677f23aa2788545cea4a2ac56c6cc8ab927eeb1ec00f3e460719a119688c"
+        },
+        {
+          "bytes": 17207,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_csynth.rpt",
+          "sha256": "9cc0b4e5447fe1f2380306018366ccb8d488c57b1934dfc2ab33d24e19745939"
+        },
+        {
+          "bytes": 18156,
+          "path": "lane_wiring/project/solution/syn/report/cache_bank_probe_csynth.xml",
+          "sha256": "7afa0622404d430162358dce114153509dea9925ed1d51b05f404567584b6b45"
+        },
+        {
+          "bytes": 37403,
+          "path": "lane_wiring/project/solution/syn/report/csynth.rpt",
+          "sha256": "5bbfc4a83bb2084e2603b8f8d472cc61503f973409a7442466f04c8b8e7ac558"
+        },
+        {
+          "bytes": 106688,
+          "path": "lane_wiring/project/solution/syn/report/csynth.xml",
+          "sha256": "bfb6abc2e560bc849506ad52191e0b9210703bbcd6a4c3db8b3a332fe6837a93"
+        },
+        {
+          "bytes": 5995,
+          "path": "lane_wiring/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "56986533f8a4317681be33f739ebc4030e8590cc829ceb962ab05ece59aca1bc"
+        },
+        {
+          "bytes": 3716,
+          "path": "lane_wiring/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "3dad7ee122e18b93e2a018ec7017ea4bf441b10a183a63208acf7705ed7dc802"
+        },
+        {
+          "bytes": 18136,
+          "path": "lane_wiring/project/solution/syn/report/p_anonymous_namespace_lane_update_csynth.rpt",
+          "sha256": "59cdd0b68bcff5619decf95f012ee781a13dc9ffcd5cb2ff1e7c0930628b0045"
+        },
+        {
+          "bytes": 5484,
+          "path": "lane_wiring/project/solution/syn/report/p_anonymous_namespace_lane_update_csynth.xml",
+          "sha256": "d917757990e71d83e0474a25fd78b87d39dbd05bde94d7140072cb943e3e6182"
+        },
+        {
+          "bytes": 555,
+          "path": "lane_wiring/run.tcl",
+          "sha256": "9f428ab6e8f103dba33bb53b9bcebdcbd896b974a5d07ac7ab6588ce339ecb3c"
+        },
+        {
+          "bytes": 39971,
+          "path": "lane_wiring/vitis_hls.log",
+          "sha256": "1cfd39aaeb5f64e2306b9af6cb8586ebd7b9df8ef7234caee24e4d41eed2639a"
+        },
+        {
+          "bytes": 996,
+          "path": "original/execution.resources.json",
+          "sha256": "5ef1d10e6d5861fcd87eb014bd78dfde66f1920e0b54a4262e180eb1078a0c68"
+        },
+        {
+          "bytes": 0,
+          "path": "original/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 292088,
+          "path": "original/execution.stdout.txt",
+          "sha256": "a8b901c560be1c588ebe050d5061b10eeb1390e506bebd67b4498ebe9587675d"
+        },
+        {
+          "bytes": 127185,
+          "path": "original/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "e52b24b001782d9df96311fc95be82e9b421cbfc61b6637066c80f988522a040"
+        },
+        {
+          "bytes": 1254,
+          "path": "original/project/solution/sim/report/cache_bank_probe_cosim.rpt",
+          "sha256": "fb92bf7df34af52432aab9b493b8e52dc1aa3d6ba500d01b1841665af4d48101"
+        },
+        {
+          "bytes": 1969,
+          "path": "original/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 140079,
+          "path": "original/project/solution/sim/report/verilog/cache_bank_probe.log",
+          "sha256": "459cd263f0b16538d89dba6bc9729aa3689826f6960ad10dce5380ef9b944188"
+        },
+        {
+          "bytes": 180,
+          "path": "original/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "29f0b3bd775b2d7b539c489ab05212ac68749362984ae8ac343fabd7383cea80"
+        },
+        {
+          "bytes": 371,
+          "path": "original/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "d96084c18f3074f45e5410dbe78b81a962e07b331011619eff07a7906752903a"
+        },
+        {
+          "bytes": 1098,
+          "path": "original/project/solution/sim/verilog/AESL_deadlock_idx0_monitor.v",
+          "sha256": "471716f74a5fc969438a1b65bef0668572b96ac2f178ecc4b878e2c50e96a1f5"
+        },
+        {
+          "bytes": 1017,
+          "path": "original/project/solution/sim/verilog/AESL_deadlock_kernel_monitor_top.v",
+          "sha256": "6db16d30fd6afac447627ae801869e88eba3e142ca22518cd34499cdd24389b4"
+        },
+        {
+          "bytes": 3172,
+          "path": "original/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_idx0_monitor.sdb",
+          "sha256": "969fa0c2c44153dd83df6baccde2453cb789892320c4dce8659d40b999b5abc2"
+        },
+        {
+          "bytes": 3015,
+          "path": "original/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_kernel_monitor_top.sdb",
+          "sha256": "17a4cc1a312e2f371c8fb8d58d42a776a7f0c7952f13f24b346711d7d56d6981"
+        },
+        {
+          "bytes": 2520,
+          "path": "original/project/solution/sim/verilog/xsim.log",
+          "sha256": "2b0f1fccc6970b1b954191eec55296b696a2b49abb4a0055aaec9bee1b817cac"
+        },
+        {
+          "bytes": 12908,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.rpt",
+          "sha256": "9f980570eb533ec495a7d12c3931b8ede11c9ccab3073b04d89f2312052b7698"
+        },
+        {
+          "bytes": 15253,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.xml",
+          "sha256": "2d792ae598c5955b6300a45e493fe4629ba0fb15f5a29815bfd38ef51b820026"
+        },
+        {
+          "bytes": 12801,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.rpt",
+          "sha256": "eaf7469f7067646fe8590bc052516b39fa38893619157e24ea339758cf370665"
+        },
+        {
+          "bytes": 15054,
+          "path": "original/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.xml",
+          "sha256": "3458677f23aa2788545cea4a2ac56c6cc8ab927eeb1ec00f3e460719a119688c"
+        },
+        {
+          "bytes": 17218,
+          "path": "original/project/solution/syn/report/cache_bank_probe_csynth.rpt",
+          "sha256": "464d380ca0c5bd0e0d8b38039f5f966765c0e5789f703f5c144a097015448b22"
+        },
+        {
+          "bytes": 18157,
+          "path": "original/project/solution/syn/report/cache_bank_probe_csynth.xml",
+          "sha256": "09b568867304795463a642f0af051b2a206f321853af23bb73fa0861b88fe64f"
+        },
+        {
+          "bytes": 30779,
+          "path": "original/project/solution/syn/report/csynth.rpt",
+          "sha256": "8b53d78c4aa34b4cbdf93425c5fe4dff768c779fca422a304b1c60e77cf1ca88"
+        },
+        {
+          "bytes": 85253,
+          "path": "original/project/solution/syn/report/csynth.xml",
+          "sha256": "42e50a0ccbef1509d23341c6b369b66f606463826c1d4796f7024ac9e2347eb3"
+        },
+        {
+          "bytes": 5936,
+          "path": "original/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "85bb5dbdc6ea6ec4b0c8d6954d8cddda4f6c148d2975e19f0a56ff314cdca0d6"
+        },
+        {
+          "bytes": 3575,
+          "path": "original/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "c9955c51a61d9c56889d1f1889c314cb78ab739c4dde334e4d712a2beb2bb414"
+        },
+        {
+          "bytes": 14196,
+          "path": "original/project/solution/syn/report/process_1_csynth.rpt",
+          "sha256": "d13c6d29dd004c82685139735085f7d9c3c73f51014d3b7fc1a7c4581e2afa34"
+        },
+        {
+          "bytes": 5341,
+          "path": "original/project/solution/syn/report/process_1_csynth.xml",
+          "sha256": "f8a32380e5f94984ec7bf9a251fead4f4a4265c44597501d95470bdcc8e67d46"
+        },
+        {
+          "bytes": 509,
+          "path": "original/run.tcl",
+          "sha256": "afe44bd4bbdf3b4b29cc0af33756833fc1db7e9ea4110d434beefdb2ab02fa04"
+        },
+        {
+          "bytes": 292088,
+          "path": "original/vitis_hls.log",
+          "sha256": "a8b901c560be1c588ebe050d5061b10eeb1390e506bebd67b4498ebe9587675d"
+        },
+        {
+          "bytes": 1032,
+          "path": "registered_wiring/execution.resources.json",
+          "sha256": "b04cf01c300ec0d479f5571d6451c55f36d709f661a5cb555c2f1af52407f6b2"
+        },
+        {
+          "bytes": 0,
+          "path": "registered_wiring/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 42078,
+          "path": "registered_wiring/execution.stdout.txt",
+          "sha256": "8c4632ed43635de4be7b1c79b39bf791032c192ea1df56e888dc5b9d6a2a5f38"
+        },
+        {
+          "bytes": 765,
+          "path": "registered_wiring/project/solution/csim/report/cache_bank_probe_csim.log",
+          "sha256": "b92a7d189932ac7e06df42d759c3ac2f198e93f21c8b6df23296fb1ebc7ae38b"
+        },
+        {
+          "bytes": 1254,
+          "path": "registered_wiring/project/solution/sim/report/cache_bank_probe_cosim.rpt",
+          "sha256": "07cfa9bf673135c5cd96ae921cbe0cb2c39ee6f76219bd2e457622af9b4d7851"
+        },
+        {
+          "bytes": 1969,
+          "path": "registered_wiring/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 14069,
+          "path": "registered_wiring/project/solution/sim/report/verilog/cache_bank_probe.log",
+          "sha256": "7839cd2bd46987d53010110523591a232098a210537724f47c840ea1a2426c8e"
+        },
+        {
+          "bytes": 180,
+          "path": "registered_wiring/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "29f0b3bd775b2d7b539c489ab05212ac68749362984ae8ac343fabd7383cea80"
+        },
+        {
+          "bytes": 371,
+          "path": "registered_wiring/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "d96084c18f3074f45e5410dbe78b81a962e07b331011619eff07a7906752903a"
+        },
+        {
+          "bytes": 1098,
+          "path": "registered_wiring/project/solution/sim/verilog/AESL_deadlock_idx0_monitor.v",
+          "sha256": "471716f74a5fc969438a1b65bef0668572b96ac2f178ecc4b878e2c50e96a1f5"
+        },
+        {
+          "bytes": 1065,
+          "path": "registered_wiring/project/solution/sim/verilog/AESL_deadlock_kernel_monitor_top.v",
+          "sha256": "0e97d924cc3af5ccd3442a17a6fbec37cf3466f1b253256d02fc3a5fb55aa6f4"
+        },
+        {
+          "bytes": 3190,
+          "path": "registered_wiring/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_idx0_monitor.sdb",
+          "sha256": "c22f10f5d3876ce909ba1006913a521e7acec114279cefca20c0d4f3689b8c42"
+        },
+        {
+          "bytes": 3081,
+          "path": "registered_wiring/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_kernel_monitor_top.sdb",
+          "sha256": "ded00e4235395ccc6ff6f44ad299f9489adb312a768d175ed77dcb0ba56f943a"
+        },
+        {
+          "bytes": 2703,
+          "path": "registered_wiring/project/solution/sim/verilog/xsim.log",
+          "sha256": "6a9d366fe1fc218f2c87b096bf6852d22d58fd60ec09149b22910614e630240e"
+        },
+        {
+          "bytes": 12908,
+          "path": "registered_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.rpt",
+          "sha256": "fa1fc742ffc9fc5fd76fd7fbfe6e8e2cebc3d1eb82ea0fe151c2909b668d9e47"
+        },
+        {
+          "bytes": 15253,
+          "path": "registered_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_preload_csynth.xml",
+          "sha256": "2d792ae598c5955b6300a45e493fe4629ba0fb15f5a29815bfd38ef51b820026"
+        },
+        {
+          "bytes": 12801,
+          "path": "registered_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.rpt",
+          "sha256": "6f2f407ebc446959293fa2880b41394ad822117be1cb8cf416757a632b5c6851"
+        },
+        {
+          "bytes": 15054,
+          "path": "registered_wiring/project/solution/syn/report/cache_bank_probe_Pipeline_writeback_csynth.xml",
+          "sha256": "3458677f23aa2788545cea4a2ac56c6cc8ab927eeb1ec00f3e460719a119688c"
+        },
+        {
+          "bytes": 17207,
+          "path": "registered_wiring/project/solution/syn/report/cache_bank_probe_csynth.rpt",
+          "sha256": "8884457f68461c8bcb282ea64fae5217fb6ce27e4499ad5f12efaf5cf79ffdb6"
+        },
+        {
+          "bytes": 18156,
+          "path": "registered_wiring/project/solution/syn/report/cache_bank_probe_csynth.xml",
+          "sha256": "36252f8953cfb4a1ef1de4e0f4dcd9e67b7a284c9907766d57e9a0cf882509c5"
+        },
+        {
+          "bytes": 48427,
+          "path": "registered_wiring/project/solution/syn/report/csynth.rpt",
+          "sha256": "b9744e06d209d0fa1841c0924dacdfa01a2302209fa42823d62970034b16a1c2"
+        },
+        {
+          "bytes": 109366,
+          "path": "registered_wiring/project/solution/syn/report/csynth.xml",
+          "sha256": "48acb710fe87cacbd20ee23c32fa4e2e83ff4dbdbb5eb766f626ec290a756355"
+        },
+        {
+          "bytes": 5995,
+          "path": "registered_wiring/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "8588a2dd0cb23dd05fd4c8d1058039995c22919beb6629f149edccf7853151ea"
+        },
+        {
+          "bytes": 3728,
+          "path": "registered_wiring/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "b804feb50abf8c025bb1913adf882ad2a7f63c720bd19171f375e93db9df148c"
+        },
+        {
+          "bytes": 24203,
+          "path": "registered_wiring/project/solution/syn/report/p_anonymous_namespace_edit_segment_csynth.rpt",
+          "sha256": "62495e0ad18b936d3ea812d6aa5e2fc3d25902af3aa74c6053303e8161e023ed"
+        },
+        {
+          "bytes": 4376,
+          "path": "registered_wiring/project/solution/syn/report/p_anonymous_namespace_edit_segment_csynth.xml",
+          "sha256": "8b21231459c2f93bd7856b7f21160f41f3d3b75e95a394a547df91cdc4e0bba7"
+        },
+        {
+          "bytes": 12403,
+          "path": "registered_wiring/project/solution/syn/report/p_anonymous_namespace_lane_update_csynth.rpt",
+          "sha256": "8363c195ed395cc06cd093bd46bf1e2298e8fc70e0f46f715ab2bdc69294e1a9"
+        },
+        {
+          "bytes": 5509,
+          "path": "registered_wiring/project/solution/syn/report/p_anonymous_namespace_lane_update_csynth.xml",
+          "sha256": "8000c0fe017b8fcc0a0bb661ab3b8fd1d1710dd0c9c55755c4d61b090dcd9421"
+        },
+        {
+          "bytes": 557,
+          "path": "registered_wiring/run.tcl",
+          "sha256": "992fa5508bce3a176a134ac5dc655cdc33388cfb7a04e30fbbdeed535c987a43"
+        },
+        {
+          "bytes": 42078,
+          "path": "registered_wiring/vitis_hls.log",
+          "sha256": "8c4632ed43635de4be7b1c79b39bf791032c192ea1df56e888dc5b9d6a2a5f38"
+        },
+        {
+          "bytes": 31350,
+          "path": "results.json",
+          "sha256": "d3a7c4592ae5d6e708853b37676fdc66d586ec073305efbf6a80b85bf166a4f0"
+        },
+        {
+          "bytes": 2657,
+          "path": "source/cache_bank.cpp",
+          "sha256": "c80dc477550589770287f45f01fab1450a364c2dc2196a9301dcb4e5c35db46c"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 3169,
+          "path": "source/cache_bank_control.cpp",
+          "sha256": "d790078c551cba34cbb3e32cad09d405a9a08d57d345e9756132d04f79922933"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "sha256": "e0081dd9d3e82e9e1feb242e7579dd5f7888d9ab95ca04d40d69cf244fd0b3bd",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-bank-v4",
+      "status": "ISOLATED_BANK_RTL_PASS_NOT_INTEGRATED"
+    },
+    {
+      "archive": "g-cache-full-original-v1.tar.gz",
+      "arms": [
+        {
+          "arm": "original_full",
+          "error": "ValueError('cache-bank HLS attempt failed; retain raw logs')"
+        }
+      ],
+      "attempt": "g-cache-full-original-v1",
+      "bytes": 64407,
+      "files": [
+        {
+          "bytes": 1052,
+          "path": "original_full/execution.resources.json",
+          "sha256": "e674c7840dc65d74d1c6acfefcdbeb0d4d91b114897907f3693e93d9c8ed59bc"
+        },
+        {
+          "bytes": 0,
+          "path": "original_full/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 53018,
+          "path": "original_full/execution.stdout.txt",
+          "sha256": "14b5225f9b76f8f3fbe2e263f3b13bb1c684ca463935883c80b584e38eef0a02"
+        },
+        {
+          "bytes": 5572,
+          "path": "original_full/project/solution/csim/report/process_cache_csim.log",
+          "sha256": "1bd94345498f818b99fd067267a99efb199c0240d3c9304cae7f82ce2a3b83de"
+        },
+        {
+          "bytes": 1969,
+          "path": "original_full/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 1228,
+          "path": "original_full/project/solution/sim/report/process_cache_cosim.rpt",
+          "sha256": "73fdda1e3c6ba63b60e9b11cd71ea7c30d2cfe52d7ecaef224eb594ed0beefa1"
+        },
+        {
+          "bytes": 796,
+          "path": "original_full/project/solution/sim/report/verilog/process_cache.log",
+          "sha256": "d655d302a1db614479c840b36bf7f48d8118529ff5cfb5787b1fb54f7f08d9f9"
+        },
+        {
+          "bytes": 120581,
+          "path": "original_full/project/solution/syn/report/csynth.rpt",
+          "sha256": "6240513d8ceb34b10280d5e172c3a9b6614c435f0ff1c6ae7f6dda112b9f4aa8"
+        },
+        {
+          "bytes": 152607,
+          "path": "original_full/project/solution/syn/report/csynth.xml",
+          "sha256": "5f280300dd9828cb5c446af19928b0a869dc3e34593f846ea6f536c0e60a09da"
+        },
+        {
+          "bytes": 6362,
+          "path": "original_full/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "fd412f1f1b26f1a6f4d75d0d333a893413b3bbae6044bdf35403c45a05e88594"
+        },
+        {
+          "bytes": 4059,
+          "path": "original_full/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "5d3d800e27fe946b1a73c7c6e8c7c00a5c1243c5359a3d2ac147ff7f7fc9addd"
+        },
+        {
+          "bytes": 18936,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_VITIS_LOOP_19_1_csynth.rpt",
+          "sha256": "d28fafd7ca9677acd4c00ad852460e6a9c09604258092e7035b9a7b6e7f33f85"
+        },
+        {
+          "bytes": 24417,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_VITIS_LOOP_19_1_csynth.xml",
+          "sha256": "daef82f1f6aa8ce1fe9940ab6cbb27b5a1705e81a19810a2e9881585295561e9"
+        },
+        {
+          "bytes": 19325,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_dispatch_loop_csynth.rpt",
+          "sha256": "e99894939fba06052f1e261cb317e5878d44c04f1c5b6d1a0e5394f424e7ecb2"
+        },
+        {
+          "bytes": 25862,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_dispatch_loop_csynth.xml",
+          "sha256": "701fe860993b6d697cd8c502cd2810346119bf70b9d4aa66864fd72af8d14fbe"
+        },
+        {
+          "bytes": 20888,
+          "path": "original_full/project/solution/syn/report/dispatch_update_csynth.rpt",
+          "sha256": "027689747c8f0e543db0badfd485174f10376d976d70ff5e63530ce576e1db34"
+        },
+        {
+          "bytes": 25476,
+          "path": "original_full/project/solution/syn/report/dispatch_update_csynth.xml",
+          "sha256": "d82e5fb7b62ee1bf9ebd0b793aec6ff5626ec7894c62faa5bc1ee95f0fe64023"
+        },
+        {
+          "bytes": 6128,
+          "path": "original_full/project/solution/syn/report/entry_proc_csynth.rpt",
+          "sha256": "0077b3555234040dd0846e8e8789f1684ce8315e0eaad22ffef6bda0e7f8f78b"
+        },
+        {
+          "bytes": 4514,
+          "path": "original_full/project/solution/syn/report/entry_proc_csynth.xml",
+          "sha256": "9570094154e6cb1bb9e72f5453d2d8055b26b452de8a4ecd9e506e371f196f6f"
+        },
+        {
+          "bytes": 14954,
+          "path": "original_full/project/solution/syn/report/process_1_csynth.rpt",
+          "sha256": "a43c713b69d0f475a4d6aa5990f4bdc1fff10760ad5362f1ba0eecd0748fdd26"
+        },
+        {
+          "bytes": 5957,
+          "path": "original_full/project/solution/syn/report/process_1_csynth.xml",
+          "sha256": "f02ef94e94fc01b3b9b1eb05804b77779efb00a288d2f6002f326e92b3c4a2b1"
+        },
+        {
+          "bytes": 20016,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_load_cache_csynth.rpt",
+          "sha256": "668fba41a3e519f8910d78a78508e48a86aae4a149fe8f5eb4fc2a39898ab17c"
+        },
+        {
+          "bytes": 29429,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_load_cache_csynth.xml",
+          "sha256": "5fbde846bffcf5110e9d1ee340880bce63f67c16479bed1cf34e9b89d76f1a98"
+        },
+        {
+          "bytes": 19256,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_store_cache_csynth.rpt",
+          "sha256": "14187a1d742c5ec83c266b116727ab6127e4dc3beec8beb9e1efef3f0dc2fe2f"
+        },
+        {
+          "bytes": 25682,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_store_cache_csynth.xml",
+          "sha256": "d1ec3ddc6b80f2be38fa79630b19f68498b42035b381eb1a64bf5dd66420436e"
+        },
+        {
+          "bytes": 17011,
+          "path": "original_full/project/solution/syn/report/process_cache_csynth.rpt",
+          "sha256": "c250d84adc3d1002a1dff61189df4e564a373175a91512e5854e98364847d75b"
+        },
+        {
+          "bytes": 19142,
+          "path": "original_full/project/solution/syn/report/process_cache_csynth.xml",
+          "sha256": "d5c1e8fea6f640eacf90ae2a7183a96b5522da10515a79bf0990d4508fe39f8f"
+        },
+        {
+          "bytes": 40125,
+          "path": "original_full/project/solution/syn/report/process_r_csynth.rpt",
+          "sha256": "ff76a9c5eacb78e6a3e80c79bead95d914d7644415b22f3e855a1e28e1d69375"
+        },
+        {
+          "bytes": 35468,
+          "path": "original_full/project/solution/syn/report/process_r_csynth.xml",
+          "sha256": "b0e94ec1cb74e7b932406354fdf67ab0676063ad35dc7a1ac1bc39a11b3b33d7"
+        },
+        {
+          "bytes": 634,
+          "path": "original_full/run.tcl",
+          "sha256": "f58aaf542c88457a070707c4843bfcdca921112adb7cbfa4e77fc8b54b86ffad"
+        },
+        {
+          "bytes": 53018,
+          "path": "original_full/vitis_hls.log",
+          "sha256": "14b5225f9b76f8f3fbe2e263f3b13bb1c684ca463935883c80b584e38eef0a02"
+        },
+        {
+          "bytes": 3147,
+          "path": "results.json",
+          "sha256": "f58655be6c10cba6fe859aa7bbb539840bede0bca9fa298c3cf4b12413f5c5eb"
+        },
+        {
+          "bytes": 2657,
+          "path": "source/cache_bank.cpp",
+          "sha256": "c80dc477550589770287f45f01fab1450a364c2dc2196a9301dcb4e5c35db46c"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 3169,
+          "path": "source/cache_bank_control.cpp",
+          "sha256": "d790078c551cba34cbb3e32cad09d405a9a08d57d345e9756132d04f79922933"
+        },
+        {
+          "bytes": 2308,
+          "path": "source/cache_full_control.cpp",
+          "sha256": "56cd30c6b22cfc59f1e463ed2b843acb03398e8e4ed7f221189080102b47fd10"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "sha256": "67b6a9b17df1e62ca390dc1b57173c01cd0963bed23ca9e3a047970bab6cabd6",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-full-original-v1",
+      "status": "FAILED_RETAINED"
+    },
+    {
+      "archive": "g-cache-full-original-v2.tar.gz",
+      "arms": [
+        {
+          "arm": "original_full",
+          "same_row_incremental_cycles_per_update": null,
+          "state_control_calls": 2,
+          "target_5ns_met": true,
+          "top_clock_ns": 3.65,
+          "top_resources": {
+            "BRAM_18K": "30",
+            "DSP": "0",
+            "FF": "78911",
+            "LUT": "217980",
+            "URAM": "256"
+          }
+        }
+      ],
+      "attempt": "g-cache-full-original-v2",
+      "bytes": 123270,
+      "files": [
+        {
+          "bytes": 1052,
+          "path": "original_full/execution.resources.json",
+          "sha256": "215f3a995e720cfb64639c5c5d58d29db45c7de8d177ac860df1d2522d67e21b"
+        },
+        {
+          "bytes": 0,
+          "path": "original_full/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 75895,
+          "path": "original_full/execution.stdout.txt",
+          "sha256": "aa32e89dfa7fb98d1e84bda28689a1346ceedb7aeda4779b8d314ad98c259922"
+        },
+        {
+          "bytes": 5553,
+          "path": "original_full/project/solution/csim/report/cache_full_probe_csim.log",
+          "sha256": "487a151d18eee42a018f1a040d6ed2ea689d111bc454d27d5bfccf8e9db549a2"
+        },
+        {
+          "bytes": 1254,
+          "path": "original_full/project/solution/sim/report/cache_full_probe_cosim.rpt",
+          "sha256": "b8806e64c0fe4fe24a30853c7c497b02926b8d777a89221240a7cea2c0dd0a91"
+        },
+        {
+          "bytes": 1969,
+          "path": "original_full/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 23590,
+          "path": "original_full/project/solution/sim/report/verilog/cache_full_probe.log",
+          "sha256": "daa0a5d84cdf23d846c1d639eb047b8c332662e8c84164ac786041001ebe4bbd"
+        },
+        {
+          "bytes": 186,
+          "path": "original_full/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "3925bc965fe2ddf180ce7d461da924246ed5afe7b13bf9beef62c56715b6a24c"
+        },
+        {
+          "bytes": 159,
+          "path": "original_full/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "e4a94b9d4d76d038c054365d2339286d647f4705090df930b528e134a1fcb152"
+        },
+        {
+          "bytes": 3152,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_detection_unit.v",
+          "sha256": "d1fa1cf6d2fb6ff30c9bf539e24c9aea945bc1a865e901a648191742b2ea940f"
+        },
+        {
+          "bytes": 16367,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_detector.v",
+          "sha256": "a578954928d918c33f0ee0cc2f753eadfd91d1221452dd7981f89849c77dc2f4"
+        },
+        {
+          "bytes": 1098,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_idx0_monitor.v",
+          "sha256": "7c6d0a7e5d4d2ab70161984765ea9c9d320b0b5a33b681892cc6a9c7c7c27434"
+        },
+        {
+          "bytes": 9150,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_kernel_monitor_top.v",
+          "sha256": "c163a31c2b41f44db9d28c42e1f01ccc6294bb7ad1148b72a59fca2348c42ab6"
+        },
+        {
+          "bytes": 74537,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_report_unit.v",
+          "sha256": "15215e262ea9ff151c502c6f705f7fdac6e07094b5dca5b2ef2812d4b03edc49"
+        },
+        {
+          "bytes": 8495,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_detect_unit.sdb",
+          "sha256": "2de0b5865170176869ca2004fa5759dd62954196a8ddd9ef162a41add5731eff"
+        },
+        {
+          "bytes": 35733,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_detector.sdb",
+          "sha256": "13065fec84a85636ddcbd153bd0d63084faf5bfb799d0a3e15359c314e2a2373"
+        },
+        {
+          "bytes": 3200,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_idx0_monitor.sdb",
+          "sha256": "62eea086383a87d063912a1a68c2f6f2fa097fb059b9b3cadd1e7538ec1089bc"
+        },
+        {
+          "bytes": 18154,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_kernel_monitor_top.sdb",
+          "sha256": "f7d6964e868f6f1fe0c4cc4a9f56e1c59ec031b83e7a4e06dc54796dbc2a77db"
+        },
+        {
+          "bytes": 92098,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_report_unit.sdb",
+          "sha256": "601ae9b6a2efc0f817019ac671c170139c0e1d9498a5f67789c64a86b8708cf4"
+        },
+        {
+          "bytes": 2645,
+          "path": "original_full/project/solution/sim/verilog/xsim.log",
+          "sha256": "fdd949ac6aee578ddce78f9d42864b458e8bb299ab9ed74a285cf7063d3c2198"
+        },
+        {
+          "bytes": 14454,
+          "path": "original_full/project/solution/syn/report/cache_full_probe_csynth.rpt",
+          "sha256": "84a3eef08db6a5a98cebc0b73ce97e046afa482e81af6b390b8f725cc3a1a500"
+        },
+        {
+          "bytes": 18992,
+          "path": "original_full/project/solution/syn/report/cache_full_probe_csynth.xml",
+          "sha256": "2a88ab8333f356a1b84da6681bf4f2b77e142e7749a29f8fa4f78b0a913d3ee2"
+        },
+        {
+          "bytes": 120977,
+          "path": "original_full/project/solution/syn/report/csynth.rpt",
+          "sha256": "29d34e53d45e334435cf252e7bb75e3e8a687253eb15f30893e141424bf92d1c"
+        },
+        {
+          "bytes": 157157,
+          "path": "original_full/project/solution/syn/report/csynth.xml",
+          "sha256": "baccf98cd5f5b2b356778a4b16ab7e7e6295c5c32016b8c82ac12ee468945c70"
+        },
+        {
+          "bytes": 6521,
+          "path": "original_full/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "028cb166b4abb4465ff10084ccdbc2efa206a2f43fc6b7a57dcff18a741a9169"
+        },
+        {
+          "bytes": 4244,
+          "path": "original_full/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "c296621bf7f8eef9df2f6bf7551833883c71785630cf2e24dfe7d08e5f70f48a"
+        },
+        {
+          "bytes": 18936,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_VITIS_LOOP_19_1_csynth.rpt",
+          "sha256": "8bbbd583221953ea10f903d1ffc137021336dab0fb224efea7f34b204f3f9f09"
+        },
+        {
+          "bytes": 24417,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_VITIS_LOOP_19_1_csynth.xml",
+          "sha256": "daef82f1f6aa8ce1fe9940ab6cbb27b5a1705e81a19810a2e9881585295561e9"
+        },
+        {
+          "bytes": 19325,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_dispatch_loop_csynth.rpt",
+          "sha256": "8e6ecc018a00c80106080a12f6b8f2253c10f003bbf31faa7dcf72ecef97a096"
+        },
+        {
+          "bytes": 25790,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_dispatch_loop_csynth.xml",
+          "sha256": "d02fda29f6980ef6d557e543721b4cf1645b16e201d86f525812a3991a8fc797"
+        },
+        {
+          "bytes": 20683,
+          "path": "original_full/project/solution/syn/report/dispatch_update_csynth.rpt",
+          "sha256": "514b060ae8a1d4bcc2aad8ab3a359b131e9ca4d56e43bdf628c3af6e292f76a9"
+        },
+        {
+          "bytes": 25290,
+          "path": "original_full/project/solution/syn/report/dispatch_update_csynth.xml",
+          "sha256": "fd9d934f926d3d5e757d8d4de739356c2374526eca2d9725b275aaffa6f6f6e4"
+        },
+        {
+          "bytes": 6128,
+          "path": "original_full/project/solution/syn/report/entry_proc_csynth.rpt",
+          "sha256": "e4b3b713a1fec1229f9c9ab115934d1f1fec577b4c9c56cbbc026f33e784b042"
+        },
+        {
+          "bytes": 4514,
+          "path": "original_full/project/solution/syn/report/entry_proc_csynth.xml",
+          "sha256": "9570094154e6cb1bb9e72f5453d2d8055b26b452de8a4ecd9e506e371f196f6f"
+        },
+        {
+          "bytes": 14954,
+          "path": "original_full/project/solution/syn/report/process_1_csynth.rpt",
+          "sha256": "0405b86ad94b6e8560f99f58ffdbc9bd7b0a0b11abb73ee5a4991a14d61fd1de"
+        },
+        {
+          "bytes": 5957,
+          "path": "original_full/project/solution/syn/report/process_1_csynth.xml",
+          "sha256": "f02ef94e94fc01b3b9b1eb05804b77779efb00a288d2f6002f326e92b3c4a2b1"
+        },
+        {
+          "bytes": 20016,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_load_cache_csynth.rpt",
+          "sha256": "0d556d1171083ec9acab7ea1783c2fbcc6f57c720fd6725be451fbedde1c2389"
+        },
+        {
+          "bytes": 29429,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_load_cache_csynth.xml",
+          "sha256": "5fbde846bffcf5110e9d1ee340880bce63f67c16479bed1cf34e9b89d76f1a98"
+        },
+        {
+          "bytes": 19256,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_store_cache_csynth.rpt",
+          "sha256": "2d0d27815d4ae6b3d5a450d6ec7089519f8f8b0ed1209b5f1ab866f081211353"
+        },
+        {
+          "bytes": 25682,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_store_cache_csynth.xml",
+          "sha256": "d1ec3ddc6b80f2be38fa79630b19f68498b42035b381eb1a64bf5dd66420436e"
+        },
+        {
+          "bytes": 15032,
+          "path": "original_full/project/solution/syn/report/process_cache_1_csynth.rpt",
+          "sha256": "e62123529c469fd77a9685b1a2cef0ea72c6a540d2c2a3760e07313dad062cb3"
+        },
+        {
+          "bytes": 15652,
+          "path": "original_full/project/solution/syn/report/process_cache_1_csynth.xml",
+          "sha256": "244890dc300f950b3f41b03ffeb8ada247e21f359ce7621865ae6661aea7d83d"
+        },
+        {
+          "bytes": 40125,
+          "path": "original_full/project/solution/syn/report/process_r_csynth.rpt",
+          "sha256": "a88a7c8a14d32718f146974ef6e8a70b3e25185c4f746bfae362a7dc4df7199c"
+        },
+        {
+          "bytes": 35468,
+          "path": "original_full/project/solution/syn/report/process_r_csynth.xml",
+          "sha256": "b0e94ec1cb74e7b932406354fdf67ab0676063ad35dc7a1ac1bc39a11b3b33d7"
+        },
+        {
+          "bytes": 544,
+          "path": "original_full/run.tcl",
+          "sha256": "8efc312b0206b9af902239e3fc9dd18e77ae61f01af1ad160ebeaafb3b4931c4"
+        },
+        {
+          "bytes": 75895,
+          "path": "original_full/vitis_hls.log",
+          "sha256": "aa32e89dfa7fb98d1e84bda28689a1346ceedb7aeda4779b8d314ad98c259922"
+        },
+        {
+          "bytes": 17555,
+          "path": "results.json",
+          "sha256": "c77bb58dda4b7b49d75d9c379db09094155ea199f3ea90782f7c4b9660762faf"
+        },
+        {
+          "bytes": 2657,
+          "path": "source/cache_bank.cpp",
+          "sha256": "c80dc477550589770287f45f01fab1450a364c2dc2196a9301dcb4e5c35db46c"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 3169,
+          "path": "source/cache_bank_control.cpp",
+          "sha256": "d790078c551cba34cbb3e32cad09d405a9a08d57d345e9756132d04f79922933"
+        },
+        {
+          "bytes": 609,
+          "path": "source/cache_full.cpp",
+          "sha256": "dfdfba14671774af0e6c34c5260cdb61443b562604ed3d7f06e70cac38e4dca2"
+        },
+        {
+          "bytes": 2308,
+          "path": "source/cache_full_control.cpp",
+          "sha256": "aa7f875a98fa2578a6ea7740844b14cb8868aaf6bec18213ee4ca5143e4366f5"
+        },
+        {
+          "bytes": 81,
+          "path": "source/runner/__init__.py",
+          "sha256": "144dc2612f7aca667306f65da967369d3f04ffb4303c548566fde6dac63445f4"
+        },
+        {
+          "bytes": 3889,
+          "path": "source/runner/analysis.py",
+          "sha256": "b78d7e7ce88126c99ecd7094cafcba46f499358ec8e9f72dc9a0132280b80c2b"
+        },
+        {
+          "bytes": 42052,
+          "path": "source/runner/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 3456,
+          "path": "source/runner/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 2304,
+          "path": "source/runner/preparation.py",
+          "sha256": "08f6ba2e59fe334093fde5bd94621adf2640158d2d01522cf99de3eba7e125a7"
+        },
+        {
+          "bytes": 3387,
+          "path": "source/runner/study.py",
+          "sha256": "437e72f7b63d97de7db20f8291922469ad718fadd51ba9f64913ec1a05288215"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "sha256": "7c181b7681ad6f6ca03c8fc4cbdbceaf0d96730091fee8e4f90981010de8b68b",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-full-original-v2",
+      "status": "FULL_ORIGINAL_RTL_PASS_NOT_TIMING_ADMISSION"
+    },
+    {
+      "archive": "g-cache-full-comparison-v1.tar.gz",
+      "arms": [
+        {
+          "arm": "original_full",
+          "same_row_incremental_cycles_per_update": null,
+          "state_control_calls": 6,
+          "target_5ns_met": true,
+          "top_clock_ns": 3.65,
+          "top_resources": {
+            "BRAM_18K": "30",
+            "DSP": "0",
+            "FF": "78911",
+            "LUT": "217980",
+            "URAM": "256"
+          }
+        },
+        {
+          "arm": "registered_full",
+          "error": "RuntimeError('insufficient available memory for process limit plus reserve')"
+        }
+      ],
+      "attempt": "g-cache-full-comparison-v1",
+      "bytes": 213760,
+      "files": [
+        {
+          "bytes": 1060,
+          "path": "original_full/execution.resources.json",
+          "sha256": "f3052485b69f21206d6de1a68af90a538e548223a21b725645b4ef419be55410"
+        },
+        {
+          "bytes": 0,
+          "path": "original_full/execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 7818823,
+          "path": "original_full/execution.stdout.txt",
+          "sha256": "27ed790816f3994ec115198975411adc8922d9adf4b57b0f3998adb7ca896bac"
+        },
+        {
+          "bytes": 3876456,
+          "path": "original_full/project/solution/csim/report/cache_full_probe_csim.log",
+          "sha256": "81dec32f70e84369baffa167bec3cb52a070227bcb5a69e7eb47f8c8dfe4e764"
+        },
+        {
+          "bytes": 1254,
+          "path": "original_full/project/solution/sim/report/cache_full_probe_cosim.rpt",
+          "sha256": "5263511ae23c5544d0f1f35fadf7d973dd26b5e3b267e0822a84b11f29b1663d"
+        },
+        {
+          "bytes": 1969,
+          "path": "original_full/project/solution/sim/report/cosim_options.xml",
+          "sha256": "7d604cfe724c59988ce2c6d771405c175708d64386dc88699710409a7e2d6cb5"
+        },
+        {
+          "bytes": 3894934,
+          "path": "original_full/project/solution/sim/report/verilog/cache_full_probe.log",
+          "sha256": "45688f2978ee8f001b69e731d0cb1f8fb56d7def41970be2505fd455581b04ec"
+        },
+        {
+          "bytes": 187,
+          "path": "original_full/project/solution/sim/report/verilog/lat.rpt",
+          "sha256": "0a565b4509ee704fef8ba7705645a11e2f54be7b2af830d7ff1c8a5b664d8093"
+        },
+        {
+          "bytes": 371,
+          "path": "original_full/project/solution/sim/report/verilog/result.transaction.rpt",
+          "sha256": "b48d3924f3c80e4daae1cb252e0ab842e1db1150d941ff48974f88382b0813d2"
+        },
+        {
+          "bytes": 3152,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_detection_unit.v",
+          "sha256": "d1fa1cf6d2fb6ff30c9bf539e24c9aea945bc1a865e901a648191742b2ea940f"
+        },
+        {
+          "bytes": 16415,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_detector.v",
+          "sha256": "7ed844d51ad9c2596fd2c6f0555b93c8120ac4662bf8982147037c1adec145d6"
+        },
+        {
+          "bytes": 1098,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_idx0_monitor.v",
+          "sha256": "7c6d0a7e5d4d2ab70161984765ea9c9d320b0b5a33b681892cc6a9c7c7c27434"
+        },
+        {
+          "bytes": 9150,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_kernel_monitor_top.v",
+          "sha256": "151cf25dffd5c9504b3c3cb4d315d63477f0250b3e3a94e3dc2e145693ef78db"
+        },
+        {
+          "bytes": 74633,
+          "path": "original_full/project/solution/sim/verilog/AESL_deadlock_report_unit.v",
+          "sha256": "d1bc602d5e6bd112c1dacac78840ecd3ba6821f4d5c345154696a3312499116b"
+        },
+        {
+          "bytes": 8499,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_detect_unit.sdb",
+          "sha256": "208d7b48371d26a52cdcbd19cf3e6cd22ca252baa66caa987d4446b49a302d70"
+        },
+        {
+          "bytes": 35785,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_detector.sdb",
+          "sha256": "c522997b97225c91d7da5c0c982d62f991f9db77ba16d0d8b8ae7161b7b7faca"
+        },
+        {
+          "bytes": 3204,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_idx0_monitor.sdb",
+          "sha256": "866f380bddf0b5ca03e0ad284661c66a247eecf1cc2aef3de90ad40679d7d4f8"
+        },
+        {
+          "bytes": 18158,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_kernel_monitor_top.sdb",
+          "sha256": "7bdd75c70493772dd07959baabd6850f6b5972f7fdc0e2ea85e24a29adbdf56b"
+        },
+        {
+          "bytes": 92150,
+          "path": "original_full/project/solution/sim/verilog/xsim.dir/xil_defaultlib/@a@e@s@l_deadlock_report_unit.sdb",
+          "sha256": "9506caab0ec84cc4d3b5e1efc24174c8416b53f0cf0c4d29c594d7fb28e29635"
+        },
+        {
+          "bytes": 2840,
+          "path": "original_full/project/solution/sim/verilog/xsim.log",
+          "sha256": "1a5a8d69679ff8c03d460a0821d2bfddb1a043937f95d7c3bfa103f5b2d1dc19"
+        },
+        {
+          "bytes": 14454,
+          "path": "original_full/project/solution/syn/report/cache_full_probe_csynth.rpt",
+          "sha256": "b1139e66e9aeec50accea5ae6572199ef94940a0f5430908fbfc6b8a3a0342af"
+        },
+        {
+          "bytes": 18993,
+          "path": "original_full/project/solution/syn/report/cache_full_probe_csynth.xml",
+          "sha256": "81f4295f8b8a26ad38ab1c7dd84efc745f143a9a36e7c9873d87e93a9e792e49"
+        },
+        {
+          "bytes": 125411,
+          "path": "original_full/project/solution/syn/report/csynth.rpt",
+          "sha256": "0c8b290caf48127d15c43bc391e4e744b1ffc58cacdeb04fa8910740b717cec5"
+        },
+        {
+          "bytes": 160770,
+          "path": "original_full/project/solution/syn/report/csynth.xml",
+          "sha256": "84171f1bf3f7dd4e8e165f165ea95d96ff9dd03e5104fbcb13e8d18f6a7f2549"
+        },
+        {
+          "bytes": 6521,
+          "path": "original_full/project/solution/syn/report/csynth_design_size.rpt",
+          "sha256": "6f515b63c16d537ea097c5260b9f1855875135affb7cc288154afeef1cc36a3c"
+        },
+        {
+          "bytes": 4245,
+          "path": "original_full/project/solution/syn/report/csynth_design_size.xml",
+          "sha256": "7db7b9b788de24e736c4270353e939407a72563470b4faddc4f34fea012875ee"
+        },
+        {
+          "bytes": 18936,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_VITIS_LOOP_19_1_csynth.rpt",
+          "sha256": "3a023a3be72f9bf8662f9dc237ae049cdb6f4ee3f5feb2bee71cbb52f73c3765"
+        },
+        {
+          "bytes": 24417,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_VITIS_LOOP_19_1_csynth.xml",
+          "sha256": "daef82f1f6aa8ce1fe9940ab6cbb27b5a1705e81a19810a2e9881585295561e9"
+        },
+        {
+          "bytes": 19325,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_dispatch_loop_csynth.rpt",
+          "sha256": "8b13f5bda24f8a2c0d4d91f42a45dd36f69878da76f0c2b28f4c4e83bff35716"
+        },
+        {
+          "bytes": 25790,
+          "path": "original_full/project/solution/syn/report/dispatch_update_Pipeline_dispatch_loop_csynth.xml",
+          "sha256": "d02fda29f6980ef6d557e543721b4cf1645b16e201d86f525812a3991a8fc797"
+        },
+        {
+          "bytes": 20683,
+          "path": "original_full/project/solution/syn/report/dispatch_update_csynth.rpt",
+          "sha256": "1ad38a952375c4577644f6ff95ce7e1fc4fcc551d22c4e3d20d286d8d637577a"
+        },
+        {
+          "bytes": 25290,
+          "path": "original_full/project/solution/syn/report/dispatch_update_csynth.xml",
+          "sha256": "fd9d934f926d3d5e757d8d4de739356c2374526eca2d9725b275aaffa6f6f6e4"
+        },
+        {
+          "bytes": 6128,
+          "path": "original_full/project/solution/syn/report/entry_proc_csynth.rpt",
+          "sha256": "458244fa4dc8d565a79bec10eface29fe6266d284ccca43df9ef717f55145c2c"
+        },
+        {
+          "bytes": 4514,
+          "path": "original_full/project/solution/syn/report/entry_proc_csynth.xml",
+          "sha256": "9570094154e6cb1bb9e72f5453d2d8055b26b452de8a4ecd9e506e371f196f6f"
+        },
+        {
+          "bytes": 14954,
+          "path": "original_full/project/solution/syn/report/process_1_csynth.rpt",
+          "sha256": "f8c6a81e6eab391294a069f9d783a64e3aaf4dc8a8e3a77e2e329c0b5444d014"
+        },
+        {
+          "bytes": 5957,
+          "path": "original_full/project/solution/syn/report/process_1_csynth.xml",
+          "sha256": "f02ef94e94fc01b3b9b1eb05804b77779efb00a288d2f6002f326e92b3c4a2b1"
+        },
+        {
+          "bytes": 20016,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_load_cache_csynth.rpt",
+          "sha256": "eca02902b9d14be32508a5db8121f3e50e2370712ead3f40f228d03fc684f003"
+        },
+        {
+          "bytes": 29429,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_load_cache_csynth.xml",
+          "sha256": "5fbde846bffcf5110e9d1ee340880bce63f67c16479bed1cf34e9b89d76f1a98"
+        },
+        {
+          "bytes": 19256,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_store_cache_csynth.rpt",
+          "sha256": "c38f74291abccfda5c19eaecae808020a185695e8d3a0ce6d339967589cc9bc5"
+        },
+        {
+          "bytes": 25682,
+          "path": "original_full/project/solution/syn/report/process_Pipeline_store_cache_csynth.xml",
+          "sha256": "d1ec3ddc6b80f2be38fa79630b19f68498b42035b381eb1a64bf5dd66420436e"
+        },
+        {
+          "bytes": 15032,
+          "path": "original_full/project/solution/syn/report/process_cache_1_csynth.rpt",
+          "sha256": "d029dcc1f1f48a4ad66b62e80c829504e5fe21358ece3f0b5989131eaee61b85"
+        },
+        {
+          "bytes": 15652,
+          "path": "original_full/project/solution/syn/report/process_cache_1_csynth.xml",
+          "sha256": "244890dc300f950b3f41b03ffeb8ada247e21f359ce7621865ae6661aea7d83d"
+        },
+        {
+          "bytes": 40125,
+          "path": "original_full/project/solution/syn/report/process_r_csynth.rpt",
+          "sha256": "faa208bda10389d0b5de29831fb2af1f5902dd4d82adf5f482b2471dd411df63"
+        },
+        {
+          "bytes": 35468,
+          "path": "original_full/project/solution/syn/report/process_r_csynth.xml",
+          "sha256": "b0e94ec1cb74e7b932406354fdf67ab0676063ad35dc7a1ac1bc39a11b3b33d7"
+        },
+        {
+          "bytes": 544,
+          "path": "original_full/run.tcl",
+          "sha256": "8efc312b0206b9af902239e3fc9dd18e77ae61f01af1ad160ebeaafb3b4931c4"
+        },
+        {
+          "bytes": 7818823,
+          "path": "original_full/vitis_hls.log",
+          "sha256": "27ed790816f3994ec115198975411adc8922d9adf4b57b0f3998adb7ca896bac"
+        },
+        {
+          "bytes": 592,
+          "path": "registered_full/run.tcl",
+          "sha256": "228757c17f0e18c3d54130dea786629bbfc905f62a18f552b5a8b4776b1480ad"
+        },
+        {
+          "bytes": 19157,
+          "path": "results.json",
+          "sha256": "980e5037dead40f90383c0fbf0df0e81525576e44527553343498c0c03bc6797"
+        },
+        {
+          "bytes": 1058,
+          "path": "source/cache_bank.cpp",
+          "sha256": "c414bbfa8c71303b4cd7d9096c50129cff6908df3180bcead73eee4c71093aff"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 3169,
+          "path": "source/cache_bank_control.cpp",
+          "sha256": "d790078c551cba34cbb3e32cad09d405a9a08d57d345e9756132d04f79922933"
+        },
+        {
+          "bytes": 2083,
+          "path": "source/cache_full.cpp",
+          "sha256": "47fb12749eeb9c75ae89d2807920ae13c4c4b6cc79f734c3d320f77acf7be58b"
+        },
+        {
+          "bytes": 2461,
+          "path": "source/cache_full_control.cpp",
+          "sha256": "d34e857f422a9ebe2bb6f708d44de739d084a03dfc890d47b3bcec5bf01900ec"
+        },
+        {
+          "bytes": 1773,
+          "path": "source/cache_lane.hpp",
+          "sha256": "c2f17ac29807cb61e212ab1e3cc6c0edc25ddf7a717261bf0a6fe9bb77750ef9"
+        },
+        {
+          "bytes": 81,
+          "path": "source/runner/__init__.py",
+          "sha256": "144dc2612f7aca667306f65da967369d3f04ffb4303c548566fde6dac63445f4"
+        },
+        {
+          "bytes": 4287,
+          "path": "source/runner/analysis.py",
+          "sha256": "4ab25ed7efb186acf7b0dd22c20d4c3592a13b8cdf252b0bd87f28c7dcceb580"
+        },
+        {
+          "bytes": 42052,
+          "path": "source/runner/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 5228,
+          "path": "source/runner/delivery.py",
+          "sha256": "61e5db1ac631a3b7402463278b8f3e0bf78b2b1ab40b114d7eb19c104956bb5f"
+        },
+        {
+          "bytes": 3456,
+          "path": "source/runner/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 2390,
+          "path": "source/runner/preparation.py",
+          "sha256": "ec921e3f937812bc1053ed15c7b019a7c97a1581bdd5a6196f5e80c116d9a6ea"
+        },
+        {
+          "bytes": 3736,
+          "path": "source/runner/study.py",
+          "sha256": "78e8c61fed441e22b9d9321cb84d0d3277a3face4328dc7c36862efe01bd3c63"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "sha256": "63b49d9d08ffaaa33e72729212d6a072c89f1c75e0d6fbca87847e881c0c2b26",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-full-comparison-v1",
+      "status": "FAILED_RETAINED"
+    },
+    {
+      "archive": "g-cache-full-comparison-v2.tar.gz",
+      "arms": [
+        {
+          "arm": "original_full",
+          "error": "RuntimeError('memory admission wait expired; no tool launched')"
+        },
+        {
+          "arm": "registered_full",
+          "error": "RuntimeError('memory admission wait expired; no tool launched')"
+        }
+      ],
+      "attempt": "g-cache-full-comparison-v2",
+      "bytes": 28437,
+      "files": [
+        {
+          "bytes": 544,
+          "path": "original_full/run.tcl",
+          "sha256": "8efc312b0206b9af902239e3fc9dd18e77ae61f01af1ad160ebeaafb3b4931c4"
+        },
+        {
+          "bytes": 592,
+          "path": "registered_full/run.tcl",
+          "sha256": "228757c17f0e18c3d54130dea786629bbfc905f62a18f552b5a8b4776b1480ad"
+        },
+        {
+          "bytes": 33700,
+          "path": "results.json",
+          "sha256": "79baaa6f61fe01058963aae63141124fef8f5b9427416367b577ce044470986e"
+        },
+        {
+          "bytes": 1058,
+          "path": "source/cache_bank.cpp",
+          "sha256": "c414bbfa8c71303b4cd7d9096c50129cff6908df3180bcead73eee4c71093aff"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 3169,
+          "path": "source/cache_bank_control.cpp",
+          "sha256": "d790078c551cba34cbb3e32cad09d405a9a08d57d345e9756132d04f79922933"
+        },
+        {
+          "bytes": 2083,
+          "path": "source/cache_full.cpp",
+          "sha256": "47fb12749eeb9c75ae89d2807920ae13c4c4b6cc79f734c3d320f77acf7be58b"
+        },
+        {
+          "bytes": 2461,
+          "path": "source/cache_full_control.cpp",
+          "sha256": "d34e857f422a9ebe2bb6f708d44de739d084a03dfc890d47b3bcec5bf01900ec"
+        },
+        {
+          "bytes": 1773,
+          "path": "source/cache_lane.hpp",
+          "sha256": "c2f17ac29807cb61e212ab1e3cc6c0edc25ddf7a717261bf0a6fe9bb77750ef9"
+        },
+        {
+          "bytes": 81,
+          "path": "source/runner/__init__.py",
+          "sha256": "144dc2612f7aca667306f65da967369d3f04ffb4303c548566fde6dac63445f4"
+        },
+        {
+          "bytes": 4287,
+          "path": "source/runner/analysis.py",
+          "sha256": "4ab25ed7efb186acf7b0dd22c20d4c3592a13b8cdf252b0bd87f28c7dcceb580"
+        },
+        {
+          "bytes": 42052,
+          "path": "source/runner/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 5228,
+          "path": "source/runner/delivery.py",
+          "sha256": "61e5db1ac631a3b7402463278b8f3e0bf78b2b1ab40b114d7eb19c104956bb5f"
+        },
+        {
+          "bytes": 3456,
+          "path": "source/runner/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 2390,
+          "path": "source/runner/preparation.py",
+          "sha256": "ec921e3f937812bc1053ed15c7b019a7c97a1581bdd5a6196f5e80c116d9a6ea"
+        },
+        {
+          "bytes": 4656,
+          "path": "source/runner/study.py",
+          "sha256": "d4383d50ba437c0a34800f3e62b369cfb2c790ed1e6315f75e18ef4062d2a16d"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "sha256": "00cf654d70e813dd6ecd93876ef9a18a47f17c601dbf72ccee9885c891b930cb",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-full-comparison-v2",
+      "status": "FAILED_RETAINED"
+    }
+  ],
+  "hardware_timing_admitted": false,
+  "new_spine_comparison_executed": false,
+  "production_baseline_admitted": false,
+  "publication_match_admitted": false,
+  "status": "CACHE_PROBE_CHECKPOINT_NOT_G_ADMISSION"
+}

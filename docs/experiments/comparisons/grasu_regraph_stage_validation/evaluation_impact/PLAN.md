@@ -35,7 +35,15 @@ This is a real hardware-port difference, not only a plotting problem.
 
 Status: source/finite replay passed; matched-input performance gate failed.
 
-The subsequent [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
+The [cache component controls](cache_probe/README.md) now examine original
+URAM behavior rather than making cached timing an assumption. Original
+single-bank and complete 16-bank C/RTL state checks pass; lower-LUT static
+wiring has a separately checked registered option. This does not close whole-G
+search timing, weighted ABI, two-half resource fit, or production admission.
+The probes also expose conservative same-row serialization in the independent
+reference model; any timing correction must preserve old evidence explicitly.
+
+The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
 share each unchanged hot AXI master, with no implicit cache. Large dispersed
 batches improve further but remain 17--23% slower than original G; large

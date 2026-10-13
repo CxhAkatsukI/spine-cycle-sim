@@ -25,7 +25,13 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
-The latest [hot-owner G checkpoint](hot_lanes/README.md) extends the study to
+The [hot-cache HLS/RTL controls](cache_probe/README.md) test the original
+full-depth URAM path and a separately registered lower-LUT candidate. Complete
+cache state, finite FIFO correctness and estimated clock are separate gates;
+neither the production G implementation nor simulator timing is changed by
+these component probes. Full G and publication admission remain open.
+
+The preceding [hot-owner G checkpoint](hot_lanes/README.md) extends the study to
 152 observations with explicit segment-ordered parallel RMW and unchanged
 physical traffic. It reproduces the old 84 observations exactly, but the
 complete performance gate still fails on large batches and same-key hazards.
