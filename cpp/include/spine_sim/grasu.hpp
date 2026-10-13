@@ -231,6 +231,22 @@ struct GraSuUpdateCounters {
   std::uint64_t end_cycle{};
 };
 
+// Read-only diagnostics avoid rebuilding logical graph counters per cycle.
+struct GraSuUpdateProgress {
+  std::array<bool, 4> searches_done{};
+  std::array<std::uint64_t, 4> completed{}, pma_reads{}, issued_write_bytes{};
+  std::array<std::size_t, 4> metadata_parents{}, metadata_parent_limits{};
+  bool dispatch_done{};
+};
+
+struct GraSuPortObservation {
+  std::string name;
+  std::size_t channel{};
+  AxiConfig config;
+  AxiStats stats;
+  std::uint64_t request_fifo_stalls{};
+};
+
 class GraSuPmaUpdateEngine {
 public:
   virtual ~GraSuPmaUpdateEngine() = default;
@@ -277,6 +293,8 @@ public:
   [[nodiscard]] bool failed() const noexcept override;
   [[nodiscard]] const std::string &failure() const noexcept override;
   [[nodiscard]] GraSuUpdateCounters counters() const override;
+  [[nodiscard]] GraSuUpdateProgress progress() const noexcept;
+  [[nodiscard]] std::vector<GraSuPortObservation> port_observations() const;
   [[nodiscard]] std::vector<GraSuEdge> live_edges() const override;
   [[nodiscard]] GraSuPartitionedPmaLayout
   materialized_partitioned_layout() const override;

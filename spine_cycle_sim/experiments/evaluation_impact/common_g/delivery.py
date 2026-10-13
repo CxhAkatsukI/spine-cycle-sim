@@ -22,6 +22,12 @@ def package_control(output, matrix, previous, *, analyze, required_status, statu
         if sha256_file(state) != row["state_sha256"]:
             raise ValueError("complete common-G output state changed")
     raw_sources = []
+    for row in report["rows"]:
+        if "diagnostics" in row:
+            path = matrix.parent / f'lat{row["latency"]}_{row["case"]}_{row["arm"]}.diagnostics.json'
+            if sha256_file(path) != row["diagnostics_sha256"] or json.loads(path.read_text()) != row["diagnostics"]:
+                raise ValueError("common-G diagnostic snapshot changed")
+            raw_sources.append((path.name, path))
     for step in report["steps"]:
         for key in ("stdout", "stderr"):
             path = Path(step[key])

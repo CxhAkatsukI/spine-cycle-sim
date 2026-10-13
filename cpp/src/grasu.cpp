@@ -1553,6 +1553,39 @@ public:
     return all_ports_idle();
   }
 
+  [[nodiscard]] GraSuUpdateProgress progress() const noexcept {
+    GraSuUpdateProgress result;
+    for (std::size_t index = 0; index < searches_.size(); ++index) {
+      result.searches_done[index] = searches_[index]->done();
+      result.completed[index] = processors_[index]->completed();
+      result.pma_reads[index] = processors_[index]->pma_reads();
+      for (const auto* port : processor_ports_[index].owned_registration_order)
+        result.issued_write_bytes[index] += port->master().stats().write_bytes;
+      const auto& master = search_ports_[index].rows->master();
+      result.metadata_parents[index] = master.pending_requests();
+      result.metadata_parent_limits[index] = master.config().max_pending_requests;
+    }
+    result.dispatch_done = dispatch_->done();
+    return result;
+  }
+
+  [[nodiscard]] std::vector<GraSuPortObservation> port_observations() const {
+    std::vector<GraSuPortObservation> result;
+    const auto append = [&result](const FixedAxiPort& port) {
+      const auto& master = port.master();
+      result.push_back({master.name(), port.channel(), master.config(), master.stats(),
+                        port.requests().stats().push_stalls});
+    };
+    for (const auto& ports : search_ports_) {
+      append(*ports.updates); append(*ports.rows);
+      if (ports.binary) append(*ports.binary);
+    }
+    for (const auto& ports : processor_ports_)
+      for (const auto* port : ports.owned_registration_order) append(*port);
+    if (degree_port_) append(*degree_port_);
+    return result;
+  }
+
   [[nodiscard]] GraSuUpdateCounters counters() const {
     GraSuUpdateCounters result;
     const auto account_axi_port = [&result](const FixedAxiPort &port) {
@@ -2179,6 +2212,14 @@ const std::string &GraSuPmaUpdateSystem::failure() const noexcept {
 
 GraSuUpdateCounters GraSuPmaUpdateSystem::counters() const {
   return impl_->counters();
+}
+
+GraSuUpdateProgress GraSuPmaUpdateSystem::progress() const noexcept {
+  return impl_->progress();
+}
+
+std::vector<GraSuPortObservation> GraSuPmaUpdateSystem::port_observations() const {
+  return impl_->port_observations();
 }
 
 std::vector<GraSuEdge> GraSuPmaUpdateSystem::live_edges() const {

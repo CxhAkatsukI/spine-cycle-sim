@@ -1,0 +1,725 @@
+{
+  "archive": {
+    "bytes": 74376,
+    "file": "regressions.tar.gz",
+    "sha256": "44b463f794f74aef1a2056ce2bcb22105766008ec82d8d23ab155f0860ab3546"
+  },
+  "baseline_admitted": false,
+  "candidate_sst_timing_admitted": false,
+  "checks": [
+    {
+      "available_before_bytes": 12794408960,
+      "command": [
+        "cmake",
+        "-S",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+        "-B",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "core-verification.json/0",
+      "peak_rss_kib": 151940,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step0.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.6042070249095559
+    },
+    {
+      "available_before_bytes": 12793049088,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "core-verification.json/1",
+      "peak_rss_kib": 700392,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 270.39627866307274
+    },
+    {
+      "available_before_bytes": 12660572160,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core",
+        "--output-on-failure",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "core-verification.json/2",
+      "peak_rss_kib": 95092,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 111.23926254082471
+    },
+    {
+      "available_before_bytes": 12718399488,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "final-core-verification.json/0",
+      "peak_rss_kib": 397488,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step0.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step0.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 90.50541993090883
+    },
+    {
+      "available_before_bytes": 12743438336,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core",
+        "--output-on-failure",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "final-core-verification.json/1",
+      "peak_rss_kib": 95188,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 111.24536967417225
+    },
+    {
+      "available_before_bytes": 11498188800,
+      "command": [
+        "/data/feiyang/sst/bin/sst-info",
+        "--add-lib-path=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst",
+        "spine_cycle"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "sst-verification/results.json/0",
+      "peak_rss_kib": 16204,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/info.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/info.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.053106789011508226
+    },
+    {
+      "available_before_bytes": 11495112704,
+      "command": [
+        "python3",
+        "scripts/run_sst_memory_smoke.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/memory",
+        "--channels",
+        "4",
+        "--requests",
+        "64"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "sst-verification/results.json/1",
+      "peak_rss_kib": 41040,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/memory-smoke.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/memory-smoke.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.2529109502211213
+    },
+    {
+      "available_before_bytes": 11490615296,
+      "command": [
+        "python3",
+        "scripts/run_sst_grasu_regraph_native.py",
+        "--no-build",
+        "--lib-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst",
+        "--out-dir",
+        "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/native",
+        "--max-cycles",
+        "1000000"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "sst-verification/results.json/2",
+      "peak_rss_kib": 84980,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/native-smoke.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/native-smoke.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.1051646210253239
+    },
+    {
+      "available_before_bytes": 11460218880,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_cached_hot",
+        "tests.test_grasu_hot_lanes",
+        "tests.test_grasu_parallel_search",
+        "tests.test_grasu_cache_probe",
+        "tests.test_grasu_cache_probe_delivery",
+        "tests.test_grasu_weighted_source_abi",
+        "tests.test_grasu_weighted_source_abi_delivery",
+        "tests.test_evaluation_impact",
+        "tests.test_repository_structure",
+        "tests.test_grasu_search_concurrency",
+        "tests.test_common_g_runner",
+        "tests.test_grasu_search_delivery",
+        "tests.test_grasu_search_diagnostics",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "python-verification/results.json/0",
+      "peak_rss_kib": 69208,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-final.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-final.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 1.15443579480052
+    },
+    {
+      "available_before_bytes": 11392667648,
+      "command": [
+        "make",
+        "-C",
+        "cpp/sst",
+        "-j1",
+        "BUILD_DIR=/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 2,
+      "name": "fresh-sst-build",
+      "peak_rss_kib": 1020260,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 146.6036316100508
+    },
+    {
+      "available_before_bytes": 11461627904,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_refactor_equivalence",
+        "tests.test_stage_validation_delivery",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "memory_limit_gib": 1,
+      "name": "retained-historical-identities",
+      "peak_rss_kib": 67992,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/historical-final.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/historical-final.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 7.215001360047609
+    },
+    {
+      "available_before_bytes": 12753035264,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_search_diagnostics",
+        "tests.test_common_g_runner",
+        "tests.test_grasu_cached_hot",
+        "tests.test_grasu_search_concurrency",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "retained-focused-attempt-v1.json/0",
+      "peak_rss_kib": 33292,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-v1.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-v1.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.6041843760758638
+    },
+    {
+      "available_before_bytes": 11469651968,
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "tests.test_grasu_search_diagnostics",
+        "tests.test_common_g_runner",
+        "-v"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "memory_limit_gib": 1,
+      "name": "retained-sidecars-attempt-v2.json/0",
+      "peak_rss_kib": 36236,
+      "reserve_gib": 8,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/sidecars-v2.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/sidecars-v2.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.5538582922890782
+    }
+  ],
+  "core_tests": 31,
+  "focused_python_tests": 97,
+  "hardware_timing_admitted": false,
+  "historical_identity": {
+    "current_mismatched_subassertions": 30,
+    "frozen_manifests_rewritten": false,
+    "mismatched_paths_with_repetitions": [
+      "cpp/include/spine_sim/axi.hpp",
+      "cpp/include/spine_sim/fixed_axi_port.hpp",
+      "cpp/include/spine_sim/grasu.hpp",
+      "cpp/include/spine_sim/memory_backend.hpp",
+      "cpp/src/axi.cpp",
+      "cpp/src/grasu.cpp",
+      "cpp/src/grasu_regraph.cpp",
+      "cpp/src/memory_backend.cpp",
+      "cpp/sst/sst_memory_backend.cpp",
+      "cpp/sst/sst_memory_backend.hpp",
+      "cpp/CMakeLists.txt",
+      "cpp/include/spine_sim/axi.hpp",
+      "cpp/include/spine_sim/fixed_axi_port.hpp",
+      "cpp/include/spine_sim/grasu.hpp",
+      "cpp/include/spine_sim/memory_backend.hpp",
+      "cpp/include/spine_sim/original_grasu/types.hpp",
+      "cpp/include/spine_sim/original_regraph/edge_reader.hpp",
+      "cpp/include/spine_sim/original_regraph/little_gather.hpp",
+      "cpp/include/spine_sim/original_regraph/little_merge.hpp",
+      "cpp/include/spine_sim/original_regraph/little_scatter.hpp",
+      "cpp/src/axi.cpp",
+      "cpp/src/grasu.cpp",
+      "cpp/src/grasu_regraph.cpp",
+      "cpp/src/memory_backend.cpp",
+      "cpp/src/original_grasu/hot_store.cpp",
+      "cpp/src/original_regraph/edge_reader.cpp",
+      "cpp/src/original_regraph/little_gather.cpp",
+      "cpp/src/original_regraph/little_merge.cpp",
+      "cpp/src/original_regraph/little_scatter.cpp",
+      "cpp/tests/original_grasu/system.hpp"
+    ],
+    "newly_changed_paths": [],
+    "previous_audit": {
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/python-verification/historical.json",
+      "sha256": "6a25aae8240e29f7b74884ffd405a86047e386f06f5e3cd75dffa1f2b014ea5e"
+    },
+    "previous_mismatched_subassertions": 30,
+    "reason": "Read-only accessors and test diagnostics change no previously frozen numerical identities beyond the already retained 30 mismatches. All 114 prior observations replay exactly.",
+    "suite_reported_green": false
+  },
+  "machine_local_identities": [
+    {
+      "bytes": 1349890,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/freeze/sources.tar.gz",
+      "sha256": "0c287dc85011788afc4a9966ded6810694fedfd5a4e31a6a673c39cdcae5804f"
+    },
+    {
+      "bytes": 3872550,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core/cpp/libspine_cycle_core.a",
+      "sha256": "bbef2fe44553464cfabfaf51dc04efe869918a44f69d6dfd5fd311c87710049f"
+    },
+    {
+      "bytes": 163512,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core/cpp/liboriginal_grasu_cycle.a",
+      "sha256": "5eb025de5f7e93d61d1e5fda5e625b3c9cb6ac59858a1967e24e70a6821de07d"
+    },
+    {
+      "bytes": 3671360,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst/libspine_cycle.so",
+      "sha256": "6ad3eb2af71a37522d9d11c23f9335a985f807dc411ba0febfd879c318c61610"
+    },
+    {
+      "bytes": 592312,
+      "path": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/matrix/build/common_g_execution",
+      "sha256": "a92e61ae7528a3ca7c7b045d2b1c130e8646195c4404b7b09adb999d9cb6b337"
+    }
+  ],
+  "members": [
+    {
+      "bytes": 874,
+      "member": "core-step0.resources.json",
+      "sha256": "b18cada9ddd8135d9258aa4a7fe02bba69e1ddc2e08de44b1e8bc0eaa3c5374e",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step0.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "core-step0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step0.stderr.txt"
+    },
+    {
+      "bytes": 440,
+      "member": "core-step0.stdout.txt",
+      "sha256": "6b19c3285baae680d269058e4c88c664216406ab52deb330694ad993bca47eab",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step0.stdout.txt"
+    },
+    {
+      "bytes": 737,
+      "member": "core-step1.resources.json",
+      "sha256": "174891e051d35e8c15a4f7ac3d2c0dac393375a5e996ba95bdef0070ab465709",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step1.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "core-step1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step1.stderr.txt"
+    },
+    {
+      "bytes": 16547,
+      "member": "core-step1.stdout.txt",
+      "sha256": "fd73722b21f4f1b09eda50df143fdaa25602edf0b69939693e1d933d921e3011",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step1.stdout.txt"
+    },
+    {
+      "bytes": 766,
+      "member": "core-step2.resources.json",
+      "sha256": "745e2c73195728f23cc222ec5a6e06b851ee3bd8f0dc56b7f5deaa622b50cb49",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step2.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "core-step2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step2.stderr.txt"
+    },
+    {
+      "bytes": 3945,
+      "member": "core-step2.stdout.txt",
+      "sha256": "29180f5c872d42d51d6e8b3e7523327c31c20aa7e770e5ce7ad8e885ba0ad5d8",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-step2.stdout.txt"
+    },
+    {
+      "bytes": 2687,
+      "member": "core-verification.json",
+      "sha256": "7cd7906a0fb391830e95d80d00735118061d746f814d4d6023f95b58c0db2549",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core-verification.json"
+    },
+    {
+      "bytes": 14987,
+      "member": "core/CMakeCache.txt",
+      "sha256": "84bc1b67a22aaebd0cf50a8e5b3ca5d4abf6110a4e7e1e9dde26dec55f798f76",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core/CMakeCache.txt"
+    },
+    {
+      "bytes": 74736,
+      "member": "core/compile_commands.json",
+      "sha256": "b2d0fa09dfc35c36f9f8c7b6d8916719ee18e344f3457806ce08efe380d095ac",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/core/compile_commands.json"
+    },
+    {
+      "bytes": 748,
+      "member": "final-core-step0.resources.json",
+      "sha256": "06c6cb42d00293c35b6a68cc39229d4b8fc58745ea05b4411107ec79a6433ea0",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step0.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "final-core-step0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step0.stderr.txt"
+    },
+    {
+      "bytes": 8337,
+      "member": "final-core-step0.stdout.txt",
+      "sha256": "ac398ac405c84e7b8e5471c2a962e1bb7335f378e8002e9a4cb5e0cd593e0add",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step0.stdout.txt"
+    },
+    {
+      "bytes": 778,
+      "member": "final-core-step1.resources.json",
+      "sha256": "4197a40b97fe93e28c0b77aaa8c45d873f9246bdd88f28b6bd70c2d3392a2dbf",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step1.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "final-core-step1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step1.stderr.txt"
+    },
+    {
+      "bytes": 3945,
+      "member": "final-core-step1.stdout.txt",
+      "sha256": "cf39648810b5304de9db8bd5a92c0293a0885a02d700b9681c11e3b76f07d3bf",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-step1.stdout.txt"
+    },
+    {
+      "bytes": 1753,
+      "member": "final-core-verification.json",
+      "sha256": "26a7fee9a408561e1bbd3e49d8b95613be79c1b00b7bf68023a367a18e0a45e0",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/final-core-verification.json"
+    },
+    {
+      "bytes": 201200,
+      "member": "freeze/manifest.json",
+      "sha256": "fca648b17ed4965e09a3e4283f2014af093f8cd25e42aada62fd48cddee56907",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/freeze/manifest.json"
+    },
+    {
+      "bytes": 986,
+      "member": "python-verification/focused-attempt-v1.json",
+      "sha256": "73e3251df1361fcc57266d6dcbab680b290c04ec80fef7d0c09a1af7a2e511e3",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-attempt-v1.json"
+    },
+    {
+      "bytes": 1216,
+      "member": "python-verification/focused-final.resources.json",
+      "sha256": "b641689f2325675a6740a4cd73b01421ac830f7ad291fc52ec157942811806cd",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-final.resources.json"
+    },
+    {
+      "bytes": 16183,
+      "member": "python-verification/focused-final.stderr.txt",
+      "sha256": "a8bddff1aee56bc1ba62c99180dd558dc6438af88f94d61784ec5af5ac46d000",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-final.stderr.txt"
+    },
+    {
+      "bytes": 630,
+      "member": "python-verification/focused-final.stdout.txt",
+      "sha256": "aca2bb0622ca8f0c3de2f56a2ed05129e79dc47c09f2352146e8b5b213a45276",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-final.stdout.txt"
+    },
+    {
+      "bytes": 845,
+      "member": "python-verification/focused-v1.resources.json",
+      "sha256": "947208673de669eff1df0af90e77b9f764e5cf7304e24a39312e6dfa48900510",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-v1.resources.json"
+    },
+    {
+      "bytes": 4281,
+      "member": "python-verification/focused-v1.stderr.txt",
+      "sha256": "b539450f6f86690758b6889a3cda547355025ec9aff703da88b50300f1e7bc72",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-v1.stderr.txt"
+    },
+    {
+      "bytes": 565,
+      "member": "python-verification/focused-v1.stdout.txt",
+      "sha256": "bc437c2a2380900a60134cac8c674c7a82832eadf1322f6b7657c59c9ec5c5bd",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/focused-v1.stdout.txt"
+    },
+    {
+      "bytes": 784,
+      "member": "python-verification/historical-final.resources.json",
+      "sha256": "451ca4ec06d6d02888018bbe4ba8be92bd911ef42cdb657bc177b72eb0325e6c",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/historical-final.resources.json"
+    },
+    {
+      "bytes": 41361,
+      "member": "python-verification/historical-final.stderr.txt",
+      "sha256": "7b53196f2a9fed34a9a9723c7f2f916c3ac4585d54eb6245d12235d4df71d96e",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/historical-final.stderr.txt"
+    },
+    {
+      "bytes": 0,
+      "member": "python-verification/historical-final.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/historical-final.stdout.txt"
+    },
+    {
+      "bytes": 2937,
+      "member": "python-verification/historical.json",
+      "sha256": "2a8cd0818099c56fa02bbdaa76b784e125345e40740e2041fda95ee537895c96",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/historical.json"
+    },
+    {
+      "bytes": 1412,
+      "member": "python-verification/results.json",
+      "sha256": "76938b6b07f418749d5101d3f42fc340102a1cb718698136116b5956e711fd36",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/results.json"
+    },
+    {
+      "bytes": 902,
+      "member": "python-verification/sidecars-attempt-v2.json",
+      "sha256": "1daa0376b613c659e1e671bc084cef70c53b744a28dd31477cd8056ff98cf1b4",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/sidecars-attempt-v2.json"
+    },
+    {
+      "bytes": 769,
+      "member": "python-verification/sidecars-v2.resources.json",
+      "sha256": "686d60f96673f3c4d257ed44f6ec7657674fa85de11ecef3156bb726cb92c8ac",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/sidecars-v2.resources.json"
+    },
+    {
+      "bytes": 1512,
+      "member": "python-verification/sidecars-v2.stderr.txt",
+      "sha256": "40d29ff0bb06db6b7c198749d307b52eb9d30cf3a5f862ba16c6641a12f48d9f",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/sidecars-v2.stderr.txt"
+    },
+    {
+      "bytes": 565,
+      "member": "python-verification/sidecars-v2.stdout.txt",
+      "sha256": "bc437c2a2380900a60134cac8c674c7a82832eadf1322f6b7657c59c9ec5c5bd",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/python-verification/sidecars-v2.stdout.txt"
+    },
+    {
+      "bytes": 779,
+      "member": "sst-verification/build.json",
+      "sha256": "dd6e9c0c3a3b299c2111f50eac61a75ec6e89f0da624049db8ac5862efac35b3",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/build.json"
+    },
+    {
+      "bytes": 779,
+      "member": "sst-verification/build.resources.json",
+      "sha256": "dd6e9c0c3a3b299c2111f50eac61a75ec6e89f0da624049db8ac5862efac35b3",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/build.resources.json"
+    },
+    {
+      "bytes": 8223,
+      "member": "sst-verification/build.stderr.txt",
+      "sha256": "0eb79a292ea5cc3b9a83d1ec080b7b68e5a618aef07ef145af95adf30647a93a",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/build.stderr.txt"
+    },
+    {
+      "bytes": 2565,
+      "member": "sst-verification/build.stdout.txt",
+      "sha256": "5c5332f791a776cc7061d27280c218e46406f8b8a4e40f7e2195d5e405a7dc01",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/build.stdout.txt"
+    },
+    {
+      "bytes": 792,
+      "member": "sst-verification/info.resources.json",
+      "sha256": "a6769e15bce7ffc186ac96646c29ca0fa764abf62564bdb6c8eaeedf2eea43ab",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/info.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/info.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/info.stderr.txt"
+    },
+    {
+      "bytes": 16327,
+      "member": "sst-verification/info.stdout.txt",
+      "sha256": "de04c98adc0d623690da9f45f5d0aedf44be34a80caf20e750f645acc08d3ec0",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/info.stdout.txt"
+    },
+    {
+      "bytes": 1012,
+      "member": "sst-verification/memory-smoke.resources.json",
+      "sha256": "ebe59949f4d5c506d2e640ef291ce002576e37899bf35a4a3d7662d234eb2cb6",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/memory-smoke.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/memory-smoke.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/memory-smoke.stderr.txt"
+    },
+    {
+      "bytes": 323,
+      "member": "sst-verification/memory-smoke.stdout.txt",
+      "sha256": "b9c7572628d8547addea3e11533ab41570f33e24db898d52c02df31bff08e69e",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/memory-smoke.stdout.txt"
+    },
+    {
+      "bytes": 3971,
+      "member": "sst-verification/memory/summary.json",
+      "sha256": "077a2d3625971071afcbb1e6f89155e814f41da4ee8b83dc586eb268fbd5bba8",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/memory/summary.json"
+    },
+    {
+      "bytes": 1000,
+      "member": "sst-verification/native-smoke.resources.json",
+      "sha256": "9c0a93daec8627b311ed50304365d15f5781fe1d58727c4f84167523bbbbfb44",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/native-smoke.resources.json"
+    },
+    {
+      "bytes": 0,
+      "member": "sst-verification/native-smoke.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/native-smoke.stderr.txt"
+    },
+    {
+      "bytes": 84,
+      "member": "sst-verification/native-smoke.stdout.txt",
+      "sha256": "64073bace3c2f4fd68851a4fbe1989b69870a5e81201d44bf69fbd91c7c1fe3c",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/native-smoke.stdout.txt"
+    },
+    {
+      "bytes": 2879,
+      "member": "sst-verification/native/result.json",
+      "sha256": "febadbe1513eb4d1efa84d40629a78615bb6ff9b07270700e62ab2d6e5857559",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/native/result.json"
+    },
+    {
+      "bytes": 3159,
+      "member": "sst-verification/results.json",
+      "sha256": "01f58f6c09b42fb95d67be6105c7d99246b7045d8bcfd830e26f410c93d2e2f9",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-diagnostics-v1/sst-verification/results.json"
+    }
+  ],
+  "new_spine_comparison_executed": false,
+  "publication_match_admitted": false,
+  "sst_exact_default_smokes": [
+    {
+      "file": "memory/summary.json",
+      "previous": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/memory/summary.json",
+      "previous_sha256": "077a2d3625971071afcbb1e6f89155e814f41da4ee8b83dc586eb268fbd5bba8"
+    },
+    {
+      "file": "native/result.json",
+      "previous": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-search-concurrency-v1/sst-verification/native/result.json",
+      "previous_sha256": "febadbe1513eb4d1efa84d40629a78615bb6ff9b07270700e62ab2d6e5857559"
+    }
+  ],
+  "status": "REGRESSIONS_PASS_PERFORMANCE_REFERENCE_AND_HARDWARE_GATES_OPEN"
+}

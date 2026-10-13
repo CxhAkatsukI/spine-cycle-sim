@@ -51,6 +51,15 @@ stage overlap before choosing a resource-accounted correction; do not infer
 its cause solely from the different master counts. Production admission
 remains open, separately from these prediction and regression checks.
 
+The [read-only progress/port study](search_diagnostics/README.md) now replays
+all 114 selected original/16-context/64-context rows exactly across the full
+nineteen-input declaration and both latencies. Search ends late while cache
+preload ends earlier; the final writeback tail matches the original. The
+candidate's single metadata master is often credit-limited. Next test explicit
+metadata-parent/burst/FIFO budgets without changing physical banks or timing,
+retaining old arms and recording added buffering resources. Pressure alone
+does not prove a fix or authorize production/FPGA admission.
+
 The [cache component controls](cache_probe/README.md) now examine original
 URAM behavior rather than making cached timing an assumption. Original
 single-bank and complete 16-bank C/RTL state checks pass; lower-LUT static

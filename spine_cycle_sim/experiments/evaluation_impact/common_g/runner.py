@@ -20,6 +20,7 @@ class Study:
     metadata: dict
     status: str
     summary_keys: tuple
+    diagnostics: bool = False
 
 
 def run(output, core_build, previous, study):
@@ -69,13 +70,21 @@ def run(output, core_build, previous, study):
             label = f"lat{latency}_{name}_{arm}"
             state = output / (label + ".u32le")
             try:
-                step = execute(["taskset", "-c", affinity, str(binary), str(output / "inputs" / name),
-                                str(state), str(latency), arm], label)
+                command = ["taskset", "-c", affinity, str(binary), str(output / "inputs" / name),
+                           str(state), str(latency), arm]
+                diagnostic = output / (label + ".diagnostics.json")
+                if study.diagnostics:
+                    command.append(str(diagnostic))
+                step = execute(command, label)
                 tag, _, body = Path(step["stdout"]).read_text().strip().partition(" ")
                 if tag != "COMMON_G_RESULT":
                     raise ValueError("missing unique common-G observation")
-                report["rows"].append({"latency": latency, "case": name, "updates": count,
-                    "arm": arm, "observation": json.loads(body), "state_sha256": sha256_file(state)})
+                row = {"latency": latency, "case": name, "updates": count,
+                    "arm": arm, "observation": json.loads(body), "state_sha256": sha256_file(state)}
+                if study.diagnostics:
+                    row.update(diagnostics=json.loads(diagnostic.read_text()),
+                               diagnostics_sha256=sha256_file(diagnostic))
+                report["rows"].append(row)
             except ValueError as error:
                 report["errors"].append({"case": label, "error": str(error)})
             save()

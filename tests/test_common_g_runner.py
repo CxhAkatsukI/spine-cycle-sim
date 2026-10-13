@@ -9,7 +9,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.cached_hot import st
 
 
 class CommonGRunnerTests(unittest.TestCase):
-    def run_fixture(self, directory, failure=None):
+    def run_fixture(self, directory, failure=None, diagnostics=False):
         root = Path(directory)
         core = root / "core"
         for name in ("core/liboriginal_grasu_cycle.a", "core/libspine_cycle_core.a",
@@ -33,7 +33,7 @@ class CommonGRunnerTests(unittest.TestCase):
             return {"marker": 12}
 
         study = runner.Study("toy", lambda: [(64, "one", 1, "new")], prepare,
-                             analyze, {"hardware_timing_admitted": False}, "TOY_COMPLETE", ("marker",))
+                             analyze, {"hardware_timing_admitted": False}, "TOY_COMPLETE", ("marker",), diagnostics)
 
         def execute(command, cwd, base, **limits):
             commands.append(command)
@@ -51,6 +51,7 @@ class CommonGRunnerTests(unittest.TestCase):
             if command[0] == "taskset":
                 Path(command[5]).write_text("full state")
                 stdout.write_text("COMMON_G_RESULT " + json.dumps({"arm": "new", "cycles": 1}))
+                if diagnostics: Path(command[-1]).write_text('{"marker":12}')
                 if failure == "pin": previous.write_text('{"changed":true}')
                 if failure == "parse": stdout.write_text("wrong tag")
             return {"stdout": str(stdout), "stderr": str(stderr),
@@ -81,6 +82,13 @@ class CommonGRunnerTests(unittest.TestCase):
             with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
                 report, _ = self.run_fixture(directory, failure)
                 if failure == "parse": self.assertEqual(len(report["errors"]), 1)
+
+    def test_optional_diagnostics_keeps_cli_state_and_output_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            report, commands = self.run_fixture(directory, diagnostics=True)
+        self.assertEqual(report["rows"][0]["diagnostics"], {"marker": 12})
+        self.assertEqual(len(report["rows"][0]["diagnostics_sha256"]), 64)
+        self.assertEqual(len(commands[-1]), 9)
 
     def test_cached_public_wrapper_keeps_original_declaration_and_status(self):
         with patch.object(cached, "execute_study", return_value="delegated") as execute:

@@ -25,6 +25,14 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [read-only search/port diagnostics](search_diagnostics/README.md) exactly
+replay 114 original/16-context/64-context observations across all nineteen
+inputs and both memory assumptions. Large-batch differences precede cache
+writeback, with the candidate's search ending later despite earlier preload.
+Per-port credit observations motivate a separate resource-accounted control;
+they are not proof that extra credits solve the gap or FPGA timing calibration.
+The complete performance gate remains failed.
+
 The [search-concurrency controls](search_concurrency/README.md) retain all
 190 cached-G observations and add explicit 64-context and original same-row
 forwarding arms. All 266 observations pass state/work/traffic checks and the
