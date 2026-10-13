@@ -49,7 +49,9 @@ void FiniteSearch::memory() {
                            std::uint64_t(request->address) * 8;
       if (metadata_.requests().try_push(AxiRequest{
           .transaction_id = state_.metadata_issued, .operation = MemoryOperation::kRead,
-          .address = address, .bytes = 8, .stream_read_beats = false, .write_data = {}})) {
+          .address = address, .bytes = 8, .stream_read_beats = false,
+          .target_channel = request->binary ? metadata_channels_.binary : metadata_channels_.row,
+          .write_data = {}})) {
         next_.pending_lanes[state_.metadata_issued % kMetadataCredits] = request->lane;
         ++next_.metadata_issued;
         (request->binary ? next_.probes : next_.rows)++;

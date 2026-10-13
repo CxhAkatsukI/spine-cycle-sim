@@ -52,7 +52,8 @@ public:
   FiniteSearch(std::string name, ClockId clock, std::size_t cu, std::size_t count,
                std::uint64_t update_base, std::uint64_t row_base,
                std::uint64_t binary_base, FixedAxiPort& updates,
-               FixedAxiPort& metadata, Fifo<LocatedUpdate>& output);
+               FixedAxiPort& metadata, Fifo<LocatedUpdate>& output,
+               SearchMetadataChannels channels);
   bool done() const noexcept override;
   bool failed() const noexcept override { return !failure_.empty(); }
   const std::string& failure() const noexcept override { return failure_; }
@@ -87,6 +88,7 @@ private:
 
   std::size_t cu_{}, count_{};
   std::uint64_t update_base_{}, row_base_{}, binary_base_{};
+  SearchMetadataChannels metadata_channels_;
   FixedAxiPort &updates_, &metadata_;
   Fifo<LocatedUpdate>& output_;
   std::vector<Component*> queues_;

@@ -25,6 +25,11 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [finite-search bank-routing study](composition/banked/README.md) connects
+independently placed row/binary metadata without adding masters, credits or
+issue bandwidth. It checks physical G-to-R handoff and exact replay separately
+from the full cached candidate's still-open sharded performance gate.
+
 The [resident G-to-R handoff](composition/README.md) adds an explicit,
 default-off route that validates and reuses G's physical PMA rather than
 rebuilding R input from logical edges. Its complete small matrix covers

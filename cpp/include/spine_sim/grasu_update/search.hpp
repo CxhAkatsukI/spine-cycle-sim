@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -46,10 +47,15 @@ std::unique_ptr<Search> make_parallel_search(
     std::size_t contexts = 16);
 
 // Explicit finite-stage HLS candidate; legacy parallel search is unchanged.
+struct SearchMetadataChannels {
+  std::optional<std::size_t> row, binary;
+};
+
 std::unique_ptr<Search> make_finite_search(
     std::string name, ClockId clock, std::size_t cu, std::size_t count,
     std::uint64_t update_base, std::uint64_t row_base,
     std::uint64_t binary_base, FixedAxiPort& updates,
-    FixedAxiPort& metadata, Fifo<LocatedUpdate>& output);
+    FixedAxiPort& metadata, Fifo<LocatedUpdate>& output,
+    SearchMetadataChannels channels = {});
 
 }  // namespace spine::sim::grasu_update_detail

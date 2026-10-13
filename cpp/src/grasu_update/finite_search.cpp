@@ -9,11 +9,15 @@ namespace spine::sim::grasu_update_detail::finite {
 FiniteSearch::FiniteSearch(std::string name, ClockId clock, std::size_t cu,
     std::size_t count, std::uint64_t update_base, std::uint64_t row_base,
     std::uint64_t binary_base, FixedAxiPort& updates, FixedAxiPort& metadata,
-    Fifo<LocatedUpdate>& output)
+    Fifo<LocatedUpdate>& output, SearchMetadataChannels channels)
     : Search(std::move(name), clock), cu_(cu), count_(count),
       update_base_(update_base), row_base_(row_base), binary_base_(binary_base),
+      metadata_channels_(channels),
       updates_(updates), metadata_(metadata), output_(output) {
   if (cu >= 4) throw std::invalid_argument("finite search CU out of range");
+  for (const auto channel : {channels.row, channels.binary})
+    if (channel && *channel >= metadata.master().config().channels)
+      throw std::invalid_argument("finite search metadata channel out of range");
   input_ = channel<Input>("input", 2, 64);
   for (std::size_t lane = 0; lane < kLanes; ++lane) {
     const auto label = std::to_string(lane);
@@ -104,8 +108,8 @@ namespace spine::sim::grasu_update_detail {
 std::unique_ptr<Search> make_finite_search(std::string name, ClockId clock,
     std::size_t cu, std::size_t count, std::uint64_t update_base,
     std::uint64_t row_base, std::uint64_t binary_base, FixedAxiPort& updates,
-    FixedAxiPort& metadata, Fifo<LocatedUpdate>& output) {
+    FixedAxiPort& metadata, Fifo<LocatedUpdate>& output, SearchMetadataChannels channels) {
   return std::make_unique<finite::FiniteSearch>(std::move(name), clock, cu, count,
-      update_base, row_base, binary_base, updates, metadata, output);
+      update_base, row_base, binary_base, updates, metadata, output, channels);
 }
 }  // namespace spine::sim::grasu_update_detail

@@ -7,6 +7,10 @@ while starting at the old graph's converged distances and reaching the new
 graph's converged distances? This is a **correctness and boundary test**, not
 a matched-performance, original-publication or FPGA claim.
 
+This page preserves the **direct-G checkpoint**. The subsequent
+[finite-search bank-routing study](banked/README.md) tests independent metadata
+banks and sharded physical handoff, separately from full cached performance.
+
 The preceding independent R study constructs its post-update PMA from logical
 edges before timing. That remains valid for its stated compute-only boundary,
 but does not establish G-to-R physical integration. This study closes that
@@ -25,9 +29,10 @@ specific test gap; it does not retroactively expand the earlier boundary.
 - Old graph allocation, all untouched shards, converged state and active seed
   are caller-prepared outside the device windows. In particular, seed `{0}`
   for the weight decreases is not device-generated or a measured host window.
-- This uses **unchanged direct sharded G**, not the finite cached/search
-  candidate. The latter still requires single-window, same-channel row/binary
-  metadata and full cache geometry; complete 23-channel integration is open.
+- This checkpoint uses **unchanged direct sharded G**, not the finite
+  cached/search candidate. At its frozen revision the latter required
+  same-channel metadata. The subsequent bank-routing study removes that
+  finite-search restriction; full cached integration remains separate.
 - R SSSP runs to quiescence, not one hop. An independent Dijkstra checks every
   final distance; source replicas, traffic conservation and unchanged PMA
   bytes are also checked. Inspection is a test oracle, not modeled bandwidth.

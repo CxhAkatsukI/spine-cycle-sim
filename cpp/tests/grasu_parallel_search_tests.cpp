@@ -21,11 +21,13 @@ std::vector<std::uint8_t> bytes(const std::vector<std::uint64_t>& words) {
 }
 
 std::uint64_t run(unsigned count, bool reverse, bool invalid_row = false,
-                  std::size_t contexts = 16, bool finite = false, bool stalled = true) {
+                  std::size_t contexts = 16, bool finite = false, bool stalled = true,
+                  bool routed = false) {
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("G", 200);
-  MockMemoryBackend backend("memory", clock, {1, 64, 1, 4, 64, true});
-  const FixedAxiPortConfig cfg{.memory_channels = 1, .channel = 0,
+  const auto banks = routed ? 3U : 1U;
+  MockMemoryBackend backend("memory", clock, {banks, 64, 1, 4, 64, true});
+  const FixedAxiPortConfig cfg{.memory_channels = banks, .channel = 0,
       .initiator_id = 1, .data_width_bytes = 8, .request_fifo_depth = 2,
       .response_fifo_depth = 2, .max_pending_requests = 4,
       .max_outstanding_bursts = 4};
@@ -40,10 +42,17 @@ std::uint64_t run(unsigned count, bool reverse, bool invalid_row = false,
     input.push_back((std::uint64_t(index & 1) << 63) |
         encode_grasu_pma_edge(11 + (index % 4) * 10, 7));
   backend.initialize_payload(0, 0, bytes(input));
-  backend.initialize_payload(0, 0x2000, bytes({invalid_row ? 0ULL : 64ULL}));
-  backend.initialize_payload(0, 0x4000, bytes(heads));
+  backend.initialize_payload(routed ? 1 : 0, 0x2000, bytes({invalid_row ? 0ULL : 64ULL}));
+  backend.initialize_payload(routed ? 2 : 0, 0x4000, bytes(heads));
+  if (routed) {
+    // Wrong-bank payloads must not accidentally let an ignored route pass.
+    backend.initialize_payload(0, 0x2000, bytes({0}));
+    backend.initialize_payload(0, 0x4000, bytes({0, 0, 0, 0}));
+    backend.initialize_payload(1, 0x4000, bytes({0, 0, 0, 0}));
+  }
+  const SearchMetadataChannels channels = routed ? SearchMetadataChannels{1, 2} : SearchMetadataChannels{};
   auto search = finite
-      ? make_finite_search("search", clock, 1, count, 0, 0x2000, 0x4000, updates, metadata, output)
+      ? make_finite_search("search", clock, 1, count, 0, 0x2000, 0x4000, updates, metadata, output, channels)
       : make_parallel_search("search", clock, 1, count, 0,
                              0x2000, 0x4000, updates, metadata, output, contexts);
   if (reverse) {
@@ -82,6 +91,8 @@ std::uint64_t run(unsigned count, bool reverse, bool invalid_row = false,
         " failure=" + search->failure());
   require(search->row_reads() == count, "search row ledger mismatch");
   require(search->binary_probes() == count * 2, "search binary ledger mismatch");
+  require(metadata.master().stats().read_bytes == count * 24,
+          "metadata routing changed accepted bytes");
   if (stalled && count > 1) require(output.stats().push_stalls != 0, "output backpressure not exercised");
   if (finite) {
     const auto channels = search->channels();
@@ -220,6 +231,26 @@ void reject_bad_finite_response(bool metadata_fault, unsigned fault) {
   require(search->failure().find(expected) != std::string::npos,
           "bad finite AXI response failed for an unrelated reason");
 }
+
+void reject_bad_metadata_channel(bool binary) {
+  Scheduler scheduler;
+  const auto clock = scheduler.add_clock_mhz("G", 200);
+  MockMemoryBackend backend("memory", clock, {3, 1, 1, 1, 64, true});
+  const FixedAxiPortConfig config{.memory_channels = 3, .channel = 0};
+  FixedAxiPort updates("updates", clock, config, backend);
+  auto other = config; other.initiator_id = 1;
+  FixedAxiPort metadata("metadata", clock, other, backend);
+  Fifo<LocatedUpdate> output("output", clock, 1);
+  bool rejected = false;
+  try {
+    make_finite_search("search", clock, 0, 1, 0, 0x2000, 0x4000, updates, metadata, output,
+                       binary ? SearchMetadataChannels{0, 3} : SearchMetadataChannels{3, 0});
+  } catch (const std::invalid_argument& error) {
+    rejected = std::string(error.what()).find("metadata channel out of range") != std::string::npos;
+  }
+  require(rejected && backend.traffic_stats().reads.requests == 0,
+          "invalid finite route was not rejected before traffic");
+}
 }  // namespace
 
 int main() {
@@ -254,6 +285,13 @@ int main() {
     finite_geometry_configuration(true, 64, 64, false);
     for (const auto metadata : {false, true})
       for (unsigned fault = 0; fault < 5; ++fault) reject_bad_finite_response(metadata, fault);
+    for (const auto count : {0U, 1U, 63U, 64U, 65U, 129U, 257U})
+      for (const auto stalled : {false, true})
+        require(run(count, false, false, 64, true, stalled, true) ==
+                run(count, true, false, 64, true, stalled, true),
+                "banked finite search depends on registration order");
+    run(1, false, true, 64, true, false, true);
+    for (const auto binary : {false, true}) reject_bad_metadata_channel(binary);
     std::cout << "parallel search finite/backpressure/order/weight/error tests pass\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }
