@@ -119,11 +119,17 @@ The resource differences are explicit rather than hidden inside the ratio:
 
 | Resource | Original A4 | Both K4 arms |
 | --- | --- | --- |
-| AXI endpoint / master organization | 13 endpoints on 9 masters | 9 masters |
+| AXI master organization | 13 distinct masters on 9 physical banks | 9 masters; graph placement is runtime-dependent |
 | Physical source-state banks | 4 | 2, shared by four frontends |
 | Apply parent-request window | 2 | 16 |
 | Final state replicas | 4 | 3 plus status |
 | Clock | 150 MHz | 150 MHz |
+
+The [constructor-only resource audit](r_resources/README.md) verifies this
+master count and corrects the previous table's conflation of masters with
+physical banks. It changes no historical timing observation. A4's observed
+parent credits are 2 per master; K4 declares 16. The close candidate/A4 ratio
+therefore remains configuration-specific, not strict resource-match evidence.
 
 The candidate additionally uses 1024-row directory tiles, two 256-line bank
 FIFOs (32 KiB total), a sixteen-segment queue and progressive read-beat

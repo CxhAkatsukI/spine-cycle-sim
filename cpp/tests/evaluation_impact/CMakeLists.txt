@@ -5,3 +5,6 @@ add_subdirectory("${SPINE_REPO_ROOT}" "${CMAKE_CURRENT_BINARY_DIR}/simulator" EX
 add_executable(regraph_convergence_demo convergence.cpp)
 target_link_libraries(regraph_convergence_demo PRIVATE original_regraph_cycle)
 target_compile_options(regraph_convergence_demo PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_executable(regraph_resource_audit resources.cpp)
+target_link_libraries(regraph_resource_audit PRIVATE original_regraph_cycle)
+target_compile_options(regraph_resource_audit PRIVATE -Wall -Wextra -Wpedantic -Werror)

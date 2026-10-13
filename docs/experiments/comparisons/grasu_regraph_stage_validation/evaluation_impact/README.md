@@ -25,6 +25,12 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [R resource audit](r_resources/README.md) corrects a summary-table error:
+original A4 has 13 distinct masters on 9 physical banks, while K4 registers
+9 masters. It verifies constructed resources without executing a round or
+changing model timing. Different credits, banks and replicas still prevent
+strict resource-match admission for the preceding close R prediction.
+
 The [finite search pipeline](search_pipeline/README.md) is the isolated HLS
 feasibility follow-up: 64 ordered contexts, hierarchical arbitration, explicit
 32-entry metadata FIFOs and bounded source backpressure controls. It does not

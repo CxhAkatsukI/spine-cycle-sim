@@ -1,0 +1,853 @@
+{
+  "analysis": {
+    "a4": {
+      "clock_period_fs": 6666667,
+      "constructor_only": true,
+      "distinct_masters": 13,
+      "physical_banks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        30
+      ],
+      "registered_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        100,
+        200,
+        201,
+        202,
+        203
+      ],
+      "source_banks": [
+        1,
+        3,
+        5,
+        7
+      ]
+    },
+    "a4_master_count": 13,
+    "a4_physical_bank_count": 9,
+    "a4_ports": [
+      {
+        "burst_credits": 16,
+        "channel": 0,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 0,
+        "initiator": 1,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "edge"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 1,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 0,
+        "initiator": 2,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "source"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 2,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 1,
+        "initiator": 3,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "edge"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 3,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 1,
+        "initiator": 4,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "source"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 4,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 2,
+        "initiator": 5,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "edge"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 5,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 2,
+        "initiator": 6,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "source"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 6,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 3,
+        "initiator": 7,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "edge"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 7,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 3,
+        "initiator": 8,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "source"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 30,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 0,
+        "initiator": 100,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "apply_read"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 1,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 0,
+        "initiator": 200,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "write"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 3,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 1,
+        "initiator": 201,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "write"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 5,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 2,
+        "initiator": 202,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "write"
+      },
+      {
+        "burst_credits": 16,
+        "channel": 7,
+        "data_width_bytes": 64,
+        "independent_read_write": false,
+        "index": 3,
+        "initiator": 203,
+        "parent_credits": 2,
+        "request_fifo": 8,
+        "response_fifo": 8,
+        "role": "write"
+      }
+    ],
+    "hardware_timing_admitted": false,
+    "k4": [
+      {
+        "arm": "cross_row",
+        "clock_period_fs": 6666667,
+        "constructor_only": true,
+        "declared_apply_window": 16,
+        "declared_bank_fifo_lines": 0,
+        "declared_burst_credits": 16,
+        "declared_directory_rows": 8,
+        "declared_graph_bank_budget": 23,
+        "declared_parent_credits": 16,
+        "declared_primary_bank": 30,
+        "declared_shared_capacity": 32,
+        "declared_source_banks": [
+          23,
+          24
+        ],
+        "regions": [
+          {
+            "allocated_bytes": 4096,
+            "channel": 4,
+            "name": "update0",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 0,
+            "name": "pma0",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 10,
+            "name": "update1",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 9,
+            "name": "pma1",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 16,
+            "name": "update2",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 12,
+            "name": "pma2",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 19,
+            "name": "update3",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 18,
+            "name": "pma3",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 1576960,
+            "channel": 4,
+            "name": "row",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 8,
+            "name": "binary",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 5,
+            "name": "update0",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 1,
+            "name": "pma0",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 9,
+            "name": "update1",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 8,
+            "name": "pma1",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 17,
+            "name": "update2",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 13,
+            "name": "pma2",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 21,
+            "name": "update3",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 20,
+            "name": "pma3",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 1576960,
+            "channel": 5,
+            "name": "row",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 11,
+            "name": "binary",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 4,
+            "name": "update0",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 2,
+            "name": "pma0",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 11,
+            "name": "update1",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 10,
+            "name": "pma1",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 16,
+            "name": "update2",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 14,
+            "name": "pma2",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 19,
+            "name": "update3",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 18,
+            "name": "pma3",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 1576960,
+            "channel": 6,
+            "name": "row",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 22,
+            "name": "binary",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 5,
+            "name": "update0",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 3,
+            "name": "pma0",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 9,
+            "name": "update1",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 8,
+            "name": "pma1",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 16,
+            "name": "update2",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 15,
+            "name": "pma2",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 21,
+            "name": "update3",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 20,
+            "name": "pma3",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 1576960,
+            "channel": 7,
+            "name": "row",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 17,
+            "name": "binary",
+            "shard": 3
+          }
+        ],
+        "registered_ids": [
+          600,
+          601,
+          602,
+          603,
+          604,
+          605,
+          606,
+          607,
+          608
+        ]
+      },
+      {
+        "arm": "candidate",
+        "clock_period_fs": 6666667,
+        "constructor_only": true,
+        "declared_apply_window": 16,
+        "declared_bank_fifo_lines": 256,
+        "declared_burst_credits": 16,
+        "declared_directory_rows": 1024,
+        "declared_graph_bank_budget": 23,
+        "declared_parent_credits": 16,
+        "declared_primary_bank": 30,
+        "declared_shared_capacity": 32,
+        "declared_source_banks": [
+          23,
+          24
+        ],
+        "regions": [
+          {
+            "allocated_bytes": 4096,
+            "channel": 4,
+            "name": "update0",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 0,
+            "name": "pma0",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 10,
+            "name": "update1",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 9,
+            "name": "pma1",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 16,
+            "name": "update2",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 12,
+            "name": "pma2",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 19,
+            "name": "update3",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 18,
+            "name": "pma3",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 1576960,
+            "channel": 4,
+            "name": "row",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 8,
+            "name": "binary",
+            "shard": 0
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 5,
+            "name": "update0",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 1,
+            "name": "pma0",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 9,
+            "name": "update1",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 8,
+            "name": "pma1",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 17,
+            "name": "update2",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 13,
+            "name": "pma2",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 21,
+            "name": "update3",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 20,
+            "name": "pma3",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 1576960,
+            "channel": 5,
+            "name": "row",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 11,
+            "name": "binary",
+            "shard": 1
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 4,
+            "name": "update0",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 2,
+            "name": "pma0",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 11,
+            "name": "update1",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 10,
+            "name": "pma1",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 16,
+            "name": "update2",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 14,
+            "name": "pma2",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 19,
+            "name": "update3",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 18,
+            "name": "pma3",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 1576960,
+            "channel": 6,
+            "name": "row",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 22,
+            "name": "binary",
+            "shard": 2
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 5,
+            "name": "update0",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 3,
+            "name": "pma0",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 9,
+            "name": "update1",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 8,
+            "name": "pma1",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 16,
+            "name": "update2",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 8388608,
+            "channel": 15,
+            "name": "pma2",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 21,
+            "name": "update3",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 20,
+            "name": "pma3",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 1576960,
+            "channel": 7,
+            "name": "row",
+            "shard": 3
+          },
+          {
+            "allocated_bytes": 4096,
+            "channel": 17,
+            "name": "binary",
+            "shard": 3
+          }
+        ],
+        "registered_ids": [
+          600,
+          601,
+          602,
+          603,
+          604,
+          605,
+          606,
+          607,
+          608
+        ]
+      }
+    ],
+    "k4_config_visibility": "declared input, not introspected private AxiMaster configs",
+    "k4_master_count": 9,
+    "performance_admitted": false,
+    "publication_match_admitted": false,
+    "status": "RESOURCE_ACCOUNTING_VERIFIED_NOT_PERFORMANCE_ADMISSION",
+    "strict_resource_match_admitted": false
+  },
+  "audit_process_rss_kib": 30328,
+  "core_or_sst_numerical_code_changed": false,
+  "delivery_implementation_sha256": "b77546bdc00dcb5cd1d8e088efffa40adc7796a6202463e6acf65060d732b991",
+  "hardware_timing_admitted": false,
+  "maximum_child_process_rss_kib": 459052,
+  "new_spine_comparison_executed": false,
+  "production_baseline_admitted": false,
+  "publication_match_admitted": false,
+  "raw_members": [
+    {
+      "bytes": 744,
+      "member": "audit.resources.json",
+      "sha256": "7775403642eed14300e8d9802f6b59d752bf382ff0d7d0458332a21bd8604efb"
+    },
+    {
+      "bytes": 0,
+      "member": "audit.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 8656,
+      "member": "audit.stdout.txt",
+      "sha256": "9bdbb1abc4c70afe4ae2f444ed58809dbb244287d1d2c6730121ec18f7c72a05"
+    },
+    {
+      "bytes": 770,
+      "member": "build.resources.json",
+      "sha256": "a7b6a5299ff9bcc3a2f53843c0cc2bedb9590f12ea9260cf5effa6ed38d3551d"
+    },
+    {
+      "bytes": 0,
+      "member": "build.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 7202,
+      "member": "build.stdout.txt",
+      "sha256": "04121222906ed682b3ecf3f4d6264c4505080e33ab1249aa314edbbf8c54b3ad"
+    },
+    {
+      "bytes": 637,
+      "member": "cmake_version.resources.json",
+      "sha256": "a9da7df16138a01dabc68677921b48193e56e30899e1cdad47b3beae21b2cd49"
+    },
+    {
+      "bytes": 0,
+      "member": "cmake_version.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 90,
+      "member": "cmake_version.stdout.txt",
+      "sha256": "315e1daa4023afda33e316c6e2b57fa1fd67fffd2fc9cd86c5f47fab4ff746d6"
+    },
+    {
+      "bytes": 624,
+      "member": "compiler.resources.json",
+      "sha256": "2b33b74b12aff0132a264ee6992865d2e3a8b39813dd20281bae0e541f7f63aa"
+    },
+    {
+      "bytes": 0,
+      "member": "compiler.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 232,
+      "member": "compiler.stdout.txt",
+      "sha256": "adc65bddd7a1527d17857b11f691971851f6f6454e1c58603a593b0af64805ef"
+    },
+    {
+      "bytes": 923,
+      "member": "configure.resources.json",
+      "sha256": "a62c9005b1ccc63ef4a84d9da694d099f95515bb6101deaab927ecb5b8caa0a7"
+    },
+    {
+      "bytes": 0,
+      "member": "configure.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 437,
+      "member": "configure.stdout.txt",
+      "sha256": "47a7449c8d70a2d5eb1ceb91036f2d010b057f6d59632d6669bbc351800f2e13"
+    }
+  ],
+  "reports": [
+    {
+      "file": "report.json",
+      "sha256": "d2d8db61fb164af3eb99b4f7482439e02ef77cb0812609bc0ab259ae7e4f34ac",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/r-resource-audit-v1/results.json"
+    },
+    {
+      "file": "sources.tar.gz",
+      "sha256": "e59c7217381007546eb396326df5ebf3d2d0b5dd72c60fc37039506b110d8b74",
+      "source": "/data/chuxiao/experiments/baseline_evaluation_impact_20261012/r-resource-audit-v1/sources.tar.gz"
+    },
+    {
+      "file": "raw_logs.tar.gz",
+      "sha256": "6843eb9895d51e3be12e07fff9855649999954692668b2d86fb98a6db12d31a9"
+    }
+  ],
+  "rss_scope": "maximum process RSS, not simultaneous process-tree total",
+  "status": "RESOURCE_ACCOUNTING_VERIFIED_NOT_PERFORMANCE_ADMISSION"
+}
