@@ -162,6 +162,11 @@ PR fixed sweeps cannot be compared to residual PR convergence as the same work.
 
 List masters, physical banks, outstanding parents, state replicas, buffers,
 merge/apply widths and clock: A4 and K4 are not strictly resource-identical.
+The [credit/window sensitivity study](r_credits/README.md) retains all three
+legacy arms and adds four explicit controls over both latencies and
+registration orders. Its 28-row matrix requires exact replay of the twelve
+old rows before interpreting new ratios. Numerical results remain pending;
+even equal credits would not equalize banks, replicas and source buffering.
 Compare A with A4 separately; never pretend four Little reproduces 11+3.
 Use an admitted publication case to test the original R model's timing,
 independently of the A4/B retention control.

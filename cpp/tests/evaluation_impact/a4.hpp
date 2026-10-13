@@ -1,12 +1,14 @@
 #pragma once
 
 #include "oracle.hpp"
+#include "control.hpp"
 #include "../original_regraph/whole_graph/compact_source.hpp"
 #include "../original_regraph/whole_graph/compute_wiring.hpp"
 
 namespace evaluation_impact {
 inline void a4(const st::Input& input, const Oracle& oracle, const std::filesystem::path& output,
-               std::uint64_t latency, bool reverse, std::uint64_t maximum) {
+               std::uint64_t latency, bool reverse, std::uint64_t maximum,
+               const Control& selected = control("a4")) {
   auto compact = input.compact;
   std::uint64_t total = 0, reads = 0, writes = 0;
   wt::ComputeOptions options;
@@ -16,7 +18,17 @@ inline void a4(const st::Input& input, const Oracle& oracle, const std::filesyst
   options.sssp_response_anchored = true;
   for (std::size_t round = 0; round < oracle.states.size(); ++round) {
     wt::ComputeWiring<wt::CompactSource, rg::SsspApply> model(
-        wt::CompactSource(compact, rg::Udf::kWeightedSssp), 2, latency, reverse, 2, options);
+        wt::CompactSource(compact, rg::Udf::kWeightedSssp), selected.a4_state_parents,
+        latency, reverse, selected.a4_input_parents, options);
+    for (const auto& path : model.paths) {
+      st::require(path.components.edge_port.master->config().max_pending_requests == selected.a4_input_parents &&
+                  path.components.source_port.master->config().max_pending_requests == 2,
+                  "A4 input/source credit declaration mismatch");
+    }
+    st::require(model.degree.master->config().max_pending_requests == selected.a4_state_parents &&
+                std::all_of(model.writers.begin(), model.writers.end(), [&](const auto& port) {
+                  return port.master->config().max_pending_requests == selected.a4_state_parents;
+                }), "A4 state credit declaration mismatch");
     model.initialize(); model.begin();
     std::uint64_t cycles = 0;
     while (total + cycles < maximum && !model.finished()) {
@@ -53,11 +65,11 @@ inline void a4(const st::Input& input, const Oracle& oracle, const std::filesyst
                 model.writer->counters().write_requests == model.writer->counters().acknowledgements,
                 "A4 per-round traffic/active ledger mismatch");
     reads += traffic.reads.bytes; writes += traffic.writes.bytes;
-    std::cout << "DEMO_ROUND {\"arm\":\"a4\",\"round\":" << round
+    std::cout << "DEMO_ROUND {\"arm\":\"" << selected.arm << "\",\"round\":" << round
               << ",\"cycles\":" << cycles << ",\"active\":" << oracle.active[round] << "}\n";
     compact.initial = oracle.states[round];
   }
-  std::cout << "DEMO_RESULT {\"arm\":\"a4\",\"cycles\":" << total
+  std::cout << "DEMO_RESULT {\"arm\":\"" << selected.arm << "\",\"cycles\":" << total
             << ",\"rounds\":" << oracle.states.size() << ",\"read_bytes\":" << reads
             << ",\"write_bytes\":" << writes << ",\"replicas\":4,\"passed\":true}\n";
 }

@@ -8,3 +8,6 @@ target_compile_options(regraph_convergence_demo PRIVATE -Wall -Wextra -Wpedantic
 add_executable(regraph_resource_audit resources.cpp)
 target_link_libraries(regraph_resource_audit PRIVATE original_regraph_cycle)
 target_compile_options(regraph_resource_audit PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_executable(regraph_credit_control_test credit_control_test.cpp)
+target_link_libraries(regraph_credit_control_test PRIVATE original_regraph_cycle)
+target_compile_options(regraph_credit_control_test PRIVATE -Wall -Wextra -Wpedantic -Werror)

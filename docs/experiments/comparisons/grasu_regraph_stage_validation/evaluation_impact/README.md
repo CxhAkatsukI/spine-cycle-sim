@@ -25,6 +25,16 @@ same-source controls cannot silently stand in for that claim.
 
 ## This Checkpoint
 
+The [R credit/window controls](r_credits/README.md) now predeclare 28
+full-convergence executions to test the different A4/K4 outstanding budgets.
+The pre-extraction source and twelve reference results are frozen. New arms
+retain the old controls and explicitly vary parent credits or Apply window;
+no strict resource match or numerical equivalence is claimed before replay.
+The fresh Release build, eight C++ checks and 58 focused Python tests passed.
+Timing execution has produced zero rows and waits for the existing memory
+and competing-build reserves; the study guide links its persistent service
+and retained raw logs.
+
 The [R resource audit](r_resources/README.md) corrects a summary-table error:
 original A4 has 13 distinct masters on 9 physical banks, while K4 registers
 9 masters. It verifies constructed resources without executing a round or
