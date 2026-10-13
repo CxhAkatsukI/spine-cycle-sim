@@ -105,6 +105,14 @@ Both waits expired after 600 seconds without launching a tool. The registered
 full-cache candidate and the extracted bank-helper regression therefore remain
 unrun; there is no full-cache candidate timing result to compare to original.
 
+A fresh `g-cache-full-comparison-v3` freezes the current helper and queues the
+same two complete-cache arms with a 12-hour prelaunch wait **per arm**. At launch
+it is `WAITING_FOR_MEMORY`, not a passing or completed attempt. The tool limit,
+system reserve, clock, workloads and analysis gates are unchanged. Frozen
+source is rechecked immediately before a tool may start; active/waiting reports
+cannot be packaged as final evidence. This live attempt is outside the frozen
+eight-attempt evidence capsule and must be packaged separately after completion.
+
 ## Evidence And Version Boundaries
 
 The [evidence index](evidence/index.json) identifies each retained attempt and
@@ -194,6 +202,17 @@ RSS, not simultaneous process-tree memory; the cgroup supplies the tree cap.
 The independently queued ReGraph route keeps its original source pins and
 64-GiB admission requirement. These probes neither start a second route nor
 replace a measured bitstream.
+
+For a long-wait queue, explicitly add `--memory-wait-seconds 43200`. This changes
+only the maximum wait before each tool, never its memory admission threshold.
+The current systemd user service is `spine-grasu-full-cache-20261013-v3`; its
+supervisor has a 512-MiB cap and 26-hour lifetime. HLS runs, if admitted, enter
+separate 6-GiB scopes. Inspect the live status without treating it as a result:
+
+```bash
+systemctl --user status spine-grasu-full-cache-20261013-v3 --no-pager
+python3 -m json.tool /data/chuxiao/experiments/baseline_evaluation_impact_20261012/g-cache-full-comparison-v3/results.json
+```
 
 Checkpoint verification: 61 focused Python tests pass, including committed
 archive verification and the existing G/R diagnostic controls. Documentation

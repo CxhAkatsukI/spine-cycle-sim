@@ -32,8 +32,10 @@ def package(output: Path, attempts: list[Path]):
     entries = []
     for attempt in attempts:
         report = json.loads((attempt / "results.json").read_text())
-        if report["status"] == "RUNNING":
-            raise ValueError("do not freeze an active attempt")
+        if report["status"] not in (
+                "FAILED_RETAINED", "FULL_CACHE_RTL_PASS_WITH_SEPARATE_CLOCK_GATES",
+                "ISOLATED_BANK_RTL_PASS_WITH_SEPARATE_CLOCK_GATES"):
+            raise ValueError("do not freeze an active or unknown attempt")
         for pin in report["source"]:
             path = Path(pin["path"])
             path.relative_to(attempt / "source")

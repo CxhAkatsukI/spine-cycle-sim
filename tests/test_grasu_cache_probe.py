@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.analysis import analyze, transactions
 from spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.preparation import ARMS, FULL_ARMS, tcl
-from spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.study import wait_for_memory
+from spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.study import run, wait_for_memory
 
 
 class CacheProbeTests(unittest.TestCase):
@@ -107,6 +107,38 @@ class CacheProbeTests(unittest.TestCase):
             wait_for_memory(record, lambda: None)
         self.assertTrue(record["memory_admission"]["admitted"])
         self.assertEqual(len(record["memory_admission"]["samples"]), 2)
+
+    def test_invalid_wait_rejected_before_freezing_or_sampling(self):
+        module = "spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.study"
+        with patch(module + ".prepare") as prepare, patch(module + ".available_memory_bytes") as available:
+            for seconds in (-1, float("inf"), float("nan")):
+                with self.assertRaises(ValueError):
+                    wait_for_memory({}, lambda: None, maximum_wait=seconds)
+                with self.assertRaises(ValueError):
+                    run(Path("unused"), Path("unused"), memory_wait_seconds=seconds)
+            prepare.assert_not_called()
+            available.assert_not_called()
+
+    def test_long_wait_keeps_all_resource_limits_and_refuses_source_drift(self):
+        import json
+
+        module = "spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.study"
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            pin = folder / "frozen.cpp"
+            pin.write_text("changed")
+            with patch(module + ".prepare", return_value=[{"path": str(pin), "sha256": "old"}]), \
+                    patch(module + ".wait_for_memory") as wait, \
+                    patch(module + ".run_bounded") as execute:
+                with self.assertRaisesRegex(ValueError, "declared cache-bank arms failed"):
+                    run(folder, folder, full_comparison=True, memory_wait_seconds=43200)
+            result = json.loads((folder / "results.json").read_text())
+        self.assertEqual([call.kwargs["maximum_wait"] for call in wait.call_args_list], [43200, 43200])
+        execute.assert_not_called()
+        self.assertEqual(result["status"], "FAILED_RETAINED")
+        self.assertTrue(all("before tool launch" in arm["error"] for arm in result["arms"]))
+        self.assertEqual(result["resources"]["memory_max_gib"], 6)
+        self.assertEqual(result["resources"]["reserve_gib"], 24)
 
     def test_declared_arms_and_unchanged_source_wrapper(self):
         self.assertEqual(ARMS, ("original", "lane_wiring", "registered_wiring"))

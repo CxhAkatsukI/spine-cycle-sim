@@ -1,6 +1,7 @@
 """Run declared full-depth cache controls sequentially with bounded resources."""
 
 import argparse
+import math
 from pathlib import Path
 import time
 
@@ -11,6 +12,8 @@ from .preparation import ARMS, FULL_ARM, FULL_ARMS, prepare, tcl
 
 
 def wait_for_memory(record, save, *, maximum_wait=600):
+    if not math.isfinite(maximum_wait) or maximum_wait < 0:
+        raise ValueError("memory wait must be finite and nonnegative")
     started = time.monotonic()
     record["memory_admission"] = {"required_bytes": 30 * 1024**3,
                                   "maximum_wait_seconds": maximum_wait, "samples": []}
@@ -27,7 +30,10 @@ def wait_for_memory(record, save, *, maximum_wait=600):
         time.sleep(min(5, maximum_wait - elapsed))
 
 
-def run(output: Path, upstream: Path, full_original=False, full_comparison=False):
+def run(output: Path, upstream: Path, full_original=False, full_comparison=False,
+        *, memory_wait_seconds=600):
+    if not math.isfinite(memory_wait_seconds) or memory_wait_seconds < 0:
+        raise ValueError("memory wait must be finite and nonnegative")
     full = full_original or full_comparison
     arms = FULL_ARMS if full_comparison else (FULL_ARM,) if full_original else ARMS
     pins = prepare(output, upstream)
@@ -40,7 +46,8 @@ def run(output: Path, upstream: Path, full_original=False, full_comparison=False
         "resources": {"timeout_seconds_per_arm": 900, "memory_max_gib": 6,
                       "memory_high_gib": 5, "reserve_gib": 24, "swap_max_bytes": 0,
                       "cpu_affinity": [127], "part": "xcu55c-fsvh2892-2L-e",
-                      "target_clock_ns": 5}}
+                      "target_clock_ns": 5,
+                      "memory_wait_seconds_per_arm": memory_wait_seconds}}
     atomic_write_json(output / "results.json", result)
     for arm in arms:
         folder = output / arm
@@ -50,7 +57,13 @@ def run(output: Path, upstream: Path, full_original=False, full_comparison=False
         entry = {"arm": arm, "script_sha256": sha256_file(script)}
         result["arms"].append(entry)
         try:
-            wait_for_memory(entry, lambda: atomic_write_json(output / "results.json", result))
+            result["status"] = "WAITING_FOR_MEMORY"
+            wait_for_memory(entry, lambda: atomic_write_json(output / "results.json", result),
+                            maximum_wait=memory_wait_seconds)
+            if any(sha256_file(Path(pin["path"])) != pin["sha256"] for pin in pins):
+                raise ValueError("frozen source changed before tool launch")
+            result["status"] = "RUNNING"
+            atomic_write_json(output / "results.json", result)
             entry["execution"] = run_bounded([
                 "systemd-run", "--user", "--scope", "--quiet",
                 "--property=MemoryHigh=5G", "--property=MemoryMax=6G",
@@ -86,5 +99,8 @@ if __name__ == "__main__":
                         help="audit the unchanged sixteen-bank kernel, not an isolated bank")
     mode.add_argument("--full-comparison", action="store_true",
                       help="compare full original and registered-candidate caches")
+    parser.add_argument("--memory-wait-seconds", type=float, default=600,
+                        help="maximum prelaunch wait per arm; memory limits stay unchanged")
     args = parser.parse_args()
-    run(args.output.resolve(), args.upstream.resolve(), args.full_original, args.full_comparison)
+    run(args.output.resolve(), args.upstream.resolve(), args.full_original, args.full_comparison,
+        memory_wait_seconds=args.memory_wait_seconds)

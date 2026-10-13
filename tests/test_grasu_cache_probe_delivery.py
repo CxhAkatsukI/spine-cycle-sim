@@ -45,7 +45,8 @@ class CacheProbeDeliveryTests(unittest.TestCase):
                 verify(root / "evidence")
 
     def test_running_missing_arms_or_promoted_claim_rejected(self):
-        for change in ({"status": "RUNNING"}, {"declared_arms": ["original", "missing"]},
+        for change in ({"status": "RUNNING"}, {"status": "WAITING_FOR_MEMORY"},
+                       {"status": "UNKNOWN"}, {"declared_arms": ["original", "missing"]},
                        {"hardware_timing_admitted": True}):
             with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)

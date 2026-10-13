@@ -46,6 +46,8 @@ The [weighted source compatibility check](weighted_abi/README.md) now passes
 16 hot-region rows across original/candidate cache edits and both adapter
 modes. It checks original search, current dispatch, complete intermediate PMA
 and emitted logical graph, not finite timing, cold edits or whole-G synthesis.
+The fresh complete-cache comparison is queued behind unchanged memory limits;
+its `WAITING_FOR_MEMORY` state does not close any performance or RTL gate.
 
 The preceding [hot-owner checkpoint](hot_lanes/README.md) retains all earlier
 observations and extends to 152 four-arm runs. Sixteen segment-ordered owners
