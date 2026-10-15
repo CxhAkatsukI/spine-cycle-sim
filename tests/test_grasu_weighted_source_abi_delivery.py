@@ -15,7 +15,7 @@ from tests.test_grasu_weighted_source_abi import stderr, stdout
 
 
 class WeightedDeliveryTests(unittest.TestCase):
-    def fixture(self, root):
+    def fixture(self, root, search_mode="pristine"):
         attempt = root / "attempt"
         source = attempt / "source"
         source.mkdir(parents=True)
@@ -23,6 +23,7 @@ class WeightedDeliveryTests(unittest.TestCase):
         pin.write_text("frozen control\n")
         report = {"status": PASS, "source": [{"path": str(pin), "sha256": sha256_file(pin)}],
                   "declared_adapters": list(ADAPTERS), "adapters": [], "errors": [],
+                  "search_mode": search_mode,
                   **dict.fromkeys(CLAIMS, False)}
         for adapter in ADAPTERS:
             folder = attempt / adapter
@@ -30,11 +31,13 @@ class WeightedDeliveryTests(unittest.TestCase):
             binary = folder / "probe"
             binary.write_bytes(b"binary identity only\n")
             entry = {"adapter": adapter, "binary_sha256": sha256_file(binary),
-                     "dependencies": report["source"], "rows": analyze(stdout(), stderr()),
-                     "diagnostics": diagnostics(stderr())}
+                     "dependencies": report["source"],
+                     "rows": analyze(stdout(search_mode), stderr(search_mode), search_mode=search_mode),
+                     "diagnostics": diagnostics(stderr(search_mode), search_mode=search_mode)}
             for label in ("compile", "execute"):
                 stage = {"exit_code": 0, "timed_out": False}
-                for suffix, content in (("stdout", stdout()), ("stderr", stderr())):
+                for suffix, content in (("stdout", stdout(search_mode)),
+                                        ("stderr", stderr(search_mode))):
                     log = folder / f"{label}.{suffix}.txt"
                     log.write_text(content if label == "execute" else "")
                     stage[suffix] = str(log)
@@ -66,6 +69,7 @@ class WeightedDeliveryTests(unittest.TestCase):
     def test_active_incomplete_promoted_and_failed_pass_reports_rejected(self):
         for change in ({"status": "RUNNING"}, {"declared_adapters": ["resident"]},
                        {"hardware_timing_admitted": True}, {"errors": [{"error": "failure"}]},
+                       {"search_mode": "finite_pipeline"}, {"search_mode": "invented"},
                        {"status": "FAILED_RETAINED"}):
             with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
@@ -74,6 +78,16 @@ class WeightedDeliveryTests(unittest.TestCase):
                 self.write_report(attempt, report)
                 with self.assertRaises(ValueError):
                     package(root / "evidence", [attempt])
+
+    def test_finite_composition_scope_is_kept_in_portable_delivery(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            attempt, _ = self.fixture(root, search_mode="finite_pipeline")
+            index = package(root / "evidence", [attempt])
+            self.assertEqual(index, verify(root / "evidence"))
+            final = index["attempts"][0]
+            self.assertEqual(final["search_mode"], "finite_pipeline")
+            self.assertTrue(all(len(arm["rows"]) == 10 for arm in final["adapters"]))
 
     def test_changed_raw_source_binary_resources_and_diagnostics_rejected(self):
         for relative in ("source/control.cpp", "resident/probe", "resident/execute.stdout.txt",
@@ -113,6 +127,21 @@ class WeightedDeliveryTests(unittest.TestCase):
             self.assertEqual(len(entry["rows"]), 8)
             self.assertEqual(sum(row["operations"] for row in entry["rows"]), 162)
             self.assertEqual(entry["diagnostics"]["retained_vendor_width_warning_pairs"], 40)
+        self.assertTrue(all(index[field] is False for field in (*CLAIMS, "new_spine_comparison_executed")))
+
+    def test_committed_finite_composition_keeps_extended_scope(self):
+        folder = Path(__file__).resolve().parents[1] / (
+            "docs/experiments/comparisons/grasu_regraph_stage_validation/"
+            "evaluation_impact/weighted_abi/finite_search_evidence")
+        index = verify(folder)
+        self.assertEqual(len(index["attempts"]), 1)
+        attempt = index["attempts"][0]
+        self.assertEqual(attempt["status"], PASS)
+        self.assertEqual(attempt["search_mode"], "finite_pipeline")
+        self.assertEqual(sum(row["operations"] for arm in attempt["adapters"]
+                             for row in arm["rows"]), 1364)
+        self.assertTrue(all(arm["diagnostics"]["retained_vendor_width_warning_pairs"] == 170
+                            for arm in attempt["adapters"]))
         self.assertTrue(all(index[field] is False for field in (*CLAIMS, "new_spine_comparison_executed")))
 
 

@@ -291,4 +291,62 @@ The new handshake candidate separately passes all eighteen small C++14
 testbench-source calls and the 65 focused Python regressions. Their raw
 records are under `verification-handshake-v5/` in the campaign root. These
 are source/harness checks, not successful RTL simulation, 5-ns closure or
-whole-G admission. The complete 38-execution source matrix is still running.
+whole-G admission. The complete source matrix subsequently passed all 38
+executions / 152 CU checks and eighteen testbench-source calls. The dependent
+HLS started with 151547801600 bytes available (about 141.1 GiB), exceeding
+its full 88-GiB admission threshold while the adapter route remained active.
+C simulation and synthesis completed; the clock estimate is 6.225 ns, above
+the 5-ns target. RTL co-simulation remains running at this checkpoint.
+
+## Weighted Search Composition
+
+While the search timing gate runs, the fresh `g-weighted-finite-v1` source
+composition passes all twenty declared rows / 1,364 physical edits. It connects
+the frozen explicit-handshake search candidate to the current weighted host
+layout, dispatch, both pristine/registered cache-edit helpers and both adapter
+modes. The additional 260-operation replacement sequence exercises reuse of
+all 64 contexts. Each ordered search packet matches the pristine unit and
+independent oracle; all 339 internal FIFOs, the bounded output, exact metadata
+request ledger and complete intermediate PMA state are checked. See the
+[weighted guide and portable evidence](../weighted_abi/README.md).
+
+The attempt ran concurrently with the R study and adapter route, using a
+2-GiB hard/no-swap scope, 180-second per-command timeout and 88-GiB reserve
+(90 GiB total admission threshold), with over 141 GiB available. Its separate
+512-MiB supervisor has a 900-second lifetime. Both adapter arms execute
+sequentially on CPU 126. This does not require waiting for FPGA compilers to
+exit when full budgets fit.
+
+This closes an additional weighted source-compatibility question, not the
+production eleven-argument search binding, concurrent cache/DDR pipeline,
+metadata refresh, new-G routing, board timing or publication-performance gate.
+
+The portable weighted capsule and the search/structure regression suites pass
+79 focused Python tests. Their bounded resource record is in
+`verification-weighted-finite-v1/`, using a 2-GiB/no-swap scope and 88-GiB
+reserve. CPU test wall time is not a measured accelerator latency.
+
+## Routing Watchdog Recovery
+
+`r-adapter-route-v2` stopped during block synthesis at 141 of 302 jobs. Its
+supervisor reports `Too many open files`, not a design/timing or memory-capacity
+failure. The pidfd watchdog retained descriptors for terminated compiler
+workers; 1,018 observed PIDs exhausted its file-descriptor limit. The retained
+resource record reports 16,202,300 KiB peak sampled tree RSS, more than 132 GiB
+minimum system memory available, and no cgroup OOM/max/high events. Cleanup
+terminated only the owned build workers. No successful bitstream was produced.
+
+The corrected watchdog closes signaled exited pidfds during each observation
+and retains PID history separately. Tests exercise 2,048 exited workers without
+descriptor growth, safe PID reuse, nested-session cleanup and failed final
+snapshots. All 28 cleanup, route and memory-admission tests pass. No hardware
+source, numerical model, memory budget or link acceptance criterion changes.
+
+The fresh `r-adapter-route-v3` retains the eleven XOs and 150-MHz configuration.
+Its six environment preflight checks pass. Invocation
+`d4ef573e40cc4f2cb52e4d13856965d5` reuses the service label reserved by the live
+search/R studies, with a new attempt directory and source pins. It reserves
+40 GiB for routing, 24 GiB for the system, 8 GiB for background studies and
+the full cgroup limit of each concurrent FPGA tool. With one 8-GiB search
+scope active, the threshold is 80 GiB. The original failure remains intact;
+the replacement is a running experiment, not routed or board evidence.

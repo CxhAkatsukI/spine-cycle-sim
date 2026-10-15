@@ -15,21 +15,29 @@ class ObservedProcesses:
         if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
             raise RuntimeError("process-tree watchdog requires Linux pidfds")
         self.handles = {}
+        self.observed_pids = set()
 
     def observe(self, pids):
+        self.live_pids()
         for pid in pids:
             if pid not in self.handles:
                 try:
                     self.handles[pid] = os.pidfd_open(pid)
+                    self.observed_pids.add(pid)
                 except ProcessLookupError:
                     pass
+        self.live_pids()
 
     def live_pids(self):
         live = []
-        for pid, handle in self.handles.items():
+        for pid, handle in list(self.handles.items()):
             poller = select.poll()
             poller.register(handle, select.POLLIN)
-            if not poller.poll(0):
+            if poller.poll(0):
+                # Retain history without keeping a descriptor for every compiler job.
+                os.close(handle)
+                del self.handles[pid]
+            else:
                 live.append(pid)
         return live
 

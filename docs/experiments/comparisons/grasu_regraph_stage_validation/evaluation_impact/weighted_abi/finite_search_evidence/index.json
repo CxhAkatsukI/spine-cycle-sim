@@ -1,0 +1,448 @@
+{
+  "attempts": [
+    {
+      "adapters": [
+        {
+          "adapter": "resident",
+          "diagnostics": {
+            "complete_intermediate_state_gate_required": true,
+            "origin": "pristine process_1: res_data |= update_edge (512-bit |= 32-bit)",
+            "retained_vendor_width_warning_pairs": 170
+          },
+          "rows": [
+            {
+              "arm": "original_cache",
+              "case": "empty",
+              "edges": 0,
+              "operations": 0,
+              "segments": 2,
+              "shards": 2
+            },
+            {
+              "arm": "registered_cache",
+              "case": "empty",
+              "edges": 0,
+              "operations": 0,
+              "segments": 2,
+              "shards": 2
+            },
+            {
+              "arm": "original_cache",
+              "case": "segment_weights",
+              "edges": 120,
+              "operations": 36,
+              "segments": 9,
+              "shards": 2
+            },
+            {
+              "arm": "registered_cache",
+              "case": "segment_weights",
+              "edges": 120,
+              "operations": 36,
+              "segments": 9,
+              "shards": 2
+            },
+            {
+              "arm": "original_cache",
+              "case": "repeated_weights",
+              "edges": 8,
+              "operations": 40,
+              "segments": 9,
+              "shards": 3
+            },
+            {
+              "arm": "registered_cache",
+              "case": "repeated_weights",
+              "edges": 8,
+              "operations": 40,
+              "segments": 9,
+              "shards": 3
+            },
+            {
+              "arm": "original_cache",
+              "case": "dst19_weight12_boundary",
+              "edges": 1,
+              "operations": 5,
+              "segments": 1,
+              "shards": 1
+            },
+            {
+              "arm": "registered_cache",
+              "case": "dst19_weight12_boundary",
+              "edges": 1,
+              "operations": 5,
+              "segments": 1,
+              "shards": 1
+            },
+            {
+              "arm": "original_cache",
+              "case": "pipeline_wraparound",
+              "edges": 1,
+              "operations": 260,
+              "segments": 10,
+              "shards": 2
+            },
+            {
+              "arm": "registered_cache",
+              "case": "pipeline_wraparound",
+              "edges": 1,
+              "operations": 260,
+              "segments": 10,
+              "shards": 2
+            }
+          ]
+        },
+        {
+          "adapter": "bank_stream",
+          "diagnostics": {
+            "complete_intermediate_state_gate_required": true,
+            "origin": "pristine process_1: res_data |= update_edge (512-bit |= 32-bit)",
+            "retained_vendor_width_warning_pairs": 170
+          },
+          "rows": [
+            {
+              "arm": "original_cache",
+              "case": "empty",
+              "edges": 0,
+              "operations": 0,
+              "segments": 2,
+              "shards": 2
+            },
+            {
+              "arm": "registered_cache",
+              "case": "empty",
+              "edges": 0,
+              "operations": 0,
+              "segments": 2,
+              "shards": 2
+            },
+            {
+              "arm": "original_cache",
+              "case": "segment_weights",
+              "edges": 120,
+              "operations": 36,
+              "segments": 9,
+              "shards": 2
+            },
+            {
+              "arm": "registered_cache",
+              "case": "segment_weights",
+              "edges": 120,
+              "operations": 36,
+              "segments": 9,
+              "shards": 2
+            },
+            {
+              "arm": "original_cache",
+              "case": "repeated_weights",
+              "edges": 8,
+              "operations": 40,
+              "segments": 9,
+              "shards": 3
+            },
+            {
+              "arm": "registered_cache",
+              "case": "repeated_weights",
+              "edges": 8,
+              "operations": 40,
+              "segments": 9,
+              "shards": 3
+            },
+            {
+              "arm": "original_cache",
+              "case": "dst19_weight12_boundary",
+              "edges": 1,
+              "operations": 5,
+              "segments": 1,
+              "shards": 1
+            },
+            {
+              "arm": "registered_cache",
+              "case": "dst19_weight12_boundary",
+              "edges": 1,
+              "operations": 5,
+              "segments": 1,
+              "shards": 1
+            },
+            {
+              "arm": "original_cache",
+              "case": "pipeline_wraparound",
+              "edges": 1,
+              "operations": 260,
+              "segments": 10,
+              "shards": 2
+            },
+            {
+              "arm": "registered_cache",
+              "case": "pipeline_wraparound",
+              "edges": 1,
+              "operations": 260,
+              "segments": 10,
+              "shards": 2
+            }
+          ]
+        }
+      ],
+      "archive": "g-weighted-finite-v1.tar.gz",
+      "attempt": "g-weighted-finite-v1",
+      "bytes": 63539,
+      "errors": [],
+      "files": [
+        {
+          "bytes": 2209,
+          "path": "bank_stream/compile.resources.json",
+          "sha256": "9a13082ff14a4e0897f670a9a2eae2e94640dedf526c052a24cfe159514b2cb7"
+        },
+        {
+          "bytes": 87692,
+          "path": "bank_stream/compile.stderr.txt",
+          "sha256": "d9119999e0f47f849ae5dafacd4d5482fcb73172b082d438df8637245615f056"
+        },
+        {
+          "bytes": 0,
+          "path": "bank_stream/compile.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 965,
+          "path": "bank_stream/execute.resources.json",
+          "sha256": "f120ee0d746a089e5f12387efe6102893f8262c72c4b7487b1decce7448b875b"
+        },
+        {
+          "bytes": 17850,
+          "path": "bank_stream/execute.stderr.txt",
+          "sha256": "78ebc95d9eef57dd13b09d078a8d66d13ae4a866837d2e6a35ece990ffc67dc1"
+        },
+        {
+          "bytes": 1147,
+          "path": "bank_stream/execute.stdout.txt",
+          "sha256": "3aee4b3110df5721a90fec12385fdd726f25ddaa5153ad9e14f043ecf880500b"
+        },
+        {
+          "bytes": 4932,
+          "path": "bank_stream/probe.d",
+          "sha256": "a5a2273edca93973d5d0514b3057b028e7803e4dc4fbe0029d7de7e698a9a761"
+        },
+        {
+          "bytes": 1819,
+          "path": "resident/compile.resources.json",
+          "sha256": "339f0c86f536134e4399079cfbff3f6368af4d1eb8f1a5ae2296c615d02944d6"
+        },
+        {
+          "bytes": 84945,
+          "path": "resident/compile.stderr.txt",
+          "sha256": "29fb248b891d53a833594fbc8d797cda786d9a9f11e6ccf5a31e26884b007cfc"
+        },
+        {
+          "bytes": 0,
+          "path": "resident/compile.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 952,
+          "path": "resident/execute.resources.json",
+          "sha256": "3383a68f072f7429a5fd04241fd5acb5f64d637b7526ed2fc531a479e57fb576"
+        },
+        {
+          "bytes": 17850,
+          "path": "resident/execute.stderr.txt",
+          "sha256": "78ebc95d9eef57dd13b09d078a8d66d13ae4a866837d2e6a35ece990ffc67dc1"
+        },
+        {
+          "bytes": 1147,
+          "path": "resident/execute.stdout.txt",
+          "sha256": "3aee4b3110df5721a90fec12385fdd726f25ddaa5153ad9e14f043ecf880500b"
+        },
+        {
+          "bytes": 4206,
+          "path": "resident/probe.d",
+          "sha256": "e04b289cd2509f2ae7dc4433bbe784b022bafdc404b716a3f6a3db928de0e91b"
+        },
+        {
+          "bytes": 44725,
+          "path": "results.json",
+          "sha256": "76dadfc31c33706e2eb6dadfcb7fbf962c5e348e7e73fc51c5659559fdb635a7"
+        },
+        {
+          "bytes": 6589,
+          "path": "source/adapter/bank_stream.hpp",
+          "sha256": "7887d4c2b340a6b825f72cfebf1725853a670b69963cba7edbf3b78739b77c49"
+        },
+        {
+          "bytes": 3136,
+          "path": "source/adapter/continuous_directory.hpp",
+          "sha256": "8bb5a8a822814ba076d37d0ec182dcee3b637ae5d27197e687e5edfee691aaf4"
+        },
+        {
+          "bytes": 7956,
+          "path": "source/adapter/cross_row_pipeline.hpp",
+          "sha256": "557ecf44406dc1a440486e9cf40646db38b291c0344fa0c19bf91141fd4e3132"
+        },
+        {
+          "bytes": 3781,
+          "path": "source/adapter/directory_tile.hpp",
+          "sha256": "a6562444654cc831026576ce36737d67fe98bba783708c0ff317b1b34122757b"
+        },
+        {
+          "bytes": 2119,
+          "path": "source/adapter/packet_pipeline.hpp",
+          "sha256": "4d159049d0bb745c9d134d28ab546b6b45d936f6dd0406403564b97f4c352699"
+        },
+        {
+          "bytes": 16680,
+          "path": "source/adapter/pma_to_regraph_adapter.cpp",
+          "sha256": "f4354692c7089b19d02e9376b9b0e881f86c9a6fed502ab1f2cee1275eaead0a"
+        },
+        {
+          "bytes": 941,
+          "path": "source/adapter/row_line.hpp",
+          "sha256": "e1880be22792128493f2f03e9507eb4c4346f1afbd678401f9848ad35ac505b9"
+        },
+        {
+          "bytes": 958,
+          "path": "source/adapter/row_prefetch.hpp",
+          "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+        },
+        {
+          "bytes": 362,
+          "path": "source/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 1773,
+          "path": "source/cache_lane.hpp",
+          "sha256": "c2f17ac29807cb61e212ab1e3cc6c0edc25ddf7a717261bf0a6fe9bb77750ef9"
+        },
+        {
+          "bytes": 7004,
+          "path": "source/control.cpp",
+          "sha256": "6e6bc15ce8d917f41f269541c93eedac601f490749e31001c77c1fdbaffef595"
+        },
+        {
+          "bytes": 2344,
+          "path": "source/finite_search.hpp",
+          "sha256": "2071122ae8ea5915ac815df186b2484c839b60bcb5a931075fd162d451d1d9a4"
+        },
+        {
+          "bytes": 3303,
+          "path": "source/fixture.hpp",
+          "sha256": "5cfb494990b4013045b7f07618eb383b1c05b9a1fc55dbf1a47de734eefa66b5"
+        },
+        {
+          "bytes": 1088,
+          "path": "source/integration/kernel_config.h",
+          "sha256": "8bc4579e9c8902c32913f6c7cd428e1d7b2a889d726ea5df7be2a12d38b5dec3"
+        },
+        {
+          "bytes": 2538,
+          "path": "source/integration/kernel_dispatch.cpp",
+          "sha256": "9709f72c87e24f81e800f2f419b653df10e22f0ea257f9b937d40885d60b6663"
+        },
+        {
+          "bytes": 24770,
+          "path": "source/integration/weighted_pma_graph.hpp",
+          "sha256": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514"
+        },
+        {
+          "bytes": 83,
+          "path": "source/runner/__init__.py",
+          "sha256": "ae3f11993789cfcd54110d6edf161cbb5f728facee2a6349d7b018536d4802aa"
+        },
+        {
+          "bytes": 3167,
+          "path": "source/runner/analysis.py",
+          "sha256": "0ae1eb42c89efef0229bed90352a85cb3898944671ab4d46dbd0dd7f6b82dbb1"
+        },
+        {
+          "bytes": 42052,
+          "path": "source/runner/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 7224,
+          "path": "source/runner/delivery.py",
+          "sha256": "d950d6a9bdd844c800e2c1106e73f747952b0c8891ef5863abdc5af6adbfe90c"
+        },
+        {
+          "bytes": 3456,
+          "path": "source/runner/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 3535,
+          "path": "source/runner/preparation.py",
+          "sha256": "e237a32d84d52ed99d9ee6d69d179af968024ede846bf1a576a487d6d47f7fb6"
+        },
+        {
+          "bytes": 4663,
+          "path": "source/runner/study.py",
+          "sha256": "b1bc285a274c550b35c55138b091a9dbaef80b6e4b09363a27d9c66e3f0ffc0e"
+        },
+        {
+          "bytes": 3775,
+          "path": "source/search.hpp",
+          "sha256": "4d24a24197905bea01e9c8702edeca0ce593193db9fa9b22d77a440a4f9c4a1f"
+        },
+        {
+          "bytes": 3832,
+          "path": "source/search_pipeline/control.hpp",
+          "sha256": "d03dbbd84e2608a44270aeb25f7bc53e69d54e27d5ce06f0ab4a879fc867af59"
+        },
+        {
+          "bytes": 3882,
+          "path": "source/search_pipeline/finite_host.hpp",
+          "sha256": "3d4eeca467b6fee13ab313f0db7f04172f988edd8b14ce351e35b55f54500d0e"
+        },
+        {
+          "bytes": 2018,
+          "path": "source/search_pipeline/search_worker.hpp",
+          "sha256": "68f45557c2e8015686a96101369c0ce5755cc9c17e9dd060d308bc23a2b32429"
+        },
+        {
+          "bytes": 3879,
+          "path": "source/search_pipeline/top.cpp",
+          "sha256": "2cffbf203fb644f42f13132768536f223fc41c503ff3fcfc18a85a3fe77a3c7d"
+        },
+        {
+          "bytes": 3110,
+          "path": "source/search_pipeline/transport.hpp",
+          "sha256": "724beb65604d8cef363edf14148bbc3b8d30db80e940870f0924b3d60062116c"
+        },
+        {
+          "bytes": 1507,
+          "path": "source/search_pipeline/types.hpp",
+          "sha256": "2f7aadf1268cb2ee8263b4c18dfff0740414668a18bef6ff7c8172e8b1195f69"
+        },
+        {
+          "bytes": 1275,
+          "path": "source/search_pipeline/workers.hpp",
+          "sha256": "7a10f7e28289b7ef8501eead27a939e997228ef8946438061164b8d18b39365b"
+        },
+        {
+          "bytes": 22973,
+          "path": "source/upstream/kernel_bin_search.cpp",
+          "sha256": "b078606b286e97b8b49617a73989ddc05d61eaa0eed860c39e428a7dc6e27572"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "search_mode": "finite_pipeline",
+      "sha256": "36846fc087879c23cdacd848a51e9ff9debbc0809260c1f80c9724147bc20014",
+      "source": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-weighted-finite-v1",
+      "status": "WEIGHTED_SOURCE_ABI_PASS_NOT_TIMING"
+    }
+  ],
+  "hardware_timing_admitted": false,
+  "new_spine_comparison_executed": false,
+  "production_baseline_admitted": false,
+  "publication_match_admitted": false,
+  "status": "WEIGHTED_SOURCE_ABI_CHECKPOINT_NOT_G_ADMISSION"
+}

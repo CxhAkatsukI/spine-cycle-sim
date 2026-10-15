@@ -7,6 +7,11 @@ with the pristine GraSU binary-search unit and hot-cache edit operation on the
 declared matrix below. Both the existing adapter and bank-stream candidate
 emit the independently expected post-update logical graph.
 
+A separate fresh composition also passes with the explicit-handshake,
+64-context search candidate. Its additional scope and portable evidence are
+listed under **Finite Search Composition** below; the original four attempts
+and their frozen archives are unchanged.
+
 This closes a **source-functional subset** of the weighted ABI question. It
 does not admit complete G timing, a production cache implementation, a complete
 G-to-ReGraph execution, or a published-performance match. The previous
@@ -17,6 +22,8 @@ Neither production HLS nor core/SST numerical code changes in this checkpoint.
 
 1. [Evidence index](evidence/index.json): all four attempts, source identities,
    compact archives, failures and claim flags.
+   The [finite-search index](finite_search_evidence/index.json) records the
+   separate new composition, not a relabeling of those original attempts.
 2. [Fixtures and independent oracles](../../../../../../cpp/tests/evaluation_impact/common_g/weighted_abi/fixture.hpp):
    logical input and per-segment edit expectations.
 3. [Search/dispatch checks](../../../../../../cpp/tests/evaluation_impact/common_g/weighted_abi/search.hpp)
@@ -82,17 +89,67 @@ These are process peaks, not simultaneous process-tree totals; the cgroup
 provides the aggregate hard cap. C execution took 0.15 / 0.21 seconds; **these
 wall times are not device latency measurements**.
 
+## Finite Search Composition
+
+`g-weighted-finite-v1` passes five fixtures x two cache-edit arms x two adapter
+modes: **20 rows / 1,364 physical edits**. It uses the same four fixtures above
+plus `pipeline_wraparound`: eight vertices, two destination shards, ten total
+reserved segments and 130 successive replacements of one edge's weight.
+These replacements generate 260 ordered delete/insert operations, exercising
+reuse of the 64 search contexts and dependent edits on the same logical edge.
+The independent final graph contains exactly that edge with weight 131.
+
+Each shard's complete physical-update sequence passes through the actual
+`bin_search_pipeline` candidate source. All 339 internal FIFOs are bounded,
+as is a depth-two output FIFO whose consumer initially waits five milliseconds.
+The harness checks internal drain/conservation, 32-entry metadata channels,
+the exact row/binary-request ledger and every ordered 96-bit result against
+pristine `binary_search` and its independent upper-bound oracle. This includes
+empty shards. The selected packets then feed the existing dispatch/cache edit
+checks, followed by the actual adapter and independent logical-graph check.
+
+Search completes before the edit loop in this composition; it does **not**
+simulate concurrent complete-G backpressure or implement production's four-CU,
+eleven-argument search binding. Host thread scheduling is not RTL timing.
+Reserved search metadata stays fixed during this batch; later metadata refresh,
+cold DDR edits and complete resident multi-batch execution remain separate gates.
+
+| Adapter | Compile wall time, s | C execution wall time, s | Compile peak RSS, KiB | Execution peak RSS, KiB |
+| --- | ---: | ---: | ---: | ---: |
+| Resident | 10.73 | 2.56 | 528100 | 28076 |
+| Bank stream | 10.88 | 2.56 | 532376 | 28108 |
+
+These wall times describe the source test, not accelerator throughput. GCC
+15.2.0, `-O1`, assertions, CPU 126 and Vitis HLS 2024.1 headers are frozen.
+Each compile/run uses a 2-GiB hard cgroup and address-space bound, no swap and
+a 180-second timeout. The 88-GiB reserve conservatively covers the concurrent
+40-GiB route, 8-GiB search HLS, 6-GiB R study, 24-GiB system headroom and other
+supervisors/slack; admission requires 90 GiB available, not idle FPGA tools.
+Launches observed at least 141 GiB available. Per-thread host stacks are 1 MiB
+and `MALLOC_ARENA_MAX=2`. RSS is the maximum process peak, not an aggregate
+tree measurement; the cgroup supplies aggregate containment.
+
+The original-cache arm now has 170 insertions per adapter, so the diagnostics
+gate requires exactly 170 vendor warning pairs, rather than suppressing them.
+Unknown warnings, wrong scope markers, missing wraparound rows, incomplete
+streams or any intermediate-state mismatch fail the attempt. Default CLI
+behavior remains the historical pristine-search matrix.
+
 ## Limits And Next Gates
 
-- C streams are unbounded and calls are sequential; no finite-FIFO deadlock,
-  AXI backpressure, HLS schedule or cycle-accuracy claim follows.
+- The historical pristine-search controls use unbounded C streams. The new
+  candidate bounds the search network and its output, but downstream edit and
+  adapter calls remain sequential; neither proves RTL deadlock freedom,
+  AXI backpressure timing, HLS scheduling or cycle accuracy.
 - Cache load/writeback is reconstructed by the fixture. Whole-cache load,
   16-lane concurrency and registered-pipeline RTL timing require the separate
   [cache probes](../cache_probe/README.md).
-- The candidate helper extraction has not yet passed a fresh HLS/RTL run;
-  this source test cannot transfer the earlier frozen helper's timing proof.
-- The original search **unit** is tested, not the full parallel-search
-  controller or its clock closure. Its previous timing gate remains open.
+- The paired full-cache component now separately passes C simulation,
+  synthesis and RTL in the [hardware campaign](../hardware_validation/README.md).
+  Neither result admits the composed production G or its routed clock.
+- The candidate parallel search now passes this additional source composition;
+  its fresh HLS/RTL and 5-ns clock gates remain open. The earlier pristine
+  search unit check is not a parallel-controller timing proof.
 - All edited data lies in the hot region. Cold update/writeback, cache-capacity
   overflow, full G resource fit and production integration remain untested here.
 - Adapter packet correctness is not downstream ReGraph convergence or a
@@ -111,6 +168,13 @@ python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.weighted_abi.s
   --integration /path/to/grasu-regraph-integration \
   --hls-include /path/to/Vitis_HLS/2024.1/include
 
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.weighted_abi.study \
+  --output /path/to/fresh-finite-weighted-source-control \
+  --upstream /path/to/pinned-pristine/GraSU/GraSU_kernels/src \
+  --integration /path/to/grasu-regraph-integration \
+  --hls-include /path/to/Vitis_HLS/2024.1/include \
+  --search-mode finite_pipeline
+
 python3 -m unittest tests.test_grasu_weighted_source_abi \
   tests.test_grasu_weighted_source_abi_delivery -v
 ```
@@ -118,6 +182,8 @@ python3 -m unittest tests.test_grasu_weighted_source_abi \
 The committed archives retain frozen source, report, compiler dependency
 identities, stdout/stderr and resource logs. Generated binary SHA-256 identities
 are recorded; executables and proprietary vendor headers are not bundled.
-Raw attempts remain under
-`/data/chuxiao/experiments/baseline_evaluation_impact_20261012/`.
+Raw historical attempts remain under
+`/data/chuxiao/experiments/baseline_evaluation_impact_20261012/`; the new
+composition is under
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-weighted-finite-v1/`.
 Offline archive verification does not need these machine-local paths.

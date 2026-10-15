@@ -22,7 +22,8 @@ class Responses final : public hls::stream_delegate<sizeof(ap_uint<32>)> {
   const std::vector<std::uint64_t>& memory_;
   hls::stream<ap_uint<64>>& output_;
 };
-inline pipe_type_96 search(const host::WeightedPmaShard& shard, std::uint64_t raw) {
+inline pipe_type_96 search(const host::WeightedPmaShard& shard, std::uint64_t raw,
+                           unsigned long* probes = nullptr) {
   hls::stream<ap_uint<32>> binary_requests, row_requests;
   hls::stream<ap_uint<64>> binary_responses, row_responses, edges;
   hls::stream<ap_uint<96>> results;
@@ -33,6 +34,7 @@ inline pipe_type_96 search(const host::WeightedPmaShard& shard, std::uint64_t ra
                                row_responses, edges, results);
   require(binary.ended && rows.ended && binary_responses.empty() && row_responses.empty()
           && edges.empty() && results.size() == 1, "search stream conservation");
+  if (probes) *probes += binary.addresses.size();
   const auto key = raw & ~(std::uint64_t{1} << 63);
   const auto source = key >> 32;
   require(rows.addresses == std::vector<unsigned>{unsigned(source)}, "search row address");

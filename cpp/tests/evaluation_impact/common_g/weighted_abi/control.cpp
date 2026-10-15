@@ -18,6 +18,10 @@ namespace current_dispatch {
 #include "adapter/pma_to_regraph_adapter.cpp"
 #include "cache_lane.hpp"
 #include "search.hpp"
+#ifdef WEIGHTED_FINITE_SEARCH
+#include "search_pipeline/top.cpp"
+#include "finite_search.hpp"
+#endif
 
 namespace weighted_control {
 using Banks = std::array<std::vector<Segment>, 32>;
@@ -80,8 +84,16 @@ void run(const Fixture& fixture, bool candidate) {
       std::copy_n(shard.initial_pma_words.begin() + segment * 16, 16, expected[segment].begin());
       locate(banks, segment) = pack(expected[segment]);
     }
-    for (const auto raw : shard.physical_updates) {
+#ifdef WEIGHTED_FINITE_SEARCH
+    const auto packets = finite_search(shard);
+#endif
+    for (unsigned operation = 0; operation < shard.physical_updates.size(); ++operation) {
+      const auto raw = shard.physical_updates[operation];
+#ifdef WEIGHTED_FINITE_SEARCH
+      const auto packet = packets[operation];
+#else
       const auto packet = search(shard, raw);
+#endif
       const unsigned segment = packet.data.range(31, 0).to_uint() / 16;
       hls::stream<pipe_type_96> inputs[4], outputs[4];
       inputs[0].write(packet);
@@ -119,8 +131,16 @@ void run(const Fixture& fixture, bool candidate) {
 int main() {
   try {
     weighted_control::check_dispatch_boundary();
+#ifdef WEIGHTED_FINITE_SEARCH
+    search_pipeline::configure_host_threads();
+#endif
     for (const auto& fixture : weighted_control::fixtures())
       for (bool candidate : {false, true}) weighted_control::run(fixture, candidate);
+#ifdef WEIGHTED_FINITE_SEARCH
+    for (bool candidate : {false, true})
+      weighted_control::run(weighted_control::wraparound_fixture(), candidate);
+    std::cout << "WEIGHTED_SEARCH_COMPLETE mode=finite_pipeline channels=339\n";
+#endif
     std::cout << "WEIGHTED_ABI_COMPLETE scope=source_functional timing_admitted=false\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

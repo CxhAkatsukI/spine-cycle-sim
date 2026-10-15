@@ -93,7 +93,7 @@ def run_link(command: list[str], cwd: Path, prefix: Path, *, timeout: int = 1440
                 reason = "cleanup_snapshot_failed"
             finally:
                 signaled = workers.kill(process.pid)
-                observed = sorted(workers.handles)
+                observed = sorted(workers.observed_pids)
                 workers.close()
                 process.wait()
             record = {"command": command, "cwd": str(cwd),

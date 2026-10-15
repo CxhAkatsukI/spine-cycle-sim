@@ -7,7 +7,7 @@ from pathlib import Path
 import tarfile
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
-from .analysis import analyze, diagnostics
+from .analysis import analyze, diagnostics, expected_cases
 from .preparation import ADAPTERS
 
 CLAIMS = ("hardware_timing_admitted", "production_baseline_admitted",
@@ -16,6 +16,8 @@ PASS = "WEIGHTED_SOURCE_ABI_PASS_NOT_TIMING"
 
 
 def validate(attempt: Path, report: dict):
+    search_mode = report.get("search_mode", "pristine")
+    expected_cases(search_mode)
     if report["status"] not in (PASS, "FAILED_RETAINED"):
         raise ValueError("only completed weighted source attempts can be frozen")
     if any(report.get(key) is not False for key in CLAIMS):
@@ -53,7 +55,8 @@ def validate(attempt: Path, report: dict):
                 raise ValueError("passing source control did not execute successfully")
         stdout = Path(entry["execute"]["stdout"]).read_text()
         stderr = Path(entry["execute"]["stderr"]).read_text()
-        if analyze(stdout, stderr) != entry["rows"] or diagnostics(stderr) != entry["diagnostics"]:
+        if analyze(stdout, stderr, search_mode=search_mode) != entry["rows"] or \
+                diagnostics(stderr, search_mode=search_mode) != entry["diagnostics"]:
             raise ValueError("raw source results no longer agree with analysis")
         if sha256_file(folder / "probe") != entry["binary_sha256"]:
             raise ValueError("executed binary changed")
@@ -85,6 +88,7 @@ def package(output: Path, attempts: list[Path]):
     for attempt, report in zip(attempts, reports, strict=True):
         archive = output / (attempt.name + ".tar.gz")
         entry = {"attempt": attempt.name, "source": str(attempt), "status": report["status"],
+                 "search_mode": report.get("search_mode", "pristine"),
                  "errors": report["errors"], "files": [],
                  "adapters": [{key: value for key, value in arm.items()
                                if key in ("adapter", "error", "rows", "diagnostics")}
