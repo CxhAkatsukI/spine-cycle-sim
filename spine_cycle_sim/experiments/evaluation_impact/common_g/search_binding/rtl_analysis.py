@@ -1,13 +1,14 @@
 """Keep wrapper functionality, exported ABI and clock feasibility separate."""
 
 import math
+import hashlib
 import re
 import xml.etree.ElementTree as ET
 from zipfile import BadZipFile, ZipFile
 
 from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 from ..search_pipeline.rtl_analysis import COUNTS, parse_bench, transactions
-from .abi import compare
+from .abi import compare, exported_members
 
 ROW = re.compile(r"^SEARCH_BINDING_RTL_ROW generation=(\d+) updates=(\d+)$", re.M)
 
@@ -60,11 +61,12 @@ def analyze(attempt, reference):
         xo = attempt / "search_binding.xo"
         result["artifacts"].append({"path": str(xo), "sha256": sha256_file(xo)})
         with ZipFile(xo) as archive:
-            def member(name):
-                paths = [path for path in archive.namelist() if path.rsplit("/", 1)[-1] == name]
-                if len(paths) != 1:
-                    raise ValueError("missing or duplicate exported " + name)
-                return archive.read(paths[0])
+            members = exported_members(archive)
+            contents = {name: archive.read(path) for name, path in members.items()}
+            result["exported_abi_members"] = [
+                {"path": path, "sha256": hashlib.sha256(contents[name]).hexdigest()}
+                for name, path in members.items()]
+            member = contents.__getitem__
             result["abi"] = compare(member("kernel.xml"), member("component.xml"),
                                     record(reference / "kernel.xml"), record(reference / "component.xml"))
         result["abi_pass"] = True

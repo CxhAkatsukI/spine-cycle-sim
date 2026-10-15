@@ -133,6 +133,13 @@ class SearchPipelineTests(unittest.TestCase):
         self.assertNotIn("port=binary ", source)
         self.assertNotIn("const search_pipeline::Raw* binary,", source)
 
+    def test_rtl_bench_calls_the_top_directly_for_vendor_instrumentation(self):
+        root = Path(__file__).resolve().parents[1]
+        source = (root / "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/rtl_control.cpp").read_text()
+        self.assertIn("bin_search_pipeline(updates, nodes, offsets, size, output);", source)
+        self.assertIn("check(edges, binary, rows, false, false, invoke);", source)
+        self.assertNotIn("check(edges, binary, rows, false, false);", source)
+
     def test_search_worker_keeps_blocking_handshakes_in_separate_iterations(self):
         root = Path(__file__).resolve().parents[1]
         source = (root / "cpp/tests/evaluation_impact/common_g/hls/"

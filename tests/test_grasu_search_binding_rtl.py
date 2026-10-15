@@ -6,7 +6,7 @@ from unittest.mock import patch
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
-from spine_cycle_sim.experiments.evaluation_impact.common_g.search_binding.abi import NAMES, NS, compare
+from spine_cycle_sim.experiments.evaluation_impact.common_g.search_binding.abi import NAMES, NS, compare, exported_members
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_binding.rtl_analysis import analyze, bench, status
 from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_binding import rtl_preparation
@@ -72,6 +72,32 @@ def stdout():
 
 
 class SearchBindingRTLTests(unittest.TestCase):
+    def test_xo_reads_canonical_abi_not_packaged_vivado_scratch_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "test.xo"
+            with ZipFile(path, "w") as archive:
+                archive.writestr("bin_search/kernel.xml", b"canonical")
+                archive.writestr("ip_repo/actual/component.xml", b"component")
+                archive.writestr("ip_repo/actual/.Xil/run/.kernelxml/kernel.xml", b"scratch")
+                archive.writestr("bin_search/hls/project/component.xml", b"scratch")
+            with ZipFile(path) as archive:
+                members = exported_members(archive)
+                self.assertEqual(members, {"kernel.xml": "bin_search/kernel.xml",
+                                           "component.xml": "ip_repo/actual/component.xml"})
+            with ZipFile(path, "a") as archive:
+                archive.writestr("ip_repo/other/component.xml", b"ambiguous")
+            with ZipFile(path) as archive, self.assertRaisesRegex(ValueError, "canonical"):
+                exported_members(archive)
+
+    def test_xo_rejects_missing_canonical_kernel_even_with_scratch_match(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "test.xo"
+            with ZipFile(path, "w") as archive:
+                archive.writestr("ip_repo/actual/.Xil/run/kernel.xml", b"scratch")
+                archive.writestr("ip_repo/actual/component.xml", b"component")
+            with ZipFile(path) as archive, self.assertRaisesRegex(ValueError, "canonical"):
+                exported_members(archive)
+
     def test_preparation_rejects_incomplete_controls_before_creating_output(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -151,8 +177,9 @@ class SearchBindingRTLTests(unittest.TestCase):
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(contents)
             with ZipFile(root / "search_binding.xo", "w") as archive:
-                archive.writestr("kernel/kernel.xml", kernel)
-                archive.writestr("ip_repo/component.xml", component)
+                archive.writestr("bin_search/kernel.xml", kernel)
+                archive.writestr("ip_repo/bin_search/component.xml", component)
+                archive.writestr("ip_repo/bin_search/.Xil/run/kernel.xml", "ignored scratch")
             result = analyze(root, reference)
             self.assertEqual(result["errors"], {})
             self.assertEqual(status(result), "WRAPPER_RTL_ABI_PASS_CLOCK_GATE_FAILED")

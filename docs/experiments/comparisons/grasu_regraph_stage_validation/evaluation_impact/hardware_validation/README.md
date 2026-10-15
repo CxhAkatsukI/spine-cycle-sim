@@ -28,8 +28,8 @@ reported rather than silently replaced with a different experiment.
 | Track | Latest evidence | Remaining gate |
 | --- | --- | --- |
 | Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |
-| Search | v5/v6 retain nonempty RTL timeouts; v7/v9 hit an INLINE/DATAFLOW pragma conflict; v10 passes full source controls and is running HLS | Fresh nonempty RTL completion, 5-ns estimate and timing-model alignment |
-| Search host binding | Fresh v4 passes all 216 source calls; `g-search-binding-rtl-v1` is running the actual eleven-argument wrapper | Exported register/AXIS ABI, RTL of this wrapper and production integration remain open |
+| Search | v10 passes source/C simulation and synthesis but its indirect bench call is not instrumented by co-simulation; fresh v11 uses a direct top call | Finish isolated RTL retry and timing-model alignment; earlier timeouts remain retained |
+| Search host binding | All 216 source calls and eighteen real-wrapper RTL transactions pass; independent canonical-XO review matches the routed ABI, with a 3.650-ns estimate | External RTL backpressure, production integration, routed clock and board execution |
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
@@ -38,6 +38,40 @@ This is a progress checkpoint, not an admission of the complete baseline.
 The following sections preserve the earlier attempts and explain each current
 candidate. All concurrent launches reserve full bounded memory budgets; other
 FPGA tools need not exit when those budgets and the system reserve fit.
+
+## Wrapper RTL And Retained ABI Review
+
+`g-search-binding-rtl-v1` completed C simulation, synthesis, all eighteen
+RTL transactions and XO export with tool exit code zero. Its first analyzer
+retains `FAILED_RETAINED`: it incorrectly treated a Vivado scratch
+`.Xil/.../.kernelxml/kernel.xml` inside the XO as a second exported kernel ABI.
+This is an analysis failure, not a failed RTL transaction. The old result and
+its frozen runner are unchanged.
+
+The independent `g-search-binding-abi-review-v1` selects the unique canonical
+`bin_search/kernel.xml` and direct `ip_repo/<ip>/component.xml`. It verifies
+the old frozen sources, runner, logs, reports and XO, and rejects a changed
+non-ABI observation. No new hardware simulation is claimed by this review.
+Its decision is `WRAPPER_RTL_ABI_PASS_TARGET_MET_REQUIRES_INTEGRATION`:
+
+- All eighteen transactions pass, covering counts 0, 1, 63, 64, 65, 127, 128,
+  129 and 257, each with two metadata generations at reused pointer addresses.
+- The exported eleven arguments, 23 registers, `ap_ctrl_chain`, 96-bit AXIS
+  payload and 12-bit keep/strb sidebands match the existing routed search ABI.
+- Synthesis estimates 3.650 ns, 77,465 LUTs, 70,448 FFs, four BRAMs and no URAM.
+  These are component estimates, not routed timing or complete-G area.
+
+The XO SHA-256 is
+`d57b5827e2bbb09614e4bcd95fbe97adc79721db05e567820b6a9ac50eb39f1f`.
+The raw attempt and independent review live under the campaign root above.
+The [search guide](../search_pipeline/README.md#production-wrapper-rtl-and-abi)
+owns reproduction commands and the remaining gates.
+
+The isolated v10 bench used a default function pointer, which vendor
+co-simulation failed to instrument (`212-330`, top not invoked). The fresh
+v11 bench invokes the top directly through an explicit lambda. It changes
+neither the hardware implementation nor the test vectors/oracle. Its source
+and RTL retry are separate from the successful real-wrapper evidence.
 
 ## Execution Order
 

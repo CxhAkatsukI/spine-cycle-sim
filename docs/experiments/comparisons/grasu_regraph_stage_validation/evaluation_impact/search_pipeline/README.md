@@ -207,6 +207,7 @@ does not prove that exported registers or RTL have the same interface.
 | `rtl.py` | Thin CLI, bounded memory admission, execution and final report |
 | `rtl_analysis.py` | Keep C simulation, RTL, clock and ABI decisions separate; retain partial reports |
 | `abi.py` | Structured comparison of exported kernel arguments, control registers and AXIS signals |
+| `rtl_review.py` | Read-only reanalysis of a retained ABI-only failure, preserving every non-ABI observation |
 | `hls/search_binding/rtl_control.cpp` | Eighteen real-wrapper calls, including metadata replacement at unchanged pointer addresses |
 
 Preparation requires successful, hash-checked binding and isolated source
@@ -240,6 +241,31 @@ The wrapper tool uses an 8-GiB hard / 7-GiB high bound, no swap, CPU 124 and
 a 1,800-second timeout. With cache finished, routing active and 40 GiB reserved
 for other work, admission requires 112 GiB available (8 + 24 + 40 + 40).
 It does not wait for other tools to exit when this full budget fits.
+
+The fresh hardware campaign's actual wrapper completed all eighteen RTL
+transactions with a 3.650-ns synthesis estimate. The original analyzer failed
+because Vivado also packages a scratch `kernel.xml`. Its original failure
+remains intact. A separate hash-checked review of the same raw reports and XO
+uses the unique canonical exported ABI and passes all ABI checks against the
+routed reference: eleven arguments, 23 registers and the declared AXIS signals.
+No simulation was rerun or timing observation changed by the review.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.search_binding.rtl_review \
+  --output /path/to/fresh-independent-review \
+  --attempt /path/to/terminal-ABI-only-failed-wrapper-attempt
+
+python3 -m unittest tests.test_grasu_search_binding_rtl \
+  tests.test_grasu_search_binding_review
+```
+
+The reviewer accepts only a successful, non-timeout tool execution with
+passing C simulation/RTL and an ABI-only analysis error. Changed original
+sources, frozen runners, reports, XO or non-ABI observations fail closed.
+Canonical-XO parser tests cover scratch metadata, missing exports and
+ambiguous IP components. This component pass still does not establish
+external RTL backpressure, complete-G correctness, routed timing, board
+performance or publication matching.
 
 ## Remaining Integration Gates
 

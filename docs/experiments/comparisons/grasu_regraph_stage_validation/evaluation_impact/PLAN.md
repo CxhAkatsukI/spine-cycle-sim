@@ -294,8 +294,11 @@ Keep paper and frozen handoffs unchanged. Deliver a separate evidence package.
 
 Use unique raw attempt paths under `/data/chuxiao/experiments/`, process time
 and address-space bounds, explicit memory reserve and whole-service cgroups.
-R parallelism is bounded by measured RSS; routing waits for its own 64-GiB
-admission threshold. No other users' processes or system caches are changed.
+R parallelism is bounded by measured RSS. Current hardware launches follow
+the [memory-admitted concurrent policy](hardware_validation/README.md#memory-admitted-concurrent-routing):
+reserve each active tool's full hard budget and the system reserve, then
+launch when they fit. Other FPGA tools need not exit. Keep the earlier queue
+records intact. No other users' processes or system caches are changed.
 
 This folder owns the plan, interpretation, compact evidence and reproduction
 guide. Code has one owner at `spine_cycle_sim/experiments/evaluation_impact/`

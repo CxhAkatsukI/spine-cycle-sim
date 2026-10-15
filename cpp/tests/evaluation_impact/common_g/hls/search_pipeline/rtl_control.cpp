@@ -23,7 +23,13 @@ int main() {
         edges.push_back((static_cast<unsigned long>(i & 1) << 63) |
                         (static_cast<unsigned long>(source) << 32) | destination);
       }
-      search_pipeline::check(edges, binary, rows, false, false);
+      // The co-simulation instrumenter must see a direct top-function call.
+      const auto invoke = [](const unsigned long* updates, const search_pipeline::Raw* nodes,
+                             const search_pipeline::Raw* offsets, unsigned size,
+                             hls::stream<search_pipeline::Packet>& output) {
+        bin_search_pipeline(updates, nodes, offsets, size, output);
+      };
+      search_pipeline::check(edges, binary, rows, false, false, invoke);
     }
   }
 }
