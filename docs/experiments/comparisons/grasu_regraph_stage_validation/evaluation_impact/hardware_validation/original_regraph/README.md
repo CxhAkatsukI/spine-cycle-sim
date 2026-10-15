@@ -141,3 +141,56 @@ repository test suite is claimed by this offline checkpoint.
    preparation separately, use declared repeats and retain every failure.
 4. Only then compare original R, resource-disclosed A4 and actual adapter/K4;
    publication reproduction and Spine speedup remain later, separate gates.
+
+## Independent Read-Only Checkpoint Probe
+
+`original-r-checkpoint-v1` opens the author's saved
+`level0_wrapper_postroute_physopt.dcp` without changing constraints, routing,
+or writing an implementation/bitstream. It extracts the xclbin's embedded
+partial bitstream for an exact comparison with the adjacent saved partial.
+Native checkpoint timing, recorded auto-scaled clock, and actual board timing
+are different observations. A matching partial file does not prove which DCP
+produced it; neither that match nor a successful query admits FPGA execution.
+
+The probe runs independently of the new-G route. Its atomic admission records
+138.551 GiB available against 92 GiB required: 20 GiB for this query, the
+concurrent route's full 40-GiB limit, a 24-GiB system reserve and an 8-GiB
+background allowance. It does not wait for unrelated FPGA tools to exit when
+their bounded budgets fit. Unbounded peers or insufficient memory prevent a
+launch. Both tasks retain their own cgroups, watchdogs and temporary directories.
+
+The query uses Vivado 2024.1, a 20-GiB hard / 18-GiB high / zero-swap service,
+group OOM handling, CPUs 124--125 and a 1,200-second process-tree timeout.
+The service has a separate 1,800-second lifetime. It freezes checkpoint,
+partial, xclbin, prior audit, environment, tool and transitive runner hashes;
+large vendor artifacts are indexed rather than copied into Git.
+
+To reproduce, run from the worktree root with fresh unit/output names. The
+captured environment must be the reviewed, license-free Vivado environment,
+not arbitrary shell settings:
+
+```bash
+systemd-run --user --unit=original-r-checkpoint-fresh \
+  -p MemoryMax=20G -p MemoryHigh=18G -p MemorySwapMax=0 -p OOMPolicy=kill \
+  -p CPUQuota=200% -p AllowedCPUs=124-125 -p RuntimeMaxSec=1800 \
+  -p TimeoutStopSec=30 -p KillMode=control-group -p TasksMax=512 \
+  --working-directory="$PWD" \
+  /usr/bin/python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.checkpoint_run \
+  --prebuilt /path/to/ReGraph_pr_230Mhz \
+  --audit /path/to/successful/offline-audit \
+  --environment /path/to/reviewed/environment.json \
+  --output /path/to/fresh/checkpoint-query
+```
+
+The probe does not repair the author's host allocation/divisor behavior or
+replace A4 with the prebuilt 11+3 topology. Those remain explicit subsequent
+controls. No simulator timing parameter or paper figure changes here.
+
+The checkpoint contract/runner/capsule adds eleven focused tests. Together,
+144 original-ReGraph tests and 15 organization tests pass; bounded logs live
+in `verification-original-r-checkpoint-v2/` under the raw campaign root.
+Both documentation checks pass. An unsupported `MemoryOOMGroup` scope
+property was rejected before the regression command launched; the retry
+retains its 2-GiB hard / zero-swap scope. This launch rejection is not an FPGA
+result. At this checkpoint the Vivado query is still running, with no board
+or publication-performance admission.
