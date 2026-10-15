@@ -25,7 +25,8 @@ The candidate is confined to
 | `workers.hpp` | Input distribution, ordered publication and lane credits |
 | `search_worker.hpp` | Explicit request/response phases for each dependent binary-search context |
 | `transport.hpp` | Two-level request arbitration, shared metadata reads and tagged response routing |
-| `top.cpp` | Explicit dataflow wiring, interface declarations and FIFO depths |
+| `network.hpp` | Shared dataflow wiring, finite host execution and FIFO depths |
+| `top.cpp` | Thin isolated-kernel interface declarations |
 | `finite_host.hpp` | Host-only bounded stream delegates and channel conservation checks |
 | `control.hpp` | Independent scalar oracle and complete ordered packet checks |
 | `control.cpp` | All declared prepared inputs, dispatched over four CUs |
@@ -36,6 +37,15 @@ The runner package has one owner at
 Preparation, bounded execution, source analysis, resource admission, synthesis,
 RTL analysis and delivery are separate modules. It reuses the existing bounded
 runner, rather than adding a production topology flag.
+
+The subsequent [hardware campaign](../hardware_validation/README.md) tracks
+fresh RTL retries separately from the original frozen source evidence below.
+The shared-network extraction replay passes all 38 inputs and eighteen
+testbench-source calls; ordered output checks, probe counts and channel
+conservation match its pre-extraction reference. Host blocked-write counts are
+scheduling observations, not deterministic hardware cycles. New registered
+gather and nonblocking feedback candidates need their own RTL and schedule
+checks; neither changes the production kernel or cycle engine yet.
 
 There are 64 search contexts per CU, grouped eight by eight, and one shared
 metadata AXI bundle for row and binary-search reads. Each context owns at most

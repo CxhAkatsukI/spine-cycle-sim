@@ -143,6 +143,29 @@ class SearchPipelineTests(unittest.TestCase):
             self.assertIn(f"case SearchPhase::{phase}:", source)
         self.assertEqual(source.count("metadata = responses.read();"), 2)
 
+    def test_gather_registers_selection_before_fifo_transfer(self):
+        source = (Path(__file__).resolve().parents[1] /
+                  "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/transport.hpp").read_text()
+        gathers = source[:source.index("inline void memory(")]
+        self.assertEqual(gathers.count("#pragma HLS PIPELINE off"), 2)
+        self.assertNotIn("#pragma HLS PIPELINE II=1", gathers)
+        self.assertEqual(gathers.count("selected = select_ready(ready, cursor);"), 2)
+        self.assertEqual(gathers.count("if (!pending)"), 2)
+        self.assertEqual(gathers.count("pending = false;"), 4)
+        for fifo in ("requests", "input"):
+            self.assertIn(f"{fifo}[selected].read()", gathers)
+        self.assertEqual(gathers.count("cursor = selected + 1;"), 2)
+
+    def test_feedback_pipelines_insert_bubbles_on_empty_input(self):
+        source = (Path(__file__).resolve().parents[1] /
+                  "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/transport.hpp").read_text()
+        feedback = source[source.index("inline void memory("):]
+        self.assertEqual(feedback.count("#pragma HLS PIPELINE II=1"), 3)
+        self.assertNotIn("input.read()", feedback)
+        self.assertEqual(feedback.count("if (!input.read_nb("), 3)
+        self.assertIn("if (request[33]) break;", feedback)
+        self.assertIn("if (response[70]) break;", feedback)
+
     def test_concurrent_component_tools_require_all_declared_memory_budgets(self):
         previous = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(512 * 1024**2)}
         route = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(40 * GIB)}

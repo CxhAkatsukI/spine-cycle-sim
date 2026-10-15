@@ -28,10 +28,10 @@ reported rather than silently replaced with a different experiment.
 | Track | Latest evidence | Remaining gate |
 | --- | --- | --- |
 | Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |
-| Search | v5 retained a nonempty RTL timeout and 6.225-ns estimate; v6 passes 38 source controls and synthesizes at 5.572 ns, with RTL pending | Nonempty RTL completion, 5-ns estimate and timing-model alignment |
+| Search | v5/v6 retain nonempty RTL timeouts with 6.225/5.572-ns estimates; v7 registers gather selection; v8 additionally makes feedback reads nonblocking | Fresh full source controls, nonempty RTL completion, 5-ns estimate and timing-model alignment |
 | Search host binding | All 216 finite-channel, eleven-argument source calls pass, including two metadata generations and unused-pointer controls | XRT/register ABI checks, production integration and RTL of this wrapper remain open |
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
-| R controls | `r-credit-v2` is running its declared 28-row matrix | Complete matrix, exact old-row replay and separate hardware/publication decisions |
+| R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
 
 This is a progress checkpoint, not an admission of the complete baseline.
@@ -460,3 +460,52 @@ search/R studies, with a new attempt directory and source pins. It reserves
 the full cgroup limit of each concurrent FPGA tool. With one 8-GiB search
 scope active, the threshold is 80 GiB. The original failure remains intact;
 the replacement is a running experiment, not routed or board evidence.
+
+## Registered Gather And Feedback Progress
+
+The shared-network extraction has a completed independent replay in
+`g-search-extracted-v1`: all 38 source executions, 152 CU checks and eighteen
+testbench-source calls pass. Ordered packet checks, per-CU probe counts and
+339-channel conservation agree with `g-search-controls-v6`. Only host
+blocked-write observations are excluded from equality because thread scheduling
+is nondeterministic; they are never accelerator timing evidence.
+
+The v7 candidate registers the selected FIFO before reading it in a subsequent
+nonpipelined gather iteration. This separates the selector from the dynamically
+selected FIFO read, which remained on v6's critical path. FIFO depths, credits
+and the eight-by-eight topology do not change. Its potential added cycles must
+be checked, not assumed free.
+
+Inspection of v6's generated
+`bin_search_pipeline_memory_Pipeline_VITIS_LOOP_60_1.v` identifies a separate
+feedback-progress hazard. `ap_block_state1_pp0_stage0_iter0` includes empty
+`memory_requests`; that condition also gates iteration-73 response publication
+and the pipeline-register enables. A context waiting for its row response need
+not issue another request. Blocking on the next empty input can therefore hold
+the response it needs. The response scatter pipelines have the same input-empty
+global-stall structure. The retained RTL log has only the two empty transactions
+completed; this diagnosis is not a passing nonempty test.
+The v6 attempt subsequently reached its 1,800-second timeout and records
+`FAILED_RETAINED`, `timed_out: true`, exit code -9. Neither this termination
+nor its source passes are hardware timing admission.
+
+The fresh v8 candidate uses `read_nb` in the memory and two response-routing
+loops so an empty input injects a bubble without stopping prior iterations.
+Output writes remain backpressured and end tokens, tags, outstanding bounds,
+AXI bundles and ordered results are unchanged. This is a physical scheduling
+candidate; source tests alone cannot show that Vitis generated the intended
+progress behavior. All eighteen RTL transactions, including a single update,
+must complete, and the 5-ns estimate must pass separately. External RTL output
+backpressure, wrapper ABI, production integration and simulator timing alignment
+remain open even if these isolated checks pass.
+
+`spine-grasu-search-candidate-20261016-v8.service`, invocation
+`5d0631e1de18493dad6885bc3c64db5e`, freezes `g-search-controls-v8` before the
+dependent `g-search-hls-v8`. It reserves 32 GiB for other simultaneous studies,
+8 GiB for its tool, 24 GiB system reserve and any active route's full 40 GiB.
+With cache finished and route active, the HLS threshold is 104 GiB. Available
+memory at source launch was approximately 137 GiB. No other FPGA tool must exit
+when these budgets fit; each actual tool launch rechecks memory. The supervisor
+retains its 512-MiB/no-swap bound, and the HLS timeout remains 1,800 seconds.
+No frozen earlier attempt, production kernel or simulator timing model is
+rewritten by this retry.
