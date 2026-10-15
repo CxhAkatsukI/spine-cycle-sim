@@ -133,3 +133,14 @@ tests. Raw logs and resource records are retained in
 `verification-gr-board-supervisor-v1/`: 8.56 seconds, 104304 KiB sampled peak
 process-tree RSS, 2-GiB hard bound, CPU 123 and 104-GiB reserve. These tests
 mock board execution; they are not FPGA correctness or performance results.
+
+The queue is now running as `spine-g-gr-board-20261016-v1.service`, invocation
+`932dc401fcfc4071a6ecfc6f2d854e81`, from commit `006eee0`. Its initial report
+is `WAITING_FOR_REQUIRED_ROUTE`, with 711 frozen file identities and
+`board_started: false`. It follows only
+`spine-grasu-complete-route-20261016-v1.service`, invocation
+`873fe3b111d3460b94457140f3df58be`. Raw status and eventual child matrices stay
+under the campaign's `g-gr-board-supervisor-v1/` directory. The enclosing
+service has 8-GiB hard/7-GiB high/no-swap/group-OOM limits and a 36-hour lifetime.
+This launch record is not a guarantee that routing or either board matrix
+will pass; inspect the current report rather than this initial checkpoint.

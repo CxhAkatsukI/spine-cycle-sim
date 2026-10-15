@@ -38,6 +38,7 @@ reported rather than silently replaced with a different experiment.
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` generated an xclbin; final HBM setup slack is -0.032 ns and fails timing admission | Timing closure and board gates remain open; the link exit code is not timing admission and this is not a complete-new-G route |
 | Complete G storage/link | Actual platform storage screen exposes a local URAM conflict; one-CU relocation preserves capacity; `g-complete-route-v1` has actually started concurrently | Complete resource/timing closure, integrated RTL/host, board correctness and performance |
+| Conditional board queue | `g-gr-board-supervisor-v1` is running, waiting only for the exact new-G route; 277 focused regressions pass | Final routed timing, six-input G and nine-input resident G-to-SSSP board matrices remain unmeasured; no full-baseline admission |
 
 This is a progress checkpoint, not an admission of the complete baseline.
 The [complete-G source guide](complete_pipeline/README.md) owns its portable
@@ -49,6 +50,9 @@ defines isolated G-ready timing separately from complete G+R convergence;
 its preflight does not invoke FPGA APIs. The
 [board execution guide](complete_pipeline/continuous_board/execution/README.md)
 separates the delivered launch guards from the still-unexecuted FPGA matrix.
+Its conditional queue now runs under bounded memory and waits only for the
+required bitstream, not unrelated FPGA tools. Failure stops the queue without
+board reset/retry; a queued matrix remains unmeasured.
 The [G-to-SSSP handoff guide](complete_pipeline/continuous_handoff/README.md)
 owns the convergence preflight, warm/fallback policies, original-G regression
 and retained failed parser attempt; it is not a board measurement.
