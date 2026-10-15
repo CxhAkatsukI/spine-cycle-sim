@@ -53,7 +53,10 @@ def link_inputs(previous: dict, candidate: Path) -> tuple[list, Path, list]:
 
 
 def prepare(build: Path, basis: Path, study: Path, host: Path,
-            integration: Path, output: Path) -> dict:
+            integration: Path, output: Path, *, allow_bounded_builds: bool = False,
+            background_memory_gib: int = 0) -> dict:
+    if type(background_memory_gib) is not int or not 0 <= background_memory_gib <= 40:
+        raise ValueError("background workload reserve must be between zero and 40 GiB")
     if output.exists():
         raise FileExistsError("fresh hardware attempt required")
     basis_file = basis / "manifest.json"
@@ -125,6 +128,7 @@ def prepare(build: Path, basis: Path, study: Path, host: Path,
         "row_memory_contract": previous["row_memory_contract"], "clock_mhz": 150,
         "synth_jobs": 2, "impl_jobs": 2, "tree_memory_gib": 40, "reserve_gib": 24,
         "timeout_seconds": 21600, "queue_timeout_seconds": 86400,
+        "allow_bounded_builds": allow_bounded_builds, "background_memory_gib": background_memory_gib,
         "claim": "four_bank_stream_adapters_same_sharded_K4_connectivity_not_board_speedup",
         "FPGA_timing_admitted": False, "A4_comparison_complete": False}
     atomic_write_json(output / "manifest.json", manifest)

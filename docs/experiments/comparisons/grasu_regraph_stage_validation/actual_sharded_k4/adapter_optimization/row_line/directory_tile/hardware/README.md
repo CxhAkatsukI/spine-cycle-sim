@@ -20,8 +20,8 @@ and matched board correctness/performance tests before promotion.
 
 | Guard | Policy |
 | --- | --- |
-| Start condition | At least 64 GiB **MemAvailable**, eight consecutive 2-second samples |
-| Other builds | Do not start while Vivado/Vitis HLS/v++/vpl is active |
+| Start condition | Route budget + 24 GiB reserve + declared concurrent budgets, eight consecutive 2-second samples |
+| Other builds | With `--allow-bounded-builds`, admit finite zero-swap compiler cgroups when all budgets fit; legacy attempts remain serial |
 | Whole-service hard limit | cgroup v2 `memory.max = 40 GiB` |
 | Reclaim/throttle threshold | `memory.high = 36 GiB` |
 | Swap and OOM | No swap; group OOM kill; never increase limits automatically |
@@ -38,7 +38,21 @@ process groups. This limits our job, not other users' allocations: the live
 reserve is sampled protection, not a guarantee against unrelated system OOM.
 No other user's jobs, swap, ZFS ARC settings or system caches are changed.
 
+For concurrent compilation, freeze `--allow-bounded-builds` during preparation.
+The admission reader groups Vivado/Vitis HLS/v++/vpl processes by their bounded
+cgroup ancestor and reserves the full hard limit once per group. Unbounded
+or unverifiable competitors are not admitted. Add
+`--background-memory-gib N` for concurrent non-FPGA workloads; this reservation
+is additional to the 24-GiB system reserve. For the new search/R campaign,
+8 GiB search + 6 GiB R + 40 GiB routing + 24 GiB reserve requires 78 GiB
+available. MemAvailable already reflects current allocations; reserving full
+limits is deliberately conservative. All live safety guards remain active.
+
 ## Current Attempt
+
+The fresh October 15 attempt and replacement of the serial queue are tracked
+in the [hardware-validation campaign](../../../../../evaluation_impact/hardware_validation/README.md).
+The following October 12 observations are retained historical launch details.
 
 Raw root:
 `/data/chuxiao/experiments/sharded_k4_directory_bank_hw_20261012/attempt-v2`.
@@ -96,7 +110,8 @@ ATTEMPT=$ROOT/sharded_k4_directory_bank_hw_20261012/attempt-fresh
 MODULE=spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware
 
 python3 -m "$MODULE" prepare --build "$BUILD" --basis "$BASIS" \
-  --study "$STUDY" --host "$HOST" --integration "$INTEGRATION" --output "$ATTEMPT"
+  --study "$STUDY" --host "$HOST" --integration "$INTEGRATION" --output "$ATTEMPT" \
+  --allow-bounded-builds --background-memory-gib 6
 
 systemd-run --user --unit=spine-sharded-k4-bank-sssp-fresh \
   --property=MemoryMax=40G --property=MemoryHigh=36G \
@@ -119,7 +134,8 @@ preparation and unit name, not an automatic restart with changed limits.
 
 Owner: `spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/`.
 `preparation.py` owns evidence/ABI/input freezing; `containment.py` owns hard
-limit verification; `supervisor.py` owns queue/admission/execution.
+limit verification; `admission.py` owns concurrent compiler reservations;
+`supervisor.py` owns queue and execution.
 Existing environment preflight, link watchdog and pidfd cleanup are reused.
 No numerical C++/SST model or timing constants change.
 

@@ -5,10 +5,12 @@ from pathlib import Path
 import tarfile
 import tempfile
 import unittest
+from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.analysis import analyze, parse
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.admission import GIB, decision
+from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline import admission
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.preparation import CASES, MODES, tcl
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.rtl_analysis import (
     analyze_rtl, parse_bench, transactions,
@@ -122,8 +124,8 @@ class SearchPipelineTests(unittest.TestCase):
         self.assertIn("-deadlock_detection sim", script)
 
     def test_no_launch_during_previous_component_or_route_reservation(self):
-        previous = {"ActiveState": "active"}
-        route = {"ActiveState": "active", "MemoryMax": str(40 * GIB)}
+        previous = {"LoadState": "loaded", "ActiveState": "active"}
+        route = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(40 * GIB)}
         self.assertFalse(decision(previous, route, 200 * GIB)["admitted"])
         previous["ActiveState"] = "inactive"
         result = decision(previous, route, 64 * GIB)
@@ -133,6 +135,28 @@ class SearchPipelineTests(unittest.TestCase):
         route["ActiveState"] = "failed"
         self.assertTrue(decision(previous, route, 32 * GIB)["admitted"])
         self.assertFalse(decision(previous, route, 31 * GIB)["admitted"])
+
+    def test_collected_transient_unit_is_explicitly_absent_not_unknown(self):
+        absent = {"LoadState": "not-found", "ActiveState": "inactive", "SubState": "dead",
+                  "MemoryMax": "infinity"}
+        with patch.object(admission.subprocess, "run") as probe:
+            probe.return_value.stdout = "\n".join(f"{k}={v}" for k, v in absent.items())
+            self.assertEqual(admission.unit_state("collected.service"), absent)
+        self.assertTrue(decision(absent, absent, 32 * GIB)["admitted"])
+        self.assertEqual(decision(absent, absent, 32 * GIB)["route_reservation_bytes"], 0)
+        for changed in ({}, {**absent, "ActiveState": "active"},
+                        {**absent, "SubState": "running"},
+                        {**absent, "LoadState": "error"},
+                        {**absent, "LoadState": "loaded", "ActiveState": "unknown"}):
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                admission.terminal(changed)
+
+    def test_active_route_requires_a_finite_positive_limit(self):
+        previous = {"LoadState": "loaded", "ActiveState": "inactive"}
+        for limit in ("0", "-1", "infinity", str(252 * GIB)):
+            route = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": limit}
+            with self.subTest(limit=limit), self.assertRaises(ValueError):
+                decision(previous, route, 251 * GIB)
 
     def test_rtl_transactions_require_all_18_calls(self):
         report = "latency interval\n" + "\n".join(

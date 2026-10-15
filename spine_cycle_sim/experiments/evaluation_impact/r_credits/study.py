@@ -11,7 +11,7 @@ import tarfile
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from ...upstream_controls.execution import run_bounded
 from ..r_execution import run_case
-from .admission import wait
+from .admission import COMPETITORS, competitors, wait
 from .analysis import MATRIX, identity, summarize
 from .freeze import ROOT, pin
 
@@ -20,7 +20,8 @@ REGRESSION_TARGETS = ["original_regraph_sssp_" + name + "_tests"
     "routed_source_service_tests", "regraph_compute_port_tests", "routed_regraph_system_tests"]
 
 
-def run(output, before, maximum_wait=43200):
+def run(output, before, maximum_wait=43200, reservations=None):
+    reservations = COMPETITORS if reservations is None else reservations
     frozen = json.loads((before / "freeze.json").read_text())
     if frozen["status"] != "PRE_EXTRACTION_FROZEN":
         raise ValueError("pre-extraction freeze required")
@@ -47,7 +48,8 @@ def run(output, before, maximum_wait=43200):
         "timeout_seconds": 1800, "maximum_wait_seconds": maximum_wait, "admission_wait_seconds": 0,
         "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "safety": {"build_limit_gib": 2, "build_reserve_gib": 8, "case_limit_gib": 4,
-                   "case_reserve_gib": 24, "serial": True},
+                   "case_reserve_gib": 24, "serial": True,
+                   "competing_units_gib": reservations},
         "boundary": "same resident warm weighted SSSP compute to convergence; no G/host/DMA",
         "production_baseline_admitted": False}
 
@@ -82,7 +84,7 @@ def run(output, before, maximum_wait=43200):
         report["pins"] += [pin(build / "simulator/cpp" / target) for target in REGRESSION_TARGETS]
         for case in MATRIX:
             remaining = max(0, maximum_wait - report["admission_wait_seconds"])
-            report["admission_wait_seconds"] += wait(report, save, remaining)
+            report["admission_wait_seconds"] += wait(report, save, remaining, reservations)
             if any(sha256_file(Path(p["path"])) != p["sha256"] for p in report["pins"]):
                 raise ValueError("pinned source/input/build identity changed before timing case")
             report["status"] = "RUNNING_SENSITIVITY_MATRIX"
@@ -115,7 +117,11 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--before", type=Path, required=True)
     parser.add_argument("--maximum-wait", type=int, default=43200)
+    for name, default in zip(("route", "cache", "search"), COMPETITORS):
+        parser.add_argument("--" + name + "-unit", default=default)
     args = parser.parse_args()
     if args.maximum_wait < 0:
         parser.error("wait bound must be nonnegative")
-    print(json.dumps({"status": run(args.output.resolve(), args.before.resolve(), args.maximum_wait)["status"]}))
+    reservations = competitors(args.route_unit, args.cache_unit, args.search_unit)
+    print(json.dumps({"status": run(args.output.resolve(), args.before.resolve(),
+                                   args.maximum_wait, reservations)["status"]}))

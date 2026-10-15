@@ -15,14 +15,20 @@ def main(argv=None):
         parser.add_argument("--" + key, type=Path, required=True)
     for key in ("basis", "study", "host", "integration"):
         parser.add_argument("--" + key, type=Path)
+    parser.add_argument("--allow-bounded-builds", action="store_true")
+    parser.add_argument("--background-memory-gib", type=int, default=0)
     args = parser.parse_args(argv)
     if args.action == "prepare":
         names = ("build", "basis", "study", "host", "integration", "output")
         if any(getattr(args, name) is None for name in names):
             parser.error("prepare requires basis, study, host and integration")
-        result = prepare(**{name: getattr(args, name).resolve() for name in names})
+        result = prepare(**{name: getattr(args, name).resolve() for name in names},
+                         allow_bounded_builds=args.allow_bounded_builds,
+                         background_memory_gib=args.background_memory_gib)
         print(json.dumps({"status": result["status"], "candidate_xo": result["candidate_xo"]}))
         return 0
+    if args.allow_bounded_builds or args.background_memory_gib:
+        parser.error("scheduling options must be frozen during prepare")
     result = run(args.build.resolve(), args.output.resolve())
     print(json.dumps(result, sort_keys=True))
     return 0 if result["status"] == "LINK_PASS_AWAITING_TIMING_AND_BOARD" else 2

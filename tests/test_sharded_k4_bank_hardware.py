@@ -9,7 +9,76 @@ from unittest.mock import patch
 
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import (
-    containment, preparation, supervisor)
+    admission, containment, preparation, supervisor)
+
+
+class ConcurrentAdmissionTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.proc = self.root / "proc"
+        self.groups = self.root / "cgroups"
+        self.groups.mkdir()
+        self.own = self.groups / "route"
+        self.policy = {"tree_memory_gib": 40, "reserve_gib": 24,
+                       "allow_bounded_builds": True, "background_memory_gib": 6}
+
+    def process(self, pid, name="search", limit="8589934592", swap="0"):
+        process = self.proc / str(pid)
+        process.mkdir(parents=True)
+        (process / "cgroup").write_text(f"0::/{name}\n")
+        directory = self.groups / name
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "memory.max").write_text(limit)
+        (directory / "memory.swap.max").write_text(swap)
+        return directory
+
+    def inspect(self, rows):
+        return admission.reservations(rows, self.own, proc=self.proc, root=self.groups)
+
+    def test_two_processes_share_one_reserved_scope(self):
+        self.process(1)
+        self.process(2)
+        rows = self.inspect(["1 vitis_hls", "2 vitis_hls"])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["pids"], [1, 2])
+        self.assertEqual(admission.required_bytes(self.policy, rows), 78 * containment.GIB)
+        self.assertTrue(admission.eligible(78 * containment.GIB, rows, self.policy))
+        self.assertFalse(admission.eligible(77 * containment.GIB, rows, self.policy))
+
+    def test_shared_bounded_parent_not_reserved_twice(self):
+        self.process(1, "shared", str(12 * containment.GIB))
+        self.process(2, "shared/child", str(8 * containment.GIB))
+        rows = self.inspect(["1 vivado", "2 vitis_hls"])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["memory_max_bytes"], 12 * containment.GIB)
+
+    def test_own_scope_and_exited_processes_are_not_competitors(self):
+        self.process(1, "route", str(40 * containment.GIB))
+        self.assertEqual(self.inspect(["1 vivado", "9 vitis_hls"]), [])
+
+    def test_unbounded_swapping_and_missing_limits_reject(self):
+        for limit, swap in (("max", "0"), ("0", "0"), ("8589934592", "max")):
+            with self.subTest(limit=limit, swap=swap):
+                directory = self.process(1, limit=limit, swap=swap)
+                rows = self.inspect(["1 vitis_hls"])
+                self.assertFalse(admission.eligible(200 * containment.GIB, rows, self.policy))
+                (self.proc / "1/cgroup").unlink()
+                (self.proc / "1").rmdir()
+        (directory / "memory.max").unlink()
+        self.process(2, "different")
+        (self.groups / "different/memory.max").unlink()
+        self.assertFalse(admission.eligible(200 * containment.GIB,
+                                          self.inspect(["2 vivado"]), self.policy))
+
+    def test_unsafe_membership_and_invalid_background_reject(self):
+        self.process(1)
+        (self.proc / "1/cgroup").write_text("0::/../outside\n")
+        self.assertFalse(admission.eligible(200 * containment.GIB, self.inspect(["1 vivado"]), self.policy))
+        for value in (-1, 41, True):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                admission.required_bytes({**self.policy, "background_memory_gib": value}, [])
 
 
 class HardwareSafetyTests(unittest.TestCase):
@@ -88,6 +157,25 @@ class HardwareSafetyTests(unittest.TestCase):
         execute.assert_called_once()
         with self.assertRaises(FileExistsError):
             supervisor.run(self.root / "build", output)
+
+    def test_bounded_competing_tool_does_not_serialize_route(self):
+        output = self.root / "concurrent"
+        output.mkdir()
+        policy = {**self.policy, "allow_bounded_builds": True, "background_memory_gib": 6}
+        (output / "manifest.json").write_text(json.dumps(policy))
+        (output / "environment.json").write_text("{}")
+        budgets = [{"cgroup": "/search", "bounded": True, "memory_max_bytes": 8 * containment.GIB}]
+        with patch.object(supervisor, "current", return_value=self.cgroup), \
+                patch.object(supervisor, "available_memory_bytes", return_value=100 * containment.GIB), \
+                patch.object(supervisor, "other_builds", return_value=["123 vitis_hls"]), \
+                patch.object(supervisor, "reservations", return_value=budgets), \
+                patch.object(supervisor.time, "sleep"), \
+                patch.object(supervisor.Path, "home", return_value=self.root), \
+                patch.object(supervisor, "reconstruct", return_value=({}, {})), \
+                patch.object(supervisor, "execute", return_value={"status": "LINK_PASS_AWAITING_TIMING_AND_BOARD"}) as execute:
+            result = supervisor.run(self.root / "build", output)
+        self.assertTrue(result["route_started"])
+        execute.assert_called_once()
 
     def test_process_inspection_errors_fail_closed(self):
         with patch.object(containment.subprocess, "run") as run:

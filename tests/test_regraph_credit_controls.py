@@ -120,6 +120,38 @@ class CreditAnalysisTests(unittest.TestCase):
 
 
 class CreditAdmissionTests(unittest.TestCase):
+    def test_fresh_units_reserve_the_declared_tool_budgets(self):
+        bounds = admission.competitors("new-route.service", "new-cache.service", "new-search.service")
+        active = {unit: {"LoadState": "loaded", "ActiveState": "active",
+                        "MemoryMax": str(512 * 1024**2)} for unit in bounds}
+        result = admission.decision(active, 81 * admission.GIB, bounds)
+        self.assertEqual(result["required_bytes"], 82 * admission.GIB)
+        self.assertEqual(set(result["reservations"]), set(bounds))
+        self.assertFalse(result["admitted"])
+        with self.assertRaisesRegex(ValueError, "complete competing"):
+            admission.decision(states(), 251 * admission.GIB, bounds)
+
+    def test_invalid_service_names_and_bounds_rejected(self):
+        for units in (("x.service", "x.service", "z.service"),
+                      ("x.scope", "y.service", "z.service"),
+                      ("x.service", "bad name.service", "z.service")):
+            with self.subTest(units=units), self.assertRaises(ValueError):
+                admission.competitors(*units)
+        for bound in (0, -1, 41, float("inf"), True):
+            with self.subTest(bound=bound), self.assertRaises(ValueError):
+                admission.decision({}, 251 * admission.GIB, {"x.service": bound})
+
+    def test_wait_uses_fresh_units_not_old_names(self):
+        bounds = admission.competitors("new-route.service", "new-cache.service", "new-search.service")
+        terminal = {unit: {"LoadState": "loaded", "ActiveState": "inactive"} for unit in bounds}
+        with patch.object(admission, "unit_state", side_effect=lambda unit: terminal[unit]) as probe, \
+                patch.object(admission, "available_memory_bytes", return_value=28 * admission.GIB), \
+                patch.object(admission.time, "monotonic", side_effect=[10, 12]):
+            report = {}
+            self.assertEqual(admission.wait(report, lambda: None, 100, bounds), 2)
+            self.assertEqual([call.args[0] for call in probe.call_args_list], list(bounds))
+            self.assertEqual(set(report["admission"]["reservations"]), set(bounds))
+
     def test_pending_build_limits_are_reserved(self):
         result = admission.decision(states(), 81 * admission.GIB)
         self.assertEqual(result["required_bytes"], 82 * admission.GIB)
@@ -129,6 +161,18 @@ class CreditAdmissionTests(unittest.TestCase):
     def test_terminal_jobs_keep_original_process_and_reserve(self):
         self.assertFalse(admission.decision(states(False), 27 * admission.GIB)["admitted"])
         self.assertTrue(admission.decision(states(False), 28 * admission.GIB)["admitted"])
+
+    def test_collected_service_keeps_reserve_without_infinite_reservation(self):
+        absent = {unit: {"LoadState": "not-found", "ActiveState": "inactive",
+                         "SubState": "dead", "MemoryMax": "infinity"}
+                  for unit in admission.COMPETITORS}
+        result = admission.decision(absent, 28 * admission.GIB)
+        self.assertTrue(result["admitted"])
+        self.assertTrue(all(value == 0 for value in result["reservations"].values()))
+        first = next(iter(absent.values()))
+        first["SubState"] = "running"
+        with self.assertRaises(ValueError):
+            admission.decision(absent, 251 * admission.GIB)
 
     def test_unknown_or_unbounded_competitor_fails_closed(self):
         for kind in ("missing", "state", "limit", "too_large"):

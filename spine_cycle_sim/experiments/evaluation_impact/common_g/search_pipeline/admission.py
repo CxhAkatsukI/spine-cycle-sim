@@ -9,22 +9,31 @@ from spine_cycle_sim.experiments.upstream_controls.execution import available_me
 GIB = 1024**3
 
 
+def terminal(state):
+    if state.get("LoadState") == "not-found":
+        if (state.get("ActiveState"), state.get("SubState")) == ("inactive", "dead"):
+            return True
+        raise ValueError("absent competing unit has inconsistent runtime state")
+    if state.get("LoadState") != "loaded" or state.get("ActiveState") not in (
+            "active", "activating", "deactivating", "inactive", "failed"):
+        raise ValueError("cannot establish competing build state")
+    return state["ActiveState"] in ("inactive", "failed")
+
+
 def unit_state(unit):
     completed = subprocess.run(["systemctl", "--user", "show", unit,
         "--property=LoadState,ActiveState,SubState,Result,MemoryMax"],
         capture_output=True, text=True, check=True, timeout=10)
     state = dict(line.split("=", 1) for line in completed.stdout.splitlines() if "=" in line)
-    if state.get("LoadState") != "loaded" or state.get("ActiveState") not in (
-            "active", "activating", "deactivating", "inactive", "failed"):
-        raise ValueError("cannot establish competing build state: " + unit)
+    terminal(state)
     return state
 
 
 def decision(previous, route, available):
-    serial_ready = previous["ActiveState"] in ("inactive", "failed")
-    pending = route["ActiveState"] not in ("inactive", "failed")
+    serial_ready = terminal(previous)
+    pending = not terminal(route)
     route_max = int(route["MemoryMax"]) if pending else 0
-    if route_max < 0 or route_max > 251 * GIB:
+    if (pending and route_max <= 0) or route_max > 251 * GIB:
         raise ValueError("invalid competing route cgroup bound")
     required = 8 * GIB + 24 * GIB + route_max
     return {"previous_hls_terminal": serial_ready, "route_reservation_bytes": route_max,

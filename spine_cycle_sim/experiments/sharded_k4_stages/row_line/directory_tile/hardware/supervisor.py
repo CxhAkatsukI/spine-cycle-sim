@@ -1,4 +1,4 @@
-"""Queue at 64 GiB available, then route with hard and sampled memory guards."""
+"""Route after stable memory admission, with hard and sampled memory guards."""
 
 import fcntl
 import json
@@ -11,10 +11,7 @@ from ....empty_segment.route_environment.__main__ import execute
 from ....empty_segment.route_environment.contract import reconstruct
 from ....execution import identity
 from .containment import GIB, current, other_builds, verify
-
-
-def eligible(available: int, builds: list, manifest: dict) -> bool:
-    return not builds and available >= (manifest["tree_memory_gib"] + manifest["reserve_gib"]) * GIB
+from .admission import eligible, required_bytes, reservations
 
 
 def unchanged(manifest: dict) -> None:
@@ -42,9 +39,12 @@ def run(build: Path, output: Path) -> dict:
             while True:
                 verify(current())
                 available, active = available_memory_bytes(), other_builds()
-                consecutive = consecutive + 1 if eligible(available, active, manifest) else 0
+                budgets = reservations(active, current()) if manifest.get("allow_bounded_builds", False) else active
+                consecutive = consecutive + 1 if eligible(available, budgets, manifest) else 0
                 state = {"status": "QUEUED_WAITING_FOR_SAFE_MEMORY", "route_started": False,
-                    "available_gib": available / GIB, "required_gib": 64, "other_builds": active,
+                    "available_gib": available / GIB, "required_gib": required_bytes(manifest, budgets) / GIB,
+                    "other_builds": active, "build_reservations": budgets,
+                    "allow_bounded_builds": manifest.get("allow_bounded_builds", False),
                     "consecutive_safe_samples": consecutive, "queue_seconds": time.monotonic() - started}
                 atomic_write_json(record, state)
                 if consecutive >= 8:
