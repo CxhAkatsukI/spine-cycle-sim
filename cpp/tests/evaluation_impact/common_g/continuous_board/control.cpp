@@ -21,7 +21,9 @@ int main(int argc, char** argv) {
     std::cout << "CONTINUOUS_G_SETUP {\"board\":" << (board ? "true" : "false")
               << ",\"one_time_setup_ms\":" << milliseconds(setup_begin)
               << ",\"shards\":" << model.graph.shards.size()
-              << ",\"hbm_bytes\":" << model.plan.total_allocated_bytes << "}" << std::endl;
+              << ",\"hbm_bytes\":" << model.plan.total_allocated_bytes;
+    if (board) std::cout << ",\"device_bdf\":\"" << device->session.bdf << "\"";
+    std::cout << "}" << std::endl;
     for (unsigned batch = 0; batch < 3; ++batch) {
       const auto begin = Clock::now();
       const auto updates = model.pack_batch(batch);

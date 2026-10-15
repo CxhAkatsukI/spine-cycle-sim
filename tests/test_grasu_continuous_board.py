@@ -202,6 +202,20 @@ class ContinuousBoardTests(unittest.TestCase):
                                           bundle.extractfile(name + ".stderr.txt").read().decode())
                 self.assertEqual(actual, {key: result[key] for key in ("setup", "rows")})
 
+    def test_guarded_host_preserves_all_previous_non_timing_results(self):
+        root = Path(__file__).resolve().parents[1] / (
+            "docs/experiments/comparisons/grasu_regraph_stage_validation/"
+            "evaluation_impact/hardware_validation/complete_pipeline/continuous_board")
+        old = delivery.verify(root / "evidence")["attempts"][0]
+        new = delivery.verify(root / "guarded_host_evidence")["attempts"][0]
+        deterministic = lambda row: {key: value for key, value in row.items() if key not in analysis.TIMES}
+        self.assertEqual([(case["case"], [deterministic(row) for row in case["rows"]]) for case in old["cases"]],
+                         [(case["case"], [deterministic(row) for row in case["rows"]]) for case in new["cases"]])
+        with tarfile.open(root / "guarded_host_evidence" / new["archive"]) as bundle:
+            source = bundle.extractfile("source/continuous_board/xrt.hpp").read().decode()
+            self.assertIn('std::getenv("CONTINUOUS_G_EXPECT_BDF")', source)
+            self.assertLess(source.index("CL_DEVICE_PCIE_BDF"), source.index("cl::Program(context"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,19 +1,22 @@
-# Continuous G Host Preflight
+# Continuous G Host And Board Gates
 
 ## Decision
 
-`g-continuous-host-v1` passes XRT host compilation and all eighteen **host-model**
+`g-continuous-host-v2` passes XRT host compilation and all eighteen **host-model**
 rows: `CONTINUOUS_G_HOST_MODEL_PASS_NOT_BOARD`. Six AU/SU/WK cases each apply an
 empty batch and two consecutive half-batches without restoring PMA state.
 The execution used `--model-check`; it did not enumerate, program or run an
 FPGA. No board latency, original-G match or complete G+R admission is claimed.
 
-The [portable evidence index](evidence/index.json) contains the frozen host,
-inputs/contracts, compiler/header identities, raw logs, analysis and resource
-records. The XRT-linked binary SHA-256 is
-`ef8a5b484e3729d136e3354d409b3510166c66cddb82ce817f99ae438f4f9694`;
+The [guarded-host evidence index](guarded_host_evidence/index.json) contains
+the frozen host, inputs/contracts, compiler/header identities, raw logs,
+analysis and resource records. The XRT-linked binary SHA-256 is
+`637e77b69c0f8d62cfa8d42391657a76cc8b5c2de503f39066e386bf10f92985`;
 348 compiler dependencies are pinned. These identify compilation, not the
 runtime XRT libraries/driver or a programmed bitstream.
+The new host checks the actual OpenCL PCIe BDF against the leased device
+**before programming**. Its eighteen non-timing rows exactly match v1.
+The earlier [v1 capsule](evidence/index.json) and binary remain unchanged.
 The frozen v1 analyzer is retained unchanged. The delivery review and tests
 reanalyze its raw output with the stricter current analyzer, including finite
 nonnegative times, exact word counts and host/device claim separation; this
@@ -56,6 +59,7 @@ Paths below are relative to the repository root.
 | `cpp/tests/evaluation_impact/common_g/continuous_board/device.hpp` | Four search CUs, dispatch, both caches, both DDR paths, completion barrier and persistent BO bindings |
 | `cpp/tests/evaluation_impact/common_g/continuous_board/control.cpp` | Thin model/board modes and explicit timing/output boundaries |
 | `spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/` | Separate preparation, bounded host-only execution, analysis and evidence packaging |
+| `spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/execution/` | Separate completed-route admission, runtime/device identity, raw-event validation and bounded board execution |
 
 The pure preparation header no longer imports vendor simulation types.
 Its fresh [42-row regression](../host_prepared/native_input_regression/equivalence.json)
@@ -65,7 +69,7 @@ production HLS, simulator numerical components or an SST build list.
 
 ## Timing Boundary
 
-These fields are implemented for future board measurements. The preflight's
+These fields are implemented for board measurements. The preflight's
 host wall times are **not FPGA performance results**; its kernel fields are zero.
 
 | Field | Window |
@@ -92,7 +96,8 @@ From the repository root:
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.study --help
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.delivery --help
 python3 -m unittest tests.test_grasu_continuous_board tests.test_grasu_host_prepared -v
-python3 -c 'from pathlib import Path; from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.delivery import verify; verify(Path("docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/complete_pipeline/continuous_board/evidence"))'
+python3 -m unittest tests.test_grasu_continuous_execution -v
+python3 -c 'from pathlib import Path; from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.delivery import verify; verify(Path("docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/complete_pipeline/continuous_board/guarded_host_evidence"))'
 ```
 
 Use a fresh output directory, pristine `GraSU_kernels/src` as `--upstream`,
@@ -104,28 +109,26 @@ system/vendor headers. Every compiler/model process is limited to 4 GiB hard,
 40-GiB FPGA tool budgets plus 24 GiB for system/background work; those tools
 need not exit when the bounded budgets fit.
 
-Compilation took 5.41 s and about 360 MiB peak process RSS. Each case took
-0.15--0.21 s with less than 74 MiB peak process RSS. Raw evidence is at
-`/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-continuous-host-v1/`,
-systemd invocation `b804313a60f04011bedcceba4fbbbd7b`. Host checks do not execute
+Guarded-host compilation took 5.51 s and about 361 MiB peak process RSS.
+Raw evidence is at
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-continuous-host-v2/`,
+systemd invocation `a99e38fd21b74c35bb03a3eb533d27ee`. Host checks do not execute
 the production search/cache logic; the independent source matrix covers that
 separate functional requirement.
 
-The focused suite passes all 223 tests, including raw-output reanalysis,
-claim-promotion/corruption rejection, both committed capsule checks and the
-42-row input-refactor equivalence check. It ran with a 2-GiB physical memory
-bound and about 92 MiB sampled peak process-tree RSS. Raw verification logs
-are retained at `verification-continuous-host-v3/` under the campaign root;
-the earlier v1/v2 test runs are retained as well.
+The earlier 223-test suite and its logs remain retained at
+`verification-continuous-host-v3/`. The new execution tests cover route,
+device/runtime, lease, resource bounds and raw profiling checks; see the
+[board execution guide](execution/README.md) for the current checkpoint.
 
 ## Remaining Board Gates
 
-The C++ `--board` path is compiled but unexecuted. Before using it, require a
-timing-accepted, identity-pinned **complete new-G** bitstream, not the separate
-adapter-only build or an older search/cache bitstream. Pin the XRT runtime
-libraries/driver and device identity, hold an exclusive board lease, and run
-under bounded memory/time supervision with raw event and failure retention.
-No automatic board launcher/admission is delivered in this checkpoint.
+The C++ `--board` path is compiled but unexecuted. A bounded launcher now
+requires a timing-accepted, identity-pinned **complete new-G** bitstream, pins
+actual runtime libraries/driver/device, holds the shared exclusive lease and
+reanalyzes raw event intervals. It rejects unfinished routes before acquiring
+or programming a board. Its real unfinished-route rejection is retained in
+`g-board-unfinished-gate-v1/`; no actual FPGA matrix has run.
 
 Board checks must validate raw profiling intervals, full state, continuous
 batches, cold updates, metadata lifecycle and multi-shard bindings. Integrated

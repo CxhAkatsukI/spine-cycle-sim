@@ -9,6 +9,7 @@
 
 #include "model.hpp"
 #include <chrono>
+#include <cstdlib>
 #include <iostream>
 
 namespace continuous_g {
@@ -55,6 +56,7 @@ inline std::array<double, 2> event_window(const std::vector<Event>& events) {
 
 struct Session {
   cl::Device device;
+  std::string bdf;
   cl::Context context;
   cl::CommandQueue transfers, updates, barriers;
   cl::Program program;
@@ -71,6 +73,13 @@ struct Session {
     check_input(device_index < devices.size(), "requested Xilinx device unavailable");
     device = devices[device_index];
     check_input(device.getInfo<CL_DEVICE_NAME>().find("u55c") != std::string::npos, "U55C required");
+    std::array<char, 128> address{};
+    checked(clGetDeviceInfo(device(), CL_DEVICE_PCIE_BDF, address.size(), address.data(), nullptr),
+            "query device BDF");
+    check_input(address.back() == '\0', "unterminated device BDF");
+    bdf = address.data();
+    const auto* expected_bdf = std::getenv("CONTINUOUS_G_EXPECT_BDF");
+    check_input(expected_bdf && bdf == expected_bdf, "device BDF differs from exclusive board lease");
     cl_int error = CL_SUCCESS;
     context = cl::Context(device, nullptr, nullptr, nullptr, &error);
     checked(error, "create context");
