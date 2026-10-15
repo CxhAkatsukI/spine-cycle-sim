@@ -9,7 +9,7 @@
 namespace search_pipeline {
 inline void network(const unsigned long* edges, const Raw* binary_nodes,
                     const Raw* rows, unsigned count, hls::stream<Packet>& output) {
-#pragma HLS INLINE
+#pragma HLS INLINE off
   hls::stream<Raw> input, updates[lanes], responses[lanes];
   hls::stream<Request> requests[lanes];
   hls::stream<Result> results[lanes];

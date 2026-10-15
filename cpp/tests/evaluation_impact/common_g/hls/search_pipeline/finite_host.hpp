@@ -68,14 +68,22 @@ public:
     return true;
   }
   bool read_nb(void* value) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (data_.empty()) return false;
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (data_.empty()) {
+      lock.unlock();
+      // C simulation shares CPU cores; an empty hardware poll costs no host spin.
+      std::this_thread::yield();
+      return false;
+    }
     take(value);
     return true;
   }
   size_t size() override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return data_.size();
+    std::unique_lock<std::mutex> lock(mutex_);
+    const auto count = data_.size();
+    lock.unlock();
+    if (!count) std::this_thread::yield();
+    return count;
   }
   ChannelStats stats() override {
     std::lock_guard<std::mutex> lock(mutex_);

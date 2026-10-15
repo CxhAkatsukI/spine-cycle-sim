@@ -166,6 +166,19 @@ class SearchPipelineTests(unittest.TestCase):
         self.assertIn("if (request[33]) break;", feedback)
         self.assertIn("if (response[70]) break;", feedback)
 
+    def test_empty_host_polls_yield_after_releasing_the_queue_lock(self):
+        root = Path(__file__).resolve().parents[1]
+        folder = root / "cpp/tests/evaluation_impact/common_g/hls/search_pipeline"
+        source = (folder / "finite_host.hpp").read_text()
+        for begin, end in (("  bool read_nb(", "  size_t size("),
+                           ("  size_t size(", "  ChannelStats stats(")):
+            method = source[source.index(begin):source.index(end)]
+            self.assertLess(method.index("lock.unlock();"),
+                            method.index("std::this_thread::yield();"))
+        network = (folder / "network.hpp").read_text()
+        self.assertIn('#ifndef __SYNTHESIS__\n#include "finite_host.hpp"\n#endif', network)
+        self.assertNotIn("std::this_thread", (folder / "transport.hpp").read_text())
+
     def test_concurrent_component_tools_require_all_declared_memory_budgets(self):
         previous = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(512 * 1024**2)}
         route = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(40 * GIB)}

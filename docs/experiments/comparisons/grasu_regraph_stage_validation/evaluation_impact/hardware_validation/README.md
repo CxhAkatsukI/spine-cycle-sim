@@ -28,8 +28,8 @@ reported rather than silently replaced with a different experiment.
 | Track | Latest evidence | Remaining gate |
 | --- | --- | --- |
 | Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |
-| Search | v5/v6 retain nonempty RTL timeouts with 6.225/5.572-ns estimates; v7 registers gather selection; v8 additionally makes feedback reads nonblocking | Fresh full source controls, nonempty RTL completion, 5-ns estimate and timing-model alignment |
-| Search host binding | All 216 finite-channel, eleven-argument source calls pass, including two metadata generations and unused-pointer controls | XRT/register ABI checks, production integration and RTL of this wrapper remain open |
+| Search | v5/v6 retain nonempty RTL timeouts; v7/v9 hit an INLINE/DATAFLOW pragma conflict; v10 passes full source controls and is running HLS | Fresh nonempty RTL completion, 5-ns estimate and timing-model alignment |
+| Search host binding | Fresh v4 passes all 216 source calls; `g-search-binding-rtl-v1` is running the actual eleven-argument wrapper | Exported register/AXIS ABI, RTL of this wrapper and production integration remain open |
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
@@ -509,3 +509,54 @@ when these budgets fit; each actual tool launch rechecks memory. The supervisor
 retains its 512-MiB/no-swap bound, and the HLS timeout remains 1,800 seconds.
 No frozen earlier attempt, production kernel or simulator timing model is
 rewritten by this retry.
+
+## Shared Hierarchy And Host Polling Retry
+
+`g-search-hls-v7` and `g-search-hls-v9` pass their eighteen C-simulation calls
+but fail synthesis with `HLS 214-272`. The extracted `network` function has
+both `INLINE` and `DATAFLOW`, while its outer top is not a dataflow region.
+Vitis explicitly rejects this combination. Neither run reaches a new clock
+report or RTL execution. The frozen source, logs and failures remain unchanged.
+
+The new v10 source keeps `network` as `INLINE off` with its existing internal
+`DATAFLOW` region. It preserves the registered gather and nonblocking feedback
+candidate, stream capacities, search algorithm and argument interfaces. This
+is a fresh synthesis-hierarchy candidate, not evidence that its RTL now works.
+The host-only finite-stream delegate also unlocks and yields on empty polls;
+that change prevents polling threads from monopolizing the affinity cores.
+It is excluded under `__SYNTHESIS__` and is not a device-cycle optimization.
+
+`g-search-controls-v10` must pass all 38 executions / 152 CU checks and eighteen
+testbench-source calls before its dependent `g-search-hls-v10` can start.
+The 512-MiB/no-swap supervisor is bounded to two hours. HLS retains its
+8-GiB/no-swap bound and 1,800-second timeout; routing plus background reserves
+raise the current admission threshold to 112 GiB. Approximately 141 GiB was
+available at source launch. This policy permits actual concurrent tools.
+
+The matching `g-search-binding-v4` already passes all 216 source calls using
+the v10 network, actual pointer aliases, two metadata generations, poisoned/null
+unused pointers and stalled consumers. The new production-wrapper RTL/ABI probe
+is documented in the [search guide](../search_pipeline/README.md#production-wrapper-rtl-and-abi).
+It requires both complete source reports and identical frozen shared sources;
+exported XO metadata is compared to the old routed wrapper's register/AXIS ABI.
+Parser tests are not a generated-ABI or RTL pass. Nonempty RTL, clock feasibility,
+external RTL backpressure, integrated G, simulator schedule alignment and board
+measurement remain distinct open gates.
+
+The v10 matrix subsequently completed all 38 executions / 152 CU controls and
+eighteen testbench-source calls without errors. `g-search-hls-v10` passed C
+simulation and entered synthesis. Its admission recorded 154955149312 available
+bytes (about 144.3 GiB), above the 112-GiB threshold. The separate
+`g-search-binding-rtl-v1` invocation `5f3220fdc11c4a489c8fd4a726a0a654` also
+entered HLS while routing remained active, recording 154336993280 available
+bytes (about 143.7 GiB). These are actual concurrent launches, not queued passes.
+
+Seventy-five focused regressions pass; their complete command, stdout/stderr
+and resource record are under `verification-wrapper-rtl-v3/` in the raw campaign
+root. The process tree is capped at 2 GiB with no swap, CPU 123, a 180-second
+timeout and 112-GiB admission reserve. Earlier verification attempts are
+retained: v1's inherited 2-GiB address-space hard limit prevented two watchdog
+test children from setting their own virtual-address limit; v2 found that GNU
+`time` is not installed. The v3 cgroup bound preserves the same 2-GiB physical
+memory budget without imposing that incompatible inherited virtual limit.
+No watchdog assertion, RTL gate or hardware resource bound was relaxed.

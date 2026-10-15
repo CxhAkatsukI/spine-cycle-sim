@@ -75,3 +75,10 @@ class SearchBindingTests(unittest.TestCase):
             for index in range(4):
                 self.assertIn(f"s_axilite port={family}_{index} ", wrapper)
         self.assertIn("search_pipeline::network", (folder / "search_pipeline/top.cpp").read_text())
+
+    def test_shared_dataflow_network_is_not_forced_into_a_non_dataflow_wrapper(self):
+        root = Path(__file__).resolve().parents[1]
+        network = (root / "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/network.hpp").read_text()
+        self.assertIn("#pragma HLS INLINE off", network)
+        self.assertIn("#pragma HLS DATAFLOW", network)
+        self.assertNotIn("#pragma HLS INLINE\n", network)

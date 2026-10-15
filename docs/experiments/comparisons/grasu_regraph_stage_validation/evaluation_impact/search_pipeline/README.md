@@ -47,6 +47,14 @@ scheduling observations, not deterministic hardware cycles. New registered
 gather and nonblocking feedback candidates need their own RTL and schedule
 checks; neither changes the production kernel or cycle engine yet.
 
+The subsequent host delegate yields after releasing its queue mutex on an
+empty `read_nb` or `size` poll. This prevents C-simulation polling threads
+from occupying their affinity cores while producers need those same cores.
+`finite_host.hpp` is excluded under `__SYNTHESIS__`; this is not an HLS
+latency optimization or a cycle-model change. Fresh source controls must
+still check every packet, probe count and FIFO conservation result. Earlier
+attempts keep their original delegates and timeouts.
+
 There are 64 search contexts per CU, grouped eight by eight, and one shared
 metadata AXI bundle for row and binary-search reads. Each context owns at most
 one ordered update until its result releases the lane credit. The central
@@ -186,7 +194,54 @@ The source code is optional test HLS, not linked into CMake core or the SST
 plugin. Core/SST numerical code is unchanged this checkpoint. Earlier core/SST
 regressions remain historical evidence, not newly rerun calibration.
 
-## Remaining Work
+## Production Wrapper RTL And ABI
+
+The separate `common_g/search_binding/` package checks the actual compact-host
+argument shape. Its source matrix has 216 calls, covering pointer aliases,
+unused-pointer poisoning, two metadata generations and stalled consumers. This
+does not prove that exported registers or RTL have the same interface.
+
+| Module | Responsibility |
+| --- | --- |
+| `rtl_preparation.py` | Require complete source controls, freeze source/runner/reference ABI, produce vendor Tcl |
+| `rtl.py` | Thin CLI, bounded memory admission, execution and final report |
+| `rtl_analysis.py` | Keep C simulation, RTL, clock and ABI decisions separate; retain partial reports |
+| `abi.py` | Structured comparison of exported kernel arguments, control registers and AXIS signals |
+| `hls/search_binding/rtl_control.cpp` | Eighteen real-wrapper calls, including metadata replacement at unchanged pointer addresses |
+
+Preparation requires successful, hash-checked binding and isolated source
+controls using identical shared search sources. It also replays their analyses;
+a status label alone is insufficient. The reference is the routed search
+solution's `impl/kernel/kernel.xml` and `impl/ip/component.xml`, not a handwritten
+assumption about argument offsets. Exported XO metadata must preserve all eleven
+arguments, unused-pointer qualifiers, control-register offsets, `ap_ctrl_chain`
+and the 96-bit AXIS payload with 12-bit keep/strb sidebands.
+
+The RTL bench covers the same nine count boundaries, each with two metadata
+generations, using the actual aliased host pointers. C simulation, all eighteen
+RTL transactions, exported ABI and the 5-ns estimate are independent gates. A
+functional/ABI pass with a slower estimate is explicitly a clock-gate failure.
+External RTL `TREADY` stalls, integrated G, routed timing and board execution
+remain untested by this component probe. Its results never admit publication
+performance or replace a whole-G validation.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.search_binding.rtl \
+  --output /path/to/fresh-wrapper-rtl \
+  --binding /path/to/completed-binding-controls \
+  --search /path/to/completed-isolated-source-controls \
+  --reference /path/to/routed-bin-search/solution \
+  --previous-unit spine-grasu-full-cache-20261015-v1.service \
+  --route-unit spine-sharded-k4-bank-sssp-20261015-v1.service \
+  --background-memory-gib 40 --maximum-wait 3600
+```
+
+The wrapper tool uses an 8-GiB hard / 7-GiB high bound, no swap, CPU 124 and
+a 1,800-second timeout. With cache finished, routing active and 40 GiB reserved
+for other work, admission requires 112 GiB available (8 + 24 + 40 + 40).
+It does not wait for other tools to exit when this full budget fits.
+
+## Remaining Integration Gates
 
 First inspect actual search schedules, resource usage and clock, keeping RTL
 correctness separate from clock feasibility. Combine admitted search with the
