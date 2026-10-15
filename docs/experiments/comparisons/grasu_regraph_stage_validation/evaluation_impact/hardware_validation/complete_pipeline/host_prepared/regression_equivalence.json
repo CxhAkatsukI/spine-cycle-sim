@@ -1,0 +1,21 @@
+{
+  "classified_diagnostics_identical": true,
+  "reports": [
+    {
+      "binary_sha256": "b2675225d24713143e7eb9999a68b83fe7f0297afa644eceddf095716daf27db",
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-source-v6/results.json",
+      "sha256": "16ac9768177afef85f6e9e6d69ea481744807dd018bffca4f883a6fb0dc90391",
+      "stdout_sha256": "d8d5efe6bb07d3b0c5f482615802570ea782c52b3fba9f3765a055ec46403d4d"
+    },
+    {
+      "binary_sha256": "024bdfec6757c26efa534169295404eae1ce3bab29c0bc6886f565414312633e",
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-source-v10/results.json",
+      "sha256": "40d4b7e2dd17348d6fede0b1b65b5ee8f6e18b98d5ee31c53bc5cdf267aaa07c",
+      "stdout_sha256": "d8d5efe6bb07d3b0c5f482615802570ea782c52b3fba9f3765a055ec46403d4d"
+    }
+  ],
+  "rows_identical": true,
+  "rows_per_attempt": 12,
+  "status": "SYNTHETIC_SOURCE_OUTPUT_EQUIVALENT_NOT_HARDWARE_TIMING",
+  "stdout_byte_identical": true
+}

@@ -50,7 +50,8 @@ inline void check_report_isolation() {
   for (auto& thread : threads) thread.join();
 }
 
-inline std::array<unsigned, 4> run_g(const Fixture& fixture, Memory& memory,
+template <class FixtureType, class MemoryType>
+inline std::array<unsigned, 4> run_g(const FixtureType& fixture, MemoryType& memory,
                                     const std::vector<unsigned long>& updates, bool registered) {
   std::array<std::vector<unsigned long>, 4> lanes;
   std::array<unsigned long, 4> probes{};
@@ -59,7 +60,7 @@ inline std::array<unsigned, 4> run_g(const Fixture& fixture, Memory& memory,
   for (unsigned i = 0; i < updates.size(); ++i) {
     lanes[i % 4].push_back(updates[i]);
     unsigned long ignored = 0;
-    ++dispatched[Memory::owner(fixture.locate(updates[i], ignored))];
+    ++dispatched[MemoryType::owner(fixture.locate(updates[i], ignored))];
   }
   hls::stream<Packet> searched[4], inputs[4], outputs[4];
   search_pipeline::HostNetwork host;
@@ -99,8 +100,10 @@ inline std::array<unsigned, 4> run_g(const Fixture& fixture, Memory& memory,
     // and cold indices retain the complete local index, including hot prefix.
     production_ddr::process_ddr(buffer, buffer, buffer, buffer, outputs[port]);
   });
-  host.join();
   even.join(); odd.join();
+  // Cache consumers are not owned by HostNetwork; finish them before its
+  // queue-conservation snapshot can observe a still-pending end token.
+  host.join();
   const auto& external = search_pipeline::last_host_report().channels;
   require(external.size() == 12, "external G FIFO topology");
   for (unsigned lane = 0; lane < 4; ++lane) {

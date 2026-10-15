@@ -31,7 +31,7 @@ reported rather than silently replaced with a different experiment.
 | Search | Fresh v11 passes all eighteen C/Verilog transactions; 3.650-ns isolated estimate | Timing-model alignment, integrated RTL and board gates; earlier failures remain retained |
 | Search host binding | All 216 source calls and eighteen real-wrapper RTL transactions pass; independent canonical-XO review matches the routed ABI, with a 3.650-ns estimate | External RTL backpressure, production integration, routed clock and board execution |
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
-| Complete G source | Twelve rows pass four-CU search, both full hot halves, cold DDR and direct adapter checks | Production export, integrated RTL/backpressure, resource fit and hardware timing; internal cache/DDR C-simulation FIFOs remain unbounded |
+| Complete G source | Twelve synthetic rows replay exactly; 42 additional real host-prepared rows pass complete-state/direct-adapter checks | Integrated RTL/backpressure, actual XRT bindings, resource fit and hardware timing; internal cache/DDR C-simulation FIFOs remain unbounded |
 | Cache production binding | Shared-core extraction passes all twelve composition controls again; production wrapper passes six full-state RTL transactions, token checks and exported ABI at a 3.650-ns estimate | Complete-G resource fit, integrated RTL/backpressure, production integration, routing and board timing |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
@@ -40,6 +40,8 @@ reported rather than silently replaced with a different experiment.
 This is a progress checkpoint, not an admission of the complete baseline.
 The [complete-G source guide](complete_pipeline/README.md) owns its portable
 evidence, exact scope and retained failed attempts.
+The [host-prepared guide](complete_pipeline/host_prepared/README.md) separates
+the AU/SU/WK source matrix from native hardware capacity and performance.
 The [diagnostic G-link guide](complete_pipeline/hardware/README.md) records
 the new search/full-cache XO substitutions, single-CU placement change,
 atomic full-budget concurrency policy and monitoring commands. The

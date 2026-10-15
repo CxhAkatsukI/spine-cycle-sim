@@ -2,14 +2,18 @@
 
 ## Decision
 
-The latest `g-complete-source-v6` passes twelve declared rows:
+The latest synthetic `g-complete-source-v10` passes twelve declared rows:
 `COMPLETE_G_SOURCE_COMPOSITION_PASS_NOT_INTEGRATED_RTL`.
 This closes a source-level composition check, not complete G production,
 integrated RTL, routed timing, FPGA performance or publication reproduction.
 The [evidence index](evidence/index.json) retains raw failed attempts as well
 as the passing source, commands, dependencies, resource logs and output.
-The [shared-core index](shared_core_evidence/index.json) owns the newer v6
-identity. The [diagnostic hardware guide](hardware/README.md) covers the
+The [shared-core index](shared_core_evidence/index.json) preserves v6.
+The [real host-prepared check](host_prepared/README.md) adds 42 passing rows
+from AU/SU/WK compact topology and retains the v10 regression capsule: its
+stdout, parsed counters and classified diagnostics match v6. It validates
+unchanged production host preparation at source level, not FPGA timing.
+The [diagnostic hardware guide](hardware/README.md) covers the
 resource screen and memory-admitted concurrent link; a running link is not a
 completed integration or performance result.
 
@@ -36,8 +40,9 @@ physical packet count and logical weighted edge set. Expected live edge
 counts after the batches are 40, 43 and 46. There are 1,544 physical edits
 across both arms and generations, and twelve adapter handoffs.
 
-This is a synthetic reserved-layout stress fixture, not a real-trace or host
-PMA-reservation validation. External search/dispatch/cache/DDR stream queues
+This twelve-row matrix is a synthetic reserved-layout stress fixture, not
+a real-trace or host PMA-reservation validation; the linked host-prepared
+matrix covers that separate functional scope. External search/dispatch/cache/DDR stream queues
 are bounded in the host harness. Internal cache/DDR `hls::stream` queues are
 unbounded in C simulation, so this result does **not** establish integrated
 RTL progress, backpressure behavior, a cycle count or resource fit. ReGraph
@@ -92,7 +97,9 @@ Use a fresh `--output`, pristine GraSU kernel sources as `--upstream`, the
 production G+R root as `--integration`, and vendor `--hls-include`. It freezes
 inputs, pins G++ and dependencies, and uses C++20/O1 with assertions. Tool
 scopes have 4-GiB hard/3-GiB high limits, no swap, CPUs 124--125, a 120-GiB
-available-memory reserve and 300/900-second compile/run timeouts.
+available-memory reserve and 300/900-second compile/run timeouts. v10 uses
+the explicit `--reserve-gib 104` option, keeping two 40-GiB compiler budgets
+and a 24-GiB background/system reserve; the runner accepts only 104--120 GiB.
 The supervisor must also have its own bounded lifetime and memory scope.
 Other FPGA tools need not finish when their bounded budgets and reserves fit.
 
