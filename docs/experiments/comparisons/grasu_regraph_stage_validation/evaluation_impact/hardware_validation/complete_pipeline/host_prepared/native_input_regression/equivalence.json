@@ -1,0 +1,23 @@
+{
+  "status": "REAL_HOST_SOURCE_OUTPUT_EQUIVALENT_NOT_HARDWARE_TIMING",
+  "rows_per_attempt": 42,
+  "rows_identical": true,
+  "stdout_byte_identical": true,
+  "classified_diagnostics_identical": true,
+  "input_bytes_identical": true,
+  "contracts_identical_after_input_path_relocation": true,
+  "reports": [
+    {
+      "attempt": "g-real-prepared-source-v5",
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-real-prepared-source-v5/results.json",
+      "sha256": "8157574a6d2d106520adf02ba5fde5518db47a6d5dbb508beda8668392625334",
+      "binary_sha256": "c70bb22f662cc0e5bb79b9b51174f6e207fd63c042d934468cbdaf7d055f3f5e"
+    },
+    {
+      "attempt": "g-real-prepared-source-v6",
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-real-prepared-source-v6/results.json",
+      "sha256": "17cec4d6593c038539a51b8b21740b92cdd3dcab64aec4cd779c10ac11b98ad3",
+      "binary_sha256": "b3b8cdf3a73eb5b91aa44d5bac9a5a3ae5c915423e3e2c2646c0fa6c15c6c919"
+    }
+  ]
+}

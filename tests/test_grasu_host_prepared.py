@@ -1,6 +1,8 @@
 import copy
+import hashlib
 import json
 from pathlib import Path
+import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -180,6 +182,40 @@ class HostPreparedTests(unittest.TestCase):
                          ["FAILED_RETAINED", "FAILED_RETAINED",
                           "COMPLETE_G_SOURCE_COMPOSITION_PASS_NOT_INTEGRATED_RTL"])
         self.assertEqual(len(regression["attempts"][-1]["rows"]), 12)
+
+    def test_native_input_extraction_preserves_full_source_outputs(self):
+        root = Path(__file__).resolve().parents[1]
+        path = root / ("docs/experiments/comparisons/grasu_regraph_stage_validation/"
+                       "evaluation_impact/hardware_validation/complete_pipeline/host_prepared")
+        record = json.loads((path / "native_input_regression/equivalence.json").read_text())
+        before = delivery.verify(path / "evidence")["attempts"][-1]
+        after = delivery.verify(path / "native_input_regression")["attempts"][0]
+        self.assertEqual(before["rows"], after["rows"])
+        self.assertEqual(len(after["rows"]), record["rows_per_attempt"])
+        observed = []
+        for folder, entry, pin in zip((path / "evidence", path / "native_input_regression"),
+                                       (before, after), record["reports"], strict=True):
+            with tarfile.open(folder / entry["archive"]) as bundle:
+                report_bytes = bundle.extractfile("results.json").read()
+                report = json.loads(report_bytes)
+                self.assertEqual(hashlib.sha256(report_bytes).hexdigest(), pin["sha256"])
+                self.assertEqual(report["binary_sha256"], pin["binary_sha256"])
+                self.assertEqual(entry["attempt"], pin["attempt"])
+                contract = json.loads(bundle.extractfile("contract.json").read())
+                case_data = []
+                for case in contract["cases"]:
+                    name = case["case"]
+                    stdout = bundle.extractfile(name + ".stdout.txt").read()
+                    stderr = bundle.extractfile(name + ".stderr.txt").read().decode()
+                    analysis.analyze(case, stdout.decode(), stderr)
+                    case_data.append((stdout, [stderr.count(w) for w in WARNING_PAIR],
+                                      bundle.extractfile("source/inputs/" + Path(case["input"]).name).read()))
+                    case["input"] = Path(case["input"]).name
+                observed.append((contract, case_data))
+        self.assertEqual(observed[0], observed[1])
+        for claim in ("rows_identical", "stdout_byte_identical", "classified_diagnostics_identical",
+                      "input_bytes_identical", "contracts_identical_after_input_path_relocation"):
+            self.assertIs(record[claim], True)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,9 @@ The [real host-prepared check](host_prepared/README.md) adds 42 passing rows
 from AU/SU/WK compact topology and retains the v10 regression capsule: its
 stdout, parsed counters and classified diagnostics match v6. It validates
 unchanged production host preparation at source level, not FPGA timing.
+The [continuous G host preflight](continuous_board/README.md) adds XRT host
+compilation and eighteen host-model rows with persistent state. Its board
+path is not yet executed; it is not a measured performance result.
 The [diagnostic hardware guide](hardware/README.md) covers the
 resource screen and memory-admitted concurrent link; a running link is not a
 completed integration or performance result.

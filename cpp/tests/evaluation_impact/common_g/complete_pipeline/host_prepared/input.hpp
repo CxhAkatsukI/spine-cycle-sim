@@ -3,13 +3,18 @@
 #include "host/weighted_pma_runtime_plan.hpp"
 #include <fstream>
 #include <map>
+#include <set>
+#include <stdexcept>
 #include <string>
 
 namespace prepared_g {
-using namespace complete_g;
 namespace host = grasu::integration;
 using Edge = host::WeightedEdgeRecord;
 using State = std::map<std::pair<unsigned, unsigned>, unsigned>;
+
+inline void check_input(bool condition, const char* message) {
+  if (!condition) throw std::runtime_error(message);
+}
 
 struct Input {
   unsigned vertices{}, partition_vertices{};
@@ -17,22 +22,22 @@ struct Input {
   explicit Input(const char* path) {
     std::ifstream stream(path);
     unsigned initial_count{}, update_count{};
-    require(bool(stream >> vertices >> initial_count >> update_count >> partition_vertices),
+    check_input(bool(stream >> vertices >> initial_count >> update_count >> partition_vertices),
             "host-prepared input header");
-    require(vertices && vertices < 65536 && initial_count == 8192 &&
+    check_input(vertices && vertices < 65536 && initial_count == 8192 &&
             (update_count == 512 || update_count == 8192) &&
             (partition_vertices == 65536 || partition_vertices == 1024), "input scope");
     for (unsigned i = 0; i < initial_count + update_count; ++i) {
       unsigned source{}, destination{}, weight{};
       int diff{};
-      require(bool(stream >> source >> destination >> weight >> diff) &&
+      check_input(bool(stream >> source >> destination >> weight >> diff) &&
               source < vertices && destination < vertices && weight && weight < 4096 &&
               (diff == 1 || diff == -1) && (i >= initial_count || diff == 1), "input edge");
       (i < initial_count ? initial : updates).push_back(
           {source, destination, static_cast<std::uint16_t>(weight), diff == -1});
     }
     std::string extra;
-    require(!(stream >> extra), "extra host-prepared input records");
+    check_input(!(stream >> extra), "extra host-prepared input records");
   }
 };
 
@@ -40,10 +45,10 @@ inline void mutate(State& state, const Edge& edge) {
   const auto key = std::make_pair(edge.source, edge.destination);
   if (edge.delete_op) {
     const auto found = state.find(key);
-    require(found != state.end() && found->second == edge.weight, "logical deletion absent/wrong weight");
+    check_input(found != state.end() && found->second == edge.weight, "logical deletion absent/wrong weight");
     state.erase(found);
   } else {
-    require(state.emplace(key, edge.weight).second, "logical insertion duplicate");
+    check_input(state.emplace(key, edge.weight).second, "logical insertion duplicate");
   }
 }
 
@@ -64,18 +69,18 @@ inline std::vector<std::vector<unsigned long>> batches(
 }
 
 inline void check_host_mapping(const Input& input, const host::WeightedPartitionedPmaGraph& graph) {
-  require(graph.vertices == input.vertices && graph.physical_internal.size() == input.updates.size(),
+  check_input(graph.vertices == input.vertices && graph.physical_internal.size() == input.updates.size(),
           "host changed vertex/update count");
   std::set<unsigned> permutation;
   for (unsigned external = 0; external < input.vertices; ++external) {
     const auto internal = graph.external_to_internal.at(external);
-    require(internal < input.vertices && permutation.insert(internal).second &&
+    check_input(internal < input.vertices && permutation.insert(internal).second &&
             graph.internal_to_external.at(internal) == external, "host mapping is not bijective");
   }
   const auto expected = batches(input, graph, 0, input.updates.size());
   for (unsigned shard = 0; shard < graph.shards.size(); ++shard) {
     const auto& actual = graph.shards[shard].physical_updates;
-    require(actual.size() == expected[shard].size() &&
+    check_input(actual.size() == expected[shard].size() &&
             std::equal(actual.begin(), actual.end(), expected[shard].begin()),
             "host physical update order/routing changed");
   }

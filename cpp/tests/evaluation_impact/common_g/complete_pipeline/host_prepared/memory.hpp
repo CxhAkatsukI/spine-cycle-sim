@@ -3,6 +3,7 @@
 #include "input.hpp"
 
 namespace prepared_g {
+using namespace complete_g;
 struct PreparedFixture {
   std::vector<Raw> binary, rows;
   explicit PreparedFixture(const host::WeightedPmaPackedShardBuffers& packed) {

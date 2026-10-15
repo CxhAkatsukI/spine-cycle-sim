@@ -32,6 +32,7 @@ reported rather than silently replaced with a different experiment.
 | Search host binding | All 216 source calls and eighteen real-wrapper RTL transactions pass; independent canonical-XO review matches the routed ABI, with a 3.650-ns estimate | External RTL backpressure, production integration, routed clock and board execution |
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
 | Complete G source | Twelve synthetic rows replay exactly; 42 additional real host-prepared rows pass complete-state/direct-adapter checks | Integrated RTL/backpressure, actual XRT bindings, resource fit and hardware timing; internal cache/DDR C-simulation FIFOs remain unbounded |
+| Continuous G host | XRT host compiles; eighteen host-model rows pass persistent-state and restore-fault checks; the 42-row source matrix replays exactly after input extraction | Board path not executed; runtime/driver pins, board supervision, cold/multi-shard/metadata checks and actual timing remain open |
 | Cache production binding | Shared-core extraction passes all twelve composition controls again; production wrapper passes six full-state RTL transactions, token checks and exported ABI at a 3.650-ns estimate | Complete-G resource fit, integrated RTL/backpressure, production integration, routing and board timing |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
@@ -42,6 +43,9 @@ The [complete-G source guide](complete_pipeline/README.md) owns its portable
 evidence, exact scope and retained failed attempts.
 The [host-prepared guide](complete_pipeline/host_prepared/README.md) separates
 the AU/SU/WK source matrix from native hardware capacity and performance.
+The [continuous-host guide](complete_pipeline/continuous_board/README.md)
+defines isolated G-ready timing separately from complete G+R convergence;
+its preflight does not invoke FPGA APIs.
 The [diagnostic G-link guide](complete_pipeline/hardware/README.md) records
 the new search/full-cache XO substitutions, single-CU placement change,
 atomic full-budget concurrency policy and monitoring commands. The

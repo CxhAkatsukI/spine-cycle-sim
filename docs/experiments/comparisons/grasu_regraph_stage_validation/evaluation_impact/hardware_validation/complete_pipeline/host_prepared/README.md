@@ -111,6 +111,17 @@ accelerator throughput. Next gates remain complete G backpressure/state and
 real XRT bindings, routed timing, board handoff/continuous batches, isolated
 G/R controls and the new Spine performance matrix.
 
+The pure input/header extraction for the
+[continuous XRT host](../continuous_board/README.md) was checked by the fresh
+`g-real-prepared-source-v6` attempt. All 42 rows, stdout bytes and classified
+vendor diagnostics match v5; input bytes match and contracts differ only in
+their relocated input paths. The [new regression capsule](native_input_regression/index.json)
+and [equivalence record](native_input_regression/equivalence.json) preserve
+that evidence without changing the old archives. Both versions pin 435
+compiler dependencies. v6 compiled in 8.12 s with about 548 MiB peak RSS;
+matrix execution peaked below 236 MiB. These remain source verification
+resources, not FPGA timing.
+
 The focused regression suite passes all 212 tests, including the ten new
 host-prepared/packaging tests and fifteen repository-structure tests. It ran
 with a 2-GiB physical memory limit and sampled about 90 MiB peak process-tree
