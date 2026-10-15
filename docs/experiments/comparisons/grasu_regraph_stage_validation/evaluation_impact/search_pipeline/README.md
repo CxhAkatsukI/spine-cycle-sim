@@ -125,15 +125,17 @@ change or relaxed assertion was used to obtain the pass. Core/SST numerical
 code is unchanged and its earlier regression results are not claimed as fresh
 tests in this checkpoint.
 
-## Safe HLS Queue
+## Memory-Admitted HLS
 
-The isolated HLS job waits for the previously queued complete-cache comparison
-to terminate. It has an 8-GiB hard cap, 7-GiB high watermark, no swap, CPU 127,
-a 1,800-second tool timeout and a 24-GiB system reserve. While the pre-existing
-route job remains pending/active, its full 40-GiB cgroup budget is reserved too:
-admission requires 72 GiB available, rather than racing both jobs for memory.
-Once that route is terminal, the threshold is 32 GiB. Waiting is bounded to
-twelve hours. Unknown competing-unit state fails closed.
+The isolated HLS job has an 8-GiB hard cap, 7-GiB high watermark, no swap,
+CPU 127, a 1,800-second tool timeout and a 24-GiB system reserve. Independent
+tools need not exit when their full declared budgets fit. An active cache
+comparison reserves 6 GiB and a pending/active route reserves 40 GiB. The
+optional `--background-memory-gib` reserves concurrent non-FPGA work; the
+current R study needs 6 GiB. With cache finished and route plus R active,
+admission requires 78 GiB available (8 + 24 + 40 + 6). If cache is also active,
+it requires 84 GiB. Unknown state, unbounded or oversized competing limits
+fail closed. Waiting for memory is bounded to twelve hours by default.
 
 The lightweight supervisor is separately capped at 512 MiB. Waiting is not
 synthesis progress, and expiry/failure must be retained. The original cache
@@ -156,6 +158,7 @@ python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipelin
   --output /path/to/fresh-hls-attempt --basis /path/to/fresh-source-controls \
   --previous-unit spine-grasu-full-cache-20261013-v3.service \
   --route-unit spine-sharded-k4-bank-sssp-20261012-v2.service \
+  --background-memory-gib 6 \
   --maximum-wait 43200
 
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.delivery \

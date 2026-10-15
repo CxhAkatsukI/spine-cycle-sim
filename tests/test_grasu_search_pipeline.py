@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.analysis import analyze, parse
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.admission import GIB, decision
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline import admission
+from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.synthesis import freeze_runner, unchanged
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.preparation import CASES, MODES, tcl
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.rtl_analysis import (
     analyze_rtl, parse_bench, transactions,
@@ -123,10 +124,23 @@ class SearchPipelineTests(unittest.TestCase):
         self.assertIn("cosim_design -rtl verilog -tool xsim", script)
         self.assertIn("-deadlock_detection sim", script)
 
-    def test_no_launch_during_previous_component_or_route_reservation(self):
-        previous = {"LoadState": "loaded", "ActiveState": "active"}
+    def test_top_pointer_avoids_vendor_testbench_scalar_count_collision(self):
+        root = Path(__file__).resolve().parents[1]
+        source = (root / "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/top.cpp").read_text()
+        self.assertIn("const search_pipeline::Raw* binary_nodes", source)
+        self.assertIn("m_axi port=binary_nodes ", source)
+        self.assertIn("s_axilite port=binary_nodes ", source)
+        self.assertNotIn("port=binary ", source)
+        self.assertNotIn("const search_pipeline::Raw* binary,", source)
+
+    def test_concurrent_component_tools_require_all_declared_memory_budgets(self):
+        previous = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(512 * 1024**2)}
         route = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(40 * GIB)}
-        self.assertFalse(decision(previous, route, 200 * GIB)["admitted"])
+        self.assertTrue(decision(previous, route, 200 * GIB)["admitted"])
+        self.assertEqual(decision(previous, route, 78 * GIB)["required_bytes"], 78 * GIB)
+        self.assertFalse(decision(previous, route, 77 * GIB)["admitted"])
+        self.assertFalse(decision(previous, route, 83 * GIB, 6)["admitted"])
+        self.assertTrue(decision(previous, route, 84 * GIB, 6)["admitted"])
         previous["ActiveState"] = "inactive"
         result = decision(previous, route, 64 * GIB)
         self.assertEqual(result["required_bytes"], 72 * GIB)
@@ -135,6 +149,28 @@ class SearchPipelineTests(unittest.TestCase):
         route["ActiveState"] = "failed"
         self.assertTrue(decision(previous, route, 32 * GIB)["admitted"])
         self.assertFalse(decision(previous, route, 31 * GIB)["admitted"])
+
+    def test_component_and_background_limits_fail_closed(self):
+        inactive = {"LoadState": "loaded", "ActiveState": "inactive"}
+        for limit in ("0", "-1", "infinity", str(7 * GIB)):
+            active = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": limit}
+            with self.subTest(limit=limit), self.assertRaises(ValueError):
+                decision(active, inactive, 200 * GIB)
+        for invalid in (-1, 41, 1.5, True):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                decision(inactive, inactive, 200 * GIB, invalid)
+
+    def test_hls_attempt_freezes_actual_runner_separately_from_control_basis(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            pins = freeze_runner(folder)
+            unchanged(pins)
+            self.assertTrue(any(Path(pin["path"]).name == "admission.py" for pin in pins))
+            self.assertTrue(any(Path(pin["path"]).name == "execution.py" for pin in pins))
+            for pin in pins:
+                frozen = Path(pin["frozen_path"])
+                self.assertTrue(frozen.is_relative_to(folder / "runner"))
+                self.assertEqual(hashlib.sha256(frozen.read_bytes()).hexdigest(), pin["sha256"])
 
     def test_collected_transient_unit_is_explicitly_absent_not_unknown(self):
         absent = {"LoadState": "not-found", "ActiveState": "inactive", "SubState": "dead",

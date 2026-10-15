@@ -195,3 +195,29 @@ The synthesis log also reports II=2 for the dependent binary-search worker
 loop. The previous finite-search model assumed one-cycle stage issue, so its
 timing cannot yet be promoted as matching this HLS schedule. Both the
 elaboration problem and schedule difference must be resolved explicitly.
+
+## Search Retry And Concurrent Admission
+
+The retry changes only the top-level pointer name from `binary` to
+`binary_nodes`, including its AXI pragmas. The original name combined with
+the scalar `count` produced the generated testbench's duplicate
+`write_binary_count` identifier. Neither the failed generated RTL nor its
+source archive is edited. The fresh source controls are in
+`g-search-controls-v3`; HLS/RTL must consume that complete, hash-checked control
+set in a separate `g-search-hls-v3` attempt.
+The HLS attempt separately freezes the actual synthesis/admission/analysis
+runner and shared execution helpers; the source-control archive's older
+runner copy is not relabeled as the code used for this retry.
+
+The retry also removes the search supervisor's historical serial-cache gate.
+It accounts for the cache's 6-GiB budget if still active, the route's 40-GiB
+budget, its own 8-GiB tool budget, 24 GiB system reserve and the explicit
+6-GiB R-study reserve. The current launch threshold is therefore 78 GiB with
+cache finished, or 84 GiB with all three tools active. This changes admission,
+not the functional or performance acceptance criteria.
+
+The retained v2 synthesis estimate is 6.681 ns, above the 5-ns target. Its
+reported critical path passes through round-robin request arbitration and
+the dynamically selected FIFO read. Merely fixing the testbench identifier
+does not fix that path or the worker II=2 schedule. They remain explicit
+timing gates even if the retry's RTL output checks pass.

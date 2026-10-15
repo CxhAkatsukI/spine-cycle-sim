@@ -1,4 +1,4 @@
-"""Serialize component tools and reserve for the already queued route."""
+"""Admit independent bounded component tools when their full budgets fit."""
 
 import math
 import subprocess
@@ -29,36 +29,42 @@ def unit_state(unit):
     return state
 
 
-def decision(previous, route, available):
-    serial_ready = terminal(previous)
-    pending = not terminal(route)
-    route_max = int(route["MemoryMax"]) if pending else 0
-    if (pending and route_max <= 0) or route_max > 251 * GIB:
-        raise ValueError("invalid competing route cgroup bound")
-    required = 8 * GIB + 24 * GIB + route_max
-    return {"previous_hls_terminal": serial_ready, "route_reservation_bytes": route_max,
+def decision(previous, route, available, background_memory_gib=0):
+    if type(background_memory_gib) is not int or not 0 <= background_memory_gib <= 40:
+        raise ValueError("background workload reserve must be between zero and 40 GiB")
+    reservations = {}
+    for name, state, bound in (("previous_hls", previous, 6), ("route", route, 40)):
+        ended = terminal(state)
+        if not ended and not 0 < int(state.get("MemoryMax", "0")) <= bound * GIB:
+            raise ValueError("competing build exceeds declared finite cgroup bound")
+        # The cache supervisor and its separate tool scope share this declared budget.
+        reservations[name] = 0 if ended else bound * GIB
+    required = (8 + 24 + background_memory_gib) * GIB + sum(reservations.values())
+    return {"previous_hls_terminal": terminal(previous),
+            "previous_hls_reservation_bytes": reservations["previous_hls"],
+            "route_reservation_bytes": reservations["route"],
+            "background_reservation_bytes": background_memory_gib * GIB,
             "required_bytes": required, "available_bytes": available,
-            "admitted": serial_ready and available >= required}
+            "admitted": available >= required}
 
 
-def wait(record, save, previous_unit, route_unit, maximum_wait):
+def wait(record, save, previous_unit, route_unit, maximum_wait, background_memory_gib=0):
     if not math.isfinite(maximum_wait) or maximum_wait < 0:
         raise ValueError("admission wait must be finite and nonnegative")
     started = time.monotonic()
     record["admission"] = {"previous_unit": previous_unit, "route_unit": route_unit,
+                           "background_memory_gib": background_memory_gib,
                            "maximum_wait_seconds": maximum_wait, "samples": []}
     while True:
         previous, route = unit_state(previous_unit), unit_state(route_unit)
         elapsed = time.monotonic() - started
-        sample = {**decision(previous, route, available_memory_bytes()),
+        sample = {**decision(previous, route, available_memory_bytes(), background_memory_gib),
                   "elapsed_seconds": elapsed, "previous": previous, "route": route}
         record["admission"]["samples"].append(sample)
-        record["status"] = ("ADMITTED_FOR_ISOLATED_HLS" if sample["admitted"] else
-                            "WAITING_FOR_MEMORY" if sample["previous_hls_terminal"] else
-                            "WAITING_FOR_PREVIOUS_HLS")
+        record["status"] = "ADMITTED_FOR_ISOLATED_HLS" if sample["admitted"] else "WAITING_FOR_MEMORY"
         save()
         if sample["admitted"]:
             return sample["required_bytes"] // GIB - 8
         if elapsed >= maximum_wait:
-            raise RuntimeError("serial/memory admission expired; no HLS tool launched")
+            raise RuntimeError("memory admission expired; no HLS tool launched")
         time.sleep(min(30, maximum_wait - elapsed))
