@@ -28,13 +28,16 @@ reported rather than silently replaced with a different experiment.
 | Track | Latest evidence | Remaining gate |
 | --- | --- | --- |
 | Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |
-| Search | v10 passes source/C simulation and synthesis but its indirect bench call is not instrumented by co-simulation; fresh v11 uses a direct top call | Finish isolated RTL retry and timing-model alignment; earlier timeouts remain retained |
+| Search | Fresh v11 passes all eighteen C/Verilog transactions; 3.650-ns isolated estimate | Timing-model alignment, integrated RTL and board gates; earlier failures remain retained |
 | Search host binding | All 216 source calls and eighteen real-wrapper RTL transactions pass; independent canonical-XO review matches the routed ABI, with a 3.650-ns estimate | External RTL backpressure, production integration, routed clock and board execution |
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
+| Complete G source | Twelve rows pass four-CU search, both full hot halves, cold DDR and direct adapter checks | Production export, integrated RTL/backpressure, resource fit and hardware timing; internal cache/DDR C-simulation FIFOs remain unbounded |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
 
 This is a progress checkpoint, not an admission of the complete baseline.
+The [complete-G source guide](complete_pipeline/README.md) owns its portable
+evidence, exact scope and retained failed attempts.
 The following sections preserve the earlier attempts and explain each current
 candidate. All concurrent launches reserve full bounded memory budgets; other
 FPGA tools need not exit when those budgets and the system reserve fit.

@@ -37,7 +37,7 @@ struct HostReport {
 };
 
 inline HostReport& last_host_report() {
-  static HostReport report;
+  static thread_local HostReport report;
   return report;
 }
 
