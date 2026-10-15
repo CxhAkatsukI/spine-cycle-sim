@@ -2,12 +2,16 @@
 
 ## Decision
 
-The fresh `g-complete-source-v5` passes twelve declared rows:
+The latest `g-complete-source-v6` passes twelve declared rows:
 `COMPLETE_G_SOURCE_COMPOSITION_PASS_NOT_INTEGRATED_RTL`.
 This closes a source-level composition check, not complete G production,
 integrated RTL, routed timing, FPGA performance or publication reproduction.
 The [evidence index](evidence/index.json) retains raw failed attempts as well
 as the passing source, commands, dependencies, resource logs and output.
+The [shared-core index](shared_core_evidence/index.json) owns the newer v6
+identity. The [diagnostic hardware guide](hardware/README.md) covers the
+resource screen and memory-admitted concurrent link; a running link is not a
+completed integration or performance result.
 
 ## What Was Checked
 
@@ -99,8 +103,12 @@ RSS and executed in 27.51 s with about 114 MiB peak RSS. These are **host
 verification costs**, not accelerator latency or throughput measurements.
 The v6 raw attempt is a sibling at `g-complete-source-v6`.
 
-Next gates are production cache-wrapper export/ABI verification, complete
-G RTL/backpressure and resource checks, routing and board state/timing checks.
+Production cache-wrapper export/ABI verification has independently passed.
+The [storage evidence](resource_evidence/README.md) identifies an SLR-local
+URAM conflict and a one-CU relocation that passes the hard-pblock storage
+screen. It does not establish shell-free logic capacity or routed timing.
+Next gates are complete G RTL/backpressure and resource/timing closure,
+production integration, and board state/timing checks.
 The [production cache-wrapper guide](../../cache_probe/README.md#production-wrapper-gate)
 owns its independent RTL/export attempt and memory-admitted launch policy.
 See the [campaign guide](../README.md) for the independent R and Spine gates.

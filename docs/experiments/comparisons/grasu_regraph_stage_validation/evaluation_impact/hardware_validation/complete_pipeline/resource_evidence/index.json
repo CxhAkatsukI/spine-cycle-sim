@@ -1,0 +1,528 @@
+{
+  "attempts": [
+    {
+      "archive": "g-resource-query-v1.tar.gz",
+      "attempt": "g-resource-query-v1",
+      "bytes": 25932,
+      "external_input_pins": [
+        {
+          "path": "/data/yxx/tools/xilinx/Vivado/2024.1/bin/vivado",
+          "sha256": "22fcb7ab371c03a1cea74062a7b1222e78fcba72efc975c4498fa713da304bb2"
+        }
+      ],
+      "files": [
+        {
+          "bytes": 11225,
+          "path": "device_utilization.rpt",
+          "sha256": "69982a592771552fd10fc9feaf4ba20300b643cf3bd15afc2562276ea0594f85"
+        },
+        {
+          "bytes": 1344,
+          "path": "execution.resources.json",
+          "sha256": "43ce7ec10139b396069a106defe4a32c79b588172f866a6f93dd7c6f743bba58"
+        },
+        {
+          "bytes": 0,
+          "path": "execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 14070,
+          "path": "execution.stdout.txt",
+          "sha256": "d923247a64f0c1aa0807fb04cd7ef2c124f742dbf70affc7501cb8eaad99d17b"
+        },
+        {
+          "bytes": 7796,
+          "path": "results.json",
+          "sha256": "f16198b257f30132bae508637943046c7198546323a488d8b98369edff3016b9"
+        },
+        {
+          "bytes": 5061,
+          "path": "source/environment.json",
+          "sha256": "9d2c917f7e7ee7d6592eeb92e5e434a7eba94e5bdb31833b65558c2e331d787c"
+        },
+        {
+          "bytes": 42052,
+          "path": "source/spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 4899,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.py",
+          "sha256": "ee516bbc145cfc92ef520c6a53616ddf7a405fbd004b80255498e60f389f3c81"
+        },
+        {
+          "bytes": 533,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.tcl",
+          "sha256": "bc5c77d203e3126df4a0e1f373c5bbf5ee03d95ff3e50a0eeacb83efd9eb7ba3"
+        },
+        {
+          "bytes": 129,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.v",
+          "sha256": "c2fc8d4f4f8d4d5e81ad9ebb1610c897a357e0c5f03ab74bc4deccd3f93faf7f"
+        },
+        {
+          "bytes": 3528,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/admission.py",
+          "sha256": "47b0d0e964df5237b18b0e97061c2cb7d140eb2954d3c58471091fdc0e2a1bc8"
+        },
+        {
+          "bytes": 5041,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/synthesis.py",
+          "sha256": "e1b6618cd66a46f91d60c946bc14ae8dcb9d50e8286d3c1c25e41a814a2d6a66"
+        },
+        {
+          "bytes": 3456,
+          "path": "source/spine_cycle_sim/experiments/upstream_controls/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 56,
+          "path": "uram_capacity.csv",
+          "sha256": "6114d60714b906645d9d97323945b358bcff9ef5ddbbc7d4cdef715d44c2b6ae"
+        },
+        {
+          "bytes": 1672,
+          "path": "vivado.jou",
+          "sha256": "a07a778e687587732a57839ba6306ea360bb479d960c3b50edca85de67b9e935"
+        },
+        {
+          "bytes": 15152,
+          "path": "vivado.log",
+          "sha256": "4b719d763318c298442c6a711593248364af1cdc65afc1268eebf0dc065a1358"
+        }
+      ],
+      "kind": "query",
+      "sha256": "8a8afed956f4040e7163d1cdaa925ec65f7acd18f92b4ba566fbced7b298399e",
+      "source": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-resource-query-v1",
+      "status": "PHYSICAL_SITE_CAPACITY_QUERIED_NOT_ROUTE_ADMISSION"
+    },
+    {
+      "archive": "g-platform-query-v1.tar.gz",
+      "attempt": "g-platform-query-v1",
+      "bytes": 28612,
+      "external_input_pins": [
+        {
+          "path": "/data/yxx/tools/xilinx/Vivado/2024.1/bin/vivado",
+          "sha256": "22fcb7ab371c03a1cea74062a7b1222e78fcba72efc975c4498fa713da304bb2"
+        },
+        {
+          "path": "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/hw/hw.xsa",
+          "sha256": "2cdcf8b8753176e7f0efdfe1e9ba98a2e149736f8b624c6b52608d90d89a198e"
+        },
+        {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-platform-query-v1/platform/hw_bb_locked.dcp",
+          "sha256": "c6e79e314d98330764764a0a266d12d05973ab6dbe762451ad09c60a2722d884"
+        },
+        {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-platform-query-v1/platform/impl.xdc",
+          "sha256": "8920f8693e9fffa2854c07d88b1734ce86796cf6008ae74f627e932295e0ae58"
+        }
+      ],
+      "files": [
+        {
+          "bytes": 1389,
+          "path": "execution.resources.json",
+          "sha256": "38bffa7405246a1ba443c7788131e80bcf28be0b8253638663ca25cf0eadcd15"
+        },
+        {
+          "bytes": 0,
+          "path": "execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 46122,
+          "path": "execution.stdout.txt",
+          "sha256": "e87979f2d566893c9bba94eedb7363d79873b9075a7d79a76175d7086dcf15db"
+        },
+        {
+          "bytes": 8485,
+          "path": "results.json",
+          "sha256": "22cdd298271f6eb7da7c53f1ec83dcb6c60399d5b9fe850a753881375b88e400"
+        },
+        {
+          "bytes": 5061,
+          "path": "source/environment.json",
+          "sha256": "9d2c917f7e7ee7d6592eeb92e5e434a7eba94e5bdb31833b65558c2e331d787c"
+        },
+        {
+          "bytes": 42052,
+          "path": "source/spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 750,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/platform_resource_probe.tcl",
+          "sha256": "ca7a1b90dba60d8c8969bae5bf528087a2f17c4a6e56cd0853970d75dae7db62"
+        },
+        {
+          "bytes": 6270,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.py",
+          "sha256": "2b56e8c6fbbf959f963447a3bb1019cd77bcca75deaff571036faaaedec301a7"
+        },
+        {
+          "bytes": 533,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.tcl",
+          "sha256": "bc5c77d203e3126df4a0e1f373c5bbf5ee03d95ff3e50a0eeacb83efd9eb7ba3"
+        },
+        {
+          "bytes": 129,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.v",
+          "sha256": "c2fc8d4f4f8d4d5e81ad9ebb1610c897a357e0c5f03ab74bc4deccd3f93faf7f"
+        },
+        {
+          "bytes": 3528,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/admission.py",
+          "sha256": "47b0d0e964df5237b18b0e97061c2cb7d140eb2954d3c58471091fdc0e2a1bc8"
+        },
+        {
+          "bytes": 5041,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/synthesis.py",
+          "sha256": "e1b6618cd66a46f91d60c946bc14ae8dcb9d50e8286d3c1c25e41a814a2d6a66"
+        },
+        {
+          "bytes": 3456,
+          "path": "source/spine_cycle_sim/experiments/upstream_controls/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 1721,
+          "path": "vivado.jou",
+          "sha256": "a29c7bdb693edab4f6d2b983e798486f81d68e2dba9dd295186903ed8ec06f61"
+        },
+        {
+          "bytes": 47244,
+          "path": "vivado.log",
+          "sha256": "d984ae5ab199e2d5761f9546a56a1b560b5dff6b4a3d28f4a61270d6df16bf1d"
+        }
+      ],
+      "kind": "query",
+      "sha256": "15f8b5d38aaf96c41ba29761abff6aef3dd0188b01c695a5f53d6427cb44f91e",
+      "source": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-platform-query-v1",
+      "status": "FAILED_RETAINED"
+    },
+    {
+      "archive": "g-platform-query-v2.tar.gz",
+      "attempt": "g-platform-query-v2",
+      "bytes": 35187,
+      "external_input_pins": [
+        {
+          "path": "/data/yxx/tools/xilinx/Vivado/2024.1/bin/vivado",
+          "sha256": "22fcb7ab371c03a1cea74062a7b1222e78fcba72efc975c4498fa713da304bb2"
+        },
+        {
+          "path": "/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/hw/hw.xsa",
+          "sha256": "2cdcf8b8753176e7f0efdfe1e9ba98a2e149736f8b624c6b52608d90d89a198e"
+        },
+        {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-platform-query-v2/platform/hw_bb_locked.dcp",
+          "sha256": "c6e79e314d98330764764a0a266d12d05973ab6dbe762451ad09c60a2722d884"
+        },
+        {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-platform-query-v2/platform/impl.xdc",
+          "sha256": "8920f8693e9fffa2854c07d88b1734ce86796cf6008ae74f627e932295e0ae58"
+        }
+      ],
+      "files": [
+        {
+          "bytes": 1390,
+          "path": "execution.resources.json",
+          "sha256": "8b6e75e5b704987e786d85dea9cc6c415e50f657bf1ebd3e75a0af90919ef6de"
+        },
+        {
+          "bytes": 0,
+          "path": "execution.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 54862,
+          "path": "execution.stdout.txt",
+          "sha256": "9acd1913879c757c647b4026d5470c6a8f1d93b0ec8ba0a2477c9778b4176d8e"
+        },
+        {
+          "bytes": 56,
+          "path": "platform_uram_capacity.csv",
+          "sha256": "6114d60714b906645d9d97323945b358bcff9ef5ddbbc7d4cdef715d44c2b6ae"
+        },
+        {
+          "bytes": 20433,
+          "path": "platform_utilization.rpt",
+          "sha256": "7a465d34ba27b0176b20a9f33cf89b3b8e558fd2a1b715e9a816f3da71df0b79"
+        },
+        {
+          "bytes": 9019,
+          "path": "results.json",
+          "sha256": "72bf02cc30a8f57406c27f9e366cc79bd5cfcc266c47ff8c9ebf0bb39b45ebd4"
+        },
+        {
+          "bytes": 5061,
+          "path": "source/environment.json",
+          "sha256": "9d2c917f7e7ee7d6592eeb92e5e434a7eba94e5bdb31833b65558c2e331d787c"
+        },
+        {
+          "bytes": 42052,
+          "path": "source/spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 750,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/platform_resource_probe.tcl",
+          "sha256": "ca7a1b90dba60d8c8969bae5bf528087a2f17c4a6e56cd0853970d75dae7db62"
+        },
+        {
+          "bytes": 6612,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.py",
+          "sha256": "0077c79b518a63c50cc7a77d2baf217fd2c104906891adfc6f006a876e6f1fcb"
+        },
+        {
+          "bytes": 533,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.tcl",
+          "sha256": "bc5c77d203e3126df4a0e1f373c5bbf5ee03d95ff3e50a0eeacb83efd9eb7ba3"
+        },
+        {
+          "bytes": 129,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/resource_probe.v",
+          "sha256": "c2fc8d4f4f8d4d5e81ad9ebb1610c897a357e0c5f03ab74bc4deccd3f93faf7f"
+        },
+        {
+          "bytes": 3528,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/admission.py",
+          "sha256": "47b0d0e964df5237b18b0e97061c2cb7d140eb2954d3c58471091fdc0e2a1bc8"
+        },
+        {
+          "bytes": 5041,
+          "path": "source/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/synthesis.py",
+          "sha256": "e1b6618cd66a46f91d60c946bc14ae8dcb9d50e8286d3c1c25e41a814a2d6a66"
+        },
+        {
+          "bytes": 3456,
+          "path": "source/spine_cycle_sim/experiments/upstream_controls/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 1721,
+          "path": "vivado.jou",
+          "sha256": "59a4f87e98350106935854d67f84138cc5fbc50a34fdae57b86c00ec45d53f6e"
+        },
+        {
+          "bytes": 55984,
+          "path": "vivado.log",
+          "sha256": "08bde10958feaa5166d92e95ac209dc7503007de988b2609e392519aa9fd5ca9"
+        }
+      ],
+      "kind": "query",
+      "sha256": "29af4e7966d5e52d9c314dcbe73e5bd78cdf0e05686ab2a53f02dd2cb01fd6a6",
+      "source": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-platform-query-v2",
+      "status": "PLATFORM_PBLOCK_CAPACITY_QUERIED_NOT_ROUTE_ADMISSION"
+    },
+    {
+      "archive": "g-resource-fit-v1.tar.gz",
+      "attempt": "g-resource-fit-v1",
+      "bytes": 20812,
+      "external_input_pins": [],
+      "files": [
+        {
+          "bytes": 19670,
+          "path": "results.json",
+          "sha256": "54c3a66c3d2062fc1b59b9fb45c9dbb45127b4ab7c0781a0a91021e9ca54b82a"
+        },
+        {
+          "bytes": 7796,
+          "path": "source/capacity.json",
+          "sha256": "f16198b257f30132bae508637943046c7198546323a488d8b98369edff3016b9"
+        },
+        {
+          "bytes": 31332,
+          "path": "source/hls/bin_search.xml",
+          "sha256": "9cdac0a86d38ca1207d7ea82e846607b34f1d4d9c8280be60e1662d8ae468cb2"
+        },
+        {
+          "bytes": 20815,
+          "path": "source/hls/dispatch.xml",
+          "sha256": "84f27868724ff4cc4b7992d80d180c89d0c977ce99fb9161b20f8278db8a239c"
+        },
+        {
+          "bytes": 21614,
+          "path": "source/hls/kernelApply.xml",
+          "sha256": "9164bd95dfeb48ecdfae6f7dab8e8eae7bbf11b606d07c9988460714b90e5092"
+        },
+        {
+          "bytes": 68383,
+          "path": "source/hls/kernelHBMWrapper.xml",
+          "sha256": "9de5f62055769dc37f747a0b48783374b74ee4de1186a8879b4f79a1ed60e3bc"
+        },
+        {
+          "bytes": 5939,
+          "path": "source/hls/kernelLittleGSMerger.xml",
+          "sha256": "a493fa6de9fecc5130b9862129570b5c57d79c757543e64972f955baf6a5892d"
+        },
+        {
+          "bytes": 13576,
+          "path": "source/hls/lksg_stream.xml",
+          "sha256": "3b45fc539dc8e429acdc798e05dd384b008055a61f27e06cb4bd36e1a7121348"
+        },
+        {
+          "bytes": 12850,
+          "path": "source/hls/pma_completion_barrier.xml",
+          "sha256": "35d1120c8aaaba8eab489f94b081045ed7db1b4d08ca9747ea69ee6f478da750"
+        },
+        {
+          "bytes": 19203,
+          "path": "source/hls/pma_to_regraph_adapter.xml",
+          "sha256": "5beee7d667464a3527a733140968bcce7078a9e46a8fdc2d1156454dae08ca94"
+        },
+        {
+          "bytes": 20785,
+          "path": "source/hls/process_cache.xml",
+          "sha256": "7dbedc940dcd52520e13f7560ff7edc2cd2d2874b714c275e95f55e787c2614f"
+        },
+        {
+          "bytes": 54255,
+          "path": "source/hls/process_ddr.xml",
+          "sha256": "2fe4c12d2676b7e154b119feb6479fbba9d9d8e1e6765cb5ed3fbd2dd5b43b67"
+        },
+        {
+          "bytes": 14392,
+          "path": "source/hls/regraph_frontend_mux.xml",
+          "sha256": "dcc946f377ae7b9ffc8b45b4480c3c3779d22157caa29ff163e8d7c146ec66c3"
+        },
+        {
+          "bytes": 8293,
+          "path": "source/link.cfg",
+          "sha256": "39efa2d847162647fa674d600787e7471d1789254c476ecf387c56db707b7ac9"
+        },
+        {
+          "bytes": 6724,
+          "path": "source/runner/resource_fit.py",
+          "sha256": "a490ff39dd791202c02998b6564be6ca28be2b8bf6d3e1adb63f78785b7c4bd9"
+        },
+        {
+          "bytes": 4899,
+          "path": "source/runner/resource_probe.py",
+          "sha256": "ee516bbc145cfc92ef520c6a53616ddf7a405fbd004b80255498e60f389f3c81"
+        },
+        {
+          "bytes": 56,
+          "path": "source/uram_capacity.csv",
+          "sha256": "6114d60714b906645d9d97323945b358bcff9ef5ddbbc7d4cdef715d44c2b6ae"
+        }
+      ],
+      "kind": "ledger",
+      "sha256": "66e882242a42f2bae75255f279538a3567026856701e6ce01e00ddbfe696e3fa",
+      "source": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-resource-fit-v1",
+      "status": "URAM_PLACEMENT_CONFLICT_REQUIRES_NEW_CONFIG"
+    },
+    {
+      "archive": "g-resource-fit-v2.tar.gz",
+      "attempt": "g-resource-fit-v2",
+      "bytes": 23650,
+      "external_input_pins": [],
+      "files": [
+        {
+          "bytes": 21253,
+          "path": "results.json",
+          "sha256": "3f15307895b6b0d193e57d01c71f9a8c7a909729e1c8195b6d61e75030b522b8"
+        },
+        {
+          "bytes": 7796,
+          "path": "source/capacity.json",
+          "sha256": "f16198b257f30132bae508637943046c7198546323a488d8b98369edff3016b9"
+        },
+        {
+          "bytes": 31332,
+          "path": "source/hls/bin_search.xml",
+          "sha256": "9cdac0a86d38ca1207d7ea82e846607b34f1d4d9c8280be60e1662d8ae468cb2"
+        },
+        {
+          "bytes": 20815,
+          "path": "source/hls/dispatch.xml",
+          "sha256": "84f27868724ff4cc4b7992d80d180c89d0c977ce99fb9161b20f8278db8a239c"
+        },
+        {
+          "bytes": 21614,
+          "path": "source/hls/kernelApply.xml",
+          "sha256": "9164bd95dfeb48ecdfae6f7dab8e8eae7bbf11b606d07c9988460714b90e5092"
+        },
+        {
+          "bytes": 68383,
+          "path": "source/hls/kernelHBMWrapper.xml",
+          "sha256": "9de5f62055769dc37f747a0b48783374b74ee4de1186a8879b4f79a1ed60e3bc"
+        },
+        {
+          "bytes": 5939,
+          "path": "source/hls/kernelLittleGSMerger.xml",
+          "sha256": "a493fa6de9fecc5130b9862129570b5c57d79c757543e64972f955baf6a5892d"
+        },
+        {
+          "bytes": 13576,
+          "path": "source/hls/lksg_stream.xml",
+          "sha256": "3b45fc539dc8e429acdc798e05dd384b008055a61f27e06cb4bd36e1a7121348"
+        },
+        {
+          "bytes": 12850,
+          "path": "source/hls/pma_completion_barrier.xml",
+          "sha256": "35d1120c8aaaba8eab489f94b081045ed7db1b4d08ca9747ea69ee6f478da750"
+        },
+        {
+          "bytes": 19203,
+          "path": "source/hls/pma_to_regraph_adapter.xml",
+          "sha256": "5beee7d667464a3527a733140968bcce7078a9e46a8fdc2d1156454dae08ca94"
+        },
+        {
+          "bytes": 20785,
+          "path": "source/hls/process_cache.xml",
+          "sha256": "7dbedc940dcd52520e13f7560ff7edc2cd2d2874b714c275e95f55e787c2614f"
+        },
+        {
+          "bytes": 54255,
+          "path": "source/hls/process_ddr.xml",
+          "sha256": "2fe4c12d2676b7e154b119feb6479fbba9d9d8e1e6765cb5ed3fbd2dd5b43b67"
+        },
+        {
+          "bytes": 14392,
+          "path": "source/hls/regraph_frontend_mux.xml",
+          "sha256": "dcc946f377ae7b9ffc8b45b4480c3c3779d22157caa29ff163e8d7c146ec66c3"
+        },
+        {
+          "bytes": 8293,
+          "path": "source/link.cfg",
+          "sha256": "39efa2d847162647fa674d600787e7471d1789254c476ecf387c56db707b7ac9"
+        },
+        {
+          "bytes": 56,
+          "path": "source/platform/platform_uram_capacity.csv",
+          "sha256": "6114d60714b906645d9d97323945b358bcff9ef5ddbbc7d4cdef715d44c2b6ae"
+        },
+        {
+          "bytes": 9019,
+          "path": "source/platform/results.json",
+          "sha256": "72bf02cc30a8f57406c27f9e366cc79bd5cfcc266c47ff8c9ebf0bb39b45ebd4"
+        },
+        {
+          "bytes": 8835,
+          "path": "source/runner/resource_fit.py",
+          "sha256": "225eac36c7ef779276200d9676d6aaabd8eaa1c0a529b91f37fd2416f9996c90"
+        },
+        {
+          "bytes": 6612,
+          "path": "source/runner/resource_probe.py",
+          "sha256": "0077c79b518a63c50cc7a77d2baf217fd2c104906891adfc6f006a876e6f1fcb"
+        },
+        {
+          "bytes": 56,
+          "path": "source/uram_capacity.csv",
+          "sha256": "6114d60714b906645d9d97323945b358bcff9ef5ddbbc7d4cdef715d44c2b6ae"
+        }
+      ],
+      "kind": "ledger",
+      "sha256": "302c06cc3830e0cebf10fc2ac527c35de23fab1671d31401a0dc6fc0392917cc",
+      "source": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-resource-fit-v2",
+      "status": "PLATFORM_URAM_PLACEMENT_CONFLICT_REQUIRES_NEW_CONFIG"
+    }
+  ],
+  "complete_g_resource_fit_admitted": false,
+  "hardware_timing_admitted": false,
+  "platform_free_capacity_admitted": false,
+  "publication_match_admitted": false,
+  "status": "COMPLETE_G_STORAGE_SCREEN_NOT_ROUTING_OR_BOARD_ADMISSION"
+}

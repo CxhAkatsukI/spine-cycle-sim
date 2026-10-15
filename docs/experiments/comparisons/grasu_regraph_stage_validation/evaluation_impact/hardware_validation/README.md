@@ -35,10 +35,17 @@ reported rather than silently replaced with a different experiment.
 | Cache production binding | Shared-core extraction passes all twelve composition controls again; production wrapper passes six full-state RTL transactions, token checks and exported ABI at a 3.650-ns estimate | Complete-G resource fit, integrated RTL/backpressure, production integration, routing and board timing |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
+| Complete G storage/link | Actual platform storage screen exposes a local URAM conflict; one-CU relocation preserves capacity; `g-complete-route-v1` has actually started concurrently | Complete resource/timing closure, integrated RTL/host, board correctness and performance |
 
 This is a progress checkpoint, not an admission of the complete baseline.
 The [complete-G source guide](complete_pipeline/README.md) owns its portable
 evidence, exact scope and retained failed attempts.
+The [diagnostic G-link guide](complete_pipeline/hardware/README.md) records
+the new search/full-cache XO substitutions, single-CU placement change,
+atomic full-budget concurrency policy and monitoring commands. The
+[resource capsule](complete_pipeline/resource_evidence/README.md) preserves
+the physical/platform queries, including the timed-out attempt; storage-site
+headroom is not claimed as completed resource or timing closure.
 The [cache-wrapper evidence index](cache_binding_evidence/index.json) freezes
 the completed concurrent wrapper check, including its exported XO and both
 reference interfaces. Verify it from the worktree root:
