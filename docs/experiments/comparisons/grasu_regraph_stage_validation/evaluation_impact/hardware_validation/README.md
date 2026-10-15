@@ -23,6 +23,21 @@ reproduction, same-platform source controls and actual integrated performance
 have separate decisions. Unsupported original-paper conditions must be
 reported rather than silently replaced with a different experiment.
 
+## Current Checkpoint
+
+| Track | Latest evidence | Remaining gate |
+| --- | --- | --- |
+| Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |
+| Search | v5 passes 38 source controls, but its synthesis estimate is 6.225 ns; v6 source controls are running | Nonempty RTL completion, 5-ns estimate, actual production binding and timing-model alignment |
+| Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
+| R controls | `r-credit-v2` is running its declared 28-row matrix | Complete matrix, exact old-row replay and separate hardware/publication decisions |
+| Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
+
+This is a progress checkpoint, not an admission of the complete baseline.
+The following sections preserve the earlier attempts and explain each current
+candidate. All concurrent launches reserve full bounded memory budgets; other
+FPGA tools need not exit when those budgets and the system reserve fit.
+
 ## Execution Order
 
 1. Close the paired cache and isolated finite-search HLS/RTL gates. Do not
@@ -297,6 +312,41 @@ HLS started with 151547801600 bytes available (about 141.1 GiB), exceeding
 its full 88-GiB admission threshold while the adapter route remained active.
 C simulation and synthesis completed; the clock estimate is 6.225 ns, above
 the 5-ns target. RTL co-simulation remains running at this checkpoint.
+
+## Nonoverlapping Search Worker Candidate
+
+Inspection of the v5 generated RTL reveals another scheduling risk. Its
+pipelined worker loop can overlap a request write from one iteration with a
+response read from the next. The shared pipeline-block signal includes the
+empty response FIFO and gates the preceding request write. Separate C++ switch
+cases therefore do not by themselves establish an independent RTL handshake.
+The v5 source and generated reports remain frozen; its running co-simulation
+must reach its own terminal result rather than being relabeled from inspection.
+
+The fresh v6 candidate disables loop-iteration pipelining inside each search
+context. All 64 contexts still execute concurrently. Response capture, row
+decode, binary comparison, midpoint arithmetic and next-phase selection use
+distinct explicit states. FIFO depths, metadata credits, search semantics,
+ordered publication and external interfaces are unchanged. This is a candidate
+RTL scheduling change, not a demonstrated clock or latency improvement.
+The simulator cycle engine and production G remain unchanged; alignment to
+this worker's actual RTL schedule is a separate gate if it passes.
+
+`spine-grasu-search-candidate-20261016-v6.service`, invocation
+`e24fa09375a44a26bef74720ffee00d0`, runs the complete source matrix under
+`g-search-controls-v6` before a dependent `g-search-hls-v6` attempt. Failed
+source controls prevent HLS from starting. The supervisor has a 512-MiB hard
+bound, no swap and a two-hour lifetime. Source commands retain their 2-GiB
+bound; HLS retains 8 GiB hard / 7 GiB high, no swap and a 1,800-second timeout.
+HLS admission includes 24 GiB background reserve for the concurrent old search
+attempt, R study and supervisors, plus 24 GiB system reserve and the active
+route's 40-GiB hard budget: a 96-GiB threshold with routing active. About
+141 GiB was available at launch. An exited client used to start the transient
+service does not terminate its separately supervised source or HLS processes.
+
+Forty-nine focused search, weighted-composition, cleanup and repository
+structure regressions pass with this candidate. Source-matrix completion,
+RTL completion and clock closure remain explicit outstanding results.
 
 ## Weighted Search Composition
 

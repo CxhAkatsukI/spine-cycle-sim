@@ -133,6 +133,16 @@ class SearchPipelineTests(unittest.TestCase):
         self.assertNotIn("port=binary ", source)
         self.assertNotIn("const search_pipeline::Raw* binary,", source)
 
+    def test_search_worker_keeps_blocking_handshakes_in_separate_iterations(self):
+        root = Path(__file__).resolve().parents[1]
+        source = (root / "cpp/tests/evaluation_impact/common_g/hls/"
+                         "search_pipeline/search_worker.hpp").read_text()
+        self.assertIn("#pragma HLS PIPELINE off", source)
+        self.assertNotIn("#pragma HLS PIPELINE II=1", source)
+        for phase in ("row_decode", "binary_compare", "midpoint", "choose"):
+            self.assertIn(f"case SearchPhase::{phase}:", source)
+        self.assertEqual(source.count("metadata = responses.read();"), 2)
+
     def test_concurrent_component_tools_require_all_declared_memory_budgets(self):
         previous = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(512 * 1024**2)}
         route = {"LoadState": "loaded", "ActiveState": "active", "MemoryMax": str(40 * GIB)}
