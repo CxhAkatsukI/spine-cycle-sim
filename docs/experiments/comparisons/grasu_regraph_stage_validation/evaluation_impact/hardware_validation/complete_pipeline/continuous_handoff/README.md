@@ -106,6 +106,13 @@ single-partition correctness/timing window. It does not establish original-G
 performance, a publication match, cold/multi-shard behavior, integrated RTL
 or the requested full-graph baseline comparison.
 
+The shared [conditional board queue](../continuous_board/execution/README.md#conditional-board-queue)
+can wait for the exact new-G route invocation, check final routed timing,
+then execute isolated G before this handoff matrix. It waits for that required
+artifact, not for other FPGA tools to exit. Both hosts and transitive runner
+sources are pinned before waiting; a failed gate stops without resetting a
+board or retrying. Queue readiness is not measured hardware correctness.
+
 ## Retained Failure And Compatibility
 
 v2 failed before graph construction because the inherited test parser allowed

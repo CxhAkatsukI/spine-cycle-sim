@@ -39,6 +39,7 @@ Code lives in
 | `runtime.py` | Resolve/pin actual ELF and dynamically loaded XRT-core libraries; record driver, PCIe BDF and healthy calibrated U55C platform under the lease |
 | `events.py` | Recompute event unions/spans, reject missing/duplicate events, invalid intervals, inconsistent DMA/batch order, state or reported timing |
 | `study.py` | Validate frozen host preflight; acquire shared board lease; execute all cases/repetitions with resource limits and failure retention |
+| `supervisor.py` | Wait for one pinned route invocation, require routed admission, then run isolated G and resident G-to-SSSP matrices sequentially |
 
 The host rejects a BDF mismatch before constructing its OpenCL program. The
 existing shared board lease and occupancy check are reused, not replaced by
@@ -93,3 +94,42 @@ or an occupied board is retained as a rejection, never a passing measurement.
 Results, raw stdout/stderr, event analysis, runtime identity and resource
 records stay in the unique output directory. Do not promote a launcher test,
 model result or running route into a hardware performance claim.
+
+## Conditional Board Queue
+
+The conditional supervisor waits only for the **required new-G bitstream**,
+not for unrelated FPGA tools to exit. It freezes both guarded host reports,
+binaries, sources/dependencies, route inputs, reference bitstream and imported
+runner owners. The route's systemd invocation must remain unchanged; an active
+service with `Result=success` is still running, not admitted. Route failure,
+queue timeout, source changes or timing rejection stop before board execution.
+
+Once strict routed admission passes, the existing bounded execution engine
+runs all six G inputs three times, followed by all nine resident G-to-SSSP
+inputs three times. These would produce 54 and 81 batch rows respectively,
+not 135 rows already measured. The board lease, idle/health/BDF checks, raw
+event validation, 600-second per-case watchdog and memory limits are unchanged.
+A busy board or failed case stops the queue; there is no automatic reset,
+retry, alternate-bitstream substitution or partial-matrix admission.
+
+Inspect the explicit execution arguments with:
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor --help
+python3 -m unittest tests.test_grasu_continuous_supervisor -v
+```
+
+Supply `--g-preflight` for `g-continuous-host-v3`, `--gr-preflight` for
+`gr-continuous-host-v4`, `--route`, `--original`, a fresh `--output`, and the
+required `--route-unit` / `--route-invocation`. `--execute` is mandatory.
+Use an enclosing 8-GiB hard/7-GiB high/no-swap/group-OOM user service with a
+bounded lifetime. The default route wait is 24 hours; allow the additional
+7.5-hour worst-case matrix budget in the service lifetime. No board lease is
+held while waiting for routing. `results.json` retains route states, frozen
+identities and child reports, including failures and actual `board_started`.
+
+The 277-test focused suite passes, including twelve conditional-supervisor
+tests. Raw logs and resource records are retained in
+`verification-gr-board-supervisor-v1/`: 8.56 seconds, 104304 KiB sampled peak
+process-tree RSS, 2-GiB hard bound, CPU 123 and 104-GiB reserve. These tests
+mock board execution; they are not FPGA correctness or performance results.
