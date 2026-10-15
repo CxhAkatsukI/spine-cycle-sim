@@ -27,7 +27,10 @@ int main(int argc, char** argv) {
     std::cout << "CONTINUOUS_GR_SETUP {\"board\":" << (board ? "true" : "false")
               << ",\"one_time_setup_ms\":" << milliseconds(setup_begin)
               << ",\"shards\":" << model.graph.shards.size() << ",\"source\":0"
-              << ",\"round_limit\":" << kRoundLimit << ",\"initial_state\":\"old_graph_converged\"}" << std::endl;
+              << ",\"round_limit\":" << kRoundLimit << ",\"initial_state\":\"old_graph_converged\"";
+    if (board) std::cout << ",\"device_bdf\":\"" << device->session.bdf << "\""
+                        << ",\"hbm_bytes\":" << model.plan.total_allocated_bytes + kCapacity * 4 * 5 + 4;
+    std::cout << "}" << std::endl;
     for (unsigned batch = 0; batch < 3; ++batch) {
       const auto begin = Clock::now();
       auto after = model.state;

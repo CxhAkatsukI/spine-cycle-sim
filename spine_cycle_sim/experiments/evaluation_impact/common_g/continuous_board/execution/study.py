@@ -1,9 +1,11 @@
 """Run the frozen three-batch G correctness matrix only after routed admission."""
 
 import argparse
+from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
+from typing import Callable
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.board import board_lease, require_idle_board
@@ -16,6 +18,15 @@ from ..delivery import validate as validate_host
 from . import events, route, runtime
 
 PASS = "CONTINUOUS_G_BOARD_MATRIX_PASS_NOT_BASELINE_ADMISSION"
+
+
+@dataclass(frozen=True)
+class Experiment:
+    host_identity: Callable
+    analyze: Callable
+    pass_status: str
+    boundary: str
+    source_files: tuple[Path, ...] = ()
 
 
 def containment():
@@ -41,26 +52,29 @@ def host_identity(preflight):
                     *report["source"], *report["dependencies"]]
 
 
-def run(preflight, route_attempt, original, output, *, device=0, repeats=3, execute=False):
+def run(preflight, route_attempt, original, output, *, device=0, repeats=3, execute=False, experiment=None):
     if type(repeats) is not int or repeats < 3 or repeats > 10 or type(device) is not int or device not in (0, 1):
         raise ValueError("known device and 3--10 repetitions required")
+    experiment = experiment or Experiment(host_identity, events.analyze, PASS,
+        "isolated resident G ready-to-handoff; not algorithm convergence or complete G+R")
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING", "errors": [], "attempts": [], "device_index": device,
               "repeats": repeats, "execution_requested": execute, "board_started": False,
               **dict.fromkeys(CLAIMS, False), "board_correctness_measured": False,
-              "boundary": "isolated resident G ready-to-handoff; not algorithm convergence or complete G+R",
+              "boundary": experiment.boundary,
               "resources": {"memory_max_gib": 8, "memory_high_gib": 7, "reserve_gib": 104,
                             "swap_max_bytes": 0, "timeout_seconds_per_case": 600, "cpu_affinity": [124, 125]}}
     save = lambda: atomic_write_json(output / "results.json", report)
     save()
     try:
-        host, pins = host_identity(preflight)
+        host, pins = experiment.host_identity(preflight)
         binary = preflight / "probe"
         runtime.require_clean_environment(binary, output)
         checked = route.review(route_attempt, original, output / "routed_admission")
         report.update(contract=host["contract"], routed_admission=checked)
         pins += checked["pins"] + [checked["candidate"], checked["timing"]["report"]]
         pins += [identity(path) for path in sorted(Path(__file__).parent.glob("*.py"))]
+        pins += [identity(path) for path in experiment.source_files]
         report["pins"] = list({pin["path"]: pin for pin in pins}.values())
         unchanged(report["pins"])
         report["status"] = "BOARD_PREPARED_NOT_EXECUTED"
@@ -93,13 +107,13 @@ def run(preflight, route_attempt, original, output, *, device=0, repeats=3, exec
                     save()
                     if step["exit_code"] or step["stop_reason"] != "process_exit" or step["cleanup_snapshot_error"]:
                         raise ValueError("board attempt failed or hit its resource bound; no automatic reset")
-                    attempt["analysis"] = events.analyze(case, (output / (name + ".stdout.txt")).read_text(),
+                    attempt["analysis"] = experiment.analyze(case, (output / (name + ".stdout.txt")).read_text(),
                         (output / (name + ".stderr.txt")).read_text(), bdf=captured["device"]["bdf"])
                     save()
                     print(f"{name} board correctness PASS", flush=True)
             runtime.unchanged(captured, render)
             unchanged(report["pins"])
-        report.update(status=PASS, board_correctness_measured=True)
+        report.update(status=experiment.pass_status, board_correctness_measured=True)
     except BaseException as error:
         report["status"] = "FAILED_RETAINED"
         report["errors"].append(repr(error))
