@@ -7,8 +7,14 @@
 #include <stdexcept>
 #include <vector>
 
+#ifdef CACHE_PRODUCTION_BINDING
+extern "C" void process_cache(ap_uint<512>* pma_cache,
+                               hls::stream<pipe_type_96>& update_stream,
+                               hls::stream<grasu_done_pkt_t>& completion_token);
+#else
 extern "C" void cache_full_probe(ap_uint<512>* memory,
                                   hls::stream<pipe_type_96>& updates);
+#endif
 
 namespace {
 void check(unsigned count, bool conflict = false) {
@@ -47,7 +53,17 @@ void check(unsigned count, bool conflict = false) {
   pipe_type_96 end{};
   end.data = END_EDGE;
   updates.write(end);
+#ifdef CACHE_PRODUCTION_BINDING
+  hls::stream<grasu_done_pkt_t> completion;
+  process_cache(memory.data(), updates, completion);
+  if (completion.size() != 1) throw std::runtime_error("cache completion count");
+  const auto token = completion.read();
+  if (token.data != 1 || !token.last || token.keep != decltype(token.keep)(-1) ||
+      token.strb != decltype(token.strb)(-1))
+    throw std::runtime_error("cache completion payload/sidebands");
+#else
   cache_full_probe(memory.data(), updates);
+#endif
   if (!updates.empty()) throw std::runtime_error("full-cache input not drained");
   for (unsigned row = 0; row < MAX_CACHE_SEGMENT; ++row) {
     for (unsigned lane = 0; lane < 16; ++lane) {

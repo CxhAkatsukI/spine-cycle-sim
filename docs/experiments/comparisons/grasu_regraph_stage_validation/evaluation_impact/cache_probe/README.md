@@ -14,6 +14,12 @@ candidate's failed performance gate. Adding parallel direct-HBM owners did not
 eliminate the cost of repeated read/modify/write to the same segment; a real
 cache must be investigated rather than assumed in the simulator.
 
+The earlier attempt decisions below describe their frozen checkpoints.
+The [current hardware campaign](../hardware_validation/README.md) records the
+subsequent paired full-cache pass and complete-G source controls. The production
+wrapper check below passes its component gates, not a replacement for integrated RTL or
+board measurements.
+
 ## Code Review
 
 The optional controls live under
@@ -24,8 +30,10 @@ The optional controls live under
 | `cache_bank.hpp`, `cache_bank.cpp` | One full-depth 8192-segment URAM bank, preload, updates and acknowledged external writeback |
 | `cache_lane.hpp` | Static 16-word edit wiring and an explicitly registered alternative; no dynamic 512-bit shifts |
 | `cache_bank_control.cpp` | Independent sorted-array oracle, all insertion positions, full-word keys, both empty sentinels, same-row and dispersed updates |
-| `cache_full.cpp` | Original 16-bank kernel behind an interface-depth wrapper, or a separate 16-bank registered candidate |
+| `cache_pipeline.hpp` | Shared registered 16-bank cache core, full preload/writeback and depth-two internal FIFOs |
+| `cache_full.cpp` | Original 16-bank kernel behind an interface-depth wrapper, or the shared registered core |
 | `cache_full_control.cpp` | Complete 131072-segment state oracle, balanced traffic and same-bank conflicts |
+| `cache_binding.cpp` | Production-shaped three-argument cache top, including completion-token output |
 
 Python ownership is
 `spine_cycle_sim/experiments/evaluation_impact/common_g/cache_probe/`:
@@ -34,6 +42,72 @@ preparation freezes source and tool commands; `study.py` owns bounded execution;
 `delivery.py` freezes source, logs and reports, verifies hashes, and refuses to
 promote component evidence to baseline admission. Focused tests exercise each
 boundary without requiring Vitis.
+
+Production-wrapper ownership stays in the same package: `binding_preparation.py`
+freezes inputs and checks the passing composition source identity;
+`binding.py` owns memory-admitted execution; `binding_abi.py` checks registers
+and both AXIS buses; `binding_analysis.py` keeps state, RTL, ABI and estimated
+clock gates separate.
+
+## Production Wrapper Gate
+
+The completed `g-cache-binding-rtl-v1` runs the shared registered core through
+the real `process_cache(pma_cache, update_stream, completion_token)` interface.
+The code is the same core used in `g-complete-source-v6`, which passes all
+twelve full-capacity composition rows after the behavior-preserving extraction.
+Both the raw source-control attempt and its portable archive are owned by the
+[complete-G guide](../hardware_validation/complete_pipeline/README.md).
+
+This wrapper gate checks six full-state calls (0, 16, 64, 4096, 65536 balanced
+updates and 4096 single-bank conflicts), input drain, exactly one completion
+token with the correct payload/sidebands, Verilog transactions and XO export.
+Exported arguments, register offsets, control protocol and both AXIS buses
+must match the existing routed cache ABI. A synthesis estimate above 5 ns is
+reported separately even if RTL and ABI checks pass. External RTL producer
+stalls and whole-G composition are not covered by these six calls.
+
+All six state/RTL calls and the exported ABI pass, with tool exit code zero.
+The estimate is 3.650 ns, 87,695 LUTs, 60,274 FFs, 30 BRAMs and 256 URAMs.
+RTL latencies are 278743, 278734, 278782, 282814, 344254 and 291034 cycles in
+the declared call order. Full preload/writeback and one checked completion
+token remain included. The exported XO SHA-256 is
+`caeb04635bc0eea9d36a04ebafb576d5b31ceb608b78f89acd206f218bfec9d8`.
+The [portable wrapper evidence](../hardware_validation/cache_binding_evidence/index.json)
+contains frozen source/runner, reference ABI, raw reports, logs and XO.
+
+The old routed cache used `GRASU_PURE_PIPELINE_DIRECT_CACHE`, a direct-HBM path.
+The new candidate instead retains the original full hot-half capacity in URAM.
+An identical host ABI therefore does **not** establish identical resources,
+timing, or behavior under whole-system backpressure. Two cache halves require
+512 URAMs; complete resource fit and routing remain mandatory.
+
+Reproduce from the worktree root with fresh output paths and frozen source
+controls:
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.binding \
+  --output /path/to/fresh-cache-binding \
+  --basis /path/to/g-complete-source-v6 \
+  --production /path/to/production/GraSU_kernels/src \
+  --reference /path/to/routed/process_cache/solution \
+  --previous-unit <bounded-predecessor.service> \
+  --route-unit <bounded-route.service> \
+  --maximum-wait 3600
+python3 -m unittest tests.test_grasu_cache_binding
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.binding_delivery \
+  --output /path/to/fresh-cache-binding-evidence \
+  --attempt /path/to/completed-cache-binding
+```
+
+The HLS scope has an 8-GiB hard limit, 7-GiB memory-high threshold, no swap,
+CPU 125 and an 1800-second timeout. Its supervisor has a separate 512-MiB
+limit and bounded lifetime. Admission reserves 24 GiB for the system plus
+the full finite budgets of the declared concurrent tools. At this launch the
+40-GiB route was active and approximately 134 GiB was available, exceeding
+the 72-GiB admission threshold. It started immediately; it did not wait for
+other FPGA tools to terminate. The completed tool execution took 329.3 seconds
+and recorded 885,460 KiB maximum single-process RSS; that RSS is not a summed
+process-tree peak. The hard cgroup bound applies to the complete tool scope.
 
 ## Fixed Controls
 

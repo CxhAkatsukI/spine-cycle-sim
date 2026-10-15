@@ -73,7 +73,8 @@ class CompletePipelineTests(unittest.TestCase):
                      *(upstream / name for name in ("kernel_config.h", "kernel_process_cache.cpp")),
                      *(production / name for name in
                        ("kernel_config.h", "kernel_dispatch.cpp", "kernel_process_ddr.cpp")),
-                     *(tests / "hls" / name for name in ("cache_full.cpp", "cache_bank.hpp", "cache_lane.hpp")),
+                     *(tests / "hls" / name for name in
+                       ("cache_full.cpp", "cache_bank.hpp", "cache_lane.hpp", "cache_pipeline.hpp")),
                      *(tests / "hls/search_binding" / name for name in ("top.cpp", "top.hpp")),
                      integration / "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp",
                      *(root / "spine_cycle_sim/experiments" / name for name in

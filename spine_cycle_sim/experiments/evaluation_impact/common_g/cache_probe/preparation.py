@@ -17,7 +17,7 @@ def prepare(output: Path, upstream: Path):
     source.mkdir()
     (source / "upstream").mkdir()
     for name in ("cache_bank.cpp", "cache_bank.hpp", "cache_bank_control.cpp",
-                 "cache_lane.hpp", "cache_full.cpp", "cache_full_control.cpp"):
+                 "cache_lane.hpp", "cache_pipeline.hpp", "cache_full.cpp", "cache_full_control.cpp"):
         shutil.copy2(ROOT / "cpp/tests/evaluation_impact/common_g/hls" / name, source / name)
     for name in ("kernel_process_cache.cpp", "kernel_config.h"):
         shutil.copy2(upstream / name, source / "upstream" / name)

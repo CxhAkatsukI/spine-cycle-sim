@@ -32,12 +32,21 @@ reported rather than silently replaced with a different experiment.
 | Search host binding | All 216 source calls and eighteen real-wrapper RTL transactions pass; independent canonical-XO review matches the routed ABI, with a 3.650-ns estimate | External RTL backpressure, production integration, routed clock and board execution |
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
 | Complete G source | Twelve rows pass four-CU search, both full hot halves, cold DDR and direct adapter checks | Production export, integrated RTL/backpressure, resource fit and hardware timing; internal cache/DDR C-simulation FIFOs remain unbounded |
+| Cache production binding | Shared-core extraction passes all twelve composition controls again; production wrapper passes six full-state RTL transactions, token checks and exported ABI at a 3.650-ns estimate | Complete-G resource fit, integrated RTL/backpressure, production integration, routing and board timing |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
 
 This is a progress checkpoint, not an admission of the complete baseline.
 The [complete-G source guide](complete_pipeline/README.md) owns its portable
 evidence, exact scope and retained failed attempts.
+The [cache-wrapper evidence index](cache_binding_evidence/index.json) freezes
+the completed concurrent wrapper check, including its exported XO and both
+reference interfaces. Verify it from the worktree root:
+
+```bash
+python3 -c 'from pathlib import Path; from spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.binding_delivery import verify; verify(Path("docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/cache_binding_evidence"))'
+```
+
 The following sections preserve the earlier attempts and explain each current
 candidate. All concurrent launches reserve full bounded memory budgets; other
 FPGA tools need not exit when those budgets and the system reserve fit.

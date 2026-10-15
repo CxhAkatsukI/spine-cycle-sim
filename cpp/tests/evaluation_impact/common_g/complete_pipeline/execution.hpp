@@ -89,7 +89,7 @@ inline std::array<unsigned, 4> run_g(const Fixture& fixture, Memory& memory,
                                  outputs[0], outputs[2], outputs[1], outputs[3]);
   });
   auto cache = [&](unsigned port) {
-    if (registered) candidate(memory.buffers[port].data(), outputs[port]);
+    if (registered) cache_registered::candidate(memory.buffers[port].data(), outputs[port]);
     else process_cache(memory.buffers[port].data(), outputs[port]);
   };
   CacheThread even([&] { cache(0); }), odd([&] { cache(2); });

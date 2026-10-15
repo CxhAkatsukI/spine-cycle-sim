@@ -19,7 +19,8 @@ def prepare(output: Path, upstream: Path, integration: Path):
                         ("kernel_config.h", "kernel_dispatch.cpp", "kernel_process_ddr.cpp")],
         "adapter": sorted((integration / "kernels/pma_to_regraph_adapter").glob("*.hpp")) +
                    [integration / "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp"],
-        "hls": [tests / "hls" / name for name in ("cache_full.cpp", "cache_bank.hpp", "cache_lane.hpp")],
+        "hls": [tests / "hls" / name for name in
+                ("cache_full.cpp", "cache_bank.hpp", "cache_lane.hpp", "cache_pipeline.hpp")],
         "hls/search_binding": [tests / "hls/search_binding" / name for name in ("top.cpp", "top.hpp")],
         "hls/search_pipeline": sorted((tests / "hls/search_pipeline").glob("*.hpp")),
         "runner/complete_pipeline": sorted(Path(__file__).parent.glob("*.py")),

@@ -59,6 +59,16 @@ The portable archives contain v3--v5. v1 has colliding source identities, so
 the packager deliberately rejects it as a reproducible frozen-source archive;
 its original failed report and partial tree remain at the raw campaign path.
 
+After extracting the registered cache core into `cache_pipeline.hpp`, the
+fresh `g-complete-source-v6` reruns the same twelve rows and passes unchanged
+complete-state and edge-set checks. Both the isolated probe and production
+cache wrapper now call this shared core. The separate
+[shared-core evidence index](shared_core_evidence/index.json) pins this new
+source identity; the original v3--v5 archives are unchanged. v6 compilation
+took 6.42 s with about 514 MiB peak process RSS, and verification took 26.76 s
+with about 114 MiB peak process RSS. These are host verification costs, not
+accelerator performance.
+
 The v2 journal belongs to systemd invocation
 `134a656971814b3298e278fc83b656bf`; its partial directory is under the campaign
 root below. It has no `results.json` and is not represented as an executed
@@ -87,7 +97,10 @@ Raw attempts:
 through `g-complete-source-v5`. v5 compiled in 6.47 s with about 514 MiB peak
 RSS and executed in 27.51 s with about 114 MiB peak RSS. These are **host
 verification costs**, not accelerator latency or throughput measurements.
+The v6 raw attempt is a sibling at `g-complete-source-v6`.
 
 Next gates are production cache-wrapper export/ABI verification, complete
 G RTL/backpressure and resource checks, routing and board state/timing checks.
+The [production cache-wrapper guide](../../cache_probe/README.md#production-wrapper-gate)
+owns its independent RTL/export attempt and memory-admitted launch policy.
 See the [campaign guide](../README.md) for the independent R and Spine gates.

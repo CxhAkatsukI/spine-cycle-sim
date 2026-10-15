@@ -8,15 +8,16 @@ NAMES = ("edges", *(f"binary_{i}" for i in range(4)),
          *(f"row_offset_{i}" for i in range(4)), "edge_size", "segment_head_stream_out")
 
 
-def exported_members(archive):
+def exported_members(archive, kernel_name="bin_search"):
     names = archive.namelist()
     components = [name for name in names if len(PurePosixPath(name).parts) == 3
                   and PurePosixPath(name).parts[0] == "ip_repo"
                   and PurePosixPath(name).name == "component.xml"]
     # Vivado also packages scratch .Xil/kernel.xml files; these are not the XO ABI.
-    if names.count("bin_search/kernel.xml") != 1 or len(components) != 1:
+    canonical = kernel_name + "/kernel.xml"
+    if names.count(canonical) != 1 or len(components) != 1:
         raise ValueError("missing or duplicate canonical exported ABI")
-    return {"kernel.xml": "bin_search/kernel.xml", "component.xml": components[0]}
+    return {"kernel.xml": canonical, "component.xml": components[0]}
 
 
 def number(value):
