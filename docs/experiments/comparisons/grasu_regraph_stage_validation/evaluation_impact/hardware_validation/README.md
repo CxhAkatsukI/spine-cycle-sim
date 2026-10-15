@@ -28,7 +28,8 @@ reported rather than silently replaced with a different experiment.
 | Track | Latest evidence | Remaining gate |
 | --- | --- | --- |
 | Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |
-| Search | v5 passes 38 source controls, but its synthesis estimate is 6.225 ns; v6 source controls are running | Nonempty RTL completion, 5-ns estimate, actual production binding and timing-model alignment |
+| Search | v5 retained a nonempty RTL timeout and 6.225-ns estimate; v6 passes 38 source controls and synthesizes at 5.572 ns, with RTL pending | Nonempty RTL completion, 5-ns estimate and timing-model alignment |
+| Search host binding | All 216 finite-channel, eleven-argument source calls pass, including two metadata generations and unused-pointer controls | XRT/register ABI checks, production integration and RTL of this wrapper remain open |
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
 | R controls | `r-credit-v2` is running its declared 28-row matrix | Complete matrix, exact old-row replay and separate hardware/publication decisions |
 | Adapter routing | `r-adapter-route-v3` is running with the fixed process watchdog | Routed timing, bitstream checks and board measurements; this is not a complete-new-G route |
@@ -311,7 +312,9 @@ executions / 152 CU checks and eighteen testbench-source calls. The dependent
 HLS started with 151547801600 bytes available (about 141.1 GiB), exceeding
 its full 88-GiB admission threshold while the adapter route remained active.
 C simulation and synthesis completed; the clock estimate is 6.225 ns, above
-the 5-ns target. RTL co-simulation remains running at this checkpoint.
+the 5-ns target. RTL co-simulation subsequently hit its 1,800-second timeout,
+with no completed nonempty transaction. The terminal result is
+`FAILED_RETAINED`, not a passing RTL result.
 
 ## Nonoverlapping Search Worker Candidate
 
@@ -320,8 +323,8 @@ pipelined worker loop can overlap a request write from one iteration with a
 response read from the next. The shared pipeline-block signal includes the
 empty response FIFO and gates the preceding request write. Separate C++ switch
 cases therefore do not by themselves establish an independent RTL handshake.
-The v5 source and generated reports remain frozen; its running co-simulation
-must reach its own terminal result rather than being relabeled from inspection.
+The v5 source and generated reports remain frozen. Its eventual timeout is
+recorded above, separately from this source-level scheduling diagnosis.
 
 The fresh v6 candidate disables loop-iteration pipelining inside each search
 context. All 64 contexts still execute concurrently. Response capture, row
@@ -345,8 +348,65 @@ route's 40-GiB hard budget: a 96-GiB threshold with routing active. About
 service does not terminate its separately supervised source or HLS processes.
 
 Forty-nine focused search, weighted-composition, cleanup and repository
-structure regressions pass with this candidate. Source-matrix completion,
-RTL completion and clock closure remain explicit outstanding results.
+structure regressions pass with this candidate. All 38 source executions /
+152 CU controls and eighteen C++14 testbench-source calls subsequently passed.
+The dependent HLS run passed C simulation and synthesis. Its estimated clock
+period is 5.572 ns, above the 5-ns target, with 77,132 LUTs, 69,935 FFs, four
+BRAMs and no URAM. The synthesis report identifies the gather arbitration
+feedback path: ready selection, dynamically selected FIFO read and the
+finished-mask update. This is a specific timing failure, not closure of the
+clock gate. RTL completion and timing-model alignment remain outstanding.
+
+## Production-Shaped Search Binding
+
+The production compact host sets eleven search arguments: the update buffer,
+four binary pointers, four row pointers, update count and the implicit AXIS
+stream. The four binary arguments alias one allocation; likewise the four row
+arguments alias one allocation. The compact kernel reads only `binary_0` and
+`row_offset_0`, on the same metadata AXI bundle. This is still shared metadata,
+not the separate-copy layout that improves some earlier model predictions.
+
+The new `search_binding` wrapper retains this pointer order, scalar width,
+AXIS packet type and compact interface pragmas. Both isolated and binding
+wrappers call one extracted `search_pipeline/network.hpp`; the search workers,
+339 finite FIFOs, credits and publication order are unchanged. The wrapper is
+a source candidate in this repository, not yet a replacement production XO.
+Extraction requires its own replay and HLS check; passing the frozen v6 RTL
+would not automatically validate the extracted hierarchy.
+
+`g-search-binding-v1` passes all 216 declared C++14 source calls:
+
+- Two metadata generations overwrite the same vector storage with different
+  row extents and keys; there is no retained metadata snapshot between calls.
+- Counts 0, 1, 63, 64, 65, 127, 128, 129 and 257 cover empty and context-wrap
+  boundaries, with mixed-source and single-source updates.
+- Actual aliased pointers, deliberately poisoned unused pointers and null
+  unused pointers all give the same results and probe counts.
+- Normal and stalled consumers check every ordered 96-bit result, finite FIFO
+  conservation and exact metadata request/response counts.
+
+The control took 79.14 seconds; its recorded maximum process RSS was 16,404 KiB
+(not a simultaneous process-tree total). Compilation took 4.31 seconds and
+343,196 KiB maximum process RSS. Both were capped at 2 GiB, no swap, CPU 125,
+with an 88-GiB background/system reserve and separate 180/600-second timeouts.
+The production host and kernel sources, vendor dependencies, compiler version,
+candidate sources, raw output and resource records are pinned in the
+[portable capsule](search_binding_evidence/index.json).
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.search_binding.study \
+  --output /path/to/fresh-binding-control \
+  --integration /path/to/grasu-regraph-integration \
+  --hls-include /path/to/Vitis_HLS/2024.1/include
+python3 -c 'from pathlib import Path; from spine_cycle_sim.experiments.evaluation_impact.common_g.search_binding.delivery import verify; verify(Path("docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/search_binding_evidence"))'
+```
+
+The separate `g-search-extracted-v1` is replaying all 38 large source controls
+against the preceding metadata ledger. Neither source control checks XRT
+argument offsets, generated registers, external AXI stalls or routed timing.
+No complete-G, publication-match or hardware-timing admission follows. Both
+cache halves, cold DDR, metadata refresh, complete resource fit and physical
+G-to-R handoff still require integrated validation.
 
 ## Weighted Search Composition
 

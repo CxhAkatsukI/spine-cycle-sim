@@ -9,10 +9,11 @@ extern "C" void bin_search_pipeline(
     unsigned, hls::stream<search_pipeline::Packet>&);
 
 namespace search_pipeline {
+template <typename Invoke = decltype(&bin_search_pipeline)>
 inline unsigned long check(const std::vector<unsigned long>& edges,
                            const std::vector<Raw>& binary,
                            const std::vector<Raw>& rows, bool stalled,
-                           bool finite_control = true) {
+                           bool finite_control = true, Invoke invoke = bin_search_pipeline) {
   std::vector<Result> expected;
   unsigned long probes = 0;
   for (const auto raw : edges) {
@@ -46,7 +47,7 @@ inline unsigned long check(const std::vector<unsigned long>& edges,
   };
   std::thread consumer;
   if (finite_control) consumer = std::thread(consume);
-  bin_search_pipeline(edges.data(), binary.data(), rows.data(), edges.size(), output);
+  invoke(edges.data(), binary.data(), rows.data(), edges.size(), output);
   if (finite_control) consumer.join();
   else consume();
   if (actual.size() != expected.size()) throw std::runtime_error("ordered result count");

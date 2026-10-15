@@ -1,0 +1,348 @@
+{
+  "archive": "source_controls.tar.gz",
+  "calls": 216,
+  "claim": "eleven_argument_compact_search_source_binding_not_RTL_or_complete_G",
+  "hardware_timing_admitted": false,
+  "members": [
+    {
+      "bytes": 1482,
+      "path": "compile.resources.json",
+      "sha256": "4357beedf51878452dd5beb52f384972c85ee4e6a5bc3be9c0ea182484740d69"
+    },
+    {
+      "bytes": 0,
+      "path": "compile.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "compile.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 958,
+      "path": "execute.resources.json",
+      "sha256": "172a86b311ea4fd1e4c792699ffb8953a673d472fc32c9329995dcf6f7c330a7"
+    },
+    {
+      "bytes": 0,
+      "path": "execute.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 44397,
+      "path": "execute.stdout.txt",
+      "sha256": "11292f79253e768e105f1371bf4f087d71687b6bd0c395b5af0a923b8b2f5415"
+    },
+    {
+      "bytes": 3523,
+      "path": "probe.d",
+      "sha256": "0d283aec3b085a832710724edf0ccbf05783492d921a878b917eacd394008bf4"
+    },
+    {
+      "bytes": 71480,
+      "path": "results.json",
+      "sha256": "bc4d003febd3715a038decff8c2c53670c0c527ecce4fe66546ff22844846425"
+    },
+    {
+      "bytes": 2982,
+      "path": "source/cpp/tests/evaluation_impact/common_g/CMakeLists.txt",
+      "sha256": "6051ea9558d3faf215900371809c1f85886c26de139ec7db6308bedea116445a"
+    },
+    {
+      "bytes": 5073,
+      "path": "source/cpp/tests/evaluation_impact/common_g/diagnostics.hpp",
+      "sha256": "817a4f61084ca7d6b75bc2be0812ac40f6f7e5fa4db7a946f1d215bd0b742213"
+    },
+    {
+      "bytes": 6379,
+      "path": "source/cpp/tests/evaluation_impact/common_g/execution.cpp",
+      "sha256": "3498027a0d6a53c82907cbd87ab5d97fade63b9b787a75ea52fd204389d04ca2"
+    },
+    {
+      "bytes": 1058,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/cache_bank.cpp",
+      "sha256": "c414bbfa8c71303b4cd7d9096c50129cff6908df3180bcead73eee4c71093aff"
+    },
+    {
+      "bytes": 362,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/cache_bank.hpp",
+      "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+    },
+    {
+      "bytes": 3169,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/cache_bank_control.cpp",
+      "sha256": "d790078c551cba34cbb3e32cad09d405a9a08d57d345e9756132d04f79922933"
+    },
+    {
+      "bytes": 2083,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/cache_full.cpp",
+      "sha256": "47fb12749eeb9c75ae89d2807920ae13c4c4b6cc79f734c3d320f77acf7be58b"
+    },
+    {
+      "bytes": 2461,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/cache_full_control.cpp",
+      "sha256": "d34e857f422a9ebe2bb6f708d44de739d084a03dfc890d47b3bcec5bf01900ec"
+    },
+    {
+      "bytes": 1773,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/cache_lane.hpp",
+      "sha256": "c2f17ac29807cb61e212ab1e3cc6c0edc25ddf7a717261bf0a6fe9bb77750ef9"
+    },
+    {
+      "bytes": 1777,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/parallel_search.cpp",
+      "sha256": "e59c30a6ec8114d97c1fc4c0b2d946a41fd06fabbcd96fe6e22367f7b66e533f"
+    },
+    {
+      "bytes": 3928,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/parallel_search.hpp",
+      "sha256": "650c64b6e1be2d8c8f8cff3524ed6e41a539309f6cbe3d266aab9489b8189a33"
+    },
+    {
+      "bytes": 2624,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_binding/control.cpp",
+      "sha256": "60a3b26edc695dcbee4cc7b8313784d4bf67d81c7025e3a08a4ee52a1bfb13f6"
+    },
+    {
+      "bytes": 1785,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_binding/top.cpp",
+      "sha256": "2ddb81575086fc0923d13129a4a8f3bd2cca125874c4210051ad30bfe4bd7424"
+    },
+    {
+      "bytes": 539,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_binding/top.hpp",
+      "sha256": "28ccff9fa2c6692022a649d6b3ad8262f9f8101c0f268b2ff2cdb77ceb34d460"
+    },
+    {
+      "bytes": 1287,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/control.cpp",
+      "sha256": "f0908b53d0f17a720315b109950170cf25389203c52596f461703ed310b17f97"
+    },
+    {
+      "bytes": 3916,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/control.hpp",
+      "sha256": "9cd8ca334d9bd504466e9bce9ef3322fcef936656505e51a1c672f240fd0a925"
+    },
+    {
+      "bytes": 3882,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/finite_host.hpp",
+      "sha256": "3d4eeca467b6fee13ab313f0db7f04172f988edd8b14ce351e35b55f54500d0e"
+    },
+    {
+      "bytes": 3154,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/network.hpp",
+      "sha256": "ffa9a9f7fa7ed2ff3c5ea9afbfc5c6e934568110fc27b200475861066139e50a"
+    },
+    {
+      "bytes": 1182,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/rtl_control.cpp",
+      "sha256": "4b9b68397fb15652a78f6db38fe3a923a25ec070fb134a21067447624fbefbc2"
+    },
+    {
+      "bytes": 2434,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/search_worker.hpp",
+      "sha256": "8a26b8cb62ba0576d263e90489e2142e18486be45641c3bb7957ebe391fc62fc"
+    },
+    {
+      "bytes": 1036,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/top.cpp",
+      "sha256": "7de18ef730ff24d6e42e5570a21456c6740c9e76298743926aa91296b80bfdc5"
+    },
+    {
+      "bytes": 3110,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/transport.hpp",
+      "sha256": "724beb65604d8cef363edf14148bbc3b8d30db80e940870f0924b3d60062116c"
+    },
+    {
+      "bytes": 1507,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/types.hpp",
+      "sha256": "2f7aadf1268cb2ee8263b4c18dfff0740414668a18bef6ff7c8172e8b1195f69"
+    },
+    {
+      "bytes": 1275,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/search_pipeline/workers.hpp",
+      "sha256": "7a10f7e28289b7ef8501eead27a939e997228ef8946438061164b8d18b39365b"
+    },
+    {
+      "bytes": 6175,
+      "path": "source/cpp/tests/evaluation_impact/common_g/hls/source_control.cpp",
+      "sha256": "7363d228cc1764c11f50822b86f2804225f25ceb847ece01620d732d1ce89d3f"
+    },
+    {
+      "bytes": 1826,
+      "path": "source/cpp/tests/evaluation_impact/common_g/input.hpp",
+      "sha256": "f633f2cad3d2a86d541fba1ee3b4670692e6e67fb07d966baa749c22ca3335e8"
+    },
+    {
+      "bytes": 6771,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/candidate.hpp",
+      "sha256": "91b8e15639619ced5dc9e1c1ecc2e5cd7630e7aa186f63395a186763d105dcaf"
+    },
+    {
+      "bytes": 2567,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/execution.cpp",
+      "sha256": "a3cd8c7421afcde83289f797f9edeb7822d16a12ba321d9173022a743f033079"
+    },
+    {
+      "bytes": 6340,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/fixture.hpp",
+      "sha256": "21c3a91515fba65db955421c7e997753e8a0c97fb3f823ec43f1696d820aace4"
+    },
+    {
+      "bytes": 5633,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/legacy.hpp",
+      "sha256": "28b708383fe194efc9fe2ae19820c0fc38d31a54acfff1e61f424184d2cd48ef"
+    },
+    {
+      "bytes": 3669,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/execution.cpp",
+      "sha256": "0173926a411e238ec42cb7ac4bda6e684b4a445d9a1014d57beb0a80866c855a"
+    },
+    {
+      "bytes": 3612,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/layout.hpp",
+      "sha256": "87b2001285c9175afad83150bc1e763d596ed7b1adb882abc1832a0ce9baad96"
+    },
+    {
+      "bytes": 3714,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/batches.hpp",
+      "sha256": "a72d1cdfec161c546054f3064398a9031a64aafe5e4ca883959607c26bb7c3fa"
+    },
+    {
+      "bytes": 3846,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/execution.hpp",
+      "sha256": "5eaf894f390f1ac0650e97bc5df38ec2b013338d6149b89d6e6aa3f5ab075892"
+    },
+    {
+      "bytes": 2066,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/fixture.hpp",
+      "sha256": "61634032f832cac836c0501023b9d9c879c8365e0b96356a17775beab101b749"
+    },
+    {
+      "bytes": 433,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/main.cpp",
+      "sha256": "77f9d0a7b2cbb2f2e5dc536f077723e098ce2ddc03ebf9320c34a6414ca73d69"
+    },
+    {
+      "bytes": 5378,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/residency.hpp",
+      "sha256": "68efa43f2427a310257a08cfd742313e581f49e2f9914639e8a07d88e92168ff"
+    },
+    {
+      "bytes": 3570,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/run.hpp",
+      "sha256": "b1768a73f4620eafec75861717b39a2ae3d40e915a9326ff74663ec9f36331e1"
+    },
+    {
+      "bytes": 2425,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/observed.hpp",
+      "sha256": "c54f9ed920da9023d55f057fe2d5c61ff6e8c3bc539d7c7b101f15ba46e776b4"
+    },
+    {
+      "bytes": 2029,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/replicas.hpp",
+      "sha256": "1970c0e473ba135599cf8e0e4ad3e78e2e436934a984987e742a31e03a374ee7"
+    },
+    {
+      "bytes": 2344,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/resident_real/fixture.hpp",
+      "sha256": "cdecf6dcc9fd703041c54a4572488aaaccc5557c4b2bbd2e1c7b74995180168d"
+    },
+    {
+      "bytes": 593,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/resident_real/main.cpp",
+      "sha256": "e8c2bd61a6b85b13e1140c7d62752ccf08ec1099a2fdcb7dd3d943af0368b522"
+    },
+    {
+      "bytes": 3495,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/resident_real/wrapper.hpp",
+      "sha256": "686136ea42b22a1f882220b18ad8ac6f3847a88204a6cd3805730b59274b450a"
+    },
+    {
+      "bytes": 2997,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/ordered_input.hpp",
+      "sha256": "64e2b98c72ad2d7b0b4ba05cc9540da44a2e2377e1b3c8d6e353c45d50632a6d"
+    },
+    {
+      "bytes": 1748,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/ordered_input_test.cpp",
+      "sha256": "c56b1049d2b100af6418acb7d92f9d67e7faf885de61172828eeea3bf98ebd7f"
+    },
+    {
+      "bytes": 2428,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/real_execution.cpp",
+      "sha256": "bb1638002e2c82c8232004219c60b642ceedb89cc587c794299b9e0e5f7f367a"
+    },
+    {
+      "bytes": 4292,
+      "path": "source/cpp/tests/evaluation_impact/common_g/sharded/real_fixture.hpp",
+      "sha256": "12c58cc2e70588f7c31cb1e260546eeb418877cd090d548e190c08e8dc08afe7"
+    },
+    {
+      "bytes": 7004,
+      "path": "source/cpp/tests/evaluation_impact/common_g/weighted_abi/control.cpp",
+      "sha256": "6e6bc15ce8d917f41f269541c93eedac601f490749e31001c77c1fdbaffef595"
+    },
+    {
+      "bytes": 2344,
+      "path": "source/cpp/tests/evaluation_impact/common_g/weighted_abi/finite_search.hpp",
+      "sha256": "2071122ae8ea5915ac815df186b2484c839b60bcb5a931075fd162d451d1d9a4"
+    },
+    {
+      "bytes": 3303,
+      "path": "source/cpp/tests/evaluation_impact/common_g/weighted_abi/fixture.hpp",
+      "sha256": "5cfb494990b4013045b7f07618eb383b1c05b9a1fc55dbf1a47de734eefa66b5"
+    },
+    {
+      "bytes": 3775,
+      "path": "source/cpp/tests/evaluation_impact/common_g/weighted_abi/search.hpp",
+      "sha256": "4d24a24197905bea01e9c8702edeca0ce593193db9fa9b22d77a440a4f9c4a1f"
+    },
+    {
+      "bytes": 26068,
+      "path": "source/production/kernel_bin_search.cpp",
+      "sha256": "c1b8f084518dbaacebb033458b056d7354df6b25489a20e9cf4800f97e100957"
+    },
+    {
+      "bytes": 54029,
+      "path": "source/production/sharded_k4_native_host.cpp",
+      "sha256": "19eba0e30b1d0527b668fd2fe59d88392c1dcc4afc70255400fceedd5ab05b4d"
+    },
+    {
+      "bytes": 81,
+      "path": "source/runner/__init__.py",
+      "sha256": "a4926cb86ddcb8177f5a697e788efb26bf99eee0de3e1630a6961d491a07324b"
+    },
+    {
+      "bytes": 2153,
+      "path": "source/runner/analysis.py",
+      "sha256": "9196842c72474a10efc0c773167218bfc31ec42b0ce58f7fa4a77104d8f88de4"
+    },
+    {
+      "bytes": 42052,
+      "path": "source/runner/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 3456,
+      "path": "source/runner/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "bytes": 2231,
+      "path": "source/runner/preparation.py",
+      "sha256": "88e2ac384b6a3d879d6db3af8d8f760b3d19681b87df7eae41d17e4dc8f46aaa"
+    },
+    {
+      "bytes": 3152,
+      "path": "source/runner/study.py",
+      "sha256": "b6bcf869654ee9ead1abc5673008440ac915952739f243ed7d527b746ef04036"
+    }
+  ],
+  "production_baseline_admitted": false,
+  "publication_match_admitted": false,
+  "sha256": "06e10d28c298658b5f69d8ca66812ae25708f8f6c08bc039f8873ca85d6a1315",
+  "source_attempt": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-search-binding-v1",
+  "status": "SEARCH_BINDING_SOURCE_PASS_NOT_RTL"
+}
