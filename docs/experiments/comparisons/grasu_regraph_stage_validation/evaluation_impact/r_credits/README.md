@@ -8,15 +8,44 @@ resource controls. It is not a new admitted baseline or paper reproduction.
 The [resource audit](../r_resources/README.md) is the motivation, not timing
 evidence: A4 has 13 masters on 9 physical banks; K4 has 9 registered masters.
 
-Current status: the pre-edit source, compiler/flags, input, binary and all
-12 reference observations are frozen. The fresh serial Release build,
-control-parser check and seven C++ regressions passed. The 58 focused Python
-tests, documentation-layout check and catalog check also passed. A fresh
-28-row campaign is running under the
-[hardware-validation campaign](../hardware_validation/README.md). It has
-produced timing rows, but full numerical extraction equivalence, registration
-invariance and sensitivity results remain pending until all rows finish.
+Current status: all 28 declared executions completed. The fresh serial
+Release build, control-parser check and seven C++ regressions passed. Every
+one of the twelve legacy observations replayed exactly, including trajectories,
+cycles, complete state/replica hashes and physical read/write bytes. Every new
+arm passed the synchronous oracle, shortest-path closure and registration-order
+invariance. The [portable evidence](evidence/index.json) retains the complete
+matrix, not just passing examples.
 No paper, frozen figure package, production core, SST or bitstream is changed.
+
+## Complete Results
+
+The two registration orders give identical results. Lower cycle counts are
+better; all values below are simulator predictions for the same 46-round
+warm compute problem, not FPGA measurements.
+
+| Arm | 64-cycle memory | 128-cycle memory |
+| --- | ---: | ---: |
+| `a4` | 30,740,788 | 59,442,350 |
+| `cross_row` | 244,269,384 | 431,605,442 |
+| `candidate` | 32,160,486 | 57,582,524 |
+| `a4_io16` | 10,904,254 | 15,840,606 |
+| `candidate_apply2` | 53,168,456 | 96,684,180 |
+| `candidate_parents2` | 77,654,808 | 145,284,836 |
+| `candidate_both2` | 77,655,544 | 145,285,204 |
+
+The candidate/legacy-A4 ratios are 1.046 and 0.969, but candidate/`a4_io16`
+ratios are **2.949 and 3.635**. Increasing A4's edge/state parent budget from
+2 to 16 exposes a substantial remaining gap. Therefore the preceding close
+prediction is not sufficient evidence that the actual integrated baseline
+retains original ReGraph performance. Equal parent counts still do not make
+the different master/bank/replica organizations strictly resource matched.
+
+All A4 arms read 802,534,400 B and write 192,937,984 B. Candidate arms read
+2,021,232,640 B and write 144,703,672 B. Both registration orders and memory
+assumptions preserve those traffic counts. Every full output replica has
+SHA-256 `ff001ca203b3b7e0b4ae60b630cee6755acd2f2401fb08e1069e081562dd2c00`.
+This is a defensible sensitivity finding, not publication reproduction,
+hardware timing admission, or a replacement Spine speedup result.
 
 ## Predeclared Controls
 
@@ -67,7 +96,8 @@ Those admission flags remain false in the analysis output.
 
 The owner is `spine_cycle_sim/experiments/evaluation_impact/r_credits/`:
 `freeze.py` pins the pre-edit baseline; `admission.py` owns memory admission;
-`study.py` builds and executes; `analysis.py` validates the complete matrix.
+`study.py` builds and executes; `analysis.py` validates the complete matrix;
+`delivery.py` owns portable evidence packaging and offline verification.
 The C++ harness separates `control.hpp`, `a4.hpp`, `k4.hpp` and a thin CLI.
 The production model and SST build lists are untouched.
 
@@ -109,6 +139,19 @@ attempt has a fresh output directory and retains that failure; the seven
 arms, two memory assumptions, two registration orders and twelve-row replay
 requirement are unchanged. Read `r_rows`, `failures` and final `analysis` in
 this attempt's `results.json`, not the old queue snapshot.
+
+The committed capsule contains pre-edit and executed sources, all 33 command
+records/logs, compiler/flags, fixed binary inputs and all 92 final replicas.
+Identical binary files are stored once by SHA-256 with a logical-path index.
+Executables and libraries remain hash-indexed, not redistributed. Packaging
+rechecks all 503 source/input/build pins and pre-edit artifacts; offline
+verification replays the raw-output analysis and verifies every included blob.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.r_credits.delivery \
+  --output docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_credits/evidence
+python3 -m unittest tests.test_regraph_credit_delivery -q
+```
 
 ```bash
 systemctl --user status spine-regraph-credits-20261015-v2.service
