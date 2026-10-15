@@ -11,9 +11,11 @@ evidence: A4 has 13 masters on 9 physical banks; K4 has 9 registered masters.
 Current status: the pre-edit source, compiler/flags, input, binary and all
 12 reference observations are frozen. The fresh serial Release build,
 control-parser check and seven C++ regressions passed. The 58 focused Python
-tests, documentation-layout check and catalog check also passed. The new
-28-row campaign is waiting for safe memory: zero timing rows have executed.
-Numerical extraction equivalence and sensitivity results remain pending.
+tests, documentation-layout check and catalog check also passed. A fresh
+28-row campaign is running under the
+[hardware-validation campaign](../hardware_validation/README.md). It has
+produced timing rows, but full numerical extraction equivalence, registration
+invariance and sensitivity results remain pending until all rows finish.
 No paper, frozen figure package, production core, SST or bitstream is changed.
 
 ## Predeclared Controls
@@ -87,19 +89,30 @@ serial Release build checks the seven declared regression targets and the
 control parser before attempting the matrix. Compilation alone does not
 establish extraction equivalence; that needs the twelve exact replays.
 
-The current persistent run is
+The initial persistent run was
 `spine-regraph-credit-sensitivity-20261013-v1.service`, with output under
 `/data/chuxiao/experiments/baseline_evaluation_impact_20261012/r-credit-sensitivity-v1/attempt-v1/`.
 Its `raw/build.stdout.txt`, `raw/control_test.stdout.txt` and
 `raw/regression.stdout.txt` retain the completed build/check evidence.
 `results.json` records live admission status and `r_rows`; an empty list is
-not a performance result. The numerical sources and build are pinned while
-the job waits; a changed pin stops it before timing, rather than mixing code
-versions. The service has a 6-GiB cgroup bound, no swap and CPU affinity 127.
+not a performance result. This earlier attempt is retained separately from
+the current campaign. The numerical sources and build are pinned; a changed
+pin stops execution rather than mixing code versions. The service has a
+6-GiB cgroup bound, no swap and CPU affinity 127.
+
+The current invocation is `spine-regraph-credits-20261015-v2.service`, with
+output at
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/r-credit-v2/`.
+Its predecessor `r-credit-v1` failed admission before producing any timing
+rows because a collected transient cache unit was misclassified. The corrected
+attempt has a fresh output directory and retains that failure; the seven
+arms, two memory assumptions, two registration orders and twelve-row replay
+requirement are unchanged. Read `r_rows`, `failures` and final `analysis` in
+this attempt's `results.json`, not the old queue snapshot.
 
 ```bash
-systemctl --user status spine-regraph-credit-sensitivity-20261013-v1.service
-journalctl --user -u spine-regraph-credit-sensitivity-20261013-v1.service -n 30 --no-pager
+systemctl --user status spine-regraph-credits-20261015-v2.service
+journalctl --user -u spine-regraph-credits-20261015-v2.service -n 30 --no-pager
 ```
 
 ## Memory Safety
@@ -116,4 +129,5 @@ The total admission-wait allowance is twelve hours across the campaign, not
 twelve hours per row. Every case has an 1800-second wall bound and a
 1.5-billion-cycle cap. Pins are rechecked after waiting and before each
 case. A queued job is neither a completed experiment nor a passing result.
-Large FPGA work remains queued until its separate memory gate passes.
+FPGA work has its own full-budget admission gate and may run concurrently;
+the presence of another bounded tool alone is not a reason to wait.

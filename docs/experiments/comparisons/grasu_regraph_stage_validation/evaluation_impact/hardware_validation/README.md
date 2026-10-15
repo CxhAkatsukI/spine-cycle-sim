@@ -192,9 +192,10 @@ pass. The raw project, logs and source hashes are retained. A corrected
 candidate needs a fresh attempt; generated failed evidence is not patched.
 
 The synthesis log also reports II=2 for the dependent binary-search worker
-loop. The previous finite-search model assumed one-cycle stage issue, so its
-timing cannot yet be promoted as matching this HLS schedule. Both the
-elaboration problem and schedule difference must be resolved explicitly.
+loop. The finite-search model separates request and response phases, each
+evaluated once per cycle. An II number alone does not establish their timing
+difference: inspect response-to-next-request scheduling, FIFO handshakes and
+transaction latency before promoting model timing as matching this HLS.
 
 ## Search Retry And Concurrent Admission
 
@@ -232,3 +233,62 @@ bytes (about 145.1 GiB), exceeding the 78-GiB threshold. The actual HLS scope
 has an 8-GiB hard bound, 7-GiB high bound and no swap; the 512-MiB supervisor
 is separate. C simulation passed and synthesis started. RTL, clock and
 complete-G acceptance remain open until their reports are checked.
+
+## Search Arbitration Candidate
+
+The retained v2/v3 source uses a variable rotate, priority encoder and cursor
+adder before a dynamically selected FIFO read. A separate candidate encodes
+the first ready absolute lane and the first ready lane at or after the cursor
+in parallel, then selects the wrap or forward result. It leaves FIFO depths,
+credits, worker searches, AXI bundles and ordered publication unchanged.
+The existing source and RTL testbenches both exhaustively check all 255
+nonempty ready masks and eight cursors against a scalar round-robin oracle
+(2,040 combinations). The zero mask is not a valid call: both gather stages
+guard selection with `ready != 0`.
+
+The arbiter-only candidate is archived as `g-search-controls-v4`, not an edit
+to the v3 archive. All 38 executions / 152 CU controls and eighteen testbench
+source calls passed. It needs its own HLS/RTL before any clock improvement
+can be claimed. It leaves the binary-search worker unchanged; the explicit
+handshake candidate below supersedes it for the next HLS attempt. Arbitration
+feasibility and model schedule alignment remain separate gates.
+
+## Explicit Search Handshake Candidate
+
+The v3 retry passed elaboration and entered RTL simulation, then hit its
+1,800-second tool timeout. Its retained `results.json` records
+`FAILED_RETAINED`, `timed_out: true` and exit code -9. The log completed only
+the first two empty transactions, not a nonempty transaction. In
+`bin_search_pipeline_search.v`,
+`requests_63_write_local` in state 3 requires `ap_block_state3 == 0`, while
+`ap_block_state3` includes `responses_63_empty_n == 0`. Thus the initial row
+request is held until a response is already present. Initially empty response
+FIFOs create a circular wait; the bounded attempt is retained without calling
+its source controls an RTL pass. The inner binary-search loop also separates
+response capture and dependent arithmetic, so its reported II cannot serve
+as a blanket simulator timing multiplier.
+
+A fresh candidate in `search_worker.hpp` explicitly separates input, row
+request, row response, binary request, binary response, result and end phases.
+Each iteration performs only its current phase's FIFO operation. It preserves
+the search algorithm, one outstanding request per context, ordered results,
+lane credits and FIFO capacities. Its source controls and fresh HLS/RTL must
+pass independently; synthesis scheduling and the clock gate remain open.
+The production G source and cycle engine are unchanged by this isolated test.
+
+The fresh attempt is supervised by
+`spine-grasu-search-candidate-20261016-v5.service`, invocation
+`5434af73b3c7463d9c07cf4e35622012`. Its `g-search-controls-v5` source matrix
+must complete successfully before systemd starts `g-search-hls-v5`; failure
+skips that dependent HLS invocation. The supervisor is limited to 512 MiB,
+no swap and two hours. Controls retain their 2-GiB bound; HLS retains its
+8-GiB bound and 1,800-second tool timeout. HLS admission reserves 16 GiB for
+concurrent studies and their supervisors, in addition to any active route's
+40 GiB and the 24-GiB system reserve. With route active and cache complete,
+the threshold is 88 GiB. Launch measured about 139.9 GiB available.
+
+The new handshake candidate separately passes all eighteen small C++14
+testbench-source calls and the 65 focused Python regressions. Their raw
+records are under `verification-handshake-v5/` in the campaign root. These
+are source/harness checks, not successful RTL simulation, 5-ns closure or
+whole-G admission. The complete 38-execution source matrix is still running.

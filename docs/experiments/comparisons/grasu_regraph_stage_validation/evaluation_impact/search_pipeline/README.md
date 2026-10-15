@@ -22,7 +22,8 @@ The candidate is confined to
 | File | Responsibility |
 | --- | --- |
 | `types.hpp` | Packed requests/responses, lane identity and eight-way selector |
-| `workers.hpp` | Input distribution, dependent binary searches, ordered publication and lane credits |
+| `workers.hpp` | Input distribution, ordered publication and lane credits |
+| `search_worker.hpp` | Explicit request/response phases for each dependent binary-search context |
 | `transport.hpp` | Two-level request arbitration, shared metadata reads and tagged response routing |
 | `top.cpp` | Explicit dataflow wiring, interface declarations and FIFO depths |
 | `finite_host.hpp` | Host-only bounded stream delegates and channel conservation checks |

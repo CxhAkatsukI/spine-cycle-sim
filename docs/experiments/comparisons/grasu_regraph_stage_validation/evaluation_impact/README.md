@@ -28,7 +28,7 @@ same-source controls cannot silently stand in for that claim.
 | Gate | Evidence now | Decision still open |
 | --- | --- | --- |
 | G, prepared PMA windows and complete shards | One-shard chronological runtime fails all six 64K comparisons (22.7--35.5% slower); both-table copies reduce maximum difference to 4.3618%. The new resident AU/SU/WK check passes 18 executions/54 batches; both-copy maximum difference is 0.7432%, while shared last batches still fail. Both extractions preserve the preceding 12-row lifecycle matrix exactly | Routed 64K-partition geometry, changed-reservation refresh, measured host costs, original temporal conversion, mixed hot/cold occupancy, actual HLS binding/II/clock/resource fit, original-paper timing |
-| R, fixed Amazon warm SSSP | All 12 full-convergence executions pass; candidate is 4.62% slower / 3.13% faster than A4 at latency 64 / 128 | A4 has 13 masters on 9 banks; K4 has 9 masters; 28 credit/window controls are queued with zero timing rows; broader inputs and original topology A remain separate |
+| R, fixed Amazon warm SSSP | All 12 earlier full-convergence executions pass; candidate is 4.62% slower / 3.13% faster than A4 at latency 64 / 128. The fresh 28-row credit/window matrix is running | A4 has 13 masters on 9 banks; K4 has 9 masters; complete sensitivity analysis and exact old replay remain pending; broader inputs and original topology A remain separate |
 | Physical G-to-R handoff | All 12 complete-cache executions pass high source IDs, hot/DDR edits, full preload/writeback and exact downstream convergence; 34 CTest targets, 228 old G rows and default SST regressions pass | Correctness alone cannot admit realistic batch performance; cache cost is paid once per updated shard |
 | Host/seed and complete baseline | Device windows and excluded preparation are defined explicitly | Host/seed timing and complete baseline admission are not established |
 | New Spine comparison | No replacement evaluation claimed | Requires the preceding gates and a common warm-state-to-convergence run |
@@ -97,8 +97,11 @@ four independent processes, with a 4-GiB per-process address-space
 limit, a 24-GiB system reserve, bounded timeouts and an outer 8-GiB cgroup.
 Parallel launch additionally requires memory for all process limits plus the
 reserve; measured v1 peak was below 1 GiB for the complete service. Record compiler,
-affinity, source/input/binary hashes, resource logs and all failures. Do not
-start a second FPGA build or alter the queued route's pinned files.
+affinity, source/input/binary hashes, resource logs and all failures. The
+original diagnostic serialized FPGA builds. The current
+[hardware campaign](hardware_validation/README.md) instead permits bounded
+concurrent tools when all hard budgets plus the system reserve fit. Never
+alter a running attempt's pinned files.
 
 ```bash
 python3 -m spine_cycle_sim.experiments.evaluation_impact.study \

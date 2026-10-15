@@ -22,14 +22,29 @@ inline Request end_request() {
   return request;
 }
 
+inline ap_uint<3> first_ready(ap_uint<8> ready) {
+#pragma HLS INLINE
+  ap_uint<3> lane = 0;
+  lane[2] = ready.range(3, 0) == 0;
+  const ap_uint<4> nibble = lane[2] ? ap_uint<4>(ready.range(7, 4))
+                                     : ap_uint<4>(ready.range(3, 0));
+  lane[1] = nibble.range(1, 0) == 0;
+  const ap_uint<2> pair = lane[1] ? ap_uint<2>(nibble.range(3, 2))
+                                   : ap_uint<2>(nibble.range(1, 0));
+  lane[0] = !pair[0];
+  return lane;
+}
+
 inline ap_uint<3> select_ready(ap_uint<8> ready, ap_uint<3> cursor) {
 #pragma HLS INLINE
-  const ap_uint<8> rotated = (ready >> cursor) | (ready << (8 - cursor));
-  ap_uint<8> candidates = rotated;
-  ap_uint<3> offset = 0;
-  if (candidates.range(3, 0) == 0) { offset[2] = 1; candidates >>= 4; }
-  if (candidates.range(1, 0) == 0) { offset[1] = 1; candidates >>= 2; }
-  offset[0] = !candidates[0];
-  return cursor + offset;
+  ap_uint<8> suffix = 0;
+  for (unsigned lane = 0; lane < width; ++lane) {
+#pragma HLS UNROLL
+    suffix[lane] = ready[lane] && cursor <= lane;
+  }
+  // Encode absolute lanes in parallel, avoiding rotation and a cursor adder.
+  const ap_uint<3> wrap = first_ready(ready);
+  const ap_uint<3> forward = first_ready(suffix);
+  return suffix == 0 ? wrap : forward;
 }
 }  // namespace search_pipeline
