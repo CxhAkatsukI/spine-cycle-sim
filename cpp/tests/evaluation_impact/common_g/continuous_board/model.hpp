@@ -25,7 +25,7 @@ struct Model {
   std::array<unsigned, 4> ends;
   unsigned next_batch = 0;
 
-  explicit Model(const char* path) : input(path),
+  explicit Model(const char* path, bool warm_decrease_control = false) : input(path, warm_decrease_control),
       graph(host::build_weighted_partitioned_pma_graph(input.vertices,
           input.partition_vertices, input.initial, input.updates)),
       plan(host::build_weighted_pma_runtime_plan(graph, kCacheSegments, 23,

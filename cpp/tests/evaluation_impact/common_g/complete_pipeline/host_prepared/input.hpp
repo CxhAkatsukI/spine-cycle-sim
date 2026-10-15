@@ -16,16 +16,20 @@ inline void check_input(bool condition, const char* message) {
   if (!condition) throw std::runtime_error(message);
 }
 
+inline bool supported_update_count(unsigned count, bool warm_decrease_control = false) {
+  return count == 512 || count == 8192 || (warm_decrease_control && count == 128);
+}
+
 struct Input {
   unsigned vertices{}, partition_vertices{};
   std::vector<Edge> initial, updates;
-  explicit Input(const char* path) {
+  explicit Input(const char* path, bool warm_decrease_control = false) {
     std::ifstream stream(path);
     unsigned initial_count{}, update_count{};
     check_input(bool(stream >> vertices >> initial_count >> update_count >> partition_vertices),
             "host-prepared input header");
     check_input(vertices && vertices < 65536 && initial_count == 8192 &&
-            (update_count == 512 || update_count == 8192) &&
+            supported_update_count(update_count, warm_decrease_control && partition_vertices == 65536) &&
             (partition_vertices == 65536 || partition_vertices == 1024), "input scope");
     for (unsigned i = 0; i < initial_count + update_count; ++i) {
       unsigned source{}, destination{}, weight{};

@@ -33,9 +33,10 @@ reported rather than silently replaced with a different experiment.
 | Weighted composition | Twenty finite-search source rows / 1,364 physical edits pass | Concurrent complete-G HLS, coherent metadata lifecycle and board timing |
 | Complete G source | Twelve synthetic rows replay exactly; 42 additional real host-prepared rows pass complete-state/direct-adapter checks | Integrated RTL/backpressure, actual XRT bindings, resource fit and hardware timing; internal cache/DDR C-simulation FIFOs remain unbounded |
 | Continuous G host | Device-guarded XRT host compiles; eighteen host-model rows match the earlier state checks; bounded board launcher rejects a live unfinished route before programming | Board path not executed; real runtime/event checks, cold/multi-shard/metadata checks and actual timing remain open |
+| Continuous G-to-SSSP host | 27 host-model batch rows pass, including AU/SU warm decreases through convergence; original eighteen-row G state regression is unchanged | Compiled FPGA path not executed; strict new-G routed admission and bounded event-checked launcher still required |
 | Cache production binding | Shared-core extraction passes all twelve composition controls again; production wrapper passes six full-state RTL transactions, token checks and exported ABI at a 3.650-ns estimate | Complete-G resource fit, integrated RTL/backpressure, production integration, routing and board timing |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
-| Adapter routing | `r-adapter-route-v3` reached bitstream generation; its routed report has -0.032-ns HBM setup slack and fails timing admission | Retain the timing failure; link packaging, timing closure and board gates remain open; this is not a complete-new-G route |
+| Adapter routing | `r-adapter-route-v3` generated an xclbin; final HBM setup slack is -0.032 ns and fails timing admission | Timing closure and board gates remain open; the link exit code is not timing admission and this is not a complete-new-G route |
 | Complete G storage/link | Actual platform storage screen exposes a local URAM conflict; one-CU relocation preserves capacity; `g-complete-route-v1` has actually started concurrently | Complete resource/timing closure, integrated RTL/host, board correctness and performance |
 
 This is a progress checkpoint, not an admission of the complete baseline.
@@ -48,6 +49,9 @@ defines isolated G-ready timing separately from complete G+R convergence;
 its preflight does not invoke FPGA APIs. The
 [board execution guide](complete_pipeline/continuous_board/execution/README.md)
 separates the delivered launch guards from the still-unexecuted FPGA matrix.
+The [G-to-SSSP handoff guide](complete_pipeline/continuous_handoff/README.md)
+owns the convergence preflight, warm/fallback policies, original-G regression
+and retained failed parser attempt; it is not a board measurement.
 The [diagnostic G-link guide](complete_pipeline/hardware/README.md) records
 the new search/full-cache XO substitutions, single-CU placement change,
 atomic full-budget concurrency policy and monitoring commands. The

@@ -16,6 +16,9 @@ unchanged production host preparation at source level, not FPGA timing.
 The [continuous G host preflight](continuous_board/README.md) adds XRT host
 compilation and eighteen host-model rows with persistent state. Its board
 path is not yet executed; it is not a measured performance result.
+The [continuous G-to-SSSP preflight](continuous_handoff/README.md) checks 27
+resident batches through convergence at host-model level, with separate warm
+decrease controls and retained parser failure; its FPGA path is not executed.
 The [diagnostic hardware guide](hardware/README.md) covers the
 resource screen and memory-admitted concurrent link; a running link is not a
 completed integration or performance result.
