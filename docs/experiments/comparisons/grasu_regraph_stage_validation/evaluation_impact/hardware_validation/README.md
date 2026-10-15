@@ -221,3 +221,14 @@ reported critical path passes through round-robin request arbitration and
 the dynamically selected FIFO read. Merely fixing the testbench identifier
 does not fix that path or the worker II=2 schedule. They remain explicit
 timing gates even if the retry's RTL output checks pass.
+
+The fresh source controls subsequently completed all 38 executions (152 CU
+checks) and the 18-call testbench-source check without errors. Their status is
+`FINITE_HLS_SOURCE_PASS_NOT_RTL_TIMING`, not a hardware timing pass.
+`g-search-hls-v3` then started under invocation
+`df876ada7f0447c2bca0ace431570777`, while both the adapter route and R credit
+study remained active. Its admission record measured 155826245632 available
+bytes (about 145.1 GiB), exceeding the 78-GiB threshold. The actual HLS scope
+has an 8-GiB hard bound, 7-GiB high bound and no swap; the 512-MiB supervisor
+is separate. C simulation passed and synthesis started. RTL, clock and
+complete-G acceptance remain open until their reports are checked.
