@@ -1,0 +1,566 @@
+{
+  "archive": "original_r_offline_audit.tar.gz",
+  "audit_status": "ORIGINAL_R_PREFLIGHT_AUDIT_COMPLETE_NOT_BOARD_ADMISSION",
+  "board_correctness": false,
+  "board_programmed": false,
+  "cases": [
+    {
+      "csr_degree_signed_overflow_vertices": 0,
+      "csr_task_gather_equal": true,
+      "device_publication_words": 196608,
+      "different_logical_divisors": 131073,
+      "id": "a4_boundary_ring",
+      "logical_edges": 131137,
+      "one_superstep_comparison": {
+        "csr_degree_result_sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+        "different_logical_vertices": 131073,
+        "original_host_result_sha256": "9cf4545c8cfd0cee73a7314a886a93abb2fbe770734461c21099e8ea83de08ca"
+      },
+      "original_allocation_words": 196608,
+      "original_host_signed_overflow_vertices": 0,
+      "original_output_allocation_covers_publication": true,
+      "padding_control_applied": false,
+      "physical_edges": 131336,
+      "publication_excess_words": 0,
+      "scope": "one author fixed-point PR superstep; no convergence, FPGA timing or publication match",
+      "status": "PR_BINDING_AUDIT_NOT_BOARD_CORRECTNESS",
+      "vertices": 131073
+    },
+    {
+      "csr_degree_signed_overflow_vertices": 0,
+      "csr_task_gather_equal": true,
+      "device_publication_words": 65536,
+      "different_logical_divisors": 4097,
+      "id": "a4_skewed_sources",
+      "logical_edges": 8193,
+      "one_superstep_comparison": {
+        "csr_degree_result_sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+        "different_logical_vertices": 4096,
+        "original_host_result_sha256": "57a635aad438874789d59db535d5875ef08491aca533e38a774f6be7eced5823"
+      },
+      "original_allocation_words": 131072,
+      "original_host_signed_overflow_vertices": 0,
+      "original_output_allocation_covers_publication": true,
+      "padding_control_applied": false,
+      "physical_edges": 8224,
+      "publication_excess_words": 0,
+      "scope": "one author fixed-point PR superstep; no convergence, FPGA timing or publication match",
+      "status": "PR_BINDING_AUDIT_NOT_BOARD_CORRECTNESS",
+      "vertices": 65537
+    },
+    {
+      "csr_degree_signed_overflow_vertices": 0,
+      "csr_task_gather_equal": true,
+      "device_publication_words": 786432,
+      "different_logical_divisors": 646766,
+      "id": "a4_amazon",
+      "logical_edges": 5158388,
+      "one_superstep_comparison": {
+        "csr_degree_result_sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+        "different_logical_vertices": 646766,
+        "original_host_result_sha256": "5d96afd7f0e0ba645163e83a03f8064562466d5d1b6734de09d01738bebf7bc9"
+      },
+      "original_allocation_words": 786432,
+      "original_host_signed_overflow_vertices": 0,
+      "original_output_allocation_covers_publication": true,
+      "padding_control_applied": false,
+      "physical_edges": 5165928,
+      "publication_excess_words": 0,
+      "scope": "one author fixed-point PR superstep; no convergence, FPGA timing or publication match",
+      "status": "PR_BINDING_AUDIT_NOT_BOARD_CORRECTNESS",
+      "vertices": 735324
+    },
+    {
+      "csr_degree_signed_overflow_vertices": 0,
+      "csr_task_gather_equal": true,
+      "device_publication_words": 589824,
+      "different_logical_divisors": 131073,
+      "id": "original_example_boundary_ring",
+      "logical_edges": 131137,
+      "one_superstep_comparison": {
+        "csr_degree_result_sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+        "different_logical_vertices": 131073,
+        "original_host_result_sha256": "9cf4545c8cfd0cee73a7314a886a93abb2fbe770734461c21099e8ea83de08ca"
+      },
+      "original_allocation_words": 196608,
+      "original_host_signed_overflow_vertices": 0,
+      "original_output_allocation_covers_publication": false,
+      "padding_control_applied": false,
+      "physical_edges": 131312,
+      "publication_excess_words": 393216,
+      "scope": "one author fixed-point PR superstep; no convergence, FPGA timing or publication match",
+      "status": "PR_BINDING_AUDIT_NOT_BOARD_CORRECTNESS",
+      "vertices": 131073
+    },
+    {
+      "csr_degree_signed_overflow_vertices": 0,
+      "csr_task_gather_equal": true,
+      "device_publication_words": 65536,
+      "different_logical_divisors": 4097,
+      "id": "original_example_skewed_sources",
+      "logical_edges": 8193,
+      "one_superstep_comparison": {
+        "csr_degree_result_sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+        "different_logical_vertices": 4096,
+        "original_host_result_sha256": "57a635aad438874789d59db535d5875ef08491aca533e38a774f6be7eced5823"
+      },
+      "original_allocation_words": 131072,
+      "original_host_signed_overflow_vertices": 0,
+      "original_output_allocation_covers_publication": true,
+      "padding_control_applied": false,
+      "physical_edges": 8224,
+      "publication_excess_words": 0,
+      "scope": "one author fixed-point PR superstep; no convergence, FPGA timing or publication match",
+      "status": "PR_BINDING_AUDIT_NOT_BOARD_CORRECTNESS",
+      "vertices": 65537
+    },
+    {
+      "csr_degree_signed_overflow_vertices": 0,
+      "csr_task_gather_equal": true,
+      "device_publication_words": 1114112,
+      "different_logical_divisors": 646766,
+      "id": "original_example_amazon",
+      "logical_edges": 5158388,
+      "one_superstep_comparison": {
+        "csr_degree_result_sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+        "different_logical_vertices": 646766,
+        "original_host_result_sha256": "5d96afd7f0e0ba645163e83a03f8064562466d5d1b6734de09d01738bebf7bc9"
+      },
+      "original_allocation_words": 786432,
+      "original_host_signed_overflow_vertices": 0,
+      "original_output_allocation_covers_publication": false,
+      "padding_control_applied": false,
+      "physical_edges": 5165928,
+      "publication_excess_words": 327680,
+      "scope": "one author fixed-point PR superstep; no convergence, FPGA timing or publication match",
+      "status": "PR_BINDING_AUDIT_NOT_BOARD_CORRECTNESS",
+      "vertices": 735324
+    }
+  ],
+  "external_inputs": "large CSR/task captures, xclbin and tool binaries are hash-indexed, not archived",
+  "files": [
+    {
+      "bytes": 515,
+      "path": "original-r-preflight-v2/artifact/clock.json",
+      "sha256": "b93812bba8d164d89e0ab72919b8364fa16702799558c12530e013da5f6b567f"
+    },
+    {
+      "bytes": 19311,
+      "path": "original-r-preflight-v2/artifact/connectivity.json",
+      "sha256": "c88cc7824caadf5b76f6d8da859aac86b0f4c7934c6c4f77d4f2fb13eeb12850"
+    },
+    {
+      "bytes": 12997,
+      "path": "original-r-preflight-v2/artifact/ip.json",
+      "sha256": "d95c4e5e1e0456962b97f8ed78297ccc585dd57ae6b56defae8d2ba07d003c94"
+    },
+    {
+      "bytes": 18630,
+      "path": "original-r-preflight-v2/artifact/memory.json",
+      "sha256": "dccd8269b8344f8e978a4bb32c66de6519ff64984f44be90b3114f694e1a83dc"
+    },
+    {
+      "bytes": 291252,
+      "path": "original-r-preflight-v2/artifact/system.json",
+      "sha256": "d9951cdcaa4108c220d01f58fc83c72f838b3a0a6dd29bacc00e48567f4d6e4b"
+    },
+    {
+      "bytes": 1549,
+      "path": "original-r-preflight-v2/extract.resources.json",
+      "sha256": "e22d1fbadc9e97f1272ce114291d45b662ce309aad68f4416fb7bd6c071da445"
+    },
+    {
+      "bytes": 0,
+      "path": "original-r-preflight-v2/extract.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1553,
+      "path": "original-r-preflight-v2/extract.stdout.txt",
+      "sha256": "4748edeb78ead7d1923bf660cb8c7fb37b98304a606bd94a34c8122330791988"
+    },
+    {
+      "bytes": 64925,
+      "path": "original-r-preflight-v2/results.json",
+      "sha256": "4006fd44a3c7a9f6267f02242195a9df21ac1c90fff2beb379c5dc6d98d42c62"
+    },
+    {
+      "bytes": 515,
+      "path": "original-r-preflight-v1/artifact/clock.json",
+      "sha256": "b93812bba8d164d89e0ab72919b8364fa16702799558c12530e013da5f6b567f"
+    },
+    {
+      "bytes": 19311,
+      "path": "original-r-preflight-v1/artifact/connectivity.json",
+      "sha256": "c88cc7824caadf5b76f6d8da859aac86b0f4c7934c6c4f77d4f2fb13eeb12850"
+    },
+    {
+      "bytes": 12997,
+      "path": "original-r-preflight-v1/artifact/ip.json",
+      "sha256": "d95c4e5e1e0456962b97f8ed78297ccc585dd57ae6b56defae8d2ba07d003c94"
+    },
+    {
+      "bytes": 18630,
+      "path": "original-r-preflight-v1/artifact/memory.json",
+      "sha256": "dccd8269b8344f8e978a4bb32c66de6519ff64984f44be90b3114f694e1a83dc"
+    },
+    {
+      "bytes": 1551,
+      "path": "original-r-preflight-v1/extract.resources.json",
+      "sha256": "a8c99e49b38f438cc380461c3ba3ddf502d8b1d1376fde365c5b505f62c3815a"
+    },
+    {
+      "bytes": 81,
+      "path": "original-r-preflight-v1/extract.stderr.txt",
+      "sha256": "35909d522f6ee999335a3343d4f3c9ebe0ae9661b29b34be089b2c447c6b57be"
+    },
+    {
+      "bytes": 1344,
+      "path": "original-r-preflight-v1/extract.stdout.txt",
+      "sha256": "ee404309fcf45c591578fbe50689e6362cc1598e74a6879602d9233c410d2680"
+    },
+    {
+      "bytes": 18966,
+      "path": "original-r-preflight-v1/results.json",
+      "sha256": "f28601ddc4c3dbfbedfe9456ff88ae65eea0446fe32599de646d48e626d39d7d"
+    },
+    {
+      "bytes": 1128,
+      "path": "original-r-preflight-v1-run/study.resources.json",
+      "sha256": "791b14a11e4ed3e6555b0f79bd58d433f61b261128c473df4787315110c136e5"
+    },
+    {
+      "bytes": 828,
+      "path": "original-r-preflight-v1-run/study.stderr.txt",
+      "sha256": "3ad699f7cc3e3ae6c267af5434de05a46fc92bcae0e9ad44b5681bb1da09b084"
+    },
+    {
+      "bytes": 0,
+      "path": "original-r-preflight-v1-run/study.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 1129,
+      "path": "original-r-preflight-v2-run/study.resources.json",
+      "sha256": "fa5ec44a719c4dcc0a3ba36c75b14d5a03c41e3968b870cd69f4e06b2cc7537a"
+    },
+    {
+      "bytes": 0,
+      "path": "original-r-preflight-v2-run/study.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 416,
+      "path": "original-r-preflight-v2-run/study.stdout.txt",
+      "sha256": "a8db08aa22ca3425adc10a817bb9fbfa4f4c60d5f832649984f2515cabd362e9"
+    },
+    {
+      "bytes": 772,
+      "path": "verification-original-r-preflight-v2/tests.resources.json",
+      "sha256": "64a61c417dccc2abee4ebe8c985c4f9fde817365b00d2f21abeee2278dbfe244"
+    },
+    {
+      "bytes": 2010,
+      "path": "verification-original-r-preflight-v2/tests.stderr.txt",
+      "sha256": "ae48b5d0d056566109d357651a1726780dfa210befefeaf20f6562824a13f7f2"
+    },
+    {
+      "bytes": 0,
+      "path": "verification-original-r-preflight-v2/tests.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 771,
+      "path": "verification-original-r-preflight-v3/tests.resources.json",
+      "sha256": "2224749f4ec919d706d95c3f6b7b86a77d49f4121c2793c4cc027ad2acb23ac4"
+    },
+    {
+      "bytes": 1000,
+      "path": "verification-original-r-preflight-v3/tests.stderr.txt",
+      "sha256": "fcbb388a35d14ebf90dc9552b0598434717340df036b4f49d9338ad6ba5b3ca4"
+    },
+    {
+      "bytes": 0,
+      "path": "verification-original-r-preflight-v3/tests.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 771,
+      "path": "verification-original-r-preflight-v4/tests.resources.json",
+      "sha256": "7e4231a2609bcce17f686aaa759b41048ec37f107b5644a6fc15f20ac1207073"
+    },
+    {
+      "bytes": 112,
+      "path": "verification-original-r-preflight-v4/tests.stderr.txt",
+      "sha256": "bddfe78f8fc08e1777955b2728038bf671a80dfbd5058c46d4fee32cc1050b5d"
+    },
+    {
+      "bytes": 0,
+      "path": "verification-original-r-preflight-v4/tests.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 8644,
+      "path": "runner/spine_cycle_sim/experiments/__init__.py",
+      "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628"
+    },
+    {
+      "bytes": 42052,
+      "path": "runner/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 45873,
+      "path": "runner/spine_cycle_sim/experiments/comparison.py",
+      "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148"
+    },
+    {
+      "bytes": 26406,
+      "path": "runner/spine_cycle_sim/experiments/comparison_analysis.py",
+      "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680"
+    },
+    {
+      "bytes": 12819,
+      "path": "runner/spine_cycle_sim/experiments/feasibility.py",
+      "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+    },
+    {
+      "bytes": 23503,
+      "path": "runner/spine_cycle_sim/experiments/grasu_addressing.py",
+      "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9"
+    },
+    {
+      "bytes": 31987,
+      "path": "runner/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+      "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71"
+    },
+    {
+      "bytes": 15321,
+      "path": "runner/spine_cycle_sim/experiments/hls_real_comparison.py",
+      "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a"
+    },
+    {
+      "bytes": 4597,
+      "path": "runner/spine_cycle_sim/experiments/hls_weighted_workloads.py",
+      "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086"
+    },
+    {
+      "bytes": 37372,
+      "path": "runner/spine_cycle_sim/experiments/large_graph_campaign.py",
+      "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c"
+    },
+    {
+      "bytes": 8908,
+      "path": "runner/spine_cycle_sim/experiments/memory_traffic.py",
+      "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae"
+    },
+    {
+      "bytes": 84,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/__init__.py",
+      "sha256": "28c5ad77851e29839beb06b12189977c87cf7c68b0dc961ca30d877062d0d670"
+    },
+    {
+      "bytes": 80,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/__init__.py",
+      "sha256": "5b436d0b9476b30a6e147781f28a1205ffb42599e8cbe8867a1078d33923b2a3"
+    },
+    {
+      "bytes": 2755,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/artifact.py",
+      "sha256": "8fd56b0cc9198cc789d02c89141981236addcdb547cdaf3fd06604ef560fb9ee"
+    },
+    {
+      "bytes": 6939,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/oracle.py",
+      "sha256": "c13a9a423e1adf3f90e32e213e2eb3ad31229996b7ca2b14f064a4a24ab1cb7e"
+    },
+    {
+      "bytes": 3190,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/sources.py",
+      "sha256": "28260bcf91a2c4941a148fd25288260f95833c22f593c310b3314906143d1de8"
+    },
+    {
+      "bytes": 5232,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/study.py",
+      "sha256": "8cf467a382978fae10f63490250884e630fd03a18cc53ba092ad70ab13cc804d"
+    },
+    {
+      "bytes": 82,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_inputs/__init__.py",
+      "sha256": "a61be291a3e6dd12827e8064b38ebb1182b113507e2f4c9732c3c5324bd1c50e"
+    },
+    {
+      "bytes": 6584,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_inputs/analysis.py",
+      "sha256": "9f87c6580ab9967d770c488c2203ab3342561306159c59d896ad495818e1cbbb"
+    },
+    {
+      "bytes": 6054,
+      "path": "runner/spine_cycle_sim/experiments/persistent_update_only.py",
+      "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf"
+    },
+    {
+      "bytes": 9482,
+      "path": "runner/spine_cycle_sim/experiments/profile_capabilities.py",
+      "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5"
+    },
+    {
+      "bytes": 61352,
+      "path": "runner/spine_cycle_sim/experiments/publication_analysis.py",
+      "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571"
+    },
+    {
+      "bytes": 15502,
+      "path": "runner/spine_cycle_sim/experiments/publication_cases.py",
+      "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a"
+    },
+    {
+      "bytes": 45630,
+      "path": "runner/spine_cycle_sim/experiments/publication_workloads.py",
+      "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410"
+    },
+    {
+      "bytes": 28729,
+      "path": "runner/spine_cycle_sim/experiments/real_memory_analysis.py",
+      "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45"
+    },
+    {
+      "bytes": 12973,
+      "path": "runner/spine_cycle_sim/experiments/real_small_batches.py",
+      "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866"
+    },
+    {
+      "bytes": 44350,
+      "path": "runner/spine_cycle_sim/experiments/rq3.py",
+      "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668"
+    },
+    {
+      "bytes": 78,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+      "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299"
+    },
+    {
+      "bytes": 5246,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/analysis.py",
+      "sha256": "04704dfa8a44357b2aba921be8ec38da8908b0619a7acec1265e5ccf3c4fce45"
+    },
+    {
+      "bytes": 5429,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/bitstream.py",
+      "sha256": "7535e6cee40a99da52ca10792353a1dc44ade6853cb6ec35470f809292438a48"
+    },
+    {
+      "bytes": 1510,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/board.py",
+      "sha256": "6e0ca5da78ad37559ba54a77b7e66b2e0b4c4c023d49ae6f8fe67bc3a6e0a065"
+    },
+    {
+      "bytes": 5296,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "bytes": 5662,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "1690c0556662ba7baa9b5f80f31d94677f5c61813f7045cfb8bc7aa622cb9f5d"
+    },
+    {
+      "bytes": 1929,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "5f1aaeaa7b62c6cb72dd2d583bc03a81c2f45d69a90ec590a88565c5814fd711"
+    },
+    {
+      "bytes": 3760,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/route_recovery.py",
+      "sha256": "aad5007b6472864bbc356b45568de35dbfb9b73f94f3f38ae9ead17957fbb77c"
+    },
+    {
+      "bytes": 36711,
+      "path": "runner/spine_cycle_sim/experiments/shared_workloads.py",
+      "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+    },
+    {
+      "bytes": 7557,
+      "path": "runner/spine_cycle_sim/experiments/temporal_dense_analysis.py",
+      "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232"
+    },
+    {
+      "bytes": 27814,
+      "path": "runner/spine_cycle_sim/experiments/temporal_real_analysis.py",
+      "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738"
+    },
+    {
+      "bytes": 23181,
+      "path": "runner/spine_cycle_sim/experiments/temporal_real_batches.py",
+      "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d"
+    },
+    {
+      "bytes": 45841,
+      "path": "runner/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+      "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3"
+    },
+    {
+      "bytes": 75,
+      "path": "runner/spine_cycle_sim/experiments/upstream_controls/__init__.py",
+      "sha256": "c9df6b968cbbdda00f9fbd678995575e5d73704c85e55538ed579874f40a87e0"
+    },
+    {
+      "bytes": 3456,
+      "path": "runner/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "bytes": 5275,
+      "path": "runner/spine_cycle_sim/experiments/upstream_controls/sources.py",
+      "sha256": "57ae964a2bfa05bc583a90d76f65937ea2b42358d2ebfcd20d1a383ddca9e2c1"
+    },
+    {
+      "bytes": 10237,
+      "path": "runner/spine_cycle_sim/profiles.py",
+      "sha256": "e4f85c162b64d21434e0d26bc43965b8c7a25bab24c36abf8f33411eb0a9dc62"
+    },
+    {
+      "bytes": 23263,
+      "path": "reviewed_author/0-partition_schedule.cpp",
+      "sha256": "aa2571085b402b60c76814ebecdcd34b326315d92f94cfe6de1b517a536dd125"
+    },
+    {
+      "bytes": 15982,
+      "path": "reviewed_author/1-host.cpp",
+      "sha256": "eef13bb2f1fa3ba7d7e56d8974832164cfefaeb115065e8f029de1025e89f717"
+    },
+    {
+      "bytes": 7014,
+      "path": "reviewed_author/2-verify.cpp",
+      "sha256": "49c9a32da9bda1f4e4854b25b8279b95e5b3038a9eef27a64453bfb1bd3a3115"
+    },
+    {
+      "bytes": 4234,
+      "path": "reviewed_author/3-acc_setup.cpp",
+      "sha256": "e6341059c54319e315b83f191cc2cc7b926bb4c492f4b5252983096dcbeab9f0"
+    },
+    {
+      "bytes": 2057,
+      "path": "reviewed_author/4-kernel_apply.cpp",
+      "sha256": "623140b30695dbcaf4651fc5475a02dc1790fa1da01937ce82371dbfdec7be2b"
+    },
+    {
+      "bytes": 970,
+      "path": "reviewed_author/5-l2.h",
+      "sha256": "37394bde14d3bc64de0214868c0e7b2b863ef91faa7788a983612d7386e4a0a3"
+    }
+  ],
+  "hardware_timing_measured": false,
+  "publication_match": false,
+  "result_member": "original-r-preflight-v2/results.json",
+  "retained": [
+    "original-r-preflight-v1",
+    "original-r-preflight-v1-run",
+    "original-r-preflight-v2-run",
+    "verification-original-r-preflight-v2",
+    "verification-original-r-preflight-v3",
+    "verification-original-r-preflight-v4"
+  ],
+  "sha256": "d55f60c9b12be5886f3633fb98d548e5081a986b941a665e9f354099af8aefd7",
+  "status": "ORIGINAL_R_OFFLINE_AUDIT_CHECKPOINT_NOT_BOARD_ADMISSION"
+}

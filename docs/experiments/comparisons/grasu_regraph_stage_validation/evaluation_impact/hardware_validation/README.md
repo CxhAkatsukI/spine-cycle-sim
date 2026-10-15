@@ -36,11 +36,16 @@ reported rather than silently replaced with a different experiment.
 | Continuous G-to-SSSP host | 27 host-model batch rows replay unchanged with device identity guards; bounded launcher and kernel/DMA/convergence event checks pass regressions and reject the live unfinished route before programming | FPGA matrix not executed; routed timing admission, actual handoff/runtime measurements and larger/cold/multi-shard scope remain open |
 | Cache production binding | Shared-core extraction passes all twelve composition controls again; production wrapper passes six full-state RTL transactions, token checks and exported ABI at a 3.650-ns estimate | Complete-G resource fit, integrated RTL/backpressure, production integration, routing and board timing |
 | R controls | All 28 rows complete and twelve legacy rows replay exactly; candidate is 2.949--3.635x slower than `a4_io16` | Explain/address the resource-sensitive gap; separate hardware/publication decisions |
+| Original-R hardware preflight | Six frozen author-input audits pass gather conservation; apply-divisor and mixed-output allocation controls are explicit; prebuilt metadata reports DATA 215 MHz | Source/clock/checkpoint pairing, guarded original-R board host and measured performance; no publication or board admission |
 | Adapter routing | `r-adapter-route-v3` generated an xclbin; final HBM setup slack is -0.032 ns and fails timing admission | Timing closure and board gates remain open; the link exit code is not timing admission and this is not a complete-new-G route |
 | Complete G storage/link | Actual platform storage screen exposes a local URAM conflict; one-CU relocation preserves capacity; `g-complete-route-v1` has actually started concurrently | Complete resource/timing closure, integrated RTL/host, board correctness and performance |
 | Conditional board queue | `g-gr-board-supervisor-v1` is running, waiting only for the exact new-G route; 277 focused regressions pass | Final routed timing, six-input G and nine-input resident G-to-SSSP board matrices remain unmeasured; no full-baseline admission |
 
 This is a progress checkpoint, not an admission of the complete baseline.
+The [original-R preflight guide](original_regraph/README.md) owns the six-input
+offline audit and portable capsule. Its PR divisor/allocation findings and
+230-to-215.1-MHz auto-scaling record must be addressed explicitly before a
+board comparison; they are not measured PMA/K4 overhead.
 The [complete-G source guide](complete_pipeline/README.md) owns its portable
 evidence, exact scope and retained failed attempts.
 The [host-prepared guide](complete_pipeline/host_prepared/README.md) separates
