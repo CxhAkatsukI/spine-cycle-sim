@@ -16,6 +16,15 @@ FILES = ("results.json", "environment.json", "checkpoint.tcl", "vivado.log", "vi
          "query/design.tsv", "query/clocks.tsv", "query/clocks.rpt", "query/route_status.rpt", "query/timing.rpt")
 
 
+def metadata_file(attempt, name):
+    path = attempt / name
+    # Full multi-clock timing reports are much larger than the small query logs.
+    limit = (64 if name == "query/timing.rpt" else 16) * 1024**2
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > limit:
+        raise ValueError(f"bounded regular checkpoint metadata/log required: {name}")
+    return path
+
+
 def terminal(report):
     if report["status"] != checkpoint.STATUS or report["errors"] or any(
             report.get(key) is not False or report["analysis"].get(key) is not False
@@ -48,10 +57,7 @@ def package(attempt, prebuilt, audit, output):
     recheck(attempt, report, prebuilt, audit)
     files = []
     for name in FILES:
-        path = attempt / name
-        if path.is_symlink() or not path.is_file() or path.stat().st_size > 16 * 1024**2:
-            raise ValueError("bounded regular checkpoint metadata/log required")
-        files.append((path, "query/" + name))
+        files.append((metadata_file(attempt, name), "query/" + name))
     root = Path(__file__).resolve().parents[4]
     for pin in report["pins"]:
         path = Path(pin["path"])

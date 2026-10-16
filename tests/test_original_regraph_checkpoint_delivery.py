@@ -8,6 +8,28 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware import chec
 
 
 class CheckpointDeliveryTests(unittest.TestCase):
+    def test_full_timing_report_has_a_separate_bounded_extent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "query").mkdir()
+            timing = root / "query/timing.rpt"
+            with timing.open("wb") as stream:
+                stream.truncate(32 * 1024**2)
+            self.assertEqual(delivery.metadata_file(root, "query/timing.rpt"), timing)
+            with timing.open("wb") as stream:
+                stream.truncate(64 * 1024**2 + 1)
+            with self.assertRaisesRegex(ValueError, "query/timing.rpt"):
+                delivery.metadata_file(root, "query/timing.rpt")
+            log = root / "vivado.log"
+            with log.open("wb") as stream:
+                stream.truncate(16 * 1024**2 + 1)
+            with self.assertRaisesRegex(ValueError, "vivado.log"):
+                delivery.metadata_file(root, "vivado.log")
+            log.unlink()
+            log.symlink_to(timing)
+            with self.assertRaisesRegex(ValueError, "vivado.log"):
+                delivery.metadata_file(root, "vivado.log")
+
     def report(self):
         analysis = {"status": checkpoint.STATUS, "constraints_modified": False,
                     "implementation_or_bitstream_rewritten": False, **dict.fromkeys(checkpoint.CLAIMS, False)}

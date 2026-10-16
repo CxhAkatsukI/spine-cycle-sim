@@ -1,0 +1,910 @@
+{
+  "analysis": {
+    "author_device_source_equivalence_verified": false,
+    "board_admitted": false,
+    "board_programmed": false,
+    "checkpoint_bitstream_pairing_verified": false,
+    "checkpoint_clocks": [
+      {
+        "frequency_mhz": 5000.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL0CLK[0]_4",
+        "period_ns": "0.200",
+        "waveform": "0.000 0.100"
+      },
+      {
+        "frequency_mhz": 5000.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL0CLK[0]_5",
+        "period_ns": "0.200",
+        "waveform": "0.000 0.100"
+      },
+      {
+        "frequency_mhz": 5000.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL0CLK[0]_6",
+        "period_ns": "0.200",
+        "waveform": "0.000 0.100"
+      },
+      {
+        "frequency_mhz": 5000.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL0CLK[0]_7",
+        "period_ns": "0.200",
+        "waveform": "0.000 0.100"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL0REFCLK[0]_4",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL0REFCLK[0]_5",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL0REFCLK[0]_6",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL0REFCLK[0]_7",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 5000.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL1CLK[0]_4",
+        "period_ns": "0.200",
+        "waveform": "0.000 0.100"
+      },
+      {
+        "frequency_mhz": 5000.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL1CLK[0]_5",
+        "period_ns": "0.200",
+        "waveform": "0.000 0.100"
+      },
+      {
+        "frequency_mhz": 5000.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL1CLK[0]_6",
+        "period_ns": "0.200",
+        "waveform": "0.000 0.100"
+      },
+      {
+        "frequency_mhz": 5000.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL1CLK[0]_7",
+        "period_ns": "0.200",
+        "waveform": "0.000 0.100"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL1REFCLK[0]_4",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL1REFCLK[0]_5",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL1REFCLK[0]_6",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_QPLL1REFCLK[0]_7",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[0]_4",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[0]_5",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[0]_6",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[0]_7",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[1]_4",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[1]_5",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[1]_6",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[1]_7",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[2]_4",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[2]_5",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[2]_6",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[2]_7",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[3]_4",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[3]_5",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[3]_6",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "GTYE4_CHANNEL_TXOUTCLK[3]_7",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 229.9908003679853,
+        "generated": "1",
+        "name": "clk_kernel_00_unbuffered_net",
+        "period_ns": "4.348",
+        "waveform": "0.000 2.174"
+      },
+      {
+        "frequency_mhz": 500.0,
+        "generated": "1",
+        "name": "clk_kernel_01_unbuffered_net",
+        "period_ns": "2.000",
+        "waveform": "0.000 1.000"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "1",
+        "name": "clk_out1_bd_39ab_clkwiz_level0_periph_0_1",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 50.0,
+        "generated": "1",
+        "name": "clk_out2_bd_39ab_clkwiz_level0_periph_0_1",
+        "period_ns": "20.000",
+        "waveform": "0.000 10.000"
+      },
+      {
+        "frequency_mhz": 25.0,
+        "generated": "1",
+        "name": "clk_sck",
+        "period_ns": "40.000",
+        "waveform": "0.000 20.000"
+      },
+      {
+        "frequency_mhz": 250.0,
+        "generated": "1",
+        "name": "dma_ip_axi_aclk_1",
+        "period_ns": "4.000",
+        "waveform": "0.000 2.000"
+      },
+      {
+        "frequency_mhz": 450.04500450045003,
+        "generated": "1",
+        "name": "hbm_aclk",
+        "period_ns": "2.222",
+        "waveform": "0.000 1.111"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "0",
+        "name": "io_clk_freerun_00_clk_p",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 100.0,
+        "generated": "0",
+        "name": "io_clk_pcie_00_clk_p",
+        "period_ns": "10.000",
+        "waveform": "0.000 5.000"
+      },
+      {
+        "frequency_mhz": 20.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_cmp/inst/jtag_fallback/inst/bs_switch/inst/BSCAN_SWITCH.N_EXT_BSCAN.bscan_inst/SERIES7_BSCAN.bscan_inst/INTERNAL_TCK",
+        "period_ns": "50.000",
+        "waveform": "0.000 25.000"
+      },
+      {
+        "frequency_mhz": 6.25,
+        "generated": "1",
+        "name": "level0_i/blp/blp_i/ss_cmp/inst/mdm_board_control/U0/No_Dbg_Reg_Access.BUFG_DRCK/Using_FPGA.Native/O",
+        "period_ns": "160.000",
+        "waveform": "0.000 80.000"
+      },
+      {
+        "frequency_mhz": 10.0,
+        "generated": "1",
+        "name": "level0_i/blp/blp_i/ss_cmp/inst/mdm_board_control/U0/Use_External.Use_BSCANID.No_Dbg_Reg_Access.BUFG_UPDATE/Using_FPGA.Native/O",
+        "period_ns": "100.000",
+        "waveform": "0.000 50.000"
+      },
+      {
+        "frequency_mhz": 6.25,
+        "generated": "1",
+        "name": "level0_i/blp/blp_i/ss_cmp/inst/mgmt_debug_bridge/inst/axi_jtag/inst/u_jtag_proc/tck_i_reg/Q",
+        "period_ns": "160.000",
+        "waveform": "0.000 80.000"
+      },
+      {
+        "frequency_mhz": 6.25,
+        "generated": "1",
+        "name": "level0_i/blp/blp_i/ss_cmp/inst/mgmt_debug_bridge/inst/bsip/inst/USE_SOFTBSCAN.U_BSCAN_TAP/U_BASETAP/U_TAP/UPDATEDR_O_reg/Q",
+        "period_ns": "160.000",
+        "waveform": "80.000 160.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[0].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[10].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[11].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[12].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[13].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[14].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[15].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[1].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[2].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[3].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[4].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[5].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[6].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[7].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[8].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/gt_wizard.gtwizard_top_i/bd_39ab_pcie_0_gt_i/inst/gen_gtwizard_gtye4_top.bd_39ab_pcie_0_gt_gtwizard_gtye4_inst/gen_gtwizard_gtye4.gen_cpll_cal_gtye4.gen_cpll_cal_inst[9].gen_inst_cpll_cal.gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_inst/gtwizard_ultrascale_v1_7_10_gtye4_cpll_cal_tx_i/bufg_gt_txoutclkmon_inst/O",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 1.0,
+        "generated": "0",
+        "name": "level0_i/blp/blp_i/ss_hif/inst/pcie/inst/bd_39ab_pcie_0_gt_top_i/diablo_gt.diablo_gt_phy_wrapper/phy_clk_i/bufg_gt_intclk/O",
+        "period_ns": "1000.000",
+        "waveform": "0.000 500.000"
+      },
+      {
+        "frequency_mhz": 6.25,
+        "generated": "1",
+        "name": "level0_i/ulp/ulp_cmp/inst/user_debug_bridge/inst/axi_jtag/inst/u_jtag_proc/tck_i_reg/Q",
+        "period_ns": "160.000",
+        "waveform": "0.000 80.000"
+      },
+      {
+        "frequency_mhz": 6.25,
+        "generated": "1",
+        "name": "level0_i/ulp/ulp_cmp/inst/user_debug_bridge/inst/bsip/inst/USE_SOFTBSCAN.U_BSCAN_TAP/U_BASETAP/U_TAP/UPDATEDR_O_reg/Q",
+        "period_ns": "160.000",
+        "waveform": "80.000 160.000"
+      },
+      {
+        "frequency_mhz": 125.0,
+        "generated": "1",
+        "name": "mcap_clk_1",
+        "period_ns": "8.000",
+        "waveform": "0.000 4.000"
+      },
+      {
+        "frequency_mhz": 250.0,
+        "generated": "1",
+        "name": "pipe_clk_1",
+        "period_ns": "4.000",
+        "waveform": "0.000 2.000"
+      }
+    ],
+    "checkpoint_native_timing": {
+      "checkpoint_native_constraints_passed": false,
+      "reason": "setup, hold or pulse-width timing failed"
+    },
+    "constraints_modified": false,
+    "data_clock_mhz_from_xclbin": 215,
+    "design": {
+      "design": "checkpoint_level0_wrapper_postroute_physopt",
+      "part": "xcu55c-fsvh2892-2L-e",
+      "tool_version": "2024.1"
+    },
+    "embedded_partial_bitstream_matches_saved_file": true,
+    "extracted_bitstream": {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-checkpoint-v1/embedded.bit",
+      "sha256": "ccbf8be53c1bc0add9a8614d4c261a01b644cb752c4b15ce9b0995587bc5e1fc"
+    },
+    "hardware_timing_measured": false,
+    "implementation_or_bitstream_rewritten": false,
+    "limitations": [
+      "Saved bitstream equality does not prove that the checkpoint produced it.",
+      "Native checkpoint constraints are not a scaled-clock timing check.",
+      "Prebuilt equivalence to the clean author device source remains unverified."
+    ],
+    "partial_bitstream": {
+      "path": "/data/feiyang/AE/AE/Regraph_good/prebuilt_230mhz/ReGraph_pr_230Mhz/_x/link/vivado/vpl/prj/prj.runs/impl_1/level0_i_ulp_my_rm_partial.bit",
+      "sha256": "ccbf8be53c1bc0add9a8614d4c261a01b644cb752c4b15ce9b0995587bc5e1fc"
+    },
+    "publication_match": false,
+    "recorded_scaled_clocks_mhz": {
+      "kernel:0:ulp_ucs/aclk_kernel_00": 215.1,
+      "kernel:1:ulp_ucs/aclk_kernel_01": 500.0,
+      "system::hbm_aclk": 450.0
+    },
+    "route_report": {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-checkpoint-v1/query/route_status.rpt",
+      "sha256": "f431867a3fd4c789f0c40bdb1dc5c142dd1e33a42c40513181594dfb5d36f996"
+    },
+    "status": "ORIGINAL_R_CHECKPOINT_INSPECTED_NOT_BOARD_ADMITTED",
+    "timing_at_scaled_clock_verified": false,
+    "timing_report": {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-checkpoint-v1/query/timing.rpt",
+      "sha256": "fb2d94ef496ecc43864ad7effadfaad814a8406ec6b18ce26d4ff8d2066802d5"
+    }
+  },
+  "archive": "original_r_checkpoint.tar.gz",
+  "author_device_source_equivalence_verified": false,
+  "board_admitted": false,
+  "board_programmed": false,
+  "checkpoint_bitstream_pairing_verified": false,
+  "external_hash_indexed_not_archived": [
+    "DCP",
+    "xclbin",
+    "saved and extracted partial bitstreams",
+    "tools"
+  ],
+  "files": [
+    {
+      "bytes": 42172,
+      "path": "query/results.json",
+      "sha256": "f29f92edad41b48124a60a0245bd7ba76677bc859026e1ae34b66f90418598dd"
+    },
+    {
+      "bytes": 1862,
+      "path": "query/environment.json",
+      "sha256": "4c8cff56f14ff103fc37cc2e9067bc644d592a25d93eac78e334c0bb526bc2d5"
+    },
+    {
+      "bytes": 1134,
+      "path": "query/checkpoint.tcl",
+      "sha256": "f47f9017accbcb3411fc22717a6a19db4659fea9c460696cc415c206d4a7f120"
+    },
+    {
+      "bytes": 43868,
+      "path": "query/vivado.log",
+      "sha256": "1aa3a5d7c6ee98e032a2eece9930afebca209f4074462aaf6249d315643cc009"
+    },
+    {
+      "bytes": 1818,
+      "path": "query/vivado.jou",
+      "sha256": "c16c9ac8c1a597ff5286cf2ddab79e218f023b8108aef71c1411a77aa5ad2ed1"
+    },
+    {
+      "bytes": 789,
+      "path": "query/extract.stdout.txt",
+      "sha256": "c4997170d0bce51a05575fc0a7754024ebf1dbe53a9ec736625efd84b70541cf"
+    },
+    {
+      "bytes": 0,
+      "path": "query/extract.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 938,
+      "path": "query/extract.resources.json",
+      "sha256": "2bd04fff92add40744e50b7e90050bb8d436dad6ebe6f4c9be882fc46a9c5ab4"
+    },
+    {
+      "bytes": 42570,
+      "path": "query/query_run.stdout.txt",
+      "sha256": "42202e2a7d8a848e29d9c33d6bac09ca21a8be1a9d0799eaa5721be9a777b16f"
+    },
+    {
+      "bytes": 0,
+      "path": "query/query_run.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 244,
+      "path": "query/query_run.progress.json",
+      "sha256": "b8208bb6f2bc4dc281a262bd203a21f3c3f4b0d6a13fe39ddb6b6982c09749dd"
+    },
+    {
+      "bytes": 2525,
+      "path": "query/query_run.resources.json",
+      "sha256": "93e8bb41534700e9bfa91c741ce54fc63cc052886b5b1535c4ed67c31edb639d"
+    },
+    {
+      "bytes": 97,
+      "path": "query/query/design.tsv",
+      "sha256": "fca9145848c00a58f899342451ad967420b18a8a15abb5934ec9303146f467e2"
+    },
+    {
+      "bytes": 10026,
+      "path": "query/query/clocks.tsv",
+      "sha256": "f4741fe31531d165c27ca86b5dfed9cfab3b7516c1389cd21d73cf39c7db8a63"
+    },
+    {
+      "bytes": 117468,
+      "path": "query/query/clocks.rpt",
+      "sha256": "298cee7403d9827211543981d7c75e9d11d0de729b0224f502feef262991e533"
+    },
+    {
+      "bytes": 714,
+      "path": "query/query/route_status.rpt",
+      "sha256": "f431867a3fd4c789f0c40bdb1dc5c142dd1e33a42c40513181594dfb5d36f996"
+    },
+    {
+      "bytes": 33681921,
+      "path": "query/query/timing.rpt",
+      "sha256": "fb2d94ef496ecc43864ad7effadfaad814a8406ec6b18ce26d4ff8d2066802d5"
+    },
+    {
+      "bytes": 8644,
+      "path": "runner/spine_cycle_sim/experiments/__init__.py",
+      "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628"
+    },
+    {
+      "bytes": 42052,
+      "path": "runner/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "bytes": 45873,
+      "path": "runner/spine_cycle_sim/experiments/comparison.py",
+      "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148"
+    },
+    {
+      "bytes": 26406,
+      "path": "runner/spine_cycle_sim/experiments/comparison_analysis.py",
+      "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680"
+    },
+    {
+      "bytes": 12819,
+      "path": "runner/spine_cycle_sim/experiments/feasibility.py",
+      "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+    },
+    {
+      "bytes": 23503,
+      "path": "runner/spine_cycle_sim/experiments/grasu_addressing.py",
+      "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9"
+    },
+    {
+      "bytes": 31987,
+      "path": "runner/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+      "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71"
+    },
+    {
+      "bytes": 15321,
+      "path": "runner/spine_cycle_sim/experiments/hls_real_comparison.py",
+      "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a"
+    },
+    {
+      "bytes": 4597,
+      "path": "runner/spine_cycle_sim/experiments/hls_weighted_workloads.py",
+      "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086"
+    },
+    {
+      "bytes": 37372,
+      "path": "runner/spine_cycle_sim/experiments/large_graph_campaign.py",
+      "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c"
+    },
+    {
+      "bytes": 8908,
+      "path": "runner/spine_cycle_sim/experiments/memory_traffic.py",
+      "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae"
+    },
+    {
+      "bytes": 84,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/__init__.py",
+      "sha256": "28c5ad77851e29839beb06b12189977c87cf7c68b0dc961ca30d877062d0d670"
+    },
+    {
+      "bytes": 80,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/__init__.py",
+      "sha256": "5b436d0b9476b30a6e147781f28a1205ffb42599e8cbe8867a1078d33923b2a3"
+    },
+    {
+      "bytes": 2755,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/artifact.py",
+      "sha256": "8fd56b0cc9198cc789d02c89141981236addcdb547cdaf3fd06604ef560fb9ee"
+    },
+    {
+      "bytes": 4529,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/checkpoint.py",
+      "sha256": "c1456c799541df730aa99c4dbb64fce89a3269921b65938b0da90ca8a4a9230f"
+    },
+    {
+      "bytes": 1134,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/checkpoint.tcl",
+      "sha256": "f47f9017accbcb3411fc22717a6a19db4659fea9c460696cc415c206d4a7f120"
+    },
+    {
+      "bytes": 5454,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/checkpoint_run.py",
+      "sha256": "5453cb3ffc28ebb2f530fa218386aa099efe543d7d868dcc79fd95a6296717df"
+    },
+    {
+      "bytes": 6223,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/delivery.py",
+      "sha256": "69a0abcd841bf208c29de846015026c8e920fad3824dfa0dee1990d6043543de"
+    },
+    {
+      "bytes": 6939,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/oracle.py",
+      "sha256": "c13a9a423e1adf3f90e32e213e2eb3ad31229996b7ca2b14f064a4a24ab1cb7e"
+    },
+    {
+      "bytes": 3190,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/sources.py",
+      "sha256": "28260bcf91a2c4941a148fd25288260f95833c22f593c310b3314906143d1de8"
+    },
+    {
+      "bytes": 5232,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_execution/hardware/study.py",
+      "sha256": "8cf467a382978fae10f63490250884e630fd03a18cc53ba092ad70ab13cc804d"
+    },
+    {
+      "bytes": 82,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_inputs/__init__.py",
+      "sha256": "a61be291a3e6dd12827e8064b38ebb1182b113507e2f4c9732c3c5324bd1c50e"
+    },
+    {
+      "bytes": 6584,
+      "path": "runner/spine_cycle_sim/experiments/original_regraph_inputs/analysis.py",
+      "sha256": "9f87c6580ab9967d770c488c2203ab3342561306159c59d896ad495818e1cbbb"
+    },
+    {
+      "bytes": 6054,
+      "path": "runner/spine_cycle_sim/experiments/persistent_update_only.py",
+      "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf"
+    },
+    {
+      "bytes": 9482,
+      "path": "runner/spine_cycle_sim/experiments/profile_capabilities.py",
+      "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5"
+    },
+    {
+      "bytes": 61352,
+      "path": "runner/spine_cycle_sim/experiments/publication_analysis.py",
+      "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571"
+    },
+    {
+      "bytes": 15502,
+      "path": "runner/spine_cycle_sim/experiments/publication_cases.py",
+      "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a"
+    },
+    {
+      "bytes": 45630,
+      "path": "runner/spine_cycle_sim/experiments/publication_workloads.py",
+      "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410"
+    },
+    {
+      "bytes": 28729,
+      "path": "runner/spine_cycle_sim/experiments/real_memory_analysis.py",
+      "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45"
+    },
+    {
+      "bytes": 12973,
+      "path": "runner/spine_cycle_sim/experiments/real_small_batches.py",
+      "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866"
+    },
+    {
+      "bytes": 44350,
+      "path": "runner/spine_cycle_sim/experiments/rq3.py",
+      "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668"
+    },
+    {
+      "bytes": 78,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+      "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299"
+    },
+    {
+      "bytes": 5246,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/analysis.py",
+      "sha256": "04704dfa8a44357b2aba921be8ec38da8908b0619a7acec1265e5ccf3c4fce45"
+    },
+    {
+      "bytes": 5429,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/bitstream.py",
+      "sha256": "7535e6cee40a99da52ca10792353a1dc44ade6853cb6ec35470f809292438a48"
+    },
+    {
+      "bytes": 1510,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/board.py",
+      "sha256": "6e0ca5da78ad37559ba54a77b7e66b2e0b4c4c023d49ae6f8fe67bc3a6e0a065"
+    },
+    {
+      "bytes": 5296,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "bytes": 5662,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "1690c0556662ba7baa9b5f80f31d94677f5c61813f7045cfb8bc7aa622cb9f5d"
+    },
+    {
+      "bytes": 1929,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "5f1aaeaa7b62c6cb72dd2d583bc03a81c2f45d69a90ec590a88565c5814fd711"
+    },
+    {
+      "bytes": 3760,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/route_recovery.py",
+      "sha256": "aad5007b6472864bbc356b45568de35dbfb9b73f94f3f38ae9ead17957fbb77c"
+    },
+    {
+      "bytes": 78,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py",
+      "sha256": "00cf8c7ae583dd02e107fc7581f9cdc09889896d2182bbec0063e114ed40e910"
+    },
+    {
+      "bytes": 79,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py",
+      "sha256": "1bb211a93c3f674d8ebb06ad3130592322b3b9732c092a887df18f19aa63592a"
+    },
+    {
+      "bytes": 80,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py",
+      "sha256": "b0d3e652a9c0c065865c24b58fe0eac776933248f5b32590cfa1dcc9a4791ed1"
+    },
+    {
+      "bytes": 3185,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/admission.py",
+      "sha256": "b8eb66013f8ddc98e92caf64ca4af0b9f561d7baeac7fa39f565fdcad640a201"
+    },
+    {
+      "bytes": 3952,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/concurrent.py",
+      "sha256": "46f88527c5cc8397043f8971132f0d48640d3ba0e06bb38a5ebb61c5ff08f23f"
+    },
+    {
+      "bytes": 1573,
+      "path": "runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py",
+      "sha256": "f3e2a9f4bc87c3fa9a1ee27427d155b2dbca3d01a8cf5ff3dd79c39a66948b27"
+    },
+    {
+      "bytes": 36711,
+      "path": "runner/spine_cycle_sim/experiments/shared_workloads.py",
+      "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+    },
+    {
+      "bytes": 7557,
+      "path": "runner/spine_cycle_sim/experiments/temporal_dense_analysis.py",
+      "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232"
+    },
+    {
+      "bytes": 27814,
+      "path": "runner/spine_cycle_sim/experiments/temporal_real_analysis.py",
+      "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738"
+    },
+    {
+      "bytes": 23181,
+      "path": "runner/spine_cycle_sim/experiments/temporal_real_batches.py",
+      "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d"
+    },
+    {
+      "bytes": 45841,
+      "path": "runner/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+      "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3"
+    },
+    {
+      "bytes": 75,
+      "path": "runner/spine_cycle_sim/experiments/upstream_controls/__init__.py",
+      "sha256": "c9df6b968cbbdda00f9fbd678995575e5d73704c85e55538ed579874f40a87e0"
+    },
+    {
+      "bytes": 3456,
+      "path": "runner/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "bytes": 5275,
+      "path": "runner/spine_cycle_sim/experiments/upstream_controls/sources.py",
+      "sha256": "57ae964a2bfa05bc583a90d76f65937ea2b42358d2ebfcd20d1a383ddca9e2c1"
+    },
+    {
+      "bytes": 10237,
+      "path": "runner/spine_cycle_sim/profiles.py",
+      "sha256": "e4f85c162b64d21434e0d26bc43965b8c7a25bab24c36abf8f33411eb0a9dc62"
+    },
+    {
+      "bytes": 64925,
+      "path": "references/offline_audit.json",
+      "sha256": "4006fd44a3c7a9f6267f02242195a9df21ac1c90fff2beb379c5dc6d98d42c62"
+    },
+    {
+      "bytes": 99,
+      "path": "references/recorded_scaled_clocks.txt",
+      "sha256": "b3997807076fa874d211b574228a559a5e0c4a4a805ae32316fad034920d58e9"
+    },
+    {
+      "bytes": 5719,
+      "path": "delivery/checkpoint_delivery.py",
+      "sha256": "473e050e50c9fc7089916ce32b3091fdf9e1791a40e4fb4f2737d2d89bad3404"
+    }
+  ],
+  "hardware_timing_measured": false,
+  "publication_match": false,
+  "sha256": "8f3225429f310e3804d2470e2025cea7e1f636f1be0a35bc78899d345089e9cd",
+  "status": "ORIGINAL_R_CHECKPOINT_INSPECTED_NOT_BOARD_ADMITTED",
+  "timing_at_scaled_clock_verified": false
+}
