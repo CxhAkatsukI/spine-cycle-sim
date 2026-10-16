@@ -319,3 +319,12 @@ in the clean upstream checkout. Interface, macro, clock, bank-capacity,
 timing and insufficient-memory negative controls also pass. This checkpoint
 changes no numerical simulator component and claims no SST rebuild or board
 performance result.
+
+The first source-build launch, `original-r-source-route-v1`, was memory-admitted
+with 133.681 GiB available against 112 GiB required, including the concurrent
+G route's full 40-GiB limit. It stopped in the author's Python generator,
+before any FPGA compiler launch: system Python 3.13 no longer exports the
+unused `re.T` import. Its raw logs and zero-OOM memory events remain intact.
+The runner now explicitly pins Python 3.11, the interpreter used by the
+earlier original-source controls; author algorithm and generator sources
+are unchanged. A retry uses a new unit and output directory.

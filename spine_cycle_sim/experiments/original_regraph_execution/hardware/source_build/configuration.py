@@ -3,6 +3,7 @@
 from pathlib import Path
 
 COMPILER = Path("/data/yxx/tools/xilinx/Vitis/2024.1/bin/v++")
+GENERATOR_PYTHON = Path("/usr/bin/python3.11")
 PLATFORM = Path("/opt/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/"
                 "xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm")
 CLOCK_MHZ = 150

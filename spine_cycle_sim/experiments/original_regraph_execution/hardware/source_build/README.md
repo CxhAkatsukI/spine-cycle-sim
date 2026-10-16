@@ -13,7 +13,10 @@ best configuration or its original clock/platform performance.
 | `execution.py` | Independent atomic finite-memory admission, sequential XO compilation, routing watchdog and retained failure/provenance |
 | `__main__.py` | Thin CLI |
 
-The author's topology generator runs with `11 3 true false`. No device
+The author's topology generator runs under pinned Python 3.11 with
+`11 3 true false`. Its unused `from re import T` is incompatible with the
+system Python 3.13; selecting the earlier supported interpreter avoids
+editing author source. No device
 algorithm source is edited. `KERNEL_NUM=14` is explicit build bookkeeping;
 the original Makefile supplied an empty value and no device code uses it.
 The author mergers are free-running (`ap_ctrl_none`) with stream arguments

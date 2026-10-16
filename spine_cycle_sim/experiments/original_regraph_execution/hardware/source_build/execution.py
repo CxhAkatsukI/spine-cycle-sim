@@ -59,7 +59,10 @@ def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environ
         captured = json.loads(captured_environment.read_text())
         snapshot.unchanged(captured["pins"])
         report["pins"] += [artifact.identity(captured_environment), *captured["pins"],
-                           artifact.identity(config.COMPILER), artifact.identity(config.PLATFORM)]
+                           artifact.identity(config.COMPILER), artifact.identity(config.PLATFORM),
+                           artifact.identity(config.GENERATOR_PYTHON), artifact.identity(Path(sys.executable).resolve())]
+        report["generator_python_version"] = subprocess.check_output(
+            [str(config.GENERATOR_PYTHON), "--version"], text=True, timeout=10).strip()
         effective = checkpoint_run.environment(captured_environment, output)
         if (effective.get("XILINX_VITIS") != str(config.COMPILER.parents[1]) or
                 effective.get("XILINX_HLS") != "/data/yxx/tools/xilinx/Vitis_HLS/2024.1"):

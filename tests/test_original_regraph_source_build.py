@@ -186,6 +186,7 @@ class SourceBuildSnapshotTests(unittest.TestCase):
                 pin_file.write_text("{}")
 
                 def generate(command, destination, prefix, **kwargs):
+                    self.assertEqual(command[0], "/usr/bin/python3.11")
                     self.assertEqual(command[-4:], ["11", "3", "true", "false"])
                     target = {"allowed": destination / generated,
                               "algorithm_edit": destination / "algorithm.cpp",

@@ -3,11 +3,11 @@
 from pathlib import Path
 import shutil
 import subprocess
-import sys
 
 from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 from spine_cycle_sim.experiments.upstream_controls.sources import GENERATED_FILES, read_pins
 from .. import artifact, sources
+from .configuration import GENERATOR_PYTHON
 
 
 def tracked_files(source: Path) -> list[str]:
@@ -41,7 +41,7 @@ def prepare(root: Path, upstream: Path, output: Path) -> dict:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(upstream / name, target)
     # The author generator overwrites six known outputs; no C-simulation helper headers are added.
-    command = [sys.executable, "autogen/autogen.py", "11", "3", "true", "false"]
+    command = [str(GENERATOR_PYTHON), "autogen/autogen.py", "11", "3", "true", "false"]
     execution = run_bounded(command, destination, output / "generator",
                             timeout=60, memory_gib=2, reserve_gib=32)
     if execution["exit_code"] or execution["timed_out"]:
