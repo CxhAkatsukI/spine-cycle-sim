@@ -13,6 +13,10 @@ The [real host-prepared check](host_prepared/README.md) adds 42 passing rows
 from AU/SU/WK compact topology and retains the v10 regression capsule: its
 stdout, parsed counters and classified diagnostics match v6. It validates
 unchanged production host preparation at source level, not FPGA timing.
+The [native multi-shard/cold source check](native_geometry/README.md) adds
+six passing paired-arm rows at the full cache capacity and native partition
+size. It covers persistent PMA state and direct adapter handoff across five
+shards, but does not establish native board-host bindings or hardware timing.
 The [continuous G host preflight](continuous_board/README.md) adds XRT host
 compilation and eighteen host-model rows with persistent state. Its board
 path is not yet executed; it is not a measured performance result.

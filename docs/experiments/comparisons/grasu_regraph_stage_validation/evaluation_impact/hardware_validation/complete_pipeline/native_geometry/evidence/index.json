@@ -1,0 +1,1112 @@
+{
+  "attempts": [
+    {
+      "archive": "g-native-geometry-v1.tar.gz",
+      "attempt": "g-native-geometry-v1",
+      "bytes": 856290,
+      "errors": [],
+      "files": [
+        {
+          "bytes": 5515,
+          "path": "contract.json",
+          "sha256": "3cc15ea781de6574b65e87019126c52c877aaf06c2772810cd25def3f61e6851"
+        },
+        {
+          "bytes": 732,
+          "path": "native_contract.json",
+          "sha256": "011f5f53af48faf1a1247d8e0938ec60bb9c9e27a805b5b3b4a24b97e362f09b"
+        },
+        {
+          "bytes": 22232,
+          "path": "probe.d",
+          "sha256": "b8cacc1da0bbcb5bcbab959834d0c7e66d7239dd8555d197079045c74fd3b244"
+        },
+        {
+          "bytes": 231,
+          "path": "raw/compile.progress.json",
+          "sha256": "a1f12d660310c874ff6549bd90bc63a4e576420046dcb1e02862567a289aa82c"
+        },
+        {
+          "bytes": 2064,
+          "path": "raw/compile.resources.json",
+          "sha256": "5fb469e7b7ad46e647a2b690805fd843470b8f2eb13fbc71186d62a404075e71"
+        },
+        {
+          "bytes": 0,
+          "path": "raw/compile.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 0,
+          "path": "raw/compile.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 219,
+          "path": "raw/native.progress.json",
+          "sha256": "8ce6379e2de27e435b57cef3bee8c042d241701600b2a9ef8141be2c72e8ffa0"
+        },
+        {
+          "bytes": 833,
+          "path": "raw/native.resources.json",
+          "sha256": "831411ab2fc3b6d3472c603a2c32deed270141cc3212361d15bb79ceb7abba91"
+        },
+        {
+          "bytes": 2940,
+          "path": "raw/native.stderr.txt",
+          "sha256": "806e7a4c639bae46b7782103fa2b7587f0eafad644d26bbc26a4e55b7223b79f"
+        },
+        {
+          "bytes": 1721,
+          "path": "raw/native.stdout.txt",
+          "sha256": "0122881cda261ea9efc9b1606b7e4538f831f15b6e612a948ac46f6dd2947c89"
+        },
+        {
+          "bytes": 128974,
+          "path": "results.json",
+          "sha256": "4f7fd1d1864802e5e3c3835b297d46efc8b597a8e657c80d090e7204c4ca0a54"
+        },
+        {
+          "bytes": 8644,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/__init__.py",
+          "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628"
+        },
+        {
+          "bytes": 42052,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 45873,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/comparison.py",
+          "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148"
+        },
+        {
+          "bytes": 26406,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/comparison_analysis.py",
+          "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680"
+        },
+        {
+          "bytes": 68,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/__init__.py",
+          "sha256": "785bead8465ae009e7b9997b9da59eac5abe163f4382b3f7ba0dbfdc7c855369"
+        },
+        {
+          "bytes": 80,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/__init__.py",
+          "sha256": "d2641586e8e54bc4edb965684582f130ef97546bbd2624521811f12ea98566e9"
+        },
+        {
+          "bytes": 78,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/cached_hot/__init__.py",
+          "sha256": "a8cc5257aba3f20ab8ac7cff309942602959183a604f44edb91605bae3fe0403"
+        },
+        {
+          "bytes": 369,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/cached_hot/preparation.py",
+          "sha256": "c16eed0074494bf155868f9ca16315b3193187bb5f03404c58ffa4f7c4df098c"
+        },
+        {
+          "bytes": 83,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/__init__.py",
+          "sha256": "a7561addfb81e53193806b883520e8973151fb7bf992064ddf7b88957c8f2547"
+        },
+        {
+          "bytes": 2862,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/analysis.py",
+          "sha256": "482efb67d6d45b1e1bbaab6da65d3c55ceecdfdb38e15442710db83f5f621835"
+        },
+        {
+          "bytes": 85,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/host_prepared/__init__.py",
+          "sha256": "11a7367b49871514584fede5cd3fd6afdf3e5e201447a77787c9311abb63e1bd"
+        },
+        {
+          "bytes": 5298,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/host_prepared/preparation.py",
+          "sha256": "c37c310247e62051c6c6a8efc4e3269e36e902267aa9eea9a097230752dfd0f7"
+        },
+        {
+          "bytes": 80,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/__init__.py",
+          "sha256": "533ab120b8c8226ab602becbc7aacb8f6beedd81118d0e2291ced77b424dcf53"
+        },
+        {
+          "bytes": 3488,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/analysis.py",
+          "sha256": "2a6777a6b29e86b2eafa5a4de7749614cc9176f3d820659e0d3ed9dc143bbd2e"
+        },
+        {
+          "bytes": 1710,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/preparation.py",
+          "sha256": "5d8024032229f7b6694b33669701eca2500971a2985ac2b197ebb26285717bb4"
+        },
+        {
+          "bytes": 3134,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/preparation.py",
+          "sha256": "66ba10c26aa41cd38ed087dc57cada539f60d3c73fd1399f1c09232494c77569"
+        },
+        {
+          "bytes": 86,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/hot_lanes/__init__.py",
+          "sha256": "d2cb466731eba65757469f1a5b64a04f0433a54a7184fdce234770d40578a878"
+        },
+        {
+          "bytes": 1005,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/hot_lanes/preparation.py",
+          "sha256": "610013f760bf9d95fee3e248f3ca653159cb1f7b8de290dcd7a8aca7bee691ae"
+        },
+        {
+          "bytes": 58,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/metadata_credits/__init__.py",
+          "sha256": "79dc8b5c43db5ec29009b9957c874cb9599fb27c67c74bde46da8c07c4657376"
+        },
+        {
+          "bytes": 491,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/metadata_credits/preparation.py",
+          "sha256": "5e636c46a705c5989ed8ae6a9386b9ca57c0e2720275a57b0ce2ea0d14cad2ff"
+        },
+        {
+          "bytes": 70,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/parallel/__init__.py",
+          "sha256": "df7ef977ea18d28617151b8ca22d56ad9fb2bfb739af4ba0a58850b1274c41ba"
+        },
+        {
+          "bytes": 1071,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/parallel/preparation.py",
+          "sha256": "6e790557a9b80b0c9813df484ab9cbc1a8080fddb9575e60dcfb744650f86157"
+        },
+        {
+          "bytes": 2446,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/preparation.py",
+          "sha256": "38af64c58088e338df07a2874a3dc89e77b5dcb94091d3f5dfb4e2623ef39985"
+        },
+        {
+          "bytes": 77,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_concurrency/__init__.py",
+          "sha256": "66ecc18e1e97228e1c06a7879bf77afa845e9a9151643702435724ac7d777380"
+        },
+        {
+          "bytes": 363,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_concurrency/preparation.py",
+          "sha256": "ab58aa5bf1556f28bdd0dff95719fb8bd28e2505550b8d274d0ce2a44f78a621"
+        },
+        {
+          "bytes": 83,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_diagnostics/__init__.py",
+          "sha256": "31da02a8f909f44490ac364b1eb4f845bfc11d29d48174f8668c217c2e831347"
+        },
+        {
+          "bytes": 339,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_diagnostics/preparation.py",
+          "sha256": "77a3872464103aebcdc8cb6fc202dfe0c7e761213825b563d0bc483cd053c8e8"
+        },
+        {
+          "bytes": 71,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/__init__.py",
+          "sha256": "686e3c45d55e2bcea50f15db635dc8bf763f8fd9b387dd9ed0365c7dc71f97aa"
+        },
+        {
+          "bytes": 3528,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/admission.py",
+          "sha256": "47b0d0e964df5237b18b0e97061c2cb7d140eb2954d3c58471091fdc0e2a1bc8"
+        },
+        {
+          "bytes": 4324,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/analysis.py",
+          "sha256": "1669d00ff9d57c981af340dfb716df0ce9028018ee96ee82ac3f5d3ef87b0be4"
+        },
+        {
+          "bytes": 2840,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/preparation.py",
+          "sha256": "a62c00a22a218cf4ebcf995fc688be346d9c59d0e249846dad641abbc7bff450"
+        },
+        {
+          "bytes": 3635,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/rtl_analysis.py",
+          "sha256": "37c14c4beb6170e4e729cd7e90d5c7c8b2bb642886a85e29fb72f9a954b82d99"
+        },
+        {
+          "bytes": 5041,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/synthesis.py",
+          "sha256": "e1b6618cd66a46f91d60c946bc14ae8dcb9d50e8286d3c1c25e41a814a2d6a66"
+        },
+        {
+          "bytes": 79,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/__init__.py",
+          "sha256": "06376e346866a7f10e660da4d15679d831678b654cd91caf6fc74af4af342885"
+        },
+        {
+          "bytes": 2418,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/preparation.py",
+          "sha256": "e1bcc46828127ec0a8b911c2480e944f6b3bb4f4a0ec5eb6f7bee4c56e412452"
+        },
+        {
+          "bytes": 5190,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/real_inputs.py",
+          "sha256": "3ebb53153c254bb5c32f4b15be55f4228ab271616b85644a48ffeff82dc40411"
+        },
+        {
+          "bytes": 5506,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/study.py",
+          "sha256": "61e96b9bba87a151bca1215263a30dc9f9b6b81c5cd2d19db1f9a1e1b28673df"
+        },
+        {
+          "bytes": 83,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/__init__.py",
+          "sha256": "ae3f11993789cfcd54110d6edf161cbb5f728facee2a6349d7b018536d4802aa"
+        },
+        {
+          "bytes": 3167,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/analysis.py",
+          "sha256": "0ae1eb42c89efef0229bed90352a85cb3898944671ab4d46dbd0dd7f6b82dbb1"
+        },
+        {
+          "bytes": 3535,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/preparation.py",
+          "sha256": "e237a32d84d52ed99d9ee6d69d179af968024ede846bf1a576a487d6d47f7fb6"
+        },
+        {
+          "bytes": 12819,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/feasibility.py",
+          "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+        },
+        {
+          "bytes": 23503,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/grasu_addressing.py",
+          "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9"
+        },
+        {
+          "bytes": 31987,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+          "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71"
+        },
+        {
+          "bytes": 15321,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/hls_real_comparison.py",
+          "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a"
+        },
+        {
+          "bytes": 4597,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/hls_weighted_workloads.py",
+          "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086"
+        },
+        {
+          "bytes": 37372,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/large_graph_campaign.py",
+          "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c"
+        },
+        {
+          "bytes": 8908,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/memory_traffic.py",
+          "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae"
+        },
+        {
+          "bytes": 6054,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/persistent_update_only.py",
+          "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf"
+        },
+        {
+          "bytes": 9482,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/profile_capabilities.py",
+          "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5"
+        },
+        {
+          "bytes": 61352,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/publication_analysis.py",
+          "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571"
+        },
+        {
+          "bytes": 15502,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/publication_cases.py",
+          "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a"
+        },
+        {
+          "bytes": 45630,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/publication_workloads.py",
+          "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410"
+        },
+        {
+          "bytes": 28729,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/real_memory_analysis.py",
+          "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45"
+        },
+        {
+          "bytes": 12973,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/real_small_batches.py",
+          "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866"
+        },
+        {
+          "bytes": 44350,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/rq3.py",
+          "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668"
+        },
+        {
+          "bytes": 78,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+          "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299"
+        },
+        {
+          "bytes": 5662,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+          "sha256": "1690c0556662ba7baa9b5f80f31d94677f5c61813f7045cfb8bc7aa622cb9f5d"
+        },
+        {
+          "bytes": 1929,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+          "sha256": "5f1aaeaa7b62c6cb72dd2d583bc03a81c2f45d69a90ec590a88565c5814fd711"
+        },
+        {
+          "bytes": 78,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py",
+          "sha256": "00cf8c7ae583dd02e107fc7581f9cdc09889896d2182bbec0063e114ed40e910"
+        },
+        {
+          "bytes": 79,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py",
+          "sha256": "1bb211a93c3f674d8ebb06ad3130592322b3b9732c092a887df18f19aa63592a"
+        },
+        {
+          "bytes": 80,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py",
+          "sha256": "b0d3e652a9c0c065865c24b58fe0eac776933248f5b32590cfa1dcc9a4791ed1"
+        },
+        {
+          "bytes": 3185,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/admission.py",
+          "sha256": "b8eb66013f8ddc98e92caf64ca4af0b9f561d7baeac7fa39f565fdcad640a201"
+        },
+        {
+          "bytes": 3952,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/concurrent.py",
+          "sha256": "46f88527c5cc8397043f8971132f0d48640d3ba0e06bb38a5ebb61c5ff08f23f"
+        },
+        {
+          "bytes": 1573,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py",
+          "sha256": "f3e2a9f4bc87c3fa9a1ee27427d155b2dbca3d01a8cf5ff3dd79c39a66948b27"
+        },
+        {
+          "bytes": 36711,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/shared_workloads.py",
+          "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+        },
+        {
+          "bytes": 7557,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/temporal_dense_analysis.py",
+          "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232"
+        },
+        {
+          "bytes": 27814,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/temporal_real_analysis.py",
+          "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738"
+        },
+        {
+          "bytes": 23181,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/temporal_real_batches.py",
+          "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d"
+        },
+        {
+          "bytes": 45841,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+          "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3"
+        },
+        {
+          "bytes": 75,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/upstream_controls/__init__.py",
+          "sha256": "c9df6b968cbbdda00f9fbd678995575e5d73704c85e55538ed579874f40a87e0"
+        },
+        {
+          "bytes": 3456,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/upstream_controls/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 88,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/upstream_controls/grasu/__init__.py",
+          "sha256": "271ac1f83a8208fdad35e79835ee6fafbad66d6d73c785f413b96158f99f49d5"
+        },
+        {
+          "bytes": 3658,
+          "path": "runner_snapshot/spine_cycle_sim/experiments/upstream_controls/grasu/fixtures.py",
+          "sha256": "6c89b5a49df17d26c957f42da7570f2eb749c6d292fd717aed508be0ca9f60f5"
+        },
+        {
+          "bytes": 6589,
+          "path": "source/adapter/bank_stream.hpp",
+          "sha256": "7887d4c2b340a6b825f72cfebf1725853a670b69963cba7edbf3b78739b77c49"
+        },
+        {
+          "bytes": 3136,
+          "path": "source/adapter/continuous_directory.hpp",
+          "sha256": "8bb5a8a822814ba076d37d0ec182dcee3b637ae5d27197e687e5edfee691aaf4"
+        },
+        {
+          "bytes": 7956,
+          "path": "source/adapter/cross_row_pipeline.hpp",
+          "sha256": "557ecf44406dc1a440486e9cf40646db38b291c0344fa0c19bf91141fd4e3132"
+        },
+        {
+          "bytes": 3781,
+          "path": "source/adapter/directory_tile.hpp",
+          "sha256": "a6562444654cc831026576ce36737d67fe98bba783708c0ff317b1b34122757b"
+        },
+        {
+          "bytes": 2119,
+          "path": "source/adapter/packet_pipeline.hpp",
+          "sha256": "4d159049d0bb745c9d134d28ab546b6b45d936f6dd0406403564b97f4c352699"
+        },
+        {
+          "bytes": 16680,
+          "path": "source/adapter/pma_to_regraph_adapter.cpp",
+          "sha256": "f4354692c7089b19d02e9376b9b0e881f86c9a6fed502ab1f2cee1275eaead0a"
+        },
+        {
+          "bytes": 941,
+          "path": "source/adapter/row_line.hpp",
+          "sha256": "e1880be22792128493f2f03e9507eb4c4346f1afbd678401f9848ad35ac505b9"
+        },
+        {
+          "bytes": 958,
+          "path": "source/adapter/row_prefetch.hpp",
+          "sha256": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a"
+        },
+        {
+          "bytes": 2140,
+          "path": "source/control.cpp",
+          "sha256": "49c9a797af08bd965fe8ed7b2b140a43f3d9aa8bf10db0942a17a619e58b3790"
+        },
+        {
+          "bytes": 7394,
+          "path": "source/execution.hpp",
+          "sha256": "2bcf785b5bc91e7454f2ecfaea2c3b3acbd00d1e314c87e5425a09a766a78dac"
+        },
+        {
+          "bytes": 4421,
+          "path": "source/fixture.hpp",
+          "sha256": "7dd7f04258f9b288ec63740296b1cbcbdaed42efdfdc404731bdb6bb75b9ab38"
+        },
+        {
+          "bytes": 362,
+          "path": "source/hls/cache_bank.hpp",
+          "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+        },
+        {
+          "bytes": 729,
+          "path": "source/hls/cache_full.cpp",
+          "sha256": "29a46c824a1769ce69feb22fcc453c142c38f306c51b4ab9a6aca4b1217efb1b"
+        },
+        {
+          "bytes": 1773,
+          "path": "source/hls/cache_lane.hpp",
+          "sha256": "c2f17ac29807cb61e212ab1e3cc6c0edc25ddf7a717261bf0a6fe9bb77750ef9"
+        },
+        {
+          "bytes": 1988,
+          "path": "source/hls/cache_pipeline.hpp",
+          "sha256": "d0e22039439b18a9454edcf994bd41ed4be8f4f246674c1b6347818a07963cde"
+        },
+        {
+          "bytes": 1785,
+          "path": "source/hls/search_binding/top.cpp",
+          "sha256": "2ddb81575086fc0923d13129a4a8f3bd2cca125874c4210051ad30bfe4bd7424"
+        },
+        {
+          "bytes": 539,
+          "path": "source/hls/search_binding/top.hpp",
+          "sha256": "28ccff9fa2c6692022a649d6b3ad8262f9f8101c0f268b2ff2cdb77ceb34d460"
+        },
+        {
+          "bytes": 3916,
+          "path": "source/hls/search_pipeline/control.hpp",
+          "sha256": "9cd8ca334d9bd504466e9bce9ef3322fcef936656505e51a1c672f240fd0a925"
+        },
+        {
+          "bytes": 4140,
+          "path": "source/hls/search_pipeline/finite_host.hpp",
+          "sha256": "5bd23d709264939a6f70ab36dc806feed5a5154c127d9dfec964d68c9a3fb2cc"
+        },
+        {
+          "bytes": 3158,
+          "path": "source/hls/search_pipeline/network.hpp",
+          "sha256": "545bded414f719178ebd3a58fd72d42b830aac14ce1b65fb84130712227b0aec"
+        },
+        {
+          "bytes": 2434,
+          "path": "source/hls/search_pipeline/search_worker.hpp",
+          "sha256": "8a26b8cb62ba0576d263e90489e2142e18486be45641c3bb7957ebe391fc62fc"
+        },
+        {
+          "bytes": 3751,
+          "path": "source/hls/search_pipeline/transport.hpp",
+          "sha256": "6db4a594cbdbb4554ba6b7e5cb6189304bdcdf73a4705989b1516b842eb4af4e"
+        },
+        {
+          "bytes": 1507,
+          "path": "source/hls/search_pipeline/types.hpp",
+          "sha256": "2f7aadf1268cb2ee8263b4c18dfff0740414668a18bef6ff7c8172e8b1195f69"
+        },
+        {
+          "bytes": 1275,
+          "path": "source/hls/search_pipeline/workers.hpp",
+          "sha256": "7a10f7e28289b7ef8501eead27a939e997228ef8946438061164b8d18b39365b"
+        },
+        {
+          "bytes": 24770,
+          "path": "source/host/weighted_pma_graph.hpp",
+          "sha256": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514"
+        },
+        {
+          "bytes": 12544,
+          "path": "source/host/weighted_pma_runtime_plan.hpp",
+          "sha256": "e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c"
+        },
+        {
+          "bytes": 3867,
+          "path": "source/host_prepared/control.cpp",
+          "sha256": "e654291df33ddf1853c9c1cfe9651aec7798f268a10d96b34c172ee59b90cfe0"
+        },
+        {
+          "bytes": 2711,
+          "path": "source/host_prepared/handoff.hpp",
+          "sha256": "b4d9e22af6bf40a2c781f75a4272ff959fd84b479ebe7a89c1585dbfa39b9bec"
+        },
+        {
+          "bytes": 4195,
+          "path": "source/host_prepared/input.hpp",
+          "sha256": "fd040ddfbcc0c2303683175b1f59272c471e72563b0d6192e9756880a76b8707"
+        },
+        {
+          "bytes": 2785,
+          "path": "source/host_prepared/memory.hpp",
+          "sha256": "73dfd87cfd28a5ddb23df25b512d49bf3228f149925797d2755650cb2ca6701a"
+        },
+        {
+          "bytes": 114818,
+          "path": "source/inputs/AU-mixed-512-partition-smoke.txt",
+          "sha256": "266f2d0ee82ddc0e8a390e582d8dd5320999c6ddf1e242102593bdb826379aee"
+        },
+        {
+          "bytes": 114819,
+          "path": "source/inputs/AU-mixed-512.txt",
+          "sha256": "a7d3ecb0f475571eb7d4e0dae9fe10a46e2b51f59d30d2a60921e878d635e448"
+        },
+        {
+          "bytes": 219231,
+          "path": "source/inputs/AU-weight_change-4096.txt",
+          "sha256": "73691f00120590ed228010a8e6aecd5ffd9492c9a262f9fb52db7f1d26270db1"
+        },
+        {
+          "bytes": 114521,
+          "path": "source/inputs/SU-mixed-512.txt",
+          "sha256": "524bc7ee7ca00dea84a50a9515e475daf437d53c82a4f8ea7410ecd47087a2c2"
+        },
+        {
+          "bytes": 218822,
+          "path": "source/inputs/SU-weight_change-4096.txt",
+          "sha256": "09f59a347c1df033c31821a2392ce252b807636e66a0a6c94fdc25514bcbb54d"
+        },
+        {
+          "bytes": 113876,
+          "path": "source/inputs/WK-mixed-512.txt",
+          "sha256": "0f67deca2b94aa82c1a2c3c9fdff96106eb2b03b65fba82e0a588f34980d07b9"
+        },
+        {
+          "bytes": 218045,
+          "path": "source/inputs/WK-weight_change-4096.txt",
+          "sha256": "91424814426def7bfce135b46fc8ecd32f489fcd3af0bcd570a7c94a3c33de0a"
+        },
+        {
+          "bytes": 107654,
+          "path": "source/inputs/configs/experiments/candidate10_grasu_temporal_compact_batches_v1_20260727.json",
+          "sha256": "d6d45a212f569a4ea919e2ac13fad0ce7455584cfc0105086b46098363f78629"
+        },
+        {
+          "bytes": 107686,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+          "sha256": "57ba2e57631d3d128bb6e85dc7fed9c8398a07651ea3e02028db0c095762c271"
+        },
+        {
+          "bytes": 32837,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_mapping.csv",
+          "sha256": "1b93701f25ce5177dcab68baa908aa0c5f01b094120de3f3eb9d3430a25e4148"
+        },
+        {
+          "bytes": 7360,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_mixed_u512.slice",
+          "sha256": "0469635c2e5cc3edb5483c7b66cad0fee2fcb46ab812c418cf1c40059f66caa1"
+        },
+        {
+          "bytes": 111780,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_weight_change_u4096.slice",
+          "sha256": "75ac74d330655d327820633e5ba82a55e5bf47f94cc8f687eb57f4e6812a32e0"
+        },
+        {
+          "bytes": 107458,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+          "sha256": "c73d90b1996480b1cc437debaeb211cbedc77510c74282ac541249a92b58484c"
+        },
+        {
+          "bytes": 30820,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_mapping.csv",
+          "sha256": "944b4c476c31420def0dab313cea40a0626fd61fc1fb9e7b1d2491a5b61f5c22"
+        },
+        {
+          "bytes": 7290,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_mixed_u512.slice",
+          "sha256": "85e3e87ae70ffb96b0ac85a777d1350d0b50b287cc282f72d70ae0506c006cc1"
+        },
+        {
+          "bytes": 111599,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_weight_change_u4096.slice",
+          "sha256": "b7d3dab1aaa5e87cf74494a3d8132490d03b507baa94adbff08f6a2f924dab92"
+        },
+        {
+          "bytes": 107035,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+          "sha256": "cb2c0d9dd371197b91563560c74545a9b7de3e6f8245eae7cef192db1c298268"
+        },
+        {
+          "bytes": 57101,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mapping.csv",
+          "sha256": "f53ab789c8f79f105cf64bcabe23d1c3a0f3ac577a798a5842c7acea04df673f"
+        },
+        {
+          "bytes": 7080,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mixed_u512.slice",
+          "sha256": "f46059e558e71e30dbd539db3283eccf96cea3b87f7ed9b2285db3e3add219e9"
+        },
+        {
+          "bytes": 111257,
+          "path": "source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_weight_change_u4096.slice",
+          "sha256": "a5324ca6e3567948ce4d5a0b70bf1a7bd85ad04ab847777daa0b49c15adda528"
+        },
+        {
+          "bytes": 1088,
+          "path": "source/integration/kernel_config.h",
+          "sha256": "8bc4579e9c8902c32913f6c7cd428e1d7b2a889d726ea5df7be2a12d38b5dec3"
+        },
+        {
+          "bytes": 2538,
+          "path": "source/integration/kernel_dispatch.cpp",
+          "sha256": "9709f72c87e24f81e800f2f419b653df10e22f0ea257f9b937d40885d60b6663"
+        },
+        {
+          "bytes": 5626,
+          "path": "source/integration/kernel_process_ddr.cpp",
+          "sha256": "e2ddf9a5d12c5ace4a19ca8b7b5296447541121f6102ae617c2409a1f8a42c12"
+        },
+        {
+          "bytes": 2065,
+          "path": "source/memory.hpp",
+          "sha256": "a9307a6183d2531997c2b4ca77124b5bfa509bdaf65a32b0b6564c5cde72cbf6"
+        },
+        {
+          "bytes": 3544,
+          "path": "source/native_geometry/control.cpp",
+          "sha256": "d1a87e1de9e5ff57ed0a3ebd9375561e0f72a6ebf762065ddb2666de4bcff0a8"
+        },
+        {
+          "bytes": 3696,
+          "path": "source/native_geometry/fixture.hpp",
+          "sha256": "543994488430690e47901e35d5c9933e02a57e7d53f74dffc65f12c8662f4ace"
+        },
+        {
+          "bytes": 83,
+          "path": "source/runner/complete_pipeline/__init__.py",
+          "sha256": "a7561addfb81e53193806b883520e8973151fb7bf992064ddf7b88957c8f2547"
+        },
+        {
+          "bytes": 2862,
+          "path": "source/runner/complete_pipeline/analysis.py",
+          "sha256": "482efb67d6d45b1e1bbaab6da65d3c55ceecdfdb38e15442710db83f5f621835"
+        },
+        {
+          "bytes": 5879,
+          "path": "source/runner/complete_pipeline/delivery.py",
+          "sha256": "9a7bb7e55d4db633e6294b4a33ba3b3fb1b935f77d7d51db01fd388817abb7dd"
+        },
+        {
+          "bytes": 3134,
+          "path": "source/runner/complete_pipeline/preparation.py",
+          "sha256": "66ba10c26aa41cd38ed087dc57cada539f60d3c73fd1399f1c09232494c77569"
+        },
+        {
+          "bytes": 7467,
+          "path": "source/runner/complete_pipeline/resource_delivery.py",
+          "sha256": "8b7f7429e1158ff64789c28cc206f14ae6a9baac24adf88836821d618b744068"
+        },
+        {
+          "bytes": 8835,
+          "path": "source/runner/complete_pipeline/resource_fit.py",
+          "sha256": "225eac36c7ef779276200d9676d6aaabd8eaa1c0a529b91f37fd2416f9996c90"
+        },
+        {
+          "bytes": 6612,
+          "path": "source/runner/complete_pipeline/resource_probe.py",
+          "sha256": "0077c79b518a63c50cc7a77d2baf217fd2c104906891adfc6f006a876e6f1fcb"
+        },
+        {
+          "bytes": 3892,
+          "path": "source/runner/complete_pipeline/study.py",
+          "sha256": "ea6858cdd6f63f87b9dab7ecde500e18bf705d81ab2491e61ecb7f3e89738430"
+        },
+        {
+          "bytes": 85,
+          "path": "source/runner/host_prepared/__init__.py",
+          "sha256": "11a7367b49871514584fede5cd3fd6afdf3e5e201447a77787c9311abb63e1bd"
+        },
+        {
+          "bytes": 2445,
+          "path": "source/runner/host_prepared/analysis.py",
+          "sha256": "9fd8ff108067e30692963f2779c38736fc43191d960049292816472e45d90be3"
+        },
+        {
+          "bytes": 5169,
+          "path": "source/runner/host_prepared/delivery.py",
+          "sha256": "16974205b5a477a27a1fce15e4a41be43d1603ee023fff3febf0c32bb067ae5f"
+        },
+        {
+          "bytes": 5298,
+          "path": "source/runner/host_prepared/preparation.py",
+          "sha256": "c37c310247e62051c6c6a8efc4e3269e36e902267aa9eea9a097230752dfd0f7"
+        },
+        {
+          "bytes": 3807,
+          "path": "source/runner/host_prepared/study.py",
+          "sha256": "7b75dca9b5beed41768eda4e22f42080525f919d557eff50ee0f985515321ee6"
+        },
+        {
+          "bytes": 80,
+          "path": "source/runner/native_geometry/__init__.py",
+          "sha256": "533ab120b8c8226ab602becbc7aacb8f6beedd81118d0e2291ced77b424dcf53"
+        },
+        {
+          "bytes": 3488,
+          "path": "source/runner/native_geometry/analysis.py",
+          "sha256": "2a6777a6b29e86b2eafa5a4de7749614cc9176f3d820659e0d3ed9dc143bbd2e"
+        },
+        {
+          "bytes": 1710,
+          "path": "source/runner/native_geometry/preparation.py",
+          "sha256": "5d8024032229f7b6694b33669701eca2500971a2985ac2b197ebb26285717bb4"
+        },
+        {
+          "bytes": 5790,
+          "path": "source/runner/native_geometry/study.py",
+          "sha256": "c892447404c8e3d4d0cf6bb603fd09b26d1e0ee62e8d1a9ad8ebd1eae68cb2b4"
+        },
+        {
+          "bytes": 5190,
+          "path": "source/runner/real_inputs/real_inputs.py",
+          "sha256": "3ebb53153c254bb5c32f4b15be55f4228ab271616b85644a48ffeff82dc40411"
+        },
+        {
+          "bytes": 36711,
+          "path": "source/runner/real_inputs/shared_workloads.py",
+          "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+        },
+        {
+          "bytes": 5041,
+          "path": "source/runner/search_pipeline/synthesis.py",
+          "sha256": "e1b6618cd66a46f91d60c946bc14ae8dcb9d50e8286d3c1c25e41a814a2d6a66"
+        },
+        {
+          "bytes": 42052,
+          "path": "source/runner/shared/campaign_runtime.py",
+          "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+        },
+        {
+          "bytes": 3456,
+          "path": "source/runner/upstream_controls/execution.py",
+          "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+        },
+        {
+          "bytes": 3535,
+          "path": "source/runner/weighted_abi/preparation.py",
+          "sha256": "e237a32d84d52ed99d9ee6d69d179af968024ede846bf1a576a487d6d47f7fb6"
+        },
+        {
+          "bytes": 487,
+          "path": "source/upstream/kernel_config.h",
+          "sha256": "a6176dafdce90d4916fb3bbf368b235fcd4efb4eb345cf542d15579052897959"
+        },
+        {
+          "bytes": 10216,
+          "path": "source/upstream/kernel_process_cache.cpp",
+          "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72"
+        }
+      ],
+      "pin_members": {
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/contract.json": "contract.json",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/native_contract.json": "native_contract.json",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/adapter/bank_stream.hpp": "source/adapter/bank_stream.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/adapter/continuous_directory.hpp": "source/adapter/continuous_directory.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/adapter/cross_row_pipeline.hpp": "source/adapter/cross_row_pipeline.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/adapter/directory_tile.hpp": "source/adapter/directory_tile.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/adapter/packet_pipeline.hpp": "source/adapter/packet_pipeline.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/adapter/pma_to_regraph_adapter.cpp": "source/adapter/pma_to_regraph_adapter.cpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/adapter/row_line.hpp": "source/adapter/row_line.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/adapter/row_prefetch.hpp": "source/adapter/row_prefetch.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/control.cpp": "source/control.cpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/execution.hpp": "source/execution.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/fixture.hpp": "source/fixture.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/cache_bank.hpp": "source/hls/cache_bank.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/cache_full.cpp": "source/hls/cache_full.cpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/cache_lane.hpp": "source/hls/cache_lane.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/cache_pipeline.hpp": "source/hls/cache_pipeline.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_binding/top.cpp": "source/hls/search_binding/top.cpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_binding/top.hpp": "source/hls/search_binding/top.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_pipeline/control.hpp": "source/hls/search_pipeline/control.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_pipeline/finite_host.hpp": "source/hls/search_pipeline/finite_host.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_pipeline/network.hpp": "source/hls/search_pipeline/network.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_pipeline/search_worker.hpp": "source/hls/search_pipeline/search_worker.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_pipeline/transport.hpp": "source/hls/search_pipeline/transport.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_pipeline/types.hpp": "source/hls/search_pipeline/types.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/hls/search_pipeline/workers.hpp": "source/hls/search_pipeline/workers.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/host/weighted_pma_graph.hpp": "source/host/weighted_pma_graph.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/host/weighted_pma_runtime_plan.hpp": "source/host/weighted_pma_runtime_plan.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/host_prepared/control.cpp": "source/host_prepared/control.cpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/host_prepared/handoff.hpp": "source/host_prepared/handoff.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/host_prepared/input.hpp": "source/host_prepared/input.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/host_prepared/memory.hpp": "source/host_prepared/memory.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/AU-mixed-512-partition-smoke.txt": "source/inputs/AU-mixed-512-partition-smoke.txt",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/AU-mixed-512.txt": "source/inputs/AU-mixed-512.txt",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/AU-weight_change-4096.txt": "source/inputs/AU-weight_change-4096.txt",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/SU-mixed-512.txt": "source/inputs/SU-mixed-512.txt",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/SU-weight_change-4096.txt": "source/inputs/SU-weight_change-4096.txt",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/WK-mixed-512.txt": "source/inputs/WK-mixed-512.txt",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/WK-weight_change-4096.txt": "source/inputs/WK-weight_change-4096.txt",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/configs/experiments/candidate10_grasu_temporal_compact_batches_v1_20260727.json": "source/inputs/configs/experiments/candidate10_grasu_temporal_compact_batches_v1_20260727.json",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice": "source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_base_e8192.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_mapping.csv": "source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_mapping.csv",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_mixed_u512.slice": "source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_mixed_u512.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_weight_change_u4096.slice": "source/inputs/tests/data/candidate10_grasu_temporal/sx_askubuntu_weight_change_u4096.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice": "source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_base_e8192.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_mapping.csv": "source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_mapping.csv",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_mixed_u512.slice": "source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_mixed_u512.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_weight_change_u4096.slice": "source/inputs/tests/data/candidate10_grasu_temporal/sx_superuser_weight_change_u4096.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice": "source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_base_e8192.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mapping.csv": "source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mapping.csv",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mixed_u512.slice": "source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_mixed_u512.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_weight_change_u4096.slice": "source/inputs/tests/data/candidate10_grasu_temporal/wiki_talk_temporal_weight_change_u4096.slice",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/integration/kernel_config.h": "source/integration/kernel_config.h",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/integration/kernel_dispatch.cpp": "source/integration/kernel_dispatch.cpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/integration/kernel_process_ddr.cpp": "source/integration/kernel_process_ddr.cpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/memory.hpp": "source/memory.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/native_geometry/control.cpp": "source/native_geometry/control.cpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/native_geometry/fixture.hpp": "source/native_geometry/fixture.hpp",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/complete_pipeline/__init__.py": "source/runner/complete_pipeline/__init__.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/complete_pipeline/analysis.py": "source/runner/complete_pipeline/analysis.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/complete_pipeline/delivery.py": "source/runner/complete_pipeline/delivery.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/complete_pipeline/preparation.py": "source/runner/complete_pipeline/preparation.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/complete_pipeline/resource_delivery.py": "source/runner/complete_pipeline/resource_delivery.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/complete_pipeline/resource_fit.py": "source/runner/complete_pipeline/resource_fit.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/complete_pipeline/resource_probe.py": "source/runner/complete_pipeline/resource_probe.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/complete_pipeline/study.py": "source/runner/complete_pipeline/study.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/host_prepared/__init__.py": "source/runner/host_prepared/__init__.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/host_prepared/analysis.py": "source/runner/host_prepared/analysis.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/host_prepared/delivery.py": "source/runner/host_prepared/delivery.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/host_prepared/preparation.py": "source/runner/host_prepared/preparation.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/host_prepared/study.py": "source/runner/host_prepared/study.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/native_geometry/__init__.py": "source/runner/native_geometry/__init__.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/native_geometry/analysis.py": "source/runner/native_geometry/analysis.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/native_geometry/preparation.py": "source/runner/native_geometry/preparation.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/native_geometry/study.py": "source/runner/native_geometry/study.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/real_inputs/real_inputs.py": "source/runner/real_inputs/real_inputs.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/real_inputs/shared_workloads.py": "source/runner/real_inputs/shared_workloads.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/search_pipeline/synthesis.py": "source/runner/search_pipeline/synthesis.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/shared/campaign_runtime.py": "source/runner/shared/campaign_runtime.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/upstream_controls/execution.py": "source/runner/upstream_controls/execution.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/runner/weighted_abi/preparation.py": "source/runner/weighted_abi/preparation.py",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/upstream/kernel_config.h": "source/upstream/kernel_config.h",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1/source/upstream/kernel_process_cache.cpp": "source/upstream/kernel_process_cache.cpp",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/campaign_runtime.py": "runner_snapshot/spine_cycle_sim/experiments/campaign_runtime.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/comparison.py": "runner_snapshot/spine_cycle_sim/experiments/comparison.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/comparison_analysis.py": "runner_snapshot/spine_cycle_sim/experiments/comparison_analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/cached_hot/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/cached_hot/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/cached_hot/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/cached_hot/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/analysis.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/host_prepared/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/host_prepared/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/host_prepared/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/host_prepared/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/analysis.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/native_geometry/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/hot_lanes/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/hot_lanes/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/hot_lanes/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/hot_lanes/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/metadata_credits/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/metadata_credits/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/metadata_credits/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/metadata_credits/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/parallel/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/parallel/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/parallel/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/parallel/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_concurrency/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_concurrency/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_concurrency/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_concurrency/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_diagnostics/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_diagnostics/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_diagnostics/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_diagnostics/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/admission.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/admission.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/analysis.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/rtl_analysis.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/rtl_analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/synthesis.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/synthesis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/real_inputs.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/sharded/real_inputs.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/study.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/study.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/analysis.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/preparation.py": "runner_snapshot/spine_cycle_sim/experiments/evaluation_impact/common_g/weighted_abi/preparation.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/feasibility.py": "runner_snapshot/spine_cycle_sim/experiments/feasibility.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/grasu_addressing.py": "runner_snapshot/spine_cycle_sim/experiments/grasu_addressing.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py": "runner_snapshot/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/hls_real_comparison.py": "runner_snapshot/spine_cycle_sim/experiments/hls_real_comparison.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/hls_weighted_workloads.py": "runner_snapshot/spine_cycle_sim/experiments/hls_weighted_workloads.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/large_graph_campaign.py": "runner_snapshot/spine_cycle_sim/experiments/large_graph_campaign.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/memory_traffic.py": "runner_snapshot/spine_cycle_sim/experiments/memory_traffic.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/persistent_update_only.py": "runner_snapshot/spine_cycle_sim/experiments/persistent_update_only.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/profile_capabilities.py": "runner_snapshot/spine_cycle_sim/experiments/profile_capabilities.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/publication_analysis.py": "runner_snapshot/spine_cycle_sim/experiments/publication_analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/publication_cases.py": "runner_snapshot/spine_cycle_sim/experiments/publication_cases.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/publication_workloads.py": "runner_snapshot/spine_cycle_sim/experiments/publication_workloads.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/real_memory_analysis.py": "runner_snapshot/spine_cycle_sim/experiments/real_memory_analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/real_small_batches.py": "runner_snapshot/spine_cycle_sim/experiments/real_small_batches.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/rq3.py": "runner_snapshot/spine_cycle_sim/experiments/rq3.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/admission.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/admission.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/concurrent.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/concurrent.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py": "runner_snapshot/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/shared_workloads.py": "runner_snapshot/spine_cycle_sim/experiments/shared_workloads.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/temporal_dense_analysis.py": "runner_snapshot/spine_cycle_sim/experiments/temporal_dense_analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/temporal_real_analysis.py": "runner_snapshot/spine_cycle_sim/experiments/temporal_real_analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/temporal_real_batches.py": "runner_snapshot/spine_cycle_sim/experiments/temporal_real_batches.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py": "runner_snapshot/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/upstream_controls/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/upstream_controls/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/upstream_controls/execution.py": "runner_snapshot/spine_cycle_sim/experiments/upstream_controls/execution.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/upstream_controls/grasu/__init__.py": "runner_snapshot/spine_cycle_sim/experiments/upstream_controls/grasu/__init__.py",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/spine_cycle_sim/experiments/upstream_controls/grasu/fixtures.py": "runner_snapshot/spine_cycle_sim/experiments/upstream_controls/grasu/fixtures.py"
+      },
+      "rows": [
+        {
+          "batch": 0,
+          "board": false,
+          "cold_even": 0,
+          "cold_odd": 0,
+          "complete_state_pass": true,
+          "direct_handoff_pass": true,
+          "edges": 524296,
+          "hot_even": 0,
+          "hot_odd": 0,
+          "metadata_pass": true,
+          "packets": 1048598,
+          "registered": 0,
+          "restored_pma": false,
+          "updates": 0
+        },
+        {
+          "batch": 1,
+          "board": false,
+          "cold_even": 4,
+          "cold_odd": 4,
+          "complete_state_pass": true,
+          "direct_handoff_pass": true,
+          "edges": 524276,
+          "hot_even": 6,
+          "hot_odd": 6,
+          "metadata_pass": true,
+          "packets": 1048598,
+          "registered": 0,
+          "restored_pma": false,
+          "updates": 20
+        },
+        {
+          "batch": 2,
+          "board": false,
+          "cold_even": 4,
+          "cold_odd": 4,
+          "complete_state_pass": true,
+          "direct_handoff_pass": true,
+          "edges": 524296,
+          "hot_even": 6,
+          "hot_odd": 6,
+          "metadata_pass": true,
+          "packets": 1048598,
+          "registered": 0,
+          "restored_pma": false,
+          "updates": 20
+        },
+        {
+          "batch": 0,
+          "board": false,
+          "cold_even": 0,
+          "cold_odd": 0,
+          "complete_state_pass": true,
+          "direct_handoff_pass": true,
+          "edges": 524296,
+          "hot_even": 0,
+          "hot_odd": 0,
+          "metadata_pass": true,
+          "packets": 1048598,
+          "registered": 1,
+          "restored_pma": false,
+          "updates": 0
+        },
+        {
+          "batch": 1,
+          "board": false,
+          "cold_even": 4,
+          "cold_odd": 4,
+          "complete_state_pass": true,
+          "direct_handoff_pass": true,
+          "edges": 524276,
+          "hot_even": 6,
+          "hot_odd": 6,
+          "metadata_pass": true,
+          "packets": 1048598,
+          "registered": 1,
+          "restored_pma": false,
+          "updates": 20
+        },
+        {
+          "batch": 2,
+          "board": false,
+          "cold_even": 4,
+          "cold_odd": 4,
+          "complete_state_pass": true,
+          "direct_handoff_pass": true,
+          "edges": 524296,
+          "hot_even": 6,
+          "hot_odd": 6,
+          "metadata_pass": true,
+          "packets": 1048598,
+          "registered": 1,
+          "restored_pma": false,
+          "updates": 20
+        }
+      ],
+      "runner_root": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "sha256": "90c61a13c5ec1ca0e5295744d8471fb8f7bed992362f38c77d5b6eec530f9a39",
+      "source": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-native-geometry-v1",
+      "status": "NATIVE_G_SOURCE_PASS_NOT_RTL_OR_BOARD"
+    }
+  ],
+  "hardware_timing_admitted": false,
+  "indexed_not_archived": [
+    "compiled_binary",
+    "external_compiler_and_system_dependencies"
+  ],
+  "integrated_rtl_admitted": false,
+  "production_baseline_admitted": false,
+  "publication_match_admitted": false,
+  "status": "COMPLETE_G_SOURCE_CHECKPOINT_NOT_HARDWARE_ADMISSION",
+  "study_kind": "native_geometry_complete_g"
+}
