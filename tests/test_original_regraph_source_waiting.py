@@ -9,14 +9,14 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_buil
 
 class SourceMemoryQueueTests(unittest.TestCase):
     def invoke(self, root, states, *, wait=30, sleep=None, build_error=None,
-               topology="original_example"):
+               topology="original_example", placement="author"):
         environment = root / "environment.json"
         if not environment.exists():
             environment.write_text('{"pins": []}')
         output = root / "queue"
 
         def build(*args, **kwargs):
-            self.assertEqual(kwargs, {"topology": topology})
+            self.assertEqual(kwargs, {"topology": topology, "placement": placement})
             if build_error:
                 raise build_error
             destination = args[-1]
@@ -37,7 +37,8 @@ class SourceMemoryQueueTests(unittest.TestCase):
             lease.return_value.sample.side_effect = states
             try:
                 result = waiting.run(root, root / "author", root / "audit", root / "control",
-                                     environment, output, wait_seconds=wait, topology=topology)
+                                     environment, output, wait_seconds=wait, topology=topology,
+                                     placement=placement)
             except (ValueError, TimeoutError, RuntimeError):
                 result = json.loads((output / "queue.json").read_text())
             return result, runner.call_count, lease.return_value.sample.call_args_list, sleeper.call_count
@@ -62,6 +63,13 @@ class SourceMemoryQueueTests(unittest.TestCase):
             result, calls, _, _ = self.invoke(Path(directory), [{"admitted": True}], topology="a4")
             self.assertEqual((result["configuration"], result["little"], result["big"]), ("a4", 4, 0))
             self.assertEqual(calls, 1)
+
+    def test_a4_placement_is_explicit_and_survives_the_memory_queue(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result, calls, _, _ = self.invoke(Path(directory), [{"admitted": True}],
+                                              topology="a4", placement="apply_slr0")
+            self.assertEqual((result["configuration"], result["placement"], calls),
+                             ("a4", "apply_slr0", 1))
 
     def test_unbounded_or_insufficient_peer_budget_never_starts_compiler(self):
         with tempfile.TemporaryDirectory() as directory:

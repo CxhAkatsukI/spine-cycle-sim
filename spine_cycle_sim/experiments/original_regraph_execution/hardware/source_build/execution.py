@@ -11,7 +11,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes, run_bounded
 from .. import artifact, checkpoint_run, control_delivery, study
-from . import configuration as config, gates, snapshot
+from . import configuration as config, gates, placement as physical, snapshot
 
 
 def runner_pins() -> list[dict]:
@@ -36,13 +36,15 @@ def prerequisites(audit: Path, control: Path) -> list[dict]:
 
 
 def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environment: Path,
-        output: Path, *, topology: str = config.DEFAULT_TOPOLOGY) -> dict:
+        output: Path, *, topology: str = config.DEFAULT_TOPOLOGY,
+        placement: str = physical.DEFAULT) -> dict:
+    physical.validate(topology, placement)
     little, big = config.counts(topology)
     kernels = config.kernels(topology)
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARED", "errors": [], "steps": [], "xos": [], "pins": [],
               "policy": config.POLICY, "clock_mhz": config.CLOCK_MHZ,
-              "configuration": topology, "little": little, "big": big,
+              "configuration": topology, "little": little, "big": big, "placement": placement,
               "board_programmed": False, "hardware_timing_measured": False, "publication_match": False,
               "claim": "clean_author_source_same_platform_clock_control_not_publication_reproduction"}
     lease = None
@@ -78,13 +80,18 @@ def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environ
         report["source_snapshot"] = prepared
         report["pins"] += prepared["pins"]
         source = Path(prepared["source"])
+        placed = physical.prepare(source, output, topology, placement)
+        report["physical_configuration"] = placed
+        report["pins"] += placed["pins"]
         entries = snapshot.prepare_entries(source, output, topology)
         report["pins"] += entries
         manifest = {"source": prepared, "defines": config.defines(topology), "clock_mhz": config.CLOCK_MHZ,
                     "configuration": topology, "little": little, "big": big,
+                    "physical_configuration": placed,
                     "compatibility_entries": entries, "legacy_uint": "unsigned int; sizeof == 4",
                     "compilations": {name: config.compile_command(source, output, name, topology) for name in kernels},
-                    "link": config.link_command(source, output, topology), "policy": config.POLICY,
+                    "link": config.link_command(source, output, topology,
+                                                connectivity=Path(placed["config"])), "policy": config.POLICY,
                     "compile_timeout_seconds": 1800, "link_timeout_seconds": 21600,
                     "pins": report["pins"]}
         atomic_write_json(output / "manifest.json", manifest)

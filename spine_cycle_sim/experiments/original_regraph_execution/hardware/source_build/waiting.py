@@ -9,12 +9,13 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from .. import artifact
-from . import configuration as config, execution, snapshot
+from . import configuration as config, execution, placement as physical, snapshot
 
 
 def run(root: Path, upstream: Path, audit: Path, control: Path,
         environment: Path, output: Path, *, wait_seconds: int,
-        topology: str = config.DEFAULT_TOPOLOGY) -> dict:
+        topology: str = config.DEFAULT_TOPOLOGY, placement: str = physical.DEFAULT) -> dict:
+    physical.validate(topology, placement)
     little, big = config.counts(topology)
     if type(wait_seconds) is not int or not 1 <= wait_seconds <= 86400:
         raise ValueError("memory wait must be between one second and one day")
@@ -23,7 +24,7 @@ def run(root: Path, upstream: Path, audit: Path, control: Path,
               "wait_seconds": wait_seconds, "poll_seconds": 10, "pins": [],
               "build_output": str(output / "build"), "board_programmed": False,
               "hardware_timing_measured": False, "publication_match": False,
-              "configuration": topology, "little": little, "big": big}
+              "configuration": topology, "little": little, "big": big, "placement": placement}
 
     def save():
         atomic_write_json(output / "queue.json", report)
@@ -53,7 +54,7 @@ def run(root: Path, upstream: Path, audit: Path, control: Path,
         save()
         # The real runner acquires its atomic lease again; a race fails closed.
         built = execution.run(root, upstream, audit, control, environment, output / "build",
-                              topology=topology)
+                              topology=topology, placement=placement)
         snapshot.unchanged(report["pins"])
         report["status"] = built["status"]
         report["build_result"] = artifact.identity(output / "build/results.json")

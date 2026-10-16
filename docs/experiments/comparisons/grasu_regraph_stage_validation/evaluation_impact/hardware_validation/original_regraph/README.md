@@ -333,6 +333,25 @@ The existing board supervisor stopped before programming. This is not an
 admitted A4 bitstream or a measured comparison; fixing the metadata checker
 does not waive physical timing. The original failure record is retained.
 
+The failing HBM response path is `hmss_0/inst/path_28/slice1_28/...dual_slr.resp`.
+The generated block-design interface maps bind path 28's `S01_AXI` to
+`kernelApply_1/m_axi_gmem2`, assigned to HBM[30]. This makes Apply's SLR1-to-SLR0
+memory crossing a concrete placement candidate, not proof that a move will
+close timing. The new opt-in `--topology a4 --placement apply_slr0` changes
+only `slr=kernelApply_1:SLR1` to `slr=kernelApply_1:SLR0` in a separate pinned
+connectivity file. The author snapshot, four Little placements, HBM banks,
+fourteen streams, clocks, algorithm macros and strict timing checks stay
+unchanged. Missing, duplicate or drifted author placement is rejected before
+build admission. This is a same-platform physical control, not the author's
+original placement or a publication reproduction. A fresh output and frozen
+worktree are required; the failed artifact is not modified or board-admitted.
+
+The placement/default-command/queue regression and all original-R tests pass
+218 tests in 1.024 seconds in a 1-GiB, zero-swap service (44.1-MiB peak).
+Fifteen organization tests and both documentation/catalog checks also pass.
+These are software regressions, not evidence of a successful route or board
+comparison. No numerical simulator model or paper figure changes here.
+
 The independent `codex/regraph-a4-board-control` worktree adds the actual
 four-lane host path without changing either frozen running builder. The
 board owner explicitly selects `a4` across the source manifest, four XO ABIs,

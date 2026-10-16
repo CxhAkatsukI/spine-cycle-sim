@@ -84,10 +84,11 @@ def compile_command(source: Path, output: Path, kernel: str,
             str(output / "entries" / (kernel + ".cpp"))]
 
 
-def link_command(source: Path, output: Path, topology: str = DEFAULT_TOPOLOGY) -> list[str]:
+def link_command(source: Path, output: Path, topology: str = DEFAULT_TOPOLOGY, *,
+                 connectivity: Path | None = None) -> list[str]:
     return [str(COMPILER), "--target", "hw", "--platform", str(PLATFORM), "--save-temps", "-O3",
             "--link", "--kernel_frequency", str(CLOCK_MHZ),
-            "--config", str(source / "acc_template/connectivity.cfg"),
+            "--config", str(connectivity if connectivity is not None else source / "acc_template/connectivity.cfg"),
             "--xp", "prop:solution.kernel_compiler_margin=10%",
             "--vivado.synth.jobs", "2", "--vivado.impl.jobs", "2", *directories(output, "link"),
             "-o", str(output / binary_name(topology)),

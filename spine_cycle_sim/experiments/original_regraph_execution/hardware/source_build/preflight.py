@@ -9,14 +9,16 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from .. import artifact
-from . import configuration as config, execution, snapshot
+from . import configuration as config, execution, placement as physical, snapshot
 
 
-def run(root: Path, upstream: Path, output: Path, *, topology: str = config.DEFAULT_TOPOLOGY) -> dict:
+def run(root: Path, upstream: Path, output: Path, *, topology: str = config.DEFAULT_TOPOLOGY,
+        placement: str = physical.DEFAULT) -> dict:
+    physical.validate(topology, placement)
     little, big = config.counts(topology)
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARED", "errors": [], "pins": [],
-              "configuration": topology, "little": little, "big": big,
+              "configuration": topology, "little": little, "big": big, "placement": placement,
               "compiler_launched": False, "board_programmed": False,
               "hardware_timing_measured": False, "publication_match": False}
 
@@ -41,12 +43,14 @@ def run(root: Path, upstream: Path, output: Path, *, topology: str = config.DEFA
         prepared = snapshot.prepare(root, upstream, output, topology)
         report["source_snapshot"] = prepared
         source = Path(prepared["source"])
+        placed = physical.prepare(source, output, topology, placement)
+        report["physical_configuration"] = placed
         entries = snapshot.prepare_entries(source, output, topology)
-        report["pins"] += prepared["pins"] + entries
+        report["pins"] += prepared["pins"] + placed["pins"] + entries
         report["commands_not_executed"] = {
             "compilations": {name: config.compile_command(source, output, name, topology)
                              for name in config.kernels(topology)},
-            "link": config.link_command(source, output, topology)}
+            "link": config.link_command(source, output, topology, connectivity=Path(placed["config"]))}
         snapshot.unchanged(report["pins"])
         report["status"] = "AUTHOR_TOPOLOGY_SNAPSHOT_PASS_AWAITING_COMPILE_ABI_ROUTE_BOARD"
     except BaseException as error:
@@ -65,9 +69,10 @@ def main() -> None:
     for name in ("upstream", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--topology", choices=tuple(config.TOPOLOGIES), default=config.DEFAULT_TOPOLOGY)
+    parser.add_argument("--placement", choices=physical.CHOICES, default=physical.DEFAULT)
     args = parser.parse_args()
     result = run(Path(__file__).resolve().parents[5], args.upstream.resolve(),
-                 args.output.resolve(), topology=args.topology)
+                 args.output.resolve(), topology=args.topology, placement=args.placement)
     print(result["status"], flush=True)
 
 

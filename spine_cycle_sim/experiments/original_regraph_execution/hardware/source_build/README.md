@@ -21,6 +21,7 @@ or changes a simulator timing multiplier.
 | --- | --- |
 | `configuration.py` | Explicit 11+3 and A4 topology, fixed signed-PR macros, isolated compiler directories and exact per-topology ABI |
 | `snapshot.py` | Clean pinned author revision, tracked-file snapshot, six permitted topology-generator outputs, separately pinned compatibility entries and unchanged identities |
+| `placement.py` | Optional A4 Apply-to-SLR0 physical control; preserve and pin both author and derived connectivity without changing algorithms, ports, clocks or timing constraints |
 | `apply_interface.tcl` | Explicit control-bundle binding for the author's otherwise implicit Apply `arg_reg`, without editing the author translation unit |
 | `gates.py` | Compiled arguments/macros/control protocol, HLS part/clock, routed HBM/CU/clock topology and strict setup/hold/pulse timing |
 | `topology.py` | Validate memory-bank bindings and AXIS endpoint pairs separately, including enabled/capacity/type checks |
@@ -136,3 +137,22 @@ Successful implementation is only
 `A4_R_ROUTED_CLOCK_TOPOLOGY_TIMING_PASS_AWAITING_BOARD`; guarded board
 correctness, repetitions, performance comparison and publication matching
 remain later gates. No board is programmed by this runner.
+
+## Placement-Only A4 Retry
+
+The default `--placement author` keeps the exact author-generated connectivity
+and original link command. `--topology a4 --placement apply_slr0` creates a
+separate `placement/connectivity.cfg` with exactly one changed record:
+`kernelApply_1` moves from SLR1 to SLR0. This addresses the candidate HBM
+cross-SLR path without lowering the 150-MHz clock or relaxing signoff.
+Both configs are pinned; the author snapshot remains unchanged. Little
+placements, stream depths, memory-bank assignments, XOs and algorithm macros
+are unchanged. This is explicitly a same-platform physical-placement control,
+not the author's original physical configuration or publication reproduction.
+
+This opt-in is restricted to A4 and must be selected before snapshot/queue
+creation. Missing, duplicate or drifted author Apply placement fails closed.
+Its route still needs the same complete setup/hold/pulse timing checks, and
+its board path still needs the corresponding artifact admission. Preparation
+or a compiler exit of zero alone is not acceptance. Use a fresh output path;
+never patch a frozen attempt or rewrite its failed result.
