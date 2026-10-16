@@ -8,7 +8,7 @@ best configuration or its original clock/platform performance.
 | Module | Responsibility |
 | --- | --- |
 | `configuration.py` | Six unique XOs, eighteen CUs, fixed signed-PR macros, isolated compiler directories and exact host ABI |
-| `snapshot.py` | Clean pinned author revision, tracked-file snapshot, six permitted topology-generator outputs and unchanged identities |
+| `snapshot.py` | Clean pinned author revision, tracked-file snapshot, six permitted topology-generator outputs, separately pinned compatibility entries and unchanged identities |
 | `gates.py` | Compiled arguments/macros/control protocol, HLS part/clock, routed HBM/CU/clock topology and strict setup/hold/pulse timing |
 | `execution.py` | Independent atomic finite-memory admission, sequential XO compilation, routing watchdog and retained failure/provenance |
 | `__main__.py` | Thin CLI |
@@ -16,8 +16,12 @@ best configuration or its original clock/platform performance.
 The author's topology generator runs under pinned Python 3.11 with
 `11 3 true false`. Its unused `from re import T` is incompatible with the
 system Python 3.13; selecting the earlier supported interpreter avoids
-editing author source. No device
-algorithm source is edited. `KERNEL_NUM=14` is explicit build bookkeeping;
+editing author source. The 2024.1 header environment also does not provide
+the legacy `uint` alias used by the author. Six separately generated entry
+translation units supply only `typedef unsigned int uint`, statically require
+four-byte width, then include the unchanged author translation unit. These
+entries live outside the author snapshot and are hash-pinned in the manifest.
+No device algorithm source is edited. `KERNEL_NUM=14` is explicit build bookkeeping;
 the original Makefile supplied an empty value and no device code uses it.
 The author mergers are free-running (`ap_ctrl_none`) with stream arguments
 only. Apply, wrapper and scatter/gather use `ap_ctrl_chain`; the guarded host

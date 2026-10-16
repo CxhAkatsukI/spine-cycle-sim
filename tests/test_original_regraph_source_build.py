@@ -1,6 +1,7 @@
 import copy
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -24,6 +25,7 @@ class SourceBuildConfigurationTests(unittest.TestCase):
             self.assertEqual(command[command.index("--kernel") + 1], name)
             self.assertEqual(command[command.index("--kernel_frequency") + 1], "150")
             self.assertEqual(command[command.index("-o") + 1], str(output / "xo" / (name + ".hw.xo")))
+            self.assertEqual(command[-1], str(output / "entries" / (name + ".cpp")))
             directories.add(command[command.index("--temp_dir") + 1])
             for key, value in config.DEFINES.items():
                 self.assertIn(f"-D{key}={value}", command)
@@ -168,6 +170,33 @@ class SourceBuildGateTests(unittest.TestCase):
 
 
 class SourceBuildSnapshotTests(unittest.TestCase):
+    def test_compatibility_entries_preserve_source_and_pin_exact_32_bit_alias(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, output = root / "author source", root / "run"
+            output.mkdir()
+            before = []
+            for relative, _ in config.KERNELS.values():
+                path = source / "acc_template" / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("uint author_identity(uint value) { return value; }\n")
+                before.append(artifact.identity(path))
+            entries = snapshot.prepare_entries(source, output)
+            self.assertEqual(len(entries), 6)
+            snapshot.unchanged(before + entries)
+            for name, (relative, _) in config.KERNELS.items():
+                entry = output / "entries" / (name + ".cpp")
+                self.assertEqual(entry.read_text(),
+                    'typedef unsigned int uint;\n'
+                    'static_assert(sizeof(uint) == 4, "legacy uint must remain 32-bit");\n'
+                    f'#include "{source / "acc_template" / relative}"\n')
+            if Path("/usr/bin/c++").exists():
+                subprocess.run(["/usr/bin/c++", "-std=c++11", "-fsyntax-only", str(entry)],
+                               check=True, capture_output=True, timeout=20)
+            entry.write_text("changed")
+            with self.assertRaises(ValueError):
+                snapshot.unchanged(entries)
+
     def test_snapshot_allows_only_declared_author_generated_outputs(self):
         for mode in ("allowed", "algorithm_edit", "added_file", "source_drift"):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:

@@ -328,3 +328,16 @@ unused `re.T` import. Its raw logs and zero-OOM memory events remain intact.
 The runner now explicitly pins Python 3.11, the interpreter used by the
 earlier original-source controls; author algorithm and generator sources
 are unchanged. A retry uses a new unit and output directory.
+
+The second attempt, `original-r-source-route-v2`, passed that generator and
+launched HLS, but stopped at C++ analysis because the current header environment
+does not define the author's legacy `uint` type. It was memory-admitted with
+133.537 GiB available against 112 GiB required, reached a 681.7-MiB cgroup
+peak, and recorded zero high/max/OOM events. This is a compiler-compatibility
+failure, not a placement, routing, correctness or performance result.
+
+The next attempt supplies a four-byte `unsigned int` alias in separate,
+hash-pinned entry translation units, then includes unchanged author source.
+No algorithm, pipeline, port, timing threshold or upstream file is modified.
+The regression checks the exact entry text, author-source identities, normal
+C++ type compilation and rejection of entry drift.

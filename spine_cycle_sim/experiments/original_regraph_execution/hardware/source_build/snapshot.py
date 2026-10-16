@@ -7,7 +7,7 @@ import subprocess
 from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 from spine_cycle_sim.experiments.upstream_controls.sources import GENERATED_FILES, read_pins
 from .. import artifact, sources
-from .configuration import GENERATOR_PYTHON
+from .configuration import GENERATOR_PYTHON, KERNELS
 
 
 def tracked_files(source: Path) -> list[str]:
@@ -26,6 +26,24 @@ def tracked_files(source: Path) -> list[str]:
 def unchanged(pins: list[dict]) -> None:
     if any(artifact.identity(Path(pin["path"])) != pin for pin in pins):
         raise ValueError("frozen build source, tool, environment or artifact changed")
+
+
+def prepare_entries(source: Path, output: Path) -> list[dict]:
+    """Supply the legacy unsigned-int alias without altering author source."""
+    destination = output / "entries"
+    destination.mkdir()
+    pins = []
+    for name, (relative, _) in KERNELS.items():
+        author = source / "acc_template" / relative
+        artifact.identity(author)
+        if any(character in str(author) for character in ('"', "\\", "\n", "\r")):
+            raise ValueError("author include path cannot be represented literally")
+        target = destination / (name + ".cpp")
+        target.write_text('typedef unsigned int uint;\n'
+                          'static_assert(sizeof(uint) == 4, "legacy uint must remain 32-bit");\n'
+                          f'#include "{author}"\n')
+        pins.append(artifact.identity(target))
+    return pins
 
 
 def prepare(root: Path, upstream: Path, output: Path) -> dict:

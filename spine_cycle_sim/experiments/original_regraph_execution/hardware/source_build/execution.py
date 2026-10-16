@@ -74,7 +74,10 @@ def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environ
         report["source_snapshot"] = prepared
         report["pins"] += prepared["pins"]
         source = Path(prepared["source"])
+        entries = snapshot.prepare_entries(source, output)
+        report["pins"] += entries
         manifest = {"source": prepared, "defines": config.DEFINES, "clock_mhz": config.CLOCK_MHZ,
+                    "compatibility_entries": entries, "legacy_uint": "unsigned int; sizeof == 4",
                     "compilations": {name: config.compile_command(source, output, name) for name in config.KERNELS},
                     "link": config.link_command(source, output), "policy": config.POLICY,
                     "compile_timeout_seconds": 1800, "link_timeout_seconds": 21600,

@@ -42,7 +42,7 @@ def compile_command(source: Path, output: Path, kernel: str) -> list[str]:
             "-D_GTHREAD_USE_COND_INIT_FUNC", *[f"-D{key}={value}" for key, value in DEFINES.items()],
             *["-I" + str(path) for path in includes], *directories(output, "compile/" + kernel),
             "-o", str(output / "xo" / (kernel + ".hw.xo")),
-            str(source / "acc_template" / relative)]
+            str(output / "entries" / (kernel + ".cpp"))]
 
 
 def link_command(source: Path, output: Path) -> list[str]:
