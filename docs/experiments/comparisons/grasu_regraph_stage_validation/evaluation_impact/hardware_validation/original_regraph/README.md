@@ -341,3 +341,18 @@ hash-pinned entry translation units, then includes unchanged author source.
 No algorithm, pipeline, port, timing threshold or upstream file is modified.
 The regression checks the exact entry text, author-source identities, normal
 C++ type compilation and rejection of entry drift.
+
+At the next launch checkpoint, `original-r-source-route-v3` was independently
+admitted with 133.491 GiB available against 112 GiB required, including the
+still-running G build's full 40-GiB budget. Its own limits are 40-GiB hard,
+36-GiB high, zero swap, four CPU equivalents, explicit CPU affinity 120--123
+and a ten-hour service lifetime. The Apply compiler passed the previously
+failing source-analysis step. Both concurrent services had zero high/max/OOM
+events at inspection. This records a running build, not completed routing or
+hardware admission; terminal status and logs belong to that raw run.
+
+The compatibility regression in `verification-original-r-source-v3/` passes
+165 original-ReGraph tests, 15 organization tests, document-layout/catalog
+checks and whitespace checks. The bounded check service used a 2-GiB hard
+limit, zero swap and a 52.8-MiB peak. No simulator numerical code, paper or
+figure data changed.
