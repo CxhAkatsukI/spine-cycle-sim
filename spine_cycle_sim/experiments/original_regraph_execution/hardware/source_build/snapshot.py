@@ -43,6 +43,12 @@ def prepare_entries(source: Path, output: Path) -> list[dict]:
                           'static_assert(sizeof(uint) == 4, "legacy uint must remain 32-bit");\n'
                           f'#include "{author}"\n')
         pins.append(artifact.identity(target))
+    directive = Path(__file__).with_name("apply_interface.tcl")
+    copied = destination / directive.name
+    before = artifact.identity(directive)
+    shutil.copy2(directive, copied)
+    unchanged([before])
+    pins += [before, artifact.identity(copied)]
     return pins
 
 

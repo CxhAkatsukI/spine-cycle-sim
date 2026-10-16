@@ -26,6 +26,10 @@ class SourceBuildConfigurationTests(unittest.TestCase):
             self.assertEqual(command[command.index("--kernel_frequency") + 1], "150")
             self.assertEqual(command[command.index("-o") + 1], str(output / "xo" / (name + ".hw.xo")))
             self.assertEqual(command[-1], str(output / "entries" / (name + ".cpp")))
+            self.assertEqual("--hls.pre_tcl" in command, name == "kernelApply")
+            if name == "kernelApply":
+                self.assertEqual(command[command.index("--hls.pre_tcl") + 1],
+                                 str(output / "entries/apply_interface.tcl"))
             directories.add(command[command.index("--temp_dir") + 1])
             for key, value in config.DEFINES.items():
                 self.assertIn(f"-D{key}={value}", command)
@@ -182,8 +186,11 @@ class SourceBuildSnapshotTests(unittest.TestCase):
                 path.write_text("uint author_identity(uint value) { return value; }\n")
                 before.append(artifact.identity(path))
             entries = snapshot.prepare_entries(source, output)
-            self.assertEqual(len(entries), 6)
+            self.assertEqual(len(entries), 8)
             snapshot.unchanged(before + entries)
+            directive = output / "entries/apply_interface.tcl"
+            self.assertEqual(directive.read_text(),
+                "set_directive_interface -mode s_axilite -bundle control kernelApply arg_reg\n")
             for name, (relative, _) in config.KERNELS.items():
                 entry = output / "entries" / (name + ".cpp")
                 self.assertEqual(entry.read_text(),

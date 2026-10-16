@@ -356,3 +356,14 @@ The compatibility regression in `verification-original-r-source-v3/` passes
 checks and whitespace checks. The bounded check service used a 2-GiB hard
 limit, zero swap and a 52.8-MiB peak. No simulator numerical code, paper or
 figure data changed.
+
+That v3 launch subsequently stopped at HLS interface checking: Apply's
+implicit `arg_reg` was placed into the new tool's default `control_r` bundle,
+conflicting with the author's explicit `control` bundle. The source-analysis
+pass did not mean completed synthesis. Its retained logs report error
+`HLS 214-219`; the 25.364-second compiler run produced no admitted XO and
+recorded no memory-limit/OOM events. A separately pinned pre-synthesis Tcl
+directive now explicitly binds that argument to `control`. The author
+translation unit remains unchanged; no arithmetic, stream, data-memory port,
+schedule or timing threshold is adjusted. The next attempt uses a fresh
+output directory again.

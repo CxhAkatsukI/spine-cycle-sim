@@ -9,6 +9,7 @@ best configuration or its original clock/platform performance.
 | --- | --- |
 | `configuration.py` | Six unique XOs, eighteen CUs, fixed signed-PR macros, isolated compiler directories and exact host ABI |
 | `snapshot.py` | Clean pinned author revision, tracked-file snapshot, six permitted topology-generator outputs, separately pinned compatibility entries and unchanged identities |
+| `apply_interface.tcl` | Explicit control-bundle binding for the author's otherwise implicit Apply `arg_reg`, without editing the author translation unit |
 | `gates.py` | Compiled arguments/macros/control protocol, HLS part/clock, routed HBM/CU/clock topology and strict setup/hold/pulse timing |
 | `execution.py` | Independent atomic finite-memory admission, sequential XO compilation, routing watchdog and retained failure/provenance |
 | `__main__.py` | Thin CLI |
@@ -21,6 +22,10 @@ the legacy `uint` alias used by the author. Six separately generated entry
 translation units supply only `typedef unsigned int uint`, statically require
 four-byte width, then include the unchanged author translation unit. These
 entries live outside the author snapshot and are hash-pinned in the manifest.
+One separately pinned HLS pre-synthesis directive assigns Apply's implicit
+`arg_reg` to the same `control` AXI-Lite bundle as its other scalar arguments.
+This avoids the 2024.1 default `control_r` bundle conflict; it changes no
+arithmetic, loop, stream, data-memory port or scheduling directive.
 No device algorithm source is edited. `KERNEL_NUM=14` is explicit build bookkeeping;
 the original Makefile supplied an empty value and no device code uses it.
 The author mergers are free-running (`ap_ctrl_none`) with stream arguments

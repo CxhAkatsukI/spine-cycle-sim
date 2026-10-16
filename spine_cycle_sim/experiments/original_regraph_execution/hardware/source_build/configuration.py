@@ -37,10 +37,12 @@ def compile_command(source: Path, output: Path, kernel: str) -> list[str]:
                                           "acc_template/common", "acc_udfs")]
     includes += [source / "acc_template" / Path(relative).parent,
                  Path("/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc")]
+    directives = (["--hls.pre_tcl", str(output / "entries/apply_interface.tcl")]
+                  if kernel == "kernelApply" else [])
     return [str(COMPILER), "--target", "hw", "--platform", str(PLATFORM), "--save-temps", "-O3",
             "--kernel_frequency", str(CLOCK_MHZ), "--compile", "--kernel", kernel,
             "-D_GTHREAD_USE_COND_INIT_FUNC", *[f"-D{key}={value}" for key, value in DEFINES.items()],
-            *["-I" + str(path) for path in includes], *directories(output, "compile/" + kernel),
+            *["-I" + str(path) for path in includes], *directives, *directories(output, "compile/" + kernel),
             "-o", str(output / "xo" / (kernel + ".hw.xo")),
             str(output / "entries" / (kernel + ".cpp"))]
 
