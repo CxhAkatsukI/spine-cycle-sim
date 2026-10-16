@@ -15,6 +15,7 @@ before the next poll. The source invocation ID is still checked independently.
 | `worker.py` | Hold one nonblocking board lease, forward its FD and exact BDF to bounded host children, record every attempt |
 | `analysis.py` | Verify all selected replicas, padding/guards, independent oracle, kernel event identities and overlap-aware timing |
 | `supervisor.py` | Wait for the exact service invocation, atomically admit memory, contain execution and recheck every raw result |
+| `delivery.py` | Independently replay raw output/route checks, retain failed attempts, seal and verify a portable measured-control capsule |
 | `__main__.py` | Thin CLI requiring explicit `--execute` |
 
 ## Fixed Scope
@@ -74,6 +75,7 @@ systemd-run --user --unit=original-r-board-fresh \
   -p MemoryMax=8G -p MemoryHigh=7G -p MemorySwapMax=0 -p OOMPolicy=kill \
   -p CPUQuota=200% -p RuntimeMaxSec=111600 -p TasksMax=256 \
   -p TimeoutStopSec=30 -p KillMode=control-group \
+  --setenv=XILINX_XRT=/opt/xilinx/xrt \
   --working-directory="$PWD" \
   /usr/bin/taskset -c 124,125 /usr/bin/python3 -m \
   spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution \
@@ -88,6 +90,12 @@ systemd-run --user --unit=original-r-board-fresh \
 For A4 add `--topology a4` and supply the distinct generated-A4 source build
 and the new A4-capable validated host. Adding the flag cannot authorize the
 11+3 prebuilt or bypass route/clock/timing admission.
+
+Use the exact Xilinx OpenCL library admitted by `control_build.py` and set
+`XILINX_XRT` explicitly in the service. Generic `-lOpenCL` may resolve to an
+unrelated CUDA ICD; a correctly linked host can also fail to enumerate the
+Xilinx platform if the service lacks this environment variable. Neither
+startup failure is a performance measurement.
 
 ## Retained Analysis Failure Review
 
@@ -119,3 +127,10 @@ Do not edit hash-pinned runner files after starting either queue. Source build,
 board matrix, matched A4, actual adapter/K4 and publication comparison remain
 separate acceptance gates. See the [campaign guide](../../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/original_regraph/README.md)
 for actual run status and retained failures.
+
+After a terminal pass, `python3 -m
+spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution.delivery
+--help` describes sealing a fresh capsule. Packaging rechecks all binary
+replicas and the exact routed evidence before archiving compact JSON/text
+records. Large graphs, binary outputs and vendor artifacts stay externally
+hash-indexed; portable verification does not claim to rerun those outputs.

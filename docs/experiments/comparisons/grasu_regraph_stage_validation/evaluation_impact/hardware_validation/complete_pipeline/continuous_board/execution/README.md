@@ -157,13 +157,22 @@ and both host reports confirmed that only that manifest changed, not the
 kernel sources, host binaries, inputs or dependencies. The failed report
 remains unchanged at `g-gr-board-supervisor-v2/`.
 
-The fresh `spine-g-gr-board-20261016-v3.service`, invocation
+The previous `spine-g-gr-board-20261016-v3.service`, invocation
 `7fc3dc0aa67e4fa08981ebb73d65ed95`, starts after that append and pins the final
 manifest. It follows only G route v2, invocation
 `49a3071d4a9244ff8f83e3429295d2a1`, from the frozen `08f8842` runtime.
 Its raw directory is `g-gr-board-supervisor-v3/`; status is
-`WAITING_FOR_REQUIRED_ROUTE`, with `board_started: false`. The service has
-8-GiB hard/7-GiB high/no-swap/group-OOM limits, a 48-hour lifetime and a
-133,200-second route-wait bound. Future queues using this frozen supervisor
-must start after the route has appended its preflight pin. This lifecycle
-requirement does not permit ignoring any later manifest or source change.
+`WAITING_FOR_REQUIRED_ROUTE`, with `board_started: false`. It was deliberately
+stopped while still waiting, before any board work, to make the XRT environment
+explicit. Its final waiting record is retained, not promoted to a measurement.
+
+Current `spine-g-gr-board-20261016-v4.service`, invocation
+`a8b29a8b7fee4c87bc0e86ccf2ef7da7`, follows the same exact G route v2 from
+the same frozen `08f8842` runtime. Its raw directory is
+`g-gr-board-supervisor-v4/`, with `XILINX_XRT=/opt/xilinx/xrt` explicitly set.
+It still waits for the required route, with no board matrix measured. The
+service has 8-GiB hard/7-GiB high/no-swap/group-OOM limits, a 48-hour lifetime
+and a 133,200-second route-wait bound. Future queues using this frozen
+supervisor must start after the route has appended its preflight pin. This
+lifecycle requirement does not permit ignoring later manifest/source changes
+or accepting incomplete production-G metadata/backpressure validation.

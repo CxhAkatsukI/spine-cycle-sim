@@ -6,8 +6,13 @@
 The portable [evidence index](evidence/index.json) seals the raw observations,
 metadata, reviewed author source files, audited runner and retained failures.
 It is not FPGA execution, a timing calibration or a publication-speed match.
-No board was programmed by this study. The complete-new-G route and its
-conditional board queue can run concurrently with this independent work.
+No board was programmed by that offline audit. The subsequent
+[guarded board matrix](board_matrix/README.md) passes all eighteen actual
+11-Little/3-Big runs at 150 MHz, including independent output and timing
+checks. It is a static one-superstep same-platform control, **not** a paper
+performance reproduction or convergence comparison. A4's distinct placement
+retry and board queue remain pending. The diagnostic G route runs concurrently
+when complete memory budgets fit; it is not the production-G candidate.
 
 | Question | Result | Still required |
 | --- | --- | --- |
@@ -17,7 +22,7 @@ conditional board queue can run concurrently with this independent work.
 | What is the prebuilt's DATA clock? | Metadata says 215 MHz, not its requested 230 MHz | Checkpoint, timing-clock and bitstream identity pairing |
 | Is the 11-Little/3-Big prebuilt admitted? | No | Source/ABI identity, clock/timing and guarded board validation |
 | Is this the paper's graph-selected best configuration? | Not established | Original publication platform, topology, window and denominator |
-| Is the guarded host implemented and validated? | Yes, compilation and 48 offline runs | Admitted artifact and actual board execution |
+| Is the guarded host implemented and validated? | Exact Xilinx-linked host passes 48 offline rows; fresh 11+3 source artifact passes eighteen board runs | A4's distinct artifact/matrix and actual adapter/K4 comparison |
 
 The allocation finding was already reported by the earlier
 [mixed source control](../../../MIXED_GRAPH_EXECUTION.md). This checkpoint
@@ -132,17 +137,16 @@ repository test suite is claimed by this offline checkpoint.
 
 ## Next Hardware Gates
 
-1. Bind a clean author device/ABI identity to an admitted implemented clock,
-   or route a freshly frozen original-R candidate; keep A4 separate from A.
-2. Execute the now-implemented guarded fixed-BDF host against an admitted
-   artifact. Its offline checks do not validate DMA, device execution or
-   the board ABI. Keep the two divisor controls separately labeled.
-3. Validate its complete resident compute span and per-kernel event records
-   on the board, not only the author's late timer or a sum of overlapping
-   lanes. Host preparation remains separate; use declared repeats and
-   retain every failure.
-4. Only then compare original R, resource-disclosed A4 and actual adapter/K4;
-   publication reproduction and Spine speedup remain later, separate gates.
+1. Preserve the completed fresh 150-MHz 11+3 artifact, eighteen raw board
+   rows and explicit divisor controls. The older prebuilt remains unadmitted.
+2. Finish A4's distinct placement retry and complete eighteen-row matrix;
+   11+3 success does not authorize A4 or replace its strict timing checks.
+3. Compare original R, resource-disclosed A4 and actual adapter/K4 with
+   matching inputs, semantics and resident windows. Keep overlapping device
+   event spans separate from host enqueue-to-completion wall time.
+4. Establish the original publication's platform/configuration/window and
+   denominator before claiming a paper-speed match. Dynamic convergence,
+   host-inclusive G+R and Spine speedup remain separate later gates.
 
 ## Independent Read-Only Checkpoint Probe
 

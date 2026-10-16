@@ -1,0 +1,116 @@
+{
+  "attempts": [
+    {
+      "archive": "g-production-resource-fit-v1.tar.gz",
+      "attempt": "g-production-resource-fit-v1",
+      "bytes": 23652,
+      "external_input_pins": [],
+      "files": [
+        {
+          "bytes": 21459,
+          "path": "results.json",
+          "sha256": "80d71ba757e19ecdc3841ce8a18da9c5fba3e7321839ebfaaf94a0691676a5ce"
+        },
+        {
+          "bytes": 7796,
+          "path": "source/capacity.json",
+          "sha256": "f16198b257f30132bae508637943046c7198546323a488d8b98369edff3016b9"
+        },
+        {
+          "bytes": 31306,
+          "path": "source/hls/bin_search.xml",
+          "sha256": "6c29fa6c15bacf213907cb6b26141cd404c57c5eb320a0a121c4c6ed1ca7802f"
+        },
+        {
+          "bytes": 20815,
+          "path": "source/hls/dispatch.xml",
+          "sha256": "84f27868724ff4cc4b7992d80d180c89d0c977ce99fb9161b20f8278db8a239c"
+        },
+        {
+          "bytes": 21614,
+          "path": "source/hls/kernelApply.xml",
+          "sha256": "9164bd95dfeb48ecdfae6f7dab8e8eae7bbf11b606d07c9988460714b90e5092"
+        },
+        {
+          "bytes": 68383,
+          "path": "source/hls/kernelHBMWrapper.xml",
+          "sha256": "9de5f62055769dc37f747a0b48783374b74ee4de1186a8879b4f79a1ed60e3bc"
+        },
+        {
+          "bytes": 5939,
+          "path": "source/hls/kernelLittleGSMerger.xml",
+          "sha256": "a493fa6de9fecc5130b9862129570b5c57d79c757543e64972f955baf6a5892d"
+        },
+        {
+          "bytes": 13576,
+          "path": "source/hls/lksg_stream.xml",
+          "sha256": "3b45fc539dc8e429acdc798e05dd384b008055a61f27e06cb4bd36e1a7121348"
+        },
+        {
+          "bytes": 12850,
+          "path": "source/hls/pma_completion_barrier.xml",
+          "sha256": "35d1120c8aaaba8eab489f94b081045ed7db1b4d08ca9747ea69ee6f478da750"
+        },
+        {
+          "bytes": 19203,
+          "path": "source/hls/pma_to_regraph_adapter.xml",
+          "sha256": "5beee7d667464a3527a733140968bcce7078a9e46a8fdc2d1156454dae08ca94"
+        },
+        {
+          "bytes": 20800,
+          "path": "source/hls/process_cache.xml",
+          "sha256": "0c96d6ebffe8dfde84e9bfc0bb9af543e9a57e9347874dc766e5c52279d66a90"
+        },
+        {
+          "bytes": 54255,
+          "path": "source/hls/process_ddr.xml",
+          "sha256": "2fe4c12d2676b7e154b119feb6479fbba9d9d8e1e6765cb5ed3fbd2dd5b43b67"
+        },
+        {
+          "bytes": 14392,
+          "path": "source/hls/regraph_frontend_mux.xml",
+          "sha256": "dcc946f377ae7b9ffc8b45b4480c3c3779d22157caa29ff163e8d7c146ec66c3"
+        },
+        {
+          "bytes": 8293,
+          "path": "source/link.cfg",
+          "sha256": "39efa2d847162647fa674d600787e7471d1789254c476ecf387c56db707b7ac9"
+        },
+        {
+          "bytes": 56,
+          "path": "source/platform/platform_uram_capacity.csv",
+          "sha256": "6114d60714b906645d9d97323945b358bcff9ef5ddbbc7d4cdef715d44c2b6ae"
+        },
+        {
+          "bytes": 9019,
+          "path": "source/platform/results.json",
+          "sha256": "72bf02cc30a8f57406c27f9e366cc79bd5cfcc266c47ff8c9ebf0bb39b45ebd4"
+        },
+        {
+          "bytes": 8835,
+          "path": "source/runner/resource_fit.py",
+          "sha256": "225eac36c7ef779276200d9676d6aaabd8eaa1c0a529b91f37fd2416f9996c90"
+        },
+        {
+          "bytes": 6612,
+          "path": "source/runner/resource_probe.py",
+          "sha256": "0077c79b518a63c50cc7a77d2baf217fd2c104906891adfc6f006a876e6f1fcb"
+        },
+        {
+          "bytes": 56,
+          "path": "source/uram_capacity.csv",
+          "sha256": "6114d60714b906645d9d97323945b358bcff9ef5ddbbc7d4cdef715d44c2b6ae"
+        }
+      ],
+      "kind": "ledger",
+      "sha256": "0be78d91bc42a73111b01a4657aa0cdfa5af922b6956e9a8825f60ce967892d0",
+      "source": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-production-resource-fit-v1",
+      "status": "PLATFORM_URAM_PLACEMENT_CONFLICT_REQUIRES_NEW_CONFIG"
+    }
+  ],
+  "complete_g_resource_fit_admitted": false,
+  "hardware_timing_admitted": false,
+  "platform_free_capacity_admitted": false,
+  "publication_match_admitted": false,
+  "status": "COMPLETE_G_STORAGE_SCREEN_NOT_ROUTING_OR_BOARD_ADMISSION"
+}

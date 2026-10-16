@@ -26,6 +26,17 @@ LUT estimates are 313826 / 250205; SLR2 is unchanged.
 
 ## Retained Evidence
 
+The separate [production component screen](production/index.json) rederives
+all eleven reports using the current production search/cache exports, not
+the older diagnostic-route component exports. It retains 768 URAM and 1132
+BRAM_18K in total; LUT/FF sums are 922343 / 611254. The original placement
+still requires 384 / 64 / 320 URAMs. The same single-CU relocation changes
+that to 320 / 128 / 320, with LUT sums 313161 / 249684 / 359498 and BRAM_18K
+sums 404 / 426 / 302. This is a fresh storage screen, **not** full resource
+fit, integrated metadata/backpressure validation, production routing or board
+admission. Its raw attempt is `g-production-resource-fit-v1`; the older
+diagnostic screen and all its numbers below remain unchanged.
+
 The [index](index.json) pins five portable archives, including their frozen
 runners, reports, CSVs, source/configuration and raw tool output:
 
@@ -52,6 +63,7 @@ From the simulator repository root:
 
 ```bash
 python3 -c 'from pathlib import Path; from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.resource_delivery import verify; verify(Path("docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/complete_pipeline/resource_evidence"))'
+python3 -c 'from pathlib import Path; from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.resource_delivery import verify; verify(Path("docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/complete_pipeline/resource_evidence/production"))'
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.resource_probe --help
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.resource_fit --help
 ```
