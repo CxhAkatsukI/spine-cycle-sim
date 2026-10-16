@@ -25,8 +25,9 @@ The owner is
 `spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/`:
 `preparation.py` owns identities, the fixed matrix and compilation commands;
 `study.py` owns bounded execution; `diagnostics.py` reviews structured compiler
-output; `analysis.py` accepts only the offline output contract. The CLI is
-`python3 -m` on that package.
+output; `analysis.py` accepts only the offline output contract. `recheck.py`
+replays terminal acceptance from raw logs; `delivery.py` owns the bounded
+portable capsule. The execution CLI is `python3 -m` on that package.
 
 The host build preserves full `GRASU_MAX_CACHE_SEGMENT=131072` capacity and
 enables `GRASU_REGRAPH_HOST_ROW_LINE_READ=1` for the optimized adapter layout.
@@ -111,30 +112,70 @@ attempt intact and choose a fresh output path for a retry.
 
 ## Checkpoint
 
-The readiness runner has twenty-two focused unit tests, including immediate
-admission with another FPGA tool running, memory-wait timeout, drift, smoke
-failure, full-case failure retention, exact matrix coverage and strict compiler
-diagnostic classification. Mocked runner
-tests do not compile hosts, operate FPGA hardware or validate large graphs.
-The first live attempt is `fullgraph-host-readiness-v1` under the campaign
-root in the reproduction command above. It freezes simulator revision
-`7a2165b` and production revision
+Thirty focused unit tests cover execution, analysis and portable delivery,
+including immediate admission with another FPGA tool running, memory-wait
+timeout, drift, smoke failure, full-case failure retention, exact matrix
+coverage, strict compiler diagnostics and inconsistent archived evidence.
+Mocked runner tests do not compile hosts, operate FPGA hardware or validate
+large graphs. Fifteen repository-organization tests also pass.
+
+The first live attempt, `fullgraph-host-readiness-v1`, was admitted and stopped
+at its compiler-output gate at 2026-10-16 02:39 UTC. Compilation exited
+successfully; the only stderr was the upstream `CL/cl2.hpp` rename note. No
+smokes or full-graph cases ran. Its failed report and raw output are preserved.
+The real failure capsule in `fullgraph-delivery-preflight-v1` under the campaign
+root passes portable verification, without promoting the attempt to success.
+
+The fresh `fullgraph-host-readiness-v2` uses structured diagnostic review and
+otherwise keeps the same production revision, matrix, memory policy, compiler
+optimization and offline-only boundary. It freezes simulator revision
+`907ac6de705171d7aa758a3d9ee8996920e04c7f` and production revision
 `6f5ebf2b0679f04f4f6e035e850fce7b6043a660`. Its service is
-`spine-fullgraph-readiness-20261016-v1.service`, invocation
-`f75292d58f964a2689a6d0941567f22a`.
+`spine-fullgraph-readiness-20261016-v2.service`, invocation
+`ab16c4f930eb4b649ec7f58e7dea18f1`.
 
-At the 2026-10-16 02:03 UTC checkpoint, the queue reports
-`WAITING_FOR_MEMORY_NOT_FOR_OTHER_TOOLS_TO_EXIT`, with no child compilation,
-smoke or full-graph preparation launched. Available memory is approximately
-90--95 GiB, below the two-peer 136-GiB threshold. Separate container FPGA
-processes also fail the finite-budget/zero-swap admission check; their
-processes and limits are not changed by this study. The already admitted G
-and original-R builds continue concurrently. This is a launch checkpoint,
-not a full-graph preparation pass. Read the live report for subsequent state.
+At the 2026-10-16 03:29 UTC checkpoint, all three six-partition smokes and
+18/24 full-graph preparations have passed; LJ08 SSSP is running. AU, SU, WK,
+SO, PK and LJ have passed all three algorithms. No errors or OOM events have
+been recorded. This is still an incomplete CPU-preparation matrix, not a
+hardware measurement or a final readiness pass. Read the live `results.json`
+and terminal service state for subsequent progress. Count only `PASS` rows:
+the saved `cases` array can also contain one active `RUNNING` row.
 
-The v1 attempt was subsequently admitted and stopped at its compiler-output
-gate at 2026-10-16 02:39 UTC. Compilation exited successfully; the only stderr
-was the upstream `CL/cl2.hpp` rename note. No smokes or full-graph cases ran.
-The failed attempt is preserved. The fresh v2 attempt uses structured diagnostic
-review and otherwise keeps the same production revision, matrix, memory policy,
-compiler optimization and offline-only boundary. A queued v2 is not a pass.
+## Portable Evidence
+
+Only terminal reports can be packaged. Keep v1's compiler-output gate failure
+and the complete v2 outcome together; a successful compiler exit in v1 does
+not retroactively admit that attempt. The capsule contains each report,
+all raw logs/resource records, copied production sources, frozen Python
+runners, smoke graphs and dependency lists. Large graph inputs, compiled hosts
+and toolchain/system dependencies remain SHA-256-indexed in the original
+reports rather than copied into Git.
+
+```bash
+campaign=/data/chuxiao/experiments/baseline_hardware_validation_20261015
+python3 -m spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.delivery build \
+  --attempt "$campaign/fullgraph-host-readiness-v1" \
+  --attempt "$campaign/fullgraph-host-readiness-v2" \
+  --destination /path/to/fresh-fullgraph-evidence
+
+python3 -m spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.delivery verify \
+  --destination /path/to/fresh-fullgraph-evidence
+```
+
+The verifier reads the archive directly without extracting it or accessing the
+original machine-local paths. It checks membership, hashes, frozen snapshots,
+terminal status, complete ordered matrix, child resource records, full-cache
+compiler commands, reviewed compiler diagnostics and exact prepare-only
+commands. Every saved passing case is analyzed again from raw stdout/stderr.
+The index cannot promote CPU preparation into hardware timing or baseline
+admission. This replays **acceptance of recorded outputs**; it does not rerun
+the CPU oracle, reconstruct omitted graph inputs or validate FPGA execution.
+
+Packaging uses a fresh destination, rejects symlinks and file drift, and
+bounds the capsule to 64 MiB. Run it in a bounded no-swap scope while FPGA
+builds continue; there is no reason to wait for those tools to exit if the
+small packaging budget and reserve fit. The focused delivery tests cover
+portable verification after removing the live attempt path, retained compiler
+failure, missing rows, changed commands/capacity, resource-log disagreement,
+rehashed inconsistent outputs, source drift and false board claims.
