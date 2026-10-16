@@ -278,3 +278,44 @@ changed, so this checkpoint does not claim a new SST build or calibration.
 execution, comparison with the actual adapter/K4 path, publication-speed
 reproduction and the later Spine matrix. No new FPGA speedup, simulator
 calibration or Fig. 7--11 result is claimed by these offline controls.
+
+## Fresh Source Build
+
+The separate [source-build owner](../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/source_build/README.md)
+compiles the clean pinned author revision after invoking only its topology
+generator for 11 Little and 3 Big pipelines. This is a U55C, 150-MHz
+same-platform control, not a reproduction of the publication's original
+clock or graph-selected best configuration. No device algorithm edits or
+simulator timing changes are included.
+
+It requires the passing six-input audit and 48-run offline guarded-host
+validation, freezes all source/tool/environment identities, and separately
+checks the six XO ABIs, HLS target, eighteen implemented CUs, author HBM
+mapping, actual DATA clock and strict setup/hold/pulse timing. The mergers
+are free-running stream-only kernels; the remaining kernels use the author's
+chain-control ABI. XRT's `MEM_DRAM` representation of some U55C HBM banks is
+accepted only with the pinned U55C platform, correct HBM tags, enabled banks
+and 512-MiB capacity.
+
+Other FPGA tools do not block this build when their **full finite budgets**
+fit. The independent service uses a 40-GiB hard / 36-GiB high / zero-swap
+cgroup; admission adds every peer's full limit, a 24-GiB reserve and 8-GiB
+background allowance. The live watchdog retains 32 GiB available. Its six
+XO compilations are sequential within that budget; G routing can continue
+concurrently. Insufficient memory or unbounded peers prevent tools launching,
+without an unconditional wait for those tools to exit.
+
+Each fresh run retains its source snapshot, commands, compiler logs,
+resource records and failure observations under the external campaign root.
+Successful routing still requires guarded board correctness and measurements;
+neither a running build nor an emitted xclbin is a performance-match result.
+
+The source-build regression passes 164 original-ReGraph tests (including
+11 new build-specific checks) and 15 repository-organization tests. Document
+layout, catalog and staged/unstaged whitespace checks pass. Raw bounded logs
+are in `verification-original-r-source-v1/` under the campaign root. Source
+snapshot tests reject algorithm edits, unexpected generated files and drift
+in the clean upstream checkout. Interface, macro, clock, bank-capacity,
+timing and insufficient-memory negative controls also pass. This checkpoint
+changes no numerical simulator component and claims no SST rebuild or board
+performance result.
