@@ -12,7 +12,8 @@ from .. import artifact
 from . import configuration as config
 
 
-def inspect_xo(path: Path, name: str) -> dict:
+def inspect_xo(path: Path, name: str, topology: str = config.DEFAULT_TOPOLOGY) -> dict:
+    definitions_expected = config.defines(topology)
     with zipfile.ZipFile(path) as archive:
         entries = [item for item in archive.namelist() if item.endswith("/kernel.xml")]
         # Big's replicated dataflow metadata exceeds 1 MiB with the pinned 2024.1 compiler.
@@ -21,10 +22,10 @@ def inspect_xo(path: Path, name: str) -> dict:
             raise ValueError("one bounded kernel XML required")
         kernel = ET.fromstring(archive.read(entries[0])).find("kernel")
     if (kernel is None or kernel.get("name") != name or
-            kernel.get("hwControlProtocol") != config.control_protocol(name)):
+            kernel.get("hwControlProtocol") != config.control_protocol(name, topology)):
         raise ValueError("author kernel name or task-control ABI differs")
     arguments = [dict(arg.attrib) for arg in kernel.findall("args/arg")]
-    if ([arg["name"] for arg in arguments] != config.argument_names(name) or
+    if ([arg["name"] for arg in arguments] != config.argument_names(name, topology) or
             [int(arg["id"]) for arg in arguments] != list(range(len(arguments)))):
         raise ValueError("author kernel argument order differs from guarded host ABI")
     tokens = shlex.split(kernel.get("compileOptions", ""))
@@ -32,14 +33,14 @@ def inspect_xo(path: Path, name: str) -> dict:
     for index, token in enumerate(tokens):
         value = tokens[index + 1] if token == "-D" and index + 1 < len(tokens) else token[2:] if token.startswith("-D") else ""
         key, _, flag = value.partition("=")
-        if key in config.DEFINES:
+        if key in definitions_expected:
             if key in definitions:
                 raise ValueError("ambiguous author macro redefinition")
             definitions[key] = flag or "1"
         undefined = tokens[index + 1] if token == "-U" and index + 1 < len(tokens) else token[2:] if token.startswith("-U") else ""
-        if undefined in config.DEFINES:
+        if undefined in definitions_expected:
             raise ValueError("author macro undefinition is not admitted")
-    if definitions != {key: str(value) for key, value in config.DEFINES.items()}:
+    if definitions != {key: str(value) for key, value in definitions_expected.items()}:
         raise ValueError("XO configuration differs from fixed signed-PR author control")
     return {"xo": artifact.identity(path), "kernel": name, "arguments": arguments,
             "control": kernel.get("hwControlProtocol"), "defines": definitions,
@@ -61,24 +62,26 @@ def inspect_hls(directory: Path, name: str) -> dict:
             "resources": {item.tag: item.text for item in document.findall("AreaEstimates/Resources/*")}}
 
 
-def inspect_routed(metadata: Path, reports: Path) -> dict:
+def inspect_routed(metadata: Path, reports: Path, configuration: str = config.DEFAULT_TOPOLOGY) -> dict:
+    little, big = config.counts(configuration)
+    total = little + big
     sections = {name: json.loads((metadata / (name + ".json")).read_text()) for name in SECTIONS.values()}
     topology = normalized_topology(sections)
-    expected = sorted(f"{name}:{name}_{index}" for name, (_, count) in config.KERNELS.items()
+    expected = sorted(f"{name}:{name}_{index}" for name, (_, count) in config.kernels(configuration).items()
                       for index in range(1, count + 1))
     if sorted(row[0] for row in topology["kernels"]) != expected:
-        raise ValueError("implemented original R does not have the declared eighteen CUs")
+        raise ValueError("implemented R does not have the declared topology's CUs")
     clocks = [row[2] for row in topology["clock"] if row[0] == "DATA"]
     if clocks != [config.CLOCK_MHZ]:
         raise ValueError("implemented DATA clock differs; automatic frequency reduction is not admitted")
     memory = {row[0]: row for row in topology["memory"]}
     expected_connections = [("kernelApply:kernelApply_1", 0, "HBM[30]")]
-    for lane in range(14):
+    for lane in range(total):
         wrapper = "kernelHBMWrapper:kernelHBMWrapper_1"
         expected_connections += [(wrapper, lane, f"HBM[{2 * lane + 1}]"),
-                                 (wrapper, lane + 14, f"HBM[{2 * lane + 1}]")]
-        name = "littleKernelScatterGather" if lane < 11 else "bigKernelScatterGather"
-        index = lane + 1 if lane < 11 else lane - 10
+                                 (wrapper, lane + total, f"HBM[{2 * lane + 1}]")]
+        name = "littleKernelScatterGather" if lane < little else "bigKernelScatterGather"
+        index = lane + 1 if lane < little else lane - little + 1
         expected_connections.append((f"{name}:{name}_{index}", 0, f"HBM[{2 * lane}]"))
     if topology["connections"] != sorted(expected_connections):
         raise ValueError("implemented HBM bank/argument bindings differ from author topology")
@@ -87,7 +90,7 @@ def inspect_routed(metadata: Path, reports: Path) -> dict:
            int(memory[tag][3], 0) != 512 * 1024 for _, _, tag in expected_connections):
         raise ValueError("connected HBM regions must be enabled 512-MiB banks")
     for name, protocol in topology["kernels"]:
-        expected_control = config.control_protocol(name.split(":")[0]).upper()
+        expected_control = config.control_protocol(name.split(":")[0], configuration).upper()
         if protocol != expected_control:
             raise ValueError("implemented CU control protocol differs from author ABI")
     timing_files = list(reports.glob("**/impl_1_hw_bb_locked_timing_summary_routed.rpt"))
@@ -95,5 +98,5 @@ def inspect_routed(metadata: Path, reports: Path) -> dict:
         raise ValueError("one final implemented timing summary required")
     timing = parse_routed_timing(timing_files[0])
     return {"topology": topology, "timing": timing,
-            "status": "ORIGINAL_R_ROUTED_CLOCK_TOPOLOGY_TIMING_PASS_AWAITING_BOARD",
+            "status": config.routed_status(configuration),
             "board_programmed": False, "hardware_timing_measured": False, "publication_match": False}

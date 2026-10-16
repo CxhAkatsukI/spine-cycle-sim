@@ -35,10 +35,14 @@ def prerequisites(audit: Path, control: Path) -> list[dict]:
     return pins
 
 
-def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environment: Path, output: Path) -> dict:
+def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environment: Path,
+        output: Path, *, topology: str = config.DEFAULT_TOPOLOGY) -> dict:
+    little, big = config.counts(topology)
+    kernels = config.kernels(topology)
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARED", "errors": [], "steps": [], "xos": [], "pins": [],
               "policy": config.POLICY, "clock_mhz": config.CLOCK_MHZ,
+              "configuration": topology, "little": little, "big": big,
               "board_programmed": False, "hardware_timing_measured": False, "publication_match": False,
               "claim": "clean_author_source_same_platform_clock_control_not_publication_reproduction"}
     lease = None
@@ -70,16 +74,17 @@ def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environ
         atomic_write_json(output / "environment.json", {"values": effective, "license_hashes": {}})
         report["source_revision"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
         report["worktree_status"] = subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True).splitlines()
-        prepared = snapshot.prepare(root, upstream, output)
+        prepared = snapshot.prepare(root, upstream, output, topology)
         report["source_snapshot"] = prepared
         report["pins"] += prepared["pins"]
         source = Path(prepared["source"])
-        entries = snapshot.prepare_entries(source, output)
+        entries = snapshot.prepare_entries(source, output, topology)
         report["pins"] += entries
-        manifest = {"source": prepared, "defines": config.DEFINES, "clock_mhz": config.CLOCK_MHZ,
+        manifest = {"source": prepared, "defines": config.defines(topology), "clock_mhz": config.CLOCK_MHZ,
+                    "configuration": topology, "little": little, "big": big,
                     "compatibility_entries": entries, "legacy_uint": "unsigned int; sizeof == 4",
-                    "compilations": {name: config.compile_command(source, output, name) for name in config.KERNELS},
-                    "link": config.link_command(source, output), "policy": config.POLICY,
+                    "compilations": {name: config.compile_command(source, output, name, topology) for name in kernels},
+                    "link": config.link_command(source, output, topology), "policy": config.POLICY,
                     "compile_timeout_seconds": 1800, "link_timeout_seconds": 21600,
                     "pins": report["pins"]}
         atomic_write_json(output / "manifest.json", manifest)
@@ -101,13 +106,13 @@ def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environ
 
         for name, command in manifest["compilations"].items():
             step("compile_" + name, command, manifest["compile_timeout_seconds"])
-            xo = gates.inspect_xo(output / "xo" / (name + ".hw.xo"), name)
+            xo = gates.inspect_xo(output / "xo" / (name + ".hw.xo"), name, topology)
             hls = gates.inspect_hls(output / "compile" / name, name)
             report["xos"].append({"abi": xo, "hls": hls})
             report["pins"] += [xo["xo"], hls["report"]]
             save()
         step("route", manifest["link"], manifest["link_timeout_seconds"])
-        binary = output / "original_r_11l3b.hw.xclbin"
+        binary = output / config.binary_name(topology)
         report["xclbin"] = artifact.identity(binary)
         metadata = output / "metadata"
         metadata.mkdir()
@@ -115,7 +120,7 @@ def run(root: Path, upstream: Path, audit: Path, control: Path, captured_environ
             output, output / "extract", timeout=120, memory_gib=2, reserve_gib=32)
         if report["extraction"]["exit_code"] or report["extraction"]["timed_out"]:
             raise ValueError("fresh xclbin metadata extraction failed")
-        report["analysis"] = gates.inspect_routed(metadata, output / "link/reports")
+        report["analysis"] = gates.inspect_routed(metadata, output / "link/reports", topology)
         snapshot.unchanged(report["pins"])
         report["status"] = report["analysis"]["status"]
     except BaseException as error:

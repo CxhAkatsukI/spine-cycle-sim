@@ -48,6 +48,7 @@ new-G metadata/handoff correctness or original-publication reproduction.
 | Complete G storage/link | Actual platform storage screen exposes a local URAM conflict; one-CU relocation preserves capacity; `g-complete-route-v1` has actually started concurrently | Complete resource/timing closure, integrated RTL/host, board correctness and performance |
 | Conditional board queue | `g-gr-board-supervisor-v1` is running, waiting only for the exact new-G route; 277 focused regressions pass | Final routed timing, six-input G and nine-input resident G-to-SSSP board matrices remain unmeasured; no full-baseline admission |
 | Original-R source build | At 2026-10-16 02:03 UTC, `original-r-source-route-v6` has compiled all six author kernels and entered link synthesis concurrently with the G route | Final resource/timing checks and the conditional eighteen-row board matrix; this 11-Little/3-Big static PR control is not A4 or publication reproduction |
+| A4 source path | Explicit four-Little/zero-Big build configuration; the real author generator passes `a4-source-preflight-v1` under a 2-GiB bound | Actual four-XO compilation, seven-CU route/timing and an A4-capable guarded board ABI; the existing 11+3 host rejects A4 |
 | Full-graph host readiness | `fullgraph-host-readiness-v1` is queued under 24-GiB containment; sixteen focused runner tests pass | All three offline smokes and 24 graph/algorithm preparations are unexecuted at the checkpoint; no FPGA correctness or performance claim |
 
 This is a progress checkpoint, not an admission of the complete baseline.

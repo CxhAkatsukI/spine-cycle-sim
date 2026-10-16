@@ -13,14 +13,17 @@ from . import configuration as config, execution, snapshot
 
 
 def run(root: Path, upstream: Path, audit: Path, control: Path,
-        environment: Path, output: Path, *, wait_seconds: int) -> dict:
+        environment: Path, output: Path, *, wait_seconds: int,
+        topology: str = config.DEFAULT_TOPOLOGY) -> dict:
+    little, big = config.counts(topology)
     if type(wait_seconds) is not int or not 1 <= wait_seconds <= 86400:
         raise ValueError("memory wait must be between one second and one day")
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "WAITING_FOR_MEMORY", "errors": [], "samples": 0,
               "wait_seconds": wait_seconds, "poll_seconds": 10, "pins": [],
               "build_output": str(output / "build"), "board_programmed": False,
-              "hardware_timing_measured": False, "publication_match": False}
+              "hardware_timing_measured": False, "publication_match": False,
+              "configuration": topology, "little": little, "big": big}
 
     def save():
         atomic_write_json(output / "queue.json", report)
@@ -49,7 +52,8 @@ def run(root: Path, upstream: Path, audit: Path, control: Path,
         report["status"] = "STARTING_INDEPENDENTLY_ADMITTED_BUILD"
         save()
         # The real runner acquires its atomic lease again; a race fails closed.
-        built = execution.run(root, upstream, audit, control, environment, output / "build")
+        built = execution.run(root, upstream, audit, control, environment, output / "build",
+                              topology=topology)
         snapshot.unchanged(report["pins"])
         report["status"] = built["status"]
         report["build_result"] = artifact.identity(output / "build/results.json")

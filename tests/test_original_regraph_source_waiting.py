@@ -8,13 +8,15 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_buil
 
 
 class SourceMemoryQueueTests(unittest.TestCase):
-    def invoke(self, root, states, *, wait=30, sleep=None, build_error=None):
+    def invoke(self, root, states, *, wait=30, sleep=None, build_error=None,
+               topology="original_example"):
         environment = root / "environment.json"
         if not environment.exists():
             environment.write_text('{"pins": []}')
         output = root / "queue"
 
-        def build(*args):
+        def build(*args, **kwargs):
+            self.assertEqual(kwargs, {"topology": topology})
             if build_error:
                 raise build_error
             destination = args[-1]
@@ -35,7 +37,7 @@ class SourceMemoryQueueTests(unittest.TestCase):
             lease.return_value.sample.side_effect = states
             try:
                 result = waiting.run(root, root / "author", root / "audit", root / "control",
-                                     environment, output, wait_seconds=wait)
+                                     environment, output, wait_seconds=wait, topology=topology)
             except (ValueError, TimeoutError, RuntimeError):
                 result = json.loads((output / "queue.json").read_text())
             return result, runner.call_count, lease.return_value.sample.call_args_list, sleeper.call_count
@@ -54,6 +56,12 @@ class SourceMemoryQueueTests(unittest.TestCase):
                 Path(directory), [{"admitted": False}, {"admitted": True}])
             self.assertEqual((calls, sleeps, result["samples"]), (1, 1, 2))
             self.assertTrue(all(not call.kwargs["commit"] for call in samples))
+
+    def test_a4_queue_preserves_the_declared_topology_when_starting(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result, calls, _, _ = self.invoke(Path(directory), [{"admitted": True}], topology="a4")
+            self.assertEqual((result["configuration"], result["little"], result["big"]), ("a4", 4, 0))
+            self.assertEqual(calls, 1)
 
     def test_unbounded_or_insufficient_peer_budget_never_starts_compiler(self):
         with tempfile.TemporaryDirectory() as directory:

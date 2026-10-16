@@ -7,7 +7,7 @@ import subprocess
 from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 from spine_cycle_sim.experiments.upstream_controls.sources import GENERATED_FILES, read_pins
 from .. import artifact, sources
-from .configuration import GENERATOR_PYTHON, KERNELS
+from . import configuration as config
 
 
 def tracked_files(source: Path) -> list[str]:
@@ -28,12 +28,12 @@ def unchanged(pins: list[dict]) -> None:
         raise ValueError("frozen build source, tool, environment or artifact changed")
 
 
-def prepare_entries(source: Path, output: Path) -> list[dict]:
+def prepare_entries(source: Path, output: Path, topology: str = config.DEFAULT_TOPOLOGY) -> list[dict]:
     """Supply the legacy unsigned-int alias without altering author source."""
     destination = output / "entries"
     destination.mkdir()
     pins = []
-    for name, (relative, _) in KERNELS.items():
+    for name, (relative, _) in config.kernels(topology).items():
         author = source / "acc_template" / relative
         artifact.identity(author)
         if any(character in str(author) for character in ('"', "\\", "\n", "\r")):
@@ -52,7 +52,8 @@ def prepare_entries(source: Path, output: Path) -> list[dict]:
     return pins
 
 
-def prepare(root: Path, upstream: Path, output: Path) -> dict:
+def prepare(root: Path, upstream: Path, output: Path, topology: str = config.DEFAULT_TOPOLOGY) -> dict:
+    little, big = config.counts(topology)
     pin_file = root / "docs/experiments/comparisons/grasu_regraph_stage_validation/source_pins.json"
     pin = read_pins(pin_file)["regraph"]
     review = sources.review(upstream, pin)
@@ -65,7 +66,7 @@ def prepare(root: Path, upstream: Path, output: Path) -> dict:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(upstream / name, target)
     # The author generator overwrites six known outputs; no C-simulation helper headers are added.
-    command = [str(GENERATOR_PYTHON), "autogen/autogen.py", "11", "3", "true", "false"]
+    command = [str(config.GENERATOR_PYTHON), "autogen/autogen.py", str(little), str(big), "true", "false"]
     execution = run_bounded(command, destination, output / "generator",
                             timeout=60, memory_gib=2, reserve_gib=32)
     if execution["exit_code"] or execution["timed_out"]:
@@ -82,6 +83,7 @@ def prepare(root: Path, upstream: Path, output: Path) -> dict:
     if sources.review(upstream, pin) != review:
         raise ValueError("original author worktree changed during snapshot")
     return {"source_review": review, "upstream": str(upstream), "source": str(destination),
+            "topology": topology, "little": little, "big": big,
             "pins": [artifact.identity(pin_file), *original, *copied],
             "generator": execution, "generator_command": command,
             "generated_files": list(GENERATED_FILES), "changed_generated_files": changed,

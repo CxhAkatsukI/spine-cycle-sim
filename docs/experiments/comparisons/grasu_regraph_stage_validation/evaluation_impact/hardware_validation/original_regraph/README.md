@@ -281,6 +281,33 @@ calibration or Fig. 7--11 result is claimed by these offline controls.
 
 ## Fresh Source Build
 
+The builder now also accepts explicit `--topology a4`, using the author's
+generator with four Little and zero Big pipelines. The default 11+3 compile
+commands, macros and ABI remain unchanged. A4 needs four unique XOs and seven
+implemented CUs, not the mixed control's six XOs and eighteen CUs. Its separate
+routed status prevents the current 11+3-only board host from programming it.
+Matching four lanes does not match every K4 resource: A4 retains the author's
+nine used HBM banks rather than our integrated 23-channel layout.
+
+`a4-source-preflight-v1` in the campaign root exercises the actual clean
+author revision `365456826cef495285383d939907f847e05ad74b` with Python 3.11.2.
+Only the six permitted generated outputs change; device algorithm source
+does not. The service completed in 812 ms with a 22-MiB peak and zero memory
+limit/OOM events under a 2-GiB/no-swap limit. This first preflight explicitly
+records the dirty development worktree and frozen source hashes; it is not
+a clean-commit hardware build or a board measurement. Thirty focused source,
+queue and A4 tests pass, including cross-topology ABI rejection and memory
+failure controls. Actual compiled ABI, routing, an A4-capable board host,
+correctness and performance remain open.
+
+The full original-ReGraph regression passes 200 tests, with 15 organization
+tests, documentation-layout/catalog checks and whitespace checks also passing.
+Bounded logs are in `verification-a4-source-v1/` under the campaign root;
+the ReGraph test service peaks at 46.5 MiB. An independent comparison to
+revision `839bd66` confirms exact default compile/link commands, argument
+order and control protocol for all six 11+3 kernels. No numerical simulator
+model, frozen running build or paper figure changes in this revision.
+
 The separate [source-build owner](../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/source_build/README.md)
 compiles the clean pinned author revision after invoking only its topology
 generator for 11 Little and 3 Big pipelines. This is a U55C, 150-MHz
