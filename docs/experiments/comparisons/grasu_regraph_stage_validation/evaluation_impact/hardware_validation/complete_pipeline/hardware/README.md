@@ -73,6 +73,15 @@ reserve, peer-budget admission, two jobs and all evidence gates are unchanged.
 The enclosing service must allow the 24-hour queue plus the selected link
 deadline and preflight/cleanup time. A longer deadline is not a timing waiver.
 
+The fresh v2 retry uses the same concurrency rule; it does not wait for all
+FPGA tools to exit. With both the original-R and A4 routes active, each bounded
+at 40 GiB, its admission requirement is
+`40 GiB own + 80 GiB peers + 24 GiB reserve + 8 GiB background = 152 GiB`.
+At the 2026-10-16 05:28 UTC checkpoint, about 110 GiB was available, so it
+remained queued. A small source-check job was admitted alongside both routes
+because its full 1-GiB budget plus peers and reserve fit. Instantaneous peer
+RSS is not substituted for enforceable limits; queueing is not route failure.
+
 Raw attempt:
 `/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-route-v1/`
 
@@ -126,6 +135,57 @@ platform storage ledger. The raw manifest records exact selected input paths.
 
 The packages keep gates, source identity, input freezing, execution and memory
 admission separate. Current route inputs are immutable while tools run.
+
+## Production Source Boundary
+
+The diagnostic link reuses exported search/cache XOs; it does not change the
+production source-build scripts. At integration commit
+`6f5ebf2b0679f04f4f6e035e850fce7b6043a660`, both
+`scripts/prepare_pure_hw_pipeline_build.sh` and
+`scripts/prepare_pagerank_pipeline_build.sh` still select
+`repos/GraSU/GraSU/GraSU_kernels/src/kernel_bin_search.cpp` and
+`kernel_process_cache.cpp`. Both request the old direct-cache compile mode.
+Consequently, regenerating a production build with those scripts does not
+reproduce the reviewed search/full-URAM-cache candidate merely because a
+diagnostic route passes. That frozen build remains unchanged.
+
+An isolated source candidate is now committed and pushed in the integration
+repository as `3418e96` on `codex/complete-g-production`. Its
+[source guide](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/3418e96/kernels/grasu_complete/README.md)
+owns the implementation map, opt-in selection and verification commands.
+The synthesizable core was copied from this simulator's reviewed
+`cpp/tests/evaluation_impact/common_g/hls/` at `bb14f05`, with explicitly
+enumerated binding/include transformations and reversible hash checks.
+Both generators now accept `--grasu-implementation complete-search-cache`;
+their default remains the legacy direct-cache implementation.
+
+The candidate retains the eleven-argument search ABI, shared metadata master
+and full 131,072-segment registered cache. SSSP/CC retain the completion-token
+binding; PageRank retains its existing two-argument cache binding. Generated
+manifests record source paths, selection, flags and source/dependency hashes.
+The candidate requires hardware/hardware-emulation sharded-K4 builds at full
+cache capacity and rejects unsupported combinations before creating outputs.
+
+`g-production-source-selection-v5` passes seven bounded checks: both host
+binding types, source identity, selection and three legacy build regressions.
+It ran concurrently with the two routes under a 1-GiB hard / 768-MiB high
+limit, zero swap and group OOM termination. Memory-event counters were zero;
+maximum individual child RSS was 219536 KiB. The earlier failed source-check
+launches remain retained in the campaign root. These checks do not compile
+the search dataflow body with HLS, establish numerical equivalence or validate
+new RTL. External weighted-SSSP UDF completeness is also a separate gate.
+
+The non-synthesis search binding now requires an explicit compatible
+`GRASU_SEARCH_HOST_HARNESS`; it still cannot use stock vendor streams as a
+replacement for the finite concurrent harness. The cache uses the configured
+upstream `kernel_config.h`, not a fixture-relative include. Fresh functional
+execution, source-based HLS export/interface review and integrated
+finite-stream/backpressure RTL remain required before this candidate can
+replace any frozen diagnostic XO. No new production hardware pass is claimed.
+
+Production changes belong in an isolated integration worktree while current
+jobs pin the existing one. They must leave the current attempt's manifest,
+inputs, runtime modules and failure records unchanged.
 
 A successful link still needs timing/utilization review, complete G
 backpressure/state and real-host validation, then physical PMA handoff,
