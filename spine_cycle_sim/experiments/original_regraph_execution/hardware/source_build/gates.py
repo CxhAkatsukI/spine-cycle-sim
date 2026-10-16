@@ -15,7 +15,9 @@ from . import configuration as config
 def inspect_xo(path: Path, name: str) -> dict:
     with zipfile.ZipFile(path) as archive:
         entries = [item for item in archive.namelist() if item.endswith("/kernel.xml")]
-        if len(entries) != 1 or archive.getinfo(entries[0]).file_size > 1024**2:
+        # Big's replicated dataflow metadata exceeds 1 MiB with the pinned 2024.1 compiler.
+        maximum_xml_bytes = (4 if name == "bigKernelScatterGather" else 1) * 1024**2
+        if len(entries) != 1 or archive.getinfo(entries[0]).file_size > maximum_xml_bytes:
             raise ValueError("one bounded kernel XML required")
         kernel = ET.fromstring(archive.read(entries[0])).find("kernel")
     if (kernel is None or kernel.get("name") != name or

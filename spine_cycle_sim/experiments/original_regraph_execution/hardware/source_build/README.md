@@ -33,6 +33,12 @@ only. Apply, wrapper and scatter/gather use `ap_ctrl_chain`; the guarded host
 launches those kernels, not the mergers. HBM arguments preserve the author
 bank mapping, including the apply divisor on bank 30.
 
+XO inspection requires one kernel XML and a finite uncompressed size bound.
+Vitis 2024.1 emits roughly 1.27 MiB of replicated dataflow metadata for the
+Big scatter/gather kernel, so only that kernel has a 4-MiB bound; the other
+five retain 1 MiB. Argument order, control protocol, macros, clock and timing
+checks are unchanged. Duplicate XML entries and oversized metadata fail.
+
 Compilation requires the passing independent input audit and the complete
 48-run Release/UBSan offline host control, with all their pins unchanged.
 This does not convert offline correctness into a hardware measurement.

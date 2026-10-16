@@ -96,6 +96,23 @@ class SourceBuildGateTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 gates.inspect_xo(path, name)
 
+    def test_only_big_dataflow_metadata_has_a_larger_finite_xml_bound(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "kernel.xo"
+            for name, size, accepted in (("bigKernelScatterGather", 1_331_082, True),
+                                         ("kernelApply", 1_331_082, False),
+                                         ("bigKernelScatterGather", 4 * 1024**2 + 1, False)):
+                self.xo(path, name)
+                with zipfile.ZipFile(path) as archive:
+                    xml = archive.read(name + "/kernel.xml")
+                with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                    archive.writestr(name + "/kernel.xml", xml + b" " * (size - len(xml)))
+                if accepted:
+                    self.assertEqual(gates.inspect_xo(path, name)["kernel"], name)
+                else:
+                    with self.assertRaisesRegex(ValueError, "bounded"):
+                        gates.inspect_xo(path, name)
+
     def test_missing_redefined_undefined_or_wrong_macros_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "kernel.xo"

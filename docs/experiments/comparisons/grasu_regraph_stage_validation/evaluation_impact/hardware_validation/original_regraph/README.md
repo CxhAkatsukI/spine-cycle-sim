@@ -374,3 +374,34 @@ revision `c8e6ebc` and the explicit Apply control-bundle directive. The v4
 bounded verification logs retain all 165 original-ReGraph and 15 organization
 test passes plus document, catalog and staged-whitespace passes. This launch
 is not a completed routing or board result.
+
+Attempt v4 subsequently compiled Apply, HBM wrapper, Little scatter/gather,
+Little merger and Big scatter/gather successfully. It stopped before the sixth
+compiler or routing because the Big XO's legitimate 1,331,082-byte kernel XML
+exceeded the checker's uniform 1-MiB size cap. This is a parser-bound failure,
+not an HLS, correctness or timing failure. Its peak was 2,601,603,072 bytes;
+raw outputs remain untouched. Only Big scatter/gather now has a tested 4-MiB
+metadata cap; all other kernels retain 1 MiB, and numerical/ABI/timing criteria
+are unchanged. A fresh output directory is required for the next attempt.
+
+The new [board-execution owner](../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/board_execution/README.md)
+supports an exact-invocation conditional queue and independent route readmission
+before exclusive fixed-BDF board execution. Its predeclared matrix is three
+graphs x two explicit divisor bindings x three repetitions = eighteen runs.
+It checks all fourteen output replicas and independent oracles, records the
+resident wall window and overlap-aware event union/span, and retains failures
+without reset/retry. It is one static fixed-point PR superstep, not convergence,
+host-inclusive latency or a publication-speed match. Implemented queue support
+does not mean the board matrix has already passed.
+
+The bounded verification in `verification-original-r-board-v5/` passes all
+183 original-ReGraph tests and 15 organization tests, plus document-layout,
+catalog and whitespace checks. Its 2-GiB hard / zero-swap service peaked at
+55.4 MiB. New tests exercise all output replicas, event overlap and malformed
+timestamps, exact service identity, resource rejection, source drift, exclusive
+lease-FD forwarding, worker timeout and complete raw-result rechecks. These are
+offline tests with mocked board launches, not eighteen actual FPGA results.
+An additional read-only check of v4's real Big XO now passes the unchanged ABI,
+macro, control-protocol and HLS-target checks with the corrected finite size cap.
+The retained v4 memory-event counters are all zero. No simulator numerical
+component, paper or figure result changed.

@@ -20,6 +20,7 @@ remain separate experiments.
 | `control_validation.py` | Finite-memory Release/UBSan compilation and 48-run offline host validation, including launch rejection |
 | `control_delivery.py` | Recheck raw results and package sources/metadata with failed attempts, without board-performance claims |
 | [source_build/](source_build/README.md) | Fresh clean-source 11+3 compilation and routing with independent memory admission; no board execution |
+| [board_execution/](board_execution/README.md) | Exact-invocation conditional queue, independent artifact readmission and eighteen guarded board controls; no publication-match claim |
 
 Read the [hardware campaign's original-R checkpoint](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/original_regraph/README.md)
 for results and reproduction. The oracle relies on the earlier complete author
