@@ -10,6 +10,10 @@ The separate [production-source experimental route](production_routing/README.md
 rechecks the fresh owned exports and connected state, freezes a new eleven-XO
 packet and queues under full peer budgets. It is not the older diagnostic
 route, and queueing does not close integrated RTL or board gates.
+The [production board qualifier](production_board/README.md) binds explicitly
+to that fresh route and its exact invocation. It adds native cold/multi-shard,
+same-BO metadata-refresh and resident G-to-SSSP matrices, retaining the existing
+numerical validators. Its unit tests are not executed board results.
 
 The latest synthetic `g-complete-source-v10` passes twelve declared rows:
 `COMPLETE_G_SOURCE_COMPOSITION_PASS_NOT_INTEGRATED_RTL`.

@@ -14,6 +14,11 @@ def review(route, original, output):
     if manifest.get("status") != "PREPARED_DIAGNOSTIC_LINK_NOT_BASELINE_ADMISSION" or \
             manifest.get("clock_mhz") != 150 or manifest.get("core_identity", {}).get("synthesizable_core_identical") is not True:
         raise ValueError("complete new-G route identity required; adapter-only route is not sufficient")
+    return admit_completed(route, original, output, manifest)
+
+
+def admit_completed(route, original, output, manifest):
+    """Shared artifact checks after the caller's candidate-specific source gate."""
     kernels = manifest["kernel_inputs"]
     if set(kernels) != set(COUNTS) or any(type(value["replaced"]) is not bool for value in kernels.values()) or \
             {key for key, value in kernels.items() if value["replaced"] is True} != \

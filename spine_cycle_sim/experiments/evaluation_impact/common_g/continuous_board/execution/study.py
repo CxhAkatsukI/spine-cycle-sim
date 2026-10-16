@@ -27,6 +27,7 @@ class Experiment:
     pass_status: str
     boundary: str
     source_files: tuple[Path, ...] = ()
+    route_review: Callable | None = None
 
 
 def containment():
@@ -70,7 +71,8 @@ def run(preflight, route_attempt, original, output, *, device=0, repeats=3, exec
         host, pins = experiment.host_identity(preflight)
         binary = preflight / "probe"
         runtime.require_clean_environment(binary, output)
-        checked = route.review(route_attempt, original, output / "routed_admission")
+        review = experiment.route_review or route.review
+        checked = review(route_attempt, original, output / "routed_admission")
         report.update(contract=host["contract"], routed_admission=checked)
         pins += checked["pins"] + [checked["candidate"], checked["timing"]["report"]]
         pins += [identity(path) for path in sorted(Path(__file__).parent.glob("*.py"))]

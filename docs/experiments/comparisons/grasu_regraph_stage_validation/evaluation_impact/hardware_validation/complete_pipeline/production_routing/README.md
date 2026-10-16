@@ -93,8 +93,10 @@ journalctl --user -u spine-g-production-route-20261016-v1.service -n 20 --no-pag
 
 Preparation records are `preparation_admission.json` and
 `preparation_memory_events.json`. `manifest.json` owns immutable source/input
-pins but receives one additional preflight-result pin before tools start;
-do not freeze a board queue against an earlier manifest. `execution.json` is
+pins but receives one additional preflight-result pin before tools start.
+The [production board queue](../production_board/README.md) freezes the original
+pin prefix and all other fields, allowing only this verified trailing pin;
+the older diagnostic queue cannot accept this manifest transition. `execution.json` is
 live state. Terminal `summary.json`, resource logs and `cgroup_events.json`
 remain authoritative even when the attempt fails. Never overwrite a failed run.
 
@@ -103,7 +105,8 @@ remain authoritative even when the attempt fails. Never overwrite a failed run.
 A successful link still needs exact artifact/topology review and strict routed
 timing. Integrated finite-stream RTL, same-address device metadata refresh,
 complete resident-state checks, actual PMA-to-R handoff and separated G/R/host
-windows remain open. Only then can same-platform controls and the fixed Spine
+windows remain open. The new production board qualifier declares those initial
+state/handoff matrices without claiming they have run. Only then can same-platform controls and the fixed Spine
 matrix support new figures. No figure or paper value is replaced by this queue.
 See the [production source guide](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/7b3763ecc774b6699b785fa829b389a66b16d339/validation/README.md#production-source-experimental-route)
 for reproduction arguments; use fresh output paths and mandatory containment.
