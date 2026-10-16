@@ -11,7 +11,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes, dependency_identities
-from . import analysis, preparation
+from . import analysis, diagnostics, preparation
 
 POLICY = {"tree_memory_gib": 24, "reserve_gib": 32, "allow_bounded_builds": True}
 
@@ -81,11 +81,11 @@ def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800):
         binaries = {}
         for algorithm in preparation.ALGORITHMS:
             binary = output / algorithm
-            result = step("compile_" + algorithm,
+            step("compile_" + algorithm,
                 preparation.compile_command(compiler, Path(prepared["source"]), algorithm, binary, xrt, hls), 300)
-            if any((output / "raw" / ("compile_" + algorithm + suffix)).read_text().strip()
-                   for suffix in (".stdout.txt", ".stderr.txt")):
-                raise ValueError("unexpected host compilation diagnostic")
+            report.setdefault("compiler_diagnostics", {})[algorithm] = diagnostics.review(
+                *((output / "raw" / ("compile_" + algorithm + suffix)).read_text()
+                  for suffix in (".stdout.txt", ".stderr.txt")))
             binaries[algorithm] = binary
             report["pins"] += [preparation.identity(binary), *dependency_identities(binary.with_suffix(".d"), output)]
             # Dependency helper owns parsing, while this study owns drift stamps.

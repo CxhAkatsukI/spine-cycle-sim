@@ -24,8 +24,9 @@ The frozen matrix is the complete 24-input insertion/u8 manifest at
 The owner is
 `spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/`:
 `preparation.py` owns identities, the fixed matrix and compilation commands;
-`study.py` owns bounded execution; `analysis.py` accepts only the offline
-output contract. The CLI is `python3 -m` on that package.
+`study.py` owns bounded execution; `diagnostics.py` reviews structured compiler
+output; `analysis.py` accepts only the offline output contract. The CLI is
+`python3 -m` on that package.
 
 The host build preserves full `GRASU_MAX_CACHE_SEGMENT=131072` capacity and
 enables `GRASU_REGRAPH_HOST_ROW_LINE_READ=1` for the optimized adapter layout.
@@ -51,7 +52,17 @@ stdout/stderr, command, timeout and resource records. Acceptance requires:
    and resident old-converged state. ResPR's prepare line does not print those
    channel maxima; its frozen planner checks capacity internally. No additional
    direct measurement is inferred from missing fields.
-4. No diagnostics, board-execution output, pin drift or safely stopped child.
+4. No unreviewed compiler diagnostics, runtime diagnostics, board-execution
+   output, pin drift or safely stopped child.
+
+Compilation retains `-Wall -Wextra -Werror` and requests GCC JSON diagnostics.
+An empty array is accepted, as is one exact `note` from `CL/cl2.hpp` saying the
+header has been renamed to `opencl.hpp`. That reviewed upstream header message
+is retained in raw stderr and `compiler_diagnostics`, not suppressed. Any other
+note, warning, error, nested diagnostic, duplicate, malformed JSON or stdout
+fails before smokes or graph preparation. The unchanged production source and
+its dependency headers remain hash-pinned; no source rewrite is used to remove
+the message.
 
 The only successful decision is
 `FULLGRAPH_HOST_PREPARATION_PASS_NOT_BOARD_OR_PERFORMANCE`.
@@ -100,9 +111,10 @@ attempt intact and choose a fresh output path for a retry.
 
 ## Checkpoint
 
-The readiness runner has sixteen focused unit tests, including immediate
+The readiness runner has twenty-two focused unit tests, including immediate
 admission with another FPGA tool running, memory-wait timeout, drift, smoke
-failure, full-case failure retention and exact matrix coverage. Mocked runner
+failure, full-case failure retention, exact matrix coverage and strict compiler
+diagnostic classification. Mocked runner
 tests do not compile hosts, operate FPGA hardware or validate large graphs.
 The first live attempt is `fullgraph-host-readiness-v1` under the campaign
 root in the reproduction command above. It freezes simulator revision
@@ -119,3 +131,10 @@ processes also fail the finite-budget/zero-swap admission check; their
 processes and limits are not changed by this study. The already admitted G
 and original-R builds continue concurrently. This is a launch checkpoint,
 not a full-graph preparation pass. Read the live report for subsequent state.
+
+The v1 attempt was subsequently admitted and stopped at its compiler-output
+gate at 2026-10-16 02:39 UTC. Compilation exited successfully; the only stderr
+was the upstream `CL/cl2.hpp` rename note. No smokes or full-graph cases ran.
+The failed attempt is preserved. The fresh v2 attempt uses structured diagnostic
+review and otherwise keeps the same production revision, matrix, memory policy,
+compiler optimization and offline-only boundary. A queued v2 is not a pass.

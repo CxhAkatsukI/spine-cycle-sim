@@ -108,7 +108,7 @@ def smokes(output):
 
 def compile_command(compiler, source, algorithm, binary, xrt, hls):
     name = "sharded_k4_pagerank_native_host.cpp" if algorithm == "residual_pagerank" else "sharded_k4_native_host.cpp"
-    return [str(compiler), "-std=c++17", "-O2", "-g0", "-Wall", "-Wextra", "-Werror",
+    return [str(compiler), "-std=c++17", "-O2", "-g0", "-Wall", "-Wextra", "-Werror", "-fdiagnostics-format=json",
             "-D_GLIBCXX_ASSERTIONS", "-DGRASU_MAX_CACHE_SEGMENT=131072",
             "-DGRASU_REGRAPH_HOST_ROW_LINE_READ=1", *["-D" + flag for flag in DEFINES[algorithm]],
             "-MD", "-MF", str(binary.with_suffix(".d")), "-MT", "probe",

@@ -4,11 +4,11 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import analysis, preparation, study
+from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import analysis, diagnostics, preparation, study
 
 
 class StudyTests(unittest.TestCase):
-    def invoke(self, root, *, samples=None, failed=None, sleep=None):
+    def invoke(self, root, *, samples=None, failed=None, sleep=None, compiler_notes=None):
         group = root / "cgroup"
         group.mkdir()
         (group / "memory.events").write_text("oom_kill 0\n")
@@ -27,7 +27,7 @@ class StudyTests(unittest.TestCase):
             if compilation:
                 Path(command[-1]).write_text("fake host, never executed")
             prefix.with_suffix(".stdout.txt").write_text("" if compilation else prefix.name)
-            prefix.with_suffix(".stderr.txt").write_text("")
+            prefix.with_suffix(".stderr.txt").write_text(json.dumps(compiler_notes or []) if compilation else "")
             return {"exit_code": int(prefix.name == failed), "stop_reason": "process_exit",
                     "cleanup_snapshot_error": None, "cwd": str(cwd)}
 
@@ -74,6 +74,22 @@ class StudyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             result, calls, lease = self.invoke(Path(directory), samples=[{"admitted": False}, {"admitted": True}])
             self.assertEqual((result["status"], len(calls), lease.sample.call_count), (analysis.PASS, 30, 2))
+
+    def test_reviewed_note_saved_without_changing_matrix_or_host_contract(self):
+        note = {"kind": "note", "message": diagnostics.RENAME_MESSAGE, "children": [],
+                "locations": [{"caret": {"file": "/usr/include/CL/cl2.hpp", "line": 18}}]}
+        with tempfile.TemporaryDirectory() as directory:
+            result, calls, _ = self.invoke(Path(directory), compiler_notes=[note])
+            self.assertEqual((result["status"], len(calls)), (analysis.PASS, 30))
+            self.assertEqual(result["compiler_diagnostics"], {algorithm: [note] for algorithm in preparation.ALGORITHMS})
+            self.assertFalse(result["board_programmed"])
+
+    def test_unreviewed_diagnostic_stops_before_smokes_and_fullgraphs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result, calls, lease = self.invoke(Path(directory), compiler_notes=[{"kind": "warning"}])
+            self.assertEqual((result["status"], len(calls)), ("FAILED_RETAINED", 1))
+            self.assertEqual((result["smokes"], result["cases"]), ([], []))
+            lease.release.assert_called_once()
 
     def test_no_child_on_memory_timeout(self):
         with tempfile.TemporaryDirectory() as directory:

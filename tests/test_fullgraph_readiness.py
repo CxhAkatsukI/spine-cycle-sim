@@ -99,6 +99,8 @@ class PreparationTests(unittest.TestCase):
                                                    Path("/output/host"), Path("/xrt"), Path("/hls"))
             self.assertIn("-DGRASU_MAX_CACHE_SEGMENT=131072", command)
             self.assertIn("-DGRASU_REGRAPH_HOST_ROW_LINE_READ=1", command)
+            self.assertIn("-fdiagnostics-format=json", command)
+            self.assertIn("-Werror", command)
             run = preparation.prepare_command(Path("/host"), {"algorithm": algorithm,
                 "source": 7, "graph": "/graph"}, Path("/unused"))
             self.assertEqual(run[:4], ["/host", "--prepare-only", "/graph", "/unused"])
