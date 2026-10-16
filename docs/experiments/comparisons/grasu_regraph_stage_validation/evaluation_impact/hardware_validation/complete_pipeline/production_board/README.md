@@ -10,10 +10,33 @@ digests. It does not add a diagnostic-only identity flag to the production
 manifest to make the older gate accept it.
 
 At the 2026-10-16 09:48 UTC checkpoint, the entry point has passed fourteen
-focused Python tests, 64 existing continuous-path tests and thirteen metadata
-tests. These are mocked/unit checks, **not FPGA execution**. The production
+focused Python tests, 64 existing continuous-path tests, thirteen metadata
+tests, eighteen native-board tests and fifteen organization tests. Document,
+catalog and whitespace checks also pass. These are mocked/unit checks,
+**not FPGA execution**. The production
 route and metadata C++ preflight are still queued; no production board result,
 baseline-performance match or replacement figure is claimed.
+
+At 09:52 UTC the bounded board queue started successfully, replayed 2960
+source/input pins and reported `WAITING_FOR_EXACT_ROUTE_AND_METADATA_HOST`,
+`board_started=false`, with no errors or OOM events. It does not wait for
+unrelated tools to exit. The older diagnostic G route was in post-placement
+optimization and A4 was in routing; intermediate timing is not final signoff.
+
+| Live owner | Frozen identity |
+| --- | --- |
+| Simulator board runner | Commit `e392b5e90d0ed0ad82270138d7977ba05f834851`, `/home/chuxiao/spine-cycle-sim/spine-cycle-sim-production-board` |
+| Board queue service | `spine-g-production-board-20261016-v1.service`, invocation `d77c1d1100274f14b0c3b5ebe2eb5eae` |
+| Production route prerequisite | `spine-g-production-route-20261016-v1.service`, invocation `194a3f0af5c74d408ac4aa494a435970` |
+| Metadata-host prerequisite | `spine-g-metadata-refresh-host-20261016-v1.service`, invocation `0810335b222341daacedce97c4be33c2` |
+| Raw board attempt | `/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-production-board-supervisor-v1` |
+
+The three preflights under the same raw campaign root are
+`g-native-board-host-v1`, `g-metadata-refresh-host-v1` and
+`gr-continuous-host-v4`. The selected board is device 0. The service has a
+48-hour lifetime and CPU quota 200%, with CPUs 124--125, 256 tasks maximum
+and a 30-second group shutdown deadline. Its logs and source worktree are
+retained; later documentation commits do not change the live runner.
 
 ## Declared Matrices
 
