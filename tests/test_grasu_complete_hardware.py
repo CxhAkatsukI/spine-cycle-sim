@@ -1,8 +1,11 @@
 """Diagnostic topology changes preserve all kernel counts and HBM connections."""
 
 from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware import preparation
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.preparation import COUNTS, relocate
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.resource_fit import topology
 
@@ -45,6 +48,22 @@ remote_ip_cache=/old/cache
         ledger["single_cu_relocation_screen"]["instances"][0]["slr"] = "SLR2"
         with self.assertRaises(ValueError):
             relocate(contents, Path("/new"), ledger)
+
+    def test_timeout_rejected_before_preparation_writes_or_reads_inputs(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(preparation, "candidates") as candidates:
+            output = Path(tmp) / "attempt"
+            for value in (True, 21600.0, 0, -1, 36000, 86400):
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    preparation.prepare(*([Path("/unused")] * 7), output, link_timeout_seconds=value)
+                self.assertFalse(output.exists())
+            candidates.assert_not_called()
+
+    def test_existing_attempt_rejected_even_with_extended_timeout(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(preparation, "candidates") as candidates:
+            output = Path(tmp)
+            with self.assertRaises(FileExistsError):
+                preparation.prepare(*([Path("/unused")] * 7), output, link_timeout_seconds=43200)
+            candidates.assert_not_called()
 
 
 if __name__ == "__main__":

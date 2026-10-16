@@ -99,6 +99,29 @@ class RouteSupervisorTests(unittest.TestCase):
             supervisor.run(Path("/old-build"), self.output)
         self.lease.sample.assert_not_called()
 
+    def test_twelve_hour_link_keeps_memory_and_admission_policy(self):
+        self.mocks()
+        self.manifest["timeout_seconds"] = 43200
+        self.write_manifest()
+        result = supervisor.run(Path("/old-build"), self.output)
+        self.assertTrue(result["route_started"])
+        launched = self.execute_mock.call_args.args[1]
+        self.assertEqual(launched["timeout_seconds"], 43200)
+        self.assertEqual(launched["queue_timeout_seconds"], 86400)
+        self.assertEqual([launched[key] for key in ("tree_memory_gib", "reserve_gib", "background_memory_gib")],
+                         [40, 24, 8])
+
+    def test_unreviewed_or_noninteger_timeout_rejected_before_admission(self):
+        self.mocks()
+        for value in (True, 21600.0, 0, -1, 36000, 86400):
+            with self.subTest(value=value):
+                self.manifest["timeout_seconds"] = value
+                self.write_manifest()
+                with self.assertRaises(ValueError):
+                    supervisor.run(Path("/old-build"), self.output)
+        self.lease.sample.assert_not_called()
+        self.execute_mock.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

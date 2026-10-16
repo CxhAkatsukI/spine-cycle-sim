@@ -16,6 +16,7 @@ from .gates import candidates
 COUNTS = {"bin_search": 4, "dispatch": 1, "process_cache": 2, "process_ddr": 2,
           "pma_completion_barrier": 1, "pma_to_regraph_adapter": 4, "lksg_stream": 4,
           "regraph_frontend_mux": 1, "kernelLittleGSMerger": 1, "kernelApply": 1, "kernelHBMWrapper": 1}
+LINK_TIMEOUTS = (21600, 43200)
 
 
 def relocate(contents, output, ledger):
@@ -33,9 +34,11 @@ def relocate(contents, output, ledger):
     return changed
 
 
-def prepare(build, basis, search, review, cache, composition, fit, output):
+def prepare(build, basis, search, review, cache, composition, fit, output, *, link_timeout_seconds=21600):
     if output.exists():
         raise FileExistsError("fresh diagnostic route attempt required")
+    if type(link_timeout_seconds) is not int or link_timeout_seconds not in LINK_TIMEOUTS:
+        raise ValueError("six- or twelve-hour finite link timeout required")
     replacements, reports, core = candidates(search, review, cache, composition, fit)
     previous = json.loads((basis / "manifest.json").read_text())
     unchanged(previous["pins"])
@@ -101,7 +104,7 @@ def prepare(build, basis, search, review, cache, composition, fit, output):
         "core_identity": core,
         "placement_change": {"instance": "lksg_stream_4", "from": "SLR0", "to": "SLR1"},
         "clock_mhz": 150, "tree_memory_gib": 40, "reserve_gib": 24, "background_memory_gib": 8,
-        "allow_bounded_builds": True, "timeout_seconds": 21600, "queue_timeout_seconds": 86400,
+        "allow_bounded_builds": True, "timeout_seconds": link_timeout_seconds, "queue_timeout_seconds": 86400,
         "integrated_rtl_admitted": False, "FPGA_timing_admitted": False,
         "production_baseline_admitted": False, "publication_match_admitted": False,
         "claim": "diagnostic_full_cache_search_export_link_not_integrated_RTL_or_board_performance"}

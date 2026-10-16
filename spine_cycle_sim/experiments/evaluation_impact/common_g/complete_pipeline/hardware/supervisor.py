@@ -15,13 +15,15 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import (
     current, other_builds, verify)
 from ...search_pipeline.synthesis import unchanged
+from .preparation import LINK_TIMEOUTS
 
 
 def run(build, output):
     manifest = json.loads((output / "manifest.json").read_text())
     if (manifest["status"] != "PREPARED_DIAGNOSTIC_LINK_NOT_BASELINE_ADMISSION" or
             [manifest[key] for key in ("tree_memory_gib", "reserve_gib", "background_memory_gib",
-             "allow_bounded_builds", "timeout_seconds", "queue_timeout_seconds")] != [40, 24, 8, True, 21600, 86400]):
+             "allow_bounded_builds", "queue_timeout_seconds")] != [40, 24, 8, True, 86400] or
+            type(manifest["timeout_seconds"]) is not int or manifest["timeout_seconds"] not in LINK_TIMEOUTS):
         raise ValueError("declared diagnostic route safety policy differs")
     record = output / "execution.json"
     lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", current())

@@ -55,6 +55,24 @@ lifetime. Unbounded or unverifiable competing compilers fail admission.
 
 ## Monitor
 
+The v1 attempt terminated at 2026-10-16 02:37 UTC because its six-hour
+process-tree deadline expired during bitstream generation. Routing had
+completed and the saved final timing report says all user constraints are met
+(WNS 0.003 ns, TNS 0, WHS 0.006 ns). Nevertheless, there is no completed
+`candidate.hw.xclbin`: the attempt remains `LINK_FAILED`, not a board or
+baseline pass. All recorded cgroup `high`, `max`, OOM and OOM-kill counts are
+zero; its peak cgroup usage was 29134856192 bytes. This was not a memory stop.
+The dependent v1 board queue failed closed without programming a device.
+
+No complete routed DCP was saved before termination, so the retry uses a
+fresh output directory and repeats the link from the same admitted eleven
+XOs. The CLI now accepts `--link-timeout-seconds 43200` for a twelve-hour
+link, in addition to the unchanged six-hour default. Other values, noninteger
+values and reused output paths are rejected. The 40-GiB hard bound, live
+reserve, peer-budget admission, two jobs and all evidence gates are unchanged.
+The enclosing service must allow the 24-hour queue plus the selected link
+deadline and preflight/cleanup time. A longer deadline is not a timing waiver.
+
 Raw attempt:
 `/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-route-v1/`
 

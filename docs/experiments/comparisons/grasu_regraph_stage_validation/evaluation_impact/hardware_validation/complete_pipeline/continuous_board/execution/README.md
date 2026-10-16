@@ -144,3 +144,8 @@ under the campaign's `g-gr-board-supervisor-v1/` directory. The enclosing
 service has 8-GiB hard/7-GiB high/no-swap/group-OOM limits and a 36-hour lifetime.
 This launch record is not a guarantee that routing or either board matrix
 will pass; inspect the current report rather than this initial checkpoint.
+
+The v1 queue subsequently stopped with `FAILED_RETAINED` when the exact G
+route hit its six-hour bitstream-generation deadline. `board_started` remains
+false. The failed queue and route are retained; a new link attempt requires
+a new board-queue directory, service and explicit invocation identity.
