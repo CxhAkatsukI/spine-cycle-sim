@@ -23,6 +23,13 @@ reproduction, same-platform source controls and actual integrated performance
 have separate decisions. Unsupported original-paper conditions must be
 reported rather than silently replaced with a different experiment.
 
+The [full-graph host-readiness check](fullgraph_readiness/README.md) owns a
+separate offline prerequisite: unchanged production hosts, six-partition
+smokes and all 24 frozen eight-graph/three-algorithm inputs. Its memory queue
+admits work when complete budgets fit, not when all FPGA tools have exited.
+CPU-oracle/layout preparation must not be reported as FPGA timing, actual
+new-G metadata/handoff correctness or original-publication reproduction.
+
 ## Current Checkpoint
 
 | Track | Latest evidence | Remaining gate |
