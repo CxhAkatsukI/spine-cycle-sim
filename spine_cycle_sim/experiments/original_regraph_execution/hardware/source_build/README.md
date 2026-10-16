@@ -56,10 +56,11 @@ checks are unchanged. Duplicate XML entries and oversized metadata fail.
 Compilation requires the passing independent input audit and the complete
 48-run Release/UBSan offline host control, with all their pins unchanged.
 This does not convert offline correctness into a hardware measurement.
-Both explicit divisor bindings remain separate board controls. The existing
-board host supports only 11+3: A4 routing has its own terminal status, which
-that host rejects before programming. A4 needs an explicitly supported host
-ABI and guarded correctness/performance matrix before any board admission.
+Both explicit divisor bindings remain separate board controls. A4 routing has
+its own terminal status and requires the separately recompiled/offline-validated
+A4-capable host. Historical 11+3-only hosts cannot authorize A4. The
+[board owner](../board_execution/README.md) independently checks the selected
+ABI/artifact and complete correctness/performance matrix before admission.
 
 ## Source-Only Preflight
 

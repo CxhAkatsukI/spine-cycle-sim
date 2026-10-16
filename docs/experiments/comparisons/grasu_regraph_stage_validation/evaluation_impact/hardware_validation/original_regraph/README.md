@@ -220,12 +220,14 @@ result. No simulator parameter or figure changed.
 ## Guarded Host: Compiled And Offline-Validated
 
 The [C++ control owner](../../../../../../../cpp/tests/original_regraph/hardware/README.md)
-implements the reviewed original 11-Little/3-Big ABI. It uses a fixed U55C BDF,
+originally implemented the reviewed original 11-Little/3-Big ABI. It uses a fixed U55C BDF,
 requires an external exclusive board lease, explicitly names the apply-divisor
 binding, repairs unsafe output allocation, and checks every output replica,
 publication padding, unused tail and guard. It also checks that source,
 divisor and edge inputs remain unchanged. A4 is supported for offline layout
-checks, but its unimplemented board ABI is rejected before device programming.
+checks in that historical binary, whose unsupported board ABI is rejected
+before device programming. The new separately validated A4 host is described
+below; it does not rewrite or upgrade this frozen evidence.
 
 The timer starts before argument binding and the first kernel enqueue and
 stops after all kernels complete. Raw profiling events permit both an
@@ -285,7 +287,7 @@ The builder now also accepts explicit `--topology a4`, using the author's
 generator with four Little and zero Big pipelines. The default 11+3 compile
 commands, macros and ABI remain unchanged. A4 needs four unique XOs and seven
 implemented CUs, not the mixed control's six XOs and eighteen CUs. Its separate
-routed status prevents the current 11+3-only board host from programming it.
+routed status prevents a 11+3-only host from authorizing it.
 Matching four lanes does not match every K4 resource: A4 retains the author's
 nine used HBM banks rather than our integrated 23-channel layout.
 
@@ -307,6 +309,31 @@ the ReGraph test service peaks at 46.5 MiB. An independent comparison to
 revision `839bd66` confirms exact default compile/link commands, argument
 order and control protocol for all six 11+3 kernels. No numerical simulator
 model, frozen running build or paper figure changes in this revision.
+
+The repeated `a4-source-preflight-v2` uses clean simulator commit `9dcab0d`
+and the same pinned author revision/generator. It passes in 809 ms with a
+23-MiB peak. Source queue `spine-a4-source-route-20261016-v1.service`, invocation
+`2dd055963c9544ddb85b4e8e5b1dc38f`, freezes that worktree separately from
+the running G and 11+3 builds. It has 40-GiB hard / 36-GiB high / zero-swap
+limits, CPUs 112--115 and an eighteen-hour bounded admission wait. At
+2026-10-16 02:36 UTC it has launched no compiler: approximately 85 GiB is
+available against 152 GiB required for the known full budgets plus reserve;
+other peers also fail the zero-swap bounded-build rule. This is memory
+admission, not a requirement that all other FPGA tools exit.
+
+The independent `codex/regraph-a4-board-control` worktree adds the actual
+four-lane host path without changing either frozen running builder. The
+board owner explicitly selects `a4` across the source manifest, four XO ABIs,
+routed artifact, input descriptors, child reports and all four output replicas.
+Legacy hosts remain admissible only for their historical 11+3 path. A4 needs
+a fresh 48-run Release/UBSan validation with both lease-negative controls;
+then its own eighteen-row matrix is independently rechecked. The Python
+regression passes 209 original-R tests in 1.016 seconds with a 46.6-MiB peak,
+including both topology paths, every A4 output guard, cross-topology rejection
+and admission while peers are running. These are unit tests with mocked board
+operations, not actual FPGA observations. Fresh C++ compilation, routing,
+board correctness/timing, publication matching and Spine comparisons remain
+open. No numerical simulator core or paper figure changes in this checkpoint.
 
 The separate [source-build owner](../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/source_build/README.md)
 compiles the clean pinned author revision after invoking only its topology

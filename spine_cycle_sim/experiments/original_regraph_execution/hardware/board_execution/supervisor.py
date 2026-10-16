@@ -15,6 +15,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from .. import artifact
 from ..source_build.snapshot import unchanged
+from ..source_build import configuration as config
 from . import admission, analysis, preparation, worker
 
 
@@ -27,10 +28,12 @@ def validate(unit, invocation, device, maximum_wait, poll_seconds):
 
 
 def run(audit, control, route, output, *, route_unit, route_invocation,
-        device=1, maximum_wait=86400, poll_seconds=30):
+        device=1, maximum_wait=86400, poll_seconds=30, topology=config.DEFAULT_TOPOLOGY):
     validate(route_unit, route_invocation, device, maximum_wait, poll_seconds)
+    config.counts(topology)
     output.mkdir(parents=True, exist_ok=False)
-    report = {"status": "PREPARING", "errors": [], "route_states": [], "device_index": device,
+    report = {"status": "PREPARING", "configuration": topology,
+              "errors": [], "route_states": [], "device_index": device,
               "route_unit": route_unit, "route_invocation": route_invocation,
               "maximum_wait_seconds": maximum_wait, "poll_seconds": poll_seconds,
               "board_launch_attempted": False, "board_programmed": False,
@@ -44,7 +47,7 @@ def run(audit, control, route, output, *, route_unit, route_invocation,
         report["containment"] = verify(group, memory_gib=8)
         if int(report["containment"]["limits"]["memory.high"]) > 7 * 1024**3:
             raise ValueError("board supervisor requires memory.high at most 7 GiB")
-        plan = preparation.prepare(audit, control, route)
+        plan = preparation.prepare(audit, control, route, topology=topology)
         plan.update(device_index=device)
         atomic_write_json(output / "plan.json", plan)
         report.update(boundary=plan["boundary"], pins=preparation.unique(
@@ -68,7 +71,7 @@ def run(audit, control, route, output, *, route_unit, route_invocation,
         save()
         if not report["admission"]["admitted"]:
             raise ValueError("full finite peer budgets plus reserve do not fit; no board launch")
-        checked = admission.review(route, output / "routed_admission")
+        checked = admission.review(route, output / "routed_admission", topology=topology)
         report["routed_admission"] = checked
         report["pins"] = preparation.unique([*report["pins"], *checked["pins"]])
         unchanged(report["pins"])
@@ -87,7 +90,8 @@ def run(audit, control, route, output, *, route_unit, route_invocation,
         if execution["exit_code"] or execution["stop_reason"] != "process_exit" or execution["cleanup_snapshot_error"]:
             raise ValueError("guarded worker failed or reached its resource bound; no reset/retry")
         child = json.loads((output / "board/results.json").read_text())
-        if (child["status"] != analysis.PASS or child["errors"] or child["board_programmed"] is not True or
+        if (child["status"] != analysis.pass_status(topology) or child["errors"] or child["board_programmed"] is not True or
+                child.get("configuration", config.DEFAULT_TOPOLOGY) != topology or
                 child["hardware_timing_measured"] is not True or
                 any(child.get(key) is not False for key in
                     ("publication_match", "convergence_measured", "host_inclusive_measured"))):
@@ -103,7 +107,7 @@ def run(audit, control, route, output, *, route_unit, route_invocation,
             raise ValueError("complete board summary differs")
         unchanged(child["pins"])
         unchanged(report["pins"])
-        report.update(status=analysis.PASS, board_launch_attempted=True, board_programmed=True,
+        report.update(status=analysis.pass_status(topology), board_launch_attempted=True, board_programmed=True,
                       hardware_timing_measured=True, child=artifact.identity(output / "board/results.json"),
                       summaries=child["summaries"])
     except BaseException as error:

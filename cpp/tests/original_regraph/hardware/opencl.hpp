@@ -65,7 +65,7 @@ struct Session {
 
   Session(const std::filesystem::path& xclbin, unsigned index, unsigned lane_count) {
     require_lease(index);
-    require(lane_count == 14, "only the reviewed 11+3 hardware ABI is supported");
+    require(lane_count == 14 || lane_count == 4, "only the reviewed 11+3 or generated A4 hardware ABI is supported");
     std::vector<cl::Platform> platforms;
     checked(cl::Platform::get(&platforms), "enumerate platforms");
     std::vector<cl::Device> devices;

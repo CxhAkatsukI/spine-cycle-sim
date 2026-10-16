@@ -14,16 +14,35 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execu
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_build import configuration as config
 
 
-def plan():
-    return {"boundary": preparation.BOUNDARY, "repeats": 3, "policy": preparation.POLICY,
+def plan(topology=config.DEFAULT_TOPOLOGY):
+    little, big = config.counts(topology)
+    return {"configuration": topology, "boundary": preparation.BOUNDARY, "repeats": 3, "policy": preparation.POLICY,
             "publication_match": False, "convergence_measured": False, "host_inclusive_measured": False,
             "device_index": 1, "pins": [], "host": {"path": "/host"}, "xclbin": {"path": "/binary"},
             "cases": [{"graph": graph, "binding": binding, "input": "/input", "offline": {
-                "little": 11, "big": 3, "topology": "original_example", "binding": binding}}
+                "little": little, "big": big, "topology": topology, "binding": binding}}
                 for graph in preparation.GRAPHS for binding in control_analysis.BINDINGS]}
 
 
 class BoardPlanTests(unittest.TestCase):
+    def test_a4_requires_explicit_selected_topology_and_new_host_validation(self):
+        preparation.validate_plan(plan("a4"))
+        for changes in ({"little": 11}, {"big": 3}, {"big": False}, {"topology": "original_example"}):
+            changed = plan("a4")
+            changed["cases"][0]["offline"].update(changes)
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                preparation.validate_plan(changed)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            audit, control = root / "audit", root / "control"
+            audit.mkdir()
+            control.mkdir()
+            (audit / "results.json").write_text(json.dumps({"status": preparation.study.STATUS, "errors": []}))
+            (control / "results.json").write_text("{}")
+            with patch.object(preparation.control_delivery, "terminal"), \
+                    self.assertRaisesRegex(ValueError, "A4-capable host"):
+                preparation.prepare(audit, control, root / "route", topology="a4")
+
     def test_exact_scope_and_no_promoted_claims(self):
         preparation.validate_plan(plan())
         for changes in ({"repeats": 2}, {"repeats": True}, {"boundary": "convergence"}, {"policy": {}},
@@ -67,39 +86,53 @@ class BoardAdmissionTests(unittest.TestCase):
                 extract.assert_not_called()
 
     def test_all_six_objects_and_fresh_metadata_are_rechecked(self):
+        self.check_artifacts(config.DEFAULT_TOPOLOGY)
+
+    def test_a4_requires_four_selected_objects_and_its_own_routed_binary(self):
+        self.check_artifacts("a4")
+
+    def check_artifacts(self, topology):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            binary = root / "original_r_11l3b.hw.xclbin"
+            names = config.kernels(topology)
+            binary = root / config.binary_name(topology)
             utility, xo, hls, timing = [root / name for name in ("utility", "xo-file", "hls-file", "timing-file")]
             for path in (binary, utility, xo, hls, timing):
                 path.write_text(path.name)
             records = [{"abi": {"kernel": name, "xo": artifact.identity(xo)},
-                        "hls": {"report": artifact.identity(hls)}} for name in config.KERNELS]
+                        "hls": {"report": artifact.identity(hls)}} for name in names]
             routed = {"timing": {"report": artifact.identity(timing)}}
-            report = {"status": admission.STATUS, "errors": [], "board_programmed": False,
+            report = {"status": config.routed_status(topology), "configuration": topology,
+                      "errors": [], "board_programmed": False,
                       "hardware_timing_measured": False, "publication_match": False,
                       "pins": [artifact.identity(utility)], "xclbin": artifact.identity(binary), "analysis": routed,
                       "steps": [{"id": name, "exit_code": 0, "stop_reason": "process_exit",
                                  "cleanup_snapshot_error": None} for name in
-                                ["compile_" + name for name in config.KERNELS] + ["route"]], "xos": records}
+                                ["compile_" + name for name in names] + ["route"]], "xos": records}
             (root / "results.json").write_text(json.dumps(report))
             with patch.object(admission.checkpoint_run, "UTILITY", utility), \
-                    patch.object(admission.gates, "inspect_xo", side_effect=lambda path, name:
+                    patch.object(admission.gates, "inspect_xo", side_effect=lambda path, name, **kwargs:
                         next(row["abi"] for row in records if row["abi"]["kernel"] == name)) as abi, \
                     patch.object(admission.gates, "inspect_hls", return_value={"report": artifact.identity(hls)}) as synthesis, \
                     patch.object(admission, "run_bounded", return_value={"exit_code": 0, "timed_out": False}) as extract, \
                     patch.object(admission.gates, "inspect_routed", return_value=routed) as final:
-                checked = admission.review(root, root / "admission")
+                checked = admission.review(root, root / "admission", topology=topology)
                 self.assertEqual(checked["xclbin"], report["xclbin"])
-                self.assertEqual(abi.call_count, 6)
-                self.assertEqual(synthesis.call_count, 6)
+                self.assertEqual(checked["configuration"], topology)
+                self.assertEqual(abi.call_count, len(names))
+                self.assertEqual(synthesis.call_count, len(names))
+                self.assertTrue(all(call.kwargs["topology"] == topology for call in abi.call_args_list))
+                self.assertEqual(final.call_args.kwargs["configuration"], topology)
                 self.assertIn("SYSTEM_METADATA:RAW:", " ".join(extract.call_args.args[0]))
+                with self.assertRaisesRegex(ValueError, "successful fresh-source route"):
+                    admission.review(root, root / "wrong", topology="a4" if topology == config.DEFAULT_TOPOLOGY
+                                     else config.DEFAULT_TOPOLOGY)
                 final.return_value = {"changed": True}
                 with self.assertRaisesRegex(ValueError, "timing differs"):
-                    admission.review(root, root / "changed")
+                    admission.review(root, root / "changed", topology=topology)
             utility.write_text("drift")
             with self.assertRaisesRegex(ValueError, "artifact changed"):
-                admission.review(root, root / "drift")
+                admission.review(root, root / "drift", topology=topology)
 
 
 class BoardSupervisorTests(unittest.TestCase):
@@ -230,10 +263,16 @@ class BoardSupervisorTests(unittest.TestCase):
 
 class BoardWorkerTests(unittest.TestCase):
     def test_complete_matrix_keeps_one_lease_and_rechecks_runtime_each_run(self):
+        self.check_worker(config.DEFAULT_TOPOLOGY)
+
+    def test_a4_worker_forwards_selected_topology_and_retains_all_checks(self):
+        self.check_worker("a4")
+
+    def check_worker(self, topology):
         with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
             root = Path(directory)
             manifest = root / "manifest.json"
-            manifest.write_text(json.dumps(plan()))
+            manifest.write_text(json.dumps(plan(topology)))
             fd = os.open(root / "lock", os.O_CREAT | os.O_RDWR, 0o600)
             stack.callback(os.close, fd)
 
@@ -260,11 +299,13 @@ class BoardWorkerTests(unittest.TestCase):
                 self.assertEqual(kwargs["pass_fds"], (fd,))
                 self.assertEqual(kwargs["env"]["ORIGINAL_R_EXPECT_BDF"], "fixed")
                 self.assertEqual(command[-1], "1")
+                self.assertEqual(command[-5], topology)
                 return subprocess.CompletedProcess(command, 0)
 
             execute = stack.enter_context(patch.object(worker.subprocess, "run", side_effect=measured))
             report = worker.run(manifest, root / "run")
-            self.assertEqual(report["status"], analysis.PASS)
+            self.assertEqual(report["status"], analysis.pass_status(topology))
+            self.assertEqual(report["configuration"], topology)
             self.assertEqual(len(report["rows"]), 18)
             self.assertEqual(len(report["summaries"]), 6)
             self.assertEqual(execute.call_count, 18)

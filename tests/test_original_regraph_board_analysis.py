@@ -18,24 +18,28 @@ def write_words(path, words):
 
 
 class BoardAnalysisTests(unittest.TestCase):
-    def fixture(self, root):
+    def fixture(self, root, topology="original_example"):
         output, inputs = root / "output", root / "input"
         output.mkdir()
         inputs.mkdir()
         words = [108, 0, 0, 0, 0, 0] + [control_analysis.GUARD] * 16
         write_words(output / "expected.u32le", words)
-        for lane in range(14):
+        mixed = topology == "original_example"
+        little, big = (11, 3) if mixed else (4, 0)
+        for lane in range(little + big):
             write_words(output / f"replica{lane}.u32le", words)
-        write_words(inputs / "mixed.u32le",
-                    [0x4D47524F, 1, 3, 2, 4, 6, 6, 2, 0, 1, 11, 3] +
-                    [0, 0, 0, 0, 6, 0, 8, 1] + [0, 1, 11, 0, 6, 8, 8, 1])
+        write_words(inputs / ("mixed.u32le" if mixed else "execution.u32le"),
+                    ([0x4D47524F, 1, 3, 2, 4, 6, 6, 2, 0, 1, 11, 3] if mixed else
+                     [0x3447524F, 1, 3, 2, 4, 6, 2, 2]) +
+                    [0, 0, 0, 0, 6, 0, 8, int(mixed)] +
+                    [0, 1, 11 if mixed else 3, 0, 6, 8, 8, int(mixed)])
         offline = {"status": "ORIGINAL_R_CONTROL_OFFLINE_PASS_NOT_FPGA", "board_programmed": False,
                    "hardware_timing_measured": False, "publication_match": False, "events": [], "bdf": "",
                    "enqueue_to_completion_ms": None, "event_union_ns": None, "event_span_ns": None,
                    "binding": "csr_degree", "iterations": 1, "argument": 0, "guard_words": 16,
                    "vertices": 3, "aligned_vertices": 4, "published_vertices": 6, "allocation_vertices": 6,
                    "extra_padding_vertices": 2, "logical_edges": 2, "physical_edges": 8, "dummy_edges": 6,
-                   "tasks": 2, "little": 11, "big": 3, "topology": "original_example"}
+                   "tasks": 2, "little": little, "big": big, "topology": topology}
         reference = {"vertices": 3, "original_allocation_words": 4, "device_publication_words": 6,
                      "logical_edges": 2, "physical_edges": 8, "one_superstep_comparison":
                          {"csr_degree_result_sha256": oracle.digest(array.array("I", [108, 0, 0, 0]))}}
@@ -44,7 +48,8 @@ class BoardAnalysisTests(unittest.TestCase):
         events = [{"role": role, "ordinal": ordinal, "lane": lane, "queued_ns": 1, "submitted_ns": 2,
                    "start_ns": start, "end_ns": end}
                   for role, ordinal, lane, start, end in (("hbm_wrapper", 0, 0, 10, 100),
-                      ("apply", 0, 0, 20, 90), ("little", 0, 0, 30, 80), ("big", 1, 11, 40, 70))]
+                      ("apply", 0, 0, 20, 90), ("little", 0, 0, 30, 80),
+                      ("big" if mixed else "little", 1, 11 if mixed else 3, 40, 70))]
         observed = {**offline, "status": "ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS", "board_programmed": True,
                     "hardware_timing_measured": True, "bdf": "0000:82:00.1", "events": events,
                     "enqueue_to_completion_ms": 0.001, "event_union_ns": 90, "event_span_ns": 90}
@@ -59,6 +64,28 @@ class BoardAnalysisTests(unittest.TestCase):
             self.assertEqual(checked["event_span_cycles_at_implemented_clock"], 13.5)
             self.assertEqual(len(checked["pins"]), 16)
             self.assertEqual(observed["status"], "ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS")
+
+    def test_a4_requires_all_four_replicas_and_selected_task_lanes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output, case, observed = self.fixture(Path(directory), "a4")
+            checked = analysis.inspect(observed, output, case, observed["bdf"])
+            self.assertEqual(len(checked["pins"]), 6)
+            self.assertEqual(checked["event_union_ns"], 90)
+            self.assertEqual(analysis.pass_status("a4"),
+                             "A4_R_GUARDED_BOARD_MATRIX_PASS_NOT_PUBLICATION_MATCH")
+            for lane in range(4):
+                replica = output / f"replica{lane}.u32le"
+                original = replica.read_bytes()
+                replica.write_bytes(original[:-1] + bytes([original[-1] ^ 1]))
+                with self.subTest(lane=lane), self.assertRaises(ValueError):
+                    analysis.inspect(observed, output, case, observed["bdf"])
+                replica.write_bytes(original)
+            descriptor = Path(case["input"]) / "execution.u32le"
+            words = oracle.read_words(descriptor, 24)
+            words[18] = 4
+            write_words(descriptor, words)
+            with self.assertRaisesRegex(ValueError, "task lane"):
+                analysis.inspect(observed, output, case, observed["bdf"])
 
     def test_event_window_gaps_overlap_and_invalid_timestamps(self):
         def event(start, end):

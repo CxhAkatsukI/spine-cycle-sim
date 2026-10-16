@@ -19,7 +19,7 @@ remain separate experiments.
 | `control_analysis.py` | Independent oracle hashes, publication padding, guards and complete offline matrix |
 | `control_validation.py` | Finite-memory Release/UBSan compilation and 48-run offline host validation, including launch rejection |
 | `control_delivery.py` | Recheck raw results and package sources/metadata with failed attempts, without board-performance claims |
-| [source_build/](source_build/README.md) | Fresh clean-source 11+3 compilation and routing with independent memory admission; no board execution |
+| [source_build/](source_build/README.md) | Explicit clean-source 11+3/A4 compilation and routing with independent memory admission; no board execution |
 | [board_execution/](board_execution/README.md) | Exact-invocation conditional queue, independent artifact readmission and eighteen guarded board controls; no publication-match claim |
 
 Read the [hardware campaign's original-R checkpoint](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/original_regraph/README.md)
@@ -44,8 +44,9 @@ read-only Vivado query cannot program a board or rewrite the author artifact.
 ## Guarded Host Control
 
 The optional [C++ host](../../../../cpp/tests/original_regraph/hardware/README.md)
-supports the reviewed 11+3 device ABI, not an inferred A4 hardware ABI.
-Its offline layout/oracle checks support both named topologies. Host changes
+supports the reviewed 11+3 and separately generated A4 device ABIs; the board
+owner requires a distinct matching admitted artifact for each. Its offline
+layout/oracle checks support both named topologies. Host changes
 make publication allocation safe and expose the two divisor bindings explicitly;
 the author device code is unchanged.
 
@@ -53,6 +54,9 @@ The fixed matrix is two topologies x three graphs x two divisor bindings x
 two repetitions x Release/UBSan = 48 offline runs. Full expected outputs,
 publication padding and guards are checked against the independently audited
 CSR/task oracle. No device is enumerated or programmed in offline mode.
+Both board geometries must reject a missing external lease. Legacy reports
+that instead rejected the unsupported A4 ABI remain valid historical offline
+evidence but cannot authorize this new A4 board path.
 
 ```bash
 systemd-run --user --wait --pipe --unit=original-r-control-fresh \
@@ -65,6 +69,14 @@ systemd-run --user --wait --pipe --unit=original-r-control-fresh \
   --audit /path/to/successful/offline-audit \
   --output /path/to/fresh/offline-control
 ```
+
+By default memory admission fails immediately if full peer budgets plus the
+reserve do not fit. To queue safely, use `--wait-seconds 64800 --poll-seconds 10`
+and increase the service's finite lifetime accordingly. The waiting loop freezes
+and rechecks source/audit identities before any compiler starts; it admits work
+while other FPGA tools remain active when all budgets fit. Unknown/unbounded
+peers prevent admission. The service itself retains its 4-GiB hard limit and
+zero-swap containment throughout the wait and validation.
 
 `--captures` is the exact **report file** pinned by that audit, not a substitute
 raw run directory. Its large captured inputs must still be available and match

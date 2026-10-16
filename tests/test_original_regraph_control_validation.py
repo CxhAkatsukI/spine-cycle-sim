@@ -4,10 +4,13 @@ from pathlib import Path
 import tempfile
 import tarfile
 import unittest
+from unittest.mock import Mock, patch
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware import control_analysis as analysis
 from spine_cycle_sim.experiments.original_regraph_execution.hardware import control_delivery as delivery
-from spine_cycle_sim.experiments.original_regraph_execution.hardware import control_inputs, oracle, study
+from spine_cycle_sim.experiments.original_regraph_execution.hardware import (
+    artifact, control_inputs, control_validation, oracle, study,
+)
 
 
 class ControlValidationTests(unittest.TestCase):
@@ -122,6 +125,15 @@ class ControlDeliveryTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 delivery.terminal({**self.report(), **changes})
 
+    def test_a4_capable_host_requires_new_negative_controls_without_promoting_legacy(self):
+        report = {**self.report(), "board_abis": ["original_example", "a4"],
+                  "negative_controls": ["missing_lease", "unknown_binding", "missing_lease_a4", "symlink_input"]}
+        delivery.terminal(report)
+        for changes in ({"board_abis": ["a4"]}, {"board_abis": []},
+                        {"negative_controls": self.report()["negative_controls"]}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                delivery.terminal({**report, **changes})
+
     def test_portable_capsule_rejects_archive_and_claim_tampering(self):
         import json
         from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
@@ -145,6 +157,53 @@ class ControlDeliveryTests(unittest.TestCase):
             archive.write_bytes(b"changed")
             with self.assertRaisesRegex(ValueError, "archive changed"):
                 delivery.verify(root)
+
+
+class ControlMemoryWaitTests(unittest.TestCase):
+    def invoke(self, report, sample, *, wait_seconds=0):
+        lease, save = Mock(), Mock()
+        lease.sample.side_effect = sample
+        peers = [{"pid": 42, "memory_max_bytes": 40 * 1024**3}]
+        with patch.object(control_validation, "available_memory_bytes", return_value=160 * 1024**3), \
+                patch.object(control_validation, "other_builds", return_value=peers), \
+                patch.object(control_validation.time, "sleep") as sleep, \
+                patch.object(control_validation.time, "monotonic", side_effect=[0, 0, 1]):
+            control_validation.wait_for_memory(lease, report, save, wait_seconds=wait_seconds, poll_seconds=0.1)
+        return lease, save, sleep, peers
+
+    def test_fitting_budgets_start_even_when_another_fpga_build_is_running(self):
+        report = {"pins": []}
+        lease, save, sleep, peers = self.invoke(report, [{"admitted": True}])
+        lease.sample.assert_called_once_with(160 * 1024**3, peers, control_validation.POLICY, commit=True)
+        save.assert_called_once()
+        sleep.assert_not_called()
+        self.assertEqual(report["status"], "MEMORY_ADMITTED")
+
+    def test_wait_rechecks_budget_until_admitted_and_zero_wait_fails_closed(self):
+        report = {"pins": []}
+        lease, save, sleep, _ = self.invoke(report, [{"admitted": False}, {"admitted": True}], wait_seconds=10)
+        self.assertEqual(lease.sample.call_count, 2)
+        self.assertEqual(save.call_count, 2)
+        sleep.assert_called_once_with(0.1)
+        with self.assertRaisesRegex(TimeoutError, "no compiler launched"):
+            self.invoke({"pins": []}, [{"admitted": False}])
+
+    def test_wait_rejects_source_drift_before_budget_admission(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "source"
+            source.write_text("frozen")
+            report = {"pins": [artifact.identity(source)]}
+            source.write_text("changed")
+            lease = Mock()
+            with self.assertRaisesRegex(ValueError, "changed while waiting"):
+                control_validation.wait_for_memory(lease, report, Mock(), wait_seconds=10, poll_seconds=1)
+            lease.sample.assert_not_called()
+
+    def test_wait_bounds_must_be_finite(self):
+        for wait, poll in ((True, 1), (-1, 1), (float("inf"), 1), (1, 0), (1, float("nan"))):
+            with self.subTest(wait=wait, poll=poll), self.assertRaises(ValueError):
+                control_validation.wait_for_memory(Mock(), {"pins": []}, Mock(), wait_seconds=wait,
+                                                   poll_seconds=poll)
 
 
 if __name__ == "__main__":

@@ -2,9 +2,11 @@
 
 import argparse
 import json
+import math
 from pathlib import Path
 import shutil
 import subprocess
+import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
@@ -17,11 +19,31 @@ POLICY = {"tree_memory_gib": 4, "reserve_gib": 24, "background_memory_gib": 8,
 COMPILER = Path("/usr/bin/g++").resolve()
 
 
-def run(root: Path, captures: Path, audit: Path, output: Path) -> dict:
+def wait_for_memory(lease, report, save, *, wait_seconds, poll_seconds):
+    if (any(type(value) not in (int, float) or not math.isfinite(value)
+            for value in (wait_seconds, poll_seconds)) or wait_seconds < 0 or poll_seconds <= 0):
+        raise ValueError("finite nonnegative memory wait and positive poll required")
+    started = time.monotonic()
+    while True:
+        if any(artifact.identity(Path(pin["path"])) != pin for pin in report["pins"]):
+            raise ValueError("frozen offline control changed while waiting")
+        report["admission"] = lease.sample(available_memory_bytes(), other_builds(), POLICY, commit=True)
+        report["waited_seconds"] = time.monotonic() - started
+        report["status"] = "MEMORY_ADMITTED" if report["admission"]["admitted"] else "WAITING_FOR_MEMORY"
+        save()
+        if report["admission"]["admitted"]:
+            return
+        if report["waited_seconds"] >= wait_seconds:
+            raise TimeoutError("full finite peer budgets plus reserve do not fit; no compiler launched")
+        time.sleep(min(poll_seconds, wait_seconds - report["waited_seconds"]))
+
+
+def run(root: Path, captures: Path, audit: Path, output: Path, *, wait_seconds=0, poll_seconds=10) -> dict:
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARED", "errors": [], "policy": POLICY, "steps": [], "rows": [],
               "negative_controls": [], "pins": [], "board_programmed": False,
-              "hardware_timing_measured": False, "publication_match": False}
+              "hardware_timing_measured": False, "publication_match": False,
+              "board_abis": ["original_example", "a4"], "wait_seconds": wait_seconds}
     lease = None
 
     def save():
@@ -40,23 +62,22 @@ def run(root: Path, captures: Path, audit: Path, output: Path) -> dict:
     try:
         group = current()
         report["containment"] = verify(group, memory_gib=POLICY["tree_memory_gib"])
-        lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
-        report["admission"] = lease.sample(available_memory_bytes(), other_builds(), POLICY, commit=True)
-        if not report["admission"]["admitted"]:
-            raise ValueError("full finite peer budgets plus reserve do not fit; no compiler launched")
         reference = json.loads((audit / "results.json").read_text())
         if reference["status"] != study.STATUS or reference["errors"]:
             raise ValueError("passing independent original-R offline audit required")
         for pin in reference["pins"]:
             if artifact.identity(Path(pin["path"])) != pin:
                 raise ValueError("independent audit provenance changed")
-        report["compiler_version"] = subprocess.check_output([str(COMPILER), "--version"], text=True)
         report["source_revision"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
         report["worktree_status"] = subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True).splitlines()
         source = root / "cpp/tests/original_regraph/hardware"
         report["pins"] = [artifact.identity(path) for path in sorted(source.glob("*")) if path.is_file()]
         report["pins"] += [artifact.identity(audit / "results.json"), artifact.identity(COMPILER)]
         report["pins"] += study.runner_pins()
+        report["pins"] += reference["pins"]
+        lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
+        wait_for_memory(lease, report, save, wait_seconds=wait_seconds, poll_seconds=poll_seconds)
+        report["compiler_version"] = subprocess.check_output([str(COMPILER), "--version"], text=True)
         inputs = control_inputs.admit(captures, reference, output / "inputs")
         report["pins"] += [pin for admitted in inputs.values() for item in admitted for pin in item["pins"]]
         report["inputs"] = inputs
@@ -102,8 +123,10 @@ def run(root: Path, captures: Path, audit: Path, output: Path) -> dict:
                 "external exclusive board lease required"),
             ("unknown_binding", [binary, "offline", small, "original_example", "implicit",
                 str(output / "negative_binding")], "explicit author_initial or csr_degree"),
-            ("a4_board_abi", [binary, "board", inputs["a4"][0]["directory"], "a4", "csr_degree",
-                str(output / "negative_a4_board"), "/nonexistent.xclbin", "0"], "A4 remains an offline layout"),
+            ("missing_lease_a4", ["/usr/bin/env", "-u", "ORIGINAL_R_LEASE_FD", binary, "board",
+                inputs["a4"][0]["directory"], "a4", "csr_degree",
+                str(output / "negative_a4_board"), "/nonexistent.xclbin", "0"],
+                "external exclusive board lease required"),
         ):
             record = step(name, command, success=False)
             if message not in Path(record["stderr"]).read_text():
@@ -138,6 +161,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("captures", "audit", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--wait-seconds", type=float, default=0)
+    parser.add_argument("--poll-seconds", type=float, default=10)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[4]
-    print(run(root, *(path.resolve() for path in (args.captures, args.audit, args.output)))["status"], flush=True)
+    print(run(root, *(path.resolve() for path in (args.captures, args.audit, args.output)),
+              wait_seconds=args.wait_seconds, poll_seconds=args.poll_seconds)["status"], flush=True)

@@ -21,6 +21,12 @@ int main() {
     const auto guarded = rb::guarded({1, 2});
     rb::require(guarded.size() == 18 && guarded[1] == 2 && guarded.back() == rb::guard, "missing complete guard line");
     rb::Model model;
+    model.little = 4;
+    rb::require(rb::board_lanes(model) == 4, "A4 lane count mismatch");
+    model.little = 11; model.big = 3;
+    rb::require(rb::board_lanes(model) == 14, "original lane count mismatch");
+    model.big = 0;
+    rejected([&] { rb::board_lanes(model); });
     model.aligned = 65536; model.published = 589824; model.allocation = model.published;
     model.initial.resize(model.allocation); model.degrees.resize(model.allocation);
     model.expected.resize(model.allocation + rb::guard_words);

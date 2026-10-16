@@ -125,4 +125,10 @@ struct Model {
     require(actual == target, message);
   }
 };
+
+inline unsigned board_lanes(const Model& model) {
+  require((model.little == 11 && model.big == 3) || (model.little == 4 && model.big == 0),
+          "only explicit author 11+3 or generated A4 board topology is supported");
+  return model.little + model.big;
+}
 }  // namespace original_r_board

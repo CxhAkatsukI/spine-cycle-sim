@@ -11,9 +11,9 @@ before the next poll. The source invocation ID is still checked independently.
 | Module | Responsibility |
 | --- | --- |
 | `preparation.py` | Freeze the independent audit, Release host, input/output oracle and live build manifest; declare the complete matrix |
-| `admission.py` | Recheck all six XO/HLS identities and freshly extracted routed topology, clock and strict timing |
+| `admission.py` | Recheck all selected XO/HLS identities and freshly extracted routed topology, clock and strict timing |
 | `worker.py` | Hold one nonblocking board lease, forward its FD and exact BDF to bounded host children, record every attempt |
-| `analysis.py` | Verify all fourteen replicas, padding/guards, independent oracle, kernel event identities and overlap-aware timing |
+| `analysis.py` | Verify all selected replicas, padding/guards, independent oracle, kernel event identities and overlap-aware timing |
 | `supervisor.py` | Wait for the exact service invocation, atomically admit memory, contain execution and recheck every raw result |
 | `__main__.py` | Thin CLI requiring explicit `--execute` |
 
@@ -21,9 +21,20 @@ before the next poll. The source invocation ID is still checked independently.
 
 The matrix is three graphs (`boundary_ring`, `skewed_sources`, `amazon`) x two
 explicit divisor bindings (`author_initial`, `csr_degree`) x three repetitions
-= eighteen board runs. It uses only the reviewed 11-Little/3-Big ABI. Offline
-A4 checks do not authorize a different board ABI. Each graph retains its
-audited original vertex IDs and complete input identity.
+= eighteen board runs **per topology**. The default `original_example` uses
+11 Little + 3 Big, six unique XOs and fourteen output replicas. Explicit
+`--topology a4` selects the author's generated four-Little/zero-Big path,
+four unique XOs and four output replicas. These are separate matrices, not
+interchangeable binaries. Each graph retains its audited original vertex IDs
+and complete input identity.
+
+A4 requires an independently recompiled/offline-validated host whose report
+explicitly admits `board_abis = ["original_example", "a4"]`. Historical hosts
+that rejected A4 remain valid only for the original topology. The input
+descriptor, source-route manifest, terminal route status, compiled ABI, freshly
+extracted artifact topology and child result must all agree with the selected
+configuration. A4 still uses the author's nine HBM banks, not our K4/23-channel
+layout; four lanes alone do not establish equal resources.
 
 Each run performs **one static signed fixed-point PR superstep, `arg=0`**.
 The resident wall window starts before argument binding/first enqueue and ends
@@ -35,7 +46,8 @@ admitted implemented 150-MHz clock.
 
 This is a U55C same-platform control, not convergence, residual PR, host-inclusive
 latency, publication-speed reproduction or a Spine speedup. Success is explicitly
-`ORIGINAL_R_11L3B_GUARDED_BOARD_MATRIX_PASS_NOT_PUBLICATION_MATCH`.
+`ORIGINAL_R_11L3B_GUARDED_BOARD_MATRIX_PASS_NOT_PUBLICATION_MATCH` or
+`A4_R_GUARDED_BOARD_MATRIX_PASS_NOT_PUBLICATION_MATCH`, respectively.
 
 ## Bounded Execution
 
@@ -72,6 +84,10 @@ systemd-run --user --unit=original-r-board-fresh \
   --route-invocation 0123456789abcdef0123456789abcdef \
   --device 1 --output /path/to/fresh/board-queue --execute
 ```
+
+For A4 add `--topology a4` and supply the distinct generated-A4 source build
+and the new A4-capable validated host. Adding the flag cannot authorize the
+11+3 prebuilt or bypass route/clock/timing admission.
 
 Do not edit hash-pinned runner files after starting either queue. Source build,
 board matrix, matched A4, actual adapter/K4 and publication comparison remain

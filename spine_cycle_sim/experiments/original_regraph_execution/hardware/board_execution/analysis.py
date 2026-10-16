@@ -5,12 +5,17 @@ from pathlib import Path
 import statistics
 
 from .. import artifact, control_analysis, oracle
-from ..source_build.configuration import CLOCK_MHZ
+from ..source_build.configuration import CLOCK_MHZ, DEFAULT_TOPOLOGY, counts
 from .preparation import GRAPHS, REPEATS
 
 PASS = "ORIGINAL_R_11L3B_GUARDED_BOARD_MATRIX_PASS_NOT_PUBLICATION_MATCH"
 METRICS = {"status", "board_programmed", "hardware_timing_measured", "bdf", "events",
            "enqueue_to_completion_ms", "event_union_ns", "event_span_ns"}
+
+
+def pass_status(topology=DEFAULT_TOPOLOGY):
+    counts(topology)
+    return PASS if topology == DEFAULT_TOPOLOGY else "A4_R_GUARDED_BOARD_MATRIX_PASS_NOT_PUBLICATION_MATCH"
 
 
 def event_window(events):
@@ -39,6 +44,10 @@ def inspect(observed, output, case, bdf):
             observed.get("publication_match") is not False or observed.get("bdf") != bdf):
         raise ValueError("explicit guarded board success on the leased BDF required")
     offline = case["offline"]
+    little, big = counts(offline["topology"])
+    if (any(type(offline[key]) is not int for key in ("little", "big")) or
+            offline["little"] != little or offline["big"] != big):
+        raise ValueError("offline topology and replica counts differ")
     if {key: value for key, value in observed.items() if key not in METRICS} != \
             {key: value for key, value in offline.items() if key not in METRICS}:
         raise ValueError("board semantics or geometry differs from admitted offline control")
@@ -48,18 +57,24 @@ def inspect(observed, output, case, bdf):
     if independent != case["expected"]:
         raise ValueError("board expectation differs from independent audited oracle")
     pins = [artifact.identity(output / "expected.u32le"), artifact.identity(output / "result.json")]
-    for lane in range(14):
+    for lane in range(little + big):
         pin = artifact.identity(output / f"replica{lane}.u32le")
         if pin["sha256"] != independent["expected_sha256"]:
             raise ValueError("replica output, publication padding, tail or guard differs")
         pins.append(pin)
-    descriptor = oracle.read_words(Path(case["input"]) / "mixed.u32le", 12 + 8 * offline["tasks"])
-    if list(descriptor[:2]) != [0x4D47524F, 1] or list(descriptor[10:12]) != [11, 3]:
-        raise ValueError("original 11+3 task descriptor required")
+    mixed = offline["topology"] == DEFAULT_TOPOLOGY
+    header = 12 if mixed else 8
+    descriptor = oracle.read_words(Path(case["input"]) / ("mixed.u32le" if mixed else "execution.u32le"),
+                                   header + 8 * offline["tasks"])
+    if (list(descriptor[:2]) != [0x4D47524F if mixed else 0x3447524F, 1] or
+            (mixed and list(descriptor[10:12]) != [little, big])):
+        raise ValueError("selected-topology task descriptor required")
     expected = [("hbm_wrapper", 0, 0), ("apply", 0, 0)]
     for ordinal in range(offline["tasks"]):
-        lane = descriptor[12 + 8 * ordinal + 2]
-        expected.append(("little" if lane < 11 else "big", ordinal, lane))
+        lane = descriptor[header + 8 * ordinal + 2]
+        if not 0 <= lane < little + big:
+            raise ValueError("task lane outside selected topology")
+        expected.append(("little" if lane < little else "big", ordinal, lane))
     events = observed["events"]
     if (not isinstance(events, list) or any(not isinstance(event, dict) or
             any(type(event.get(name)) is not int for name in ("ordinal", "lane")) for event in events)):

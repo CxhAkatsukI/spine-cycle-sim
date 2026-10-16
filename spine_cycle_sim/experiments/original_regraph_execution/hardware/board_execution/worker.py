@@ -15,6 +15,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
 from spine_cycle_sim.experiments.sharded_k4_stages.board import require_idle_board
 from .. import artifact
 from ..source_build.snapshot import unchanged
+from ..source_build.configuration import DEFAULT_TOPOLOGY
 from . import analysis
 from .preparation import REPEATS, unique, validate_plan
 
@@ -52,6 +53,8 @@ def run(manifest, output):
     save()
     try:
         validate_plan(job)
+        topology = job.get("configuration", DEFAULT_TOPOLOGY)
+        report["configuration"] = topology
         unchanged(report["pins"])
         binary = Path(job["host"]["path"])
         runtime.require_clean_environment(binary, output)
@@ -74,7 +77,7 @@ def run(manifest, output):
                     name = f"r{repeat}_{case['graph']}_{case['binding']}"
                     destination = output / "cases" / name
                     command = ["/usr/bin/taskset", "-c", "124,125", str(binary), "board", case["input"],
-                               "original_example", case["binding"], str(destination),
+                               topology, case["binding"], str(destination),
                                job["xclbin"]["path"], str(job["device_index"])]
                     record = {"name": name, "command": command, "timeout_seconds": 600,
                               "lease_fd_forwarded": True, "exit_code": None, "timed_out": False}
@@ -107,7 +110,7 @@ def run(manifest, output):
             report["summaries"] = analysis.matrix(report["rows"])
             runtime.unchanged(captured, render)
             unchanged(report["pins"])
-        report["status"] = analysis.PASS
+        report["status"] = analysis.pass_status(topology)
     except BaseException as error:
         report["status"] = "FAILED_RETAINED"
         report["errors"].append(repr(error))

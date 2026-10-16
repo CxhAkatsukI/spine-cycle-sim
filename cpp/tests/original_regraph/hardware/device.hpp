@@ -4,11 +4,6 @@
 #include <chrono>
 
 namespace original_r_board {
-inline unsigned board_lanes(const Model& model) {
-  require(model.little == 11 && model.big == 3, "A4 remains an offline layout control, not this prebuilt's ABI");
-  return 14;
-}
-
 struct Observation {
   double enqueue_to_completion_ms{};
   std::vector<Event> events;

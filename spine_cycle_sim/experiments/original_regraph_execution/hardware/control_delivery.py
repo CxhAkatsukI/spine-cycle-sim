@@ -14,9 +14,13 @@ CLAIMS = ("board_programmed", "hardware_timing_measured", "publication_match")
 
 
 def terminal(report):
+    legacy = "board_abis" not in report
+    expected = {"missing_lease", "unknown_binding", "symlink_input",
+                "a4_board_abi" if legacy else "missing_lease_a4"}
     if (report["status"] != analysis.STATUS or report["errors"] or
             any(report.get(key) is not False for key in CLAIMS) or
-            set(report["negative_controls"]) != {"missing_lease", "unknown_binding", "a4_board_abi", "symlink_input"}):
+            set(report["negative_controls"]) != expected or
+            (not legacy and report["board_abis"] != ["original_example", "a4"])):
         raise ValueError("complete offline controls required without promoted hardware claims")
     analysis.matrix(report["rows"])
 
