@@ -145,6 +145,14 @@ platform storage ledger. The raw manifest records exact selected input paths.
 The packages keep gates, source identity, input freezing, execution and memory
 admission separate. Current route inputs are immutable while tools run.
 
+The packet-freezing helper is also available to an independently reviewed
+production-source candidate owner. The diagnostic `prepare` still invokes its
+original gates and passes the same arguments to that helper. Regression checks
+compare all eleven frozen XO contents, normalized packets/configuration, the
+two replacements, 150-MHz clock, placement and unchanged memory/job limits.
+The production owner's additional gates live in the integration repository;
+sharing packet mechanics does not waive them or relabel diagnostic evidence.
+
 ## Production Source Boundary
 
 The diagnostic link reuses exported search/cache XOs; it does not change the

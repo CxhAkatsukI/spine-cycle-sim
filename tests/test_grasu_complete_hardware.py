@@ -1,5 +1,6 @@
 """Diagnostic topology changes preserve all kernel counts and HBM connections."""
 
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -64,6 +65,71 @@ remote_ip_cache=/old/cache
             with self.assertRaises(FileExistsError):
                 preparation.prepare(*([Path("/unused")] * 7), output, link_timeout_seconds=43200)
             candidates.assert_not_called()
+
+    def test_legacy_candidate_gate_and_packet_arguments_are_preserved(self):
+        paths = [Path("/old") / str(i) for i in range(8)]
+        checked = ({"bin_search": Path("/search.xo"), "process_cache": Path("/cache.xo")},
+                   [Path("/review.json")], {"original_core": "unchanged"})
+        with patch.object(preparation, "candidates", return_value=checked) as candidates, \
+                patch.object(preparation, "freeze", return_value={"unchanged": True}) as freeze:
+            result = preparation.prepare(*paths, link_timeout_seconds=43200)
+        candidates.assert_called_once_with(*paths[2:7])
+        freeze.assert_called_once_with(*paths[:2], *checked, *paths[6:], link_timeout_seconds=43200)
+        self.assertEqual(result, {"unchanged": True})
+
+    def test_shared_freeze_preserves_legacy_packet_and_only_two_replacements(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            basis, fit = root / "basis", root / "fit"
+            basis.mkdir()
+            (fit / "source").mkdir(parents=True)
+            contents, ledger = self.fixture()
+            config = basis / "link.cfg"
+            config.write_text(contents)
+            (fit / "source/link.cfg").write_text(contents)
+            (fit / "results.json").write_text(json.dumps(ledger))
+            xos = []
+            for name in COUNTS:
+                path = basis / (name + ".hw.xo")
+                path.write_bytes(name.encode())
+                xos.append(str(path))
+            command = ["v++", "--target", "hw", "--link", "--kernel_frequency", "150",
+                       "--config", str(config), "-o", str(basis / "candidate.hw.xclbin"), *xos,
+                       "--vivado.synth.jobs", "2", "--vivado.impl.jobs", "2"]
+            (basis / "manifest.json").write_text(json.dumps({"command": command, "pins": [],
+                "clock_mhz": 150, "FPGA_timing_admitted": False}))
+            replacements = {}
+            for name in ("bin_search", "process_cache"):
+                path = root / (name + ".xo")
+                path.write_bytes(("production-" + name).encode())
+                replacements[name] = path
+            checked = replacements, [fit / "results.json"], {"core": "reviewed"}
+            old, new = root / "legacy", root / "shared"
+            with patch.object(preparation, "candidates", return_value=checked), \
+                    patch.object(preparation, "reconstruct", return_value=({}, {"pins": []})):
+                legacy = preparation.prepare(root, basis, root, root, root, root, fit, old,
+                                             link_timeout_seconds=43200)
+                shared = preparation.freeze(root, basis, *checked, fit, new, link_timeout_seconds=43200)
+            def normalize(data, path):
+                result = json.loads(json.dumps(data).replace(str(path), "OUTPUT"))
+                for row in result["pins"]:
+                    if row["path"] == "OUTPUT/link.cfg":
+                        row["sha256"] = "PATH_SPECIFIC_CONFIG_HASH"
+                return result
+            self.assertEqual(normalize(legacy, old), normalize(shared, new))
+            self.assertEqual((old / "link.cfg").read_text().replace(str(old), "OUTPUT"),
+                             (new / "link.cfg").read_text().replace(str(new), "OUTPUT"))
+            self.assertEqual(set(shared["kernel_inputs"]), set(COUNTS))
+            self.assertEqual({name for name, row in shared["kernel_inputs"].items() if row["replaced"]},
+                             {"bin_search", "process_cache"})
+            for name in COUNTS:
+                expected = replacements.get(name, basis / (name + ".hw.xo"))
+                self.assertEqual((new / "inputs" / (name + ".hw.xo")).read_bytes(), expected.read_bytes())
+            self.assertEqual([shared[key] for key in ("tree_memory_gib", "reserve_gib", "background_memory_gib",
+                "allow_bounded_builds", "timeout_seconds")], [40, 24, 8, True, 43200])
+            for claim in ("integrated_rtl_admitted", "FPGA_timing_admitted", "production_baseline_admitted",
+                          "publication_match_admitted"):
+                self.assertFalse(shared[claim])
 
 
 if __name__ == "__main__":

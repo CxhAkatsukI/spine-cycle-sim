@@ -40,6 +40,20 @@ def prepare(build, basis, search, review, cache, composition, fit, output, *, li
     if type(link_timeout_seconds) is not int or link_timeout_seconds not in LINK_TIMEOUTS:
         raise ValueError("six- or twelve-hour finite link timeout required")
     replacements, reports, core = candidates(search, review, cache, composition, fit)
+    return freeze(build, basis, replacements, reports, core, fit, output,
+                  link_timeout_seconds=link_timeout_seconds)
+
+
+def freeze(build, basis, replacements, reports, core, fit, output, *, link_timeout_seconds=21600):
+    """Freeze an independently reviewed candidate with the unchanged link policy.
+
+    Candidate owners must run their source/RTL/composition gates before calling
+    this helper. A packet is never admission to integrated RTL or board timing.
+    """
+    if output.exists():
+        raise FileExistsError("fresh diagnostic route attempt required")
+    if type(link_timeout_seconds) is not int or link_timeout_seconds not in LINK_TIMEOUTS:
+        raise ValueError("six- or twelve-hour finite link timeout required")
     previous = json.loads((basis / "manifest.json").read_text())
     unchanged(previous["pins"])
     command = list(previous["command"])
