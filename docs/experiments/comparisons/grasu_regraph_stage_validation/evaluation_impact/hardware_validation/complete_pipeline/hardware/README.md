@@ -82,6 +82,15 @@ remained queued. A small source-check job was admitted alongside both routes
 because its full 1-GiB budget plus peers and reserve fit. Instantaneous peer
 RSS is not substituted for enforceable limits; queueing is not route failure.
 
+After A4 terminated, v2 passed its full-budget admission with the original-R
+route still running: 135,659,524,096 available bytes against 120,259,084,288
+required bytes (112 GiB). All eight safe samples and the environment preflight
+passed; `execution.json` now reports `DIAGNOSTIC_ROUTING`. This is concurrent
+execution, not a wait for all FPGA tools. The fresh service is
+`spine-grasu-complete-route-20261016-v2.service`, invocation
+`49a3071d4a9244ff8f83e3429295d2a1`, with raw output in `g-complete-route-v2/`.
+It is not yet a terminal routed artifact or a hardware measurement.
+
 Raw attempt:
 `/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-route-v1/`
 
@@ -90,10 +99,10 @@ Invocation: `873fe3b111d3460b94457140f3df58be`.
 Do not infer a pass from a running service's `Result=success`.
 
 ```bash
-systemctl --user show spine-grasu-complete-route-20261016-v1.service \
+systemctl --user show spine-grasu-complete-route-20261016-v2.service \
   -p ActiveState -p SubState -p Result -p MemoryCurrent -p MemoryMax
-cat /data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-route-v1/execution.json
-tail -n 30 /data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-route-v1/route.stdout.txt
+cat /data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-route-v2/execution.json
+tail -n 30 /data/chuxiao/experiments/baseline_hardware_validation_20261015/g-complete-route-v2/route.stdout.txt
 ```
 
 `manifest.json` pins every XO, configuration, validation report, launcher,

@@ -54,12 +54,20 @@ Paths below are relative to the repository root.
 
 | Owner | Responsibility |
 | --- | --- |
-| `cpp/tests/evaluation_impact/common_g/continuous_board/model.hpp` | Unchanged production preparation, physical batch packing and independent full-state oracle |
+| `cpp/tests/evaluation_impact/common_g/continuous_board/model.hpp` | Production preparation and chronological batch state |
+| `cpp/tests/evaluation_impact/common_g/continuous_board/resident_state.hpp` | Shared physical batch packing, independent full-state oracle and padding checks |
 | `cpp/tests/evaluation_impact/common_g/continuous_board/xrt.hpp` | Checked XRT/OpenCL setup, HBM buffers and monotonic event profiling |
 | `cpp/tests/evaluation_impact/common_g/continuous_board/device.hpp` | Four search CUs, dispatch, both caches, both DDR paths, completion barrier and persistent BO bindings |
+| `cpp/tests/evaluation_impact/common_g/continuous_board/execution.hpp` | Shared batch timing, oracle/readback and raw event/row emission |
 | `cpp/tests/evaluation_impact/common_g/continuous_board/control.cpp` | Thin model/board modes and explicit timing/output boundaries |
 | `spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/` | Separate preparation, bounded host-only execution, analysis and evidence packaging |
 | `spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/execution/` | Separate completed-route admission, runtime/device identity, raw-event validation and bounded board execution |
+
+The [native five-shard extension](../native_board/README.md) reuses these
+bindings and pure state helpers. Fresh compilation and all eighteen
+deterministic old host-model rows pass, as do its three native host-model
+rows and the independent six-row source regression. The earlier frozen
+preflight evidence is unchanged; native board execution remains open.
 
 The pure preparation header no longer imports vendor simulation types.
 Its fresh [42-row regression](../host_prepared/native_input_regression/equivalence.json)

@@ -14,7 +14,8 @@ struct Device {
   std::array<cl::Kernel, 4> search;
   cl::Kernel dispatch, cache0, cache1, ddr0, ddr1, barrier;
 
-  Device(const char* xclbin, unsigned index, const Model& model) : session(xclbin, index),
+  template <typename State>
+  Device(const char* xclbin, unsigned index, const State& model) : session(xclbin, index),
       shards(model.graph.shards.size()),
       dispatch(session.kernel("dispatch:{dispatch_1}")),
       cache0(session.kernel("process_cache:{process_cache_1}")),
@@ -101,7 +102,8 @@ struct Device {
     return events;
   }
 
-  std::vector<Words> readback(const Model& model) {
+  template <typename State>
+  std::vector<Words> readback(const State& model) {
     auto observed = model.expected;
     for (unsigned shard = 0; shard < shards.size(); ++shard) {
       for (unsigned port = 0; port < 4; ++port)

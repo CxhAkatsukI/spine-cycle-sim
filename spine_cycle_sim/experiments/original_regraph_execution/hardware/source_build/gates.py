@@ -10,6 +10,7 @@ import zipfile
 from spine_cycle_sim.experiments.sharded_k4_stages.bitstream import normalized_topology, parse_routed_timing, SECTIONS
 from .. import artifact
 from . import configuration as config
+from .topology import validate as validate_connections
 
 
 def inspect_xo(path: Path, name: str, topology: str = config.DEFAULT_TOPOLOGY) -> dict:
@@ -63,8 +64,7 @@ def inspect_hls(directory: Path, name: str) -> dict:
 
 
 def inspect_routed(metadata: Path, reports: Path, configuration: str = config.DEFAULT_TOPOLOGY) -> dict:
-    little, big = config.counts(configuration)
-    total = little + big
+    config.counts(configuration)
     sections = {name: json.loads((metadata / (name + ".json")).read_text()) for name in SECTIONS.values()}
     topology = normalized_topology(sections)
     expected = sorted(f"{name}:{name}_{index}" for name, (_, count) in config.kernels(configuration).items()
@@ -74,21 +74,7 @@ def inspect_routed(metadata: Path, reports: Path, configuration: str = config.DE
     clocks = [row[2] for row in topology["clock"] if row[0] == "DATA"]
     if clocks != [config.CLOCK_MHZ]:
         raise ValueError("implemented DATA clock differs; automatic frequency reduction is not admitted")
-    memory = {row[0]: row for row in topology["memory"]}
-    expected_connections = [("kernelApply:kernelApply_1", 0, "HBM[30]")]
-    for lane in range(total):
-        wrapper = "kernelHBMWrapper:kernelHBMWrapper_1"
-        expected_connections += [(wrapper, lane, f"HBM[{2 * lane + 1}]"),
-                                 (wrapper, lane + total, f"HBM[{2 * lane + 1}]")]
-        name = "littleKernelScatterGather" if lane < little else "bigKernelScatterGather"
-        index = lane + 1 if lane < little else lane - little + 1
-        expected_connections.append((f"{name}:{name}_{index}", 0, f"HBM[{2 * lane}]"))
-    if topology["connections"] != sorted(expected_connections):
-        raise ValueError("implemented HBM bank/argument bindings differ from author topology")
-    # XRT encodes several U55C HBM banks as MEM_DRAM; tags and the pinned platform select the banks.
-    if any(memory[tag][1] not in ("MEM_HBM", "MEM_DRAM") or int(memory[tag][2], 0) != 1 or
-           int(memory[tag][3], 0) != 512 * 1024 for _, _, tag in expected_connections):
-        raise ValueError("connected HBM regions must be enabled 512-MiB banks")
+    validate_connections(topology, configuration)
     for name, protocol in topology["kernels"]:
         expected_control = config.control_protocol(name.split(":")[0], configuration).upper()
         if protocol != expected_control:

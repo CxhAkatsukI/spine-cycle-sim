@@ -23,6 +23,7 @@ or changes a simulator timing multiplier.
 | `snapshot.py` | Clean pinned author revision, tracked-file snapshot, six permitted topology-generator outputs, separately pinned compatibility entries and unchanged identities |
 | `apply_interface.tcl` | Explicit control-bundle binding for the author's otherwise implicit Apply `arg_reg`, without editing the author translation unit |
 | `gates.py` | Compiled arguments/macros/control protocol, HLS part/clock, routed HBM/CU/clock topology and strict setup/hold/pulse timing |
+| `topology.py` | Validate memory-bank bindings and AXIS endpoint pairs separately, including enabled/capacity/type checks |
 | `execution.py` | Independent atomic finite-memory admission, sequential XO compilation, routing watchdog and retained failure/provenance |
 | `waiting.py` | Optional bounded budget polling; no compiler, board lease or memory reservation while waiting |
 | `preflight.py` | Low-memory author-generator snapshot and unexecuted command preview; no compiler, route or board admission |
@@ -46,6 +47,14 @@ The author mergers are free-running (`ap_ctrl_none`) with stream arguments
 only. Apply, wrapper and scatter/gather use `ap_ctrl_chain`; the guarded host
 launches those kernels, not the mergers. HBM arguments preserve the author
 bank mapping, including the apply divisor on bank 30.
+
+XRT also lists stream connections in `CONNECTIVITY` and `MEM_TOPOLOGY`.
+They are not HBM arguments: `MEM_STREAMING_CONNECTION` records must be
+enabled, have zero capacity and connect exactly the two expected AXIS
+endpoints. The current inspector checks all 14 A4 or 45 mixed-topology stream
+pairs separately from the HBM bindings. Missing, duplicate, crosswired or
+memory-mistyped records fail. Earlier frozen builders remain unchanged;
+their manifests and results must not be rewritten by this analysis fix.
 
 XO inspection requires one kernel XML and a finite uncompressed size bound.
 Vitis 2024.1 emits roughly 1.27 MiB of replicated dataflow metadata for the

@@ -10,7 +10,7 @@ import zipfile
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware import artifact
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_build import (
-    configuration as config, execution, gates, snapshot,
+    configuration as config, execution, gates, snapshot, topology as topology_gate,
 )
 from spine_cycle_sim.experiments.sharded_k4_stages.bitstream import SECTIONS
 
@@ -150,9 +150,18 @@ class SourceBuildGateTests(unittest.TestCase):
                                for offset in (0, 14))
             name, index = ("littleKernelScatterGather", lane + 1) if lane < 11 else ("bigKernelScatterGather", lane - 10)
             connections.append((f"{name}:{name}_{index}", 0, f"HBM[{2 * lane}]"))
+        memory = [(f"HBM[{i}]", "MEM_HBM" if i == 0 else "MEM_DRAM", "1", "0x80000") for i in range(32)]
+        pairs = topology_gate.stream_pairs(config.DEFAULT_TOPOLOGY)
+        self.assertEqual(len(pairs), 45)
+        for index, pair in enumerate(pairs):
+            tag = f"dc_{index}"
+            memory.append((tag, "MEM_STREAMING_CONNECTION", "1", "0"))
+            for instance, argument in sorted(pair):
+                names = config.argument_names(instance.split(":")[0])
+                connections.append((instance, names.index(argument), tag))
         return {"kernels": kernels, "clock": [("DATA", "DATA_CLK", 150)],
                 "connections": sorted(connections),
-                "memory": [(f"HBM[{i}]", "MEM_HBM" if i == 0 else "MEM_DRAM", "1", "0x80000") for i in range(32)]}
+                "memory": memory}
 
     def routed_fixture(self, root):
         for name in SECTIONS.values():

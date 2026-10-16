@@ -17,6 +17,12 @@ The [native multi-shard/cold source check](native_geometry/README.md) adds
 six passing paired-arm rows at the full cache capacity and native partition
 size. It covers persistent PMA state and direct adapter handoff across five
 shards, but does not establish native board-host bindings or hardware timing.
+The [native board-host extension](native_board/README.md) shares the existing
+XRT bindings and adds strict five-shard event checks. Fresh XRT compilation,
+eighteen old-output host-model rows and three native host-model rows pass.
+The shared-layout extraction also passes a fresh exact six-row source
+regression. These portable CPU/source capsules do not establish native FPGA
+execution or timing.
 The [continuous G host preflight](continuous_board/README.md) adds XRT host
 compilation and eighteen host-model rows with persistent state. Its board
 path is not yet executed; it is not a measured performance result.

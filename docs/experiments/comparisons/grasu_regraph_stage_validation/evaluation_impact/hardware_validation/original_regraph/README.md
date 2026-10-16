@@ -321,6 +321,18 @@ available against 152 GiB required for the known full budgets plus reserve;
 other peers also fail the zero-swap bounded-build rule. This is memory
 admission, not a requirement that all other FPGA tools exit.
 
+That A4 run subsequently completed all four XO builds and generated an xclbin,
+then failed its frozen analysis because the old checker incorrectly counted
+AXIS connections as HBM bindings. A separate read-only check now distinguishes
+the nine HBM banks from fourteen named AXIS endpoint pairs; both binding checks
+pass without modifying the artifact or the frozen run. **Final global timing
+still fails:** HBM setup WNS is -0.098 ns, TNS -3.846 ns, with 79 failing
+endpoints; kernel-clock WNS alone is +0.889 ns. The authoritative report is
+`a4-source-route-v1/build/link/reports/link/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt`.
+The existing board supervisor stopped before programming. This is not an
+admitted A4 bitstream or a measured comparison; fixing the metadata checker
+does not waive physical timing. The original failure record is retained.
+
 The independent `codex/regraph-a4-board-control` worktree adds the actual
 four-lane host path without changing either frozen running builder. The
 board owner explicitly selects `a4` across the source manifest, four XO ABIs,

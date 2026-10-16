@@ -10,7 +10,7 @@ import zipfile
 from spine_cycle_sim.experiments.original_regraph_execution.hardware import artifact
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import admission
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_build import (
-    configuration as config, execution, gates, preflight, snapshot, waiting,
+    configuration as config, execution, gates, preflight, snapshot, waiting, topology as topology_gate,
 )
 from spine_cycle_sim.experiments.sharded_k4_stages.bitstream import SECTIONS
 
@@ -90,10 +90,43 @@ class A4SourceBuildTests(unittest.TestCase):
                               f"HBM[{2 * lane + 1}]") for offset in (0, 4)]
             connections.append((f"littleKernelScatterGather:littleKernelScatterGather_{lane + 1}",
                                 0, f"HBM[{2 * lane}]"))
+        memory = [(f"HBM[{i}]", "MEM_HBM", "1", "0x80000") for i in range(32)]
+        pairs = topology_gate.stream_pairs("a4")
+        self.assertEqual(len(pairs), 14)
+        for index, pair in enumerate(pairs):
+            tag = f"dc_{index}"
+            memory.append((tag, "MEM_STREAMING_CONNECTION", "1", "0"))
+            for instance, argument in sorted(pair):
+                names = config.argument_names(instance.split(":")[0], "a4")
+                connections.append((instance, names.index(argument), tag))
         return {"kernels": sorted((f"{name}:{name}_{i}", config.control_protocol(name, "a4").upper())
                 for name, (_, count) in config.kernels("a4").items() for i in range(1, count + 1)),
                 "clock": [("DATA", "DATA_CLK", 150)], "connections": sorted(connections),
-                "memory": [(f"HBM[{i}]", "MEM_HBM", "1", "0x80000") for i in range(32)]}
+                "memory": memory}
+
+    def test_stream_gate_rejects_wrong_pairs_duplicates_missing_and_nonstream_regions(self):
+        observed = self.topology()
+        topology_gate.validate(observed, "a4")
+        self.assertIn(frozenset((("kernelHBMWrapper:kernelHBMWrapper_1", "l_ppb_request_stm_1"),
+                                ("littleKernelScatterGather:littleKernelScatterGather_1", "l_ppb_request_stm"))),
+                      topology_gate.stream_pairs("a4"))
+        for mutation in ("missing", "duplicate", "miswire", "kind", "disabled", "capacity"):
+            changed = copy.deepcopy(observed)
+            index = next(i for i, row in enumerate(changed["connections"]) if row[2] == "dc_2")
+            instance, argument, tag = changed["connections"][index]
+            if mutation == "missing":
+                changed["connections"].pop(index)
+            elif mutation == "duplicate":
+                changed["connections"].append(changed["connections"][index])
+            elif mutation == "miswire":
+                changed["connections"][index] = (instance, argument + 1, tag)
+            else:
+                position = next(i for i, row in enumerate(changed["memory"]) if row[0] == tag)
+                changed["memory"][position] = (tag, "MEM_HBM" if mutation == "kind" else "MEM_STREAMING_CONNECTION",
+                                               "0" if mutation == "disabled" else "1",
+                                               "8" if mutation == "capacity" else "0")
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                topology_gate.validate(changed, "a4")
 
     def test_routed_gate_requires_a4_exact_banks_replica_offsets_and_timing(self):
         with tempfile.TemporaryDirectory() as directory:
