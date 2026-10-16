@@ -9,17 +9,29 @@ from ..source_build import configuration as config, gates, snapshot
 from .preparation import unique
 
 STATUS = "ORIGINAL_R_ROUTED_CLOCK_TOPOLOGY_TIMING_PASS_AWAITING_BOARD"
+RETAINED_TOPOLOGY_ERROR = "ValueError('implemented HBM bank/argument bindings differ from author topology')"
 
 
-def review(route, output, *, topology=config.DEFAULT_TOPOLOGY):
+def validate_result(result, topology, review_retained_analysis_failure=False):
     config.counts(topology)
-    result_path = route / "results.json"
-    result = json.loads(result_path.read_text())
-    if (result["status"] != config.routed_status(topology) or result["errors"] or
+    if type(review_retained_analysis_failure) is not bool:
+        raise ValueError("retained analysis review requires an explicit boolean")
+    retained = (review_retained_analysis_failure is True and result["status"] == "FAILED_RETAINED" and
+                result["errors"] == [RETAINED_TOPOLOGY_ERROR] and "analysis" not in result and
+                result.get("extraction", {}).get("exit_code") == 0 and
+                result.get("extraction", {}).get("timed_out") is False)
+    if ((not retained and (result["status"] != config.routed_status(topology) or result["errors"])) or
             result.get("configuration", config.DEFAULT_TOPOLOGY) != topology or
             any(result.get(key) is not False for key in
                 ("board_programmed", "hardware_timing_measured", "publication_match"))):
         raise ValueError("successful fresh-source route required; prebuilt is not admitted")
+    return retained
+
+
+def review(route, output, *, topology=config.DEFAULT_TOPOLOGY, review_retained_analysis_failure=False):
+    result_path = route / "results.json"
+    result = json.loads(result_path.read_text())
+    retained = validate_result(result, topology, review_retained_analysis_failure)
     snapshot.unchanged(result["pins"])
     names = list(config.kernels(topology))
     if ([step["id"] for step in result["steps"]] != ["compile_" + name for name in names] + ["route"] or
@@ -44,11 +56,16 @@ def review(route, output, *, topology=config.DEFAULT_TOPOLOGY):
     if extraction["exit_code"] or extraction["timed_out"]:
         raise ValueError("fresh binary metadata extraction failed")
     inspected = gates.inspect_routed(metadata, route / "link/reports", configuration=topology)
-    if inspected != result["analysis"]:
+    if not retained and inspected != result["analysis"]:
         raise ValueError("fresh binary or timing differs from routed admission")
     pins += [binary, inspected["timing"]["report"]]
     pins += [artifact.identity(path) for path in sorted(metadata.glob("*.json"))]
     snapshot.unchanged(pins)
-    return {"status": config.routed_status(topology), "configuration": topology,
+    checked = {"status": config.routed_status(topology), "configuration": topology,
             "xclbin": binary, "analysis": inspected,
             "extraction": extraction, "pins": unique(pins)}
+    if retained:
+        checked["retained_analysis_failure"] = {"result": artifact.identity(result_path),
+            "status": result["status"], "errors": result["errors"], "original_result_modified": False,
+            "scope": "independent full ABI/topology/clock/timing review, not a new implementation"}
+    return checked

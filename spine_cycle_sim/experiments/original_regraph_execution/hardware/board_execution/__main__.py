@@ -15,8 +15,11 @@ parser.add_argument("--device", type=int, choices=(0, 1), default=1)
 parser.add_argument("--topology", choices=TOPOLOGIES, default=DEFAULT_TOPOLOGY)
 parser.add_argument("--maximum-wait", type=float, default=86400)
 parser.add_argument("--poll-seconds", type=float, default=30)
+parser.add_argument("--review-retained-analysis-failure", action="store_true",
+                    help="independently recheck only the known HBM/AXIS analysis failure; no timing waiver")
 parser.add_argument("--execute", action="store_true", required=True)
 args = parser.parse_args()
 print(run(*(path.resolve() for path in (args.audit, args.control, args.route, args.output)),
     route_unit=args.route_unit, route_invocation=args.route_invocation, device=args.device,
-    maximum_wait=args.maximum_wait, poll_seconds=args.poll_seconds, topology=args.topology)["status"], flush=True)
+    maximum_wait=args.maximum_wait, poll_seconds=args.poll_seconds, topology=args.topology,
+    review_retained_analysis_failure=args.review_retained_analysis_failure)["status"], flush=True)

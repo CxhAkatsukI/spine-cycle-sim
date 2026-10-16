@@ -27,14 +27,28 @@ def validate(unit, invocation, device, maximum_wait, poll_seconds):
         raise ValueError("known board, exact source-build invocation and finite wait bounds required")
 
 
+def route_finished(state, invocation, review_retained_analysis_failure=False):
+    if (review_retained_analysis_failure is True and state["LoadState"] == "loaded" and
+            state["InvocationID"] == invocation and state["ActiveState"] == "failed" and
+            state["SubState"] == "failed" and state["Result"] == "exit-code" and
+            state["MainPID"] == "0" and state["ExecMainStatus"] == "1"):
+        # Eligibility for read-only review, never hardware or board admission.
+        return True
+    return waiting.route_finished(state, invocation)
+
+
 def run(audit, control, route, output, *, route_unit, route_invocation,
-        device=1, maximum_wait=86400, poll_seconds=30, topology=config.DEFAULT_TOPOLOGY):
+        device=1, maximum_wait=86400, poll_seconds=30, topology=config.DEFAULT_TOPOLOGY,
+        review_retained_analysis_failure=False):
     validate(route_unit, route_invocation, device, maximum_wait, poll_seconds)
     config.counts(topology)
+    if type(review_retained_analysis_failure) is not bool:
+        raise ValueError("retained analysis review requires an explicit boolean")
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING", "configuration": topology,
               "errors": [], "route_states": [], "device_index": device,
               "route_unit": route_unit, "route_invocation": route_invocation,
+              "review_retained_analysis_failure": review_retained_analysis_failure,
               "maximum_wait_seconds": maximum_wait, "poll_seconds": poll_seconds,
               "board_launch_attempted": False, "board_programmed": False,
               "hardware_timing_measured": False, "publication_match": False,
@@ -60,22 +74,25 @@ def run(audit, control, route, output, *, route_unit, route_invocation,
                 report["route_states"].append(state)
             report.update(status="WAITING_FOR_REQUIRED_SOURCE_ROUTE", waited_seconds=time.monotonic() - started)
             save()
-            if waiting.route_finished(state, route_invocation):
+            if route_finished(state, route_invocation, review_retained_analysis_failure):
                 break
             if report["waited_seconds"] >= maximum_wait:
                 raise TimeoutError("required source-build wait expired; no board execution")
             time.sleep(min(poll_seconds, maximum_wait - report["waited_seconds"]))
+        if review_retained_analysis_failure:
+            admission.validate_result(json.loads((route / "results.json").read_text()), topology, True)
         # Reserve full peer budgets before extraction or board work, not while waiting.
         lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
         report["admission"] = lease.sample(available_memory_bytes(), other_builds(), preparation.POLICY, commit=True)
         save()
         if not report["admission"]["admitted"]:
             raise ValueError("full finite peer budgets plus reserve do not fit; no board launch")
-        checked = admission.review(route, output / "routed_admission", topology=topology)
+        review_options = {"review_retained_analysis_failure": True} if review_retained_analysis_failure else {}
+        checked = admission.review(route, output / "routed_admission", topology=topology, **review_options)
         report["routed_admission"] = checked
         report["pins"] = preparation.unique([*report["pins"], *checked["pins"]])
         unchanged(report["pins"])
-        if not waiting.route_finished(waiting.service_state(route_unit), route_invocation):
+        if not route_finished(waiting.service_state(route_unit), route_invocation, review_retained_analysis_failure):
             raise ValueError("required source route is no longer terminal")
         job = {**plan, "xclbin": checked["xclbin"], "pins": report["pins"]}
         atomic_write_json(output / "manifest.json", job)

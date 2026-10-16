@@ -206,9 +206,13 @@ an 8-GiB hard / 7-GiB high bound, zero swap and the same 24-GiB live reserve.
 
 Service: `spine-g-production-rtl-20261016-v2.service`.
 Invocation: `42c27a70bef64799868a738cddcb3929`.
-Raw output: `g-production-rtl-v2/` under the campaign root. Final RTL outcome
-is pending. The integration repository's `validation/README.md` owns its CLI
-and stage boundaries; no new production route or board pass is claimed.
+Raw output: `g-production-rtl-v2/` under the campaign root. The final result is
+`PRODUCTION_COMPONENT_RTL_ABI_PASS_NOT_INTEGRATED_OR_ROUTED`: all eighteen
+search, six token-cache and six plain-cache transactions pass, with fresh full
+exported-ABI checks and zero cgroup memory events. This is isolated component
+RTL, not integrated metadata refresh or externally stalled output validation.
+The integration repository's `validation/README.md` owns its CLI and stage
+boundaries; no new production route or board pass is claimed.
 
 Production changes belong in an isolated integration worktree while current
 jobs pin the existing one. They must leave the current attempt's manifest,

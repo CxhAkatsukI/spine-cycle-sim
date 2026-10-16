@@ -73,6 +73,28 @@ class BoardPlanTests(unittest.TestCase):
 
 
 class BoardAdmissionTests(unittest.TestCase):
+    def retained_report(self):
+        return {"status": "FAILED_RETAINED", "configuration": config.DEFAULT_TOPOLOGY,
+                "errors": [admission.RETAINED_TOPOLOGY_ERROR], "board_programmed": False,
+                "hardware_timing_measured": False, "publication_match": False,
+                "extraction": {"exit_code": 0, "timed_out": False}}
+
+    def test_retained_review_is_explicit_and_rejects_every_other_failure(self):
+        report = self.retained_report()
+        self.assertTrue(admission.validate_result(report, config.DEFAULT_TOPOLOGY, True))
+        for changes in ({}, {"errors": []}, {"errors": ["timing failure"]},
+                        {"errors": [admission.RETAINED_TOPOLOGY_ERROR, "second failure"]},
+                        {"analysis": {}}, {"extraction": {"exit_code": 1, "timed_out": False}},
+                        {"extraction": {"exit_code": 0, "timed_out": True}},
+                        {"board_programmed": True}, {"hardware_timing_measured": True},
+                        {"publication_match": True}, {"configuration": "a4"}):
+            enabled = bool(changes)
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                admission.validate_result({**report, **changes}, config.DEFAULT_TOPOLOGY, enabled)
+        for invalid in (1, "true", None):
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, "explicit boolean"):
+                admission.validate_result(report, config.DEFAULT_TOPOLOGY, invalid)
+
     def test_failed_route_or_incomplete_steps_never_extract(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -91,7 +113,12 @@ class BoardAdmissionTests(unittest.TestCase):
     def test_a4_requires_four_selected_objects_and_its_own_routed_binary(self):
         self.check_artifacts("a4")
 
-    def check_artifacts(self, topology):
+    def test_retained_review_rechecks_every_artifact_without_rewriting_result(self):
+        for topology in config.TOPOLOGIES:
+            with self.subTest(topology=topology):
+                self.check_artifacts(topology, retained=True)
+
+    def check_artifacts(self, topology, retained=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             names = config.kernels(topology)
@@ -109,14 +136,21 @@ class BoardAdmissionTests(unittest.TestCase):
                       "steps": [{"id": name, "exit_code": 0, "stop_reason": "process_exit",
                                  "cleanup_snapshot_error": None} for name in
                                 ["compile_" + name for name in names] + ["route"]], "xos": records}
-            (root / "results.json").write_text(json.dumps(report))
+            if retained:
+                report.update(status="FAILED_RETAINED", errors=[admission.RETAINED_TOPOLOGY_ERROR],
+                              extraction={"exit_code": 0, "timed_out": False})
+                del report["analysis"]
+            result_path = root / "results.json"
+            result_path.write_text(json.dumps(report))
+            frozen_result = artifact.identity(result_path)
+            options = {"review_retained_analysis_failure": True} if retained else {}
             with patch.object(admission.checkpoint_run, "UTILITY", utility), \
                     patch.object(admission.gates, "inspect_xo", side_effect=lambda path, name, **kwargs:
                         next(row["abi"] for row in records if row["abi"]["kernel"] == name)) as abi, \
                     patch.object(admission.gates, "inspect_hls", return_value={"report": artifact.identity(hls)}) as synthesis, \
                     patch.object(admission, "run_bounded", return_value={"exit_code": 0, "timed_out": False}) as extract, \
                     patch.object(admission.gates, "inspect_routed", return_value=routed) as final:
-                checked = admission.review(root, root / "admission", topology=topology)
+                checked = admission.review(root, root / "admission", topology=topology, **options)
                 self.assertEqual(checked["xclbin"], report["xclbin"])
                 self.assertEqual(checked["configuration"], topology)
                 self.assertEqual(abi.call_count, len(names))
@@ -124,15 +158,31 @@ class BoardAdmissionTests(unittest.TestCase):
                 self.assertTrue(all(call.kwargs["topology"] == topology for call in abi.call_args_list))
                 self.assertEqual(final.call_args.kwargs["configuration"], topology)
                 self.assertIn("SYSTEM_METADATA:RAW:", " ".join(extract.call_args.args[0]))
+                self.assertEqual(artifact.identity(result_path), frozen_result)
+                if retained:
+                    self.assertEqual(checked["retained_analysis_failure"]["result"], frozen_result)
+                    self.assertFalse(checked["retained_analysis_failure"]["original_result_modified"])
+                    self.assertEqual(json.loads(result_path.read_text())["status"], "FAILED_RETAINED")
                 with self.assertRaisesRegex(ValueError, "successful fresh-source route"):
                     admission.review(root, root / "wrong", topology="a4" if topology == config.DEFAULT_TOPOLOGY
-                                     else config.DEFAULT_TOPOLOGY)
-                final.return_value = {"changed": True}
-                with self.assertRaisesRegex(ValueError, "timing differs"):
-                    admission.review(root, root / "changed", topology=topology)
+                                     else config.DEFAULT_TOPOLOGY, **options)
+                if retained:
+                    final.side_effect = ValueError("strict routed setup timing failed")
+                    with self.assertRaisesRegex(ValueError, "strict routed setup timing failed"):
+                        admission.review(root, root / "changed", topology=topology, **options)
+                    report["steps"][-1]["exit_code"] = 1
+                    result_path.write_text(json.dumps(report))
+                    with self.assertRaisesRegex(ValueError, "complete selected-topology"):
+                        admission.review(root, root / "incomplete", topology=topology, **options)
+                    report["steps"][-1]["exit_code"] = 0
+                    result_path.write_text(json.dumps(report))
+                else:
+                    final.return_value = {"changed": True}
+                    with self.assertRaisesRegex(ValueError, "timing differs"):
+                        admission.review(root, root / "changed", topology=topology)
             utility.write_text("drift")
             with self.assertRaisesRegex(ValueError, "artifact changed"):
-                admission.review(root, root / "drift", topology=topology)
+                admission.review(root, root / "drift", topology=topology, **options)
 
 
 class BoardSupervisorTests(unittest.TestCase):
@@ -155,9 +205,50 @@ class BoardSupervisorTests(unittest.TestCase):
         execute = stack.enter_context(patch.object(supervisor, "run_link"))
         return service, lease, review, execute, prepare
 
-    def run_supervisor(self, root):
+    def run_supervisor(self, root, **options):
         return supervisor.run(root / "audit", root / "control", root / "route", root / "run",
-                              route_unit="route.service", route_invocation="a" * 32)
+                              route_unit="route.service", route_invocation="a" * 32, **options)
+
+    def test_only_exact_clean_exit_one_is_eligible_for_retained_review(self):
+        state = {"LoadState": "loaded", "ActiveState": "failed", "SubState": "failed",
+                 "Result": "exit-code", "MainPID": "0", "ExecMainStatus": "1", "InvocationID": "a" * 32}
+        self.assertTrue(supervisor.route_finished(state, "a" * 32, True))
+        for changes in ({}, {"InvocationID": "b" * 32}, {"ExecMainStatus": "137"},
+                        {"Result": "oom-kill"}, {"MainPID": "100"}, {"LoadState": "not-found"}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                supervisor.route_finished({**state, **changes}, "a" * 32, bool(changes))
+
+    def test_retained_failure_is_rechecked_before_memory_and_forwarded_explicitly(self):
+        for unknown_error in (False, True):
+            with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
+                root = Path(directory)
+                service, lease, review, execute, _ = self.fixture(stack, root)
+                service.return_value.update(ActiveState="failed", SubState="failed", Result="exit-code",
+                                            ExecMainStatus="1")
+                route = root / "route"
+                route.mkdir()
+                report = BoardAdmissionTests().retained_report()
+                if unknown_error:
+                    report["errors"].append("unknown failure")
+                (route / "results.json").write_text(json.dumps(report))
+                review.side_effect = ValueError("strict timing failed")
+                with self.assertRaises(ValueError):
+                    self.run_supervisor(root, review_retained_analysis_failure=True)
+                execute.assert_not_called()
+                if unknown_error:
+                    lease.assert_not_called()
+                    review.assert_not_called()
+                else:
+                    review.assert_called_once_with(route, root / "run/routed_admission",
+                        topology=config.DEFAULT_TOPOLOGY, review_retained_analysis_failure=True)
+                    lease.return_value.release.assert_called_once()
+
+    def test_nonboolean_retained_review_does_not_create_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with self.assertRaisesRegex(ValueError, "explicit boolean"):
+                self.run_supervisor(root, review_retained_analysis_failure=1)
+            self.assertFalse((root / "run").exists())
 
     def test_failed_or_changed_route_cannot_acquire_memory_or_board(self):
         for changes in ({"Result": "exit-code", "ActiveState": "failed"}, {"InvocationID": "b" * 32}):
