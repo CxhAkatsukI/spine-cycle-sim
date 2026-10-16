@@ -71,6 +71,10 @@ before changing an implementation or launching an experiment.
 
 - Measure available memory and per-process peak RSS before scaling a run.
   Bound parallelism by memory with an explicit reserve, not CPU count alone.
+- Do not wait for all other FPGA tools to exit when enforceable memory budgets
+  fit. Admit concurrent builds atomically using each build's full finite limit
+  plus the declared reserve; unknown or unbounded peers prevent admission.
+  Keep per-build containment and live-memory watchdogs active after admission.
 - Give runs bounded timeouts, unique output paths, and saved stdout/stderr.
   Start with a correctness smoke, then a bounded representative matrix.
   Do not silently reduce workload semantics to make a run complete.

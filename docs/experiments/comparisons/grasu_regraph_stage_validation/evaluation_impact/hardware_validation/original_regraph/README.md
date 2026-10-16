@@ -367,3 +367,10 @@ directive now explicitly binds that argument to `control`. The author
 translation unit remains unchanged; no arithmetic, stream, data-memory port,
 schedule or timing threshold is adjusted. The next attempt uses a fresh
 output directory again.
+
+Attempt `original-r-source-route-v4` was admitted with 133.418 GiB available
+against the same 112-GiB requirement while G remained active. It freezes
+revision `c8e6ebc` and the explicit Apply control-bundle directive. The v4
+bounded verification logs retain all 165 original-ReGraph and 15 organization
+test passes plus document, catalog and staged-whitespace passes. This launch
+is not a completed routing or board result.
