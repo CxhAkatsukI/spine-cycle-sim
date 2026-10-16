@@ -104,5 +104,18 @@ The readiness runner has sixteen focused unit tests, including immediate
 admission with another FPGA tool running, memory-wait timeout, drift, smoke
 failure, full-case failure retention and exact matrix coverage. Mocked runner
 tests do not compile hosts, operate FPGA hardware or validate large graphs.
-The first live run is separately indexed in the parent campaign guide after
-launch; no full-graph preparation pass is claimed by this document.
+The first live attempt is `fullgraph-host-readiness-v1` under the campaign
+root in the reproduction command above. It freezes simulator revision
+`7a2165b` and production revision
+`6f5ebf2b0679f04f4f6e035e850fce7b6043a660`. Its service is
+`spine-fullgraph-readiness-20261016-v1.service`, invocation
+`f75292d58f964a2689a6d0941567f22a`.
+
+At the 2026-10-16 02:03 UTC checkpoint, the queue reports
+`WAITING_FOR_MEMORY_NOT_FOR_OTHER_TOOLS_TO_EXIT`, with no child compilation,
+smoke or full-graph preparation launched. Available memory is approximately
+90--95 GiB, below the two-peer 136-GiB threshold. Separate container FPGA
+processes also fail the finite-budget/zero-swap admission check; their
+processes and limits are not changed by this study. The already admitted G
+and original-R builds continue concurrently. This is a launch checkpoint,
+not a full-graph preparation pass. Read the live report for subsequent state.
