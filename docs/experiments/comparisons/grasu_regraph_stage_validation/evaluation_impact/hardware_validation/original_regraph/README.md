@@ -405,3 +405,31 @@ An additional read-only check of v4's real Big XO now passes the unchanged ABI,
 macro, control-protocol and HLS-target checks with the corrected finite size cap.
 The retained v4 memory-event counters are all zero. No simulator numerical
 component, paper or figure result changed.
+
+Attempt `original-r-source-route-v5` was refused before any compiler launch:
+available memory fell to 108.842 GiB, below the 112-GiB requirement including
+G's full budget, and newly observed peer processes did not pass the finite
+zero-swap ancestry check. Its retained failed result is a safety decision, not
+a hardware failure. The already admitted G build continued into routing.
+
+The optional source-build memory queue now polls the same atomic budget check
+every ten seconds, with a finite deadline and unchanged safety thresholds. It
+does not wait for all FPGA tools to exit. Waiting holds neither a compiler
+reservation nor a board lease; compiler launch has its own second admission.
+The queue freezes its prerequisites, runner and environment, stops on drift,
+and does not retry a failed real build. Its `queue.json` is distinct from the
+nested `build/results.json`; neither waiting nor offline tests are board data.
+
+The subsequent read-only peer inspection found a 48-GiB Podman hard limit,
+zero swap at the leaf and a nonzero swap allowance at its bounded ancestor.
+The existing strict ancestry check rejects that configuration; this is not
+proof of unlimited actual RAM use. Even counting it as a finite 48-GiB peer,
+G (40 GiB) + R (40 GiB) + that peer (48 GiB) + reserve/background (32 GiB)
+would require 160 GiB under this campaign's conservative full-budget rule,
+against approximately 119 GiB then available. No peer configuration or live
+G-pinned admission module was changed to force acceptance.
+
+The memory-queue regression passes six new tests and all 189 original-R tests,
+plus fifteen organization checks and document/catalog/whitespace checks. The
+bounded full regression service peaked at 43.9 MiB under its 2-GiB hard limit.
+These tests validate queue/admission behavior, not hardware performance.

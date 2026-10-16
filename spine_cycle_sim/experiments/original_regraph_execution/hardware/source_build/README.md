@@ -12,6 +12,7 @@ best configuration or its original clock/platform performance.
 | `apply_interface.tcl` | Explicit control-bundle binding for the author's otherwise implicit Apply `arg_reg`, without editing the author translation unit |
 | `gates.py` | Compiled arguments/macros/control protocol, HLS part/clock, routed HBM/CU/clock topology and strict setup/hold/pulse timing |
 | `execution.py` | Independent atomic finite-memory admission, sequential XO compilation, routing watchdog and retained failure/provenance |
+| `waiting.py` | Optional bounded budget polling; no compiler, board lease or memory reservation while waiting |
 | `__main__.py` | Thin CLI |
 
 The author's topology generator runs under pinned Python 3.11 with
@@ -55,6 +56,15 @@ The process-tree watchdog retains a 32-GiB live reserve, limits tree RSS to
 40 GiB and kills only owned workers on timeout, error or budget exhaustion.
 Each XO has 1,800 seconds; link has 21,600 seconds. XOs compile sequentially
 inside this one budget; the independent G build may continue concurrently.
+
+Optionally add `--wait-seconds 64800` and give the service a 31-hour lifetime
+instead of ten hours. The queue samples every ten seconds and starts as soon
+as the budget fits, even with other FPGA tools running. The queue owns
+`queue.json`; the actual attempt, manifest and terminal `results.json` are
+under `build/`. No memory lease is held while waiting. The compiler runner
+rechecks atomic admission itself; a resource race or build failure is retained
+without automatically retrying. Frozen prerequisite/runner/environment drift
+also stops the queue. A board queue must target the nested `build/` manifest.
 
 ```bash
 systemd-run --user --unit=original-r-source-fresh \
