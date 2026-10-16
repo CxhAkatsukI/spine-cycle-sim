@@ -187,10 +187,28 @@ new RTL. External weighted-SSSP UDF completeness is also a separate gate.
 The non-synthesis search binding now requires an explicit compatible
 `GRASU_SEARCH_HOST_HARNESS`; it still cannot use stock vendor streams as a
 replacement for the finite concurrent harness. The cache uses the configured
-upstream `kernel_config.h`, not a fixture-relative include. Fresh functional
-execution, source-based HLS export/interface review and integrated
-finite-stream/backpressure RTL remain required before this candidate can
-replace any frozen diagnostic XO. No new production hardware pass is claimed.
+upstream `kernel_config.h`, not a fixture-relative include. Fresh production
+functional v5 now passes eighteen search checks and six full-state checks for
+each cache binding. HLS v3 exports all three source-based components with
+4.867-ns estimates at the rounded 6.67-ns target; full reference ABI review
+passes for search/token cache, while plain cache passes its explicit
+token-minus-completion derived contract. These isolated results do not replace
+the frozen diagnostic XOs or close integrated finite-stream/backpressure RTL.
+
+The new production RTL continuation runs from the identical frozen HLS cores,
+fixtures and headers. Attempt v1 passed full-budget concurrent admission but
+failed before any RTL transaction because HLS removed quotes from the host
+harness's header-name compiler flag. Its logs and failure remain intact. A
+frozen host-only preinclude fixes that launcher issue without changing kernels;
+thirteen focused tests pass. Fresh v2 was admitted with both 40-GiB routes still
+active (124271116288 available bytes against 120259084288 required). It uses
+an 8-GiB hard / 7-GiB high bound, zero swap and the same 24-GiB live reserve.
+
+Service: `spine-g-production-rtl-20261016-v2.service`.
+Invocation: `42c27a70bef64799868a738cddcb3929`.
+Raw output: `g-production-rtl-v2/` under the campaign root. Final RTL outcome
+is pending. The integration repository's `validation/README.md` owns its CLI
+and stage boundaries; no new production route or board pass is claimed.
 
 Production changes belong in an isolated integration worktree while current
 jobs pin the existing one. They must leave the current attempt's manifest,
