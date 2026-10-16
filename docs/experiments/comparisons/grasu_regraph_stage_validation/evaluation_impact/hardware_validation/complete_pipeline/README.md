@@ -2,6 +2,11 @@
 
 ## Decision
 
+The [connected production-owner check](production_integration/README.md) adds
+eighteen host transactions, full six-buffer state checks, finite external
+backpressure and an exact stale-metadata negative control. It preserves its
+failed first attempt and does not establish integrated RTL or device-BO refresh.
+
 The latest synthetic `g-complete-source-v10` passes twelve declared rows:
 `COMPLETE_G_SOURCE_COMPOSITION_PASS_NOT_INTEGRATED_RTL`.
 This closes a source-level composition check, not complete G production,
