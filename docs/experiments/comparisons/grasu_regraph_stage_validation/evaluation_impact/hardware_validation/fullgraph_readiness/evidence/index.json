@@ -1,0 +1,1496 @@
+{
+  "archive_bytes": 462337,
+  "archive_sha256": "8ed9bd575afef576476850f956bc2f7870601ba70dccc628382ff5c6ce719125",
+  "attempts": [
+    {
+      "board_programmed": false,
+      "cases": 0,
+      "errors": [
+        "ValueError('unexpected host compilation diagnostic')"
+      ],
+      "hardware_timing_measured": false,
+      "original_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1",
+      "prefix": "attempts/0",
+      "production_baseline_admitted": false,
+      "publication_match": false,
+      "smokes": 0,
+      "source_revision": "6f5ebf2b0679f04f4f6e035e850fce7b6043a660",
+      "status": "FAILED_RETAINED"
+    },
+    {
+      "board_programmed": false,
+      "cases": 24,
+      "errors": [],
+      "hardware_timing_measured": false,
+      "original_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2",
+      "prefix": "attempts/1",
+      "production_baseline_admitted": false,
+      "publication_match": false,
+      "smokes": 3,
+      "source_revision": "6f5ebf2b0679f04f4f6e035e850fce7b6043a660",
+      "status": "FULLGRAPH_HOST_PREPARATION_PASS_NOT_BOARD_OR_PERFORMANCE"
+    }
+  ],
+  "files": [
+    {
+      "bytes": 81142,
+      "path": "attempts/0/results.json",
+      "sha256": "744a9b10452d7f752d68ed628d8e2ba715e063dd09b729ba5e09e86a2a8e141e",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/results.json"
+    },
+    {
+      "bytes": 1704,
+      "path": "attempts/0/source/include/grasu_degree_delta.hpp",
+      "sha256": "e78b4349c7eff14738cdaef5c031fa8a92b40f38260711fb96b9ca0f42e05578",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/include/grasu_degree_delta.hpp"
+    },
+    {
+      "bytes": 1482,
+      "path": "attempts/0/source/include/regraph_cc/l2.h",
+      "sha256": "1c7c82f494b474cab8ff2a59c0f6228441d42066a33b9d97d1d67e4c9acf109c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/include/regraph_cc/l2.h"
+    },
+    {
+      "bytes": 935,
+      "path": "attempts/0/source/include/regraph_pagerank/l2.h",
+      "sha256": "0f0378fd575952b7e11b441a5472e5daf2d2bcf665ca1db04d44111ae82b816a",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/include/regraph_pagerank/l2.h"
+    },
+    {
+      "bytes": 692,
+      "path": "attempts/0/source/include/regraph_pagerank_apply.hpp",
+      "sha256": "6b3d5c0362a739da83c9ddb6b9b706df2c5402c5c9c4a22b979c21bd31877784",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/include/regraph_pagerank_apply.hpp"
+    },
+    {
+      "bytes": 2920,
+      "path": "attempts/0/source/include/sharded_event_trace.hpp",
+      "sha256": "6de549773ae778db7b3244238f305e489f874b0dd8a8c87ecc7a1e0d4afab638",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/include/sharded_event_trace.hpp"
+    },
+    {
+      "bytes": 24770,
+      "path": "attempts/0/source/include/weighted_pma_graph.hpp",
+      "sha256": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/include/weighted_pma_graph.hpp"
+    },
+    {
+      "bytes": 12544,
+      "path": "attempts/0/source/include/weighted_pma_runtime_plan.hpp",
+      "sha256": "e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/include/weighted_pma_runtime_plan.hpp"
+    },
+    {
+      "bytes": 4528,
+      "path": "attempts/0/source/include/weighted_pma_update_reference.hpp",
+      "sha256": "103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/include/weighted_pma_update_reference.hpp"
+    },
+    {
+      "bytes": 54029,
+      "path": "attempts/0/source/tools/sharded_k4_native_host.cpp",
+      "sha256": "19eba0e30b1d0527b668fd2fe59d88392c1dcc4afc70255400fceedd5ab05b4d",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/tools/sharded_k4_native_host.cpp"
+    },
+    {
+      "bytes": 47486,
+      "path": "attempts/0/source/tools/sharded_k4_pagerank_native_host.cpp",
+      "sha256": "459b8206f89a23d864fde2e19388f855d8ffdc13d8abbd0d74fe2cbe96348a4c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/tools/sharded_k4_pagerank_native_host.cpp"
+    },
+    {
+      "bytes": 92172,
+      "path": "attempts/0/source/tools/weighted_pma_native_host.cpp",
+      "sha256": "cf1acaef2d68ea2f80d8342df7c25c4369c67a4fd5a147b0ea805b3b25f6d488",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/source/tools/weighted_pma_native_host.cpp"
+    },
+    {
+      "bytes": 232,
+      "path": "attempts/0/raw/compile_weighted_sssp.progress.json",
+      "sha256": "eb10f6ac8cbe4ba38c7f3c3f1af8e319aab65b47e309e6c1ffdc9ff2223680dc",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/raw/compile_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1787,
+      "path": "attempts/0/raw/compile_weighted_sssp.resources.json",
+      "sha256": "7a24cb5225f4286ac8c1c7f9d7d57d4858c78268ba8f9cd0da77ee9565efc53f",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/raw/compile_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 826,
+      "path": "attempts/0/raw/compile_weighted_sssp.stderr.txt",
+      "sha256": "8a4e790f19f4b67d5a02117c14abb8fee1920633f1520deb91ed054db8af2b0e",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/raw/compile_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/0/raw/compile_weighted_sssp.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/raw/compile_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 12941,
+      "path": "attempts/0/weighted_sssp.d",
+      "sha256": "39bb6524074850f56332938ebbbd02fbd420f7c0c7ee176dda9d5770b6b954d7",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v1/weighted_sssp.d"
+    },
+    {
+      "bytes": 8644,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/__init__.py",
+      "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/__init__.py"
+    },
+    {
+      "bytes": 42052,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/campaign_runtime.py"
+    },
+    {
+      "bytes": 45873,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/comparison.py",
+      "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/comparison.py"
+    },
+    {
+      "bytes": 26406,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/comparison_analysis.py",
+      "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/comparison_analysis.py"
+    },
+    {
+      "bytes": 68,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/evaluation_impact/__init__.py",
+      "sha256": "785bead8465ae009e7b9997b9da59eac5abe163f4382b3f7ba0dbfdc7c855369",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/evaluation_impact/__init__.py"
+    },
+    {
+      "bytes": 70,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/__init__.py",
+      "sha256": "61053d0129c05b22ecdff5d28815626e619151da55f8de89e4c0e68845802526",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/__init__.py"
+    },
+    {
+      "bytes": 684,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/__main__.py",
+      "sha256": "6bc2e78f21976ccf3ae260be6e05faaba9646879498702bb9d80defba0a46e69",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/__main__.py"
+    },
+    {
+      "bytes": 3794,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/analysis.py",
+      "sha256": "d17716adad06012a8822f62d9f6f12e6a91b86d8e9ef9fef15150afdf00c12dd",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/analysis.py"
+    },
+    {
+      "bytes": 119,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/fixtures/cc.graph",
+      "sha256": "56e5f785ecfb5a8ad439ae24d3af585967a111b2f01f64d44fc5420097937480",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/fixtures/cc.graph"
+    },
+    {
+      "bytes": 65,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/fixtures/directed.graph",
+      "sha256": "256b64c3770f773f5fb927761b1c6dc6a39027e7e8a1f8afa5b9b33fa6142dd2",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/fixtures/directed.graph"
+    },
+    {
+      "bytes": 6250,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/preparation.py",
+      "sha256": "e99ff6bea435b1bb11ea138a1101d29ea82fcd23cd40855486d5614902703c70",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/preparation.py"
+    },
+    {
+      "bytes": 7031,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/study.py",
+      "sha256": "a15a99da4e507107a4ecd39f7e2e9b0bb86d4bf55319a2e57991ff9e7e9d40a4",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/study.py"
+    },
+    {
+      "bytes": 12819,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/feasibility.py",
+      "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/feasibility.py"
+    },
+    {
+      "bytes": 23503,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/grasu_addressing.py",
+      "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/grasu_addressing.py"
+    },
+    {
+      "bytes": 31987,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+      "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py"
+    },
+    {
+      "bytes": 15321,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/hls_real_comparison.py",
+      "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/hls_real_comparison.py"
+    },
+    {
+      "bytes": 4597,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/hls_weighted_workloads.py",
+      "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/hls_weighted_workloads.py"
+    },
+    {
+      "bytes": 37372,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/large_graph_campaign.py",
+      "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/large_graph_campaign.py"
+    },
+    {
+      "bytes": 8908,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/memory_traffic.py",
+      "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/memory_traffic.py"
+    },
+    {
+      "bytes": 6054,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/persistent_update_only.py",
+      "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/persistent_update_only.py"
+    },
+    {
+      "bytes": 9482,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/profile_capabilities.py",
+      "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/profile_capabilities.py"
+    },
+    {
+      "bytes": 61352,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/publication_analysis.py",
+      "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/publication_analysis.py"
+    },
+    {
+      "bytes": 15502,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/publication_cases.py",
+      "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/publication_cases.py"
+    },
+    {
+      "bytes": 45630,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/publication_workloads.py",
+      "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/publication_workloads.py"
+    },
+    {
+      "bytes": 28729,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/real_memory_analysis.py",
+      "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/real_memory_analysis.py"
+    },
+    {
+      "bytes": 12973,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/real_small_batches.py",
+      "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/real_small_batches.py"
+    },
+    {
+      "bytes": 44350,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/rq3.py",
+      "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/rq3.py"
+    },
+    {
+      "bytes": 78,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+      "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py"
+    },
+    {
+      "bytes": 5662,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "1690c0556662ba7baa9b5f80f31d94677f5c61813f7045cfb8bc7aa622cb9f5d",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py"
+    },
+    {
+      "bytes": 1929,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "5f1aaeaa7b62c6cb72dd2d583bc03a81c2f45d69a90ec590a88565c5814fd711",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py"
+    },
+    {
+      "bytes": 78,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py",
+      "sha256": "00cf8c7ae583dd02e107fc7581f9cdc09889896d2182bbec0063e114ed40e910",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py"
+    },
+    {
+      "bytes": 79,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py",
+      "sha256": "1bb211a93c3f674d8ebb06ad3130592322b3b9732c092a887df18f19aa63592a",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py"
+    },
+    {
+      "bytes": 80,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py",
+      "sha256": "b0d3e652a9c0c065865c24b58fe0eac776933248f5b32590cfa1dcc9a4791ed1",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py"
+    },
+    {
+      "bytes": 3185,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/admission.py",
+      "sha256": "b8eb66013f8ddc98e92caf64ca4af0b9f561d7baeac7fa39f565fdcad640a201",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/admission.py"
+    },
+    {
+      "bytes": 3952,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/concurrent.py",
+      "sha256": "46f88527c5cc8397043f8971132f0d48640d3ba0e06bb38a5ebb61c5ff08f23f",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/concurrent.py"
+    },
+    {
+      "bytes": 1573,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py",
+      "sha256": "f3e2a9f4bc87c3fa9a1ee27427d155b2dbca3d01a8cf5ff3dd79c39a66948b27",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py"
+    },
+    {
+      "bytes": 36711,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/shared_workloads.py",
+      "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/shared_workloads.py"
+    },
+    {
+      "bytes": 7557,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/temporal_dense_analysis.py",
+      "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/temporal_dense_analysis.py"
+    },
+    {
+      "bytes": 27814,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/temporal_real_analysis.py",
+      "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/temporal_real_analysis.py"
+    },
+    {
+      "bytes": 23181,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/temporal_real_batches.py",
+      "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/temporal_real_batches.py"
+    },
+    {
+      "bytes": 45841,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+      "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py"
+    },
+    {
+      "bytes": 75,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/upstream_controls/__init__.py",
+      "sha256": "c9df6b968cbbdda00f9fbd678995575e5d73704c85e55538ed579874f40a87e0",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/upstream_controls/__init__.py"
+    },
+    {
+      "bytes": 3456,
+      "path": "attempts/0/runner/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-g-search-rtl/spine_cycle_sim/experiments/upstream_controls/execution.py"
+    },
+    {
+      "bytes": 530690,
+      "path": "attempts/1/results.json",
+      "sha256": "35cedcceb0c3043c9d47e3022877f66e3aa690bbdc39e101e53cec25489ae5da",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/results.json"
+    },
+    {
+      "bytes": 1704,
+      "path": "attempts/1/source/include/grasu_degree_delta.hpp",
+      "sha256": "e78b4349c7eff14738cdaef5c031fa8a92b40f38260711fb96b9ca0f42e05578",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/include/grasu_degree_delta.hpp"
+    },
+    {
+      "bytes": 1482,
+      "path": "attempts/1/source/include/regraph_cc/l2.h",
+      "sha256": "1c7c82f494b474cab8ff2a59c0f6228441d42066a33b9d97d1d67e4c9acf109c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/include/regraph_cc/l2.h"
+    },
+    {
+      "bytes": 935,
+      "path": "attempts/1/source/include/regraph_pagerank/l2.h",
+      "sha256": "0f0378fd575952b7e11b441a5472e5daf2d2bcf665ca1db04d44111ae82b816a",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/include/regraph_pagerank/l2.h"
+    },
+    {
+      "bytes": 692,
+      "path": "attempts/1/source/include/regraph_pagerank_apply.hpp",
+      "sha256": "6b3d5c0362a739da83c9ddb6b9b706df2c5402c5c9c4a22b979c21bd31877784",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/include/regraph_pagerank_apply.hpp"
+    },
+    {
+      "bytes": 2920,
+      "path": "attempts/1/source/include/sharded_event_trace.hpp",
+      "sha256": "6de549773ae778db7b3244238f305e489f874b0dd8a8c87ecc7a1e0d4afab638",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/include/sharded_event_trace.hpp"
+    },
+    {
+      "bytes": 24770,
+      "path": "attempts/1/source/include/weighted_pma_graph.hpp",
+      "sha256": "e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/include/weighted_pma_graph.hpp"
+    },
+    {
+      "bytes": 12544,
+      "path": "attempts/1/source/include/weighted_pma_runtime_plan.hpp",
+      "sha256": "e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/include/weighted_pma_runtime_plan.hpp"
+    },
+    {
+      "bytes": 4528,
+      "path": "attempts/1/source/include/weighted_pma_update_reference.hpp",
+      "sha256": "103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/include/weighted_pma_update_reference.hpp"
+    },
+    {
+      "bytes": 54029,
+      "path": "attempts/1/source/tools/sharded_k4_native_host.cpp",
+      "sha256": "19eba0e30b1d0527b668fd2fe59d88392c1dcc4afc70255400fceedd5ab05b4d",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/tools/sharded_k4_native_host.cpp"
+    },
+    {
+      "bytes": 47486,
+      "path": "attempts/1/source/tools/sharded_k4_pagerank_native_host.cpp",
+      "sha256": "459b8206f89a23d864fde2e19388f855d8ffdc13d8abbd0d74fe2cbe96348a4c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/tools/sharded_k4_pagerank_native_host.cpp"
+    },
+    {
+      "bytes": 92172,
+      "path": "attempts/1/source/tools/weighted_pma_native_host.cpp",
+      "sha256": "cf1acaef2d68ea2f80d8342df7c25c4369c67a4fd5a147b0ea805b3b25f6d488",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/source/tools/weighted_pma_native_host.cpp"
+    },
+    {
+      "bytes": 217,
+      "path": "attempts/1/raw/AU_connected_components.progress.json",
+      "sha256": "f5024cef68aef21c2a72399524c132bf26588f8a20de4a2c335d45c276161191",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_connected_components.progress.json"
+    },
+    {
+      "bytes": 1140,
+      "path": "attempts/1/raw/AU_connected_components.resources.json",
+      "sha256": "7d375b9477c97d263904c881e0c1b9007934de084f5df28b89407060c17cec32",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/AU_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1078,
+      "path": "attempts/1/raw/AU_connected_components.stdout.txt",
+      "sha256": "c2ca72f48ffd898715a049d4740955ff1c2333d21ce9d980dec4205cd2e1c8aa",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 219,
+      "path": "attempts/1/raw/AU_residual_pagerank.progress.json",
+      "sha256": "1c1b5db2273b1bec13ec30289d59e4566fc763d314720ffc7671417cf314fbc9",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1112,
+      "path": "attempts/1/raw/AU_residual_pagerank.resources.json",
+      "sha256": "9a6204a0c5bfbaec7fff156fc681d6890695129a69e05bb4d27ba08699c3d7eb",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/AU_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 1367,
+      "path": "attempts/1/raw/AU_residual_pagerank.stdout.txt",
+      "sha256": "70ea297fbd1660f742e7c825221b6bec893d53a60eab470e1f5f336908dddab0",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 218,
+      "path": "attempts/1/raw/AU_weighted_sssp.progress.json",
+      "sha256": "e41acc1e49a625bebacd2a7e6437e538cbc67cef8dc431c357a2a19b6f16472b",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1120,
+      "path": "attempts/1/raw/AU_weighted_sssp.resources.json",
+      "sha256": "6379050e1b2918da77d6d049ca104cac4c9e9180dc63934ec827d498d36e21d8",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/AU_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 1247,
+      "path": "attempts/1/raw/AU_weighted_sssp.stdout.txt",
+      "sha256": "689f752d39340ccb79d0d2ca3b7d4a8b7fbc1e97eedd30ac3374ac35a341b51f",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/AU_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 222,
+      "path": "attempts/1/raw/LJ08_connected_components.progress.json",
+      "sha256": "8547f748d2d4a98d9f1828fc137882bd81597574ca5f371f9271fc49b50300b7",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_connected_components.progress.json"
+    },
+    {
+      "bytes": 1148,
+      "path": "attempts/1/raw/LJ08_connected_components.resources.json",
+      "sha256": "72b23de671e5eb87b0379163adfe07ea3e14fec294d9773c2a48d1a9bbd3855b",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/LJ08_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1084,
+      "path": "attempts/1/raw/LJ08_connected_components.stdout.txt",
+      "sha256": "db6f1b9c5db9333101c384ddf36fa9d97adf431a69b1f79b4f5b3e15773c6a0c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 214,
+      "path": "attempts/1/raw/LJ08_residual_pagerank.progress.json",
+      "sha256": "ce3337a00a3bc15c6f3a91a8560394a780a7dfe6a969e2d48d093130fc32a3fd",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1118,
+      "path": "attempts/1/raw/LJ08_residual_pagerank.resources.json",
+      "sha256": "badb24e4459532a2ecce96d1ecea9ec215b7a01e0e2b0005e1d7e22dd695f1d9",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/LJ08_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 1783,
+      "path": "attempts/1/raw/LJ08_residual_pagerank.stdout.txt",
+      "sha256": "581f67a5e0d47e21f1ecab90ed13b5cc3b2a0324c6fa603330484f58e5d456a7",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 223,
+      "path": "attempts/1/raw/LJ08_weighted_sssp.progress.json",
+      "sha256": "4a6c59637bab9547ae587aaaceeaa2c9df282ca8b8918273c5defaef3ced7e81",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1128,
+      "path": "attempts/1/raw/LJ08_weighted_sssp.resources.json",
+      "sha256": "012ac9aae75e0fe6908d3981b875c386957789bb2eb11cf80f374b479419b93e",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/LJ08_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 2066,
+      "path": "attempts/1/raw/LJ08_weighted_sssp.stdout.txt",
+      "sha256": "5c6560a74e75c765284d34edfd74a1d281264580c40d525e173c7c9df8362855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ08_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 222,
+      "path": "attempts/1/raw/LJ_connected_components.progress.json",
+      "sha256": "a5b508ac47d27fb743f1692f8af9279fc0ac735408820ae53e7bd06374f4b4f5",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_connected_components.progress.json"
+    },
+    {
+      "bytes": 1143,
+      "path": "attempts/1/raw/LJ_connected_components.resources.json",
+      "sha256": "963e34a6d53b4a91928a7833a981fd1ccb5e31f132c79e7ad54f2393a577d5c6",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/LJ_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1087,
+      "path": "attempts/1/raw/LJ_connected_components.stdout.txt",
+      "sha256": "5e622f0ded131efbd9b30afb3ff0799ffe2b9f35c7a4c7cf86a22a674e77da35",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 215,
+      "path": "attempts/1/raw/LJ_residual_pagerank.progress.json",
+      "sha256": "29e7a64550d03106afcf4511a7df100da3d9299d95727024e4325e9daf350814",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1114,
+      "path": "attempts/1/raw/LJ_residual_pagerank.resources.json",
+      "sha256": "183091fd4bd7619247cd4953937b51559cbc44a40e6bd4ebba293b10b6d60669",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/LJ_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 2180,
+      "path": "attempts/1/raw/LJ_residual_pagerank.stdout.txt",
+      "sha256": "92dfb9da5f1a1841dd55e644a36a3b23b02c197a7f3e2f02679a2bd8df8b75ce",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 222,
+      "path": "attempts/1/raw/LJ_weighted_sssp.progress.json",
+      "sha256": "8e08990328e07e046dd4c7ec6ca0756b5c15a1b5b7ed1ed1102c7dca1856e1cf",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1124,
+      "path": "attempts/1/raw/LJ_weighted_sssp.resources.json",
+      "sha256": "ce7565a6a79782940fd171b8b6192df5ee90c7dcb5928b34683b25aa3dbda6c5",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/LJ_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 2463,
+      "path": "attempts/1/raw/LJ_weighted_sssp.stdout.txt",
+      "sha256": "5c461b8f1faf3797239765a670b35d4b80df4c15da2880abc40711bdc9bc0786",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/LJ_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 220,
+      "path": "attempts/1/raw/PK_connected_components.progress.json",
+      "sha256": "419f6d4dbd0381613bd213ed809b1cdbc6677077dae292800850f840035b95ef",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_connected_components.progress.json"
+    },
+    {
+      "bytes": 1143,
+      "path": "attempts/1/raw/PK_connected_components.resources.json",
+      "sha256": "52b1924e9ddcff7f1032c07e80842f262b109939edcc91f96303c8ea27d83f36",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/PK_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1078,
+      "path": "attempts/1/raw/PK_connected_components.stdout.txt",
+      "sha256": "567c9599dea6af03575c4257f76f2a445b29ecb5a6af94f3286fe1e7afec18fc",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 221,
+      "path": "attempts/1/raw/PK_residual_pagerank.progress.json",
+      "sha256": "86cacb23489d470fd7c7f7c55b8c22b40598859b0a3cae0afdd072c742d7f894",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1114,
+      "path": "attempts/1/raw/PK_residual_pagerank.resources.json",
+      "sha256": "6d837642a7b51ba6289f0a5d9f7f849b0b756b085075f279250ae81d7d9fd433",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/PK_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 1979,
+      "path": "attempts/1/raw/PK_residual_pagerank.stdout.txt",
+      "sha256": "03e6f4981c307d311847a8702006765afc5a732e830478663a2907aa53921021",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 220,
+      "path": "attempts/1/raw/PK_weighted_sssp.progress.json",
+      "sha256": "041270dc5b4054c6519b9ffbbc2cb94a1b418218cde3c5cc096c7eee0e15b9d1",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1121,
+      "path": "attempts/1/raw/PK_weighted_sssp.resources.json",
+      "sha256": "1d1b228c36e816635eafd9a7afefd84c3845328ea82b11c9b6af42165d23d5a7",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/PK_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 2261,
+      "path": "attempts/1/raw/PK_weighted_sssp.stdout.txt",
+      "sha256": "ebe22529e1f3e0865bc953a9244767dc13e9ab1a44c623a550d1fd0cc90d7c17",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/PK_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 220,
+      "path": "attempts/1/raw/R19_connected_components.progress.json",
+      "sha256": "d1c487fc385f17cf6cc1a6f8b19bc2cfecb3ec85e3704c922cc7811c625177ab",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_connected_components.progress.json"
+    },
+    {
+      "bytes": 1144,
+      "path": "attempts/1/raw/R19_connected_components.resources.json",
+      "sha256": "979d3c2c3c662403113735efb1798c9c99613d06485fd1a7f6b47b177da5e392",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/R19_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1076,
+      "path": "attempts/1/raw/R19_connected_components.stdout.txt",
+      "sha256": "f33e6a2509c29444120dd5dea8dd85837642f1dfc3b72f564a1d54d3d429bac7",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 220,
+      "path": "attempts/1/raw/R19_residual_pagerank.progress.json",
+      "sha256": "4b6d84b45008d3a1c4b88306a906ff4da7843431890cd13ce8a251c1f7b0127d",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1115,
+      "path": "attempts/1/raw/R19_residual_pagerank.resources.json",
+      "sha256": "9e71bc627fa5cba94652ec71d1f2de9cb183cb2a290ade2666e2d45aeeafe3a6",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/R19_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 982,
+      "path": "attempts/1/raw/R19_residual_pagerank.stdout.txt",
+      "sha256": "ab61df4678c8f9a891034ae9f2f2daf44933ada0da2498b60bbc08ff4499ac10",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 221,
+      "path": "attempts/1/raw/R19_weighted_sssp.progress.json",
+      "sha256": "e7bffbfe518a46b80aae3357d3a1f7d91d305191866dc07004845af62480d601",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1125,
+      "path": "attempts/1/raw/R19_weighted_sssp.resources.json",
+      "sha256": "ada55d71986e166b9f49238c5d7a841f30696c475608141d8d291b9387ad2e00",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/R19_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 1654,
+      "path": "attempts/1/raw/R19_weighted_sssp.stdout.txt",
+      "sha256": "af933a04af412384c798c3f13689cde7fb53afc8076a7808c30db4a8d4563596",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/R19_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 219,
+      "path": "attempts/1/raw/SMOKE_connected_components.progress.json",
+      "sha256": "1563e6b1e0bd1c97e7d794a049f1bb92ae1e0b331591aecd591e64866791988d",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_connected_components.progress.json"
+    },
+    {
+      "bytes": 1178,
+      "path": "attempts/1/raw/SMOKE_connected_components.resources.json",
+      "sha256": "11e12f902fab096fce48e8881923a4aa32ed0f9ab20022ea7a90bcc36d881a4a",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SMOKE_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1024,
+      "path": "attempts/1/raw/SMOKE_connected_components.stdout.txt",
+      "sha256": "d33f4e73edcc81772269515f6dce820465b4b7f863ab338eec49e32f37bce096",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 218,
+      "path": "attempts/1/raw/SMOKE_residual_pagerank.progress.json",
+      "sha256": "2af8971f877c585897e0c52eaaeddc439e97fb52566d5e3850030758269eab98",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1148,
+      "path": "attempts/1/raw/SMOKE_residual_pagerank.resources.json",
+      "sha256": "eddb440b0472c0f9193b713f38c43a519fbe7e7ebf94882ed253354d85aae712",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SMOKE_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 747,
+      "path": "attempts/1/raw/SMOKE_residual_pagerank.stdout.txt",
+      "sha256": "01e96357e465f8c4d1431b1e054332b44d5355baa544b840d3054b06698d1076",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 218,
+      "path": "attempts/1/raw/SMOKE_weighted_sssp.progress.json",
+      "sha256": "3fa618246edf1da93b9600197f0e2ee62c044647af1feaacf5d699f3be9fee23",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1155,
+      "path": "attempts/1/raw/SMOKE_weighted_sssp.resources.json",
+      "sha256": "c855ae1b1e536c8fdd9888a3c0b14561f018983dbe7f7492db9392ef1b69d24d",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SMOKE_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 1009,
+      "path": "attempts/1/raw/SMOKE_weighted_sssp.stdout.txt",
+      "sha256": "e8baef4158318ff97cf9b2f761045ffd2e59ba0ecf92c87dc4df3f1853daf308",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SMOKE_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 216,
+      "path": "attempts/1/raw/SO_connected_components.progress.json",
+      "sha256": "a66948d49156fd106180ce8f8c08bc108e44b905070f512084243359695b1eed",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_connected_components.progress.json"
+    },
+    {
+      "bytes": 1144,
+      "path": "attempts/1/raw/SO_connected_components.resources.json",
+      "sha256": "f91296b78e0ea49fb05145f7721ca908ddaa1f6318185f6edc38a6c7b84e114f",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SO_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1102,
+      "path": "attempts/1/raw/SO_connected_components.stdout.txt",
+      "sha256": "81caf6a42c7da277b9a8d1d5b29617299ef1ecfe6841cf5d420b1ca396d01f5f",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 222,
+      "path": "attempts/1/raw/SO_residual_pagerank.progress.json",
+      "sha256": "177ce3ade0b23987a414f2abbde23ba76370adf33b92dd86d256e45717565511",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1115,
+      "path": "attempts/1/raw/SO_residual_pagerank.resources.json",
+      "sha256": "08e1795c403e84c8df9bdedac0e4bba572f4eb908cf72f29b18b691dfafc6d87",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SO_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 1978,
+      "path": "attempts/1/raw/SO_residual_pagerank.stdout.txt",
+      "sha256": "20a78cf5b896dd96755292a48ecc9fe4c1d9bba5aab75ae28122cfc25c432e7c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 222,
+      "path": "attempts/1/raw/SO_weighted_sssp.progress.json",
+      "sha256": "bce85eec6c087071feb85b2dc396e6d42aff48329fe2435b3235fb022f6eacec",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1123,
+      "path": "attempts/1/raw/SO_weighted_sssp.resources.json",
+      "sha256": "15533105deeea60b5c657fe9959f39e9a02cc594f623c5bf098bdc1ebb7f6363",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SO_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 2253,
+      "path": "attempts/1/raw/SO_weighted_sssp.stdout.txt",
+      "sha256": "214e322861c1c9f261252fdda8aa688c3e5adb652ae8fbc1db1820213fbb8cc7",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SO_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 218,
+      "path": "attempts/1/raw/SU_connected_components.progress.json",
+      "sha256": "ede83938af0f545770e3f74d5b139c644f449b88b8261a9af57091fd61721f62",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_connected_components.progress.json"
+    },
+    {
+      "bytes": 1141,
+      "path": "attempts/1/raw/SU_connected_components.resources.json",
+      "sha256": "ee7647b9b2de92c9387e1ff339072590a294226d1ec39df4e9e0b51473cb8366",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SU_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1081,
+      "path": "attempts/1/raw/SU_connected_components.stdout.txt",
+      "sha256": "ef4086f3209b24b3b16801995c518178f85b7efc17c62069e02d0350fec226b8",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 219,
+      "path": "attempts/1/raw/SU_residual_pagerank.progress.json",
+      "sha256": "70acb39ab3890930115dd81fe68b704d201025f69a9f14ff11acc6d9e903f593",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1112,
+      "path": "attempts/1/raw/SU_residual_pagerank.resources.json",
+      "sha256": "7be10593fc51d543fc64f772dcbd3d0ee208e1b71b613613ca98d6cc7e4c0ea1",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SU_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 1371,
+      "path": "attempts/1/raw/SU_residual_pagerank.stdout.txt",
+      "sha256": "db75e782f2f09d20b32dd3229afd2130c839bda38db66d7485780ad14849e272",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 218,
+      "path": "attempts/1/raw/SU_weighted_sssp.progress.json",
+      "sha256": "fc1dc4fed5576233d7b58ea7f6663cefcc8ee524401dd8d539e6401621d542e2",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1120,
+      "path": "attempts/1/raw/SU_weighted_sssp.resources.json",
+      "sha256": "d298c82079e842235d0732bb7f75ca33646c5cccd3348cd7ad495cfd83aaffc4",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/SU_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 1442,
+      "path": "attempts/1/raw/SU_weighted_sssp.stdout.txt",
+      "sha256": "d7952fc50decd37e3ffd99da09345009ca9cbaac7ed378497007a6f58579949c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/SU_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 218,
+      "path": "attempts/1/raw/WK_connected_components.progress.json",
+      "sha256": "18285ffc7006f914b682f3bc37e9482cf1ec440eebb86e0b042bc90eaa8dd03b",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_connected_components.progress.json"
+    },
+    {
+      "bytes": 1142,
+      "path": "attempts/1/raw/WK_connected_components.resources.json",
+      "sha256": "be4af6015fed80a2b7d6b15971f8d38bfcef05b181c431439c307213c65b9221",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_connected_components.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/WK_connected_components.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 1076,
+      "path": "attempts/1/raw/WK_connected_components.stdout.txt",
+      "sha256": "dbb1fe62a350913fb777372482f648838c2609bc5bb66498dfb05aeed0dcbfdc",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 218,
+      "path": "attempts/1/raw/WK_residual_pagerank.progress.json",
+      "sha256": "02289486c251cbb11c0646664473a8ba527350f74eace92a0b002283a52e4045",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1111,
+      "path": "attempts/1/raw/WK_residual_pagerank.resources.json",
+      "sha256": "091cad8585c529129520adf0045c9ae5eae6fe5981dc06508e28ca19d200948b",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/WK_residual_pagerank.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 982,
+      "path": "attempts/1/raw/WK_residual_pagerank.stdout.txt",
+      "sha256": "803f37679a6c2e5c6db54ce6dde764028ee0e74eab8ab4580481030d72a3b93d",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 218,
+      "path": "attempts/1/raw/WK_weighted_sssp.progress.json",
+      "sha256": "04bc01200aa0225e83882f8032190e9e7c99a8ff0072c7bfe2c101bbb815548f",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1120,
+      "path": "attempts/1/raw/WK_weighted_sssp.resources.json",
+      "sha256": "b273a461ab72997f5e751e3b7e75622d8dae09e946c4330c85ff7bb6ed0e255d",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/WK_weighted_sssp.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 1243,
+      "path": "attempts/1/raw/WK_weighted_sssp.stdout.txt",
+      "sha256": "42b53df1a0cf3550f4486d66aebe53e83e99883c49da3fc3cfbb8477f26c356c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/WK_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 231,
+      "path": "attempts/1/raw/compile_connected_components.progress.json",
+      "sha256": "c8ff754f79718fe6aa177ae932fd600c510784cb57b84037c79f573e5974c45c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_connected_components.progress.json"
+    },
+    {
+      "bytes": 1880,
+      "path": "attempts/1/raw/compile_connected_components.resources.json",
+      "sha256": "c17f7e981ab2d751cdba212abd96976eeafe915876ef9417a509742727295497",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_connected_components.resources.json"
+    },
+    {
+      "bytes": 496,
+      "path": "attempts/1/raw/compile_connected_components.stderr.txt",
+      "sha256": "dac7a981573c48aa60a86b8485e640d43cd397c0d24686fa7344513c345aaca8",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_connected_components.stderr.txt"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/compile_connected_components.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_connected_components.stdout.txt"
+    },
+    {
+      "bytes": 231,
+      "path": "attempts/1/raw/compile_residual_pagerank.progress.json",
+      "sha256": "d0a64ee3e702141b6d79fb5216159f15e91f5fa501740f19cba55b29c7838b54",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_residual_pagerank.progress.json"
+    },
+    {
+      "bytes": 1880,
+      "path": "attempts/1/raw/compile_residual_pagerank.resources.json",
+      "sha256": "94f71ed3329e1f8ecee6754f2cecff70d8be9149738b6dc55582b24c0cf5f307",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_residual_pagerank.resources.json"
+    },
+    {
+      "bytes": 496,
+      "path": "attempts/1/raw/compile_residual_pagerank.stderr.txt",
+      "sha256": "dac7a981573c48aa60a86b8485e640d43cd397c0d24686fa7344513c345aaca8",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_residual_pagerank.stderr.txt"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/compile_residual_pagerank.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_residual_pagerank.stdout.txt"
+    },
+    {
+      "bytes": 231,
+      "path": "attempts/1/raw/compile_weighted_sssp.progress.json",
+      "sha256": "0fbc747123c412eb9f0308db357331654ef755ca2f95cc0f3f9a4d1ab5d8f410",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_weighted_sssp.progress.json"
+    },
+    {
+      "bytes": 1821,
+      "path": "attempts/1/raw/compile_weighted_sssp.resources.json",
+      "sha256": "ca97c622d7947f93114f9622a08df1aaeae856b15706da1c1b07ac8d037c917c",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_weighted_sssp.resources.json"
+    },
+    {
+      "bytes": 496,
+      "path": "attempts/1/raw/compile_weighted_sssp.stderr.txt",
+      "sha256": "dac7a981573c48aa60a86b8485e640d43cd397c0d24686fa7344513c345aaca8",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_weighted_sssp.stderr.txt"
+    },
+    {
+      "bytes": 0,
+      "path": "attempts/1/raw/compile_weighted_sssp.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/raw/compile_weighted_sssp.stdout.txt"
+    },
+    {
+      "bytes": 119,
+      "path": "attempts/1/connected_components.smoke.graph",
+      "sha256": "56e5f785ecfb5a8ad439ae24d3af585967a111b2f01f64d44fc5420097937480",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/connected_components.smoke.graph"
+    },
+    {
+      "bytes": 65,
+      "path": "attempts/1/residual_pagerank.smoke.graph",
+      "sha256": "256b64c3770f773f5fb927761b1c6dc6a39027e7e8a1f8afa5b9b33fa6142dd2",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/residual_pagerank.smoke.graph"
+    },
+    {
+      "bytes": 65,
+      "path": "attempts/1/weighted_sssp.smoke.graph",
+      "sha256": "256b64c3770f773f5fb927761b1c6dc6a39027e7e8a1f8afa5b9b33fa6142dd2",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/weighted_sssp.smoke.graph"
+    },
+    {
+      "bytes": 12941,
+      "path": "attempts/1/connected_components.d",
+      "sha256": "1ebaee033a262e33a7f0a6a2ea5d924a93cff0c24cf2f1831eb381e5ca6dcaa5",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/connected_components.d"
+    },
+    {
+      "bytes": 13085,
+      "path": "attempts/1/residual_pagerank.d",
+      "sha256": "22906fb6328623c650bfd85ef0dcb4c4359b4637e6f7819b247c53981b1f480f",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/residual_pagerank.d"
+    },
+    {
+      "bytes": 12941,
+      "path": "attempts/1/weighted_sssp.d",
+      "sha256": "1ebaee033a262e33a7f0a6a2ea5d924a93cff0c24cf2f1831eb381e5ca6dcaa5",
+      "source_path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-host-readiness-v2/weighted_sssp.d"
+    },
+    {
+      "bytes": 8644,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/__init__.py",
+      "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/__init__.py"
+    },
+    {
+      "bytes": 42052,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/campaign_runtime.py"
+    },
+    {
+      "bytes": 45873,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/comparison.py",
+      "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/comparison.py"
+    },
+    {
+      "bytes": 26406,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/comparison_analysis.py",
+      "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/comparison_analysis.py"
+    },
+    {
+      "bytes": 68,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/__init__.py",
+      "sha256": "785bead8465ae009e7b9997b9da59eac5abe163f4382b3f7ba0dbfdc7c855369",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/__init__.py"
+    },
+    {
+      "bytes": 70,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/__init__.py",
+      "sha256": "61053d0129c05b22ecdff5d28815626e619151da55f8de89e4c0e68845802526",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/__init__.py"
+    },
+    {
+      "bytes": 684,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/__main__.py",
+      "sha256": "6bc2e78f21976ccf3ae260be6e05faaba9646879498702bb9d80defba0a46e69",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/__main__.py"
+    },
+    {
+      "bytes": 3794,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/analysis.py",
+      "sha256": "d17716adad06012a8822f62d9f6f12e6a91b86d8e9ef9fef15150afdf00c12dd",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/analysis.py"
+    },
+    {
+      "bytes": 1572,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/diagnostics.py",
+      "sha256": "97e5e99b711760dc0d9d31f59c14b7ff04dff4509b2594028f24fdfa5a7ff261",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/diagnostics.py"
+    },
+    {
+      "bytes": 119,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/fixtures/cc.graph",
+      "sha256": "56e5f785ecfb5a8ad439ae24d3af585967a111b2f01f64d44fc5420097937480",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/fixtures/cc.graph"
+    },
+    {
+      "bytes": 65,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/fixtures/directed.graph",
+      "sha256": "256b64c3770f773f5fb927761b1c6dc6a39027e7e8a1f8afa5b9b33fa6142dd2",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/fixtures/directed.graph"
+    },
+    {
+      "bytes": 6279,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/preparation.py",
+      "sha256": "2af146aa37e92d778231ef4f3b793ee7889fd86c7a406e82bc98950b7e18a6fb",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/preparation.py"
+    },
+    {
+      "bytes": 7041,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/study.py",
+      "sha256": "972651471439f055d3e30fd8f9368cca938011ac7797e26b92df3adf08d575ec",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/evaluation_impact/fullgraph_readiness/study.py"
+    },
+    {
+      "bytes": 12819,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/feasibility.py",
+      "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/feasibility.py"
+    },
+    {
+      "bytes": 23503,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/grasu_addressing.py",
+      "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/grasu_addressing.py"
+    },
+    {
+      "bytes": 31987,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+      "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py"
+    },
+    {
+      "bytes": 15321,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/hls_real_comparison.py",
+      "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/hls_real_comparison.py"
+    },
+    {
+      "bytes": 4597,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/hls_weighted_workloads.py",
+      "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/hls_weighted_workloads.py"
+    },
+    {
+      "bytes": 37372,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/large_graph_campaign.py",
+      "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/large_graph_campaign.py"
+    },
+    {
+      "bytes": 8908,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/memory_traffic.py",
+      "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/memory_traffic.py"
+    },
+    {
+      "bytes": 6054,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/persistent_update_only.py",
+      "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/persistent_update_only.py"
+    },
+    {
+      "bytes": 9482,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/profile_capabilities.py",
+      "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/profile_capabilities.py"
+    },
+    {
+      "bytes": 61352,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/publication_analysis.py",
+      "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/publication_analysis.py"
+    },
+    {
+      "bytes": 15502,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/publication_cases.py",
+      "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/publication_cases.py"
+    },
+    {
+      "bytes": 45630,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/publication_workloads.py",
+      "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/publication_workloads.py"
+    },
+    {
+      "bytes": 28729,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/real_memory_analysis.py",
+      "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/real_memory_analysis.py"
+    },
+    {
+      "bytes": 12973,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/real_small_batches.py",
+      "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/real_small_batches.py"
+    },
+    {
+      "bytes": 44350,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/rq3.py",
+      "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/rq3.py"
+    },
+    {
+      "bytes": 78,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+      "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py"
+    },
+    {
+      "bytes": 5662,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "1690c0556662ba7baa9b5f80f31d94677f5c61813f7045cfb8bc7aa622cb9f5d",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py"
+    },
+    {
+      "bytes": 1929,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "5f1aaeaa7b62c6cb72dd2d583bc03a81c2f45d69a90ec590a88565c5814fd711",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py"
+    },
+    {
+      "bytes": 78,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py",
+      "sha256": "00cf8c7ae583dd02e107fc7581f9cdc09889896d2182bbec0063e114ed40e910",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py"
+    },
+    {
+      "bytes": 79,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py",
+      "sha256": "1bb211a93c3f674d8ebb06ad3130592322b3b9732c092a887df18f19aa63592a",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py"
+    },
+    {
+      "bytes": 80,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py",
+      "sha256": "b0d3e652a9c0c065865c24b58fe0eac776933248f5b32590cfa1dcc9a4791ed1",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py"
+    },
+    {
+      "bytes": 3185,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/admission.py",
+      "sha256": "b8eb66013f8ddc98e92caf64ca4af0b9f561d7baeac7fa39f565fdcad640a201",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/admission.py"
+    },
+    {
+      "bytes": 3952,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/concurrent.py",
+      "sha256": "46f88527c5cc8397043f8971132f0d48640d3ba0e06bb38a5ebb61c5ff08f23f",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/concurrent.py"
+    },
+    {
+      "bytes": 1573,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py",
+      "sha256": "f3e2a9f4bc87c3fa9a1ee27427d155b2dbca3d01a8cf5ff3dd79c39a66948b27",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py"
+    },
+    {
+      "bytes": 36711,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/shared_workloads.py",
+      "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/shared_workloads.py"
+    },
+    {
+      "bytes": 7557,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/temporal_dense_analysis.py",
+      "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/temporal_dense_analysis.py"
+    },
+    {
+      "bytes": 27814,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/temporal_real_analysis.py",
+      "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/temporal_real_analysis.py"
+    },
+    {
+      "bytes": 23181,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/temporal_real_batches.py",
+      "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/temporal_real_batches.py"
+    },
+    {
+      "bytes": 45841,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+      "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py"
+    },
+    {
+      "bytes": 75,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/upstream_controls/__init__.py",
+      "sha256": "c9df6b968cbbdda00f9fbd678995575e5d73704c85e55538ed579874f40a87e0",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/upstream_controls/__init__.py"
+    },
+    {
+      "bytes": 3456,
+      "path": "attempts/1/runner/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b",
+      "source_path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-readiness/spine_cycle_sim/experiments/upstream_controls/execution.py"
+    }
+  ],
+  "indexed_not_archived": [
+    "graph_inputs",
+    "compiled_hosts",
+    "toolchain_and_system_dependencies"
+  ],
+  "raw_acceptance_replayed": true,
+  "schema_version": 1,
+  "scope": "CPU_oracle_and_graph_HBM_layout_only_not_board_timing"
+}

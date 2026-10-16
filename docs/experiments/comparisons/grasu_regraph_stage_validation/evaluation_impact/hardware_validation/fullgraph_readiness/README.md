@@ -12,7 +12,9 @@ to these commands. Neither a timing model nor production HLS is modified.
 The frozen matrix is the complete 24-input insertion/u8 manifest at
 `/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/manifest.json`:
 
-- AU, SU, WK, SO, PK, LJ, LJ08 and R19, with no topology/ID compaction.
+- AU, SU, WK, SO, PK, LJ, LJ08 and R19, without an externally compacted
+  topology or vertex-ID input. The production host still performs its internal
+  vertex mapping; this check makes no physical-ID locality claim.
 - SSSP and ResPR have eight physical edits; reciprocal CC has sixteen.
 - Hosts retain their declared old-graph/reference convergence policies.
   Preparing a CPU reference is not proof of FPGA convergence or correctness.
@@ -134,13 +136,37 @@ optimization and offline-only boundary. It freezes simulator revision
 `spine-fullgraph-readiness-20261016-v2.service`, invocation
 `ab16c4f930eb4b649ec7f58e7dea18f1`.
 
-At the 2026-10-16 03:29 UTC checkpoint, all three six-partition smokes and
-18/24 full-graph preparations have passed; LJ08 SSSP is running. AU, SU, WK,
-SO, PK and LJ have passed all three algorithms. No errors or OOM events have
-been recorded. This is still an incomplete CPU-preparation matrix, not a
-hardware measurement or a final readiness pass. Read the live `results.json`
-and terminal service state for subsequent progress. Count only `PASS` rows:
-the saved `cases` array can also contain one active `RUNNING` row.
+At 2026-10-16 03:42:23 UTC, v2 completed with
+`FULLGRAPH_HOST_PREPARATION_PASS_NOT_BOARD_OR_PERFORMANCE` and service exit
+code zero. All three six-partition smokes and all 24 full-graph preparations
+passed. The 30 child steps comprise three compilations, three smokes and the
+24 graph preparations. No compiler/runtime errors, pin drift, memory-limit
+events or OOM events were recorded.
+
+| Dataset | Vertices | Destination partitions | SSSP initial edges | Algorithms passed |
+| --- | ---: | ---: | ---: | --- |
+| AU | 515,281 | 8 | 390,847 | SSSP, CC, ResPR |
+| SU | 567,316 | 9 | 616,118 | SSSP, CC, ResPR |
+| WK | 1,140,149 | 18 | 1,142,352 | SSSP, CC, ResPR |
+| SO | 6,024,271 | 92 | 23,724,166 | SSSP, CC, ResPR |
+| PK | 1,632,803 | 25 | 44,603,928 | SSSP, CC, ResPR |
+| LJ | 4,847,571 | 74 | 85,702,474 | SSSP, CC, ResPR |
+| LJ08 | 5,363,260 | 82 | 99,028,542 | SSSP, CC, ResPR |
+| R19 | 524,288 | 8 | 15,483,485 | SSSP, CC, ResPR |
+
+Algorithm-specific edge counts are retained in each raw report; the SSSP
+column is not an assertion that CC/ResPR use identical edges. The maximum
+printed SSSP/CC graph-channel allocation is 327,008,256 bytes (311.86 MiB),
+below the 512-MiB per-channel limit. ResPR's planner passed, but its missing
+printed channel maxima remain missing. The maximum sampled child-tree RSS
+is 18.45 GiB under the 24-GiB hard/22-GiB high limit; systemd separately
+recorded a 19.3-GiB service memory peak. These scopes are not interchangeable.
+
+This closes the declared offline CPU-oracle/layout prerequisite only.
+Actual new-G metadata binding, integrated RTL/backpressure, multi-shard board
+handoff, hardware convergence/timing and the Spine comparison remain open.
+The passing preparations do not authorize the guarded compact board hosts
+to run the full eight-graph matrix unchanged.
 
 ## Portable Evidence
 
@@ -151,6 +177,17 @@ all raw logs/resource records, copied production sources, frozen Python
 runners, smoke graphs and dependency lists. Large graph inputs, compiled hosts
 and toolchain/system dependencies remain SHA-256-indexed in the original
 reports rather than copied into Git.
+
+The [delivered evidence index](evidence/index.json) and
+[raw capsule](evidence/raw_fullgraph_readiness.tar.gz) preserve both terminal
+attempts. The first remains `FAILED_RETAINED` with zero smokes/cases; the
+second contains all three passing smokes and all 24 passing cases. Recheck
+the committed capsule from the simulator worktree:
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.delivery verify \
+  --destination docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/fullgraph_readiness/evidence
+```
 
 ```bash
 campaign=/data/chuxiao/experiments/baseline_hardware_validation_20261015
