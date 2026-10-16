@@ -35,6 +35,13 @@ execution or timing.
 The [continuous G host preflight](continuous_board/README.md) adds XRT host
 compilation and eighteen host-model rows with persistent state. Its board
 path is not yet executed; it is not a measured performance result.
+The [metadata lifecycle extension](metadata_refresh/README.md) changes the
+native directory contents while retaining the same BO handles and PMA state.
+Its thirteen parser/safety tests pass; the bounded C++ host preflight is
+queued and its device path is unexecuted. This is a separate refresh gate,
+not evidence that the older immutable-directory test already covered refresh.
+Its one-segment-per-source geometry also leaves multi-segment binary-head
+refresh consumption untested, even if the eventual row-refresh board run passes.
 The [continuous G-to-SSSP preflight](continuous_handoff/README.md) checks 27
 resident batches through convergence at host-model level, with separate warm
 decrease controls and retained parser failure; its FPGA path is not executed.
