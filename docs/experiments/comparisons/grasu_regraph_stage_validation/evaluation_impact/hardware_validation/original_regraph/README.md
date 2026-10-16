@@ -433,3 +433,21 @@ The memory-queue regression passes six new tests and all 189 original-R tests,
 plus fifteen organization checks and document/catalog/whitespace checks. The
 bounded full regression service peaked at 43.9 MiB under its 2-GiB hard limit.
 These tests validate queue/admission behavior, not hardware performance.
+
+Attempt `original-r-source-route-v6` then passed its first memory sample:
+133.617 GiB available against 112 GiB required, with G still routing and no
+unbounded peers at that sample. The compiler's independent second admission
+also passed at 133.589 GiB, and Apply compilation actually started. This
+demonstrates concurrent launch by budget, not waiting for G to exit.
+The exact source service is `spine-original-r-source-route-20261016-v6.service`,
+invocation `34a2442a7f2b4bce88f0596120d93e73`, with the same 40/36-GiB hard/high
+and zero-swap limits. Its queue file is at the attempt root; source-build
+manifest/results/logs are nested under `build/` and freeze revision `b9508ae`.
+
+`original-r-board-supervisor-v1` is also running with an 8/7-GiB hard/high,
+zero-swap limit, waiting for that exact source invocation. It targets device 1
+and all eighteen predeclared static-PR controls; G's independent board queue
+targets device 0. The `Requisite` dependency retains the source unit's terminal
+identity without restarting it. No R board launch has occurred at this
+checkpoint, and there is still no new measured R performance or publication
+match. G route and G-board frozen content hashes remain unchanged.
