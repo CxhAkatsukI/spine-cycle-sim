@@ -12,7 +12,7 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes, dependency_identities, run_bounded
-from . import artifact, control_analysis as analysis, control_inputs, study
+from . import artifact, control_analysis as analysis, control_build, control_inputs, study
 
 POLICY = {"tree_memory_gib": 4, "reserve_gib": 24, "background_memory_gib": 8,
           "allow_bounded_builds": True}
@@ -73,6 +73,7 @@ def run(root: Path, captures: Path, audit: Path, output: Path, *, wait_seconds=0
         source = root / "cpp/tests/original_regraph/hardware"
         report["pins"] = [artifact.identity(path) for path in sorted(source.glob("*")) if path.is_file()]
         report["pins"] += [artifact.identity(audit / "results.json"), artifact.identity(COMPILER)]
+        report["pins"] += [artifact.identity(path) for path in control_build.runtime_inputs()]
         report["pins"] += study.runner_pins()
         report["pins"] += reference["pins"]
         lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
@@ -84,17 +85,16 @@ def run(root: Path, captures: Path, audit: Path, output: Path, *, wait_seconds=0
         binary_dir = output / "bin"
         binary_dir.mkdir()
         for build in ("release", "ubsan"):
-            flags = ["-std=c++20", "-O2", "-DNDEBUG", "-Wall", "-Wextra", "-Wpedantic", "-Werror"]
-            if build == "ubsan":
-                flags += ["-fsanitize=undefined", "-fno-sanitize-recover=all"]
             for name in ("model_tests", "control"):
                 binary, dependency = binary_dir / f"{build}_{name}", binary_dir / f"{build}_{name}.d"
-                command = [str(COMPILER), *flags, "-MD", "-MF", str(dependency), "-MT", "probe",
-                           "-I/opt/xilinx/xrt/include", str(source / (name + ".cpp")), "-o", str(binary)]
-                if name == "control":
-                    command += ["-lOpenCL"]
+                command = control_build.command(COMPILER, source, binary, dependency, build, name)
                 step(f"compile_{build}_{name}", command)
                 report["pins"] += dependency_identities(dependency, root) + [artifact.identity(binary)]
+                if name == "control":
+                    loader = step(f"loader_{build}_{name}", ["/usr/bin/ldd", str(binary)])
+                    libraries = control_build.resolved_libraries(
+                        Path(loader["stdout"]).read_text(), Path(loader["stderr"]).read_text())
+                    report["pins"] += [artifact.identity(path) for path in libraries]
             step(f"{build}_model_tests", [str(binary_dir / f"{build}_model_tests")])
             for topology, admitted in inputs.items():
                 for item in admitted:

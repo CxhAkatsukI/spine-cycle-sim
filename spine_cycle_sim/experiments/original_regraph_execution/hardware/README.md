@@ -17,6 +17,7 @@ remain separate experiments.
 | `checkpoint_delivery.py` | Recheck terminal observations and seal a separate metadata/source capsule without admitting hardware timing |
 | `control_inputs.py` | Encode descriptors from the exact report/layout/captures pinned by the independent audit; do not silently update an old source checkpoint |
 | `control_analysis.py` | Independent oracle hashes, publication padding, guards and complete offline matrix |
+| `control_build.py` | Explicit Xilinx OpenCL linkage/runpath and independent loader identity check; reject a generic CUDA ICD |
 | `control_validation.py` | Finite-memory Release/UBSan compilation and 48-run offline host validation, including launch rejection |
 | `control_delivery.py` | Recheck raw results and package sources/metadata with failed attempts, without board-performance claims |
 | [source_build/](source_build/README.md) | Explicit clean-source 11+3/A4 compilation and routing with independent memory admission; no board execution |
@@ -57,6 +58,15 @@ CSR/task oracle. No device is enumerated or programmed in offline mode.
 Both board geometries must reject a missing external lease. Legacy reports
 that instead rejected the unsupported A4 ABI remain valid historical offline
 evidence but cannot authorize this new A4 board path.
+
+New controls link `/opt/xilinx/xrt/lib/libxilinxopencl.so` explicitly and set
+that directory's runpath. Release and UBSan loader checks must resolve that
+exact library; the runtime inputs and complete loaded dependencies are pinned.
+The earlier generic `-lOpenCL` binary resolved to CUDA on this machine and was
+correctly rejected by the board runtime gate before any host launch. Recompile
+and repeat the complete offline matrix in a fresh output; do not weaken the
+runtime gate or change the old validated binary in place. No device logic or
+timing boundary is changed by this host-link repair.
 
 ```bash
 systemd-run --user --wait --pipe --unit=original-r-control-fresh \
