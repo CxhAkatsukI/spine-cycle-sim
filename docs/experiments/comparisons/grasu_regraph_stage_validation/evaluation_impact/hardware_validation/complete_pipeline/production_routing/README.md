@@ -1,5 +1,46 @@
 # Production-Source Experimental G Route
 
+## Registered Comparison Candidate
+
+The latest source candidate is integration `87a0a2c`, with a registered
+sixteen-lane cache comparison stage and unchanged capacity, update semantics,
+banking and ABI. Raw evidence is under
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/`.
+The earlier campaign below remains unchanged and is not this candidate.
+
+`g-cache-comparison-rtl-v1` now passes all eighteen search, six token-cache
+and six plain-cache Verilog transactions plus full interface checks. Its result
+SHA-256 is `4857095ca87d208b8ecadd80b99e53392f98a84e213ba07f6601ac05d2ed0559`.
+Service `spine-g-compare-rtl-20261018-v1.service`, invocation
+`2951326ed39245a2924f4d2f97022ec7`, exited successfully with a 4158562304-byte
+cgroup peak under 8/7-GiB max/high and zero swap. Independent
+`g-cache-comparison-readmission-v1` also passes. These are component checks,
+not integrated finite-stream RTL, physical timing or device metadata refresh.
+
+The fresh resource screen `g-cache-comparison-resource-fit-v1` reports
+906023 LUT, 612886 FF, 1132 BRAM18 and 768 URAM. As before, moving only
+`lksg_stream_4` to SLR1 gives 320/128/320 URAM; unrelocated SLR0 does not fit.
+That screen does not prove routing. `g-cache-comparison-route-v2` successfully
+prepares the exact fresh production exports with the independently rechecked
+connected host state and reused upstream XOs. `--build` must name the historical
+campaign root, not its `build` child; the earlier preparation v1 retains that
+path-selection failure in its service journal.
+
+The two exact new XO identities are search
+`4a838d7a9581a49d0765704d7816bcf9eac15a041d55fe64008dd872b0a023dc`
+and token cache
+`596449cc36f2cfe625ea3856ccf008ef4efb147921bef0544f2be50d5d4b0e4b`.
+The production packet reviewer retains the original approved pair and admits
+this new **pair** only after its fresh component checks. Mixed generations,
+unrecognized hashes and promoted timing/board claims remain rejected.
+Capsule preparation v1 retained the initial rejection by the original-only
+registry; it did not run a link. No old packet, export or result is rewritten.
+
+The [algorithm compilation guide](algorithm_build/README.md) records independent
+CC/ResPR/FullPR v4 compilation and strict local return. New complete-system
+timing, device correctness, G/R controls and paired Spine results remain open;
+no finalized figure is implied by component success or a prepared link packet.
+
 ## Decision
 
 The [remote continuation](remote/README.md) retains this packet and the

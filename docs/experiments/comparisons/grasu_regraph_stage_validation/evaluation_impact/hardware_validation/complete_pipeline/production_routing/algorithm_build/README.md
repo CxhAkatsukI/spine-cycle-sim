@@ -52,6 +52,9 @@ transport and local admission. It never requests or programs a board.
 `compile_follow.py` waits for one exact compilation invocation and delegates
 fresh XO/resource/ABI review and finite-budget linking to the existing route
 owner. It does not replace return admission or authorize FPGA programming.
+`local_follow.py` waits for that exact local link service, seals its child output
+and independently reviews source, clock, topology and routed timing. It never
+programs an FPGA or treats link success as timing, RTL or board approval.
 
 ## Latest Source And Compile Continuation
 
@@ -61,8 +64,10 @@ The latest portable closure is `production-algorithm-sources-v4`, integration
 All 180 transported source files are retained locally and on the remote builder.
 It includes the PageRank Apply packing fix and the fresh registered cache
 comparison stage. The latter has passing host functional, segment-oracle and
-HLS checks; its component RTL is still running. Compilation in parallel does
-not waive RTL or physical timing admission.
+HLS checks, and all eighteen search plus six transactions per cache binding
+now pass fresh component Verilog/interface checks. Independent component
+re-admission also passes. None of these admits integrated RTL, physical timing
+or board correctness; see the [production route guide](../README.md).
 
 The prior v3 closure is integration `1a5650c79ae0c29418b93184a1590f256e33f0b6`,
 index SHA-256 `8b41653890d1e48e32c5f3531d79ba8fe227d0eccc883b8a08845e04f136f00f`.
@@ -73,8 +78,8 @@ neither fix. Never relabel those separately frozen routes as v4 results.
 ### Latest Local Compilations
 
 Local tool preflight passes with the explicit 2024.1 installation, U55C platform
-and campaign-owned compatibility libraries. CC and ResPR are compiling; FullPR
-is waiting for its full finite memory budget. All use v4 sources and immutable
+and campaign-owned compatibility libraries. CC and ResPR have completed
+compilation; FullPR is compiling. All use v4 sources and immutable
 simulator runner `algorithm-return-runner-2b9cf3c`, archive SHA-256
 `a1517443ce25b60df47aa219116dd84d994ba3344944ca1fffc49a4f6e2dace4`.
 The local root is
@@ -97,8 +102,9 @@ Each local compile now has an independent `follow-compile` service using the
 same immutable runner and v4 source index. It waits for exactly the compilation
 invocation above; a terminal successful compile is followed by fresh resource,
 ABI and environment checks, then the existing finite-memory route owner with
-`aggressive-route-v1`. All three are currently waiting for compilation, not
-executing a link. Each has 40/36-GiB max/high, zero swap, group OOM kill, 800%
+`aggressive-route-v1`. CC and ResPR have passed compilation and entered fresh
+review; their links still wait for finite memory admission. FullPR waits for
+compilation. Each has 40/36-GiB max/high, zero swap, group OOM kill, 800%
 CPU and a 270000-second lifetime. Its child output is `OUTPUT/route`.
 
 | Algorithm | Local follower output | Service / invocation |
@@ -110,6 +116,34 @@ CPU and a 270000-second lifetime. Its child output is `OUTPUT/route`.
 These followers do not seal, admit or program an FPGA. Completed links still
 need independent timing/source/clock admission and the algorithm RTL and board
 gates. A queued follower is not evidence that routing has begun or will pass.
+
+### Independent Local Return
+
+The `follow-local-route` command closes the local return gap without remote
+transport. Use an immutable runner and the exact **parent** compile/link service
+identity above; `--route` names that parent's `route` child. The compile manifest
+and full source index must match the requested algorithm and 150-MHz clock.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build follow-local-route \
+  --compilation /data/chuxiao/experiments/baseline_hardware_validation_20261015/production-cc-compile-local-v2 \
+  --route /data/chuxiao/experiments/baseline_hardware_validation_20261015/production-cc-compile-route-local-v1/route \
+  --sources /data/chuxiao/experiments/baseline_hardware_validation_20261015/production-algorithm-sources-v4 \
+  --output /path/to/fresh/local-return \
+  --unit spine-production-cc-compile-route-local-20261018-v1.service \
+  --invocation 8866c7c03edc446a9dd2d14bdc39d876 \
+  --algorithm connected_components --maximum-wait 270000 --poll-seconds 30
+```
+
+Contain this command with 4/3-GiB max/high, zero swap, group OOM kill and a
+274000-second lifetime. It rejects missing, restarted, failed or timed-out
+services, changed source bytes, wrong algorithms/receipts and unsuccessful
+timing admission. Failed admission retains the sealed receipt for diagnosis.
+Success is `ALGORITHM_LOCAL_RETURN_ADMITTED_NOT_BOARD_OR_PUBLICATION`, with
+all RTL, board and publication flags still false. A later board experiment
+must explicitly consume this new admission; old queued board requests do not
+automatically switch sources. All 68 algorithm-build tests pass, including
+nine focused local-return tests. No simulator numerical model changed.
 
 ### Prior Remote Continuation
 

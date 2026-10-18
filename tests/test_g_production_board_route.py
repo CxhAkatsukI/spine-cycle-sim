@@ -43,6 +43,32 @@ def append_preflight(root, manifest):
 
 
 class ProductionRouteTests(unittest.TestCase):
+    def test_registered_comparison_pair_is_atomic_and_keeps_other_gates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest, _, old_exports = fixture(root)
+            registered = {name: "b" * 64 if name == "bin_search" else "c" * 64
+                          for name in route.EXPORTS}
+            with patch.object(route, "EXPORTS", old_exports), \
+                    patch.object(route, "REGISTERED_COMPARISON_EXPORTS", registered):
+                route.candidate(manifest)
+                manifest["kernel_inputs"] = copy.deepcopy(manifest["kernel_inputs"])
+                for name, digest in registered.items():
+                    for key in ("source", "frozen"):
+                        manifest["kernel_inputs"][name][key]["sha256"] = digest
+                    if name == "bin_search":
+                        with self.assertRaisesRegex(ValueError, "export identity"):
+                            route.candidate(manifest)
+                route.candidate(manifest)
+                for name in ("bin_search", "process_cache"):
+                    changed = copy.deepcopy(manifest)
+                    changed["kernel_inputs"][name]["source"]["sha256"] = "d" * 64
+                    with self.assertRaisesRegex(ValueError, "export identity"):
+                        route.candidate(changed)
+                manifest["FPGA_timing_admitted"] = True
+                with self.assertRaisesRegex(ValueError, "production-source"):
+                    route.candidate(manifest)
+
     def test_production_source_admission_does_not_forge_diagnostic_identity(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

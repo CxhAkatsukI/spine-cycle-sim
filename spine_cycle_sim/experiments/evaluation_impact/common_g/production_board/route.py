@@ -11,6 +11,12 @@ EXPORTS = {
     "bin_search": "e17f8394e1bbffc5ca5e7ca69b19c51ed0acafcd64c726341249287c4bf6a6ff",
     "process_cache": "2a2b3947f39387937207e2f6b77dbffd10e0d3931a2e76ffc6bd4022dda01b1b",
 }
+# Fresh component RTL/readmission: g-cache-comparison-rtl-v1. Keep the pair
+# atomic; accepting either export independently would admit an untested mix.
+REGISTERED_COMPARISON_EXPORTS = {
+    "bin_search": "4a838d7a9581a49d0765704d7816bcf9eac15a041d55fe64008dd872b0a023dc",
+    "process_cache": "596449cc36f2cfe625ea3856ccf008ef4efb147921bef0544f2be50d5d4b0e4b",
+}
 MEMBERS = {
     "grasu_complete/" + name for name in (
         "search_binding/top.cpp", "search_binding/top.hpp", "search_pipeline/types.hpp",
@@ -37,10 +43,10 @@ def candidate(manifest):
     if len(rows) != len(MEMBERS) or {row["member"] for row in rows} != MEMBERS or any(
             pins.get(row["path"]) != row["sha256"] for row in rows):
         raise ValueError("complete pinned production core/configuration required")
-    for name, digest in EXPORTS.items():
-        kernel = manifest["kernel_inputs"][name]
-        if kernel["replaced"] is not True or any(kernel[key]["sha256"] != digest for key in ("source", "frozen")):
-            raise ValueError("production search/cache export identity changed")
+    if not any(all(manifest["kernel_inputs"][name]["replaced"] is True and all(
+            manifest["kernel_inputs"][name][key]["sha256"] == digest for key in ("source", "frozen"))
+            for name, digest in exports.items()) for exports in (EXPORTS, REGISTERED_COMPARISON_EXPORTS)):
+        raise ValueError("production search/cache export identity changed")
     unchanged(manifest["pins"])
 
 

@@ -41,6 +41,14 @@ def main():
         seal.add_argument("--" + name, type=Path, required=True)
     seal.add_argument("--unit", required=True)
     seal.add_argument("--invocation", required=True)
+    local = sub.add_parser("follow-local-route")
+    for name in ("compilation", "route", "sources", "output"):
+        local.add_argument("--" + name, type=Path, required=True)
+    for name in ("unit", "invocation"):
+        local.add_argument("--" + name, required=True)
+    local.add_argument("--algorithm", choices=inputs.ALGORITHMS, required=True)
+    local.add_argument("--maximum-wait", type=int, default=270000)
+    local.add_argument("--poll-seconds", type=int, default=30)
     admit = sub.add_parser("admit-route")
     for name in ("returned", "sources", "output"):
         admit.add_argument("--" + name, type=Path, required=True)
@@ -76,6 +84,11 @@ def main():
         from .artifacts import seal
         print(seal(args.compilation.resolve(), args.route.resolve(), args.output.resolve(),
                    unit=args.unit, invocation=args.invocation)["sha256"])
+    elif args.action == "follow-local-route":
+        from .local_follow import run
+        print(run(args.compilation, args.route, args.sources, args.output,
+                  unit=args.unit, invocation=args.invocation, algorithm=args.algorithm,
+                  maximum_wait=args.maximum_wait, poll_seconds=args.poll_seconds)["status"])
     else:
         from .admission import review
         print(review(args.returned.resolve(), args.sources.resolve(), args.output.resolve(),
