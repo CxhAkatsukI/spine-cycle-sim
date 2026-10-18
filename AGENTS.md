@@ -75,6 +75,13 @@ before changing an implementation or launching an experiment.
   fit. Admit concurrent builds atomically using each build's full finite limit
   plus the declared reserve; unknown or unbounded peers prevent admission.
   Keep per-build containment and live-memory watchdogs active after admission.
+- The user-authorized `seele-reserve-128g-v1` exception is restricted to the
+  high-memory `seele` host (at least 480 GiB RAM): own builds retain exact
+  40/36-GiB max/high and zero swap, finite peers reserve their full budgets,
+  and observed unbounded foreign compilers require a 128-GiB live reserve.
+  Stop only owned trees if that reserve is breached. Missing/invalid cgroup
+  evidence and conflicting leases still block. Record the named exception
+  in fresh manifests; never change another user's limits or a frozen runner.
 - Give runs bounded timeouts, unique output paths, and saved stdout/stderr.
   Start with a correctness smoke, then a bounded representative matrix.
   Do not silently reduce workload semantics to make a run complete.

@@ -171,6 +171,26 @@ service lifetime must cover both. The live tree-RSS/available-memory watchdog
 remains active after admission. Use `OOMPolicy=kill` with systemd; the kernel
 `memory.oom.group` value is independently checked by the runner.
 
+### Explicit High-Memory Exception
+
+`execute --memory-profile seele-reserve-128g-v1` implements the user's
+authorization to use available remote RAM without waiting for every foreign
+compiler to exit. It requires host `seele` with at least 480 GiB total RAM,
+keeps each owned build at 40/36 GiB max/high with zero swap, and reserves
+128 GiB plus 8 GiB background space and every bounded peer's full limit.
+Unbounded foreign compiler PIDs and reasons remain in admission evidence;
+their future memory use is **not** claimed to be bounded. The two-second
+watchdog stops only our build if live available RAM falls below 128 GiB.
+Invalid cgroup evidence, nonzero peer swap limits and inconsistent leases
+still reject admission. This cannot guarantee the behavior of unrelated
+unbounded jobs, but does contain and terminate our contribution to pressure.
+
+The default profile stays strict. The exceptional profile changes no XOs,
+algorithm, clock or timing acceptance. Use fresh output directories and an
+immutable tested runner; do not hot-patch existing waiters. Both the route
+manifest and return checker retain the chosen profile, observed host and
+actual live-reserve evidence. The existing input capsule is unchanged.
+
 ```bash
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote prepare \
   --parent /path/to/frozen-production-route \

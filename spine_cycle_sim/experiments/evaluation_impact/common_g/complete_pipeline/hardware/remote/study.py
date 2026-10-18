@@ -13,19 +13,22 @@ from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment import probe
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment.contract import require_unchanged
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from ....search_pipeline.synthesis import unchanged
 from . import capsule, environment, timing
 
 
-def run(root, output, xilinx, platform, compatibility, *, timing_profile=None):
+def run(root, output, xilinx, platform, compatibility, *, timing_profile=None, memory_profile=None):
     packet, parent = capsule.verify(root)
+    policy = memory_profiles.select(packet["policy"], memory_profile)
+    memory_profiles.host(policy)
     output.mkdir(parents=True, exist_ok=False)
     group = current()
     report = {"status": "PREPARING", "errors": [], "host": socket.gethostname(),
               "capsule": identity(root / "capsule.json"), "parent": packet["parent"],
-              "policy": packet["policy"], **dict.fromkeys(capsule.FLAGS, False)}
+              "policy": policy, "memory_profile": memory_profile, **dict.fromkeys(capsule.FLAGS, False)}
     save = lambda: atomic_write_json(output / "execution.json", report)
     lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
     save()
@@ -47,14 +50,15 @@ def run(root, output, xilinx, platform, compatibility, *, timing_profile=None):
                 *contract["pins"], *map(identity, runners), identity(Path(sys.executable)),
                 identity(output / "environment.json"), identity(output / "link.cfg")]
         atomic_write_json(output / "manifest.json", {"command": argv, "pins": pins,
-            "relocation": report["capsule"], "parent": packet["parent"], "policy": packet["policy"],
+            "relocation": report["capsule"], "parent": packet["parent"], "policy": policy,
+            "memory_profile": memory_profile,
             "clock_mhz": 150, "timing_profile": timing_profile, **dict.fromkeys(capsule.FLAGS, False)})
         report["manifest"] = identity(output / "manifest.json")
         pins.append(report["manifest"])
         deadline = time.monotonic() + 86400
         while True:
             unchanged(pins)
-            report["admission"] = lease.sample(available_memory_bytes(), other_builds(), packet["policy"], commit=True)
+            report["admission"] = lease.sample(available_memory_bytes(), other_builds(), policy, commit=True)
             report["status"] = "WAITING_FOR_MEMORY_NOT_OTHER_TOOLS"
             save()
             if report["admission"]["admitted"]:
@@ -71,7 +75,7 @@ def run(root, output, xilinx, platform, compatibility, *, timing_profile=None):
         report["status"] = "ROUTING_NOT_BOARD_ADMISSION"
         save()
         report["route"] = run_link(argv, output, output / "route", environment=effective,
-            timeout=packet["timeout_seconds"], tree_memory_gib=40, reserve_gib=32)
+            timeout=packet["timeout_seconds"], tree_memory_gib=40, reserve_gib=policy["reserve_gib"])
         unchanged(pins)
         child = report["route"]
         binary = output / "candidate.hw.xclbin"

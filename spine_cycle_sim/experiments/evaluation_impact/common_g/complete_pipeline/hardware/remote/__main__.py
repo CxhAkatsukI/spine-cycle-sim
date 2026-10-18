@@ -5,6 +5,7 @@ from pathlib import Path
 
 from . import admission, capsule, continuation, delivery, qualification, study, timing
 from .transport import Remote
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.memory_profiles import SEELE
 
 parser = argparse.ArgumentParser(description=__doc__)
 commands = parser.add_subparsers(dest="command", required=True)
@@ -15,6 +16,7 @@ execute = commands.add_parser("execute")
 for name in ("capsule", "output", "xilinx", "platform", "compatibility"):
     execute.add_argument("--" + name, type=Path, required=True)
 execute.add_argument("--timing-profile", choices=(timing.PROFILE,))
+execute.add_argument("--memory-profile", choices=(SEELE,))
 seal = commands.add_parser("seal")
 for name in ("capsule", "attempt", "output"):
     seal.add_argument("--" + name, type=Path, required=True)
@@ -50,7 +52,7 @@ if args.command == "prepare":
 elif args.command == "execute":
     print(study.run(*(getattr(args, name).resolve() for name in
         ("capsule", "output", "xilinx", "platform", "compatibility")),
-        timing_profile=args.timing_profile)["status"], flush=True)
+        timing_profile=args.timing_profile, memory_profile=args.memory_profile)["status"], flush=True)
 elif args.command == "seal":
     result = delivery.seal(args.capsule.resolve(), args.attempt.resolve(), args.output.resolve(),
                            unit=args.unit, invocation=args.invocation)

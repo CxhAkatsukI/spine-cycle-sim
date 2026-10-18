@@ -54,7 +54,7 @@ def review(returned, original, output, *, parent_directory, receipt_sha256):
             platforms[0] not in pins_by_path or any(pins_by_path.get(pin["path"]) != pin["sha256"] for pin in mandatory) or \
             manifest.get("parent") != packet["parent"] or manifest.get("relocation") != execution["capsule"] or \
             execution.get("parent") != packet["parent"] or execution.get("host") != receipt["host"] or \
-            manifest.get("clock_mhz") != 150 or manifest.get("policy") != capsule.POLICY or \
+            manifest.get("clock_mhz") != 150 or \
             receipt.get("checked_remote_pin_count") != len(manifest["pins"]):
         raise ValueError("returned configuration or verified input coverage differs")
     pins = [identity(returned / "receipt.json"), identity(original), *parent["pins"], packet["parent"],

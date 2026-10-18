@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from .containment import GIB
+from . import memory_profiles
 
 
 def budget(pid: int, *, proc: Path = Path("/proc"),
@@ -52,6 +53,7 @@ def reservations(builds: list, own: Path, *, proc: Path = Path("/proc"),
 
 
 def required_bytes(manifest: dict, builds: list) -> int:
+    memory_profiles.observed(manifest)
     background = manifest.get("background_memory_gib", 0)
     if type(background) is not int or not 0 <= background <= 40:
         raise ValueError("background workload reserve must be between zero and 40 GiB")
@@ -64,5 +66,5 @@ def required_bytes(manifest: dict, builds: list) -> int:
 def eligible(available: int, builds: list, manifest: dict) -> bool:
     if not manifest.get("allow_bounded_builds", False):
         return not builds and available >= required_bytes(manifest, builds)
-    return (all(row.get("bounded") is True and row.get("memory_max_bytes", 0) > 0
-                for row in builds) and available >= required_bytes(manifest, builds))
+    return (all(memory_profiles.compatible(row, manifest) for row in builds) and
+            available >= required_bytes(manifest, builds))

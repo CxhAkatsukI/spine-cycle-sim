@@ -8,6 +8,7 @@ import socket
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from ....continuous_board.execution.supervisor import route_finished, service_state
 from ....search_pipeline.synthesis import unchanged
 from . import capsule
@@ -21,7 +22,25 @@ ROUTE_FILES = ("manifest.json", "execution.json", "environment.json", "link.cfg"
                  for suffix in ("stdout.txt", "stderr.txt", "resources.json")])
 
 
+def resource_policy(execution, manifest):
+    policy = memory_profiles.select(capsule.POLICY, manifest.get("memory_profile"))
+    if manifest.get("policy") != policy:
+        raise ValueError("remote memory profile differs from its recorded policy")
+    if memory_profiles.observed(policy):
+        child, guard = execution.get("route", {}), execution.get("admission", {})
+        host = guard.get("observed_peer_host", {})
+        if execution.get("policy") != policy or execution.get("memory_profile") != memory_profiles.SEELE or \
+                execution.get("host") != "seele" or guard.get("admitted") is not True or \
+                guard.get("policy") != memory_profiles.SEELE or host.get("host") != "seele" or \
+                host.get("total_memory_bytes", 0) < 480 * 1024**3 or \
+                child.get("tree_memory_gib") != 40 or child.get("reserve_gib") != 128 or \
+                child.get("minimum_available_bytes", 0) < 128 * 1024**3:
+            raise ValueError("high-memory route lacks exact host, admission or live reserve evidence")
+    return policy
+
+
 def completed(execution, manifest, preflight):
+    resource_policy(execution, manifest)
     child = execution.get("route", {})
     if execution.get("status") != PASS or execution.get("errors") != [] or any(
             value.get(flag) is not False for value in (execution, manifest) for flag in capsule.FLAGS) or \
@@ -58,7 +77,7 @@ def seal(root, attempt, output, *, unit, invocation):
     if any(execution.get(key) != value for key, value in expected.items()) or \
             execution.get("host") != socket.gethostname() or execution.get("parent") != packet["parent"] or \
             manifest.get("parent") != packet["parent"] or manifest.get("relocation") != expected["capsule"] or \
-            manifest.get("clock_mhz") != 150 or manifest.get("policy") != capsule.POLICY:
+            manifest.get("clock_mhz") != 150:
         raise ValueError("remote terminal identities differ from the frozen production capsule")
     pins = [*manifest["pins"], *expected.values(), identity(attempt / "preflight/results.json")]
     unchanged(pins)
