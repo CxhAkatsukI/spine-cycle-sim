@@ -1,4 +1,4 @@
-"""Stop before synthesis: inspect an external interconnect for original G XOs."""
+"""Inspect the original-G external interconnect, or link an admitted BD control."""
 
 import argparse
 import json
@@ -15,8 +15,10 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import environment
+from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment import probe as environment_probe
+from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment.contract import require_unchanged
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.synthesis import unchanged
-from .. import configuration as config, gates, preparation
+from .. import configuration as config, gates, preparation, records
 
 
 def inputs(packet, attempt):
@@ -74,7 +76,16 @@ def inspect_proof(path):
             "kernel_ingress": 22, "host_ingress": 1}
 
 
-def run(packet, attempt, output, environment_root, xilinx, platform, compatibility):
+def link_command(compiler, platform, packet, attempt, output, *, bd_only):
+    _, command = config.commands(compiler, platform, packet, output, legacy_include="unused_for_link")
+    command = [str(attempt / "xo" / Path(item).name) if item.endswith(".xo") else item for item in command]
+    if bd_only:
+        command += ["--to_step", "vpl.update_bd"]
+    return [*command, "--xp", "param:compiler.userPreSysLinkTcl=" + str(output / "hooks/pre_link.tcl"),
+            "--xp", "param:compiler.userPostSysLinkTcl=" + str(output / "hooks/post_link.tcl")]
+
+
+def run(packet, attempt, output, environment_root, xilinx, platform, compatibility, *, bd_parent=None):
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING_PHYSICAL_PORT_BD_DIAGNOSTIC", "errors": [],
               **dict.fromkeys(config.FLAGS, False)}
@@ -83,10 +94,19 @@ def run(packet, attempt, output, environment_root, xilinx, platform, compatibili
     save()
     try:
         pins, report["compiled_inputs"] = inputs(packet, attempt)
+        timeout, minimum_disk = (43200, 160) if bd_parent is not None else (3600, 80)
+        if bd_parent is not None:
+            from .route_inputs import admit
+            checked = admit(packet, attempt, Path(bd_parent["bd"]),
+                            unit=bd_parent["unit"], invocation=bd_parent["invocation"])
+            if checked != bd_parent:
+                raise ValueError("tested BD parent changed before full-link preparation")
+            report["bd_parent"] = checked
+            pins += checked["pins"]
         group = current()
         report["containment"] = verify(group)
-        if shutil.disk_usage(output).free < 80 * 1024**3:
-            raise ValueError("80 GiB free disk required for BD diagnostic")
+        if shutil.disk_usage(output).free < minimum_disk * 1024**3:
+            raise ValueError(f"{minimum_disk} GiB free disk required for external-port link")
         lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
         for name in ("tmp", "user-data", "hooks"):
             (output / name).mkdir()
@@ -99,15 +119,13 @@ def run(packet, attempt, output, environment_root, xilinx, platform, compatibili
         pins += contract["pins"] + [identity(output / "environment.json")]
         pins += [identity(Path(module.__file__)) for name, module in list(sys.modules.items())
                  if name.startswith("spine_cycle_sim.") and getattr(module, "__file__", None)]
-        _, command = config.commands(contract["tools"]["v++"]["invocation"], platform, packet, output,
-                                     legacy_include=xilinx / "Vitis_HLS/2024.1/include/etc")
-        command = [str(attempt / "xo" / Path(item).name) if item.endswith(".xo") else item for item in command]
-        command += ["--to_step", "vpl.update_bd",
-                    "--xp", "param:compiler.userPreSysLinkTcl=" + str(output / "hooks/pre_link.tcl"),
-                    "--xp", "param:compiler.userPostSysLinkTcl=" + str(output / "hooks/post_link.tcl")]
+        command = link_command(contract["tools"]["v++"]["invocation"], platform, packet, attempt,
+                               output, bd_only=bd_parent is None)
         atomic_write_json(output / "manifest.json", {"pins": pins, "command": command,
-            "policy": config.POLICY, "timeout_seconds": 3600,
-            "scope": "external_same_bank_fanin_BD_only_no_synthesis_routing_or_board"})
+            "policy": config.POLICY, "timeout_seconds": timeout,
+            "bd_parent": bd_parent, "source_modified": False, "physical_interconnect_changed": True,
+            "scope": ("external_same_bank_fanin_full_link_not_timing_or_board_admission" if bd_parent is not None
+                      else "external_same_bank_fanin_BD_only_no_synthesis_routing_or_board")})
         pins.append(identity(output / "manifest.json"))
         deadline = time.monotonic() + 86400
         while True:
@@ -120,16 +138,29 @@ def run(packet, attempt, output, environment_root, xilinx, platform, compatibili
             if time.monotonic() >= deadline:
                 raise TimeoutError("physical port probe admission timed out")
             time.sleep(10)
-        report["status"] = "GENERATING_BD_NOT_ROUTING_OR_BOARD"
+        if bd_parent is not None:
+            report["status"] = "ENVIRONMENT_PREFLIGHT"
+            save()
+            report["preflight"] = environment_probe.run(output, effective, contract)
+            pins.append(identity(output / "preflight/results.json"))
+            unchanged(pins)
+            if admit(packet, attempt, Path(bd_parent["bd"]), unit=bd_parent["unit"],
+                     invocation=bd_parent["invocation"]) != bd_parent:
+                raise ValueError("tested BD parent changed before full link")
+            require_unchanged(contract, effective)
+        report["status"] = ("ROUTING_EXTERNAL_PORT_CONTROL_NOT_BOARD_ADMISSION" if bd_parent is not None
+                            else "GENERATING_BD_NOT_ROUTING_OR_BOARD")
         save()
-        report["step"] = run_link(command, output, output / "link", timeout=3600,
+        report["step"] = run_link(command, output, output / "link", timeout=timeout,
                                   environment=effective, tree_memory_gib=40, reserve_gib=32)
-        child = report["step"]
-        if child["exit_code"] or child["stop_reason"] != "process_exit" or child["cleanup_snapshot_error"]:
-            raise RuntimeError("physical-port BD diagnostic failed; logs retained")
+        records.clean_child(report["step"])
         unchanged(pins)
         report["physical_port"] = inspect_proof(output / "hooks/physical_port.xml")
-        report["status"] = "PHYSICAL_PORT_BD_PASS_NOT_ROUTE_TIMING_OR_BOARD_ADMISSION"
+        if bd_parent is not None:
+            report["xclbin"] = identity(output / "original_grasu.hw.xclbin")
+            report["status"] = "EXTERNAL_PORT_LINK_PASS_AWAITING_CLOCK_TIMING_AND_BOARD"
+        else:
+            report["status"] = "PHYSICAL_PORT_BD_PASS_NOT_ROUTE_TIMING_OR_BOARD_ADMISSION"
     except BaseException as error:
         report.update(status="FAILED_RETAINED", errors=[repr(error)])
         raise
