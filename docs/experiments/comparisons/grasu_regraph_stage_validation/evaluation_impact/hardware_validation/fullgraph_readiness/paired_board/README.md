@@ -113,3 +113,25 @@ the nested report remains an offline replay. Neither success promotes final
 figures or original-paper performance matching. Tests cover waiting,
 timeouts, changed services, incomplete/foreign children, pin drift and replay
 failure; those tests are synthetic, not FPGA results.
+
+## Deployed Continuation
+
+The 2026-10-18 deployment uses the frozen `ba441f7` runner in
+`/home/chuxiao/spine-cycle-sim/spine-cycle-sim-paired-return-ba441f7`:
+
+| Item | Identity |
+| --- | --- |
+| Paired service | `spine-paired-board-continuation-20261018-v1.service` |
+| Invocation | `27ce62e7d7d140fc952cdc01b2365534` |
+| Producer | `spine-fullgraph-board-continuation-20261018-v4.service` |
+| Producer invocation | `65221c0d74bb44038e403bd4ae073724` |
+| Output | `/data/chuxiao/experiments/baseline_hardware_validation_20261015/paired-board-continuation-v1` |
+| Runner archive SHA256 | `be0686b30b9f8ff3c070c3d6b2979be7756b3ab8bb3f323d714921bcdd2fc2be` |
+| Paired requests SHA256 | `f64648e9b81156878eb2b1f448d69acb4bf7ee3d277016cd65252ce61ae7732a` |
+
+Its offline-only cgroup has a 4-GiB maximum, 3-GiB high watermark, zero swap
+and group OOM kill. At the deployment checkpoint it is
+`WAITING_FOR_COMPLETE_BOARD_PRODUCER`: the producer still waits for routed
+artifacts. No paired speedups, board programming or final figures are implied
+by this waiting service. It must reject a changed producer invocation or an
+incomplete matrix instead of analyzing partial rows as a complete result.

@@ -32,6 +32,13 @@ new-G metadata/handoff correctness or original-publication reproduction.
 
 ## Current Checkpoint
 
+The [original-G hardware control](original_grasu/README.md) now has a separate
+source-preserving build owner. It retains the author's URAM cache, all 46
+memory interfaces and exact kernel files; it does not substitute the older
+modified G+R bitstream. The same-platform U55C/150-MHz control remains
+distinct from reproducing the U250 publication. Preparation/ABI unit tests
+are not integrated RTL, board timing or original-performance admission.
+
 ### High-Memory Host Resume
 
 The 2026-10-17 resume found both old routes terminal: diagnostic G v2 linked,
