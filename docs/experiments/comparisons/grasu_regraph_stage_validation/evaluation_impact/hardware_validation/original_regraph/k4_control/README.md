@@ -44,9 +44,23 @@ timing or new paired Spine speedup is available. FullPR routing is still an
 independent prerequisite; link success alone is not timing or board admission.
 All final figures remain withheld until their corresponding gates pass.
 
-The guarded K4 board-host implementation now compiles and passes six focused
-Release/UBSan CPU tests (20.1 seconds, 513.4-MiB peak, finite 2-GiB zero-swap
-cgroup). Its preparation mode does not access a board. Execution scheduling,
-overlap-aware profiling and full raw readback are separate C++ modules;
-bitstream/ABI qualification, independent board analysis and repeated actual
-execution remain pending. This is host readiness, not a new FPGA result.
+The guarded K4 board-host implementation compiles in Release and UBSan.
+Its retained complete preflight rechecks all 24 rows and full expected
+graph/state buffers: 16 passes, eight explicit duplicate rejections, 142.1
+seconds and a 1.422-GiB peak under a finite 4-GiB zero-swap cgroup. Its
+preparation mode does not access a board. The implementation guide records
+the exact snapshot, result hash and retained failed first harness attempt.
+
+The separate board plan, qualified supervisor, exclusive worker and complete
+18-row summary are implemented and CPU-tested, including failure retention
+and independent raw-readback rechecking. They preserve six unsupported rows,
+three repeats for each supported graph/binding and overlap-aware timing.
+Actual bitstream/ABI qualification and repeated FPGA execution remain pending.
+This is host readiness, not a new FPGA result.
+
+The running FullPR route and complete host preflight have different integration
+revisions. Shared graph/runtime-plan/l2 headers are identical; apply packing
+changed. The board plan records both source identities and checks each FPGA
+output independently, but explicitly withholds source-equivalence and
+latest-revision-performance claims. An older routed result cannot silently
+become a latest-version final figure.
