@@ -184,3 +184,58 @@ Focused guard and timestamp-replay tests:
 ```bash
 python3 -m unittest discover -s tests -p test_matched_g_board.py -v
 ```
+
+## Paired G Report
+
+`matched_original.comparison` owns the offline pairing of the two complete
+FPGA matrices. This command does not request a device, fit a timing model,
+or turn a queued matrix into a result. Both exact board-report digests and
+both reviewed host-preflight digests are mandatory:
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.matched_original.comparison \
+  --original-board /absolute/completed-original-g-board \
+  --production-board /absolute/completed-production-g-board \
+  --original-preflight /absolute/original-g-board-host-preflight-v4 \
+  --production-preflight /absolute/matched-g-current-host-preflight-v3 \
+  --original-board-sha256 EXACT_ORIGINAL_BOARD_REPORT_SHA256 \
+  --production-board-sha256 EXACT_PRODUCTION_BOARD_REPORT_SHA256 \
+  --original-preflight-sha256 EXACT_ORIGINAL_PREFLIGHT_SHA256 \
+  --production-preflight-sha256 EXACT_PRODUCTION_PREFLIGHT_SHA256 \
+  --output /absolute/fresh-paired-g-report
+```
+
+Before comparison, every raw stdout/stderr, complete-state observation,
+event timestamp, attempted command and median is replayed. Both arms must
+use the same eight frozen inputs, repetition count, physical board, driver,
+platform, pinned dynamic runtime libraries and CPU affinity 120. All
+transitive prerequisite and board pins must remain unchanged. Missing,
+duplicate, changed or failed rows reject the report; an incomplete arm is
+not silently dropped.
+
+The primary metric compares original `resident_wall_ms` with production
+`launch_wait_ms`: argument binding, enqueue and wait after inputs are
+resident, excluding packing, upload, oracle and verification readback on
+both sides. The secondary metric compares their kernel-event spans, **not**
+the sum of overlapping kernel times. Production's required publication
+barrier remains included in both metrics. Its inclusive `g_ready_wall_ms`
+cannot replace the matched resident window.
+
+For each case, the report retains every sample and takes the ratio of the
+production median to the original median. The declared 10% criterion is
+`abs(production_time / original_time - 1) <= 0.10`; its inverse speedup is
+also recorded. Wall and device-span criteria are separate. Empty-update
+cases retain their launch latency without an update-throughput ratio.
+A valid mismatch completes the analysis with `same_platform_resident_match`
+false and an explicit `mismatch_cases` list; it is not discarded or fitted
+away. Failed evidence instead yields `FAILED_RETAINED`.
+
+Even a complete match remains a same-input U55C source control. The
+original arm's external physical arbitration and production's disclosed
+layout differences remain in scope; `publication_performance_match` and
+`final_figures_admitted` stay false. The current queued board matrices do
+not yet provide a completed paired result.
+
+```bash
+python3 -m unittest tests.test_matched_g_comparison tests.test_matched_g_board -v
+```
