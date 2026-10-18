@@ -57,6 +57,11 @@ preserves all author masters and shares same-bank metadata outside the CUs.
 Its first actual BD attempt failed on an unresolved clock-name/object API
 call, before interface acceptance. The separately frozen v2 retry is deployed,
 but is waiting for complete peer memory budgets, not executing Vivado yet.
+The separately frozen full-link continuation is also deployed. It waits for
+that exact BD invocation, checks the original XOs and wiring proof again,
+and only then admits a fresh bounded full link; it is not a routed or
+board-admitted original-G artifact. The linked diagnostic guide owns its
+runner, invocation, archive hash, tests and separate acceptance boundary.
 
 The high-memory host has approximately 435 GiB available. SSSP v2 continues
 post-placement optimization, and CC v2 and FullPR v2 continue block synthesis, each under its own

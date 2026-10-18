@@ -138,3 +138,17 @@ board measurements. The full `test_original_grasu*.py` group passes 103 tests.
 ```bash
 python3 -m unittest discover -s tests -p 'test_original_grasu_physical*.py'
 ```
+
+The full-link continuation is deployed, **not completed**, as
+`spine-original-g-external-port-route-20261018-v1.service`, invocation
+`0596cbd29fcf448ca4aa7b1f3c38f90f`, output
+`original-g-external-port-route-v1`. Its frozen runner is `3c2b869`, archive
+`original-g-external-port-route-runner-3c2b869.tar.gz`, SHA-256
+`ad2eb7e0ca8e9d336673b3ef7c96f7954eada607bc5d0cfda3b02d0f04b080e7`,
+all under the remote campaign root. The actual cgroup confirms
+40/36-GiB max/high, zero swap and `memory.oom.group=1`. Its 70-hour outer
+deadline covers the separately bounded BD wait, memory-admission wait and
+compiler child. The first saved state is `WAITING_FOR_EXACT_EXTERNAL_PORT_BD`
+with no errors; no full link or FPGA programming has started. The exact v2
+BD producer remains queued for complete memory budgets. This is not an
+automatic promise of successful routing, clock closure or board admission.
