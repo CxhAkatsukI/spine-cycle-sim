@@ -14,6 +14,14 @@ from . import gr_preparation, inputs
 PASS = "GR_FULLPR_RESIDENT_CONVERGENCE_PASS_NOT_PAIRED_OR_PUBLICATION_MATCH"
 
 
+def verify_kernel_sources(source_root, routed_revision, host_revision):
+    # README checkpoints do not enter synthesis; every other kernel/include
+    # member remains covered, including configuration and provenance files.
+    subprocess.run(["git", "diff", "--exit-code", routed_revision, host_revision,
+                    "--", "kernels", "include", ":(exclude)**/README.md"],
+                   cwd=source_root, check=True, capture_output=True)
+
+
 def prepare(preflight, admission, algorithm):
     if algorithm != inputs.ALGORITHM:
         raise ValueError("FullPR-only protocol")
@@ -27,8 +35,7 @@ def prepare(preflight, admission, algorithm):
         raise ValueError("strict new-production FullPR routed admission required")
     # The FullPR fork changes host convergence, not kernels. Prove that against
     # the routed revision instead of requiring equal host and kernel commit IDs.
-    subprocess.run(["git", "diff", "--exit-code", checked["integration_revision"], report["source_revision"],
-                    "--", "kernels", "include"], cwd=report["source_root"], check=True, capture_output=True)
+    verify_kernel_sources(report["source_root"], checked["integration_revision"], report["source_revision"])
     guard = preflight / "source/tools/weighted_pma_native_host.cpp"
     code = guard.read_text()
     if 'std::getenv("GRASU_REGRAPH_EXPECT_BDF")' not in code or "CL_DEVICE_PCIE_BDF" not in code or \

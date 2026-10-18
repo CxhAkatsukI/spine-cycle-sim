@@ -8,7 +8,7 @@ import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity as digest_identity
-from ..common_g.complete_pipeline.hardware.algorithm_build import follow
+from ..common_g.complete_pipeline.hardware.algorithm_build import follow, local_follow
 from ..common_g.complete_pipeline.hardware.remote import qualification
 from ..common_g.continuous_board.execution.supervisor import route_finished, runner_pins, service_state
 from . import analysis, board_preparation, board_study, preparation, recheck
@@ -55,7 +55,8 @@ def ready(request):
         board = json.loads(Path(pinned["path"]).read_text())
         if board.get("admission") != json.loads(request.admission.read_text()):
             raise ValueError("SSSP qualification must bind the exact admitted artifact")
-    elif result.get("status") != follow.PASS or result.get("algorithm") != request.algorithm or \
+    elif result.get("status") not in (follow.PASS, local_follow.PASS) or \
+            result.get("algorithm") != request.algorithm or \
             result.get("admission") != digest_identity(request.admission):
         raise ValueError("algorithm return must bind the exact admitted artifact")
     return state, preparation.identity(path)

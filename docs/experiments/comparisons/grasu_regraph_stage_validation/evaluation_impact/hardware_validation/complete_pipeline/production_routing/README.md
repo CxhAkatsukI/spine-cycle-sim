@@ -2,6 +2,10 @@
 
 ## Registered Comparison Candidate
 
+For the current source closure, independent local/remote services, exact
+board requests and outstanding gates, use the
+[registered comparison guide](comparison_candidate/README.md).
+
 The latest source candidate is integration `87a0a2c`, with a registered
 sixteen-lane cache comparison stage and unchanged capacity, update semantics,
 banking and ABI. Raw evidence is under

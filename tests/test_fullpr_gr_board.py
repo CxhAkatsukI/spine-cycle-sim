@@ -1,6 +1,8 @@
 """Synthetic G+R FullPR admission tests; no FPGA or compiler execution."""
 
 from pathlib import Path
+import subprocess
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -43,6 +45,34 @@ def log():
 
 
 class GrFullPRTests(unittest.TestCase):
+    def test_kernel_revision_check_ignores_readme_only_not_source_or_configuration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.check_output(["git", *args], cwd=root, text=True).strip()
+            def commit():
+                git("add", ".")
+                git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                    "commit", "-qm", "synthetic kernel identity")
+                return git("rev-parse", "HEAD")
+            git("init", "-q")
+            (root / "kernels").mkdir()
+            (root / "include").mkdir()
+            for name in ("kernels/README.md", "kernels/core.cpp", "kernels/provenance.json",
+                         "kernels/build.cfg", "include/interface.hpp"):
+                (root / name).write_text("original\n")
+            routed = commit()
+            (root / "kernels/README.md").write_text("updated evidence checkpoint\n")
+            host = commit()
+            gr.verify_kernel_sources(root, routed, host)
+            for name in ("kernels/core.cpp", "kernels/provenance.json", "kernels/build.cfg",
+                         "include/interface.hpp"):
+                (root / name).write_text("different\n")
+                with self.subTest(name=name), self.assertRaises(subprocess.CalledProcessError):
+                    gr.verify_kernel_sources(root, host, commit())
+                (root / name).write_text("original\n")
+                host = commit()
+
     def test_prepare_command_cannot_program_and_has_distinct_macro_and_dependencies(self):
         command = gr_preparation.command(Path("/host"), ROW, Path("/result"))
         self.assertEqual(command, ["/host", "--prepare-only", ROW["graph"], "/result", "--resident-fullpr"])

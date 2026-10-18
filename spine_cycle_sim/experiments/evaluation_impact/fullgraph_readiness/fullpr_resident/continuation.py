@@ -5,7 +5,7 @@ from pathlib import Path
 import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
-from ...common_g.complete_pipeline.hardware.algorithm_build import follow
+from ...common_g.complete_pipeline.hardware.algorithm_build import follow, local_follow
 from ...common_g.continuous_board.execution.supervisor import route_finished, runner_pins, service_state
 from .. import board_preparation, board_study, preparation
 from ..continuation import validate_service
@@ -54,7 +54,8 @@ def run(preflight, returned, admission, output, *, unit, invocation, preflight_s
             time.sleep(min(poll_seconds, maximum_wait - report["waited_seconds"]))
         path = returned / "results.json"
         result = json.loads(path.read_text())
-        if result.get("status") != follow.PASS or result.get("algorithm") != inputs.ALGORITHM or \
+        if result.get("status") not in (follow.PASS, local_follow.PASS) or \
+                result.get("algorithm") != inputs.ALGORITHM or \
                 result.get("errors") != [] or result.get("board_requested") is not False or \
                 result.get("admission") != preparation.identity(admission):
             raise ValueError("exact successful FullPR return/admission required")

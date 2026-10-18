@@ -58,6 +58,10 @@ programs an FPGA or treats link success as timing, RTL or board approval.
 
 ## Latest Source And Compile Continuation
 
+The [current candidate guide](../comparison_candidate/README.md) records fresh
+adapter RTL and local-return board requests. The timestamped records below
+remain historical; a completed compile is not routed or board acceptance.
+
 The latest portable closure is `production-algorithm-sources-v4`, integration
 `87a0a2cdb8c647247bb4d61dbd06ca4e98028f0b`. Its source-index SHA-256 is
 `f92aa72f426f8c2177608fdb205af7aca0e14ef8dbe78e200fd69e4a1b70ea02`.
@@ -78,8 +82,8 @@ neither fix. Never relabel those separately frozen routes as v4 results.
 ### Latest Local Compilations
 
 Local tool preflight passes with the explicit 2024.1 installation, U55C platform
-and campaign-owned compatibility libraries. CC and ResPR have completed
-compilation; FullPR is compiling. All use v4 sources and immutable
+and campaign-owned compatibility libraries. CC, ResPR and FullPR have completed
+compilation. All use v4 sources and immutable
 simulator runner `algorithm-return-runner-2b9cf3c`, archive SHA-256
 `a1517443ce25b60df47aa219116dd84d994ba3344944ca1fffc49a4f6e2dace4`.
 The local root is

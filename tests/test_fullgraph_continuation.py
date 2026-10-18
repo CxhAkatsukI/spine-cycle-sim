@@ -81,6 +81,30 @@ class FullgraphContinuationTests(unittest.TestCase):
             self.run_job(maximum_wait=1)
         self.board.assert_not_called()
 
+    def test_local_returns_keep_exact_algorithm_admission_and_service_gates(self):
+        for request in self.requests[1:]:
+            path = request.returned / "results.json"
+            report = json.loads(path.read_text())
+            report["status"] = job.local_follow.PASS
+            path.write_text(json.dumps(report))
+        result = self.run_job()
+        self.assertEqual(result["status"], job.PASS)
+        self.assertEqual(self.board.call_count, 3)
+        self.board.reset_mock()
+        request = self.requests[1]
+        path = request.returned / "results.json"
+        good = json.loads(path.read_text())
+        for changes in ({"algorithm": "full_pagerank"}, {"admission": {}},
+                        {"status": "FAILED_RETAINED"}, {"errors": ["timing failed"]}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                path.write_text(json.dumps({**good, **changes}))
+                job.ready(request)
+        path.write_text(json.dumps(good))
+        self.states.return_value = state(InvocationID="b" * 32)
+        with self.assertRaisesRegex(ValueError, "changed"):
+            job.ready(request)
+        self.board.assert_not_called()
+
     def test_failed_or_changed_service_offline_report_or_admission_blocks_board(self):
         self.states.return_value = state("failed")
         with self.assertRaises(ValueError):

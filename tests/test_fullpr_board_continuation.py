@@ -74,6 +74,20 @@ class FullPRContinuationTests(unittest.TestCase):
                 self.assertFalse(result["board_requested"])
                 run.assert_not_called()
 
+    def test_local_return_keeps_the_same_fullpr_admission_checks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result, run, _ = self.invoke(Path(directory), returned={"status": owner.local_follow.PASS})
+            self.assertEqual(result["status"], owner.gr.PASS)
+            run.assert_called_once()
+        for change in ({"algorithm": "residual_pagerank"}, {"admission": {}},
+                       {"errors": ["timing failed"]}, {"board_requested": True}):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
+                result, run, _ = self.invoke(Path(directory),
+                    returned={"status": owner.local_follow.PASS, **change})
+                self.assertEqual(result["status"], "FAILED_RETAINED")
+                self.assertFalse(result["board_requested"])
+                run.assert_not_called()
+
     def test_board_failure_or_changed_admission_is_retained_not_retried(self):
         for kwargs in ({"failed": True}, {"drift": True}):
             with self.subTest(kwargs=kwargs), tempfile.TemporaryDirectory() as directory:
