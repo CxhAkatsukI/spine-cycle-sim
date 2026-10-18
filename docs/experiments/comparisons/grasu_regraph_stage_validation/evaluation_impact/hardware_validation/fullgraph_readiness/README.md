@@ -322,19 +322,27 @@ and stops the continuation without a reset.
 
 ### Current Continuation
 
-The current deployment is **v7**, frozen simulator runner `da7e791`, in
-`/data/chuxiao/experiments/baseline_hardware_validation_20261015/board-return-runner-da7e791`.
+The current deployment is **v8**, frozen simulator runner `47c7617`, in
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-runner-47c7617`.
 The following older deployment records are retained history, not current
 service selectors.
 
 | Item | Current identity |
 | --- | --- |
-| Service | `spine-fullgraph-board-continuation-20261018-v7.service` |
-| Invocation | `02306d8928934d2dbd1b584c60dee901` |
-| Output under the campaign root | `fullgraph-board-continuation-v7` |
+| Service | `spine-fullgraph-board-continuation-20261018-v8.service` |
+| Invocation | `05b78272ed214d379921bde1cbd8abfa` |
+| Output under the campaign root | `fullgraph-board-continuation-v8` |
 | Request file | `fullgraph-board-requests-v5.json` |
 | Request SHA256 | `a0cfc6f3451fc1d893d51c00f98bb75fe7da48be79668807c2679b2fd96bae37` |
-| Runner archive SHA256 | `8f8d2cf27c6050567c9574eb2708f58af667d2ff5bd86b4f078392a4ab40af4c` |
+| Runner archive SHA256 | `45ed3bced78bf68a0d860a8e5cf53b6334af44647e7be9913a777ac0f07e9837` |
+
+V8 uses the explicit independent-prerequisite option below. It retains ResPR's
+rejected return (`a8e06769b82c4d92a8c8066e2a41e054`) and waits for the exact
+SSSP/CC return requests. Its first completed offline replay reports
+`WAITING_FOR_ADMITTED_ARTIFACTS`, no board request and no admitted matrix.
+It preserves the 24/22-GiB, no-swap, group-OOM limits, CPUs 118--119 and
+172800-second service lifetime. This deployment does not create a new paired
+speedup or waive ResPR's physical timing failure.
 
 V6 was stopped while waiting, with no board request or matrix executed.
 V7 keeps the completed-v3 offline preflight and 24/22-GiB, zero-swap,
@@ -344,6 +352,8 @@ previous exact return identities. At deployment it was waiting for admitted
 artifacts. It subsequently stopped before requesting a board because the
 ResPR return fails strict clock/timing admission. The failed v7 report is
 retained, not a completed hardware matrix.
+Its invocation was `02306d8928934d2dbd1b584c60dee901`, with frozen runner
+`da7e791`; that output and runner remain unchanged.
 
 ### Independent Prerequisites
 

@@ -11,8 +11,10 @@ No board was programmed by that offline audit. The subsequent
 11-Little/3-Big runs at 150 MHz, including independent output and timing
 checks. It is a static one-superstep same-platform control, **not** a paper
 performance reproduction or convergence comparison. A4's distinct placement
-retry and board queue remain pending. The diagnostic G route runs concurrently
-when complete memory budgets fit; it is not the production-G candidate.
+retry and board v3 also pass all eighteen declared runs; the actual adapter/K4
+same-semantic comparison remains open. The diagnostic G route is not the
+production-G candidate. See the campaign's [current checkpoint](../README.md)
+for production routing rather than the historical queue records below.
 
 | Question | Result | Still required |
 | --- | --- | --- |
@@ -22,7 +24,7 @@ when complete memory budgets fit; it is not the production-G candidate.
 | What is the prebuilt's DATA clock? | Metadata says 215 MHz, not its requested 230 MHz | Checkpoint, timing-clock and bitstream identity pairing |
 | Is the 11-Little/3-Big prebuilt admitted? | No | Source/ABI identity, clock/timing and guarded board validation |
 | Is this the paper's graph-selected best configuration? | Not established | Original publication platform, topology, window and denominator |
-| Is the guarded host implemented and validated? | Exact Xilinx-linked host passes 48 offline rows; fresh 11+3 source artifact passes eighteen board runs | A4's distinct artifact/matrix and actual adapter/K4 comparison |
+| Is the guarded host implemented and validated? | Exact Xilinx-linked hosts pass offline validation; 11+3 and A4 each pass their distinct eighteen-row board matrix | Actual adapter/K4 same-semantic comparison |
 
 The allocation finding was already reported by the earlier
 [mixed source control](../../../MIXED_GRAPH_EXECUTION.md). This checkpoint
@@ -139,8 +141,9 @@ repository test suite is claimed by this offline checkpoint.
 
 1. Preserve the completed fresh 150-MHz 11+3 artifact, eighteen raw board
    rows and explicit divisor controls. The older prebuilt remains unadmitted.
-2. Finish A4's distinct placement retry and complete eighteen-row matrix;
-   11+3 success does not authorize A4 or replace its strict timing checks.
+2. Preserve A4's distinct admitted placement retry and completed eighteen-row
+   board v3 matrix; 11+3 success alone does not authorize A4 or replace its
+   strict timing checks.
 3. Compare original R, resource-disclosed A4 and actual adapter/K4 with
    matching inputs, semantics and resident windows. Keep overlapping device
    event spans separate from host enqueue-to-completion wall time.

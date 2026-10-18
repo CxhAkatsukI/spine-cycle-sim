@@ -82,12 +82,17 @@ all bounded FPGA jobs exit. No other user's process is changed.
 FullPR v1 also remains a timing/clock failure; its v2 retry and
 exact return/board continuations are separately frozen.
 The fullgraph v7 waiter and its paired v4 child stopped before requesting a
-board because that matrix includes the rejected ResPR return. Matched-G v1
-also stopped before programming: its host preflight included transitive pins
-into the changing development checkout, and three original-G infrastructure
-files changed during this work. These failures are retained; do not waive
-either the timing checks or changed-pin checks. A new host preflight must
-come from a fixed snapshot before restarting that matched control.
+board because that matrix includes the rejected ResPR return. The replacement
+[v8 continuation](fullgraph_readiness/README.md#current-continuation) retains
+that rejection while allowing independently admitted SSSP/CC matrices to run;
+it cannot declare the complete three-algorithm gate passed. At deployment it
+is waiting, without a board request. Matched-G v1 also stopped before
+programming because its preflight pinned three subsequently changed files in
+the development checkout. Fresh original-G v4 and matched-G v2 preflights now
+pass all eight inputs from an immutable `f50a185` snapshot. The new matched-G
+board follower pins both complete reports and waits for the exact production
+SSSP qualifier. Its deployment is not a measured G performance match. All
+earlier failures are retained; timing and changed-pin gates remain unchanged.
 The [algorithm guide](complete_pipeline/production_routing/algorithm_build/README.md#physical-timing-retry)
 owns the failed report, retry identity and live-state boundary. The earlier
 resume narrative below is historical where it differs from this checkpoint.
