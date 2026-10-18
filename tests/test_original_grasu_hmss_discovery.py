@@ -74,6 +74,16 @@ def vendor_callback(name):
     return "\n".join([*lines, "return $endpoint", "}"])
 
 
+SDX_CALLBACK = r"""
+namespace eval ::xilinx.com_ip_sdx_memory_subsystem_1.0 {
+proc set_slr_info_env {cell} {
+    set endpoint [find_bd_objs -thru_hier -relation CONNECTED_TO $i]
+    set ::env(SDX_HIP_SLR_INFO) $endpoint
+}
+}
+"""
+
+
 class HmssDiscoveryTests(unittest.TestCase):
     def tcl(self, body, prelude=""):
         if not shutil.which("tclsh"):
@@ -101,6 +111,35 @@ if {{[{scope}::set_slr_info_env /hmss_0] ne {{/bin_search_1/m_axi_gmem0}}}} {{er
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Unsupported HMSS discovery callback", result.stderr)
         self.assertNotIn("hook_should_not_finish", result.stderr)
+
+    def test_sdx_same_name_preserved_alongside_real_hmss_namespace(self):
+        callbacks = "\n".join(vendor_callback(name) for name in
+            ("set_slr_info_env", "set_clkrst_info_env"))
+        prelude = SDX_CALLBACK + "\nset ::sdx_before [info body ::xilinx.com_ip_sdx_memory_subsystem_1.0::set_slr_info_env]\n"
+        prelude += "namespace eval ::xilinx.com_ip_hbm_memory_subsystem_2.0 {\n" + callbacks + "\n}"
+        result = self.tcl("""
+::spine_g_ports::check_discovery
+::spine_g_ports::install_loaded_discovery
+if {[info body ::xilinx.com_ip_sdx_memory_subsystem_1.0::set_slr_info_env] ne $::sdx_before} {error sdx_modified}
+if {[dict size $::spine_g_ports::discovery_callbacks] != 2} {error wrong_callback_count}
+if {[dict size $::spine_g_ports::untouched_callbacks] != 1} {error missing_sdx_identity}
+""", prelude=prelude)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.count("SPINE_HMSS_COMMON_ATTRIBUTE_DISCOVERY"), 2)
+
+    def test_sdx_unknown_body_and_later_mutation_fail_closed(self):
+        result = self.tcl("error hook_should_not_finish", prelude=SDX_CALLBACK.replace("CONNECTED_TO", "addressing_master"))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Unsupported SDx discovery callback", result.stderr)
+        callbacks = "\n".join(vendor_callback(name) for name in
+            ("set_slr_info_env", "set_clkrst_info_env"))
+        prelude = SDX_CALLBACK + "\nnamespace eval ::mock_hmss {\n" + callbacks + "\n}"
+        result = self.tcl("""
+proc ::xilinx.com_ip_sdx_memory_subsystem_1.0::set_slr_info_env {cell} {return changed}
+::spine_g_ports::check_discovery
+""", prelude=prelude)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Changed SDx callback", result.stderr)
 
     def test_checked_fanin_and_unchanged_direct_discovery(self):
         result = self.tcl(TOPOLOGY + """

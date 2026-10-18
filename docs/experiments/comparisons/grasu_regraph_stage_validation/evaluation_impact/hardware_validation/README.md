@@ -64,15 +64,18 @@ Its exact full-link v3/return v3 continuations consequently stop before tools
 or programming. A correction now discovers already-loaded callbacks as well
 as later loads, while preserving vendor diagnostics and installed files.
 A fresh actual BD pass is still required. BD v5, full-link v4 and return v4
-now pin immutable runner `ad8f81e` and exact parent invocations; the linked
-diagnostic guide records their identities. At the 15:04 UTC check, v5 remains
-in its full-budget queue because unrelated vendor processes have no finite
-cgroup bounds, despite approximately 367 GiB available. Existing admitted
-SSSP/CC/FullPR routes and ResPR refinement continue concurrently. The linked diagnostic guide owns its
+pin immutable runner `ad8f81e` and exact parent invocations. At 15:03 UTC,
+BD v5 ran but rejected SDx's unrelated same-named callback after adapting the
+two intended HBM callbacks. Its dependent attempts stop before tools or
+programming. A targeted correction preserves only that reviewed SDx callback
+unchanged and still requires exactly two adapted HBM callbacks. The linked
+guide records the retained failures and fresh-retry requirements. Existing
+admitted SSSP/CC/FullPR routes and ResPR refinement continue concurrently.
+The linked diagnostic guide owns its
 runner, invocation, archive hash, tests and separate acceptance boundary.
 Its separate return receipt/offline replay and strict routed admission are
-now implemented. The loading-order correction brings the original-G regression
-suite to 122 tests. The changed external
+now implemented. The discovery corrections bring the original-G regression
+suite to 124 tests. The changed external
 interconnect stays explicit throughout return and board profiles. Tests and
 deployment do not establish routing, measured performance or publication match.
 

@@ -234,6 +234,32 @@ All failed earlier attempts remain unchanged. The correction passes 122
 original-G regressions and 15 organization checks, plus documentation,
 catalog and whitespace checks; these are not actual Vivado or board results.
 
+### Distinguish SDx From HBM Callbacks
+
+BD v5 subsequently ran and failed during `create_bd` at 15:03 UTC on
+2026-10-18. Both intended HBM callbacks had been adapted, but discovery also
+encountered the SDx memory subsystem's same-named `set_slr_info_env` callback.
+That callback follows direct `CONNECTED_TO` peers, not HMSS addressing
+masters. Treating it as another HBM callback correctly stopped on an
+unsupported body, before synthesis, routing or programming. Full-link v4
+and return v4 consequently fail without a board result. All three outputs
+remain retained.
+
+The correction recognizes only the reviewed
+`::xilinx.com_ip_sdx_memory_subsystem_1.0` namespace and expected signature/body
+structure. It records and preserves that callback byte-for-byte, rejecting
+an unsupported body or later redefinition. Exactly two adapted HBM callbacks
+are still required. Author source/XOs, wiring, bank assignments, vendor files,
+clock constraints and timing gates remain unchanged. This is a build-script
+correction, not a performance optimization or timing waiver.
+
+Eight focused discovery tests and all 124 original-G regression tests pass.
+The complete regression service, `spine-original-g-discovery-tests-20261018-v6`,
+uses a 2-GiB hard limit, zero swap and a 180-second deadline; it finishes in
+4.46 seconds with a 143.5-MiB peak. Organization, documentation, catalog and
+whitespace checks also pass. Fresh BD/full-link/return attempts are required;
+synthetic tests do not establish actual Vivado success.
+
 ## Full-Link Continuation
 
 `route.py` waits for one exact BD service/invocation and then runs a

@@ -1,6 +1,30 @@
 # HMSS's stock callbacks assume one addressing master, even across SmartConnect.
 namespace eval ::spine_g_ports {
     variable discovery_callbacks [dict create]
+    variable untouched_callbacks [dict create]
+
+    proc preserve_sdx_callback {scope} {
+        variable untouched_callbacks
+        # SDx has a same-named callback, but discovers direct interface peers,
+        # not HMSS addressing masters. It must remain completely unchanged.
+        if {$scope ne {::xilinx.com_ip_sdx_memory_subsystem_1.0}} {return 0}
+        set target ${scope}::set_slr_info_env
+        if {![llength [info procs $target]]} {error "Missing reviewed SDx callback: $target"}
+        set body [info body $target]
+        if {[info args $target] ne {cell} \
+                || [string first {[find_bd_objs -thru_hier -relation CONNECTED_TO $i]} $body] < 0 \
+                || [string first {SDX_HIP_SLR_INFO} $body] < 0 \
+                || [string first addressing_master $body] >= 0 \
+                || [llength [info procs ${scope}::set_clkrst_info_env]]} {
+            error "Unsupported SDx discovery callback: $target"
+        }
+        if {[dict exists $untouched_callbacks $target] \
+                && [dict get $untouched_callbacks $target] ne $body} {
+            error "SDx discovery callback redefined: $target"
+        }
+        dict set untouched_callbacks $target $body
+        return 1
+    }
 
     proc same_net {left right description} {
         set actual [lsort [get_bd_intf_pins -of_objects [one \
@@ -55,6 +79,7 @@ namespace eval ::spine_g_ports {
 
     proc install_discovery {scope} {
         variable discovery_callbacks
+        if {[preserve_sdx_callback $scope]} {return}
         set prefix [expr {$scope eq {::} ? {} : $scope}]
         set needle {[find_bd_objs -thru_hier -relation addressing_master $si]}
         foreach name {set_slr_info_env set_clkrst_info_env} {
@@ -89,9 +114,15 @@ namespace eval ::spine_g_ports {
 
     proc check_discovery {} {
         variable discovery_callbacks
+        variable untouched_callbacks
         if {[dict size $discovery_callbacks] != 2} {error "Exactly two adapted HMSS discovery callbacks required"}
         dict for {target state} $discovery_callbacks {
             if {[info body $target] ne [dict get $state patched]} {error "Changed HMSS callback: $target"}
+        }
+        dict for {target body} $untouched_callbacks {
+            if {[info args $target] ne {cell} || [info body $target] ne $body} {
+                error "Changed SDx callback: $target"
+            }
         }
         foreach key {HMSS_RA_PORT_LIST HMSS_PORTLOC_PORT_DICT} {
             if {[info exists ::env($key)] && $::env($key) ne {}} {
