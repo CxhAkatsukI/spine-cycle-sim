@@ -1,5 +1,9 @@
 # Actual Adapter/K4 Control
 
+Start with the [current-candidate bindings](CURRENT_CANDIDATE.md) for the
+fresh arithmetic audit, completed host preflight and exact new FullPR board
+continuation. Older runs below retain their own source identities.
+
 The [implementation guide](../../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/k4_control/README.md)
 owns preparation, the fixed 24-row offline matrix and bounded reproduction.
 The [C++ contract](../../../../../../../../cpp/tests/original_regraph/integrated/README.md)
@@ -62,8 +66,10 @@ The supervisor accepts both hash-sealed local and remote algorithm returns.
 Both must pass the same FullPR source/metadata/global-timing admission again
 before any device worker. Accepting the local return format does not admit a
 link by status alone, relax a timing requirement, or reuse an older bitstream.
-The newest source closure needs a fresh arithmetic audit and board-host
-preflight; the retained older runs below do not qualify it.
+The newest source closure now has its own passing arithmetic audit and
+complete board-host preflight; the [current-candidate page](CURRENT_CANDIDATE.md)
+records their hashes and exact continuation. The retained older runs below
+do not qualify the new closure.
 
 The running FullPR route and complete host preflight have different integration
 revisions. Shared graph/runtime-plan/l2 headers are identical; apply packing

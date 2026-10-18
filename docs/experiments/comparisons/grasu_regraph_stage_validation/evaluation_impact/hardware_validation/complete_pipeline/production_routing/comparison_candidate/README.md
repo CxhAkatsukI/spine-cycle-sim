@@ -23,6 +23,8 @@ remote outputs are under
 | Paired resident replay | [Exact paired requests](paired_requests.json) | Binds the v9 producer's three new admissions to the unchanged fixed Spine reports; no ratios before six complete matrices |
 | FullPR resident host | `/home/chuxiao/grasu-regraph-fullpr-comparison`, commit `1cc5ee5`; `gr-fullpr-preparation-v4` | Complete CPU preparation passes; hardware convergence remains unmeasured |
 | FullPR hardware continuation | `gr-fullpr-board-continuation-v3` | Waiting for the exact new local FullPR return; no board requested |
+| Actual R / current K4 control | [Current-candidate audit, preflight and board binding](../../../original_regraph/k4_control/CURRENT_CANDIDATE.md) | Fresh six-input arithmetic audit and 24-row host preflight pass; exact new FullPR return remains pending |
+| Same-input original/production G control | [Current-candidate preflight and board binding](../../../original_grasu/matched_production/CURRENT_CANDIDATE.md) | Fresh 22-step host preflight passes; independent eight-case, three-repeat board matrix waits for the exact new SSSP qualifier |
 | Final figures | None from this candidate | Do not overwrite the frozen Fig. 7--11 handoff |
 
 All three algorithm compile reports end in
@@ -57,6 +59,7 @@ tests reject changes to each. The earlier
 | `algorithm-fresh-rtl-runner-0b6f998.tar.gz` | `34701fa22b17c0ab33b5af2046df4d65d765d683e3f7800ee1c24b44ed09aa0c` | Fresh adapter benches, including `cpp/tests/routed_regraph/` |
 | `current-board-runner-b0aa357.tar.gz` | `087cad9ececb3ce1359fbed3e5c59439ce70c3af16e16c11531a07230ac38a1f` | Three-algorithm continuation using the exact request file and either verified return transport |
 | `fullpr-preparation-runner-dfdc287.tar.gz` | `2018780011364f5744a028a846dbc79ab7cf8e836b1c148f20a9085bad652e0a` | FullPR CPU preparation and exact-return board continuation |
+| `original-r-k4-current-runner-v3.tar` | `7b590d1be2b201ed0e4b0e583b22d1749d3062408d46f2a94c873d2c1a4badc9` | Current-source R arithmetic/preflight, G preflight and independently qualified G/K4 board continuations |
 
 Never modify a live runner or transplant a new result into an old attempt.
 
@@ -91,6 +94,11 @@ LROOT unless explicitly remote.
 | `paired-board-continuation-v5` | `spine-paired-board-continuation-20261019-v5.service` | `2be58f2af7ba4f15b581e98e8b66d1d4` |
 | `gr-fullpr-preparation-v4` | `spine-gr-fullpr-preparation-20261018-v4.service` | `5654d35624ac4a8490430ac24a54ec97` |
 | `gr-fullpr-board-continuation-v3` | `spine-fullpr-board-continuation-20261018-v3.service` | `81e50aed1ea44db889be5161ad96d4bc` |
+| `original-r-k4-current-arithmetic-v2` | `spine-original-r-k4-current-arithmetic-20261019-v2.service` | `85a0a771aa564c04a066f5173bc07f7f` |
+| `original-r-k4-current-host-preflight-v3` | `spine-original-r-k4-current-host-preflight-20261019-v3.service` | `900b130368d3475794828e42943ef8b3` |
+| `original-r-k4-current-board-supervisor-v2` | `spine-original-r-k4-current-board-supervisor-20261019-v2.service` | `05f1b2a02e3a451ba7b1d455777e9f7f` |
+| `matched-g-current-host-preflight-v3` | `spine-matched-g-current-host-preflight-20261019-v3.service` | `173b52a20a0c4150958b49d7877cb8da` |
+| `matched-g-current-board-follow-v3` | `spine-matched-g-current-board-follow-20261019-v3.service` | `cfe24d2f51ad40bca5075d9a1309ffb9` |
 
 ## Admission And Memory
 

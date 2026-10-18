@@ -1,5 +1,9 @@
 # Same-Input Production G Control
 
+Start with the [current-candidate bindings](CURRENT_CANDIDATE.md) for the
+fresh host preflight and independent board waiter on the new G artifact.
+Earlier attempts below preserve their own source and producer identities.
+
 ## Question And Boundary
 
 Does the actual production G handle the original G's logical PMA layout and
@@ -104,12 +108,14 @@ env SPINE_G_INTEGRATION=/absolute/reviewed-production-integration \
   python3 -m unittest discover -s tests -p test_grasu_matched_original.py -v
 ```
 
-The paired original-G board comparison is still blocked by the separately
-preserved original source's U55C HMSS port-capacity failure. Do not substitute
-a compact-port implementation and label it original G, or report this host
-prerequisite as a measured performance match.
+The original source's direct U55C link encountered an HMSS port-capacity
+failure. The separate [physical-port control](../physical_port/README.md)
+preserves the source and records external arbitration explicitly; its BD
+check passes, but full route, strict timing and board admission remain open.
+Do not substitute a compact-port implementation and label it original G,
+or report this host prerequisite as a measured performance match.
 
-## Current Immutable Prerequisite
+## Retained Immutable Prerequisite
 
 `matched-g-original-host-preflight-v2` passes all 22 child steps with no
 FPGA programming. Its report SHA-256 is
@@ -129,8 +135,10 @@ explicitly pins both report digests and waits for SSSP production qualifier
 `spine-g-production-remote-follow-20261018-v3.service`, invocation
 `adf99e92398e4905a1909150d14fa131`. It retains 4/3-GiB max/high, no swap,
 group OOM kill, CPU 120 and a 140000-second lifetime. Its deployment state
-is `WAITING_FOR_EXACT_PRODUCTION_QUALIFIER`, with no board request or timing
-result. The failed v1 follower and both historical preflights are unchanged.
+was `WAITING_FOR_EXACT_PRODUCTION_QUALIFIER`, with no board request or timing
+result. It subsequently failed on its required old route before programming.
+The current-candidate page records its separate replacement; old followers
+and preflights are unchanged.
 
 ## Independent Production Board Matrix
 
