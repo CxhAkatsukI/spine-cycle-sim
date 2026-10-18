@@ -54,6 +54,20 @@ class SpineContractTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 analysis.analyze(row, altered, stderr, bdf="0000:01:00.1")
 
+    def test_exact_xcl2_selection_notice_is_retained_not_a_driver_warning(self):
+        row = self.row()
+        log = self.log(row)
+        for index in (0, 1):
+            notice = f"Using XCL_DEVICE_INDEX={index}"
+            report = analysis.analyze(row, log, notice + "\n", bdf="0000:01:00.1")
+            self.assertEqual(report["runtime_notices"], [notice])
+        for stderr in ("Using XCL_DEVICE_INDEX=2\n", "Using XCL_DEVICE_INDEX=1\nwarning\n",
+                       "Using XCL_DEVICE_INDEX=1\nUsing XCL_DEVICE_INDEX=1\n", " \n"):
+            with self.subTest(stderr=stderr), self.assertRaises(ValueError):
+                analysis.analyze(row, log, stderr, bdf="0000:01:00.1")
+        with self.assertRaisesRegex(ValueError, "leased board mismatch"):
+            analysis.analyze(row, log, "Using XCL_DEVICE_INDEX=1\n", bdf="0000:02:00.1")
+
     def test_legacy_smoke_is_correctness_not_continuous_timing(self):
         row = {**self.row(), "legacy": True}
         log = ("SPINE_DEVICE bdf=0000:01:00.1\nPARTITIONED_ALGORITHM_PASS algorithm=weighted_sssp "

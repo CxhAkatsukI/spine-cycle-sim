@@ -311,6 +311,27 @@ the two board indices in the requests do not authorize concurrent use of the
 same card by another process. A failed prerequisite or child remains a failure
 and stops the continuation without a reset.
 
+### Current Continuation
+
+The deployed-v1 record above is historical. V2 used the pinned completed
+preflight replay and was deliberately stopped while waiting for admitted
+artifacts, with no board requested and no matrices run. It was replaced to
+share the bounded card/measurement lease with the new fixed-Spine protocol;
+it is not a completed board result.
+
+The current supervisor is
+`spine-fullgraph-board-continuation-20261018-v3.service`, invocation
+`54490a9990f84a6a9414bad3de1caf9c`, output
+`fullgraph-board-continuation-v3` under the campaign root. It uses the same
+three requests and completed-v3 preflight digest, frozen runner `8e44bf8`,
+directory `fullgraph-board-runner-8e44bf8`, and archive SHA-256
+`8413f1547e8b0a082948f401d42dd42ecfd291c0b780417489f262d072c1efd2`.
+At this checkpoint it is `WAITING_FOR_ADMITTED_ARTIFACTS`, without errors or
+completed board matrices. It keeps the same 24/22-GiB limits, zero swap,
+two-CPU affinity and bounded service lifetime. The independent four remote
+routes continue; neither this waiting state nor the Spine preparation closes
+the hardware or original-performance gates.
+
 ### Timing Boundary
 
 The host's legacy `setup_inclusive_ms` field begins **after** initial graph,

@@ -33,6 +33,9 @@ The source owner is
   validation, complete propagation, finite continuous wall time and one clean
   device ledger per round. Zero-round completion is allowed only with the
   benchmark's explicit final readback and final-state validation contract.
+  The single exact `Using XCL_DEVICE_INDEX=0` or `=1` notice from the frozen
+  `xcl2.cpp` is retained separately; all other nonempty stderr is rejected.
+  This notice never substitutes for the host's leased-BDF check.
 - `__main__.py`: thin freeze/run CLI. `board_protocol.py` names the separate
   Spine and G+R host contracts; `board_study.py` owns their shared execution.
 - `board_access.py`: bounded waiting for the cooperative card lock. It never
@@ -101,3 +104,9 @@ source/header closure and all three fixed routed artifacts. Its decision is
 This evidence currently proves preparation only. New-mode FPGA smokes, the
 complete repeated matrix, paired G+R results and final Fig7-11 are not accepted
 by the freeze. The original paper is unchanged.
+
+The first board attempt, `spine-resident-sssp-board-v1`, ran the legacy smoke
+successfully on BDF `0000:c1:00.1` and then failed the runner's stderr gate.
+Its only stderr was the selection notice above. No new-mode smoke or large
+case ran. This remains `FAILED_RETAINED`, not a completed matrix; the host,
+bitstream, timing boundary and numerical results are unchanged for the retry.

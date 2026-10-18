@@ -10,7 +10,10 @@ PASS = "SPINE_RESIDENT_BOARD_CONVERGENCE_PASS_NOT_BASELINE_OR_STAGE_CALIBRATION"
 
 
 def analyze(row, stdout, stderr, *, bdf):
-    if stderr.strip():
+    # xcl2.cpp prints this selection notice to stderr before the host checks BDF.
+    # The leased BDF below remains authoritative; do not ignore driver warnings.
+    notices = stderr.splitlines()
+    if notices not in ([], ["Using XCL_DEVICE_INDEX=0"], ["Using XCL_DEVICE_INDEX=1"]):
         raise ValueError("unexpected Spine runtime diagnostic")
     lines = stdout.splitlines()
     device = single(lines, "SPINE_DEVICE")
@@ -26,7 +29,8 @@ def analyze(row, stdout, stderr, *, bdf):
                     "coverage": "converged"}
         if any(result.get(key) != value for key, value in expected.items()):
             raise ValueError("retained legacy-path correctness smoke differs")
-        return {"status": "PASS", "scope": "legacy_path_correctness_only_not_wall_timing", "result": result}
+        return {"status": "PASS", "scope": "legacy_path_correctness_only_not_wall_timing", "result": result,
+                "runtime_notices": notices}
     result = single(lines, "SPINE_RESIDENT_BENCHMARK_PASS")
     integers = {"algorithm": ALGORITHMS.index(row["algorithm"]), "vertices": row["vertices"],
                 "source": row["source"], "logical_updates": row["updates"],
@@ -53,6 +57,7 @@ def analyze(row, stdout, stderr, *, bdf):
     return {"status": "PASS", "dataset": row["dataset"], "algorithm": row["algorithm"],
             "boundary": BOUNDARY, "resident_wall_ms": wall, "iterations": rounds,
             "result": result, "ledgers": ledgers,
+            "runtime_notices": notices,
             "limits": ["fixed bitstream, not ten-stage calibration",
                        "full-state readback each round is included",
                        "residual-PR correction/seed remains counted host work",
