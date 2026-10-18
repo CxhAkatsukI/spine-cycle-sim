@@ -64,3 +64,25 @@ changed. The board plan records both source identities and checks each FPGA
 output independently, but explicitly withholds source-equivalence and
 latest-revision-performance claims. An older routed result cannot silently
 become a latest-version final figure.
+
+The retained prepare-only board plan is
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-k4-board-plan-v1`.
+It rechecks all 24 preflight rows and declares 18 board rows: 12 executable
+repetitions and six unsupported duplicate-edge rows, with no errors. Its
+`results.json` SHA-256 is
+`83ab5b3bad12134288ac7949d2c3c822b7dac0ed6e54361823de70ebd0e4f036`.
+The finite 8/7-GiB zero-swap service finished in 22.3 seconds with a 109.1-MiB
+peak; this preparation did not open an FPGA.
+
+The qualified execution supervisor is
+`spine-original-r-k4-board-supervisor-20261018-v1.service`, invocation
+`d77374229f774efc926a18c9cecf679b`, using frozen runner `aecf4d6`. It waits for
+the exact FullPR return-v2 invocation
+`9f93433f962740e085a10b711c3394b4`. Its output is
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-k4-board-supervisor-v1`.
+At the 17:08 UTC checkpoint it remains `WAITING_FOR_EXACT_ADMITTED_FULLPR_RETURN`.
+It has finite 8/7-GiB limits, no swap, CPU affinity 124--125, a 146000-second
+lifetime and an exclusive BDF lease before any guarded board worker. This
+supervisor targets the independently frozen older FullPR source, not the
+newer packing implementation queued for compilation. Neither a waiting
+supervisor nor its prepare-only plan constitutes an adapter/K4 speed result.

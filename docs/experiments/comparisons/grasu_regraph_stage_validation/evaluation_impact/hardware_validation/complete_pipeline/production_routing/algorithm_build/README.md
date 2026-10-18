@@ -49,6 +49,62 @@ connections with the fresh algorithm exports, and `admission.py` checks the
 returned artifact against the requested local source closure and timing report.
 `follow.py` owns waiting for one exact remote invocation, bounded remote sealing,
 transport and local admission. It never requests or programs a board.
+`compile_follow.py` waits for one exact compilation invocation and delegates
+fresh XO/resource/ABI review and finite-budget linking to the existing route
+owner. It does not replace return admission or authorize FPGA programming.
+
+## Latest Source And Compile Continuation
+
+The latest portable closure is `production-algorithm-sources-v3`, integration
+`1a5650c79ae0c29418b93184a1590f256e33f0b6`. Its source-index SHA-256 is
+`8b41653890d1e48e32c5f3531d79ba8fe227d0eccc883b8a08845e04f136f00f`.
+All 180 transported source files are byte-identical to v2: the newer Git
+revision changes host device-lease guards outside this compile closure. The
+PageRank Apply packing change is present in both v2 and v3, but not v1.
+Do not relabel the ongoing v1-source CC/FullPR routes as latest-source results.
+
+FullPR's latest compilation is `production-fullpr-compile-v2`, service
+`spine-production-fullpr-compile-20261018-v2.service`, invocation
+`2d8f7afce8a74532a7cebca981af85a5`, with unchanged compile runner `92ab3cd`
+and the v3 source closure. At the 17:08 UTC checkpoint it is waiting for a
+finite budget on an unrelated Vivado process; about 422 GiB is available and
+both already-admitted CC/FullPR routes continue. This is not an all-tools-idle
+policy and is not a completed compilation.
+
+The reusable `follow-compile` command can supervise this exact invocation:
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build follow-compile \
+  --compilation /data/chuxiao/baseline_hardware_validation_20261017/production-fullpr-compile-v2 \
+  --sources /data/chuxiao/baseline_hardware_validation_20261017/production-algorithm-sources-v3 \
+  --storage /path/to/frozen/resource_evidence \
+  --output /path/to/new/fullpr-compile-route-follow \
+  --compile-unit spine-production-fullpr-compile-20261018-v2.service \
+  --compile-invocation 2d8f7afce8a74532a7cebca981af85a5 \
+  --algorithm full_pagerank --timing-profile aggressive-route-v1 \
+  --xilinx /data/feiyang/xilinx \
+  --platform /data/feiyang/runtime/frontier-xrt-20261015/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm \
+  --compatibility /data/feiyang/xilinx/compat-2024.1 \
+  --shim /data/chuxiao/baseline_hardware_validation_20261017/production-inputs-v1
+```
+
+Use a new fixed runner and output, with 40/36-GiB max/high, zero swap, group
+OOM kill, 800% CPU, 8192 tasks, 65536 open files and a finite service lifetime
+covering compile wait plus the separate route queue/link limits. The follower
+freezes source, compile-manifest and runner identities while waiting. A failed,
+missing, restarted or timed-out compile service stops before linking. A terminal
+success must also have the requested complete compile report. The existing
+route owner then independently reviews every XO and admits its full memory
+budget; it does not inherit an earlier compile's resource approval.
+
+The child link is always in `OUTPUT/route`. Its independent `execution.json`
+and binary identity must match the returned result. Parent success is only
+`COMPILE_AND_LINK_PASS_AWAITING_TIMING_RTL_AND_BOARD`, with all timing, RTL,
+board and publication claims false. Return/seal that child using the exact
+parent service invocation only after terminal success; strict local admission
+still decides whether its clock/timing/connectivity qualify. Failed child
+execution identities remain in the parent report. Nine focused follower tests
+and the existing algorithm tests cover these failure and identity boundaries.
 
 ## Deployed Checkpoint
 

@@ -24,6 +24,15 @@ def main():
         route.add_argument("--" + name, type=Path, required=True)
     from ..remote.timing import PROFILE
     route.add_argument("--timing-profile", choices=(PROFILE,))
+    follow = sub.add_parser("follow-compile")
+    for name in ("compilation", "sources", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
+        follow.add_argument("--" + name, type=Path, required=True)
+    for name in ("compile-unit", "compile-invocation"):
+        follow.add_argument("--" + name, required=True)
+    follow.add_argument("--algorithm", choices=inputs.ALGORITHMS, required=True)
+    follow.add_argument("--timing-profile", choices=(PROFILE,))
+    follow.add_argument("--maximum-wait", type=int, default=133200)
+    follow.add_argument("--poll-seconds", type=int, default=30)
     rtl = sub.add_parser("adapter-rtl")
     for name in ("compilation", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
         rtl.add_argument("--" + name, type=Path, required=True)
@@ -56,6 +65,13 @@ def main():
         from .adapter_rtl import run
         print(run(args.compilation, args.storage, args.output, args.xilinx,
                   args.platform, args.compatibility, args.shim)["status"])
+    elif args.action == "follow-compile":
+        from .compile_follow import run
+        print(run(args.compilation, args.sources, args.storage, args.output, args.xilinx,
+                  args.platform, args.compatibility, args.shim, compile_unit=args.compile_unit,
+                  compile_invocation=args.compile_invocation, algorithm=args.algorithm,
+                  timing_profile=args.timing_profile, maximum_wait=args.maximum_wait,
+                  poll_seconds=args.poll_seconds)["status"])
     elif args.action == "seal-route":
         from .artifacts import seal
         print(seal(args.compilation.resolve(), args.route.resolve(), args.output.resolve(),
