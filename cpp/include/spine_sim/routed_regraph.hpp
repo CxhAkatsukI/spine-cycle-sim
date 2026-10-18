@@ -5,8 +5,12 @@
 
 namespace spine::sim {
 
-// The four independent source masters in the SSSP XO retained by the paired
-// FPGA experiment. This is not the later two-service HLS worktree topology.
+enum class RoutedSourceTopology {
+  kFourDedicated,
+  // Workers 0/2 share HBM23; workers 1/3 share HBM24.
+  kTwoPairwise,
+};
+
 struct RoutedReGraphConfig {
   RoutedReGraphConfig();
   GraSuReGraphConfig compute;
@@ -22,6 +26,8 @@ struct RoutedReGraphConfig {
   std::uint64_t status_address{0x4800'0000ULL};
   std::size_t fixed_rounds{};
   bool independent_read_write{};
+  // Preserve the earlier paired experiment's four-master XO by default.
+  RoutedSourceTopology source_topology{RoutedSourceTopology::kFourDedicated};
   // Inspect, but never rewrite, the PMA/rows left by a drained G invocation.
   // State/seed initialization is still caller-prepared, outside device timing.
   bool reuse_resident_pma{};

@@ -76,6 +76,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/regraph_pma_cross_row/control.cpp \
            $(ROOT)/cpp/src/shared_axi_port.cpp \
            $(ROOT)/cpp/src/routed_regraph/source_service.cpp \
+           $(ROOT)/cpp/src/routed_regraph/source_topology.cpp \
            $(ROOT)/cpp/src/routed_regraph/scatter.cpp \
            $(ROOT)/cpp/src/routed_regraph/transport.cpp \
            $(ROOT)/cpp/src/routed_regraph/admission.cpp \

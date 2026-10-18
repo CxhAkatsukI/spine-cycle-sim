@@ -15,6 +15,9 @@ public:
   void admit();
   void initialize_memory();
   void build();
+  AxiEndpoint source_memory(std::size_t worker, AxiEndpoint write);
+  void build_source(std::size_t worker, AxiEndpoint);
+  void start_sources(std::uint64_t old_base);
   void register_components(bool reverse);
   void unregister_components();
   void start_round();
@@ -46,7 +49,7 @@ public:
     std::unique_ptr<detail::RoutedStreamBridge<detail::ReGraphSourceCacheResponse>> response_bridge;
     std::unique_ptr<ReGraphPmaAdapter> adapter;
     std::unique_ptr<detail::RoutedScatter> scatter;
-    std::unique_ptr<detail::RoutedSourceService> source;
+    detail::RoutedSourceService *source{};
     std::unique_ptr<detail::ReGraphGatherEngine> gather;
     std::size_t next_adapter{}, next_lksg{};
     std::optional<std::size_t> adapter_record, lksg_record;
@@ -69,6 +72,8 @@ public:
   std::vector<std::unique_ptr<Client>> clients;
   std::vector<std::unique_ptr<SharedAxiPort>> shared;
   std::array<std::unique_ptr<Frontend>, 4> frontends;
+  std::array<std::optional<AxiEndpoint>, 2> paired_source_endpoints;
+  std::vector<std::unique_ptr<detail::RoutedSourceService>> sources;
   Fifo<detail::ReGraphGatherRow> ordered_rows;
   Fifo<detail::ReGraphMergedBurst> merged;
   Fifo<detail::ReGraphAppliedBurst> applied;

@@ -1,0 +1,258 @@
+{
+  "ctest_count": 34,
+  "default_system_stdout_prefix_unchanged": true,
+  "execution_count": 42,
+  "figure_admitted": false,
+  "hardware_calibrated": false,
+  "legacy": {
+    "cases": [
+      {
+        "backend_requests": 33848,
+        "case": "sssp_mixed_cold",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 99885,
+        "equivalent": true,
+        "result_hashes": [
+          "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+          "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+        ]
+      },
+      {
+        "backend_requests": 1775700,
+        "case": "sssp_multipart_warm",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 5997674,
+        "equivalent": true,
+        "result_hashes": [
+          "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+          "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+        ]
+      },
+      {
+        "backend_requests": 50741,
+        "case": "cc_reciprocal",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 133841,
+        "equivalent": true,
+        "result_hashes": [
+          "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+          "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+        ]
+      },
+      {
+        "backend_requests": 997048,
+        "case": "residual_warm",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 1487890,
+        "equivalent": true,
+        "result_hashes": [
+          "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+          "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+        ]
+      },
+      {
+        "backend_requests": 48,
+        "case": "residual_update_only",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 200,
+        "equivalent": true,
+        "result_hashes": [
+          "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+          "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+        ]
+      }
+    ],
+    "claim": "exact_result_equivalence_on_predeclared_regression_matrix",
+    "correctness_admitted_cases": 5,
+    "ignored_result_fields": [],
+    "known_rejections": 0,
+    "status": "PASS"
+  },
+  "performance_admitted": false,
+  "plugin": {
+    "path": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v2/plugin/libspine_cycle.so",
+    "sha256": "5d56ec78f7363632f9af20f201f1c2d76e3a3848c9583b6a32cbb9143e5d83b6"
+  },
+  "python_test_count": 50,
+  "python_tests": {
+    "available_before_bytes": 62193618944,
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "tests.test_sharded_k4_system_report",
+      "tests.test_sharded_k4_sst_candidate",
+      "tests.test_sharded_k4_system_model",
+      "tests.test_refactor_equivalence",
+      "tests.test_repository_structure"
+    ],
+    "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+    "exit_code": 0,
+    "memory_limit_gib": 2,
+    "peak_rss_kib": 30180,
+    "reserve_gib": 16,
+    "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+    "stderr": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/delivery-v1/python-tests.stderr.txt",
+    "stdout": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/delivery-v1/python-tests.stdout.txt",
+    "timed_out": false,
+    "wall_seconds": 0.20350368320941925
+  },
+  "raw_archive": {
+    "path": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/delivery-v1/raw.tar.gz",
+    "sha256": "300a176c7aa0b17e0f2890f812688cb50058fe32df8dd9a56a0796423dd13cbc"
+  },
+  "raw_index": {
+    "path": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/delivery-v1/raw_index.json",
+    "sha256": "d31e22c276a7a59053ffd140569784ff71e97ccdaa3e695c36b532cdacda96a4"
+  },
+  "remaining": [
+    "explicit latest bank-stream SST profile",
+    "current G search/cache production selection",
+    "algorithm variants",
+    "complete G-to-R execution",
+    "matching FPGA calibration and original A4 comparison",
+    "final Fig7-11"
+  ],
+  "retained_failed_attempts": {
+    "sst-build-v1": "1-GiB RLIMIT_AS insufficient; no OOM",
+    "sst-gates-v2": "plugin build passed; nested system gate RLIMIT_AS/affinity mismatch",
+    "sst-gates-v3": "all 34 core tests passed; warm legacy case wall timeout 240s"
+  },
+  "schema_version": 1,
+  "soft_limit_addendum": {
+    "path": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-soft-limit-addendum-v1/results.json",
+    "sha256": "87c927eebc2e770f0a2b6751a4801b38c3ffc97acb1c648d0037b803b180c854"
+  },
+  "source": {
+    "baseline_archive": {
+      "path": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/baseline-v1/source.tar.gz",
+      "sha256": "2f001d600e357f2a3849f47544031560ebffb9bf4a14238cb652bf3e65cd8280"
+    },
+    "candidate_cpp_archive": {
+      "path": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/candidate-v1/source.tar.gz",
+      "sha256": "59477be733aef965fe60239987f1ce24eea802f524fdd6f3c70010070cdede35"
+    },
+    "file_count": 885,
+    "revision": "a56ea07e050d313814090e59ca71a3a1120ae75e",
+    "snapshot": {
+      "path": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v4/legacy_final/identity.json",
+      "sha256": "bd28f6810d2721c45b6843cf418c3dfa541d979c1e4a8f57f48976f180aa4d22"
+    }
+  },
+  "source_shared_stdout_byte_exact": true,
+  "status": "SOURCE_PAIR_FUNCTIONAL_AND_EXACT_LEGACY_EQUIVALENCE_PASS",
+  "system": {
+    "admission_rejections": 13,
+    "converged_executions": 38,
+    "expected_limit_failures": 2,
+    "fixed_round_executions": 2,
+    "report_version": "source_pairs_v1"
+  },
+  "timeout_only_followup": {
+    "all_five_passed": true,
+    "numerical_change": false,
+    "path": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v4",
+    "per_case_wall_timeout_seconds": 600
+  },
+  "verification": {
+    "all_core_build": {
+      "available_before_bytes": 62145409024,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/candidate-v1/core",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 700660,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v3/all-core-build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v3/all-core-build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 184.2336154151708
+    },
+    "all_core_ctest": {
+      "available_before_bytes": 62230851584,
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/candidate-v1/core",
+        "--output-on-failure",
+        "--timeout",
+        "600",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 770624,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v3/all-core-ctest.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v3/all-core-ctest.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 380.22646898264065
+    },
+    "legacy": {
+      "available_before_bytes": 62224986112,
+      "command": [
+        "python3",
+        "scripts/run_component_refactor_regression.py",
+        "--lib-dir",
+        "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v2/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v4/legacy_final",
+        "--baseline-dir",
+        "/data/chuxiao/experiments/sharded_k4_composition_sync_20261011/legacy_final",
+        "--jobs",
+        "1",
+        "--case-timeout-seconds",
+        "600"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "exit_code": 0,
+      "memory_limit_gib": 16,
+      "peak_rss_kib": 148500,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v4/legacy.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v4/legacy.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 315.95289322687313
+    },
+    "sst_plugin": {
+      "available_before_bytes": 62106619904,
+      "command": [
+        "make",
+        "-C",
+        "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/candidate-v1/source/cpp/sst",
+        "BUILD_DIR=/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v2/plugin",
+        "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "exit_code": 0,
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 1020376,
+      "reserve_gib": 16,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v2/plugin.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/sharded_k4_source_pairs_20261019/sst-gates-v2/plugin.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 622.4314988129772
+    }
+  }
+}

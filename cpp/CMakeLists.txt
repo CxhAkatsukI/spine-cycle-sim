@@ -32,6 +32,7 @@ add_library(spine_cycle_core STATIC
   src/regraph_pma_cross_row/control.cpp
   src/shared_axi_port.cpp
   src/routed_regraph/source_service.cpp
+  src/routed_regraph/source_topology.cpp
   src/routed_regraph/scatter.cpp
   src/routed_regraph/transport.cpp
   src/routed_regraph/admission.cpp

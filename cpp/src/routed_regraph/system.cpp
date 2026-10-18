@@ -8,17 +8,21 @@ RoutedReGraphCounters RoutedReGraphSystem::Impl::counters() const {
   RoutedReGraphCounters c;
   for (const auto &f : frontends) {
     const auto &a = f->adapter->counters();
-    const auto &s = f->source->counters();
     c.extent_reads += a.extent_reads;
     c.row_reads += a.row_reads;
     c.segment_reads += a.segment_reads;
     c.packets += a.packets;
     c.live_edges += a.live_edges;
     c.dummy_edges += a.dummy_edges;
-    c.source_blocks += s.blocks[0];
-    c.source_lines += s.lines[0];
-    c.source_terminators += s.terminators[0];
     c.gather_rows += f->gather->rows_emitted();
+  }
+  for (const auto &source : sources) {
+    const auto &s = source->counters();
+    for (std::size_t worker = 0; worker < s.blocks.size(); ++worker) {
+      c.source_blocks += s.blocks[worker];
+      c.source_lines += s.lines[worker];
+      c.source_terminators += s.terminators[worker];
+    }
   }
   c.mux_rows = mux->rows();
   c.apply_reads = apply->reads();
@@ -76,12 +80,14 @@ std::string RoutedReGraphSystem::diagnostic() const {
       << " mux-rows=" << impl_->mux->rows() << " apply-rw=" << impl_->apply->reads() << ',' << impl_->apply->writes()
       << " writeback-writes=" << impl_->writeback->source_writes()
       << " backend-outstanding=" << impl_->backend.outstanding();
+  out << " source-services=" << impl_->sources.size() << " physical-masters=" << impl_->ports.size();
   for (std::size_t worker = 0; worker < 4; ++worker) {
     const auto &f = *impl_->frontends[worker];
     out << "\nworker=" << worker << " adapter=" << f.adapter->done()
         << " ingress=" << f.ingress->done() << " scatter=" << f.scatter->done()
         << '/' << f.scatter->finished() << " gather=" << f.gather->done()
-        << " source=" << f.source->done() << " packets=" << f.scatter->counters().packets
+        << " source=" << f.source->done() << " source-service=" << f.source->name()
+        << " packets=" << f.scatter->counters().packets
         << " lines=" << f.scatter->counters().source_lines << '+' << f.scatter->counters().discarded_lines
         << " rows=" << f.gather->rows_emitted() << " queues=" << f.raw.size() << ',' << f.edges.size()
         << ',' << f.updates.size() << ',' << f.rows.size() << ',' << f.internal_requests.size()

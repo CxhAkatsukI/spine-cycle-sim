@@ -17,6 +17,10 @@ the measured SSSP wrapper XO has four independent read masters. The later HLS
 worktree's two pairwise services are a different target. This candidate uses
 the measured four-reader topology. Its test clock is 150 MHz.
 
+The later [pairwise source checkpoint](source_pairs/README.md) adds an
+explicit default-off selection for that different HLS target. The frozen
+results below remain the original four-reader evidence.
+
 ## Code Review
 
 | Owner | Responsibility |

@@ -8,6 +8,7 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.refactor_equivalence import source_snapshot, verify_source_snapshot
 from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 from .execution import identity
+from .system_report import require_extended_report, extended_scope
 
 REPORT = ("PASS: 13 whole routed SSSP cases (11 convergence, 1 fixed-round, 1 expected limit failure); "
           "full state, source replicas, padding, scheduling and traffic; 9 admission rejections PASS")
@@ -16,6 +17,8 @@ FIELDS = ("vertices", "reverse", "stop", "pressure", "fixed", "limit", "rounds",
 
 def require_system_report(text: str) -> list[dict]:
     lines = text.strip().splitlines()
+    if lines and lines[-1] != REPORT:
+        return require_extended_report(text)
     if len(lines) != 14 or lines[-1] != REPORT:
         raise ValueError("complete 13-execution and nine-rejection system gate is required")
     expression = "case " + " ".join(field + r"=(\d+)" for field in FIELDS)
@@ -63,6 +66,9 @@ def validate_system(root: Path, core_build: Path, output: Path) -> dict:
         if resource["exit_code"] or resource["timed_out"]:
             raise RuntimeError(f"whole-system {name} failed; raw logs retained")
     rows = require_system_report((output / "system.stdout.txt").read_text())
+    scope = extended_scope((output / "system.stdout.txt").read_text())
+    if scope["report_version"] != "source_pairs_v1":
+        raise ValueError("current validation requires the pairwise source-topology gates")
     verify_source_snapshot(root, snapshot)
     if any(identity(Path(pin["path"])) != pin for pin in gate_sources):
         raise ValueError("system fixture or CLI changed during validation")
@@ -73,8 +79,7 @@ def validate_system(root: Path, core_build: Path, output: Path) -> dict:
     )]
     result = {"schema_version": 1, "status": "PASS", "source": snapshot,
               "artifacts": [identity(path) for path in artifacts], "gate_sources": gate_sources, "attempts": attempts,
-              "report": REPORT, "rows": rows, "source_unchanged": True,
-              "converged_executions": 11, "fixed_round_executions": 1, "expected_limit_failures": 1,
+              "report": scope["report_version"], "rows": rows, "source_unchanged": True, **scope,
               "claim": "complete_candidate_SSSP_functionality_and_finite_ledgers_not_hardware_timing",
               "sst_candidate_profile_selected": False}
     atomic_write_json(output / "summary.json", result)

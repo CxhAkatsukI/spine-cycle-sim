@@ -34,11 +34,10 @@ void RoutedReGraphSystem::Impl::start_round() {
   status_started = false;
   const auto old_base = config.compute.source_state_base +
       ((rounds.size() - 1) & 1U) * config.compute.source_state_buffer_stride;
+  start_sources(old_base);
   for (std::size_t worker = 0; worker < 4; ++worker) {
     auto &f = *frontends[worker];
     f.next_adapter = f.next_lksg = worker;
-    const auto count = partitions.size() > worker ? (partitions.size() - 1 - worker) / 4 + 1 : 0;
-    f.source->start_round({{old_base, worker % 2 == 0 ? 23U : 24U, padded_vertices}}, {count});
     start_adapter(worker);
     start_lksg(worker);
   }

@@ -81,13 +81,8 @@ void RoutedReGraphSystem::Impl::build() {
     components.insert(components.end(), {&f.raw, &f.edges, &f.updates, &f.rows,
         &f.requests, &f.internal_requests, &f.responses, &f.internal_responses});
     auto &adapter_port = port("adapter-master" + suffix, 0, config.adapter.cross_row.bank_read_beats);
-    auto &source_port = port("source-master" + suffix, worker % 2 == 0 ? 23 : 24, true);
-    AxiEndpoint source_endpoint(source_port);
-    if (worker < 2) {
-      auto &read = client("source-read" + suffix);
-      source_endpoint = share("source-master-mux" + suffix, source_port,
-          {read.endpoint(true), worker == 0 ? primary_write.endpoint() : mirror_write.endpoint()});
-    }
+    const auto source_endpoint = source_memory(worker,
+        worker % 2 == 0 ? primary_write.endpoint() : mirror_write.endpoint());
     f.adapter = std::make_unique<ReGraphPmaAdapter>("adapter" + suffix, clock,
                                                   config.adapter, adapter_port, f.raw);
     f.ingress = std::make_unique<RoutedStreamBridge<ReGraphPmaPacket>>(
@@ -98,13 +93,12 @@ void RoutedReGraphSystem::Impl::build() {
         "response-bridge" + suffix, clock, f.responses, f.internal_responses);
     f.scatter = std::make_unique<RoutedScatter>("scatter" + suffix, clock, policy,
         config.adapter.format, f.edges, RoutedSourceWorker{&f.internal_requests, &f.internal_responses}, f.updates);
-    f.source = std::make_unique<RoutedSourceService>("source" + suffix, clock,
-        std::vector<RoutedSourceWorker>{{&f.requests, &f.responses}}, source_endpoint,
-        config.compute.max_pending_requests);
     f.gather = make_regraph_gather("gather" + suffix, clock, layout.vertices, policy,
                                    config.compute, f.updates, f.rows, *f.scatter);
     components.insert(components.end(), {f.adapter.get(), f.ingress.get(), f.request_bridge.get(),
-        f.response_bridge.get(), f.scatter.get(), f.source.get(), f.gather.get()});
+        f.response_bridge.get(), f.scatter.get()});
+    build_source(worker, source_endpoint);
+    components.push_back(f.gather.get());
     gather_rows[worker] = &f.rows;
   }
   auto &read = client("apply-read");

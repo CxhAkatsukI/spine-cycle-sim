@@ -17,6 +17,9 @@ RoutedReGraphConfig::RoutedReGraphConfig() {
 
 void RoutedReGraphSystem::Impl::admit() {
   const auto &c = config.compute;
+  if (config.source_topology != RoutedSourceTopology::kFourDedicated &&
+      config.source_topology != RoutedSourceTopology::kTwoPairwise)
+    throw std::invalid_argument("unsupported routed source-reader topology");
   if (config.reuse_resident_pma && backend.outstanding() != 0)
     throw std::invalid_argument("resident PMA handoff requires a drained memory backend");
   if (layout.vertices == 0 || layout.vertices > std::numeric_limits<std::uint32_t>::max() ||

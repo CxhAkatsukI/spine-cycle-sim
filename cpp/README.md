@@ -220,6 +220,11 @@ changing their public header or function bodies:
    selects a distinct artifact-bound candidate and compares complete HLS-exported
    inputs with FPGA results. Matched FPGA timing remains unadmitted; the
    diagnostic preserves the nominal timing discrepancies instead of fitting them.
+7. The [pairwise source checkpoint](../docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/model_sync/system/source_pairs/README.md)
+   owns the explicit two-service alternative in
+   [source_topology.cpp](src/routed_regraph/source_topology.cpp). It preserves
+   the earlier four-reader default and separately tests 0/2 and 1/3 sharing;
+   neither core correctness nor a source-level topology match admits FPGA timing.
 
 The [refactor record](../docs/repository/grasu_component_refactor/README.md)
 contains the fixed pre/post SST matrix and full-result comparison. This is
