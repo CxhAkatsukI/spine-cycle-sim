@@ -32,6 +32,13 @@ new-G metadata/handoff correctness or original-publication reproduction.
 
 ## Current Checkpoint
 
+For the live registered candidate, start with the
+[current build, return and board bindings](complete_pipeline/production_routing/comparison_candidate/README.md).
+That guide identifies the exact SSSP, CC, ResPR and FullPR producers, the
+same-input G and actual R/K4 controls, and the paired Spine continuation.
+The dated checkpoints below retain earlier failures and are not current
+artifact admissions. Inspect the linked raw reports for live status.
+
 The [original-G hardware control](original_grasu/README.md) now has a separate
 source-preserving build owner. It retains the author's URAM cache, all 46
 memory interfaces and exact kernel files; it does not substitute the older
