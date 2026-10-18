@@ -57,9 +57,19 @@ schema: a routed candidate needs a separately recorded physical profile,
 strict timing, functional checks and a repeated matched-input board matrix.
 It cannot be used to claim paper-performance matching or finalized figures.
 
-Six focused synthetic tests cover grouping, preserved vendor delegation,
-delayed hook installation, duplicate/order/bank rejection, proof corruption
-and stopping before tools on a bad parent. They do not substitute for actual
+The first deployed probe, `original-g-physical-port-probe-v1`, used service
+`spine-original-g-physical-port-20261018-v1.service`, invocation
+`b25eed2ab64c48d182ec5a19a4059943`, runner `bb5b341`. It left its memory queue
+and ran Vivado, then failed at `create_bd`: the clock helper returns a name,
+whereas `get_property` requires a resolved BD pin object. Peak cgroup memory
+was about 3 GiB, with zero OOM events. This failure remains untouched. The
+fix explicitly resolves the clock with `get_bd_pins`; no author source,
+compiled XO, memory mapping, timing constraint or vendor file is changed.
+
+Seven focused synthetic tests cover grouping, preserved vendor delegation,
+delayed hook installation, duplicate/order/bank rejection, clock-object
+resolution, proof corruption and stopping before tools on a bad parent.
+They do not substitute for actual
 Vivado, RTL simulation or FPGA measurements.
 
 ```bash

@@ -63,6 +63,40 @@ if {[::spine_g_ports::classify /bin_search_1/m_axi_gmem_edges HBM_MEM00] ne {}} 
             self.assertNotEqual(result.returncode, 0)
             self.assertNotIn("invalid command name", result.stderr)
 
+    def test_clock_name_is_resolved_to_bd_pin_before_property_query(self):
+        result = self.tcl("""
+namespace eval ::hbm_memory_subsystem::util {}
+proc ::hbm_memory_subsystem::util::find_associated_clock_pin {master} {return /bin_search_1/ap_clk}
+proc ::hbm_memory_subsystem::spine_original_map {args} {}
+proc get_bd_intf_nets {args} {return master_net}
+proc get_bd_intf_pins {args} {
+    if {[lindex $args 0] eq {-of_objects}} {return {/bin_search_1/m_axi_gmem0 /hmss_0/S02_AXI}}
+    return [lindex $args 0]
+}
+proc get_bd_addr_segs {args} {return segment}
+proc get_bd_addr_space {args} {return space}
+proc get_bd_cells {args} {return /bin_search_1}
+proc get_bd_pins {name} {return object:$name}
+proc get_property {name object} {
+    if {$name eq {CONFIG.ASSOCIATED_RESET}} {
+        if {$object ne {object:/bin_search_1/ap_clk}} {error {raw clock name is not a BD pin object}}
+        return ap_rst_n
+    }
+    if {$name eq {RANGE}} {return 0x10000000}
+    if {$name eq {OFFSET}} {return 0}
+    error unexpected_property
+}
+proc get_bd_nets {args} {return clock_or_reset_net}
+foreach command {create_bd_cell set_property connect_bd_net disconnect_bd_intf_net connect_bd_intf_net} {
+    proc $command {args} {}
+}
+::spine_g_ports::map /bin_search_1/m_axi_gmem0 /hmss_0 HBM_MEM00
+if {[dict get $::spine_g_ports::groups /g_metadata_1_0 members] ne {/bin_search_1/m_axi_gmem0}} {
+    error missing_first_master
+}
+""")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_vendor_mapper_is_preserved_and_duplicate_mapping_rejected(self):
         body = """
 namespace eval ::hbm_memory_subsystem {}

@@ -39,7 +39,7 @@ modified G+R bitstream. The same-platform U55C/150-MHz control remains
 distinct from reproducing the U250 publication. Preparation/ABI unit tests
 are not integrated RTL, board timing or original-performance admission.
 
-At the 2026-10-18 11:29 UTC checkpoint the original-G link has failed: all
+At the 2026-10-18 12:17 UTC checkpoint the original-G link has failed: all
 four author kernel types compiled, but 46 AXI masters exceed the platform's
 33 HMSS ingress connections. This is an interface/platform limitation, not
 an OOM or measured performance result. The independent
@@ -52,12 +52,19 @@ require complete state and raw timestamp replay for all eight inputs with
 three repetitions. These execution/guard tests are not a completed FPGA
 matrix; original G's platform-port failure still blocks a paired speed match.
 
-The high-memory host has approximately 419 GiB available. SSSP and ResPR v2
-continue placement/routing, and CC v2 continues block synthesis, each under
-its own 40-GiB hard limit. FullPR v1 fails strict timing and actual-clock
-admission; its physical-only v2 retry and exact return/board continuations
-are separately frozen. That retry is waiting on an unrelated unbounded
-compiler peer under the safety policy, not a lack of available memory.
+The independent [external metadata fan-in diagnostic](original_grasu/physical_port/README.md)
+preserves all author masters and shares same-bank metadata outside the CUs.
+Its first actual BD attempt failed on an unresolved clock-name/object API
+call, before interface acceptance; a tested fix is separate from that failure.
+
+The high-memory host has approximately 446 GiB available. SSSP v2 continues
+placement, and CC v2 and FullPR v2 continue block synthesis, each under its own
+40-GiB hard limit. ResPR v2 completed v++ but fails strict setup timing
+(WNS -0.107 ns, TNS -18.575 ns, 443 failing endpoints), without OOM events.
+It is not a successful board-ready route. A separately owned checkpoint
+diagnostic tests physical refinement without changing HLS/clocks or producing
+a bitstream. FullPR v1 also remains a timing/clock failure; its v2 retry and
+exact return/board continuations are separately frozen.
 The [algorithm guide](complete_pipeline/production_routing/algorithm_build/README.md#physical-timing-retry)
 owns the failed report, retry identity and live-state boundary. The earlier
 resume narrative below is historical where it differs from this checkpoint.

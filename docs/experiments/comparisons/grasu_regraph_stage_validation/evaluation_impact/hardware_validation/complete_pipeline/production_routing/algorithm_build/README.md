@@ -74,8 +74,8 @@ whole U55C's 2,607,360 FF. Apply alone accounts for 6,019,300, including
 Integration `8f5928e` changes lane packing without changing arithmetic/ABI;
 old/new source checks pass bitwise against the same reference, but only a
 **fresh synthesis** can establish whether the resource problem is removed.
-Its separate v2 ResPR compile has finished; the experimental link is running,
-not yet accepted as a routed design.
+Its separate v2 ResPR compile and link have finished, but the final route
+fails strict setup timing and is not board-admitted.
 
 All paths below are relative to
 `/data/chuxiao/baseline_hardware_validation_20261017/` on that host:
@@ -301,12 +301,20 @@ Its independent physical-only retry is `production-fullpr-route-v2`, service
 `c0e275f36b064ee598681cfbaadc5f48`, using frozen runner `8fff331` and profile
 `aggressive-route-v1`. The route manifest SHA-256 is
 `34d7ac3655317d78b04023ca7f1be2e75b93c7332747b2bc62e6d79d72694572`.
-At the 11:29 UTC checkpoint it is still waiting for atomic memory admission,
-not executing v++. Approximately 419 GiB is available, but an unrelated
-unbounded Vivado peer prevents admission under the declared safety policy.
-SSSP, CC and ResPR already-admitted finite builds continue concurrently.
+At the 12:17 UTC checkpoint it is executing block synthesis (61/322 jobs),
+not waiting for admission. Approximately 446 GiB is available. SSSP and CC
+already-admitted finite builds also continue concurrently.
 The FullPR retry retains its own 40/36-GiB max/high limits and zero swap;
 neither the clock requirement nor cache capacity is relaxed.
+
+ResPR v2 has now completed linking but fails strict setup timing: WNS
+-0.107 ns, TNS -18.575 ns, 443 failing endpoints, with zero OOM events.
+Its final report is
+`production-respr-route-v2/reports/link/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt`.
+The independent [checkpoint diagnostic](postroute/README.md) explores physical
+refinement without changing that failed artifact or generating a bitstream.
+Diagnostic completion is not routed signoff or authorization to use the old
+binary in a performance comparison.
 
 ## Return And Timing Admission
 
