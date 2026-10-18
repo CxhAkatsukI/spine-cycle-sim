@@ -50,6 +50,11 @@ Diagnostic G board v4 reached programming but XRT rejected the occupied device
 (`Device or resource busy`); no computation/performance result was obtained.
 Neither failure is silently retried or rewritten.
 
+The fresh A4 board v3 completes all eighteen declared FPGA rows, with zero
+memory events. This is a same-platform one-superstep PR control, not dynamic
+convergence or original-paper performance reproduction. The production route
+continues separately through the [high-memory host package](complete_pipeline/production_routing/remote/README.md).
+
 | Track | Latest evidence | Remaining gate |
 | --- | --- | --- |
 | Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |

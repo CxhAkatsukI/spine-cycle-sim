@@ -2,6 +2,11 @@
 
 ## Decision
 
+The [remote continuation](remote/README.md) retains this packet and the
+terminal startup failure, exporting exact inputs to the high-memory host
+instead of rewriting the original run. The dated checkpoint below is
+historical; it is not the current service state.
+
 At the 2026-10-16 09:02 UTC checkpoint, `g-production-route-v1` is
 `QUEUED_WAITING_FOR_SAFE_MEMORY`, with `route_started=false`. Its production
 component, connected-state, reused-XO and storage checks pass. **It is not a
