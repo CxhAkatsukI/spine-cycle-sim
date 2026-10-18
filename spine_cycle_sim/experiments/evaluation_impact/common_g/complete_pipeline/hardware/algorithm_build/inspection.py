@@ -11,6 +11,18 @@ from ....search_pipeline.synthesis import unchanged
 from ...resource_fit import account, platform_screen, resources, topology
 
 PART = "xcu55c-fsvh2892-2L-e"
+PART_RESOURCES = {"LUT": 1303680, "FF": 2607360, "BRAM_18K": 4032,
+                  "URAM": 960, "DSP": 9024}
+
+
+def device_screen(ledger, available):
+    """Reject impossible estimates; passing does not reserve shell resources."""
+    if available != PART_RESOURCES:
+        raise ValueError("HLS available resources differ from the exact U55C part")
+    return {"part_capacity": available,
+            "oversubscribed_resources": [name for name, value in ledger["hls_totals"].items()
+                                         if value > available[name]],
+            "claim": "whole_device_HLS_estimate_screen_not_shell_free_fit_or_timing"}
 
 
 def unique(nodes, key):
@@ -177,14 +189,21 @@ def inspect(config, compiles, physical, platform):
         if not math.isfinite(estimated) or estimated <= 0:
             raise ValueError("resource report estimate must be finite and positive")
         estimates[kernel] = resources(report, kernel)
+        available = {name: int(root.findtext("AreaEstimates/AvailableResources/" + name))
+                     for name in PART_RESOURCES}
+        if available != PART_RESOURCES:
+            raise ValueError("HLS available resources differ from the exact U55C part")
         reports.append({"kernel": kernel, "path": str(report), "target_ns": clock,
-                        "estimated_ns": estimated})
+                        "estimated_ns": estimated, "available_resources": available})
     ledger = account(checked["kernels"], checked["placements"], estimates, physical)
+    ledger["whole_device_screen"] = device_screen(ledger, reports[0]["available_resources"])
     ledger["platform_storage_screen"] = platform_screen(ledger, physical, platform)
     conflict = any(row["uram_oversubscribed_slrs"] or row["total_uram_capacity_exceeded"]
                    for row in (ledger, ledger["platform_storage_screen"]))
     unchanged(pins)
-    return {"status": "STORAGE_CONFLICT_REQUIRES_PLACEMENT_REVIEW" if conflict else
+    return {"status": "RESOURCE_ESTIMATE_CONFLICT_REQUIRES_IMPLEMENTATION_REVIEW" if
+            ledger["whole_device_screen"]["oversubscribed_resources"] else
+            "STORAGE_CONFLICT_REQUIRES_PLACEMENT_REVIEW" if conflict else
             "EXPORT_AND_STORAGE_SCREEN_PASS_NOT_RTL_OR_ROUTE_ADMISSION",
             "interfaces": interfaces, "connections": checked, "resource_ledger": ledger,
             "reports": reports, "pins": pins, "routed": False, "board_admitted": False,

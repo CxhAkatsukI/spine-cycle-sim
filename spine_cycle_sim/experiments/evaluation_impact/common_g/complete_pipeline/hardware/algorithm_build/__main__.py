@@ -1,4 +1,4 @@
-"""Prepare, compile or inspect one declared algorithm, without routing."""
+"""Prepare, compile, inspect or experimentally link one declared algorithm."""
 
 import argparse
 from pathlib import Path
@@ -19,6 +19,9 @@ def main():
     review = sub.add_parser("review")
     for name in ("compilation", "storage", "output"):
         review.add_argument("--" + name, type=Path, required=True)
+    route = sub.add_parser("route-experiment")
+    for name in ("compilation", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
+        route.add_argument("--" + name, type=Path, required=True)
     args = parser.parse_args()
     if args.action == "prepare":
         result = inputs.prepare(args.integration, args.grasu, args.regraph, args.output)
@@ -28,9 +31,13 @@ def main():
         result = run(args.sources, args.output, args.algorithm, args.xilinx,
                      args.platform, args.compatibility, args.shim)
         print(result["status"])
-    else:
+    elif args.action == "review":
         from .review import run
         print(run(args.compilation, args.storage, args.output)["status"])
+    else:
+        from .route_study import run
+        print(run(args.compilation, args.storage, args.output, args.xilinx,
+                  args.platform, args.compatibility, args.shim)["status"])
 
 
 if __name__ == "__main__":

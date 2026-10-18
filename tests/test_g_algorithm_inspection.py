@@ -57,7 +57,10 @@ def fixture(root):
             "<TargetClockPeriod>6.67</TargetClockPeriod><Part>" + inspection.PART + "</Part>"
             "</UserAssignments><AreaEstimates><Resources>" +
             "".join("<" + name + ">" + ("256" if name == "URAM" else "1") + "</" + name + ">"
-                    for name in RESOURCES) + "</Resources></AreaEstimates><PerformanceEstimates>"
+                    for name in RESOURCES) + "</Resources><AvailableResources>" +
+            "".join("<" + name + ">" + str(value) + "</" + name + ">"
+                    for name, value in inspection.PART_RESOURCES.items()) +
+            "</AvailableResources></AreaEstimates><PerformanceEstimates>"
             "<SummaryOfTimingAnalysis><EstimatedClockPeriod>8.0</EstimatedClockPeriod>"
             "</SummaryOfTimingAnalysis></PerformanceEstimates></Report>")
         rows.append({"kernel": kernel, "xo": str(xo), "argv": ["v++", "--config", str(cfg)]})
@@ -134,6 +137,21 @@ class ConnectionTests(unittest.TestCase):
 
 
 class StorageInspectionTests(unittest.TestCase):
+    def test_whole_device_limit_rejects_ff_excess_and_missing_or_wrong_capacity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config, rows = fixture(root)
+            report = root / "tmp/consume/consume_csynth.xml"
+            original = report.read_text()
+            report.write_text(original.replace("<FF>1</FF>", "<FF>6019300</FF>"))
+            result = inspection.inspect(config, rows, CAPACITY, CAPACITY)
+            self.assertEqual(result["status"], "RESOURCE_ESTIMATE_CONFLICT_REQUIRES_IMPLEMENTATION_REVIEW")
+            self.assertEqual(result["resource_ledger"]["whole_device_screen"]["oversubscribed_resources"], ["FF"])
+            for replacement in ("<FF>99999999</FF>", ""):
+                report.write_text(original.replace("<FF>2607360</FF>", replacement))
+                with self.assertRaises((ValueError, TypeError)):
+                    inspection.inspect(config, rows, CAPACITY, CAPACITY)
+
     def test_all_exports_counted_without_timing_or_rtl_admission(self):
         with tempfile.TemporaryDirectory() as temporary:
             config, rows = fixture(Path(temporary))

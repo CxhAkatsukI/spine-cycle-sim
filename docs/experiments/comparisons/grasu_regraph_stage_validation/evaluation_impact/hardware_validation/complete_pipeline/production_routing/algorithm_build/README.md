@@ -11,8 +11,10 @@ decision. SSSP continues in its independently frozen
 This is synthesis preparation, **not routing, RTL admission, device correctness,
 published-performance reproduction or a new Figure 7 result**. Existing SSSP
 resource/timing checks must not be reused as CC/PageRank evidence. The next gate
-must examine the actual exported resources, AXI/stream ABI and algorithm-specific
-finite transactions before starting a separate link attempt.
+must examine the actual exported resources and AXI/stream ABI before a separate
+link experiment. Algorithm-specific finite RTL, routed timing and board
+correctness remain independent admission gates. An experimental link may run
+in parallel with RTL work, but cannot admit that missing evidence.
 
 ## Fixed Contract
 
@@ -37,14 +39,35 @@ Source ownership is separated into `inputs.py` (portable closure), `commands.py`
 (algorithm/ABI admission), `study.py` (bounded execution), and a thin module CLI.
 `inspection.py` reads canonical XO exports/connections and fresh per-kernel HLS
 resources; `review.py` checks a terminal compile's identity and the separately
-verified portable capacity queries. No simulator timing coefficient changes here.
+verified portable capacity queries. `routing.py` owns the one-CU placement
+change and fresh export/resource review; `route_study.py` owns bounded linking.
+No simulator timing coefficient changes here.
 
 ## Deployed Checkpoint
 
-At **2026-10-18 04:16 UTC**, all three fresh services on `seele`
-(`ssh -p 23333 chuxiao@10.129.161.241`) are active with no reported errors.
-CC has reached its frontend mux; both PR modes have reached their distinct
-apply kernel. These are running compilations, not completed routes.
+The three v1 compilations on `seele`
+(`ssh -p 23333 chuxiao@10.129.161.241`) completed successfully. All canonical
+XO macro/stream/master checks passed, with no implicitly mapped memory masters.
+They are **not completed routes**. Fresh resource estimates are:
+
+| Algorithm | LUT | FF | BRAM18 | URAM | DSP |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| CC | 898247 | 600666 | 1102 | 768 | 0 |
+| ResPR | 999427 | 6770535 | 1241 | 768 | 532 |
+| FullPR | 967573 | 821535 | 1211 | 768 | 436 |
+
+All three original placements require 384/64/320 URAM across SLR0/1/2,
+exceeding SLR0's independently queried 320 sites. Moving only
+`lksg_stream_4` from SLR0 to SLR1 gives 320/128/320. This leaves all cache,
+graph and CU capacities unchanged; it is not a routing-fit guarantee.
+
+ResPR has an additional hard conflict: its 6,770,535 estimated FF exceed the
+whole U55C's 2,607,360 FF. Apply alone accounts for 6,019,300, including
+5,919,616 pipeline phi FF. Do not submit this v1 estimate as a fitting design.
+Integration `8f5928e` changes lane packing without changing arithmetic/ABI;
+old/new source checks pass bitwise against the same reference, but only a
+**fresh synthesis** can establish whether the resource problem is removed.
+Its separate v2 ResPR service is running, not yet accepted.
 
 All paths below are relative to
 `/data/chuxiao/baseline_hardware_validation_20261017/` on that host:
@@ -64,6 +87,19 @@ integration `8e9ea1b`; its `sources.json` SHA-256 is
 The same closure is retained under the local experiment root
 `/data/chuxiao/experiments/baseline_hardware_validation_20261015/`.
 Do not replace these active runners, sources or outputs in place.
+
+The v1 export reviews are retained in `production-{cc,respr,fullpr}-export-review-v1`
+using simulator `25526fb` in `algorithm-review-runner-v1`, archive SHA-256
+`f006a42f9f57268d6e52560ab24d7bd4fb182db5708b70cfc8c342bd942d0a6f`.
+These historical reviews screened only URAM; the new inspector additionally
+rejects whole-device LUT/FF/BRAM/URAM/DSP overflow. The old reviews are not
+silently rewritten to claim that additional check.
+
+The new closure `production-algorithm-sources-v2` records integration `8f5928e`.
+`production-respr-compile-v2` uses the unchanged `algorithm-runner-92ab3cd`,
+service `spine-production-respr-compile-20261018-v2.service`, invocation
+`317f14ce51554b3f81759b9440d93a2c`, with the same 16-GiB containment and
+unchanged algorithm/cache/workload scope. CC/FullPR v1 XOs remain independent.
 
 The separately contained `production-algorithm-bank-smoke-v1` source test
 passes weighted, destination-only and unit edge formats (11.78 s elapsed,
@@ -147,8 +183,12 @@ width and repeated memory binding, and counts **all CUs** from fresh top-level
 reports at the exact U55C part and rounded 150-MHz target. Internal Vivado
 scratch copies of `kernel.xml` are not canonical XO interfaces.
 
-The result includes LUT/FF/BRAM/URAM/DSP totals per SLR, but the capacity decision
-is **URAM storage only**. `EXPORT_AND_STORAGE_SCREEN_PASS_NOT_RTL_OR_ROUTE_ADMISSION`
+The result includes LUT/FF/BRAM/URAM/DSP totals per SLR, an independent **URAM
+placement** check, and a **whole-device resource-estimate** check. The latter
+requires each exact-part HLS report to agree on U55C capacities and rejects
+any total estimate above them. It does not subtract shell resources or
+establish per-SLR LUT/FF placement fit.
+`EXPORT_AND_STORAGE_SCREEN_PASS_NOT_RTL_OR_ROUTE_ADMISSION`
 is not full resource fit, AXIS sideband/protocol verification, finite RTL
 backpressure, a routed clock, board correctness or published-performance match.
 Any automatically assigned memory masters are explicitly listed for manual
@@ -158,4 +198,42 @@ placement/config; no shrinkage of graph/cache capacity is allowed as a workaroun
 ```bash
 python3 -m unittest discover -s tests -p test_g_algorithm_inspection.py -v
 python3 -m unittest discover -s tests -p test_g_algorithm_review.py -v
+```
+
+## Experimental Link
+
+Use a separately frozen runner with the whole-device check. `route-experiment`
+revalidates the terminal compilation and portable capacity capsule, retains
+the original review, changes only `lksg_stream_4:SLR0` to `SLR1`, relocates
+output directories/platform, and independently reinspects the candidate.
+Remaining resource conflicts or implicit memory masters stop before v++.
+Every original algorithm XO remains; no kernel is substituted or removed.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build route-experiment \
+  --compilation /data/chuxiao/baseline_hardware_validation_20261017/production-cc-compile-v1 \
+  --storage /path/to/frozen/resource_evidence \
+  --output /data/chuxiao/baseline_hardware_validation_20261017/production-cc-route-v1 \
+  --xilinx /data/feiyang/xilinx \
+  --platform /data/feiyang/runtime/frontier-xrt-20261015/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm \
+  --compatibility /data/feiyang/xilinx/compat-2024.1 \
+  --shim /data/chuxiao/baseline_hardware_validation_20261017/production-inputs-v1
+```
+
+Launch under its own 40-GiB max / 36-GiB high cgroup, zero swap, group OOM kill,
+800% CPU, 8192 tasks and 65536 open files. Full finite-budget leases retain the
+32+8-GiB reserve and live watchdog; no global tool-idle requirement is imposed.
+Each link has a 12-hour deadline, a one-day memory-admission deadline, and a
+160-GiB free-disk prerequisite. Vivado synthesis and implementation each use
+two jobs. Runtime limits are not estimated completion times.
+
+`LINK_PASS_UNVERIFIED_RTL_AWAITING_TIMING_AND_BOARD` is deliberately distinct
+from hardware admission. Finite algorithm RTL/backpressure evidence, actual
+clock/timing, connectivity and device correctness still need separate checks.
+Neither a passing compile nor a bitstream's existence supplies new Figure 7
+performance or an original-publication match. All outputs and failures stay
+in their fresh directories; the paper and existing figures remain unchanged.
+
+```bash
+python3 -m unittest discover -s tests -p 'test_g_algorithm_*.py' -v
 ```
