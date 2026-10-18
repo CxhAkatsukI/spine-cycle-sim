@@ -13,7 +13,8 @@ control. Four frontends with 23 graph channels are not equal resources to A4.
 | `analysis.py` | Independent CSR gather, duplicate eligibility, binary32 payload hashes, exact profile, permutation and all 24 predeclared rows |
 | `build.py` | Explicit Release/UBSan flags and unmodified production-header include path; no XRT/vendor runtime |
 | `board_build.py` | Explicit XRT-linked guarded host and pure-schedule builds; no bitstream admission |
-| `study.py` | Full-budget atomic admission, bounded compilation/execution, records, failure retention and unchanged closure |
+| `board_analysis.py` | Independent complete prepared/raw-buffer checks, external projection, exact schedule, dependency and overlap-aware measured timing validation |
+| `study.py` | Full-budget atomic admission, bounded offline or explicit board-host-preparation matrix, records, failure retention and unchanged closure |
 
 The [C++ model contract](../../../../../cpp/tests/original_regraph/integrated/README.md)
 describes the full graph/state buffers, guards, production placement and
@@ -91,9 +92,23 @@ The complete 259-test original-ReGraph regression then passed in 44.0 seconds
 the same containment and affinity with a 240-second timeout. Documentation
 layout/catalog checks and all 15 repository-organization tests also passed.
 
+The expanded nine-test host suite passes in
+`spine-k4-board-host-tests-20261018-v3.service`: 21.6 seconds, 494.8-MiB
+peak, same containment. It independently checks complete prepared target
+files, rejects corrupted canaries/projections/metadata, and exercises the
+readback/timing validator with explicitly fabricated test records. Those
+records are not FPGA evidence. The preceding v2 test service failed because
+the host `/tmp` filesystem was full; v3 sets `TMPDIR=/data/chuxiao/tmp`
+without deleting others' files or changing the model.
+The subsequent full original-ReGraph regression passed all 263 tests in
+46.1 seconds, with a 507.4-MiB peak in
+`spine-original-r-regression-20261018-v5.service` under the same containment.
+
 The host preserves full raw readbacks and only promotes executed/unverified
-to guarded-pass after exact buffer checks. Python route/ABI qualification,
-independent raw-readback analysis and repeated board execution remain pending.
+to guarded-pass after exact buffer checks. Python independently compares
+every raw buffer with the separately prepared pinned target, then rechecks
+logical projection, event identities/dependencies and measured windows.
+Route/ABI qualification and repeated board execution remain pending.
 Do not invoke its `board` CLI on an unqualified xclbin. No actual K4 timing
 or additional publication/default-profile equivalence is claimed.
 
@@ -111,6 +126,7 @@ systemd-run --user --wait --pipe --unit=original-r-k4-offline-fresh \
   -p MemoryMax=4G -p MemoryHigh=3584M -p MemorySwapMax=0 -p OOMPolicy=kill \
   -p CPUQuota=100% -p CPUAffinity=123 -p RuntimeMaxSec=1800 \
   -p TimeoutStopSec=30 -p KillMode=control-group -p TasksMax=128 \
+  --setenv=TMPDIR=/data/chuxiao/tmp \
   --working-directory="$PWD" \
   /usr/bin/python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.k4_control.study \
   --validation "$CAMPAIGN/original-r-control-validation-v4" \
@@ -134,3 +150,22 @@ and global timing; obtain an exclusive BDF lease; restore all inputs between
 repeats; check complete immutable/mutable buffers and guards; and measure
 overlap-aware event union/span plus resident wall time. None of those gates
 is satisfied by this CPU-only result.
+
+## Full Board-Host Preflight
+
+Add `--board-host-preflight` to the same study command with a fresh output.
+This compiles the actual XRT-linked `control.cpp` in Release and UBSan,
+records the resolved loader libraries and invokes only `prepare`, never
+`board`. It keeps all 24 declared rows, the eight duplicate rejections and
+the same independent CSR arithmetic. Every passing row exports complete
+graph/state allocations under `expected_buffers/`, with bank, extent and
+mutability metadata in `result.json`. Python checks exact file membership,
+64-byte trailing canaries, bank capacity, raw/logical projection and hashes.
+Complete targets and logical values must agree across both builds and both
+repetitions; path-dependent provenance pins are not numerical comparisons.
+
+Its distinct completion status is
+`MATCHED_K4_A4_BOARD_HOST_PREFLIGHT_COMPLETE_NOT_FPGA_OR_PERFORMANCE_MATCH`.
+Hardware, publication and performance assertions remain false. This prepares
+the immutable expectations for a later board owner; it does not admit the
+FullPR bitstream or claim that fabricated unit-test readbacks were measured.

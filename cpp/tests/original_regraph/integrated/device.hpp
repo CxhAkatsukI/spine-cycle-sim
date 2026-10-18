@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model.hpp"
+#include "capture.hpp"
 #include "schedule.hpp"
 #include "../hardware/opencl.hpp"
 #include <chrono>
@@ -133,11 +133,11 @@ struct Device {
     };
     for (std::size_t index = 0; index < graph_buffers.size(); ++index) {
       const auto& expected = model.preparation.buffers.at(index);
-      save(expected, graph_buffers[index], "shard" + std::to_string(expected.shard) + "_" + expected.name);
+      save(expected, graph_buffers[index], buffer_name(expected));
     }
     for (std::size_t index = 0; index < state_buffers.size(); ++index) {
       const auto& expected = model.state.at(index);
-      const auto actual = save(expected, state_buffers[index], expected.name);
+      const auto actual = save(expected, state_buffers[index], buffer_name(expected));
       if (expected.name == "rank" || expected.name == "source_b0") {
         Words external(model.original.vertices);
         for (std::size_t vertex = 0; vertex < external.size(); ++vertex)

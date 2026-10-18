@@ -1,14 +1,17 @@
 """Compile the real K4 board host, but test only preparation and no-lease rejection."""
 
 import json
+import copy
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
 
 import test_original_regraph_k4_model as fixtures
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.k4_control import board_build
+from spine_cycle_sim.experiments.original_regraph_execution.hardware import oracle
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.k4_control import board_analysis, board_build
 from spine_cycle_sim.experiments.upstream_controls.execution import dependency_identities
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -119,7 +122,87 @@ class OriginalRegraphK4BoardHostTests(unittest.TestCase):
         self.assertEqual(sorted(fixtures.words(output / "external_to_internal.u32le")), list(range(vertices)))
         self.assertFalse((output / "gathered_external.u32le").exists())
         self.assertFalse((output / "payload_external.u32le").exists())
+        descriptor = fixtures.words(directory / "execution.u32le")
+        reference = {"vertices": vertices, "logical_edges": len(destinations),
+            "capacity_vertices": int(descriptor[4]), "a4_published_vertices": int(descriptor[5]),
+            "expected_gather_sha256": oracle.digest(fixtures.words(output / "expected_gather.u32le")),
+            "expected_payload": {binding: oracle.digest(fixtures.words(output / "expected_payload.u32le"))}}
+        checked = board_analysis.prepared(result, output, reference, binding)
+        self.assertEqual(len(checked["targets"]), 10 * partitions + 7)
         self.invoke(variant, "control", ["prepare", directory, binding, output], ok=False)
+        return output, result, reference, checked
+
+    def test_preparation_rejects_metadata_canary_and_projection_corruption(self):
+        output, report, reference, _ = self.check_preparation(self.fixture, "release", "csr_degree")
+        for key, value in (("commands", [{**report["commands"][0], "lane": False}, *report["commands"][1:]]),
+                           ("worker_partitions", [True, 0, 0, 0]), ("board_programmed", True)):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                board_analysis.prepared({**report, key: value}, output, reference, "csr_degree")
+        for name, offset in (("source_a0", -4), ("rank", 0)):
+            path = output / "expected_buffers" / (name + ".u32le")
+            saved = path.read_bytes()
+            changed = bytearray(saved)
+            changed[offset] ^= 1
+            path.write_bytes(changed)
+            try:
+                with self.subTest(name=name), self.assertRaises(ValueError):
+                    board_analysis.prepared(report, output, reference, "csr_degree")
+            finally:
+                path.write_bytes(saved)
+
+    def fabricated_readback_fixture(self):
+        # Deliberately synthetic validator input: this never represents FPGA evidence.
+        output, report, reference, expected = self.check_preparation(self.fixture, "release", "csr_degree")
+        destination = output.with_name(output.name + "-fabricated-readback")
+        shutil.copytree(output, destination)
+        (destination / "expected_buffers").rename(destination / "readback")
+        for source, target in (("expected_gather", "gathered_external"), ("expected_payload", "payload_external")):
+            (destination / (source + ".u32le")).rename(destination / (target + ".u32le"))
+        events = []
+        for index, command in enumerate(report["commands"]):
+            events.append({key: command[key] for key in ("role", "ordinal", "lane")})
+            start, end = (10, 10000) if index < 2 else (20 + index * 10, 25 + index * 10)
+            events[-1].update(queued_ns=1, submitted_ns=2, start_ns=start, end_ns=end)
+        observed = {**report, "status": board_analysis.PASS, "bdf": "0000:01:00.1",
+                    "board_programmed": True, "hardware_timing_measured": True, "complete_buffers_verified": True,
+                    "events": events, "event_union_ns": 9990, "event_span_ns": 9990,
+                    "enqueue_to_completion_ms": 0.02}
+        (destination / "result.json").write_text(json.dumps(observed))
+        return destination, observed, {"offline": report, "reference": reference,
+            "binding": "csr_degree", "expected": expected}
+
+    def test_independent_raw_readback_and_overlapping_timing_validator(self):
+        output, report, case = self.fabricated_readback_fixture()
+        checked = board_analysis.readback(report, output, case, report["bdf"])
+        self.assertEqual(checked["event_union_ns"], 9990)
+        self.assertLess(9990, sum(event["end_ns"] - event["start_ns"] for event in report["events"]))
+        for key, value in (("bdf", "0000:02:00.1"), ("complete_buffers_verified", False),
+                           ("publication_match", True), ("event_union_ns", 9991),
+                           ("enqueue_to_completion_ms", 0.001), ("events", report["events"][:-1])):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                board_analysis.readback({**report, key: value}, output, case, report["bdf"])
+        changed = copy.deepcopy(report)
+        changed["events"][2]["lane"] = True
+        with self.assertRaises(ValueError):
+            board_analysis.readback(changed, output, case, report["bdf"])
+        for filename in ("rank.u32le", "shard0_row.u32le", "source_a0.u32le"):
+            path = output / "readback" / filename
+            saved = path.read_bytes()
+            path.write_bytes(saved[:-1] + bytes([saved[-1] ^ 1]))
+            try:
+                with self.subTest(filename=filename), self.assertRaises(ValueError):
+                    board_analysis.readback(report, output, case, report["bdf"])
+            finally:
+                path.write_bytes(saved)
+
+    def test_independent_schedule_including_worker_and_mux_reuse(self):
+        commands = board_analysis.schedule(12)
+        self.assertEqual(len(commands), 38)
+        self.assertEqual(commands[14]["waits"], [2])
+        self.assertEqual(commands[15]["waits"], [3])
+        self.assertEqual(commands[16]["waits"], [13])
+        self.assertEqual(commands[2]["waits"], [])
+        self.assertEqual(commands[4]["waits"], [])
 
     def test_synthetic_both_builds_and_bindings(self):
         for variant in ("release", "ubsan"):

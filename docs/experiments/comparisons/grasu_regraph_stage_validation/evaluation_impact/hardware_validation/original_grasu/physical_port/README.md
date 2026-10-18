@@ -277,6 +277,19 @@ available versus 240 GiB required, but unrelated vendor simulation has no
 finite cgroup limit. Existing admitted builds continue. The chain is deployed,
 not a completed BD, timing-admitted route or measured performance comparison.
 
+The local return-follow v5 subsequently failed before polling or programming:
+its `--board-preflight` argument incorrectly named `results.json`, whereas
+the shared owner requires the containing preflight directory. The resulting
+`results.json/results.json` error and failed service remain retained; the
+remote BD and route attempts are unaffected.
+The corrected local `original-g-external-port-return-follow-v6` uses service
+`spine-original-g-external-port-return-20261018-v6.service`, invocation
+`7412dcd177364b1d8ce1c661253e7d6b`, the same immutable v4 preflight and
+digest, the exact same remote route-v5 service/invocation, and fresh remote
+`original-g-external-port-return-v6` output. Its 4/3-GiB hard/high limits,
+zero swap, group-OOM behavior, strict timing admission and guarded-board
+policy are unchanged. This corrects launch arguments, not HLS or timing.
+
 ## Full-Link Continuation
 
 `route.py` waits for one exact BD service/invocation and then runs a

@@ -59,20 +59,24 @@ def prepare(item):
             "expected_gather_sha256": oracle.digest(gathered)}
 
 
-def inspect(report, directory, expected, binding):
+def profile(expected, binding):
     geometry = {key: expected[key] for key in
                 ("vertices", "logical_edges", "capacity_vertices", "a4_published_vertices")}
-    profile = {"schema_version": 1, "status": PASS, "binding": binding, **geometry,
+    return {"schema_version": 1, "binding": binding, **geometry,
                "partitions": expected["capacity_vertices"] // 65536,
                "partition_vertices": 65536, "graph_channels": 23, "cache_segments": 131072,
                "row_line_read": True, "iterations": 1, "damping_numerator": 108,
                "damping_denominator": 128, "base": 0, "dangling_share": 0,
                "rank_initial": 0, "updates": 0, "g_skipped": True,
-               "source_prepare_skipped": True,
-               "external_binary_encoding": "logical-V-u32le-binary32-bits",
-               "permutation_encoding": "logical-V-u32le-external-to-internal"}
+               "source_prepare_skipped": True}
+
+
+def inspect(report, directory, expected, binding):
+    required = {**profile(expected, binding), "status": PASS,
+                "external_binary_encoding": "logical-V-u32le-binary32-bits",
+                "permutation_encoding": "logical-V-u32le-external-to-internal"}
     if any(type(report.get(key)) is not type(value) or report[key] != value
-           for key, value in profile.items()):
+           for key, value in required.items()):
         raise ValueError("exact matched K4 offline profile/geometry required")
     if (set(report.get("assertions", {})) != ASSERTIONS or
             any(value is not True for value in report["assertions"].values()) or
@@ -80,13 +84,17 @@ def inspect(report, directory, expected, binding):
                                                        "publication_match", "default_profile_equivalence")) or
             any("cycle" in key or "seconds" in key for key in report)):
         raise ValueError("complete offline assertions and no-hardware/no-timing claims required")
+    return values(directory, expected, binding)
+
+
+def values(directory, expected, binding, *, gather="gathered_external.u32le", payload="payload_external.u32le"):
     vertices = expected["vertices"]
     read = lambda name: oracle.read_words(directory / name, vertices)
-    gathered, payload = read("gathered_external.u32le"), read("payload_external.u32le")
+    gathered, published = read(gather), read(payload)
     permutation = read("external_to_internal.u32le")
     if sorted(permutation) != list(range(vertices)):
         raise ValueError("complete external/internal permutation bijection required")
-    digests = {"gather_sha256": oracle.digest(gathered), "payload_sha256": oracle.digest(payload),
+    digests = {"gather_sha256": oracle.digest(gathered), "payload_sha256": oracle.digest(published),
                "permutation_sha256": oracle.digest(permutation)}
     if (digests["gather_sha256"] != expected["expected_gather_sha256"] or
             digests["payload_sha256"] != expected["expected_payload"][binding]):

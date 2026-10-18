@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
     k4::rb::wt::write_words(output / "expected_payload.u32le", model.payload_external);
     k4::rb::wt::write_words(output / "external_to_internal.u32le", model.preparation.graph.external_to_internal);
     if (!board) {
+      k4::write_expectations(model, output);
       k4::report(output, model, binding, schedule, "", nullptr, false);
       std::cout << "K4_BOARD_HOST_PREFLIGHT_PASS_NOT_FPGA\n";
     } else {

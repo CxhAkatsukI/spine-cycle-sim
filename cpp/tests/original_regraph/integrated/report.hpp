@@ -51,7 +51,9 @@ inline void report(const std::filesystem::path& output, const Model& model, Bind
          << ",\"lane\":" << event.lane << ",\"queued_ns\":" << time.queued << ",\"submitted_ns\":" << time.submitted
          << ",\"start_ns\":" << time.start << ",\"end_ns\":" << time.end << "}";
   }
-  json << "]\n}\n";
+  json << "],\n\"buffers\":";
+  describe_buffers(json, model);
+  json << "\n}\n";
   json.close(); require(json.good(), "could not save K4 control observation");
 }
 }  // namespace original_r_k4

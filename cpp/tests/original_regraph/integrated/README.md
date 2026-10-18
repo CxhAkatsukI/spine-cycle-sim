@@ -163,6 +163,7 @@ not a passing three-graph FPGA or performance matrix.
 | File | Responsibility |
 | --- | --- |
 | `schedule.hpp` | Exact production producer/consumer ordering, idle workers, per-worker partition reuse and event-dependency validation |
+| `capture.hpp` | Shared buffer names, complete prepared target captures and explicit bank/extent/mutability descriptions |
 | `device.hpp` | Explicit XRT buffers and kernel arguments, out-of-order profiled queue, event union/span and complete raw buffer readback |
 | `report.hpp` | Separate preparation, executed-but-unverified and guarded-board-pass reports |
 | `control.cpp` | Thin explicit `prepare`/`board` command interface |
@@ -174,7 +175,8 @@ original_r_k4_control board INPUT author_initial|csr_degree OUTPUT XCLBIN DEVICE
 ```
 
 `prepare` does not create a device context or program a board. It writes
-`expected_gather.u32le`, `expected_payload.u32le`, the permutation and a
+`expected_gather.u32le`, `expected_payload.u32le`, the permutation, every full
+graph/state target under `expected_buffers/`, and a
 `K4_BOARD_HOST_PREFLIGHT_PASS_NOT_FPGA` report. Timing fields are null,
 events are empty and all hardware assertions are false. The board mode
 requires the external exclusive lease and expected BDF; it is not a substitute
@@ -199,11 +201,25 @@ context/programming. Unit `spine-k4-board-host-tests-20261018-v1.service`
 passed in 20.1 seconds with a 513.4-MiB peak under the same finite 2-GiB,
 zero-swap, CPU-123 limits used above. These tests never programmed an FPGA.
 
+The expanded nine-test suite additionally validates all prepared target
+files independently in Python, the logical/full-buffer projection, exact
+schedule types, metadata and canary corruption, and synthetic readback/event
+records. The synthetic records test the validator only, never represent
+FPGA measurements, and are kept in temporary test directories. Unit
+`spine-k4-board-host-tests-20261018-v3.service` passes in 21.6 seconds with
+a 494.8-MiB peak. The preceding v2 attempt failed because the host `/tmp`
+filesystem was full; no device was accessed. Use `TMPDIR` on a filesystem
+with sufficient space when exporting complete target buffers.
+The subsequent complete original-ReGraph regression passed all 263 tests in
+46.1 seconds (`spine-original-r-regression-20261018-v5.service`, 507.4-MiB
+peak), under the same 2-GiB zero-swap containment and CPU affinity.
+
 ```bash
 systemd-run --user --wait --pipe --collect \
   -p MemoryMax=2G -p MemoryHigh=1792M -p MemorySwapMax=0 -p OOMPolicy=kill \
   -p CPUQuota=100% -p CPUAffinity=123 -p RuntimeMaxSec=180 \
   -p TimeoutStopSec=15 -p KillMode=control-group -p TasksMax=128 \
+  --setenv=TMPDIR=/data/chuxiao/tmp \
   --working-directory="$PWD" /usr/bin/python3 -m unittest discover \
   -s tests -p test_original_regraph_k4_board_host.py -v
 ```
@@ -218,8 +234,13 @@ device lease/BDF with reset/recovery policy. Do not run on an unmatched xclbin
 or treat a successful offline assertion as satisfying those gates.
 The C++ host implements the execution and readback operations above, but its
 CPU tests do not validate them on a device. Python route qualification,
-independent board-readback analysis, complete repeated execution and failure
-recovery remain separate gates; no actual adapter/K4 FPGA timing is available.
+complete repeated execution and failure recovery remain separate gates;
+no actual adapter/K4 FPGA timing is available.
+`hardware/k4_control/board_analysis.py` independently checks prepared targets
+and subsequently compares complete raw device reads with their pinned hashes,
+including immutable graph data, slack and guards. It validates raw/logical
+projection, every event identity/dependency, overlap-aware union/span and
+resident wall time. A C++ PASS string cannot replace those checks.
 
 Source owners: original `hardware/model.hpp` and `whole_graph/input.hpp`;
 production `include/weighted_pma_graph.hpp`,

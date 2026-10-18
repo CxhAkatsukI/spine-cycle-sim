@@ -10,7 +10,7 @@ import sys
 import tempfile
 import unittest
 
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.k4_control import analysis, build, inputs
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.k4_control import analysis, board_analysis, build, inputs
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.semantics import arithmetic
 
 
@@ -140,6 +140,24 @@ class OriginalRegraphK4ControlTests(unittest.TestCase):
             self.assertEqual("-fsanitize=undefined" in command, variant == "ubsan")
         with self.assertRaises(ValueError):
             build.command(*paths, "fast", "offline")
+
+    def test_prepared_matrix_compares_values_and_complete_targets_not_pin_paths(self):
+        rows = [{"build": variant, "graph": graph, "binding": binding, "repetition": repeat,
+                 "status": analysis.UNSUPPORTED if graph == "boundary_ring" else board_analysis.PREPARED,
+                 "analysis": {"values": graph + binding, "targets": {"rank": graph + binding},
+                              "pins": [{"path": f"{variant}/{graph}/{binding}/{repeat}"}]}}
+                for variant, graph, binding, repeat in itertools.product(
+                    analysis.BUILDS, inputs.GRAPHS, analysis.BINDINGS, range(2))]
+        board_analysis.matrix(rows)
+        with self.assertRaisesRegex(ValueError, "24-row"):
+            board_analysis.matrix(rows[:-1])
+        changed = copy.deepcopy(rows)
+        changed[-1]["analysis"]["targets"]["rank"] = "corrupted"
+        with self.assertRaisesRegex(ValueError, "outputs differ"):
+            board_analysis.matrix(changed)
+        changed[-1]["status"] = board_analysis.PASS
+        with self.assertRaisesRegex(ValueError, "only prepared"):
+            board_analysis.matrix(changed)
 
     def test_reject_prior_board_claim_before_source_admission(self):
         with tempfile.TemporaryDirectory() as temp:
