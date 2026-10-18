@@ -124,6 +124,11 @@ Any external interconnect sharing must be reviewed as an explicit physical
 port before retrying; silently deleting/compacting author kernel interfaces
 does not satisfy this control.
 
+The separate [external metadata fan-in diagnostic](physical_port/README.md)
+preserves those compiled XOs and investigates same-bank external SmartConnect
+sharing. It stops before synthesis/routing and is not accepted by the
+unmodified original-G route-admission schema.
+
 The [standalone board-host prerequisite](board_host/README.md) now compiles
 the real-XRT Release binary and independently replays all eight author-host
 inputs in Release and UBSan builds. These passes do not waive the route,
