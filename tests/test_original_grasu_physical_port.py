@@ -63,7 +63,7 @@ if {[::spine_g_ports::classify /bin_search_1/m_axi_gmem_edges HBM_MEM00] ne {}} 
             self.assertNotEqual(result.returncode, 0)
             self.assertNotIn("invalid command name", result.stderr)
 
-    def test_clock_name_is_resolved_to_bd_pin_before_property_query(self):
+    def test_resolved_clock_and_two_endpoints_preserve_original_hmss_net(self):
         result = self.tcl("""
 namespace eval ::hbm_memory_subsystem::util {}
 proc ::hbm_memory_subsystem::util::find_associated_clock_pin {master} {return /bin_search_1/ap_clk}
@@ -87,10 +87,21 @@ proc get_property {name object} {
     error unexpected_property
 }
 proc get_bd_nets {args} {return clock_or_reset_net}
-foreach command {create_bd_cell set_property connect_bd_net disconnect_bd_intf_net connect_bd_intf_net} {
+foreach command {create_bd_cell set_property connect_bd_net disconnect_bd_intf_net} {
     proc $command {args} {}
 }
+proc connect_bd_intf_net {args} {
+    if {[lindex $args 0] eq {-intf_net}} {
+        if {$args ne {-intf_net master_net /g_metadata_1_0/M00_AXI /hmss_0/S02_AXI}} {
+            error {retained HMSS net requires both explicit interface endpoints}
+        }
+        set ::retained_connection $args
+    } elseif {$args ne {/bin_search_1/m_axi_gmem0 /g_metadata_1_0/S00_AXI}} {
+        error {unexpected author-master connection}
+    }
+}
 ::spine_g_ports::map /bin_search_1/m_axi_gmem0 /hmss_0 HBM_MEM00
+if {![info exists ::retained_connection]} {error missing_hmss_connection}
 if {[dict get $::spine_g_ports::groups /g_metadata_1_0 members] ne {/bin_search_1/m_axi_gmem0}} {
     error missing_first_master
 }

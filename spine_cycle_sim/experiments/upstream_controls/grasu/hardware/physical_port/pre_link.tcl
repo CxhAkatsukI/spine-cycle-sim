@@ -53,7 +53,9 @@ namespace eval ::spine_g_ports {
             connect_bd_net -net $clock_net [get_bd_pins $name/aclk]
             connect_bd_net -net $reset_net [get_bd_pins $name/aresetn]
             disconnect_bd_intf_net $net [get_bd_intf_pins $master]
-            connect_bd_intf_net -intf_net $net [get_bd_intf_pins $name/M00_AXI]
+            set upstream [one [get_bd_intf_pins $name/M00_AXI] "SmartConnect master"]
+            set downstream [one [get_bd_intf_pins $slave] "retained HMSS slave"]
+            connect_bd_intf_net -intf_net $net $upstream $downstream
             dict set groups $name [dict create slave $slave segment $segment range $range offset $offset \
                 bank $memory clock $clock_net reset $reset_net members {}]
         }
