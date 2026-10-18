@@ -66,6 +66,17 @@ was about 3 GiB, with zero OOM events. This failure remains untouched. The
 fix explicitly resolves the clock with `get_bd_pins`; no author source,
 compiled XO, memory mapping, timing constraint or vendor file is changed.
 
+The fresh v2 deployment uses fixed runner `4472627`, service
+`spine-original-g-physical-port-20261018-v2.service`, invocation
+`7704538d19e74c80bb50e204ae87f4c4`, and output
+`original-g-physical-port-probe-v2` under the remote campaign root above.
+At 2026-10-18 12:34 UTC it is `WAITING_FOR_COMPLETE_MEMORY_BUDGETS`:
+about 435 GiB is available and 200 GiB of full budgets/reserves is required,
+but unrelated unbounded Vivado simulation processes prevent admission.
+The actual cgroup reports 40/36-GiB max/high, zero swap and
+`memory.oom.group=1` (`OOMPolicy=kill` in the systemd service).
+It has not executed BD creation, routed or programmed an FPGA.
+
 Seven focused synthetic tests cover grouping, preserved vendor delegation,
 delayed hook installation, duplicate/order/bank rejection, clock-object
 resolution, proof corruption and stopping before tools on a bad parent.

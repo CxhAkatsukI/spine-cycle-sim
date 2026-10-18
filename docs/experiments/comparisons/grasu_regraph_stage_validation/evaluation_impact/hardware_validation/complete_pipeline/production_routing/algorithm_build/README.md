@@ -309,6 +309,11 @@ neither the clock requirement nor cache capacity is relaxed.
 
 ResPR v2 has now completed linking but fails strict setup timing: WNS
 -0.107 ns, TNS -18.575 ns, 443 failing endpoints, with zero OOM events.
+Its independently returned xclbin reports DATA 147 MHz and HBM 434 MHz;
+the required 150/450-MHz clocks are not met. The retained local
+`production-respr-return-follow-v1` fails before requesting a board. The
+trusted return receipt SHA-256 is
+`10aafc0978b5304be550905754f173fcef4c73fc6f666608ef6bcef6e814647b`.
 Its final report is
 `production-respr-route-v2/reports/link/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt`.
 The independent [checkpoint diagnostic](postroute/README.md) explores physical

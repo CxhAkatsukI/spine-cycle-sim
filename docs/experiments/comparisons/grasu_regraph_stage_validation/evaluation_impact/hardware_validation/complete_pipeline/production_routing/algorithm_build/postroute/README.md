@@ -28,6 +28,26 @@ A useful physical strategy must subsequently enter a separately frozen
 artifact-generation and full timing/clock/topology/RTL/board admission flow.
 No HLS arithmetic, ABI, capacity, clock constraint or simulator factor changes.
 
+## Deployed Attempt
+
+The frozen runner is simulator `4472627`, directory
+`physical-diagnostics-runner-4472627` under the remote campaign root below.
+The minimal runner archive SHA-256 is
+`dd7d1c5d64d7d2f41c4a7532c036e9312ef96730b74f7911514e564a6a77dc8c`.
+Service `spine-respr-postroute-20261018-v1.service`, invocation
+`6ce4cd7327e84d7ea534168580fff71d`, owns output
+`production-respr-postroute-diagnostic-v1`. At 2026-10-18 12:34 UTC it is
+`WAITING_FOR_COMPLETE_MEMORY_BUDGETS`, not executing physical optimization.
+An unrelated unbounded Vivado simulation blocks admission despite approximately
+435 GiB available; existing bounded SSSP/CC/FullPR builds continue.
+Its own verified cgroup is 40/36 GiB max/high, zero swap and group OOM kill.
+
+Read-only replay of the parent's actual final report, SHA-256
+`760e74b83067645d4e5b00fdc6f9eae23b6d58fb3ac498b81c5e731419650bac`,
+confirms 443 setup failures, zero hold/pulse failures and strict rejection.
+The parent's returned binary also has actual DATA/HBM clocks 147/434 MHz.
+Neither the parent binary nor a later diagnostic report is board admission.
+
 ## Run
 
 Run a fixed source archive on the builder, in a fresh directory and separate

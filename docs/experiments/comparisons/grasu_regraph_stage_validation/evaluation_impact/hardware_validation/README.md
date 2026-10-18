@@ -39,7 +39,7 @@ modified G+R bitstream. The same-platform U55C/150-MHz control remains
 distinct from reproducing the U250 publication. Preparation/ABI unit tests
 are not integrated RTL, board timing or original-performance admission.
 
-At the 2026-10-18 12:17 UTC checkpoint the original-G link has failed: all
+At the 2026-10-18 12:34 UTC checkpoint the original-G link has failed: all
 four author kernel types compiled, but 46 AXI masters exceed the platform's
 33 HMSS ingress connections. This is an interface/platform limitation, not
 an OOM or measured performance result. The independent
@@ -55,15 +55,22 @@ matrix; original G's platform-port failure still blocks a paired speed match.
 The independent [external metadata fan-in diagnostic](original_grasu/physical_port/README.md)
 preserves all author masters and shares same-bank metadata outside the CUs.
 Its first actual BD attempt failed on an unresolved clock-name/object API
-call, before interface acceptance; a tested fix is separate from that failure.
+call, before interface acceptance. The separately frozen v2 retry is deployed,
+but is waiting for complete peer memory budgets, not executing Vivado yet.
 
-The high-memory host has approximately 446 GiB available. SSSP v2 continues
-placement, and CC v2 and FullPR v2 continue block synthesis, each under its own
+The high-memory host has approximately 435 GiB available. SSSP v2 continues
+post-placement optimization, and CC v2 and FullPR v2 continue block synthesis, each under its own
 40-GiB hard limit. ResPR v2 completed v++ but fails strict setup timing
 (WNS -0.107 ns, TNS -18.575 ns, 443 failing endpoints), without OOM events.
-It is not a successful board-ready route. A separately owned checkpoint
-diagnostic tests physical refinement without changing HLS/clocks or producing
-a bitstream. FullPR v1 also remains a timing/clock failure; its v2 retry and
+Its returned DATA/HBM clocks are 147/434 MHz, rather than 150/450 MHz;
+the return gate rejects it before board programming. A separately owned
+checkpoint diagnostic is deployed and waiting for complete peer budgets.
+It will test physical refinement without changing HLS/clocks or producing
+a bitstream. Both new tasks have verified 40/36-GiB max/high, zero swap and
+group-OOM containment. Their full-budget admission is currently blocked by
+an unrelated, unbounded vendor RTL simulation, not by a requirement that
+all bounded FPGA jobs exit. No other user's process is changed.
+FullPR v1 also remains a timing/clock failure; its v2 retry and
 exact return/board continuations are separately frozen.
 The [algorithm guide](complete_pipeline/production_routing/algorithm_build/README.md#physical-timing-retry)
 owns the failed report, retry identity and live-state boundary. The earlier
