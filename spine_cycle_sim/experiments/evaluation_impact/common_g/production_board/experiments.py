@@ -27,7 +27,7 @@ def metadata_analyze(case, stdout, stderr, *, bdf):
     return metadata.analyze(stdout, stderr, bdf=bdf)
 
 
-def plans(native_preflight, metadata_preflight, gr_preflight):
+def plans(native_preflight, metadata_preflight, gr_preflight, *, route_review=None):
     sources = tuple(sorted(Path(__file__).parent.glob("*.py")))
     rows = (
         ("native_g", native_preflight, native.host_identity, analysis.analyze,
@@ -38,5 +38,5 @@ def plans(native_preflight, metadata_preflight, gr_preflight):
         ("resident_gr", gr_preflight, handoff.host_identity, handoff.events.analyze, handoff.BOARD_PASS, 9,
          handoff.BOUNDARY),
     )
-    return [(name, preflight, board.Experiment(host, analyze, status, boundary, sources, route.review), count)
+    return [(name, preflight, board.Experiment(host, analyze, status, boundary, sources, route_review or route.review), count)
             for name, preflight, host, analyze, status, count, boundary in rows]

@@ -55,6 +55,21 @@ memory events. This is a same-platform one-superstep PR control, not dynamic
 convergence or original-paper performance reproduction. The production route
 continues separately through the [high-memory host package](complete_pipeline/production_routing/remote/README.md).
 
+Diagnostic G/GR board v5 now passes its 18 G / 27 resident G+SSSP executions
+(54 / 81 batch rows), with zero memory events. It uses the older diagnostic
+search/cache exports. Production SSSP is actually building on `seele`, not
+merely queued: all six environment checks passed and block synthesis began.
+Its return/strict-timing/three-matrix board continuation has a separate owner
+in the linked remote package. No production FPGA result, published-performance
+match, fixed-Spine matrix or replacement figure is claimed yet.
+
+### Historical 2026-10-16 Track Snapshot
+
+The table below retains the earlier campaign checkpoint. For subsequent A4,
+diagnostic G/GR and remote-production changes, use the current checkpoint
+above and its owned guides rather than interpreting these old queue states
+as live status.
+
 | Track | Latest evidence | Remaining gate |
 | --- | --- | --- |
 | Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |

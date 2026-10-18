@@ -15,7 +15,9 @@ def fixture(root):
     parent.mkdir()
     manifest, _, exports = production_tests.fixture(parent)
     config = parent / "link.cfg"
-    config.write_text("platform=/old/platform.xpfm\n[connectivity]\nnk=search:4\n"
+    config.write_text("platform=/old/platform.xpfm\nmessageDb=/old/route.mdb\n"
+                      "temp_dir=/old/link\nreport_dir=/old/reports\nlog_dir=/old/logs\n"
+                      "remote_ip_cache=/old/ip_cache\n[connectivity]\nnk=search:4\n"
                       "sp=search_1.pma:HBM[0]\nsp=search_2.pma:HBM[1]\n"
                       "[advanced]\nmisc=solution_name=link\n[param]\n"
                       "compiler.userPostSysLinkTcl=/unchanged.tcl\n")
