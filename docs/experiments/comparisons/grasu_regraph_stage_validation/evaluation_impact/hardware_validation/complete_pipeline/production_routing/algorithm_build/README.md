@@ -55,15 +55,65 @@ owner. It does not replace return admission or authorize FPGA programming.
 
 ## Latest Source And Compile Continuation
 
-The latest portable closure is `production-algorithm-sources-v3`, integration
-`1a5650c79ae0c29418b93184a1590f256e33f0b6`. Its source-index SHA-256 is
-`8b41653890d1e48e32c5f3531d79ba8fe227d0eccc883b8a08845e04f136f00f`.
-All 180 transported source files are byte-identical to v2: the newer Git
-revision changes host device-lease guards outside this compile closure. The
-PageRank Apply packing change is present in both v2 and v3, but not v1.
-Do not relabel the ongoing v1-source CC/FullPR routes as latest-source results.
+The latest portable closure is `production-algorithm-sources-v4`, integration
+`87a0a2cdb8c647247bb4d61dbd06ca4e98028f0b`. Its source-index SHA-256 is
+`f92aa72f426f8c2177608fdb205af7aca0e14ef8dbe78e200fd69e4a1b70ea02`.
+All 180 transported source files are retained locally and on the remote builder.
+It includes the PageRank Apply packing fix and the fresh registered cache
+comparison stage. The latter has passing host functional, segment-oracle and
+HLS checks; its component RTL is still running. Compilation in parallel does
+not waive RTL or physical timing admission.
 
-FullPR's latest compilation is `production-fullpr-compile-v2`, service
+The prior v3 closure is integration `1a5650c79ae0c29418b93184a1590f256e33f0b6`,
+index SHA-256 `8b41653890d1e48e32c5f3531d79ba8fe227d0eccc883b8a08845e04f136f00f`.
+Its source bytes match v2; its host device-lease change is outside the compile
+closure. V2/v3 include the Apply fix but not the latest cache stage. V1 includes
+neither fix. Never relabel those separately frozen routes as v4 results.
+
+### Latest Local Compilations
+
+Local tool preflight passes with the explicit 2024.1 installation, U55C platform
+and campaign-owned compatibility libraries. CC and ResPR are compiling; FullPR
+is waiting for its full finite memory budget. All use v4 sources and immutable
+simulator runner `algorithm-return-runner-2b9cf3c`, archive SHA-256
+`a1517443ce25b60df47aa219116dd84d994ba3344944ca1fffc49a4f6e2dace4`.
+The local root is
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/`.
+
+| Algorithm | Local output | Service / invocation |
+| --- | --- | --- |
+| CC | `production-cc-compile-local-v2` | `spine-production-cc-compile-local-20261018-v2.service` / `c43a6ab156e341e683de58b99d05df85` |
+| ResPR | `production-respr-compile-local-v2` | `spine-production-respr-compile-local-20261018-v2.service` / `cea9d8238407459f90a6f581b0161fc4` |
+| FullPR | `production-fullpr-compile-local-v1` | `spine-production-fullpr-compile-local-20261018-v1.service` / `bf324b00d0864f66a2fb215c079be3f1` |
+
+Each has 16/14-GiB max/high, zero swap, group OOM kill, 400% CPU, a distinct
+CPU affinity and a 133200-second lifetime. Shared admission retains the full
+peer budgets and 32+8-GiB reserve. Compatibility must name the actual nested
+`local-tool-compat-v1/compat-2024.1` directory. The earlier CC/ResPR local v1
+attempts retain their missing-library-directory failures before compilation;
+v2 uses a fresh output, not rewritten failure evidence.
+
+Each local compile now has an independent `follow-compile` service using the
+same immutable runner and v4 source index. It waits for exactly the compilation
+invocation above; a terminal successful compile is followed by fresh resource,
+ABI and environment checks, then the existing finite-memory route owner with
+`aggressive-route-v1`. All three are currently waiting for compilation, not
+executing a link. Each has 40/36-GiB max/high, zero swap, group OOM kill, 800%
+CPU and a 270000-second lifetime. Its child output is `OUTPUT/route`.
+
+| Algorithm | Local follower output | Service / invocation |
+| --- | --- | --- |
+| CC | `production-cc-compile-route-local-v1` | `spine-production-cc-compile-route-local-20261018-v1.service` / `8866c7c03edc446a9dd2d14bdc39d876` |
+| ResPR | `production-respr-compile-route-local-v1` | `spine-production-respr-compile-route-local-20261018-v1.service` / `37e683aed86d4459932d9ad4c88935aa` |
+| FullPR | `production-fullpr-compile-route-local-v1` | `spine-production-fullpr-compile-route-local-20261018-v1.service` / `0bba11cc2a3e4d7d9ec7d6e88536616a` |
+
+These followers do not seal, admit or program an FPGA. Completed links still
+need independent timing/source/clock admission and the algorithm RTL and board
+gates. A queued follower is not evidence that routing has begun or will pass.
+
+### Prior Remote Continuation
+
+The prior v3-source FullPR compilation is `production-fullpr-compile-v2`, service
 `spine-production-fullpr-compile-20261018-v2.service`, invocation
 `2d8f7afce8a74532a7cebca981af85a5`, with unchanged compile runner `92ab3cd`
 and the v3 source closure. At the 17:08 UTC checkpoint it is waiting for a
@@ -125,6 +175,15 @@ The return still seals the child `OUTPUT/route`, checks the exact parent
 invocation and independently enforces source, ABI, connectivity and timing.
 Fifty-nine focused algorithm-build tests pass, including the longer bounded
 wait and rejection of changed or unsuccessfully terminated services.
+
+The deployed local return follower is
+`spine-production-fullpr-return-20261018-v3.service`, invocation
+`44fd04bb4ce643a1afd54a55d444206b`, output `production-fullpr-return-follow-v3`
+under the local experiment root. It uses runner `2b9cf3c`, the explicit
+270000-second wait and a 274000-second containing service, with 4/3-GiB
+max/high and zero swap. It waits for parent invocation `6bc5f930f57f47dc994bdcf21cea3635`
+and seals that parent's `route` child using the remote runner above. It still
+targets the **v3** closure, not the newly compiling local v4 outputs.
 
 ## Deployed Checkpoint
 
@@ -356,6 +415,13 @@ The binary SHA-256 is
 `a8e6209e8a84ad4c1e6e675d2be83d890b45303bab9b26a68cfb1a950903b8b1`;
 the retained `production-cc-return-follow-v1` report is `FAILED_RETAINED`.
 It has not been programmed or admitted to a performance comparison.
+
+CC v2's physical-only retry also completes linking but fails strict setup
+timing: WNS -0.070 ns, TNS -1.986 ns and 68 failing setup endpoints. Hold WNS
+is +0.009 ns with no hold or pulse-width violations. The local
+`production-cc-return-follow-v3` retains `FAILED_RETAINED`; no board was
+requested. This retry still uses the v1 source closure, not the fresh cache
+comparison stage in v4. Its failure is not evidence about v4 routed timing.
 
 `route-experiment --timing-profile aggressive-route-v1` supports a separate
 physical-only retry, using the same five Vivado placement/physical-opt/route
