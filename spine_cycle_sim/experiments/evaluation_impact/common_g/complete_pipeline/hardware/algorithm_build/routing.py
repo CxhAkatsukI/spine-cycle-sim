@@ -7,6 +7,7 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from ....search_pipeline.synthesis import unchanged
 from ..remote.capsule import configuration
+from ..remote import timing
 from . import commands, inspection, review
 
 PASS = "EXPORT_AND_STORAGE_SCREEN_PASS_NOT_RTL_OR_ROUTE_ADMISSION"
@@ -33,7 +34,24 @@ def relocate_little(contents):
     return changed
 
 
-def prepare(compilation, storage, output, platform, compiler):
+def validate_timing_profile(contents, profile):
+    """Require exactly the declared implementation-only Vivado properties."""
+    section, properties, sections = "", [], 0
+    for line in contents.splitlines():
+        stripped = line.partition("#")[0].strip()
+        if not stripped:
+            continue
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1].lower()
+            sections += section == "vivado"
+        elif section == "vivado":
+            properties.append(stripped)
+    expected = [] if profile is None else ["prop=" + value for value in timing.PROPERTIES]
+    if profile not in (None, timing.PROFILE) or properties != expected or sections != (0 if profile is None else 1):
+        raise ValueError("algorithm link physical timing profile differs")
+
+
+def prepare(compilation, storage, output, platform, compiler, *, timing_profile=None):
     original = review.run(compilation, storage, output / "original-review")
     if original["status"] not in (PASS, "STORAGE_CONFLICT_REQUIRES_PLACEMENT_REVIEW"):
         raise ValueError("original export has a non-placement resource conflict")
@@ -45,7 +63,9 @@ def prepare(compilation, storage, output, platform, compiler):
         raise ValueError("one compiled connectivity file required")
     contents = relocate_little(configs[0].read_text())
     config = output / "link.cfg"
-    config.write_text(configuration(contents, output, platform))
+    contents = timing.configure(configuration(contents, output, platform), timing_profile)
+    validate_timing_profile(contents, timing_profile)
+    config.write_text(contents)
     capacity, pins = review.capacities(storage)
     checked = inspection.inspect(config, compiles, capacity["physical"], capacity["platform"])
     if checked["status"] != PASS or checked["connections"]["automatic_memory_masters"]:
@@ -64,6 +84,7 @@ def prepare(compilation, storage, output, platform, compiler):
     unchanged(pins)
     return {"algorithm": manifest["algorithm"], "integration_revision": manifest["integration_revision"],
             "command": argv, "pins": pins, "clock_mhz": 150,
+            "timing_profile": timing_profile,
             "placement_change": {"instance": "lksg_stream_4", "from": "SLR0", "to": "SLR1"},
             "scope": "experimental_link_before_algorithm_RTL_admission_not_performance_evidence",
             "rtl_admitted": False, "board_admitted": False, "publication_match": False}

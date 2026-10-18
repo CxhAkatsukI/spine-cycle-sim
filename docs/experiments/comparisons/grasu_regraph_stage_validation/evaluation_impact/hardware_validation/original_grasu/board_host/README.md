@@ -79,6 +79,18 @@ child-tree RSS is 229,720 KiB and service memory peak is 722,563,072 bytes.
 Seven focused unit tests additionally cover malformed extents, corruption,
 duplicate/absent updates, immutable baseline admission and input reuse.
 
+The current runtime-closure preflight is the separate
+`original-g-board-host-preflight-v3`, frozen at simulator `534ec1f`, service
+invocation `e23f365e9a4648aba03f81a5b28397fe`. Its report SHA-256 is
+`bee145c72883f4c0d9ec85ca0eccab207bfdebd1050d9a978d4645d7ae9cc701`.
+All eight inputs pass in Release and UBSan, and both invalid-header checks
+pass (21 child steps, sampled maximum 236668 KiB). The cgroup peak is
+378617856 bytes. The direct Xilinx OpenCL link, resolved dependencies and
+dynamic PCIe core are frozen. This remains a **host/model preflight**, not
+an FPGA timing or correctness result. The intervening v2 service failed
+before import because its detached worktree checkout had not finished; that
+launch failure is retained and did not run an experiment.
+
 Reproduce without a board:
 
 ```bash

@@ -95,6 +95,15 @@ on October 18 the service is waiting for an unbounded peer's budget to be
 resolved; it has not compiled a kernel or produced FPGA evidence. Four
 already-admitted bounded production links continue independently.
 
+That v1 later passed memory admission and all six tool probes, but failed
+its first compile at 10:15 UTC: the author's `<ap_utils.h>` was not found.
+No XO or bitstream was produced; logs and `FAILED_RETAINED` remain intact.
+The revised command explicitly includes this installation's
+`Vitis_HLS/2024.1/include/etc`, and pins both `ap_utils.h` and its directly
+included `autopilot_ssdm_op.h`. It does not replace the header with a stub,
+remove the include, alter any author source, or change the geometry/clock.
+A fresh runner and output are required for the retry.
+
 The [standalone board-host prerequisite](board_host/README.md) now compiles
 the real-XRT Release binary and independently replays all eight author-host
 inputs in Release and UBSan builds. These passes do not waive the route,

@@ -271,6 +271,26 @@ Neither a passing compile nor a bitstream's existence supplies new Figure 7
 performance or an original-publication match. All outputs and failures stay
 in their fresh directories; the paper and existing figures remain unchanged.
 
+### Physical Timing Retry
+
+CC v1 completed the link but **failed strict admission**. Its final routed
+summary reports WNS -0.084 ns, TNS -5.751 ns and 163 failing setup endpoints.
+The returned clock metadata also fails the required 150-MHz data-clock check.
+The binary SHA-256 is
+`a8e6209e8a84ad4c1e6e675d2be83d890b45303bab9b26a68cfb1a950903b8b1`;
+the retained `production-cc-return-follow-v1` report is `FAILED_RETAINED`.
+It has not been programmed or admitted to a performance comparison.
+
+`route-experiment --timing-profile aggressive-route-v1` supports a separate
+physical-only retry, using the same five Vivado placement/physical-opt/route
+properties as the independent SSSP retry. It keeps every XO, connectivity,
+capacity and target clock unchanged. The selected profile is frozen in the
+route manifest; returned admission requires exactly its declared properties,
+with no additional Vivado overrides. The default requires no Vivado section.
+Use a new output/service and receipt, never rewrite the failed v1 evidence.
+Final clock/timing requirements remain unchanged; this option is not a waiver
+or a prediction of successful timing closure.
+
 ## Return And Timing Admission
 
 Use `seal-route` on the builder only after the **exact service invocation**

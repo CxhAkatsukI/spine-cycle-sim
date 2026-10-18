@@ -56,7 +56,7 @@ def connectivity():
     return "\n".join(lines) + "\n"
 
 
-def commands(compiler, platform, packet, output):
+def commands(compiler, platform, packet, output, *, legacy_include):
     base = [str(compiler), "--target", "hw", "--platform", str(platform), "--save-temps", "-O3",
             "--kernel_frequency", str(CLOCK_MHZ)]
 
@@ -65,7 +65,7 @@ def commands(compiler, platform, packet, output):
                 for option in ("--" + kind + "_dir", str(output / name / kind))]
 
     compilations = {name: [*base, "--compile", "--kernel", name,
-        "-D_GTHREAD_USE_COND_INIT_FUNC", "-I" + str(packet / "source"),
+        "-D_GTHREAD_USE_COND_INIT_FUNC", "-I" + str(packet / "source"), "-I" + str(legacy_include),
         *directories("compile/" + name), "-o", str(output / "xo" / (name + ".hw.xo")),
         str(packet / "source" / ("kernel_" + name + ".cpp"))] for name in KERNELS}
     link = [*base, "--link", "--config", str(packet / "link.cfg"),

@@ -9,6 +9,7 @@ from unittest.mock import patch
 from test_g_algorithm_review import compile_fixture, write
 from test_g_algorithm_inspection import CAPACITY
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build import route_study, routing
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import timing
 
 CONFIG = ("platform=/old/platform.xpfm\nmessageDb=/old/a\ntemp_dir=/old/b\nreport_dir=/old/c\n"
           "log_dir=/old/d\nremote_ip_cache=/old/e\n[connectivity]\n"
@@ -36,6 +37,19 @@ class PlacementTests(unittest.TestCase):
                        CONFIG.replace("nk=lksg_stream:4", "nk=lksg_stream:3")):
             with self.subTest(config=config), self.assertRaises(ValueError):
                 routing.relocate_little(config)
+
+    def test_physical_retry_changes_only_the_five_declared_properties(self):
+        contents = timing.configure(CONFIG, timing.PROFILE)
+        routing.validate_timing_profile(contents, timing.PROFILE)
+        routing.validate_timing_profile(CONFIG, None)
+        self.assertEqual(contents.removesuffix("\n[vivado]\n" + "\n".join(
+            "prop=" + value for value in timing.PROPERTIES) + "\n"), CONFIG)
+        for altered, profile in ((contents, None), (CONFIG, timing.PROFILE), (contents, "unknown"),
+                                 (contents + "prop=run.impl_1.OTHER=true\n", timing.PROFILE),
+                                 (contents + "[vivado]\n", timing.PROFILE), (CONFIG + "[vivado]\n", None),
+                                 (contents.replace("AggressiveExplore", "Explore", 1), timing.PROFILE)):
+            with self.subTest(profile=profile, contents=altered), self.assertRaises(ValueError):
+                routing.validate_timing_profile(altered, profile)
 
     def prepare_fixture(self, root, original_status, candidate_status, automatic=None):
         compilation, rows = compile_fixture(root)
@@ -67,6 +81,21 @@ class PlacementTests(unittest.TestCase):
             self.assertFalse(result["board_admitted"])
             self.assertIn("experimental", result["scope"])
             self.assertEqual(result["placement_change"]["instance"], "lksg_stream_4")
+            self.assertIsNone(result["timing_profile"])
+
+    def test_profile_is_frozen_in_the_manifest_and_does_not_change_xos(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            comp, rows, output, original, candidate = self.prepare_fixture(root, routing.PASS, routing.PASS)
+            with patch.object(routing.review, "run", return_value=original), \
+                    patch.object(routing.review, "capacities", return_value=({"physical": CAPACITY, "platform": CAPACITY}, [])), \
+                    patch.object(routing.inspection, "inspect", return_value=copy.deepcopy(candidate)), \
+                    patch.object(routing.commands, "PURE", {row["kernel"] for row in rows}):
+                result = routing.prepare(comp, root / "storage", output, root / "platform", "/fixed/v++",
+                                         timing_profile=timing.PROFILE)
+            self.assertEqual(result["timing_profile"], timing.PROFILE)
+            self.assertEqual([a for a in result["command"] if a.endswith(".xo")], [r["xo"] for r in rows])
+            routing.validate_timing_profile((output / "link.cfg").read_text(), timing.PROFILE)
 
     def test_nonplacement_conflicts_or_remaining_conflicts_or_implicit_ports_block_route(self):
         for original_status, candidate_status, automatic in (

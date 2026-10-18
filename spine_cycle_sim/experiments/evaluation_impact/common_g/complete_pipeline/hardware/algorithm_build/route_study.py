@@ -22,7 +22,7 @@ POLICY = {"tree_memory_gib": 40, "reserve_gib": 32, "background_memory_gib": 8,
           "allow_bounded_builds": True}
 
 
-def run(compilation, storage, output, xilinx, platform, compatibility, shim):
+def run(compilation, storage, output, xilinx, platform, compatibility, shim, *, timing_profile=None):
     compilation, storage, output, xilinx, platform, compatibility, shim = (
         path.resolve() for path in (compilation, storage, output, xilinx, platform, compatibility, shim))
     output.mkdir(parents=True, exist_ok=False)
@@ -41,7 +41,8 @@ def run(compilation, storage, output, xilinx, platform, compatibility, shim):
             (output / name).mkdir()
         effective, contract = environment.capture(shim, output, xilinx, platform, compatibility)
         atomic_write_json(output / "environment.json", contract)
-        manifest = routing.prepare(compilation, storage, output, platform, contract["tools"]["v++"]["invocation"])
+        manifest = routing.prepare(compilation, storage, output, platform, contract["tools"]["v++"]["invocation"],
+                                   timing_profile=timing_profile)
         report.update(algorithm=manifest["algorithm"], integration_revision=manifest["integration_revision"])
         runners = sorted({Path(module.__file__) for name, module in sys.modules.copy().items()
             if name.startswith("spine_cycle_sim.experiments") and getattr(module, "__file__", None)})

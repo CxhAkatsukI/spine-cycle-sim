@@ -55,15 +55,33 @@ class OriginalGraSUHardwareTests(unittest.TestCase):
             self.assertIn(f"sp=bin_search_{index}.row_offset_3:HBM[{index-1}]", lines)
 
     def test_commands_keep_original_source_and_do_not_override_geometry(self):
-        compiles, link = config.commands("/vendor/v++", Path("/platform"), Path("/packet"), Path("/output"))
+        compiles, link = config.commands("/vendor/v++", Path("/platform"), Path("/packet"), Path("/output"),
+                                        legacy_include=Path("/vendor/Vitis_HLS/2024.1/include/etc"))
         self.assertEqual(list(compiles), list(config.KERNELS))
         for name, command in compiles.items():
             self.assertEqual(command[-1], f"/packet/source/kernel_{name}.cpp")
             self.assertIn("-D_GTHREAD_USE_COND_INIT_FUNC", command)
+            self.assertIn("-I/vendor/Vitis_HLS/2024.1/include/etc", command)
             self.assertFalse(any("GRASU" in arg for arg in command))
             self.assertEqual(command[command.index("--kernel_frequency") + 1], "150")
         self.assertEqual(len([arg for arg in link if arg.endswith(".xo")]), 4)
         self.assertEqual(link[link.index("--vivado.impl.jobs") + 1], "2")
+
+    def test_legacy_header_support_is_explicit_pinned_and_required(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            directory = root / "Vitis_HLS/2024.1/include/etc"
+            directory.mkdir(parents=True)
+            with self.assertRaises(FileNotFoundError):
+                study.legacy_headers(root)
+            for name in ("ap_utils.h", "autopilot_ssdm_op.h"):
+                (directory / name).write_text(name)
+            found, pins = study.legacy_headers(root)
+            self.assertEqual(found, directory)
+            self.assertEqual([row["path"] for row in pins],
+                             [str(directory / name) for name in ("ap_utils.h", "autopilot_ssdm_op.h")])
+            with self.assertRaises(TypeError):
+                config.commands("/vendor/v++", root, root, root)
 
     def test_packet_relocation_and_all_claims_remain_false(self):
         with tempfile.TemporaryDirectory() as directory:

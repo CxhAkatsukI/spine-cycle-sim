@@ -7,7 +7,7 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages import bitstream
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from ....search_pipeline.synthesis import unchanged
-from . import artifacts, commands, inputs, topology
+from . import artifacts, commands, inputs, routing, topology
 
 
 def review(returned, sources, output, *, receipt_sha256):
@@ -48,6 +48,7 @@ def review(returned, sources, output, *, receipt_sha256):
                         "--vivado.synth.jobs", "2", "--vivado.impl.jobs", "2"]
     if manifest["command"] != expected_command:
         raise ValueError("returned link command does not cover the declared algorithm XOs")
+    routing.validate_timing_profile((returned / "route/link.cfg").read_text(), manifest.get("timing_profile"))
     pins = [identity(returned / "receipt.json"), source_pin,
             *[identity(returned / row["member"]) for row in receipt["files"]],
             *[identity(path) for path in sorted(Path(__file__).parent.glob("*.py"))]]

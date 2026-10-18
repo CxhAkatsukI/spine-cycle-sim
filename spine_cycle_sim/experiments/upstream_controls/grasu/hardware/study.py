@@ -19,6 +19,13 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.synt
 from . import configuration as config, gates, preparation
 
 
+def legacy_headers(xilinx):
+    """Resolve the author's legacy include from this exact vendor installation."""
+    directory = xilinx / "Vitis_HLS/2024.1/include/etc"
+    pins = [identity(directory / name) for name in ("ap_utils.h", "autopilot_ssdm_op.h")]
+    return directory, pins
+
+
 def run(packet, output, environment_root, xilinx, platform, compatibility):
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING_ORIGINAL_G", "errors": [], "steps": [], "xos": [],
@@ -38,11 +45,13 @@ def run(packet, output, environment_root, xilinx, platform, compatibility):
             (output / name).mkdir()
         effective, contract = environment.capture(environment_root, output, xilinx, platform, compatibility)
         atomic_write_json(output / "environment.json", contract)
+        legacy_include, header_pins = legacy_headers(xilinx)
         runners = {Path(module.__file__) for name, module in list(sys.modules.items())
                    if name.startswith("spine_cycle_sim.") and getattr(module, "__file__", None)}
-        pins = [*packet_pins, *contract["pins"], *map(identity, sorted(runners)),
+        pins = [*packet_pins, *contract["pins"], *header_pins, *map(identity, sorted(runners)),
                 identity(Path(sys.executable)), identity(output / "environment.json")]
-        compilations, link = config.commands(contract["tools"]["v++"]["invocation"], platform, packet, output)
+        compilations, link = config.commands(contract["tools"]["v++"]["invocation"], platform, packet, output,
+                                            legacy_include=legacy_include)
         atomic_write_json(output / "manifest.json", {"pins": pins, "compilations": compilations, "link": link,
             "compile_timeout_seconds": 7200, "link_timeout_seconds": 43200, "policy": config.POLICY,
             "source_modified": False, "interface_compacted": False, **dict.fromkeys(config.FLAGS, False)})

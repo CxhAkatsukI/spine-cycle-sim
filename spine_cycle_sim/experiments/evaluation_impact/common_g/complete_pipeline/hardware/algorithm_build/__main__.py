@@ -22,6 +22,8 @@ def main():
     route = sub.add_parser("route-experiment")
     for name in ("compilation", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
         route.add_argument("--" + name, type=Path, required=True)
+    from ..remote.timing import PROFILE
+    route.add_argument("--timing-profile", choices=(PROFILE,))
     rtl = sub.add_parser("adapter-rtl")
     for name in ("compilation", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
         rtl.add_argument("--" + name, type=Path, required=True)
@@ -49,7 +51,7 @@ def main():
     elif args.action == "route-experiment":
         from .route_study import run
         print(run(args.compilation, args.storage, args.output, args.xilinx,
-                  args.platform, args.compatibility, args.shim)["status"])
+                  args.platform, args.compatibility, args.shim, timing_profile=args.timing_profile)["status"])
     elif args.action == "adapter-rtl":
         from .adapter_rtl import run
         print(run(args.compilation, args.storage, args.output, args.xilinx,
