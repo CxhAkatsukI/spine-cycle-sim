@@ -91,6 +91,29 @@ an FPGA timing or correctness result. The intervening v2 service failed
 before import because its detached worktree checkout had not finished; that
 launch failure is retained and did not run an experiment.
 
+The v3 report also pins imported Python modules from the development checkout.
+Subsequent changes to three of those infrastructure files invalidated reuse:
+the matched-G board waiter stopped before requesting a device. Its old PASS
+is a historical host execution, not a currently valid board prerequisite.
+Do not edit its pins or ignore the mismatch. Generate a new preflight with
+both `PYTHONPATH` and `--root` pointing to the same immutable source snapshot.
+
+Board input admission now accepts an explicitly reviewed report SHA-256;
+omitting it retains the old reviewed digest, not automatic discovery. The
+report schema, independent eight-case capture replay, runtime dependencies,
+all source pins and negative checks remain mandatory. A new report's digest
+must be recorded and supplied by its caller after review. The fixed author
+baseline digest below cannot be overridden by this option. This avoids
+embedding a new report's digest in a module that the report itself pins.
+
+Six synthetic receipt tests cover explicit digests, both original/matched
+prerequisites, changed source rejection and forwarding the same identities
+through the board handoff; these do not program an FPGA:
+
+```bash
+python3 -m unittest discover -s tests -p test_grasu_preflight_identity.py
+```
+
 Reproduce without a board:
 
 ```bash

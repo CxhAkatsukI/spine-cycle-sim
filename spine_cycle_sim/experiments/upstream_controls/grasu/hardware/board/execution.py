@@ -4,6 +4,7 @@ from contextlib import ExitStack, contextmanager
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import time
 
@@ -60,11 +61,13 @@ def wait_for_board(device, report, save, pins, *, maximum_wait=3600):
         yield lease
 
 
-def inputs(root):
+def inputs(root, *, expected_sha256=PREFLIGHT_SHA256):
+    if not isinstance(expected_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_sha256):
+        raise ValueError("explicit reviewed original G host preflight digest required")
     pin = identity(root / "results.json")
     report = json.loads((root / "results.json").read_text())
     manifest = json.loads((root / "inputs/manifest.json").read_text())
-    if pin["sha256"] != PREFLIGHT_SHA256 or report.get("status") != preflight.STATUS or report.get("errors") != [] or \
+    if pin["sha256"] != expected_sha256 or report.get("status") != preflight.STATUS or report.get("errors") != [] or \
             any(report.get(flag) is not False for flag in config.FLAGS) or \
             manifest.get("status") != "ORIGINAL_G_CAPTURE_REPLAY_PASS_NOT_BOARD" or \
             manifest.get("baseline_sha256") != preparation.BASELINE_SHA256 or \
@@ -79,7 +82,7 @@ def inputs(root):
     return Path(binaries[0]["path"]), manifest["cases"], pins
 
 
-def run(preflight_root, admitted, output, *, device=0, repeats=3):
+def run(preflight_root, admitted, output, *, device=0, repeats=3, preflight_sha256=PREFLIGHT_SHA256):
     if type(device) is not int or device not in (0, 1) or type(repeats) is not int or not 3 <= repeats <= 10:
         raise ValueError("known original G board and 3--10 repetitions required")
     output.mkdir(parents=True, exist_ok=False)
@@ -90,7 +93,7 @@ def run(preflight_root, admitted, output, *, device=0, repeats=3):
     save()
     try:
         report["containment"] = verify(current(), memory_gib=4)
-        host, cases, host_pins = inputs(preflight_root)
+        host, cases, host_pins = inputs(preflight_root, expected_sha256=preflight_sha256)
         admitted_pin = identity(admitted / "summary.json")
         checked = json.loads((admitted / "summary.json").read_text())
         profile, pass_status = control_profile(checked)

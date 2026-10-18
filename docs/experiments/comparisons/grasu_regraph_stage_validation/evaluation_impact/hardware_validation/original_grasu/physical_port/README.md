@@ -207,3 +207,19 @@ separate pending evidence.
 ```bash
 python3 -m unittest discover -s tests -p 'test_original_grasu_external_return.py'
 ```
+
+The return-only follower is deployed locally as
+`spine-original-g-external-port-return-20261018-v1.service`, invocation
+`9fac2bbfcc954d0b916a32903f8939c1`, output
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-g-external-port-return-follow-v1`.
+Its local and remote runner snapshots are `60d8073`, archive
+`original-g-external-port-return-runner-60d8073.tar.gz`, SHA-256
+`bd5aaf426ad7fe29c8b83dc8ba04a684550741cbded87d5e96b88abedf8c7434`.
+It waits for the exact full-link invocation above, under a 4/3-GiB max/high
+cgroup with zero swap, group OOM kill and a 259200-second wait. It does not
+have either board-execution flag: return/admission cannot program a card.
+At the 2026-10-18 13:13 UTC checkpoint the remote BD prerequisite is still
+queued and this follower is waiting, not a returned or admitted result.
+For a fresh board-capable follower, pass the separately reviewed immutable
+host report using `--board-preflight-sha256` as well as its path. Reusing a
+development-directory preflight is forbidden even if it once passed.

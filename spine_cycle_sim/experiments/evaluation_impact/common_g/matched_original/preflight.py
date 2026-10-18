@@ -10,13 +10,13 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.upstream_controls.execution import dependency_identities
-from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.execution import inputs
+from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.execution import inputs, PREFLIGHT_SHA256
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.runtime import library_paths
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.synthesis import unchanged
 from . import analysis, preparation
 
 
-def run(root, integration, original_preflight, xrt, output):
+def run(root, integration, original_preflight, xrt, output, *, original_preflight_sha256=PREFLIGHT_SHA256):
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING_MATCHED_G_HOST", "errors": [], "steps": [], "cases": [], "binaries": [],
               "evidence_class": "host_compile_and_same_input_oracle_only", **dict.fromkeys(analysis.CLAIMS, False)}
@@ -26,7 +26,7 @@ def run(root, integration, original_preflight, xrt, output):
         compiler = shutil.which("g++")
         if compiler is None or not (xrt / "include/CL/cl_ext_xilinx.h").is_file():
             raise ValueError("real XRT headers and G++ required")
-        _, cases, pins = inputs(original_preflight)
+        _, cases, pins = inputs(original_preflight, expected_sha256=original_preflight_sha256)
         report["original_preflight"] = identity(original_preflight / "results.json")
         report["compiler_version"] = subprocess.check_output([compiler, "--version"], text=True)
         pins += preparation.freeze(root, integration, output / "source")

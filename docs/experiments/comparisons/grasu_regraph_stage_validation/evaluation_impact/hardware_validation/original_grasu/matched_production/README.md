@@ -86,6 +86,16 @@ These samples are watchdog observations, not a cgroup peak or containment
 claim. Board timing, original-G performance match, publication reproduction
 and final-figure admission all remain false.
 
+That v1 execution remains historical: its original-G prerequisite contains
+three development-module pins that subsequently changed. The matched-G v1
+board waiter rejected this mismatch before programming. A replacement must
+run from an immutable snapshot and use a freshly reviewed original preflight.
+`--original-preflight-sha256` selects that exact report in the host preflight;
+both `--preflight-sha256` and `--original-preflight-sha256` are required for
+new reports in the board and board-follow commands. Defaults retain the old
+reviewed identities. No option disables schema, source-pin, oracle or timing
+checks, and no report is accepted merely because its checksum is supplied.
+
 Focused tests, including compiled production-header model tests:
 
 ```bash

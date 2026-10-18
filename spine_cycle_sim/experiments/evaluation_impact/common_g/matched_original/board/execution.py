@@ -25,7 +25,8 @@ POLICY = {"tree_memory_gib": 4, "reserve_gib": 32, "allow_bounded_builds": True}
 
 
 def run(preflight, original_preflight, returned, parent, original, output, *, receipt_sha256,
-        device=0, repeats=3):
+        device=0, repeats=3, preflight_sha256=inputs.PREFLIGHT_SHA256,
+        original_preflight_sha256=inputs.ORIGINAL_PREFLIGHT_SHA256):
     if type(device) is not int or device not in (0, 1) or type(repeats) is not int or not 3 <= repeats <= 10 or \
             not re.fullmatch(r"[0-9a-f]{64}", receipt_sha256):
         raise ValueError("known device, 3--10 repeats and exact returned receipt required")
@@ -39,7 +40,8 @@ def run(preflight, original_preflight, returned, parent, original, output, *, re
     try:
         group = current()
         report["containment"] = verify(group, memory_gib=4)
-        host, cases, pins = inputs.load(preflight, original_preflight)
+        host, cases, pins = inputs.load(preflight, original_preflight, preflight_sha256=preflight_sha256,
+                                      original_preflight_sha256=original_preflight_sha256)
         checked = admission.review(returned, original, output / "routed_admission",
                                    parent_directory=parent, receipt_sha256=receipt_sha256)
         pins += [*checked["pins"], checked["candidate"], checked["timing"]["report"], *runner_pins()]

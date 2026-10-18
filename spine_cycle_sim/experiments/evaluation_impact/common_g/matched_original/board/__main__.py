@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 from .execution import run
+from . import inputs
 
 
 def main():
@@ -11,6 +12,8 @@ def main():
     for name in ("preflight", "original-preflight", "returned", "parent", "original", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--receipt-sha256", required=True)
+    parser.add_argument("--preflight-sha256", default=inputs.PREFLIGHT_SHA256)
+    parser.add_argument("--original-preflight-sha256", default=inputs.ORIGINAL_PREFLIGHT_SHA256)
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--execute", action="store_true", required=True)

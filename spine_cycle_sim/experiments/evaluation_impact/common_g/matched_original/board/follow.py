@@ -17,7 +17,8 @@ from . import execution, inputs
 
 
 def run(preflight, original_preflight, producer, parent, original, output, *, unit, invocation,
-        device=0, repeats=3, maximum_wait=133200, poll_seconds=30):
+        device=0, repeats=3, maximum_wait=133200, poll_seconds=30, preflight_sha256=inputs.PREFLIGHT_SHA256,
+        original_preflight_sha256=inputs.ORIGINAL_PREFLIGHT_SHA256):
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit) or \
             not re.fullmatch(r"[0-9a-f]{32}", invocation) or type(maximum_wait) is not int or \
             not 1 <= maximum_wait <= 133200 or type(poll_seconds) is not int or not 1 <= poll_seconds <= 300 or \
@@ -32,7 +33,8 @@ def run(preflight, original_preflight, producer, parent, original, output, *, un
     save()
     try:
         report["containment"] = verify(current(), memory_gib=4)
-        _, cases, pins = inputs.load(preflight, original_preflight)
+        _, cases, pins = inputs.load(preflight, original_preflight, preflight_sha256=preflight_sha256,
+                                    original_preflight_sha256=original_preflight_sha256)
         if len(cases) != 8:
             raise ValueError("all eight original G inputs required")
         manifest = json.loads((parent / "manifest.json").read_text())
@@ -68,7 +70,8 @@ def run(preflight, original_preflight, producer, parent, original, output, *, un
         if not route_finished(service_state(unit), invocation):
             raise ValueError("production qualifier invocation changed")
         result = execution.run(preflight, original_preflight, producer / "returned", parent, original,
-            output / "board", receipt_sha256=child["receipt_sha256"], device=device, repeats=repeats)
+            output / "board", receipt_sha256=child["receipt_sha256"], device=device, repeats=repeats,
+            preflight_sha256=preflight_sha256, original_preflight_sha256=original_preflight_sha256)
         if result["status"] != execution.PASS or result["hardware_timing_measured"] is not True or \
                 result["board_launch_attempted"] is not True or len(result["rows"]) != 8 * repeats:
             raise ValueError("matched-G matrix did not complete")
@@ -97,6 +100,8 @@ def main():
         parser.add_argument("--" + name, type=Path, required=True)
     for name in ("unit", "invocation"):
         parser.add_argument("--" + name, required=True)
+    parser.add_argument("--preflight-sha256", default=inputs.PREFLIGHT_SHA256)
+    parser.add_argument("--original-preflight-sha256", default=inputs.ORIGINAL_PREFLIGHT_SHA256)
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--maximum-wait", type=int, default=133200)

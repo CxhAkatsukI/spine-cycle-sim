@@ -34,7 +34,7 @@ class GraSURemote(Remote):
 
 
 def run(remote, output, *, board_preflight=None, device=0, maximum_wait=133200, poll_seconds=30,
-        reviewer=admission, board_pass=board.PASS):
+        reviewer=admission, board_pass=board.PASS, board_preflight_sha256=board.PREFLIGHT_SHA256):
     if type(maximum_wait) is not int or not 1 <= maximum_wait <= 259200 or \
             type(poll_seconds) is not int or not 1 <= poll_seconds <= 300:
         raise ValueError("bounded original G route wait required")
@@ -48,7 +48,7 @@ def run(remote, output, *, board_preflight=None, device=0, maximum_wait=133200, 
         report["containment"] = verify(current(), memory_gib=4)
         pins = runner_pins()
         if board_preflight is not None:
-            _, _, host_pins = board.inputs(board_preflight)
+            _, _, host_pins = board.inputs(board_preflight, expected_sha256=board_preflight_sha256)
             pins += host_pins
         report["pins"] = pins
         started = time.monotonic()
@@ -83,7 +83,8 @@ def run(remote, output, *, board_preflight=None, device=0, maximum_wait=133200, 
             unchanged(pins)
             report.update(status="REQUESTING_ORIGINAL_G_BOARD", board_requested=True)
             save()
-            result = board.run(board_preflight, output / "admission", output / "board", device=device)
+            result = board.run(board_preflight, output / "admission", output / "board", device=device,
+                               preflight_sha256=board_preflight_sha256)
             if result["status"] != board_pass:
                 raise ValueError("original G complete repeated board matrix required")
             report.update(status=board_pass, board_report=identity(output / "board/results.json"),
@@ -114,6 +115,7 @@ def main(argv=None, *, remote_class=GraSURemote, reviewer=admission, board_pass=
     for name in ("runner", "packet", "attempt", "returned", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--board-preflight", type=Path)
+    parser.add_argument("--board-preflight-sha256", default=board.PREFLIGHT_SHA256)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--device", type=int, choices=(0, 1), default=0)
     parser.add_argument("--port", type=int, default=23333)
@@ -124,7 +126,8 @@ def main(argv=None, *, remote_class=GraSURemote, reviewer=admission, board_pass=
     remote = remote_class(args.target, args.port, args.runner, args.packet, args.attempt, args.returned,
                          args.unit, args.invocation)
     print(run(remote, args.output.resolve(), board_preflight=args.board_preflight,
-              device=args.device, maximum_wait=args.maximum_wait, reviewer=reviewer, board_pass=board_pass)["status"], flush=True)
+              device=args.device, maximum_wait=args.maximum_wait, reviewer=reviewer, board_pass=board_pass,
+              board_preflight_sha256=args.board_preflight_sha256)["status"], flush=True)
 
 
 if __name__ == "__main__":
