@@ -8,9 +8,9 @@ does its resident update time compare? This is separate from an original
 U250 publication-performance reproduction. A host-only pass answers the
 correctness prerequisite, not the performance question.
 
-The input owner is the reviewed [original board-host preflight](../board_host/README.md),
-report SHA-256
-`bee145c72883f4c0d9ec85ca0eccab207bfdebd1050d9a978d4645d7ae9cc701`.
+The current input owner is the immutable v4
+[original board-host preflight](../board_host/README.md), report SHA-256
+`c5fcccaf865c8d50cc5b0f74f4ea2dda53359a125fc927ae217915287c9d1ef6`.
 All eight cases are required: empty graph, empty batch, insertion only,
 full deletion, mixed reservation, hot skew, same segment and threshold ring.
 Inputs are not rebuilt from the final graph or filtered to passing cases.
@@ -62,7 +62,8 @@ undefined-behavior checks. Neither changes hardware geometry.
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.matched_original \
   --root /absolute/simulator-worktree \
   --integration /absolute/reviewed-production-integration \
-  --original-preflight /absolute/original-g-board-host-preflight-v3 \
+  --original-preflight /absolute/original-g-board-host-preflight-v4 \
+  --original-preflight-sha256 c5fcccaf865c8d50cc5b0f74f4ea2dda53359a125fc927ae217915287c9d1ef6 \
   --xrt /opt/xilinx/xrt \
   --output /absolute/fresh-matched-g-host-preflight
 ```
@@ -108,6 +109,29 @@ preserved original source's U55C HMSS port-capacity failure. Do not substitute
 a compact-port implementation and label it original G, or report this host
 prerequisite as a measured performance match.
 
+## Current Immutable Prerequisite
+
+`matched-g-original-host-preflight-v2` passes all 22 child steps with no
+FPGA programming. Its report SHA-256 is
+`e35f1e1a252324f030fc52c7b3587f12cc503cc0e531b01c54257be7674f5c0b`.
+Service `spine-matched-g-host-preflight-20261018-v2.service`, invocation
+`7c30418583ab45c6b10344ba7054236f`, exits zero with a 363216896-byte cgroup
+peak. Both compilation variants preserve all eight original inputs and pass
+complete state checks. Admission independently rechecks all 2677 transitive
+pins; supplying report digests does not waive those checks.
+
+It uses the same immutable `f50a185` snapshot as original-G v4, not the
+development checkout. The replacement board follower is
+`spine-matched-g-production-board-20261018-v2.service`, invocation
+`53dfab92c4684c7a86328227cde86a49`, output
+`matched-g-production-board-follow-v2` under the local campaign root. It
+explicitly pins both report digests and waits for SSSP production qualifier
+`spine-g-production-remote-follow-20261018-v3.service`, invocation
+`adf99e92398e4905a1909150d14fa131`. It retains 4/3-GiB max/high, no swap,
+group OOM kill, CPU 120 and a 140000-second lifetime. Its deployment state
+is `WAITING_FOR_EXACT_PRODUCTION_QUALIFIER`, with no board request or timing
+result. The failed v1 follower and both historical preflights are unchanged.
+
 ## Independent Production Board Matrix
 
 The `matched_original.board` package owns input admission, device execution
@@ -127,8 +151,10 @@ Repeated summary fields are medians; they are not fitted timing predictions.
 
 ```bash
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.matched_original.board \
-  --preflight /absolute/matched-g-original-host-preflight-v1 \
-  --original-preflight /absolute/original-g-board-host-preflight-v3 \
+  --preflight /absolute/matched-g-original-host-preflight-v2 \
+  --preflight-sha256 e35f1e1a252324f030fc52c7b3587f12cc503cc0e531b01c54257be7674f5c0b \
+  --original-preflight /absolute/original-g-board-host-preflight-v4 \
+  --original-preflight-sha256 c5fcccaf865c8d50cc5b0f74f4ea2dda53359a125fc927ae217915287c9d1ef6 \
   --returned /absolute/strictly-qualified-returned-artifact \
   --parent /absolute/g-production-route-v1 \
   --original /absolute/frozen-parent.xclbin \

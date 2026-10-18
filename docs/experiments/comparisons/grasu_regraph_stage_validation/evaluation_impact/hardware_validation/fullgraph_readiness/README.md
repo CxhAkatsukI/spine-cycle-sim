@@ -340,8 +340,29 @@ V6 was stopped while waiting, with no board request or matrix executed.
 V7 keeps the completed-v3 offline preflight and 24/22-GiB, zero-swap,
 group-OOM containment, CPUs 118--119 and finite lifetime. CC now waits for
 its exact v3 return follower of the v2 route; SSSP and ResPR retain their
-previous exact return identities. At deployment it is waiting for admitted
-artifacts, without errors. This is not a completed hardware matrix.
+previous exact return identities. At deployment it was waiting for admitted
+artifacts. It subsequently stopped before requesting a board because the
+ResPR return fails strict clock/timing admission. The failed v7 report is
+retained, not a completed hardware matrix.
+
+### Independent Prerequisites
+
+The optional `--continue-independent-prerequisites` flag retains a rejected
+algorithm's exact unit/invocation and error under `prerequisite_failures`,
+without requesting its card. Other independently qualified algorithms can
+still run their complete smoke/eight-graph/repeated matrices. The default
+remains fail-fast. This option changes scheduling, not numerical code, timing
+admission or the predeclared matrix.
+
+Any rejected prerequisite leaves the supervisor terminal status
+`FAILED_RETAINED`; complete three-algorithm hardware convergence remains
+false. Partial matrices cannot enter the paired complete-matrix gate or final
+figures. A new qualified ResPR artifact needs a new explicit invocation and
+request, never substitution into the failed request. Offline preparation,
+source-pin failures outside an individual artifact, and any actual board
+child failure still stop execution immediately. Eleven focused continuation
+tests cover these boundaries, including pending later artifacts and changed
+service invocations.
 
 ### Earlier Continuations
 

@@ -60,7 +60,25 @@ readback. They must not be compared as though they include the complete
 resident-update-to-result readback boundary used by the new paired matrix.
 No publication performance or integrated G+R claim follows from this host.
 
-## Executed Preflight
+## Current Immutable Preflight
+
+The valid replacement is `original-g-board-host-preflight-v4` under the local
+campaign root. It completes all 21 child steps, including eight Release and
+eight UBSan cases and both malformed-header rejections. Its report SHA-256 is
+`c5fcccaf865c8d50cc5b0f74f4ea2dda53359a125fc927ae217915287c9d1ef6`.
+Service `spine-original-g-board-host-preflight-20261018-v4.service`, invocation
+`d2e111fd84964b96985283cb247e4d19`, exits zero with a 370913280-byte cgroup
+peak. It is still host/model evidence, with no FPGA programming or timing.
+
+Both `PYTHONPATH` and `--root` use the immutable `original-g-host-runner`
+directory under that campaign root, exported from simulator `f50a185`.
+Archive `original-g-host-immutable-runner-v1.tar.gz` has SHA-256
+`c04fc546be55df0939f4294718894808eeb6c432fec4a5e77e85a2dfe6bb4e82`.
+The snapshot was made read-only after generation; no imported runner is
+pinned to the development checkout. Supply the exact reviewed v4 report
+digest explicitly to a new board command. Earlier preflights remain intact.
+
+## Historical Preflights
 
 Raw output:
 `/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-g-board-host-preflight-v1`.

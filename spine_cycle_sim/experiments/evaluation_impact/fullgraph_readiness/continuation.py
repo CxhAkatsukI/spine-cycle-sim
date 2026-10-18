@@ -62,13 +62,15 @@ def ready(request):
 
 
 def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
-        maximum_wait=133200, poll_seconds=30, completed_preflight_sha256=None):
+        maximum_wait=133200, poll_seconds=30, completed_preflight_sha256=None,
+        continue_independent_prerequisites=False):
     validate_service(preflight_unit, preflight_invocation)
     if completed_preflight_sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", completed_preflight_sha256):
         raise ValueError("explicit completed preflight SHA-256 required")
     if sorted(item.algorithm for item in requests) != sorted(preparation.ALGORITHMS) or \
             len(requests) != 3 or type(maximum_wait) is not int or not 1 <= maximum_wait <= 133200 or \
-            type(poll_seconds) is not int or not 1 <= poll_seconds <= 300:
+            type(poll_seconds) is not int or not 1 <= poll_seconds <= 300 or \
+            type(continue_independent_prerequisites) is not bool:
         raise ValueError("exact three-algorithm matrix and finite wait required")
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "WAITING_FOR_OFFLINE_PREPARATION", "errors": [], "matrices": [],
@@ -78,6 +80,8 @@ def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
                            for item in requests], "states": {}, "maximum_wait_seconds": maximum_wait,
               "preflight_unit": preflight_unit, "preflight_invocation": preflight_invocation}
     report["completed_preflight_sha256"] = completed_preflight_sha256
+    report["continue_independent_prerequisites"] = continue_independent_prerequisites
+    report["prerequisite_failures"] = []
     save = lambda: atomic_write_json(output / "results.json", report)
     save()
     try:
@@ -116,7 +120,20 @@ def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
                     report["preflight"] = pin
                 report["status"] = "WAITING_FOR_ADMITTED_ARTIFACTS"
                 for request in list(pending):
-                    state, pin = ready(request)
+                    try:
+                        state, pin = ready(request)
+                    except (OSError, ValueError, KeyError, TypeError) as error:
+                        if not continue_independent_prerequisites:
+                            raise
+                        # A rejected artifact never requests a card. Only other
+                        # independently admitted algorithms may continue.
+                        report["prerequisite_failures"].append({
+                            "algorithm": request.algorithm, "unit": request.unit,
+                            "invocation": request.invocation, "error": repr(error),
+                            "status": "FAILED_RETAINED", "board_requested": False})
+                        pending.remove(request)
+                        save()
+                        continue
                     report["states"][request.unit] = state
                     if pin is None:
                         continue
@@ -142,6 +159,8 @@ def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
                 if report["waited_seconds"] >= maximum_wait:
                     raise TimeoutError("offline/returned prerequisites did not finish within the declared wait")
                 time.sleep(min(poll_seconds, maximum_wait - report["waited_seconds"]))
+        if report["prerequisite_failures"]:
+            raise ValueError("one or more algorithm prerequisites failed; independent matrices retained")
         report.update(status=PASS, hardware_convergence_measured=True)
     except BaseException as error:
         report["status"] = "FAILED_RETAINED"
@@ -165,12 +184,15 @@ def main(argv=None):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--completed-preflight-sha256",
                         help="replay complete pinned evidence if systemd collected the finished preflight")
+    parser.add_argument("--continue-independent-prerequisites", action="store_true",
+                        help="retain rejected artifacts and run other admitted algorithms; never admits an incomplete matrix")
     args = parser.parse_args(argv)
     requests = [Request(**{**row, "returned": Path(row["returned"]), "admission": Path(row["admission"])})
                 for row in json.loads(args.requests.read_text())]
     print(run(args.preflight.resolve(), args.output.resolve(), requests,
         preflight_unit=args.preflight_unit, preflight_invocation=args.preflight_invocation,
-        completed_preflight_sha256=args.completed_preflight_sha256)["status"], flush=True)
+        completed_preflight_sha256=args.completed_preflight_sha256,
+        continue_independent_prerequisites=args.continue_independent_prerequisites)["status"], flush=True)
 
 
 if __name__ == "__main__":

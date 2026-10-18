@@ -115,6 +115,60 @@ class FullgraphContinuationTests(unittest.TestCase):
         self.assertEqual(self.saved()["matrices"][0]["status"], "FAILED_RETAINED")
         self.assertFalse(self.saved()["hardware_convergence_measured"])
 
+    def test_rejected_prerequisite_can_retain_other_matrices_but_never_pass(self):
+        rejected = self.requests[-1]
+        self.states.side_effect = lambda unit: state("failed") if unit == rejected.unit else state()
+        with self.assertRaisesRegex(ValueError, "independent matrices retained"):
+            self.run_job(continue_independent_prerequisites=True)
+        report = self.saved()
+        self.assertEqual(self.board.call_count, 2)
+        self.assertNotIn(rejected.algorithm, [call.args[2] for call in self.board.call_args_list])
+        self.assertEqual(report["status"], "FAILED_RETAINED")
+        self.assertFalse(report["hardware_convergence_measured"])
+        self.assertEqual(report["prerequisite_failures"][0]["algorithm"], rejected.algorithm)
+        self.assertFalse(report["prerequisite_failures"][0]["board_requested"])
+        self.assertTrue(all(row["status"] == job.board_study.PASS for row in report["matrices"]))
+
+    def test_rejected_first_prerequisite_does_not_starve_later_pending_artifact(self):
+        rejected, pending, admitted = self.requests
+        polls = {pending.unit: 0}
+
+        def service(unit):
+            if unit == rejected.unit:
+                return state(InvocationID="b" * 32)
+            if unit == pending.unit:
+                polls[unit] += 1
+                return state("active") if polls[unit] == 1 else state()
+            return state()
+
+        self.states.side_effect = service
+        with self.assertRaisesRegex(ValueError, "independent matrices retained"):
+            self.run_job(continue_independent_prerequisites=True)
+        self.assertEqual([call.args[2] for call in self.board.call_args_list],
+                         [admitted.algorithm, pending.algorithm])
+        self.sleep.assert_called_once()
+        self.assertIn("changed", self.saved()["prerequisite_failures"][0]["error"])
+
+    def test_independent_mode_does_not_bypass_offline_or_child_failure(self):
+        self.states.return_value = state("failed")
+        with self.assertRaises(ValueError):
+            self.run_job(continue_independent_prerequisites=True)
+        self.board.assert_not_called()
+        self.assertEqual(self.saved()["prerequisite_failures"], [])
+        self.output = self.root / "child-failure"
+        self.states.return_value = state()
+        self.board.side_effect = RuntimeError("device failed; do not continue")
+        with self.assertRaisesRegex(RuntimeError, "device failed"):
+            self.run_job(continue_independent_prerequisites=True)
+        self.assertEqual(self.board.call_count, 1)
+        self.assertEqual(self.saved()["prerequisite_failures"], [])
+
+    def test_independent_mode_still_requires_all_three_passes(self):
+        report = self.run_job(continue_independent_prerequisites=True)
+        self.assertEqual(report["status"], job.PASS)
+        self.assertEqual(self.board.call_count, 3)
+        self.assertEqual(report["prerequisite_failures"], [])
+
     def test_collected_preflight_requires_explicit_pin_and_complete_evidence_replay(self):
         self.states.side_effect = lambda unit: state(LoadState="not-found", InvocationID="") \
             if unit == "offline.service" else state()
@@ -159,6 +213,8 @@ class FullgraphContinuationTests(unittest.TestCase):
                         preflight_invocation=INVOCATION)
         with self.assertRaises(ValueError):
             self.run_job(maximum_wait=0)
+        with self.assertRaises(ValueError):
+            self.run_job(continue_independent_prerequisites=1)
 
 
 if __name__ == "__main__":
