@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board import analysis
-from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution import events, route, runtime, study
+from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution import events, resources, route, runtime, study
 
 BDF = "0000:82:00.1"
 
@@ -181,6 +181,14 @@ class ContinuousRouteTests(unittest.TestCase):
 
 
 class ContinuousRuntimeTests(unittest.TestCase):
+    def test_admission_and_case_watchdog_share_a_single_policy(self):
+        from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import qualification
+        from spine_cycle_sim.experiments.evaluation_impact.common_g.production_board import supervisor
+        self.assertIs(qualification.POLICY, resources.POLICY)
+        self.assertIs(supervisor.POLICY, resources.POLICY)
+        self.assertIs(study.resources.POLICY, resources.POLICY)
+        self.assertEqual(resources.MINIMUM_AVAILABLE_BYTES, 40 * 1024**3)
+
     def test_inherited_runtime_knobs_and_default_ini_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

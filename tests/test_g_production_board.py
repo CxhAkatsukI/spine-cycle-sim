@@ -109,7 +109,7 @@ class ProductionBoardTests(unittest.TestCase):
         self.launch.assert_not_called()
 
     def test_conservative_watchdog_floor_defers_reservation_but_not_for_tool_exit(self):
-        self.available.side_effect = [100 * 1024**3, 120 * 1024**3]
+        self.available.side_effect = [39 * 1024**3, 80 * 1024**3]
         self.run_job()
         self.assertEqual([call.kwargs["commit"] for call in self.lease.sample.call_args_list], [False, True])
         self.assertTrue(all(call.args[1] == ["bounded peer"] for call in self.lease.sample.call_args_list))

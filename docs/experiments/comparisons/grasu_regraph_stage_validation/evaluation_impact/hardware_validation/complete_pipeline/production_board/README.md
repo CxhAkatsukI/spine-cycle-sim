@@ -84,13 +84,19 @@ or silently substitute an older bitstream.
 
 The board supervisor is contained at 8 GiB hard / 7 GiB high, zero swap and
 group OOM kill. It atomically reserves its full budget against every bounded
-peer FPGA build plus a 24-GiB reserve. Unknown or unbounded peers reject
+peer FPGA build plus a 32-GiB reserve. Unknown or unbounded peers reject
 admission. Other FPGA tools do **not** have to exit if those budgets fit.
 
-The shared per-case watchdog additionally retains its existing 104-GiB reserve;
-therefore the supervisor requires at least 112 GiB available before entering
-the board matrices. This is a conservative safety floor, not a tool-idleness
-condition. Each case has a 600-second deadline, a live memory guard and CPUs
+The admission and per-case watchdog now share `execution/resources.py`: the
+8-GiB hard limit plus 32-GiB system reserve requires at least 40 GiB available,
+and admission additionally reserves every peer's full finite budget. This
+replaces the historical runner's independent 104-GiB watchdog reserve and
+112-GiB floor; it does not remove containment, peer accounting or the live
+watchdog. The reserve matches the remote production-build policy, while the
+smaller board job remains hard-bounded at 8 GiB. No workload or numerical
+setting changes. Frozen historical runners retain their old policy; use a
+new runner and output folder rather than editing them in place.
+Each case has a 600-second deadline, a live memory guard and CPUs
 124--125. The supervisor's prerequisite/memory wait is bounded; its systemd
 lifetime must also cover the possible 33 case deadlines. Failed runs do not
 automatically reset a board or reprogram a replacement candidate.

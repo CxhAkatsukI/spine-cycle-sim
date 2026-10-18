@@ -15,7 +15,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from ...search_pipeline.synthesis import unchanged
 from ..analysis import CLAIMS, PASS as HOST_PASS
 from ..delivery import validate as validate_host
-from . import events, route, runtime
+from . import events, resources, route, runtime
 
 PASS = "CONTINUOUS_G_BOARD_MATRIX_PASS_NOT_BASELINE_ADMISSION"
 
@@ -63,7 +63,8 @@ def run(preflight, route_attempt, original, output, *, device=0, repeats=3, exec
               "repeats": repeats, "execution_requested": execute, "board_started": False,
               **dict.fromkeys(CLAIMS, False), "board_correctness_measured": False,
               "boundary": experiment.boundary,
-              "resources": {"memory_max_gib": 8, "memory_high_gib": 7, "reserve_gib": 104,
+              "resources": {"memory_max_gib": resources.POLICY["tree_memory_gib"], "memory_high_gib": 7,
+                            "reserve_gib": resources.POLICY["reserve_gib"],
                             "swap_max_bytes": 0, "timeout_seconds_per_case": 600, "cpu_affinity": [124, 125]}}
     save = lambda: atomic_write_json(output / "results.json", report)
     save()
@@ -102,8 +103,10 @@ def run(preflight, route_attempt, original, output, *, device=0, repeats=3, exec
                                checked["candidate"]["path"], str(device)]
                     report.update(status="RUNNING_" + name, board_started=True)
                     save()
-                    step = run_link(command, output, output / name, timeout=600, tree_memory_gib=8,
-                                    reserve_gib=104, poll_seconds=0.2, environment=environment)
+                    step = run_link(command, output, output / name, timeout=600,
+                                    tree_memory_gib=resources.POLICY["tree_memory_gib"],
+                                    reserve_gib=resources.POLICY["reserve_gib"],
+                                    poll_seconds=0.2, environment=environment)
                     attempt = {"case": case["case"], "repeat": repeat, "resources": step}
                     report["attempts"].append(attempt)
                     save()

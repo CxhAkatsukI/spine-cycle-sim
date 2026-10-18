@@ -13,12 +13,12 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from ..continuous_board.execution import study as board
+from ..continuous_board.execution.resources import MINIMUM_AVAILABLE_BYTES, POLICY
 from ..continuous_board.execution.supervisor import runner_pins, service_state, route_finished
 from ..search_pipeline.synthesis import unchanged
 from . import experiments, route as gate
 
 PASS = "PRODUCTION_G_GR_BOARD_QUALIFICATION_PASS_NOT_BASELINE_ADMISSION"
-POLICY = {"tree_memory_gib": 8, "reserve_gib": 24, "allow_bounded_builds": True}
 
 
 def run(native_preflight, metadata_preflight, gr_preflight, route, original, output, *,
@@ -86,9 +86,7 @@ def run(native_preflight, metadata_preflight, gr_preflight, route, original, out
         while True:
             unchanged(report["pins"])
             available = available_memory_bytes()
-            # The shared case watchdog also retains its conservative 104-GiB
-            # reserve. Meet it before acquiring the full peer-budget lease.
-            enough = available >= 112 * 1024**3
+            enough = available >= MINIMUM_AVAILABLE_BYTES
             report["memory_admission"] = lease.sample(available, other_builds(), POLICY, commit=enough)
             report.update(status="WAITING_FOR_SAFE_BOARD_MEMORY", waited_seconds=time.monotonic() - started)
             save()

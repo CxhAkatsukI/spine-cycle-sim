@@ -33,6 +33,7 @@ class RemoteQualificationTests(unittest.TestCase):
         def reserve(available, peers, policy, *, commit):
             self.assertEqual(peers, ["bounded peer"])
             self.assertEqual(policy["tree_memory_gib"], 8)
+            self.assertEqual(policy["reserve_gib"], 32)
             self.lease.held = commit
             return {"admitted": commit}
 
@@ -86,7 +87,7 @@ class RemoteQualificationTests(unittest.TestCase):
         self.launch.assert_not_called()
 
     def test_watchdog_reserve_and_full_peer_budget_are_required(self):
-        self.available.return_value = 100 * 1024**3
+        self.available.return_value = 39 * 1024**3
         with patch.object(job.time, "monotonic", side_effect=[0, 2]), \
                 self.assertRaisesRegex(TimeoutError, "watchdog reserve"):
             self.run_job(maximum_wait=1)
@@ -95,10 +96,18 @@ class RemoteQualificationTests(unittest.TestCase):
         self.lease.release.assert_called_once()
 
     def test_safe_memory_admits_without_waiting_for_bounded_peer_exit(self):
-        self.available.side_effect = [100 * 1024**3, 120 * 1024**3]
+        self.available.side_effect = [39 * 1024**3, 80 * 1024**3]
         self.run_job()
         self.assertEqual([call.kwargs["commit"] for call in self.lease.sample.call_args_list], [False, True])
         self.sleep.assert_called_once()
+
+    def test_peer_budget_rejection_still_blocks_above_the_watchdog_floor(self):
+        self.available.return_value = 80 * 1024**3
+        self.lease.sample.side_effect = lambda *args, **kwargs: {"admitted": False}
+        with patch.object(job.time, "monotonic", side_effect=[0, 2]), self.assertRaises(TimeoutError):
+            self.run_job(maximum_wait=1)
+        self.assertTrue(self.lease.sample.call_args.kwargs["commit"])
+        self.launch.assert_not_called()
 
     def test_incomplete_or_promoted_matrix_cannot_complete_qualification(self):
         for change in (lambda result: result["attempts"].pop(),

@@ -12,12 +12,12 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from ....continuous_board.execution import study as board
+from ....continuous_board.execution.resources import MINIMUM_AVAILABLE_BYTES, POLICY
 from ....production_board import experiments
 from ....search_pipeline.synthesis import unchanged
 from . import admission
 
 PASS = "PRODUCTION_G_GR_BOARD_QUALIFICATION_PASS_NOT_BASELINE_ADMISSION"
-POLICY = {"tree_memory_gib": 8, "reserve_gib": 24, "allow_bounded_builds": True}
 
 
 def run(native_preflight, metadata_preflight, gr_preflight, returned, original, output, *,
@@ -54,13 +54,13 @@ def run(native_preflight, metadata_preflight, gr_preflight, returned, original, 
             unchanged(pins)
             available = available_memory_bytes()
             report["memory_admission"] = lease.sample(available, other_builds(), POLICY,
-                                                      commit=available >= 112 * 1024**3)
+                                                      commit=available >= MINIMUM_AVAILABLE_BYTES)
             report.update(status="WAITING_FOR_SAFE_BOARD_MEMORY", waited_seconds=time.monotonic() - started)
             save()
             if lease.held:
                 break
             if report["waited_seconds"] >= maximum_wait:
-                raise TimeoutError("board full peer budgets or 104-GiB watchdog reserve do not fit; no board requested")
+                raise TimeoutError("board full peer budgets or shared watchdog reserve do not fit; no board requested")
             time.sleep(min(poll_seconds, maximum_wait - report["waited_seconds"]))
         for name, preflight, spec, count in plans:
             unchanged(pins)
