@@ -38,6 +38,14 @@ The code owner is `fullgraph_readiness/fullpr_resident/`:
 - `spine.py` admits the clean FullPR host build, transitive dependencies,
   injected-runtime test and fixed 150-MHz routed artifact, then checks every
   FullPR device ledger and convergence record.
+- `gr_preparation.py` reuses the bounded offline compiler/preparation executor
+  with one FullPR binary, the dangling smoke and the exact AU/SU/WK cohort.
+  It checks CPU-reference convergence, PMA layout and update conservation;
+  this cannot program a card or establish performance.
+- `gr.py` replays those raw preparations, verifies the host-only fork has
+  identical kernels and headers to the routed production revision, and admits
+  only the new FullPR routed artifact. Each sweep, first convergence, final
+  CPU error, probability mass and complete event trace must pass independently.
 - `__main__.py` is a thin CLI. Execution reuses `board_study.py` and its card
   and measurement locks, exactly two CPUs, 24-GiB hard/22-GiB high limit,
   zero swap, full-budget atomic admission and 32-GiB system reserve.
@@ -47,9 +55,10 @@ The source branches are Spine `codex/fullpr-resident-convergence` at
 Both are committed and pushed. The isolated G+R host option is
 `--resident-fullpr`; it rejects residual-PR and update-only combinations.
 It has a CPU-only independent reference test, not an FPGA validation.
-The G+R board protocol and paired FullPR report remain to be admitted after
-the new FullPR production route is accepted. No old FullPR result is reused
-as a converged paired speedup.
+The G+R board protocol is implemented but its real execution must wait for
+successful frozen preparation and the new FullPR production route admission.
+Its own pass is neither a paired FullPR report nor a publication match.
+No old FullPR result is reused as a converged paired speedup.
 
 ## Reproduction And Current Evidence
 
@@ -67,6 +76,17 @@ python3 -m "$owner" freeze-spine --source /clean/fullpr-spine \
 python3 -m "$owner" run-spine --preflight /campaign/fullpr-inputs \
   --admission /campaign/fullpr-spine-freeze/results.json --device 1 --repeats 3 \
   --output /campaign/fullpr-spine-board --execute
+
+# Same offline 24-GiB hard/22-GiB high, zero-swap scope and 32-GiB reserve.
+python3 -m "$owner" prepare-gr --source /clean/fullpr-gr \
+  --cohort /campaign/fullpr-inputs --xrt /opt/xilinx/xrt \
+  --hls /data/yxx/tools/xilinx/Vitis_HLS/2024.1 \
+  --output /campaign/fullpr-gr-preparation
+
+# Inside the board scope above; omit --execute for a plan only.
+python3 -m "$owner" run-gr --preflight /campaign/fullpr-gr-preparation \
+  --admission /campaign/new-production-fullpr-admission/summary.json \
+  --device 1 --repeats 3 --output /campaign/fullpr-gr-board --execute
 ```
 
 Under `/data/chuxiao/experiments/baseline_hardware_validation_20261015/`,
@@ -82,6 +102,47 @@ earlier dirty and failed attempts are retained.
 
 Read `results.json` and every raw stdout/stderr/resource record, then attest
 the service's terminal state. A successful freeze, compile, CPU test or
-mocked protocol test is not a measured FullPR result. No FullPR FPGA result,
-paired speedup, stage calibration, publication match or finalized figure is
-claimed by this implementation checkpoint.
+mocked protocol test is not a measured FullPR result.
+
+The G+R parser keeps the last sweep's L1 delta (the stopping criterion)
+separate from the final CPU-reference L1 error (the correctness check).
+Event spans include overlap and stalls; they are not exclusive ten-stage
+counters. Unit tests use synthetic logs and mocked execution, including
+failure, missing-event and premature-convergence cases. They do not validate
+the hardware datapath or resolve the Spine failures below.
+
+## Retained FPGA Failures
+
+Two subsequent board attempts are `FAILED_RETAINED`, not accepted FullPR
+matrices. Both use the unchanged fixed FullPR bitstream on BDF `0000:c1:00.1`.
+
+- `spine-fullpr-resident-board-v1`: the dangling smoke passes in 27 sweeps,
+  with resident wall 912.025 ms and last L1 delta `9.53674e-7`. AU fails at
+  sweep zero because the full-domain frontier is missing. The host then
+  stopped before printing its device ledger. Unit
+  `spine-fullpr-resident-board-20261018-v1.service`, invocation
+  `d65fcdd87aa94b5b8c446430bc8f3f6a`, exits one; peak memory 2,450,759,680 bytes.
+- `spine-fullpr-resident-board-v2`: an isolated diagnostic host at clean,
+  pushed Spine commit `bec812be1ae1aecde9936753c4d5e4bd83e3ab2e` prints the
+  failed ledger before rejecting the frontier. It changes neither successful
+  arithmetic nor the bitstream or timing boundary. This attempt already fails
+  its smoke at sweep zero: expected frontier 4, returned 0, `overflow=1`,
+  reactivation FIFO backpressure 4 and maximum occupancy 256. Task, source
+  and owner status fields are zero. Unit
+  `spine-fullpr-resident-board-20261018-v2.service`, invocation
+  `243fbab298a14d869e26020ebe0ca5e3`, exits one, `MainPID=0`; peak memory
+  2,326,892,544 bytes. No large case was launched.
+
+The v2 diagnostic build passes four host builds and injected tests under
+`fullpr-resident-host-v5/build`; the corresponding freeze is
+`fullpr-spine-host-freeze-v2/results.json`. Unit
+`spine-fullpr-resident-host-tests-20261018-v5.service`, invocation
+`9f6ca96b17804da6ab1b5cee4b9dd96a`, exits zero; peak memory 525,635,584 bytes.
+These tests validate diagnostic ordering, not the failed hardware datapath.
+
+The changed behavior across attempts motivates checking static FIFO reset
+and synthesis behavior. It does not yet prove a root cause. Do not relax
+the full-frontier or overflow checks, reset the board without admission, or
+retry until a passing sample appears. The isolated passing smoke is not a
+paired performance result. No accepted FullPR matrix, paired speedup, stage
+calibration, publication match or finalized figure is claimed.

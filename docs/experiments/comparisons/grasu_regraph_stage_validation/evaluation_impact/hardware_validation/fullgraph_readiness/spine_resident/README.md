@@ -174,8 +174,40 @@ unit `spine-cc-report-replay-20261018-v1.service`, invocation
 `3845e80b373448c0b3dfbfa798ad7aa1`, exits zero and logs
 `CC_RAW_REPLAY_PASS attempts=26 pins=626` (peak 25,378,816 bytes).
 
-Residual PR v2 is now executing its final repetition; it remains unaccepted
-until completion and raw replay. FullPR has a separate
+### Completed Residual-PR Matrix
+
+`spine-resident-respr-board-v2/results.json` completes both correctness
+smokes and all 24 large runs: 26/26 pass, no errors. Its SHA-256 is
+`159e1406eba89435c897b941d013a72c81f396aaad396e6fedbeaa87ef384bd3`.
+The status and resident wall boundary are the same as the SSSP/CC matrices.
+
+| Graph | Resident wall median (ms) | Individual repetitions (ms) |
+| --- | ---: | --- |
+| AU | 65.710 | 65.710, 67.3002, 65.5908 |
+| SU | 64.854 | 64.854, 64.7275, 66.5302 |
+| WK | 75.1713 | 74.9415, 75.1713, 75.9421 |
+| SO | 228.359 | 226.847, 233.002, 228.359 |
+| PK | 153.115 | 155.834, 153.115, 148.532 |
+| LJ | 262.048 | 255.961, 263.081, 262.048 |
+| LJ08 | 295.343 | 295.343, 302.407, 287.934 |
+| R19 | 91.6909 | 92.0446, 91.6909, 87.9846 |
+
+All eight large cases finish with zero propagation launches: the updated
+residuals do not cross the frozen activity threshold. Maintenance, the host
+degree/correction/seed work and final-state readback are still inside the wall
+timer, and final reference validation passes. These cases do not demonstrate
+large-graph residual propagation performance. The new-mode smoke does execute
+one propagation round. Do not omit this distinction when interpreting ratios.
+
+Unit `spine-resident-respr-board-20261018-v2.service`, invocation
+`10d93ab3f64e4100bf5580623d9ba5c2`, exits zero, with `MainPID=0` and retained
+`active/exited` state. Peak cgroup memory is 19,982,790,656 bytes; all recorded
+memory-limit/OOM counters are zero. Independent raw replay reparses 26
+stdout/stderr pairs and rechecks 626 pins. Its unit
+`spine-respr-report-replay-20261018-v1.service`, invocation
+`358e72900e264890a80d51418688e2fe`, exits zero; peak memory is 25,448,448 bytes.
+
+FullPR has a separate
 [convergence protocol](../fullpr_resident/README.md), not an extension of
 these frozen runs. The G+R production routes, original-G/R controls, paired
 ratios and replacement figures remain separate acceptance gates.

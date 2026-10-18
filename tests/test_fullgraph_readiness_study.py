@@ -8,7 +8,7 @@ from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import an
 
 
 class StudyTests(unittest.TestCase):
-    def invoke(self, root, *, samples=None, failed=None, sleep=None, compiler_notes=None):
+    def invoke(self, root, *, samples=None, failed=None, sleep=None, compiler_notes=None, fullpr=False):
         group = root / "cgroup"
         group.mkdir()
         (group / "memory.events").write_text("oom_kill 0\n")
@@ -17,6 +17,9 @@ class StudyTests(unittest.TestCase):
         library.write_text("fake library, never loaded")
         rows = [{"dataset": d, "algorithm": a, "graph": str(root / "unused.graph"), "source": 0}
                 for d in preparation.DATASETS for a in preparation.ALGORITHMS]
+        if fullpr:
+            (root / "unused.graph").write_text("synthetic protocol fixture, never executed\n")
+            rows = [{**rows[0], "dataset": name, "algorithm": "full_pagerank"} for name in ("AU", "SU", "WK")]
         output = root / "attempt"
         calls = []
 
@@ -26,6 +29,7 @@ class StudyTests(unittest.TestCase):
             compilation = prefix.name.startswith("compile_")
             if compilation:
                 Path(command[-1]).write_text("fake host, never executed")
+                Path(command[-1]).with_suffix(".d").write_text("probe: mocked dependencies\n")
             prefix.with_suffix(".stdout.txt").write_text("" if compilation else prefix.name)
             prefix.with_suffix(".stderr.txt").write_text(json.dumps(compiler_notes or []) if compilation else "")
             return {"exit_code": int(prefix.name == failed), "stop_reason": "process_exit",
@@ -48,11 +52,33 @@ class StudyTests(unittest.TestCase):
                 patch.object(study.time, "monotonic", side_effect=[0, 0, 31]), \
                 patch.object(study.time, "sleep", side_effect=sleep):
             lease.return_value.sample.side_effect = samples or [{"admitted": True}]
+            protocol = None
+            if fullpr:
+                protocol = study.Protocol("mock FullPR CPU only", ("full_pagerank",),
+                    lambda *_: {"revision": "fake-fullpr", "rows": rows, "source": str(root / "source"), "pins": []},
+                    lambda _: [{**rows[0], "dataset": "SMOKE"}], preparation.prepare_command, analyze,
+                    lambda cases: "MOCK_FULLPR_CPU_ONLY" if len(cases) == 3 else "FAILED_RETAINED")
             try:
-                result = study.run(root, root, output, root / "xrt", root, wait_seconds=30)
+                result = study.run(root, root, output, root / "xrt", root, wait_seconds=30, protocol=protocol)
             except (ValueError, RuntimeError, TimeoutError):
                 result = json.loads((output / "results.json").read_text())
             return result, calls, lease.return_value
+
+    def test_explicit_fullpr_protocol_reuses_containment_without_changing_default_matrix(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result, calls, lease = self.invoke(root, fullpr=True)
+            self.assertEqual(result["status"], "MOCK_FULLPR_CPU_ONLY")
+            self.assertEqual([call[0] for call in calls], ["compile_full_pagerank", "SMOKE_full_pagerank",
+                             "AU_full_pagerank", "SU_full_pagerank", "WK_full_pagerank"])
+            self.assertEqual((len(result["smokes"]), len(result["cases"])), (1, 3))
+            self.assertEqual(result["source_revision"], "fake-fullpr")
+            self.assertEqual(result["preparation_input"], str(root))
+            self.assertEqual(result["source_root"], str(root))
+            self.assertIn(str(root / "attempt/full_pagerank.d"), [pin["path"] for pin in result["pins"]])
+            self.assertFalse(result["board_programmed"])
+            self.assertEqual(preparation.ALGORITHMS, ("weighted_sssp", "connected_components", "residual_pagerank"))
+            lease.release.assert_called_once()
 
     def test_admits_with_live_other_tools_and_smokes_before_all_24_cases(self):
         with tempfile.TemporaryDirectory() as directory:

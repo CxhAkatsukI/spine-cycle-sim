@@ -1,10 +1,12 @@
 """Bounded offline host preparation while independent FPGA builds continue."""
 
+from dataclasses import dataclass
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import time
+from typing import Callable
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
@@ -16,14 +18,32 @@ from . import analysis, diagnostics, preparation
 POLICY = {"tree_memory_gib": 24, "reserve_gib": 32, "allow_bounded_builds": True}
 
 
-def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800):
+@dataclass(frozen=True)
+class Protocol:
+    scope: str
+    algorithms: tuple
+    freeze: Callable
+    smokes: Callable
+    prepare_command: Callable
+    analyze: Callable
+    decision: Callable
+
+
+def default_protocol():
+    return Protocol("unchanged current production host; insertion/u8; graph capacity and CPU oracle only",
+                    preparation.ALGORITHMS, preparation.freeze, preparation.smokes,
+                    preparation.prepare_command, analysis.analyze, analysis.decision)
+
+
+def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800, protocol=None):
     if type(wait_seconds) is not int or not 1 <= wait_seconds <= 86400:
         raise ValueError("memory wait must be between one second and one day")
+    protocol = protocol or default_protocol()
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING", "errors": [], "steps": [], "cases": [], "smokes": [], "pins": [],
               "policy": POLICY, "board_programmed": False, "hardware_timing_measured": False,
               "publication_match": False, "production_baseline_admitted": False,
-              "scope": "unchanged current production host; insertion/u8; graph capacity and CPU oracle only"}
+              "scope": protocol.scope, "preparation_input": str(manifest), "source_root": str(integration)}
     save = lambda: atomic_write_json(output / "results.json", report)
     lease = None
     save()
@@ -45,7 +65,7 @@ def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800):
         temporary.mkdir()
         report["environment"] = {"PATH": "/usr/bin:/bin", "HOME": str(Path.home()),
                                  "LANG": "C", "LC_ALL": "C", "TMPDIR": str(temporary)}
-        prepared = preparation.freeze(integration, manifest, output)
+        prepared = protocol.freeze(integration, manifest, output)
         report["source_revision"] = prepared["revision"]
         report["matrix"] = prepared["rows"]
         report["pins"] += prepared["pins"]
@@ -79,7 +99,7 @@ def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800):
             return result
 
         binaries = {}
-        for algorithm in preparation.ALGORITHMS:
+        for algorithm in protocol.algorithms:
             binary = output / algorithm
             step("compile_" + algorithm,
                 preparation.compile_command(compiler, Path(prepared["source"]), algorithm, binary, xrt, hls), 300)
@@ -87,12 +107,13 @@ def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800):
                 *((output / "raw" / ("compile_" + algorithm + suffix)).read_text()
                   for suffix in (".stdout.txt", ".stderr.txt")))
             binaries[algorithm] = binary
-            report["pins"] += [preparation.identity(binary), *dependency_identities(binary.with_suffix(".d"), output)]
+            report["pins"] += [preparation.identity(binary), preparation.identity(binary.with_suffix(".d")),
+                               *dependency_identities(binary.with_suffix(".d"), output)]
             # Dependency helper owns parsing, while this study owns drift stamps.
             report["pins"] = [pin if "stat" in pin else preparation.identity(Path(pin["path"])) for pin in report["pins"]]
             save()
 
-        smokes = preparation.smokes(output)
+        smokes = protocol.smokes(output)
         report["pins"] += [preparation.identity(Path(row["graph"])) for row in smokes]
         for row in [*smokes, *report["matrix"]]:
             label = row["dataset"] + "_" + row["algorithm"]
@@ -101,17 +122,17 @@ def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800):
             report["smokes" if smoke else "cases"].append(case)
             save()
             try:
-                step(label, preparation.prepare_command(binaries[row["algorithm"]], row, output / (label + ".unused-result")), 1800)
-                case.update(analysis.analyze(row, (output / "raw" / (label + ".stdout.txt")).read_text(),
+                step(label, protocol.prepare_command(binaries[row["algorithm"]], row, output / (label + ".unused-result")), 1800)
+                case.update(protocol.analyze(row, (output / "raw" / (label + ".stdout.txt")).read_text(),
                                              (output / "raw" / (label + ".stderr.txt")).read_text()))
             except (ValueError, RuntimeError, KeyError) as error:
                 case.update(status="FAILED_RETAINED", error=repr(error))
             preparation.unchanged(report["pins"])
             save()
             if smoke and case["status"] != "PASS":
-                raise RuntimeError("six-partition correctness smoke failed; no full-graph child launched")
+                raise RuntimeError("protocol correctness smoke failed; no full-graph child launched")
         preparation.unchanged(report["pins"], full=True)
-        report["status"] = analysis.decision(report["cases"])
+        report["status"] = protocol.decision(report["cases"])
     except BaseException as error:
         report["status"] = "FAILED_RETAINED"
         report["errors"].append(repr(error))

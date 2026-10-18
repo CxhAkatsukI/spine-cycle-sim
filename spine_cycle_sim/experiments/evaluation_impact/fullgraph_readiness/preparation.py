@@ -10,7 +10,8 @@ from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 DATASETS = ("AU", "SU", "WK", "SO", "PK", "LJ", "LJ08", "R19")
 ALGORITHMS = ("weighted_sssp", "connected_components", "residual_pagerank")
 DEFINES = {"weighted_sssp": [], "connected_components": ["GRASU_REGRAPH_CONNECTED_COMPONENTS=1"],
-           "residual_pagerank": ["GRASU_REGRAPH_RESIDUAL_PAGERANK=1"]}
+           "residual_pagerank": ["GRASU_REGRAPH_RESIDUAL_PAGERANK=1"],
+           "full_pagerank": ["GRASU_REGRAPH_FULL_PAGERANK=1"]}
 PREFIXES = {"weighted_sssp": "WEIGHTED_PMA_NATIVE_SHARDED",
             "connected_components": "CC_PMA_NATIVE_SHARDED",
             "residual_pagerank": "RESIDUAL_PR_PMA_NATIVE_SHARDED"}
@@ -68,17 +69,23 @@ def matrix(manifest):
 
 
 def freeze(integration, manifest, output):
+    rows = matrix(manifest)
+    frozen = freeze_sources(integration, output)
+    return {**frozen, "rows": rows, "pins": [identity(manifest),
+            *[row["input_identity"] for row in rows], *frozen["pins"]]}
+
+
+def freeze_sources(integration, output, *, extra_tools=()):
     if subprocess.check_output(["git", "status", "--porcelain"], cwd=integration).strip():
         raise ValueError("clean production host worktree required")
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=integration, text=True).strip()
-    pins = [identity(manifest)]
-    rows = matrix(manifest)
-    pins += [row["input_identity"] for row in rows]
+    pins = []
     source = output / "source"
     paths = sorted((integration / "include").rglob("*.h"))
     paths += sorted((integration / "include").rglob("*.hpp"))
     paths += [integration / "tools" / name for name in (
-        "weighted_pma_native_host.cpp", "sharded_k4_native_host.cpp", "sharded_k4_pagerank_native_host.cpp")]
+        "weighted_pma_native_host.cpp", "sharded_k4_native_host.cpp", "sharded_k4_pagerank_native_host.cpp",
+        *extra_tools)]
     for original in paths:
         if original.is_symlink() or not original.is_file():
             raise ValueError("regular production host source required")
@@ -90,7 +97,7 @@ def freeze(integration, manifest, output):
             raise ValueError("host source changed while copying")
         pins += [before, identity(copied)]
     unchanged(pins)
-    return {"revision": revision, "rows": rows, "source": str(source), "pins": pins}
+    return {"revision": revision, "source": str(source), "pins": pins}
 
 
 def smokes(output):
@@ -107,7 +114,8 @@ def smokes(output):
 
 
 def compile_command(compiler, source, algorithm, binary, xrt, hls):
-    name = "sharded_k4_pagerank_native_host.cpp" if algorithm == "residual_pagerank" else "sharded_k4_native_host.cpp"
+    name = ("sharded_k4_pagerank_native_host.cpp" if algorithm in ("residual_pagerank", "full_pagerank")
+            else "sharded_k4_native_host.cpp")
     return [str(compiler), "-std=c++17", "-O2", "-g0", "-Wall", "-Wextra", "-Werror", "-fdiagnostics-format=json",
             "-D_GLIBCXX_ASSERTIONS", "-DGRASU_MAX_CACHE_SEGMENT=131072",
             "-DGRASU_REGRAPH_HOST_ROW_LINE_READ=1", *["-D" + flag for flag in DEFINES[algorithm]],

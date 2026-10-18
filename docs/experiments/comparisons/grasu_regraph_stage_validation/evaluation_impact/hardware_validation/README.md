@@ -64,9 +64,10 @@ in the linked remote package. No production FPGA result, published-performance
 match, fixed-Spine matrix or replacement figure is claimed yet.
 
 Fresh CC / FullPR v1 and ResPR v2 compilations have completed. Their separate
-40-GiB experimental links are active alongside SSSP; at the 2026-10-18
-checkpoint SSSP has entered implementation and the other three remain in
-block synthesis. All three fresh algorithm adapters pass their own 23-case
+40-GiB experimental links are active alongside SSSP; the current 2026-10-18
+checkpoint has SSSP in post-route physical optimization and the other three
+in placement. The remote host reports approximately 376 GiB available; owned
+jobs remain at finite 40-GiB limits with zero swap. All three fresh algorithm adapters pass their own 23-case
 AXI/AXIS RTL trials. Those adapter-only passes are not whole-algorithm RTL or
 device results. The [algorithm-specific guide](complete_pipeline/production_routing/algorithm_build/README.md)
 owns the source identities, retained failed attempts, resource screens and
@@ -89,8 +90,19 @@ resident wall medians are 95.4--185.8 ms, including actual host relaunch and
 per-round full-state readback. The service exits successfully; peak memory is
 18.6 GiB with zero memory-limit/OOM events. An independent raw-output replay
 passes all 26 executions and 626 pins. The [Spine protocol guide](fullgraph_readiness/spine_resident/README.md#completed-sssp-matrix)
-retains the individual times and exact identities. CC v2 is running and
-residual PR v2 is waiting; no new paired G+R speedup or final figure is claimed.
+retains the individual times and exact identities. CC v2 and residual PR v2
+also complete 26/26 executions each, with independent raw replay and zero
+memory-limit/OOM events. All eight large ResPR cases perform zero propagation
+launches at the frozen activity threshold; their wall time still includes
+maintenance, host degree/correction/seed work and final readback. They are not
+evidence of large-graph residual propagation performance.
+
+The independent [FullPR protocol](fullgraph_readiness/fullpr_resident/README.md)
+retains two failed Spine board attempts. Its G+R true-convergence CPU/board
+entry is now implemented with explicit AU/SU/WK scope, but no successful
+FullPR paired matrix is claimed. The complete new-production G+R matrix is
+still waiting for routed admissions. No new paired speedup or final figure
+is claimed.
 
 ### Historical 2026-10-16 Track Snapshot
 

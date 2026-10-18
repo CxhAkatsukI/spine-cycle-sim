@@ -40,13 +40,33 @@ def recheck(report, read):
                 row["input_identity"]["sha256"] != row["sha256"] or
                 row["input_identity"] not in report["pins"]):
             raise ValueError("frozen workload dimensions or identity disagree")
+    if not report["steps"]:
+        raise ValueError("unique executed steps required")
+    output = Path(report["steps"][0]["cwd"])
+    labels = replay_steps(report, read, algorithms=preparation.ALGORITHMS,
+                          rows=[*smoke_rows(output), *matrix],
+                          prepare_command=preparation.prepare_command, analyze=analysis.analyze,
+                          successful=success)
+    if success and (report["errors"] or len(report["steps"]) != len(labels) or
+            [(case["dataset"], case["algorithm"]) for case in report["cases"]] != expected or
+            [(case["dataset"], case["algorithm"]) for case in report["smokes"]] !=
+            [("SMOKE", a) for a in preparation.ALGORITHMS] or
+            any(case["status"] != "PASS" for case in report["smokes"]) or
+            analysis.decision(report["cases"]) != analysis.PASS):
+        raise ValueError("successful delivery requires all three smokes and 24 admitted cases")
+    return {"status": report["status"], "source_revision": report["source_revision"],
+            "cases": len(report["cases"]), "smokes": len(report["smokes"]),
+            "errors": report["errors"], **{key: False for key in CLAIMS}}
+
+
+def replay_steps(report, read, *, algorithms, rows, prepare_command, analyze, successful):
+    """Replay bounded compile/preparation outputs; cohort policy stays with its owner."""
     steps = report["steps"]
     if not steps or len({step["label"] for step in steps}) != len(steps):
         raise ValueError("unique executed steps required")
     output = Path(steps[0]["cwd"])
-    rows = [*smoke_rows(output), *matrix]
     by_label = {row["dataset"] + "_" + row["algorithm"]: row for row in rows}
-    labels = ["compile_" + a for a in preparation.ALGORITHMS] + list(by_label)
+    labels = ["compile_" + a for a in algorithms] + list(by_label)
     if [step["label"] for step in steps] != labels[:len(steps)]:
         raise ValueError("execution order differs from declared compilation/smoke/matrix")
     for step in steps:
@@ -55,15 +75,15 @@ def recheck(report, read):
         stdout, stderr = (read("raw/" + label + suffix) for suffix in (".stdout.txt", ".stderr.txt"))
         if resource != {key: value for key, value in step.items() if key != "label"}:
             raise ValueError("saved resource log differs from report")
-        if success and (step["exit_code"] != 0 or step["stop_reason"] != "process_exit" or
+        if successful and (step["exit_code"] != 0 or step["stop_reason"] != "process_exit" or
                         step["cleanup_snapshot_error"] is not None):
             raise ValueError("successful report contains failed or interrupted child")
         if not label.startswith("compile_"):
             row = by_label[label]
-            command = preparation.prepare_command(output / row["algorithm"], row, output / (label + ".unused-result"))
+            command = prepare_command(output / row["algorithm"], row, output / (label + ".unused-result"))
             if step["command"] != command or step["cwd"] != str(output):
                 raise ValueError("prepare-only command boundary changed")
-        elif success:
+        elif successful:
             algorithm = label.removeprefix("compile_")
             command = step["command"]
             includes = [Path(token[2:]) for token in command if token.startswith("-I")]
@@ -77,17 +97,8 @@ def recheck(report, read):
     for case in [*report["smokes"], *report["cases"]]:
         if case["status"] == "PASS":
             label = case["dataset"] + "_" + case["algorithm"]
-            replay = analysis.analyze(by_label[label], read("raw/" + label + ".stdout.txt"),
+            replay = analyze(by_label[label], read("raw/" + label + ".stdout.txt"),
                                       read("raw/" + label + ".stderr.txt"))
             if replay != case:
                 raise ValueError("saved case differs from raw preparation evidence")
-    if success and (report["errors"] or len(steps) != len(labels) or
-            [(case["dataset"], case["algorithm"]) for case in report["cases"]] != expected or
-            [(case["dataset"], case["algorithm"]) for case in report["smokes"]] !=
-            [("SMOKE", a) for a in preparation.ALGORITHMS] or
-            any(case["status"] != "PASS" for case in report["smokes"]) or
-            analysis.decision(report["cases"]) != analysis.PASS):
-        raise ValueError("successful delivery requires all three smokes and 24 admitted cases")
-    return {"status": report["status"], "source_revision": report["source_revision"],
-            "cases": len(report["cases"]), "smokes": len(report["smokes"]),
-            "errors": report["errors"], **{key: False for key in CLAIMS}}
+    return labels
