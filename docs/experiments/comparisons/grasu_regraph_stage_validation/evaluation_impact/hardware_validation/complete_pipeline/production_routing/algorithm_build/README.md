@@ -42,6 +42,8 @@ resources; `review.py` checks a terminal compile's identity and the separately
 verified portable capacity queries. `routing.py` owns the one-CU placement
 change and fresh export/resource review; `route_study.py` owns bounded linking.
 No simulator timing coefficient changes here.
+`adapter_rtl.py` separately tests the actual exported adapter's AXI/AXIS
+behavior; it does not admit the complete algorithm or replace board timing.
 
 ## Deployed Checkpoint
 
@@ -100,6 +102,29 @@ The new closure `production-algorithm-sources-v2` records integration `8f5928e`.
 service `spine-production-respr-compile-20261018-v2.service`, invocation
 `317f14ce51554b3f81759b9440d93a2c`, with the same 16-GiB containment and
 unchanged algorithm/cache/workload scope. CC/FullPR v1 XOs remain independent.
+The v2 source index SHA-256 is
+`fe0e1ff3a52491f50dee61203ffa11156c09d567254a8c1a3de11482000d62d8`.
+The fresh v2 Apply report estimates 269408 FF (versus 6019300 before),
+65487 LUT, 90 BRAM18, zero URAM and 272 DSP. The complete v2 compilation
+and independent whole-design review still need to finish before linking it.
+
+CC and FullPR experimental links are active under simulator `417a8bd`,
+directory `algorithm-route-runner-417a8bd`. The minimal runner archive is
+`production-algorithm-route-runner-v2.tar.gz`, SHA-256
+`958042f8e0ab8036eac8de42ab18c36d7587d395a463acddf86021ec88ed2c62`.
+Both pass fresh whole-device/URAM screens after the one-CU move, canonical
+ABI/stream checks, and all six environment probes. They are **running links,
+not completed bitstreams or FPGA evidence**:
+
+| Algorithm | Output | Service / invocation |
+| --- | --- | --- |
+| CC | `production-cc-route-v1` | `spine-production-cc-route-20261018-v1.service` / `134e9b3bde86475d877333406235a149` |
+| FullPR | `production-fullpr-route-v1` | `spine-production-fullpr-route-20261018-v1.service` / `0b93dc35db4f48bcb64866adf28ff699` |
+
+Each has a separate 40-GiB max / 36-GiB high cgroup with no swap. Three
+40-GiB links plus the 16-GiB ResPR compile and 32+8-GiB reserves require
+176 GiB under atomic admission; about 477 GiB was available at the recorded
+checkpoint. This is a budget/admission observation, not a peak-RSS prediction.
 
 The separately contained `production-algorithm-bank-smoke-v1` source test
 passes weighted, destination-only and unit edge formats (11.78 s elapsed,
@@ -237,3 +262,42 @@ in their fresh directories; the paper and existing figures remain unchanged.
 ```bash
 python3 -m unittest discover -s tests -p 'test_g_algorithm_*.py' -v
 ```
+
+## Fresh Adapter RTL
+
+`adapter-rtl` first revalidates the terminal compilation and exact exported
+destination-only/sharded bank-stream ABI. It extracts the **full adapter top
+and its generated RTL from that XO**, not a helper model or an old reference
+XO. It freezes the benches, generated RTL, source/compile review, tools and
+runner before executing xvlog/xelab/xsim. A placement-screen conflict may be
+recorded here without blocking an isolated adapter functional test; it is
+not waived for a full-device link or board claim.
+
+The existing 23-case bank-stream bench covers empty/single sources, packed-row
+and tile boundaries up to 1025 vertices, sparse early/late/interleaved sources,
+multi-segment rows, injected 1/64/128-cycle ordered memory delays, and a
+1000-cycle output stall. It checks output payload/KEEP/STRB/LAST, stability
+under backpressure, no writes, legal aligned AXI bursts within 4-KiB bounds,
+padded directory capacity, and request/response conservation. Sharded weighted
+and destination-only adapters preserve the same opaque destination bits; this
+packet test is **not** graph-level CC/PR arithmetic/convergence evidence.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build adapter-rtl \
+  --compilation /data/chuxiao/baseline_hardware_validation_20261017/production-cc-compile-v1 \
+  --storage /path/to/frozen/resource_evidence \
+  --output /data/chuxiao/baseline_hardware_validation_20261017/production-cc-adapter-rtl-v1 \
+  --xilinx /data/feiyang/xilinx \
+  --platform /data/feiyang/runtime/frontier-xrt-20261015/xilinx/platforms/xilinx_u55c_gen3x16_xdma_3_202210_1/xilinx_u55c_gen3x16_xdma_3_202210_1.xpfm \
+  --compatibility /data/feiyang/xilinx/compat-2024.1 \
+  --shim /data/chuxiao/baseline_hardware_validation_20261017/production-inputs-v1
+```
+
+Use a separate 4-GiB max / 3-GiB high, zero-swap, group-OOM-kill service with
+200% CPU, 4096 tasks and 65536 open files. The same atomic lease policy keeps
+32+8-GiB reserves and counts full peer limits. Each tool step has a 180-second
+deadline and a live-memory watchdog. A terminal pass is explicitly
+`FRESH_ADAPTER_AXI_RTL_PASS_NOT_ALGORITHM_RTL_OR_BOARD`; whole-algorithm RTL,
+HBM timing, routed clock, board correctness and publication match remain false.
+Synthetic 10-ns bench clocks and injected memory delays are not converted
+into predicted FPGA performance. Failed runs remain in their original folder.
