@@ -63,13 +63,30 @@ trace; neither discovery lookup was adapted. There were zero OOM events.
 Its exact full-link v3/return v3 continuations consequently stop before tools
 or programming. A correction now discovers already-loaded callbacks as well
 as later loads, while preserving vendor diagnostics and installed files.
-A fresh actual BD pass is still required. The linked diagnostic guide owns its
+A fresh actual BD pass is still required. BD v5, full-link v4 and return v4
+now pin immutable runner `ad8f81e` and exact parent invocations; the linked
+diagnostic guide records their identities. At the 15:04 UTC check, v5 remains
+in its full-budget queue because unrelated vendor processes have no finite
+cgroup bounds, despite approximately 367 GiB available. Existing admitted
+SSSP/CC/FullPR routes and ResPR refinement continue concurrently. The linked diagnostic guide owns its
 runner, invocation, archive hash, tests and separate acceptance boundary.
 Its separate return receipt/offline replay and strict routed admission are
 now implemented. The loading-order correction brings the original-G regression
 suite to 122 tests. The changed external
 interconnect stays explicit throughout return and board profiles. Tests and
 deployment do not establish routing, measured performance or publication match.
+
+The [original-R arithmetic audit](original_regraph/arithmetic_control/README.md)
+now completes all six layouts and twelve explicit divisor bindings. Original
+11+3 and A4 arithmetic reports agree. A candidate common single-superstep
+profile uses numeric binary32 input contributions, damping `108/128`, zero
+base/dangling correction and the CSR-degree divisor. On Amazon, median numeric
+payload difference from the author's fixed-point output is 0.438% on nonzero
+fixed outputs, but this is not bitwise equivalence or default production PR.
+The author-initial divisor has materially different truncation effects and
+remains reported. This offline audit does not execute candidate HLS, measure
+adapter/K4 performance or admit any replacement figure. An actual matched
+adapter/K4 board control is still required.
 
 At the 14:19 UTC tool check, the high-memory host has 395 GiB available.
 SSSP v2 continues routing optimization, CC v2 is in placement,

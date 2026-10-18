@@ -207,13 +207,30 @@ unsupported preloaded callback; all 122 original-G tests must pass. A fresh
 BD probe is required before another full link. Synthetic tests are not proof
 that the actual Vivado callback installation or BD validation succeeds.
 
+The loading-order retry is frozen in simulator `ad8f81e`, read-only runner
+`original-g-port-runner-ad8f81e` on both hosts. The corresponding archive has
+SHA-256 `7f9061d0de9e27cf0a664b75ccf671011780497ee6a0c90c0d27994232bb5549`.
+The current chain is separate from all retained failures above:
+
+| Stage | Output | Service / exact invocation |
+| --- | --- | --- |
+| BD diagnostic | Remote `original-g-physical-port-probe-v5` | `spine-original-g-physical-port-20261018-v5.service` / `bef43ffcea30412897463ea00490ae35` |
+| Full link, only after that BD passes | Remote `original-g-external-port-route-v4` | `spine-original-g-external-port-route-20261018-v4.service` / `6ff1d25db70749f486ef91ae1c570966` |
+| Strict return, then guarded board matrix | Local `original-g-external-port-return-follow-v4` | `spine-original-g-external-port-return-20261018-v4.service` / `9098654d0d7c4ec7b2c185e4b0cbeab1` |
+
+At the 14:50 UTC checkpoint, BD v5 is waiting for complete peer memory
+budgets: available memory exceeds its full budget/reserve calculation, but
+unrelated unbounded compiler processes prevent admission. Existing admitted
+bounded builds continue. The full-link and local-return stages wait for the
+exact prerequisites above; neither is a tool pass or a measured board result.
+
 Both compiler services retain 40/36-GiB max/high, zero swap and group OOM
 kill. The local follower retains 4/3-GiB max/high, zero swap and a
 259200-second child wait within its 280000-second outer deadline. It requests
 device 0 only after strict source/ABI/physical-profile/clock/timing admission,
 using the exclusive device lease. Its original-G v4 preflight remains pinned
 to `c5fcccaf865c8d50cc5b0f74f4ea2dda53359a125fc927ae217915287c9d1ef6`.
-All failed earlier attempts remain unchanged. The correction passes 120
+All failed earlier attempts remain unchanged. The correction passes 122
 original-G regressions and 15 organization checks, plus documentation,
 catalog and whitespace checks; these are not actual Vivado or board results.
 

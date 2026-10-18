@@ -1,0 +1,831 @@
+{
+  "adapter_performance_measured": false,
+  "board_programmed": false,
+  "cases": [
+    {
+      "bindings": {
+        "author_initial": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 131073,
+          "fixed_aligned_sha256": "9cf4545c8cfd0cee73a7314a886a93abb2fbe770734461c21099e8ea83de08ca",
+          "fixed_zero_float_nonzero_vertices": 131009,
+          "float_logical_bits_sha256": "6bdf8f30159288b00fc1a02d789b57dc79d26cad90af60e88e2addf0026de52a",
+          "max_absolute_difference": 0.84375,
+          "max_binary32_difference_from_unrounded_formula": 5.0303700316334243e-08,
+          "max_gather_sum": 8191,
+          "max_original_quantization_bound": 1.1056976914551377,
+          "max_relative_difference_nonzero_fixed": 0.6877059936523438,
+          "median_relative_difference_nonzero_fixed": 0.6875,
+          "nonzero_fixed_vertices": 64,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 131073
+        },
+        "csr_degree": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 131073,
+          "fixed_aligned_sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "fixed_zero_float_nonzero_vertices": 0,
+          "float_logical_bits_sha256": "e50828f7644bcd8da3399d0d044593ee178f41a6485ad5cb63f898a4f8a45856",
+          "max_absolute_difference": 0.578125,
+          "max_binary32_difference_from_unrounded_formula": 0.0,
+          "max_gather_sum": 8191,
+          "max_original_quantization_bound": 2.1054534912109375,
+          "max_relative_difference_nonzero_fixed": 0.00016732995658465992,
+          "median_relative_difference_nonzero_fixed": 2.26088843872088e-05,
+          "nonzero_fixed_vertices": 131073,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 131073
+        }
+      },
+      "id": "a4_boundary_ring",
+      "logical_edges": 131137
+    },
+    {
+      "bindings": {
+        "author_initial": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 4096,
+          "fixed_aligned_sha256": "57a635aad438874789d59db535d5875ef08491aca533e38a774f6be7eced5823",
+          "fixed_zero_float_nonzero_vertices": 2651,
+          "float_logical_bits_sha256": "86f7cfe0d42d700c81e3dcb7da3f7cec91ddecf25da5b2b3102bdd864092a0c8",
+          "max_absolute_difference": 0.84375,
+          "max_binary32_difference_from_unrounded_formula": 1.2574389529618202e-08,
+          "max_gather_sum": 32765,
+          "max_original_quantization_bound": 1.421951308848293,
+          "max_relative_difference_nonzero_fixed": 0.6875,
+          "median_relative_difference_nonzero_fixed": 0.6875,
+          "nonzero_fixed_vertices": 1445,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 65537
+        },
+        "csr_degree": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 4096,
+          "fixed_aligned_sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+          "fixed_zero_float_nonzero_vertices": 0,
+          "float_logical_bits_sha256": "8985e2381e3ebdc54ae728fac84fe84b6c5140f75862f2d8ad08dd94cb1ca20e",
+          "max_absolute_difference": 0.734375,
+          "max_binary32_difference_from_unrounded_formula": 0.0,
+          "max_gather_sum": 32765,
+          "max_original_quantization_bound": 2.0,
+          "max_relative_difference_nonzero_fixed": 0.00016732995658465992,
+          "median_relative_difference_nonzero_fixed": 0.00016732995658465992,
+          "nonzero_fixed_vertices": 4096,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 65537
+        }
+      },
+      "id": "a4_skewed_sources",
+      "logical_edges": 8193
+    },
+    {
+      "bindings": {
+        "author_initial": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 646766,
+          "fixed_aligned_sha256": "5d96afd7f0e0ba645163e83a03f8064562466d5d1b6734de09d01738bebf7bc9",
+          "fixed_zero_float_nonzero_vertices": 128114,
+          "float_logical_bits_sha256": "2fbe8a5ff497254bf77577e300121846d43ee398a7439719dbe119238299d7ae",
+          "max_absolute_difference": 3.28125,
+          "max_binary32_difference_from_unrounded_formula": 2.3410744915963733e-05,
+          "max_gather_sum": 281926,
+          "max_original_quantization_bound": 4.6365337633106805,
+          "max_relative_difference_nonzero_fixed": 1.0121526718139648,
+          "median_relative_difference_nonzero_fixed": 0.06418173653738839,
+          "nonzero_fixed_vertices": 518652,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 735324
+        },
+        "csr_degree": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 646389,
+          "fixed_aligned_sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+          "fixed_zero_float_nonzero_vertices": 0,
+          "float_logical_bits_sha256": "474af2df5d76495226dbb3fbaf040ac1658b5473be26b56a6439a7522a9b05f9",
+          "max_absolute_difference": 2.505859375,
+          "max_binary32_difference_from_unrounded_formula": 0.0003906250003637979,
+          "max_gather_sum": 281926,
+          "max_original_quantization_bound": 4.729684448242187,
+          "max_relative_difference_nonzero_fixed": 0.06640625,
+          "median_relative_difference_nonzero_fixed": 0.004378374885110294,
+          "nonzero_fixed_vertices": 646766,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 735324
+        }
+      },
+      "id": "a4_amazon",
+      "logical_edges": 5158388
+    },
+    {
+      "bindings": {
+        "author_initial": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 131073,
+          "fixed_aligned_sha256": "9cf4545c8cfd0cee73a7314a886a93abb2fbe770734461c21099e8ea83de08ca",
+          "fixed_zero_float_nonzero_vertices": 131009,
+          "float_logical_bits_sha256": "6bdf8f30159288b00fc1a02d789b57dc79d26cad90af60e88e2addf0026de52a",
+          "max_absolute_difference": 0.84375,
+          "max_binary32_difference_from_unrounded_formula": 5.0303700316334243e-08,
+          "max_gather_sum": 8191,
+          "max_original_quantization_bound": 1.1056976914551377,
+          "max_relative_difference_nonzero_fixed": 0.6877059936523438,
+          "median_relative_difference_nonzero_fixed": 0.6875,
+          "nonzero_fixed_vertices": 64,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 131073
+        },
+        "csr_degree": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 131073,
+          "fixed_aligned_sha256": "a6a34cf882b1983847a3afd68fdf96b90a15bbfc8f7530c3341ed6e3eb1cb7d1",
+          "fixed_zero_float_nonzero_vertices": 0,
+          "float_logical_bits_sha256": "e50828f7644bcd8da3399d0d044593ee178f41a6485ad5cb63f898a4f8a45856",
+          "max_absolute_difference": 0.578125,
+          "max_binary32_difference_from_unrounded_formula": 0.0,
+          "max_gather_sum": 8191,
+          "max_original_quantization_bound": 2.1054534912109375,
+          "max_relative_difference_nonzero_fixed": 0.00016732995658465992,
+          "median_relative_difference_nonzero_fixed": 2.26088843872088e-05,
+          "nonzero_fixed_vertices": 131073,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 131073
+        }
+      },
+      "id": "original_example_boundary_ring",
+      "logical_edges": 131137
+    },
+    {
+      "bindings": {
+        "author_initial": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 4096,
+          "fixed_aligned_sha256": "57a635aad438874789d59db535d5875ef08491aca533e38a774f6be7eced5823",
+          "fixed_zero_float_nonzero_vertices": 2651,
+          "float_logical_bits_sha256": "86f7cfe0d42d700c81e3dcb7da3f7cec91ddecf25da5b2b3102bdd864092a0c8",
+          "max_absolute_difference": 0.84375,
+          "max_binary32_difference_from_unrounded_formula": 1.2574389529618202e-08,
+          "max_gather_sum": 32765,
+          "max_original_quantization_bound": 1.421951308848293,
+          "max_relative_difference_nonzero_fixed": 0.6875,
+          "median_relative_difference_nonzero_fixed": 0.6875,
+          "nonzero_fixed_vertices": 1445,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 65537
+        },
+        "csr_degree": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 4096,
+          "fixed_aligned_sha256": "dc28f9f7ef6524b65744c8e03a23cc8762d1ee202e5acd0221ce151b39c4f336",
+          "fixed_zero_float_nonzero_vertices": 0,
+          "float_logical_bits_sha256": "8985e2381e3ebdc54ae728fac84fe84b6c5140f75862f2d8ad08dd94cb1ca20e",
+          "max_absolute_difference": 0.734375,
+          "max_binary32_difference_from_unrounded_formula": 0.0,
+          "max_gather_sum": 32765,
+          "max_original_quantization_bound": 2.0,
+          "max_relative_difference_nonzero_fixed": 0.00016732995658465992,
+          "median_relative_difference_nonzero_fixed": 0.00016732995658465992,
+          "nonzero_fixed_vertices": 4096,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 65537
+        }
+      },
+      "id": "original_example_skewed_sources",
+      "logical_edges": 8193
+    },
+    {
+      "bindings": {
+        "author_initial": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 646766,
+          "fixed_aligned_sha256": "5d96afd7f0e0ba645163e83a03f8064562466d5d1b6734de09d01738bebf7bc9",
+          "fixed_zero_float_nonzero_vertices": 128114,
+          "float_logical_bits_sha256": "2fbe8a5ff497254bf77577e300121846d43ee398a7439719dbe119238299d7ae",
+          "max_absolute_difference": 3.28125,
+          "max_binary32_difference_from_unrounded_formula": 2.3410744915963733e-05,
+          "max_gather_sum": 281926,
+          "max_original_quantization_bound": 4.6365337633106805,
+          "max_relative_difference_nonzero_fixed": 1.0121526718139648,
+          "median_relative_difference_nonzero_fixed": 0.06418173653738839,
+          "nonzero_fixed_vertices": 518652,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 735324
+        },
+        "csr_degree": {
+          "binary32_integer_gather_exact_any_order": true,
+          "different_output_vertices": 646389,
+          "fixed_aligned_sha256": "49259f4910f87ec5b4f6981f1ea2fe7822d8fd41cc065978b4dc838d338a9a45",
+          "fixed_zero_float_nonzero_vertices": 0,
+          "float_logical_bits_sha256": "474af2df5d76495226dbb3fbaf040ac1658b5473be26b56a6439a7522a9b05f9",
+          "max_absolute_difference": 2.505859375,
+          "max_binary32_difference_from_unrounded_formula": 0.0003906250003637979,
+          "max_gather_sum": 281926,
+          "max_original_quantization_bound": 4.729684448242187,
+          "max_relative_difference_nonzero_fixed": 0.06640625,
+          "median_relative_difference_nonzero_fixed": 0.004378374885110294,
+          "nonzero_fixed_vertices": 646766,
+          "numeric_outputs_equal": false,
+          "original_quantization_bound_passed": true,
+          "output_encoding_different": true,
+          "signed_overflow_vertices": 0,
+          "vertices": 735324
+        }
+      },
+      "id": "original_example_amazon",
+      "logical_edges": 5158388
+    }
+  ],
+  "containment": {
+    "limits": {
+      "memory.high": "1879048192",
+      "memory.max": "2147483648",
+      "memory.oom.group": "1",
+      "memory.swap.max": "0"
+    },
+    "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-original-r-k4-arithmetic-20261018-v1.service"
+  },
+  "errors": [],
+  "hardware_timing_measured": false,
+  "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "pins": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/input_results.json",
+      "sha256": "6facfcb80cbb9314cbfdc4e045cab9a34b0a2fae49d1a4034d0d4198575b22db"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-preflight-v2/results.json",
+      "sha256": "4006fd44a3c7a9f6267f02242195a9df21ac1c90fff2beb379c5dc6d98d42c62"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/shared_workloads.py",
+      "sha256": "f4be035e49d6823b65114ddadc3e2be81e7cd62d8ab8bead0797a391f6bc6b1e"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/profiles.py",
+      "sha256": "e4f85c162b64d21434e0d26bc43965b8c7a25bab24c36abf8f33411eb0a9dc62"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/profile_capabilities.py",
+      "sha256": "b573f178f78b1fe99b2129c3436f1f245e82a8afd310a89a61affffc30b6edf5"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/feasibility.py",
+      "sha256": "c0a0e6c835577558b51e9a1cedf4003540150a9d41479432c0bf89c6fc84a771"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/comparison.py",
+      "sha256": "0c3ed707f5fea18ce39bae80371483beccbdeb956b0e6cc0051882231baca148"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/hls_weighted_workloads.py",
+      "sha256": "34cd38af97371827b6d3b70569beaa002eeabe7f1a94a3c397862d6664796086"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/real_small_batches.py",
+      "sha256": "651ff490bf65180ede8ddf18c4dae485d392f9017a673feb68b4f1a762d32866"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/memory_traffic.py",
+      "sha256": "645b62577b8302bd7a5a659920138b0d047b0e73ce21df9c3f171c93b98b4bae"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/hls_real_comparison.py",
+      "sha256": "379a5e1788aa9f7dc9a1c82dc0ce77b97134a2f682ebb717a981d1fbdfd8b70a"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/hls_pagerank_real_comparison.py",
+      "sha256": "164ec7c237a4ee048e9a737dfcfcbcb44862cdfbeea1125bf41ed84b57381f71"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/comparison_analysis.py",
+      "sha256": "90ba57a2e0f9f0952300638d5cade79f535a805ffdf4d6ba4b919c2b7673c680"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/real_memory_analysis.py",
+      "sha256": "cd1d7503490e01fd2960221c45c7ae666b5c4756f5962dbe60ebea06749e3a45"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/temporal_real_batches.py",
+      "sha256": "6248bc0849ecf8ccde9f84a5756b0ac81917e36a29130628d75fa862fb7aae8d"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/temporal_real_analysis.py",
+      "sha256": "ed6f907ae83ce920130e6474ddc244ece74c50d60a13f13bd4cbfd040d930738"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/grasu_addressing.py",
+      "sha256": "5fd70ac1bf5d9ecc590a09fca903d0893c76f41f4d94284bace2c70b284897d9"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/temporal_three_algorithm_analysis.py",
+      "sha256": "57794fcdd3cb5890569f0cd08d497ea16b467458d11729ed48820696980031d3"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/temporal_dense_analysis.py",
+      "sha256": "1041b31be7e80d952a757342e074a41dbc326cd89ad52f15bd66e27cc0684232"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/publication_cases.py",
+      "sha256": "bd14dd1bbf3062221e23c1d553cb72648d4bd61714a1dc76607fe82d853ac01a"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/large_graph_campaign.py",
+      "sha256": "2663b2aad79770a4925efc9d08eda41438b9a29dd7c9bd476b744747c9fe969c"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/publication_workloads.py",
+      "sha256": "78e22cb64d252b9337c020a07d74b1ad3a6f44e96b1bf41c139c4e2883f31410"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/publication_analysis.py",
+      "sha256": "3ab2182e8f8d77c1bc227b37d0c051bbe6737326e6e09d89c3d55e2288e82571"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/persistent_update_only.py",
+      "sha256": "04b343601cc2f6e46c5f06885ce014bfd4c04433ce97bcd18c06c1851f911edf"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/rq3.py",
+      "sha256": "e7c92e82f9da534e13eddde1d7c1242879c6d0768e4de64b52b5d5cdbbd53668"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/campaign_runtime.py",
+      "sha256": "93085ff96307744f2d7e189c90141545886b82ca1e50a7f6adc5f04900aeb846"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/__init__.py",
+      "sha256": "9a6b2085cd2899f67f8906e0d82bf01c0c0b2eadbc4e24a298f80bc0fbeb6628"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/__init__.py",
+      "sha256": "28c5ad77851e29839beb06b12189977c87cf7c68b0dc961ca30d877062d0d670"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/hardware/__init__.py",
+      "sha256": "5b436d0b9476b30a6e147781f28a1205ffb42599e8cbe8867a1078d33923b2a3"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/hardware/semantics/__init__.py",
+      "sha256": "2771b139a2aacda797a4cd9d112668445a0e04a8c7092d2c55ca97dc837eeaf7"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/__init__.py",
+      "sha256": "785bead8465ae009e7b9997b9da59eac5abe163f4382b3f7ba0dbfdc7c855369"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/__init__.py",
+      "sha256": "d2641586e8e54bc4edb965684582f130ef97546bbd2624521811f12ea98566e9"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/__init__.py",
+      "sha256": "686e3c45d55e2bcea50f15db635dc8bf763f8fd9b387dd9ed0365c7dc71f97aa"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/upstream_controls/__init__.py",
+      "sha256": "c9df6b968cbbdda00f9fbd678995575e5d73704c85e55538ed579874f40a87e0"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/upstream_controls/execution.py",
+      "sha256": "b2597d571e4fd23dbdbf2bf11eceb4de2f37f5ab34b80a78df0fa03a6cbd8b9b"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/admission.py",
+      "sha256": "47b0d0e964df5237b18b0e97061c2cb7d140eb2954d3c58471091fdc0e2a1bc8"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/upstream_controls/grasu/__init__.py",
+      "sha256": "271ac1f83a8208fdad35e79835ee6fafbad66d6d73c785f413b96158f99f49d5"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/upstream_controls/grasu/fixtures.py",
+      "sha256": "6c89b5a49df17d26c957f42da7570f2eb749c6d292fd717aed508be0ca9f60f5"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/preparation.py",
+      "sha256": "38af64c58088e338df07a2874a3dc89e77b5dcb94091d3f5dfb4e2623ef39985"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/study.py",
+      "sha256": "61e96b9bba87a151bca1215263a30dc9f9b6b81c5cd2d19db1f9a1e1b28673df"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/metadata_credits/__init__.py",
+      "sha256": "79dc8b5c43db5ec29009b9957c874cb9599fb27c67c74bde46da8c07c4657376"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_diagnostics/__init__.py",
+      "sha256": "31da02a8f909f44490ac364b1eb4f845bfc11d29d48174f8668c217c2e831347"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_concurrency/__init__.py",
+      "sha256": "66ecc18e1e97228e1c06a7879bf77afa845e9a9151643702435724ac7d777380"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/cached_hot/__init__.py",
+      "sha256": "a8cc5257aba3f20ab8ac7cff309942602959183a604f44edb91605bae3fe0403"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/hot_lanes/__init__.py",
+      "sha256": "d2cb466731eba65757469f1a5b64a04f0433a54a7184fdce234770d40578a878"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/parallel/__init__.py",
+      "sha256": "df7ef977ea18d28617151b8ca22d56ad9fb2bfb739af4ba0a58850b1274c41ba"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/parallel/preparation.py",
+      "sha256": "6e790557a9b80b0c9813df484ab9cbc1a8080fddb9575e60dcfb744650f86157"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/hot_lanes/preparation.py",
+      "sha256": "610013f760bf9d95fee3e248f3ca653159cb1f7b8de290dcd7a8aca7bee691ae"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/cached_hot/preparation.py",
+      "sha256": "c16eed0074494bf155868f9ca16315b3193187bb5f03404c58ffa4f7c4df098c"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_concurrency/preparation.py",
+      "sha256": "ab58aa5bf1556f28bdd0dff95719fb8bd28e2505550b8d274d0ce2a44f78a621"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_diagnostics/preparation.py",
+      "sha256": "77a3872464103aebcdc8cb6fc202dfe0c7e761213825b563d0bc483cd053c8e8"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/metadata_credits/preparation.py",
+      "sha256": "5e636c46a705c5989ed8ae6a9386b9ca57c0e2720275a57b0ce2ea0d14cad2ff"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/preparation.py",
+      "sha256": "a62c00a22a218cf4ebcf995fc688be346d9c59d0e249846dad641abbc7bff450"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/analysis.py",
+      "sha256": "1669d00ff9d57c981af340dfb716df0ce9028018ee96ee82ac3f5d3ef87b0be4"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/rtl_analysis.py",
+      "sha256": "37c14c4beb6170e4e729cd7e90d5c7c8b2bb642886a85e29fb72f9a954b82d99"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/evaluation_impact/common_g/search_pipeline/synthesis.py",
+      "sha256": "e1b6618cd66a46f91d60c946bc14ae8dcb9d50e8286d3c1c25e41a814a2d6a66"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/__init__.py",
+      "sha256": "dd56261afdb2497d537f8cee7b47ae45d3d3939052bad1fedf04e80c461bd299"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/row_line/__init__.py",
+      "sha256": "00cf8c7ae583dd02e107fc7581f9cdc09889896d2182bbec0063e114ed40e910"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/__init__.py",
+      "sha256": "1bb211a93c3f674d8ebb06ad3130592322b3b9732c092a887df18f19aa63592a"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/__init__.py",
+      "sha256": "b0d3e652a9c0c065865c24b58fe0eac776933248f5b32590cfa1dcc9a4791ed1"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/row_line/directory_tile/hardware/containment.py",
+      "sha256": "f3e2a9f4bc87c3fa9a1ee27427d155b2dbca3d01a8cf5ff3dd79c39a66948b27"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/analysis.py",
+      "sha256": "04704dfa8a44357b2aba921be8ec38da8908b0619a7acec1265e5ccf3c4fce45"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/board.py",
+      "sha256": "6e0ca5da78ad37559ba54a77b7e66b2e0b4c4c023d49ae6f8fe67bc3a6e0a065"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/execution.py",
+      "sha256": "6865b22d4d1d520f1b645d3b5e1246330dbf87b7701c797e21e6435c1b86ba46"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/process_cleanup.py",
+      "sha256": "5f1aaeaa7b62c6cb72dd2d583bc03a81c2f45d69a90ec590a88565c5814fd711"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/link_runtime.py",
+      "sha256": "1690c0556662ba7baa9b5f80f31d94677f5c61813f7045cfb8bc7aa622cb9f5d"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/route_recovery.py",
+      "sha256": "aad5007b6472864bbc356b45568de35dbfb9b73f94f3f38ae9ead17957fbb77c"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/sharded_k4_stages/bitstream.py",
+      "sha256": "7535e6cee40a99da52ca10792353a1dc44ade6853cb6ec35470f809292438a48"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/hardware/artifact.py",
+      "sha256": "8fd56b0cc9198cc789d02c89141981236addcdb547cdaf3fd06604ef560fb9ee"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/hardware/oracle.py",
+      "sha256": "c13a9a423e1adf3f90e32e213e2eb3ad31229996b7ca2b14f064a4a24ab1cb7e"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_inputs/__init__.py",
+      "sha256": "a61be291a3e6dd12827e8064b38ebb1182b113507e2f4c9732c3c5324bd1c50e"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_inputs/analysis.py",
+      "sha256": "9f87c6580ab9967d770c488c2203ab3342561306159c59d896ad495818e1cbbb"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/upstream_controls/sources.py",
+      "sha256": "57ae964a2bfa05bc583a90d76f65937ea2b42358d2ebfcd20d1a383ddca9e2c1"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/hardware/sources.py",
+      "sha256": "28260bcf91a2c4941a148fd25288260f95833c22f593c310b3314906143d1de8"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/hardware/study.py",
+      "sha256": "8cf467a382978fae10f63490250884e630fd03a18cc53ba092ad70ab13cc804d"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/hardware/semantics/arithmetic.py",
+      "sha256": "ddf2172e0cce58b3457bb9704a6f016e03be11c25e8ed2563be3cdcacbcb643e"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-arithmetic-runner-6b6a36a/spine_cycle_sim/experiments/original_regraph_execution/hardware/semantics/sources.py",
+      "sha256": "c3d69963003b3a5d90db3716a995dd7c3cb1a2cc24a870c0e8ee5813151e8dae"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/publication_sources/regraph/acc_udfs/pr/l2.h",
+      "sha256": "37394bde14d3bc64de0214868c0e7b2b863ef91faa7788a983612d7386e4a0a3"
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-complete-g/include/regraph_pagerank/l2.h",
+      "sha256": "0f0378fd575952b7e11b441a5472e5daf2d2bcf665ca1db04d44111ae82b816a"
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-complete-g/kernels/regraph_pagerank_apply/regraph_pagerank_apply.cpp",
+      "sha256": "91d9b7da78b08c4ce7bc49a7b72afed7421e9dd1e676bb9508aaac8775524ff2"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/boundary_ring/first/layout.json",
+      "sha256": "f21cb56a58780f7d8384bf8efc0a734f6a64a29c477a39cb0827e83e058630d0"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/boundary_ring/first/original_to_reordered.u32le",
+      "sha256": "005a7761af1af16c4b7e0a41490d1499a598c09736a529b72f1447f2211f7619"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/boundary_ring/first/csr_offsets.u32le",
+      "sha256": "25cdb4f6ec83af594faf55e6761b1abe2e22f6a2aa50e775202ffa923b37e8dc"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/boundary_ring/first/csr_destinations.u32le",
+      "sha256": "6b07a8600029eac54f3d4f801011ab31ff4b00d5abc4055e63ebfdd00aebb4e7"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/boundary_ring/first/initial.u32le",
+      "sha256": "713da263a02462123af106c8a3c1c4920e1a238f87c0d5dd9d2459859678ffd8"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/boundary_ring/first/degrees.u32le",
+      "sha256": "8266271e2b58e1370820e1d5c71b380e8d8ed48a8298fae0002f6d23ba679e2d"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/boundary_ring/first/partitions.u32le",
+      "sha256": "dcce6bf9626eccc0a0aec6e759498ec50dc7ae45c7582a24413e95f81a3aba94"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/boundary_ring/first/tasks.u32le",
+      "sha256": "eea75f09656fd08bbfe329586b3733cf3bc96481360872ef64c1b86cad5cd896"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/skewed_sources/first/layout.json",
+      "sha256": "63efaabc224e4a74081674168df0107afcc2fda1e8e1332919ff9ba02c9af4e7"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/skewed_sources/first/original_to_reordered.u32le",
+      "sha256": "5fb984f28bd36cd17ad6464157a642c7142417d4d525ec2f981642c44d9d3357"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/skewed_sources/first/csr_offsets.u32le",
+      "sha256": "47d19baaa49aceee6bcab9ca624f97dc632af6b4a7e6c7113a75590856923c1b"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/skewed_sources/first/csr_destinations.u32le",
+      "sha256": "ef65bf4a55473a1b51ba8d772e26fdcea210e09408443ed104fbbee7c136d931"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/skewed_sources/first/initial.u32le",
+      "sha256": "25a49d3cc1089a37c78da60ead5648ab98f8defdcf46d2efda48db19ac97febe"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/skewed_sources/first/degrees.u32le",
+      "sha256": "1e2f334279659b6cacfbb7cf3ac901502923edf0bd19692d17eb3bdcb7a26a2e"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/skewed_sources/first/partitions.u32le",
+      "sha256": "23815b72fe33530aadf7f14c62005d37ad38a05a2deb0fa187864bcf679def60"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/skewed_sources/first/tasks.u32le",
+      "sha256": "23815b72fe33530aadf7f14c62005d37ad38a05a2deb0fa187864bcf679def60"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/amazon/first/layout.json",
+      "sha256": "f8950d4a146651202bdb1807948509bb0d08b0ed6be197c6ee2063322b76a9c9"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/amazon/first/original_to_reordered.u32le",
+      "sha256": "1ef2eae1d8690c595e4843babb25c780284f153a28a8f92f0f6bfaafed318546"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/amazon/first/csr_offsets.u32le",
+      "sha256": "7b43e4689360107f0d284a627166c87676726676f90a986ecdb6df7aec7a095e"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/amazon/first/csr_destinations.u32le",
+      "sha256": "de451517a647469d39c327d1ff0810135d234e4215b368b41d8cbff27f3472e2"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/amazon/first/initial.u32le",
+      "sha256": "1c5549ce390b024758fd6653a615a2898a24349b62d72085aa3d20d5cf4813ce"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/amazon/first/degrees.u32le",
+      "sha256": "a8b0eca0b556775f627f046b281fa89beba31962ab43f16beba0c84f2bf54072"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/amazon/first/partitions.u32le",
+      "sha256": "a4758acf27c8eb82981e23bf5d283056d7600d8225aa78217baae1f25e18472c"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/a4/amazon/first/tasks.u32le",
+      "sha256": "a4758acf27c8eb82981e23bf5d283056d7600d8225aa78217baae1f25e18472c"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/boundary_ring/first/layout.json",
+      "sha256": "3f94acd931e100e07a562ab3245884770b7963f9e3136898bd9f959b0819d992"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/boundary_ring/first/original_to_reordered.u32le",
+      "sha256": "005a7761af1af16c4b7e0a41490d1499a598c09736a529b72f1447f2211f7619"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/boundary_ring/first/csr_offsets.u32le",
+      "sha256": "25cdb4f6ec83af594faf55e6761b1abe2e22f6a2aa50e775202ffa923b37e8dc"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/boundary_ring/first/csr_destinations.u32le",
+      "sha256": "6b07a8600029eac54f3d4f801011ab31ff4b00d5abc4055e63ebfdd00aebb4e7"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/boundary_ring/first/initial.u32le",
+      "sha256": "713da263a02462123af106c8a3c1c4920e1a238f87c0d5dd9d2459859678ffd8"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/boundary_ring/first/degrees.u32le",
+      "sha256": "8266271e2b58e1370820e1d5c71b380e8d8ed48a8298fae0002f6d23ba679e2d"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/boundary_ring/first/partitions.u32le",
+      "sha256": "dcce6bf9626eccc0a0aec6e759498ec50dc7ae45c7582a24413e95f81a3aba94"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/boundary_ring/first/tasks.u32le",
+      "sha256": "dca77ac454bc10c324e76afb4fc90e9bced4d84a6c333adc035f006a364c2911"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/skewed_sources/first/layout.json",
+      "sha256": "5feef98bf6cd3834e65c53b90b759b6be2f41a2f66f401383571b560e851cb20"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/skewed_sources/first/original_to_reordered.u32le",
+      "sha256": "5fb984f28bd36cd17ad6464157a642c7142417d4d525ec2f981642c44d9d3357"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/skewed_sources/first/csr_offsets.u32le",
+      "sha256": "47d19baaa49aceee6bcab9ca624f97dc632af6b4a7e6c7113a75590856923c1b"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/skewed_sources/first/csr_destinations.u32le",
+      "sha256": "ef65bf4a55473a1b51ba8d772e26fdcea210e09408443ed104fbbee7c136d931"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/skewed_sources/first/initial.u32le",
+      "sha256": "25a49d3cc1089a37c78da60ead5648ab98f8defdcf46d2efda48db19ac97febe"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/skewed_sources/first/degrees.u32le",
+      "sha256": "1e2f334279659b6cacfbb7cf3ac901502923edf0bd19692d17eb3bdcb7a26a2e"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/skewed_sources/first/partitions.u32le",
+      "sha256": "23815b72fe33530aadf7f14c62005d37ad38a05a2deb0fa187864bcf679def60"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/skewed_sources/first/tasks.u32le",
+      "sha256": "23815b72fe33530aadf7f14c62005d37ad38a05a2deb0fa187864bcf679def60"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/amazon/first/layout.json",
+      "sha256": "822025bb677ce91dfc9b8208c944959e1699c8a72482d06846431f34333d4436"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/amazon/first/original_to_reordered.u32le",
+      "sha256": "1ef2eae1d8690c595e4843babb25c780284f153a28a8f92f0f6bfaafed318546"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/amazon/first/csr_offsets.u32le",
+      "sha256": "7b43e4689360107f0d284a627166c87676726676f90a986ecdb6df7aec7a095e"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/amazon/first/csr_destinations.u32le",
+      "sha256": "de451517a647469d39c327d1ff0810135d234e4215b368b41d8cbff27f3472e2"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/amazon/first/initial.u32le",
+      "sha256": "1c5549ce390b024758fd6653a615a2898a24349b62d72085aa3d20d5cf4813ce"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/amazon/first/degrees.u32le",
+      "sha256": "a8b0eca0b556775f627f046b281fa89beba31962ab43f16beba0c84f2bf54072"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/amazon/first/partitions.u32le",
+      "sha256": "a4758acf27c8eb82981e23bf5d283056d7600d8225aa78217baae1f25e18472c"
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/results/upstream_stage_controls/original_host_inputs_final_v3/original_example/amazon/first/tasks.u32le",
+      "sha256": "d32f519a4b7e552018e3e9fec0e48ca49fbc82d8c13d6699cfbd769b5605457d"
+    }
+  ],
+  "production_default_semantics_equal": false,
+  "profile": {
+    "candidate_base": 0,
+    "candidate_damping": 0.84375,
+    "candidate_dangling_share": 0,
+    "candidate_formula": "binary32(binary32((108/128)*binary32(S))/binary32(d))",
+    "candidate_input": "numeric_binary32_integer_contributions_not_integer_bit_patterns",
+    "candidate_mode": "FullPR",
+    "candidate_output": "source_payload_not_rank_state",
+    "iterations": 1,
+    "original_arg": 0,
+    "original_formula": "floor(floor(108*S/128)*floor(65536/d)/65536)",
+    "production_defaults": "damping_0.85_base_and_dangling_are_not_this_control"
+  },
+  "publication_match": false,
+  "source_review": {
+    "literal_review_only_not_compiler_or_routed_implementation_proof": true,
+    "pins": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/build/publication_sources/regraph/acc_udfs/pr/l2.h",
+        "sha256": "37394bde14d3bc64de0214868c0e7b2b863ef91faa7788a983612d7386e4a0a3"
+      },
+      {
+        "path": "/home/chuxiao/grasu-regraph-complete-g/include/regraph_pagerank/l2.h",
+        "sha256": "0f0378fd575952b7e11b441a5472e5daf2d2bcf665ca1db04d44111ae82b816a"
+      },
+      {
+        "path": "/home/chuxiao/grasu-regraph-complete-g/kernels/regraph_pagerank_apply/regraph_pagerank_apply.cpp",
+        "sha256": "91d9b7da78b08c4ce7bc49a7b72afed7421e9dd1e676bb9508aaac8775524ff2"
+      }
+    ],
+    "production_revision": "1a5650c79ae0c29418b93184a1590f256e33f0b6"
+  },
+  "status": "ORIGINAL_R_K4_ARITHMETIC_AUDIT_COMPLETE_NOT_HARDWARE_OR_PERFORMANCE_MATCH",
+  "wall_seconds": 17.29835248272866
+}

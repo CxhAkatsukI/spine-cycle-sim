@@ -45,6 +45,51 @@ payload/rank outputs, topology, clocks, resource budget and event boundary.
 Eight focused regressions cover arithmetic, domain/overflow/padding rejection,
 source-anchor changes, full reference admission and memory-event rejection.
 
+## Completed Offline Audit
+
+The [unchanged raw report](results.json) records all six layouts and twelve
+bindings passing on 2026-10-18, in 17.298 seconds, with zero memory-limit/OOM
+events. Original 11+3 and A4 give identical arithmetic reports on each graph.
+This is an arithmetic audit, not execution of the candidate HLS.
+
+| Graph | Binding | Nonzero fixed outputs | Median numeric difference | Maximum numeric difference | Fixed-zero to float-nonzero vertices |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Boundary ring | Author initial | 64 | 68.75% | 68.77% | 131009 |
+| Boundary ring | CSR degree | 131073 | 0.00226% | 0.01673% | 0 |
+| Skewed sources | Author initial | 1445 | 68.75% | 68.75% | 2651 |
+| Skewed sources | CSR degree | 4096 | 0.01673% | 0.01673% | 0 |
+| Amazon | Author initial | 518652 | 6.418% | 101.22% | 128114 |
+| Amazon | CSR degree | 646766 | 0.43784% | 6.64063% | 0 |
+
+The percentages are `abs(float_payload - integer_payload) / integer_payload`
+on **nonzero integer outputs only**. The last column separately discloses
+zero outputs excluded from that denominator. Binary32's deviation from the
+unrounded formula is at most 0.000391 payload units in this matrix. The much
+larger differences above therefore arise primarily from the author's integer
+truncation/reciprocal and the explicit divisor, not floating gather order.
+No signed fixed-point intermediate overflows occur in these inputs.
+
+The CSR-degree binding is the suitable disclosed candidate for a common
+single-superstep PR control; it is still not bitwise equivalence or production
+default FullPR. Both bindings remain reported. Do not select the easier one
+after observing timings, infer a performance ratio from this audit, or mix
+the author's initial-property timing with candidate CSR-degree timing.
+The next hardware control must run the unchanged candidate FullPR apply with
+the profile above, verify gathered/rank/source outputs independently, and
+report its extra floating apply/state traffic and actual shared topology.
+
+The immutable runner is simulator `6b6a36a`, archive
+`original-r-arithmetic-runner-6b6a36a.tar.gz`, SHA-256
+`b1f30b88a23d476779f4f0dbc553d1ccc46afeca513e01f4e1530ab0800e5e5c`.
+Local output is
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-k4-arithmetic-v1`;
+service `spine-original-r-k4-arithmetic-20261018-v1.service`, exact invocation
+`5f6aef08f1d9465784bcdc214336b928`. Peak cgroup memory is 292003840 bytes.
+The raw report SHA-256 is
+`efe7c89ac68015cd2745658ead4e142d6a5ba9414d9e395c94d140f4092e5f66`.
+The source/capture paths in that report are indexed external dependencies,
+not bundled binaries. Reproduction needs those exact captures and sources.
+
 ## Reproduce
 
 Run the immutable committed Python owner from `hardware/semantics/`, with
