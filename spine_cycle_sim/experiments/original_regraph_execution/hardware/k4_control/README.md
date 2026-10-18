@@ -1,4 +1,4 @@
-# Matched Adapter/K4 Offline Control
+# Matched Adapter/K4 Control
 
 This owner prepares the actual production destination-sharded K4 input from
 the **unchanged original A4 captures**. It is an offline semantic prerequisite,
@@ -12,6 +12,7 @@ control. Four frontends with 23 graph channels are not equal resources to A4.
 | `inputs.py` | Exact passing original-R validation and independent arithmetic audit; unchanged captures, complete matrices and clean production revision |
 | `analysis.py` | Independent CSR gather, duplicate eligibility, binary32 payload hashes, exact profile, permutation and all 24 predeclared rows |
 | `build.py` | Explicit Release/UBSan flags and unmodified production-header include path; no XRT/vendor runtime |
+| `board_build.py` | Explicit XRT-linked guarded host and pure-schedule builds; no bitstream admission |
 | `study.py` | Full-budget atomic admission, bounded compilation/execution, records, failure retention and unchanged closure |
 
 The [C++ model contract](../../../../../cpp/tests/original_regraph/integrated/README.md)
@@ -39,9 +40,62 @@ retain a failed attempt rather than reducing the matrix.
 `boundary_ring` is known to contain 64 duplicate CSR records, first repeated
 edge `352 -> 43409`. The production PMA key is a single source/destination
 edge, so that frozen multiedge input is unsupported. The bounded focused
-model tests passed for `skewed_sources`; Amazon has not yet been admitted at
-this implementation checkpoint. The complete study result, not these tests,
+model tests passed for `skewed_sources`; the retained complete study below
+additionally admits Amazon. The complete study result, not just these tests,
 determines the available comparison scope.
+
+## Retained Offline Result
+
+Campaign root: `/data/chuxiao/experiments/baseline_hardware_validation_20261015`.
+The immutable `original-r-k4-runner-8dd43e1` snapshot ran all 24 declared rows
+in `original-r-k4-offline-v2/results.json`. Its status is
+`MATCHED_K4_A4_OFFLINE_MATRIX_COMPLETE_NOT_HARDWARE_OR_PERFORMANCE_MATCH`:
+16 passing rows, eight unsupported duplicate-edge rows, no errors and no
+memory-limit/OOM events. Amazon and `skewed_sources` each pass both bindings,
+both builds and both repetitions. Amazon has zero duplicate records;
+`boundary_ring` retains its 64 duplicates and never supplies a passing output.
+
+Result SHA-256:
+`cbf120edd62fa73d370ef8ad53e35ad40812900c1e3ef686332aa6ee1f8e5e9f`.
+Snapshot archive SHA-256:
+`dde1df4e405ddd0b04cc33a2370d2896db092edfe6f1383c4151e01c667cf730`.
+The service `spine-original-r-k4-offline-20261018-v2.service` finished in
+120.9 seconds with a 1.4-GiB peak under a 4-GiB hard limit, 3584-MiB high
+limit, zero swap, group-OOM containment, 100% CPU and affinity 123.
+
+`original-r-k4-offline-v1` remains a failed harness attempt: compilation
+finished, but dependency provenance rejected GCC's noncanonical target.
+The actual build command now uses `-MT probe`; no graph or numerical rule
+changed. The corrected command and dependency closure are tested directly.
+All 253 original-ReGraph focused tests subsequently passed in 23.9 seconds
+under a separate 2-GiB zero-swap cgroup (401.9-MiB peak).
+
+These are CPU semantic/preparation checks. They do not measure actual K4
+latency, establish same-resource/publication equivalence, admit a bitstream
+or produce a new Spine speedup. The actual adapter/K4 board path remains a
+separate gate.
+
+## Board-Host Checkpoint
+
+The [C++ host guide](../../../../../cpp/tests/original_regraph/integrated/README.md#guarded-board-host-components)
+defines the new `prepare`/`board` interface and small schedule/device/report
+owners. The six focused board-host tests passed in Release and UBSan without
+programming an FPGA: exact preparation arithmetic, complete scheduling with
+idle/reused workers, event overlap/dependencies, XRT library closure, duplicate
+rejection and missing-lease rejection before device context/programming.
+Unit `spine-k4-board-host-tests-20261018-v1.service` took 20.1 seconds and
+peaked at 513.4 MiB under a 2-GiB zero-swap cgroup, CPU quota 100%, affinity
+123. The test outputs were temporary, not retained FPGA evidence.
+The complete 259-test original-ReGraph regression then passed in 44.0 seconds
+(526.7-MiB peak) in `spine-original-r-regression-20261018-v4.service`, using
+the same containment and affinity with a 240-second timeout. Documentation
+layout/catalog checks and all 15 repository-organization tests also passed.
+
+The host preserves full raw readbacks and only promotes executed/unverified
+to guarded-pass after exact buffer checks. Python route/ABI qualification,
+independent raw-readback analysis and repeated board execution remain pending.
+Do not invoke its `board` CLI on an unqualified xclbin. No actual K4 timing
+or additional publication/default-profile equivalence is claimed.
 
 ## Run
 

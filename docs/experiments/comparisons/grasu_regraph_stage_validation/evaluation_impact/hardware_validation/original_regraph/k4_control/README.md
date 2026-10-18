@@ -29,10 +29,24 @@ Five focused tests, including Release/UBSan builds, completed in a finite
 corruption fixtures and exact `skewed_sources`/`boundary_ring` controls; their
 temporary model outputs were removed. `skewed_sources` passes both explicit
 bindings. `boundary_ring` rejects 64 duplicate CSR records, first repeated
-edge `352 -> 43409`, rather than silently changing the graph. Amazon and the
-full 24-row study have no result at this checkpoint.
+edge `352 -> 43409`, rather than silently changing the graph. The separate
+retained full study now admits Amazon as well: both Amazon and `skewed_sources`
+pass all eight build/binding/repetition combinations. Its 24-row matrix contains
+16 passes and eight unsupported duplicate-edge rows, with no errors or
+memory-limit/OOM events. The
+[retained result](../../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/k4_control/README.md#retained-offline-result)
+records the exact snapshot, hashes, limits and retained first harness failure.
+It finished in 120.9 seconds with a 1.4-GiB peak. Neither the CPU runtime nor
+the successful arithmetic checks are device latency measurements.
 
 This is CPU semantic/preparation evidence only. No actual adapter/K4 board
 timing or new paired Spine speedup is available. FullPR routing is still an
 independent prerequisite; link success alone is not timing or board admission.
 All final figures remain withheld until their corresponding gates pass.
+
+The guarded K4 board-host implementation now compiles and passes six focused
+Release/UBSan CPU tests (20.1 seconds, 513.4-MiB peak, finite 2-GiB zero-swap
+cgroup). Its preparation mode does not access a board. Execution scheduling,
+overlap-aware profiling and full raw readback are separate C++ modules;
+bitstream/ABI qualification, independent board analysis and repeated actual
+execution remain pending. This is host readiness, not a new FPGA result.

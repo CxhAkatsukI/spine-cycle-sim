@@ -1,4 +1,4 @@
-# Offline Matched Adapter/K4 And Original A4
+# Matched Adapter/K4 And Original A4
 
 This CPU-only preparation and one-superstep value model is not a cycle model,
 device execution, HLS simulation, board admission, or a performance result.
@@ -149,28 +149,82 @@ records in both bindings/builds. Synthetic tests covered both bindings, exact
 nonidentity remapping, signed/float admission failures, edge/permutation/PMA
 corruption, row-line padding, unused cache slots, full state tails/canaries,
 bank accounting/overflow, input symlinks, and output overwrite refusal.
-Amazon's descriptor alone was inspected (735324 vertices, 5158388 edges);
-its CSR duplicate status and model admission remain unknown. This is not a
-passing three-graph matrix. Tests used cleaned-up temporary outputs, not retained
-board evidence. No FPGA, vendor, simulator campaign, or performance job ran.
+Those focused tests used cleaned-up temporary outputs, not retained board
+evidence. The separate retained 24-row offline study subsequently completed:
+Amazon (735324 vertices, 5158388 edges) and `skewed_sources` each pass all eight
+build/binding/repetition combinations; all eight `boundary_ring` combinations
+remain unsupported for their duplicate records. See the
+[study checkpoint](../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/k4_control/README.md#retained-offline-result)
+for paths, hashes, the retained first harness failure and exact scope. This is
+not a passing three-graph FPGA or performance matrix.
 
-## Later Board Gates
+## Guarded Board-Host Components
 
-The API is preparation only. A future board owner must separately admit the
+| File | Responsibility |
+| --- | --- |
+| `schedule.hpp` | Exact production producer/consumer ordering, idle workers, per-worker partition reuse and event-dependency validation |
+| `device.hpp` | Explicit XRT buffers and kernel arguments, out-of-order profiled queue, event union/span and complete raw buffer readback |
+| `report.hpp` | Separate preparation, executed-but-unverified and guarded-board-pass reports |
+| `control.cpp` | Thin explicit `prepare`/`board` command interface |
+| `schedule_tests.cpp` | Pure CPU schedule/dependency and overlapping-event checks |
+
+```text
+original_r_k4_control prepare INPUT author_initial|csr_degree OUTPUT
+original_r_k4_control board INPUT author_initial|csr_degree OUTPUT XCLBIN DEVICE
+```
+
+`prepare` does not create a device context or program a board. It writes
+`expected_gather.u32le`, `expected_payload.u32le`, the permutation and a
+`K4_BOARD_HOST_PREFLIGHT_PASS_NOT_FPGA` report. Timing fields are null,
+events are empty and all hardware assertions are false. The board mode
+requires the external exclusive lease and expected BDF; it is not a substitute
+for the independent bitstream qualification below.
+
+The board mode restores every graph/state buffer from the model before the
+run. HBM/apply consumers and every adapter/gather/mux command are submitted
+before waiting, using the production per-worker and shared-mux dependencies.
+Resident wall time covers argument binding/enqueue through completion;
+allocation, upload, preparation and readback are excluded. Complete raw
+readbacks are saved under `readback/` before verification. The external gather
+and payload files come from actual rank/source-buffer readbacks, not the
+expected vectors. Full graph and state allocations, slack, tails and guards
+must pass before status becomes `MATCHED_K4_A4_GUARDED_BOARD_CONTROL_PASS`.
+Three repetitions must still be independently scheduled by the board owner.
+
+`board_build.py` owns explicit Release/UBSan XRT build commands. Six focused
+Python tests compile the real host and schedule tests in both variants and
+check synthetic and exact `skewed_sources` preparation, independent CSR
+arithmetic, output refusal, duplicate rejection and no-lease rejection before
+context/programming. Unit `spine-k4-board-host-tests-20261018-v1.service`
+passed in 20.1 seconds with a 513.4-MiB peak under the same finite 2-GiB,
+zero-swap, CPU-123 limits used above. These tests never programmed an FPGA.
+
+```bash
+systemd-run --user --wait --pipe --collect \
+  -p MemoryMax=2G -p MemoryHigh=1792M -p MemorySwapMax=0 -p OOMPolicy=kill \
+  -p CPUQuota=100% -p CPUAffinity=123 -p RuntimeMaxSec=180 \
+  -p TimeoutStopSec=15 -p KillMode=control-group -p TasksMax=128 \
+  --working-directory="$PWD" /usr/bin/python3 -m unittest discover \
+  -s tests -p test_original_regraph_k4_board_host.py -v
+```
+
+## Remaining Board Gates
+
+The offline model API is preparation only. A board owner must separately admit the
 actual routed identity (FullPR mode 1, row-line adapter/K4 connectivity and
 23-channel lane ranges), source/header and xclbin hashes, memory placement,
 all stream ABI/kernel signatures, SLR/frequency/route closure, and exclusive
 device lease/BDF with reset/recovery policy. Do not run on an unmatched xclbin
 or treat a successful offline assertion as satisfying those gates.
-Device code must enqueue all mutually blocking consumers/producers, cover idle
-workers and the apply terminal packet, serialize per-worker partition reuse,
-restore all mutable buffers between repeats, check all immutable and mutable
-full buffers/guards after completion, and separate resident kernel event
-windows from host/transfer/setup time. These are not implemented here.
+The C++ host implements the execution and readback operations above, but its
+CPU tests do not validate them on a device. Python route qualification,
+independent board-readback analysis, complete repeated execution and failure
+recovery remain separate gates; no actual adapter/K4 FPGA timing is available.
 
 Source owners: original `hardware/model.hpp` and `whole_graph/input.hpp`;
 production `include/weighted_pma_graph.hpp`,
 `include/weighted_pma_runtime_plan.hpp`,
 `tools/sharded_k4_pagerank_native_host.cpp`, and
 `kernels/regraph_pagerank_apply/regraph_pagerank_apply.cpp` in the clean
-production repository. No vendor headers or OpenCL/XRT are needed here.
+production repository. The offline model/schedule tests need no vendor
+runtime; only the guarded board host requires OpenCL/XRT.
