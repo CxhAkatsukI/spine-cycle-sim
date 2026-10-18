@@ -63,6 +63,14 @@ Its return/strict-timing/three-matrix board continuation has a separate owner
 in the linked remote package. No production FPGA result, published-performance
 match, fixed-Spine matrix or replacement figure is claimed yet.
 
+Fresh CC / ResPR / FullPR compilations are also running concurrently on the
+high-memory host, each with its own 16-GiB cgroup and complete finite-budget
+admission. Their [algorithm-specific guide](complete_pipeline/production_routing/algorithm_build/README.md)
+owns the frozen source/runner identities, live output locations and exported
+ABI/resource review. These are independent fresh XOs, not a relabeling of the
+SSSP bitstream. All three still require their own RTL/resource/routing and
+device gates; Figures 7--11 remain unreplaced.
+
 ### Historical 2026-10-16 Track Snapshot
 
 The table below retains the earlier campaign checkpoint. For subsequent A4,

@@ -35,7 +35,41 @@ finite transactions before starting a separate link attempt.
 
 Source ownership is separated into `inputs.py` (portable closure), `commands.py`
 (algorithm/ABI admission), `study.py` (bounded execution), and a thin module CLI.
-No simulator timing coefficient changes here.
+`inspection.py` reads canonical XO exports/connections and fresh per-kernel HLS
+resources; `review.py` checks a terminal compile's identity and the separately
+verified portable capacity queries. No simulator timing coefficient changes here.
+
+## Deployed Checkpoint
+
+At **2026-10-18 04:16 UTC**, all three fresh services on `seele`
+(`ssh -p 23333 chuxiao@10.129.161.241`) are active with no reported errors.
+CC has reached its frontend mux; both PR modes have reached their distinct
+apply kernel. These are running compilations, not completed routes.
+
+All paths below are relative to
+`/data/chuxiao/baseline_hardware_validation_20261017/` on that host:
+
+| Algorithm | Output | Service / invocation |
+| --- | --- | --- |
+| CC | `production-cc-compile-v1` | `spine-production-cc-compile-20261018-v1.service` / `936a8b164c5d45e99a976fff2fb37fa0` |
+| ResPR | `production-respr-compile-v1` | `spine-production-respr-compile-20261018-v1.service` / `e14684e208574d41982176c56ffb0a40` |
+| FullPR | `production-fullpr-compile-v1` | `spine-production-fullpr-compile-20261018-v1.service` / `f56396f235e143f69d68256dbbb76edd` |
+
+The fixed compile runner is simulator `92ab3cd`, directory
+`algorithm-runner-92ab3cd`, with archive `production-algorithm-runner-v1.tar.gz`
+SHA-256 `bdf34026a2e1a60b637659709df141d25c1a578a4a06f66f2d850b18eeb9f50e`.
+The 180-file source closure is `production-algorithm-sources-v1`, owned by
+integration `8e9ea1b`; its `sources.json` SHA-256 is
+`6db652360011da5bdd2cb230f7ad39fa6eaa98095b186d010155ca1fb6e345dc`.
+The same closure is retained under the local experiment root
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/`.
+Do not replace these active runners, sources or outputs in place.
+
+The separately contained `production-algorithm-bank-smoke-v1` source test
+passes weighted, destination-only and unit edge formats (11.78 s elapsed,
+287.9 MiB peak). It is functional C++ evidence only, not RTL/backpressure or
+timing evidence. SSSP's independent remote route and board continuation are
+documented in the [remote package](../remote/README.md).
 
 ## Reproduction
 
@@ -89,4 +123,39 @@ directory. Run the command/source-admission tests with:
 
 ```bash
 python3 -m unittest discover -s tests -p test_g_algorithm_build.py -v
+```
+
+## Post-Synthesis Review
+
+The read-only review requires a **terminal successful** compilation, unchanged
+source/runner/tool/config/XO pins, all declared kernels completed without OOM,
+and the independent, hash-verified
+[portable storage-query package](../../resource_evidence/README.md).
+It never rewrites a running compilation or changes placement automatically.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build review \
+  --compilation /data/chuxiao/baseline_hardware_validation_20261017/production-cc-compile-v1 \
+  --storage /data/chuxiao/baseline_hardware_validation_20261017/algorithm-review-runner-v1/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/complete_pipeline/resource_evidence \
+  --output /data/chuxiao/baseline_hardware_validation_20261017/production-cc-export-review-v1
+```
+
+Use the actual separately frozen review runner's path. The command compares
+exported `GRASU_*`/`CACHE_BANK_*` macros to the declared compile command, requires
+the 512-bit aliased PMA/row master, checks every stream endpoint/direction/data
+width and repeated memory binding, and counts **all CUs** from fresh top-level
+reports at the exact U55C part and rounded 150-MHz target. Internal Vivado
+scratch copies of `kernel.xml` are not canonical XO interfaces.
+
+The result includes LUT/FF/BRAM/URAM/DSP totals per SLR, but the capacity decision
+is **URAM storage only**. `EXPORT_AND_STORAGE_SCREEN_PASS_NOT_RTL_OR_ROUTE_ADMISSION`
+is not full resource fit, AXIS sideband/protocol verification, finite RTL
+backpressure, a routed clock, board correctness or published-performance match.
+Any automatically assigned memory masters are explicitly listed for manual
+review. A storage conflict remains a failure requiring a separately reviewed
+placement/config; no shrinkage of graph/cache capacity is allowed as a workaround.
+
+```bash
+python3 -m unittest discover -s tests -p test_g_algorithm_inspection.py -v
+python3 -m unittest discover -s tests -p test_g_algorithm_review.py -v
 ```
