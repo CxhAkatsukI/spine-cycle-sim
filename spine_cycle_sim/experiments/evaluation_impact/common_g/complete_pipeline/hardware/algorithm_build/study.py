@@ -12,30 +12,30 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment import probe
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment.contract import require_unchanged
-from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import high_memory
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from ....search_pipeline.synthesis import unchanged
 from ..remote import environment
-from . import commands, inputs
+from . import commands, inputs, memory
 
 
-def run(root, output, algorithm, xilinx, platform, compatibility, shim):
+def run(root, output, algorithm, xilinx, platform, compatibility, shim, *, memory_profile=None):
     root, output, xilinx, platform, compatibility, shim = (
         path.resolve() for path in (root, output, xilinx, platform, compatibility, shim))
+    policy = memory.select(memory_profile, compile=True)
     sources = inputs.verify(root)
     output.mkdir(parents=True, exist_ok=False)
     group = current()
-    policy = {"tree_memory_gib": 16, "reserve_gib": 32, "background_memory_gib": 8,
-              "allow_bounded_builds": True}
     report = {"status": "PREPARING", "algorithm": algorithm, "errors": [], "host": socket.gethostname(),
               "source_manifest": identity(root / "sources.json"), "policy": policy,
+              "memory_profile": memory_profile,
               "compiles": [], **inputs.CLAIMS}
     save = lambda: atomic_write_json(output / "execution.json", report)
-    lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
+    lease = high_memory.lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group, policy)
     save()
     try:
-        report["containment"] = verify(group, memory_gib=16)
+        report["containment"] = verify(group, memory_gib=policy["tree_memory_gib"])
         report["disk_free_before_bytes"] = shutil.disk_usage(output).free
         if report["disk_free_before_bytes"] < 80 * 1024**3:
             raise ValueError("at least 80 GiB free compile disk required")
@@ -60,7 +60,8 @@ def run(root, output, algorithm, xilinx, platform, compatibility, shim):
         atomic_write_json(output / "manifest.json", {"source_manifest": report["source_manifest"],
             "integration_revision": sources["integration_revision"], "generation": argv,
             "generation_environment": variables, "algorithm": algorithm, "compiles": compiles,
-            "pins": pins, "policy": policy, "clock_mhz": 150, **inputs.CLAIMS})
+            "pins": pins, "policy": policy, "memory_profile": memory_profile,
+            "clock_mhz": 150, **inputs.CLAIMS})
         report["manifest"] = identity(output / "manifest.json")
         pins.append(report["manifest"])
         deadline = time.monotonic() + 86400
@@ -84,7 +85,8 @@ def run(root, output, algorithm, xilinx, platform, compatibility, shim):
             report.update(status="COMPILING_NOT_ROUTED", current_kernel=row["kernel"])
             save()
             result = run_link(row["argv"], output, output / "compile" / row["kernel"],
-                              environment=effective, timeout=3600, tree_memory_gib=16, reserve_gib=32)
+                              environment=effective, timeout=3600, tree_memory_gib=policy["tree_memory_gib"],
+                              reserve_gib=policy["reserve_gib"])
             record = {"kernel": row["kernel"], "resources": result}
             report["compiles"].append(record)
             save()

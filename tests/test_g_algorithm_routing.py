@@ -118,7 +118,7 @@ class PlacementTests(unittest.TestCase):
             group.mkdir()
             (group / "memory.events").write_text("oom 0\noom_kill 0\n")
             with patch.object(route_study, "current", return_value=group), \
-                    patch.object(route_study, "Lease"), \
+                    patch.object(route_study.high_memory, "lease"), \
                     patch.object(route_study, "verify", side_effect=ValueError("unbounded")), \
                     patch.object(route_study.environment, "capture") as capture, self.assertRaisesRegex(ValueError, "unbounded"):
                 route_study.run(root, root, root / "output", root, root, root, root)

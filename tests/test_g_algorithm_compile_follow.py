@@ -83,6 +83,14 @@ class CompileFollowTests(unittest.TestCase):
         for key in (*job.inputs.CLAIMS, "rtl_admitted", "timing_admitted"):
             self.assertIs(result[key], False)
 
+    def test_named_profile_forwarded_to_independent_route_owner(self):
+        profile = job.memory.memory_profiles.SEELE
+        with patch.object(job.memory.memory_profiles, "host"):
+            result = self.run_job(memory_profile=profile)
+        self.assertEqual(result["memory_profile"], profile)
+        self.assertEqual(self.route.call_args.kwargs,
+                         {"timing_profile": None, "memory_profile": profile})
+
     def test_missing_changed_failed_or_timed_out_compile_never_starts_link(self):
         for index, bad in enumerate((state("failed"), state(InvocationID="c" * 32),
                                       state(LoadState="not-found"), state(ExecMainStatus="1"))):

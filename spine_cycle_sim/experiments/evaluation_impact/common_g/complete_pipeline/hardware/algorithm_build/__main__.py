@@ -23,6 +23,9 @@ def main():
     for name in ("compilation", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
         route.add_argument("--" + name, type=Path, required=True)
     from ..remote.timing import PROFILE
+    from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
+    for command in (execute, route):
+        command.add_argument("--memory-profile", choices=(memory_profiles.SEELE,))
     route.add_argument("--timing-profile", choices=(PROFILE,))
     follow = sub.add_parser("follow-compile")
     for name in ("compilation", "sources", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
@@ -33,6 +36,7 @@ def main():
     follow.add_argument("--timing-profile", choices=(PROFILE,))
     follow.add_argument("--maximum-wait", type=int, default=133200)
     follow.add_argument("--poll-seconds", type=int, default=30)
+    follow.add_argument("--memory-profile", choices=(memory_profiles.SEELE,))
     rtl = sub.add_parser("adapter-rtl")
     for name in ("compilation", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
         rtl.add_argument("--" + name, type=Path, required=True)
@@ -60,7 +64,7 @@ def main():
     elif args.action == "execute":
         from .study import run
         result = run(args.sources, args.output, args.algorithm, args.xilinx,
-                     args.platform, args.compatibility, args.shim)
+                     args.platform, args.compatibility, args.shim, memory_profile=args.memory_profile)
         print(result["status"])
     elif args.action == "review":
         from .review import run
@@ -68,7 +72,8 @@ def main():
     elif args.action == "route-experiment":
         from .route_study import run
         print(run(args.compilation, args.storage, args.output, args.xilinx,
-                  args.platform, args.compatibility, args.shim, timing_profile=args.timing_profile)["status"])
+                  args.platform, args.compatibility, args.shim, timing_profile=args.timing_profile,
+                  memory_profile=args.memory_profile)["status"])
     elif args.action == "adapter-rtl":
         from .adapter_rtl import run
         print(run(args.compilation, args.storage, args.output, args.xilinx,
@@ -79,7 +84,7 @@ def main():
                   args.platform, args.compatibility, args.shim, compile_unit=args.compile_unit,
                   compile_invocation=args.compile_invocation, algorithm=args.algorithm,
                   timing_profile=args.timing_profile, maximum_wait=args.maximum_wait,
-                  poll_seconds=args.poll_seconds)["status"])
+                  poll_seconds=args.poll_seconds, memory_profile=args.memory_profile)["status"])
     elif args.action == "seal-route":
         from .artifacts import seal
         print(seal(args.compilation.resolve(), args.route.resolve(), args.output.resolve(),

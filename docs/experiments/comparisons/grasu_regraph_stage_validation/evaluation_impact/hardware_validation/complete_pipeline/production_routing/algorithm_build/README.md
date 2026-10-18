@@ -79,6 +79,26 @@ Its source bytes match v2; its host device-lease change is outside the compile
 closure. V2/v3 include the Apply fix but not the latest cache stage. V1 includes
 neither fix. Never relabel those separately frozen routes as v4 results.
 
+### Remote Memory Profile
+
+`execute`, `follow-compile` and `route-experiment` accept the opt-in
+`--memory-profile seele-reserve-128g-v1`. The small `memory.py` owner keeps
+default compile/link policies unchanged: 16/32/8 and 40/32/8 GiB respectively.
+The named remote profile instead requires the exact 40/36-GiB max/high cgroup,
+zero swap, host `seele` with at least 480 GiB total RAM, full bounded-peer
+reservations and a 128+8-GiB live reserve. It observes but never caps foreign
+unbounded compilers. Per-child watchdogs stop only the owned build tree if
+available memory falls below 128 GiB. Unknown profiles and other hosts fail
+before vendor execution.
+
+Returned route admission validates the *recorded remote* host, full policy,
+atomic admission and minimum live reserve; it does not require the local
+review host to be `seele`. Tests reject missing admission, a wrong host,
+insufficient RAM/reserve and mismatched policy. This scheduling option changes
+no kernel, adapter layout, clock or simulator timing coefficient. Fresh remote
+PageRank compiles use the same v4 closure; local pinned compiles and their
+waiting links remain intact, rather than being moved or rewritten in place.
+
 ### Latest Local Compilations
 
 Local tool preflight passes with the explicit 2024.1 installation, U55C platform

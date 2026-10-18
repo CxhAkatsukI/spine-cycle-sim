@@ -8,10 +8,11 @@ import socket
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from ....continuous_board.execution.supervisor import route_finished, service_state
 from ....search_pipeline.synthesis import unchanged
 from ..remote.delivery import LABELS, ROUTE_FILES
-from . import inputs, routing, route_study
+from . import inputs, memory, routing
 
 SCHEMA = "production-algorithm-link-return-v1"
 PASS = "LINK_PASS_UNVERIFIED_RTL_AWAITING_TIMING_AND_BOARD"
@@ -25,6 +26,9 @@ def completed(root):
     execution, manifest, probes = (json.loads((root / name).read_text()) for name in
                                  ("execution.json", "manifest.json", "preflight/results.json"))
     child = execution.get("route", {})
+    profile = manifest.get("memory_profile")
+    policy = memory.select(profile, check_host=False)
+    memory_profiles.route_evidence(execution, policy, child)
     if execution.get("status") != PASS or execution.get("errors") != [] or any(
             record.get(flag) is not False for record in (execution, manifest) for flag in FLAGS):
         raise ValueError("terminal successful experimental algorithm link required")
@@ -42,8 +46,8 @@ def completed(root):
             raise ValueError("raw environment record differs from summary")
     if json.loads((root / "route.resources.json").read_text()) != child or \
             child.get("command") != manifest.get("command") or \
-            child.get("tree_memory_gib") != 40 or child.get("reserve_gib") != 32 or \
-            child.get("timeout_seconds") != 43200 or manifest.get("policy") != route_study.POLICY or \
+            child.get("tree_memory_gib") != 40 or child.get("reserve_gib") != policy["reserve_gib"] or \
+            child.get("timeout_seconds") != 43200 or manifest.get("policy") != policy or \
             manifest.get("clock_mhz") != 150 or manifest.get("algorithm") not in inputs.ALGORITHMS or \
             execution.get("algorithm") != manifest["algorithm"] or \
             execution.get("integration_revision") != manifest.get("integration_revision"):

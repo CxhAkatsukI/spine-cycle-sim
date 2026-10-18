@@ -11,7 +11,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from ....continuous_board.execution.supervisor import route_finished, runner_pins, service_state
 from ....search_pipeline.synthesis import unchanged
 from ..remote.timing import PROFILE
-from . import inputs, route_study
+from . import inputs, memory, route_study
 
 PASS = "COMPILE_AND_LINK_PASS_AWAITING_TIMING_RTL_AND_BOARD"
 LINK_PASS = "LINK_PASS_UNVERIFIED_RTL_AWAITING_TIMING_AND_BOARD"
@@ -19,12 +19,13 @@ LINK_PASS = "LINK_PASS_UNVERIFIED_RTL_AWAITING_TIMING_AND_BOARD"
 
 def run(compilation, sources, storage, output, xilinx, platform, compatibility, shim, *,
         compile_unit, compile_invocation, algorithm, timing_profile=None,
-        maximum_wait=133200, poll_seconds=30):
+        maximum_wait=133200, poll_seconds=30, memory_profile=None):
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", compile_unit) or \
             not re.fullmatch(r"[0-9a-f]{32}", compile_invocation):
         raise ValueError("exact compile service and invocation required")
     if algorithm not in inputs.ALGORITHMS or timing_profile not in (None, PROFILE):
         raise ValueError("declared algorithm and physical timing profile required")
+    memory.select(memory_profile)
     if type(maximum_wait) is not int or not 1 <= maximum_wait <= 133200 or \
             type(poll_seconds) is not int or not 1 <= poll_seconds <= 300:
         raise ValueError("positive bounded compile wait and poll required")
@@ -36,6 +37,7 @@ def run(compilation, sources, storage, output, xilinx, platform, compatibility, 
               "compile_unit": compile_unit, "compile_invocation": compile_invocation,
               "compile_states": [], "maximum_wait_seconds": maximum_wait,
               "poll_seconds": poll_seconds, "timing_profile": timing_profile,
+              "memory_profile": memory_profile,
               "route_output": str(child), "link_completed": False,
               "rtl_admitted": False, "timing_admitted": False, **inputs.CLAIMS}
     save = lambda: atomic_write_json(output / "results.json", report)
@@ -79,8 +81,9 @@ def run(compilation, sources, storage, output, xilinx, platform, compatibility, 
         report["status"] = "REVIEWING_AND_LINKING_NOT_BOARD_ADMISSION"
         save()
         # The route owner rechecks every XO, resource, ABI and finite memory budget.
+        options = {} if memory_profile is None else {"memory_profile": memory_profile}
         result = route_study.run(compilation, storage, child, xilinx, platform, compatibility, shim,
-                                 timing_profile=timing_profile)
+                                 timing_profile=timing_profile, **options)
         saved = json.loads((child / "execution.json").read_text())
         if saved != result or saved["status"] != LINK_PASS or saved["errors"] or \
                 saved["algorithm"] != algorithm or \

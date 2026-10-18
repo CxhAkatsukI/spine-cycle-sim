@@ -11,26 +11,28 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment import probe
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment.contract import require_unchanged
-from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import high_memory
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from ....search_pipeline.synthesis import unchanged
 from ..remote import environment
-from . import routing
+from . import memory, routing
 
-POLICY = {"tree_memory_gib": 40, "reserve_gib": 32, "background_memory_gib": 8,
-          "allow_bounded_builds": True}
+POLICY = memory.LINK
 
 
-def run(compilation, storage, output, xilinx, platform, compatibility, shim, *, timing_profile=None):
+def run(compilation, storage, output, xilinx, platform, compatibility, shim, *,
+        timing_profile=None, memory_profile=None):
     compilation, storage, output, xilinx, platform, compatibility, shim = (
         path.resolve() for path in (compilation, storage, output, xilinx, platform, compatibility, shim))
+    policy = memory.select(memory_profile)
     output.mkdir(parents=True, exist_ok=False)
     group = current()
     report = {"status": "PREPARING_EXPERIMENTAL_LINK", "errors": [], "host": socket.gethostname(),
-              "policy": POLICY, "rtl_admitted": False, "board_admitted": False, "publication_match": False}
+              "policy": policy, "memory_profile": memory_profile,
+              "rtl_admitted": False, "board_admitted": False, "publication_match": False}
     save = lambda: atomic_write_json(output / "execution.json", report)
-    lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
+    lease = high_memory.lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group, policy)
     save()
     try:
         report["containment"] = verify(group, memory_gib=40)
@@ -49,13 +51,14 @@ def run(compilation, storage, output, xilinx, platform, compatibility, shim, *, 
         pins = manifest["pins"]
         pins.extend([*contract["pins"], *map(identity, runners), identity(Path(sys.executable)),
                      identity(output / "environment.json")])
-        atomic_write_json(output / "manifest.json", {**manifest, "policy": POLICY, "timeout_seconds": 43200})
+        atomic_write_json(output / "manifest.json", {**manifest, "policy": policy,
+                          "memory_profile": memory_profile, "timeout_seconds": 43200})
         report["manifest"] = identity(output / "manifest.json")
         pins.append(report["manifest"])
         deadline = time.monotonic() + 86400
         while True:
             unchanged(pins)
-            report["admission"] = lease.sample(available_memory_bytes(), other_builds(), POLICY, commit=True)
+            report["admission"] = lease.sample(available_memory_bytes(), other_builds(), policy, commit=True)
             report["status"] = "WAITING_FOR_MEMORY_NOT_OTHER_TOOLS"
             save()
             if report["admission"]["admitted"]:
@@ -72,7 +75,7 @@ def run(compilation, storage, output, xilinx, platform, compatibility, shim, *, 
         report["status"] = "ROUTING_EXPERIMENT_NOT_RTL_OR_BOARD_ADMISSION"
         save()
         child = run_link(manifest["command"], output, output / "route", environment=effective,
-                         timeout=43200, tree_memory_gib=40, reserve_gib=32)
+                         timeout=43200, tree_memory_gib=40, reserve_gib=policy["reserve_gib"])
         report["route"] = child
         unchanged(pins)
         binary = output / "candidate.hw.xclbin"

@@ -169,7 +169,7 @@ class RegisteredPairedRequestTests(unittest.TestCase):
             with self.subTest(algorithm=request["algorithm"]):
                 self.assertEqual(pair["algorithm"], request["algorithm"])
                 self.assertEqual(pair["gr"], {
-                    "report": str(campaign / "fullgraph-board-continuation-v9" /
+                    "report": str(campaign / "fullgraph-board-continuation-v10" /
                                   request["algorithm"] / "results.json"),
                     "admission": request["admission"]})
                 self.assertEqual(pair["spine"], {

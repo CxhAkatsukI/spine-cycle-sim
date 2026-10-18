@@ -1,10 +1,10 @@
 [
   {
     "algorithm": "weighted_sssp",
-    "unit": "spine-g-compare-remote-follow-20261018-v1.service",
-    "invocation": "e25239587873400c86c43d99d72417a2",
-    "returned": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-comparison-remote-follow-v1",
-    "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-comparison-remote-follow-v1/board/routed_admission/summary.json",
+    "unit": "spine-g-compare-remote-follow-20261019-v2.service",
+    "invocation": "48c27c87776f41adae5016d3edc41c0d",
+    "returned": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-comparison-remote-follow-v2",
+    "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-comparison-remote-follow-v2/board/routed_admission/summary.json",
     "device": 0
   },
   {
