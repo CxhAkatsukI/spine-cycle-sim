@@ -163,6 +163,20 @@ Keep the reference until qualification finishes, then stop it. A missing or
 changed route invocation still fails closed; the receipt does not synthesize
 terminal service evidence from the presence of an xclbin.
 
+The deployed local continuation is
+`spine-g-production-remote-follow-20261017-v1.service`, invocation
+`4f2428fb09184ca1aecd8a70af1c9e54`. At 2026-10-18 03:43 UTC it was
+`WAITING_FOR_EXACT_REMOTE_ROUTE`, with 2996 unchanged pins, no errors and no
+board programming. Its separate frozen runner is simulator commit `f7e9e8b`;
+the transferred archive SHA-256 is
+`8cd459c15acb9a161f85c1f9a136459ad8b045deffe89476f1c200fe29e851db`.
+It uses local output `g-production-remote-follow-v1` under the campaign root,
+remote runner `return-runner-f7e9e8b` and fresh remote return
+`production-sssp-return-v1`. Both archives were verified before extraction.
+This service qualifies only the three matrices above; it does not launch or
+claim the eight-graph Spine comparison. Inspect its `results.json` and child
+records for the eventual outcome, not this deployment observation.
+
 ```bash
 # Explicit manual stages; use fresh output directories.
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote seal \
