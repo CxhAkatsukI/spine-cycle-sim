@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import shutil
+import socket
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -12,6 +13,7 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import high_memory, memory_profiles
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import environment
@@ -88,9 +90,15 @@ def link_command(compiler, platform, packet, attempt, output, *, bd_only):
             "--xp", "param:compiler.userPostSysLinkTcl=" + str(output / "hooks/post_link.tcl")]
 
 
-def run(packet, attempt, output, environment_root, xilinx, platform, compatibility, *, bd_parent=None):
+def run(packet, attempt, output, environment_root, xilinx, platform, compatibility, *,
+        bd_parent=None, memory_profile=None):
+    policy = memory_profiles.select(config.POLICY, memory_profile)
+    memory_profiles.host(policy)
+    if memory_profile is not None and bd_parent is None:
+        raise ValueError("high-memory profile requires the separately admitted full-link parent")
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING_PHYSICAL_PORT_BD_DIAGNOSTIC", "errors": [],
+              "host": socket.gethostname(), "policy": policy, "memory_profile": memory_profile,
               **dict.fromkeys(config.FLAGS, False)}
     save = lambda: atomic_write_json(output / "results.json", report)
     group, lease = None, None
@@ -110,7 +118,8 @@ def run(packet, attempt, output, environment_root, xilinx, platform, compatibili
         report["containment"] = verify(group)
         if shutil.disk_usage(output).free < minimum_disk * 1024**3:
             raise ValueError(f"{minimum_disk} GiB free disk required for external-port link")
-        lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
+        owner = high_memory.ObservedLease if memory_profiles.observed(policy) else Lease
+        lease = owner(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
         for name in ("tmp", "user-data", "hooks"):
             (output / name).mkdir()
         for name in HOOK_NAMES:
@@ -125,7 +134,7 @@ def run(packet, attempt, output, environment_root, xilinx, platform, compatibili
         command = link_command(contract["tools"]["v++"]["invocation"], platform, packet, attempt,
                                output, bd_only=bd_parent is None)
         atomic_write_json(output / "manifest.json", {"pins": pins, "command": command,
-            "policy": config.POLICY, "timeout_seconds": timeout,
+            "policy": policy, "memory_profile": memory_profile, "timeout_seconds": timeout,
             "bd_parent": bd_parent, "source_modified": False, "physical_interconnect_changed": True,
             "scope": ("external_same_bank_fanin_full_link_not_timing_or_board_admission" if bd_parent is not None
                       else "external_same_bank_fanin_BD_only_no_synthesis_routing_or_board")})
@@ -133,7 +142,7 @@ def run(packet, attempt, output, environment_root, xilinx, platform, compatibili
         deadline = time.monotonic() + 86400
         while True:
             unchanged(pins)
-            report["admission"] = lease.sample(available_memory_bytes(), other_builds(), config.POLICY, commit=True)
+            report["admission"] = lease.sample(available_memory_bytes(), other_builds(), policy, commit=True)
             report["status"] = "WAITING_FOR_COMPLETE_MEMORY_BUDGETS"
             save()
             if report["admission"]["admitted"]:
@@ -155,7 +164,7 @@ def run(packet, attempt, output, environment_root, xilinx, platform, compatibili
                             else "GENERATING_BD_NOT_ROUTING_OR_BOARD")
         save()
         report["step"] = run_link(command, output, output / "link", timeout=timeout,
-                                  environment=effective, tree_memory_gib=40, reserve_gib=32)
+                                  environment=effective, tree_memory_gib=40, reserve_gib=policy["reserve_gib"])
         records.clean_child(report["step"])
         unchanged(pins)
         report["physical_port"] = inspect_proof(output / "hooks/physical_port.xml")

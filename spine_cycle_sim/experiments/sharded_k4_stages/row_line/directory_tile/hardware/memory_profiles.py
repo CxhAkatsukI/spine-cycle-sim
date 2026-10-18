@@ -49,3 +49,17 @@ def compatible(row, policy):
     return (observed(policy) and row.get("bounded") is False and
             type(row.get("pid")) is int and row["pid"] > 0 and
             row.get("reason") == UNBOUNDED and "cgroup" not in row)
+
+
+def route_evidence(execution, policy, child):
+    if not observed(policy):
+        return
+    guard = execution.get("admission", {})
+    host = guard.get("observed_peer_host", {})
+    if execution.get("policy") != policy or execution.get("memory_profile") != SEELE or \
+            execution.get("host") != "seele" or guard.get("admitted") is not True or \
+            guard.get("policy") != SEELE or host.get("host") != "seele" or \
+            host.get("total_memory_bytes", 0) < 480 * GIB or \
+            child.get("tree_memory_gib") != 40 or child.get("reserve_gib") != 128 or \
+            child.get("minimum_available_bytes", 0) < 128 * GIB:
+        raise ValueError("high-memory route lacks exact host, admission or live reserve evidence")

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from .. import configuration as config, gates, records
 from . import delivery, probe, route_inputs
 
@@ -71,10 +72,15 @@ def validate(root, receipt):
     parent = None
     for owner, timeout, status in (("bd", 3600, route_inputs.PASS), ("route", 43200, LINK_PASS)):
         result, manifest, environment = (records.read(root / owner, name) for name in delivery.TEXT)
+        profile = manifest.get("memory_profile")
+        policy = memory_profiles.select(config.POLICY, profile)
+        if owner == "bd" and profile is not None:
+            raise ValueError("the original BD prerequisite must retain its strict policy")
+        memory_profiles.route_evidence(result, policy, result.get("step", {}))
         if result.get("status") != status or result.get("errors") != [] or any(
                 result.get(flag) is not False for flag in config.FLAGS) or \
                 result.get("compiled_inputs") != compiled["xos"] or \
-                manifest.get("policy") != config.POLICY or manifest.get("timeout_seconds") != timeout:
+                manifest.get("policy") != policy or manifest.get("timeout_seconds") != timeout:
             raise ValueError("complete external-port BD/link result required")
         bounded(result)
         observed = manifest.get("command", [])
@@ -94,7 +100,8 @@ def validate(root, receipt):
         records.clean_child(step)
         if observed != command or step != records.read(root / owner, "link.resources.json") or \
                 step.get("command") != command or step.get("cwd") != str(roots[owner]) or \
-                step.get("timeout_seconds") != timeout or step.get("tree_memory_gib") != 40 or step.get("reserve_gib") != 32:
+                step.get("timeout_seconds") != timeout or step.get("tree_memory_gib") != 40 or \
+                step.get("reserve_gib") != policy["reserve_gib"]:
             raise ValueError("external-port raw link execution differs")
         proof = probe.inspect_proof(root / owner / "hooks/physical_port.xml")
         if result.get("physical_port") != dict(proof, proof=indexed[owner + "/hooks/physical_port.xml"]):

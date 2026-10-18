@@ -26,16 +26,7 @@ def resource_policy(execution, manifest):
     policy = memory_profiles.select(capsule.POLICY, manifest.get("memory_profile"))
     if manifest.get("policy") != policy:
         raise ValueError("remote memory profile differs from its recorded policy")
-    if memory_profiles.observed(policy):
-        child, guard = execution.get("route", {}), execution.get("admission", {})
-        host = guard.get("observed_peer_host", {})
-        if execution.get("policy") != policy or execution.get("memory_profile") != memory_profiles.SEELE or \
-                execution.get("host") != "seele" or guard.get("admitted") is not True or \
-                guard.get("policy") != memory_profiles.SEELE or host.get("host") != "seele" or \
-                host.get("total_memory_bytes", 0) < 480 * 1024**3 or \
-                child.get("tree_memory_gib") != 40 or child.get("reserve_gib") != 128 or \
-                child.get("minimum_available_bytes", 0) < 128 * 1024**3:
-            raise ValueError("high-memory route lacks exact host, admission or live reserve evidence")
+    memory_profiles.route_evidence(execution, policy, execution.get("route", {}))
     return policy
 
 

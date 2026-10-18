@@ -11,6 +11,8 @@ import original_grasu_external_return_fixture as fixture
 import original_grasu_return_fixture as original
 from test_original_grasu_routed import fixture as topology, metadata
 from spine_cycle_sim.experiments.campaign_runtime import sha256_file
+from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware import configuration as config, records
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware import follow as driver
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board import execution as board
@@ -55,6 +57,28 @@ class ExternalReturnTests(unittest.TestCase):
         self.assertEqual(result["status"], admission.PASS)
         self.assertEqual(board.control_profile(result), (route_inputs.PROFILE, board.EXTERNAL_PASS))
         self.assertTrue(all(result[flag] is False for flag in config.FLAGS))
+
+    def test_named_high_memory_route_replays_without_changing_strict_bd(self):
+        policy = memory_profiles.select(config.POLICY, memory_profiles.SEELE)
+        manifest = records.read(self.route, "manifest.json")
+        manifest.update(policy=policy, memory_profile=memory_profiles.SEELE)
+        original.write(self.route, "manifest.json", manifest)
+        result = records.read(self.route, "results.json")
+        result.update(policy=policy, memory_profile=memory_profiles.SEELE, host="seele")
+        result["step"].update(reserve_gib=128, minimum_available_bytes=200 * 1024**3)
+        result["admission"].update(policy=memory_profiles.SEELE,
+            observed_peer_host={"host": "seele", "total_memory_bytes": 499 * 1024**3})
+        original.write(self.route, "link.resources.json", result["step"])
+        original.write(self.route, "results.json", result)
+        outer = records.read(self.outer, "results.json")
+        outer["child_report"] = identity(self.route / "results.json")
+        original.write(self.outer, "results.json", outer)
+        returned, digest = self.seal()
+        delivery.verify(returned, digest)
+        self.assertEqual(records.read(returned / "bd", "manifest.json")["policy"], config.POLICY)
+        result["step"]["minimum_available_bytes"] = 127 * 1024**3
+        with self.assertRaisesRegex(ValueError, "live reserve"):
+            memory_profiles.route_evidence(result, policy, result["step"])
 
     def test_running_or_replaced_full_link_never_seals(self):
         for changes in (dict(SubState="running", MainPID="3"), dict(InvocationID="3" * 32), dict(Result="timeout")):

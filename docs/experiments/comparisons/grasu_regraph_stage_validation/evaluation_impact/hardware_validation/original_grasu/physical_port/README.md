@@ -423,3 +423,23 @@ queued and this follower is waiting, not a returned or admitted result.
 For a fresh board-capable follower, pass the separately reviewed immutable
 host report using `--board-preflight-sha256` as well as its path. Reusing a
 development-directory preflight is forbidden even if it once passed.
+
+## High-Memory Full Link
+
+A fresh full-link attempt may explicitly select
+`--memory-profile seele-reserve-128g-v1`. This retains the original tested
+BD prerequisite, author XOs, physical fan-in hooks, target clock and strict
+timing gate. Only admission changes: on `seele` with at least 480 GiB RAM,
+each owned build remains bounded at 40/36 GiB max/high with zero swap,
+reserves 128 GiB live headroom plus 8 GiB background and all finite peers,
+and records observed unbounded foreign compilers without modifying them.
+The live watchdog stops only our tree if that reserve is breached.
+
+The opt-in lease is isolated from legacy hash-pinned admission code. Both
+manifest and result name the exact policy; offline return replay requires
+the same host, full limits and measured minimum live reserve. The original
+BD-only proof must retain its strict policy. Unknown profiles, a missing
+profile declaration or reduced reserve reject the return. This is not
+permission to reclassify a failed route or to claim a publication match.
+Use a new immutable runner, output and service invocation; do not change
+an already waiting or running attempt in place. The default remains strict.

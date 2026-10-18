@@ -12,8 +12,9 @@ from . import probe, route_inputs
 
 
 def run(packet, attempt, bd, output, environment_root, xilinx, platform, compatibility, *,
-        unit, invocation, maximum_wait=86400, poll_seconds=10):
+        unit, invocation, maximum_wait=86400, poll_seconds=10, memory_profile=None):
     route_inputs.service_identity(unit, invocation)
+    probe.memory_profiles.select(config.POLICY, memory_profile)
     if any(type(value) not in (int, float) or not math.isfinite(value) or value <= 0
            for value in (maximum_wait, poll_seconds)):
         raise ValueError("positive finite BD-wait bounds required")
@@ -44,7 +45,7 @@ def run(packet, attempt, bd, output, environment_root, xilinx, platform, compati
         result.update(status="STARTING_FULL_LINK_NOT_BOARD_ADMISSION", bd_parent=parent)
         save()
         child = probe.run(packet, attempt, output / "link_attempt", environment_root,
-                          xilinx, platform, compatibility, bd_parent=parent)
+                          xilinx, platform, compatibility, bd_parent=parent, memory_profile=memory_profile)
         probe.unchanged(pins)
         if child["status"] != "EXTERNAL_PORT_LINK_PASS_AWAITING_CLOCK_TIMING_AND_BOARD":
             raise ValueError("external-port full link did not complete")
@@ -64,4 +65,5 @@ if __name__ == "__main__":
     parser.add_argument("--unit", required=True)
     parser.add_argument("--invocation", required=True)
     parser.add_argument("--maximum-wait", type=float, default=86400)
+    parser.add_argument("--memory-profile", choices=(probe.memory_profiles.SEELE,))
     run(**vars(parser.parse_args()))

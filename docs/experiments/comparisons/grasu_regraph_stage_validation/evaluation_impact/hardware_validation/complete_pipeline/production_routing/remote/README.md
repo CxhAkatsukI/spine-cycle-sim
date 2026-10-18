@@ -191,6 +191,28 @@ immutable tested runner; do not hot-patch existing waiters. Both the route
 manifest and return checker retain the chosen profile, observed host and
 actual live-reserve evidence. The existing input capsule is unchanged.
 
+The opt-in lease now lives in the separate `hardware/high_memory.py` owner;
+legacy `hardware/concurrent.py` and `hardware/admission.py` retain their
+pre-profile bytes. Earlier production packets pin those legacy files, so
+changing them invalidated a waiting follower even though no HLS changed.
+The failed follower is retained. Its replacement uses a fresh immutable
+runner and the same parent. Profile tests cover atomic budget reservation,
+foreign-process disclosure, release ownership and offline reserve replay.
+
+The active comparison retry is
+`spine-g-compare-route-remote-20261019-v2.service`, invocation
+`bea6bfca3ec64eebac500cb7d55a73cf`, output `g-cache-comparison-route-v2`
+under the remote root. It uses frozen runner `high-memory-runner-2d17288`,
+archive SHA-256
+`6954d7c3d8f37e0dccc2f211b9880df9061e156de4d5b1ce3aec01143297305e`,
+both named timing and memory profiles, and unchanged production XOs.
+All six environment probes passed; at 2026-10-18 20:50 UTC it was generating
+hardware targets, not timing- or board-admitted. The matching local follower
+is `spine-g-compare-remote-follow-20261019-v2.service`, invocation
+`48c27c87776f41adae5016d3edc41c0d`, output
+`g-cache-comparison-remote-follow-v2`. It waits for that exact invocation.
+Do not edit either frozen `2d17288` runner in place.
+
 ```bash
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote prepare \
   --parent /path/to/frozen-production-route \

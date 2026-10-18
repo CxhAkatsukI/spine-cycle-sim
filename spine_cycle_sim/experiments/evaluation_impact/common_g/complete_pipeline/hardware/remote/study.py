@@ -12,8 +12,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment import probe
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment.contract import require_unchanged
-from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
-from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import high_memory, memory_profiles
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from ....search_pipeline.synthesis import unchanged
@@ -30,7 +29,7 @@ def run(root, output, xilinx, platform, compatibility, *, timing_profile=None, m
               "capsule": identity(root / "capsule.json"), "parent": packet["parent"],
               "policy": policy, "memory_profile": memory_profile, **dict.fromkeys(capsule.FLAGS, False)}
     save = lambda: atomic_write_json(output / "execution.json", report)
-    lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
+    lease = high_memory.lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group, policy)
     save()
     try:
         report["containment"] = verify(group, memory_gib=40)

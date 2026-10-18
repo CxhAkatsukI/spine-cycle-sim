@@ -10,7 +10,6 @@ from pathlib import Path
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from .admission import eligible, required_bytes, reservations
 from .containment import GIB, verify
-from . import memory_profiles
 
 
 def start_time(pid, proc=Path("/proc")):
@@ -69,16 +68,12 @@ class Lease:
 
     def sample(self, available, active, manifest, *, commit=False):
         with self.locked():
-            host = memory_profiles.host(manifest)
             guard = verify(self.own)
             budgets = merge(reservations(active, self.own, proc=self.proc, root=self.root), self.peers())
             admitted = eligible(available, budgets, manifest)
             state = {"admitted": admitted, "available_bytes": available,
                      "required_bytes": required_bytes(manifest, budgets), "reservations": budgets,
-                     "cgroup": guard, "policy": (memory_profiles.SEELE if host else
-                         "full_finite_budgets_plus_reserve_atomic_lease")}
-            if host:
-                state["observed_peer_host"] = host
+                     "cgroup": guard, "policy": "full_finite_budgets_plus_reserve_atomic_lease"}
             if commit and admitted:
                 amount = int(guard["limits"]["memory.max"])
                 if amount != manifest["tree_memory_gib"] * GIB:
