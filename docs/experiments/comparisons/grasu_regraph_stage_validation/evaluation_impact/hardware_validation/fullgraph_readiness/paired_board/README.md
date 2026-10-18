@@ -138,11 +138,11 @@ artifacts. No paired speedups, board programming or final figures are implied
 by this waiting service. It must reject a changed producer invocation or an
 incomplete matrix instead of analyzing partial rows as a complete result.
 
-## Current Deployment
+## Superseded V4 Deployment
 
 Earlier v1--v3 paired followers were stopped before replay while their
 producers were waiting; no paired CSV or hardware result was discarded.
-The current replacement uses immutable runner `da7e791` in
+The v4 replacement used immutable runner `da7e791` in
 `/data/chuxiao/experiments/baseline_hardware_validation_20261015/board-return-runner-da7e791`:
 
 | Item | Identity |
@@ -161,3 +161,31 @@ service retains 4/3-GiB containment, zero swap, group OOM kill and a finite
 wait, with `RemainAfterExit=yes` for terminal inspection. At redeployment it
 was `WAITING_FOR_COMPLETE_BOARD_PRODUCER`, without errors. No speedup or
 final-figure admission follows from that state.
+
+## Current Candidate Deployment
+
+The v4 follower's producer was superseded before replay. Its record remains
+unchanged. The current v5 follower uses the existing immutable `b0aa357`
+runner, whose paired continuation source is unchanged, and the
+[registered comparison requests](../../complete_pipeline/production_routing/comparison_candidate/paired_requests.json).
+The current admissions are checked against the candidate's fullgraph request
+file by `RegisteredPairedRequestTests`; no historical admission is substituted.
+
+| Item | Identity |
+| --- | --- |
+| Paired service | `spine-paired-board-continuation-20261019-v5.service` |
+| Invocation | `2be58f2af7ba4f15b581e98e8b66d1d4` |
+| Producer | `spine-fullgraph-board-continuation-20261018-v9.service` |
+| Producer invocation | `e612a14bee3b4681ab4a17b795f6c7b0` |
+| Output under LROOT | `paired-board-continuation-v5` |
+| Runner under LROOT | `current-board-runner-b0aa357` |
+| Runner archive SHA256 | `087cad9ececb3ce1359fbed3e5c59439ce70c3af16e16c11531a07230ac38a1f` |
+| Request file under LROOT | `paired-board-requests-v5.json` |
+| Requests SHA256 | `3d92b64450a4a55cebc9542bbf0e6bcf90ec84b643be91d35dc8d285621d36a2` |
+
+LROOT is `/data/chuxiao/experiments/baseline_hardware_validation_20261015/`.
+The offline-only service uses a 4-GiB hard limit, 3-GiB high watermark, zero
+swap, group OOM kill, CPUs 118--119, a 172800-second wait and retained terminal
+identity. It never operates an FPGA. It waits for all three algorithm reports
+and rejects producer failure, changed sources or incomplete matrices. Starting
+this follower is not a speedup, simulator calibration or final-figure result.

@@ -154,5 +154,28 @@ class PairedContinuationTests(unittest.TestCase):
         self.replay.assert_not_called()
 
 
+class RegisteredPairedRequestTests(unittest.TestCase):
+    def test_current_pairing_uses_current_admissions_and_fixed_spine_reports(self):
+        root = Path(__file__).resolve().parents[1]
+        candidate = root / ("docs/experiments/comparisons/grasu_regraph_stage_validation/"
+                            "evaluation_impact/hardware_validation/complete_pipeline/"
+                            "production_routing/comparison_candidate")
+        current = json.loads((candidate / "fullgraph_requests.json").read_text())
+        paired = job.study.requests(candidate / "paired_requests.json")
+        campaign = Path("/data/chuxiao/experiments/baseline_hardware_validation_20261015")
+        self.assertEqual([row["algorithm"] for row in current], list(job.preparation.ALGORITHMS))
+        short_names = ("sssp", "cc", "respr")
+        for request, pair, short in zip(current, paired, short_names, strict=True):
+            with self.subTest(algorithm=request["algorithm"]):
+                self.assertEqual(pair["algorithm"], request["algorithm"])
+                self.assertEqual(pair["gr"], {
+                    "report": str(campaign / "fullgraph-board-continuation-v9" /
+                                  request["algorithm"] / "results.json"),
+                    "admission": request["admission"]})
+                self.assertEqual(pair["spine"], {
+                    "report": str(campaign / f"spine-resident-{short}-board-v2/results.json"),
+                    "admission": str(campaign / "spine-resident-freeze-v1/results.json")})
+
+
 if __name__ == "__main__":
     unittest.main()

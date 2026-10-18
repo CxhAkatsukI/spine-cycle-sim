@@ -20,6 +20,7 @@ remote outputs are under
 | New SSSP link and qualification | RROOT `g-cache-comparison-route-v1`; LROOT `g-cache-comparison-remote-follow-v1` | Pending exact route and strict admission |
 | New CC/ResPR/FullPR links | `production-{cc,respr,fullpr}-compile-route-local-v1` | Independent bounded attempts; inspect live state, not this table |
 | Full-graph new-G+R performance | [Exact request file](fullgraph_requests.json) | Not yet accepted; requires successful returns and board runs |
+| Paired resident replay | [Exact paired requests](paired_requests.json) | Binds the v9 producer's three new admissions to the unchanged fixed Spine reports; no ratios before six complete matrices |
 | FullPR resident host | `/home/chuxiao/grasu-regraph-fullpr-comparison`, commit `1cc5ee5`; `gr-fullpr-preparation-v4` | Complete CPU preparation passes; hardware convergence remains unmeasured |
 | FullPR hardware continuation | `gr-fullpr-board-continuation-v3` | Waiting for the exact new local FullPR return; no board requested |
 | Final figures | None from this candidate | Do not overwrite the frozen Fig. 7--11 handoff |
@@ -59,6 +60,14 @@ tests reject changes to each. The earlier
 
 Never modify a live runner or transplant a new result into an old attempt.
 
+The paired request file deliberately points at `fullgraph-board-continuation-v9`,
+not an earlier producer. Its G+R admissions must equal `fullgraph_requests.json`
+algorithm by algorithm. The fixed Spine SSSP/CC/ResPR v2 reports and shared v1
+artifact freeze remain unchanged. A regression test checks this wiring without
+requiring hardware files; actual replay still checks every input, artifact,
+raw log, timing boundary and the exact producer invocation. See the
+[paired-replay guide](../../../fullgraph_readiness/paired_board/README.md).
+
 ## Exact Services
 
 Each row names a distinct service and invocation; successful exit alone is
@@ -79,6 +88,7 @@ LROOT unless explicitly remote.
 | `production-respr-fresh-adapter-rtl-v1` | `spine-production-respr-fresh-adapter-rtl-20261018-v1.service` | `e8655fb626564c3bbaf476b794778a1f` |
 | `production-fullpr-fresh-adapter-rtl-v1` | `spine-production-fullpr-fresh-adapter-rtl-20261018-v1.service` | `a4f7df56d3a84788960635969d0378ff` |
 | `fullgraph-board-continuation-v9` | `spine-fullgraph-board-continuation-20261018-v9.service` | `e612a14bee3b4681ab4a17b795f6c7b0` |
+| `paired-board-continuation-v5` | `spine-paired-board-continuation-20261019-v5.service` | `2be58f2af7ba4f15b581e98e8b66d1d4` |
 | `gr-fullpr-preparation-v4` | `spine-gr-fullpr-preparation-20261018-v4.service` | `5654d35624ac4a8490430ac24a54ec97` |
 | `gr-fullpr-board-continuation-v3` | `spine-fullpr-board-continuation-20261018-v3.service` | `81e50aed1ea44db889be5161ad96d4bc` |
 

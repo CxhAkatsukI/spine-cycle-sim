@@ -1,0 +1,35 @@
+[
+  {
+    "algorithm": "weighted_sssp",
+    "gr": {
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v9/weighted_sssp/results.json",
+      "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-comparison-remote-follow-v1/board/routed_admission/summary.json"
+    },
+    "spine": {
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/spine-resident-sssp-board-v2/results.json",
+      "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/spine-resident-freeze-v1/results.json"
+    }
+  },
+  {
+    "algorithm": "connected_components",
+    "gr": {
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v9/connected_components/results.json",
+      "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-cc-local-return-v1/admission/summary.json"
+    },
+    "spine": {
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/spine-resident-cc-board-v2/results.json",
+      "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/spine-resident-freeze-v1/results.json"
+    }
+  },
+  {
+    "algorithm": "residual_pagerank",
+    "gr": {
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v9/residual_pagerank/results.json",
+      "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-local-return-v1/admission/summary.json"
+    },
+    "spine": {
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/spine-resident-respr-board-v2/results.json",
+      "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/spine-resident-freeze-v1/results.json"
+    }
+  }
+]
