@@ -100,9 +100,42 @@ Vivado, RTL simulation or FPGA measurements.
 python3 -m unittest discover -s tests -p 'test_original_grasu_physical_port.py'
 ```
 
+### Current Retry
+
+The two-endpoint correction is frozen in simulator `e5c11c1`, archive
+`original-g-port-runner-e5c11c1.tar.gz`, SHA-256
+`92dc51dbbe8480d9b670bd8fbcc1e6f415ba9afffa6f7505fe5b1b3f588ad995`.
+Both hosts extract a read-only `original-g-port-runner-e5c11c1` directory
+under their respective campaign roots. The following attempts are fresh;
+the failed v1/v2 BD, full-link v1 and return v1 remain unchanged.
+
+| Stage | Output | Service / exact invocation |
+| --- | --- | --- |
+| BD diagnostic | Remote `original-g-physical-port-probe-v3` | `spine-original-g-physical-port-20261018-v3.service` / `50405867b12d4cf690c161c561d781d0` |
+| Full link, only after that BD passes | Remote `original-g-external-port-route-v2` | `spine-original-g-external-port-route-20261018-v2.service` / `8145f096118a4593a77ccee632f4f0ab` |
+| Strict return, then guarded board matrix | Local `original-g-external-port-return-follow-v2` | `spine-original-g-external-port-return-20261018-v2.service` / `420d217e8f2245bdb4fd70effe1581be` |
+
+At deployment the BD diagnostic is waiting for complete peer budgets: roughly
+412 GiB is available versus 240 GiB required, but a new unrelated, unbounded
+`dac_speedrun` Vivado prevents compiler admission. Existing bounded builds
+continue. This is not a failed BD or successful route. The full-link waiter
+names only v3; the local return names only full-link v2. Both compiler services
+have 40/36-GiB max/high, zero swap and group OOM kill. The local follower has
+4/3-GiB max/high, zero swap, CPU 120 and a 259200-second wait; its 280000-second
+outer deadline also covers return and board work.
+
+Unlike return v1, this follower requests board execution **only after** strict
+source/ABI/physical-profile/clock/timing admission. It pins the immutable
+original-G v4 host preflight (`c5fcccaf865c8d50cc5b0f74f4ea2dda53359a125fc927ae217915287c9d1ef6`)
+and uses the existing exclusive device lease. Deployment is not a measured
+G comparison; the independent matched-production G matrix remains necessary.
+The correction passes all 116 original-G regressions and 15 organization
+checks, plus documentation/catalog and whitespace checks. These are synthetic
+test results, not hardware admission.
+
 ## Full-Link Continuation
 
-`route.py` can wait for the exact v2 BD service/invocation above and then run a
+`route.py` waits for one exact BD service/invocation and then runs a
 fresh full link under profile `original_g_external_metadata_4to1_v1`. It does
 not resume or overwrite the BD output. `route_inputs.py` independently checks
 the terminal service, preserved compiled inputs, original 150-MHz command,
@@ -122,9 +155,9 @@ the memory-admission wait. No board is programmed by this command.
 python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware.physical_port.route \
   --packet /data/chuxiao/baseline_hardware_validation_20261017/original-g-source-packet-v1 \
   --attempt /data/chuxiao/baseline_hardware_validation_20261017/original-g-source-route-v2 \
-  --bd /data/chuxiao/baseline_hardware_validation_20261017/original-g-physical-port-probe-v2 \
-  --unit spine-original-g-physical-port-20261018-v2.service \
-  --invocation 7704538d19e74c80bb50e204ae87f4c4 \
+  --bd /data/chuxiao/baseline_hardware_validation_20261017/original-g-physical-port-probe-v3 \
+  --unit spine-original-g-physical-port-20261018-v3.service \
+  --invocation 50405867b12d4cf690c161c561d781d0 \
   --output /data/chuxiao/baseline_hardware_validation_20261017/fresh-external-port-route \
   --environment-root /data/chuxiao/baseline_hardware_validation_20261017/production-inputs-v1 \
   --xilinx /data/feiyang/xilinx \
@@ -151,19 +184,21 @@ board measurements. These tests do not admit a returned binary.
 python3 -m unittest discover -s tests -p 'test_original_grasu_physical*.py'
 ```
 
-The full-link continuation is deployed, **not completed**, as
+The retained first full-link continuation was deployed as
 `spine-original-g-external-port-route-20261018-v1.service`, invocation
 `0596cbd29fcf448ca4aa7b1f3c38f90f`, output
 `original-g-external-port-route-v1`. Its frozen runner is `3c2b869`, archive
 `original-g-external-port-route-runner-3c2b869.tar.gz`, SHA-256
 `ad2eb7e0ca8e9d336673b3ef7c96f7954eada607bc5d0cfda3b02d0f04b080e7`,
-all under the remote campaign root. The actual cgroup confirms
+all under the remote campaign root. Its deployment cgroup confirmed
 40/36-GiB max/high, zero swap and `memory.oom.group=1`. Its 70-hour outer
 deadline covers the separately bounded BD wait, memory-admission wait and
 compiler child. The first saved state is `WAITING_FOR_EXACT_EXTERNAL_PORT_BD`
-with no errors; no full link or FPGA programming has started. The exact v2
-BD producer remains queued for complete memory budgets. This is not an
-automatic promise of successful routing, clock closure or board admission.
+with no errors. Its exact v2 BD producer subsequently failed on the missing
+interface endpoint, so full-link v1 and its return failed before compilation
+or FPGA programming. The current retry table above replaces these wait states,
+not the retained failed outputs. No deployment promises successful routing,
+clock closure or board admission.
 
 ## Return And Admission
 
