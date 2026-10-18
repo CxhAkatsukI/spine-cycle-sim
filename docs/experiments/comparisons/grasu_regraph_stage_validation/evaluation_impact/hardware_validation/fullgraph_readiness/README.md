@@ -264,6 +264,28 @@ follower attempt. `returned` here is the local follower's root, not its binary
 subdirectory. Memory leases reserve the full 24 GiB, bounded peers and 32 GiB
 system reserve; each board child retains a live watchdog and finite timeout.
 
+### Deployed Continuation
+
+The [exact three-algorithm requests](board_requests.json) are copied to
+`fullgraph-board-requests-v1.json` under the campaign root. The supervisor is
+`spine-fullgraph-board-continuation-20261018-v1.service`, invocation
+`22394ee901054d72a57511bf94e6d1a2`, output
+`fullgraph-board-continuation-v1`. It enforces 24-GiB max, 22-GiB high, no swap,
+two CPUs (118--119), and a finite 172800-second service lifetime. Its first
+observed state is `WAITING_FOR_OFFLINE_PREPARATION`, with no board requested.
+This is a deployed waiting workflow, not a successful matrix.
+
+The fixed runner is simulator `237b519`, directory
+`production-return-board-runner-237b519` on both hosts. The archive
+`production-return-board-runner-237b519.tar.gz` has SHA-256
+`2c06795458901aa036cf3e11b23cc13ecebfd6a6aa0914df2f74da2b77b6263c`.
+Do not edit that runner or substitute another service invocation. The SSSP
+request deliberately names the older independent production qualifier, not
+the CC/PR return-only follower. The supervisor serializes the three matrices;
+the two board indices in the requests do not authorize concurrent use of the
+same card by another process. A failed prerequisite or child remains a failure
+and stops the continuation without a reset.
+
 ### Timing Boundary
 
 The host's legacy `setup_inclusive_ms` field begins **after** initial graph,

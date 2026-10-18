@@ -1,0 +1,26 @@
+[
+  {
+    "algorithm": "weighted_sssp",
+    "unit": "spine-g-production-remote-follow-20261017-v1.service",
+    "invocation": "4f2428fb09184ca1aecd8a70af1c9e54",
+    "returned": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-production-remote-follow-v1",
+    "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-production-remote-follow-v1/board/routed_admission/summary.json",
+    "device": 0
+  },
+  {
+    "algorithm": "connected_components",
+    "unit": "spine-production-cc-return-20261018-v1.service",
+    "invocation": "a228795e0777452ea6e97b7f62366cd5",
+    "returned": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-cc-return-follow-v1",
+    "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-cc-return-follow-v1/admission/summary.json",
+    "device": 1
+  },
+  {
+    "algorithm": "residual_pagerank",
+    "unit": "spine-production-respr-return-20261018-v1.service",
+    "invocation": "a8e06769b82c4d92a8c8066e2a41e054",
+    "returned": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-return-follow-v1",
+    "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-return-follow-v1/admission/summary.json",
+    "device": 1
+  }
+]

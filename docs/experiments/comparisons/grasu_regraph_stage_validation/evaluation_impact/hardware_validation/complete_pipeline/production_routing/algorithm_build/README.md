@@ -422,3 +422,23 @@ local admission report. It leaves board, convergence and publication claims
 false. The separate [full-graph continuation](../../../fullgraph_readiness/README.md#board-continuation)
 consumes CC/ResPR admission after offline preparation succeeds; FullPR is
 returned and reviewed independently, not silently treated as convergence.
+
+The deployed local followers use frozen simulator `237b519` and its separately
+hashed `production-return-board-runner-237b519.tar.gz` archive (SHA-256
+`2c06795458901aa036cf3e11b23cc13ecebfd6a6aa0914df2f74da2b77b6263c`).
+Each has a separate 4-GiB max/3-GiB high/no-swap cgroup, CPU 120, and a finite
+145800-second service lifetime. They initially report
+`WAITING_FOR_EXACT_REMOTE_ROUTE`, with no FPGA requested:
+
+| Algorithm | Local output | Local service / invocation |
+| --- | --- | --- |
+| CC | `production-cc-return-follow-v1` | `spine-production-cc-return-20261018-v1.service` / `a228795e0777452ea6e97b7f62366cd5` |
+| FullPR | `production-fullpr-return-follow-v1` | `spine-production-fullpr-return-20261018-v1.service` / `93deef1f0d06489ea1975f71779f911a` |
+| ResPR | `production-respr-return-follow-v1` | `spine-production-respr-return-20261018-v1.service` / `a8e06769b82c4d92a8c8066e2a41e054` |
+
+Each consumes the exact remote route invocation already recorded above, then
+creates a distinct remote `production-{cc,fullpr,respr}-return-v1` receipt.
+Its local `admission/summary.json` must pass before any board continuation.
+The service being active, or a partial binary appearing in the build tree,
+does not satisfy this condition. FullPR still needs its own fixed-round board
+protocol and is not included in the three-algorithm convergence supervisor.
