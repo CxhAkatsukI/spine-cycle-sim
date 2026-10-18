@@ -33,6 +33,7 @@ add_library(spine_cycle_core STATIC
   src/shared_axi_port.cpp
   src/routed_regraph/source_service.cpp
   src/routed_regraph/source_topology.cpp
+  src/routed_regraph/profile.cpp
   src/routed_regraph/scatter.cpp
   src/routed_regraph/transport.cpp
   src/routed_regraph/admission.cpp
@@ -139,6 +140,11 @@ if(BUILD_TESTING)
   target_link_libraries(routed_regraph_fixture_tests PRIVATE spine_cycle_core)
   target_compile_options(routed_regraph_fixture_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME routed_regraph_fixture_tests COMMAND routed_regraph_fixture_tests)
+
+  add_executable(routed_regraph_profile_tests tests/routed_regraph/profile_tests.cpp)
+  target_link_libraries(routed_regraph_profile_tests PRIVATE spine_cycle_core)
+  target_compile_options(routed_regraph_profile_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME routed_regraph_profile_tests COMMAND routed_regraph_profile_tests)
 
   add_executable(routed_regraph_system_tests tests/routed_regraph/system_tests.cpp)
   target_link_libraries(routed_regraph_system_tests PRIVATE spine_cycle_core)

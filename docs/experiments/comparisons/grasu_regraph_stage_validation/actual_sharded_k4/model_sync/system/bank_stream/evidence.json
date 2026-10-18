@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "status": "BUILD_AND_EXACT_LEGACY_EQUIVALENCE_PASS",
+  "ctest_count": 35,
+  "python_test_count": 88,
+  "source_unchanged": true,
+  "plugin": {
+    "path": "/data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/gates-v1/plugin/libspine_cycle.so",
+    "sha256": "070581686f7e32406069beff547379a4f8811155119da81f33a41221fbf4e712"
+  },
+  "baseline_revision": "3b906c7aae1d6cb77706728edc857b493c8b0ed8",
+  "baseline_source_archive_sha256": "d254cd1aeea7803684029cfae135c56ead89b64b560d58a757bcd9100a2fd269",
+  "candidate_source_archive_sha256": "3495297a14cd3ece3b59c76234990170952a401ec176425d48d975c16cb00185",
+  "raw_archive": {
+    "path": "/data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/delivery-v1/build_and_legacy_raw.tar.gz",
+    "sha256": "757011e46131774e8b686007c2d9ac0622b2fc47c160c57dda1d310584444fff",
+    "bytes": 7724710
+  },
+  "raw_index": {
+    "path": "/data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/delivery-v1/build_and_legacy_index.json",
+    "sha256": "6668a2d2c39255bc29e6b73aaea918d9488808487bc0a26c6761a477e11805c0"
+  },
+  "legacy": {
+    "status": "PASS",
+    "ignored_result_fields": [],
+    "all_fields_and_manifest_identities_equal": true,
+    "cases": [
+      {"case": "sssp_mixed_cold", "cycles": 99885, "backend_requests": 33848, "sha256": "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"},
+      {"case": "sssp_multipart_warm", "cycles": 5997674, "backend_requests": 1775700, "sha256": "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"},
+      {"case": "cc_reciprocal", "cycles": 133841, "backend_requests": 50741, "sha256": "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"},
+      {"case": "residual_warm", "cycles": 1487890, "backend_requests": 997048, "sha256": "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"},
+      {"case": "residual_update_only", "cycles": 200, "backend_requests": 48, "sha256": "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"}
+    ]
+  },
+  "resident_matrix_status": "NOT_ADMITTED_BY_THIS_BUILD_CHECKPOINT",
+  "resident_supervisor": {
+    "unit": "spine-bank-stream-resident-20261019-v2.service",
+    "invocation": "fee2af60175545afa828477659cfab34",
+    "pending_reason": "atomic_full_budget_memory_admission",
+    "required_available_gib": 57
+  },
+  "hardware_timing_admitted": false,
+  "original_A4_comparison_complete": false,
+  "figure_admitted": false,
+  "remaining": [
+    "AU/SU/WK bank-stream resident correctness and traffic replay",
+    "current G search/cache production selection",
+    "CC and PageRank algorithm variants",
+    "complete G-to-R execution and host-inclusive boundary",
+    "matching FPGA calibration and original A4 comparison",
+    "final Fig7-11"
+  ]
+}

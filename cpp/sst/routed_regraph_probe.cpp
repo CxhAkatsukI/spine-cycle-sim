@@ -3,6 +3,7 @@
 // clang-format on
 
 #include "routed_regraph_report.hpp"
+#include "spine_sim/routed_regraph_profile.hpp"
 #include "sst/core/component.h"
 #include "sst/core/output.h"
 #include "sst/core/params.h"
@@ -21,27 +22,19 @@ public:
     dram_config_ = params.find<std::string>("dram_config", "");
     dram_output_ = params.find<std::string>("dram_output", "");
     max_cycles_ = params.find<std::uint64_t>("max_cycles", 300000000);
-    prefetch_ = params.find<bool>("row_prefetch", true);
-    stop_ = params.find<bool>("stop_after_last", true);
     profile_id_ = params.find<std::string>("profile_id", "grasu_regraph_routed_sssp_compute_v1");
-    independent_ = params.find<bool>("independent_read_write", false);
-    routed_stream_depths_ = params.find<bool>("routed_stream_depths", false);
-    routed_empty_exit_ = params.find<bool>("routed_empty_exit", false);
-    row_line_model_ = params.find<bool>("row_line_model", false);
-    row_line_read_ = params.find<bool>("row_line_read", false);
-    cross_row_model_ = params.find<bool>("cross_row_model", false);
-    cross_row_pipeline_ = params.find<bool>("cross_row_pipeline", false);
-    const auto expected_profile = cross_row_model_ ? "grasu_regraph_cross_row_sssp_compute_v1" :
-        row_line_model_ ? "grasu_regraph_row_line_sssp_compute_v1" :
-        routed_empty_exit_ ? "grasu_regraph_routed_sssp_compute_v4" :
-        routed_stream_depths_ ? "grasu_regraph_routed_sssp_compute_v3" :
-        independent_ ? "grasu_regraph_routed_sssp_compute_v2" : "grasu_regraph_routed_sssp_compute_v1";
-    if (profile_id_ != expected_profile || (routed_stream_depths_ && !independent_) ||
-        (routed_empty_exit_ && !routed_stream_depths_) || (row_line_read_ && !row_line_model_ && !cross_row_model_) ||
-        ((row_line_model_ || cross_row_model_) && (!routed_stream_depths_ || !prefetch_ || !stop_ || routed_empty_exit_)) ||
-        (cross_row_pipeline_ && !cross_row_model_) ||
-        (cross_row_model_ && (row_line_model_ || !row_line_read_)))
-      throw std::invalid_argument("routed profile, AXI channels and stream depths disagree");
+    config_ = routed_regraph_profile_config({
+        .profile_id = profile_id_,
+        .prefetch_rows = params.find<bool>("row_prefetch", true),
+        .stop_after_last = params.find<bool>("stop_after_last", true),
+        .independent_read_write = params.find<bool>("independent_read_write", false),
+        .routed_stream_depths = params.find<bool>("routed_stream_depths", false),
+        .routed_empty_exit = params.find<bool>("routed_empty_exit", false),
+        .row_line_model = params.find<bool>("row_line_model", false),
+        .row_line_read = params.find<bool>("row_line_read", false),
+        .cross_row_model = params.find<bool>("cross_row_model", false),
+        .cross_row_pipeline = params.find<bool>("cross_row_pipeline", false),
+        .bank_stream_model = params.find<bool>("bank_stream_model", false)});
     if (output_path_.empty() || dram_config_.empty() || dram_output_.empty() || !max_cycles_)
       throw std::invalid_argument("missing routed SST paths or cycle limit");
     registerClock("150MHz", new SST::Clock::Handler<RoutedReGraphProbe, &RoutedReGraphProbe::tick>(this));
@@ -60,22 +53,9 @@ public:
         std::vector<SST::Interfaces::StandardMem *>(32, nullptr), 512ULL << 20, 1, 32, 128,
         "identity", "", 0, 0, 64, std::move(engine));
     scheduler_.add_component(*backend_);
-    RoutedReGraphConfig config;
-    config.adapter.prefetch_rows = prefetch_;
-    config.adapter.stop_after_last = stop_;
-    config.adapter.row_line_reads = row_line_read_;
-    config.adapter.cross_row_pipeline = cross_row_pipeline_;
-    if (routed_empty_exit_) config.adapter.empty_segment_exit_cycles = 73;
+    auto config = config_;
     config.compute.cache_segments_per_half = fixture_.cache_segments;
     config.compute.runtime_physical_updates_per_shard = fixture_.physical_updates;
-    config.compute.max_supersteps = 256;
-    config.compute.apply_request_window = 16;
-    config.independent_read_write = independent_;
-    if (routed_stream_depths_) {
-      config.adapter_stream_depth = 32;
-      config.gather_stream_depth = 32;
-      config.mux_stream_depth = 32;
-    }
     // Explicit, disjoint physical model offsets. These are not captured XRT
     // BO addresses and must not be described as exact board address replay.
     config.compute.vertex_state_base = 0;
@@ -127,7 +107,8 @@ public:
       {"row_line_model", "Explicit unrouted skip-empty/whole-line comparison identity", "0"},
       {"row_line_read", "Decode eight directory entries per read; requires an explicit line/cross-row model", "0"},
       {"cross_row_model", "Explicit unrouted whole-line/cross-row structural comparison identity", "0"},
-      {"cross_row_pipeline", "Separate cross-row reader and finite loaded-FIFO publisher", "0"})
+      {"cross_row_pipeline", "Separate cross-row reader and finite loaded-FIFO publisher", "0"},
+      {"bank_stream_model", "Explicit source-bound bank-stream and pairwise-reader prediction", "0"})
 private:
   Scheduler scheduler_;
   RoutedReGraphFixture fixture_;
@@ -136,8 +117,6 @@ private:
   SST::TimeConverter picoseconds_;
   std::string output_path_, dram_config_, dram_output_, profile_id_;
   std::uint64_t max_cycles_{};
-  bool prefetch_{}, stop_{}, independent_{}, routed_stream_depths_{}, routed_empty_exit_{};
-  bool row_line_model_{}, row_line_read_{};
-  bool cross_row_model_{}, cross_row_pipeline_{};
+  RoutedReGraphConfig config_;
 };
 } // namespace spine::sim::sst_adapter

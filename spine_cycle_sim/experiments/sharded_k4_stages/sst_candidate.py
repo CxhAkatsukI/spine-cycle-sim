@@ -21,6 +21,9 @@ FIXED_MODEL = {
 
 def load_profile(root: Path, path: Path) -> dict:
     profile = json.loads(path.read_text())
+    from .bank_stream.model_contract import PROFILE_ID as BANK_PROFILE_ID, expand as expand_bank
+    if profile.get("profile_id") == BANK_PROFILE_ID:
+        return expand_bank(root, profile)
     from .row_line.cross_row.model_contract import PROFILE_ID as CROSS_ROW_PROFILE_ID, expand as expand_cross_row
     if profile.get("profile_id") == CROSS_ROW_PROFILE_ID:
         return expand_cross_row(root, profile)
@@ -68,6 +71,9 @@ def require_export_headers(integration: Path, profile: dict) -> list[dict]:
         if sha256_file(path) != expected:
             raise ValueError(f"HLS preparation changed: {name}")
         result.append({"path": str(path.resolve()), "sha256": expected})
+    from .bank_stream.model_contract import PROFILE_ID as BANK_PROFILE_ID, require_sources
+    if profile["profile_id"] == BANK_PROFILE_ID:
+        result.extend(require_sources(integration, profile))
     return result
 
 
@@ -79,6 +85,9 @@ def component_parameters(root: Path, config: dict) -> dict:
     result = {"fixture": config["fixture"], "output": config["output"],
             "dram_config": str(root / profile["memory"]["config"]), "dram_output": config["dram_output"],
             "max_cycles": config["max_cycles"], "row_prefetch": int(optimized), "stop_after_last": int(optimized)}
+    from .bank_stream.model_contract import PROFILE_ID as BANK_PROFILE_ID, parameters as bank_parameters
+    if profile["profile_id"] == BANK_PROFILE_ID:
+        return {**result, **bank_parameters(config)}
     from .row_line.model_contract import PROFILE_ID as ROW_LINE_PROFILE_ID, parameters
     if profile["profile_id"] == ROW_LINE_PROFILE_ID:
         return {**result, **parameters(profile, config)}

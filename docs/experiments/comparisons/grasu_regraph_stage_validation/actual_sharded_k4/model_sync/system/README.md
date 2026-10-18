@@ -21,6 +21,11 @@ The later [pairwise source checkpoint](source_pairs/README.md) adds an
 explicit default-off selection for that different HLS target. The frozen
 results below remain the original four-reader evidence.
 
+The [source-bound bank-stream study](bank_stream/README.md) separately selects
+the pairwise topology and current adapter schedule in SST. Its guide records
+the validation status and nominal timing assumptions; it does not replace
+the frozen results below or establish FPGA calibration.
+
 ## Code Review
 
 | Owner | Responsibility |

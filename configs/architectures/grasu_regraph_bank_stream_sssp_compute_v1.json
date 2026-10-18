@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "profile_id": "grasu_regraph_bank_stream_sssp_compute_v1",
+  "status": "source_bound_prediction_not_hardware_calibrated",
+  "evidence_tier": "simulator_prediction",
+  "boundary": "resident_compute_no_host_launch_gaps",
+  "architecture": "bank_stream_four_little_two_pairwise_source_services",
+  "timing_basis": {
+    "path": "configs/architectures/grasu_regraph_routed_sssp_compute_v3.json",
+    "sha256": "123813ff6db3ea88c2e5b842799da82b1e383f84d90fb97d7c67a5e5c12a8843"
+  },
+  "target": {
+    "integration_revision": "87a0a2cdb8c647247bb4d61dbd06ca4e98028f0b",
+    "production_source_index_sha256": "f92aa72f426f8c2177608fdb205af7aca0e14ef8dbe78e200fd69e4a1b70ea02",
+    "hls_sources": {
+      "kernels/pma_to_regraph_adapter/bank_stream.hpp": "7887d4c2b340a6b825f72cfebf1725853a670b69963cba7edbf3b78739b77c49",
+      "kernels/pma_to_regraph_adapter/continuous_directory.hpp": "8bb5a8a822814ba076d37d0ec182dcee3b637ae5d27197e687e5edfee691aaf4",
+      "kernels/pma_to_regraph_adapter/cross_row_pipeline.hpp": "557ecf44406dc1a440486e9cf40646db38b291c0344fa0c19bf91141fd4e3132",
+      "kernels/pma_to_regraph_adapter/directory_tile.hpp": "a6562444654cc831026576ce36737d67fe98bba783708c0ff317b1b34122757b",
+      "kernels/pma_to_regraph_adapter/packet_pipeline.hpp": "4d159049d0bb745c9d134d28ab546b6b45d936f6dd0406403564b97f4c352699",
+      "kernels/pma_to_regraph_adapter/pma_to_regraph_adapter.cpp": "f4354692c7089b19d02e9376b9b0e881f86c9a6fed502ab1f2cee1275eaead0a",
+      "kernels/pma_to_regraph_adapter/row_line.hpp": "e1880be22792128493f2f03e9507eb4c4346f1afbd678401f9848ad35ac505b9",
+      "kernels/pma_to_regraph_adapter/row_prefetch.hpp": "62166e68754ab931da4cb3286ce4cfdfe29e017ab958f765c5587c4f67523e1a",
+      "kernels/regraph_k4_shared_hbm_wrapper/kernel_hbm_wrapper.cpp": "04041f066fd1bf99802cc668b4d583da9104b25bdf1b4125dda00ca2963ffd0d",
+      "scripts/lib/pma_adapter_selection.sh": "29e4f13d2f46dfb969fa9d9b2f17950ce2f091eab07b0bbca1e30f40cbb9f05d"
+    }
+  },
+  "memory_overrides": {
+    "physical_master_count": 7,
+    "source_service_channels": [23, 24],
+    "worker_source_services": [0, 1, 0, 1]
+  },
+  "bank_stream_schedule": {
+    "reader_pipeline_capacity": 2,
+    "block_drain_cycles": 2,
+    "publisher_pipeline_cycles": 2,
+    "directory_cache_rows": 1024,
+    "bank_fifo_lines": 256,
+    "packet_pipeline": true,
+    "bank_stream": true,
+    "bank_read_beats": true,
+    "continuous_directory": false
+  },
+  "limitations": [
+    "Only nominal timing and fixture/memory conventions are inherited; old four-source-reader XO, RTL, block-design and FPGA measurements are not target evidence.",
+    "The source index identifies the production HLS closure, not completed routing or a measured timing calibration.",
+    "Beat-progressive bank returns are an explicit simulator assumption, not an HLS compile define or a measured AXI schedule.",
+    "Read-to-use 71 cycles, Apply 100 cycles, writeback 71 cycles and directory/publisher schedule remain nominal until separately validated.",
+    "This candidate covers resident weighted SSSP compute only, not GraSU maintenance, host orchestration, DMA, CC or PageRank timing."
+  ]
+}
