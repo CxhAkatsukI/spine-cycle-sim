@@ -130,6 +130,15 @@ threads were checked; source, link options, 40-GiB limit and zero swap remain
 unchanged. This is build-host scheduling evidence, not an FPGA performance
 measurement, and does not modify the frozen runner or earlier records.
 
+The two still-waiting ResPR/FullPR link supervisors receive the same kind
+of correction before starting children. The separate
+`production-pending-route-affinity-adjustment-v1/{request,results}.json`
+pins their exact invocations and verifies every live thread: ResPR uses
+CPUs 108--115 and FullPR uses 16--23, instead of CPUs 121 and 122 respectively.
+Their eight-CPU quotas, 40/36-GiB hard/high memory limits, zero swap and
+memory-admission rules are unchanged. This does not admit either route or
+modify a frozen runner, source or link option.
+
 ## Simulator Timing Boundary
 
 Do not call the newest complete G calibrated from component checks alone.
