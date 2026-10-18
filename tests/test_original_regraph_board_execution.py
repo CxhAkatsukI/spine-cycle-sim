@@ -128,7 +128,9 @@ class BoardAdmissionTests(unittest.TestCase):
                 path.write_text(path.name)
             records = [{"abi": {"kernel": name, "xo": artifact.identity(xo)},
                         "hls": {"report": artifact.identity(hls)}} for name in names]
-            routed = {"timing": {"report": artifact.identity(timing)}}
+            routed = {"timing": {"report": artifact.identity(timing)},
+                      "topology": {"clock": [("DATA", "DATA_CLK", 150)],
+                                   "connections": [("kernelApply:kernelApply_1", 0, "HBM[30]")]}}
             report = {"status": config.routed_status(topology), "configuration": topology,
                       "errors": [], "board_programmed": False,
                       "hardware_timing_measured": False, "publication_match": False,

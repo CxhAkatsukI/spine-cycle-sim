@@ -32,6 +32,24 @@ new-G metadata/handoff correctness or original-publication reproduction.
 
 ## Current Checkpoint
 
+### High-Memory Host Resume
+
+The 2026-10-17 resume found both old routes terminal: diagnostic G v2 linked,
+and A4 v2 passed strict 150-MHz routed timing (WNS +0.003 ns, WHS +0.009 ns).
+Production route v1 and metadata-host v1 stopped before launching a compiler
+because their bounded `ps` query timed out; these are retained startup failures,
+not completed builds. The fresh metadata-host v2 passes compilation, all
+three same-address metadata generations, and the stale-metadata negative test.
+This remains CPU host-model evidence, not device refresh admission.
+
+A4 board v2 stopped before programming because fresh topology tuples were
+compared with their JSON list representation. The checker now normalizes the
+fresh observation through JSON before exact comparison; ABI, clock, bindings,
+binary identity and strict timing remain unchanged and independently checked.
+Diagnostic G board v4 reached programming but XRT rejected the occupied device
+(`Device or resource busy`); no computation/performance result was obtained.
+Neither failure is silently retried or rewritten.
+
 | Track | Latest evidence | Remaining gate |
 | --- | --- | --- |
 | Cache | Original/candidate complete hot-half controls pass paired C simulation, synthesis and six RTL transactions | Integrate both halves with cold DDR, search and metadata refresh; check complete resource fit |

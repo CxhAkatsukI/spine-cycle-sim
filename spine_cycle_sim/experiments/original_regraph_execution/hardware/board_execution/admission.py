@@ -56,7 +56,8 @@ def review(route, output, *, topology=config.DEFAULT_TOPOLOGY, review_retained_a
     if extraction["exit_code"] or extraction["timed_out"]:
         raise ValueError("fresh binary metadata extraction failed")
     inspected = gates.inspect_routed(metadata, route / "link/reports", configuration=topology)
-    if not retained and inspected != result["analysis"]:
+    # Routed results have passed through JSON, which represents tuples as lists.
+    if not retained and json.loads(json.dumps(inspected)) != result["analysis"]:
         raise ValueError("fresh binary or timing differs from routed admission")
     pins += [binary, inspected["timing"]["report"]]
     pins += [artifact.identity(path) for path in sorted(metadata.glob("*.json"))]
