@@ -145,6 +145,41 @@ class K4BoardMatrixTests(unittest.TestCase):
 
 
 class K4BoardExecutionTests(unittest.TestCase):
+    def test_local_and_remote_fullpr_returns_require_unchanged_admission_and_pins(self):
+        for status in (board_study.follow.PASS, board_study.local_follow.PASS):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                source, admitted = root / "source", root / "admission.json"
+                source.write_text("synthetic pinned source; not FPGA evidence")
+                admitted.write_text("synthetic admission; re-reviewed before launch")
+                report = {"status": status, "errors": [], "algorithm": "full_pagerank",
+                    "board_requested": False, "pins": [artifact.identity(source)],
+                    "admission": artifact.identity(admitted),
+                    **dict.fromkeys(board_study.follow.artifacts.FLAGS, False)}
+                path = root / "results.json"
+                path.write_text(json.dumps(report))
+                self.assertEqual(board_study.returned_result(root), (report, artifact.identity(path)))
+                for target in (source, admitted):
+                    original = target.read_text()
+                    target.write_text("changed synthetic pin")
+                    with self.assertRaises(ValueError):
+                        board_study.returned_result(root)
+                    target.write_text(original)
+
+    def test_local_return_status_does_not_bypass_algorithm_errors_or_false_claims(self):
+        valid = {"status": board_study.local_follow.PASS, "errors": [],
+                 "algorithm": "full_pagerank", "board_requested": False,
+                 **dict.fromkeys(board_study.follow.artifacts.FLAGS, False)}
+        for changes in ({"status": "LINK_COMPLETE"}, {"errors": ["timing failed"]},
+                        {"algorithm": "residual_pagerank"}, {"board_requested": True},
+                        {"board_requested": None},
+                        *[{key: True} for key in board_study.follow.artifacts.FLAGS]):
+            with self.subTest(changes=changes), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / "results.json").write_text(json.dumps({**valid, **changes}))
+                with self.assertRaisesRegex(ValueError, "strictly admitted FullPR"):
+                    board_study.returned_result(root)
+
     def fixture(self, stack, root):
         group = root / "cgroup"
         group.mkdir()

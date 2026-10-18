@@ -7,7 +7,7 @@ import sys
 import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
-from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build import admission, follow
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build import admission, follow, local_follow
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution import supervisor as waiting
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
@@ -25,7 +25,7 @@ READY = "MATCHED_K4_BOARD_PLAN_RECHECKED_NOT_FPGA"
 def returned_result(directory):
     path = directory / "results.json"
     report = json.loads(path.read_text())
-    if (report.get("status") != follow.PASS or report.get("errors") != [] or
+    if (report.get("status") not in (follow.PASS, local_follow.PASS) or report.get("errors") != [] or
             report.get("algorithm") != "full_pagerank" or report.get("board_requested") is not False or
             any(report.get(key) is not False for key in follow.artifacts.FLAGS)):
         raise ValueError("strictly admitted FullPR return required before K4 board execution")

@@ -58,6 +58,13 @@ three repeats for each supported graph/binding and overlap-aware timing.
 Actual bitstream/ABI qualification and repeated FPGA execution remain pending.
 This is host readiness, not a new FPGA result.
 
+The supervisor accepts both hash-sealed local and remote algorithm returns.
+Both must pass the same FullPR source/metadata/global-timing admission again
+before any device worker. Accepting the local return format does not admit a
+link by status alone, relax a timing requirement, or reuse an older bitstream.
+The newest source closure needs a fresh arithmetic audit and board-host
+preflight; the retained older runs below do not qualify it.
+
 The running FullPR route and complete host preflight have different integration
 revisions. Shared graph/runtime-plan/l2 headers are identical; apply packing
 changed. The board plan records both source identities and checks each FPGA
