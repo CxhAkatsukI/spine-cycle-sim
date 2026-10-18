@@ -16,6 +16,7 @@ before the next poll. The source invocation ID is still checked independently.
 | `analysis.py` | Verify all selected replicas, padding/guards, independent oracle, kernel event identities and overlap-aware timing |
 | `supervisor.py` | Wait for the exact service invocation, atomically admit memory, contain execution and recheck every raw result |
 | `delivery.py` | Independently replay raw output/route checks, retain failed attempts, seal and verify a portable measured-control capsule |
+| `comparison.py` | Compare replayed 11+3/A4 matched-input controls, keeping resident wall and device-event windows separate; no missing K4 inference |
 | `__main__.py` | Thin CLI requiring explicit `--execute` |
 
 ## Fixed Scope
@@ -134,3 +135,21 @@ spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution.
 replicas and the exact routed evidence before archiving compact JSON/text
 records. Large graphs, binary outputs and vendor artifacts stay externally
 hash-indexed; portable verification does not claim to rerun those outputs.
+
+## Compare Completed Controls
+
+The offline comparison rechecks both raw board matrices and routed artifacts,
+then requires identical logical inputs, initial state, divisors, outputs,
+Release host, CPU affinity, board and runtime libraries. It does not program
+a board. Use a new output directory:
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution.comparison \
+  --original /path/to/completed/original-board-supervisor \
+  --a4 /path/to/completed/a4-board-supervisor \
+  --output /path/to/fresh/comparison
+```
+
+The report gives the ratio of A4/original median times separately for resident
+wall, event span and event union. It cannot substitute those controls for the
+latest adapter/K4 board matrix or establish original-publication performance.

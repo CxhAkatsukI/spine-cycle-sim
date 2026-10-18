@@ -4,6 +4,10 @@ The [actual adapter/K4 control](k4_control/README.md) tracks the separate
 production-layout semantic and eventual board comparison against original A4.
 It does not replace original 11+3 or A4 evidence below.
 
+The [replayed 11+3/A4 board comparison](comparison/README.md) reports the
+complete six paired cases with resident wall and device-event times kept
+separate. It does not infer missing adapter/K4 performance.
+
 ## Decision
 
 `original-r-preflight-v2` completes the fixed six-input **offline** audit.
