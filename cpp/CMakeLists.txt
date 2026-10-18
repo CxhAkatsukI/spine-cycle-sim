@@ -305,6 +305,10 @@ if(BUILD_TESTING)
   target_compile_options(grasu_cached_processor_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME grasu_cached_processor_tests COMMAND grasu_cached_processor_tests)
 
+  add_executable(grasu_cache_timing_control tests/evaluation_impact/common_g/cache_timing.cpp)
+  target_link_libraries(grasu_cache_timing_control PRIVATE spine_cycle_core)
+  target_compile_options(grasu_cache_timing_control PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
   add_executable(grasu_runtime_tests tests/grasu_runtime_tests.cpp)
   target_link_libraries(grasu_runtime_tests PRIVATE spine_cycle_core)
   target_compile_options(grasu_runtime_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

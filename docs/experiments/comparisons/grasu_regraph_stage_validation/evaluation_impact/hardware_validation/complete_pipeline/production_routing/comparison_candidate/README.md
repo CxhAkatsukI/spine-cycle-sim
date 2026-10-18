@@ -13,6 +13,7 @@ remote outputs are under
 | Gate | Current evidence | Meaning |
 | --- | --- | --- |
 | G functional, connected-state and component RTL | `g-cache-comparison-{functional,connected,rtl,readmission}-v1` | Passing component checks; not integrated RTL or FPGA timing |
+| G cache simulator/RTL service increments | `g-cache-model-timing-v2`; [raw data and scope](../../../../cache_probe/README.md#same-stimulus-simulator-service-control) | Balanced 1 cycle/update in both; same-bank extra cost 2.006836 vs 2.005371 cycles/update; not total-time calibration |
 | Fresh CC, ResPR and FullPR compilation | `production-cc-compile-local-v2`, `production-respr-compile-local-v2`, `production-fullpr-compile-local-v1` | All compile; not routed timing or device correctness |
 | Fresh CC and ResPR adapter RTL | `production-{cc,respr}-fresh-adapter-rtl-v1` | Both pass; not complete-algorithm RTL or board performance |
 | Fresh FullPR adapter RTL | `production-fullpr-fresh-adapter-rtl-v1` | Passes separately; not complete-algorithm RTL or board performance |

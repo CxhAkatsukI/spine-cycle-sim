@@ -49,6 +49,70 @@ freezes inputs and checks the passing composition source identity;
 and both AXIS buses; `binding_analysis.py` keeps state, RTL, ABI and estimated
 clock gates separate.
 
+## Same-Stimulus Simulator Service Control
+
+The optional CMake target `grasu_cache_timing_control` uses the existing
+`CachedProcessor`, without changing model parameters, production numerical
+code or the SST plugin. It reproduces the six current production-wrapper
+RTL stimuli: 0, 16, 64, 4096 and 65536 balanced updates, then 4096 alternating
+insert/delete operations on the same bank and row. Every call checks the
+entire 131072-segment state, exactly 8 MiB preload and 8 MiB acknowledged
+writeback, input drain and the same observations after reversed scheduler
+registration. The external input FIFO and internal bank FIFOs are finite.
+
+The committed [raw control and analysis](timing_control/results.json) retain
+the [model output](timing_control/model.json),
+[RTL transaction report](timing_control/rtl.transaction.rpt) and
+[execution/source identity](timing_control/execution.json). The RTL report
+is from `g-cache-comparison-rtl-v1/cache-token`, not the earlier wrapper
+checkpoint with slightly different control alignment.
+
+| Comparison | Simulator, cycles/update | RTL, cycles/update |
+| --- | ---: | ---: |
+| Balanced increment from 4096 to 65536 updates | 1.000000 | 1.000000 |
+| Extra same-bank cost at 4096 updates, relative to balanced | 2.006836 | 2.005371 |
+
+These are **service-increment checks, not total-time calibration**. The model
+uses a `MockMemoryBackend`; its AXI preload/writeback takes different time
+from the XSim memory model. For example, the empty call is 527062 model
+cycles versus 278737 RTL cycles. The model also closes input after the last
+committed packet, whereas the RTL bench supplies an end token. Those
+differences are not removed by fitting an offset. The model clock is 200 MHz;
+this production RTL probe targets 150 MHz. Only cycle increments are compared,
+not equal-frequency performance or measured hardware time. No integrated-G,
+FPGA timing, original-publication match or final-figure admission follows.
+
+The successful raw attempt is
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2`.
+It freezes the C++ tree from base commit `e4f8e18` plus the new test target,
+uses GCC 15.2.0, Release `-O3 -DNDEBUG`, and separately runs the existing
+`grasu_cached_processor_tests` regression. All four configure/build/run steps
+exit zero. Its 2-GiB hard cgroup, 1536-MiB high threshold, zero swap and
+32-GiB system reserve stay enforced; cgroup peak is 443.3 MiB, with no OOM.
+This is not a host-wall-time benchmark. The retained v1 attempt failed before
+compilation because the shared `/tmp` was full. V2 uses its own campaign
+`TMPDIR`; neither the failed attempt nor shared temporary files were removed.
+
+Reproduce in a fresh build/output directory, with memory admission and a
+campaign-specific `TMPDIR`:
+
+```bash
+cmake -S . -B /campaign/fresh-cache-build -DCMAKE_BUILD_TYPE=Release
+cmake --build /campaign/fresh-cache-build --target grasu_cache_timing_control grasu_cached_processor_tests -j1
+/campaign/fresh-cache-build/cpp/grasu_cache_timing_control
+/campaign/fresh-cache-build/cpp/grasu_cached_processor_tests
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.cache_probe.timing_analysis \
+  --model /campaign/saved-model-stdout.json \
+  --rtl-report docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/cache_probe/timing_control/rtl.transaction.rpt \
+  --output /campaign/fresh-cache-analysis
+python3 -m unittest tests.test_grasu_cache_timing
+```
+
+Save the control's stdout as the model input using the campaign runner. The
+analysis hashes both inputs and refuses missing cases, changed stimuli,
+incomplete traffic or invalid phase ordering. The committed-data regression
+recomputes the analysis without external tools or raw campaign paths.
+
 ## Production Wrapper Gate
 
 The completed `g-cache-binding-rtl-v1` runs the shared registered core through

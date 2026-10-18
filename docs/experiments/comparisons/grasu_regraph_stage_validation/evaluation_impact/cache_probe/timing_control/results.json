@@ -1,0 +1,104 @@
+{
+  "balanced_4096_to_65536_increment": {
+    "RTL_cycles_per_update": 1.0,
+    "absolute_difference_cycles_per_update": 0.0,
+    "model_cycles_per_update": 1.0
+  },
+  "hardware_timing_admitted": false,
+  "input_boundary": "model closes after committed last packet; RTL consumes END_EDGE",
+  "inputs": [
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/control.stdout.txt",
+      "sha256": "cb2df4ba1d5edc0e695f8302ad5fb1b58efb8f09866eb45a0618d7fcc1be9cdb"
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-comparison-rtl-v1/cache-token/project/solution/sim/report/verilog/result.transaction.rpt",
+      "sha256": "b48d3924f3c80e4daae1cb252e0ab842e1db1150d941ff48974f88382b0813d2"
+    }
+  ],
+  "integrated_g_admitted": false,
+  "memory_boundary": "mock AXI/backend is not the XSim AXI memory model",
+  "production_baseline_admitted": false,
+  "publication_match_admitted": false,
+  "rows": [
+    {
+      "RTL_latency_cycles": 278737,
+      "conflict": false,
+      "cycles": 527062,
+      "index": 0,
+      "lane_queue_stalls": 0,
+      "load_complete": 262165,
+      "read_bytes": 8388608,
+      "store_issued": 262168,
+      "updates": 0,
+      "write_bytes": 8388608
+    },
+    {
+      "RTL_latency_cycles": 278734,
+      "conflict": false,
+      "cycles": 527070,
+      "index": 1,
+      "lane_queue_stalls": 0,
+      "load_complete": 262165,
+      "read_bytes": 8388608,
+      "store_issued": 262176,
+      "updates": 16,
+      "write_bytes": 8388608
+    },
+    {
+      "RTL_latency_cycles": 278782,
+      "conflict": false,
+      "cycles": 527103,
+      "index": 2,
+      "lane_queue_stalls": 262134,
+      "load_complete": 262165,
+      "read_bytes": 8388608,
+      "store_issued": 262209,
+      "updates": 64,
+      "write_bytes": 8388608
+    },
+    {
+      "RTL_latency_cycles": 282814,
+      "conflict": false,
+      "cycles": 531135,
+      "index": 3,
+      "lane_queue_stalls": 262134,
+      "load_complete": 262165,
+      "read_bytes": 8388608,
+      "store_issued": 266241,
+      "updates": 4096,
+      "write_bytes": 8388608
+    },
+    {
+      "RTL_latency_cycles": 344254,
+      "conflict": false,
+      "cycles": 592575,
+      "index": 4,
+      "lane_queue_stalls": 262134,
+      "load_complete": 262165,
+      "read_bytes": 8388608,
+      "store_issued": 327681,
+      "updates": 65536,
+      "write_bytes": 8388608
+    },
+    {
+      "RTL_latency_cycles": 291028,
+      "conflict": true,
+      "cycles": 539355,
+      "index": 5,
+      "lane_queue_stalls": 270350,
+      "load_complete": 262165,
+      "read_bytes": 8388608,
+      "store_issued": 274461,
+      "updates": 4096,
+      "write_bytes": 8388608
+    }
+  ],
+  "same_count_single_bank_minus_balanced": {
+    "RTL_cycles_per_update": 2.00537109375,
+    "absolute_difference_cycles_per_update": 0.00146484375,
+    "model_cycles_per_update": 2.0068359375
+  },
+  "status": "CACHE_SERVICE_CONTROL_ANALYZED_NOT_TOTAL_TIME_CALIBRATION",
+  "total_latency_comparable": false
+}

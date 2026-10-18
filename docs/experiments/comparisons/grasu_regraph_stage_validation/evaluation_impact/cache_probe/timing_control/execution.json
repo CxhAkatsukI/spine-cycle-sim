@@ -1,0 +1,1922 @@
+{
+  "admission": {
+    "admitted": true,
+    "available_bytes": 92720148480,
+    "cgroup": {
+      "limits": {
+        "memory.high": "1610612736",
+        "memory.max": "2147483648",
+        "memory.oom.group": "1",
+        "memory.swap.max": "0"
+      },
+      "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-g-cache-model-timing-20261018-v2.service"
+    },
+    "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+    "required_bytes": 88046829568,
+    "reservations": [
+      {
+        "bounded": true,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-production-cc-compile-route-local-20261018-v1.service",
+        "memory_max_bytes": 42949672960,
+        "pid": 2111135,
+        "start_time": "378500388"
+      }
+    ]
+  },
+  "binary": {
+    "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/build/cpp/grasu_cache_timing_control",
+    "sha256": "a1e38b5efdc31282f2ef2531d126f1d1b1a550a387113e7be7e23d4487bd0e1f"
+  },
+  "compiler": "c++ (Debian 15.2.0-14) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "containment": {
+    "limits": {
+      "memory.high": "1610612736",
+      "memory.max": "2147483648",
+      "memory.oom.group": "1",
+      "memory.swap.max": "0"
+    },
+    "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-g-cache-model-timing-20261018-v2.service"
+  },
+  "errors": [],
+  "host_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "policy": {
+    "allow_bounded_builds": true,
+    "background_memory_gib": 8,
+    "reserve_gib": 32,
+    "tree_memory_gib": 2
+  },
+  "source": {
+    "base_commit": "e4f8e18763e800cee6de6d115ef66c788782511e",
+    "files": [
+      {
+        "path": "CMakeLists.txt",
+        "sha256": "5e31af06f06db405fc1a05e27461c0bfbcaa23e150d51c0f89270a96e9324869"
+      },
+      {
+        "path": "cpp/CMakeLists.txt",
+        "sha256": "3e3dd21e448179354618bf624096729582da04488abde1b48696073e8b8266b1"
+      },
+      {
+        "path": "cpp/README.md",
+        "sha256": "e4362b78569e097fc770712cf431a5a5441b88cff882a2ed677634a6fb419b65"
+      },
+      {
+        "path": "cpp/include/spine_sim/algorithm.hpp",
+        "sha256": "de525d8443035964dde913c87ed0a697b741fab07090ae87dae55a7a1076070a"
+      },
+      {
+        "path": "cpp/include/spine_sim/algorithm_pipeline.hpp",
+        "sha256": "d3194631dc802f8d990f7706515f9e3499fb588bb02de6ad00e67eb8cac004b3"
+      },
+      {
+        "path": "cpp/include/spine_sim/axi.hpp",
+        "sha256": "3eed58f1fcbc0fceef511e55323843cbc1014b75b7b64694addfcf2d5c987c41"
+      },
+      {
+        "path": "cpp/include/spine_sim/axi_endpoint.hpp",
+        "sha256": "0cf38fdeefbee83f5f6951d4153cfc2f3d1499c87ccd456161de49ea160160c1"
+      },
+      {
+        "path": "cpp/include/spine_sim/banked_memory.hpp",
+        "sha256": "7e781e6c64cf14780d0fe40757844e1437d2a09bef44c141b9859f8d8fd4f08d"
+      },
+      {
+        "path": "cpp/include/spine_sim/component.hpp",
+        "sha256": "b3f9b66067748e625bb91988689ddcf49cab5fa3cc78d5715f2b31c9308f012d"
+      },
+      {
+        "path": "cpp/include/spine_sim/fifo.hpp",
+        "sha256": "d1623b97ce5e3e82ba195a84672103c4e8a1db0f799d254a645620bb51782d71"
+      },
+      {
+        "path": "cpp/include/spine_sim/fixed_axi_port.hpp",
+        "sha256": "94b43d3f0583b78fcb279cbb6d8df1adec34b3c16bae520b6ffa8e19c1c0b614"
+      },
+      {
+        "path": "cpp/include/spine_sim/grasu.hpp",
+        "sha256": "686f00c4c7a1d910239e6f3c449605a2b168d24de40203671ce89a0c22776f4f"
+      },
+      {
+        "path": "cpp/include/spine_sim/grasu_native.hpp",
+        "sha256": "7012151680988d9be642a8a5f6b0617443a8a55dbd8b43e9f1b8537a91284a10"
+      },
+      {
+        "path": "cpp/include/spine_sim/grasu_regraph.hpp",
+        "sha256": "8a0b6f08c5f1a9c955e43abb6f40f7fcdf2b95452d491f25ad58b37d1ff065bb"
+      },
+      {
+        "path": "cpp/include/spine_sim/grasu_update/cached_processor.hpp",
+        "sha256": "4835931cd0dab219b62b5b08c8743cd096bf961d65dbecaa009f9c6aee673fe6"
+      },
+      {
+        "path": "cpp/include/spine_sim/grasu_update/pma_word.hpp",
+        "sha256": "e7d3665867e29470ca1c81c463d35e4d3fc7be67cb41a598c74fca2b82d76101"
+      },
+      {
+        "path": "cpp/include/spine_sim/grasu_update/processor.hpp",
+        "sha256": "4656c95a36f884c188888212f202e275e5f187886aabeead22730080d6065487"
+      },
+      {
+        "path": "cpp/include/spine_sim/grasu_update/search.hpp",
+        "sha256": "4054563fd80fefec4b4340c6f55ed37fb58dfed56a8906410ec25d0cb0c26a3d"
+      },
+      {
+        "path": "cpp/include/spine_sim/memory_backend.hpp",
+        "sha256": "1ea3493191f9defeb52d9271d1b5eab2f8950c8e91f4e3df1fa5eecc35777784"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_grasu/ddr.hpp",
+        "sha256": "f26727c4313a38a51596a8ae1af3e0c8d3a6fe38fbb5ab8e325374e57498c1a6"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_grasu/hot_store.hpp",
+        "sha256": "c3e5c1e6538ddf7e31eb77c656f15c62c2015ecefc36b9e2f73083809a60bf14"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_grasu/routing.hpp",
+        "sha256": "80e8e5abce706266379e7846ec798de2631a47a1a69d24d6d6a89b2def9a9f14"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_grasu/search.hpp",
+        "sha256": "133714e0a5b5c49e62d97ea6f7dc4aea2015a8ebef440d3c917ed47380ad0642"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_grasu/types.hpp",
+        "sha256": "6fff90e2cd39af4b7baa3ed825286ef03dfd69e96f2fbe29543df5f242f24874"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/big_frontend_types.hpp",
+        "sha256": "f37c55b82a7eb07579b74b8ab501b424a94976d671d4398049c5ddd8116d8049"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/big_gather.hpp",
+        "sha256": "2a8b1ffcc66373e9d5f4ab78067990754bc270ceed499e0635f22cbb2a375480"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/big_merge.hpp",
+        "sha256": "08a04de5facebd5a068d835b9c67e7e143ac3c60588170469410447d43b46487"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/big_requests.hpp",
+        "sha256": "6fb25b36450692d5c5aa1d1c5ae15e64fccf911f658b61ff6871479317d3692e"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/big_routing.hpp",
+        "sha256": "a05b36647341d21314533a0b52cfd7dc9c6a91265a19078ec526861b29ba624c"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/big_scatter.hpp",
+        "sha256": "94fbe196fb90b9c96199846f2512d0a5817adacfad8b9fce26f660a502e675a3"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/big_source_memory.hpp",
+        "sha256": "f9ebb15f950a5c556258b94d334411b2d12bce8f207d754c3ccf00afd9b4ec48"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/big_types.hpp",
+        "sha256": "a8d1e92eaa87ebdecf498d2a601fe0583985fc122ef1678714a8288ad0687f02"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/detail/latency_pipe.hpp",
+        "sha256": "745a52cda74d29663824ba95f77cf8c195b43b19e69b0549ddfde4d3e0e3b64e"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/detail/wire.hpp",
+        "sha256": "a8f2e0b10f187e65739bf614d099d53ad778685c1c224255f7c9272b2d9db4f1"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/edge_reader.hpp",
+        "sha256": "e371ba5de6fce21cc60f9dfe749cf771a46f86cada5427b9e4422b52a6656fd1"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/frontend_types.hpp",
+        "sha256": "f292f9f70bcb51383c67f6747a8bcb626d753f1d38b57ccdb4e5b4d722330352"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/little_gather.hpp",
+        "sha256": "5947e0b57c46387a5cb58b209df266ddab4590aa50dfa474664d9a0cb88a6ce1"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/little_merge.hpp",
+        "sha256": "7a819031225b828e6761fc55186fd5ff6e97b4e72d1460db66466c2a528f8ea1"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/little_scatter.hpp",
+        "sha256": "a55ead954c8a8fd95053baf7f95031a94e8abced678a9f14c59f0b35f6f4ea71"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/mixed_indexer.hpp",
+        "sha256": "41ff63179d20a15b4764082a93fe892d04af64bb73658831ab583ea091aa6a19"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/pr_apply.hpp",
+        "sha256": "c715bf520483591cc745b0e19b369f6aa2191302f3c0ba46514e4062f95d2c52"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/property_writer.hpp",
+        "sha256": "5a888ce5b636d22f406dfd2a61e4b23db008b317121c70b203aa6c5a5fa168a6"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/source_memory.hpp",
+        "sha256": "51794becf0fedf910687e7bec679039f7a6da71dcb65653c18b4ae8e350cb835"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/sssp_apply.hpp",
+        "sha256": "56ffe5c3538d8bd141cc99feb0b6057c63779a1fe8322a9ce91181b09fc7e656"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/state_types.hpp",
+        "sha256": "0fc613149daab5f75dd9743c69694d3049ef00122c1c038ba68536c2265816bd"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/types.hpp",
+        "sha256": "634116ce083005596a65f713c35c1e3121f0e491204dc423e92c1c397785e3b3"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/udf.hpp",
+        "sha256": "e02b0913966209ba997613f830c0e262b1d3f126960b268c0ffe88bccd7c8612"
+      },
+      {
+        "path": "cpp/include/spine_sim/original_regraph/write_indexer.hpp",
+        "sha256": "83590558c003c574c08ef13dfa029b00b3c40955443bdd684ee6f3059921abfb"
+      },
+      {
+        "path": "cpp/include/spine_sim/pma_adapter/reader.hpp",
+        "sha256": "2513f3b1b8712612666c55fa6b0ac84ca9fe3bd0b33ab35d7276db9d367922ab"
+      },
+      {
+        "path": "cpp/include/spine_sim/pma_adapter/types.hpp",
+        "sha256": "7f4e9ee36234af7173be837e49309d62ca01e28cce1d04b85aa5edd5f5ec6100"
+      },
+      {
+        "path": "cpp/include/spine_sim/regraph_pma_adapter.hpp",
+        "sha256": "a4bb75614239043920d3e748e59643ea46e4171397c0acd339a1c0bf753ced2c"
+      },
+      {
+        "path": "cpp/include/spine_sim/routed_regraph.hpp",
+        "sha256": "b4288586fa4a146778c0c495d83221fb0284e32b5ea849bd7fbce2de317b4b48"
+      },
+      {
+        "path": "cpp/include/spine_sim/routed_regraph_fixture.hpp",
+        "sha256": "8c87864de2663dabc759500427847e714a9e88071f1f70878b0f7cecf5b4ff60"
+      },
+      {
+        "path": "cpp/include/spine_sim/scheduler.hpp",
+        "sha256": "c885906ea09bf9186460191aaecebdd66dff46f12b6c3a457abc190181fbd7ce"
+      },
+      {
+        "path": "cpp/include/spine_sim/shared_axi_port.hpp",
+        "sha256": "07a950436b2daaaa3ef70ec45f77c815060b6389a07702d4ca45bf9a0b0500da"
+      },
+      {
+        "path": "cpp/include/spine_sim/spine_dirty.hpp",
+        "sha256": "e4c82aacfa311d7f89b0922ff42c2f4300f6b90eb5b5128ca1b59f128adf65be"
+      },
+      {
+        "path": "cpp/include/spine_sim/spine_l0.hpp",
+        "sha256": "b1ca2380705dca4df2ef0ac222699fc6d5ebb60460d6fb293836b8920daa6d38"
+      },
+      {
+        "path": "cpp/include/spine_sim/spine_owner.hpp",
+        "sha256": "877b9d7e3c38fe7183becccbdab097809d5fba7e5e2836cc8bfaaaaba4066a86"
+      },
+      {
+        "path": "cpp/include/spine_sim/spine_pagerank.hpp",
+        "sha256": "c4a1ea3fa2e83fc86b1570e8c0b134f97f17451d58249a8b95e5570bf053b4cc"
+      },
+      {
+        "path": "cpp/include/spine_sim/spine_split.hpp",
+        "sha256": "c819618f9cfbdbe3742396b1df394c84056dd0185eda2a4d05ec296f68953495"
+      },
+      {
+        "path": "cpp/include/spine_sim/spine_system.hpp",
+        "sha256": "564f9fea6afbbef6df7a7bef7a234ae5b5628bb23185df5d754b726ad0cf52a1"
+      },
+      {
+        "path": "cpp/include/spine_sim/spine_vertex_lifecycle.hpp",
+        "sha256": "252288e7a3b7000ac4bbef00b333ab2caa6ed97f76bc08a73097501cedf3a000"
+      },
+      {
+        "path": "cpp/src/algorithm.cpp",
+        "sha256": "253295d6c3d5c7655544fe58b8c6d480e4e96d1f2d4b1ad612c41b600dea50b1"
+      },
+      {
+        "path": "cpp/src/algorithm_pipeline.cpp",
+        "sha256": "f5eac512f9aa6b1c6d971907826e4a18b2b494a7be6e4e6e3e70ba30abc5b726"
+      },
+      {
+        "path": "cpp/src/axi.cpp",
+        "sha256": "6e9f9e2b561f9281d3c1daa44569ea4e5b5133c11d20257147a37819fffb8b8c"
+      },
+      {
+        "path": "cpp/src/axi_independent_channels.cpp",
+        "sha256": "1f2468a5bcfce91b0b9b9c0fc92cfaf16fa59e364795efe67ed094f380d1350f"
+      },
+      {
+        "path": "cpp/src/banked_memory.cpp",
+        "sha256": "37e993cf0f052c814c8ab3a8bb481630f154a91af7a7eaa505c77e22f549680b"
+      },
+      {
+        "path": "cpp/src/detail/backend_response_selection.hpp",
+        "sha256": "31da53e555d6ff75cf1809058e092d952b5d6aa45b01f0a0ff7b0b22f6db796f"
+      },
+      {
+        "path": "cpp/src/detail/grasu_regraph_compute.hpp",
+        "sha256": "8decc0cc19e6382a09f3568b252880800a534872b6df62c6cb8751a3ddeb505a"
+      },
+      {
+        "path": "cpp/src/detail/grasu_regraph_payload.hpp",
+        "sha256": "2c3047380573a73b87d0278126e553d0e25de37a5ef6c02b1ad698ecd5b66c3a"
+      },
+      {
+        "path": "cpp/src/detail/grasu_regraph_streams.hpp",
+        "sha256": "10537ba95104543f90ee1fcc4f44895e1e16031345293d833be5ec3e61b41c45"
+      },
+      {
+        "path": "cpp/src/detail/routed_regraph_scatter.hpp",
+        "sha256": "1ae976135b8e7b878a256716dd7062ebe70975bf04c2b0b58a9f97cadf8c9498"
+      },
+      {
+        "path": "cpp/src/detail/routed_regraph_source.hpp",
+        "sha256": "58786627dab023d886ea0e6916bb2d524fca9cecddc1bd742b9723708eb51246"
+      },
+      {
+        "path": "cpp/src/detail/routed_regraph_system.hpp",
+        "sha256": "3e3100f1a24b9d36885047e93358b2b765a41f649f3dbe60694b5bf518a8a491"
+      },
+      {
+        "path": "cpp/src/detail/routed_regraph_transport.hpp",
+        "sha256": "3daf9ea0be9fc7d312f3f1abae3c7c9925419255a42979acbca7a03b1416f127"
+      },
+      {
+        "path": "cpp/src/detail/spine_split_payload.hpp",
+        "sha256": "a2cbcbfbcdf79d3e628b337b0ff0d8bf4a36532fd1aa32b40870ed86b9f057e0"
+      },
+      {
+        "path": "cpp/src/grasu.cpp",
+        "sha256": "7b9e6850ac9ab8001929749e1dc556599f0ae6da0f57a54d9f8804323554f07f"
+      },
+      {
+        "path": "cpp/src/grasu_native.cpp",
+        "sha256": "e974e00f48f089a61c209c8032daa4e275185f3cd9d1e2e3f8ab88f920c52831"
+      },
+      {
+        "path": "cpp/src/grasu_regraph.cpp",
+        "sha256": "5abc7114598a7bd5fc457c428510367b1f77f0642d26200821c3f05d46875c3a"
+      },
+      {
+        "path": "cpp/src/grasu_regraph_apply.cpp",
+        "sha256": "aca6551bc002fe64716d52a48c4f8fc4a25bc449e55e437a6d07af28dfa838e1"
+      },
+      {
+        "path": "cpp/src/grasu_regraph_gather.cpp",
+        "sha256": "ce135d0de48b226f4c670d53bd8f465d63ec7f4e97b35f3d51c2ff28dfacd68d"
+      },
+      {
+        "path": "cpp/src/grasu_regraph_legacy_reader.cpp",
+        "sha256": "ba8d7482fd1849f9e7b70ef2f1f3d0e237cad921497f53f01b4bcea04de00159"
+      },
+      {
+        "path": "cpp/src/grasu_regraph_merger.cpp",
+        "sha256": "d6fe3e5b1cf191cfbbbb4af45ace57350cea8e209ad21330e952f9a6687a75bc"
+      },
+      {
+        "path": "cpp/src/grasu_regraph_runtime.cpp",
+        "sha256": "0cd0af809c14917f863b6d5f7da983f99403eff84bf54b351fc80c784182818c"
+      },
+      {
+        "path": "cpp/src/grasu_regraph_writeback.cpp",
+        "sha256": "f33bdf4c6db15e40e9dd59232870b511682607e877a8c9502c55cd0560d3e0ff"
+      },
+      {
+        "path": "cpp/src/grasu_sharded_update.cpp",
+        "sha256": "ea7e569be558db3b6c5fdcfacc96bf904091788383836537a8d919740a2a8fbc"
+      },
+      {
+        "path": "cpp/src/grasu_update/cached_processor.cpp",
+        "sha256": "f5582164463cb90822409c4f1c01983288d2c8d6f4e3374ea7d03c9d1a017505"
+      },
+      {
+        "path": "cpp/src/grasu_update/direct_processor.cpp",
+        "sha256": "425ebffd400c85062ed75b04fa44c5c6698aee8b9d0ee2b37f64318828ec8f88"
+      },
+      {
+        "path": "cpp/src/grasu_update/finite_search/network.hpp",
+        "sha256": "3f3733ed394ac6b19cf6f1c9f69112d3686ff312365bfcec4af2c71dd3c69b7c"
+      },
+      {
+        "path": "cpp/src/grasu_update/finite_search/transport.cpp",
+        "sha256": "f2a93947add26f36d7f1f109a6d0834266002559fa5423b1c7ae3d03c4b2a3bd"
+      },
+      {
+        "path": "cpp/src/grasu_update/finite_search/workers.cpp",
+        "sha256": "43de5754a7d25ba2ff0b87304ba719ac154fb733ae89597329f2b2f33322310d"
+      },
+      {
+        "path": "cpp/src/grasu_update/finite_search.cpp",
+        "sha256": "481c6d30e8fbe6e90aae168803b7a802fedb3ef819f4b49e7379c473f26bdcaf"
+      },
+      {
+        "path": "cpp/src/grasu_update/parallel_search.cpp",
+        "sha256": "72b6646eaa5ff49c91e3466e0e3dad93f8c337fa307780d7e897eefb361d8bcd"
+      },
+      {
+        "path": "cpp/src/memory_backend.cpp",
+        "sha256": "28fb03428c6191b9281d0f7ed36eb3a594eceab3585c11b3f7e3ded09c8882c6"
+      },
+      {
+        "path": "cpp/src/original_grasu/ddr.cpp",
+        "sha256": "6ae8ce1af390f9b240254384600a478ff016dd2a85e489f86693580816580361"
+      },
+      {
+        "path": "cpp/src/original_grasu/edge_reader.cpp",
+        "sha256": "b95f37461ec88e0f9c2104333327176eaa52ac7a081eea8608b84933731c6dcf"
+      },
+      {
+        "path": "cpp/src/original_grasu/hot_store.cpp",
+        "sha256": "269863d88f17511787fc445aad41f97e4d8bc91ba79349a09669f1fbbd3dc65a"
+      },
+      {
+        "path": "cpp/src/original_grasu/routing.cpp",
+        "sha256": "90eabcf982c7219b2a46fccd7ebf75a0da94371a468d707ff01450b7ba9e3985"
+      },
+      {
+        "path": "cpp/src/original_grasu/search.cpp",
+        "sha256": "f86326026195fa00e062535a013b37b08db388d20a41d60eed65f842d5bc9f33"
+      },
+      {
+        "path": "cpp/src/original_grasu/types.cpp",
+        "sha256": "83b5a713136f00d93eb0f37e6184dcc8225d99440420cd6a7a6c9002aeb30671"
+      },
+      {
+        "path": "cpp/src/original_regraph/big_gather.cpp",
+        "sha256": "1e4c380862e6421cea33b96083756dae5474b617e548825ba2145daf267cb35b"
+      },
+      {
+        "path": "cpp/src/original_regraph/big_merge.cpp",
+        "sha256": "c5327c06277592cd733fadf77dbaba98c4593168e16390e636572eae073f176d"
+      },
+      {
+        "path": "cpp/src/original_regraph/big_requests.cpp",
+        "sha256": "e467afdbc6750a75f0bc0cff403377b6cad9455099fb7d1c935ccfc215fe54de"
+      },
+      {
+        "path": "cpp/src/original_regraph/big_routing.cpp",
+        "sha256": "fad838f7544cf53e1b1b4d7185776460a311bcc140e10c9a0f257a07177ad018"
+      },
+      {
+        "path": "cpp/src/original_regraph/big_scatter.cpp",
+        "sha256": "419386e51b5e1a034d3096cc88e7ccb29c2ac91795c74ee60d47229d1d936777"
+      },
+      {
+        "path": "cpp/src/original_regraph/big_source_memory.cpp",
+        "sha256": "88b2d95a7ab85dd851695b4690649faa4571dfc4d568e48ac8fa906360ba6e2a"
+      },
+      {
+        "path": "cpp/src/original_regraph/edge_reader.cpp",
+        "sha256": "50f0d3c0e5e62471903bcddfa4d246e5749ce3d4c52e6e97921e36e5924a473f"
+      },
+      {
+        "path": "cpp/src/original_regraph/little_gather.cpp",
+        "sha256": "26260dbf1c2ee583ee6b8fefe8d6b9ead0e49e857fa744d6303420869a9a392f"
+      },
+      {
+        "path": "cpp/src/original_regraph/little_merge.cpp",
+        "sha256": "e642bed303c440e754a1a030b99c0596c97f4323172aecaed408d775b4f20521"
+      },
+      {
+        "path": "cpp/src/original_regraph/little_scatter.cpp",
+        "sha256": "a312484372958520a2116b9733967da3d83adddfd3cb8fcfe16b3784993da13b"
+      },
+      {
+        "path": "cpp/src/original_regraph/mixed_indexer.cpp",
+        "sha256": "b21914136ecb2a7f1141c3b1af1e45a8b2e215ec8559c09b5905753d71ba36f7"
+      },
+      {
+        "path": "cpp/src/original_regraph/pr_apply.cpp",
+        "sha256": "32515a49421d7b36430e44517f40ecafe451186c66e897928532d3aaad44ee29"
+      },
+      {
+        "path": "cpp/src/original_regraph/property_writer.cpp",
+        "sha256": "2d38219e9045cfab9999c9da39a580a7b75e6e6540aafd5076408b74fff48bf4"
+      },
+      {
+        "path": "cpp/src/original_regraph/source_memory.cpp",
+        "sha256": "1a382ae5716bb77180a43d70097a27af6ff644b3d4745277b609c60ee5f1010b"
+      },
+      {
+        "path": "cpp/src/original_regraph/sssp_apply.cpp",
+        "sha256": "73f7b45e983391faf5f607b7ec2aa23d00f7f3f00b60a2bc4d428139041b7380"
+      },
+      {
+        "path": "cpp/src/original_regraph/write_indexer.cpp",
+        "sha256": "ba5757acdc4b3f522ac3ce55c069f26549f2d5279df86ca0fd873a433ade4d98"
+      },
+      {
+        "path": "cpp/src/pma_adapter/reader.cpp",
+        "sha256": "3a7dcac76bcdc09d8a5d2125a9dfde4b465ae2e12d78543979b6c3c4de894ed4"
+      },
+      {
+        "path": "cpp/src/regraph_pma_adapter.cpp",
+        "sha256": "6c04dd154009c057a62f7dd5af793837e1c0d7402e387d39239eb10b97effd24"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/bank_join.cpp",
+        "sha256": "f7c37ed377d70ce5cdf3e780fa7fea7654971fad796650b726acdccc2d692b29"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/bank_loader.cpp",
+        "sha256": "da7e7facf8f98dd8c9e0edf2d493f17d44b28ff37d12eaf32656e1fb5b3b86e3"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/bank_returns.cpp",
+        "sha256": "590e1083791dbd6cbf282ed7e5ec379831163f9a5778503768483effc713bd1d"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/bank_stream.hpp",
+        "sha256": "f0c8ac18cf3e35e942408af5b52fb010bef1d30660468eca7a2efcf5e1018b85"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/control.cpp",
+        "sha256": "f5f5a4b1d29baa09c5298d10eae26b16a317987a068f723bdd99bf6817c26ae5"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/directory_tile.cpp",
+        "sha256": "2283f13cef786fa3e5b9189d8baa4f6768e592c4beabba31ae7c29ddd243951b"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/directory_tile.hpp",
+        "sha256": "b75c6edc08e31c239d3f3b9f112b1c4805e00b6b13269758507450783df79cea"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/packet_pipeline.cpp",
+        "sha256": "53c593997b502023ef4dde55b88215e649113e311dc8fb6bd24ffd10e422549b"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/publisher.cpp",
+        "sha256": "44734298f322c6362ccffa2e071ccd3bfda78bce7c8a9b36143d27fc8670b8e7"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/reader.cpp",
+        "sha256": "774bcfdcf737ee9fc33a8d695bf3646230b4a985743ff96b09fb2ffa5a280a5f"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/records.hpp",
+        "sha256": "23be1cdc322bc0140111f0af210be1a90c419f9f502dc46abf8cd22a61354424"
+      },
+      {
+        "path": "cpp/src/regraph_pma_cross_row/state.hpp",
+        "sha256": "951b81301298650dd816087425810b343cc59efa0b7629bda612300b2eb1949d"
+      },
+      {
+        "path": "cpp/src/routed_regraph/admission.cpp",
+        "sha256": "4eb61e483c61b3d349429c35fe5c026cd3652dae21f0a76adf6ce99a6b8b9382"
+      },
+      {
+        "path": "cpp/src/routed_regraph/composition.cpp",
+        "sha256": "b8dfd6d65ccca1f38b56cdf1bff110f94d7ee9d4eccbda2b98e98f79eb09a515"
+      },
+      {
+        "path": "cpp/src/routed_regraph/fixture.cpp",
+        "sha256": "7541bf3a06efdadec9378c596d94b8a4a57b0e4cdc14d280b1a209acd297ae0b"
+      },
+      {
+        "path": "cpp/src/routed_regraph/resident_memory.cpp",
+        "sha256": "5acae0c3c23ef12df0a481327c44baaeff38d7e42ce61f42f035eb4056384923"
+      },
+      {
+        "path": "cpp/src/routed_regraph/rounds.cpp",
+        "sha256": "21c28f27abb867275db5714bd33bd9b6e291bda954052d6f82222d1b5a60c842"
+      },
+      {
+        "path": "cpp/src/routed_regraph/scatter.cpp",
+        "sha256": "8acef011b59e436224647022777ec90e071115d3baf59c583aaaa18285fd8101"
+      },
+      {
+        "path": "cpp/src/routed_regraph/source_service.cpp",
+        "sha256": "a813cfe349f000ab4c4e58542dfc763c79659583d0265de3c8c2d9a17444c2d9"
+      },
+      {
+        "path": "cpp/src/routed_regraph/system.cpp",
+        "sha256": "a2f04bc61353624ae061e1152d3ff4c0e5d06cf1a009bae9198c4c40b0ac9e7e"
+      },
+      {
+        "path": "cpp/src/routed_regraph/transport.cpp",
+        "sha256": "3a0d20e78338933ecf6c76d92af866ded54c4c96a846388be6660c4ea3c05921"
+      },
+      {
+        "path": "cpp/src/scheduler.cpp",
+        "sha256": "38c951b8e446b00f8b21e683d342449a8ca9b9343e821acc94e1ecce50608dc5"
+      },
+      {
+        "path": "cpp/src/shared_axi_port.cpp",
+        "sha256": "961832a7a3636e865fee3c929cd4eae7c830aa69e00eb34d3ec7318e8929e01d"
+      },
+      {
+        "path": "cpp/src/spine_dirty.cpp",
+        "sha256": "097d217fcbfc59a19eba7de7475633ac400a345d4dbb3c17f0cbb05219ad63f8"
+      },
+      {
+        "path": "cpp/src/spine_l0.cpp",
+        "sha256": "aead6f7b4eb3cf5d889d9d7a285d86c0ea1dbeb380af052a4aef0e34ef7ad755"
+      },
+      {
+        "path": "cpp/src/spine_owner.cpp",
+        "sha256": "831a4ced1e4c928319e576beaf0110d59c4e498fcb5b6ea01536acd6c5149959"
+      },
+      {
+        "path": "cpp/src/spine_pagerank.cpp",
+        "sha256": "ab753aaab40f53051ede5275a978d6dcddde48604a932655e9796bff2f297ed9"
+      },
+      {
+        "path": "cpp/src/spine_split.cpp",
+        "sha256": "d4fe3c8998716f02c7127695c0a6b46ce515d03f26d96cc59f49ca098644efc9"
+      },
+      {
+        "path": "cpp/src/spine_sssp_compute.cpp",
+        "sha256": "05165233de2b999b011e82076e2c9399bc2aed197c0e5daafaf3b4be49ebdc19"
+      },
+      {
+        "path": "cpp/src/spine_system.cpp",
+        "sha256": "442d17046d857b00fe6956ba081bdd5fbad74608b45f6fcd24ca6fb0bf61b5b1"
+      },
+      {
+        "path": "cpp/src/spine_vertex_lifecycle.cpp",
+        "sha256": "d5700861bf299ee426335819077fd00a5bb7fb719fa2e002c3a33d8bd04d4ab4"
+      },
+      {
+        "path": "cpp/sst/Makefile",
+        "sha256": "4ca0ea0aa4620e7c8bffa2a3e974847ff41b259c954335a28e61546ba1a5dbcc"
+      },
+      {
+        "path": "cpp/sst/direct_dramsim3_engine.cpp",
+        "sha256": "70427a7e7c50768ab6888df4953bbcc680be9443a64e9deee36b96a800b11754"
+      },
+      {
+        "path": "cpp/sst/direct_dramsim3_engine.hpp",
+        "sha256": "313e7095554b02752c27b944317de1b162f3c339830ed9e2fdd238997e828e23"
+      },
+      {
+        "path": "cpp/sst/online_memory_probe.cpp",
+        "sha256": "2aa89d723636cb8b7c6861edbb87ba280e8596580dbaf9a4b5bd482f6df08c41"
+      },
+      {
+        "path": "cpp/sst/physical_hbm_mapper.cpp",
+        "sha256": "bb4cc7d9ae509bcfd5a56fa66547dd68085b8f7d15c965c2b2180b41f7e8ed1b"
+      },
+      {
+        "path": "cpp/sst/physical_hbm_mapper.hpp",
+        "sha256": "4ffaf3218e552a581c5334b525a96f68f0bf72f317a0cc168d19093ae1be6418"
+      },
+      {
+        "path": "cpp/sst/routed_regraph_probe.cpp",
+        "sha256": "984feedbb90c662b9a89e40118027fe581b4ad9a3bac595ef3774f9fee79e495"
+      },
+      {
+        "path": "cpp/sst/routed_regraph_report.cpp",
+        "sha256": "713cf873576a317b8757af3a2fd331ef39b08a212ed97adcc2189b559cf89c07"
+      },
+      {
+        "path": "cpp/sst/routed_regraph_report.hpp",
+        "sha256": "548b861e85c6c6a98bd41d192e0ed39febf999001abbacf1e50cc9997230d761"
+      },
+      {
+        "path": "cpp/sst/sst_memory_backend.cpp",
+        "sha256": "70bd9d0319ce1d94fc93830c1475d5c846ae342f486ba58e9c1d7796557ebef3"
+      },
+      {
+        "path": "cpp/sst/sst_memory_backend.hpp",
+        "sha256": "38ee9f7273ccab7ee3be773d08c5b5e28ba124180a864fa5275854224147368d"
+      },
+      {
+        "path": "cpp/tests/axi/independent_channels_tests.cpp",
+        "sha256": "87d81f1e43e69d7e41237394d28c54f55b83ea4da57b48e77d7e00302a524475"
+      },
+      {
+        "path": "cpp/tests/core_tests.cpp",
+        "sha256": "d7eaddc72298a4f931334574e861f343c238d91de7dfdd47908c3cf511fff9b1"
+      },
+      {
+        "path": "cpp/tests/dramsim3_idle_advance_equivalence.cpp",
+        "sha256": "a957ef0ea4d00207f75b813252a6f0e016e835c984ecbc52c5c50d6f76746821"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/CMakeLists.txt",
+        "sha256": "6e5a95c93b637d19c0c359cb969a2e8e920e35d5f23bad5f58fc222c72d6db7a"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/a4.hpp",
+        "sha256": "2590a78938f81614d593c8a3161727b3707d98b28ce617e50865283d927d7de6"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/CMakeLists.txt",
+        "sha256": "6051ea9558d3faf215900371809c1f85886c26de139ec7db6308bedea116445a"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/cache_timing.cpp",
+        "sha256": "70fe8255896e4679f9f808455477a5e940cd09b5a0eb8cd52f3da3a54de4e90c"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/control.cpp",
+        "sha256": "49c9a797af08bd965fe8ed7b2b140a43f3d9aa8bf10db0942a17a619e58b3790"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/execution.hpp",
+        "sha256": "2bcf785b5bc91e7454f2ecfaea2c3b3acbd00d1e314c87e5425a09a766a78dac"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/fixture.hpp",
+        "sha256": "7dd7f04258f9b288ec63740296b1cbcbdaed42efdfdc404731bdb6bb75b9ab38"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/host_prepared/control.cpp",
+        "sha256": "e654291df33ddf1853c9c1cfe9651aec7798f268a10d96b34c172ee59b90cfe0"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/host_prepared/handoff.hpp",
+        "sha256": "b4d9e22af6bf40a2c781f75a4272ff959fd84b479ebe7a89c1585dbfa39b9bec"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/host_prepared/input.hpp",
+        "sha256": "fd040ddfbcc0c2303683175b1f59272c471e72563b0d6192e9756880a76b8707"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/host_prepared/memory.hpp",
+        "sha256": "73dfd87cfd28a5ddb23df25b512d49bf3228f149925797d2755650cb2ca6701a"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/memory.hpp",
+        "sha256": "a9307a6183d2531997c2b4ca77124b5bfa509bdaf65a32b0b6564c5cde72cbf6"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/native_geometry/control.cpp",
+        "sha256": "d1a87e1de9e5ff57ed0a3ebd9375561e0f72a6ebf762065ddb2666de4bcff0a8"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/native_geometry/fixture.hpp",
+        "sha256": "f54a5a73c6dae9cd5d079f51eb3653252a858b24771667cb971442b680790a73"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/complete_pipeline/native_geometry/layout.hpp",
+        "sha256": "fc03042cbc712be0d90fc75c5a9cd6143aae5184f35816ffdcc7736bbc4d3751"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_board/control.cpp",
+        "sha256": "cec30701b336b341b3c95b226bc4f7217478fb8e57bd76835b5297649cc90a47"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_board/device.hpp",
+        "sha256": "3c07fe91d0a88f4faed42eb04a517141d420e2411a1b92c3aeb5a42272743fd5"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_board/execution.hpp",
+        "sha256": "325a5c3463c95668c8760baf2b5ae6eff839cca8161fb90db2f47f1f18892d9f"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_board/model.hpp",
+        "sha256": "4fba4d92e10adab812aa3d0d52ea195f13d89b1a22b3ceb368aef757bbabd775"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_board/resident_state.hpp",
+        "sha256": "2af882fc5f48419410d552e6c9d2840097601decedd7533ecc55d85cf57cd99f"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_board/xrt.hpp",
+        "sha256": "1e540c997cb6d76fd0fea682846854a8b4888c4460dcc544f04a1a640603e4d3"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_handoff/compute.hpp",
+        "sha256": "1b94f739ea35e3a24f1e61e88153973527bfcfcab9aae80680f2f9d14867495e"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_handoff/control.cpp",
+        "sha256": "921c0e7731cf09e26a3cee69a5d376d087e0930ab31774124e6a081bcc5a7753"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_handoff/resident.hpp",
+        "sha256": "aa9f1a3577ae35434c16873b44f8a74b3cfafb4ae98586230374f9f7bde4b7a8"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/continuous_handoff/resident_test.cpp",
+        "sha256": "a327e59a0a61c54b5aae8a23493a996fd3e57f50f6e87d0fbe2db5a82a661e69"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/diagnostics.hpp",
+        "sha256": "817a4f61084ca7d6b75bc2be0812ac40f6f7e5fa4db7a946f1d215bd0b742213"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/execution.cpp",
+        "sha256": "3498027a0d6a53c82907cbd87ab5d97fade63b9b787a75ea52fd204389d04ca2"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/cache_bank.cpp",
+        "sha256": "c414bbfa8c71303b4cd7d9096c50129cff6908df3180bcead73eee4c71093aff"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/cache_bank.hpp",
+        "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/cache_bank_control.cpp",
+        "sha256": "d790078c551cba34cbb3e32cad09d405a9a08d57d345e9756132d04f79922933"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/cache_binding.cpp",
+        "sha256": "6d91894919e50c0aa5c32e926f77f9c8047b102c908585e1e855a57a682aa38b"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/cache_full.cpp",
+        "sha256": "29a46c824a1769ce69feb22fcc453c142c38f306c51b4ab9a6aca4b1217efb1b"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/cache_full_control.cpp",
+        "sha256": "a941051de4cdab909565c99462855b557ea9be02fc48bfa0d65e119b753285c6"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/cache_lane.hpp",
+        "sha256": "c2f17ac29807cb61e212ab1e3cc6c0edc25ddf7a717261bf0a6fe9bb77750ef9"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/cache_pipeline.hpp",
+        "sha256": "d0e22039439b18a9454edcf994bd41ed4be8f4f246674c1b6347818a07963cde"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/parallel_search.cpp",
+        "sha256": "e59c30a6ec8114d97c1fc4c0b2d946a41fd06fabbcd96fe6e22367f7b66e533f"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/parallel_search.hpp",
+        "sha256": "650c64b6e1be2d8c8f8cff3524ed6e41a539309f6cbe3d266aab9489b8189a33"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_binding/control.cpp",
+        "sha256": "60a3b26edc695dcbee4cc7b8313784d4bf67d81c7025e3a08a4ee52a1bfb13f6"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_binding/rtl_control.cpp",
+        "sha256": "f310ef656b397ef4b52519dd9ac0b4df381a7f88c6f54c972dbda063427a21c8"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_binding/top.cpp",
+        "sha256": "2ddb81575086fc0923d13129a4a8f3bd2cca125874c4210051ad30bfe4bd7424"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_binding/top.hpp",
+        "sha256": "28ccff9fa2c6692022a649d6b3ad8262f9f8101c0f268b2ff2cdb77ceb34d460"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/control.cpp",
+        "sha256": "f0908b53d0f17a720315b109950170cf25389203c52596f461703ed310b17f97"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/control.hpp",
+        "sha256": "9cd8ca334d9bd504466e9bce9ef3322fcef936656505e51a1c672f240fd0a925"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/finite_host.hpp",
+        "sha256": "5bd23d709264939a6f70ab36dc806feed5a5154c127d9dfec964d68c9a3fb2cc"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/network.hpp",
+        "sha256": "545bded414f719178ebd3a58fd72d42b830aac14ce1b65fb84130712227b0aec"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/rtl_control.cpp",
+        "sha256": "856157f918aa3e64b2a6f8eb224bf0000cd8ffa1365a3ce9491fd3cc55dcc8f8"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/search_worker.hpp",
+        "sha256": "8a26b8cb62ba0576d263e90489e2142e18486be45641c3bb7957ebe391fc62fc"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/top.cpp",
+        "sha256": "7de18ef730ff24d6e42e5570a21456c6740c9e76298743926aa91296b80bfdc5"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/transport.hpp",
+        "sha256": "6db4a594cbdbb4554ba6b7e5cb6189304bdcdf73a4705989b1516b842eb4af4e"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/types.hpp",
+        "sha256": "2f7aadf1268cb2ee8263b4c18dfff0740414668a18bef6ff7c8172e8b1195f69"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/search_pipeline/workers.hpp",
+        "sha256": "7a10f7e28289b7ef8501eead27a939e997228ef8946438061164b8d18b39365b"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/hls/source_control.cpp",
+        "sha256": "7363d228cc1764c11f50822b86f2804225f25ceb847ece01620d732d1ce89d3f"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/input.hpp",
+        "sha256": "f633f2cad3d2a86d541fba1ee3b4670692e6e67fb07d966baa749c22ca3335e8"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/matched_original/control.cpp",
+        "sha256": "fed25f25baff9fc407c796d3e02ccbdd8dee7a60ae4d79fe3b47019dc3165bb9"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/matched_original/execution.hpp",
+        "sha256": "3f532eb7adc3309fde55e16b932b00d022d11b0438bfc84642a2f8e87ae579cb"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/matched_original/lease.hpp",
+        "sha256": "84b9a6f7ec7f8791dea51a0e911f5358e9211c98929fab8bff4f322475e76a91"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/matched_original/model.hpp",
+        "sha256": "e90249bf3866c617e346ba75d17bb8b55ed5b5b0a38b67503097807579d129e6"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/metadata_refresh/control.cpp",
+        "sha256": "bf551c65f46d43db7efa2f718538e6e108fbb96d45fa09ed974835c47e540239"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/metadata_refresh/device.hpp",
+        "sha256": "1a765db3ac3e5cb2f1d847d5bf830dfd178f718e4e13712e0cd6dcf0d30ac54b"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/metadata_refresh/execution.hpp",
+        "sha256": "e88af9a97f6c6e3711c1b8dd0fa72f8bf2121eb2b3c99ebad84d4f0fe22af576"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/metadata_refresh/model.hpp",
+        "sha256": "9fc3d20d886206303061aeb99c8708b87cab67f8f1c529bc19ce31d8f4bd1c7c"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/native_board/control.cpp",
+        "sha256": "d5bf372700e6f50e07d7ef1b9ec78c90ed17239f6be3707f80a3747191119d83"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/native_board/model.hpp",
+        "sha256": "3e1535edfffcfd09829f750b8c3956863dda21f626a849e82e13a233507efc4e"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/candidate.hpp",
+        "sha256": "91b8e15639619ced5dc9e1c1ecc2e5cd7630e7aa186f63395a186763d105dcaf"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/execution.cpp",
+        "sha256": "a3cd8c7421afcde83289f797f9edeb7822d16a12ba321d9173022a743f033079"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/fixture.hpp",
+        "sha256": "21c3a91515fba65db955421c7e997753e8a0c97fb3f823ec43f1696d820aace4"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/legacy.hpp",
+        "sha256": "28b708383fe194efc9fe2ae19820c0fc38d31a54acfff1e61f424184d2cd48ef"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/execution.cpp",
+        "sha256": "0173926a411e238ec42cb7ac4bda6e684b4a445d9a1014d57beb0a80866c855a"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/layout.hpp",
+        "sha256": "87b2001285c9175afad83150bc1e763d596ed7b1adb882abc1832a0ce9baad96"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/batches.hpp",
+        "sha256": "a72d1cdfec161c546054f3064398a9031a64aafe5e4ca883959607c26bb7c3fa"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/execution.hpp",
+        "sha256": "5eaf894f390f1ac0650e97bc5df38ec2b013338d6149b89d6e6aa3f5ab075892"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/fixture.hpp",
+        "sha256": "61634032f832cac836c0501023b9d9c879c8365e0b96356a17775beab101b749"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/main.cpp",
+        "sha256": "77f9d0a7b2cbb2f2e5dc536f077723e098ce2ddc03ebf9320c34a6414ca73d69"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/residency.hpp",
+        "sha256": "68efa43f2427a310257a08cfd742313e581f49e2f9914639e8a07d88e92168ff"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/lifecycle/run.hpp",
+        "sha256": "b1768a73f4620eafec75861717b39a2ae3d40e915a9326ff74663ec9f36331e1"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/observed.hpp",
+        "sha256": "c54f9ed920da9023d55f057fe2d5c61ff6e8c3bc539d7c7b101f15ba46e776b4"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/replicas.hpp",
+        "sha256": "1970c0e473ba135599cf8e0e4ad3e78e2e436934a984987e742a31e03a374ee7"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/resident_real/fixture.hpp",
+        "sha256": "cdecf6dcc9fd703041c54a4572488aaaccc5557c4b2bbd2e1c7b74995180168d"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/resident_real/main.cpp",
+        "sha256": "e8c2bd61a6b85b13e1140c7d62752ccf08ec1099a2fdcb7dd3d943af0368b522"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/metadata_layout/resident_real/wrapper.hpp",
+        "sha256": "686136ea42b22a1f882220b18ad8ac6f3847a88204a6cd3805730b59274b450a"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/ordered_input.hpp",
+        "sha256": "64e2b98c72ad2d7b0b4ba05cc9540da44a2e2377e1b3c8d6e353c45d50632a6d"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/ordered_input_test.cpp",
+        "sha256": "c56b1049d2b100af6418acb7d92f9d67e7faf885de61172828eeea3bf98ebd7f"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/real_execution.cpp",
+        "sha256": "bb1638002e2c82c8232004219c60b642ceedb89cc587c794299b9e0e5f7f367a"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/sharded/real_fixture.hpp",
+        "sha256": "12c58cc2e70588f7c31cb1e260546eeb418877cd090d548e190c08e8dc08afe7"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/weighted_abi/control.cpp",
+        "sha256": "6e6bc15ce8d917f41f269541c93eedac601f490749e31001c77c1fdbaffef595"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/weighted_abi/finite_search.hpp",
+        "sha256": "2071122ae8ea5915ac815df186b2484c839b60bcb5a931075fd162d451d1d9a4"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/weighted_abi/fixture.hpp",
+        "sha256": "5cfb494990b4013045b7f07618eb383b1c05b9a1fc55dbf1a47de734eefa66b5"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/common_g/weighted_abi/search.hpp",
+        "sha256": "4d24a24197905bea01e9c8702edeca0ce593193db9fa9b22d77a440a4f9c4a1f"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/control.hpp",
+        "sha256": "75255b1aed0fb5b2ab217eb807cdb9032296aee6f9d41dd4eb216344427da095"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/convergence.cpp",
+        "sha256": "5a159abb6ffb997845c5ea5daf2845c3f0304a05d753e2e32078c5a32f9c5e2b"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/credit_control_test.cpp",
+        "sha256": "f1b7842c84ad47cddc165c24eaf8471be06e723e13a8932012f5201e928c9247"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/handoff/banked.cpp",
+        "sha256": "b5a794514816c01ca64a8eaebecd36f8b048fe362c14b3e75601f12502bde106"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/handoff/cached.cpp",
+        "sha256": "4437ee66d79a4bb57c495c51caa4f1a1a2cb80801ddb20fb345fbdfdefd48e52"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/handoff/cached_fixture.hpp",
+        "sha256": "13c981fbd3930748b5c718f29b48abb1f8cab3aa4a637b54c9ead60b077c7742"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/handoff/execution.hpp",
+        "sha256": "3c77fcee539deef6e08574c546147325a345dcb99d13115dba78474da956292e"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/handoff/fixture.hpp",
+        "sha256": "ef2f835cc2201d1bfd4d897383e5c49f3f5bad705ba4915d0a4e4f0c5f6bf7dc"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/handoff/memory.hpp",
+        "sha256": "bcfc0028554596b3f634dfd06584fe8bac35fd9b854525eee38252b88a7a5ea4"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/handoff/tests.cpp",
+        "sha256": "5ea0142705b86f9b6a5aa4620811b16ac29a69537366250c7a0e673571bce0b4"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/k4.hpp",
+        "sha256": "c435573b0c435e83d6842e3e98f039518643ab357bd65f856c4abda4ef53b425"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/oracle.hpp",
+        "sha256": "4dc6617c307b233873346c4c489519493d4eda1a32d31f9b458ff84f5897bf3d"
+      },
+      {
+        "path": "cpp/tests/evaluation_impact/resources.cpp",
+        "sha256": "96f4218e938fe3c3f4e9825606827b271eae47750a4b772a021f86597ecd8f5b"
+      },
+      {
+        "path": "cpp/tests/grasu_cached_processor_tests.cpp",
+        "sha256": "b1da97a9638bad8a0969d38d2cf119ce7ff79616a107d5002e40a35778f20b59"
+      },
+      {
+        "path": "cpp/tests/grasu_ddr_rtl/bench.sv",
+        "sha256": "bf7c75a9389181b02680e08c8e47752a0c0b60889fd9077b95cfe052997fef3f"
+      },
+      {
+        "path": "cpp/tests/grasu_ddr_rtl/memory_test.sv",
+        "sha256": "93c3c3322bab1713c7b67e9742cc1f9b11654e43631e195b9453cdcbbd5e1324"
+      },
+      {
+        "path": "cpp/tests/grasu_ddr_rtl/shared_memory.sv",
+        "sha256": "91f5705a01b6d99eb5f64c61239b18c9007483f3649181f1f6fadea9f70b62d3"
+      },
+      {
+        "path": "cpp/tests/grasu_ddr_rtl/source_probe.cpp",
+        "sha256": "65f6d210958d484d68069010ba02582b2b5898831aa77eb4b23b2430b967f025"
+      },
+      {
+        "path": "cpp/tests/grasu_direct_processor_tests.cpp",
+        "sha256": "e251bd5474b12e7e9aa2c062f0516f31088cd6b349d06127ff0dbf701fc25e27"
+      },
+      {
+        "path": "cpp/tests/grasu_parallel_search_tests.cpp",
+        "sha256": "16feb789568cf180a433a22fcbbd80e7b423f82c88be66b72c546823615df6c4"
+      },
+      {
+        "path": "cpp/tests/grasu_runtime_tests.cpp",
+        "sha256": "f6132b8a36207a42bfecf7e0034b544b6fb6dba2531c77fae435e57b1d14f71b"
+      },
+      {
+        "path": "cpp/tests/grasu_tests.cpp",
+        "sha256": "b937b6c84462be75bdc6c318c90482efe0e305b7167b33fa2290cf3f135de3e8"
+      },
+      {
+        "path": "cpp/tests/original_grasu/cache_tests.cpp",
+        "sha256": "ff682072d9f8c3ab9a32d443cf9698adefa213431f22e1284d0a3470e388f4f6"
+      },
+      {
+        "path": "cpp/tests/original_grasu/component_tests.cpp",
+        "sha256": "cc19d8f1f5879cc75c5bbb158d39ce4e9786d230901d62218c0ba727e96fc14a"
+      },
+      {
+        "path": "cpp/tests/original_grasu/execution.cpp",
+        "sha256": "edcbb7ed2baf5c4d5c120c3cb200f0883b6d1b8221f0473cab6344b172b235dc"
+      },
+      {
+        "path": "cpp/tests/original_grasu/fixture.hpp",
+        "sha256": "ff52123dff30716cff4e0c9b4e132d34615b3916da704f6840c0d9926df606ee"
+      },
+      {
+        "path": "cpp/tests/original_grasu/memory.hpp",
+        "sha256": "0d3edd5b35c0e075be661f817fc0980201a74593c5cb2c1b0226d26195e56ea9"
+      },
+      {
+        "path": "cpp/tests/original_grasu/system.hpp",
+        "sha256": "409c23ec7885a006d24d88d18c433dcbc8e3195b497931d5614c196348ea8700"
+      },
+      {
+        "path": "cpp/tests/original_regraph/big_comparison.cpp",
+        "sha256": "ecf5cfdbaa239a2546758367e5892e083cf19c40b5ebb18190ca7510d0b423e1"
+      },
+      {
+        "path": "cpp/tests/original_regraph/big_frontend_comparison.cpp",
+        "sha256": "be94eb91e80c273fe6818601f7d1632c4f9911973deaefe56dd5299ed29f7f39"
+      },
+      {
+        "path": "cpp/tests/original_regraph/big_frontend_execution.hpp",
+        "sha256": "aa885309d605c71b038c19db534dc4f30d47b6024fd6593c52991001048394e1"
+      },
+      {
+        "path": "cpp/tests/original_regraph/big_frontend_fixture.hpp",
+        "sha256": "09ee0a98ec78e9bb24bb8dc224afc5f090ee81e9b92bb5918e4cfa74f5442a17"
+      },
+      {
+        "path": "cpp/tests/original_regraph/big_frontend_tests.cpp",
+        "sha256": "d863b55960251aa7aef6e6a16e2567e25cd6339e83066c6fc7ba1a69170e4c81"
+      },
+      {
+        "path": "cpp/tests/original_regraph/big_frontend_wiring.hpp",
+        "sha256": "c828466f59a4bb6046887ae85c270ffd03ec76c5bebda229276b1613588af4a4"
+      },
+      {
+        "path": "cpp/tests/original_regraph/big_network.hpp",
+        "sha256": "aa21f6287b17c9bf77f284534cb9d2ceb17f5d453efbb357a7342e43b3038e6f"
+      },
+      {
+        "path": "cpp/tests/original_regraph/big_tests.cpp",
+        "sha256": "aae64615eae0c5f7fbd9a589b6a07d3d2552e00fe78b0555a6faec9440311973"
+      },
+      {
+        "path": "cpp/tests/original_regraph/frontend_execution.hpp",
+        "sha256": "f994b6601a5a4413d5c5d66d368303e89890d937aa425954b24cffec4d62d7e0"
+      },
+      {
+        "path": "cpp/tests/original_regraph/frontend_support.hpp",
+        "sha256": "0b3272a234b69d283da2d849af7b538aecd2a951f986a0be5c2de4069ac52805"
+      },
+      {
+        "path": "cpp/tests/original_regraph/frontend_tests.cpp",
+        "sha256": "e5e9b85839db26f187ea4a8bc716003e139b8a7835170d700df0bb2c9da19348"
+      },
+      {
+        "path": "cpp/tests/original_regraph/frontend_wiring.hpp",
+        "sha256": "e5d7b7f5cdb685eb5df2cf19543773dc221f0a20373574b101a6fdc55d03d649"
+      },
+      {
+        "path": "cpp/tests/original_regraph/gather_tests.cpp",
+        "sha256": "e1588103612134bd7f54ca7ce0e3e002c9e54d177937cc2c0c6c08ddd7750485"
+      },
+      {
+        "path": "cpp/tests/original_regraph/hardware/README.md",
+        "sha256": "9b9d1d344549a78780eb26c9c6fef0b41fc5c613276b54bae601ecb1067c3355"
+      },
+      {
+        "path": "cpp/tests/original_regraph/hardware/control.cpp",
+        "sha256": "189516230b166b68e7e5686f71311e8dc7912e1284c4a82011e722b8b1bf985d"
+      },
+      {
+        "path": "cpp/tests/original_regraph/hardware/device.hpp",
+        "sha256": "034df91e73fed19000fa52a7cbfa4b2c844fefc824e76daa37d1c0510fce60a0"
+      },
+      {
+        "path": "cpp/tests/original_regraph/hardware/events.hpp",
+        "sha256": "f790106477c4948ace229cfe88df16036d47b23f939450c55c388aad1e2b216e"
+      },
+      {
+        "path": "cpp/tests/original_regraph/hardware/model.hpp",
+        "sha256": "652563af8c33f4c436361cc84980fd955e97bc234f7b3ada50508858bb48842b"
+      },
+      {
+        "path": "cpp/tests/original_regraph/hardware/model_tests.cpp",
+        "sha256": "040940e97bed042ae38ae24db672d24ba204b7e35e572f8512e2bf88ec143bd9"
+      },
+      {
+        "path": "cpp/tests/original_regraph/hardware/opencl.hpp",
+        "sha256": "b4f0c9ead15e46300d09978c9d3602880b5692e56c46cceb8d2b8dbfcc53c69f"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/README.md",
+        "sha256": "d77e7752c9650247a27eef968b53287f0180db9499f1bed40fc12b5c6331d550"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/buffers.hpp",
+        "sha256": "ce6c5bae233a469843d95d8a2abf464ff2de0956e78ad09c0fd10783ea2ffd5b"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/capture.hpp",
+        "sha256": "a66f5d30705b46a95cd12b16860f969663604a6226585d7dbaa340f14b4b720f"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/control.cpp",
+        "sha256": "5aaf4907abd4e2f454fcf0c05521237371ff3b39842ca29e1152ce85632f27d9"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/device.hpp",
+        "sha256": "da4555ece9b07b6650d8ea40975db0d1cdf72721b8d9788495655619cd2be09e"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/model.hpp",
+        "sha256": "6f639aff91bf652c972fdd9692afa3662fab712de00ff1ae6cb8c3be89a4e877"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/model_tests.cpp",
+        "sha256": "d4acab8ac61069c83e2ab094449f2345ae975b964968b8f2a93a23b76e52d0ef"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/offline.cpp",
+        "sha256": "21d03a7626908a9467afab1291ae195b07eb078806062be5ebf117aff64d82c7"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/preparation.hpp",
+        "sha256": "8e38b57d4469d03ee24bd68fde0089f723c8fc287539d5b3427b61097d215d08"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/report.hpp",
+        "sha256": "586432f41f7574c847270cd344298d122f4dfd1766276917a2ee110c9ad32b43"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/schedule.hpp",
+        "sha256": "1eeef4a448347f54e783e09dcd020d000829da5a5abfac2f10f164dcd19d525f"
+      },
+      {
+        "path": "cpp/tests/original_regraph/integrated/schedule_tests.cpp",
+        "sha256": "78defc6c86fd2c297abc2828c1d441dadbbb825ed7fdac0ee21194daec778f60"
+      },
+      {
+        "path": "cpp/tests/original_regraph/iteration_tests.cpp",
+        "sha256": "b1adec1fdf8e8b4b814ee03664a34490cd71c72c8fc11f3988e995a6cefd2f02"
+      },
+      {
+        "path": "cpp/tests/original_regraph/memory_fixture.hpp",
+        "sha256": "9a6c1ff078f57b6083e2cd8d6c786e582d935d9bf7212988ba26475663908db3"
+      },
+      {
+        "path": "cpp/tests/original_regraph/network.hpp",
+        "sha256": "f2e937c4f9957139fcd9218e3a5ebde79764d1ce0d3c36d21139f2588f98bfdc"
+      },
+      {
+        "path": "cpp/tests/original_regraph/source_comparison.cpp",
+        "sha256": "d798cf617def6ffd5146250fce652fdbda9790b0293db42467ecb76366ff8c83"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp/fixture.hpp",
+        "sha256": "6cb6ea8ad9292880f7a8c5b0ba2e8f612a23a6937057a428eaf1e42a731f5958"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp/real_input.hpp",
+        "sha256": "b817433cbc555f6be1cffe7e322b17c4f6d0daf064a149e911992490e1c08e32"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp/real_round.cpp",
+        "sha256": "1938caaf41295afa57a294221cec3f1fc5f6b1809db0aa9dfdd3adf710cd17da"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp/round_wiring.hpp",
+        "sha256": "09c86e18cb62f5b6f92a4d4cd624d27b25da92bd14cf1f180ab81d9eb1708ea2"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp_apply_tests.cpp",
+        "sha256": "393b02459b130778e0af0418fff6d1c0db16ef7e0a61dd0a1bea0e2e822a9321"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp_frontend_tests.cpp",
+        "sha256": "bacf0a163cee0000c4d7c16764cd2bc512887285a2149fb6d463563cc1d27d33"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp_round_tests.cpp",
+        "sha256": "2418e0d0a6d652a4eab943ea8e30f48e1d6491e047d4b5a7decf9566b3df2743"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp_source_comparison.cpp",
+        "sha256": "cb869ccd30623bb58514a28adbbea6a100f2bfd5694db0ed8c9d395163dcff5b"
+      },
+      {
+        "path": "cpp/tests/original_regraph/sssp_udf_tests.cpp",
+        "sha256": "30a230abb44ee7cc6ddeb39a5c1022e5d6ab3765d716a504e5557a0ec9eb0031"
+      },
+      {
+        "path": "cpp/tests/original_regraph/state_comparison.cpp",
+        "sha256": "ec5ec775b4d4c27e47e9bc615ce42334c280cac396ce7e6b50465f210a56a55e"
+      },
+      {
+        "path": "cpp/tests/original_regraph/state_execution.hpp",
+        "sha256": "989cce8dd85f65e85eab654b5b3dccc6eb5316371add6c33be3277a161b3142d"
+      },
+      {
+        "path": "cpp/tests/original_regraph/state_support.hpp",
+        "sha256": "fd111e30b3108f73c79806acb2458ad32dd04ec240daa2dee23a767e02194ff3"
+      },
+      {
+        "path": "cpp/tests/original_regraph/state_tests.cpp",
+        "sha256": "5ca0f64c0e2d190c64d3b4d03e77bebcf9afbb08732740b5c3d1c3d12405f15d"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/a4_execution.cpp",
+        "sha256": "bb1d1ca003302d67689e78b5d3db94f64701dde5e510c4a6d942e220b09e078f"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/compact_source.hpp",
+        "sha256": "bbec8848d00bfbe3f9c72ea586ae5b4d568bcfbbaf31e67e9288a002f3ead692"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/compute_wiring.hpp",
+        "sha256": "eb85d3c267ad305ce9729a0e6a8a9d293d67754bf7b45cbc4b69170cd0c3f9c4"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/input.hpp",
+        "sha256": "bda59a86157f46ed478641ca1443eb6b9997af65002e9afabcccca601eda78c2"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/big_path.hpp",
+        "sha256": "29e5d40029f1347c263354938d7317a5d45938c6d2ce434fd3ed8538d5a085fb"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/execution.cpp",
+        "sha256": "ca284444554e6509e69ab9f6e7fae742a98ecc0a028b8cb4a2350fcf5b66c21c"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/indexer_tests.cpp",
+        "sha256": "ee4870cc4058fe1e9d86af646502d97317c725452aa4f829760d0a24fcf0a2b1"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/input.hpp",
+        "sha256": "6bee565f4c2446d219a92e204e029f8f9af1b3967bf717b1714ffc1a74065eca"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/little_path.hpp",
+        "sha256": "050fcef5f639b1444e2df6ff9d11ce02ad35938d277990c1613ff8011d9a46a0"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/oracle.hpp",
+        "sha256": "2577d4074e3f55974dc464b722c6bfd4017aea1f29e1636ac4bb0851d3bac575"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/resources.hpp",
+        "sha256": "5b699fa7b70957174621a384ba73862a8de85ba4234f0ffe2b0a36305bc8e9df"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/verification.hpp",
+        "sha256": "6de682186a2123692aea232929d2a73bc3dbbb93324a978716261c697f4c1bae"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/mixed/wiring.hpp",
+        "sha256": "d5c2ad99bfeb39c3bc339661ceba32eca2b3cff64cb9a50b95ed96f69b44cb75"
+      },
+      {
+        "path": "cpp/tests/original_regraph/whole_graph/wiring.hpp",
+        "sha256": "283804d4aecd0ae9205852f63e128929a081d9b72ab92a3be50724d9fe12eb80"
+      },
+      {
+        "path": "cpp/tests/pma_adapter/fixture.hpp",
+        "sha256": "ac17eb309999a6b82d2300e38e332de93a70a2c985fe242032f38b6fae2dc70c"
+      },
+      {
+        "path": "cpp/tests/pma_adapter/fixture_data.hpp",
+        "sha256": "dea72cca1c2bba596ba112933d41f292345d627f7dd3c7918f07c56b5ac9823e"
+      },
+      {
+        "path": "cpp/tests/pma_adapter/pma_source.hpp",
+        "sha256": "435ea271ec18b51b836d6bb46da335381d3a2380bc562837a894c7e0e1768ebe"
+      },
+      {
+        "path": "cpp/tests/pma_adapter/reader_tests.cpp",
+        "sha256": "69adf0f6254190d15ed444d7038c028a35e44b622c68d41b1d696e92dd3be09f"
+      },
+      {
+        "path": "cpp/tests/pma_adapter/verification.hpp",
+        "sha256": "ca4724f86fde24047204e9aec8a7c591a87f623bfaa12a7dd1c234c1ce124425"
+      },
+      {
+        "path": "cpp/tests/pma_adapter/whole_execution.cpp",
+        "sha256": "00a2a1cdcc05965852c22b8368befd8ec100d195beee334fd7959327dfbfd4df"
+      },
+      {
+        "path": "cpp/tests/publication_sources/adapter/input.hpp",
+        "sha256": "5f064a1eceabec79945bc1b8b22603e25ae466485a7e5fa82b8db468dbc24a84"
+      },
+      {
+        "path": "cpp/tests/publication_sources/adapter_probe.cpp",
+        "sha256": "a56218c00cb5073a8e74a41cd4f1700c0ea9d8786c263cbc83e166b8fc914b95"
+      },
+      {
+        "path": "cpp/tests/publication_sources/adapter_routing_probe.cpp",
+        "sha256": "7e634154158eb26616168e0fc73ca800e6dc813fcf9ce2adacba524136f1b7f5"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_board/control.cpp",
+        "sha256": "fa791271631d82cffa5dc6e286cf1974ecda83086d08c57702f54894c88c5eca"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_board/execution.hpp",
+        "sha256": "af8e4e7edfe422642428a183ba532abec81972eabecbfc6db93f8fb0a9c8c3e3"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_board/model.hpp",
+        "sha256": "5fa1b41443e048d4d944024d6b673a50bae00dd275d15f0795ade8b1770d08e9"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_board/runtime.hpp",
+        "sha256": "9c77ba7367e653e7a53fe383b2baa5989bc9ace3abbd730881878397552aa0a6"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_cache_probe.cpp",
+        "sha256": "fa11c79475ff2e8090dfb3826cce588bdb65fc516216ca403f583faa538927d2"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_host/device.hpp",
+        "sha256": "364a295d6f0d9c9029979ba00bf84b0fded040f3faa4b505f6a984d06ff68a52"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_host/input.hpp",
+        "sha256": "7ccefb35cfb81b931730f2d49d2f126a95273c63fe00816a19c83b80c0dfd521"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_host/layout.hpp",
+        "sha256": "cf1d7c3661ff730e8da925d7c878ad061ff2806e21da8526987c714f01b75c6f"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_host/search.hpp",
+        "sha256": "b04b4a911ed29cc4509c6241cb2e8dda4709df93f539363bb2bfbec6ed933fa6"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_host_probe.cpp",
+        "sha256": "f780707ed8878fe48ca79735c03b01ec067abeee7b9d15346ec9b68514fb84f4"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_path/fixture.hpp",
+        "sha256": "a6e3a7ac5a8903e240819bb506fdf82506be8a7c96866c125f35fed7c81612ca"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_path/lookup.hpp",
+        "sha256": "5c7ccdc7d778791e95cfca1f5bdc03d60fedf32ca448f68544560401c95dae3f"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_path/update.hpp",
+        "sha256": "da2b58175c793c284053cff03cab5a4278bb4671f9ae82ae8dd186a2f2465452"
+      },
+      {
+        "path": "cpp/tests/publication_sources/grasu_path_probe.cpp",
+        "sha256": "53a5ef40921f779cac7296a88c3cdd78bf4977a7873a92cd248e83bce6d53ba1"
+      },
+      {
+        "path": "cpp/tests/publication_sources/hls_portability.hpp",
+        "sha256": "6e257c735beca4076e4cf24dc9fd6631e23689cc6084bafd8e114c22de20352e"
+      },
+      {
+        "path": "cpp/tests/publication_sources/probe_support.hpp",
+        "sha256": "1c4c86e10b941f0039cef4b10d60d4d20a5c08526b1b053033f2f23db3415891"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_apply_probe.cpp",
+        "sha256": "c5d66362737739d29276db72b7beb2962413ca18c408ae7b91b0d527f52a0d5f"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_big_frontend_probe.cpp",
+        "sha256": "73e87747f6c627eb8368a36b8a9bb61c775ba5234a181b51559c8d529515e864"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_big_gather_probe.cpp",
+        "sha256": "d748d74ece12fcab8b280c692e6e337cb5c015c7e89125fe95d136cbd4872260"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_big_probe.cpp",
+        "sha256": "d0178b9d1a25c64c777b5ff1060a7f9bed501c7d9c3715ac686149e5ae4e5d85"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_layout_capture.hpp",
+        "sha256": "1162983e8af9d5069f5ab7fb61e1d3b8a31b0ba4327964a27c51b53dd3611715"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_layout_probe.cpp",
+        "sha256": "2f36e3278c4b5b13cc6d6940c964acc15c07e008f29d9d09507436fb773e379a"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_layout_support.hpp",
+        "sha256": "d88c5475f0468af2a5059b5726508e35dac11d44a9fda01dc48c79312ca3c5ff"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_layout_validation.hpp",
+        "sha256": "5664e9cfd74d4fa7806bdcf4cf7dd93de3cb427d6d46171b4ffca7859672a03c"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_little_probe.cpp",
+        "sha256": "519cbfa6466635931023d05507342c374e68d38ac7a4fbbec5c648c592079fcb"
+      },
+      {
+        "path": "cpp/tests/publication_sources/regraph_scatter_protocol_probe.cpp",
+        "sha256": "4689a789176e1e4200415835a0901d2b9c25814c7bbd168a1604c851dc5b63fb"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/adapter_axi_tb.sv",
+        "sha256": "e6398b9a46046b78f9010057639ed82faaeee40d5366c93eacaec163b8fd3924"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/adapter_fixture.hpp",
+        "sha256": "61f5ddd9234e6d0c581dfbb4f1146daf5c4a7012fc68542418e11e4e665eb99c"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/adapter_hls_test.cpp",
+        "sha256": "1a012f4bd9df915026a4f35afe5dcf3bfc884b8128343848988788c930b46b59"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/adapter_tests.cpp",
+        "sha256": "88fe1f8ecd64a5ee0edf5ba4663572ed4ac4956cb31e4da393a783750fe45fec"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/adapter_timing_matrix.hpp",
+        "sha256": "c54802a48305b1b54e3d04b1e8e9869c6c5588bbd83671354ade4b6bb6ea280d"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/bank_fixture.hpp",
+        "sha256": "90df4d32e16d55c7f9d850b85c339d3f405abb0dfff3adbb4070390723f0ac71"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/bank_stream_axi_tb.sv",
+        "sha256": "cff450aee405b4be3ae9440b7d5ff625b2d5161979d5540ad1485555537be91b"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/compute_ports_tests.cpp",
+        "sha256": "7d9ec03fb33cafa1e21795e9e100887ae3e94772d4519e1b49944e13fb3bddb8"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/continuous_directory/CMakeLists.txt",
+        "sha256": "d37c19798fce6ef8790339dd2b1eb4e66f0b73ca03173d31ed7800592a2b3fea"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/continuous_directory/round.cpp",
+        "sha256": "b6f67654a279305c0bef4bf537c0ec8d7779c1a8e73b5847db52f82e1221981b"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/cross_row/CMakeLists.txt",
+        "sha256": "00d5602b0d247c705e0c2dfd4a210e22fc069f37472e4f1594c8a2d5d15a6f6f"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/cross_row/round.cpp",
+        "sha256": "6023be563c00d61e625b34c372a7e2980c571b2ef36a2717ce497d1fbe21da85"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/destination_bank_stream_axi_tb.sv",
+        "sha256": "b4f65e074c1909df0b16e8796d452be71d9d39958c279593b34ea9267c9fae9e"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/directory_tile/CMakeLists.txt",
+        "sha256": "626f1236fa1028e1ff53e4e298fd3904f00ede53b5a89e3840f79fc8574491e8"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/directory_tile/round.cpp",
+        "sha256": "a627ef8981ec040a4c54e47b78a79411ef257b3df01d367022dff73b4406d15f"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/directory_tile_axi_tb.sv",
+        "sha256": "adb02d7abfc86dbc5cf097cb61d7189975be84b8966a5a99cbb2eb6573f38cca"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/empty_segment/CMakeLists.txt",
+        "sha256": "ae989c7d7c1250a21bf99f12c2bf085129a1add5341e4b8622b884f3474e4266"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/empty_segment/README.md",
+        "sha256": "bfd6e13aae4f4829d5ed478bfe397a590565e107273f0903d9b8afbcf7aeaae7"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/empty_segment/round.cpp",
+        "sha256": "b6cf95b0a43117308b1b3e0178a79075ceb21d363d497799262ad20271350fe8"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/fixture_tests.cpp",
+        "sha256": "ce549124d751be33463a85b200b57779b2e6d3199f40e19537eff6a85e2967a8"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/occupied_row_monitor.sv",
+        "sha256": "66440dd307bf630c70ff3c4814377c7094ca40a1f2ee47d1fd6d5c7b71622722"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/occupied_segment_handshake_tb.sv",
+        "sha256": "39599c1909c5ab107c6b5e3a1c41c55f881dd729897a5baf78734200864c60ff"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/packet_pipeline_axi_tb.sv",
+        "sha256": "4da7cc102126b3f2d4c3566036314905f4fc90c0f3bae3d2c164a251e6197977"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/round_execution.hpp",
+        "sha256": "3f0394574d01de7b90f2e0ea02a78e993020ee7401be11dd98bebd11adcba626"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/row_line/CMakeLists.txt",
+        "sha256": "a7b87f77adb80192c1a989b2c48eee5485b75e86bfe50d2becd78888e04716e6"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/row_line/round.cpp",
+        "sha256": "ceac585dd9b82b5f157a3ba169f434ea5c7ce117d823bb1a972e25e28aa993d6"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/scatter_tests.cpp",
+        "sha256": "50e5ece55b3693ee4a7620e0ff646c559e0d9e00af073027416af2001f6968c0"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/shared_axi_tests.cpp",
+        "sha256": "d7d3593fe7168ca841723a8c3907bb45c8bf3b21593d05e01b6284105739a735"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/source_service_hls_test.cpp",
+        "sha256": "8b72df25fa188674363d48ed87196aec09dbf40896e3b50a12b5b8c465965054"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/source_service_tests.cpp",
+        "sha256": "561fff87f494e988818b82e97219189eac547e046a9457d35decc3c83d7e9463"
+      },
+      {
+        "path": "cpp/tests/routed_regraph/system_tests.cpp",
+        "sha256": "ebd9158ffe32a329677ff76f15323f16bac8d262d98eff49047e199fbda17373"
+      },
+      {
+        "path": "cpp/tests/spine_owner_tests.cpp",
+        "sha256": "37b07a45c56c6f9a14bcac202967d46c9bded0e89b7fd06fcbf9eea3c7cffa7d"
+      },
+      {
+        "path": "cpp/tests/spine_vertex_lifecycle_tests.cpp",
+        "sha256": "871d17312201b08920388889377db236868328ba4ec283f0708d78bbadbb0853"
+      },
+      {
+        "path": "cpp/tests/sst_hbm_mapper_tests.cpp",
+        "sha256": "7045c90c0a1f8163f4fa12ec186305f61f0b3d0332edf60e0ceaa6a2414f175a"
+      },
+      {
+        "path": "cpp/tools/persistent_update_host_benchmark.cpp",
+        "sha256": "b0e9569cbe2f593c2376a911c7520cb1d74ca1752f2870e7316292572e6be532"
+      },
+      {
+        "path": "cpp/tools/routed_regraph/diagnose_stream_write.cpp",
+        "sha256": "807064715373f2aefaa6d09557ef523db527d7980615a7c33bcba40bb346e0e6"
+      },
+      {
+        "path": "cpp/tools/routed_regraph/export_hls_fixture.cpp",
+        "sha256": "1fc04d2e57f47933aba87e9a975b8f12c2db5941fb9dba9a3329bd76ce5153db"
+      },
+      {
+        "path": "cpp/tools/routed_regraph/fixture_oracle.hpp",
+        "sha256": "4ab803f087aeaa480c43924714944b33cdd023fd049e972279a73b5e77e02ca9"
+      }
+    ]
+  },
+  "status": "MODEL_CACHE_STATE_TRAFFIC_AND_REGISTRATION_PASS_NOT_RTL_OR_BOARD_CALIBRATION",
+  "steps": [
+    {
+      "available_before_bytes": 92714401792,
+      "command": [
+        "cmake",
+        "-S",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/source",
+        "-B",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/build",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_CXX_FLAGS_RELEASE=-O3 -DNDEBUG"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "exit_code": 0,
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 152488,
+      "reserve_gib": 32,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/configure.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/configure.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 0.6040515080094337
+    },
+    {
+      "available_before_bytes": 92703916032,
+      "command": [
+        "cmake",
+        "--build",
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/build",
+        "--target",
+        "grasu_cache_timing_control",
+        "grasu_cached_processor_tests",
+        "-j1"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "exit_code": 0,
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 459480,
+      "reserve_gib": 32,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/build.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/build.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 102.98426555888727
+    },
+    {
+      "available_before_bytes": 85321908224,
+      "command": [
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/build/cpp/grasu_cache_timing_control"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "exit_code": 0,
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 80012,
+      "reserve_gib": 32,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/control.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/control.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 2.8083761991001666
+    },
+    {
+      "available_before_bytes": 85235351552,
+      "command": [
+        "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/build/cpp/grasu_cached_processor_tests"
+      ],
+      "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+      "exit_code": 0,
+      "memory_limit_gib": 2,
+      "peak_rss_kib": 70952,
+      "reserve_gib": 32,
+      "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+      "stderr": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/regression.stderr.txt",
+      "stdout": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-model-timing-v2/regression.stdout.txt",
+      "timed_out": false,
+      "wall_seconds": 3.75928764231503
+    }
+  ]
+}
