@@ -25,6 +25,15 @@ def main():
     rtl = sub.add_parser("adapter-rtl")
     for name in ("compilation", "storage", "output", "xilinx", "platform", "compatibility", "shim"):
         rtl.add_argument("--" + name, type=Path, required=True)
+    seal = sub.add_parser("seal-route")
+    for name in ("compilation", "route", "output"):
+        seal.add_argument("--" + name, type=Path, required=True)
+    seal.add_argument("--unit", required=True)
+    seal.add_argument("--invocation", required=True)
+    admit = sub.add_parser("admit-route")
+    for name in ("returned", "sources", "output"):
+        admit.add_argument("--" + name, type=Path, required=True)
+    admit.add_argument("--receipt-sha256", required=True)
     args = parser.parse_args()
     if args.action == "prepare":
         result = inputs.prepare(args.integration, args.grasu, args.regraph, args.output)
@@ -41,10 +50,18 @@ def main():
         from .route_study import run
         print(run(args.compilation, args.storage, args.output, args.xilinx,
                   args.platform, args.compatibility, args.shim)["status"])
-    else:
+    elif args.action == "adapter-rtl":
         from .adapter_rtl import run
         print(run(args.compilation, args.storage, args.output, args.xilinx,
                   args.platform, args.compatibility, args.shim)["status"])
+    elif args.action == "seal-route":
+        from .artifacts import seal
+        print(seal(args.compilation.resolve(), args.route.resolve(), args.output.resolve(),
+                   unit=args.unit, invocation=args.invocation)["sha256"])
+    else:
+        from .admission import review
+        print(review(args.returned.resolve(), args.sources.resolve(), args.output.resolve(),
+                     receipt_sha256=args.receipt_sha256)["status"])
 
 
 if __name__ == "__main__":

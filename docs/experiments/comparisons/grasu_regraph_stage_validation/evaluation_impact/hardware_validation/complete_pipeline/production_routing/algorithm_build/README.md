@@ -44,6 +44,9 @@ change and fresh export/resource review; `route_study.py` owns bounded linking.
 No simulator timing coefficient changes here.
 `adapter_rtl.py` separately tests the actual exported adapter's AXI/AXIS
 behavior; it does not admit the complete algorithm or replace board timing.
+`artifacts.py` seals completed remote links, `topology.py` compares routed
+connections with the fresh algorithm exports, and `admission.py` checks the
+returned artifact against the requested local source closure and timing report.
 
 ## Deployed Checkpoint
 
@@ -107,6 +110,8 @@ The v2 source index SHA-256 is
 `fe0e1ff3a52491f50dee61203ffa11156c09d567254a8c1a3de11482000d62d8`.
 The fresh v2 Apply report estimates 269408 FF (versus 6019300 before),
 65487 LUT, 90 BRAM18, zero URAM and 272 DSP. The complete v2 compilation passed.
+Its complete fresh ledger is 997852 LUT, 1020643 FF, 1241 BRAM18, 768 URAM
+and 532 DSP. These remain HLS estimates, not routed utilization or timing.
 A separate link rechecks the complete resource/ABI ledger and applies the
 same one-CU placement change before v++. It uses output
 `production-respr-route-v2`, service
@@ -264,6 +269,53 @@ Neither a passing compile nor a bitstream's existence supplies new Figure 7
 performance or an original-publication match. All outputs and failures stay
 in their fresh directories; the paper and existing figures remain unchanged.
 
+## Return And Timing Admission
+
+Use `seal-route` on the builder only after the **exact service invocation**
+has terminated successfully. It requires unchanged compilation/source/XO pins,
+six passing environment probes, clean link exit, zero OOM events, the candidate
+binary and exactly one final routed timing report. No remote absolute paths
+are rewritten. The new return directory contains a hash-indexed `receipt.json`,
+the binary, route logs/reports and compile/source identity records.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build seal-route \
+  --compilation /data/chuxiao/baseline_hardware_validation_20261017/production-cc-compile-v1 \
+  --route /data/chuxiao/baseline_hardware_validation_20261017/production-cc-route-v1 \
+  --output /data/chuxiao/baseline_hardware_validation_20261017/production-cc-return-v1 \
+  --unit spine-production-cc-route-20261018-v1.service \
+  --invocation 134e9b3bde86475d877333406235a149
+```
+
+Run the sealer in a separate bounded 4-GiB/no-swap service using a fixed runner,
+not by editing the live compilation runner. Its only stdout is the receipt
+SHA-256. Obtain that digest over the trusted SSH connection and copy the whole
+return directory with rsync; then run the local, read-only admission:
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build admit-route \
+  --returned /path/to/local/production-cc-return-v1 \
+  --sources /data/chuxiao/experiments/baseline_hardware_validation_20261015/production-algorithm-sources-v1 \
+  --output /path/to/new/production-cc-route-admission-v1 \
+  --receipt-sha256 "$RECEIPT_SHA256"
+```
+
+Use the distinct compilation, source closure, invocation and output for each
+algorithm (ResPR uses v2). The local check dumps the returned xclbin's actual
+XRT metadata and requires the exported CU identities/control protocols, one
+150-MHz data clock, exact argument-to-HBM mappings including pointer aliases,
+512-MiB pseudochannels, and every declared stream endpoint pair. Incidental
+`dc_N` stream names are not an ABI. Unused pointer-shaped control arguments
+are not invented memory masters. The final timing report must meet setup,
+hold and pulse-width constraints; old SSSP connectivity is not a substitute.
+
+`ALGORITHM_ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD` admits only this source,
+clock, connectivity and timing evidence. It does **not** admit whole-algorithm
+RTL, FPGA arithmetic/convergence, stage performance, a new Figure 7 row or a
+publication-performance match. Failures are retained; no FPGA is programmed
+by these commands. Until links finish, these are reproduction instructions,
+not a claim that any algorithm has passed routed admission.
+
 ```bash
 python3 -m unittest discover -s tests -p 'test_g_algorithm_*.py' -v
 ```
@@ -300,7 +352,23 @@ HLS contract above. xsim returned zero despite its `$fatal`; the strict
 complete-transcript gate correctly rejected both runs. The new wrapper changes
 only the expected packet format and adds detailed mismatch diagnostics. It
 does not change HLS, memory responses, sideband checks or trial coverage.
-A new run must actually pass; diagnosing the bench does not admit that pass.
+The separate v2 runs now each pass all 23 trials, with terminal status
+`FRESH_ADAPTER_AXI_RTL_PASS_NOT_ALGORITHM_RTL_OR_BOARD`, no reported errors,
+and zero OOM events:
+
+| Algorithm | Output | Service / invocation |
+| --- | --- | --- |
+| CC | `production-cc-adapter-rtl-v2` | `spine-production-cc-adapter-rtl-20261018-v2.service` / `a97e483050a24c6fa90dc826bba3c0ff` |
+| FullPR | `production-fullpr-adapter-rtl-v2` | `spine-production-fullpr-adapter-rtl-20261018-v2.service` / `856d494088cb4d8aa85533d3c1c7af0e` |
+| ResPR | `production-respr-adapter-rtl-v2` | `spine-production-respr-adapter-rtl-20261018-v2.service` / `01cb32d95ab64440b30c1a2552deab5c` |
+
+The fixed runner is simulator `10a385b`, directory
+`algorithm-rtl-runner-10a385b`, archive
+`production-algorithm-rtl-runner-v2.tar.gz`, SHA-256
+`90b74e531f2767436643e9140113114fa112eeab9678234ef8aeb88372b1e44e`.
+CC and FullPR consume their v1 compilation; ResPR consumes its independent
+v2 compilation. The v1 failures remain intact. These passes verify the actual
+adapter interfaces, not whole-algorithm RTL, routed timing or board convergence.
 
 ```bash
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build adapter-rtl \
