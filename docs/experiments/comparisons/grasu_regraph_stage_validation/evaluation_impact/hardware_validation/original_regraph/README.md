@@ -16,6 +16,11 @@ same-semantic comparison remains open. The diagnostic G route is not the
 production-G candidate. See the campaign's [current checkpoint](../README.md)
 for production routing rather than the historical queue records below.
 
+The separate [arithmetic-control audit](arithmetic_control/README.md) defines
+the original fixed-point versus candidate K4 binary32 payload boundary before
+that pending adapter/K4 comparison. It does not alter either production default
+or admit measured performance.
+
 | Question | Result | Still required |
 | --- | --- | --- |
 | Do captured author tasks preserve the CSR gather? | Yes, all six inputs | Device output and timing |
