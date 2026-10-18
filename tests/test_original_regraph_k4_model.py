@@ -12,6 +12,8 @@ import sys
 import tempfile
 import unittest
 
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.k4_control import build
+from spine_cycle_sim.experiments.upstream_controls.execution import dependency_identities
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "cpp/tests/original_regraph/integrated"
@@ -102,20 +104,18 @@ class OriginalRegraphK4ModelTests(unittest.TestCase):
         cls.fixture = cls.directory / "fixture"
         fixture(cls.fixture)
         cls.executables = {}
-        for variant, flags in {
-            "release": ["-O2", "-DNDEBUG"],
-            "ubsan": ["-O1", "-g", "-fsanitize=undefined", "-fno-sanitize-recover=all"],
-        }.items():
+        for variant in ("release", "ubsan"):
             for source in ("offline", "model_tests"):
                 executable = cls.directory / f"{source}-{variant}"
-                command = [
-                    "/usr/bin/g++", "-std=c++20", *flags, "-fno-fast-math", "-ffp-contract=off",
-                    "-Wall", "-Wextra", "-Werror", f"-I{PRODUCTION_INCLUDE}",
-                    str(SOURCES / f"{source}.cpp"), "-o", str(executable),
-                ]
+                dependency = executable.with_suffix(".d")
+                command = build.command(Path("/usr/bin/g++"), SOURCES,
+                    PRODUCTION_INCLUDE.parent, executable, dependency, variant, source)
                 compiled = subprocess.run(command, capture_output=True, text=True, timeout=75)
                 if compiled.returncode:
                     raise RuntimeError(f"{source}-{variant} compile failed:\n{compiled.stdout}{compiled.stderr}")
+                dependencies = dependency_identities(dependency, ROOT)
+                if not any(pin["path"] == str((SOURCES / "model.hpp").resolve()) for pin in dependencies):
+                    raise RuntimeError("Production build must preserve complete model dependency closure")
                 cls.executables[variant, source] = executable
 
     def invoke(self, variant, source, *arguments, ok=True):

@@ -136,6 +136,7 @@ class OriginalRegraphK4ControlTests(unittest.TestCase):
             command = build.command(*paths, variant, "offline")
             self.assertIn("-ffp-contract=off", command)
             self.assertIn("-fno-fast-math", command)
+            self.assertEqual(command[command.index("-MT") + 1], "probe")
             self.assertEqual("-fsanitize=undefined" in command, variant == "ubsan")
         with self.assertRaises(ValueError):
             build.command(*paths, "fast", "offline")

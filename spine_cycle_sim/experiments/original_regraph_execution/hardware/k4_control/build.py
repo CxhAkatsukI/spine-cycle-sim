@@ -6,6 +6,6 @@ def command(compiler, source, production, binary, dependency, variant, target):
     flags = (["-O2", "-DNDEBUG"] if variant == "release" else
              ["-O1", "-g", "-fsanitize=undefined", "-fno-sanitize-recover=all"])
     return [str(compiler), "-std=c++20", *flags, "-fno-fast-math", "-ffp-contract=off",
-            "-Wall", "-Wextra", "-Werror", "-MD", "-MF", str(dependency),
+            "-Wall", "-Wextra", "-Werror", "-MD", "-MF", str(dependency), "-MT", "probe",
             "-I" + str(production / "include"), str(source / (target + ".cpp")),
             "-o", str(binary)]
