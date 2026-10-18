@@ -41,7 +41,12 @@ The code owner is `fullgraph_readiness/fullpr_resident/`:
 - `gr_preparation.py` reuses the bounded offline compiler/preparation executor
   with one FullPR binary, the dangling smoke and the exact AU/SU/WK cohort.
   It checks CPU-reference convergence, PMA layout and update conservation;
-  this cannot program a card or establish performance.
+  this cannot program a card or establish performance. Its default complete
+  preparation limit is 24 GiB. `prepare-gr --memory-gib 4` instead requires
+  an exact 4-GiB cgroup, keeping the same inputs, steps, correctness checks
+  and 32-GiB reserve. The atomic lease reserves that full declared limit;
+  a different actual limit is rejected before compilation. The smaller
+  option is for this bounded CPU cohort, not large-graph board execution.
 - `gr.py` replays those raw preparations, verifies the host-only fork has
   identical kernels and headers to the routed production revision, and admits
   only the new FullPR routed artifact. Each sweep, first convergence, final
@@ -82,6 +87,7 @@ python3 -m "$owner" run-spine --preflight /campaign/fullpr-inputs \
   --output /campaign/fullpr-spine-board --execute
 
 # Same offline 24-GiB hard/22-GiB high, zero-swap scope and 32-GiB reserve.
+# For the bounded CPU cohort only, a 4/3-GiB scope may use --memory-gib 4.
 python3 -m "$owner" prepare-gr --source /clean/fullpr-gr \
   --cohort /campaign/fullpr-inputs --xrt /opt/xilinx/xrt \
   --hls /data/yxx/tools/xilinx/Vitis_HLS/2024.1 \

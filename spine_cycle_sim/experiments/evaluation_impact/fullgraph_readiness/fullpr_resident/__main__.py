@@ -20,6 +20,8 @@ def main(argv=None):
     for field in ("source", "cohort", "xrt", "hls", "output"):
         cpu.add_argument("--" + field, type=Path, required=True)
     cpu.add_argument("--wait-seconds", type=int, default=64800)
+    cpu.add_argument("--memory-gib", type=int, choices=(4, 24), default=24,
+                     help="must equal the complete preparation cgroup limit; 4 GiB suits the bounded FullPR cohort")
     for name in ("run-spine", "run-gr"):
         run = commands.add_parser(name)
         for field in ("preflight", "admission", "output"):
@@ -36,7 +38,7 @@ def main(argv=None):
     elif args.action == "prepare-gr":
         report = study.run(args.source.resolve(), args.cohort.resolve(), args.output.resolve(),
             args.xrt.resolve(), args.hls.resolve(), wait_seconds=args.wait_seconds,
-            protocol=gr_preparation.protocol(args.cohort.resolve()))
+            protocol=gr_preparation.protocol(args.cohort.resolve()), memory_gib=args.memory_gib)
     else:
         report = board_study.run(args.preflight.resolve(), args.admission.resolve(), inputs.ALGORITHM,
             args.output.resolve(), device=args.device, repeats=args.repeats, execute=args.execute,

@@ -102,6 +102,16 @@ class FullPRContractTests(unittest.TestCase):
                 self.assertEqual(main(argv), expected)
                 self.assertEqual(run.call_args.args[2], "full_pagerank")
 
+    def test_cpu_cli_forwards_explicit_budget_without_altering_cohort(self):
+        owner = "spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.fullpr_resident.__main__"
+        argv = ["prepare-gr", "--source", "/source", "--cohort", "/cohort", "--xrt", "/xrt",
+                "--hls", "/hls", "--output", "/output", "--memory-gib", "4"]
+        with patch(owner + ".gr_preparation.protocol", return_value="mock protocol"), \
+                patch(owner + ".study.run", return_value={"status": "FAILED_RETAINED"}) as run:
+            self.assertEqual(main(argv), 1)
+            self.assertEqual(run.call_args.kwargs["memory_gib"], 4)
+            self.assertEqual(run.call_args.args, tuple(map(Path, ("/source", "/cohort", "/output", "/xrt", "/hls"))))
+
 
 if __name__ == "__main__":
     unittest.main()

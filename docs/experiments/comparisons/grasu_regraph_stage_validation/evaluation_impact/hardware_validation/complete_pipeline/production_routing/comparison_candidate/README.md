@@ -52,6 +52,7 @@ tests reject changes to each. The earlier
 | `algorithm-return-runner-2b9cf3c.tar.gz` | `a1517443ce25b60df47aa219116dd84d994ba3344944ca1fffc49a4f6e2dace4` | Fresh compilation and local link continuation |
 | `algorithm-local-return-runner-0b6f998.tar.gz` | `caeb563c03ffc14d9211c8436529f55404ec99ed28d556321c14b9dd19286532` | Strict local returns and remote SSSP qualification |
 | `algorithm-fresh-rtl-runner-0b6f998.tar.gz` | `34701fa22b17c0ab33b5af2046df4d65d765d683e3f7800ee1c24b44ed09aa0c` | Fresh adapter benches, including `cpp/tests/routed_regraph/` |
+| `current-board-runner-b0aa357.tar.gz` | `087cad9ececb3ce1359fbed3e5c59439ce70c3af16e16c11531a07230ac38a1f` | Three-algorithm continuation using the exact request file and either verified return transport |
 
 Never modify a live runner or transplant a new result into an old attempt.
 
@@ -74,6 +75,7 @@ LROOT unless explicitly remote.
 | `production-cc-fresh-adapter-rtl-v1` | `spine-production-cc-fresh-adapter-rtl-20261018-v1.service` | `be4097d72ff24021b4492c1ef750cb74` |
 | `production-respr-fresh-adapter-rtl-v1` | `spine-production-respr-fresh-adapter-rtl-20261018-v1.service` | `e8655fb626564c3bbaf476b794778a1f` |
 | `production-fullpr-fresh-adapter-rtl-v1` | `spine-production-fullpr-fresh-adapter-rtl-20261018-v1.service` | `a4f7df56d3a84788960635969d0378ff` |
+| `fullgraph-board-continuation-v9` | `spine-fullgraph-board-continuation-20261018-v9.service` | `e612a14bee3b4681ab4a17b795f6c7b0` |
 
 ## Admission And Memory
 
@@ -98,6 +100,15 @@ unbounded foreign Vivado in `session-32960.scope` was observed on the remote
 host; spare RAM alone does not authorize starting beside that unknown budget.
 Do not stop or cap someone else's job without permission. Live JSON and
 cgroup records decide whether this condition still exists.
+
+The latest FullPR CPU preparation uses the separate clean host worktree
+`1cc5ee5`; its earlier `gr-fullpr-preparation-v3` waits for a 24-GiB budget.
+The bounded-cohort executor also supports an exact 4-GiB complete scope,
+based on the earlier cohort's 825,266,176-byte peak, without dropping any
+case or CPU-reference check. This does not reduce routing's 40-GiB limit,
+board execution's 24-GiB limit or the CPU preparation's 32-GiB reserve.
+Any superseding attempt gets a new output and service; the waiting record
+is retained, not overwritten or presented as a completed preparation.
 
 ## Remaining Work
 

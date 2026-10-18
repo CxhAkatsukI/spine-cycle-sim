@@ -35,13 +35,16 @@ def default_protocol():
                     preparation.prepare_command, analysis.analyze, analysis.decision)
 
 
-def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800, protocol=None):
+def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800, protocol=None, memory_gib=24):
     if type(wait_seconds) is not int or not 1 <= wait_seconds <= 86400:
         raise ValueError("memory wait must be between one second and one day")
+    if type(memory_gib) is not int or not 1 <= memory_gib <= POLICY["tree_memory_gib"]:
+        raise ValueError("preparation memory budget must be an integer from 1 to 24 GiB")
+    policy = {**POLICY, "tree_memory_gib": memory_gib}
     protocol = protocol or default_protocol()
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING", "errors": [], "steps": [], "cases": [], "smokes": [], "pins": [],
-              "policy": POLICY, "board_programmed": False, "hardware_timing_measured": False,
+              "policy": policy, "board_programmed": False, "hardware_timing_measured": False,
               "publication_match": False, "production_baseline_admitted": False,
               "scope": protocol.scope, "preparation_input": str(manifest), "source_root": str(integration)}
     save = lambda: atomic_write_json(output / "results.json", report)
@@ -49,9 +52,9 @@ def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800, protocol
     save()
     try:
         group = current()
-        report["containment"] = verify(group, memory_gib=24)
-        if int(report["containment"]["limits"]["memory.max"]) != 24 * 1024**3:
-            raise ValueError("exact 24-GiB complete preparation cgroup required")
+        report["containment"] = verify(group, memory_gib=memory_gib)
+        if int(report["containment"]["limits"]["memory.max"]) != memory_gib * 1024**3:
+            raise ValueError("complete preparation cgroup must match the declared memory budget")
         compiler = Path(shutil.which("g++") or "/missing/compiler").resolve()
         library = xrt / "lib/libxilinxopencl.so"
         runners = {Path(module.__file__) for name, module in sys.modules.copy().items()
@@ -75,7 +78,7 @@ def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800, protocol
         save()
         while True:
             preparation.unchanged(report["pins"])
-            report["admission"] = lease.sample(available_memory_bytes(), other_builds(), POLICY, commit=True)
+            report["admission"] = lease.sample(available_memory_bytes(), other_builds(), policy, commit=True)
             save()
             if report["admission"]["admitted"]:
                 break
@@ -90,7 +93,8 @@ def run(integration, manifest, output, xrt, hls, *, wait_seconds=64800, protocol
             report["status"] = "RUNNING_" + label
             save()
             result = run_link(command, output, output / "raw" / label, timeout=timeout,
-                              tree_memory_gib=24, reserve_gib=32, environment=report["environment"])
+                              tree_memory_gib=memory_gib, reserve_gib=policy["reserve_gib"],
+                              environment=report["environment"])
             report["steps"].append({"label": label, **result})
             save()
             preparation.unchanged(report["pins"])

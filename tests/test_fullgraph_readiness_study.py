@@ -8,7 +8,8 @@ from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import an
 
 
 class StudyTests(unittest.TestCase):
-    def invoke(self, root, *, samples=None, failed=None, sleep=None, compiler_notes=None, fullpr=False):
+    def invoke(self, root, *, samples=None, failed=None, sleep=None, compiler_notes=None, fullpr=False,
+               memory_gib=24, actual_memory_gib=None):
         group = root / "cgroup"
         group.mkdir()
         (group / "memory.events").write_text("oom_kill 0\n")
@@ -39,7 +40,8 @@ class StudyTests(unittest.TestCase):
             return {"status": "PASS", "claim": "mock CPU scope, not actual execution"}
 
         with patch.object(study, "current", return_value=group), \
-                patch.object(study, "verify", return_value={"limits": {"memory.max": str(24 * 1024**3)}}), \
+                patch.object(study, "verify", return_value={"limits": {"memory.max": str(
+                    (memory_gib if actual_memory_gib is None else actual_memory_gib) * 1024**3)}}), \
                 patch.object(study.preparation, "freeze", return_value={"revision": "fake-revision",
                     "rows": rows, "source": str(root / "source"), "pins": []}), \
                 patch.object(study, "dependency_identities", return_value=[]), \
@@ -59,7 +61,8 @@ class StudyTests(unittest.TestCase):
                     lambda _: [{**rows[0], "dataset": "SMOKE"}], preparation.prepare_command, analyze,
                     lambda cases: "MOCK_FULLPR_CPU_ONLY" if len(cases) == 3 else "FAILED_RETAINED")
             try:
-                result = study.run(root, root, output, root / "xrt", root, wait_seconds=30, protocol=protocol)
+                result = study.run(root, root, output, root / "xrt", root, wait_seconds=30,
+                                   protocol=protocol, memory_gib=memory_gib)
             except (ValueError, RuntimeError, TimeoutError):
                 result = json.loads((output / "results.json").read_text())
             return result, calls, lease.return_value
@@ -95,6 +98,20 @@ class StudyTests(unittest.TestCase):
             self.assertEqual(calls[0][2]["tree_memory_gib"], 24)
             self.assertEqual(calls[0][2]["reserve_gib"], 32)
             self.assertNotIn("LD_PRELOAD", calls[0][2]["environment"])
+
+    def test_smaller_cpu_budget_keeps_reserve_matrix_and_full_cgroup_reservation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result, calls, lease = self.invoke(Path(directory), fullpr=True, memory_gib=4)
+            self.assertEqual(result["status"], "MOCK_FULLPR_CPU_ONLY")
+            self.assertEqual(result["policy"], {**study.POLICY, "tree_memory_gib": 4})
+            self.assertEqual(len(calls), 5)
+            self.assertTrue(all(call[2]["tree_memory_gib"] == 4 for call in calls))
+            self.assertTrue(all(call[2]["reserve_gib"] == 32 for call in calls))
+            self.assertEqual(lease.sample.call_args.args[2], result["policy"])
+        with tempfile.TemporaryDirectory() as directory:
+            result, calls, lease = self.invoke(Path(directory), memory_gib=4, actual_memory_gib=24)
+            self.assertEqual((result["status"], calls), ("FAILED_RETAINED", []))
+            lease.sample.assert_not_called()
 
     def test_waits_only_for_budget_then_runs_once(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -153,6 +170,9 @@ class StudyTests(unittest.TestCase):
             for wait in (0, -1, True, 1.5, 86401):
                 with self.assertRaises(ValueError):
                     study.run(root, root, output, root, root, wait_seconds=wait)
+            for budget in (0, -1, True, 1.5, 25):
+                with self.assertRaises(ValueError):
+                    study.run(root, root, output, root, root, memory_gib=budget)
             with self.assertRaises(FileExistsError):
                 study.run(root, root, output, root, root)
             self.assertEqual(list(output.iterdir()), [])
