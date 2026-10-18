@@ -147,7 +147,35 @@ stdout/stderr pairs and rechecks 626 dependency/evidence pins using the
 `SSSP_RAW_REPLAY_PASS attempts=26 pins=626`. This is evidence replay, not
 another FPGA measurement or stage calibration.
 
-At this checkpoint CC v2 is executing its matrix; residual PR v2 waits for
-CC's successful terminal state. Neither is promoted from queued/running to
-accepted. The G+R production routes, original-G/R controls, paired ratios
-and replacement figures remain separate acceptance gates.
+### Completed CC Matrix
+
+`spine-resident-cc-board-v2/results.json` also completes both correctness
+smokes and all 24 large runs: 26/26 pass, no errors. Its SHA-256 is
+`81bae2a6bc20deeb90beeb0a412168e2a7cada131c29f3b89979aad61ad7ffa5`.
+The status and boundary are the same as the SSSP matrix, not a paired ratio.
+
+| Graph | Resident wall median (ms) | Individual repetitions (ms) |
+| --- | ---: | --- |
+| AU | 115.499 | 109.293, 117.093, 115.499 |
+| SU | 91.6629 | 90.4834, 91.6629, 107.425 |
+| WK | 132.294 | 126.731, 152.709, 132.294 |
+| SO | 113.145 | 111.919, 113.145, 115.289 |
+| PK | 86.7332 | 108.182, 86.7332, 84.2708 |
+| LJ | 98.8597 | 104.577, 98.8597, 98.6983 |
+| LJ08 | 100.084 | 99.653, 100.084, 102.257 |
+| R19 | 176.380 | 175.798, 177.158, 176.380 |
+
+Unit `spine-resident-cc-board-20261018-v2.service`, invocation
+`ae84b6c8e821407cb0531e07b8c3525e`, terminates successfully with main PID
+zero and retained `active/exited` state. Peak cgroup memory is 19,981,369,344
+bytes and every recorded memory-limit/OOM event counter is zero. Board,
+clock and CPU affinity match the SSSP protocol. The independent raw replay,
+unit `spine-cc-report-replay-20261018-v1.service`, invocation
+`3845e80b373448c0b3dfbfa798ad7aa1`, exits zero and logs
+`CC_RAW_REPLAY_PASS attempts=26 pins=626` (peak 25,378,816 bytes).
+
+Residual PR v2 is now executing its final repetition; it remains unaccepted
+until completion and raw replay. FullPR has a separate
+[convergence protocol](../fullpr_resident/README.md), not an extension of
+these frozen runs. The G+R production routes, original-G/R controls, paired
+ratios and replacement figures remain separate acceptance gates.

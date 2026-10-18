@@ -1,5 +1,9 @@
 # Full-Graph Host Readiness
 
+Related execution protocols: [fixed-Spine differential matrix](spine_resident/README.md),
+[paired report replay](paired_board/README.md), and
+[independent FullPR convergence](fullpr_resident/README.md).
+
 ## Scope
 
 This is an offline prerequisite for the later FPGA matrix, not a hardware
