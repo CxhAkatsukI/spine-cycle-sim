@@ -45,6 +45,7 @@ module adapter_axi_tb;
   );
 
   localparam [63:0] ROW_BASE = 64'h80000;
+  localparam [31:0] PART_DST_OFFSET = 65536, PART_VERTEX_COUNT = 32;
   reg [63:0] rows [0:1031];
   reg [511:0] banks [0:3][0:511];
   reg [511:0] expected [0:2047];
@@ -141,7 +142,8 @@ module adapter_axi_tb;
         if (packets >= expected_packets || outdata !== expected[packets]
             || outkeep !== 64'hffffffffffffffff || outstrb !== 64'hffffffffffffffff
             || outlast !== (packets + 1 == expected_packets))
-          $fatal(1, "packet or sideband differs trial=%0d packet=%0d", trial, packets);
+          $fatal(1, "packet or sideband differs trial=%0d packet=%0d data=%h expected=%h keep=%h strb=%h last=%b",
+                 trial, packets, outdata, expected[packets], outkeep, outstrb, outlast);
         if (first_packet < 0) first_packet = cycle;
         last_packet = cycle;
         packets = packets + 1;
@@ -194,7 +196,13 @@ module adapter_axi_tb;
               half = lane / 8;
               expected[expected_packets + half][(lane%8)*64 +: 32] =
                   source | (lane % 3 == 0 ? 32'h80000000 : 0);
+`ifdef PMA_ADAPTER_DESTINATION_ONLY_TEST
+              // CC/PR reconstruct global destinations; weighted SSSP preserves the word.
+              expected[expected_packets + half][(lane%8)*64+32 +: 32] =
+                  (PART_DST_OFFSET + (raw & 32'h0007ffff)) | (raw & 32'h80000000);
+`else
               expected[expected_packets + half][(lane%8)*64+32 +: 32] = raw;
+`endif
             end
             expected_packets = expected_packets + 2;
             slots = slots + 16;
@@ -210,8 +218,8 @@ module adapter_axi_tb;
       write_control('h34, 'h40000); write_control('h38, 0);
       write_control('h40, ROW_BASE); write_control('h44, 0);
       write_control('h4c, count); write_control('h54, slots);
-      write_control('h5c, 2); write_control('h64, 65536);
-      write_control('h6c, 32); write_control('h00, 1);
+      write_control('h5c, 2); write_control('h64, PART_DST_OFFSET);
+      write_control('h6c, PART_VERTEX_COUNT); write_control('h00, 1);
       index = cycle;
       while (completed < 0 && cycle - index < 20000) begin
         @(negedge clk);

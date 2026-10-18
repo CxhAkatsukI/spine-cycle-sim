@@ -49,7 +49,13 @@ class AdapterRtlTests(unittest.TestCase):
             self.assertNotIn("helper.vh", result["commands"]["compile"])
             self.assertTrue(all(result[key] is False for key in adapter_rtl.CLAIMS))
             pinned = {Path(row["path"]).name for row in result["pins"]}
-            self.assertTrue({"adapter.xo", "adapter_axi_tb.sv", "bank_stream_axi_tb.sv", "run.tcl"} <= pinned)
+            self.assertTrue({"adapter.xo", "adapter_axi_tb.sv", "bank_stream_axi_tb.sv",
+                             "destination_bank_stream_axi_tb.sv", "run.tcl"} <= pinned)
+            self.assertEqual(result["commands"]["compile"][2], "destination_bank_stream_axi_tb.sv")
+            self.assertNotIn("bank_stream_axi_tb.sv", result["commands"]["compile"])
+            self.assertIn("local_dst19_plus_partition_offset", result["packet_scope"])
+            bench = (output / "rtl/destination_bank_stream_axi_tb.sv").read_text()
+            self.assertIn("`define PMA_ADAPTER_DESTINATION_ONLY_TEST", bench)
             self.assertEqual(result["compile_review_status"], checked["status"])
 
     def test_wrong_destination_row_width_or_fifo_contract_is_rejected(self):

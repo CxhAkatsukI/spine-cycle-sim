@@ -24,6 +24,7 @@ from . import review
 
 ROOT = Path(__file__).resolve().parents[7]
 BANK_BENCH = "cpp/tests/routed_regraph/bank_stream_axi_tb.sv"
+DESTINATION_BENCH = "cpp/tests/routed_regraph/destination_bank_stream_axi_tb.sv"
 TRIALS = ALL_TRIALS + [(1023, 1, 1, 64, 0), (1024, 2, 1, 64, 0),
                        (1025, 1, 1, 128, 1000), (257, 0, 3, 64, 0), (129, 0, 3, 128, 1000)]
 POLICY = {"tree_memory_gib": 4, "reserve_gib": 32, "background_memory_gib": 8,
@@ -46,12 +47,13 @@ def prepare(compilation, storage, output, vivado_bin):
     work = output / "rtl"
     work.mkdir()
     rtl = extract_rtl(Path(rows[0]["xo"]), work)
-    for relative in (BENCH, BANK_BENCH):
+    benches = (BENCH, BANK_BENCH, DESTINATION_BENCH)
+    for relative in benches:
         shutil.copyfile(ROOT / relative, work / Path(relative).name)
     (work / "run.tcl").write_text("run all\nquit\n")
     pins = [*checked["inputs"], identity(output / "compile-review/results.json"),
-            *map(identity, [*rtl, ROOT / BENCH, ROOT / BANK_BENCH,
-                           *[work / Path(name).name for name in (BENCH, BANK_BENCH)], work / "run.tcl"])]
+            *map(identity, [*rtl, *[ROOT / name for name in benches],
+                           *[work / Path(name).name for name in benches], work / "run.tcl"])]
     tools = {name: vivado_bin / name for name in ("xvlog", "xelab", "xsim")}
     pins.extend(map(identity, tools.values()))
     return {"algorithm": manifest["algorithm"], "integration_revision": manifest["integration_revision"],
@@ -59,9 +61,9 @@ def prepare(compilation, storage, output, vivado_bin):
             "compile_review_status": checked["status"], "trials": TRIALS,
             "clock_period_ns": 10, "reset_between_trials": True,
             "memory_model": "ordered_AR_to_first_RVALID_latency_plus_one_clock_no_DRAM_bank_timing",
-            "packet_scope": "opaque_sharded_destination_bits_padding_and_sidebands_not_graph_algorithm",
+            "packet_scope": "global_destination_from_local_dst19_plus_partition_offset_padding_and_sidebands_not_graph_algorithm",
             "commands": {
-                "compile": [str(tools["xvlog"]), "--sv", Path(BANK_BENCH).name]
+                "compile": [str(tools["xvlog"]), "--sv", Path(DESTINATION_BENCH).name]
                            + [path.name for path in rtl if path.suffix == ".v"],
                 "elaborate": [str(tools["xelab"]), "adapter_axi_tb", "-s", "adapter_axi"],
                 "simulate": [str(tools["xsim"]), "adapter_axi", "-tclbatch", "run.tcl"]}, **CLAIMS}

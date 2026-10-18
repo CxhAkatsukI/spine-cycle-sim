@@ -69,7 +69,8 @@ whole U55C's 2,607,360 FF. Apply alone accounts for 6,019,300, including
 Integration `8f5928e` changes lane packing without changing arithmetic/ABI;
 old/new source checks pass bitwise against the same reference, but only a
 **fresh synthesis** can establish whether the resource problem is removed.
-Its separate v2 ResPR service is running, not yet accepted.
+Its separate v2 ResPR compile has finished; the experimental link is running,
+not yet accepted as a routed design.
 
 All paths below are relative to
 `/data/chuxiao/baseline_hardware_validation_20261017/` on that host:
@@ -105,8 +106,12 @@ unchanged algorithm/cache/workload scope. CC/FullPR v1 XOs remain independent.
 The v2 source index SHA-256 is
 `fe0e1ff3a52491f50dee61203ffa11156c09d567254a8c1a3de11482000d62d8`.
 The fresh v2 Apply report estimates 269408 FF (versus 6019300 before),
-65487 LUT, 90 BRAM18, zero URAM and 272 DSP. The complete v2 compilation
-and independent whole-design review still need to finish before linking it.
+65487 LUT, 90 BRAM18, zero URAM and 272 DSP. The complete v2 compilation passed.
+A separate link rechecks the complete resource/ABI ledger and applies the
+same one-CU placement change before v++. It uses output
+`production-respr-route-v2`, service
+`spine-production-respr-route-20261018-v2.service`, invocation
+`0b6cd3bdd41040b59ff3a890c7a218a2`, and unchanged runner `417a8bd`.
 
 CC and FullPR experimental links are active under simulator `417a8bd`,
 directory `algorithm-route-runner-417a8bd`. The minimal runner archive is
@@ -121,9 +126,9 @@ not completed bitstreams or FPGA evidence**:
 | CC | `production-cc-route-v1` | `spine-production-cc-route-20261018-v1.service` / `134e9b3bde86475d877333406235a149` |
 | FullPR | `production-fullpr-route-v1` | `spine-production-fullpr-route-20261018-v1.service` / `0b93dc35db4f48bcb64866adf28ff699` |
 
-Each has a separate 40-GiB max / 36-GiB high cgroup with no swap. Three
-40-GiB links plus the 16-GiB ResPR compile and 32+8-GiB reserves require
-176 GiB under atomic admission; about 477 GiB was available at the recorded
+Each has a separate 40-GiB max / 36-GiB high cgroup with no swap. After ResPR
+compilation, four 40-GiB links plus 32+8-GiB reserves require
+200 GiB under atomic admission; about 469 GiB was available at the recorded
 checkpoint. This is a budget/admission observation, not a peak-RSS prediction.
 
 The separately contained `production-algorithm-bank-smoke-v1` source test
@@ -278,9 +283,24 @@ and tile boundaries up to 1025 vertices, sparse early/late/interleaved sources,
 multi-segment rows, injected 1/64/128-cycle ordered memory delays, and a
 1000-cycle output stall. It checks output payload/KEEP/STRB/LAST, stability
 under backpressure, no writes, legal aligned AXI bursts within 4-KiB bounds,
-padded directory capacity, and request/response conservation. Sharded weighted
-and destination-only adapters preserve the same opaque destination bits; this
-packet test is **not** graph-level CC/PR arithmetic/convergence evidence.
+padded directory capacity, and request/response conservation. The independent
+destination-only wrapper expects `partition_offset + local_dst19`, plus the
+dummy marker. The weighted wrapper instead preserves weight/destination bits.
+The fixed partition offset is 65536 and local capacity 32, so confusing local,
+global and weighted formats cannot silently pass. This packet test is **not**
+graph-level CC/PR arithmetic/convergence evidence.
+
+The first CC/FullPR trials remain `FAILED_RETAINED` in
+`production-{cc,fullpr}-adapter-rtl-v1`, using simulator `eb31c55`:
+services `spine-production-{cc,fullpr}-adapter-rtl-20261018-v1.service`,
+invocations `9b4f611563d9478dac08a0871d03e217` and
+`f5422ff57f674eb6a7c7403e49a0c1d7`, respectively. The reused weighted bench
+expected opaque raw destination words, which contradicts the destination-only
+HLS contract above. xsim returned zero despite its `$fatal`; the strict
+complete-transcript gate correctly rejected both runs. The new wrapper changes
+only the expected packet format and adds detailed mismatch diagnostics. It
+does not change HLS, memory responses, sideband checks or trial coverage.
+A new run must actually pass; diagnosing the bench does not admit that pass.
 
 ```bash
 python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build adapter-rtl \
