@@ -100,7 +100,7 @@ Vivado, RTL simulation or FPGA measurements.
 python3 -m unittest discover -s tests -p 'test_original_grasu_physical_port.py'
 ```
 
-### Current Retry
+### Retained Two-Endpoint Retry
 
 The two-endpoint correction is frozen in simulator `e5c11c1`, archive
 `original-g-port-runner-e5c11c1.tar.gz`, SHA-256
@@ -176,6 +176,47 @@ strict clock/timing admission and the matched board matrix are still required.
 python3 -m unittest discover -s tests -p 'test_original_grasu_hmss_discovery.py'
 ```
 
+### Retained Common-Attribute Retry
+
+The common-attribute correction is frozen in simulator `3005046`. Both hosts
+use the read-only `original-g-port-runner-3005046` snapshot. Its archive
+`original-g-port-runner-3005046.tar.gz` has SHA-256
+`835f493653df4a8de52961b06623ffd941dc31414a5efc30b1033eb4eccc8fc0`.
+Remote outputs are under
+`/data/chuxiao/baseline_hardware_validation_20261017`; local outputs are under
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015`.
+
+| Stage | Output | Service / exact invocation |
+| --- | --- | --- |
+| BD diagnostic | Remote `original-g-physical-port-probe-v4` | `spine-original-g-physical-port-20261018-v4.service` / `8bcc9369ad3947f1957896fc10e91632` |
+| Full link, only after that BD passes | Remote `original-g-external-port-route-v3` | `spine-original-g-external-port-route-20261018-v3.service` / `7995d359b33e4dd6b3cb0e37062fcb41` |
+| Strict return, then guarded board matrix | Local `original-g-external-port-return-follow-v3` | `spine-original-g-external-port-return-20261018-v3.service` / `108651da70a246db900ec7328eb5bd4e` |
+
+BD v4 left its memory queue and failed at platform validation at 14:31 UTC,
+with zero memory-limit/OOM events. Vivado had already loaded its discovery
+callbacks before the pre-link hook, so the hook's future-`source` trace never
+adapted them. The stock single-master check rejected the four-member fan-in.
+Full-link v3 and return v3 consequently fail before compilation or programming.
+These outputs remain retained; no routed or board-admitted artifact exists.
+
+The loading-order correction searches already-loaded Tcl namespaces at hook
+entry, then keeps the existing trace for later loads. It changes neither the
+two-callback adaptation contract nor any author XO, clock or bank. Two added
+regressions cover preloaded global/nested callbacks and early rejection of an
+unsupported preloaded callback; all 122 original-G tests must pass. A fresh
+BD probe is required before another full link. Synthetic tests are not proof
+that the actual Vivado callback installation or BD validation succeeds.
+
+Both compiler services retain 40/36-GiB max/high, zero swap and group OOM
+kill. The local follower retains 4/3-GiB max/high, zero swap and a
+259200-second child wait within its 280000-second outer deadline. It requests
+device 0 only after strict source/ABI/physical-profile/clock/timing admission,
+using the exclusive device lease. Its original-G v4 preflight remains pinned
+to `c5fcccaf865c8d50cc5b0f74f4ea2dda53359a125fc927ae217915287c9d1ef6`.
+All failed earlier attempts remain unchanged. The correction passes 120
+original-G regressions and 15 organization checks, plus documentation,
+catalog and whitespace checks; these are not actual Vivado or board results.
+
 ## Full-Link Continuation
 
 `route.py` waits for one exact BD service/invocation and then runs a
@@ -198,9 +239,9 @@ the memory-admission wait. No board is programmed by this command.
 python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware.physical_port.route \
   --packet /data/chuxiao/baseline_hardware_validation_20261017/original-g-source-packet-v1 \
   --attempt /data/chuxiao/baseline_hardware_validation_20261017/original-g-source-route-v2 \
-  --bd /data/chuxiao/baseline_hardware_validation_20261017/original-g-physical-port-probe-v3 \
-  --unit spine-original-g-physical-port-20261018-v3.service \
-  --invocation 50405867b12d4cf690c161c561d781d0 \
+  --bd /data/chuxiao/baseline_hardware_validation_20261017/original-g-physical-port-probe-v4 \
+  --unit spine-original-g-physical-port-20261018-v4.service \
+  --invocation 8bcc9369ad3947f1957896fc10e91632 \
   --output /data/chuxiao/baseline_hardware_validation_20261017/fresh-external-port-route \
   --environment-root /data/chuxiao/baseline_hardware_validation_20261017/production-inputs-v1 \
   --xilinx /data/feiyang/xilinx \

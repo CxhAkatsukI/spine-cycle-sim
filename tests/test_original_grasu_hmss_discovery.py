@@ -75,11 +75,32 @@ def vendor_callback(name):
 
 
 class HmssDiscoveryTests(unittest.TestCase):
-    def tcl(self, body):
+    def tcl(self, body, prelude=""):
         if not shutil.which("tclsh"):
             self.skipTest("tclsh unavailable")
-        script = f"if {{[catch {{\nsource {{{ASSETS / 'pre_link.tcl'}}}\n{body}\n}} message]}} {{puts stderr $message; exit 1}}"
+        script = f"if {{[catch {{\n{prelude}\nsource {{{ASSETS / 'pre_link.tcl'}}}\n{body}\n}} message]}} {{puts stderr $message; exit 1}}"
         return subprocess.run(["tclsh"], input=script, text=True, capture_output=True, timeout=10)
+
+    def test_preloaded_global_and_nested_callbacks(self):
+        callbacks = "\n".join(vendor_callback(name) for name in
+            ("set_slr_info_env", "set_clkrst_info_env"))
+        for scope in ("::", "::platform::hmss::callbacks"):
+            with self.subTest(scope=scope):
+                result = self.tcl(TOPOLOGY + f"""
+proc send_msg_id {{id severity message}} {{error $message}}
+::spine_g_ports::check_discovery
+::spine_g_ports::install_loaded_discovery
+if {{[{scope}::set_slr_info_env /hmss_0] ne {{/bin_search_1/m_axi_gmem0}}}} {{error preloaded_discovery}}
+""", prelude=f"namespace eval {scope} {{\n{callbacks}\n}}")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.count("SPINE_HMSS_COMMON_ATTRIBUTE_DISCOVERY"), 2)
+
+    def test_preloaded_unsupported_callback_fails_at_hook_installation(self):
+        result = self.tcl("error hook_should_not_finish", prelude=
+            "namespace eval ::platform::hmss {proc set_slr_info_env {different} {return 1}}")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Unsupported HMSS discovery callback", result.stderr)
+        self.assertNotIn("hook_should_not_finish", result.stderr)
 
     def test_checked_fanin_and_unchanged_direct_discovery(self):
         result = self.tcl(TOPOLOGY + """

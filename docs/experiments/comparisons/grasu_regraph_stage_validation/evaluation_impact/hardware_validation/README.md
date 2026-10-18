@@ -56,21 +56,24 @@ The independent [external metadata fan-in diagnostic](original_grasu/physical_po
 preserves all author masters and shares same-bank metadata outside the CUs.
 Its first two actual BD attempts failed on a clock-name/object API call and
 then a missing interface-connection endpoint. Both are retained tool-script
-failures, not OOM or measured slowdowns. The corrected, separately frozen v3
-retry and its exact full-link v2/return v2 continuations are deployed. The
-return can run the guarded original-G board matrix only after strict routed
-admission; deployment is not a routed or board-admitted artifact. The BD
-retry currently waits for an unrelated unbounded compiler, while already
-admitted bounded builds continue. The linked diagnostic guide owns its
+failures, not OOM or measured slowdowns. BD v3 subsequently exposed a stock
+HMSS callback's single-addressing-master assumption. Frozen BD v4 then failed
+at 14:31 UTC because the discovery callbacks loaded before its future-source
+trace; neither discovery lookup was adapted. There were zero OOM events.
+Its exact full-link v3/return v3 continuations consequently stop before tools
+or programming. A correction now discovers already-loaded callbacks as well
+as later loads, while preserving vendor diagnostics and installed files.
+A fresh actual BD pass is still required. The linked diagnostic guide owns its
 runner, invocation, archive hash, tests and separate acceptance boundary.
 Its separate return receipt/offline replay and strict routed admission are
-now implemented, with 116 original-G regression tests. The changed external
+now implemented. The loading-order correction brings the original-G regression
+suite to 122 tests. The changed external
 interconnect stays explicit throughout return and board profiles. Tests and
 deployment do not establish routing, measured performance or publication match.
 
-At the 13:50 UTC tool check, the high-memory host has 404 GiB available.
-SSSP v2 continues post-route placement optimization, CC v2 is in placement,
-and FullPR v2 continues block synthesis, each under its own 40-GiB hard limit.
+At the 14:19 UTC tool check, the high-memory host has 395 GiB available.
+SSSP v2 continues routing optimization, CC v2 is in placement,
+and FullPR v2 has entered implementation, each under its own 40-GiB hard limit.
 ResPR v2 completed v++ but fails strict setup timing
 (WNS -0.107 ns, TNS -18.575 ns, 443 failing endpoints), without OOM events.
 Its returned DATA/HBM clocks are 147/434 MHz, rather than 150/450 MHz;
@@ -78,7 +81,7 @@ the return gate rejects it before board programming. A separately owned
 checkpoint diagnostic has now entered Vivado and loaded the exact routed
 checkpoint. It tests physical refinement without changing HLS/clocks or
 producing a bitstream. It is running, not timing-closed or board-admitted.
-The remote host still has over 400 GiB available; admitted tools retain
+At that checkpoint, admitted tools retain
 40/36-GiB max/high, zero swap and group-OOM containment. New compiler
 admission can be blocked by an unrelated unbounded vendor RTL simulation,
 not by a requirement that all bounded FPGA jobs exit. No other user's

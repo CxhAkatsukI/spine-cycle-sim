@@ -95,5 +95,6 @@ namespace eval ::spine_g_ports {
 
 source [file join [file dirname [info script]] discovery.tcl]
 ::spine_g_ports::install
-# The vendor loads its mapper while creating HMSS, after the pre-syslink hook.
+# Platform callbacks can precede this hook; the mapper can load afterwards.
+::spine_g_ports::install_loaded_discovery
 trace add execution ::source leave ::spine_g_ports::after_source

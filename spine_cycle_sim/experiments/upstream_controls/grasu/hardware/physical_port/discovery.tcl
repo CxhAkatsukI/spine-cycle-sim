@@ -80,6 +80,13 @@ namespace eval ::spine_g_ports {
         }
     }
 
+    proc install_loaded_discovery {{scope ::}} {
+        install_discovery $scope
+        foreach child [namespace children $scope] {
+            install_loaded_discovery $child
+        }
+    }
+
     proc check_discovery {} {
         variable discovery_callbacks
         if {[dict size $discovery_callbacks] != 2} {error "Exactly two adapted HMSS discovery callbacks required"}
