@@ -83,6 +83,15 @@ the separate serial board continuation, exact prerequisite invocations and
 resident-update timing definition. This prepares only the new G+R arm;
 original-G/R performance decisions and the fixed-Spine comparison are separate.
 
+Fixed-Spine SSSP v2 has now completed both correctness smokes and all eight
+full graphs with three repetitions: 26/26 FPGA executions pass. Its continuous
+resident wall medians are 95.4--185.8 ms, including actual host relaunch and
+per-round full-state readback. The service exits successfully; peak memory is
+18.6 GiB with zero memory-limit/OOM events. An independent raw-output replay
+passes all 26 executions and 626 pins. The [Spine protocol guide](fullgraph_readiness/spine_resident/README.md#completed-sssp-matrix)
+retains the individual times and exact identities. CC v2 is running and
+residual PR v2 is waiting; no new paired G+R speedup or final figure is claimed.
+
 ### Historical 2026-10-16 Track Snapshot
 
 The table below retains the earlier campaign checkpoint. For subsequent A4,

@@ -101,12 +101,53 @@ retained. `spine-resident-freeze-v1/results.json` binds those binaries, their
 source/header closure and all three fixed routed artifacts. Its decision is
 `SPINE_RESIDENT_HOST_AND_FIXED_ARTIFACTS_PINNED_NOT_BOARD`.
 
-This evidence currently proves preparation only. New-mode FPGA smokes, the
-complete repeated matrix, paired G+R results and final Fig7-11 are not accepted
-by the freeze. The original paper is unchanged.
+The freeze itself proves preparation only. The separate SSSP v2 matrix below
+has now completed FPGA execution; paired G+R results and final Fig7-11 remain
+open. The original paper is unchanged.
 
 The first board attempt, `spine-resident-sssp-board-v1`, ran the legacy smoke
 successfully on BDF `0000:c1:00.1` and then failed the runner's stderr gate.
 Its only stderr was the selection notice above. No new-mode smoke or large
 case ran. This remains `FAILED_RETAINED`, not a completed matrix; the host,
 bitstream, timing boundary and numerical results are unchanged for the retry.
+
+### Completed SSSP Matrix
+
+`spine-resident-sssp-board-v2/results.json` records both correctness smokes and
+all eight full graphs with three independently restored repetitions: 26/26
+executions pass, with no errors. Its SHA-256 is
+`58abfaa670fd975d36e673190cc5fd6fedd210a7f4785aaea0cd16b786bab233`.
+The status is
+`SPINE_RESIDENT_BOARD_CONVERGENCE_PASS_NOT_BASELINE_OR_STAGE_CALIBRATION`.
+
+| Graph | Resident wall median (ms) | Individual repetitions (ms) |
+| --- | ---: | --- |
+| AU | 123.501 | 127.694, 123.501, 120.321 |
+| SU | 123.580 | 123.580, 121.730, 145.066 |
+| WK | 95.3614 | 94.4134, 95.3614, 96.1479 |
+| SO | 106.078 | 104.661, 106.408, 106.078 |
+| PK | 127.058 | 127.058, 127.621, 124.124 |
+| LJ | 185.846 | 187.173, 182.028, 185.846 |
+| LJ08 | 155.098 | 139.359, 177.140, 155.098 |
+| R19 | 122.516 | 122.556, 121.445, 122.516 |
+
+These are continuous host-inclusive resident wall times, not kernel duration,
+CPU setup-inclusive latency or paired speedups. The fixed bitstream runs at
+150 MHz on leased BDF `0000:c1:00.1`; host affinity is CPUs 118/119. Systemd
+unit `spine-resident-sssp-board-20261018-v2.service`, invocation
+`5716557ced2f4228a7e79544b50a393d`, terminates successfully with main PID zero
+and retained `active/exited` state. Its peak cgroup memory is 19,988,545,536
+bytes; every recorded memory-limit/OOM event counter is zero.
+
+An additional bounded offline replay independently reparses all 26 raw
+stdout/stderr pairs and rechecks 626 dependency/evidence pins using the
+[paired-report reader](../paired_board/README.md). Unit
+`spine-sssp-report-replay-20261018-v1.service`, invocation
+`b8da5f40e545414b9432606d397422b7`, exits zero and logs
+`SSSP_RAW_REPLAY_PASS attempts=26 pins=626`. This is evidence replay, not
+another FPGA measurement or stage calibration.
+
+At this checkpoint CC v2 is executing its matrix; residual PR v2 waits for
+CC's successful terminal state. Neither is promoted from queued/running to
+accepted. The G+R production routes, original-G/R controls, paired ratios
+and replacement figures remain separate acceptance gates.
