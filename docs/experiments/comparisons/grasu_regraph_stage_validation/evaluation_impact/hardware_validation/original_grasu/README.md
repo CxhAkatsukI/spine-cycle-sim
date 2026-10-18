@@ -54,8 +54,10 @@ python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware prepare 
 
 Transfer that packet and a committed, frozen runner to the high-memory host.
 Run the following in a bounded user service with `MemoryMax=40G`,
-`MemoryHigh=36G`, `MemorySwapMax=0`, `MemoryOOMGroup=yes`, finite task/runtime
-limits and two Vivado synthesis/implementation jobs (set by the command):
+`MemoryHigh=36G`, `MemorySwapMax=0`, `OOMPolicy=kill`, finite task/runtime
+limits and two Vivado synthesis/implementation jobs (set by the command).
+Verify the resulting `memory.oom.group` is `1`; the remote systemd version
+does not recognize the newer `MemoryOOMGroup` property:
 
 ```bash
 python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware build \
@@ -79,3 +81,21 @@ They are synthetic unit tests, not hardware evidence. After linking, strict
 final timing, integrated correctness, original-state host bindings and a
 matched update-only FPGA matrix remain required. Existing decomposed source
 controls do not satisfy those board gates.
+
+## Deployed Build And Host Prerequisite
+
+The high-memory host `10.129.161.241:23333` runs the frozen `cb09a9d` runner
+in `spine-original-g-route-20261018-v1.service`, invocation
+`b204ce4f58414ae08ed0c760658f4a45`. The code-only archive SHA-256 is
+`d7463bc132668076ee8bf1d2e6934c6b19b48b9a156f1c1ce9e7a5b4760b4fec`.
+Inputs and output are respectively
+`/data/chuxiao/baseline_hardware_validation_20261017/original-g-source-packet-v1`
+and the sibling `original-g-source-route-v1`. At the 09:42 UTC checkpoint
+on October 18 the service is waiting for an unbounded peer's budget to be
+resolved; it has not compiled a kernel or produced FPGA evidence. Four
+already-admitted bounded production links continue independently.
+
+The [standalone board-host prerequisite](board_host/README.md) now compiles
+the real-XRT Release binary and independently replays all eight author-host
+inputs in Release and UBSan builds. These passes do not waive the route,
+strict clock/timing, actual-board correctness or matched-performance gates.

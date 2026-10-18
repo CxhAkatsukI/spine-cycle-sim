@@ -114,6 +114,7 @@ used by existing experiments.
 | Independent original-R Big memory/Scatter | [big_frontend_tests.cpp](tests/original_regraph/big_frontend_tests.cpp), [big_frontend_comparison.cpp](tests/original_regraph/big_frontend_comparison.cpp) via [Big frontend runner](../scripts/run_original_regraph_big_frontend_validation.py); separate cache/request/read ledgers |
 | Independent original-R 11+3 whole graph | [mixed/](tests/original_regraph/whole_graph/mixed/) via [mixed runner](../scripts/run_original_regraph_mixed.py); complete indexed state and explicit publication-tail padding, not publication timing |
 | Original-R guarded XRT host control | [hardware/](tests/original_regraph/hardware/) via [offline validation](../spine_cycle_sim/experiments/original_regraph_execution/hardware/README.md); named divisor controls, full output/guard checks and event windows; compiled and offline-validated, not board-admitted |
+| Original-G guarded XRT host control | [grasu_board/](tests/publication_sources/grasu_board/) separates independent PMA oracle, leased XRT runtime and nine-CU execution; [input replay and preflight](../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/original_grasu/board_host/README.md) never programs a board |
 | Python runner, profiles, and result gates | [tests/](../tests) |
 
 Native GraSU/ReGraph result gates now have one Python owner:
