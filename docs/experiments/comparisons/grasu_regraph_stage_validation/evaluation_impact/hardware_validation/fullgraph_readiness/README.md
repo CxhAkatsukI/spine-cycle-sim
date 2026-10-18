@@ -322,6 +322,29 @@ and stops the continuation without a reset.
 
 ### Current Continuation
 
+The current deployment is **v7**, frozen simulator runner `da7e791`, in
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/board-return-runner-da7e791`.
+The following older deployment records are retained history, not current
+service selectors.
+
+| Item | Current identity |
+| --- | --- |
+| Service | `spine-fullgraph-board-continuation-20261018-v7.service` |
+| Invocation | `02306d8928934d2dbd1b584c60dee901` |
+| Output under the campaign root | `fullgraph-board-continuation-v7` |
+| Request file | `fullgraph-board-requests-v5.json` |
+| Request SHA256 | `a0cfc6f3451fc1d893d51c00f98bb75fe7da48be79668807c2679b2fd96bae37` |
+| Runner archive SHA256 | `8f8d2cf27c6050567c9574eb2708f58af667d2ff5bd86b4f078392a4ab40af4c` |
+
+V6 was stopped while waiting, with no board request or matrix executed.
+V7 keeps the completed-v3 offline preflight and 24/22-GiB, zero-swap,
+group-OOM containment, CPUs 118--119 and finite lifetime. CC now waits for
+its exact v3 return follower of the v2 route; SSSP and ResPR retain their
+previous exact return identities. At deployment it is waiting for admitted
+artifacts, without errors. This is not a completed hardware matrix.
+
+### Earlier Continuations
+
 The deployed-v1 record above is historical. V2 used the pinned completed
 preflight replay and was deliberately stopped while waiting for admitted
 artifacts, with no board requested and no matrices run. It was replaced to
@@ -363,7 +386,7 @@ matrices. It keeps the same 24/22-GiB limits, zero swap, two-CPU affinity and
 this waiting state nor completed Spine measurements close the new-G+R or
 original-performance gates.
 
-The current supervisor is
+The former v5 supervisor is
 `spine-fullgraph-board-continuation-20261018-v5.service`, invocation
 `098dd7c6994e4d9c96753f88943a2f6e`, output
 `fullgraph-board-continuation-v5`. V4 was stopped only while waiting, with no

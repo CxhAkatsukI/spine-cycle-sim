@@ -110,12 +110,13 @@ included `autopilot_ssdm_op.h`. It does not replace the header with a stub,
 remove the include, alter any author source, or change the geometry/clock.
 A fresh runner and output are required for the retry.
 
-The source-preserving v2 retry is now queued under runner `8fff331`, service
+The source-preserving v2 retry uses runner `8fff331`, service
 `spine-original-g-route-20261018-v2.service`, invocation
 `ff92efbffe9d4b149d68e6ccb9f646d3`, output `original-g-source-route-v2`.
-At 10:40 UTC it is still waiting for unknown/unbounded peer budgets, not for
-all tools to exit. Available memory is approximately 415 GiB; the full finite
-budgets fit numerically, but this does not bound those unknown peers.
+After initially waiting for unknown/unbounded peer budgets, it passed
+admission and entered source compilation. At 10:58 UTC the binary-search
+compile had finished and dispatch compilation was running. Available memory
+was approximately 407 GiB; these are progress observations, not a routed pass.
 
 The [standalone board-host prerequisite](board_host/README.md) now compiles
 the real-XRT Release binary and independently replays all eight author-host
@@ -161,6 +162,15 @@ rechecks pins/runtime/idle device and the 32-GiB memory reserve, then runs
 all eight cases three times with ten-minute child deadlines. It forwards the
 lease descriptor to the real XRT host. A timeout or state mismatch is retained
 and never triggers a board reset or a performance retry.
+
+The deployed follower is `spine-original-g-return-20261018-v1.service`,
+invocation `8626d4122267433788fe2168a50b56c3`, with local output
+`original-g-source-follow-v1` and remote return `original-g-source-return-v1`
+under their respective campaign roots. It uses frozen runner `da7e791`,
+archive SHA256
+`8f8d2cf27c6050567c9574eb2708f58af667d2ff5bd86b4f078392a4ab40af4c`,
+and the reviewed `original-g-board-host-preflight-v3` on card zero. Its first
+state is waiting for the exact v2 route above, with no board requested.
 
 `ORIGINAL_G_U55C_MATRIX_PASS_NOT_PUBLICATION_OR_MATCHED_G_COMPARISON` would
 mean a complete-state, repeated same-platform original-G measurement only.

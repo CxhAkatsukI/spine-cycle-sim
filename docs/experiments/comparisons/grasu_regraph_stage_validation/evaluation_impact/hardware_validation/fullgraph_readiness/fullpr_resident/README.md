@@ -49,6 +49,10 @@ The code owner is `fullgraph_readiness/fullpr_resident/`:
 - `__main__.py` is a thin CLI. Execution reuses `board_study.py` and its card
   and measurement locks, exactly two CPUs, 24-GiB hard/22-GiB high limit,
   zero swap, full-budget atomic admission and 32-GiB system reserve.
+- `continuation.py` waits for one exact FullPR return-service invocation,
+  replays the hash-pinned offline report, checks its returned admission and
+  runs only this protocol. Three repetitions and the smoke are mandatory;
+  producer drift, board failure or pin changes stop the run without retry.
 
 The source branches are Spine `codex/fullpr-resident-convergence` at
 `6728171` and G+R `codex/fullpr-resident-convergence` at `6eb197a`.
@@ -87,6 +91,15 @@ python3 -m "$owner" prepare-gr --source /clean/fullpr-gr \
 python3 -m "$owner" run-gr --preflight /campaign/fullpr-gr-preparation \
   --admission /campaign/new-production-fullpr-admission/summary.json \
   --device 1 --repeats 3 --output /campaign/fullpr-gr-board --execute
+
+# Alternatively wait for one exact return, in the same bounded board scope.
+python3 -m "$owner.continuation" \
+  --preflight /campaign/fullpr-gr-preparation \
+  --preflight-sha256 EXACT_OFFLINE_REPORT_SHA256 \
+  --returned /campaign/fullpr-return \
+  --admission /campaign/fullpr-return/admission/summary.json \
+  --unit exact-fullpr-return.service --invocation EXACT_INVOCATION_ID \
+  --device 1 --output /campaign/fresh-fullpr-continuation
 ```
 
 Under `/data/chuxiao/experiments/baseline_hardware_validation_20261015/`,
@@ -110,6 +123,10 @@ Event spans include overlap and stalls; they are not exclusive ten-stage
 counters. Unit tests use synthetic logs and mocked execution, including
 failure, missing-event and premature-convergence cases. They do not validate
 the hardware datapath or resolve the Spine failures below.
+
+The continuation's success is only the new-G+R FullPR arm. In particular,
+it cannot promote a failed Spine artifact or create a paired FullPR speedup.
+Its tests use mocked services and board execution, not hardware measurements.
 
 ### Complete G+R Offline Preparation
 

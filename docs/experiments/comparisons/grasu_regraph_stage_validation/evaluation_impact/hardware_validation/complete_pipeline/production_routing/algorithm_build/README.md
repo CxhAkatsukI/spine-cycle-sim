@@ -443,7 +443,7 @@ false. The separate [full-graph continuation](../../../fullgraph_readiness/READM
 consumes CC/ResPR admission after offline preparation succeeds; FullPR is
 returned and reviewed independently, not silently treated as convergence.
 
-The deployed local followers use frozen simulator `237b519` and its separately
+The original local followers use frozen simulator `237b519` and its separately
 hashed `production-return-board-runner-237b519.tar.gz` archive (SHA-256
 `2c06795458901aa036cf3e11b23cc13ecebfd6a6aa0914df2f74da2b77b6263c`).
 Each has a separate 4-GiB max/3-GiB high/no-swap cgroup, CPU 120, and a finite
@@ -460,5 +460,18 @@ Each consumes the exact remote route invocation already recorded above, then
 creates a distinct remote `production-{cc,fullpr,respr}-return-v1` receipt.
 Its local `admission/summary.json` must pass before any board continuation.
 The service being active, or a partial binary appearing in the build tree,
-does not satisfy this condition. FullPR still needs its own fixed-round board
-protocol and is not included in the three-algorithm convergence supervisor.
+does not satisfy this condition. FullPR uses the separate
+[resident-convergence protocol](../../../fullgraph_readiness/fullpr_resident/README.md),
+not the legacy fixed-round test or three-algorithm supervisor.
+
+CC's v1 route failed strict timing admission. Its current local follower is
+`spine-production-cc-return-20261018-v3.service`, invocation
+`5365002cfc3a421fbb8ba3a53d8841e8`, output `production-cc-return-follow-v3`.
+It waits for route-v2 invocation `ecd61444f76145a6bac7846e41898060`, returns
+to `production-cc-return-v3` remotely and uses frozen runner `da7e791` on
+both hosts. Its archive SHA256 is
+`8f8d2cf27c6050567c9574eb2708f58af667d2ff5bd86b4f078392a4ab40af4c`.
+V2 was stopped while still waiting, without requesting a board. The new
+follower retains the 4/3-GiB limits, zero swap, group OOM kill and finite
+lifetime; retained `active/exited` success is checked by exact invocation,
+exit status and zero main PID. FullPR and ResPR selectors above are unchanged.

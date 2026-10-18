@@ -98,7 +98,9 @@ python3 -m spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.pai
   --output /campaign/fresh-paired-continuation
 ```
 
-An active service with `Result=success` is still waiting. A failed, restarted
+An active running service with `Result=success` is still waiting. A retained
+`active/exited` service is terminal only with the exact invocation, successful
+exit and zero main PID. A failed, restarted
 or collected producer is rejected. Its terminal report must bind the same
 offline preflight, exactly three complete algorithm children, their hashes
 and the admissions in the paired requests. A terminal systemd success alone
@@ -138,22 +140,22 @@ incomplete matrix instead of analyzing partial rows as a complete result.
 
 ## Current Deployment
 
-The v1 paired follower was stopped before replay while its producer was
-waiting; no paired CSV or hardware result was discarded. The replacement
-uses the immutable `5058f14` runner in
-`/home/chuxiao/spine-cycle-sim/spine-cycle-sim-board-memory-5058f14`:
+Earlier v1--v3 paired followers were stopped before replay while their
+producers were waiting; no paired CSV or hardware result was discarded.
+The current replacement uses immutable runner `da7e791` in
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/board-return-runner-da7e791`:
 
 | Item | Identity |
 | --- | --- |
-| Paired service | `spine-paired-board-continuation-20261018-v2.service` |
-| Invocation | `5c24a1fcc4cb42d1a1b6bec4feb066de` |
-| Producer | `spine-fullgraph-board-continuation-20261018-v5.service` |
-| Producer invocation | `098dd7c6994e4d9c96753f88943a2f6e` |
-| Output | `/data/chuxiao/experiments/baseline_hardware_validation_20261015/paired-board-continuation-v2` |
-| Request file | `/data/chuxiao/experiments/baseline_hardware_validation_20261015/paired-board-requests-v2.json` |
-| Requests SHA256 | `059520398a18d5a228f91e74ae1dcfcd04e1e1374b488e2ca7d0137a52ec41a2` |
+| Paired service | `spine-paired-board-continuation-20261018-v4.service` |
+| Invocation | `f1b5834d3ff345489e02f9755397c00e` |
+| Producer | `spine-fullgraph-board-continuation-20261018-v7.service` |
+| Producer invocation | `02306d8928934d2dbd1b584c60dee901` |
+| Output | `/data/chuxiao/experiments/baseline_hardware_validation_20261015/paired-board-continuation-v4` |
+| Request file | `/data/chuxiao/experiments/baseline_hardware_validation_20261015/paired-board-requests-v4.json` |
+| Requests SHA256 | `2a958dc1402eacd2da9d92f08bd01ba8354ac86a663b5c7804871ea989bdae95` |
 
-Only the new producer paths and SSSP qualification admission change. The
+The producer paths, returned CC artifact and qualification admission change. The
 completed fixed-Spine reports and artifact freeze remain unchanged. The
 service retains 4/3-GiB containment, zero swap, group OOM kill and a finite
 wait, with `RemainAfterExit=yes` for terminal inspection. At redeployment it
