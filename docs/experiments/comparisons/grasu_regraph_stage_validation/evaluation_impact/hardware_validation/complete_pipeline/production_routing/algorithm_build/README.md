@@ -47,6 +47,8 @@ behavior; it does not admit the complete algorithm or replace board timing.
 `artifacts.py` seals completed remote links, `topology.py` compares routed
 connections with the fresh algorithm exports, and `admission.py` checks the
 returned artifact against the requested local source closure and timing report.
+`follow.py` owns waiting for one exact remote invocation, bounded remote sealing,
+transport and local admission. It never requests or programs a board.
 
 ## Deployed Checkpoint
 
@@ -389,3 +391,34 @@ deadline and a live-memory watchdog. A terminal pass is explicitly
 HBM timing, routed clock, board correctness and publication match remain false.
 Synthetic 10-ns bench clocks and injected memory delays are not converted
 into predicted FPGA performance. Failed runs remain in their original folder.
+
+## Automatic Return
+
+Freeze the current runner in a new directory on both hosts. Do not overwrite
+the older route/compile runners. The follower waits for one explicit successful
+service invocation, launches its sealer in a separate 4-GiB/3-GiB/no-swap
+remote service, verifies the trusted receipt digest after rsync, and invokes
+the same strict admission above. Source-closure, algorithm, service or invocation
+drift rejects the result. The local follower also needs a separate
+4-GiB/no-swap cgroup and a finite runtime; the default wait is 133200 seconds.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build.follow \
+  --target chuxiao@10.129.161.241 --port 23333 \
+  --algorithm connected_components \
+  --runner /path/to/new/fixed/remote/runner \
+  --capsule /data/chuxiao/baseline_hardware_validation_20261017/production-inputs-v1 \
+  --compilation /data/chuxiao/baseline_hardware_validation_20261017/production-cc-compile-v1 \
+  --attempt /data/chuxiao/baseline_hardware_validation_20261017/production-cc-route-v1 \
+  --returned /path/to/fresh/remote/return \
+  --unit spine-production-cc-route-20261018-v1.service \
+  --invocation 134e9b3bde86475d877333406235a149 \
+  --sources /data/chuxiao/experiments/baseline_hardware_validation_20261015/production-algorithm-sources-v1 \
+  --output /path/to/fresh/local/follower
+```
+
+`ALGORITHM_REMOTE_RETURN_ADMITTED_NOT_BOARD_OR_PUBLICATION` binds the exact
+local admission report. It leaves board, convergence and publication claims
+false. The separate [full-graph continuation](../../../fullgraph_readiness/README.md#board-continuation)
+consumes CC/ResPR admission after offline preparation succeeds; FullPR is
+returned and reviewed independently, not silently treated as convergence.

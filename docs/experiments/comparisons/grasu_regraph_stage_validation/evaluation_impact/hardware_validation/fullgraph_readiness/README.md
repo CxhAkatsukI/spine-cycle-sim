@@ -216,3 +216,75 @@ small packaging budget and reserve fit. The focused delivery tests cover
 portable verification after removing the live attempt path, retained compiler
 failure, missing rows, changed commands/capacity, resource-log disagreement,
 rehashed inconsistent outputs, source drift and false board claims.
+
+## Board Continuation
+
+The offline capsule above remains frozen. The separate board owner comprises
+`board_preparation.py` (offline/artifact identity and exact eight-graph plan),
+`board_analysis.py` (oracle, convergence and event-ledger checks),
+`board_study.py` (exclusive card lease and bounded execution), and
+`continuation.py` (exact-prerequisite service orchestration). Tests use synthetic
+outputs; passing them does not mean a board matrix ran.
+
+The new production host revision `1a5650c` checks `GRASU_REGRAPH_EXPECT_BDF`
+against the selected XRT device before context creation. SSSP, CC and ResPR
+each reject an intentionally wrong address with the exact lease diagnostic,
+without programming. Those three checks are retained in
+`fullgraph-host-bdf-negative-v2` under the campaign root. The earlier v1 omitted
+`XILINX_XRT` and failed to enumerate a card; it is a failed harness, not a
+successful address check. Offline `fullgraph-host-readiness-v3` rechecks this
+host on the original complete matrix; its exact service is
+`spine-fullgraph-readiness-20261018-v3.service`, invocation
+`762fef3ec2d74791894fa23f1c7ad3ec`. It is still running at this checkpoint.
+
+Board admission requires the complete successful offline report, frozen host
+and source closure, strict algorithm-specific routed timing/topology admission,
+unchanged runtime/driver, healthy calibrated U55C and an idle exclusive board
+lease. SSSP additionally waits for its separate production G/metadata/continuous
+handoff qualifier. The supervisor accepts only the named service invocations
+and their hash-bound reports. A changed or failed prerequisite stops it without
+programming; completion of an unrelated/restarted unit cannot substitute.
+
+Each algorithm first runs the same six-partition smoke, then three complete
+repetitions of all eight graphs (25 child attempts). Each process restores the
+same initial state and applies one batch; this is not three batches chained
+together. The child must pass the complete existing integer/PR oracle, reach
+hardware and reference convergence, preserve PMA scan conservation, and pass
+the recorded device-event dependency/overlap checks. A child failure stops the
+remaining matrix without automatic board resets. FullPR's fixed-round protocol
+is deliberately outside this convergence runner.
+
+Run `python3 -m spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.continuation`
+in a fixed runner under its own 24-GiB max/22-GiB high/no-swap service with
+two-CPU affinity. Its CLI takes `--preflight`, `--output`, `--requests`,
+`--preflight-unit` and `--preflight-invocation`. The requests JSON has exactly
+three objects with `algorithm`, `unit`, `invocation`, `returned`, `admission`
+and `device`; paths are absolute, and admission must lie within the named
+follower attempt. `returned` here is the local follower's root, not its binary
+subdirectory. Memory leases reserve the full 24 GiB, bounded peers and 32 GiB
+system reserve; each board child retains a live watchdog and finite timeout.
+
+### Timing Boundary
+
+The host's legacy `setup_inclusive_ms` field begins **after** initial graph,
+update, directory and old-state preload. It ends after convergence and final
+readback. The board report therefore names it
+`resident_update_to_final_readback_wall_including_host_relaunch`: it includes
+host relaunch and final readback, but excludes CPU graph/layout preparation,
+CPU old-state reference, programming, initial preload and result serialization.
+It must not be called full CPU-setup-inclusive latency.
+
+The host's event helper records earliest event start to latest event end,
+not a union of individual durations. Those event spans may contain host/transfer
+gaps; overlapping kernels are not added together as exclusive stages. Both
+wall and span are retained, with the raw event ledger, but neither establishes
+ten-stage hardware calibration. A later Spine comparison must match this
+window explicitly before producing speedups.
+
+Terminal board decisions are
+`FULLGRAPH_ALGORITHM_BOARD_CONVERGENCE_PASS_NOT_SPINE_OR_PUBLICATION_MATCH`
+per algorithm and
+`THREE_ALGORITHM_FULLGRAPH_BOARD_PASS_NOT_SPINE_OR_PUBLICATION_MATCH`
+for the supervisor. They close only the declared new-G+R arm. Original-G/R
+publication performance, the corresponding fixed-Spine measurements, modeled
+HBM energy and final Figures 7--11 remain independent unfinished work.

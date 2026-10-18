@@ -63,13 +63,24 @@ Its return/strict-timing/three-matrix board continuation has a separate owner
 in the linked remote package. No production FPGA result, published-performance
 match, fixed-Spine matrix or replacement figure is claimed yet.
 
-Fresh CC / ResPR / FullPR compilations are also running concurrently on the
-high-memory host, each with its own 16-GiB cgroup and complete finite-budget
-admission. Their [algorithm-specific guide](complete_pipeline/production_routing/algorithm_build/README.md)
-owns the frozen source/runner identities, live output locations and exported
-ABI/resource review. These are independent fresh XOs, not a relabeling of the
-SSSP bitstream. All three still require their own RTL/resource/routing and
-device gates; Figures 7--11 remain unreplaced.
+Fresh CC / FullPR v1 and ResPR v2 compilations have completed. Their separate
+40-GiB experimental links are active alongside SSSP; at the 2026-10-18
+checkpoint SSSP has entered implementation and the other three remain in
+block synthesis. All three fresh algorithm adapters pass their own 23-case
+AXI/AXIS RTL trials. Those adapter-only passes are not whole-algorithm RTL or
+device results. The [algorithm-specific guide](complete_pipeline/production_routing/algorithm_build/README.md)
+owns the source identities, retained failed attempts, resource screens and
+return/admission procedure. Figures 7--11 remain unreplaced.
+
+The full-graph host's new PCIe-BDF guard fails before context creation when
+the chosen card differs from the exclusive lease. All three negative checks
+pass with the explicit XRT runtime environment; an earlier environment-failure
+attempt remains a failed harness. A fresh offline v3 rechecks integration
+`1a5650c` on the complete matrix and is still running without reported errors.
+The [full-graph guide](fullgraph_readiness/README.md#board-continuation) owns
+the separate serial board continuation, exact prerequisite invocations and
+resident-update timing definition. This prepares only the new G+R arm;
+original-G/R performance decisions and the fixed-Spine comparison are separate.
 
 ### Historical 2026-10-16 Track Snapshot
 
