@@ -17,10 +17,10 @@
   },
   {
     "algorithm": "residual_pagerank",
-    "unit": "spine-production-respr-local-return-20261018-v1.service",
-    "invocation": "fc6b42253a824b96b03e4ae9a0a5b53a",
-    "returned": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-local-return-v1",
-    "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-local-return-v1/admission/summary.json",
+    "unit": "spine-production-respr-remote-return-20261019-v3.service",
+    "invocation": "422d8b2cfb3540a9bbf123a00c92c52e",
+    "returned": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-remote-return-v3",
+    "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-remote-return-v3/admission/summary.json",
     "device": 1
   }
 ]

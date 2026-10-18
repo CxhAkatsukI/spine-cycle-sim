@@ -44,17 +44,21 @@ Do not edit that snapshot or overwrite its completed reports.
 
 ## Exact Board Continuation
 
-The same runner owns output `original-r-k4-current-board-supervisor-v2`:
+The current continuation uses immutable runner
+`high-memory-algorithm-runner-01e34c0`, without replacing the frozen preflight
+or numerical source closure. Its archive SHA-256 is
+`99f276f0e42674fd90094771162a4ad38ab4ce45981aea4831ce06abb8b81b3e`.
+Output is `original-r-k4-current-board-supervisor-v3`:
 
 | Binding | Exact value |
 | --- | --- |
-| Service | `spine-original-r-k4-current-board-supervisor-20261019-v2.service` |
-| Invocation | `05f1b2a02e3a451ba7b1d455777e9f7f` |
+| Service | `spine-original-r-k4-current-board-supervisor-20261019-v3.service` |
+| Invocation | `8e5b4ef8116e4e739591ac7467d9cacd` |
 | Preflight | `original-r-k4-current-host-preflight-v3` |
 | Source closure | `production-algorithm-sources-v4` |
-| Required local return | `production-fullpr-local-return-v1` |
-| Required producer | `spine-production-fullpr-local-return-20261018-v1.service` |
-| Required producer invocation | `1ee16f77eea84bbba4ac305ad8ae449c` |
+| Required remote return | `production-fullpr-remote-return-v3` |
+| Required producer | `spine-production-fullpr-remote-return-20261019-v3.service` |
+| Required producer invocation | `c5a26cd5c40449198ce8af66dacaeef8` |
 | Board | Device index 1, with an exclusive BDF lease before programming |
 
 At deployment it is `WAITING_FOR_EXACT_ADMITTED_FULLPR_RETURN`, with no board
@@ -82,6 +86,13 @@ default-profile, same-resource and latest-revision-performance claims remain
 false until their independent gates pass.
 
 ## Retained Older Failure
+
+Supervisor v2 was operator-cancelled while
+`WAITING_FOR_EXACT_ADMITTED_FULLPR_RETURN`, with no board launch, to switch
+from the still-waiting local build to the new remote FullPR chain. Its exact
+invocation was `05f1b2a02e3a451ba7b1d455777e9f7f`; its retained
+`FAILED_RETAINED` / `KeyboardInterrupt` is not a measured performance failure.
+No report or artifact was copied into the replacement v3 attempt.
 
 The older remote `production-fullpr-route-v2` completed link, but its service
 was not retained after exit. `production-fullpr-return-follow-v2` therefore

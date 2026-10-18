@@ -169,12 +169,15 @@ class RegisteredPairedRequestTests(unittest.TestCase):
             with self.subTest(algorithm=request["algorithm"]):
                 self.assertEqual(pair["algorithm"], request["algorithm"])
                 self.assertEqual(pair["gr"], {
-                    "report": str(campaign / "fullgraph-board-continuation-v10" /
+                    "report": str(campaign / "fullgraph-board-continuation-v11" /
                                   request["algorithm"] / "results.json"),
                     "admission": request["admission"]})
                 self.assertEqual(pair["spine"], {
                     "report": str(campaign / f"spine-resident-{short}-board-v2/results.json"),
                     "admission": str(campaign / "spine-resident-freeze-v1/results.json")})
+        self.assertEqual(current[2]["unit"], "spine-production-respr-remote-return-20261019-v3.service")
+        self.assertEqual(current[2]["invocation"], "422d8b2cfb3540a9bbf123a00c92c52e")
+        self.assertEqual(current[2]["returned"], str(campaign / "production-respr-remote-return-v3"))
 
 
 if __name__ == "__main__":

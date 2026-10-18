@@ -2,7 +2,7 @@
   {
     "algorithm": "weighted_sssp",
     "gr": {
-      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v10/weighted_sssp/results.json",
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v11/weighted_sssp/results.json",
       "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/g-cache-comparison-remote-follow-v2/board/routed_admission/summary.json"
     },
     "spine": {
@@ -13,7 +13,7 @@
   {
     "algorithm": "connected_components",
     "gr": {
-      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v10/connected_components/results.json",
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v11/connected_components/results.json",
       "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-cc-local-return-v1/admission/summary.json"
     },
     "spine": {
@@ -24,8 +24,8 @@
   {
     "algorithm": "residual_pagerank",
     "gr": {
-      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v10/residual_pagerank/results.json",
-      "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-local-return-v1/admission/summary.json"
+      "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/fullgraph-board-continuation-v11/residual_pagerank/results.json",
+      "admission": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/production-respr-remote-return-v3/admission/summary.json"
     },
     "spine": {
       "report": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/spine-resident-respr-board-v2/results.json",

@@ -18,11 +18,12 @@ remote outputs are under
 | Fresh CC and ResPR adapter RTL | `production-{cc,respr}-fresh-adapter-rtl-v1` | Both pass; not complete-algorithm RTL or board performance |
 | Fresh FullPR adapter RTL | `production-fullpr-fresh-adapter-rtl-v1` | Passes separately; not complete-algorithm RTL or board performance |
 | New SSSP link and qualification | RROOT `g-cache-comparison-route-v2`; LROOT `g-cache-comparison-remote-follow-v2` | Routing; pending strict return admission and board qualification |
-| New CC/ResPR/FullPR links | `production-{cc,respr,fullpr}-compile-route-local-v1` | Independent bounded attempts; inspect live state, not this table |
+| New CC link | `production-cc-compile-route-local-v1` | Local implementation in progress; inspect live state, not this table |
+| Remote ResPR/FullPR build chains | RROOT `production-{respr,fullpr}-compile-v3` and `production-{respr,fullpr}-compile-route-v3`; LROOT `production-{respr,fullpr}-remote-return-v3` | Fresh bounded compiles and exact compile-to-route-to-return followers; no admitted artifact yet |
 | Full-graph new-G+R performance | [Exact request file](fullgraph_requests.json) | Not yet accepted; requires successful returns and board runs |
-| Paired resident replay | [Exact paired requests](paired_requests.json) | Binds the v10 producer's three new admissions to the unchanged fixed Spine reports; no ratios before six complete matrices |
+| Paired resident replay | [Exact paired requests](paired_requests.json) | Binds the v11 producer's three new admissions to the unchanged fixed Spine reports; no ratios before six complete matrices |
 | FullPR resident host | `/home/chuxiao/grasu-regraph-fullpr-comparison`, commit `1cc5ee5`; `gr-fullpr-preparation-v4` | Complete CPU preparation passes; hardware convergence remains unmeasured |
-| FullPR hardware continuation | `gr-fullpr-board-continuation-v3` | Waiting for the exact new local FullPR return; no board requested |
+| FullPR hardware continuation | `gr-fullpr-board-continuation-v4` | Waiting for the exact new remote FullPR return; no board requested |
 | Actual R / current K4 control | [Current-candidate audit, preflight and board binding](../../../original_regraph/k4_control/CURRENT_CANDIDATE.md) | Fresh six-input arithmetic audit and 24-row host preflight pass; exact new FullPR return remains pending |
 | Same-input original/production G control | [Current-candidate preflight and board binding](../../../original_grasu/matched_production/CURRENT_CANDIDATE.md) | Fresh 22-step host preflight passes; independent eight-case, three-repeat board matrix waits for the exact new SSSP qualifier |
 | Final figures | None from this candidate | Do not overwrite the frozen Fig. 7--11 handoff |
@@ -60,10 +61,11 @@ tests reject changes to each. The earlier
 | `current-board-runner-b0aa357.tar.gz` | `087cad9ececb3ce1359fbed3e5c59439ce70c3af16e16c11531a07230ac38a1f` | Three-algorithm continuation using the exact request file and either verified return transport |
 | `fullpr-preparation-runner-dfdc287.tar.gz` | `2018780011364f5744a028a846dbc79ab7cf8e836b1c148f20a9085bad652e0a` | FullPR CPU preparation and exact-return board continuation |
 | `original-r-k4-current-runner-v3.tar` | `7b590d1be2b201ed0e4b0e583b22d1749d3062408d46f2a94c873d2c1a4badc9` | Current-source R arithmetic/preflight, G preflight and independently qualified G/K4 board continuations |
+| `high-memory-algorithm-runner-01e34c0.tar.gz` | `99f276f0e42674fd90094771162a4ad38ab4ce45981aea4831ce06abb8b81b3e` | Remote PR compilation, route and return, plus current local board continuations; independently hash-checked on both hosts |
 
 Never modify a live runner or transplant a new result into an old attempt.
 
-The paired request file deliberately points at `fullgraph-board-continuation-v10`,
+The paired request file deliberately points at `fullgraph-board-continuation-v11`,
 not an earlier producer. Its G+R admissions must equal `fullgraph_requests.json`
 algorithm by algorithm. The fixed Spine SSSP/CC/ResPR v2 reports and shared v1
 artifact freeze remain unchanged. A regression test checks this wiring without
@@ -82,21 +84,23 @@ LROOT unless explicitly remote.
 | `g-cache-comparison-remote-follow-v2` | `spine-g-compare-remote-follow-20261019-v2.service` | `48c27c87776f41adae5016d3edc41c0d` |
 | RROOT `g-cache-comparison-route-v2` | `spine-g-compare-route-remote-20261019-v2.service` | `bea6bfca3ec64eebac500cb7d55a73cf` |
 | `production-cc-compile-route-local-v1` | `spine-production-cc-compile-route-local-20261018-v1.service` | `8866c7c03edc446a9dd2d14bdc39d876` |
-| `production-respr-compile-route-local-v1` | `spine-production-respr-compile-route-local-20261018-v1.service` | `37e683aed86d4459932d9ad4c88935aa` |
-| `production-fullpr-compile-route-local-v1` | `spine-production-fullpr-compile-route-local-20261018-v1.service` | `0bba11cc2a3e4d7d9ec7d6e88536616a` |
 | `production-cc-local-return-v1` | `spine-production-cc-local-return-20261018-v1.service` | `d3e68ffd064a43ae87b884a0eedfbb21` |
-| `production-respr-local-return-v1` | `spine-production-respr-local-return-20261018-v1.service` | `fc6b42253a824b96b03e4ae9a0a5b53a` |
-| `production-fullpr-local-return-v1` | `spine-production-fullpr-local-return-20261018-v1.service` | `1ee16f77eea84bbba4ac305ad8ae449c` |
+| RROOT `production-respr-compile-v3` | `spine-production-respr-compile-remote-20261019-v3.service` | `39a9f0694d9a43b3abd9b1c63c9c6352` |
+| RROOT `production-fullpr-compile-v3` | `spine-production-fullpr-compile-remote-20261019-v3.service` | `dab5b719826a4780a227299f698cdd42` |
+| RROOT `production-respr-compile-route-v3` | `spine-production-respr-compile-route-remote-20261019-v3.service` | `0e21f18dfec04551a895beeafb63869e` |
+| RROOT `production-fullpr-compile-route-v3` | `spine-production-fullpr-compile-route-remote-20261019-v3.service` | `9ed927261b5448af9a64250a709fe161` |
+| `production-respr-remote-return-v3` | `spine-production-respr-remote-return-20261019-v3.service` | `422d8b2cfb3540a9bbf123a00c92c52e` |
+| `production-fullpr-remote-return-v3` | `spine-production-fullpr-remote-return-20261019-v3.service` | `c5a26cd5c40449198ce8af66dacaeef8` |
 | `production-cc-fresh-adapter-rtl-v1` | `spine-production-cc-fresh-adapter-rtl-20261018-v1.service` | `be4097d72ff24021b4492c1ef750cb74` |
 | `production-respr-fresh-adapter-rtl-v1` | `spine-production-respr-fresh-adapter-rtl-20261018-v1.service` | `e8655fb626564c3bbaf476b794778a1f` |
 | `production-fullpr-fresh-adapter-rtl-v1` | `spine-production-fullpr-fresh-adapter-rtl-20261018-v1.service` | `a4f7df56d3a84788960635969d0378ff` |
-| `fullgraph-board-continuation-v10` | `spine-fullgraph-board-continuation-20261019-v10.service` | `8965e17d741a499c87ae81a87ab6ccef` |
-| `paired-board-continuation-v6` | `spine-paired-board-continuation-20261019-v6.service` | `13e61afba1ef4b87893c2d7960921ff6` |
+| `fullgraph-board-continuation-v11` | `spine-fullgraph-board-continuation-20261019-v11.service` | `a4b25bf6b39145aa942b0b6840be0a1c` |
+| `paired-board-continuation-v7` | `spine-paired-board-continuation-20261019-v7.service` | `445462fb7de04472a90fee95ffbda074` |
 | `gr-fullpr-preparation-v4` | `spine-gr-fullpr-preparation-20261018-v4.service` | `5654d35624ac4a8490430ac24a54ec97` |
-| `gr-fullpr-board-continuation-v3` | `spine-fullpr-board-continuation-20261018-v3.service` | `81e50aed1ea44db889be5161ad96d4bc` |
+| `gr-fullpr-board-continuation-v4` | `spine-fullpr-board-continuation-20261019-v4.service` | `a9901a9de6224d008213f6335eca1bb3` |
 | `original-r-k4-current-arithmetic-v2` | `spine-original-r-k4-current-arithmetic-20261019-v2.service` | `85a0a771aa564c04a066f5173bc07f7f` |
 | `original-r-k4-current-host-preflight-v3` | `spine-original-r-k4-current-host-preflight-20261019-v3.service` | `900b130368d3475794828e42943ef8b3` |
-| `original-r-k4-current-board-supervisor-v2` | `spine-original-r-k4-current-board-supervisor-20261019-v2.service` | `05f1b2a02e3a451ba7b1d455777e9f7f` |
+| `original-r-k4-current-board-supervisor-v3` | `spine-original-r-k4-current-board-supervisor-20261019-v3.service` | `8e5b4ef8116e4e739591ac7467d9cacd` |
 | `matched-g-current-host-preflight-v3` | `spine-matched-g-current-host-preflight-20261019-v3.service` | `173b52a20a0c4150958b49d7877cb8da` |
 | `matched-g-current-board-follow-v5` | `spine-matched-g-current-board-follow-20261019-v5.service` | `a2a7ea1e1a264f0b9d7f043dc04f9b1f` |
 | RROOT `original-g-external-port-route-v6` | `spine-original-g-external-port-route-20261019-v6.service` | `27f4b7a273d64392897cb4ff29396ef7` |
@@ -145,9 +149,9 @@ events. The service's recorded memory peak is 825,479,168 bytes. Independent
 raw-log and source/input-pin replay passes. Its `results.json` SHA-256 is
 `34611b0194a5989d19df5f2e24d4b4b79bab90ed5498508c51d47f2ca811de8d`.
 
-FullPR board continuation v3 pins that exact preparation hash and the local
-return producer `spine-production-fullpr-local-return-20261018-v1.service`,
-invocation `1ee16f77eea84bbba4ac305ad8ae449c`. It is waiting, with
+FullPR board continuation v4 pins that exact preparation hash and remote
+return producer `spine-production-fullpr-remote-return-20261019-v3.service`,
+invocation `c5a26cd5c40449198ce8af66dacaeef8`. It is waiting, with
 `board_requested=false`, not a successful hardware result. Routing's 40-GiB
 and board execution's 24-GiB limits are unchanged.
 
@@ -159,7 +163,7 @@ threads were checked; source, link options, 40-GiB limit and zero swap remain
 unchanged. This is build-host scheduling evidence, not an FPGA performance
 measurement, and does not modify the frozen runner or earlier records.
 
-The two still-waiting ResPR/FullPR link supervisors receive the same kind
+The earlier, local ResPR/FullPR link supervisors received the same kind
 of correction before starting children. The separate
 `production-pending-route-affinity-adjustment-v1/{request,results}.json`
 pins their exact invocations and verifies every live thread: ResPR uses
@@ -167,6 +171,36 @@ CPUs 108--115 and FullPR uses 16--23, instead of CPUs 121 and 122 respectively.
 Their eight-CPU quotas, 40/36-GiB hard/high memory limits, zero swap and
 memory-admission rules are unchanged. This does not admit either route or
 modify a frozen runner, source or link option.
+
+## Remote PR Migration
+
+The fresh remote PR chains use the unchanged v4 source closure and immutable
+`01e34c0` runner. Each compilation and route follower has a 40/36-GiB
+hard/high limit, zero swap and an eight-CPU quota with matching affinity:
+ResPR uses CPUs 32--39, FullPR 40--47. They explicitly record the
+`seele-reserve-128g-v1` profile. Local return followers verify the exact remote
+compile-to-route invocation and retain sealed receipts before admission.
+Neither an early compile pass nor a returned file alone authorizes board use.
+
+The frozen request copies are `fullgraph-board-requests-v11.json` and
+`paired-board-requests-v7.json` under LROOT. They preserve the SSSP and CC
+bindings and fixed Spine reports, changing only the ResPR return and exact
+producer identity. FullPR and the independent R/K4 supervisor likewise bind
+the new FullPR return, without changing algorithm or timing semantics.
+
+Before migration, exact-invocation checks found the local ResPR/FullPR link
+followers waiting for memory without a vendor link child. Fullgraph v10,
+paired v6, FullPR v3 and R/K4 v2 were also waiting, without board requests.
+Only those obsolete waiting tasks were interrupted. Their original
+`FAILED_RETAINED` / `KeyboardInterrupt` reports and completed local XOs stay
+intact; these cancellations are not numerical, route-timing or board failures.
+The old local PR return followers consequently retain
+`required route terminated unsuccessfully; no board execution`; neither
+requested a board. Their replacement remote followers do not reuse those
+reports or count them as successful returns.
+An exited service may report success while its retained experiment reports
+cancellation: always inspect the experiment report. New downstream services
+use new output paths and the exact identities listed above.
 
 ## Simulator Timing Boundary
 
