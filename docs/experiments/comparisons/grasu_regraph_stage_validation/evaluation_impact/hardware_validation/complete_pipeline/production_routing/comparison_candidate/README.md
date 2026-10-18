@@ -19,7 +19,8 @@ remote outputs are under
 | New SSSP link and qualification | RROOT `g-cache-comparison-route-v1`; LROOT `g-cache-comparison-remote-follow-v1` | Pending exact route and strict admission |
 | New CC/ResPR/FullPR links | `production-{cc,respr,fullpr}-compile-route-local-v1` | Independent bounded attempts; inspect live state, not this table |
 | Full-graph new-G+R performance | [Exact request file](fullgraph_requests.json) | Not yet accepted; requires successful returns and board runs |
-| FullPR resident host | `/home/chuxiao/grasu-regraph-fullpr-comparison`, commit `1cc5ee5` | Host-only convergence port onto latest kernels; CPU preparation and board validation remain separate |
+| FullPR resident host | `/home/chuxiao/grasu-regraph-fullpr-comparison`, commit `1cc5ee5`; `gr-fullpr-preparation-v4` | Complete CPU preparation passes; hardware convergence remains unmeasured |
+| FullPR hardware continuation | `gr-fullpr-board-continuation-v3` | Waiting for the exact new local FullPR return; no board requested |
 | Final figures | None from this candidate | Do not overwrite the frozen Fig. 7--11 handoff |
 
 All three algorithm compile reports end in
@@ -53,6 +54,7 @@ tests reject changes to each. The earlier
 | `algorithm-local-return-runner-0b6f998.tar.gz` | `caeb563c03ffc14d9211c8436529f55404ec99ed28d556321c14b9dd19286532` | Strict local returns and remote SSSP qualification |
 | `algorithm-fresh-rtl-runner-0b6f998.tar.gz` | `34701fa22b17c0ab33b5af2046df4d65d765d683e3f7800ee1c24b44ed09aa0c` | Fresh adapter benches, including `cpp/tests/routed_regraph/` |
 | `current-board-runner-b0aa357.tar.gz` | `087cad9ececb3ce1359fbed3e5c59439ce70c3af16e16c11531a07230ac38a1f` | Three-algorithm continuation using the exact request file and either verified return transport |
+| `fullpr-preparation-runner-dfdc287.tar.gz` | `2018780011364f5744a028a846dbc79ab7cf8e836b1c148f20a9085bad652e0a` | FullPR CPU preparation and exact-return board continuation |
 
 Never modify a live runner or transplant a new result into an old attempt.
 
@@ -76,6 +78,8 @@ LROOT unless explicitly remote.
 | `production-respr-fresh-adapter-rtl-v1` | `spine-production-respr-fresh-adapter-rtl-20261018-v1.service` | `e8655fb626564c3bbaf476b794778a1f` |
 | `production-fullpr-fresh-adapter-rtl-v1` | `spine-production-fullpr-fresh-adapter-rtl-20261018-v1.service` | `a4f7df56d3a84788960635969d0378ff` |
 | `fullgraph-board-continuation-v9` | `spine-fullgraph-board-continuation-20261018-v9.service` | `e612a14bee3b4681ab4a17b795f6c7b0` |
+| `gr-fullpr-preparation-v4` | `spine-gr-fullpr-preparation-20261018-v4.service` | `5654d35624ac4a8490430ac24a54ec97` |
+| `gr-fullpr-board-continuation-v3` | `spine-fullpr-board-continuation-20261018-v3.service` | `81e50aed1ea44db889be5161ad96d4bc` |
 
 ## Admission And Memory
 
@@ -102,13 +106,42 @@ Do not stop or cap someone else's job without permission. Live JSON and
 cgroup records decide whether this condition still exists.
 
 The latest FullPR CPU preparation uses the separate clean host worktree
-`1cc5ee5`; its earlier `gr-fullpr-preparation-v3` waits for a 24-GiB budget.
-The bounded-cohort executor also supports an exact 4-GiB complete scope,
-based on the earlier cohort's 825,266,176-byte peak, without dropping any
-case or CPU-reference check. This does not reduce routing's 40-GiB limit,
-board execution's 24-GiB limit or the CPU preparation's 32-GiB reserve.
-Any superseding attempt gets a new output and service; the waiting record
-is retained, not overwritten or presented as a completed preparation.
+`1cc5ee5`. Its earlier `gr-fullpr-preparation-v3` was operator-cancelled while
+waiting for a 24-GiB budget, before any child step. Its retained
+`FAILED_RETAINED`/`KeyboardInterrupt` record is not a numerical failure.
+The replacement v4 uses the exact 4-GiB complete scope and 32-GiB reserve,
+without dropping a case or CPU-reference check. It completes compilation,
+the smoke and all AU/SU/WK preparations with no errors or memory-limit/OOM
+events. The service's recorded memory peak is 825,479,168 bytes. Independent
+raw-log and source/input-pin replay passes. Its `results.json` SHA-256 is
+`34611b0194a5989d19df5f2e24d4b4b79bab90ed5498508c51d47f2ca811de8d`.
+
+FullPR board continuation v3 pins that exact preparation hash and the local
+return producer `spine-production-fullpr-local-return-20261018-v1.service`,
+invocation `1ee16f77eea84bbba4ac305ad8ae449c`. It is waiting, with
+`board_requested=false`, not a successful hardware result. Routing's 40-GiB
+and board execution's 24-GiB limits are unchanged.
+
+The CC link's own service originally inherited a single CPU despite its
+eight-CPU quota. The separate immutable addendum
+`production-cc-affinity-adjustment-v1/{request,results}.json` records changing
+only that invocation's live threads to CPUs 96--101, 106 and 107. All live
+threads were checked; source, link options, 40-GiB limit and zero swap remain
+unchanged. This is build-host scheduling evidence, not an FPGA performance
+measurement, and does not modify the frozen runner or earlier records.
+
+## Simulator Timing Boundary
+
+Do not call the newest complete G calibrated from component checks alone.
+The current finite cache model declares bank interval 3 cycles and latency
+7 cycles in `cpp/include/spine_sim/grasu_update/cached_processor.hpp`.
+The new registered cache's HLS `lane_update` report observes loop II=3 and
+pipeline depth 5, although the source requests II=1. The matching II is a
+component schedule check; depth 5 is not the model's complete packet latency
+boundary and must not be substituted for 7 without a separate transaction
+comparison. Neither HLS depth nor the earlier isolated cache RTL establishes
+the complete routed G's cycles, host time or publication-level performance.
+The new G hardware qualifier and matched original-G matrix remain necessary.
 
 ## Remaining Work
 
