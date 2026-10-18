@@ -34,10 +34,10 @@ def service_state(unit):
 def route_finished(state, invocation):
     if state["LoadState"] != "loaded" or state["InvocationID"] != invocation:
         raise ValueError("route service disappeared or its invocation changed")
-    if state["ActiveState"] in ("active", "activating", "deactivating"):
+    terminal = (state["ActiveState"], state["SubState"]) in (("inactive", "dead"), ("active", "exited"))
+    if not terminal and state["ActiveState"] in ("active", "activating", "deactivating"):
         return False
-    if state["ActiveState"] != "inactive" or state["SubState"] != "dead" or \
-            state["Result"] != "success" or state["MainPID"] != "0" or state["ExecMainStatus"] != "0":
+    if not terminal or state["Result"] != "success" or state["MainPID"] != "0" or state["ExecMainStatus"] != "0":
         raise ValueError("required route terminated unsuccessfully; no board execution")
     return True
 

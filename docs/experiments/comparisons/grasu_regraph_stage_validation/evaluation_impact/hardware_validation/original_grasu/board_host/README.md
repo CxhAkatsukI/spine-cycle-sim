@@ -105,9 +105,11 @@ The baseline report is frozen at SHA-256
 `b548229594e31b4d78eefa2ec79502a97134fad35a274504c9089cadadd06048`.
 The preflight is deliberately not a generic importer of arbitrary historical
 results. A new baseline needs explicit review rather than a hash override.
-The source-preserving link, strict routed timing, automatic admission and
-actual-board repetitions remain open. Do not manually invoke the board
-entry on an unreviewed artifact just because these self-tests pass.
+The source-preserving link, strict routed timing and actual-board repetitions
+remain open. The [parent package](../README.md#return-and-board-continuation)
+now owns automatic return/admission and an explicit optional board continuation;
+its implementation and synthetic tests are not a board pass. Do not manually
+invoke the board entry on an unreviewed artifact just because self-tests pass.
 
 ## Independent Routed Gate
 

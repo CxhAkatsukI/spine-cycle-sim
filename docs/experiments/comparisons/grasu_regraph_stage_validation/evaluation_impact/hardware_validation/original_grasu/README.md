@@ -25,7 +25,13 @@ or shrink the cache and call the result original G.
 - `preparation.py`: clean-revision validation and relocatable source packet.
 - `gates.py`: canonical exported ABI and HLS part/clock checks.
 - `study.py`: tool/environment freezing, bounded compilation and linking.
-- `__main__.py`: prepare/build CLI; neither command programs an FPGA.
+- `records.py`: completed commands, raw resources and zero-OOM closure.
+- `delivery.py`: exact-invocation sealing and hash-checked closed transport.
+- `admission.py`: independent local source/ABI/HLS/topology/timing review.
+- `board/analysis.py`, `board/execution.py`: event/state checking and the
+  exclusively leased, repeated original-G FPGA matrix.
+- `follow.py`: bounded return, strict admission and optional explicit board run.
+- `__main__.py`: prepare/build/seal CLI; these commands do not program an FPGA.
 
 The source packet is byte-exact and rejects altered, extra or symbolic files.
 The runner requires a finite 40-GiB cgroup, at most 36-GiB memory.high, zero
@@ -104,7 +110,64 @@ included `autopilot_ssdm_op.h`. It does not replace the header with a stub,
 remove the include, alter any author source, or change the geometry/clock.
 A fresh runner and output are required for the retry.
 
+The source-preserving v2 retry is now queued under runner `8fff331`, service
+`spine-original-g-route-20261018-v2.service`, invocation
+`ff92efbffe9d4b149d68e6ccb9f646d3`, output `original-g-source-route-v2`.
+At 10:40 UTC it is still waiting for unknown/unbounded peer budgets, not for
+all tools to exit. Available memory is approximately 415 GiB; the full finite
+budgets fit numerically, but this does not bound those unknown peers.
+
 The [standalone board-host prerequisite](board_host/README.md) now compiles
 the real-XRT Release binary and independently replays all eight author-host
 inputs in Release and UBSan builds. These passes do not waive the route,
 strict clock/timing, actual-board correctness or matched-performance gates.
+
+## Return And Board Continuation
+
+Use a new frozen runner for sealing/following; never edit the live build's
+runner. The follower accepts normal `inactive/dead` and retained
+`active/exited` terminal services, but only with the exact invocation,
+`Result=success`, exit status zero and no main PID. An active running process
+or a successful v++ message is not terminal admission. Failed invocations
+stop the chain and retain evidence.
+
+The remote sealer requires all four canonical XOs/HLS reports, five clean
+compile/link child records, six clean tool probes, unchanged source and
+environment pins, zero OOM events and exactly one final routed timing report.
+It copies only a closed member set to a new return folder and sends the
+receipt digest over SSH. Local admission independently repeats the exported
+ABI, target clock, nine-CU/46-HBM/eight-stream and final setup/hold/pulse-width
+checks. No clock reduction or port compaction is accepted.
+
+```bash
+python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware.follow \
+  --target chuxiao@10.129.161.241 --port 23333 \
+  --runner /absolute/new-frozen-remote-runner \
+  --packet /data/chuxiao/baseline_hardware_validation_20261017/original-g-source-packet-v1 \
+  --attempt /data/chuxiao/baseline_hardware_validation_20261017/original-g-source-route-v2 \
+  --returned /absolute/fresh-remote-original-g-return \
+  --unit spine-original-g-route-20261018-v2.service \
+  --invocation ff92efbffe9d4b149d68e6ccb9f646d3 \
+  --output /absolute/fresh-local-original-g-follow \
+  --execute --board-preflight /absolute/original-g-board-host-preflight-v3 \
+  --device 0
+```
+
+Both local follower and remote sealer need separate 4-GiB max/3-GiB high,
+zero-swap, group-OOM-kill cgroups with finite runtimes. The board stage accepts
+only the reviewed host preflight hash in the linked guide, not arbitrary
+historical reports. It waits at most one hour for the exclusive U55C lease,
+rechecks pins/runtime/idle device and the 32-GiB memory reserve, then runs
+all eight cases three times with ten-minute child deadlines. It forwards the
+lease descriptor to the real XRT host. A timeout or state mismatch is retained
+and never triggers a board reset or a performance retry.
+
+`ORIGINAL_G_U55C_MATRIX_PASS_NOT_PUBLICATION_OR_MATCHED_G_COMPARISON` would
+mean a complete-state, repeated same-platform original-G measurement only.
+The separate production-G same-input comparison and the author's original
+U250/publication match remain open. These synthetic tests and the existence
+of this continuation do **not** claim an actual FPGA pass:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_original_grasu*.py'
+```

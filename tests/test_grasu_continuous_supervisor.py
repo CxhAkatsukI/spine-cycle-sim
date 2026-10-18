@@ -74,6 +74,16 @@ class SupervisorTests(unittest.TestCase):
         self.assertTrue(result["board_correctness_measured"])
         self.assertTrue(all(result[key] is False for key in job.board.CLAIMS))
 
+    def test_remain_after_exit_is_terminal_only_with_success_and_no_main_process(self):
+        retained = state("active", SubState="exited", MainPID="0")
+        self.assertTrue(job.route_finished(retained, INVOCATION))
+        for change in ({"MainPID": "123"}, {"ExecMainStatus": "1"}, {"Result": "signal"},
+                       {"InvocationID": "b" * 32}, {"LoadState": "not-found"}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                job.route_finished({**retained, **change}, INVOCATION)
+        self.assertFalse(job.route_finished(state("active"), INVOCATION))
+        self.assertFalse(job.route_finished(state("deactivating"), INVOCATION))
+
     def test_failed_disappeared_or_restarted_route_cannot_request_a_board(self):
         for changed in (state("failed"), state(Result="signal"), state(InvocationID="b" * 32),
                         state(LoadState="not-found"), state(ExecMainStatus="1"), state(MainPID="123")):
