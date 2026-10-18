@@ -1,6 +1,6 @@
 """Exercise board sequencing with mocks, never with a real FPGA."""
 
-from contextlib import ExitStack, contextmanager
+from contextlib import ExitStack, contextmanager, nullcontext
 import json
 import os
 from pathlib import Path
@@ -13,7 +13,7 @@ from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import bo
 
 class BoardStudyTests(unittest.TestCase):
     def invoke(self, root, *, execute=True, failed=None, admission=True, memory_event=False,
-               drift=False, busy=False, affinity=(0, 1)):
+               drift=False, busy=False, affinity=(0, 1), spine=False):
         group = root / "group"
         group.mkdir()
         (group / "memory.events").write_text("max 0\noom 0\noom_kill 0\noom_group_kill 0\n")
@@ -26,6 +26,13 @@ class BoardStudyTests(unittest.TestCase):
         plan = {"binary": str(binary), "candidate": {"path": str(root / "fake.xclbin")},
                 "pins": [preparation.identity(inputs)], "rows": rows,
                 "smoke": {**rows[0], "dataset": "SMOKE"}}
+        experiment = None
+        if spine:
+            from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.spine_resident.__main__ import experiment as spine_experiment
+            from dataclasses import replace
+            plan["smokes"] = [{**rows[0], "dataset": "LEGACY", "legacy": True}, plan["smoke"]]
+            experiment = replace(spine_experiment(), prepare=lambda *_: plan,
+                                 analyze=lambda *_args, **_kwargs: {"status": "PASS"})
         output = root / "attempt"
         calls = []
 
@@ -38,7 +45,8 @@ class BoardStudyTests(unittest.TestCase):
             prefix.parent.mkdir(exist_ok=True)
             prefix.with_suffix(".stdout.txt").write_text("mock log, analyzer replaced")
             prefix.with_suffix(".stderr.txt").write_text("")
-            Path(command[3]).write_text("mock result, no hardware")
+            if not spine:
+                Path(command[3]).write_text("mock result, no hardware")
             if drift:
                 inputs.write_text("changed input")
             if memory_event:
@@ -55,7 +63,8 @@ class BoardStudyTests(unittest.TestCase):
             stack.enter_context(patch.object(study.board_preparation, "prepare", return_value=plan))
             stack.enter_context(patch.object(study.os, "sched_getaffinity", return_value=set(affinity)))
             stack.enter_context(patch.object(study, "clean_environment"))
-            stack.enter_context(patch.object(study, "board_lease", side_effect=board))
+            stack.enter_context(patch.object(study.board_access, "measurement_lease", side_effect=nullcontext))
+            stack.enter_context(patch.object(study.board_access, "board_lease", side_effect=board))
             idle = stack.enter_context(patch.object(study, "require_idle_board",
                                                     side_effect=ValueError("busy") if busy else None))
             stack.enter_context(patch.object(study.runtime, "capture", return_value={"pins": [],
@@ -69,7 +78,7 @@ class BoardStudyTests(unittest.TestCase):
             lease.return_value.sample.return_value = {"admitted": admission}
             try:
                 result = study.run(root, root / "admission", "weighted_sssp", output,
-                                   execute=execute, wait_seconds=1)
+                                   execute=execute, wait_seconds=1, experiment=experiment)
             except (ValueError, TimeoutError):
                 result = json.loads((output / "results.json").read_text())
             return result, calls, lease.return_value, idle
@@ -102,6 +111,22 @@ class BoardStudyTests(unittest.TestCase):
             lease.sample.assert_not_called()
             idle.assert_not_called()
 
+    def test_spine_contract_shares_executor_but_not_gr_commands_or_result_files(self):
+        from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.spine_resident.analysis import PASS
+        with tempfile.TemporaryDirectory() as directory:
+            report, calls, lease, idle = self.invoke(Path(directory), spine=True)
+            self.assertEqual(report["status"], PASS)
+            self.assertEqual(report["experiment"], "fixed_spine_resident")
+            self.assertEqual(len(calls), 26)
+            self.assertEqual([call[0] for call in calls[:2]], ["smoke_r0_LEGACY", "smoke_r1_SMOKE"])
+            self.assertNotIn("--resident-benchmark", calls[0][1])
+            self.assertTrue(all("--resident-benchmark" in call[1] for call in calls[1:]))
+            self.assertEqual(calls[0][2]["environment"]["SPINE_EXPECT_BDF"], "0000:01:00.1")
+            self.assertNotIn("GRASU_REGRAPH_EXPECT_BDF", report["environment"])
+            self.assertTrue(all("result_identity" not in row for row in report["attempts"]))
+            self.assertFalse(report["spine_comparison"])
+            lease.release.assert_called_once()
+
     def test_memory_timeout_busy_board_or_wrong_affinity_never_launches_child(self):
         for kwargs in ({"admission": False}, {"busy": True}, {"affinity": (0,)}):
             with self.subTest(kwargs=kwargs), tempfile.TemporaryDirectory() as directory:
@@ -128,7 +153,7 @@ class BoardStudyTests(unittest.TestCase):
             self.assertFalse(report["hardware_convergence_measured"])
 
     def test_inherited_loader_and_device_overrides_rejected(self):
-        for name in ("LD_PRELOAD", "XRT_INI_PATH", "XCL_DEVICE_INDEX", "GRASU_REGRAPH_EXPECT_BDF"):
+        for name in ("LD_PRELOAD", "XRT_INI_PATH", "XCL_DEVICE_INDEX", "GRASU_REGRAPH_EXPECT_BDF", "SPINE_EXPECT_BDF"):
             with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
                 with patch.dict(os.environ, {name: "uncontrolled"}), self.assertRaises(ValueError):
                     study.clean_environment(Path(directory) / "host", Path(directory))

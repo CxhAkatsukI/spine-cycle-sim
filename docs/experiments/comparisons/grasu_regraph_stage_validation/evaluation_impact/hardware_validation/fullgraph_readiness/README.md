@@ -219,6 +219,10 @@ rehashed inconsistent outputs, source drift and false board claims.
 
 ## Board Continuation
 
+The [fixed-Spine board protocol](spine_resident/README.md) uses the same bounded
+executor with an explicit host contract. It does not reuse G+R output parsing
+or claim a paired result before both matrices pass.
+
 The offline capsule above remains frozen. The separate board owner comprises
 `board_preparation.py` (offline/artifact identity and exact eight-graph plan),
 `board_analysis.py` (oracle, convergence and event-ledger checks),
