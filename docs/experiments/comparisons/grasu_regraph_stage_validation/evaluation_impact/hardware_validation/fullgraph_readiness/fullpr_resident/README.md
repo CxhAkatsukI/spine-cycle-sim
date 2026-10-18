@@ -111,6 +111,21 @@ counters. Unit tests use synthetic logs and mocked execution, including
 failure, missing-event and premature-convergence cases. They do not validate
 the hardware datapath or resolve the Spine failures below.
 
+### Complete G+R Offline Preparation
+
+`gr-fullpr-preparation-v2` completes compilation, the dangling smoke and all
+three AU/SU/WK preparations: five child steps, zero errors and zero OOM
+events. Its service is `gr-fullpr-preparation-20261018-v2.service`, invocation
+`8f7f4612dde8464ba898b1832c6639b5`, with peak memory 825,266,176 bytes and
+zero exit status. The terminal report SHA-256 is
+`c13ce477b191d0bfbe7cd31add6b2357af27fc383d1429388cd5e1a0da78c52e`.
+Independent raw-log replay verifies the pinned host-only source `6eb197a`.
+AU/SU/WK use 8/9/18 destination partitions and respectively 1,843,296 /
+2,625,456 / 2,727,664 physical PMA slots. This is
+`GR_FULLPR_HOST_PREPARATION_PASS_NOT_BOARD_OR_PERFORMANCE`, not hardware
+convergence. V1 failed at startup before runner extraction had completed;
+its separate failed service and startup journal remain retained.
+
 ## Retained FPGA Failures
 
 Two subsequent board attempts are `FAILED_RETAINED`, not accepted FullPR
@@ -140,8 +155,37 @@ The v2 diagnostic build passes four host builds and injected tests under
 `9f6ca96b17804da6ab1b5cee4b9dd96a`, exits zero; peak memory 525,635,584 bytes.
 These tests validate diagnostic ordering, not the failed hardware datapath.
 
-The changed behavior across attempts motivates checking static FIFO reset
-and synthesis behavior. It does not yet prove a root cause. Do not relax
+An independent read-only source/XO review finds a concrete mismatch: the
+source unconditionally resets both static owner/reactivation FIFOs on entry,
+but the packaged FullPR RTL has no entry writer for their head/tail/count
+metadata. The synthesized depth-16 metadata RAMs load zeros at configuration;
+their reset input does not clear the RAM at kernel invocation. Head/count
+write enables select apply/drain, and tail write enables select enqueue.
+Configuration initialization is not invocation initialization.
+
+The v2 ledger is consistent with a reactivation count initially at 256:
+reserve drains four entries, enqueue restores the count, then final drain
+cannot publish 256 entries into a four-entry frontier and returns overflow.
+This is an explanatory hypothesis for that failure, not a measured initial
+count. Missing reset is a source/RTL defect and failed-invocation recovery
+risk. Successful drains can empty the FIFO, so it does not by itself explain
+the original v1 AU failure. V1 lacks the failure ledger; exact reconfiguration
+and high-pressure writeback remain unverified. No kernel fix is claimed.
+
+The reviewed XO is `spine_partconv_compute_kernel.fullpr.hw.xo` under
+`/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/fullpr/xclbin/`.
+Inside `hdl/verilog/`, the long-named `partitioned_run_pagerank_compute_3_s.v`
+module's metadata write muxes are at lines 8819--8977; sibling
+`partitioned_owner_activate_word.v` tail write enables are at lines
+5280--5285 and 5380--5385. These module names have the common
+`spine_partconv_compute_kernel_` prefix. Source calls are in
+`src/spine_pagerank_compute.hpp` at line 148, with reset implementation in
+`src/spine_owner_state.hpp` at line 139 of the pinned diagnostic worktree.
+
+A prospective fix must prove all metadata slots clear before first use,
+exercise wrap/reserve and a failed drain followed by another invocation,
+and rerun emulation and clean-start hardware correctness. It must not merely
+add a pragma and assume synthesis preserved the reset. Do not relax
 the full-frontier or overflow checks, reset the board without admission, or
 retry until a passing sample appears. The isolated passing smoke is not a
 paired performance result. No accepted FullPR matrix, paired speedup, stage

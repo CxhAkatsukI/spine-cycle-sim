@@ -9,7 +9,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from ....production_board import route as production
 from ....search_pipeline.synthesis import unchanged
 from ..preparation import COUNTS
-from . import capsule, delivery
+from . import capsule, delivery, timing as physical_timing
 
 
 def review(returned, original, output, *, parent_directory, receipt_sha256):
@@ -41,8 +41,9 @@ def review(returned, original, output, *, parent_directory, receipt_sha256):
     platforms = [line.split("=", 1)[1] for line in config.splitlines() if line.startswith("platform=")]
     if len(platforms) != 1:
         raise ValueError("one remote platform required")
-    expected_config = capsule.configuration((returned / "capsule/parent/link.cfg").read_text(),
-                                             remote_route, Path(platforms[0]))
+    expected_config = physical_timing.configure(capsule.configuration(
+        (returned / "capsule/parent/link.cfg").read_text(), remote_route, Path(platforms[0])),
+        manifest.get("timing_profile"))
     pins_by_path = {pin["path"]: pin["sha256"] for pin in manifest["pins"]}
     mandatory = [indexed[member]["source"] for member in (
         "capsule/capsule.json", "route/environment.json", "route/link.cfg")]
@@ -72,7 +73,8 @@ def review(returned, original, output, *, parent_directory, receipt_sha256):
     unchanged(pins)
     result = {"status": "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD", "original": identity(original),
               "candidate": identity(candidate), "clock_topology_connectivity_equal": True,
-              "timing": timing, "topology": new, "pins": pins, "remote_receipt": identity(returned / "receipt.json"),
+              "timing": timing, "timing_profile": manifest.get("timing_profile"),
+              "topology": new, "pins": pins, "remote_receipt": identity(returned / "receipt.json"),
               "candidate_owner": parent["candidate_owner"], "link_status": delivery.PASS,
               "claim": "remote_link_provenance_and_local_strict_timing_not_board_performance"}
     atomic_write_json(output / "summary.json", result)

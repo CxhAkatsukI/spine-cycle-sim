@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
-from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import capsule
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import capsule, timing
 import test_g_production_board_route as production_tests
 
 
@@ -123,6 +123,20 @@ class RemoteProductionCapsuleTests(unittest.TestCase):
         for invalid in (text.replace("platform=/old/platform\n", ""), text + "platform=duplicate\n"):
             with self.assertRaises(ValueError):
                 capsule.configuration(invalid, Path("/new/output"), Path("/new/platform"))
+
+    def test_physical_retry_only_appends_frozen_implementation_properties(self):
+        source = "platform=/platform\n[connectivity]\nnk=search:4\n[clock]\nfreqHz=150000000:search_1\n"
+        self.assertEqual(timing.configure(source, None), source)
+        changed = timing.configure(source, timing.PROFILE)
+        self.assertEqual(changed.split("\n[vivado]\n")[0], source)
+        self.assertEqual(changed.split("\n[vivado]\n")[1].splitlines(),
+                         ["prop=" + value for value in timing.PROPERTIES])
+        self.assertIn("POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED=true", changed)
+        for invalid in ("downclock", "", True):
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, "unknown"):
+                timing.configure(source, invalid)
+        with self.assertRaisesRegex(ValueError, "existing"):
+            timing.configure(changed, timing.PROFILE)
 
 
 if __name__ == "__main__":

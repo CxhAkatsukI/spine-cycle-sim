@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import (
-    admission, capsule, delivery,
+    admission, capsule, delivery, timing,
 )
 from test_g_remote_production_link import fixture
 from test_grasu_continuous_supervisor import INVOCATION, state
@@ -18,7 +18,7 @@ def write(path, value):
     path.write_text(json.dumps(value))
 
 
-def returned_fixture(root):
+def returned_fixture(root, *, timing_profile=None):
     parent, exports = fixture(root)
     relocated = root / "relocated"
     with patch.object(capsule.production, "EXPORTS", exports):
@@ -29,7 +29,8 @@ def returned_fixture(root):
     platform.write_text("synthetic platform")
     environment = {"tools": {"v++": {"invocation": "/remote/v++"}}, "pins": [identity(platform)]}
     write(route / "environment.json", environment)
-    (route / "link.cfg").write_text(capsule.configuration((relocated / "parent/link.cfg").read_text(), route, platform))
+    (route / "link.cfg").write_text(timing.configure(capsule.configuration(
+        (relocated / "parent/link.cfg").read_text(), route, platform), timing_profile))
     (route / "candidate.hw.xclbin").write_text("synthetic binary, never programmed")
     for name in ("route.stdout.txt", "route.stderr.txt"):
         (route / name).write_text("")
@@ -55,6 +56,8 @@ def returned_fixture(root):
     manifest = {"command": capsule.command(packet, parent_manifest, relocated, route, Path("/remote/v++")),
         "pins": pins, "relocation": identity(relocated / "capsule.json"), "parent": packet["parent"],
         "clock_mhz": 150, "policy": capsule.POLICY, **dict.fromkeys(capsule.FLAGS, False)}
+    if timing_profile is not None:
+        manifest["timing_profile"] = timing_profile
     write(route / "manifest.json", manifest)
     execution = {"status": delivery.PASS, "errors": [], "route": resources,
         "host": socket.gethostname(), "capsule": identity(relocated / "capsule.json"),
@@ -66,8 +69,8 @@ def returned_fixture(root):
 
 
 class RemoteReturnTests(unittest.TestCase):
-    def fixture(self, root):
-        parent, relocated, route, exports = returned_fixture(root)
+    def fixture(self, root, *, timing_profile=None):
+        parent, relocated, route, exports = returned_fixture(root, timing_profile=timing_profile)
         output = root / "returned"
         with patch.object(delivery, "service_state", return_value=state()):
             receipt = delivery.seal(relocated, route, output, unit="remote.service", invocation=INVOCATION)
@@ -182,6 +185,47 @@ class RemoteReturnTests(unittest.TestCase):
                 with patch.object(admission.production, "EXPORTS", exports), \
                         self.assertRaisesRegex(ValueError, "configuration"):
                     admission.review(returned, original, root / "rejected", parent_directory=parent, receipt_sha256=digest)
+
+    def test_physical_retry_retains_topology_and_strict_timing_gates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent, _, _, exports, returned, digest = self.fixture(root, timing_profile=timing.PROFILE)
+            original = root / "original.xclbin"
+            original.write_text("original")
+            topology = {"clock": [("DATA", "DATA_CLK", 150)], "kernels": [
+                (f"{name}:{name}_{index + 1}", "AP_CTRL_CHAIN")
+                for name, count in admission.COUNTS.items() for index in range(count)], "connections": []}
+            with patch.object(admission.production, "EXPORTS", exports), \
+                    patch.object(admission.bitstream, "_dump", return_value={}), \
+                    patch.object(admission.bitstream, "normalized_topology", return_value=topology):
+                result = admission.review(returned, original, root / "admission", parent_directory=parent, receipt_sha256=digest)
+                self.assertEqual(result["timing_profile"], timing.PROFILE)
+                with patch.object(admission.bitstream, "parse_routed_timing", side_effect=ValueError("negative HBM WNS")), \
+                        self.assertRaisesRegex(ValueError, "negative HBM"):
+                    admission.review(returned, original, root / "negative-hbm", parent_directory=parent, receipt_sha256=digest)
+                different = {**topology, "clock": [("DATA", "DATA_CLK", 149)]}
+                with patch.object(admission.bitstream, "normalized_topology", side_effect=[topology, different]), \
+                        self.assertRaisesRegex(ValueError, "clock"):
+                    admission.review(returned, original, root / "changed-clock", parent_directory=parent, receipt_sha256=digest)
+
+    def test_unrecorded_physical_retry_is_rejected_even_when_resealed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent, relocated, route, exports = returned_fixture(root, timing_profile=timing.PROFILE)
+            manifest = json.loads((route / "manifest.json").read_text())
+            manifest.pop("timing_profile")
+            write(route / "manifest.json", manifest)
+            execution = json.loads((route / "execution.json").read_text())
+            execution["manifest"] = identity(route / "manifest.json")
+            write(route / "execution.json", execution)
+            returned = root / "returned"
+            with patch.object(delivery, "service_state", return_value=state()):
+                digest = delivery.seal(relocated, route, returned, unit="remote.service", invocation=INVOCATION)["sha256"]
+            original = root / "original.xclbin"
+            original.write_text("original")
+            with patch.object(admission.production, "EXPORTS", exports), \
+                    self.assertRaisesRegex(ValueError, "configuration"):
+                admission.review(returned, original, root / "rejected", parent_directory=parent, receipt_sha256=digest)
 
 
 if __name__ == "__main__":

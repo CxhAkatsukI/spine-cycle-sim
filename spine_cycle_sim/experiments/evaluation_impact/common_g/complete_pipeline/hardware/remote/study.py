@@ -16,10 +16,10 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from ....search_pipeline.synthesis import unchanged
-from . import capsule, environment
+from . import capsule, environment, timing
 
 
-def run(root, output, xilinx, platform, compatibility):
+def run(root, output, xilinx, platform, compatibility, *, timing_profile=None):
     packet, parent = capsule.verify(root)
     output.mkdir(parents=True, exist_ok=False)
     group = current()
@@ -38,8 +38,8 @@ def run(root, output, xilinx, platform, compatibility):
             (output / member).mkdir()
         effective, contract = environment.capture(root, output, xilinx, platform, compatibility)
         atomic_write_json(output / "environment.json", contract)
-        (output / "link.cfg").write_text(capsule.configuration(
-            (root / "parent/link.cfg").read_text(), output, platform))
+        (output / "link.cfg").write_text(timing.configure(capsule.configuration(
+            (root / "parent/link.cfg").read_text(), output, platform), timing_profile))
         argv = capsule.command(packet, parent, root, output, contract["tools"]["v++"]["invocation"])
         runners = sorted({Path(module.__file__) for name, module in sys.modules.copy().items()
             if name.startswith("spine_cycle_sim.experiments") and getattr(module, "__file__", None)})
@@ -48,7 +48,7 @@ def run(root, output, xilinx, platform, compatibility):
                 identity(output / "environment.json"), identity(output / "link.cfg")]
         atomic_write_json(output / "manifest.json", {"command": argv, "pins": pins,
             "relocation": report["capsule"], "parent": packet["parent"], "policy": packet["policy"],
-            "clock_mhz": 150, **dict.fromkeys(capsule.FLAGS, False)})
+            "clock_mhz": 150, "timing_profile": timing_profile, **dict.fromkeys(capsule.FLAGS, False)})
         report["manifest"] = identity(output / "manifest.json")
         pins.append(report["manifest"])
         deadline = time.monotonic() + 86400

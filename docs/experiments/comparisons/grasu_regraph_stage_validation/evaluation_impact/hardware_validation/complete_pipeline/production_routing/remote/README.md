@@ -21,6 +21,9 @@ local parent, exact command/configuration, topology and strict final timing.
 wait/return/qualification sequence. `__main__.py` is the CLI. A successful
 remote link is never itself board or baseline admission.
 
+`timing.py` owns the optional, fixed physical-only retry described below.
+An omitted timing profile retains the original relocated configuration.
+
 ## Live Attempt
 
 The production SSSP link is running on `seele`, under service
@@ -36,6 +39,34 @@ The capsule hash is
 `1077ef1456e8626a2306f26c4f4a4be8f1e41976e89925763731030e708331b2`.
 The output is `production-sssp-route-v1` under the remote root below. Keep
 that runner untouched; return sealing uses a separately frozen runner.
+
+### Strict Timing Failure And Physical Retry
+
+At 2026-10-18 08:28 UTC, SSSP v1 was generating its bitstream, not terminal.
+Its final routed report already fails strict admission: WNS -0.102 ns,
+TNS -4.160 ns and 93 setup-failing endpoints. The 150-MHz kernel clock has
+positive slack (+0.055 ns); the failing group is the 450-MHz HBM clock.
+The worst path is the HBM inter-SLR response pipeline, with 1.724 ns routing
+delay and no logic levels. Vitis reports automatic HBM scaling to 430.2 MHz.
+That is not the declared equal-clock configuration, even if link exits zero.
+The original report and artifact remain retained; no board pass is inferred.
+
+A fresh `execute --timing-profile aggressive-route-v1` attempt changes only
+five Vivado implementation properties: `AltSpreadLogic_high` placement,
+`AggressiveExplore` physical optimization and routing, and explicitly enabled
+post-route `AggressiveExplore` physical optimization. It preserves the exact
+parent capsule, XOs, SLR assignments, ports, stream connections, 150-MHz
+kernel target, platform HBM timing constraints and two-job limits. This is
+an implementation retry, not a simulator or algorithm change. It is not a
+promise of timing closure.
+
+The profile is frozen in the route manifest. Local admission reconstructs
+every configuration byte from that profile and the immutable parent; unknown,
+unrecorded or conflicting properties reject the return. The original strict
+timing and complete xclbin clock/topology checks still apply. Neither a
+profile nor a successful command can waive negative HBM timing. Use a fresh
+output/service and retain both attempts. Deployment identities are recorded
+after the tested runner has been committed and transferred.
 
 ## Inputs And Environment
 

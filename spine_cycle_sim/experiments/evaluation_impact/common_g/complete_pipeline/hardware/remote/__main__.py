@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from . import admission, capsule, continuation, delivery, qualification, study
+from . import admission, capsule, continuation, delivery, qualification, study, timing
 from .transport import Remote
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -14,6 +14,7 @@ prepare.add_argument("--output", type=Path, required=True)
 execute = commands.add_parser("execute")
 for name in ("capsule", "output", "xilinx", "platform", "compatibility"):
     execute.add_argument("--" + name, type=Path, required=True)
+execute.add_argument("--timing-profile", choices=(timing.PROFILE,))
 seal = commands.add_parser("seal")
 for name in ("capsule", "attempt", "output"):
     seal.add_argument("--" + name, type=Path, required=True)
@@ -48,7 +49,8 @@ if args.command == "prepare":
     print("PREPARED_RELOCATION_NOT_ROUTED", packet["parent"]["sha256"], flush=True)
 elif args.command == "execute":
     print(study.run(*(getattr(args, name).resolve() for name in
-        ("capsule", "output", "xilinx", "platform", "compatibility")))["status"], flush=True)
+        ("capsule", "output", "xilinx", "platform", "compatibility")),
+        timing_profile=args.timing_profile)["status"], flush=True)
 elif args.command == "seal":
     result = delivery.seal(args.capsule.resolve(), args.attempt.resolve(), args.output.resolve(),
                            unit=args.unit, invocation=args.invocation)
