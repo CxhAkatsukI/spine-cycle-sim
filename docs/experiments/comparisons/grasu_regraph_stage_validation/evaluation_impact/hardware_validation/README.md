@@ -47,6 +47,10 @@ an OOM or measured performance result. The independent
 passes all eight original cases in both Release and UBSan (22 child steps).
 It preserves the logical PMA/reservation/update sequence and validates the
 real production layout; it has not yet measured paired FPGA performance.
+Its separately owned board launcher and exact-qualifier continuation now
+require complete state and raw timestamp replay for all eight inputs with
+three repetitions. These execution/guard tests are not a completed FPGA
+matrix; original G's platform-port failure still blocks a paired speed match.
 
 The high-memory host has approximately 419 GiB available. SSSP and ResPR v2
 continue placement/routing, and CC v2 continues block synthesis, each under

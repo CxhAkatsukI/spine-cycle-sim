@@ -97,3 +97,46 @@ The paired original-G board comparison is still blocked by the separately
 preserved original source's U55C HMSS port-capacity failure. Do not substitute
 a compact-port implementation and label it original G, or report this host
 prerequisite as a measured performance match.
+
+## Independent Production Board Matrix
+
+The `matched_original.board` package owns input admission, device execution
+and raw-event analysis separately. It requires the exact host preflight above
+and independently checks the returned production artifact's source, ABI,
+topology, actual 150-MHz clock and strict setup/hold timing. It acquires the
+shared exclusive board lease and checks the PCIe BDF before creating an XRT
+context. All eight cases run three times; a failed case stops the matrix
+without an automatic reset or retry. Complete logical state, physical cold
+padding and both metadata copies must pass, not just a count or checksum.
+
+The raw event records retain every queued/submit/start/end timestamp. The
+analysis separately reconstructs producer-only and publication-barrier-inclusive
+busy/span times, checks DMA completion before kernel enqueue, and records
+packing, transfer, binding/enqueue/wait, oracle and verification readback.
+Repeated summary fields are medians; they are not fitted timing predictions.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.matched_original.board \
+  --preflight /absolute/matched-g-original-host-preflight-v1 \
+  --original-preflight /absolute/original-g-board-host-preflight-v3 \
+  --returned /absolute/strictly-qualified-returned-artifact \
+  --parent /absolute/g-production-route-v1 \
+  --original /absolute/frozen-parent.xclbin \
+  --receipt-sha256 EXACT_RETURN_RECEIPT_SHA256 \
+  --output /absolute/fresh-matched-g-board --device 0 --repeats 3 --execute
+```
+
+The launcher requires a finite 4-GiB cgroup, zero swap and OOM-group
+containment, plus atomic full-budget admission with a 32-GiB reserve.
+`matched_original.board.follow` can wait for one exact production qualifier
+unit/invocation, recheck its successful board report and sealed return, then
+invoke the same matrix. Failed timing, a changed prerequisite or incomplete
+qualification is rejected before requesting a device. A queued continuation
+is not a measured result. Even a production matrix pass alone does not
+establish a paired original-G speed match or publication reproduction.
+
+Focused guard and timestamp-replay tests:
+
+```bash
+python3 -m unittest discover -s tests -p test_matched_g_board.py -v
+```
