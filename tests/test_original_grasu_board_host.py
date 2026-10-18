@@ -110,7 +110,8 @@ class OriginalGraSUBoardHostTests(unittest.TestCase):
         for sanitizer in (False, True):
             command = preflight.compiler_command(ROOT, Path("/xrt"), Path("/out"), "/g++", sanitizer=sanitizer)
             self.assertIn("-O1" if sanitizer else "-O3", command)
-            self.assertEqual("-lOpenCL" in command, not sanitizer)
+            self.assertEqual("-lxilinxopencl" in command, not sanitizer)
+            self.assertNotIn("-lOpenCL", command)
             self.assertEqual("-DORIGINAL_G_MODEL_ONLY" in command, sanitizer)
             self.assertIn("-DNDEBUG", command)
 

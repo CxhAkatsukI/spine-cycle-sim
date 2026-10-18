@@ -1,11 +1,14 @@
-"""Inspect original exported interfaces and HLS target; no routed-clock claim."""
+"""Inspect original interfaces, HLS target and routed metadata; never programs XRT."""
 
+import json
 import math
 import xml.etree.ElementTree as ET
 import zipfile
 
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
+from spine_cycle_sim.experiments.sharded_k4_stages.bitstream import SECTIONS, normalized_topology, parse_routed_timing
 from . import configuration as config
+from .topology import validate as validate_topology
 
 
 def inspect_xo(path, name):
@@ -45,3 +48,18 @@ def inspect_hls(directory, name):
     return {"report": identity(files[0]), "target_clock_ns": period,
             "estimated_clock_ns": tree.findtext("PerformanceEstimates/SummaryOfTimingAnalysis/EstimatedClockPeriod"),
             "resources": {item.tag: item.text for item in tree.findall("AreaEstimates/Resources/*")}}
+
+
+def inspect_routed(metadata, reports):
+    sections = {name: json.loads((metadata / (name + ".json")).read_text()) for name in SECTIONS.values()}
+    topology = normalized_topology(sections)
+    validate_topology(topology)
+    paths = list(reports.glob("**/impl_1_hw_bb_locked_timing_summary_routed.rpt"))
+    if len(paths) != 1:
+        raise ValueError("one original G final routed timing report required")
+    timing = parse_routed_timing(paths[0])
+    if any(not math.isfinite(timing[key]) for key in ("wns_ns", "whs_ns", "wpws_ns")):
+        raise ValueError("original G routed slacks must be finite")
+    return {"status": "ORIGINAL_G_ROUTED_TOPOLOGY_TIMING_CHECKED_NOT_BOARD_ADMISSION",
+            "topology": topology, "timing": timing,
+            **dict.fromkeys(config.FLAGS, False)}

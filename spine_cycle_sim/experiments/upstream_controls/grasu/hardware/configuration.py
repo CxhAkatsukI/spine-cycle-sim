@@ -11,6 +11,8 @@ SOURCE_HASHES = {
 }
 KERNELS = {"bin_search": 4, "dispatch": 1, "process_cache": 2, "process_ddr": 2}
 CLOCK_MHZ = 150
+CLOCK_TOPOLOGY = sorted((("DATA", "DATA_CLK", CLOCK_MHZ),
+                         ("KERNEL", "KERNEL_CLK", 500), ("SYSTEM", "hbm_aclk", 450)))
 PART = "xcu55c-fsvh2892-2L-e"
 POLICY = {"tree_memory_gib": 40, "reserve_gib": 32, "background_memory_gib": 8,
           "allow_bounded_builds": True}

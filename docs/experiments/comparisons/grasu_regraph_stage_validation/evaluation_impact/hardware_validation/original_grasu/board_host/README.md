@@ -7,6 +7,12 @@ four search, one dispatch, two URAM-cache and two DDR-update CUs. It is not
 the older integrated bitstream or an original-U250 performance reproduction.
 No command in this preflight programs a board or reports device cycles.
 
+The current Release command links `libxilinxopencl` directly, not the generic
+OpenCL ICD loader, and freezes its resolved dependencies plus the dynamically
+loaded PCIe core. This avoids silently selecting the NVIDIA loader installed
+on the measurement host. The old v1 self-test below remains historical;
+it does not establish this newer runtime-closure check.
+
 The C++ owner `cpp/tests/publication_sources/grasu_board/` separates:
 
 - `model.hpp`: bounded binary input, four physical PMA buffers and an
@@ -90,3 +96,20 @@ results. A new baseline needs explicit review rather than a hash override.
 The source-preserving link, strict routed timing, automatic admission and
 actual-board repetitions remain open. Do not manually invoke the board
 entry on an unreviewed artifact just because these self-tests pass.
+
+## Independent Routed Gate
+
+`hardware/topology.py` owns an additional pre-board check, separate from the
+host oracle. `gates.inspect_routed` reads the extracted XRT metadata and
+requires exactly nine chain-control CUs, all 46 declared HBM argument
+bindings and eight exact two-endpoint AXIS pairs. Connected banks must be
+enabled 512-MiB HBM regions. The full clock topology must remain 150-MHz
+DATA, 500-MHz KERNEL and 450-MHz HBM; automatic downclock is rejected.
+Exactly one final routed summary must have finite nonnegative setup, hold
+and pulse-width slack, no failing endpoints and the explicit constraints-met
+statement. Synthetic negative tests exercise missing/changed CUs, clocks,
+bindings, stream endpoints and timing. They are not a routed-artifact pass.
+
+This gate alone does not attest the remote service, source closure, host
+oracle or board execution. Transport/admission must verify those separately
+before invoking the board host; all performance/figure flags remain false.

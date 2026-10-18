@@ -340,7 +340,7 @@ It was deliberately stopped with SIGINT while
 Its `FAILED_RETAINED` report records `KeyboardInterrupt()`; this transition
 does not discard or interrupt a measured FPGA result.
 
-The current v4 supervisor is
+The former v4 supervisor is
 `spine-fullgraph-board-continuation-20261018-v4.service`, invocation
 `65221c0d74bb44038e403bd4ae073724`, output
 `fullgraph-board-continuation-v4`. It uses the immutable runner
@@ -354,7 +354,7 @@ fresh returned admission, rather than the clock-rejected v1 artifact.
 CC and ResPR retain their exact existing service invocations. The original
 requests file remains unchanged.
 
-V4 has replayed the offline prerequisite and is
+V4 had replayed the offline prerequisite and was
 `WAITING_FOR_ADMITTED_ARTIFACTS`, without errors, board requests or completed
 matrices. It keeps the same 24/22-GiB limits, zero swap, two-CPU affinity and
 172800-second service lifetime. Its local retention service is
@@ -362,6 +362,28 @@ matrices. It keeps the same 24/22-GiB limits, zero swap, two-CPU affinity and
 `40f33d4f6eae4bf1aafd723145dd1942`. The remote routes continue; neither
 this waiting state nor completed Spine measurements close the new-G+R or
 original-performance gates.
+
+The current supervisor is
+`spine-fullgraph-board-continuation-20261018-v5.service`, invocation
+`098dd7c6994e4d9c96753f88943a2f6e`, output
+`fullgraph-board-continuation-v5`. V4 was stopped only while waiting, with no
+board requested or matrix run. V5 uses the unchanged completed-v3 offline
+preflight and immutable simulator runner `5058f14` in
+`/home/chuxiao/spine-cycle-sim/spine-cycle-sim-board-memory-5058f14`.
+
+Its request file is `fullgraph-board-requests-v3.json` under the campaign
+root, SHA-256
+`0f1bfdd56a9bdf62e0a1d907c59ad87e244e544c73bc15b181fba225778b5956`.
+Only SSSP's local follower changes to the exact v3 qualification invocation
+documented in the [remote guide](../complete_pipeline/production_routing/remote/README.md#current-local-qualification).
+CC and ResPR keep their named return-service invocations. V5 retains the
+24/22-GiB limits, zero swap, group OOM kill, CPUs 118--119, 32-GiB reserve,
+bounded peer budgets and finite lifetime. It uses `RemainAfterExit=yes`.
+
+At redeployment it was `WAITING_FOR_ADMITTED_ARTIFACTS`, with no errors or
+matrices. Once each algorithm is admitted it runs two correctness smokes
+and eight graphs with three independently restored repetitions: 26 child
+attempts per algorithm. This queue is not a completed FPGA comparison.
 
 ### Timing Boundary
 

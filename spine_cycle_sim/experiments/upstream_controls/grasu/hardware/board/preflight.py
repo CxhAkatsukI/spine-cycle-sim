@@ -11,6 +11,7 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.upstream_controls.execution import dependency_identities
+from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.runtime import library_paths
 from .. import configuration as config
 from . import preparation
 
@@ -27,7 +28,7 @@ def compiler_command(root, xrt, output, compiler, *, sanitizer):
         command += ["-I" + str(xrt / "include")]
     command += [str(root / CPP / "control.cpp"), "-o", str(output / "probe")]
     if not sanitizer:
-        command += ["-L" + str(xrt / "lib"), "-Wl,-rpath," + str(xrt / "lib"), "-lOpenCL"]
+        command += ["-L" + str(xrt / "lib"), "-Wl,-rpath," + str(xrt / "lib"), "-lxilinxopencl"]
     return command
 
 
@@ -84,6 +85,17 @@ def run(root: Path, baseline: Path, xrt: Path, output: Path):
             dependencies = dependency_identities(directory / "dependencies.d", root)
             report["binaries"].append({"variant": variant, **identity(directory / "probe"), "dependencies": dependencies})
             pins += [identity(directory / "probe"), *dependencies]
+            if variant == "release":
+                loader = shutil.which("ldd")
+                if loader is None:
+                    raise ValueError("ldd required to freeze real Xilinx runtime dependencies")
+                stdout, stderr = execute("inspect_release_loader", [loader, str(directory / "probe")])
+                if stderr.read_bytes():
+                    raise ValueError("original G runtime loader diagnostic")
+                libraries = library_paths(stdout.read_text())
+                libraries += [(xrt / "lib/libxrt_core.so.2").resolve(strict=True), Path(loader).resolve(strict=True)]
+                report["runtime_libraries"] = [identity(path) for path in sorted(set(libraries))]
+                pins += report["runtime_libraries"]
             for row in manifest["cases"]:
                 stdout, stderr = execute(variant + "_" + row["id"],
                     [str(directory / "probe"), "--self-test", row["packet"]["path"]])

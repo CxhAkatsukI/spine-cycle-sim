@@ -114,7 +114,7 @@ figures or original-paper performance matching. Tests cover waiting,
 timeouts, changed services, incomplete/foreign children, pin drift and replay
 failure; those tests are synthetic, not FPGA results.
 
-## Deployed Continuation
+## Historical Deployment
 
 The 2026-10-18 deployment uses the frozen `ba441f7` runner in
 `/home/chuxiao/spine-cycle-sim/spine-cycle-sim-paired-return-ba441f7`:
@@ -135,3 +135,27 @@ and group OOM kill. At the deployment checkpoint it is
 artifacts. No paired speedups, board programming or final figures are implied
 by this waiting service. It must reject a changed producer invocation or an
 incomplete matrix instead of analyzing partial rows as a complete result.
+
+## Current Deployment
+
+The v1 paired follower was stopped before replay while its producer was
+waiting; no paired CSV or hardware result was discarded. The replacement
+uses the immutable `5058f14` runner in
+`/home/chuxiao/spine-cycle-sim/spine-cycle-sim-board-memory-5058f14`:
+
+| Item | Identity |
+| --- | --- |
+| Paired service | `spine-paired-board-continuation-20261018-v2.service` |
+| Invocation | `5c24a1fcc4cb42d1a1b6bec4feb066de` |
+| Producer | `spine-fullgraph-board-continuation-20261018-v5.service` |
+| Producer invocation | `098dd7c6994e4d9c96753f88943a2f6e` |
+| Output | `/data/chuxiao/experiments/baseline_hardware_validation_20261015/paired-board-continuation-v2` |
+| Request file | `/data/chuxiao/experiments/baseline_hardware_validation_20261015/paired-board-requests-v2.json` |
+| Requests SHA256 | `059520398a18d5a228f91e74ae1dcfcd04e1e1374b488e2ca7d0137a52ec41a2` |
+
+Only the new producer paths and SSSP qualification admission change. The
+completed fixed-Spine reports and artifact freeze remain unchanged. The
+service retains 4/3-GiB containment, zero swap, group OOM kill and a finite
+wait, with `RemainAfterExit=yes` for terminal inspection. At redeployment it
+was `WAITING_FOR_COMPLETE_BOARD_PRODUCER`, without errors. No speedup or
+final-figure admission follows from that state.

@@ -89,14 +89,35 @@ clock/connectivity gate rejected the return. In particular, the HBM downclock
 cannot be used to claim equal-clock board performance. No failed report is
 rewritten and no v1 binary substitutes for the v2 prerequisite.
 
-The v2 local return/qualification service is
+The former v2 local return/qualification service is
 `spine-g-production-remote-follow-20261018-v2.service`, invocation
 `913c6cecd9284552875d10dcd7a45180`. It uses the immutable local runner
 `spine-cycle-sim-timing-return-27a01a7`, the same remote runner, remote return
 `production-sssp-return-v2`, and local output `g-production-remote-follow-v2`
 under the campaign root. It is waiting for the exact v2 route invocation,
 with no board started and no errors. Its strict timing, three production
-matrices, eight-GiB containment and existing board-memory reserve are unchanged.
+matrices, eight-GiB containment and the then-existing board-memory reserve were unchanged.
+
+### Current Local Qualification
+
+The v2 follower was stopped while waiting, before board programming. The
+remote physical retry was not stopped or modified. Its replacement is
+`spine-g-production-remote-follow-20261018-v3.service`, invocation
+`adf99e92398e4905a1909150d14fa131`, with local output
+`g-production-remote-follow-v3` and fresh remote return
+`production-sssp-return-v3`. It still requires the exact v2 route invocation
+above and uses the unchanged remote `27a01a7` runner for return sealing.
+
+The new immutable local runner is simulator `5058f14`, directory
+`/home/chuxiao/spine-cycle-sim/spine-cycle-sim-board-memory-5058f14`.
+It unifies admission and the live watchdog: reserve the follower's complete
+8-GiB budget, 32 GiB for the system and each bounded peer's complete budget.
+The old 104-GiB watchdog reserve is no longer an additional hidden floor.
+Unknown/unbounded peers still block admission; the 8/7-GiB cgroup, zero swap,
+group OOM kill, finite timeout and live watchdog remain enforced. This is a
+resource-policy correction, not a changed kernel, timing gate or measurement.
+At the redeployment check it was `WAITING_FOR_EXACT_REMOTE_ROUTE`, with no
+errors or board programming. `RemainAfterExit=yes` retains its terminal identity.
 
 The small oneshot retention services are
 `spine-evidence-retain-timing-retry-20261018-v1.service` remotely (invocation
@@ -215,9 +236,9 @@ it runs 3 native five-shard G executions, 3 same-BO metadata executions and
 single-segment row consumption, **not** general binary-search refresh.
 Finite-stream integrated RTL and a publication-performance match are separate.
 
-The local supervisor requires an 8-GiB hard cap, 7-GiB high watermark, zero
-swap and group OOM kill. It admits full bounded peer budgets and the existing
-104-GiB board-watchdog reserve, waiting at most one hour for safe memory.
+The current local supervisor requires an 8-GiB hard cap, 7-GiB high watermark,
+zero swap and group OOM kill. It admits full bounded peer budgets and the
+32-GiB system reserve, waiting at most one hour for safe memory.
 It does not wait for every other compiler to exit. The board remains leased,
 idle-checked and PCIe-BDF checked before programming; failures are retained
 without automatic board resets or numerical retries.
