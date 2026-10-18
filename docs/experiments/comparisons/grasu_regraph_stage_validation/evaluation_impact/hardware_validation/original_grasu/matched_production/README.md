@@ -1,0 +1,99 @@
+# Same-Input Production G Control
+
+## Question And Boundary
+
+Does the actual production G handle the original G's logical PMA layout and
+update order correctly, and, after independent routed/board admission, how
+does its resident update time compare? This is separate from an original
+U250 publication-performance reproduction. A host-only pass answers the
+correctness prerequisite, not the performance question.
+
+The input owner is the reviewed [original board-host preflight](../board_host/README.md),
+report SHA-256
+`bee145c72883f4c0d9ec85ca0eccab207bfdebd1050d9a978d4645d7ae9cc701`.
+All eight cases are required: empty graph, empty batch, insertion only,
+full deletion, mixed reservation, hot skew, same segment and threshold ring.
+Inputs are not rebuilt from the final graph or filtered to passing cases.
+
+## What Is Held Fixed
+
+The production control preserves vertex IDs, per-source row bounds, binary
+segment heads, every initial/final logical slot, reserved space, update order,
+round-robin assignment to four search lanes and hot/cold routing. An independent
+replay using the original model must pass before constructing production
+buffers. Every original update must select the same logical segment in the
+production lookup. A fault injected into a physical padding word must fail
+the complete-state checker.
+
+The original unweighted edge becomes a production edge with constant weight
+one. This preserves destination ordering. Actual physical differences remain:
+the original has 64-bit edges and its own four-buffer allocation; production
+uses its real 32-bit weighted representation, shared 512-bit metadata lines,
+23-channel lane-aware allocation, two 131072-segment hot caches, and allocated
+cold buffers. They are disclosed, not claimed to be identical hardware. The
+single G-only shard is not a ReGraph partition-capacity claim.
+
+The device path reuses the production continuous-G XRT bindings, nine G CUs
+and its completion barrier. It records packing, DMA, binding/launch/wait,
+kernel-event busy/span, independent oracle and verification readback separately.
+Do not compare its inclusive `g_ready_wall_ms` directly with original G's
+resident window that excludes preparation and upload. A later paired report
+must use explicitly matched windows and preserve setup as separate evidence.
+
+## Ownership
+
+`cpp/tests/evaluation_impact/common_g/matched_original/` separates the input
+adapter/model, leased device execution and CLI. It reuses production physical
+state/update helpers and device bindings; it does not introduce a second
+numerical G implementation. The CLI rejects an unleased board before XRT
+enumeration, and the shared XRT binding checks the expected PCIe BDF before
+creating a context.
+
+`spine_cycle_sim/experiments/evaluation_impact/common_g/matched_original/`
+separates source freezing/compile commands, typed result analysis and bounded
+host preflight. It pins the real XRT headers, compiler, imported Python
+modules, dependency closure, runtime libraries and source/input bytes.
+Release uses `-O3 -DNDEBUG`; model-only UBSan uses `-O1` with nonrecovering
+undefined-behavior checks. Neither changes hardware geometry.
+
+## Reproduce The No-Device Prerequisite
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.common_g.matched_original \
+  --root /absolute/simulator-worktree \
+  --integration /absolute/reviewed-production-integration \
+  --original-preflight /absolute/original-g-board-host-preflight-v3 \
+  --xrt /opt/xilinx/xrt \
+  --output /absolute/fresh-matched-g-host-preflight
+```
+
+Every child has a 600-second limit, a 4-GiB process-tree memory limit and a
+32-GiB available-memory reserve. Release and UBSan must both pass all eight
+inputs, reject a malformed header, and the Release binary must reject board
+access without its external lease. Raw stdout/stderr and failures remain in
+the unique output directory. No FPGA is selected or programmed by this CLI.
+
+The fresh attempt is under the local campaign root
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/`, directory
+`matched-g-original-host-preflight-v1`. Its terminal `results.json` reports
+`MATCHED_G_HOST_PREFLIGHT_PASS_NOT_BOARD_OR_PERFORMANCE`, with SHA-256
+`67bdac62a571202901363a612e7868b55d09e3d7d911cb30b5f8b53ddb44d58e`.
+All 22 child steps pass: two compilations, loader inspection, sixteen model
+rows, two malformed-header rejections and the unleased-device rejection.
+The summed child elapsed time is 21.697 seconds; peak sampled process-tree
+RSS is 351.027 MiB. The report pins 1743 source/input/tool/runtime records.
+These samples are watchdog observations, not a cgroup peak or containment
+claim. Board timing, original-G performance match, publication reproduction
+and final-figure admission all remain false.
+
+Focused tests, including compiled production-header model tests:
+
+```bash
+env SPINE_G_INTEGRATION=/absolute/reviewed-production-integration \
+  python3 -m unittest discover -s tests -p test_grasu_matched_original.py -v
+```
+
+The paired original-G board comparison is still blocked by the separately
+preserved original source's U55C HMSS port-capacity failure. Do not substitute
+a compact-port implementation and label it original G, or report this host
+prerequisite as a measured performance match.

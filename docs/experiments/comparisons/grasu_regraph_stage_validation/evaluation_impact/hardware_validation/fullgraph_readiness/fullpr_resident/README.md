@@ -143,6 +143,25 @@ AU/SU/WK use 8/9/18 destination partitions and respectively 1,843,296 /
 convergence. V1 failed at startup before runner extraction had completed;
 its separate failed service and startup journal remain retained.
 
+### Current G+R Route Continuation
+
+The original FullPR production route completes linking but is rejected for
+negative routed setup slack and a 144-MHz actual data clock. Its return
+follower and `gr-fullpr-board-continuation-v1` fail before FPGA programming;
+the successful CPU preparation above does not override that failure.
+
+The independent physical-only route retry and strict return are recorded in
+the [algorithm build guide](../../complete_pipeline/production_routing/algorithm_build/README.md#physical-timing-retry).
+The fresh local continuation is
+`spine-fullpr-board-continuation-20261018-v2.service`, invocation
+`b6c3df20ad90416e8a332c9162be6566`, output
+`gr-fullpr-board-continuation-v2`, using frozen runner `63723d2`. It requires
+the exact v2 return invocation `9f93433f962740e085a10b711c3394b4` and the same
+hash-pinned offline preparation above. Its 24/22-GiB max/high limits, zero
+swap, CPU affinity 118--119 and device-1 lease remain enforced. It is waiting,
+not a successful G+R FullPR board result; even a later success cannot replace
+the failed Spine FullPR arm or establish a paired speedup.
+
 ## Retained FPGA Failures
 
 Two subsequent board attempts are `FAILED_RETAINED`, not accepted FullPR

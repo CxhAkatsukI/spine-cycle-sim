@@ -120,13 +120,13 @@ same one-CU placement change before v++. It uses output
 `spine-production-respr-route-20261018-v2.service`, invocation
 `0b6cd3bdd41040b59ff3a890c7a218a2`, and unchanged runner `417a8bd`.
 
-CC and FullPR experimental links are active under simulator `417a8bd`,
+The initial CC and FullPR experimental links used simulator `417a8bd`,
 directory `algorithm-route-runner-417a8bd`. The minimal runner archive is
 `production-algorithm-route-runner-v2.tar.gz`, SHA-256
 `958042f8e0ab8036eac8de42ab18c36d7587d395a463acddf86021ec88ed2c62`.
 Both pass fresh whole-device/URAM screens after the one-CU move, canonical
-ABI/stream checks, and all six environment probes. They are **running links,
-not completed bitstreams or FPGA evidence**:
+ABI/stream checks, and all six environment probes. Both have since completed
+linking but failed strict timing/clock admission; they are not FPGA evidence:
 
 | Algorithm | Output | Service / invocation |
 | --- | --- | --- |
@@ -290,6 +290,23 @@ with no additional Vivado overrides. The default requires no Vivado section.
 Use a new output/service and receipt, never rewrite the failed v1 evidence.
 Final clock/timing requirements remain unchanged; this option is not a waiver
 or a prediction of successful timing closure.
+
+FullPR v1 also completed v++ but failed strict admission: WNS -0.269 ns,
+TNS -161.233 ns, 1520 failing setup endpoints and actual DATA clock 144 MHz
+instead of 150 MHz. Its original return and dependent board continuation
+both retain their failures; no card was programmed by that continuation.
+
+Its independent physical-only retry is `production-fullpr-route-v2`, service
+`spine-production-fullpr-route-20261018-v2.service`, invocation
+`c0e275f36b064ee598681cfbaadc5f48`, using frozen runner `8fff331` and profile
+`aggressive-route-v1`. The route manifest SHA-256 is
+`34d7ac3655317d78b04023ca7f1be2e75b93c7332747b2bc62e6d79d72694572`.
+At the 11:29 UTC checkpoint it is still waiting for atomic memory admission,
+not executing v++. Approximately 419 GiB is available, but an unrelated
+unbounded Vivado peer prevents admission under the declared safety policy.
+SSSP, CC and ResPR already-admitted finite builds continue concurrently.
+The FullPR retry retains its own 40/36-GiB max/high limits and zero swap;
+neither the clock requirement nor cache capacity is relaxed.
 
 ## Return And Timing Admission
 
@@ -474,4 +491,13 @@ both hosts. Its archive SHA256 is
 V2 was stopped while still waiting, without requesting a board. The new
 follower retains the 4/3-GiB limits, zero swap, group OOM kill and finite
 lifetime; retained `active/exited` success is checked by exact invocation,
-exit status and zero main PID. FullPR and ResPR selectors above are unchanged.
+exit status and zero main PID. ResPR's selector above is unchanged.
+
+FullPR's failed v1 follower is superseded only for the new attempt by
+`spine-production-fullpr-return-20261018-v2.service`, invocation
+`9f93433f962740e085a10b711c3394b4`, output
+`production-fullpr-return-follow-v2`. It waits for exactly the FullPR v2
+route invocation above and seals to remote `production-fullpr-return-v2`.
+Both hosts use runner `da7e791` and the same hashed archive as CC's current
+follower. The physical-profile-aware strict checks remain enabled. A separate
+FullPR board continuation waits for this exact follower, not the rejected v1.

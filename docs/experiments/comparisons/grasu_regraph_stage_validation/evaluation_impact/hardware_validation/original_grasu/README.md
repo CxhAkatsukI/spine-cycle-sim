@@ -114,14 +114,24 @@ The source-preserving v2 retry uses runner `8fff331`, service
 `spine-original-g-route-20261018-v2.service`, invocation
 `ff92efbffe9d4b149d68e6ccb9f646d3`, output `original-g-source-route-v2`.
 After initially waiting for unknown/unbounded peer budgets, it passed
-admission and entered source compilation. At 10:58 UTC the binary-search
-compile had finished and dispatch compilation was running. Available memory
-was approximately 407 GiB; these are progress observations, not a routed pass.
+admission and completed all four source compilations. The exported ABI/HLS
+checks passed for all 46 masters and nine CUs. Linking failed at 11:02 UTC
+with `[VPL-1] ... run out of port connections on /hmss_0. All 33 connections
+are used`. This was a platform connection-capacity failure, not OOM or a
+performance measurement; peak memory was approximately 3.6 GiB. The terminal
+failure, raw `link.stdout.txt` and source-preserving packet remain unchanged.
+Any external interconnect sharing must be reviewed as an explicit physical
+port before retrying; silently deleting/compacting author kernel interfaces
+does not satisfy this control.
 
 The [standalone board-host prerequisite](board_host/README.md) now compiles
 the real-XRT Release binary and independently replays all eight author-host
 inputs in Release and UBSan builds. These passes do not waive the route,
 strict clock/timing, actual-board correctness or matched-performance gates.
+The separate [same-input production-G prerequisite](matched_production/README.md)
+uses all eight original inputs, preserves logical slots and update order, and
+checks the actual production host representation without selecting a device.
+It does not resolve the original hardware port-capacity failure.
 
 ## Return And Board Continuation
 
@@ -170,7 +180,9 @@ under their respective campaign roots. It uses frozen runner `da7e791`,
 archive SHA256
 `8f8d2cf27c6050567c9574eb2708f58af667d2ff5bd86b4f078392a4ab40af4c`,
 and the reviewed `original-g-board-host-preflight-v3` on card zero. Its first
-state is waiting for the exact v2 route above, with no board requested.
+state was waiting for the exact v2 route above. It subsequently rejected that
+failed route and terminated without requesting a board. It is not an active
+continuation or a completed original-G FPGA matrix.
 
 `ORIGINAL_G_U55C_MATRIX_PASS_NOT_PUBLICATION_OR_MATCHED_G_COMPARISON` would
 mean a complete-state, repeated same-platform original-G measurement only.

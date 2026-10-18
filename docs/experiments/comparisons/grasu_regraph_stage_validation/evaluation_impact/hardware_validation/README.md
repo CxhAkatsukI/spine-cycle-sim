@@ -39,6 +39,25 @@ modified G+R bitstream. The same-platform U55C/150-MHz control remains
 distinct from reproducing the U250 publication. Preparation/ABI unit tests
 are not integrated RTL, board timing or original-performance admission.
 
+At the 2026-10-18 11:29 UTC checkpoint the original-G link has failed: all
+four author kernel types compiled, but 46 AXI masters exceed the platform's
+33 HMSS ingress connections. This is an interface/platform limitation, not
+an OOM or measured performance result. The independent
+[same-input production-G control](original_grasu/matched_production/README.md)
+passes all eight original cases in both Release and UBSan (22 child steps).
+It preserves the logical PMA/reservation/update sequence and validates the
+real production layout; it has not yet measured paired FPGA performance.
+
+The high-memory host has approximately 419 GiB available. SSSP and ResPR v2
+continue placement/routing, and CC v2 continues block synthesis, each under
+its own 40-GiB hard limit. FullPR v1 fails strict timing and actual-clock
+admission; its physical-only v2 retry and exact return/board continuations
+are separately frozen. That retry is waiting on an unrelated unbounded
+compiler peer under the safety policy, not a lack of available memory.
+The [algorithm guide](complete_pipeline/production_routing/algorithm_build/README.md#physical-timing-retry)
+owns the failed report, retry identity and live-state boundary. The earlier
+resume narrative below is historical where it differs from this checkpoint.
+
 ### High-Memory Host Resume
 
 The 2026-10-17 resume found both old routes terminal: diagnostic G v2 linked,
