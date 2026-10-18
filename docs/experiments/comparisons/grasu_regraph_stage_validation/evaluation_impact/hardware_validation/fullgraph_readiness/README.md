@@ -223,6 +223,11 @@ The [fixed-Spine board protocol](spine_resident/README.md) uses the same bounded
 executor with an explicit host contract. It does not reuse G+R output parsing
 or claim a paired result before both matrices pass.
 
+The [paired-board replay](paired_board/README.md) separately revalidates the
+six complete reports, raw logs and pin closures before exporting 24 median
+wall-time ratios. It refuses incomplete matrices and does not admit original
+baseline performance, stage calibration or final figures by itself.
+
 The offline capsule above remains frozen. The separate board owner comprises
 `board_preparation.py` (offline/artifact identity and exact eight-graph plan),
 `board_analysis.py` (oracle, convergence and event-ledger checks),

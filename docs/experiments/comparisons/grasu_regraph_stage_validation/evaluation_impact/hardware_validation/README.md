@@ -76,7 +76,8 @@ The full-graph host's new PCIe-BDF guard fails before context creation when
 the chosen card differs from the exclusive lease. All three negative checks
 pass with the explicit XRT runtime environment; an earlier environment-failure
 attempt remains a failed harness. A fresh offline v3 rechecks integration
-`1a5650c` on the complete matrix and is still running without reported errors.
+`1a5650c` on the complete matrix and has completed all three smokes and 24
+preparations, with zero memory-limit/OOM events. This is an offline pass only.
 The [full-graph guide](fullgraph_readiness/README.md#board-continuation) owns
 the separate serial board continuation, exact prerequisite invocations and
 resident-update timing definition. This prepares only the new G+R arm;
