@@ -24,9 +24,9 @@ remote link is never itself board or baseline admission.
 `timing.py` owns the optional, fixed physical-only retry described below.
 An omitted timing profile retains the original relocated configuration.
 
-## Live Attempt
+## Original Attempt
 
-The production SSSP link is running on `seele`, under service
+The first production SSSP link ran on `seele`, under service
 `spine-g-production-remote-20261017-v1.service`, invocation
 `25c17cb9dbea43bb8d4184d281ba147b`. It passed all six environment checks and
 entered block synthesis at 2026-10-18 03:24:43 UTC (11:24:43 CST). At 03:29 UTC its memory
@@ -66,7 +66,47 @@ unrecorded or conflicting properties reject the return. The original strict
 timing and complete xclbin clock/topology checks still apply. Neither a
 profile nor a successful command can waive negative HBM timing. Use a fresh
 output/service and retain both attempts. Deployment identities are recorded
-after the tested runner has been committed and transferred.
+below after the tested runner was committed, transferred and independently
+hash-checked.
+
+### Deployed Physical Retry
+
+The physical-only v2 retry is running under
+`spine-g-production-remote-20261018-v2.service`, invocation
+`1ae4ec61720648c6a043398f3796e11b`. Its output is
+`production-sssp-route-v2` under the remote root. All six environment checks
+passed before linking. The new runner is simulator commit `27a01a7`, directory
+`production-timing-runner-27a01a7`; its transferred archive SHA-256 is
+`0c2630056afbc4b7f5ae89513b59d8c923470aaa6a00b7fd796c8ef7d6ab1f09`.
+The capsule remains `production-inputs-v1` with the hash above. The service
+retains the 40/36-GiB limits, zero swap, group OOM kill, eight-CPU quota and
+finite lifetime. At 08:45 UTC it was configuring the hardware runs, not a
+completed route or timing pass.
+
+The original v1 link has since completed with an indexed xclbin, but remains
+unadmitted. Its original local follower retains `FAILED_RETAINED` after the
+clock/connectivity gate rejected the return. In particular, the HBM downclock
+cannot be used to claim equal-clock board performance. No failed report is
+rewritten and no v1 binary substitutes for the v2 prerequisite.
+
+The v2 local return/qualification service is
+`spine-g-production-remote-follow-20261018-v2.service`, invocation
+`913c6cecd9284552875d10dcd7a45180`. It uses the immutable local runner
+`spine-cycle-sim-timing-return-27a01a7`, the same remote runner, remote return
+`production-sssp-return-v2`, and local output `g-production-remote-follow-v2`
+under the campaign root. It is waiting for the exact v2 route invocation,
+with no board started and no errors. Its strict timing, three production
+matrices, eight-GiB containment and existing board-memory reserve are unchanged.
+
+The small oneshot retention services are
+`spine-evidence-retain-timing-retry-20261018-v1.service` remotely (invocation
+`548dfddf874a418a865a674fabf2980c`) and
+`spine-evidence-retain-timing-follow-20261018-v1.service` locally (invocation
+`6f417250db95438584b5ca2b30cdc1b7`). They retain the named services for terminal
+inspection. Do not restart these dependencies after completion. The separate
+[full-graph continuation](../../../fullgraph_readiness/README.md#current-continuation)
+now names this v2 qualifier explicitly; a waiting workflow is not a measured
+comparison.
 
 ## Inputs And Environment
 

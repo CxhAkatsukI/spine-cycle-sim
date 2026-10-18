@@ -64,10 +64,13 @@ in the linked remote package. No production FPGA result, published-performance
 match, fixed-Spine matrix or replacement figure is claimed yet.
 
 Fresh CC / FullPR v1 and ResPR v2 compilations have completed. Their separate
-40-GiB experimental links are active alongside SSSP; the current 2026-10-18
-checkpoint has SSSP in post-route physical optimization and the other three
-in placement. The remote host reports approximately 376 GiB available; owned
-jobs remain at finite 40-GiB limits with zero swap. All three fresh algorithm adapters pass their own 23-case
+40-GiB experimental links remain active. SSSP v1 has linked, but its final HBM
+setup timing is negative and Vitis downclocks that domain; the return is
+rejected, not used for board comparison. A physical-only v2 retry retains all
+XOs, topology, target clocks and strict timing checks. Its separate return and
+v4 full-graph continuation name the exact fresh invocations. At the 08:45 UTC
+checkpoint the remote host has approximately 400 GiB available; owned jobs
+retain finite 40-GiB limits and zero swap. All three fresh algorithm adapters pass their own 23-case
 AXI/AXIS RTL trials. Those adapter-only passes are not whole-algorithm RTL or
 device results. The [algorithm-specific guide](complete_pipeline/production_routing/algorithm_build/README.md)
 owns the source identities, retained failed attempts, resource screens and

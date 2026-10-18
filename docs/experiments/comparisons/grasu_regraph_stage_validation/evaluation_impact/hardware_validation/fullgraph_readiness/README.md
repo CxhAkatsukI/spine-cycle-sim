@@ -328,18 +328,40 @@ artifacts, with no board requested and no matrices run. It was replaced to
 share the bounded card/measurement lease with the new fixed-Spine protocol;
 it is not a completed board result.
 
-The current supervisor is
+The former v3 supervisor was
 `spine-fullgraph-board-continuation-20261018-v3.service`, invocation
 `54490a9990f84a6a9414bad3de1caf9c`, output
 `fullgraph-board-continuation-v3` under the campaign root. It uses the same
 three requests and completed-v3 preflight digest, frozen runner `8e44bf8`,
 directory `fullgraph-board-runner-8e44bf8`, and archive SHA-256
 `8413f1547e8b0a082948f401d42dd42ecfd291c0b780417489f262d072c1efd2`.
-At this checkpoint it is `WAITING_FOR_ADMITTED_ARTIFACTS`, without errors or
-completed board matrices. It keeps the same 24/22-GiB limits, zero swap,
-two-CPU affinity and bounded service lifetime. The independent four remote
-routes continue; neither this waiting state nor the Spine preparation closes
-the hardware or original-performance gates.
+It was deliberately stopped with SIGINT while
+`WAITING_FOR_ADMITTED_ARTIFACTS`, with no board requested and no matrices run.
+Its `FAILED_RETAINED` report records `KeyboardInterrupt()`; this transition
+does not discard or interrupt a measured FPGA result.
+
+The current v4 supervisor is
+`spine-fullgraph-board-continuation-20261018-v4.service`, invocation
+`65221c0d74bb44038e403bd4ae073724`, output
+`fullgraph-board-continuation-v4`. It uses the immutable runner
+`spine-cycle-sim-timing-return-27a01a7` at simulator commit `27a01a7` and the
+same completed-v3 preflight digest. Its source archive SHA-256 is
+`0c2630056afbc4b7f5ae89513b59d8c923470aaa6a00b7fd796c8ef7d6ab1f09`.
+The [physical-retry requests](board_requests_timing_retry.json) are copied to
+`fullgraph-board-requests-v2.json` under the campaign root. Only the SSSP
+prerequisite changes: it now names the exact v2 production qualifier and its
+fresh returned admission, rather than the clock-rejected v1 artifact.
+CC and ResPR retain their exact existing service invocations. The original
+requests file remains unchanged.
+
+V4 has replayed the offline prerequisite and is
+`WAITING_FOR_ADMITTED_ARTIFACTS`, without errors, board requests or completed
+matrices. It keeps the same 24/22-GiB limits, zero swap, two-CPU affinity and
+172800-second service lifetime. Its local retention service is
+`spine-evidence-retain-fullgraph-20261018-v4.service`, invocation
+`40f33d4f6eae4bf1aafd723145dd1942`. The remote routes continue; neither
+this waiting state nor completed Spine measurements close the new-G+R or
+original-performance gates.
 
 ### Timing Boundary
 
