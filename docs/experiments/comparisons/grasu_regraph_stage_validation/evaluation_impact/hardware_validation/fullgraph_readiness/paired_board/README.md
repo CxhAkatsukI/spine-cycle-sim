@@ -79,3 +79,37 @@ Synthetic tests cover all six matrices, raw/report disagreement, reordered or
 missing cases, changed commands/inputs/runtime/clock, promoted claims, OOM,
 pin drift and the median calculation. They are not hardware measurements.
 No live paired result is claimed by this implementation checkpoint.
+
+## Unattended Continuation
+
+`paired_board/continuation.py` waits for an explicitly named full-graph
+continuation service **and invocation**. It then calls the same offline
+replay above, without operating either FPGA. Supply the paired requests
+before waiting; the existing Spine reports/admissions, offline preflight,
+request file and runner are pinned throughout the wait.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.paired_board.continuation \
+  --preflight /campaign/fullgraph-host-readiness-v3 \
+  --requests /campaign/paired-requests.json \
+  --producer-output /campaign/fullgraph-board-continuation-v4 \
+  --producer-unit exact-fullgraph.service \
+  --producer-invocation 0123456789abcdef0123456789abcdef \
+  --output /campaign/fresh-paired-continuation
+```
+
+An active service with `Result=success` is still waiting. A failed, restarted
+or collected producer is rejected. Its terminal report must bind the same
+offline preflight, exactly three complete algorithm children, their hashes
+and the admissions in the paired requests. A terminal systemd success alone
+cannot admit a matrix. After replay the producer must still be the same
+terminal invocation. The wait is bounded to at most 172800 seconds, and an
+existing output is never overwritten. Keep a retention service for the
+producer so systemd does not collect its identity before this check.
+
+Outputs are the supervisor's `results.json` plus the unchanged replay package
+under `paired_replay/`. Only the producer's service exit is attested here;
+the nested report remains an offline replay. Neither success promotes final
+figures or original-paper performance matching. Tests cover waiting,
+timeouts, changed services, incomplete/foreign children, pin drift and replay
+failure; those tests are synthetic, not FPGA results.
