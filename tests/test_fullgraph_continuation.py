@@ -115,6 +115,37 @@ class FullgraphContinuationTests(unittest.TestCase):
         self.assertEqual(self.saved()["matrices"][0]["status"], "FAILED_RETAINED")
         self.assertFalse(self.saved()["hardware_convergence_measured"])
 
+    def test_collected_preflight_requires_explicit_pin_and_complete_evidence_replay(self):
+        self.states.side_effect = lambda unit: state(LoadState="not-found", InvocationID="") \
+            if unit == "offline.service" else state()
+        with self.assertRaisesRegex(ValueError, "disappeared"):
+            self.run_job()
+        self.board.assert_not_called()
+        self.output = self.root / "replay"
+        path = self.preflight / "results.json"
+        path.write_text(json.dumps({"status": job.analysis.PASS, "pins": []}))
+        digest = job.preparation.identity(path)["sha256"]
+        with patch.object(job.recheck, "recheck", return_value={"synthetic": "complete replay"}) as replay:
+            result = self.run_job(completed_preflight_sha256=digest)
+        replay.assert_called_once()
+        self.assertEqual(result["status"], job.PASS)
+        self.assertIn("NOT_SERVICE_EXIT_ATTESTATION", result["offline_acceptance"])
+
+    def test_completed_preflight_cannot_bypass_pin_replay_or_changed_live_service(self):
+        path = self.preflight / "results.json"
+        path.write_text(json.dumps({"status": job.analysis.PASS, "pins": []}))
+        digest = job.preparation.identity(path)["sha256"]
+        with self.assertRaisesRegex(ValueError, "SHA-256 differs"):
+            self.run_job(completed_preflight_sha256="a" * 64)
+        self.output = self.root / "incomplete"
+        with self.assertRaisesRegex(ValueError, "preparation cannot establish"):
+            self.run_job(completed_preflight_sha256=digest)
+        self.output = self.root / "restarted"
+        self.states.return_value = state(InvocationID="b" * 32)
+        with patch.object(job.recheck, "recheck", return_value={}), self.assertRaisesRegex(ValueError, "changed"):
+            self.run_job(completed_preflight_sha256=digest)
+        self.board.assert_not_called()
+
     def test_invalid_scope_paths_services_or_unbounded_wait_rejected(self):
         item = self.requests[0]
         for changes in ({"algorithm": "full_pagerank"}, {"unit": "bad;unit"}, {"invocation": "missing"},

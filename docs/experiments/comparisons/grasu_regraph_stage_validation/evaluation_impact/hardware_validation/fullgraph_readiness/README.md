@@ -235,7 +235,10 @@ without programming. Those three checks are retained in
 successful address check. Offline `fullgraph-host-readiness-v3` rechecks this
 host on the original complete matrix; its exact service is
 `spine-fullgraph-readiness-20261018-v3.service`, invocation
-`762fef3ec2d74791894fa23f1c7ad3ec`. It is still running at this checkpoint.
+`762fef3ec2d74791894fa23f1c7ad3ec`. It completed all three smokes and
+24 preparations successfully, with zero memory-limit/OOM events and no errors.
+Its terminal report SHA-256 is
+`89e0e5a226f3b56c5f64001ec760e23b66ffebb8ddd3c97e872d5d2d2a69a733`.
 
 Board admission requires the complete successful offline report, frozen host
 and source closure, strict algorithm-specific routed timing/topology admission,
@@ -244,6 +247,24 @@ lease. SSSP additionally waits for its separate production G/metadata/continuous
 handoff qualifier. The supervisor accepts only the named service invocations
 and their hash-bound reports. A changed or failed prerequisite stops it without
 programming; completion of an unrelated/restarted unit cannot substitute.
+
+The first board continuation (`fullgraph-board-continuation-v1`) stopped before
+requesting a board: systemd collected the successful transient offline unit,
+so its invocation identity could no longer be queried. That failure is retained;
+it is not a host, capacity, or FPGA correctness failure. A fresh continuation can
+use `--completed-preflight-sha256` with the exact terminal digest above. This
+explicit path replays all compile, smoke and 24-case raw evidence, verifies the
+source/binary/input pins, and records
+`PINNED_COMPLETE_REPORT_REPLAY_NOT_SERVICE_EXIT_ATTESTATION`. It does not infer
+success from an absent service. A live restarted/failed service still rejects
+the request, and algorithm-specific routed admission is unchanged.
+
+The running remote routes and local return followers are kept referenced by
+`spine-evidence-retain-routes-20261018-v1.service` on the builder and
+`spine-evidence-retain-followers-20261018-v1.service` locally. These small
+oneshot retention units do not rerun, modify, or admit builds; they retain the
+named services so their exact terminal invocation remains inspectable. Their
+dependencies must not be restarted after completion.
 
 Each algorithm first runs the same six-partition smoke, then three complete
 repetitions of all eight graphs (25 child attempts). Each process restores the

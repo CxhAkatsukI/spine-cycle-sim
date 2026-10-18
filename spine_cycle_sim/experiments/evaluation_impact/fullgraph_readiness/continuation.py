@@ -11,7 +11,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity as 
 from ..common_g.complete_pipeline.hardware.algorithm_build import follow
 from ..common_g.complete_pipeline.hardware.remote import qualification
 from ..common_g.continuous_board.execution.supervisor import route_finished, runner_pins, service_state
-from . import analysis, board_preparation, board_study, preparation
+from . import analysis, board_preparation, board_study, preparation, recheck
 
 PASS = "THREE_ALGORITHM_FULLGRAPH_BOARD_PASS_NOT_SPINE_OR_PUBLICATION_MATCH"
 
@@ -62,8 +62,10 @@ def ready(request):
 
 
 def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
-        maximum_wait=133200, poll_seconds=30):
+        maximum_wait=133200, poll_seconds=30, completed_preflight_sha256=None):
     validate_service(preflight_unit, preflight_invocation)
+    if completed_preflight_sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", completed_preflight_sha256):
+        raise ValueError("explicit completed preflight SHA-256 required")
     if sorted(item.algorithm for item in requests) != sorted(preparation.ALGORITHMS) or \
             len(requests) != 3 or type(maximum_wait) is not int or not 1 <= maximum_wait <= 133200 or \
             type(poll_seconds) is not int or not 1 <= poll_seconds <= 300:
@@ -75,17 +77,35 @@ def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
               "requests": [{key: str(value) if isinstance(value, Path) else value for key, value in asdict(item).items()}
                            for item in requests], "states": {}, "maximum_wait_seconds": maximum_wait,
               "preflight_unit": preflight_unit, "preflight_invocation": preflight_invocation}
+    report["completed_preflight_sha256"] = completed_preflight_sha256
     save = lambda: atomic_write_json(output / "results.json", report)
     save()
     try:
         pins = [preparation.identity(Path(pin["path"])) for pin in runner_pins()]
+        if completed_preflight_sha256 is not None:
+            # systemd may collect a successful transient unit. Re-admit its
+            # complete frozen evidence, not the missing unit's default status.
+            pin = preparation.identity(preflight / "results.json")
+            if pin["sha256"] != completed_preflight_sha256:
+                raise ValueError("completed offline report SHA-256 differs")
+            offline = json.loads((preflight / "results.json").read_text())
+            if offline.get("status") != analysis.PASS:
+                raise ValueError("offline full-graph preparations failed")
+            report["offline_replay"] = recheck.recheck(offline, lambda name: (preflight / name).read_text())
+            preparation.unchanged(offline["pins"], full=True)
+            report["preflight"] = pin
+            report["offline_acceptance"] = "PINNED_COMPLETE_REPORT_REPLAY_NOT_SERVICE_EXIT_ATTESTATION"
+            pins.append(pin)
         started = time.monotonic()
         pending = list(requests)
         while pending:
             preparation.unchanged(pins)
             offline_state = service_state(preflight_unit)
             report["states"][preflight_unit] = offline_state
-            offline_ready = route_finished(offline_state, preflight_invocation)
+            if completed_preflight_sha256 is not None and offline_state["LoadState"] == "not-found":
+                offline_ready = True
+            else:
+                offline_ready = route_finished(offline_state, preflight_invocation)
             if offline_ready:
                 offline = json.loads((preflight / "results.json").read_text())
                 if offline.get("status") != analysis.PASS:
@@ -143,11 +163,14 @@ def main(argv=None):
         parser.add_argument("--" + name, type=Path, required=True)
     for name in ("preflight-unit", "preflight-invocation"):
         parser.add_argument("--" + name, required=True)
+    parser.add_argument("--completed-preflight-sha256",
+                        help="replay complete pinned evidence if systemd collected the finished preflight")
     args = parser.parse_args(argv)
     requests = [Request(**{**row, "returned": Path(row["returned"]), "admission": Path(row["admission"])})
                 for row in json.loads(args.requests.read_text())]
     print(run(args.preflight.resolve(), args.output.resolve(), requests,
-        preflight_unit=args.preflight_unit, preflight_invocation=args.preflight_invocation)["status"], flush=True)
+        preflight_unit=args.preflight_unit, preflight_invocation=args.preflight_invocation,
+        completed_preflight_sha256=args.completed_preflight_sha256)["status"], flush=True)
 
 
 if __name__ == "__main__":
