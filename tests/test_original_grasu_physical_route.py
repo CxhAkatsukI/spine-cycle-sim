@@ -49,7 +49,7 @@ class OriginalGPhysicalRouteTests(unittest.TestCase):
                 with self.assertRaises(ValueError): self.admit(values)
 
     def test_changed_hooks_platform_or_proof_cannot_be_reused(self):
-        for name in ("hooks/pre_link.tcl", "hooks/post_link.tcl", "platform", "hooks/physical_port.xml"):
+        for name in (*["hooks/" + hook for hook in probe.HOOK_NAMES], "platform", "hooks/physical_port.xml"):
             with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
                 values = build(Path(directory))
                 path = values[3] if name == "platform" else values[2] / name

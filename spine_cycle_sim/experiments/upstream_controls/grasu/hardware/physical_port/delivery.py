@@ -16,7 +16,7 @@ SCHEMA = "original-grasu-external-port-return-v1"
 STATUS = "SEALED_EXTERNAL_PORT_LINK_NOT_TIMING_OR_BOARD_ADMISSION"
 TEXT = ("results.json", "manifest.json", "environment.json")
 RAW = tuple("link." + suffix for suffix in ("stdout.txt", "stderr.txt", "resources.json"))
-HOOKS = tuple("hooks/" + name for name in ("pre_link.tcl", "post_link.tcl", "physical_port.xml"))
+HOOKS = tuple("hooks/" + name for name in (*probe.HOOK_NAMES, "physical_port.xml"))
 PREFLIGHT = ("preflight/results.json", *[f"preflight/{label}.{suffix}" for label in records.LABELS
     for suffix in ("stdout.txt", "stderr.txt", "resources.json")])
 COMPILES = tuple(f"compile_{name}.{suffix}" for name in config.KERNELS

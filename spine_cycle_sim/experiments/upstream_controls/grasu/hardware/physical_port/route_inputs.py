@@ -11,7 +11,7 @@ from .. import configuration as config, records
 from . import probe
 
 PASS = "PHYSICAL_PORT_BD_PASS_NOT_ROUTE_TIMING_OR_BOARD_ADMISSION"
-PROFILE = "original_g_external_metadata_4to1_v1"
+PROFILE = probe.PROFILE
 
 
 def service_identity(unit, invocation):
@@ -65,7 +65,7 @@ def admit(packet, attempt, bd, *, unit, invocation):
         raise ValueError("external-port BD finite containment evidence missing or failed")
     pins += manifest["pins"]
     indexed = {pin["path"]: pin["sha256"] for pin in pins}
-    for name in ("pre_link.tcl", "post_link.tcl"):
+    for name in probe.HOOK_NAMES:
         source, copied = Path(probe.__file__).with_name(name), bd / "hooks" / name
         if identity(source)["sha256"] != identity(copied)["sha256"] or \
                 indexed.get(str(copied)) != identity(copied)["sha256"]:

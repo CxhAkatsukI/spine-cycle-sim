@@ -1,5 +1,6 @@
 trace remove execution ::source leave ::spine_g_ports::after_source
 if {!$::spine_g_ports::installed} {error "Metadata fan-in hook was never installed"}
+::spine_g_ports::check_discovery
 set expected [dict create]
 for {set cu 1} {$cu <= 4} {incr cu} {
     set bank [list [format HBM_MEM%02d [expr {$cu - 1}]]]
@@ -20,9 +21,12 @@ if {[dict size $::spine_g_ports::groups] != 8 || [get_property CONFIG.NUM_SI [ge
     error "Expected eight 4:1 metadata groups and 22 kernel + one host HMSS ingress"
 }
 set proof [open [file join [file dirname [info script]] physical_port.xml] w]
-puts $proof {<physical_port profile="original_g_external_metadata_4to1_v1" masters="46" kernel_ingress="22" host_ingress="1" source_modified="false" routed="false" board_measured="false">}
+puts $proof {<physical_port profile="original_g_external_metadata_4to1_common_attributes_v2" masters="46" kernel_ingress="22" host_ingress="1" source_modified="false" routed="false" board_measured="false">}
 dict for {name state} $::spine_g_ports::groups {
     if {[llength [dict get $state members]] != 4} {error "Incomplete metadata group: $name"}
+    if {[::spine_g_ports::common_master [dict get $state slave]] ne [lindex [dict get $state members] 0]} {
+        error "Unverified HMSS fan-in group: $name"
+    }
     puts $proof [format {  <group name="%s" bank="%s" slave="%s" clock="%s" reset="%s">} \
         $name [dict get $state bank] [dict get $state slave] [dict get $state clock] [dict get $state reset]]
     foreach master [dict get $state members] {

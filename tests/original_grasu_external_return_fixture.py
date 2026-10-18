@@ -37,7 +37,7 @@ def chain(root, packet, compiled):
     def lane(output, *, bd_parent=None):
         (output / "hooks").mkdir(parents=True)
         pins = preparation.verify(packet) + [identity(platform)]
-        for name in ("pre_link.tcl", "post_link.tcl"):
+        for name in probe.HOOK_NAMES:
             source, target = ASSETS / name, output / "hooks" / name
             shutil.copyfile(source, target)
             pins += [identity(source), identity(target)]

@@ -129,14 +129,57 @@ source/ABI/physical-profile/clock/timing admission. It pins the immutable
 original-G v4 host preflight (`c5fcccaf865c8d50cc5b0f74f4ea2dda53359a125fc927ae217915287c9d1ef6`)
 and uses the existing exclusive device lease. Deployment is not a measured
 G comparison; the independent matched-production G matrix remains necessary.
-The correction passes all 116 original-G regressions and 15 organization
+The correction passed all 116 original-G regressions and 15 organization
 checks, plus documentation/catalog and whitespace checks. These are synthetic
 test results, not hardware admission.
+
+### Common-Attribute Discovery Correction
+
+The v3 probe subsequently failed during platform validation, with zero OOM
+events and approximately 3.35 GiB peak memory. The retained BD has the intended
+eight SmartConnects, each with four original master inputs and one output to
+its original HMSS ingress. However, Vivado 2024.1's HMSS
+`set_slr_info_env` callback follows the interconnect to the original addressing
+masters and requires exactly one. Four masters are therefore rejected even
+though the physical fan-in was created. Its `set_clkrst_info_env` callback
+has the same single-master assumption. Full-link v2 and return v2 consequently
+fail before synthesis or board execution. These outputs remain unchanged.
+
+The new explicit profile is
+`original_g_external_metadata_4to1_common_attributes_v2`; it must not admit
+old v1 proofs. `discovery.tcl` adapts only the addressing-master lookup in
+those two callbacks, in memory, after verifying their expected signatures
+and lookup expression. It does not edit installed vendor files or suppress
+vendor diagnostics. All other callback logic remains in place. Unchanged
+single-master ports still use the original discovery result, including its
+original failure behavior for an unexpected fan-in.
+
+Before selecting a representative master for either callback, the adapter
+requires all four actual addressing masters to equal the declared lane set,
+checks every SmartConnect input/output connection, and independently checks
+common clock/reset nets, SLR assignments and address range/offset. It rejects
+additional per-master random-access or port-location constraints until an
+explicit fan-in contract exists. Exactly two unchanged adapted callbacks
+must be present at post-link validation; their original-body CRCs are logged.
+All three hook files are pinned through BD, full link and offline return
+replay. A changed or unsupported callback fails the probe; no unchecked
+fallback is used. This remains a platform-adapted original-G control,
+not a publication reproduction or an assertion of zero arbitration cost.
+
+Four additional synthetic tests cover these common-attribute and callback
+invariants, including eight independently corrupted topology/attribute cases,
+delayed namespaced loading, unmodified direct-port diagnostics and unsupported
+or replaced callback rejection. Actual Vivado BD completion, full routing,
+strict clock/timing admission and the matched board matrix are still required.
+
+```bash
+python3 -m unittest discover -s tests -p 'test_original_grasu_hmss_discovery.py'
+```
 
 ## Full-Link Continuation
 
 `route.py` waits for one exact BD service/invocation and then runs a
-fresh full link under profile `original_g_external_metadata_4to1_v1`. It does
+fresh full link under the current common-attribute v2 profile. It does
 not resume or overwrite the BD output. `route_inputs.py` independently checks
 the terminal service, preserved compiled inputs, original 150-MHz command,
 raw resource record, finite containment, zero OOM events, unchanged hooks

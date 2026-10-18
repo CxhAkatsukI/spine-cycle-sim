@@ -86,10 +86,14 @@ namespace eval ::spine_g_ports {
     }
 
     proc after_source {command code result operation} {
-        if {$code == 0} {install}
+        if {$code == 0} {
+            install
+            install_discovery [uplevel 1 {namespace current}]
+        }
     }
 }
 
+source [file join [file dirname [info script]] discovery.tcl]
 ::spine_g_ports::install
 # The vendor loads its mapper while creating HMSS, after the pre-syslink hook.
 trace add execution ::source leave ::spine_g_ports::after_source

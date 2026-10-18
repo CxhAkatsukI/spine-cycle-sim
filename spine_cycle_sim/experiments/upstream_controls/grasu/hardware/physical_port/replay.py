@@ -85,7 +85,7 @@ def validate(root, receipt):
         if any(pins[row["path"]] != row["sha256"] for row in manifest["pins"]) or \
                 not platform.is_absolute() or str(platform) not in pins:
             raise ValueError("external-port platform/pins closure differs")
-        for member in (owner + "/environment.json", owner + "/hooks/pre_link.tcl", owner + "/hooks/post_link.tcl"):
+        for member in (owner + "/environment.json", *[owner + "/hooks/" + name for name in probe.HOOK_NAMES]):
             if pins.get(indexed[member]["path"]) != indexed[member]["sha256"]:
                 raise ValueError("external-port hook/environment closure differs")
         command = probe.link_command(environment["tools"]["v++"]["invocation"], platform,
@@ -117,7 +117,7 @@ def validate(root, receipt):
         if any(parent_pins.get(source["path"]) != source["sha256"] for member, source in indexed.items()
                if member.startswith("bd/")) or any(
                 indexed[f"bd/hooks/{name}"]["sha256"] != indexed[f"route/hooks/{name}"]["sha256"]
-                for name in ("pre_link.tcl", "post_link.tcl")):
+                for name in probe.HOOK_NAMES):
             raise ValueError("full link did not retain exact tested BD evidence/hooks")
         preflight = records.read(root / owner, "preflight/results.json")
         if result.get("preflight") != preflight or preflight.get("status") != "PREFLIGHT_PASS_NOT_ROUTED" or \

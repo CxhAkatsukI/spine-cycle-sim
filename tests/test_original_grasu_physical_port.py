@@ -15,7 +15,7 @@ ASSETS = Path(probe.__file__).parent
 
 
 def proof(path):
-    root = ET.Element("physical_port", profile="original_g_external_metadata_4to1_v1",
+    root = ET.Element("physical_port", profile=probe.PROFILE,
         masters="46", kernel_ingress="22", host_ingress="1", source_modified="false",
         routed="false", board_measured="false")
     for cu in range(1, 5):

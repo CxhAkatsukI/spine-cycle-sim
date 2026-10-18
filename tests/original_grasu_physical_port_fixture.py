@@ -18,7 +18,7 @@ def build(root):
     platform = root / "platform.xpfm"
     platform.write_text("synthetic platform")
     pins = [identity(platform)]
-    for name in ("pre_link.tcl", "post_link.tcl"):
+    for name in probe.HOOK_NAMES:
         source, copied = ASSETS / name, bd / "hooks" / name
         shutil.copyfile(source, copied)
         pins += [identity(source), identity(copied)]

@@ -20,6 +20,9 @@ from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environme
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.synthesis import unchanged
 from .. import configuration as config, gates, preparation, records
 
+PROFILE = "original_g_external_metadata_4to1_common_attributes_v2"
+HOOK_NAMES = ("pre_link.tcl", "post_link.tcl", "discovery.tcl")
+
 
 def inputs(packet, attempt):
     pins = preparation.verify(packet)
@@ -47,7 +50,7 @@ def inputs(packet, attempt):
 def inspect_proof(path):
     root = ET.parse(path).getroot()
     if root.tag != "physical_port" or root.attrib != {
-            "profile": "original_g_external_metadata_4to1_v1", "masters": "46",
+            "profile": PROFILE, "masters": "46",
             "kernel_ingress": "22", "host_ingress": "1", "source_modified": "false",
             "routed": "false", "board_measured": "false"}:
         raise ValueError("unexpected physical-port diagnostic claim")
@@ -110,7 +113,7 @@ def run(packet, attempt, output, environment_root, xilinx, platform, compatibili
         lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
         for name in ("tmp", "user-data", "hooks"):
             (output / name).mkdir()
-        for name in ("pre_link.tcl", "post_link.tcl"):
+        for name in HOOK_NAMES:
             source = Path(__file__).with_name(name)
             shutil.copyfile(source, output / "hooks" / name)
             pins += [identity(source), identity(output / "hooks" / name)]
