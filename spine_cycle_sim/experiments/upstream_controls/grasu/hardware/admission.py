@@ -12,6 +12,12 @@ from . import configuration as config, delivery, gates, records
 PASS = "ORIGINAL_G_SOURCE_ABI_CLOCK_TIMING_PASS_AWAITING_BOARD"
 
 
+def verify_scope(remote, receipt):
+    if receipt["unit"] != remote.unit or receipt["invocation"] != remote.invocation or \
+            receipt["remote_packet"] != str(remote.capsule) or receipt["remote_attempt"] != str(remote.attempt):
+        raise ValueError("original G returned service or source packet changed")
+
+
 def review(returned, output, *, receipt_sha256):
     receipt = delivery.verify(returned, receipt_sha256)
     execution, manifest = records.completed(returned / "route", remote_route=Path(receipt["remote_attempt"]),

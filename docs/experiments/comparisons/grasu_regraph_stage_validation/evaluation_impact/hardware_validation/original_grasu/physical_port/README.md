@@ -25,7 +25,11 @@ independent board matrix are not changed by this diagnostic.
 `spine_cycle_sim/experiments/upstream_controls/grasu/hardware/physical_port/`
 contains the bounded executor `probe.py`, admission checks in `route_inputs.py`,
 an exact-service continuation in `route.py`, the pre-link hook and the post-link
-contract checker. The pre-hook preserves and delegates to the installed
+contract checker. `delivery.py` owns the distinct return receipt, `replay.py`
+rechecks its compilation/BD/link chain offline, and `admission.py` owns final
+source/ABI/topology/clock/timing admission. The thin `follow.py` reuses the
+original-G transport/wait/board driver with this explicit physical profile.
+The pre-hook preserves and delegates to the installed
 vendor mapper; it does not edit vendor files. The first lane establishes
 the original bank, address range, offset, clock and reset. Later lanes use
 the same bank/address geometry through that group's SmartConnect. Unexpected
@@ -53,8 +57,8 @@ python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware.physical
 
 `PHYSICAL_PORT_BD_PASS_NOT_ROUTE_TIMING_OR_BOARD_ADMISSION` means only that
 Vivado completed the declared BD steps and the eight-group/46-master/address
-contract passed. It does not extend the original route/return admission
-schema: a routed candidate needs a separately recorded physical profile,
+contract passed. It does not extend the direct-46-port return admission
+schema: a routed candidate uses a separately recorded physical profile,
 strict timing, functional checks and a repeated matched-input board matrix.
 It cannot be used to claim paper-performance matching or finalized figures.
 
@@ -133,7 +137,7 @@ identity, timeout without compilation, immutable hooks/platform/proof,
 raw execution and memory policy, complete 150-MHz XO commands, preflight,
 child failure preservation and the distinction between link and board
 claims. Together with the seven BD tests these are 17 tests, not tool or
-board measurements. The full `test_original_grasu*.py` group passes 103 tests.
+board measurements. These tests do not admit a returned binary.
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_original_grasu_physical*.py'
@@ -152,3 +156,54 @@ compiler child. The first saved state is `WAITING_FOR_EXACT_EXTERNAL_PORT_BD`
 with no errors; no full link or FPGA programming has started. The exact v2
 BD producer remains queued for complete memory budgets. This is not an
 automatic promise of successful routing, clock closure or board admission.
+
+## Return And Admission
+
+The separate `original-grasu-external-port-return-v1` receipt carries the exact
+terminal producer invocation, unchanged author sources and compiled XOs/HLS,
+the retained failed direct link, the tested BD proof/hooks, complete full-link
+preflight/raw resource records, the candidate and final routed timing report.
+Its fixed member set is digest-checked against the receipt SHA obtained over
+SSH. Offline replay rejects substituted origins, duplicate/extra members,
+changed hooks, failed raw steps, unbounded memory, OOM or a different physical
+profile. Source code is unchanged; physical interconnect is explicitly changed.
+
+Local admission independently extracts candidate metadata and requires all
+46 logical AXI bindings, nine compute units, eight streams, actual
+150/500/450-MHz clocks, and passing final setup/hold/pulse-width timing. Merely
+finishing v++ is insufficient. The resulting status is
+`ORIGINAL_G_EXTERNAL_PORT_ABI_CLOCK_TIMING_PASS_AWAITING_BOARD`, not a measured
+performance or publication match. The shared board driver preserves this
+profile in its results and cannot label it as the direct-46-port control.
+
+For return/admission without programming a card:
+
+```bash
+python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware.physical_port.follow \
+  --target chuxiao@10.129.161.241 --port 23333 \
+  --runner /absolute/frozen-return-runner \
+  --packet /data/chuxiao/baseline_hardware_validation_20261017/original-g-source-packet-v1 \
+  --attempt /data/chuxiao/baseline_hardware_validation_20261017/original-g-external-port-route-v1 \
+  --returned /absolute/fresh-remote-return \
+  --unit spine-original-g-external-port-route-20261018-v1.service \
+  --invocation 0596cbd29fcf448ca4aa7b1f3c38f90f \
+  --output /absolute/fresh-local-follow --maximum-wait 259200
+```
+
+Run the local follower in a finite 4/3-GiB max/high service, with zero swap,
+group OOM kill and an enclosing deadline longer than the declared wait.
+Board execution additionally requires an independently reviewed, immutable
+Release/UBSan host preflight and both `--execute --board-preflight ...`.
+Do not reuse a preflight whose pins refer to files changed since its capture.
+The follower without these flags never asks for a device.
+
+Thirteen synthetic return/admission tests cover relocation, trusted digests,
+independent raw replay, service replacement, false profiles, source and memory
+closure, downclocking, negative routed slack and shared-driver selection. They
+use no real SSH, vendor tool or FPGA. The complete original-G group now has
+116 tests; actual routing, board correctness and matched performance are
+separate pending evidence.
+
+```bash
+python3 -m unittest discover -s tests -p 'test_original_grasu_external_return.py'
+```

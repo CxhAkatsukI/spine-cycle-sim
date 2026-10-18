@@ -18,10 +18,26 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
 from spine_cycle_sim.experiments.evaluation_impact.common_g.search_pipeline.synthesis import unchanged
 from ...host.fixtures import NAMES
 from .. import admission, configuration as config
+from ..physical_port import admission as external_admission, route_inputs
 from . import analysis, preflight, preparation
 
 PREFLIGHT_SHA256 = "bee145c72883f4c0d9ec85ca0eccab207bfdebd1050d9a978d4645d7ae9cc701"
 PASS = "ORIGINAL_G_U55C_MATRIX_PASS_NOT_PUBLICATION_OR_MATCHED_G_COMPARISON"
+EXTERNAL_PASS = "ORIGINAL_G_EXTERNAL_PORT_U55C_MATRIX_PASS_NOT_PUBLICATION_OR_MATCHED_G_COMPARISON"
+
+
+def control_profile(checked):
+    if any(checked.get(flag) is not False for flag in config.FLAGS) or checked.get("errors") != []:
+        raise ValueError("original G strict source/ABI/clock/timing admission required")
+    if checked.get("status") == admission.PASS:
+        if checked.get("physical_interconnect_changed", False) is not False or \
+                checked.get("source_modified", False) is not False:
+            raise ValueError("direct original G admission cannot hide a physical/source adaptation")
+        return "original_g_direct46_v1", PASS
+    if checked.get("status") == external_admission.PASS and checked.get("profile") == route_inputs.PROFILE and \
+            checked.get("source_modified") is False and checked.get("physical_interconnect_changed") is True:
+        return route_inputs.PROFILE, EXTERNAL_PASS
+    raise ValueError("unknown or incomplete original G physical profile")
 
 
 @contextmanager
@@ -77,8 +93,9 @@ def run(preflight_root, admitted, output, *, device=0, repeats=3):
         host, cases, host_pins = inputs(preflight_root)
         admitted_pin = identity(admitted / "summary.json")
         checked = json.loads((admitted / "summary.json").read_text())
-        if checked.get("status") != admission.PASS or any(checked.get(flag) is not False for flag in config.FLAGS):
-            raise ValueError("original G strict source/ABI/clock/timing admission required")
+        profile, pass_status = control_profile(checked)
+        report.update(profile=profile, source_modified=False,
+                      physical_interconnect_changed=profile == route_inputs.PROFILE)
         pins = [*host_pins, admitted_pin, *checked["pins"], checked["candidate"], *runner_pins()]
         report["pins"] = list({row["path"]: row for row in pins}.values())
         unchanged(pins)
@@ -130,7 +147,7 @@ def run(preflight_root, admitted, output, *, device=0, repeats=3):
             report["summaries"] = analysis.summaries(report["rows"], list(NAMES), repeats)
             runtime.unchanged(captured, render)
             unchanged(pins)
-        report.update(status=PASS, pins=list({row["path"]: row for row in pins}.values()))
+        report.update(status=pass_status, pins=list({row["path"]: row for row in pins}.values()))
     except BaseException as error:
         report["status"] = "FAILED_RETAINED"
         report["errors"].append(repr(error))

@@ -33,8 +33,9 @@ class GraSURemote(Remote):
         return result
 
 
-def run(remote, output, *, board_preflight=None, device=0, maximum_wait=133200, poll_seconds=30):
-    if type(maximum_wait) is not int or not 1 <= maximum_wait <= 133200 or \
+def run(remote, output, *, board_preflight=None, device=0, maximum_wait=133200, poll_seconds=30,
+        reviewer=admission, board_pass=board.PASS):
+    if type(maximum_wait) is not int or not 1 <= maximum_wait <= 259200 or \
             type(poll_seconds) is not int or not 1 <= poll_seconds <= 300:
         raise ValueError("bounded original G route wait required")
     output.mkdir(parents=True, exist_ok=False)
@@ -66,15 +67,15 @@ def run(remote, output, *, board_preflight=None, device=0, maximum_wait=133200, 
         report.update(status="RETURNING_ORIGINAL_G", receipt_sha256=remote.seal())
         save()
         remote.transfer(output / "returned")
-        receipt = admission.delivery.verify(output / "returned", report["receipt_sha256"])
-        if receipt["unit"] != remote.unit or receipt["invocation"] != remote.invocation or \
-                receipt["remote_packet"] != str(remote.capsule) or receipt["remote_attempt"] != str(remote.attempt):
-            raise ValueError("original G returned service or source packet changed")
+        receipt = reviewer.delivery.verify(output / "returned", report["receipt_sha256"])
+        reviewer.verify_scope(remote, receipt)
+        if "profile" in receipt:
+            report.update(profile=receipt["profile"], physical_interconnect_changed=receipt["physical_interconnect_changed"])
         unchanged(pins)
         if not route_finished(remote.state(), remote.invocation):
             raise ValueError("original G service changed after transport")
-        result = admission.review(output / "returned", output / "admission", receipt_sha256=report["receipt_sha256"])
-        if result["status"] != admission.PASS:
+        result = reviewer.review(output / "returned", output / "admission", receipt_sha256=report["receipt_sha256"])
+        if result["status"] != reviewer.PASS:
             raise ValueError("original G strict admission incomplete")
         report.update(status=PASS, admission=identity(output / "admission/summary.json"))
         save()
@@ -83,9 +84,9 @@ def run(remote, output, *, board_preflight=None, device=0, maximum_wait=133200, 
             report.update(status="REQUESTING_ORIGINAL_G_BOARD", board_requested=True)
             save()
             result = board.run(board_preflight, output / "admission", output / "board", device=device)
-            if result["status"] != board.PASS:
+            if result["status"] != board_pass:
                 raise ValueError("original G complete repeated board matrix required")
-            report.update(status=board.PASS, board_report=identity(output / "board/results.json"),
+            report.update(status=board_pass, board_report=identity(output / "board/results.json"),
                           board_programmed=True, hardware_timing_measured=True)
     except BaseException as error:
         child_path = output / "board/results.json"
@@ -105,7 +106,7 @@ def run(remote, output, *, board_preflight=None, device=0, maximum_wait=133200, 
     return report
 
 
-def main(argv=None):
+def main(argv=None, *, remote_class=GraSURemote, reviewer=admission, board_pass=board.PASS):
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("target", "unit", "invocation"):
@@ -120,10 +121,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.execute != (args.board_preflight is not None):
         parser.error("board execution requires both --execute and --board-preflight")
-    remote = GraSURemote(args.target, args.port, args.runner, args.packet, args.attempt, args.returned,
+    remote = remote_class(args.target, args.port, args.runner, args.packet, args.attempt, args.returned,
                          args.unit, args.invocation)
     print(run(remote, args.output.resolve(), board_preflight=args.board_preflight,
-              device=args.device, maximum_wait=args.maximum_wait)["status"], flush=True)
+              device=args.device, maximum_wait=args.maximum_wait, reviewer=reviewer, board_pass=board_pass)["status"], flush=True)
 
 
 if __name__ == "__main__":
