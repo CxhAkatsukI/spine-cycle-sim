@@ -17,6 +17,7 @@ before the next poll. The source invocation ID is still checked independently.
 | `supervisor.py` | Wait for the exact service invocation, atomically admit memory, contain execution and recheck every raw result |
 | `delivery.py` | Independently replay raw output/route checks, retain failed attempts, seal and verify a portable measured-control capsule |
 | `comparison.py` | Compare replayed 11+3/A4 matched-input controls, keeping resident wall and device-event windows separate; no missing K4 inference |
+| `model_audit.py` | Recheck frozen A4 numerical captures against board inputs, work and complete outputs; disclose timing-contract and historical-source drift without fitting or current-model admission |
 | `__main__.py` | Thin CLI requiring explicit `--execute` |
 
 ## Fixed Scope
@@ -153,3 +154,24 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.board
 The report gives the ratio of A4/original median times separately for resident
 wall, event span and event union. It cannot substitute those controls for the
 latest adapter/K4 board matrix or establish original-publication performance.
+
+## Audit The Historical A4 Model
+
+The read-only model audit replays all eight frozen model cases and eighteen
+A4 board runs before comparing the three matching CSR-degree inputs. The
+historical executable remains hash-checked. Changed historical source
+dependencies are recorded with both identities, not accepted as a rebuild
+or current-model validation. The original delivery validator is unchanged.
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution.model_audit \
+  --model-report docs/experiments/comparisons/grasu_regraph_stage_validation/a4_results.json \
+  --verification docs/experiments/comparisons/grasu_regraph_stage_validation/a4_verification.json \
+  --contract configs/experiments/original_regraph_a4_execution_v1.json \
+  --a4 /path/to/completed/a4-board-supervisor \
+  --output /path/to/fresh/model-board-audit
+```
+
+Run under finite memory/CPU limits as for other offline evidence checks. It
+does not rerun a model, execute FPGA work, change parameters, or compute an
+admitted calibration error. See the [measured audit and retained limitations](../../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/original_regraph/model_board_audit/README.md).

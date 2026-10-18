@@ -45,6 +45,7 @@ agreement and published-rate reproduction have separate acceptance gates.
 | What do source controls and HLS schedules establish? | [Initial source controls](SOURCE_CONTROLS.md), [HLS scheduling](HLS_SCHEDULES.md) |
 | How were complete graph inputs prepared? | [Original host inputs](ORIGINAL_HOST_INPUTS.md) |
 | Does complete original A4 work? | [Whole-A4 execution](A4_GRAPH_EXECUTION.md) |
+| Does the historical A4 model match the measured A4 control? | [Identical inputs/work/results, but unadmitted timing and explicit source drift](evaluation_impact/hardware_validation/original_regraph/model_board_audit/README.md) |
 | Does the existing adapter preserve original A4 logical work? | [Adapter source and exact wiring regression](ADAPTER_SOURCE.md) |
 | What changes when finite PMA input feeds the same original A4 downstream? | [Matched finite A4/B state, traffic, overlap and predicted overhead](FINITE_PMA_R.md) |
 | Does the artifact's 11+3 example work? | [Mixed execution and allocation finding](MIXED_GRAPH_EXECUTION.md) |
