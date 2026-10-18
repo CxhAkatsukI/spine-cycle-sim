@@ -73,6 +73,13 @@ class AlgorithmFollowTests(unittest.TestCase):
         self.seal.assert_not_called()
         self.transfer.assert_not_called()
 
+    def test_compile_and_route_lifetime_can_be_followed_without_relaxing_admission(self):
+        result = self.run_job(maximum_wait=job.MAXIMUM_WAIT_SECONDS)
+        self.assertEqual(result["maximum_wait_seconds"], 270000)
+        self.assertEqual(result["status"], job.PASS)
+        self.admit.assert_called_once()
+        self.assertTrue(all(result[key] is False for key in job.artifacts.FLAGS))
+
     def test_receipt_scope_hash_or_post_transfer_service_mismatch_rejected(self):
         correct = self.receipt.return_value.copy()
         for index, change in enumerate(({"algorithm": "full_pagerank"}, {"integration_revision": "c" * 40},
@@ -134,7 +141,7 @@ class AlgorithmTransportTests(unittest.TestCase):
         for path in (Path("relative"), Path("/a/../b")):
             with self.assertRaises(ValueError):
                 self.remote(compilation=path)
-        for options in ({"maximum_wait": True}, {"maximum_wait": 0}, {"maximum_wait": 133201},
+        for options in ({"maximum_wait": True}, {"maximum_wait": 0}, {"maximum_wait": 270001},
                         {"poll_seconds": float("nan")}, {"poll_seconds": 0}):
             with self.assertRaises(ValueError):
                 job.run(self.remote(), Path("/sources"), "connected_components", Path("/unused"), **options)

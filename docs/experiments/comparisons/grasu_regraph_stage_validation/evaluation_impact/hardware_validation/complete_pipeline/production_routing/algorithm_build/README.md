@@ -106,6 +106,26 @@ still decides whether its clock/timing/connectivity qualify. Failed child
 execution identities remain in the parent report. Nine focused follower tests
 and the existing algorithm tests cover these failure and identity boundaries.
 
+The continuation is now deployed as
+`spine-production-fullpr-compile-route-20261018-v1.service`, invocation
+`6bc5f930f57f47dc994bdcf21cea3635`, output
+`production-fullpr-compile-route-follow-v1` under the remote experiment root
+below. Its fixed runner `algorithm-compile-follow-runner-4d44dc8` was transferred
+in `algorithm-compile-follow-runner-4d44dc8.tar.gz`, SHA-256
+`ac6ea55d8cab9bd8c45f0afa2eaf12531fa3ae8f20d3ab21cf241ce00f31bfa2`.
+The service has a 270000-second lifetime. At 17:25 UTC it is still
+`WAITING_FOR_EXACT_COMPILATION`, without errors or a completed link. The exact
+compile invocation above, not the ongoing older FullPR link, is its prerequisite.
+
+Local return following retains its 133200-second default. An explicit
+`--maximum-wait 270000` is supported for this combined compile/link service;
+its containing service must additionally cover sealing, transfer and admission.
+This extends only finite waiting, not clock tolerance or any evidence gate.
+The return still seals the child `OUTPUT/route`, checks the exact parent
+invocation and independently enforces source, ABI, connectivity and timing.
+Fifty-nine focused algorithm-build tests pass, including the longer bounded
+wait and rejection of changed or unsuccessfully terminated services.
+
 ## Deployed Checkpoint
 
 The three v1 compilations on `seele`

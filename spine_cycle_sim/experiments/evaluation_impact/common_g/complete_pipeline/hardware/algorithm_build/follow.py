@@ -15,6 +15,7 @@ from . import admission, artifacts, inputs
 
 MODULE = "spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.algorithm_build"
 PASS = "ALGORITHM_REMOTE_RETURN_ADMITTED_NOT_BOARD_OR_PUBLICATION"
+MAXIMUM_WAIT_SECONDS = 270000
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,7 @@ class AlgorithmRemote(Remote):
 
 
 def run(remote, sources, algorithm, output, *, maximum_wait=133200, poll_seconds=30):
-    if algorithm not in inputs.ALGORITHMS or type(maximum_wait) is not int or not 1 <= maximum_wait <= 133200 or \
+    if algorithm not in inputs.ALGORITHMS or type(maximum_wait) is not int or not 1 <= maximum_wait <= MAXIMUM_WAIT_SECONDS or \
             type(poll_seconds) is not int or not 1 <= poll_seconds <= 300:
         raise ValueError("declared algorithm and bounded wait/poll required")
     output.mkdir(parents=True, exist_ok=False)
