@@ -23,6 +23,7 @@ remain separate experiments.
 | [source_build/](source_build/README.md) | Explicit clean-source 11+3/A4 compilation and routing with independent memory admission; no board execution |
 | [board_execution/](board_execution/README.md) | Exact-invocation conditional queue, independent artifact readmission and eighteen guarded board controls; no publication-match claim |
 | [semantics/](semantics/README.md) | Explicit original fixed-point versus candidate K4 binary32 payload audit; neither default-semantic equivalence nor measured performance |
+| [k4_control/](k4_control/README.md) | Actual production-layout offline A4/K4 control, independent values, guards and explicit unsupported inputs; no hardware timing |
 
 Read the [hardware campaign's original-R checkpoint](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/original_regraph/README.md)
 for results and reproduction. The oracle relies on the earlier complete author

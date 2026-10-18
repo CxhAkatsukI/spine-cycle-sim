@@ -43,18 +43,52 @@ The minimal runner archive SHA-256 is
 `dd7d1c5d64d7d2f41c4a7532c036e9312ef96730b74f7911514e564a6a77dc8c`.
 Service `spine-respr-postroute-20261018-v1.service`, invocation
 `6ce4cd7327e84d7ea534168580fff71d`, owns output
-`production-respr-postroute-diagnostic-v1`. At 2026-10-18 14:00 UTC it has
-loaded the exact checkpoint and is executing `phys_opt_design -clock_opt`.
-Its baseline report reproduces the parent's negative setup slack; no refined
-timing result or admitted bitstream is available yet. It previously waited for
-complete peer budgets while an unrelated unbounded simulation was active.
-Its own verified cgroup is 40/36 GiB max/high, zero swap and group OOM kill.
+`production-respr-postroute-diagnostic-v1`. Read-only inspection at
+2026-10-18 15:24 UTC found it complete with all four reports retained:
+
+| Pass | WNS (ns) | TNS (ns) | Failing setup endpoints | Strict timing |
+| --- | ---: | ---: | ---: | --- |
+| Baseline | -0.107 | -18.575 | 443 | Fail |
+| Clock optimization | -0.107 | -18.575 | 443 | Fail |
+| Aggressive fanout | -0.080 | -13.795 | 405 | Fail |
+| Alternate replication | -0.080 | -13.795 | 405 | Fail |
+
+All four reports have zero hold and pulse failures. The final result is
+`POSTROUTE_DIAGNOSTIC_COMPLETE_NOT_BITSTREAM_OR_BOARD_ADMISSION`, not timing
+closure. Physical refinement improved setup slack but did not close timing.
+The child took 6,135.98 seconds, sampled peak tree RSS was 26,205,280 KiB,
+and every cgroup memory event counter was zero. Its verified containment was
+40/36 GiB max/high, zero swap and group OOM kill. The result SHA-256 is
+`34076f87ebbc104c16039d87e78356df9d5726aa6a5feaf356ef97ae79e5f9e5`;
+the final diagnostic checkpoint SHA-256 is
+`f1ee02df6124f56c92fd8cd20242fdfd3e075af1a8135265759e602165664d83`.
+The original reports and refined checkpoint remain in the remote attempt
+directory; no bitstream was generated or programmed.
 
 Read-only replay of the parent's actual final report, SHA-256
 `760e74b83067645d4e5b00fdc6f9eae23b6d58fb3ac498b81c5e731419650bac`,
 confirms 443 setup failures, zero hold/pulse failures and strict rejection.
 The parent's returned binary also has actual DATA/HBM clocks 147/434 MHz.
 Neither the parent binary nor a later diagnostic report is board admission.
+
+## SSSP Diagnostic Queue
+
+SSSP producer `spine-g-production-remote-20261018-v2.service`, invocation
+`1ae4ec61720648c6a043398f3796e11b`, completed its link in 24,207.44 seconds.
+Its final report still has WNS -0.013 ns, TNS -0.039 ns and four failing
+setup endpoints, with zero hold/pulse failures. Its return/board continuation
+rejected the artifact; generating an xclbin did not admit its clock or timing.
+
+The independent diagnostic is service
+`spine-sssp-postroute-20261018-v1.service`, invocation
+`270a495592bc4f1ca8196e67298da334`, output
+`production-sssp-postroute-diagnostic-v1` under the remote campaign root.
+It uses `--producer-kind remote-sssp` and the read-only
+`original-g-port-runner-bd60e37` source archive, SHA-256
+`107c26731bad72bd760f17443fb9bb6d67a6abef7c0b29bb08234691e5a1affd`.
+Its 40/36-GiB, zero-swap/group-OOM containment and full-peer admission policy
+are unchanged. At 2026-10-18 15:28 UTC it is queued; there is no SSSP
+refinement result or new board-admitted artifact.
 
 ## Run
 

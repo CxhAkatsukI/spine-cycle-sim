@@ -1,5 +1,9 @@
 # Original ReGraph Hardware Controls
 
+The [actual adapter/K4 control](k4_control/README.md) tracks the separate
+production-layout semantic and eventual board comparison against original A4.
+It does not replace original 11+3 or A4 evidence below.
+
 ## Decision
 
 `original-r-preflight-v2` completes the fixed six-input **offline** audit.

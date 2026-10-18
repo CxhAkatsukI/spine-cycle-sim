@@ -260,6 +260,23 @@ uses a 2-GiB hard limit, zero swap and a 180-second deadline; it finishes in
 whitespace checks also pass. Fresh BD/full-link/return attempts are required;
 synthetic tests do not establish actual Vivado success.
 
+The SDx correction is frozen as `bd60e37`. Both hosts use the read-only
+`original-g-port-runner-bd60e37` snapshot; its archive SHA-256 is
+`107c26731bad72bd760f17443fb9bb6d67a6abef7c0b29bb08234691e5a1affd`.
+The fresh chain retains the same finite budgets, strict timing gate and
+immutable original-G v4 board preflight as the preceding attempts:
+
+| Stage | Output | Service / exact invocation |
+| --- | --- | --- |
+| BD diagnostic | Remote `original-g-physical-port-probe-v6` | `spine-original-g-physical-port-20261018-v6.service` / `06b021541f854b489a1ff28e04b9e0b1` |
+| Full link, only after that BD passes | Remote `original-g-external-port-route-v5` | `spine-original-g-external-port-route-20261018-v5.service` / `11b8abdf55d84525a805f1f7c99088c0` |
+| Strict return, then guarded board matrix | Local `original-g-external-port-return-follow-v5` | `spine-original-g-external-port-return-20261018-v5.service` / `3fecac0a07cb4303a1ec014763fb264c` |
+
+At 15:14 UTC, BD v6 is in its full-budget queue: roughly 372 GiB is
+available versus 240 GiB required, but unrelated vendor simulation has no
+finite cgroup limit. Existing admitted builds continue. The chain is deployed,
+not a completed BD, timing-admitted route or measured performance comparison.
+
 ## Full-Link Continuation
 
 `route.py` waits for one exact BD service/invocation and then runs a
