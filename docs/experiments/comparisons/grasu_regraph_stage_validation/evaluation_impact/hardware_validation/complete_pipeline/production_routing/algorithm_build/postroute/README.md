@@ -11,9 +11,16 @@ physical-only diagnostic, not a claim that physical optimization will succeed.
 
 The owning package is
 `spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.postroute`.
-`inputs.py` admits one exact terminal successful experimental algorithm link,
-including its environment probes, source/XO closure, zero OOM record, binary
-identity and unique final routed checkpoint. `refine.tcl` opens that checkpoint
+`inputs.py` admits one exact terminal successful link, including its environment
+probes, source/XO closure, zero OOM record, binary identity and unique final
+routed checkpoint. The default `--producer-kind algorithm` uses the experimental
+CC/ResPR/FullPR producer contract. The distinct SSSP relocation contract requires
+`--producer-kind remote-sssp`; `sssp_inputs.py` replays that producer's capsule,
+parent identity, full command, raw link and all six raw environment checks.
+It supplies an in-memory algorithm label without modifying the frozen parent.
+There is no schema guessing or fallback after failed validation. A running,
+failed or substituted producer is rejected before opening its checkpoint.
+`refine.tcl` opens the admitted checkpoint
 in a new non-project session, preserves its 150/500/450-MHz clock constraints,
 and records four reports: baseline, clock optimization, aggressive fanout
 optimization, then alternate replication. All passes, including regressions,
@@ -36,10 +43,11 @@ The minimal runner archive SHA-256 is
 `dd7d1c5d64d7d2f41c4a7532c036e9312ef96730b74f7911514e564a6a77dc8c`.
 Service `spine-respr-postroute-20261018-v1.service`, invocation
 `6ce4cd7327e84d7ea534168580fff71d`, owns output
-`production-respr-postroute-diagnostic-v1`. At 2026-10-18 12:34 UTC it is
-`WAITING_FOR_COMPLETE_MEMORY_BUDGETS`, not executing physical optimization.
-An unrelated unbounded Vivado simulation blocks admission despite approximately
-435 GiB available; existing bounded SSSP/CC/FullPR builds continue.
+`production-respr-postroute-diagnostic-v1`. At 2026-10-18 14:00 UTC it has
+loaded the exact checkpoint and is executing `phys_opt_design -clock_opt`.
+Its baseline report reproduces the parent's negative setup slack; no refined
+timing result or admitted bitstream is available yet. It previously waited for
+complete peer budgets while an unrelated unbounded simulation was active.
 Its own verified cgroup is 40/36 GiB max/high, zero swap and group OOM kill.
 
 Read-only replay of the parent's actual final report, SHA-256
@@ -77,4 +85,11 @@ parser/Tcl/guard tests do not replace a real Vivado run:
 
 ```bash
 python3 -m unittest discover -s tests -p test_production_postroute.py -v
+python3 -m unittest discover -s tests -p test_production_postroute_sssp.py -v
 ```
+
+The SSSP tests cover explicit producer selection, unchanged raw records and
+rejection of changed status, OOM, clock, host, capsule, parent, command, memory
+policy, timeout or source closure. They are synthetic contract tests, not
+physical timing calibration. Adding this producer does not start a diagnostic;
+an SSSP attempt must first finish and retain its exact service invocation.

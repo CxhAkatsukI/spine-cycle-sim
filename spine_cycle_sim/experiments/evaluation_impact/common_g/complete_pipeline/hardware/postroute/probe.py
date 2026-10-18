@@ -21,7 +21,8 @@ POLICY = {"tree_memory_gib": 40, "reserve_gib": 32, "background_memory_gib": 8,
           "allow_bounded_builds": True}
 
 
-def run(route, unit, invocation, output, environment_root, xilinx, platform, compatibility):
+def run(route, unit, invocation, output, environment_root, xilinx, platform, compatibility,
+        *, producer_kind="algorithm"):
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING_POSTROUTE_DIAGNOSTIC", "errors": [],
               "bitstream_generated": False, "board_admitted": False, "publication_match": False,
@@ -30,7 +31,7 @@ def run(route, unit, invocation, output, environment_root, xilinx, platform, com
     group, lease = None, None
     save()
     try:
-        parent = inputs.admit(route, unit, invocation)
+        parent = inputs.admit(route, unit, invocation, producer_kind=producer_kind)
         group = current()
         report["containment"] = verify(group)
         if shutil.disk_usage(output).free < 80 * 1024**3:
@@ -97,4 +98,5 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, required=True, type=Path)
     for name in ("unit", "invocation"):
         parser.add_argument("--" + name, required=True)
+    parser.add_argument("--producer-kind", choices=inputs.PRODUCERS, default="algorithm")
     run(**vars(parser.parse_args()))
