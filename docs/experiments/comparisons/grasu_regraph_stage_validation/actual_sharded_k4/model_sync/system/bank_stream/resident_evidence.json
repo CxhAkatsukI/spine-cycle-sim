@@ -1,0 +1,64 @@
+{
+  "archive": {
+    "bytes": 32223698,
+    "path": "/data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/delivery-v2/resident_and_compatibility_raw.tar.gz",
+    "sha256": "47789aae2c57e3df9a9b63362deab3f89a7c3fc8b74050993646695720f82335"
+  },
+  "cross_host_exact_legacy_cases": 5,
+  "execution_revision": "0c3323cfd9d7334d1c159145acb722eb3e4a9a41",
+  "figure_admitted": false,
+  "hardware_timing_admitted": false,
+  "ignored_fields": [],
+  "independent_recheck": true,
+  "index": {
+    "path": "/data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/delivery-v2/resident_and_compatibility_index.json",
+    "sha256": "4e5434e153e5e472dcb5bea33fd61a1ea46ca3d95eb2ffd7a489c652661d97ce"
+  },
+  "input_closure_files": 1182,
+  "input_closure_sha256": "98a028773fae69fbcb4bb0aecb180a86b5fa1c5a450d3c3929af07c8f40c0fd6",
+  "original_A4_comparison_complete": false,
+  "plugin_sha256": "070581686f7e32406069beff547379a4f8811155119da81f33a41221fbf4e712",
+  "remote_invocation": "4711217116ba463e960dfff8a3ff3430",
+  "resident_rows": [
+    {
+      "beats": 738334,
+      "directory_beats": 159760,
+      "full_external_state_equal": true,
+      "id": "au",
+      "new_over_previous_prediction": 0.07241790555309008,
+      "parents": 266602,
+      "predicted_cycles": 1090874,
+      "previous_row_line_predicted_cycles": 15063595,
+      "round_activity_equal": true
+    },
+    {
+      "beats": 996362,
+      "directory_beats": 244242,
+      "full_external_state_equal": true,
+      "id": "su",
+      "new_over_previous_prediction": 0.060936025381958324,
+      "parents": 301770,
+      "predicted_cycles": 1493965,
+      "previous_row_line_predicted_cycles": 24516942,
+      "round_activity_equal": true
+    },
+    {
+      "beats": 545026,
+      "directory_beats": 47890,
+      "full_external_state_equal": true,
+      "id": "wk",
+      "new_over_previous_prediction": 0.10534121927232182,
+      "parents": 296591,
+      "predicted_cycles": 908191,
+      "previous_row_line_predicted_cycles": 8621421,
+      "round_activity_equal": true
+    }
+  ],
+  "retained_attempts": [
+    "remote_python310_pidfd_failure",
+    "local_superseded_before_replay"
+  ],
+  "runtime_dependencies": "hash_indexed_in_input_closure_not_redistributed",
+  "schema_version": 1,
+  "status": "EXACT_LEGACY_AND_RESIDENT_FUNCTIONAL_TRAFFIC_PASS"
+}
