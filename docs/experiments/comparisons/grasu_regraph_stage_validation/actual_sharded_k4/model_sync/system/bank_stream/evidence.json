@@ -36,6 +36,7 @@
   "resident_supervisor": {
     "unit": "spine-bank-stream-resident-20261019-v2.service",
     "invocation": "fee2af60175545afa828477659cfab34",
+    "status": "SUPERSEDED_BEFORE_REPLAY_FOR_HIGH_MEMORY_RELOCATION",
     "pending_reason": "atomic_full_budget_memory_admission",
     "required_available_gib": 57
   },

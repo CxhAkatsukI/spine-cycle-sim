@@ -88,14 +88,34 @@ every archive member. Archive member hashes and the unchanged raw files are
 rechecked after sealing. This archive deliberately excludes pending resident
 replay and hardware results.
 
-The AU/SU/WK study is still awaiting atomic memory admission in
-`resident-supervisor-v2`. Its 1-GiB cap plus the active CC build's full 40-GiB
-reservation and 16-GiB reserve require 57 GiB available. The observed available
-memory is below that threshold; the study is queued, not failed or completed.
+The local AU/SU/WK supervisor `resident-supervisor-v2` was stopped before replay
+to relocate execution to the authorized high-memory host. Its 1-GiB cap plus
+the active CC build's full 40-GiB reservation and 16-GiB reserve required
+57 GiB available, above the observed local memory. Its exact invocation and
+supersession reason are retained; no resident output had been created.
 The prior supervisor was superseded before replay because it did not handle
 collection of the completed transient gate unit. No model or input was changed
 for that supervisor correction. No new resident cycles or hardware timing are
 admitted by this build checkpoint.
+
+## Execution Relocation
+
+`bank_stream/runtime.py` validates explicit SST, CPU and DRAMSim3 paths.
+Relocation rejects a DRAMSim3 library whose hash differs from the original
+plugin-build snapshot. The manifest distinguishes that original build source
+from the current execution source, and records host, CPU selection, SST and
+memHierarchy binary hashes and relevant environment variables. The plugin,
+HLS-source checks, fixtures, expected values, timing parameters and convergence
+requirements are unchanged. Relocation is not numerical calibration.
+
+The study accepts `--sst`, `--cpus` and `--dramsim3-root`; omitted options retain
+the original local defaults. The three focused runtime tests reject unavailable
+or duplicate CPUs and a changed DRAMSim3 dependency. The resulting 91-test
+Python matrix, document/catalog checks and single-threaded `git diff --check`
+pass; logs are in `runtime-relocation-v1/checks`. The initial bounded diff check
+could not create Git's default preload threads; its error is retained separately
+from the passing single-threaded check. Actual remote execution and its
+compatibility gates must still pass before resident results are admitted.
 
 The first broad Python command encountered two sibling-import errors. Rerunning
 the same intended matrix with `PYTHONPATH=.:tests` passed all 88 tests. The raw

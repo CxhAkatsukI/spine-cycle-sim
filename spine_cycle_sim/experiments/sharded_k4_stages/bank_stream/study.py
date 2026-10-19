@@ -7,7 +7,6 @@ import tarfile
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from spine_cycle_sim.experiments.refactor_equivalence import source_snapshot, verify_source_snapshot
-from spine_cycle_sim.sst_library import forced_sst_library_binding
 from ..execution import identity
 from ..link_runtime import run_link
 from ..row_line.model_scope import RESIDENT
@@ -15,9 +14,12 @@ from ..row_line.model_validation import inventory
 from ..sst_candidate import component_parameters, load_profile, require_export_headers
 from .model_contract import PROFILE_PATH
 from .model_validation import require_result, require_values
+from .runtime import select
 
 
-def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path) -> dict:
+def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path, *,
+        sst: Path = Path("/data/feiyang/sst/bin/sst"), cpus: tuple[int, ...] = (112, 113),
+        dramsim3_root: Path | None = None) -> dict:
     gate = json.loads((gates / "summary.json").read_text())
     if gate["status"] != "PASS" or gate["source_unchanged"] is not True:
         raise ValueError("complete fresh core/plugin/legacy gates are required")
@@ -31,7 +33,10 @@ def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path
     profile_path = root / PROFILE_PATH
     profile = load_profile(root, profile_path)
     hls_sources = require_export_headers(integration, profile)
-    binding = forced_sst_library_binding(Path("/data/feiyang/sst/bin/sst"), plugin)
+    contract_path = root / "configs/experiments/grasu_component_refactor_v1.json"
+    contract = json.loads(contract_path.read_text())
+    dram = dramsim3_root or Path(contract["build"]["dramsim3_root"])
+    binding, runtime = select(sst, plugin, cpus, dram, compiled["dramsim3_library_sha256"])
     declarations = []
     for case in RESIDENT.cases:
         directory = fixtures / case.name
@@ -42,9 +47,10 @@ def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path
                              "previous_row_line_result": identity(directory / "candidate/result.json")})
     RESIDENT.require_cases(declarations)
     output.mkdir(parents=True, exist_ok=False)
-    contract_path = root / "configs/experiments/grasu_component_refactor_v1.json"
-    source = source_snapshot(root, contract_path, json.loads(contract_path.read_text()))
+    relocated_contract = {**contract, "build": {**contract["build"], "dramsim3_root": str(dram)}}
+    source = source_snapshot(root, contract_path, relocated_contract)
     pins = [identity(profile_path), identity(gates / "summary.json"), identity(gates / "source_before.json"),
+            *runtime["files"],
             *hls_sources, *[row[key] for row in declarations
                            for key in ("fixture", "expected_values", "previous_row_line_result")]]
     with tarfile.open(output / "source.tar.gz", "w:gz") as archive:
@@ -55,6 +61,7 @@ def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path
             archive.add(row["path"], arcname="hls/" + str(Path(row["path"]).relative_to(integration)), recursive=False)
     atomic_write_json(output / "manifest.json", {
         "source": source, "profile": profile, "pins": pins, "plugin": binding,
+        "runtime": runtime, "plugin_build_source": compiled,
         "source_archive": identity(output / "source.tar.gz"), "cases": declarations,
         "limits": {**RESIDENT.limits, "tree_memory_gib": 1, "timeout_seconds": 600},
         "claim": "resident_SSSP_compute_prediction_not_FPGA_calibration_or_original_A4_match"})
@@ -67,8 +74,8 @@ def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path
                   "arm": "candidate", "max_cycles": RESIDENT.max_cycles}
         component_parameters(root, config)
         atomic_write_json(target / "run_config.json", config)
-        command = ["taskset", "-c", "112-113", "env", f"ROUTED_K4_RUN_CONFIG={target}/run_config.json",
-                   "/data/feiyang/sst/bin/sst", binding["command_option"], str(root / "sst/routed_k4_compute.py")]
+        command = ["taskset", "-c", ",".join(map(str, cpus)), "env", f"ROUTED_K4_RUN_CONFIG={target}/run_config.json",
+                   str(sst), binding["command_option"], str(root / "sst/routed_k4_compute.py")]
         resource = run_link(command, root, target / "sst", timeout=600,
                             tree_memory_gib=1, reserve_gib=16, poll_seconds=1)
         if (resource["exit_code"] or resource["stop_reason"] != "process_exit"
@@ -104,10 +111,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("gates", "integration", "fixtures", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--sst", type=Path, default=Path("/data/feiyang/sst/bin/sst"))
+    parser.add_argument("--cpus", type=int, nargs="+", default=[112, 113])
+    parser.add_argument("--dramsim3-root", type=Path)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[4]
     try:
-        run(root, args.gates.resolve(), args.integration.resolve(), args.fixtures.resolve(), args.output.resolve())
+        run(root, args.gates.resolve(), args.integration.resolve(), args.fixtures.resolve(), args.output.resolve(),
+            sst=args.sst.resolve(), cpus=tuple(args.cpus), dramsim3_root=args.dramsim3_root)
     except Exception as error:
         if args.output.is_dir():
             atomic_write_json(args.output / "failure.json", {"status": "FAILED_RETAINED", "error": repr(error)})
