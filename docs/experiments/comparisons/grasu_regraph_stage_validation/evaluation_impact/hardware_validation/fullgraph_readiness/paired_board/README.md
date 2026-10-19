@@ -23,7 +23,7 @@ The owner is `fullgraph_readiness/paired_board/`:
   offline/artifact admissions and the source/input/runtime pin closures.
 - Each raw stdout/stderr is reparsed by its own arm's analyzer. A stored PASS,
   changed timing field, failed/partial child, different command, missing smoke,
-  memory-limit/OOM event or pin drift prevents acceptance.
+  memory-throttling/limit/OOM event or pin drift prevents acceptance.
 - Graph hashes, dimensions, sources and physical batches must match. SSSP and
   ResPR have eight edits; reciprocal CC has sixteen. All algorithms retain
   their frozen final-oracle and convergence rules.
@@ -33,6 +33,11 @@ The owner is `fullgraph_readiness/paired_board/`:
 - Every individual wall time is retained. The exported speedup is
   `median(G+R wall_ms) / median(Spine wall_ms)`, not an average of pairwise
   ratios. Three repetitions are restored processes, not three chained batches.
+- Resident host containment is the recorded 24/22- or 40/36-GiB hard/soft
+  budget, with zero swap and a 32-GiB system reserve. Replay checks the exact
+  declared cap against cgroup and child records and requires zero `high`,
+  `max` and OOM events. Inactive host safety caps may differ between arms;
+  throttled timing is never accepted.
 
 The success status is
 `PAIRED_RESIDENT_BOARD_REPORTS_REPLAYED_NOT_BASELINE_OR_FIGURE_ADMISSION`.
@@ -162,10 +167,10 @@ wait, with `RemainAfterExit=yes` for terminal inspection. At redeployment it
 was `WAITING_FOR_COMPLETE_BOARD_PRODUCER`, without errors. No speedup or
 final-figure admission follows from that state.
 
-## Current Candidate Deployment
+## Superseded V5 Deployment
 
 The v4 follower's producer was superseded before replay. Its record remains
-unchanged. The current v5 follower uses the existing immutable `b0aa357`
+unchanged. The superseded v5 follower used the immutable `b0aa357`
 runner, whose paired continuation source is unchanged, and the
 [registered comparison requests](../../complete_pipeline/production_routing/comparison_candidate/paired_requests.json).
 The current admissions are checked against the candidate's fullgraph request
@@ -189,3 +194,13 @@ swap, group OOM kill, CPUs 118--119, a 172800-second wait and retained terminal
 identity. It never operates an FPGA. It waits for all three algorithm reports
 and rejects producer failure, changed sources or incomplete matrices. Starting
 this follower is not a speedup, simulator calibration or final-figure result.
+
+## Current Candidate Deployment
+
+The current producer is fullgraph v13 and the offline-only follower is paired
+v9, using the immutable `resident-board-memory-runner-v1`. Earlier v12/v8
+records are retained: v12 was interrupted because LJ host preparation hit its
+memory soft limit, not because of FPGA correctness. The current runner rejects
+soft-limit events as well as OOM. Exact invocations, runner hash, requests and
+the still-pending status are maintained in the
+[current comparison candidate](../../complete_pipeline/production_routing/comparison_candidate/README.md#board-host-memory-and-timing-admission).

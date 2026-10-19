@@ -74,12 +74,20 @@ class FullgraphContinuationTests(unittest.TestCase):
         with patch.object(job.time, "monotonic", side_effect=[0, 2]), self.assertRaises(TimeoutError):
             self.run_job(maximum_wait=1)
         self.board.assert_not_called()
+
         self.assertFalse(self.saved()["board_requested"])
         self.output = self.root / "return-timeout"
         self.states.side_effect = lambda unit: state() if unit == "offline.service" else state("active")
         with patch.object(job.time, "monotonic", side_effect=[0, 2]), self.assertRaises(TimeoutError):
             self.run_job(maximum_wait=1)
         self.board.assert_not_called()
+
+    def test_explicit_board_budget_forwarded_without_changing_workloads(self):
+        result = self.run_job(board_memory_gib=40)
+        self.assertEqual(result["status"], job.PASS)
+        self.assertEqual(result["board_memory_policy"], job.board_memory.policy(40))
+        self.assertEqual(self.board.call_count, 3)
+        self.assertTrue(all(call.kwargs["memory_gib"] == 40 for call in self.board.call_args_list))
 
     def test_local_returns_keep_exact_algorithm_admission_and_service_gates(self):
         for request in self.requests[1:]:

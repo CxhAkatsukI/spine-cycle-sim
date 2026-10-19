@@ -30,11 +30,12 @@ def matrix(algorithm, spine=False, output=Path("/frozen/attempt")):
     report = {"status": experiment.pass_status, "errors": [], "experiment": experiment.name,
               "algorithm": algorithm, "boundary": analysis.BOUNDARY, "plan": plan, "pins": [],
               "repeats": 3, "cpu_affinity": [118, 119], "device_index": 1,
+              "policy": {"tree_memory_gib": 24, "reserve_gib": 32, "allow_bounded_builds": True},
               "execution_requested": True, "board_requested": True, "hardware_convergence_measured": True,
               **{key: False for key in analysis.CLAIMS}, "attempts": [],
               "containment": {"limits": {"memory.max": str(24 * 1024**3),
                               "memory.high": str(22 * 1024**3), "memory.swap.max": "0", "memory.oom.group": "1"}},
-              "memory_events_after": "max 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_after": "high 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
               "runtime": {"device": {"bdf": BDF, "driver_version": "fixed", "driver_srcversion": "fixed",
                                       "kernel_release": "fixed"},
                           "platform": {"static_region": {"vbnv": "u55c"}, "status": {"mig_calibrated": "true"}},
@@ -68,6 +69,25 @@ def matrix(algorithm, spine=False, output=Path("/frozen/attempt")):
 
 
 class PairedBoardTests(unittest.TestCase):
+    def test_explicit_larger_budget_replays_but_throttled_or_mismatched_budget_does_not(self):
+        report, raw, experiment = matrix("weighted_sssp")
+        report["policy"]["tree_memory_gib"] = 40
+        report["containment"]["limits"].update({"memory.max": str(40 * 1024**3),
+                                               "memory.high": str(36 * 1024**3)})
+        for attempt in report["attempts"]:
+            attempt["resources"]["tree_memory_gib"] = 40
+            name = f"{attempt['scope']}_r{attempt['repeat']}_{attempt['dataset']}"
+            raw["raw/" + name + ".resources.json"] = json.dumps(attempt["resources"])
+        replay = lambda: analysis.replay(report, report["plan"], experiment, Path("/frozen/attempt"), raw.__getitem__)
+        replay()
+        report["memory_events_after"] = report["memory_events_after"].replace("high 0", "high 1")
+        with self.assertRaisesRegex(ValueError, "throttling"):
+            replay()
+        report["memory_events_after"] = report["memory_events_after"].replace("high 1", "high 0")
+        report["policy"]["tree_memory_gib"] = 24
+        with self.assertRaisesRegex(ValueError, "containment"):
+            replay()
+
     def test_all_six_complete_raw_matrices_replayed_and_aggregated(self):
         arms = []
         for spine in (False, True):

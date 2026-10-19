@@ -6,6 +6,7 @@ from pathlib import Path
 from statistics import median
 
 from ..board_analysis import BOUNDARY
+from .. import board_memory
 from ..preparation import ALGORITHMS, DATASETS
 
 PASS = "PAIRED_RESIDENT_BOARD_REPORTS_REPLAYED_NOT_BASELINE_OR_FIGURE_ADMISSION"
@@ -29,13 +30,9 @@ def replay(report, plan, experiment, output, read):
     if not all(pin in report["pins"] for pin in plan["pins"]):
         raise ValueError("complete source, input and artifact pin closure required")
     limits = report["containment"]["limits"]
-    if int(limits["memory.max"]) != 24 * 1024**3 or \
-            not 0 < int(limits["memory.high"]) <= 22 * 1024**3 or \
-            limits["memory.swap.max"] != "0" or limits["memory.oom.group"] != "1":
-        raise ValueError("bounded no-swap board containment required")
-    events = dict(line.split() for line in report["memory_events_after"].splitlines())
-    if any(int(events[key]) != 0 for key in ("max", "oom", "oom_kill", "oom_group_kill")):
-        raise ValueError("memory-limit or OOM event prevents replay acceptance")
+    declared = report["policy"]
+    board_memory.validate(limits, declared)
+    board_memory.require_unthrottled(report["memory_events_after"])
     affinity = report["cpu_affinity"]
     repeats = report["repeats"]
     if len(affinity) != 2 or len(set(affinity)) != 2 or \
@@ -61,7 +58,8 @@ def replay(report, plan, experiment, output, read):
             raise ValueError("saved child resources differ from raw record")
         if resources["exit_code"] != 0 or resources["stop_reason"] != "process_exit" or \
                 resources["cleanup_snapshot_error"] is not None or \
-                resources["host_affinity"] != affinity or resources["tree_memory_gib"] != 24 or \
+                resources["host_affinity"] != affinity or \
+                resources["tree_memory_gib"] != declared["tree_memory_gib"] or \
                 resources["reserve_gib"] != 32 or \
                 resources["timeout_seconds"] != (600 if scope == "smoke" else 1800):
             raise ValueError("failed child or changed execution/resource boundary")

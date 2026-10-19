@@ -12,10 +12,10 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from ..common_g.continuous_board.execution import runtime
-from . import board_access, board_analysis, board_preparation, board_protocol, preparation
+from . import board_access, board_analysis, board_memory, board_preparation, board_protocol, preparation
 
 PASS = "FULLGRAPH_ALGORITHM_BOARD_CONVERGENCE_PASS_NOT_SPINE_OR_PUBLICATION_MATCH"
-POLICY = {"tree_memory_gib": 24, "reserve_gib": 32, "allow_bounded_builds": True}
+POLICY = board_memory.policy()
 
 
 def clean_environment(binary, output):
@@ -26,7 +26,8 @@ def clean_environment(binary, output):
 
 
 def run(preflight, admission, algorithm, output, *, device=0, repeats=3, execute=False,
-        wait_seconds=3600, experiment=None):
+        wait_seconds=3600, experiment=None, memory_gib=24):
+    memory_policy = board_memory.policy(memory_gib)
     if type(device) is not int or device not in (0, 1) or type(repeats) is not int or not 3 <= repeats <= 10 or \
             type(wait_seconds) is not int or not 1 <= wait_seconds <= 86400:
         raise ValueError("known FPGA, 3--10 repetitions and bounded memory wait required")
@@ -35,7 +36,7 @@ def run(preflight, admission, algorithm, output, *, device=0, repeats=3, execute
     report = {"status": "PREPARING", "errors": [], "attempts": [], "board_requested": False,
               "hardware_convergence_measured": False, "production_baseline_admitted": False,
               "spine_comparison": False, "publication_match": False, "device_index": device,
-              "repeats": repeats, "policy": POLICY, "algorithm": algorithm,
+              "repeats": repeats, "policy": memory_policy, "algorithm": algorithm,
               "boundary": experiment.boundary, "experiment": experiment.name,
               "execution_requested": execute}
     save = lambda: atomic_write_json(output / "results.json", report)
@@ -57,15 +58,16 @@ def run(preflight, admission, algorithm, output, *, device=0, repeats=3, execute
         save()
         if not execute:
             return report
-        report["containment"] = verify(current(), memory_gib=24)
+        report["containment"] = verify(current(), memory_gib=memory_gib)
         limits = report["containment"]["limits"]
-        if int(limits["memory.max"]) != 24 * 1024**3 or int(limits["memory.high"]) > 22 * 1024**3:
-            raise ValueError("exact 24-GiB max and at most 22-GiB high required")
+        board_memory.validate(limits, memory_policy)
+        report["memory_events_before"] = (current() / "memory.events").read_text()
+        board_memory.require_unthrottled(report["memory_events_before"])
         lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", current())
         deadline = time.monotonic() + wait_seconds
         while True:
             preparation.unchanged(pins)
-            report["memory_admission"] = lease.sample(available_memory_bytes(), other_builds(), POLICY, commit=True)
+            report["memory_admission"] = lease.sample(available_memory_bytes(), other_builds(), memory_policy, commit=True)
             report["status"] = "WAITING_FOR_SAFE_MEMORY"
             save()
             if lease.held:
@@ -76,7 +78,7 @@ def run(preflight, admission, algorithm, output, *, device=0, repeats=3, execute
             time.sleep(min(10, remaining))
         def card_wait_progress():
             preparation.unchanged(pins)
-            if available_memory_bytes() < POLICY["reserve_gib"] * 1024**3:
+            if available_memory_bytes() < memory_policy["reserve_gib"] * 1024**3:
                 raise MemoryError("system reserve lost while waiting for the card")
             report["status"] = "WAITING_FOR_EXCLUSIVE_CARD"
             save()
@@ -107,9 +109,11 @@ def run(preflight, admission, algorithm, output, *, device=0, repeats=3, execute
                 save()
                 step = run_link(experiment.command(plan, row, output / (name + ".result.txt")),
                                 output, output / "raw" / name, timeout=600 if scope == "smoke" else 1800,
-                                tree_memory_gib=24, reserve_gib=32, environment=environment)
+                                tree_memory_gib=memory_gib, reserve_gib=32, environment=environment)
                 attempt["resources"] = step
+                attempt["memory_events_after"] = (current() / "memory.events").read_text()
                 save()
+                board_memory.require_unthrottled(attempt["memory_events_after"])
                 if step["exit_code"] or step["stop_reason"] != "process_exit" or step["cleanup_snapshot_error"]:
                     attempt["status"] = "FAILED_RETAINED"
                     raise ValueError("board child failed or was stopped; no automatic reset or next case")
@@ -136,10 +140,12 @@ def run(preflight, admission, algorithm, output, *, device=0, repeats=3, execute
         group = report.get("containment", {}).get("path")
         if group:
             report["memory_events_after"] = (Path(group) / "memory.events").read_text()
-            events = dict(line.split() for line in report["memory_events_after"].splitlines())
-            if report["status"] == experiment.pass_status and any(int(events[key]) for key in ("max", "oom", "oom_kill", "oom_group_kill")):
-                report.update(status="FAILED_RETAINED", hardware_convergence_measured=False)
-                report["errors"].append("memory-limit or OOM events prevent acceptance")
+            if report["status"] == experiment.pass_status:
+                try:
+                    board_memory.require_unthrottled(report["memory_events_after"])
+                except (KeyError, ValueError) as error:
+                    report.update(status="FAILED_RETAINED", hardware_convergence_measured=False)
+                    report["errors"].append(repr(error))
         save()
     return report
 
@@ -153,10 +159,12 @@ def main(argv=None):
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--wait-seconds", type=int, default=3600)
+    parser.add_argument("--memory-gib", type=int, choices=board_memory.HIGH_GIB, default=24)
     parser.add_argument("--execute", action="store_true")
     args = parser.parse_args(argv)
     report = run(args.preflight.resolve(), args.admission.resolve(), args.algorithm, args.output.resolve(),
-                 device=args.device, repeats=args.repeats, execute=args.execute, wait_seconds=args.wait_seconds)
+                 device=args.device, repeats=args.repeats, execute=args.execute, wait_seconds=args.wait_seconds,
+                 memory_gib=args.memory_gib)
     print(report["status"], flush=True)
     return 0 if report["status"] in (PASS, "BOARD_PREPARED_NOT_EXECUTED") else 1
 

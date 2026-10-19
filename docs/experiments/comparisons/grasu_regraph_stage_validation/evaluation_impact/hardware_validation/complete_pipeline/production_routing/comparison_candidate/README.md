@@ -18,10 +18,10 @@ remote outputs are under
 | Fresh CC and ResPR adapter RTL | `production-{cc,respr}-fresh-adapter-rtl-v1` | Both pass; not complete-algorithm RTL or board performance |
 | Fresh FullPR adapter RTL | `production-fullpr-fresh-adapter-rtl-v1` | Passes separately; not complete-algorithm RTL or board performance |
 | New SSSP link and qualification | RROOT `g-cache-comparison-route-v2`; LROOT `g-cache-comparison-remote-follow-v2` | Routing; pending strict return admission and board qualification |
-| New CC link | `production-cc-compile-route-local-v1` | Local implementation in progress; inspect live state, not this table |
+| New CC link and strict return | `production-cc-compile-route-local-v1`; `production-cc-local-return-v1` | Bitstream, source/topology and setup/hold/pulse timing admitted; FPGA convergence/performance remains pending |
 | Remote ResPR/FullPR build chains | RROOT `production-{respr,fullpr}-compile-v3` and `production-{respr,fullpr}-compile-route-v3`; LROOT `production-{respr,fullpr}-remote-return-v3` | Fresh bounded compiles and exact compile-to-route-to-return followers; no admitted artifact yet |
 | Full-graph new-G+R performance | [Exact request file](fullgraph_requests.json) | Not yet accepted; requires successful returns and board runs |
-| Paired resident replay | [Exact paired requests](paired_requests.json) | Binds the v11 producer's three new admissions to the unchanged fixed Spine reports; no ratios before six complete matrices |
+| Paired resident replay | [Exact paired requests](paired_requests.json) | Binds the v13 producer's three new admissions to the unchanged fixed Spine reports; no ratios before six complete matrices |
 | FullPR resident host | `/home/chuxiao/grasu-regraph-fullpr-comparison`, commit `1cc5ee5`; `gr-fullpr-preparation-v4` | Complete CPU preparation passes; hardware convergence remains unmeasured |
 | FullPR hardware continuation | `gr-fullpr-board-continuation-v4` | Waiting for the exact new remote FullPR return; no board requested |
 | Actual R / current K4 control | [Current-candidate audit, preflight and board binding](../../../original_regraph/k4_control/CURRENT_CANDIDATE.md) | Fresh six-input arithmetic audit and 24-row host preflight pass; exact new FullPR return remains pending |
@@ -62,10 +62,11 @@ tests reject changes to each. The earlier
 | `fullpr-preparation-runner-dfdc287.tar.gz` | `2018780011364f5744a028a846dbc79ab7cf8e836b1c148f20a9085bad652e0a` | FullPR CPU preparation and exact-return board continuation |
 | `original-r-k4-current-runner-v3.tar` | `7b590d1be2b201ed0e4b0e583b22d1749d3062408d46f2a94c873d2c1a4badc9` | Current-source R arithmetic/preflight, G preflight and independently qualified G/K4 board continuations |
 | `high-memory-algorithm-runner-01e34c0.tar.gz` | `99f276f0e42674fd90094771162a4ad38ab4ce45981aea4831ce06abb8b81b3e` | Remote PR compilation, route and return, plus current local board continuations; independently hash-checked on both hosts |
+| `resident-board-memory-runner-v1.tar.gz` | `4d24fd3101fecaec96e1b8568b975d802047b841495e17cc0830e45577249ebe` | Explicit 40/36-GiB fullgraph host budget and throttle-free paired timing admission; unchanged HLS artifacts |
 
 Never modify a live runner or transplant a new result into an old attempt.
 
-The paired request file deliberately points at `fullgraph-board-continuation-v11`,
+The paired request file deliberately points at `fullgraph-board-continuation-v13`,
 not an earlier producer. Its G+R admissions must equal `fullgraph_requests.json`
 algorithm by algorithm. The fixed Spine SSSP/CC/ResPR v2 reports and shared v1
 artifact freeze remain unchanged. A regression test checks this wiring without
@@ -94,8 +95,8 @@ LROOT unless explicitly remote.
 | `production-cc-fresh-adapter-rtl-v1` | `spine-production-cc-fresh-adapter-rtl-20261018-v1.service` | `be4097d72ff24021b4492c1ef750cb74` |
 | `production-respr-fresh-adapter-rtl-v1` | `spine-production-respr-fresh-adapter-rtl-20261018-v1.service` | `e8655fb626564c3bbaf476b794778a1f` |
 | `production-fullpr-fresh-adapter-rtl-v1` | `spine-production-fullpr-fresh-adapter-rtl-20261018-v1.service` | `a4f7df56d3a84788960635969d0378ff` |
-| `fullgraph-board-continuation-v11` | `spine-fullgraph-board-continuation-20261019-v11.service` | `a4b25bf6b39145aa942b0b6840be0a1c` |
-| `paired-board-continuation-v7` | `spine-paired-board-continuation-20261019-v7.service` | `445462fb7de04472a90fee95ffbda074` |
+| `fullgraph-board-continuation-v13` | `spine-fullgraph-board-continuation-20261019-v13.service` | `c7ddbf68cfcb4489a8627c4c7a333027` |
+| `paired-board-continuation-v9` | `spine-paired-board-continuation-20261019-v9.service` | `9ff1b9972593446a9423b0881236483c` |
 | `gr-fullpr-preparation-v4` | `spine-gr-fullpr-preparation-20261018-v4.service` | `5654d35624ac4a8490430ac24a54ec97` |
 | `gr-fullpr-board-continuation-v4` | `spine-fullpr-board-continuation-20261019-v4.service` | `a9901a9de6224d008213f6335eca1bb3` |
 | `original-r-k4-current-arithmetic-v2` | `spine-original-r-k4-current-arithmetic-20261019-v2.service` | `85a0a771aa564c04a066f5173bc07f7f` |
@@ -182,8 +183,8 @@ ResPR uses CPUs 32--39, FullPR 40--47. They explicitly record the
 compile-to-route invocation and retain sealed receipts before admission.
 Neither an early compile pass nor a returned file alone authorizes board use.
 
-The frozen request copies are `fullgraph-board-requests-v11.json` and
-`paired-board-requests-v7.json` under LROOT. They preserve the SSSP and CC
+The frozen request copies are `fullgraph-board-requests-v13.json` and
+`paired-board-requests-v9.json` under LROOT. They preserve the SSSP and CC
 bindings and fixed Spine reports, changing only the ResPR return and exact
 producer identity. FullPR and the independent R/K4 supervisor likewise bind
 the new FullPR return, without changing algorithm or timing semantics.
@@ -201,6 +202,70 @@ reports or count them as successful returns.
 An exited service may report success while its retained experiment reports
 cancellation: always inspect the experiment report. New downstream services
 use new output paths and the exact identities listed above.
+
+One additional remote FullPR build was explicitly cancelled after verifying
+that it used obsolete numerical revision `1a5650c79ae0c29418b93184a1590f256e33f0b6`,
+not the current v4 closure. Its exact unit was
+`spine-production-fullpr-compile-route-20261018-v1.service`, invocation
+`6bc5f930f57f47dc994bdcf21cea3635`, output
+`production-fullpr-compile-route-follow-v1/`. The separate remote
+`obsolete-fullpr-v3-route-cancellation-v1/` addendum records the source and
+downstream-dependency checks and operator interruption. Raw logs remain
+intact. This is a superseded-source cancellation, not a numerical or timing
+failure; current FullPR v3 continues under the exact service listed above.
+
+## CC Return And Board Affinity
+
+The new CC bitstream SHA-256 is
+`f0328d37dd986c82bc30f6fcd1b4ae7a97522d14583170cb26489c02bf4b4681`.
+Strict return checks admit its exact v4 sources, 22 kernel instances, 731
+memory argument bindings and 31 stream pairs. Post-route WNS is 0.003 ns,
+WHS 0.009 ns and WPWS 0.000 ns, with zero failing setup/hold/pulse slack.
+The admitted return is not an FPGA correctness or performance result.
+
+Fullgraph v11 reached the CC preparation but failed the two-CPU-affinity
+gate before requesting a card. Its process saw all 128 CPUs even though the
+unit declared `AllowedCPUs=118-119`. The failed report and paired v7's
+corresponding rejection remain intact. Fullgraph v12 and paired v8 use the
+same immutable runner, artifacts, requests and boundary, with explicit
+`taskset -c 118,119`; no HLS or timer was changed. The paired request paths
+change only to the new producer. Actual child affinity is checked again by
+the existing board-study gate before any FPGA execution.
+
+`waiting-board-affinity-adjustment-v1/{request,results}.json` records an
+equivalent correction for the three still-waiting, exact-invocation FullPR,
+matched-G and R/K4 supervisors. Only their own live threads were changed to
+their already declared CPU pairs. The source, runtime, memory containment,
+board selection and timing boundaries were unchanged; no performance
+measurement existed in those waiting services when the correction occurred.
+
+## Board Host Memory And Timing Admission
+
+Fullgraph v12 passed the CC smoke and first AU/SU/WK/SO/PK repetitions, then
+its LJ host preparation was persistently throttled by the 22-GiB soft limit.
+The saved request observes `mem_cgroup_handle_over_high`, not an FPGA
+correctness error. The exact invocation was interrupted; the child was
+cleaned up and its complete raw record retained. Final events are
+`high=55157`, `max=oom=oom_kill=oom_group_kill=0`. Neither the partial matrix
+nor paired v8 is timing-admitted. See LROOT
+`cc-host-memory-restart-v1/` and `board-memory-policy-pre-edit-v1/`.
+
+The new immutable runner exposes only two finite resident-board budgets:
+the unchanged 24/22-GiB default and explicit 40/36-GiB fullgraph execution.
+V13 uses the latter with zero swap, group OOM kill, full bounded-peer
+reservations, the same 32-GiB system reserve, explicit CPUs 118--119 and
+unchanged algorithms, inputs, xclbins and wall boundary. At launch all
+memory events are zero. Each completed child and the terminal report must
+have zero `high`, `max` and OOM events. Paired replay checks the declared
+budget against containment and each raw resource record; missing events or
+unrecorded budget changes cannot pass. Any new throttling stops acceptance.
+
+The existing fixed-Spine reports retain their 24/22-GiB limits and all have
+zero `high`/limit/OOM events. Unequal inactive host safety caps do not change
+the device resources; neither arm may be throttled for timing acceptance.
+V13 and paired v9 restart into new paths, not overwritten v12/v8 reports.
+Their runner archive has 2321 hash-verified files; its source/diff identities
+are recorded in LROOT `resident-board-memory-runner-v1.manifest.json`.
 
 ## Simulator Timing Boundary
 

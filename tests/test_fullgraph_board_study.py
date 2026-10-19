@@ -12,11 +12,25 @@ from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import bo
 
 
 class BoardStudyTests(unittest.TestCase):
+    def test_budget_and_event_validation_fail_closed(self):
+        memory = study.board_memory
+        for invalid in (True, 0, 24.0, 39, 41, "40", None):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                memory.policy(invalid)
+        limits = {"memory.max": str(40 * 1024**3), "memory.high": str(36 * 1024**3),
+                  "memory.swap.max": "0", "memory.oom.group": "1"}
+        for changes in ({"memory.high": "0"}, {"memory.high": str(37 * 1024**3)},
+                        {"memory.swap.max": "1"}, {"memory.oom.group": "0"}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                memory.validate({**limits, **changes}, memory.policy(40))
+        with self.assertRaises(KeyError):
+            memory.require_unthrottled("max 0\noom 0\noom_kill 0\noom_group_kill 0\n")
+
     def invoke(self, root, *, execute=True, failed=None, admission=True, memory_event=False,
-               drift=False, busy=False, affinity=(0, 1), spine=False):
+               drift=False, busy=False, affinity=(0, 1), spine=False, memory_gib=24, limit_gib=None):
         group = root / "group"
         group.mkdir()
-        (group / "memory.events").write_text("max 0\noom 0\noom_kill 0\noom_group_kill 0\n")
+        (group / "memory.events").write_text("high 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n")
         binary = root / "host"
         binary.write_text("mock executable; never run")
         inputs = root / "input"
@@ -50,15 +64,19 @@ class BoardStudyTests(unittest.TestCase):
             if drift:
                 inputs.write_text("changed input")
             if memory_event:
-                (group / "memory.events").write_text("max 1\noom 0\noom_kill 0\noom_group_kill 0\n")
+                event = "high" if memory_event == "high" else "max"
+                (group / "memory.events").write_text(
+                    f"high {int(event == 'high')}\nmax {int(event == 'max')}\noom 0\noom_kill 0\noom_group_kill 0\n")
             return {"exit_code": int(prefix.name == failed), "stop_reason": "process_exit",
                     "cleanup_snapshot_error": None}
 
         with ExitStack() as stack:
+            actual_gib = limit_gib or memory_gib
             for name, value in (("current", group), ("available_memory_bytes", 160 * 1024**3),
                     ("other_builds", ["bounded vivado peer"]),
-                    ("verify", {"path": str(group), "limits": {"memory.max": str(24 * 1024**3),
-                                                             "memory.high": str(22 * 1024**3)}})):
+                    ("verify", {"path": str(group), "limits": {"memory.max": str(actual_gib * 1024**3),
+                                "memory.high": str(study.board_memory.HIGH_GIB[actual_gib] * 1024**3),
+                                "memory.swap.max": "0", "memory.oom.group": "1"}})):
                 stack.enter_context(patch.object(study, name, return_value=value))
             stack.enter_context(patch.object(study.board_preparation, "prepare", return_value=plan))
             stack.enter_context(patch.object(study.os, "sched_getaffinity", return_value=set(affinity)))
@@ -78,7 +96,7 @@ class BoardStudyTests(unittest.TestCase):
             lease.return_value.sample.return_value = {"admitted": admission}
             try:
                 result = study.run(root, root / "admission", "weighted_sssp", output,
-                                   execute=execute, wait_seconds=1, experiment=experiment)
+                                   execute=execute, wait_seconds=1, experiment=experiment, memory_gib=memory_gib)
             except (ValueError, TimeoutError):
                 result = json.loads((output / "results.json").read_text())
             return result, calls, lease.return_value, idle
@@ -110,6 +128,18 @@ class BoardStudyTests(unittest.TestCase):
             self.assertFalse(report["board_requested"])
             lease.sample.assert_not_called()
             idle.assert_not_called()
+
+    def test_larger_declared_budget_is_finite_and_does_not_change_matrix(self):
+        with tempfile.TemporaryDirectory() as directory:
+            report, calls, lease, _ = self.invoke(Path(directory), memory_gib=40)
+            self.assertEqual(report["status"], study.PASS)
+            self.assertEqual(len(calls), 25)
+            self.assertEqual(report["policy"], study.board_memory.policy(40))
+            self.assertTrue(all(c[2]["tree_memory_gib"] == 40 and c[2]["reserve_gib"] == 32 for c in calls))
+            self.assertEqual(lease.sample.call_args.args[2], report["policy"])
+        with tempfile.TemporaryDirectory() as directory:
+            report, calls, _, _ = self.invoke(Path(directory), memory_gib=40, limit_gib=24)
+            self.assertEqual((report["status"], calls), ("FAILED_RETAINED", []))
 
     def test_spine_contract_shares_executor_but_not_gr_commands_or_result_files(self):
         from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.spine_resident.analysis import PASS
@@ -147,10 +177,11 @@ class BoardStudyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             report, calls, _, _ = self.invoke(Path(directory), drift=True)
             self.assertEqual((report["status"], len(calls)), ("FAILED_RETAINED", 1))
-        with tempfile.TemporaryDirectory() as directory:
-            report, calls, _, _ = self.invoke(Path(directory), memory_event=True)
-            self.assertEqual((report["status"], len(calls)), ("FAILED_RETAINED", 25))
-            self.assertFalse(report["hardware_convergence_measured"])
+        for event in (True, "high"):
+            with self.subTest(event=event), tempfile.TemporaryDirectory() as directory:
+                report, calls, _, _ = self.invoke(Path(directory), memory_event=event)
+                self.assertEqual((report["status"], len(calls)), ("FAILED_RETAINED", 1))
+                self.assertFalse(report["hardware_convergence_measured"])
 
     def test_inherited_loader_and_device_overrides_rejected(self):
         for name in ("LD_PRELOAD", "XRT_INI_PATH", "XCL_DEVICE_INDEX", "GRASU_REGRAPH_EXPECT_BDF", "SPINE_EXPECT_BDF"):

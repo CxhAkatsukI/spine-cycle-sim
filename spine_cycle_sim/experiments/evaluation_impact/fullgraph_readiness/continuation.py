@@ -11,7 +11,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity as 
 from ..common_g.complete_pipeline.hardware.algorithm_build import follow, local_follow
 from ..common_g.complete_pipeline.hardware.remote import qualification
 from ..common_g.continuous_board.execution.supervisor import route_finished, runner_pins, service_state
-from . import analysis, board_preparation, board_study, preparation, recheck
+from . import analysis, board_memory, board_preparation, board_study, preparation, recheck
 
 PASS = "THREE_ALGORITHM_FULLGRAPH_BOARD_PASS_NOT_SPINE_OR_PUBLICATION_MATCH"
 
@@ -64,7 +64,8 @@ def ready(request):
 
 def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
         maximum_wait=133200, poll_seconds=30, completed_preflight_sha256=None,
-        continue_independent_prerequisites=False):
+        continue_independent_prerequisites=False, board_memory_gib=24):
+    memory_policy = board_memory.policy(board_memory_gib)
     validate_service(preflight_unit, preflight_invocation)
     if completed_preflight_sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", completed_preflight_sha256):
         raise ValueError("explicit completed preflight SHA-256 required")
@@ -81,6 +82,7 @@ def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
                            for item in requests], "states": {}, "maximum_wait_seconds": maximum_wait,
               "preflight_unit": preflight_unit, "preflight_invocation": preflight_invocation}
     report["completed_preflight_sha256"] = completed_preflight_sha256
+    report["board_memory_policy"] = memory_policy
     report["continue_independent_prerequisites"] = continue_independent_prerequisites
     report["prerequisite_failures"] = []
     save = lambda: atomic_write_json(output / "results.json", report)
@@ -145,7 +147,8 @@ def run(preflight, output, requests, *, preflight_unit, preflight_invocation,
                     report.update(status="RUNNING_" + request.algorithm, board_requested=True)
                     save()
                     child = board_study.run(preflight, request.admission, request.algorithm,
-                        output / request.algorithm, device=request.device, repeats=3, execute=True)
+                        output / request.algorithm, device=request.device, repeats=3, execute=True,
+                        memory_gib=board_memory_gib)
                     matrix.update(status=child["status"], report=preparation.identity(
                         output / request.algorithm / "results.json"))
                     preparation.unchanged(pins, full=True)
@@ -187,13 +190,15 @@ def main(argv=None):
                         help="replay complete pinned evidence if systemd collected the finished preflight")
     parser.add_argument("--continue-independent-prerequisites", action="store_true",
                         help="retain rejected artifacts and run other admitted algorithms; never admits an incomplete matrix")
+    parser.add_argument("--board-memory-gib", type=int, choices=board_memory.HIGH_GIB, default=24)
     args = parser.parse_args(argv)
     requests = [Request(**{**row, "returned": Path(row["returned"]), "admission": Path(row["admission"])})
                 for row in json.loads(args.requests.read_text())]
     print(run(args.preflight.resolve(), args.output.resolve(), requests,
         preflight_unit=args.preflight_unit, preflight_invocation=args.preflight_invocation,
         completed_preflight_sha256=args.completed_preflight_sha256,
-        continue_independent_prerequisites=args.continue_independent_prerequisites)["status"], flush=True)
+        continue_independent_prerequisites=args.continue_independent_prerequisites,
+        board_memory_gib=args.board_memory_gib)["status"], flush=True)
 
 
 if __name__ == "__main__":
