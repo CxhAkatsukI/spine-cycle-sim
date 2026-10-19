@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "control.hpp"
+#include "k4_config.hpp"
 #include "oracle.hpp"
 
 namespace evaluation_impact {
@@ -13,27 +14,15 @@ inline void k4(const st::Input& input, const Oracle& oracle, const std::filesyst
   const auto clock = scheduler.add_clock_mhz("core", 150);
   MockMemoryBackend backend("memory", clock, {32, latency, 1, 32, 32, true});
   scheduler.add_component(backend);
-  RoutedReGraphConfig config;
-  config.independent_read_write = true;
-  config.adapter.empty_segment_exit_cycles = 0;
-  config.adapter.row_line_reads = config.adapter.cross_row_pipeline = true;
-  auto& cross = config.adapter.cross_row;
-  cross.directory_cache_rows = selected.candidate ? 1024 : 8;
-  cross.packet_pipeline = cross.bank_stream = cross.bank_read_beats = selected.candidate;
-  if (selected.candidate) {
-    cross.bank_fifo_lines = 256;
-    cross.reader_pipeline_capacity = 2;
-    cross.block_drain_cycles = 2;
-  }
-  config.adapter_stream_depth = config.gather_stream_depth = config.mux_stream_depth = 32;
-  config.compute.max_pending_requests = selected.k4_parents;
-  config.compute.apply_request_window = selected.k4_apply_window;
+  auto config = k4_configuration(selected);
   config.compute.vertex_state_base = config.compute.source_state_base = 0;
   config.compute.source_state_buffer_stride = input.compact.aligned_vertices * 4ull;
   config.status_address = config.compute.source_state_buffer_stride;
   auto layout = GraSuPartitionedPmaLayout::build(input.compact.vertices, 65536, input.edges, {},
                                                GraSuPmaWordAbi::kWeightedFullWord);
   RoutedReGraphSystem system(scheduler, clock, backend, std::move(layout), input.initial, config);
+  st::require(backend.traffic_stats_by_initiator().size() == (selected.bank_stream ? 7U : 9U),
+              "K4 source topology does not match its declared control");
   system.register_components(reverse);
   std::uint64_t cycles = 0;
   for (; cycles < maximum && !system.done(); ++cycles) {

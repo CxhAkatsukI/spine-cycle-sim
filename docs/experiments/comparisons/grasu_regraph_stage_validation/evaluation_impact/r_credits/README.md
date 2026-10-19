@@ -92,6 +92,11 @@ case. It does not establish strict resource matching, FPGA timing, original
 11-Little/3-Big publication performance, complete G+R, or a Spine speedup.
 Those admission flags remain false in the analysis output.
 
+The subsequent [current bank-stream study](../r_bank_stream/README.md) adds the
+two-pair source topology explicitly and requires all 28 rows here to replay
+unchanged. This historical `candidate` is not silently relabeled as that newer
+topology.
+
 ## Code And Reproduction
 
 The owner is `spine_cycle_sim/experiments/evaluation_impact/r_credits/`:

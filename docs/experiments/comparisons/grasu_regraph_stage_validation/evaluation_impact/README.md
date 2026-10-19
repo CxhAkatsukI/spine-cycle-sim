@@ -65,6 +65,7 @@ scope; they are not overwritten when a later candidate improves.
 
 | Question | Guide |
 | --- | --- |
+| Does the current two-pair bank-stream R retain A4 compute performance? | [Current bank-stream convergence controls](r_bank_stream/README.md), all 28 old rows must replay before four new rows are interpreted |
 | What is the current hardware execution and acceptance order? | [Hardware validation campaign](hardware_validation/README.md), separate component, routed, publication and complete-system gates |
 | What failed in the first matched G/R diagnostic? | [Initial results](RESULTS.md), [frozen evidence index](evidence/index.json) |
 | Did parallel search alone solve G? | [Parallel search](parallel_search/README.md), [hot owners](hot_lanes/README.md) |

@@ -9,7 +9,7 @@ from ..upstream_controls.execution import available_memory_bytes, run_bounded
 from .analysis import MATRIX, parse_demo
 
 
-def run_case(root, output, binary, cpu, maximum, timeout, identity):
+def run_case(root, output, binary, cpu, maximum, timeout, identity, reserve_gib=24):
     latency, reverse, arm = identity
     label = f"r_lat{latency}_reverse{reverse}_{arm}"
     state = output / "states" / label
@@ -18,7 +18,7 @@ def run_case(root, output, binary, cpu, maximum, timeout, identity):
     command = ["taskset", "-c", str(cpu), str(binary), str(output / "inputs/warm_update"),
                str(state), str(latency), str(reverse), str(maximum), arm]
     step = run_bounded(command, root, output / "raw" / label,
-                       timeout=timeout, memory_gib=4, reserve_gib=24)
+                       timeout=timeout, memory_gib=4, reserve_gib=reserve_gib)
     case = {"identity": identity, "step": step}
     try:
         if step["exit_code"] or step["timed_out"]:

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "control.hpp"
+#include "k4_config.hpp"
 #include "../original_regraph/memory_fixture.hpp"
 
 int main() {
@@ -16,7 +17,19 @@ int main() {
   require(apply.candidate && apply.k4_parents == 16 && apply.k4_apply_window == 2);
   require(parents.candidate && parents.k4_parents == 2 && parents.k4_apply_window == 16);
   require(both.candidate && both.k4_parents == 2 && both.k4_apply_window == 2);
+  const auto bank = control("bank_stream");
+  const auto bank_config = k4_configuration(bank);
+  const auto old_config = k4_configuration(candidate);
+  require(bank.candidate && bank.bank_stream && !bank.original);
+  require(bank_config.source_topology == spine::sim::RoutedSourceTopology::kTwoPairwise);
+  require(old_config.source_topology != bank_config.source_topology && !candidate.bank_stream);
+  require(bank_config.adapter.cross_row.bank_stream && bank_config.adapter.cross_row.bank_read_beats &&
+          bank_config.adapter.cross_row.directory_cache_rows == 1024 &&
+          bank_config.adapter.cross_row.bank_fifo_lines == 256 &&
+          bank_config.adapter.cross_row.reader_pipeline_capacity == 2 &&
+          bank_config.adapter.cross_row.block_drain_cycles == 2 &&
+          bank_config.compute.max_pending_requests == 16 && bank_config.compute.apply_request_window == 16);
   require(original_regraph_memory_test::axi_config(1, 0).max_pending_requests == 2);
   try { control("unknown"); return 1; } catch (const std::invalid_argument&) {}
-  std::cout << "CREDIT_CONTROL_PASS seven explicit arms; source A4 remains two\n";
+  std::cout << "CREDIT_CONTROL_PASS eight explicit arms; old source topology and A4 credits unchanged\n";
 }
