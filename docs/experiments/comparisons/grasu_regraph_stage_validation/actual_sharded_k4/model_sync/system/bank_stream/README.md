@@ -117,6 +117,16 @@ could not create Git's default preload threads; its error is retained separately
 from the passing single-threaded check. Actual remote execution and its
 compatibility gates must still pass before resident results are admitted.
 
+The copied SST launcher has a compiled-in installation prefix, including its
+engine location. On the remote host, use the unchanged `libexec/sstsim.x`
+binary with the explicit `--no-env-config` study option. The runtime manifest
+records that option and pins the engine. The launcher failure is an execution
+relocation issue, not a model result; disabling environment discovery does not
+change the explicit plugin search path or the DRAMSim3 hash requirement.
+The follow-up 92-test Python matrix passes; logs are retained separately in
+`runtime-relocation-v2/checks`. This includes a test that the opt-in engine
+mode is recorded and does not duplicate the executable pin.
+
 The first broad Python command encountered two sibling-import errors. Rerunning
 the same intended matrix with `PYTHONPATH=.:tests` passed all 88 tests. The raw
 archive retains that passing command and logs; the first command's errors were

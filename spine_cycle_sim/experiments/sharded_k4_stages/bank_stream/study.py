@@ -19,7 +19,7 @@ from .runtime import select
 
 def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path, *,
         sst: Path = Path("/data/feiyang/sst/bin/sst"), cpus: tuple[int, ...] = (112, 113),
-        dramsim3_root: Path | None = None) -> dict:
+        dramsim3_root: Path | None = None, no_env_config: bool = False) -> dict:
     gate = json.loads((gates / "summary.json").read_text())
     if gate["status"] != "PASS" or gate["source_unchanged"] is not True:
         raise ValueError("complete fresh core/plugin/legacy gates are required")
@@ -36,7 +36,8 @@ def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path
     contract_path = root / "configs/experiments/grasu_component_refactor_v1.json"
     contract = json.loads(contract_path.read_text())
     dram = dramsim3_root or Path(contract["build"]["dramsim3_root"])
-    binding, runtime = select(sst, plugin, cpus, dram, compiled["dramsim3_library_sha256"])
+    binding, runtime = select(sst, plugin, cpus, dram, compiled["dramsim3_library_sha256"],
+                              no_env_config=no_env_config)
     declarations = []
     for case in RESIDENT.cases:
         directory = fixtures / case.name
@@ -75,7 +76,8 @@ def run(root: Path, gates: Path, integration: Path, fixtures: Path, output: Path
         component_parameters(root, config)
         atomic_write_json(target / "run_config.json", config)
         command = ["taskset", "-c", ",".join(map(str, cpus)), "env", f"ROUTED_K4_RUN_CONFIG={target}/run_config.json",
-                   str(sst), binding["command_option"], str(root / "sst/routed_k4_compute.py")]
+                   str(sst), *runtime["sst_options"], binding["command_option"],
+                   str(root / "sst/routed_k4_compute.py")]
         resource = run_link(command, root, target / "sst", timeout=600,
                             tree_memory_gib=1, reserve_gib=16, poll_seconds=1)
         if (resource["exit_code"] or resource["stop_reason"] != "process_exit"
@@ -114,11 +116,14 @@ def main() -> None:
     parser.add_argument("--sst", type=Path, default=Path("/data/feiyang/sst/bin/sst"))
     parser.add_argument("--cpus", type=int, nargs="+", default=[112, 113])
     parser.add_argument("--dramsim3-root", type=Path)
+    parser.add_argument("--no-env-config", action="store_true",
+                        help="record and disable SST's compiled-prefix environment lookup")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[4]
     try:
         run(root, args.gates.resolve(), args.integration.resolve(), args.fixtures.resolve(), args.output.resolve(),
-            sst=args.sst.resolve(), cpus=tuple(args.cpus), dramsim3_root=args.dramsim3_root)
+            sst=args.sst.resolve(), cpus=tuple(args.cpus), dramsim3_root=args.dramsim3_root,
+            no_env_config=args.no_env_config)
     except Exception as error:
         if args.output.is_dir():
             atomic_write_json(args.output / "failure.json", {"status": "FAILED_RETAINED", "error": repr(error)})

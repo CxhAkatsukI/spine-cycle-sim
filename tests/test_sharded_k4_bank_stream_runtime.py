@@ -29,6 +29,15 @@ class BankStreamRuntimeTests(unittest.TestCase):
         self.assertEqual(len(record["files"]), 4)
         self.assertTrue(record["host"])
         self.assertEqual(binding["sst_element_path"], "/runtime/lib/sst-elements-library")
+        self.assertEqual(record["sst_options"], [])
+
+    def test_relocated_engine_mode_is_explicit_and_recorded(self):
+        with patch.object(Path, "is_file", return_value=True):
+            _, record = runtime.select(Path("/runtime/libexec/sstsim.x"), Path("/plugin"),
+                                       (4, 5), Path("/runtime/dram"), "pinned",
+                                       no_env_config=True)
+        self.assertEqual(record["sst_options"], ["--no-env-config"])
+        self.assertEqual(len(record["files"]), 3)
 
     def test_rejects_missing_duplicate_and_unavailable_cpu(self):
         for cpus in ((), (4, 4), (7,), (-1,)):

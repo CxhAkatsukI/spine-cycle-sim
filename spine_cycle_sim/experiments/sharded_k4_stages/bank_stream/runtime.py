@@ -10,7 +10,7 @@ from ..execution import identity
 
 
 def select(sst: Path, plugin: Path, cpus: tuple[int, ...], dramsim3: Path,
-           expected_dram_sha256: str) -> tuple[dict, dict]:
+           expected_dram_sha256: str, *, no_env_config: bool = False) -> tuple[dict, dict]:
     if not cpus or len(set(cpus)) != len(cpus) or not set(cpus) <= os.sched_getaffinity(0):
         raise ValueError("CPU selection must be nonempty, unique and available")
     binding = forced_sst_library_binding(sst, plugin)
@@ -21,9 +21,10 @@ def select(sst: Path, plugin: Path, cpus: tuple[int, ...], dramsim3: Path,
     files = [identity(executable), identity(dram),
              identity(Path(binding["sst_element_path"]) / "libmemHierarchy.so")]
     simulator = executable.parent.parent / "libexec/sstsim.x"
-    if simulator.is_file():
+    if simulator != executable and simulator.is_file():
         files.append(identity(simulator))
     return binding, {"host": socket.gethostname(), "cpus": list(cpus),
                      "files": files, "dramsim3_root": str(dramsim3.resolve()),
+                     "sst_options": ["--no-env-config"] if no_env_config else [],
                      "environment": {key: os.environ.get(key) for key in
                                      ("SST_ROOT", "PYTHONHOME", "PYTHONPATH", "LD_LIBRARY_PATH", "LD_PRELOAD")}}
