@@ -90,6 +90,8 @@ inline void Reader::commit(const CycleContext& context) {
     stats_.bytes += issue->count * 64;
     if (issue->kind == Kind::kDirectory) dir_issued_ += issue->count;
     if (issue->kind == Kind::kPma) {
+      ++stats_.pma_requests;
+      if (issue->count < 16) ++stats_.short_pma_requests;
       for (std::size_t i = 0; i < issue->count; ++i) {
         auto& line = banks_[issue->parity][(issue->first + i) % 256];
         check(!line.reserved && !line.ready, "candidate overwrote reserved bank data");

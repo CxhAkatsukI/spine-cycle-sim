@@ -32,9 +32,15 @@ def parse(stdout):
         raise ValueError("exactly one candidate observation required")
     row = json.loads(lines[0])
     version = row.get("schema_version", 1)
-    if type(version) is not int or version not in (1, 2, 3):
+    if type(version) is not int or version not in (1, 2, 3, 4):
         raise ValueError("unsupported candidate observation schema")
-    dual = version == 3
+    if version == 4 and (row.get("refill_policy") != "full-burst" or
+            type(row.get("masters_per_frontend")) is not int or
+            row["masters_per_frontend"] not in (1, 2) or
+            type(row.get("physical_masters")) is not int or
+            row["physical_masters"] != 4 * row["masters_per_frontend"]):
+        raise ValueError("full-burst reader requires explicit policy and physical masters")
+    dual = version == 3 or (version == 4 and row["masters_per_frontend"] == 2)
     if dual and any(type(row.get(k)) is not int or row[k] != expected for k, expected in
                     (("physical_masters", 8), ("masters_per_frontend", 2))):
         raise ValueError("dual-port reader requires eight explicit physical masters")
@@ -56,6 +62,11 @@ def parse(stdout):
     if not all(0 < w["sink_done"] <= row["cycles"] for w in row["workers"]):
         raise ValueError("candidate completion exceeds closed window")
     for w in row["workers"]:
+        if version == 4 and (any(type(w.get(k)) is not int for k in
+                ("pma_requests", "short_pma_requests")) or
+                not 0 < w["pma_requests"] <= w["requests"] or
+                not 0 <= w["short_pma_requests"] <= min(4, w["pma_requests"])):
+            raise ValueError("full-burst PMA parent/physical-tail ledger failed")
         if dual:
             parents = w.get("parents_per_port", [])
             if (not isinstance(parents, list) or len(parents) != 2 or

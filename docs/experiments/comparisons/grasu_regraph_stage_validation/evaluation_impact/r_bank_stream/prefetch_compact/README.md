@@ -18,6 +18,9 @@ complete performance gate is not yet admitted.
 The [explicit reader-port diagnostic](READER_PORTS.md) separately tests two
 physical masters per frontend with unchanged PMA traffic. It does not change
 the integrated default or substitute a reader floor for complete-R timing.
+The [full-burst refill experiment](BURST_REFILL.md) tests whether reserving
+whole parents reduces short-request fragmentation with the same rings and
+physical reads. Its preregistered gates remain separate from R admission.
 
 ## Complete-Convergence Extension
 

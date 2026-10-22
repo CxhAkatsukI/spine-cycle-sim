@@ -179,6 +179,13 @@ output stalls but improves total cycles by only 2.78% / 2.16%, leaving
 **2.519 / 2.150 times strong A4**. The approximately 10% gate still fails;
 the schedule is default-off and not a replacement baseline.
 
+The later [reader-port diagnostic](prefetch_compact/READER_PORTS.md) isolates
+physical input bandwidth; it does not promote a new complete-R path. The
+[full-burst refill experiment](prefetch_compact/BURST_REFILL.md) next tests
+request fragmentation with unchanged physical bytes and finite rings. Both
+retain the strong A4 reference and distinguish reader floors from complete
+convergence. Simulator-only investigations do not require FPGA builds.
+
 The bounded adapter-only diagnostic below further isolates that reading path.
 Its result rules out a downstream-only fix on this input. Additional inputs
 and stricter resource controls remain open.

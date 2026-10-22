@@ -10,12 +10,12 @@ import tarfile
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from ...upstream_controls.execution import run_bounded
 from ..r_credits.freeze import ROOT, pin
-from . import cached_core, prefetch_analysis, reader_ports_analysis as analysis
+from . import burst_refill_analysis, cached_core, prefetch_analysis, reader_ports_analysis as analysis
 from .runtime import LOCAL, reservation, settings
 from .study import COMPILER
 
 
-def run(output, before, a4_reference, cpu):
+def run(output, before, a4_reference, cpu, *, full_burst_reference=None):
     if type(cpu) is not int or cpu not in os.sched_getaffinity(0):
         raise ValueError("one allowed CPU required")
     reference = json.loads(before.read_text())
@@ -24,6 +24,14 @@ def run(output, before, a4_reference, cpu):
             reference.get("status") != "PREFETCH_COMPACT_DIAGNOSTIC_COMPLETE_NOT_RETENTION" or
             a4.get("pins_unchanged") is not True or len(a4.get("r_rows", [])) != 32):
         raise ValueError("complete immutable reader and A4 references required")
+    refill_reference = None
+    if full_burst_reference is not None:
+        refill_reference = json.loads(full_burst_reference.read_text())
+        if (refill_reference.get("pins_unchanged") is not True or
+                refill_reference.get("status") != "READER_PORTS_COMPLETE_NOT_R_RETENTION" or
+                len(refill_reference.get("rows", [])) != 8):
+            raise ValueError("complete immutable eight-row refill reference required")
+    owner = burst_refill_analysis if refill_reference is not None else analysis
     inputs = before.parent / "inputs/warm_update"
     expected = {p["path"]: p for p in reference["pins"] if p["path"].startswith(str(inputs) + "/")}
     if set(expected) != {str(p) for p in inputs.iterdir()} or any(
@@ -38,11 +46,14 @@ def run(output, before, a4_reference, cpu):
     with tarfile.open(output / "sources.tar.gz", "w:gz") as archive:
         for path in sources:
             archive.add(path, arcname=path.relative_to(ROOT), recursive=False)
-    report = dict(status="WAITING_FOR_ADMISSION", steps=[], rows=[], cpu=cpu, matrix=analysis.MATRIX,
+    report = dict(status="WAITING_FOR_ADMISSION", steps=[], rows=[], cpu=cpu, matrix=owner.MATRIX,
         boundary="resident post-update PMA through drained weighted packet sinks; one scan; no compute/G/host",
         claim="extra_physical_reader_ports_diagnostic_not_complete_R", baseline_admitted=False,
         pins=[pin(p) for p in sources] + [pin(before), pin(a4_reference), pin(COMPILER.resolve()),
             pin(output / "sources.tar.gz")] + [pin(p) for p in sorted((output / "inputs/warm_update").iterdir())])
+    if full_burst_reference is not None:
+        report["claim"] = "full_burst_reader_only_not_integrated_R"
+        report["pins"].append(pin(full_burst_reference))
 
     def save():
         atomic_write_json(output / "results.json", report)
@@ -83,18 +94,29 @@ def run(output, before, a4_reference, cpu):
             if not all(f"{name} PASS 16 executions" in stdout for name in
                        ("PREFETCH_COMPACT_TEST", "DUAL_PORT_PREFETCH_TEST")):
                 raise ValueError("both finite synthetic matrices required")
+            if refill_reference is not None and "FULL_BURST_PREFETCH_TEST PASS 32 executions" not in stdout:
+                raise ValueError("complete full-burst synthetic matrix required")
             report["transport_probes"] = prefetch_analysis.transport_probes(stdout)
             verify(); report["status"] = "RUNNING_COMPLETE_READER_MATRIX"; save()
-            for latency, reverse, ports in analysis.MATRIX:
+            for entry in owner.MATRIX:
+                latency, reverse, ports = entry[:3]
+                full_burst = len(entry) == 4 and entry[3]
                 command = ["taskset", "-c", str(cpu), str(build / "prefetch_compact"),
                     str(output / "inputs/warm_update"), str(latency), str(reverse), "100000000", "1"]
-                if ports == 2: command.append("dual-port")
+                mode = "dual-port-full-burst" if full_burst and ports == 2 else (
+                    "full-burst" if full_burst else "dual-port" if ports == 2 else None)
+                if mode: command.append(mode)
                 label = f"lat{latency}_reverse{reverse}_ports{ports}"
+                if refill_reference is not None: label += "_full" if full_burst else "_eager"
                 row = prefetch_analysis.parse(checked(command, label))
-                report["rows"].append(dict(latency=latency, reverse=reverse, ports=ports, observations=row))
+                record = dict(latency=latency, reverse=reverse, ports=ports, observations=row)
+                if refill_reference is not None: record["full_burst"] = full_burst
+                report["rows"].append(record)
                 save(); print("DONE " + label, flush=True)
-            report["analysis"] = analysis.summarize(report["rows"], reference["rows"], a4["r_rows"])
-            verify(); report.update(status="READER_PORTS_COMPLETE_NOT_R_RETENTION", pins_unchanged=True)
+            report["analysis"] = owner.summarize(report["rows"],
+                (refill_reference or reference)["rows"], a4["r_rows"])
+            verify(); report.update(status=("FULL_BURST_COMPLETE_NOT_R_RETENTION" if refill_reference is not None
+                else "READER_PORTS_COMPLETE_NOT_R_RETENTION"), pins_unchanged=True)
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error)); save()
         raise
@@ -107,6 +129,9 @@ if __name__ == "__main__":
     for name in ("output", "before", "a4-reference"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--cpu", type=int, required=True)
+    parser.add_argument("--full-burst-reference", type=Path)
     args = parser.parse_args()
     print(json.dumps({"status": run(args.output.resolve(), args.before.resolve(),
-                                  args.a4_reference.resolve(), args.cpu)["status"]}))
+                                  args.a4_reference.resolve(), args.cpu,
+                                  full_burst_reference=(args.full_burst_reference.resolve()
+                                      if args.full_burst_reference else None))["status"]}))

@@ -28,9 +28,11 @@ struct ReaderStats {
   std::uint64_t bytes{}, requests{}, responses{}, beats{}, segments{}, rows{}, empty_rows{};
   std::uint64_t extent_beats{}, directory_beats{}, pma_beats{};
   std::uint64_t selector_wait{}, output_stalls{};
+  std::uint64_t pma_requests{}, short_pma_requests{};
   std::size_t max_parents{}, max_bank_lines{}, max_pipeline{};
   std::array<std::size_t, 2> max_parents_per_port{};
 };
+enum class RefillPolicy { kAvailableSpace, kFullBurst };
 
 // Experimental architecture, not the routed profile: one 1024-row banked
 // directory, two 256-line reserved rings, <=16 parents of <=16 beats, and a
@@ -40,9 +42,9 @@ class Reader final : public Component {
 public:
   Reader(ClockId clock, FixedAxiPort& memory, Fifo<Segment>& output,
          ReGraphPmaPartition partition, std::uint64_t read_delay = 71,
-         FixedAxiPort* odd_memory = nullptr)
+         FixedAxiPort* odd_memory = nullptr, RefillPolicy refill = RefillPolicy::kAvailableSpace)
       : Component("prefetch-reader", clock), memory_(memory), odd_memory_(odd_memory), output_(output),
-        partition_(partition), delay_(read_delay) {
+        partition_(partition), delay_(read_delay), refill_(refill) {
     check(partition.vertices && partition.slots && partition.slots % 16 == 0 &&
         partition.cache_segments_per_half && memory.read_beat_stream_enabled(),
         "invalid finite prefetch partition");
@@ -80,6 +82,7 @@ private:
   Fifo<Segment>& output_;
   const ReGraphPmaPartition partition_;
   const std::uint64_t delay_;
+  const RefillPolicy refill_;
   bool extent_{};
   std::size_t total_{}, consumed_{}, source_{}, segment_{}, tile_base_{}, dir_issued_{};
   std::array<std::uint64_t, 1024> directory_{};

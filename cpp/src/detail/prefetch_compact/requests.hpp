@@ -39,6 +39,9 @@ inline void Reader::prepare_request(const CycleContext& context, std::size_t por
         if (first == end || occupied == 256) continue;
         const auto half = partition_.cache_segments_per_half;
         const auto stop = first < half ? std::min(end, half) : end;
+        // Reserve a whole parent before issuing; only physical bank tails may be short.
+        if (refill_ == RefillPolicy::kFullBurst &&
+            256 - occupied < std::min(std::size_t{16}, stop - first)) continue;
         const auto count = std::min({std::size_t{16}, stop - first, 256 - occupied});
         const auto bank = parity * 2 + (first < half ? 0 : 1);
         channel = partition_.pma_channel[bank];
