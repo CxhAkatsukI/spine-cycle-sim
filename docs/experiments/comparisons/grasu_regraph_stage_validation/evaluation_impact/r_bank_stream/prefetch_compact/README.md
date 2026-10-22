@@ -32,6 +32,13 @@ or the old controls. All twelve complete executions and eight exact old
 replays pass; cycles improve 10.61% / 12.30% from dual, but remain
 **1.598 / 1.937 times A4**. Retention still fails; the candidate has 15
 physical masters versus A4's 13 and is not strict resource equivalence.
+The [separate Apply-master experiment](APPLY_PORTS.md) tests read/write
+concurrency on the same HBM bank with one additional physical master.
+All twelve complete executions pass, with eight exact old replays. It improves
+2.69% / 19.77% from shared Apply, but remains **1.555 / 1.554 times A4**.
+Both retention gates fail; sixteen versus thirteen physical masters are not
+strict resource equivalence. Fixed partition-order draining and input work
+remain diagnostic targets, not an already-proved explanation or correction.
 
 ## Complete-Convergence Extension
 

@@ -1,0 +1,71 @@
+{
+  "status": "STOPPED_AFTER_HARNESS_ADMISSION_FAILURE",
+  "reason": "The split-Apply arm registers sixteen masters, but the convergence harness retained its fifteen-master assertion. It failed before scheduler registration or numerical execution. The owned cgroup was stopped; the original runner report remains unchanged and is not a completed matrix.",
+  "report": {
+    "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v1/results.json",
+    "bytes": 654759,
+    "sha256": "694b612aee518309bc2b6670af12baedfa9eb30cec2399acd6e5bd711b406a87"
+  },
+  "source_archive": {
+    "bytes": 17017861,
+    "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v1/sources.tar.gz",
+    "sha256": "0c1b582ee79c3e066212853afdd1fb2b75100e8f8e4930299d81cdf3ffd1a23e"
+  },
+  "new_arm_error": {
+    "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v1/raw/r_lat64_reverse0_prefetch_triple_split_apply.stderr.txt",
+    "bytes": 55,
+    "sha256": "403d200a9feaaa36c752e26cfe916e6fa42113f8eaba3db054f47b511c92044c"
+  },
+  "retained_complete_rows": [
+    {
+      "latency": 64,
+      "reverse": 0,
+      "arm": "a4_io16",
+      "result": {
+        "arm": "a4_io16",
+        "cycles": 10904254,
+        "passed": true,
+        "read_bytes": 802534400,
+        "replicas": 4,
+        "rounds": 46,
+        "write_bytes": 192937984
+      }
+    },
+    {
+      "latency": 64,
+      "reverse": 0,
+      "arm": "prefetch_triple_elastic",
+      "result": {
+        "arm": "prefetch_triple_elastic",
+        "cycles": 17419740,
+        "passed": true,
+        "read_bytes": 2021232640,
+        "replicas": 3,
+        "rounds": 46,
+        "write_bytes": 144703672
+      }
+    },
+    {
+      "latency": 64,
+      "reverse": 1,
+      "arm": "a4_io16",
+      "result": {
+        "arm": "a4_io16",
+        "cycles": 10904254,
+        "passed": true,
+        "read_bytes": 802534400,
+        "replicas": 4,
+        "rounds": 46,
+        "write_bytes": 192937984
+      }
+    }
+  ],
+  "retained_failed_rows": 1,
+  "cgroup": {
+    "runtime_seconds": 1025.43,
+    "memory_peak_display": "808.9M",
+    "termination": "operator stop, status 15/TERM"
+  },
+  "production_baseline_admitted": false,
+  "retention_pass": false
+}

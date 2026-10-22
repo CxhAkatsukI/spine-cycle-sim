@@ -4,6 +4,11 @@
 #include "spine_sim/routed_regraph_profile.hpp"
 
 namespace evaluation_impact {
+inline std::size_t k4_physical_masters(const Control& selected) {
+  return (selected.triple_elastic ? 15U : selected.dual_elastic ? 11U :
+          selected.bank_stream ? 7U : 9U) + (selected.split_apply ? 1U : 0U);
+}
+
 inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected) {
   using namespace spine::sim;
   RoutedReGraphConfig config;
@@ -36,6 +41,8 @@ inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected)
                                               RoutedInputPath::kPrefetchCompactedExperimental;
   if (selected.independent_source)
     config.source_loading = RoutedSourceLoading::kIndependentExperimental;
+  if (selected.split_apply)
+    config.apply_topology = RoutedApplyTopology::kSplitMastersExperimental;
   return config;
 }
 }  // namespace evaluation_impact

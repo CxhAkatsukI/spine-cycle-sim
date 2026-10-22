@@ -17,6 +17,9 @@ RoutedReGraphConfig::RoutedReGraphConfig() {
 
 void RoutedReGraphSystem::Impl::admit() {
   const auto &c = config.compute;
+  if (config.apply_topology != RoutedApplyTopology::kSharedMaster &&
+      config.apply_topology != RoutedApplyTopology::kSplitMastersExperimental)
+    throw std::invalid_argument("unsupported routed Apply master topology");
   if (config.source_loading != RoutedSourceLoading::kEdgeCoupled &&
       config.source_loading != RoutedSourceLoading::kIndependentExperimental)
     throw std::invalid_argument("unsupported routed source-cache loading schedule");
@@ -28,7 +31,8 @@ void RoutedReGraphSystem::Impl::admit() {
   const bool compact = config.input_path != RoutedInputPath::kPhysicalSlots;
   const auto masters = (config.source_topology == RoutedSourceTopology::kTwoPairwise ? 7U : 9U) +
       (config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental ? 8U :
-       config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ? 4U : 0U);
+       config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ? 4U : 0U) +
+      (config.apply_topology == RoutedApplyTopology::kSplitMastersExperimental ? 1U : 0U);
   if (compact && (!config.adapter.cross_row.bank_read_beats ||
                   !config.adapter.read_pipeline_cycles || c.max_pending_requests < 16 ||
                   c.max_outstanding_bursts < 16))

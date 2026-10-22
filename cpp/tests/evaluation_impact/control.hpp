@@ -8,7 +8,7 @@ namespace evaluation_impact {
 struct Control {
   std::string arm;
   bool original{}, candidate{}, bank_stream{}, prefetch_compact{}, independent_source{};
-  bool dual_elastic{}, triple_elastic{};
+  bool dual_elastic{}, triple_elastic{}, split_apply{};
   std::size_t a4_input_parents{2}, a4_state_parents{2};
   std::size_t k4_parents{16}, k4_apply_window{16};
 };
@@ -19,11 +19,13 @@ inline Control control(const std::string& arm) {
     result.original = true;
     if (arm == "a4_io16") result.a4_input_parents = result.a4_state_parents = 16;
   } else if (arm == "bank_stream" || arm == "prefetch_compact" || arm == "prefetch_source" ||
-             arm == "prefetch_dual_elastic" || arm == "prefetch_triple_elastic") {
+             arm == "prefetch_dual_elastic" || arm == "prefetch_triple_elastic" ||
+             arm == "prefetch_triple_split_apply") {
     result.candidate = result.bank_stream = true;
     result.prefetch_compact = arm != "bank_stream";
     result.dual_elastic = arm == "prefetch_dual_elastic";
-    result.triple_elastic = arm == "prefetch_triple_elastic";
+    result.split_apply = arm == "prefetch_triple_split_apply";
+    result.triple_elastic = arm == "prefetch_triple_elastic" || result.split_apply;
     result.independent_source = arm == "prefetch_source" || result.dual_elastic || result.triple_elastic;
   } else if (arm == "cross_row" || arm == "candidate" || arm == "candidate_apply2" ||
              arm == "candidate_parents2" || arm == "candidate_both2") {

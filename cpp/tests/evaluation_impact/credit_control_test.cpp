@@ -44,6 +44,33 @@ int main() {
   require(triple.triple_elastic && !triple.dual_elastic && triple.prefetch_compact && triple.independent_source &&
           k4_configuration(triple).input_path == spine::sim::RoutedInputPath::kTriplePrefetchElasticExperimental &&
           k4_configuration(triple).compute.max_pending_requests == 16);
+  const auto split = control("prefetch_triple_split_apply");
+  require(split.split_apply && split.triple_elastic && split.independent_source &&
+          k4_configuration(split).apply_topology == spine::sim::RoutedApplyTopology::kSplitMastersExperimental &&
+          k4_configuration(split).input_path == spine::sim::RoutedInputPath::kTriplePrefetchElasticExperimental &&
+          k4_configuration(split).compute.apply_request_window == 16);
+  require(!triple.split_apply &&
+          k4_configuration(triple).apply_topology == spine::sim::RoutedApplyTopology::kSharedMaster &&
+          spine::sim::RoutedReGraphConfig{}.apply_topology == spine::sim::RoutedApplyTopology::kSharedMaster);
+  for (const auto& [arm, masters] : {
+      std::pair{"candidate", 9U}, std::pair{"bank_stream", 7U},
+      std::pair{"prefetch_dual_elastic", 11U}, std::pair{"prefetch_triple_elastic", 15U},
+      std::pair{"prefetch_triple_split_apply", 16U}}) {
+    using namespace spine::sim;
+    const auto selected = control(arm);
+    require(k4_physical_masters(selected) == masters);
+    Scheduler scheduler;
+    const auto clock = scheduler.add_clock_mhz("core", 150);
+    MockMemoryBackend backend("memory", clock, {32, 64, 1, 32, 32, true});
+    auto layout = GraSuPartitionedPmaLayout::build(2, 65536, {{0, 1, 1, false}}, {},
+                                                GraSuPmaWordAbi::kWeightedFullWord);
+    AlgorithmInitialState initial;
+    initial.primary = {0, GraphAlgorithmPolicy::kSsspInfinity};
+    initial.active_vertices = {0};
+    RoutedReGraphSystem system(scheduler, clock, backend, std::move(layout), initial,
+                              k4_configuration(selected));
+    require(backend.traffic_stats_by_initiator().size() == masters);
+  }
   try { control("unknown"); return 1; } catch (const std::invalid_argument&) {}
-  std::cout << "CREDIT_CONTROL_PASS twelve explicit arms; old source topology and A4 credits unchanged\n";
+  std::cout << "CREDIT_CONTROL_PASS thirteen explicit arms; old source topology and A4 credits unchanged\n";
 }

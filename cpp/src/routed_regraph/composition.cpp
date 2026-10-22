@@ -110,8 +110,15 @@ void RoutedReGraphSystem::Impl::build() {
   auto &read = client("apply-read");
   auto &write = client("apply-write");
   auto &status_client = client("apply-status");
-  share("apply-master-mux", port("apply-master", 30),
-        {read.endpoint(), write.endpoint(), status_client.endpoint()});
+  if (config.apply_topology == RoutedApplyTopology::kSplitMastersExperimental) {
+    // Keep registered routing on both paths; only physical parent storage splits.
+    share("apply-read-mux", port("apply-read-master", 30), {read.endpoint()});
+    share("apply-write-mux", port("apply-write-master", 30),
+          {write.endpoint(), status_client.endpoint()});
+  } else {
+    share("apply-master-mux", port("apply-master", 30),
+          {read.endpoint(), write.endpoint(), status_client.endpoint()});
+  }
   auto global = config.compute;
   global.partition_vertices = padded_vertices;
   mux = std::make_unique<RoutedGatherMux>("gather-mux", clock, gather_rows, ordered_rows, partitions.size());

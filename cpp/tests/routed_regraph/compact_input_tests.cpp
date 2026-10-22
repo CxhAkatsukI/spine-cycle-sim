@@ -189,7 +189,8 @@ void framing() {
 int main() {
   try {
     framing();
-    for (const auto& arm : {"prefetch_compact", "prefetch_source", "prefetch_dual_elastic", "prefetch_triple_elastic"})
+    for (const auto& arm : {"prefetch_compact", "prefetch_source", "prefetch_dual_elastic",
+                           "prefetch_triple_elastic", "prefetch_triple_split_apply"})
      for (const auto [vertices, empty, throttled] : {
         std::tuple{129U, false, false}, std::tuple{129U, true, true},
         std::tuple{8193U, false, true}, std::tuple{262273U, false, false}}) {
@@ -198,6 +199,6 @@ int main() {
       check_observation(forward.observation, reverse.observation);
       check(forward == reverse, "compact results depend on registration order");
     }
-    std::cout << "PASS: 32 coupled/independent/dual/triple compact convergence executions and terminal framing/restart/rejection\n";
+    std::cout << "PASS: 40 coupled/independent/dual/triple/split-Apply compact convergence executions and terminal framing/restart/rejection\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

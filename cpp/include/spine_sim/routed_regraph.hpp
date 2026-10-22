@@ -23,6 +23,12 @@ enum class RoutedInputPath {
   kTriplePrefetchElasticExperimental,
 };
 
+enum class RoutedApplyTopology {
+  kSharedMaster,
+  // Separate read/write masters, still contending for the same HBM bank.
+  kSplitMastersExperimental,
+};
+
 struct RoutedReGraphConfig {
   RoutedReGraphConfig();
   GraSuReGraphConfig compute;
@@ -45,6 +51,7 @@ struct RoutedReGraphConfig {
   bool reuse_resident_pma{};
   RoutedInputPath input_path{RoutedInputPath::kPhysicalSlots};
   RoutedSourceLoading source_loading{RoutedSourceLoading::kEdgeCoupled};
+  RoutedApplyTopology apply_topology{RoutedApplyTopology::kSharedMaster};
 };
 
 struct RoutedReGraphInvocation {

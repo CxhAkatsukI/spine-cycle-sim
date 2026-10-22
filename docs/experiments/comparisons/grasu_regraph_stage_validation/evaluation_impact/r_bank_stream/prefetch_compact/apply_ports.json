@@ -1,0 +1,1652 @@
+{
+  "before": {
+    "git_head": "20a263abbfc6441258ac54a8b3fcaf04d4eec2dd",
+    "note": "Committed-source archive and empty dirty diff requested before numerical edits; final archive hash verified after edits. git archive reads fixed HEAD, not working tree. Fresh campaign independently pins edited owners.",
+    "pins": [
+      {
+        "bytes": 1139974703,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/before/source.tar.gz",
+        "sha256": "b34696397590aadee09b161a4cbcb32ee2b203705725ccabd103abf379d87ceb"
+      },
+      {
+        "bytes": 0,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/before/pre_edit.diff",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "bytes": 745908,
+        "path": "/data/chuxiao/experiments/r_metadata_ports_20261022/convergence-v1/results.json",
+        "sha256": "937de50990ad67a99c50a6b3e6b8f7b2edde87c41186d9e74d0b993a57a765c1"
+      },
+      {
+        "bytes": 1284720,
+        "path": "/usr/bin/x86_64-linux-gnu-g++-15",
+        "sha256": "a7042ba0877cf13e2b03a4bc172db6ba961b189c493a73407cbedd3f6b9110db"
+      }
+    ],
+    "report": {
+      "bytes": 1417,
+      "path": "/data/chuxiao/experiments/r_apply_ports_20261022/before/freeze.json",
+      "sha256": "98596043b77ab7c3581361d50056afa37952defb633a6eca382fd3613a103a5d"
+    }
+  },
+  "core": {
+    "active_trajectory": [
+      3,
+      10,
+      36,
+      91,
+      219,
+      470,
+      797,
+      1452,
+      2694,
+      5087,
+      9424,
+      15619,
+      23122,
+      29075,
+      32609,
+      32851,
+      30343,
+      26703,
+      22138,
+      17654,
+      13539,
+      10395,
+      7904,
+      5827,
+      4152,
+      2881,
+      2024,
+      1329,
+      1013,
+      761,
+      540,
+      344,
+      229,
+      198,
+      186,
+      133,
+      115,
+      99,
+      65,
+      43,
+      37,
+      48,
+      39,
+      13,
+      5,
+      0
+    ],
+    "analysis": {
+      "comparisons": [
+        {
+          "arms": {
+            "a4_io16": {
+              "arm": "a4_io16",
+              "cycles": 10904254,
+              "passed": true,
+              "read_bytes": 802534400,
+              "replicas": 4,
+              "rounds": 46,
+              "write_bytes": 192937984
+            },
+            "prefetch_triple_elastic": {
+              "arm": "prefetch_triple_elastic",
+              "cycles": 17419740,
+              "passed": true,
+              "read_bytes": 2021232640,
+              "replicas": 3,
+              "rounds": 46,
+              "write_bytes": 144703672
+            },
+            "prefetch_triple_split_apply": {
+              "arm": "prefetch_triple_split_apply",
+              "cycles": 16950908,
+              "passed": true,
+              "read_bytes": 2021232640,
+              "replicas": 3,
+              "rounds": 46,
+              "write_bytes": 144703672
+            }
+          },
+          "candidate_over_a4": 1.5545224826934516,
+          "cycle_reduction_from_shared_apply": 0.02691383453484375,
+          "latency": 64,
+          "within_ten_percent": false
+        },
+        {
+          "arms": {
+            "a4_io16": {
+              "arm": "a4_io16",
+              "cycles": 15840606,
+              "passed": true,
+              "read_bytes": 802534400,
+              "replicas": 4,
+              "rounds": 46,
+              "write_bytes": 192937984
+            },
+            "prefetch_triple_elastic": {
+              "arm": "prefetch_triple_elastic",
+              "cycles": 30685450,
+              "passed": true,
+              "read_bytes": 2021232640,
+              "replicas": 3,
+              "rounds": 46,
+              "write_bytes": 144703672
+            },
+            "prefetch_triple_split_apply": {
+              "arm": "prefetch_triple_split_apply",
+              "cycles": 24619522,
+              "passed": true,
+              "read_bytes": 2021232640,
+              "replicas": 3,
+              "rounds": 46,
+              "write_bytes": 144703672
+            }
+          },
+          "candidate_over_a4": 1.554203292475048,
+          "cycle_reduction_from_shared_apply": 0.19768092043623275,
+          "latency": 128,
+          "within_ten_percent": false
+        }
+      ],
+      "hardware_timing_admitted": false,
+      "new_spine_comparison_executed": false,
+      "physical_masters": {
+        "a4_io16": 13,
+        "prefetch_triple_elastic": 15,
+        "prefetch_triple_split_apply": 16
+      },
+      "pre_edit_controls_replayed_exactly": 8,
+      "production_baseline_admitted": false,
+      "publication_match_admitted": false,
+      "retention_pass": false,
+      "strict_resource_match_admitted": false
+    },
+    "checks": [
+      {
+        "available_before_bytes": 43130359808,
+        "command": [
+          "cmake",
+          "-S",
+          "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/cpp/tests/evaluation_impact",
+          "-B",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build",
+          "-DCMAKE_CXX_COMPILER=/usr/bin/g++",
+          "-DCMAKE_BUILD_TYPE=Release",
+          "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+          "-DBUILD_TESTING=ON"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 152012,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "bytes": 0,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/configure.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 419,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/configure.stdout.txt",
+          "sha256": "83d309758d6fa3a2e7320d53aed06a26d35472d895fe4e56a705f2bcef819a8b"
+        },
+        "timed_out": false,
+        "wall_seconds": 0.5663310503587127
+      },
+      {
+        "available_before_bytes": 43121610752,
+        "command": [
+          "cmake",
+          "--build",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build",
+          "--target",
+          "regraph_convergence_demo",
+          "regraph_credit_control_test",
+          "-j1"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 460168,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "bytes": 0,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/build_harness.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 8164,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/build_harness.stdout.txt",
+          "sha256": "3830dac39eb9e7c421623bf5ce7132f5b97170b4ba6ead0a2401faada4d4bf13"
+        },
+        "timed_out": false,
+        "wall_seconds": 129.25864273309708
+      },
+      {
+        "available_before_bytes": 43124015104,
+        "command": [
+          "cmake",
+          "--build",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/simulator",
+          "-j1"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 701280,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "bytes": 0,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/build_core.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 12124,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/build_core.stdout.txt",
+          "sha256": "69a91333bae72e70d777f0b5823faba54629bac99ba9b78833b8f2f2276cd758"
+        },
+        "timed_out": false,
+        "wall_seconds": 178.3370233620517
+      },
+      {
+        "available_before_bytes": 43140341760,
+        "command": [
+          "ctest",
+          "--test-dir",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/simulator",
+          "--output-on-failure",
+          "--timeout",
+          "600",
+          "-j1"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 775420,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "bytes": 0,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/core_ctest.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 4541,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/core_ctest.stdout.txt",
+          "sha256": "2573dc90f8494344a786bb36853018ee4d5bd446805131bfde73f1e5f0dc7e6c"
+        },
+        "timed_out": false,
+        "wall_seconds": 435.0531405401416
+      },
+      {
+        "available_before_bytes": 43178962944,
+        "command": [
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/regraph_credit_control_test"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 29376,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "bytes": 0,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/control_test.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 89,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/control_test.stdout.txt",
+          "sha256": "700ff22eda1bb517c9af54f100893c9520d6d1d60d0d416d0dfaf0f84269364f"
+        },
+        "timed_out": false,
+        "wall_seconds": 0.053386759012937546
+      },
+      {
+        "available_before_bytes": 43180511232,
+        "command": [
+          "/usr/bin/g++",
+          "-O3",
+          "-DNDEBUG",
+          "-std=gnu++20",
+          "-Wall",
+          "-Wextra",
+          "-Wpedantic",
+          "-Werror",
+          "-I/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/cpp/include",
+          "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/cpp/tests/evaluation_impact/prefetch_compact_test.cpp",
+          "-o",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/prefetch_compact_test",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/simulator/cpp/liboriginal_regraph_cycle.a",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/simulator/cpp/libspine_cycle_core.a"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 301228,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "bytes": 0,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/build_input_tests.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 0,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/build_input_tests.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "timed_out": false,
+        "wall_seconds": 3.9088152702897787
+      },
+      {
+        "available_before_bytes": 43149381632,
+        "command": [
+          "taskset",
+          "-c",
+          "124",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/prefetch_compact_test"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 29384,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "bytes": 0,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/input_tests.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "bytes": 1066,
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/raw/input_tests.stdout.txt",
+          "sha256": "9ebd7f631d73cdb0b0227500b26198f0666ca5e560709ff03b5b3b8832d0df2c"
+        },
+        "timed_out": false,
+        "wall_seconds": 0.6039751311764121
+      }
+    ],
+    "ctest_targets": 36,
+    "executions": 12,
+    "final_padded_replica": {
+      "bytes": 1048576,
+      "sha256": "ff001ca203b3b7e0b4ae60b630cee6755acd2f2401fb08e1069e081562dd2c00"
+    },
+    "finite_input_executions": 112,
+    "integrated_compact_executions": 40,
+    "pins_unchanged": true,
+    "progress_pins_reverified": 40,
+    "publisher_probes": [
+      {
+        "capacity": 2,
+        "cycles": 3076,
+        "latency": 2,
+        "one_cycle_gaps": 1024,
+        "packets": 2048,
+        "peak": 2,
+        "period": 1,
+        "two_cycle_gaps": 1023
+      },
+      {
+        "capacity": 3,
+        "cycles": 2053,
+        "latency": 2,
+        "one_cycle_gaps": 2047,
+        "packets": 2048,
+        "peak": 2,
+        "period": 1,
+        "two_cycle_gaps": 0
+      },
+      {
+        "capacity": 2,
+        "cycles": 10241,
+        "latency": 2,
+        "one_cycle_gaps": 0,
+        "packets": 2048,
+        "peak": 2,
+        "period": 5,
+        "two_cycle_gaps": 0
+      },
+      {
+        "capacity": 3,
+        "cycles": 10241,
+        "latency": 2,
+        "one_cycle_gaps": 0,
+        "packets": 2048,
+        "peak": 3,
+        "period": 5,
+        "two_cycle_gaps": 0
+      }
+    ],
+    "registration_order_pairs_exact": 6,
+    "report": {
+      "bytes": 747431,
+      "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/results.json",
+      "sha256": "c4c3993d2ddf186f46ff91c01ae8727cb931c0f63018228dc60fff1aa8220c90"
+    },
+    "selected_pins": [
+      {
+        "bytes": 17018380,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/sources.tar.gz",
+        "sha256": "2ab3d7251af1fcb3a01f1723754c8398013486ec8a53d1ac36fac49153de278d"
+      },
+      {
+        "bytes": 5803596,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/csr_destinations.u32le",
+        "sha256": "23b0d9fb08d49778179cef50dc09b6873a1aede8bc6437de59c09fc154a29ba9"
+      },
+      {
+        "bytes": 1032188,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/csr_offsets.u32le",
+        "sha256": "d95fb029da4c365923ff6ffbf89a34df1a0935f7aa90a41bda17e9e85577ecd2"
+      },
+      {
+        "bytes": 1048576,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/degrees.u32le",
+        "sha256": "b8b774a85c12fc5578cdc191e7e9b6d148dd1b9e9b31133bb6799c24c212b75a"
+      },
+      {
+        "bytes": 544,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/execution.u32le",
+        "sha256": "79b2ef8c759d46b0fa0eeaf5046eb5361186547151005b1dd5c86637dcb34dd9"
+      },
+      {
+        "bytes": 1048576,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/initial.u32le",
+        "sha256": "fd94399bf97a53a92b2216ca9b2c53654c75d986eac19fdd07c2ae64a4b75ec0"
+      },
+      {
+        "bytes": 1048576,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/sssp_initial.u32le",
+        "sha256": "36711858691d194c94e9866726faf11867b2dee6c95674e3c7d7a34fa75aaa2c"
+      },
+      {
+        "bytes": 11613696,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/sssp_tasks.u32le",
+        "sha256": "280e4c0391fb528336a23b4f150e4c75eee09d2c8c4f9462c0e2048bece43259"
+      },
+      {
+        "bytes": 5803596,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/sssp_weights.u32le",
+        "sha256": "b3a593f9eba99eac62256e13fa55c7f9fe361466d935fc875fd3dcfee1f7ea5d"
+      },
+      {
+        "bytes": 11613696,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/inputs/warm_update/tasks.u32le",
+        "sha256": "8f74dae3b7c9a0c5505f10dffbdabbe23ec1c2d9a5138b37cfca13b26b032425"
+      },
+      {
+        "bytes": 324136,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/prefetch_compact_test",
+        "sha256": "a910578341df686fb61c1f8e15e02a114e1188bbd98dab37b3e455b762de6fcd"
+      },
+      {
+        "bytes": 15333,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/CMakeCache.txt",
+        "sha256": "5549fa32a2200672c3eb772f10fb5bb9ead151ff3a848dc7940d41861a4ad7ed"
+      },
+      {
+        "bytes": 86651,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/compile_commands.json",
+        "sha256": "0c887cc6b8176c70edb0f9cde73204c716b51e12a86bc9d80153c0e0b8a3d39f"
+      },
+      {
+        "bytes": 1276928,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/regraph_convergence_demo",
+        "sha256": "dbb06d99ba2c635a69fbff2948e1eb5bc900eff531ffff89b339615f65a63d85"
+      },
+      {
+        "bytes": 4392386,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/simulator/cpp/libspine_cycle_core.a",
+        "sha256": "083b957210d33eefd47bef1035d3575d15eeaf6fb9e9e4c75b9b02940af2ca29"
+      },
+      {
+        "bytes": 571348,
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/convergence-v2/build/simulator/cpp/liboriginal_regraph_cycle.a",
+        "sha256": "7a6ead77c42a1ec787578d6f77f50e1a08136bc694b9a1e0b1502a37b97ce02c"
+      }
+    ],
+    "source_input_binary_reference_pins_reverified": 2392,
+    "trajectory_hash_encoding": "sha256 of sorted-key compact JSON, UTF-8",
+    "trajectory_hashes": [
+      {
+        "arm": "a4_io16",
+        "latency": 64,
+        "sha256": "24bd4d9c86e3e4972b7403bf223c0c179371b056bbbacef91df084a6c839d3c9"
+      },
+      {
+        "arm": "prefetch_triple_elastic",
+        "latency": 64,
+        "sha256": "7f392c8c4ac1e3f005f4243102e841e4a5dcc20ed886db64503566434c5ac6fb"
+      },
+      {
+        "arm": "prefetch_triple_split_apply",
+        "latency": 64,
+        "sha256": "10f2aa0c91933796ade95046f88f7cfb045dd68b4bff81bb091bef657fd049aa"
+      },
+      {
+        "arm": "a4_io16",
+        "latency": 128,
+        "sha256": "b040845d38bdab9511fc14ad5406c9265772db80df0c1fc3e07d32f1c6a8e484"
+      },
+      {
+        "arm": "prefetch_triple_elastic",
+        "latency": 128,
+        "sha256": "828274492c83bb8fb5b9fdbdd409da8859f64ddea987cbe596bd51e807c48749"
+      },
+      {
+        "arm": "prefetch_triple_split_apply",
+        "latency": 128,
+        "sha256": "668bfe5f2c0e73bbdce4b8fb08396a1b1a600257a98d69d2794166cfdde6018c"
+      }
+    ],
+    "verified_final_replica_files": 40
+  },
+  "decision": {
+    "default_path_changed": false,
+    "hardware_timing_admitted": false,
+    "new_spine_comparison_executed": false,
+    "paper_or_figures_changed": false,
+    "production_baseline_admitted": false,
+    "publication_match_admitted": false,
+    "retention_pass": false,
+    "strict_resource_match_admitted": false
+  },
+  "passive": {
+    "interpretation": "Overlapping completion offsets and wait counters; not exclusive or additive stage costs.",
+    "observations": [
+      {
+        "arm": "prefetch_triple_elastic",
+        "backend_waits": {
+          "apply_max_pipeline": 29,
+          "apply_max_reads": 16,
+          "apply_max_writes": 16,
+          "apply_output_stalls": 0,
+          "apply_pipeline_stalls": 0,
+          "apply_read_stalls": 5684910,
+          "apply_write_stalls": 2423832,
+          "merger_output_stalls": 459770,
+          "writeback_max_pipeline": 9,
+          "writeback_max_writes": 10,
+          "writeback_pipeline_stalls": 0,
+          "writeback_write_stalls": 0
+        },
+        "completion_offset_cycles": {
+          "adapter_last": 10906048,
+          "apply_done": 17416382,
+          "compute_last": 17392922,
+          "end": 17419740,
+          "status_done": 17419740,
+          "tail_after_frontends": 26818,
+          "writeback_done": 17419694
+        },
+        "completion_offset_fraction": {
+          "adapter_last": 0.6260740975468061,
+          "apply_done": 0.9998072301882807,
+          "compute_last": 0.9984604821885975,
+          "end": 1,
+          "status_done": 1,
+          "tail_after_frontends": 0.0015395178114024665,
+          "writeback_done": 0.9999973593176477
+        },
+        "frontend_waits": [
+          {
+            "edge_waits": 4168658,
+            "emitted": 4877978,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 103500,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1448816,
+            "packets": 4877978,
+            "pipeline_stalls": 1448816,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 410734,
+            "worker": 0
+          },
+          {
+            "edge_waits": 5698710,
+            "emitted": 2133710,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 2892664,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1448816,
+            "packets": 2133710,
+            "pipeline_stalls": 1448816,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 460874,
+            "worker": 1
+          },
+          {
+            "edge_waits": 4340376,
+            "emitted": 983848,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 7098904,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1421630,
+            "packets": 983848,
+            "pipeline_stalls": 1421630,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 415104,
+            "worker": 2
+          },
+          {
+            "edge_waits": 3121560,
+            "emitted": 351808,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 10512610,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1421630,
+            "packets": 351808,
+            "pipeline_stalls": 1421630,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 477342,
+            "worker": 3
+          }
+        ],
+        "interpretation": "overlapping completion offsets, not exclusive stage attribution or stall causes",
+        "latency": 64,
+        "packet_fractions": [
+          0.5843748622316272,
+          0.2556154388749284,
+          0.11786359828946788,
+          0.04214610060397655
+        ],
+        "partitions": 4,
+        "rounds": 46,
+        "source_waits": [
+          {
+            "blocks": 5888,
+            "completions": 5888,
+            "issue_stalls": 0,
+            "lines": 1507328,
+            "max_pending": 1,
+            "output_stalls": 0,
+            "parents": 5888,
+            "service": 0,
+            "terminators": 92
+          },
+          {
+            "blocks": 5888,
+            "completions": 5888,
+            "issue_stalls": 0,
+            "lines": 1507328,
+            "max_pending": 1,
+            "output_stalls": 0,
+            "parents": 5888,
+            "service": 1,
+            "terminators": 92
+          }
+        ],
+        "worker_completion_offset_cycles": {
+          "0": {
+            "adapter_last": 10906048,
+            "compute_last": 12517658
+          },
+          "1": {
+            "adapter_last": 9741972,
+            "compute_last": 14142746
+          },
+          "2": {
+            "adapter_last": 7160820,
+            "compute_last": 15767834
+          },
+          "3": {
+            "adapter_last": 5372202,
+            "compute_last": 17392922
+          }
+        }
+      },
+      {
+        "arm": "prefetch_triple_split_apply",
+        "backend_waits": {
+          "apply_max_pipeline": 22,
+          "apply_max_reads": 9,
+          "apply_max_writes": 9,
+          "apply_output_stalls": 0,
+          "apply_pipeline_stalls": 0,
+          "apply_read_stalls": 0,
+          "apply_write_stalls": 0,
+          "merger_output_stalls": 0,
+          "writeback_max_pipeline": 9,
+          "writeback_max_writes": 9,
+          "writeback_pipeline_stalls": 0,
+          "writeback_write_stalls": 0
+        },
+        "completion_offset_cycles": {
+          "adapter_last": 10906048,
+          "apply_done": 16947550,
+          "compute_last": 16934762,
+          "end": 16950908,
+          "status_done": 16950908,
+          "tail_after_frontends": 16146,
+          "writeback_done": 16950862
+        },
+        "completion_offset_fraction": {
+          "adapter_last": 0.6433901947907451,
+          "apply_done": 0.9998018985177667,
+          "compute_last": 0.9990474846539195,
+          "end": 1,
+          "status_done": 1,
+          "tail_after_frontends": 0.0009525153460805758,
+          "writeback_done": 0.9999972862810653
+        },
+        "frontend_waits": [
+          {
+            "edge_waits": 4168658,
+            "emitted": 4877978,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 0,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1448816,
+            "packets": 4877978,
+            "pipeline_stalls": 1448816,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 410734,
+            "worker": 0
+          },
+          {
+            "edge_waits": 5698710,
+            "emitted": 2133710,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 2670024,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1448816,
+            "packets": 2133710,
+            "pipeline_stalls": 1448816,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 460874,
+            "worker": 1
+          },
+          {
+            "edge_waits": 4340376,
+            "emitted": 983848,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 6758504,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1421630,
+            "packets": 983848,
+            "pipeline_stalls": 1421630,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 415104,
+            "worker": 2
+          },
+          {
+            "edge_waits": 3121560,
+            "emitted": 351808,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 10054450,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1421630,
+            "packets": 351808,
+            "pipeline_stalls": 1421630,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 477342,
+            "worker": 3
+          }
+        ],
+        "interpretation": "overlapping completion offsets, not exclusive stage attribution or stall causes",
+        "latency": 64,
+        "packet_fractions": [
+          0.5843748622316272,
+          0.2556154388749284,
+          0.11786359828946788,
+          0.04214610060397655
+        ],
+        "partitions": 4,
+        "rounds": 46,
+        "source_waits": [
+          {
+            "blocks": 5888,
+            "completions": 5888,
+            "issue_stalls": 0,
+            "lines": 1507328,
+            "max_pending": 1,
+            "output_stalls": 0,
+            "parents": 5888,
+            "service": 0,
+            "terminators": 92
+          },
+          {
+            "blocks": 5888,
+            "completions": 5888,
+            "issue_stalls": 0,
+            "lines": 1507328,
+            "max_pending": 1,
+            "output_stalls": 0,
+            "parents": 5888,
+            "service": 1,
+            "terminators": 92
+          }
+        ],
+        "worker_completion_offset_cycles": {
+          "0": {
+            "adapter_last": 10906048,
+            "compute_last": 12414158
+          },
+          "1": {
+            "adapter_last": 9741972,
+            "compute_last": 13920106
+          },
+          "2": {
+            "adapter_last": 7160820,
+            "compute_last": 15427434
+          },
+          "3": {
+            "adapter_last": 5372202,
+            "compute_last": 16934762
+          }
+        }
+      },
+      {
+        "arm": "prefetch_triple_elastic",
+        "backend_waits": {
+          "apply_max_pipeline": 29,
+          "apply_max_reads": 16,
+          "apply_max_writes": 16,
+          "apply_output_stalls": 0,
+          "apply_pipeline_stalls": 0,
+          "apply_read_stalls": 11753644,
+          "apply_write_stalls": 11758658,
+          "merger_output_stalls": 6471326,
+          "writeback_max_pipeline": 10,
+          "writeback_max_writes": 16,
+          "writeback_pipeline_stalls": 0,
+          "writeback_write_stalls": 0
+        },
+        "completion_offset_cycles": {
+          "adapter_last": 18142308,
+          "apply_done": 30679148,
+          "compute_last": 30637794,
+          "end": 30685450,
+          "status_done": 30685450,
+          "tail_after_frontends": 47656,
+          "writeback_done": 30682460
+        },
+        "completion_offset_fraction": {
+          "adapter_last": 0.5912348686429562,
+          "apply_done": 0.9997946257917025,
+          "compute_last": 0.998446951242364,
+          "end": 1,
+          "status_done": 1,
+          "tail_after_frontends": 0.001553048757635948,
+          "writeback_done": 0.9999025596821947
+        },
+        "frontend_waits": [
+          {
+            "edge_waits": 11020220,
+            "emitted": 4877978,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 1590128,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1398768,
+            "packets": 4877978,
+            "pipeline_stalls": 1398768,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 845480,
+            "worker": 0
+          },
+          {
+            "edge_waits": 11637724,
+            "emitted": 2133710,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 6946874,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1398768,
+            "packets": 2133710,
+            "pipeline_stalls": 1398768,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 747914,
+            "worker": 1
+          },
+          {
+            "edge_waits": 7889000,
+            "emitted": 983848,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 14917064,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1348030,
+            "packets": 983848,
+            "pipeline_stalls": 1348030,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 859464,
+            "worker": 2
+          },
+          {
+            "edge_waits": 5713706,
+            "emitted": 351808,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 20846418,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1348030,
+            "packets": 351808,
+            "pipeline_stalls": 1348030,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 869860,
+            "worker": 3
+          }
+        ],
+        "interpretation": "overlapping completion offsets, not exclusive stage attribution or stall causes",
+        "latency": 128,
+        "packet_fractions": [
+          0.5843748622316272,
+          0.2556154388749284,
+          0.11786359828946788,
+          0.04214610060397655
+        ],
+        "partitions": 4,
+        "rounds": 46,
+        "source_waits": [
+          {
+            "blocks": 5888,
+            "completions": 5888,
+            "issue_stalls": 0,
+            "lines": 1507328,
+            "max_pending": 1,
+            "output_stalls": 0,
+            "parents": 5888,
+            "service": 0,
+            "terminators": 92
+          },
+          {
+            "blocks": 5888,
+            "completions": 5888,
+            "issue_stalls": 0,
+            "lines": 1507328,
+            "max_pending": 1,
+            "output_stalls": 0,
+            "parents": 5888,
+            "service": 1,
+            "terminators": 92
+          }
+        ],
+        "worker_completion_offset_cycles": {
+          "0": {
+            "adapter_last": 18142308,
+            "compute_last": 21240546
+          },
+          "1": {
+            "adapter_last": 15917978,
+            "compute_last": 24372962
+          },
+          "2": {
+            "adapter_last": 11080204,
+            "compute_last": 27505378
+          },
+          "3": {
+            "adapter_last": 8283266,
+            "compute_last": 30637794
+          }
+        }
+      },
+      {
+        "arm": "prefetch_triple_split_apply",
+        "backend_waits": {
+          "apply_max_pipeline": 29,
+          "apply_max_reads": 16,
+          "apply_max_writes": 16,
+          "apply_output_stalls": 0,
+          "apply_pipeline_stalls": 0,
+          "apply_read_stalls": 5693696,
+          "apply_write_stalls": 0,
+          "merger_output_stalls": 417312,
+          "writeback_max_pipeline": 9,
+          "writeback_max_writes": 16,
+          "writeback_pipeline_stalls": 0,
+          "writeback_write_stalls": 0
+        },
+        "completion_offset_cycles": {
+          "adapter_last": 18142308,
+          "apply_done": 24613220,
+          "compute_last": 24586954,
+          "end": 24619522,
+          "status_done": 24619522,
+          "tail_after_frontends": 32568,
+          "writeback_done": 24616532
+        },
+        "completion_offset_fraction": {
+          "adapter_last": 0.7369074021827069,
+          "apply_done": 0.9997440242747199,
+          "compute_last": 0.9986771473467275,
+          "end": 1,
+          "status_done": 1,
+          "tail_after_frontends": 0.0013228526532724722,
+          "writeback_done": 0.9998785516631883
+        },
+        "frontend_waits": [
+          {
+            "edge_waits": 11020220,
+            "emitted": 4877978,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 96600,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1398768,
+            "packets": 4877978,
+            "pipeline_stalls": 1398768,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 845480,
+            "worker": 0
+          },
+          {
+            "edge_waits": 11637724,
+            "emitted": 2133710,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 3934242,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1398768,
+            "packets": 2133710,
+            "pipeline_stalls": 1398768,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 747914,
+            "worker": 1
+          },
+          {
+            "edge_waits": 7889000,
+            "emitted": 983848,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 10385328,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1348030,
+            "packets": 983848,
+            "pipeline_stalls": 1348030,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 859464,
+            "worker": 2
+          },
+          {
+            "edge_waits": 5713706,
+            "emitted": 351808,
+            "gather_conflicts": 0,
+            "gather_drain": 368,
+            "gather_merge": 1507328,
+            "gather_output_stalls": 14795578,
+            "gather_reset": 1507328,
+            "gather_rows": 1507328,
+            "output_stalls": 1348030,
+            "packets": 351808,
+            "pipeline_stalls": 1348030,
+            "request_stalls": 0,
+            "source_lines": 753664,
+            "source_waits": 869860,
+            "worker": 3
+          }
+        ],
+        "interpretation": "overlapping completion offsets, not exclusive stage attribution or stall causes",
+        "latency": 128,
+        "packet_fractions": [
+          0.5843748622316272,
+          0.2556154388749284,
+          0.11786359828946788,
+          0.04214610060397655
+        ],
+        "partitions": 4,
+        "rounds": 46,
+        "source_waits": [
+          {
+            "blocks": 5888,
+            "completions": 5888,
+            "issue_stalls": 0,
+            "lines": 1507328,
+            "max_pending": 1,
+            "output_stalls": 0,
+            "parents": 5888,
+            "service": 0,
+            "terminators": 92
+          },
+          {
+            "blocks": 5888,
+            "completions": 5888,
+            "issue_stalls": 0,
+            "lines": 1507328,
+            "max_pending": 1,
+            "output_stalls": 0,
+            "parents": 5888,
+            "service": 1,
+            "terminators": 92
+          }
+        ],
+        "worker_completion_offset_cycles": {
+          "0": {
+            "adapter_last": 18142308,
+            "compute_last": 19747018
+          },
+          "1": {
+            "adapter_last": 15917978,
+            "compute_last": 21360330
+          },
+          "2": {
+            "adapter_last": 11080204,
+            "compute_last": 22973642
+          },
+          "3": {
+            "adapter_last": 8283266,
+            "compute_last": 24586954
+          }
+        }
+      }
+    ],
+    "registration_order_pairs_exact": 4,
+    "unchanged_input_floor": {
+      "latency": 128,
+      "adapter_completion_cycles": 18142308,
+      "a4_complete_cycles": 15840606,
+      "ratio": 1.1453039107215974,
+      "retention_upper_ratio": 1.1,
+      "interpretation": "With the reader unchanged, output scheduling alone cannot reach the 1.1 complete-window ceiling; round publication waits for input completion."
+    }
+  },
+  "safety": {
+    "core_service_peak_bytes": 847249408,
+    "core_service_swap_bytes": 0,
+    "core_service_wall_seconds": 2317.333,
+    "profile": {
+      "cgroup": {
+        "limits": {
+          "memory.high": "5368709120",
+          "memory.max": "6442450944",
+          "memory.oom.group": "1",
+          "memory.swap.max": "0"
+        },
+        "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-r-apply-ports-20261022-v2.service"
+      },
+      "policy": {
+        "allow_bounded_builds": true,
+        "background_memory_gib": 8,
+        "reserve_gib": 24,
+        "tree_memory_gib": 6
+      },
+      "profile": "local-finite-6g-v1"
+    }
+  },
+  "repository_checks": {
+    "status": "PASS",
+    "python_tests": 121,
+    "organization_tests": 15,
+    "checks": [
+      {
+        "available_before_bytes": 43131613184,
+        "command": [
+          "python3",
+          "scripts/audit_repository_structure.py",
+          "--check-catalogs"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 1,
+        "peak_rss_kib": 22876,
+        "reserve_gib": 32,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/catalogs.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/catalogs.stdout.txt",
+          "bytes": 39,
+          "sha256": "a804a509d05304ad9182d1df7fda38b01039c8b921cd3ef96f942d0c23d3bec3"
+        },
+        "timed_out": false,
+        "wall_seconds": 0.20384591910988092,
+        "record": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/catalogs.resources.json",
+          "bytes": 632,
+          "sha256": "0e3fd7623625347cc56ca0e0bf9816ce5b67aecb9c8815b0b30b1e41b9f31b12"
+        }
+      },
+      {
+        "available_before_bytes": 43133161472,
+        "command": [
+          "python3",
+          "scripts/audit_repository_structure.py",
+          "--check-docs"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 1,
+        "peak_rss_kib": 15892,
+        "reserve_gib": 32,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/document_layout.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/document_layout.stdout.txt",
+          "bytes": 61,
+          "sha256": "64102c098bc722c7cf4bb5be8ec5fc63e486be0ff860750f8c4e834713e8fe79"
+        },
+        "timed_out": false,
+        "wall_seconds": 0.05371742229908705,
+        "record": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/document_layout.resources.json",
+          "bytes": 642,
+          "sha256": "b46773cf7357b4dd9529873490c341fdd2ae96f5fa0ca5cef89f80f6b1d44a9d"
+        }
+      },
+      {
+        "available_before_bytes": 43134189568,
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "tests.test_repository_structure"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 1,
+        "peak_rss_kib": 23468,
+        "reserve_gib": 32,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/organization.stderr.txt",
+          "bytes": 114,
+          "sha256": "ec91da9384c20fb44bcbb38fde402617ad1682b97587bce6c32a2838398567dc"
+        },
+        "stdout": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/organization.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "timed_out": false,
+        "wall_seconds": 0.15382250398397446,
+        "record": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/organization.resources.json",
+          "bytes": 636,
+          "sha256": "148725952dff402822e0d545af1377ee6836c33781ecb036781cdddb41e2ca14"
+        }
+      },
+      {
+        "available_before_bytes": 43167887360,
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_regraph*.py"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 1,
+        "peak_rss_kib": 51128,
+        "reserve_gib": 32,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/python_regression.stderr.txt",
+          "bytes": 222,
+          "sha256": "108a40787f1882789a39d87727c33eb38466c5098dbb7049d1d00563a18740c4"
+        },
+        "stdout": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/python_regression.stdout.txt",
+          "bytes": 71,
+          "sha256": "ce474346f5ed2974d1b76a01e524393a6f73077fb1a173eec7dddc949770f692"
+        },
+        "timed_out": false,
+        "wall_seconds": 11.270870686974376,
+        "record": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/python_regression.resources.json",
+          "bytes": 679,
+          "sha256": "fbb72f21e17a1fa8d83a6a9235edc015b1e3eccec9ec6822413322ce14e7faf2"
+        }
+      },
+      {
+        "available_before_bytes": 43133181952,
+        "command": [
+          "git",
+          "-c",
+          "core.preloadIndex=false",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 1,
+        "peak_rss_kib": 15892,
+        "reserve_gib": 32,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/staged_diff.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/staged_diff.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "timed_out": false,
+        "wall_seconds": 0.05328756896778941,
+        "record": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/staged_diff.resources.json",
+          "bytes": 649,
+          "sha256": "0a79a600da6a16cf328228bfd633781f1daf8b20c21f87e03ef48bf8d33035b3"
+        }
+      },
+      {
+        "available_before_bytes": 43133956096,
+        "command": [
+          "git",
+          "-c",
+          "core.preloadIndex=false",
+          "diff",
+          "--check"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 1,
+        "peak_rss_kib": 15892,
+        "reserve_gib": 32,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/unstaged_diff.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/unstaged_diff.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "timed_out": false,
+        "wall_seconds": 0.05413809511810541,
+        "record": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v2/unstaged_diff.resources.json",
+          "bytes": 637,
+          "sha256": "a6a4db8ff601be508ba81cb72755970dac95a6e02eac3326f510b8985c933a5d"
+        }
+      }
+    ],
+    "prior_git_check": {
+      "status": "RETAINED_RESOURCE_LIMIT_FAILURE",
+      "reason": "The 1-GiB virtual-memory limit prevented Git threaded lstat creation. The fresh passing check disables preloadIndex for this invocation only; no global Git setting, source or model changed.",
+      "record": {
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v1/unstaged_diff.resources.json",
+        "bytes": 598,
+        "sha256": "4f0084c6b8b20fedf7cdc41c4dbf8d3005fa3e139c308102d6d754789cfe3929"
+      },
+      "stdout": {
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v1/unstaged_diff.stdout.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/data/chuxiao/experiments/r_apply_ports_20261022/checks-v1/unstaged_diff.stderr.txt",
+        "bytes": 73,
+        "sha256": "589861a8b1f1eae59294389bb2fe42f025abd8f69f65b9008bad37544600ba0d"
+      }
+    }
+  },
+  "schema_version": 1,
+  "scope": {
+    "algorithm": "weighted SSSP",
+    "architecture": "default-off triple physical input masters plus separate Apply read/write masters on the same bank",
+    "boundary": "resident warm weighted SSSP compute to convergence; no G/host/DMA",
+    "clock_mhz": 150,
+    "host_and_g_excluded_from_both_sides": true,
+    "initial_state": "old graph converged; three source-0 weight decreases",
+    "memory_latencies": [
+      64,
+      128
+    ],
+    "partitions": 4,
+    "rounds": 46,
+    "simulator_only": true,
+    "strict_resource_match": false,
+    "vertices": 258046,
+    "weighted_edges": 1450899,
+    "workload": "Amazon real-ID slice; not full Amazon or published-workload reproduction"
+  },
+  "sst": {
+    "status": "PASS_SST_COMPATIBILITY_NOT_TIMING_ADMISSION",
+    "claim": "default SST software compatibility only; no FPGA or candidate timing admission",
+    "report": {
+      "path": "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/results.json",
+      "bytes": 718356,
+      "sha256": "c64557b1c8949d4052dca7e7e3c68207a53b652eb637271bc95233c4afb44293"
+    },
+    "plugin": {
+      "bytes": 3856552,
+      "path": "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/plugin/libspine_cycle.so",
+      "sha256": "adbad9d33475e1c845f48c740dc73c607e4757bc0cc8bfe01e1f7a3d0383c997"
+    },
+    "equivalence": {
+      "path": "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/legacy/equivalence.json",
+      "bytes": 374230,
+      "sha256": "9bab7d40758d12841028abc78744db10fec8405d81a84012951046cfd6f8cca8"
+    },
+    "steps": [
+      {
+        "available_before_bytes": 43146629120,
+        "command": [
+          "make",
+          "-C",
+          "cpp/sst",
+          "-j1",
+          "BUILD_DIR=/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/plugin",
+          "CXX=/usr/bin/g++",
+          "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
+          "NATIVE_HOST=0",
+          "PGO_MODE=off",
+          "SPINE_HOST_OPT_FLAGS=-O3 -DNDEBUG -flto"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 1020568,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/raw/build.stderr.txt",
+          "bytes": 10000,
+          "sha256": "3dd709832098f477ab7cd17822e4ff2165e54bd247ee178bc6afb30c433fa727"
+        },
+        "stdout": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/raw/build.stdout.txt",
+          "bytes": 3038,
+          "sha256": "47371c2821d1f284dff4225b5a365df12757ec8470b6220521fc2537671ee38a"
+        },
+        "timed_out": false,
+        "wall_seconds": 157.50387915689498
+      },
+      {
+        "available_before_bytes": 43077914624,
+        "command": [
+          "python3",
+          "scripts/run_component_refactor_regression.py",
+          "--lib-dir",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/plugin",
+          "--out-dir",
+          "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/legacy",
+          "--baseline-dir",
+          "/data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/gates-v1/legacy_final",
+          "--jobs",
+          "1",
+          "--case-timeout-seconds",
+          "600"
+        ],
+        "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+        "exit_code": 0,
+        "memory_limit_gib": 4,
+        "peak_rss_kib": 148668,
+        "reserve_gib": 24,
+        "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+        "stderr": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/raw/legacy.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdout": {
+          "path": "/data/chuxiao/experiments/r_apply_ports_20261022/sst-v1/raw/legacy.stdout.txt",
+          "bytes": 42,
+          "sha256": "6df153c7378064d0e38f1023aa7a90f1ff98075472b26df33298521a3b32687e"
+        },
+        "timed_out": false,
+        "wall_seconds": 357.21678887680173
+      }
+    ],
+    "cases": [
+      {
+        "backend_requests": 33848,
+        "case": "sssp_mixed_cold",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 99885,
+        "equivalent": true,
+        "result_hashes": [
+          "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6",
+          "24d4b5793a8fed22bfa9cd1b9ca2811a95d22ff2c810a70c5b6dc5b15cf6dee6"
+        ]
+      },
+      {
+        "backend_requests": 1775700,
+        "case": "sssp_multipart_warm",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 5997674,
+        "equivalent": true,
+        "result_hashes": [
+          "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f",
+          "73a449477a9ae775aab5482fbca749deeb4c9ad60c7d723ce99bd21cabb3c73f"
+        ]
+      },
+      {
+        "backend_requests": 50741,
+        "case": "cc_reciprocal",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 133841,
+        "equivalent": true,
+        "result_hashes": [
+          "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea",
+          "49b9208d3dd823d69f91dad2d10f4e818195f578d212d6185cf3733d0a2719ea"
+        ]
+      },
+      {
+        "backend_requests": 997048,
+        "case": "residual_warm",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 1487890,
+        "equivalent": true,
+        "result_hashes": [
+          "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50",
+          "4233026c8396787441f4b760fcda02be942bdbf252286c3863e51a15ab288a50"
+        ]
+      },
+      {
+        "backend_requests": 48,
+        "case": "residual_update_only",
+        "changed_fields": [],
+        "changed_manifest_identities": [],
+        "correctness_admitted": true,
+        "cycles": 200,
+        "equivalent": true,
+        "result_hashes": [
+          "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8",
+          "c10de43e03e5ed1bbd24794f2599faf7b24bef5e89c772d955b8813ed453cfc8"
+        ]
+      }
+    ],
+    "source_input_binary_reference_pins_reverified": 2753,
+    "pins_unchanged": true,
+    "candidate_timing_admitted": false,
+    "service_wall_seconds": 515.543,
+    "service_peak_bytes": 1044602880,
+    "service_swap_bytes": 0,
+    "safety": {
+      "cgroup": {
+        "limits": {
+          "memory.high": "5368709120",
+          "memory.max": "6442450944",
+          "memory.oom.group": "1",
+          "memory.swap.max": "0"
+        },
+        "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-r-apply-sst-20261022-v1.service"
+      },
+      "policy": {
+        "allow_bounded_builds": true,
+        "background_memory_gib": 8,
+        "reserve_gib": 24,
+        "tree_memory_gib": 6
+      },
+      "profile": "local-finite-6g-v1"
+    }
+  },
+  "status": "APPLY_PORTS_COMPLETE_NOT_HARDWARE_ADMISSION"
+}

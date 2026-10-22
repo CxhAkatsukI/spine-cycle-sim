@@ -220,6 +220,13 @@ void rejection_tests() {
   check(fixture(129, false), [](auto &, auto &, auto &c) { c.adapter_stream_depth = 0; });
   check(fixture(129, false), [](auto &, auto &, auto &c) { c.gather_stream_depth = 0; });
   check(fixture(129, false), [](auto &, auto &, auto &c) { c.mux_stream_depth = 0; });
+  check(fixture(129, false), [](auto &, auto &, auto &c) {
+    c.apply_topology = static_cast<RoutedApplyTopology>(-1);
+  });
+  check(fixture(129, false), [](auto &, auto &, auto &c) {
+    c.apply_topology = RoutedApplyTopology::kSplitMastersExperimental;
+    c.first_initiator_id = std::numeric_limits<std::uint32_t>::max() - 9;
+  });
   auto edge_at_end = fixture(65536, false);
   edge_at_end.edges.push_back({65535, 2, 1, false});
   check(edge_at_end, [](auto &, auto &, auto &) {});
@@ -306,7 +313,7 @@ int main() {
               "per-path stream depth changed registration-order independence");
       cases += 2;
     }
-    std::cout << "PASS: " << cases + 3 << " whole routed SSSP cases; full state, source replicas, padding, scheduling and traffic; 12 admission rejections PASS\n";
+    std::cout << "PASS: " << cases + 3 << " whole routed SSSP cases; full state, source replicas, padding, scheduling and traffic; 14 admission rejections PASS\n";
     for (auto [vertices, pressure] : {std::pair{129U, true}, std::pair{65569U, false}, std::pair{262273U, false}}) {
       const auto f = fixture(vertices, true);
       const auto narrow = run(f, false, true, pressure, 0, 128, true, 32);
