@@ -172,6 +172,13 @@ twelve compact-convergence rows exactly. It records source-consumer
 backpressure and full Apply windows without changing timing or resources;
 these observations overlap and are not an exclusive stage breakdown.
 
+The subsequent [independent source-cache loading study](prefetch_compact/SOURCE_LOADING.md)
+completes sixteen convergence executions, exactly replays all twelve pre-edit
+controls, and passes fresh core/default SST compatibility. It removes source
+output stalls but improves total cycles by only 2.78% / 2.16%, leaving
+**2.519 / 2.150 times strong A4**. The approximately 10% gate still fails;
+the schedule is default-off and not a replacement baseline.
+
 The bounded adapter-only diagnostic below further isolates that reading path.
 Its result rules out a downstream-only fix on this input. Additional inputs
 and stricter resource controls remain open.

@@ -3,6 +3,7 @@
 #include "spine_sim/grasu_regraph.hpp"
 #include "spine_sim/regraph_pma_adapter.hpp"
 #include "spine_sim/routed_regraph_observation.hpp"
+#include "spine_sim/routed_source_cache.hpp"
 
 namespace spine::sim {
 
@@ -39,6 +40,7 @@ struct RoutedReGraphConfig {
   // State/seed initialization is still caller-prepared, outside device timing.
   bool reuse_resident_pma{};
   RoutedInputPath input_path{RoutedInputPath::kPhysicalSlots};
+  RoutedSourceLoading source_loading{RoutedSourceLoading::kEdgeCoupled};
 };
 
 struct RoutedReGraphInvocation {

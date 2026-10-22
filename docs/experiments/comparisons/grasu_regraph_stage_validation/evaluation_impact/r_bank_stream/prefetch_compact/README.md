@@ -12,6 +12,9 @@ the [parent study](../README.md) for the unchanged R matrix and the
 [complete-convergence record](CONVERGENCE.md) for the new extension. The
 [passive wait observations](OBSERVATIONS.md) exactly replay all twelve
 convergence results; they diagnose overlapping waits, not a further speedup.
+The subsequent default-off [source-loading experiment](SOURCE_LOADING.md)
+tests independent finite cache writes without changing old controls; its
+complete performance gate is not yet admitted.
 
 ## Complete-Convergence Extension
 

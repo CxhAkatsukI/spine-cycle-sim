@@ -32,6 +32,8 @@ inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected)
   config.compute.apply_request_window = selected.k4_apply_window;
   if (selected.prefetch_compact)
     config.input_path = RoutedInputPath::kPrefetchCompactedExperimental;
+  if (selected.independent_source)
+    config.source_loading = RoutedSourceLoading::kIndependentExperimental;
   return config;
 }
 }  // namespace evaluation_impact

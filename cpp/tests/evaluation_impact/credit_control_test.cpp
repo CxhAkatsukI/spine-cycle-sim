@@ -30,6 +30,12 @@ int main() {
           bank_config.adapter.cross_row.block_drain_cycles == 2 &&
           bank_config.compute.max_pending_requests == 16 && bank_config.compute.apply_request_window == 16);
   require(original_regraph_memory_test::axi_config(1, 0).max_pending_requests == 2);
+  require(bank_config.source_loading == spine::sim::RoutedSourceLoading::kEdgeCoupled);
+  const auto compact = control("prefetch_compact"), independent = control("prefetch_source");
+  require(compact.prefetch_compact && !compact.independent_source && independent.prefetch_compact &&
+          independent.independent_source && independent.bank_stream && !independent.original);
+  require(k4_configuration(compact).source_loading == spine::sim::RoutedSourceLoading::kEdgeCoupled &&
+          k4_configuration(independent).source_loading == spine::sim::RoutedSourceLoading::kIndependentExperimental);
   try { control("unknown"); return 1; } catch (const std::invalid_argument&) {}
-  std::cout << "CREDIT_CONTROL_PASS eight explicit arms; old source topology and A4 credits unchanged\n";
+  std::cout << "CREDIT_CONTROL_PASS ten explicit arms; old source topology and A4 credits unchanged\n";
 }

@@ -57,6 +57,16 @@ SST. It remains 2.591 / 2.197 times strong A4 in the declared case, so neither
 correctness nor faster diagnostic reads admit a replacement baseline.
 See the [complete-convergence record](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/CONVERGENCE.md).
 
+The separate `prefetch_source` harness arm explicitly selects
+`RoutedSourceLoading::kIndependentExperimental`. Scatter loads at most one
+returned source line per cycle while preserving its two 4096-vertex banks,
+one-window lookahead and finite AXI/FIFO path. Concurrent cache loading and
+edge access is an architecture assumption, not routed timing evidence.
+The edge-coupled default remains unchanged. All sixteen convergence rows,
+twelve exact old replays, 36 core tests and five default SST regressions pass;
+the new prediction is still 2.519 / 2.150 times strong A4. See the
+[source-loading contract and result](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/SOURCE_LOADING.md).
+
 Reader counters include accepted physical extent, directory and PMA beats.
 `max_buffered_segments` is a conservative reservation-capacity bound derived
 from both PMA rings, not a measured simultaneous queue occupancy. It is not

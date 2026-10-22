@@ -92,7 +92,8 @@ void RoutedReGraphSystem::Impl::build() {
     f.response_bridge = std::make_unique<RoutedStreamBridge<ReGraphSourceCacheResponse>>(
         "response-bridge" + suffix, clock, f.responses, f.internal_responses);
     f.scatter = std::make_unique<RoutedScatter>("scatter" + suffix, clock, policy,
-        config.adapter.format, f.edges, RoutedSourceWorker{&f.internal_requests, &f.internal_responses}, f.updates);
+        config.adapter.format, f.edges, RoutedSourceWorker{&f.internal_requests, &f.internal_responses}, f.updates,
+        RoutedScatterTiming{}, config.source_loading);
     f.gather = make_regraph_gather("gather" + suffix, clock, layout.vertices, policy,
                                    config.compute, f.updates, f.rows, *f.scatter);
     components.insert(components.end(), {f.adapter.get(), f.ingress.get(), f.request_bridge.get(),

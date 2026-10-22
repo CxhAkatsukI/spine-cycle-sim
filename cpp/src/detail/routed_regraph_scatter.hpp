@@ -4,6 +4,7 @@
 
 #include "routed_regraph_source.hpp"
 #include "spine_sim/regraph_pma_adapter.hpp"
+#include "spine_sim/routed_source_cache.hpp"
 
 namespace spine::sim::detail {
 
@@ -33,7 +34,8 @@ public:
   RoutedScatter(std::string name, ClockId clock, GraphAlgorithmPolicy policy,
                 ReGraphPmaFormat format, Fifo<ReGraphPmaPacket> &edges,
                 RoutedSourceWorker source, Fifo<PmaEdgeBatch> &output,
-                RoutedScatterTiming timing = {});
+                RoutedScatterTiming timing = {},
+                RoutedSourceLoading loading = RoutedSourceLoading::kEdgeCoupled);
   void start_partition(RoutedScatterPartition partition);
   [[nodiscard]] bool done() const noexcept override { return stream_done_; }
   [[nodiscard]] bool finished() const noexcept;
@@ -52,6 +54,7 @@ private:
   };
   struct Entry { std::uint64_t ready; PmaEdgeBatch batch; };
   PmaEdgeBatch map_sources() const;
+  void load_source_line();
 
   GraphAlgorithmPolicy policy_;
   ReGraphPmaFormat format_;
@@ -59,6 +62,7 @@ private:
   RoutedSourceWorker source_;
   Fifo<PmaEdgeBatch> &output_;
   RoutedScatterTiming timing_;
+  RoutedSourceLoading loading_;
   RoutedScatterPartition partition_;
   Control control_, next_;
   std::array<std::array<std::array<std::uint32_t, 16>, kRoutedSourceLines>, 2> cache_{};

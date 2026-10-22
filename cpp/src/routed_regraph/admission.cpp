@@ -17,6 +17,9 @@ RoutedReGraphConfig::RoutedReGraphConfig() {
 
 void RoutedReGraphSystem::Impl::admit() {
   const auto &c = config.compute;
+  if (config.source_loading != RoutedSourceLoading::kEdgeCoupled &&
+      config.source_loading != RoutedSourceLoading::kIndependentExperimental)
+    throw std::invalid_argument("unsupported routed source-cache loading schedule");
   if (config.input_path != RoutedInputPath::kPhysicalSlots &&
       config.input_path != RoutedInputPath::kPrefetchCompactedExperimental)
     throw std::invalid_argument("unsupported routed input path");

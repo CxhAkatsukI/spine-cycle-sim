@@ -23,7 +23,8 @@ def validate_cpus(cpus):
         raise ValueError("one to four distinct allowed CPUs required")
 
 
-def run(output, reference_path, cpus):
+def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
+        extra_references=(), complete_status="COMPACT_CONVERGENCE_COMPLETE_NOT_HARDWARE_ADMISSION"):
     validate_cpus(cpus)
     reference = json.loads(reference_path.read_text())
     if reference.get("pins_unchanged") is not True or len(reference.get("r_rows", [])) != 32:
@@ -37,12 +38,12 @@ def run(output, reference_path, cpus):
     with tarfile.open(output / "sources.tar.gz", "w:gz") as archive:
         for path in sources:
             archive.add(path, arcname=path.relative_to(ROOT), recursive=False)
-    report = {"status": "WAITING_FOR_ADMISSION", "matrix": MATRIX, "steps": [], "r_rows": [],
+    report = {"status": "WAITING_FOR_ADMISSION", "matrix": matrix, "steps": [], "r_rows": [],
               "failures": [], "cpus": cpus, "maximum_cycles": 1_500_000_000,
               "boundary": "resident warm weighted SSSP compute to convergence; no G/host/DMA",
               "claim": "experimental_finite_input_simulator_prediction_not_hardware",
               "pins": [pin(path) for path in sources] + [pin(COMPILER.resolve()), pin(reference_path),
-                  pin(output / "sources.tar.gz")] +
+                  pin(output / "sources.tar.gz")] + [pin(path) for path in extra_references] +
                   [pin(path) for path in sorted((output / "inputs/warm_update").iterdir())]}
 
     def save():
@@ -82,7 +83,7 @@ def run(output, reference_path, cpus):
             with ProcessPoolExecutor(max_workers=len(cpus),
                     mp_context=multiprocessing.get_context("spawn")) as pool:
                 futures = []
-                for index, case in enumerate(MATRIX):
+                for index, case in enumerate(matrix):
                     verify()
                     progress = (output / "progress" / f"lat{case[0]}_reverse{case[1]}_{case[2]}"
                                 if case[2] != "a4_io16" else None)
@@ -94,13 +95,13 @@ def run(output, reference_path, cpus):
                     if "row" in result: report["r_rows"].append(result["row"])
                     else: report["failures"].append(result)
                     save()
-            report["r_rows"].sort(key=lambda row: MATRIX.index((row["latency"], row["reverse"], row["arm"])))
+            report["r_rows"].sort(key=lambda row: matrix.index((row["latency"], row["reverse"], row["arm"])))
             if report["failures"]:
                 raise ValueError("matrix contains retained failures")
-            report["analysis"] = summarize(report["r_rows"], reference["r_rows"])
+            report["analysis"] = analyze(report["r_rows"], reference["r_rows"])
             report["progress"] = [pin(path) for path in sorted((output / "progress").rglob("*.csv"))]
             verify()
-            report.update(status="COMPACT_CONVERGENCE_COMPLETE_NOT_HARDWARE_ADMISSION", pins_unchanged=True)
+            report.update(status=complete_status, pins_unchanged=True)
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error)); save()
         raise

@@ -42,7 +42,9 @@ struct Result {
 
 Result run(GraphAlgorithmKind kind, ReGraphPmaFormat format, std::size_t vertices,
            bool stop, std::size_t depth, bool reverse, bool dummy_only = false,
-           bool expect_request_deadlock = false) {
+           bool narrow_requests = false,
+           RoutedSourceLoading loading = RoutedSourceLoading::kEdgeCoupled) {
+  const bool expect_request_deadlock = narrow_requests && loading == RoutedSourceLoading::kEdgeCoupled;
   Data data(vertices, vertices > 4096, false, format);
   if (dummy_only) {
     for (auto &bank : data.pma) for (auto &word : bank) word |= 0x80000000U;
@@ -65,7 +67,7 @@ Result run(GraphAlgorithmKind kind, ReGraphPmaFormat format, std::size_t vertice
   Fifo<PmaEdgeBatch> updates("updates", clock, depth);
   // The routed xclbin connects request streams at depth 16. Depth one can
   // deadlock when Scatter jumps windows before the old response block drains.
-  Fifo<ReGraphSourceCacheRequest> requests("source-requests", clock, expect_request_deadlock ? 1 : 16),
+  Fifo<ReGraphSourceCacheRequest> requests("source-requests", clock, narrow_requests ? 1 : 16),
       idle_requests("idle-requests", clock, 16);
   Fifo<ReGraphSourceCacheResponse> responses("source-responses", clock, depth), idle_responses("idle-responses", clock, depth);
   ReGraphPmaAdapter adapter("adapter", clock, ReGraphPmaAdapterConfig{
@@ -73,7 +75,7 @@ Result run(GraphAlgorithmKind kind, ReGraphPmaFormat format, std::size_t vertice
   GraphAlgorithmPolicy policy({.kind = kind, .vertices = vertices});
   RoutedScatter scatter("scatter", clock, policy, format, raw, {&requests, &responses}, updates,
                         RoutedScatterTiming{.latency = depth == 1 ? 1U : 4U,
-                                            .initiation_interval = 1, .capacity = depth == 1 ? 1U : 5U});
+                                            .initiation_interval = 1, .capacity = depth == 1 ? 1U : 5U}, loading);
   RoutedSourceService source("dedicated-source", clock, {{&requests, &responses}},
                           AxiEndpoint(source_memory), 4);
   Sink sink(clock, updates);
@@ -201,19 +203,28 @@ int main() {
       {GraphAlgorithmKind::kConnectedComponents, ReGraphPmaFormat::kDestination},
       {GraphAlgorithmKind::kFullPageRank, ReGraphPmaFormat::kDestination},
       {GraphAlgorithmKind::kResidualPageRank, ReGraphPmaFormat::kDestination}};
-    for (const auto &[kind, format] : modes)
+    for (const auto loading : {RoutedSourceLoading::kEdgeCoupled, RoutedSourceLoading::kIndependentExperimental})
+     for (const auto &[kind, format] : modes)
       for (std::size_t vertices : {65U, 8193U})
         for (bool stop : {false, true})
           for (std::size_t depth : {1U, 8U}) {
-            require(run(kind, format, vertices, stop, depth, false) ==
-                    run(kind, format, vertices, stop, depth, true), "Scatter depends on component registration order");
+            require(run(kind, format, vertices, stop, depth, false, false, false, loading) ==
+                    run(kind, format, vertices, stop, depth, true, false, false, loading),
+                    "Scatter depends on component registration order");
             count += 2;
           }
     run(GraphAlgorithmKind::kWeightedSssp, ReGraphPmaFormat::kWeighted, 1, true, 1, false, true);
     run(GraphAlgorithmKind::kWeightedSssp, ReGraphPmaFormat::kWeighted, 8193, false, 1, false, false, true);
     run(GraphAlgorithmKind::kWeightedSssp, ReGraphPmaFormat::kWeighted, 8193, false, 1, true, false, true);
+    const auto independent = RoutedSourceLoading::kIndependentExperimental;
+    run(GraphAlgorithmKind::kWeightedSssp, ReGraphPmaFormat::kWeighted, 1, true, 1, false, true, false, independent);
+    require(run(GraphAlgorithmKind::kWeightedSssp, ReGraphPmaFormat::kWeighted,
+                8193, false, 1, false, false, true, independent) ==
+            run(GraphAlgorithmKind::kWeightedSssp, ReGraphPmaFormat::kWeighted,
+                8193, false, 1, true, false, true, independent),
+            "independent source load fails the narrow-request liveness/order control");
     rejects_zero_packets();
-    std::cout << "PASS: " << count << " connected adapter/Scatter/source cases; dummy, empty-input and depth-one deadlock gates PASS\n";
+    std::cout << "PASS: " << count << " connected adapter/Scatter/source cases; coupled deadlock preserved, independent liveness PASS\n";
   } catch (const std::exception &error) {
     std::cerr << error.what() << '\n';
     return 1;

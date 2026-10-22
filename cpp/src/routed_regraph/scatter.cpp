@@ -4,11 +4,14 @@ namespace spine::sim::detail {
 
 RoutedScatter::RoutedScatter(std::string name, ClockId clock, GraphAlgorithmPolicy policy,
     ReGraphPmaFormat format, Fifo<ReGraphPmaPacket> &edges, RoutedSourceWorker source,
-    Fifo<PmaEdgeBatch> &output, RoutedScatterTiming timing)
+    Fifo<PmaEdgeBatch> &output, RoutedScatterTiming timing, RoutedSourceLoading loading)
     : Component(std::move(name), clock), policy_(std::move(policy)), format_(format),
-      edges_(edges), source_(source), output_(output), timing_(timing) {
+      edges_(edges), source_(source), output_(output), timing_(timing), loading_(loading) {
   if (!timing.latency || !timing.initiation_interval || !timing.capacity)
     throw std::invalid_argument("routed Scatter requires a finite positive pipeline");
+  if (loading != RoutedSourceLoading::kEdgeCoupled &&
+      loading != RoutedSourceLoading::kIndependentExperimental)
+    throw std::invalid_argument("unsupported routed source-cache loading schedule");
   if (!source.requests || !source.responses || source.requests->clock_id() != clock ||
       source.responses->clock_id() != clock || edges.clock_id() != clock || output.clock_id() != clock)
     throw std::invalid_argument("routed Scatter queue wiring is invalid");
@@ -74,6 +77,15 @@ PmaEdgeBatch RoutedScatter::map_sources() const {
   return result;
 }
 
+void RoutedScatter::load_source_line() {
+  ReGraphSourceCacheResponse response;
+  if (!source_.responses->try_pop(response)) return;
+  if (response.end || response.line >= kRoutedSourceLines || response.vertices != 16)
+    throw std::logic_error("routed Scatter received an early end or invalid source line");
+  loaded_ = response;
+  next_.write_round = response.source_round;
+}
+
 void RoutedScatter::evaluate(const CycleContext &context) {
   next_ = control_;
   loaded_.reset(); accepted_.reset(); retired_ = false;
@@ -82,6 +94,13 @@ void RoutedScatter::evaluate(const CycleContext &context) {
     if (!retired_) ++counters_.output_stalls;
     else ++next_.emitted;
   }
+  // At most one returned line/cycle, even when the edge path is stalled.
+  // Requests still look ahead by one window; alternating banks prevent an
+  // in-use window from being overwritten. Cache writes commit at the edge.
+  if (loading_ == RoutedSourceLoading::kIndependentExperimental &&
+      (next_.phase == Phase::kRequest || next_.phase == Phase::kResponse ||
+       next_.phase == Phase::kEdge || next_.phase == Phase::kEmit))
+    load_source_line();
   if (next_.phase == Phase::kRequest) {
     // HLS ap_uint subtraction here is signed 33-bit, allowing skipped windows.
     if (static_cast<std::int64_t>(next_.request_round) - static_cast<std::int64_t>(next_.read_round) <= 1) {
@@ -93,13 +112,7 @@ void RoutedScatter::evaluate(const CycleContext &context) {
     next_.phase = Phase::kResponse;
   }
   if (next_.phase == Phase::kResponse) {
-    ReGraphSourceCacheResponse response;
-    if (source_.responses->try_pop(response)) {
-      if (response.end || response.line >= kRoutedSourceLines || response.vertices != 16)
-        throw std::logic_error("routed Scatter received an early end or invalid source line");
-      loaded_ = response;
-      next_.write_round = response.source_round;
-    }
+    if (loading_ == RoutedSourceLoading::kEdgeCoupled) load_source_line();
     next_.phase = Phase::kEdge;
   }
   if (next_.phase == Phase::kEdge) {

@@ -52,7 +52,8 @@ void check_observation(const RoutedReGraphObservation& a, const RoutedReGraphObs
 #undef CHECK_FIELD
 }
 
-Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled) {
+Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled,
+               const std::string& arm) {
   const auto inf = GraphAlgorithmPolicy::kSsspInfinity;
   std::vector<GraSuEdge> edges{{0, 1, 2, false}};
   if (vertices > 8192) {
@@ -92,7 +93,7 @@ Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled) {
   MockMemoryBackend backend("memory", clock, {32, 64, 1, throttled ? 2U : 32U,
                                               throttled ? 2U : 32U, true});
   scheduler.add_component(backend);
-  auto config = evaluation_impact::k4_configuration(evaluation_impact::control("prefetch_compact"));
+  auto config = evaluation_impact::k4_configuration(evaluation_impact::control(arm));
   config.compute.cache_segments_per_half = 1;
   if (throttled) {
     config.adapter_stream_depth = config.gather_stream_depth = config.mux_stream_depth = 1;
@@ -145,7 +146,7 @@ Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled) {
   Result result{c, system.rounds(), observation};
   system.unregister_components(); scheduler.remove_component(backend);
   check(scheduler.component_count() == 0, "compact components leaked");
-  std::cout << "compact vertices=" << vertices << " empty=" << empty << " reverse=" << reverse
+  std::cout << arm << " vertices=" << vertices << " empty=" << empty << " reverse=" << reverse
             << " throttled=" << throttled << " rounds=" << expected.size()
             << " cycles=" << c.end_cycle - c.start_cycle << '\n';
   return result;
@@ -188,14 +189,15 @@ void framing() {
 int main() {
   try {
     framing();
-    for (const auto [vertices, empty, throttled] : {
+    for (const auto& arm : {"prefetch_compact", "prefetch_source"})
+     for (const auto [vertices, empty, throttled] : {
         std::tuple{129U, false, false}, std::tuple{129U, true, true},
         std::tuple{8193U, false, true}, std::tuple{262273U, false, false}}) {
-      const auto forward = execute(vertices, empty, false, throttled);
-      const auto reverse = execute(vertices, empty, true, throttled);
+      const auto forward = execute(vertices, empty, false, throttled, arm);
+      const auto reverse = execute(vertices, empty, true, throttled, arm);
       check_observation(forward.observation, reverse.observation);
       check(forward == reverse, "compact results depend on registration order");
     }
-    std::cout << "PASS: 8 compact convergence executions and terminal framing/restart/rejection\n";
+    std::cout << "PASS: 16 coupled/independent compact convergence executions and terminal framing/restart/rejection\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }
