@@ -15,6 +15,7 @@ passes correctness, not performance retention or hardware timing calibration.
 | `cpp/src/routed_regraph/input.cpp` | Private legacy/experimental input owner and finite FIFO lifecycle |
 | `sink.hpp` | Throttled diagnostic consumer and packet/window ABI checks |
 | `transport_probe.hpp` | Single-initiator beat-issue probe, with exact payload and arbitration ledgers |
+| `pipeline_probe.hpp` | Saturated publisher cadence, finite storage and backpressure, with unchanged latency |
 | `../prefetch_compact_test.cpp` | Synthetic correctness, ring wrap and backpressure |
 | `../prefetch_compact.cpp` | Frozen real-input diagnostic, independent weighted CSR gate |
 | `cpp/tests/routed_regraph/compact_input_tests.cpp` | Complete-R empty, throttled, multipart, source-window and TLAST bounds |
@@ -66,6 +67,17 @@ The edge-coupled default remains unchanged. All sixteen convergence rows,
 twelve exact old replays, 36 core tests and five default SST regressions pass;
 the new prediction is still 2.519 / 2.150 times strong A4. See the
 [source-loading contract and result](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/SOURCE_LOADING.md).
+
+The separate `prefetch_dual_elastic` arm adds four physical input masters
+(eleven total rather than seven) and a third slot in both input pipelines.
+It retains latency two, the registered backend, sixteen parents/master,
+both 256-line rings and the independent source loader. Only odd PMA segments
+use the extra master; directory/even traffic uses the original master.
+`RoutedInputPath::kDualPrefetchElasticExperimental` is default-off and has
+no hardware timing claim. `elastic_pipeline.py` owns its twelve-row full-R
+comparison, including eight exact pre-edit A4/source controls, both memory
+latencies, both registration orders, full state/active/traffic gates and
+ninety-six synthetic input executions. A reader floor cannot pass this gate.
 
 Reader counters include accepted physical extent, directory and PMA beats.
 `max_buffered_segments` is a conservative reservation-capacity bound derived

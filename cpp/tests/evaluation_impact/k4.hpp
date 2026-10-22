@@ -23,7 +23,8 @@ inline void k4(const st::Input& input, const Oracle& oracle, const std::filesyst
   auto layout = GraSuPartitionedPmaLayout::build(input.compact.vertices, 65536, input.edges, {},
                                                GraSuPmaWordAbi::kWeightedFullWord);
   RoutedReGraphSystem system(scheduler, clock, backend, std::move(layout), input.initial, config);
-  st::require(backend.traffic_stats_by_initiator().size() == (selected.bank_stream ? 7U : 9U),
+  st::require(backend.traffic_stats_by_initiator().size() ==
+                  (selected.dual_elastic ? 11U : selected.bank_stream ? 7U : 9U),
               "K4 source topology does not match its declared control");
   system.register_components(reverse);
   std::uint64_t cycles = 0;

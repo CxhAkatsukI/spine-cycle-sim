@@ -8,7 +8,9 @@ namespace {
 using namespace evaluation_impact::prefetch_compact;
 
 void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t latency,
-         bool reverse, std::uint64_t maximum, std::uint64_t sink_period, bool dual, bool full_burst) {
+         bool reverse, std::uint64_t maximum, std::uint64_t sink_period, bool dual, bool full_burst,
+         bool elastic) {
+  const auto capacity = elastic ? 3U : 2U;
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("core", 150);
   MockMemoryBackend backend("memory", clock, {32, latency, 1, 32, 32, true});
@@ -63,9 +65,10 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
     segments[worker] = std::make_unique<Fifo<Segment>>("candidate-segments", clock, 16);
     packets[worker] = std::make_unique<Fifo<ReGraphPmaPacket>>("candidate-packets", clock, 32);
     readers[worker] = std::make_unique<Reader>(clock, memory, *segments[worker], p, 71,
-        odd_memories[worker].get(), full_burst ? RefillPolicy::kFullBurst : RefillPolicy::kAvailableSpace);
+        odd_memories[worker].get(), full_burst ? RefillPolicy::kFullBurst : RefillPolicy::kAvailableSpace,
+        capacity);
     compactors[worker] = std::make_unique<Compactor>(clock, *segments[worker], *packets[worker],
-                                                   p.destination_vertices);
+                                                   p.destination_vertices, capacity);
     sinks[worker] = std::make_unique<Sink>(clock, *packets[worker], p, sink_period);
     components.insert(components.end(), {&memory.requests(), &memory.responses(), &memory.read_beats(),
         &memory.master(), segments[worker].get(), packets[worker].get(), readers[worker].get(),
@@ -87,7 +90,7 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
   std::vector<Edge> observed, expected;
   for (const auto& edge : input.edges) expected.push_back({edge.source, edge.destination, edge.weight});
   std::uint64_t reads = 0, requests = 0, live = 0, output_packets = 0, beats = 0, submit_stalls = 0;
-  std::cout << "PREFETCH_COMPACT {\"schema_version\":" << (full_burst ? 4 : dual ? 3 : 2)
+  std::cout << "PREFETCH_COMPACT {\"schema_version\":" << (elastic ? 5 : full_burst ? 4 : dual ? 3 : 2)
       << ",\"cycles\":" << cycles << ",\"workers\":[";
   for (std::size_t worker = 0; worker < 4; ++worker) {
     const auto& r = readers[worker]->stats();
@@ -100,11 +103,11 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
         axi.beats_completed + odd.beats_completed == r.beats &&
         r.max_parents <= (dual ? 32U : 16U) && r.max_parents_per_port[0] <= 16 &&
         r.max_parents_per_port[1] <= 16 && (!dual || r.max_parents_per_port[1] > 0) &&
-        r.max_bank_lines <= 256 && r.max_pipeline <= 2 &&
+        r.max_bank_lines <= 256 && r.max_pipeline <= capacity &&
         c.input_segments == r.segments && c.live_edges + c.input_dummy == slots[worker] &&
         c.packets == sinks[worker]->packets && c.live_edges == sinks[worker]->edges.size() &&
         c.output_dummy == sinks[worker]->dummy && c.packets * 8 == c.live_edges + c.output_dummy &&
-        c.max_lanes <= 32 && c.max_pipeline <= 2 && segments[worker]->stats().max_occupancy <= 16 &&
+        c.max_lanes <= 32 && c.max_pipeline <= capacity && segments[worker]->stats().max_occupancy <= 16 &&
         packets[worker]->stats().max_occupancy <= 32, "candidate finite/conservation gate failed");
     check(!full_burst || (r.short_pma_requests <= 4 && r.pma_requests <= r.requests),
         "full-burst parent fragmentation gate failed");
@@ -153,6 +156,10 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
     if (!dual) std::cout << ",\"physical_masters\":4,\"masters_per_frontend\":1";
     std::cout << ",\"refill_policy\":\"full-burst\"";
   }
+  if (elastic) {
+    if (!dual) std::cout << ",\"physical_masters\":4,\"masters_per_frontend\":1";
+    std::cout << ",\"pipeline_capacity\":3,\"pipeline_latency\":2,\"refill_policy\":\"available-space\"";
+  }
   std::cout << ",\"passed\":true}\n";
   for (auto it = components.rbegin(); it != components.rend(); ++it) scheduler.remove_component(**it);
 }
@@ -162,17 +169,19 @@ int main(int argc, char** argv) {
   try {
     check(argc == 6 || argc == 7,
         "usage: prefetch_compact INPUT LATENCY REVERSE MAX_CYCLES SINK_PERIOD "
-        "[dual-port|full-burst|dual-port-full-burst]");
+        "[dual-port|full-burst|dual-port-full-burst|elastic|dual-port-elastic]");
     const auto latency = routed_regraph_round_test::number(argv[2]);
     const auto reverse = routed_regraph_round_test::number(argv[3]);
     const auto maximum = routed_regraph_round_test::number(argv[4]);
     const auto period = routed_regraph_round_test::number(argv[5]);
     check(latency > 0 && reverse <= 1 && maximum > 0 && period > 0, "invalid candidate bound");
     const auto mode = argc == 7 ? std::string(argv[6]) : std::string{};
-    check(mode.empty() || mode == "dual-port" || mode == "full-burst" || mode == "dual-port-full-burst",
+    check(mode.empty() || mode == "dual-port" || mode == "full-burst" || mode == "dual-port-full-burst" ||
+        mode == "elastic" || mode == "dual-port-elastic",
         "unknown candidate reader topology/policy");
     run(original_regraph_sssp_real_test::Input::load(argv[1]), latency, reverse, maximum, period,
-        mode == "dual-port" || mode == "dual-port-full-burst",
-        mode == "full-burst" || mode == "dual-port-full-burst");
+        mode == "dual-port" || mode == "dual-port-full-burst" || mode == "dual-port-elastic",
+        mode == "full-burst" || mode == "dual-port-full-burst",
+        mode == "elastic" || mode == "dual-port-elastic");
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

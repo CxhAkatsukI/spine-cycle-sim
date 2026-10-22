@@ -21,7 +21,7 @@ void RoutedReGraphSystem::Impl::start_lksg(std::size_t worker) {
   const auto &part = partitions[f.next_lksg];
   f.lksg_record = invocations.size();
   invocations.push_back({rounds.size(), f.next_lksg, worker, false, cycle(), 0});
-  const bool compact = config.input_path == RoutedInputPath::kPrefetchCompactedExperimental;
+  const bool compact = config.input_path != RoutedInputPath::kPhysicalSlots;
   if (compact) f.ingress->start_until_last(part.slots / 8);
   else f.ingress->start(part.slots / 8);
   f.scatter->start_partition({.physical_slots = part.slots, .destination_base = part.destination_base,

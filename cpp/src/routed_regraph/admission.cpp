@@ -21,9 +21,12 @@ void RoutedReGraphSystem::Impl::admit() {
       config.source_loading != RoutedSourceLoading::kIndependentExperimental)
     throw std::invalid_argument("unsupported routed source-cache loading schedule");
   if (config.input_path != RoutedInputPath::kPhysicalSlots &&
-      config.input_path != RoutedInputPath::kPrefetchCompactedExperimental)
+      config.input_path != RoutedInputPath::kPrefetchCompactedExperimental &&
+      config.input_path != RoutedInputPath::kDualPrefetchElasticExperimental)
     throw std::invalid_argument("unsupported routed input path");
-  const bool compact = config.input_path == RoutedInputPath::kPrefetchCompactedExperimental;
+  const bool compact = config.input_path != RoutedInputPath::kPhysicalSlots;
+  const auto masters = (config.source_topology == RoutedSourceTopology::kTwoPairwise ? 7U : 9U) +
+      (config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ? 4U : 0U);
   if (compact && (!config.adapter.cross_row.bank_read_beats ||
                   !config.adapter.read_pipeline_cycles || c.max_pending_requests < 16 ||
                   c.max_outstanding_bursts < 16))
@@ -45,7 +48,7 @@ void RoutedReGraphSystem::Impl::admit() {
       !c.apply_request_window || !c.apply_pipeline_capacity || !c.hbm_wrapper_pipeline_capacity ||
       !config.internal_fifo_depth || !config.external_fifo_depth || !config.shared_master_capacity ||
       !config.adapter_stream_depth || !config.gather_stream_depth || !config.mux_stream_depth ||
-      config.first_initiator_id > std::numeric_limits<std::uint32_t>::max() - 9 ||
+      config.first_initiator_id > std::numeric_limits<std::uint32_t>::max() - masters ||
       config.fixed_rounds > c.max_supersteps ||
       c.runtime_channel_capacity_bytes > kGraSuReGraphU55cChannelCapacityBytes ||
       config.adapter.format != ReGraphPmaFormat::kWeighted)

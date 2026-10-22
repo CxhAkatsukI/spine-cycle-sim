@@ -42,9 +42,11 @@ class Reader final : public Component {
 public:
   Reader(ClockId clock, FixedAxiPort& memory, Fifo<Segment>& output,
          ReGraphPmaPartition partition, std::uint64_t read_delay = 71,
-         FixedAxiPort* odd_memory = nullptr, RefillPolicy refill = RefillPolicy::kAvailableSpace)
+         FixedAxiPort* odd_memory = nullptr, RefillPolicy refill = RefillPolicy::kAvailableSpace,
+         std::size_t pipeline_capacity = 2)
       : Component("prefetch-reader", clock), memory_(memory), odd_memory_(odd_memory), output_(output),
-        partition_(partition), delay_(read_delay), refill_(refill) {
+        partition_(partition), delay_(read_delay), refill_(refill), pipeline_capacity_(pipeline_capacity) {
+    check(pipeline_capacity_ == 2 || pipeline_capacity_ == 3, "unsupported finite segment pipeline");
     check(partition.vertices && partition.slots && partition.slots % 16 == 0 &&
         partition.cache_segments_per_half && memory.read_beat_stream_enabled(),
         "invalid finite prefetch partition");
@@ -83,6 +85,7 @@ private:
   const ReGraphPmaPartition partition_;
   const std::uint64_t delay_;
   const RefillPolicy refill_;
+  const std::size_t pipeline_capacity_;
   bool extent_{};
   std::size_t total_{}, consumed_{}, source_{}, segment_{}, tile_base_{}, dir_issued_{};
   std::array<std::uint64_t, 1024> directory_{};

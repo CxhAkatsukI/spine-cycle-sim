@@ -21,6 +21,11 @@ the integrated default or substitute a reader floor for complete-R timing.
 The [full-burst refill experiment](BURST_REFILL.md) tests whether reserving
 whole parents reduces short-request fragmentation with the same rings and
 physical reads. Its preregistered gates remain separate from R admission.
+The [explicit elastic-pipeline candidate](ELASTIC_PIPELINE.md) adds a third
+finite pipeline slot and a second physical reader master. All twelve complete
+executions pass correctness and eight old controls replay exactly. Retention
+still fails: 1.787 / 2.209 times A4 cycles. The candidate improves latency 64
+by 29.05% but regresses latency 128 by 2.73%; it remains default-off.
 
 ## Complete-Convergence Extension
 

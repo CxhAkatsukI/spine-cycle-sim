@@ -13,9 +13,11 @@ struct CompactorStats {
 class Compactor final : public Component {
 public:
   Compactor(ClockId clock, Fifo<Segment>& input, Fifo<ReGraphPmaPacket>& output,
-            std::size_t destination_vertices)
+            std::size_t destination_vertices, std::size_t pipeline_capacity = 2)
       : Component("window-compactor", clock), input_(input), output_(output),
-        destinations_(destination_vertices) {}
+        destinations_(destination_vertices), pipeline_capacity_(pipeline_capacity) {
+    check(pipeline_capacity_ == 2 || pipeline_capacity_ == 3, "unsupported finite packet pipeline");
+  }
   [[nodiscard]] bool done() const noexcept { return published_last_; }
   [[nodiscard]] const CompactorStats& stats() const noexcept { return stats_; }
   void evaluate(const CycleContext& context) override {
@@ -28,7 +30,7 @@ public:
     const auto* next = input_.front();
     const bool boundary = window_ && next && next->source / 4096 != *window_;
     const bool flush = terminal_ || boundary;
-    if (window_ && pipeline_.size() < 2 && !closed_ &&
+    if (window_ && pipeline_.size() < pipeline_capacity_ && !closed_ &&
         (lanes_.size() > 8 || (flush && (!lanes_.empty() || !emitted_window_ || terminal_)))) {
       ReGraphPmaPacket packet;
       const auto count = std::min<std::size_t>(8, lanes_.size());
@@ -74,7 +76,8 @@ public:
       }
       terminal_ = value.last;
     }
-    check(lanes_.size() <= 32 && pipeline_.size() <= 2, "candidate compactor exceeded finite storage");
+    check(lanes_.size() <= 32 && pipeline_.size() <= pipeline_capacity_,
+          "candidate compactor exceeded finite storage");
     stats_.max_lanes = std::max(stats_.max_lanes, lanes_.size());
     stats_.max_pipeline = std::max(stats_.max_pipeline, pipeline_.size());
   }
@@ -83,6 +86,7 @@ private:
   Fifo<Segment>& input_;
   Fifo<ReGraphPmaPacket>& output_;
   const std::size_t destinations_;
+  const std::size_t pipeline_capacity_;
   std::deque<std::pair<std::uint32_t, std::uint32_t>> lanes_;
   std::deque<TimedPacket> pipeline_;
   std::optional<std::uint32_t> window_;

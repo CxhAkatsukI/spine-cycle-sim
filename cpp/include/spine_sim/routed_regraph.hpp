@@ -17,6 +17,8 @@ enum class RoutedInputPath {
   kPhysicalSlots,
   // Finite model candidate; no routed-hardware or timing-calibration claim.
   kPrefetchCompactedExperimental,
+  // Two physical input masters/frontend and three slots at unchanged latency two.
+  kDualPrefetchElasticExperimental,
 };
 
 struct RoutedReGraphConfig {

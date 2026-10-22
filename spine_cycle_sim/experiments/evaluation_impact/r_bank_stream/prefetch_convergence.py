@@ -16,6 +16,7 @@ from ..r_execution import run_case
 from .compact_analysis import MATRIX, summarize
 from .runtime import LOCAL, LOCAL_PARALLEL, reservation, settings
 from .study import COMPILER, configure_command
+from . import cached_core
 
 def validate_cpus(cpus):
     if (not 1 <= len(cpus) <= 4 or len(set(cpus)) != len(cpus) or
@@ -24,7 +25,8 @@ def validate_cpus(cpus):
 
 
 def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
-        extra_references=(), complete_status="COMPACT_CONVERGENCE_COMPLETE_NOT_HARDWARE_ADMISSION"):
+        extra_references=(), complete_status="COMPACT_CONVERGENCE_COMPLETE_NOT_HARDWARE_ADMISSION",
+        prefetch_checks=False):
     validate_cpus(cpus)
     reference = json.loads(reference_path.read_text())
     if reference.get("pins_unchanged") is not True or len(reference.get("r_rows", [])) != 32:
@@ -60,6 +62,7 @@ def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
         report["steps"].append(step); save()
         if step["exit_code"] or step["timed_out"]:
             raise ValueError("bounded check failed: " + label)
+        return Path(step["stdout"]).read_text()
 
     save()
     try:
@@ -75,6 +78,20 @@ def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
             checked(["ctest", "--test-dir", str(build / "simulator"), "--output-on-failure",
                      "--timeout", "600", "-j1"], "core_ctest", 2400)
             checked([str(build / "regraph_credit_control_test")], "control_test", 30)
+            if prefetch_checks:
+                binary = build / "prefetch_compact_test"
+                checked(cached_core.command(ROOT, build / "simulator/cpp", binary, COMPILER,
+                                            "prefetch_compact_test"), "build_input_tests")
+                stdout = checked(["taskset", "-c", str(cpus[0]), str(binary)], "input_tests", 120)
+                required = {"PREFETCH_COMPACT_TEST": 16, "DUAL_PORT_PREFETCH_TEST": 16,
+                            "FULL_BURST_PREFETCH_TEST": 32, "ELASTIC_PREFETCH_TEST": 32}
+                if any(f"{name} PASS {count} executions" not in stdout for name, count in required.items()):
+                    raise ValueError("all ninety-six finite input executions required")
+                report["input_probes"] = [json.loads(line.partition(" ")[2]) for line in stdout.splitlines()
+                                          if line.startswith("PIPELINE_PROBE ")]
+                if len(report["input_probes"]) != 4:
+                    raise ValueError("all four publisher storage/backpressure probes required")
+                report["pins"].append(pin(binary))
             report["pins"] += [pin(build / name) for name in ("CMakeCache.txt", "compile_commands.json",
                 "regraph_convergence_demo", "simulator/cpp/libspine_cycle_core.a",
                 "simulator/cpp/liboriginal_regraph_cycle.a")]

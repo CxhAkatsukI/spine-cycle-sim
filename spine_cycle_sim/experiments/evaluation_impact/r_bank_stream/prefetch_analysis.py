@@ -32,15 +32,22 @@ def parse(stdout):
         raise ValueError("exactly one candidate observation required")
     row = json.loads(lines[0])
     version = row.get("schema_version", 1)
-    if type(version) is not int or version not in (1, 2, 3, 4):
+    if type(version) is not int or version not in (1, 2, 3, 4, 5):
         raise ValueError("unsupported candidate observation schema")
+    if version == 5 and (row.get("refill_policy") != "available-space" or
+            type(row.get("pipeline_capacity")) is not int or row["pipeline_capacity"] != 3 or
+            type(row.get("pipeline_latency")) is not int or row["pipeline_latency"] != 2 or
+            type(row.get("masters_per_frontend")) is not int or row["masters_per_frontend"] not in (1, 2) or
+            type(row.get("physical_masters")) is not int or
+            row["physical_masters"] != 4 * row["masters_per_frontend"]):
+        raise ValueError("elastic reader requires explicit finite storage, unchanged latency and physical masters")
     if version == 4 and (row.get("refill_policy") != "full-burst" or
             type(row.get("masters_per_frontend")) is not int or
             row["masters_per_frontend"] not in (1, 2) or
             type(row.get("physical_masters")) is not int or
             row["physical_masters"] != 4 * row["masters_per_frontend"]):
         raise ValueError("full-burst reader requires explicit policy and physical masters")
-    dual = version == 3 or (version == 4 and row["masters_per_frontend"] == 2)
+    dual = version == 3 or (version in (4, 5) and row["masters_per_frontend"] == 2)
     if dual and any(type(row.get(k)) is not int or row[k] != expected for k, expected in
                     (("physical_masters", 8), ("masters_per_frontend", 2))):
         raise ValueError("dual-port reader requires eight explicit physical masters")
@@ -82,9 +89,10 @@ def parse(stdout):
                 "publisher_pipeline_peak")
         if any(type(w.get(k)) is not int or w[k] < 0 for w in row["workers"] for k in keys):
             raise ValueError("integer candidate transport counters required")
+        capacity = 3 if version == 5 else 2
         if any(w["read_beats"] * 64 != w["read_bytes"] or
-               not 0 < w["reader_pipeline_peak"] <= 2 or
-               not 0 < w["publisher_pipeline_peak"] <= 2 for w in row["workers"]):
+               not 0 < w["reader_pipeline_peak"] <= capacity or
+               not 0 < w["publisher_pipeline_peak"] <= capacity for w in row["workers"]):
             raise ValueError("candidate beat/pipeline ledger failed")
         transport = row.get("transport", {})
         keys = ("accepted_beats", "intents", "grants", "consumed_grants", "request_waits",

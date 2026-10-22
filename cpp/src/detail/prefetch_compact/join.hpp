@@ -22,7 +22,7 @@ inline void Reader::prepare_join(const CycleContext& context) {
     if (begin == end) { ++next_source_; ++skipped_; continue; }
     check(segment_ * 16 == consumed_ && consumed_ < end, "candidate source/segment mismatch");
     const auto& line = banks_[segment_ % 2][(segment_ / 2) % 256];
-    if (pipeline_.size() < 2 && line.ready) {
+    if (pipeline_.size() < pipeline_capacity_ && line.ready) {
       join_ = TimedSegment{Segment{static_cast<std::uint32_t>(next_source_), line.words,
                                   consumed_ + 16 == total_}, context.domain_cycle + 2};
       if (consumed_ + 16 == end) ++next_source_;
@@ -124,6 +124,7 @@ inline void Reader::commit(const CycleContext& context) {
     stats_.max_parents_per_port[port] = std::max(stats_.max_parents_per_port[port], parents);
   }
   stats_.max_pipeline = std::max(stats_.max_pipeline, pipeline_.size());
+  check(pipeline_.size() <= pipeline_capacity_, "candidate segment pipeline exceeded finite storage");
   for (unsigned parity = 0; parity < 2; ++parity) {
     const auto occupied = issued_[parity] - released_[parity];
     check(occupied <= 256, "candidate bank ring reservation exceeded");
