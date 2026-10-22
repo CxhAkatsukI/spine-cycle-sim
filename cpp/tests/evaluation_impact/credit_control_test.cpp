@@ -40,6 +40,10 @@ int main() {
   require(elastic.dual_elastic && elastic.prefetch_compact && elastic.independent_source &&
           k4_configuration(elastic).input_path == spine::sim::RoutedInputPath::kDualPrefetchElasticExperimental &&
           k4_configuration(elastic).compute.max_pending_requests == 16);
+  const auto triple = control("prefetch_triple_elastic");
+  require(triple.triple_elastic && !triple.dual_elastic && triple.prefetch_compact && triple.independent_source &&
+          k4_configuration(triple).input_path == spine::sim::RoutedInputPath::kTriplePrefetchElasticExperimental &&
+          k4_configuration(triple).compute.max_pending_requests == 16);
   try { control("unknown"); return 1; } catch (const std::invalid_argument&) {}
-  std::cout << "CREDIT_CONTROL_PASS eleven explicit arms; old source topology and A4 credits unchanged\n";
+  std::cout << "CREDIT_CONTROL_PASS twelve explicit arms; old source topology and A4 credits unchanged\n";
 }

@@ -10,7 +10,8 @@ namespace spine::sim::detail {
 class RoutedPmaInput final : public Component {
 public:
   RoutedPmaInput(std::string, ClockId, const RoutedReGraphConfig&, FixedAxiPort&,
-                 Fifo<ReGraphPmaPacket>&, FixedAxiPort* odd_memory = nullptr);
+                 Fifo<ReGraphPmaPacket>&, FixedAxiPort* odd_memory = nullptr,
+                 FixedAxiPort* directory_memory = nullptr);
   void start_partition(ReGraphPmaPartition);
   [[nodiscard]] bool done() const noexcept;
   [[nodiscard]] ReGraphPmaAdapterCounters counters() const;
@@ -19,6 +20,7 @@ public:
 private:
   FixedAxiPort& memory_;
   FixedAxiPort* odd_memory_;
+  FixedAxiPort* directory_memory_;
   Fifo<ReGraphPmaPacket>& output_;
   const std::uint64_t read_delay_;
   const std::size_t pipeline_capacity_;

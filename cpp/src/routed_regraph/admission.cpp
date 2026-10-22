@@ -22,11 +22,13 @@ void RoutedReGraphSystem::Impl::admit() {
     throw std::invalid_argument("unsupported routed source-cache loading schedule");
   if (config.input_path != RoutedInputPath::kPhysicalSlots &&
       config.input_path != RoutedInputPath::kPrefetchCompactedExperimental &&
-      config.input_path != RoutedInputPath::kDualPrefetchElasticExperimental)
+      config.input_path != RoutedInputPath::kDualPrefetchElasticExperimental &&
+      config.input_path != RoutedInputPath::kTriplePrefetchElasticExperimental)
     throw std::invalid_argument("unsupported routed input path");
   const bool compact = config.input_path != RoutedInputPath::kPhysicalSlots;
   const auto masters = (config.source_topology == RoutedSourceTopology::kTwoPairwise ? 7U : 9U) +
-      (config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ? 4U : 0U);
+      (config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental ? 8U :
+       config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ? 4U : 0U);
   if (compact && (!config.adapter.cross_row.bank_read_beats ||
                   !config.adapter.read_pipeline_cycles || c.max_pending_requests < 16 ||
                   c.max_outstanding_bursts < 16))

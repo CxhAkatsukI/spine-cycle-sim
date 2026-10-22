@@ -33,7 +33,7 @@ inline void Reader::prepare_join(const CycleContext& context) {
 }
 
 inline void Reader::evaluate(const CycleContext& context) {
-  for (std::size_t port = 0; port < 2; ++port) {
+  for (std::size_t port = 0; port < port_count(); ++port) {
     issues_[port].reset(); responses_[port].reset(); beats_[port].reset();
   }
   join_.reset();

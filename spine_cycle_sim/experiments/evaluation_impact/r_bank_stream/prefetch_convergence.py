@@ -84,9 +84,10 @@ def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
                                             "prefetch_compact_test"), "build_input_tests")
                 stdout = checked(["taskset", "-c", str(cpus[0]), str(binary)], "input_tests", 120)
                 required = {"PREFETCH_COMPACT_TEST": 16, "DUAL_PORT_PREFETCH_TEST": 16,
-                            "FULL_BURST_PREFETCH_TEST": 32, "ELASTIC_PREFETCH_TEST": 32}
+                            "FULL_BURST_PREFETCH_TEST": 32, "ELASTIC_PREFETCH_TEST": 32,
+                            "TRIPLE_PORT_PREFETCH_TEST": 16}
                 if any(f"{name} PASS {count} executions" not in stdout for name, count in required.items()):
-                    raise ValueError("all ninety-six finite input executions required")
+                    raise ValueError("all 112 finite input executions required")
                 report["input_probes"] = [json.loads(line.partition(" ")[2]) for line in stdout.splitlines()
                                           if line.startswith("PIPELINE_PROBE ")]
                 if len(report["input_probes"]) != 4:

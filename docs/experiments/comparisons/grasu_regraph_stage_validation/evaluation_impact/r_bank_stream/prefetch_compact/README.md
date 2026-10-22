@@ -26,6 +26,12 @@ finite pipeline slot and a second physical reader master. All twelve complete
 executions pass correctness and eight old controls replay exactly. Retention
 still fails: 1.787 / 2.209 times A4 cycles. The candidate improves latency 64
 by 29.05% but regresses latency 128 by 2.73%; it remains default-off.
+The [separate metadata-port experiment](METADATA_PORTS.md) tests a third
+physical input master per frontend without changing latency, physical traffic
+or the old controls. All twelve complete executions and eight exact old
+replays pass; cycles improve 10.61% / 12.30% from dual, but remain
+**1.598 / 1.937 times A4**. Retention still fails; the candidate has 15
+physical masters versus A4's 13 and is not strict resource equivalence.
 
 ## Complete-Convergence Extension
 

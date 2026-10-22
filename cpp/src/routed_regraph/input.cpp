@@ -4,13 +4,18 @@ namespace spine::sim::detail {
 
 RoutedPmaInput::RoutedPmaInput(std::string name, ClockId clock,
     const RoutedReGraphConfig& config, FixedAxiPort& memory, Fifo<ReGraphPmaPacket>& output,
-    FixedAxiPort* odd_memory)
-    : Component(name, clock), memory_(memory), odd_memory_(odd_memory), output_(output),
+    FixedAxiPort* odd_memory, FixedAxiPort* directory_memory)
+    : Component(name, clock), memory_(memory), odd_memory_(odd_memory),
+      directory_memory_(directory_memory), output_(output),
       read_delay_(config.adapter.read_pipeline_cycles),
-      pipeline_capacity_(config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ? 3 : 2),
+      pipeline_capacity_(config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ||
+                         config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental ? 3 : 2),
       segments_(name + "-segments", clock, 16) {
   if ((odd_memory_ != nullptr) !=
-      (config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental))
+      (config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ||
+       config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental) ||
+      (directory_memory_ != nullptr) !=
+      (config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental))
     throw std::invalid_argument("experimental input topology requires its explicit physical ports");
   if (config.input_path == RoutedInputPath::kPhysicalSlots)
     legacy_ = std::make_unique<ReGraphPmaAdapter>(std::move(name), clock, config.adapter, memory, output);
@@ -23,11 +28,13 @@ bool RoutedPmaInput::done() const noexcept {
 
 void RoutedPmaInput::start_partition(ReGraphPmaPartition partition) {
   if (legacy_) { legacy_->start_partition(partition); return; }
-  if (!done() || !memory_.idle() || (odd_memory_ && !odd_memory_->idle()))
+  if (!done() || !memory_.idle() || (odd_memory_ && !odd_memory_->idle()) ||
+      (directory_memory_ && !directory_memory_->idle()))
     throw std::logic_error("prefetch input restart requires drained finite state and AXI");
   completed_ = counters();
   reader_ = std::make_unique<prefetch_compact::Reader>(clock_id(), memory_, segments_, partition,
-      read_delay_, odd_memory_, prefetch_compact::RefillPolicy::kAvailableSpace, pipeline_capacity_);
+      read_delay_, odd_memory_, prefetch_compact::RefillPolicy::kAvailableSpace, pipeline_capacity_,
+      directory_memory_);
   compactor_ = std::make_unique<prefetch_compact::Compactor>(clock_id(), segments_, output_,
                                                          partition.destination_vertices, pipeline_capacity_);
 }

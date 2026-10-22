@@ -19,14 +19,16 @@ inline void Reader::prepare_request(const CycleContext& context, std::size_t por
   std::size_t channel = partition_.row_channel;
   bool selected = false;
   if (!extent_) {
-    if (port || !pending_.empty()) return;
+    if (port != (directory_memory_ ? 2U : 0U) || !pending_.empty()) return;
     request = {Kind::kExtent, next_id_, (partition_.row_base + (partition_.vertices - 1) * 8) &
         ~std::uint64_t{63}, context.domain_cycle + delay_, 0, 1};
     selected = true;
   } else {
     for (unsigned attempt = 0; attempt < 3 && !selected; ++attempt) {
       const auto which = (preference_ + attempt) % 3;
-      if (odd_memory_ && ((which == 2) != (port == 1))) continue;
+      if (directory_memory_) {
+        if ((which == 0 ? 2U : which - 1) != port) continue;
+      } else if (odd_memory_ && ((which == 2) != (port == 1))) continue;
       if (which == 0) {
         const auto lines = (std::min<std::size_t>(1024, partition_.vertices - tile_base_) + 7) / 8;
         if (consumed_ == total_ || dir_issued_ == lines) continue;

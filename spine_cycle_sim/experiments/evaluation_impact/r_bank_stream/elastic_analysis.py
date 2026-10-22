@@ -1,4 +1,4 @@
-"""Complete-R admission for explicit dual readers and a third pipeline slot."""
+"""Complete-R checks shared by explicit finite input-port experiments."""
 
 import json
 
@@ -12,11 +12,14 @@ MATRIX = [(latency, reverse, arm) for latency in (64, 128)
           for reverse in (0, 1) for arm in ARMS]
 
 
-def summarize(rows, _reference, *, before):
-    if [identity(row) for row in rows] != MATRIX:
-        raise ValueError("complete twelve-row dual-elastic convergence matrix required")
-    if [identity(row) for row in before] != BEFORE_MATRIX:
-        raise ValueError("complete sixteen-row pre-edit source reference required")
+def summarize(rows, _reference, *, before, arms=ARMS, before_matrix=BEFORE_MATRIX,
+              physical_masters=None, reduction_key="cycle_reduction_from_source"):
+    matrix = [(latency, reverse, arm) for latency in (64, 128)
+              for reverse in (0, 1) for arm in arms]
+    if [identity(row) for row in rows] != matrix:
+        raise ValueError("complete declared convergence matrix required")
+    if [identity(row) for row in before] != before_matrix:
+        raise ValueError("complete declared pre-edit reference required")
     previous = {identity(row): row for row in before}
     indexed = {identity(row): row for row in rows}
     for row in rows:
@@ -26,32 +29,33 @@ def summarize(rows, _reference, *, before):
                              ["DEMO_RESULT " + json.dumps(obs["result"])]))
         if obs["result"]["arm"] != row["arm"]:
             raise ValueError("candidate arm differs from declared configuration")
-        if row["arm"] != "prefetch_dual_elastic" and any(
+        if row["arm"] != arms[2] and any(
                 row[field] != previous[key][field] for field in ("observations", "outputs")):
             raise ValueError("pre-edit cycles, traffic, state or trajectory changed")
         opposite = indexed[(row["latency"], 1 - row["reverse"], row["arm"])]
         if any(row[field] != opposite[field] for field in ("observations", "outputs")):
-            raise ValueError("dual-elastic result depends on registration order")
+            raise ValueError("candidate result depends on registration order")
         original = indexed[(row["latency"], 0, "a4_io16")]
         if (state_identity(row) != state_identity(original) or
                 [r["active"] for r in obs["trajectory"]] !=
                 [r["active"] for r in original["observations"]["trajectory"]]):
             raise ValueError("full state or converged active trajectory differs from A4")
-        if row["arm"] == "prefetch_dual_elastic":
-            old = previous[(row["latency"], row["reverse"], "prefetch_source")]["observations"]["result"]
+        if row["arm"] == arms[2]:
+            old = previous[(row["latency"], row["reverse"], arms[1])]["observations"]["result"]
             for field in ("read_bytes", "write_bytes"):
                 if type(obs["result"].get(field)) is not int or obs["result"][field] != old[field]:
-                    raise ValueError("dual-elastic changed physical traffic")
+                    raise ValueError("candidate changed physical traffic")
     comparisons = []
     for latency in (64, 128):
-        values = {arm: indexed[(latency, 0, arm)]["observations"]["result"] for arm in ARMS}
-        ratio = values[ARMS[2]]["cycles"] / values[ARMS[0]]["cycles"]
+        values = {arm: indexed[(latency, 0, arm)]["observations"]["result"] for arm in arms}
+        ratio = values[arms[2]]["cycles"] / values[arms[0]]["cycles"]
         comparisons.append(dict(latency=latency, arms=values, candidate_over_a4=ratio,
-            cycle_reduction_from_source=1 - values[ARMS[2]]["cycles"] / values[ARMS[1]]["cycles"],
+            **{reduction_key: 1 - values[arms[2]]["cycles"] / values[arms[1]]["cycles"]},
             within_ten_percent=0.9 <= ratio <= 1.1))
     return dict(pre_edit_controls_replayed_exactly=8, comparisons=comparisons,
         retention_pass=all(row["within_ten_percent"] for row in comparisons),
-        physical_masters={"a4_io16": 13, "prefetch_source": 7, "prefetch_dual_elastic": 11},
+        physical_masters=physical_masters if physical_masters is not None else
+            {"a4_io16": 13, "prefetch_source": 7, "prefetch_dual_elastic": 11},
         hardware_timing_admitted=False, publication_match_admitted=False,
         strict_resource_match_admitted=False, production_baseline_admitted=False,
         new_spine_comparison_executed=False)

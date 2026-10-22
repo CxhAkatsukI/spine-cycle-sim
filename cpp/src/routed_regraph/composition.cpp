@@ -81,12 +81,15 @@ void RoutedReGraphSystem::Impl::build() {
     components.insert(components.end(), {&f.raw, &f.edges, &f.updates, &f.rows,
         &f.requests, &f.internal_requests, &f.responses, &f.internal_responses});
     auto &adapter_port = port("adapter-master" + suffix, 0, config.adapter.cross_row.bank_read_beats);
-    auto* odd_port = config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ?
+    auto* odd_port = config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ||
+                    config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental ?
         &port("adapter-odd-master" + suffix, 0, true) : nullptr;
+    auto* directory_port = config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental ?
+        &port("adapter-directory-master" + suffix, 0, true) : nullptr;
     const auto source_endpoint = source_memory(worker,
         worker % 2 == 0 ? primary_write.endpoint() : mirror_write.endpoint());
     f.adapter = std::make_unique<RoutedPmaInput>("adapter" + suffix, clock,
-                                               config, adapter_port, f.raw, odd_port);
+                                               config, adapter_port, f.raw, odd_port, directory_port);
     f.ingress = std::make_unique<RoutedStreamBridge<ReGraphPmaPacket>>(
         "ingress" + suffix, clock, f.raw, f.edges, true);
     f.request_bridge = std::make_unique<RoutedStreamBridge<ReGraphSourceCacheRequest>>(

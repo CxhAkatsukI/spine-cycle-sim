@@ -19,6 +19,8 @@ enum class RoutedInputPath {
   kPrefetchCompactedExperimental,
   // Two physical input masters/frontend and three slots at unchanged latency two.
   kDualPrefetchElasticExperimental,
+  // Metadata, even PMA and odd PMA each own a finite physical master.
+  kTriplePrefetchElasticExperimental,
 };
 
 struct RoutedReGraphConfig {

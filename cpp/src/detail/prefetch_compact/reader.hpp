@@ -30,28 +30,32 @@ struct ReaderStats {
   std::uint64_t selector_wait{}, output_stalls{};
   std::uint64_t pma_requests{}, short_pma_requests{};
   std::size_t max_parents{}, max_bank_lines{}, max_pipeline{};
-  std::array<std::size_t, 2> max_parents_per_port{};
+  std::array<std::size_t, 3> max_parents_per_port{};
 };
 enum class RefillPolicy { kAvailableSpace, kFullBurst };
 
 // Experimental architecture, not the routed profile: one 1024-row banked
 // directory, two 256-line reserved rings, <=16 parents of <=16 beats, and a
-// depth-two segment pipeline. The optional second physical master owns odd
-// PMA segments; metadata and even segments retain the first master.
+// latency-two segment pipeline. Optional physical masters separate odd PMA
+// segments and directory reads; the default remains one input master.
 class Reader final : public Component {
 public:
   Reader(ClockId clock, FixedAxiPort& memory, Fifo<Segment>& output,
          ReGraphPmaPartition partition, std::uint64_t read_delay = 71,
          FixedAxiPort* odd_memory = nullptr, RefillPolicy refill = RefillPolicy::kAvailableSpace,
-         std::size_t pipeline_capacity = 2)
+         std::size_t pipeline_capacity = 2, FixedAxiPort* directory_memory = nullptr)
       : Component("prefetch-reader", clock), memory_(memory), odd_memory_(odd_memory), output_(output),
-        partition_(partition), delay_(read_delay), refill_(refill), pipeline_capacity_(pipeline_capacity) {
+        partition_(partition), delay_(read_delay), refill_(refill), pipeline_capacity_(pipeline_capacity),
+        directory_memory_(directory_memory) {
     check(pipeline_capacity_ == 2 || pipeline_capacity_ == 3, "unsupported finite segment pipeline");
     check(partition.vertices && partition.slots && partition.slots % 16 == 0 &&
         partition.cache_segments_per_half && memory.read_beat_stream_enabled(),
         "invalid finite prefetch partition");
     check(!odd_memory_ || (odd_memory_ != &memory_ && odd_memory_->read_beat_stream_enabled()),
         "odd PMA port must be a distinct streaming physical master");
+    check(!directory_memory_ || (odd_memory_ && directory_memory_ != &memory_ &&
+        directory_memory_ != odd_memory_ && directory_memory_->read_beat_stream_enabled()),
+        "directory port requires three distinct streaming physical masters");
   }
   void evaluate(const CycleContext& context) override;
   void commit(const CycleContext& context) override;
@@ -76,8 +80,10 @@ private:
   void accept_beat(const AxiReadBeatResponse& beat, std::uint64_t cycle);
   std::size_t outstanding_directory() const;
   std::size_t outstanding(std::size_t port) const;
-  std::size_t port_count() const { return odd_memory_ ? 2 : 1; }
-  FixedAxiPort& memory(std::size_t port) { return port ? *odd_memory_ : memory_; }
+  std::size_t port_count() const { return directory_memory_ ? 3 : odd_memory_ ? 2 : 1; }
+  FixedAxiPort& memory(std::size_t port) {
+    return port == 2 ? *directory_memory_ : port ? *odd_memory_ : memory_;
+  }
 
   FixedAxiPort& memory_;
   FixedAxiPort* odd_memory_;
@@ -86,6 +92,7 @@ private:
   const std::uint64_t delay_;
   const RefillPolicy refill_;
   const std::size_t pipeline_capacity_;
+  FixedAxiPort* directory_memory_;
   bool extent_{};
   std::size_t total_{}, consumed_{}, source_{}, segment_{}, tile_base_{}, dir_issued_{};
   std::array<std::uint64_t, 1024> directory_{};
@@ -97,9 +104,9 @@ private:
   std::deque<TimedSegment> pipeline_;
   std::uint64_t next_id_{0x6d00'0000'0000'0000ULL};
   unsigned preference_{};
-  std::array<std::optional<Request>, 2> issues_;
-  std::array<std::optional<AxiResponse>, 2> responses_;
-  std::array<std::optional<AxiReadBeatResponse>, 2> beats_;
+  std::array<std::optional<Request>, 3> issues_;
+  std::array<std::optional<AxiResponse>, 3> responses_;
+  std::array<std::optional<AxiReadBeatResponse>, 3> beats_;
   std::optional<TimedSegment> join_;
   std::size_t next_source_{}, skipped_{};
   bool retired_{}, advance_tile_{};
