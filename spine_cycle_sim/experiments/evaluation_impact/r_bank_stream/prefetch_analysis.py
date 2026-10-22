@@ -32,8 +32,12 @@ def parse(stdout):
         raise ValueError("exactly one candidate observation required")
     row = json.loads(lines[0])
     version = row.get("schema_version", 1)
-    if type(version) is not int or version not in (1, 2):
+    if type(version) is not int or version not in (1, 2, 3):
         raise ValueError("unsupported candidate observation schema")
+    dual = version == 3
+    if dual and any(type(row.get(k)) is not int or row[k] != expected for k, expected in
+                    (("physical_masters", 8), ("masters_per_frontend", 2))):
+        raise ValueError("dual-port reader requires eight explicit physical masters")
     if any(type(row.get(key)) is not int or row[key] <= 0 for key in
            ("cycles", "read_bytes", "requests", "live_edges", "packets")):
         raise ValueError("positive integer candidate totals required")
@@ -52,11 +56,17 @@ def parse(stdout):
     if not all(0 < w["sink_done"] <= row["cycles"] for w in row["workers"]):
         raise ValueError("candidate completion exceeds closed window")
     for w in row["workers"]:
-        if not (1 < w["max_parents"] <= 16 and 0 < w["max_bank_lines"] <= 256 and
+        if dual:
+            parents = w.get("parents_per_port", [])
+            if (not isinstance(parents, list) or len(parents) != 2 or
+                    any(type(p) is not int or not 0 < p <= 16 for p in parents) or
+                    w["max_parents"] > sum(parents)):
+                raise ValueError("dual-port physical parent bounds do not close")
+        if not (1 < w["max_parents"] <= (32 if dual else 16) and 0 < w["max_bank_lines"] <= 256 and
                 0 < w["max_lanes"] <= 32 and w["live_edges"] + w["input_dummy"] == w["physical_slots"] and
                 w["packets"] * 8 == w["live_edges"] + w["output_dummy"]):
             raise ValueError("candidate finite storage/physical lane gate failed")
-    if version == 2:
+    if version >= 2:
         keys = ("read_beats", "backend_submit_stalls", "selector_wait", "reader_pipeline_peak",
                 "publisher_pipeline_peak")
         if any(type(w.get(k)) is not int or w[k] < 0 for w in row["workers"] for k in keys):

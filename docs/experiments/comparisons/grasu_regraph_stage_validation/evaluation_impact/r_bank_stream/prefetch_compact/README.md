@@ -15,6 +15,9 @@ convergence results; they diagnose overlapping waits, not a further speedup.
 The subsequent default-off [source-loading experiment](SOURCE_LOADING.md)
 tests independent finite cache writes without changing old controls; its
 complete performance gate is not yet admitted.
+The [explicit reader-port diagnostic](READER_PORTS.md) separately tests two
+physical masters per frontend with unchanged PMA traffic. It does not change
+the integrated default or substitute a reader floor for complete-R timing.
 
 ## Complete-Convergence Extension
 

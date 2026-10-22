@@ -7,19 +7,26 @@ inline std::size_t Reader::outstanding_directory() const {
   });
 }
 
-inline void Reader::prepare_request(const CycleContext& context) {
-  if (pending_.size() >= 16) return;
+inline std::size_t Reader::outstanding(std::size_t port) const {
+  return std::count_if(pending_.begin(), pending_.end(), [port](const auto& item) {
+    return item.second.port == port;
+  });
+}
+
+inline void Reader::prepare_request(const CycleContext& context, std::size_t port) {
+  if (outstanding(port) >= 16) return;
   Request request;
   std::size_t channel = partition_.row_channel;
   bool selected = false;
   if (!extent_) {
-    if (!pending_.empty()) return;
+    if (port || !pending_.empty()) return;
     request = {Kind::kExtent, next_id_, (partition_.row_base + (partition_.vertices - 1) * 8) &
         ~std::uint64_t{63}, context.domain_cycle + delay_, 0, 1};
     selected = true;
   } else {
     for (unsigned attempt = 0; attempt < 3 && !selected; ++attempt) {
       const auto which = (preference_ + attempt) % 3;
+      if (odd_memory_ && ((which == 2) != (port == 1))) continue;
       if (which == 0) {
         const auto lines = (std::min<std::size_t>(1024, partition_.vertices - tile_base_) + 7) / 8;
         if (consumed_ == total_ || dir_issued_ == lines) continue;
@@ -41,9 +48,11 @@ inline void Reader::prepare_request(const CycleContext& context) {
       selected = true;
     }
   }
-  if (selected && memory_.requests().try_push(AxiRequest{.transaction_id = request.id,
+  request.id = next_id_ + port;
+  request.port = port;
+  if (selected && memory(port).requests().try_push(AxiRequest{.transaction_id = request.id,
       .operation = MemoryOperation::kRead, .address = request.address, .bytes = request.count * 64,
-      .stream_read_beats = true, .target_channel = channel, .write_data = {}})) issue_ = request;
+      .stream_read_beats = true, .target_channel = channel, .write_data = {}})) issues_[port] = request;
 }
 
 inline void Reader::accept_beat(const AxiReadBeatResponse& beat, std::uint64_t cycle) {

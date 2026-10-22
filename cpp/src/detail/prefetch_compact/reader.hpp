@@ -29,20 +29,25 @@ struct ReaderStats {
   std::uint64_t extent_beats{}, directory_beats{}, pma_beats{};
   std::uint64_t selector_wait{}, output_stalls{};
   std::size_t max_parents{}, max_bank_lines{}, max_pipeline{};
+  std::array<std::size_t, 2> max_parents_per_port{};
 };
 
 // Experimental architecture, not the routed profile: one 1024-row banked
 // directory, two 256-line reserved rings, <=16 parents of <=16 beats, and a
-// depth-two segment pipeline. Both parities may be in flight on the SAME AXI.
+// depth-two segment pipeline. The optional second physical master owns odd
+// PMA segments; metadata and even segments retain the first master.
 class Reader final : public Component {
 public:
   Reader(ClockId clock, FixedAxiPort& memory, Fifo<Segment>& output,
-         ReGraphPmaPartition partition, std::uint64_t read_delay = 71)
-      : Component("prefetch-reader", clock), memory_(memory), output_(output),
+         ReGraphPmaPartition partition, std::uint64_t read_delay = 71,
+         FixedAxiPort* odd_memory = nullptr)
+      : Component("prefetch-reader", clock), memory_(memory), odd_memory_(odd_memory), output_(output),
         partition_(partition), delay_(read_delay) {
     check(partition.vertices && partition.slots && partition.slots % 16 == 0 &&
         partition.cache_segments_per_half && memory.read_beat_stream_enabled(),
         "invalid finite prefetch partition");
+    check(!odd_memory_ || (odd_memory_ != &memory_ && odd_memory_->read_beat_stream_enabled()),
+        "odd PMA port must be a distinct streaming physical master");
   }
   void evaluate(const CycleContext& context) override;
   void commit(const CycleContext& context) override;
@@ -58,15 +63,20 @@ private:
     std::uint64_t id{}, address{}, ready{};
     std::size_t first{}, count{}, parity{}, received{};
     bool acknowledged{};
+    std::size_t port{};
   };
   struct Line { std::array<std::uint32_t, 16> words{}; bool reserved{}, ready{}; };
   struct TimedSegment { Segment value; std::uint64_t ready{}; };
-  void prepare_request(const CycleContext& context);
+  void prepare_request(const CycleContext& context, std::size_t port);
   void prepare_join(const CycleContext& context);
   void accept_beat(const AxiReadBeatResponse& beat, std::uint64_t cycle);
   std::size_t outstanding_directory() const;
+  std::size_t outstanding(std::size_t port) const;
+  std::size_t port_count() const { return odd_memory_ ? 2 : 1; }
+  FixedAxiPort& memory(std::size_t port) { return port ? *odd_memory_ : memory_; }
 
   FixedAxiPort& memory_;
+  FixedAxiPort* odd_memory_;
   Fifo<Segment>& output_;
   const ReGraphPmaPartition partition_;
   const std::uint64_t delay_;
@@ -81,9 +91,9 @@ private:
   std::deque<TimedSegment> pipeline_;
   std::uint64_t next_id_{0x6d00'0000'0000'0000ULL};
   unsigned preference_{};
-  std::optional<Request> issue_;
-  std::optional<AxiResponse> response_;
-  std::optional<AxiReadBeatResponse> beat_;
+  std::array<std::optional<Request>, 2> issues_;
+  std::array<std::optional<AxiResponse>, 2> responses_;
+  std::array<std::optional<AxiReadBeatResponse>, 2> beats_;
   std::optional<TimedSegment> join_;
   std::size_t next_source_{}, skipped_{};
   bool retired_{}, advance_tile_{};

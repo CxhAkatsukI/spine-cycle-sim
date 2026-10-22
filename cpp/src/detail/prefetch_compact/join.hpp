@@ -33,26 +33,34 @@ inline void Reader::prepare_join(const CycleContext& context) {
 }
 
 inline void Reader::evaluate(const CycleContext& context) {
-  issue_.reset(); response_.reset(); beat_.reset(); join_.reset();
+  for (std::size_t port = 0; port < 2; ++port) {
+    issues_[port].reset(); responses_[port].reset(); beats_[port].reset();
+  }
+  join_.reset();
   retired_ = advance_tile_ = false;
   skipped_ = 0;
   next_source_ = source_;
   if (done()) return;
-  if (const auto* front = memory_.responses().front()) {
-    check(pending_.contains(front->transaction_id), "candidate unknown acknowledgement");
-    if (context.domain_cycle >= pending_.at(front->transaction_id).ready) {
-      AxiResponse response;
-      if (memory_.responses().try_pop(response)) response_ = std::move(response);
+  for (std::size_t port = 0; port < port_count(); ++port) {
+    auto& physical = memory(port);
+    if (const auto* front = physical.responses().front()) {
+      check(pending_.contains(front->transaction_id) && pending_.at(front->transaction_id).port == port,
+          "candidate unknown or misrouted acknowledgement");
+      if (context.domain_cycle >= pending_.at(front->transaction_id).ready) {
+        AxiResponse response;
+        if (physical.responses().try_pop(response)) responses_[port] = std::move(response);
+      }
     }
-  }
-  if (const auto* front = memory_.read_beats().front()) {
-    check(pending_.contains(front->transaction_id), "candidate unknown beat");
-    if (context.domain_cycle >= pending_.at(front->transaction_id).ready) {
-      AxiReadBeatResponse beat;
-      if (memory_.read_beats().try_pop(beat)) beat_ = std::move(beat);
+    if (const auto* front = physical.read_beats().front()) {
+      check(pending_.contains(front->transaction_id) && pending_.at(front->transaction_id).port == port,
+          "candidate unknown or misrouted beat");
+      if (context.domain_cycle >= pending_.at(front->transaction_id).ready) {
+        AxiReadBeatResponse beat;
+        if (physical.read_beats().try_pop(beat)) beats_[port] = std::move(beat);
+      }
     }
+    prepare_request(context, port);
   }
-  prepare_request(context);
   if (!pipeline_.empty() && pipeline_.front().ready <= context.domain_cycle) {
     retired_ = output_.try_push(pipeline_.front().value);
     if (!retired_) ++stats_.output_stalls;
@@ -61,34 +69,36 @@ inline void Reader::evaluate(const CycleContext& context) {
 }
 
 inline void Reader::commit(const CycleContext& context) {
-  if (response_) {
-    auto& request = pending_.at(response_->transaction_id);
-    check(response_->success && response_->operation == MemoryOperation::kRead &&
-        response_->read_data.size() == request.count * 64 && !request.acknowledged,
-        "candidate acknowledgement mismatch");
-    request.acknowledged = true;
-    ++stats_.responses;
+  for (std::size_t port = 0; port < port_count(); ++port) {
+    if (const auto& response = responses_[port]) {
+      auto& request = pending_.at(response->transaction_id);
+      check(response->success && response->operation == MemoryOperation::kRead &&
+          response->read_data.size() == request.count * 64 && !request.acknowledged,
+          "candidate acknowledgement mismatch");
+      request.acknowledged = true;
+      ++stats_.responses;
+    }
+    if (beats_[port]) accept_beat(*beats_[port], context.domain_cycle);
   }
-  if (beat_) accept_beat(*beat_, context.domain_cycle);
   for (auto it = pending_.begin(); it != pending_.end();) {
     if (it->second.acknowledged && it->second.received == it->second.count) it = pending_.erase(it);
     else ++it;
   }
-  if (issue_) {
-    pending_.emplace(issue_->id, *issue_);
-    ++next_id_; ++stats_.requests;
-    stats_.bytes += issue_->count * 64;
-    if (issue_->kind == Kind::kDirectory) dir_issued_ += issue_->count;
-    if (issue_->kind == Kind::kPma) {
-      for (std::size_t i = 0; i < issue_->count; ++i) {
-        auto& line = banks_[issue_->parity][(issue_->first + i) % 256];
+  for (const auto& issue : issues_) if (issue) {
+    pending_.emplace(issue->id, *issue);
+    next_id_ = std::max(next_id_, issue->id + 1); ++stats_.requests;
+    stats_.bytes += issue->count * 64;
+    if (issue->kind == Kind::kDirectory) dir_issued_ += issue->count;
+    if (issue->kind == Kind::kPma) {
+      for (std::size_t i = 0; i < issue->count; ++i) {
+        auto& line = banks_[issue->parity][(issue->first + i) % 256];
         check(!line.reserved && !line.ready, "candidate overwrote reserved bank data");
         line.reserved = true;
       }
-      issued_[issue_->parity] += issue_->count;
+      issued_[issue->parity] += issue->count;
     }
-    preference_ = issue_->kind == Kind::kDirectory ? 1 :
-        (issue_->kind == Kind::kPma ? (issue_->parity + 2) % 3 : 0);
+    preference_ = issue->kind == Kind::kDirectory ? 1 :
+        (issue->kind == Kind::kPma ? (issue->parity + 2) % 3 : 0);
   }
   if (retired_) pipeline_.pop_front();
   if (join_) {
@@ -106,6 +116,11 @@ inline void Reader::commit(const CycleContext& context) {
     directory_valid_.fill(false);
   }
   stats_.max_parents = std::max(stats_.max_parents, pending_.size());
+  for (std::size_t port = 0; port < port_count(); ++port) {
+    const auto parents = outstanding(port);
+    check(parents <= 16, "candidate per-port parent bound exceeded");
+    stats_.max_parents_per_port[port] = std::max(stats_.max_parents_per_port[port], parents);
+  }
   stats_.max_pipeline = std::max(stats_.max_pipeline, pipeline_.size());
   for (unsigned parity = 0; parity < 2; ++parity) {
     const auto occupied = issued_[parity] - released_[parity];
