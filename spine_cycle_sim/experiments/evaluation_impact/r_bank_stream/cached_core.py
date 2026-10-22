@@ -31,7 +31,8 @@ def validate(root, gates):
 
 
 def command(root, core, output, compiler, source):
-    if source not in ("convergence", "credit_control_test", "adapter_floor"):
+    if source not in ("convergence", "credit_control_test", "adapter_floor",
+                      "prefetch_compact", "prefetch_compact_test"):
         raise ValueError("only approved experiment entry points may be compiled")
     return [str(compiler), "-O3", "-DNDEBUG", "-std=gnu++20", "-Wall", "-Wextra", "-Wpedantic", "-Werror",
             "-I" + str(root / "cpp/include"), str(root / ("cpp/tests/evaluation_impact/" + source + ".cpp")),

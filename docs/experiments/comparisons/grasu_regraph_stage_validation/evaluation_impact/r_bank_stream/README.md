@@ -227,12 +227,16 @@ physical eight-lane packets per scan, versus about 237,049 cycles per strong
 A4 round at latency 64. A one-packet-per-cycle interface cannot recover the
 target from read concurrency alone without also addressing padding delivery.
 
-The next candidate must therefore combine justified finite read concurrency
-with bounded live-lane compaction. Keep all physical reads, pay selection and
-pipeline costs, preserve every weighted edge/source-cache window, and propagate
-backpressure. Variable packet counts and termination need an explicit contract;
-silently dropping dummy packets from the fixed-count interface is invalid.
-No new reader, compactor or recovered performance is claimed at this checkpoint.
+The separate [finite prefetch/compaction diagnostic](prefetch_compact/README.md)
+now combines both changes, with actual reads, finite reservations, selection
+and pipeline costs, weighted-edge/window conservation and backpressure tests.
+Its four real-input executions and sixteen synthetic cases pass, but the
+46-scan reader floor is still 1.789 / 1.256 times strong A4's complete result.
+It is **not integrated R** and has not recovered the requested performance.
+Variable packet counts and termination still need an explicit integrated
+contract; silently dropping dummy packets from the fixed-count interface
+would be invalid. The diagnostic also isolates a registered-arbiter issue
+interval; changing it for only G+R would not be a valid control.
 
 The first diagnostic attempt failed its independent CSR gate: it used the
 pre-admission slot count instead of the runtime plan's normalized extent and

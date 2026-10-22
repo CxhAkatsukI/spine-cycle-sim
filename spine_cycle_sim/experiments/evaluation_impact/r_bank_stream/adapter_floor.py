@@ -14,7 +14,12 @@ from .analysis import MATRIX, summarize
 from .study import COMPILER
 
 
-def run(output, reference, gates, cpu, admission_wait_seconds=600):
+def run(output, reference, gates, cpu, admission_wait_seconds=600, *, candidate=False):
+    if candidate:
+        from . import prefetch_analysis as selected_analysis
+    else:
+        selected_analysis = analysis
+    source = "prefetch_compact" if candidate else "adapter_floor"
     runtime.wait_budget(admission_wait_seconds)
     if cpu not in os.sched_getaffinity(0):
         raise ValueError("one allowed CPU required")
@@ -42,7 +47,8 @@ def run(output, reference, gates, cpu, admission_wait_seconds=600):
         reference=str(reference), admission_wait_seconds=admission_wait_seconds,
         pins=pins + [pin(reference), pin(COMPILER.resolve()), pin(ROOT / "CMakeLists.txt")] +
              [pin(p) for p in sources] + [pin(p) for p in sorted((output / "inputs/warm_update").iterdir())],
-        claim="unchanged_reader_lower_bound_not_R_or_hardware_performance")
+        claim=("experimental_prefetch_compact_not_integrated_R_or_hardware" if candidate else
+               "unchanged_reader_lower_bound_not_R_or_hardware_performance"))
 
     def save():
         atomic_write_json(output / "results.json", report)
@@ -56,14 +62,32 @@ def run(output, reference, gates, cpu, admission_wait_seconds=600):
         with runtime.reservation(output, runtime.settings(runtime.CPU_ONLY, 1), admission_wait_seconds) as safety:
             report.update(status="BUILDING_FRESH_HARNESS", safety=safety)
             (output / "build").mkdir()
-            binary = output / "build/adapter_floor"
-            step = run_bounded(cached_core.command(ROOT, core, binary, COMPILER, "adapter_floor"), ROOT,
+            binary = output / "build" / source
+            step = run_bounded(cached_core.command(ROOT, core, binary, COMPILER, source), ROOT,
                 output / "raw/build", timeout=600, memory_gib=4, reserve_gib=8)
             report["steps"].append(step)
             save()
             if step["exit_code"] or step["timed_out"]:
                 raise ValueError("floor harness build failed")
             report["pins"].append(pin(binary))
+            if candidate:
+                test_binary = output / "build/prefetch_compact_test"
+                step = run_bounded(cached_core.command(ROOT, core, test_binary, COMPILER,
+                    "prefetch_compact_test"), ROOT, output / "raw/build-test",
+                    timeout=600, memory_gib=4, reserve_gib=8)
+                report["steps"].append(step)
+                save()
+                if step["exit_code"] or step["timed_out"]:
+                    raise ValueError("candidate synthetic test build failed")
+                report["pins"].append(pin(test_binary))
+                step = run_bounded(["taskset", "-c", str(cpu), str(test_binary)], ROOT,
+                    output / "raw/synthetic-test", timeout=600, memory_gib=4, reserve_gib=8)
+                report["steps"].append(step)
+                save()
+                if step["exit_code"] or step["timed_out"] or "PASS 16 executions" not in Path(step["stdout"]).read_text():
+                    raise ValueError("candidate synthetic finite/backpressure/window tests failed")
+                report["transport_probes"] = selected_analysis.transport_probes(Path(step["stdout"]).read_text())
+                save()
             check_pins()
             report["status"] = "RUNNING_FINITE_ADAPTER_DIAGNOSTIC"
             save()
@@ -73,19 +97,22 @@ def run(output, reference, gates, cpu, admission_wait_seconds=600):
                     print("RUN " + label, flush=True)
                     command = ["taskset", "-c", str(cpu), str(binary), str(output / "inputs/warm_update"),
                                str(latency), str(reverse), "100000000"]
+                    if candidate:
+                        command.append("1")
                     step = run_bounded(command, ROOT, output / "raw" / label,
                         timeout=600, memory_gib=4, reserve_gib=8)
                     report["steps"].append(step)
                     save()
                     if step["exit_code"] or step["timed_out"]:
                         raise ValueError("floor diagnostic failed: " + label)
-                    row = analysis.parse(Path(step["stdout"]).read_text())
+                    row = selected_analysis.parse(Path(step["stdout"]).read_text())
                     report["rows"].append(dict(latency=latency, reverse=reverse, observations=row))
                     save()
                     print("DONE " + label + " PASS", flush=True)
-            report["analysis"] = analysis.summarize(report["rows"], baseline["r_rows"])
+            report["analysis"] = selected_analysis.summarize(report["rows"], baseline["r_rows"])
             check_pins()
-            report.update(status="ADAPTER_FLOOR_DIAGNOSTIC_COMPLETE_NOT_RETENTION", pins_unchanged=True)
+            report.update(status=("PREFETCH_COMPACT_DIAGNOSTIC_COMPLETE_NOT_RETENTION" if candidate else
+                "ADAPTER_FLOOR_DIAGNOSTIC_COMPLETE_NOT_RETENTION"), pins_unchanged=True)
     except runtime.AdmissionUnavailable as error:
         report.update(status="ADMISSION_NOT_GRANTED_NO_EXECUTION", error=repr(error))
         save()

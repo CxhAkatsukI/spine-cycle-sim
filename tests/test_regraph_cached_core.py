@@ -47,6 +47,9 @@ class CachedCoreTests(unittest.TestCase):
         self.assertEqual(command[-2:], [str(core / "liboriginal_regraph_cycle.a"), str(core / "libspine_cycle_core.a")])
         floor = cached_core.command(self.root, core, Path("/output"), Path("/usr/bin/g++"), "adapter_floor")
         self.assertIn(str(self.root / "cpp/tests/evaluation_impact/adapter_floor.cpp"), floor)
+        for source in ("prefetch_compact", "prefetch_compact_test"):
+            self.assertIn(str(self.root / f"cpp/tests/evaluation_impact/{source}.cpp"),
+                          cached_core.command(self.root, core, Path("/output"), Path("/usr/bin/g++"), source))
         with self.assertRaises(ValueError):
             cached_core.command(self.root, core, Path("/output"), Path("/usr/bin/g++"), "unapproved")
 

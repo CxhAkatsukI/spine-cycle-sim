@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "PREFETCH_COMPACT_DIAGNOSTIC_COMPLETE_NOT_RETENTION",
+  "scope": "test-owned reader/compactor with diagnostic sinks, not integrated R",
+  "raw_root": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/prefetch-compact-v2",
+  "artifacts": {
+    "results.json": "8fa36eb2ab1a6b5ebba88117e9d5ff91c26f1d5d69c0f7e9be7e95709102e284",
+    "admission.json": "6f17627f3ac9593aadf3807ee14a1e7f2403d4e4f3cdd1536dfdf1a4f9a76c6b",
+    "live_memory.json": "429bf1120b2eeca942d8cd65939f82a38f4679959b73912d89d83d142e813040",
+    "raw/synthetic-test.stdout.txt": "30e932abc36fdb4e54a13a342c339c3d0ddae00e7417cb8d71fdfd3739847e61"
+  },
+  "pre_edit_source": {
+    "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/prefetch-compact-freeze/source-c531fc8.tar.gz",
+    "sha256": "91f3b1493fdf780df15e33e290fcf8d30a7a7abf6b8483be01d4973c451b6175"
+  },
+  "pre_instrumentation_source": {
+    "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/prefetch-compact-freeze/candidate-v1-worktree.tar.gz",
+    "sha256": "cf82d6fda1f37c8865886ce76afa2b5227a5e86790e86f27bdcad9b9dc3afac4"
+  },
+  "checks": {
+    "real_input_executions_passed": 4,
+    "synthetic_executions_passed": 16,
+    "transport_probe_executions_passed": 4,
+    "pins_unchanged": true,
+    "registration_order_exact": true,
+    "schema1_observations_replayed_exactly": true,
+    "physical_read_bytes_per_scan": 38696960,
+    "live_edges_per_scan": 1450899,
+    "packets_per_scan": 181464
+  },
+  "rows": [
+    {
+      "memory_latency": 64,
+      "reader_scan_cycles": 424166,
+      "reader_46_scan_floor_cycles": 19511636,
+      "original_a4_complete_cycles": 10904254,
+      "floor_over_complete_a4": 1.7893600057372105
+    },
+    {
+      "memory_latency": 128,
+      "reader_scan_cycles": 432565,
+      "reader_46_scan_floor_cycles": 19897990,
+      "original_a4_complete_cycles": 15840606,
+      "floor_over_complete_a4": 1.2561381805721321
+    }
+  ],
+  "admission": {
+    "tree_hard_bytes": 4294967296,
+    "tree_high_bytes": 3221225472,
+    "swap_hard_bytes": 0,
+    "required_bytes": 17179869184,
+    "available_bytes": 81473712128,
+    "watchdog_sampled_peak_bytes": 362975232,
+    "swap_observed_bytes": 0
+  },
+  "admitted_claims": {
+    "candidate_reader_correctness": true,
+    "integrated_r_retention": false,
+    "strict_resource_match": false,
+    "hardware_calibration": false,
+    "publication_performance_match": false,
+    "new_spine_speedup": false
+  }
+}
