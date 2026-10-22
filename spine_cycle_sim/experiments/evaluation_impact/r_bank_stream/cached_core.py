@@ -31,8 +31,8 @@ def validate(root, gates):
 
 
 def command(root, core, output, compiler, source):
-    if source not in ("convergence", "credit_control_test"):
-        raise ValueError("only the two experiment entry points may be compiled")
+    if source not in ("convergence", "credit_control_test", "adapter_floor"):
+        raise ValueError("only approved experiment entry points may be compiled")
     return [str(compiler), "-O3", "-DNDEBUG", "-std=gnu++20", "-Wall", "-Wextra", "-Wpedantic", "-Werror",
             "-I" + str(root / "cpp/include"), str(root / ("cpp/tests/evaluation_impact/" + source + ".cpp")),
             "-o", str(output), str(core / "liboriginal_regraph_cycle.a"), str(core / "libspine_cycle_core.a")]

@@ -38,13 +38,15 @@ class CachedCoreTests(unittest.TestCase):
         (self.gates / "source_before.json").write_text(json.dumps(self.snapshot))
         (self.gates / "summary.json").write_text(json.dumps(self.summary))
 
-    def test_validated_core_and_only_two_entry_points(self):
+    def test_validated_core_and_only_approved_entry_points(self):
         core, pins = cached_core.validate(self.root, self.gates)
         self.assertEqual(len(pins), 6)
         command = cached_core.command(self.root, core, Path("/output"), Path("/usr/bin/g++"), "convergence")
         self.assertIn("-O3", command)
         self.assertIn("-std=gnu++20", command)
         self.assertEqual(command[-2:], [str(core / "liboriginal_regraph_cycle.a"), str(core / "libspine_cycle_core.a")])
+        floor = cached_core.command(self.root, core, Path("/output"), Path("/usr/bin/g++"), "adapter_floor")
+        self.assertIn(str(self.root / "cpp/tests/evaluation_impact/adapter_floor.cpp"), floor)
         with self.assertRaises(ValueError):
             cached_core.command(self.root, core, Path("/output"), Path("/usr/bin/g++"), "unapproved")
 

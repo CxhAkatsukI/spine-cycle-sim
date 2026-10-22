@@ -14,6 +14,7 @@ class ReservationTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
         self.output = Path(self.directory.name)
+        self.selected = runtime.settings(runtime.memory_profiles.SEELE, 4)
         self.group = Path("/owned/cgroup")
         self.guard = {"limits": {"memory.max": str(40 * 1024**3),
                                  "memory.high": str(36 * 1024**3)}}
@@ -29,7 +30,7 @@ class ReservationTests(unittest.TestCase):
         self.sleep = self.stack.enter_context(patch.object(runtime.time, "sleep"))
 
     def test_named_full_budget_is_committed_and_released(self):
-        with runtime.reservation(self.output) as safety:
+        with runtime.reservation(self.output, self.selected) as safety:
             policy = safety["policy"]
             self.assertEqual((policy["tree_memory_gib"], policy["reserve_gib"],
                               policy["background_memory_gib"]), (40, 128, 8))
@@ -45,15 +46,15 @@ class ReservationTests(unittest.TestCase):
             with self.subTest(key=key):
                 original = self.guard["limits"][key]
                 self.guard["limits"][key] = "1"
-                with self.assertRaisesRegex(ValueError, "40/36"):
-                    with runtime.reservation(self.output):
+                with self.assertRaisesRegex(ValueError, "exact max/high"):
+                    with runtime.reservation(self.output, self.selected):
                         self.fail("invalid containment yielded")
                 self.guard["limits"][key] = original
         self.factory.assert_not_called()
 
     def test_denial_waits_without_starting_work(self):
         self.lease.sample.side_effect = [{"admitted": False}, {"admitted": True}]
-        with runtime.reservation(self.output):
+        with runtime.reservation(self.output, self.selected):
             self.assertEqual(self.lease.sample.call_count, 2)
             self.sleep.assert_called_once_with(5)
         self.lease.release.assert_called_once()
@@ -62,7 +63,7 @@ class ReservationTests(unittest.TestCase):
         self.lease.sample.return_value = {"admitted": False}
         with patch.object(runtime.time, "monotonic", side_effect=[0, 601]), \
                 self.assertRaisesRegex(TimeoutError, "admission timeout"):
-            with runtime.reservation(self.output):
+            with runtime.reservation(self.output, self.selected):
                 self.fail("denied study yielded")
         self.thread.assert_not_called()
         self.lease.release.assert_called_once()
@@ -70,13 +71,13 @@ class ReservationTests(unittest.TestCase):
     def test_failed_sampling_and_failed_work_both_release(self):
         self.lease.sample.side_effect = ValueError("peer evidence missing")
         with self.assertRaisesRegex(ValueError, "peer evidence missing"):
-            with runtime.reservation(self.output):
+            with runtime.reservation(self.output, self.selected):
                 self.fail("invalid peers yielded")
         self.lease.release.assert_called_once()
         self.lease.reset_mock(side_effect=True)
         self.lease.sample.return_value = {"admitted": True}
         with self.assertRaisesRegex(RuntimeError, "numerical failure"):
-            with runtime.reservation(self.output):
+            with runtime.reservation(self.output, self.selected):
                 raise RuntimeError("numerical failure")
         self.lease.release.assert_called_once()
 

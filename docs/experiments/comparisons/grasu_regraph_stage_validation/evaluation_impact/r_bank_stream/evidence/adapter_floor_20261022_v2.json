@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "status": "ADAPTER_FLOOR_DIAGNOSTIC_COMPLETE_NOT_RETENTION",
+  "claim": "unchanged_reader_lower_bound_not_R_or_hardware_performance",
+  "raw_root": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/adapter-floor-v2",
+  "raw_files": {
+    "results.json": "0e4b997c91ece5e1fa0b9fa739b1a80fb2f9e2691c405c5203522c3e5cee3580",
+    "admission.json": "e02881dbc18a1e358edc2e4fab9398f60714caed81c69db3b57e9d76d9afaa8c",
+    "live_memory.json": "4ac4b243ecbf3d898eefad730aed9337d94099b616a805760381f29aa343818c"
+  },
+  "reference": "cpu_core_20261022_v2.json",
+  "executions": 4,
+  "registration_order_invariant": true,
+  "pins_unchanged": true,
+  "live_edges_per_scan": 1450899,
+  "read_bytes_per_scan": 38696960,
+  "read_requests_per_scan": 3803,
+  "own_hard_limit_bytes": 4294967296,
+  "own_peak_bytes": 334254080,
+  "own_swap_bytes": 0,
+  "results_by_latency": {
+    "64": {
+      "one_scan_cycles": 526038,
+      "unchanged_reader_46_scan_floor": 24197748,
+      "strong_a4_cycles": 10904254,
+      "current_r_cycles": 32178380,
+      "floor_over_strong_a4": 2.219110816750967
+    },
+    "128": {
+      "one_scan_cycles": 949472,
+      "unchanged_reader_46_scan_floor": 43675712,
+      "strong_a4_cycles": 15840606,
+      "current_r_cycles": 57588504,
+      "floor_over_strong_a4": 2.7571995667337474
+    }
+  },
+  "retained_attempts": [
+    {
+      "path": "../adapter-floor-v1",
+      "status": "FAILED_RETAINED",
+      "reason": "diagnostic consumer clipped admitted source-0 dummy reservations using pre-admission slot extents; fixed by consuming runtime-plan extents, not by changing production",
+      "results_sha256": "8fa2234182b4c1a80612334d17720abc492995401fff1d51dfd957fc972ffa7c"
+    }
+  ],
+  "production_timing_changed": false,
+  "full_r_retention_pass": false,
+  "hardware_calibrated": false,
+  "new_spine_comparison_executed": false
+}

@@ -167,13 +167,9 @@ The shared Apply master's combined read/write credit limit is an explicit
 limitation of the existing routed profile, not a newly discovered accidental
 setting. Changing it would be a separate resource control, not a timing fix.
 
-The next candidate is a bounded live-lane compaction path: retain physical PMA
-and directory reads, charge selection/pipeline/buffering costs, preserve every
-weighted edge and source-cache window, and propagate backpressure. It needs
-an explicit variable packet-count/termination contract; silently dropping
-padding from the current fixed-packet interface is invalid. No compactor or
-performance recovery is implemented or claimed by this checkpoint. Additional
-inputs and stricter resource controls remain open.
+The bounded adapter-only diagnostic below further isolates that reading path.
+Its result rules out a downstream-only fix on this input. Additional inputs
+and stricter resource controls remain open.
 
 ```bash
 systemd-run --user --wait --pipe --collect \
@@ -197,6 +193,69 @@ required. Its older runner labels that infrastructure-only event
 `FAILED_RETAINED`; the corrected runner explicitly distinguishes admission denial.
 
 ## Ownership And Reproduction
+
+### Stall-Free Adapter Diagnostic
+
+`adapter_floor.py` builds a separate diagnostic entry point against the same
+checked numerical core. Four actual production adapters retain the current
+runtime map, physical PMA/directory reads, AXI credits, latencies and finite
+32-packet output queues. Four diagnostic sinks accept one physical packet per
+cycle without source-state, gather or Apply work. The resident R fixture only
+initializes memory; it is not registered or executed, and a zero-write/global
+read-ledger check rejects any hidden traffic from that fixture.
+
+All four latency/registration cases pass. Every emitted weighted edge equals
+the independent logical CSR, every physical slot and dummy lane is counted,
+TLAST and requests/beats close, buffers remain bounded, and the two registration
+orders agree exactly. Each scan reads **38,696,960 bytes in 3,803 requests**.
+This includes the two source-0 dummy reservations inserted by admission;
+the pre-admission census above is 128 bytes smaller. The complete service
+peaked at 334,254,080 bytes with zero swap under its 4-GiB hard limit.
+
+| Diagnostic | 64-cycle memory | 128-cycle memory |
+| --- | ---: | ---: |
+| One physical scan, stall-free sinks | 526,038 | 949,472 |
+| Same reader, 46 scans | 24,197,748 | 43,675,712 |
+| Diagnostic floor / strong A4 complete result | 2.2191 | 2.7572 |
+
+This is an **unchanged-reader diagnostic floor**, not an optimized R execution,
+a causal partition of overlapping stalls, or hardware timing calibration.
+Even without downstream backpressure the current reading path cannot meet the
+10% target here. Merely optimizing the final drain or Apply is insufficient.
+There is also a separate packet-rate constraint: worker 0 emits 359,016
+physical eight-lane packets per scan, versus about 237,049 cycles per strong
+A4 round at latency 64. A one-packet-per-cycle interface cannot recover the
+target from read concurrency alone without also addressing padding delivery.
+
+The next candidate must therefore combine justified finite read concurrency
+with bounded live-lane compaction. Keep all physical reads, pay selection and
+pipeline costs, preserve every weighted edge/source-cache window, and propagate
+backpressure. Variable packet counts and termination need an explicit contract;
+silently dropping dummy packets from the fixed-count interface is invalid.
+No new reader, compactor or recovered performance is claimed at this checkpoint.
+
+The first diagnostic attempt failed its independent CSR gate: it used the
+pre-admission slot count instead of the runtime plan's normalized extent and
+clipped three tail edges. Only the diagnostic consumer was corrected. That
+attempt remains indexed alongside the four passing executions in the
+[adapter-floor evidence capsule](evidence/adapter_floor_20261022_v2.json).
+
+```bash
+systemd-run --user --wait --pipe --collect \
+  --unit=spine-r-adapter-floor-NEW \
+  -p MemoryMax=4G -p MemoryHigh=3G -p MemorySwapMax=0 -p OOMPolicy=kill \
+  -p RuntimeMaxSec=40min -p CPUAffinity=124 \
+  -p WorkingDirectory="$PWD" \
+  python3 -m spine_cycle_sim.experiments.evaluation_impact.r_bank_stream.adapter_floor \
+  --output /data/chuxiao/experiments/r_bank_stream_comparison_20261022/adapter-floor-NEW \
+  --reference /data/chuxiao/experiments/r_bank_stream_comparison_20261022/cpu-core-matrix-v2/results.json \
+  --core-gates /data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/gates-v1 \
+  --cpu 124 --admission-wait-seconds 600
+
+python3 -m unittest tests.test_regraph_adapter_floor tests.test_regraph_cached_core -q
+```
+
+### Complete Matrix
 
 `spine_cycle_sim/experiments/evaluation_impact/r_bank_stream/` owns the study:
 `study.py` builds and executes, `analysis.py` checks the complete matrix, and
@@ -272,7 +331,7 @@ The user has deferred FPGA work. The optional
 `cpu-only-cached-core-4g-v1` profile requires `--core-gates` pointing to a
 completed passing core campaign. `cached_core.py` checks complete current
 `cpp/src` and `cpp/include` coverage and hashes, both CMake source files,
-and passing build/test records. The two small experiment entry points are
+and passing build/test records. The approved small experiment entry points are
 freshly compiled in Release mode against those libraries. Library, compiler,
 entry-point binary, input and current source hashes are pinned. The control
 test and all seven focused C++ regressions still run before the same 32-row
