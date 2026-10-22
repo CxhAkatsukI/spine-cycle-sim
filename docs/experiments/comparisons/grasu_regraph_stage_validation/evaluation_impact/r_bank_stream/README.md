@@ -167,6 +167,11 @@ The shared Apply master's combined read/write credit limit is an explicit
 limitation of the existing routed profile, not a newly discovered accidental
 setting. Changing it would be a separate resource control, not a timing fix.
 
+The later [passive wait study](prefetch_compact/OBSERVATIONS.md) replays all
+twelve compact-convergence rows exactly. It records source-consumer
+backpressure and full Apply windows without changing timing or resources;
+these observations overlap and are not an exclusive stage breakdown.
+
 The bounded adapter-only diagnostic below further isolates that reading path.
 Its result rules out a downstream-only fix on this input. Additional inputs
 and stricter resource controls remain open.

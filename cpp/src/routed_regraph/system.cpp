@@ -70,6 +70,33 @@ const std::vector<RoutedReGraphInvocation> &RoutedReGraphSystem::invocations() c
 const std::vector<RoutedReGraphRound> &RoutedReGraphSystem::rounds() const noexcept { return impl_->rounds; }
 RoutedReGraphCounters RoutedReGraphSystem::counters() const { return impl_->counters(); }
 
+RoutedReGraphObservation RoutedReGraphSystem::observation() const {
+  RoutedReGraphObservation result;
+  for (std::size_t worker = 0; worker < result.frontends.size(); ++worker) {
+    const auto& f = *impl_->frontends[worker];
+    const auto& s = f.scatter->counters();
+    const auto& g = *f.gather;
+    result.frontends[worker] = {s.packets, s.emitted, s.source_waits, s.edge_waits,
+        s.output_stalls, s.pipeline_stalls, s.request_stalls, s.source_lines,
+        g.reset_cycles(), g.merge_cycles(), g.pipeline_drain_cycles(),
+        g.output_stall_cycles(), g.conflict_cycles(), g.rows_emitted()};
+  }
+  for (const auto& source : impl_->sources) {
+    const auto& s = source->counters();
+    result.sources.push_back({s.blocks[0] + s.blocks[1], s.lines[0] + s.lines[1],
+        s.terminators[0] + s.terminators[1], s.memory_parents, s.memory_completions,
+        s.output_stalls, s.issue_stalls, s.max_pending});
+  }
+  const auto& a = *impl_->apply;
+  const auto& w = *impl_->writeback;
+  result.backend = {impl_->merger->output_stall_cycles(), a.output_stall_cycles(),
+      impl_->apply_observer->blocked_cycles(), a.pipeline_capacity_stalls(), a.write_window_stalls(),
+      w.pipeline_capacity_stalls(), w.write_window_stalls(), a.max_reads_inflight(),
+      a.max_pipeline_occupancy(), a.max_writes_inflight(), w.max_pipeline_occupancy(),
+      w.max_writes_inflight()};
+  return result;
+}
+
 std::string RoutedReGraphSystem::diagnostic() const {
   std::ostringstream out;
   out << "round=" << impl_->rounds.size() << " cycle=" << impl_->cycle()

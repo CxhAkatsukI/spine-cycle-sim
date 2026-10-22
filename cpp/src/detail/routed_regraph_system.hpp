@@ -3,6 +3,7 @@
 #include "routed_regraph_scatter.hpp"
 #include "routed_regraph_transport.hpp"
 #include "routed_regraph_input.hpp"
+#include "routed_regraph_observer.hpp"
 #include "spine_sim/routed_regraph.hpp"
 #include "spine_sim/shared_axi_port.hpp"
 
@@ -81,6 +82,7 @@ public:
   std::unique_ptr<detail::RoutedGatherMux> mux;
   std::unique_ptr<detail::ReGraphMergerEngine> merger;
   std::unique_ptr<detail::ReGraphApplyEngine> apply;
+  std::unique_ptr<detail::RoutedApplyObserver> apply_observer;
   std::unique_ptr<detail::ReGraphWritebackEngine> writeback;
   std::unique_ptr<detail::RoutedStatusWriter> status;
   std::vector<Component *> components;

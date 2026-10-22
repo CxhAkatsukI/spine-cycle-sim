@@ -9,7 +9,9 @@ passes all twelve correctness/conservation executions but fails retention.
 Neither is a replacement production profile, FPGA timing
 measurement or new Spine comparison. No HLS or paper is changed. Start with
 the [parent study](../README.md) for the unchanged R matrix and the
-[complete-convergence record](CONVERGENCE.md) for the new extension.
+[complete-convergence record](CONVERGENCE.md) for the new extension. The
+[passive wait observations](OBSERVATIONS.md) exactly replay all twelve
+convergence results; they diagnose overlapping waits, not a further speedup.
 
 ## Complete-Convergence Extension
 

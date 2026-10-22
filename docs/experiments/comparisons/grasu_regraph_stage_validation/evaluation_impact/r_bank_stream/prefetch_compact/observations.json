@@ -1,0 +1,476 @@
+{
+  "all_numerical_rows_replayed_exactly": 12,
+  "exclusive_stage_breakdown": false,
+  "hardware_timing_admitted": false,
+  "inputs": [
+    {
+      "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/wait-observation-v2/results.json",
+      "sha256": "5bc230ab0c5ce81608698fdded1191a09fa61377b1a27c3b5b306fa209ca2997"
+    },
+    {
+      "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/results.json",
+      "sha256": "d65d9849f7ceffcdfaa2c6b2b2da768080a6844c1d45ea9e2dcb6e152879a210"
+    }
+  ],
+  "observations": [
+    {
+      "arm": "bank_stream",
+      "backend_waits": [
+        {
+          "apply_max_pipeline": 29,
+          "apply_max_reads": 16,
+          "apply_max_writes": 16,
+          "apply_output_stalls": 0,
+          "apply_pipeline_stalls": 0,
+          "apply_read_stalls": 5684910,
+          "apply_write_stalls": 2423832,
+          "merger_output_stalls": 459770,
+          "writeback_max_pipeline": 9,
+          "writeback_max_writes": 10,
+          "writeback_pipeline_stalls": 0,
+          "writeback_write_stalls": 0
+        }
+      ],
+      "frontend_waits": [
+        {
+          "edge_waits": 7383322,
+          "emitted": 16514736,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 103500,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 1443112,
+          "packets": 16514736,
+          "pipeline_stalls": 1443112,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 323656,
+          "worker": 0
+        },
+        {
+          "edge_waits": 7589172,
+          "emitted": 14345192,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 3427782,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 1443112,
+          "packets": 14345192,
+          "pipeline_stalls": 1443112,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 588156,
+          "worker": 1
+        },
+        {
+          "edge_waits": 8585716,
+          "emitted": 9099812,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 9529038,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 0,
+          "packets": 9099812,
+          "pipeline_stalls": 0,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 1803936,
+          "worker": 2
+        },
+        {
+          "edge_waits": 11219216,
+          "emitted": 3796564,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 13859432,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 0,
+          "packets": 3796564,
+          "pipeline_stalls": 0,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 1768378,
+          "worker": 3
+        }
+      ],
+      "latency": 64,
+      "source_waits": [
+        {
+          "blocks": 5888,
+          "completions": 5888,
+          "issue_stalls": 0,
+          "lines": 1507328,
+          "max_pending": 1,
+          "output_stalls": 1821232,
+          "parents": 5888,
+          "service": 0,
+          "terminators": 92
+        },
+        {
+          "blocks": 5888,
+          "completions": 5888,
+          "issue_stalls": 0,
+          "lines": 1507328,
+          "max_pending": 1,
+          "output_stalls": 3202520,
+          "parents": 5888,
+          "service": 1,
+          "terminators": 92
+        }
+      ]
+    },
+    {
+      "arm": "prefetch_compact",
+      "backend_waits": [
+        {
+          "apply_max_pipeline": 29,
+          "apply_max_reads": 16,
+          "apply_max_writes": 16,
+          "apply_output_stalls": 0,
+          "apply_pipeline_stalls": 0,
+          "apply_read_stalls": 5684910,
+          "apply_write_stalls": 2423832,
+          "merger_output_stalls": 459770,
+          "writeback_max_pipeline": 9,
+          "writeback_max_writes": 10,
+          "writeback_pipeline_stalls": 0,
+          "writeback_write_stalls": 0
+        }
+      ],
+      "frontend_waits": [
+        {
+          "edge_waits": 13764902,
+          "emitted": 4877978,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 103500,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 1448816,
+          "packets": 4877978,
+          "pipeline_stalls": 1448816,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 1644960,
+          "worker": 0
+        },
+        {
+          "edge_waits": 14205628,
+          "emitted": 2133710,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 3968420,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 1448816,
+          "packets": 2133710,
+          "pipeline_stalls": 1448816,
+          "request_stalls": 0,
+          "source_lines": 751410,
+          "source_waits": 1708670,
+          "worker": 1
+        },
+        {
+          "edge_waits": 10518498,
+          "emitted": 983848,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 11531786,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 0,
+          "packets": 983848,
+          "pipeline_stalls": 0,
+          "request_stalls": 0,
+          "source_lines": 748650,
+          "source_waits": 2056200,
+          "worker": 2
+        },
+        {
+          "edge_waits": 5082862,
+          "emitted": 351808,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 17937424,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 0,
+          "packets": 351808,
+          "pipeline_stalls": 0,
+          "request_stalls": 0,
+          "source_lines": 746442,
+          "source_waits": 3343326,
+          "worker": 3
+        }
+      ],
+      "latency": 64,
+      "source_waits": [
+        {
+          "blocks": 5888,
+          "completions": 5888,
+          "issue_stalls": 0,
+          "lines": 1507328,
+          "max_pending": 1,
+          "output_stalls": 9267298,
+          "parents": 5888,
+          "service": 0,
+          "terminators": 92
+        },
+        {
+          "blocks": 5888,
+          "completions": 5888,
+          "issue_stalls": 0,
+          "lines": 1507328,
+          "max_pending": 1,
+          "output_stalls": 10999106,
+          "parents": 5888,
+          "service": 1,
+          "terminators": 92
+        }
+      ]
+    },
+    {
+      "arm": "bank_stream",
+      "backend_waits": [
+        {
+          "apply_max_pipeline": 29,
+          "apply_max_reads": 16,
+          "apply_max_writes": 16,
+          "apply_output_stalls": 0,
+          "apply_pipeline_stalls": 0,
+          "apply_read_stalls": 11753644,
+          "apply_write_stalls": 11758658,
+          "merger_output_stalls": 6471326,
+          "writeback_max_pipeline": 10,
+          "writeback_max_writes": 16,
+          "writeback_pipeline_stalls": 0,
+          "writeback_write_stalls": 0
+        }
+      ],
+      "frontend_waits": [
+        {
+          "edge_waits": 26566886,
+          "emitted": 16514736,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 1590128,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 1398768,
+          "packets": 16514736,
+          "pipeline_stalls": 1398768,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 565110,
+          "worker": 0
+        },
+        {
+          "edge_waits": 24226084,
+          "emitted": 14345192,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 9152942,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 1398768,
+          "packets": 14345192,
+          "pipeline_stalls": 1398768,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 645058,
+          "worker": 1
+        },
+        {
+          "edge_waits": 17886916,
+          "emitted": 9099812,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 23988908,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 0,
+          "packets": 9099812,
+          "pipeline_stalls": 0,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 1924824,
+          "worker": 2
+        },
+        {
+          "edge_waits": 12711870,
+          "emitted": 3796564,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 37566590,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 0,
+          "packets": 3796564,
+          "pipeline_stalls": 0,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 1957852,
+          "worker": 3
+        }
+      ],
+      "latency": 128,
+      "source_waits": [
+        {
+          "blocks": 5888,
+          "completions": 5888,
+          "issue_stalls": 0,
+          "lines": 1507328,
+          "max_pending": 1,
+          "output_stalls": 3743618,
+          "parents": 5888,
+          "service": 0,
+          "terminators": 92
+        },
+        {
+          "blocks": 5888,
+          "completions": 5888,
+          "issue_stalls": 0,
+          "lines": 1507328,
+          "max_pending": 1,
+          "output_stalls": 3489468,
+          "parents": 5888,
+          "service": 1,
+          "terminators": 92
+        }
+      ]
+    },
+    {
+      "arm": "prefetch_compact",
+      "backend_waits": [
+        {
+          "apply_max_pipeline": 29,
+          "apply_max_reads": 16,
+          "apply_max_writes": 16,
+          "apply_output_stalls": 0,
+          "apply_pipeline_stalls": 0,
+          "apply_read_stalls": 11753644,
+          "apply_write_stalls": 11758658,
+          "merger_output_stalls": 6471326,
+          "writeback_max_pipeline": 10,
+          "writeback_max_writes": 16,
+          "writeback_pipeline_stalls": 0,
+          "writeback_write_stalls": 0
+        }
+      ],
+      "frontend_waits": [
+        {
+          "edge_waits": 14204800,
+          "emitted": 4877978,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 1590128,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 1398768,
+          "packets": 4877978,
+          "pipeline_stalls": 1398768,
+          "request_stalls": 0,
+          "source_lines": 753664,
+          "source_waits": 1784662,
+          "worker": 0
+        },
+        {
+          "edge_waits": 14819636,
+          "emitted": 2133710,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 6228768,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 1398768,
+          "packets": 2133710,
+          "pipeline_stalls": 1398768,
+          "request_stalls": 0,
+          "source_lines": 751410,
+          "source_waits": 2407870,
+          "worker": 1
+        },
+        {
+          "edge_waits": 11405516,
+          "emitted": 983848,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 15148950,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 0,
+          "packets": 983848,
+          "pipeline_stalls": 0,
+          "request_stalls": 0,
+          "source_lines": 747684,
+          "source_waits": 2582854,
+          "worker": 2
+        },
+        {
+          "edge_waits": 6921804,
+          "emitted": 351808,
+          "gather_conflicts": 0,
+          "gather_drain": 368,
+          "gather_merge": 1507328,
+          "gather_output_stalls": 22012886,
+          "gather_reset": 1507328,
+          "gather_rows": 1507328,
+          "output_stalls": 0,
+          "packets": 351808,
+          "pipeline_stalls": 0,
+          "request_stalls": 0,
+          "source_lines": 746534,
+          "source_waits": 3967086,
+          "worker": 3
+        }
+      ],
+      "latency": 128,
+      "source_waits": [
+        {
+          "blocks": 5888,
+          "completions": 5888,
+          "issue_stalls": 0,
+          "lines": 1507328,
+          "max_pending": 1,
+          "output_stalls": 9476000,
+          "parents": 5888,
+          "service": 0,
+          "terminators": 92
+        },
+        {
+          "blocks": 5888,
+          "completions": 5888,
+          "issue_stalls": 0,
+          "lines": 1507328,
+          "max_pending": 1,
+          "output_stalls": 12327172,
+          "parents": 5888,
+          "service": 1,
+          "terminators": 92
+        }
+      ]
+    }
+  ],
+  "production_baseline_admitted": false,
+  "status": "PASS_PASSIVE_OBSERVATION_NOT_PERFORMANCE_ADMISSION",
+  "wait_registration_order_pairs": 4
+}

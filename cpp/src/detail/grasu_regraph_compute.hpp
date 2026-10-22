@@ -51,6 +51,7 @@ public:
   [[nodiscard]] virtual std::uint64_t output_stall_cycles() const noexcept = 0;
   [[nodiscard]] virtual std::uint64_t total_activated() const noexcept = 0;
   [[nodiscard]] virtual std::uint64_t read_window_stalls() const noexcept = 0;
+  [[nodiscard]] virtual bool read_window_blocked() const noexcept = 0;
   [[nodiscard]] virtual std::uint64_t pipeline_capacity_stalls() const noexcept = 0;
   [[nodiscard]] virtual std::uint64_t write_window_stalls() const noexcept = 0;
   [[nodiscard]] virtual std::size_t max_reads_inflight() const noexcept = 0;

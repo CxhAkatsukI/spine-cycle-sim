@@ -115,11 +115,13 @@ void RoutedReGraphSystem::Impl::build() {
   apply = make_regraph_apply("global-apply", clock, padded_vertices, policy, global, merged, applied,
       ReGraphApplyPorts{read.endpoint(), write.endpoint(), std::nullopt, std::nullopt, std::nullopt},
       *frontends[0]->scatter);
+  apply_observer = std::make_unique<RoutedApplyObserver>(clock, *apply);
   writeback = make_regraph_writeback("global-writeback", clock, global, policy, applied,
                                     primary_write.endpoint(), mirror_write.endpoint());
   status = std::make_unique<RoutedStatusWriter>("active-status", clock, status_client.endpoint(),
                                                30, config.status_address);
   components.insert(components.end(), {mux.get(), merger.get(), apply.get(), writeback.get(), status.get()});
+  components.push_back(apply_observer.get());
 }
 
 void RoutedReGraphSystem::Impl::register_components(bool reverse) {

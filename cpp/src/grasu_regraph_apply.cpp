@@ -109,6 +109,11 @@ public:
   [[nodiscard]] std::uint64_t read_window_stalls() const noexcept override {
     return read_window_stalls_;
   }
+  [[nodiscard]] bool read_window_blocked() const noexcept override {
+    return running_ && input_bursts_this_round_ < total_bursts() &&
+           input_.front() != nullptr &&
+           read_inflight_.size() >= config_.apply_request_window;
+  }
   [[nodiscard]] std::uint64_t pipeline_capacity_stalls() const noexcept override {
     return pipeline_capacity_stalls_;
   }

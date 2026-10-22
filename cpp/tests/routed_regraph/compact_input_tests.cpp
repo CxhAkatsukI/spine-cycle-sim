@@ -13,8 +13,44 @@ void check(bool value, const char* message) {
 struct Result {
   RoutedReGraphCounters counters;
   std::vector<RoutedReGraphRound> rounds;
+  RoutedReGraphObservation observation;
   bool operator==(const Result&) const = default;
 };
+
+void check_observation(const RoutedReGraphObservation& a, const RoutedReGraphObservation& b) {
+  const auto compare = [](auto x, auto y, const std::string& field) {
+    if (x != y)
+      throw std::runtime_error(field + " registration-order mismatch: " +
+                               std::to_string(x) + " vs " + std::to_string(y));
+  };
+#define CHECK_FIELD(field) compare(x.field, y.field, owner + "." #field)
+  for (std::size_t i = 0; i < a.frontends.size(); ++i) {
+    const auto& x = a.frontends[i]; const auto& y = b.frontends[i];
+    const auto owner = "frontend[" + std::to_string(i) + "]";
+    CHECK_FIELD(packets); CHECK_FIELD(emitted); CHECK_FIELD(source_waits);
+    CHECK_FIELD(edge_waits); CHECK_FIELD(output_stalls); CHECK_FIELD(pipeline_stalls);
+    CHECK_FIELD(request_stalls); CHECK_FIELD(source_lines); CHECK_FIELD(gather_reset);
+    CHECK_FIELD(gather_merge); CHECK_FIELD(gather_drain); CHECK_FIELD(gather_output_stalls);
+    CHECK_FIELD(gather_conflicts); CHECK_FIELD(gather_rows);
+  }
+  compare(a.sources.size(), b.sources.size(), "source services");
+  for (std::size_t i = 0; i < a.sources.size(); ++i) {
+    const auto& x = a.sources[i]; const auto& y = b.sources[i];
+    const auto owner = "source[" + std::to_string(i) + "]";
+    CHECK_FIELD(blocks); CHECK_FIELD(lines); CHECK_FIELD(terminators); CHECK_FIELD(parents);
+    CHECK_FIELD(completions); CHECK_FIELD(output_stalls); CHECK_FIELD(issue_stalls);
+    CHECK_FIELD(max_pending);
+  }
+  const auto& x = a.backend; const auto& y = b.backend;
+  const std::string owner = "backend";
+  CHECK_FIELD(merger_output_stalls); CHECK_FIELD(apply_output_stalls);
+  CHECK_FIELD(apply_read_stalls); CHECK_FIELD(apply_pipeline_stalls);
+  CHECK_FIELD(apply_write_stalls); CHECK_FIELD(writeback_pipeline_stalls);
+  CHECK_FIELD(writeback_write_stalls); CHECK_FIELD(apply_max_reads);
+  CHECK_FIELD(apply_max_pipeline); CHECK_FIELD(apply_max_writes);
+  CHECK_FIELD(writeback_max_pipeline); CHECK_FIELD(writeback_max_writes);
+#undef CHECK_FIELD
+}
 
 Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled) {
   const auto inf = GraphAlgorithmPolicy::kSsspInfinity;
@@ -68,6 +104,12 @@ Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled) {
   system.register_components(reverse);
   for (std::uint64_t cycle = 0; cycle < 20000000 && !system.done(); ++cycle) {
     scheduler.step(); system.advance_if_complete();
+    if (cycle % 4096 == 0) {
+      const auto counters = system.counters();
+      const auto observation = system.observation();
+      check(observation == system.observation() && counters == system.counters(),
+            "read-only observation changes live component state");
+    }
   }
   check(system.done() && !system.failed(), "compact convergence timed out or failed");
   check(system.encoded_state() == expected.back() && system.rounds().size() == expected.size(),
@@ -86,7 +128,21 @@ Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled) {
         "compact physical request, beat, dummy or byte conservation failed");
   check(system.invocations().size() == expected.size() * ((vertices + 65535) / 65536) * 2,
         "compact invocation/restart ledger differs");
-  Result result{c, system.rounds()};
+  const auto observation = system.observation();
+  check(observation.backend.apply_read_stalls <= c.end_cycle - c.start_cycle,
+        "sampled Apply read-window waits exceed execution cycles");
+  std::uint64_t packets = 0, rows = 0, lines = 0, parents = 0, completions = 0;
+  for (const auto& f : observation.frontends) {
+    packets += f.packets; rows += f.gather_rows;
+    check(f.packets == f.emitted, "observation lost scatter packet completion");
+  }
+  for (const auto& s : observation.sources) {
+    lines += s.lines; parents += s.parents; completions += s.completions;
+  }
+  check(packets == c.packets && rows == c.gather_rows && lines == c.source_lines &&
+        parents == completions && observation.sources.size() == 2,
+        "read-only observation disagrees with aggregate conservation");
+  Result result{c, system.rounds(), observation};
   system.unregister_components(); scheduler.remove_component(backend);
   check(scheduler.component_count() == 0, "compact components leaked");
   std::cout << "compact vertices=" << vertices << " empty=" << empty << " reverse=" << reverse
@@ -134,9 +190,12 @@ int main() {
     framing();
     for (const auto [vertices, empty, throttled] : {
         std::tuple{129U, false, false}, std::tuple{129U, true, true},
-        std::tuple{8193U, false, true}, std::tuple{262273U, false, false}})
-      check(execute(vertices, empty, false, throttled) == execute(vertices, empty, true, throttled),
-            "compact results depend on registration order");
+        std::tuple{8193U, false, true}, std::tuple{262273U, false, false}}) {
+      const auto forward = execute(vertices, empty, false, throttled);
+      const auto reverse = execute(vertices, empty, true, throttled);
+      check_observation(forward.observation, reverse.observation);
+      check(forward == reverse, "compact results depend on registration order");
+    }
     std::cout << "PASS: 8 compact convergence executions and terminal framing/restart/rejection\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

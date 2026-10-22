@@ -2,6 +2,7 @@
 
 #include "spine_sim/grasu_regraph.hpp"
 #include "spine_sim/regraph_pma_adapter.hpp"
+#include "spine_sim/routed_regraph_observation.hpp"
 
 namespace spine::sim {
 
@@ -87,6 +88,7 @@ public:
   [[nodiscard]] const std::vector<RoutedReGraphInvocation> &invocations() const noexcept;
   [[nodiscard]] const std::vector<RoutedReGraphRound> &rounds() const noexcept;
   [[nodiscard]] RoutedReGraphCounters counters() const;
+  [[nodiscard]] RoutedReGraphObservation observation() const;
   [[nodiscard]] std::string diagnostic() const;
 
 private:

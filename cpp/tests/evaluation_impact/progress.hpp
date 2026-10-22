@@ -4,6 +4,7 @@
 #include <filesystem>
 
 #include "spine_sim/routed_regraph.hpp"
+#include "wait_observations.hpp"
 
 namespace evaluation_impact {
 // Serialize existing completion records only after the scheduler is drained.
@@ -27,5 +28,6 @@ inline void write_progress(const spine::sim::RoutedReGraphSystem& system,
   }
   rounds.close();
   invocations.close();
+  write_wait_observations(system, directory);
 }
 }  // namespace evaluation_impact
