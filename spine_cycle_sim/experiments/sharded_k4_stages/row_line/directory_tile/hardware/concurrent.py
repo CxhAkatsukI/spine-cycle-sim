@@ -31,8 +31,10 @@ def merge(builds, leases):
 
 
 class Lease:
-    def __init__(self, directory, own, *, proc=Path("/proc"), root=Path("/sys/fs/cgroup")):
+    def __init__(self, directory, own, *, proc=Path("/proc"), root=Path("/sys/fs/cgroup"),
+                 host_swap_disabled=False):
         self.directory, self.own, self.proc, self.root = directory, own, proc, root
+        self.host_swap_disabled = host_swap_disabled
         self.path = directory / (hashlib.sha256(str(own).encode()).hexdigest() + ".json")
         self.held = False
 
@@ -69,11 +71,17 @@ class Lease:
     def sample(self, available, active, manifest, *, commit=False):
         with self.locked():
             guard = verify(self.own)
-            budgets = merge(reservations(active, self.own, proc=self.proc, root=self.root), self.peers())
+            if self.host_swap_disabled:
+                fields = dict(line.split(":", 1) for line in (self.proc / "meminfo").read_text().splitlines())
+                if fields.get("SwapTotal", "").split() != ["0", "kB"]:
+                    raise ValueError("CPU-only admission requires host SwapTotal=0")
+            budgets = merge(reservations(active, self.own, proc=self.proc, root=self.root,
+                host_swap_disabled=self.host_swap_disabled), self.peers())
             admitted = eligible(available, budgets, manifest)
             state = {"admitted": admitted, "available_bytes": available,
                      "required_bytes": required_bytes(manifest, budgets), "reservations": budgets,
-                     "cgroup": guard, "policy": "full_finite_budgets_plus_reserve_atomic_lease"}
+                     "cgroup": guard, "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+                     "host_swap_disabled_verified": self.host_swap_disabled}
             if commit and admitted:
                 amount = int(guard["limits"]["memory.max"])
                 if amount != manifest["tree_memory_gib"] * GIB:

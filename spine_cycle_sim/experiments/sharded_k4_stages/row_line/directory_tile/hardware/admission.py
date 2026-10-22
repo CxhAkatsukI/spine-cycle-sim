@@ -6,7 +6,11 @@ from .containment import GIB
 
 
 def budget(pid: int, *, proc: Path = Path("/proc"),
-           root: Path = Path("/sys/fs/cgroup")) -> tuple[Path, int]:
+           root: Path = Path("/sys/fs/cgroup"), host_swap_disabled: bool = False) -> tuple[Path, int]:
+    if host_swap_disabled:
+        fields = dict(line.split(":", 1) for line in (proc / "meminfo").read_text().splitlines())
+        if fields.get("SwapTotal", "").split() != ["0", "kB"]:
+            raise ValueError("CPU-only admission requires host SwapTotal=0")
     rows = (proc / str(pid) / "cgroup").read_text().splitlines()
     groups = [line[3:] for line in rows if line.startswith("0::/")]
     if len(groups) != 1 or ".." in Path(groups[0]).parts:
@@ -17,7 +21,8 @@ def budget(pid: int, *, proc: Path = Path("/proc"),
         limit = (directory / "memory.max").read_text().strip()
         if limit != "max":
             amount = int(limit)
-            if amount <= 0 or (directory / "memory.swap.max").read_text().strip() != "0":
+            if amount <= 0 or (not host_swap_disabled and
+                    (directory / "memory.swap.max").read_text().strip() != "0"):
                 raise ValueError("positive finite compiler limit and zero swap required")
             # Shared bounded ancestors cover their descendants only once.
             selected = directory, amount
@@ -28,13 +33,13 @@ def budget(pid: int, *, proc: Path = Path("/proc"),
 
 
 def reservations(builds: list, own: Path, *, proc: Path = Path("/proc"),
-                 root: Path = Path("/sys/fs/cgroup")) -> list:
+                 root: Path = Path("/sys/fs/cgroup"), host_swap_disabled: bool = False) -> list:
     groups = {}
     rejected = []
     for row in builds:
         pid = int(row.split()[0])
         try:
-            directory, amount = budget(pid, proc=proc, root=root)
+            directory, amount = budget(pid, proc=proc, root=root, host_swap_disabled=host_swap_disabled)
             if directory == own or directory.is_relative_to(own):
                 continue
             key = str(directory)

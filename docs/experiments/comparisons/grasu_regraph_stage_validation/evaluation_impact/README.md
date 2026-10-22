@@ -1,5 +1,9 @@
 # Baseline Validation Before Spine Comparison
 
+Current priority is **simulator only**. FPGA compilation, routing and board
+tests are deferred, not prerequisites for the next prediction diagnostics.
+They remain necessary for any eventual new measured-hardware claim.
+
 ## Acceptance Order
 
 1. **G versus original G:** identical prepared updates, initial PMA, physical
@@ -28,7 +32,7 @@ same-source controls cannot silently stand in for that claim.
 | Gate | Evidence now | Decision still open |
 | --- | --- | --- |
 | G, prepared PMA windows and complete shards | One-shard chronological runtime fails all six 64K comparisons (22.7--35.5% slower); both-table copies reduce maximum difference to 4.3618%. The new resident AU/SU/WK check passes 18 executions/54 batches; both-copy maximum difference is 0.7432%, while shared last batches still fail. Both extractions preserve the preceding 12-row lifecycle matrix exactly | Routed 64K-partition geometry, changed-reservation refresh, measured host costs, original temporal conversion, mixed hot/cold occupancy, actual HLS binding/II/clock/resource fit, original-paper timing |
-| R, fixed Amazon warm SSSP | All 28 credit/window executions pass correctness and registration invariance; twelve earlier rows replay exactly. Candidate/legacy-A4 is 1.046 / 0.969, but candidate/A4 with 16 edge/state parents is 2.949 / 3.635 | A4 has 13 masters on 9 banks; K4 has 9 masters. The resource-sensitive performance gap remains open; broader inputs, board timing and original topology A remain separate |
+| R, fixed Amazon warm SSSP | Current seven-master bank stream completes all 32 executions; 28 old observations replay exactly. Current/legacy-A4 is 1.0468 / 0.9688, but current/A4-io16 is 2.951 / 3.635. Four read-only completion runs replay exactly; final drain is below 0.1%, while overlapping frontend/backend waits remain unresolved. Correctness passes; performance retention fails | Diagnose the remaining mismatch without changing timing coefficients or weakening A4. A4 has 13 masters on 9 banks; current bank stream has 7 and fewer replicas. Bounded live-lane compaction feasibility, broader inputs and strict resource controls remain open; original topology A and hardware/publication matching are separate |
 | Physical G-to-R handoff | All 12 complete-cache executions pass high source IDs, hot/DDR edits, full preload/writeback and exact downstream convergence; 34 CTest targets, 228 old G rows and default SST regressions pass | Correctness alone cannot admit realistic batch performance; cache cost is paid once per updated shard |
 | Host/seed and complete baseline | Device windows and excluded preparation are defined explicitly | Host/seed timing and complete baseline admission are not established |
 | New Spine comparison | No replacement evaluation claimed | Requires the preceding gates and a common warm-state-to-convergence run |
@@ -65,7 +69,7 @@ scope; they are not overwritten when a later candidate improves.
 
 | Question | Guide |
 | --- | --- |
-| Does the current two-pair bank-stream R retain A4 compute performance? | [Current bank-stream convergence controls](r_bank_stream/README.md), all 28 old rows must replay before four new rows are interpreted |
+| Does the current two-pair bank-stream R retain A4 compute performance? | [Current bank-stream convergence controls](r_bank_stream/README.md), completed 32-row matrix, exact 28-row replay and retained approximately 3-times mismatch |
 | What is the current hardware execution and acceptance order? | [Hardware validation campaign](hardware_validation/README.md), separate component, routed, publication and complete-system gates |
 | What failed in the first matched G/R diagnostic? | [Initial results](RESULTS.md), [frozen evidence index](evidence/index.json) |
 | Did parallel search alone solve G? | [Parallel search](parallel_search/README.md), [hot owners](hot_lanes/README.md) |

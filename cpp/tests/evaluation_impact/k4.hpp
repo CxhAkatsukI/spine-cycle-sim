@@ -5,10 +5,12 @@
 #include "control.hpp"
 #include "k4_config.hpp"
 #include "oracle.hpp"
+#include "progress.hpp"
 
 namespace evaluation_impact {
 inline void k4(const st::Input& input, const Oracle& oracle, const std::filesystem::path& output,
-               std::uint64_t latency, bool reverse, std::uint64_t maximum, const Control& selected) {
+               std::uint64_t latency, bool reverse, std::uint64_t maximum, const Control& selected,
+               const std::filesystem::path& progress = {}) {
   using namespace spine::sim;
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("core", 150);
@@ -58,6 +60,7 @@ inline void k4(const st::Input& input, const Oracle& oracle, const std::filesyst
   std::cout << "DEMO_RESULT {\"arm\":\"" << selected.arm << "\",\"cycles\":" << cycles
             << ",\"rounds\":" << rounds << ",\"read_bytes\":" << traffic.reads.bytes
             << ",\"write_bytes\":" << traffic.writes.bytes << ",\"replicas\":3,\"passed\":true}\n";
+  if (!progress.empty()) write_progress(system, progress);
   system.unregister_components(); scheduler.remove_component(backend);
 }
 }  // namespace evaluation_impact

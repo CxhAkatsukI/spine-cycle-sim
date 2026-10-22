@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "status": "BANK_STREAM_CONVERGENCE_CONTROLS_COMPLETE_NOT_HARDWARE_ADMISSION",
+  "claim": "complete_simulator_compute_prediction_with_retained_performance_mismatch",
+  "raw_root": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/cpu-core-matrix-v2",
+  "raw_files": {
+    "results.json": "e7379ce608e0c0b34d7927fa37e15b783ead1058dda681e6c27e615e422544ff",
+    "admission.json": "e8672c191d3faa666d06cdef48fb4a1a26e80ae3cae029400542f6f413d042fb",
+    "live_memory.json": "92d5135e4bc14b928548a5bb67049c0f8426923067c79f93501ed7e57e05ee9c"
+  },
+  "boundary": "resident post-update graph plus old converged weighted-SSSP state and prepared seed to zero active; G, DMA and host excluded on all arms",
+  "graph": {"name": "Amazon_real_ID_slice", "vertices": 258046, "edges": 1450899},
+  "weight_decreases": 3,
+  "rounds": 46,
+  "clock_mhz": 150,
+  "memory_backend": "MockMemoryBackend",
+  "matrix_executions": 32,
+  "failures": 0,
+  "legacy_observations_replayed_exactly": 28,
+  "registration_order_invariant": true,
+  "pins_unchanged": true,
+  "new_focused_core_regressions_passed": 7,
+  "build_mode": "checked_cached_core_fresh_harness",
+  "memory_profile": "cpu-only-cached-core-4g-v1",
+  "own_hard_limit_bytes": 4294967296,
+  "own_peak_bytes": 1199673344,
+  "own_swap_bytes": 0,
+  "cpus": [124, 125, 126, 127],
+  "retention_gate": {"maximum_relative_difference": 0.1, "passed": false},
+  "cycles_by_latency": {
+    "64": {
+      "a4": 30740788,
+      "a4_io16": 10904254,
+      "bank_stream": 32178380,
+      "candidate": 32160486,
+      "candidate_apply2": 53168456,
+      "candidate_parents2": 77654808,
+      "candidate_both2": 77655544,
+      "cross_row": 244269384
+    },
+    "128": {
+      "a4": 59442350,
+      "a4_io16": 15840606,
+      "bank_stream": 57588504,
+      "candidate": 57582524,
+      "candidate_apply2": 96684180,
+      "candidate_parents2": 145284836,
+      "candidate_both2": 145285204,
+      "cross_row": 431605442
+    }
+  },
+  "physical_bytes_all_rounds": {
+    "a4": {"read": 802534400, "write": 192937984},
+    "bank_stream": {"read": 2021232640, "write": 144703672}
+  },
+  "final_current_state": {
+    "each_replica_bytes": 1048576,
+    "replicas": 3,
+    "each_sha256": "ff001ca203b3b7e0b4ae60b630cee6755acd2f2401fb08e1069e081562dd2c00"
+  },
+  "resources": {
+    "a4": {"frontends": 4, "masters": 13, "banks": 9, "state_replicas": 4},
+    "bank_stream": {"frontends": 4, "masters": 7, "source_services": 2, "state_replicas": 3},
+    "strict_resource_match": false
+  },
+  "retained_attempts": [
+    {"path": "../local-admission-v1", "status": "ADMISSION_NOT_GRANTED_NO_EXECUTION"},
+    {
+      "path": "../cpu-core-matrix-v1",
+      "status": "FAILED_RETAINED",
+      "reason": "120-second regression timeout before matrix execution",
+      "results_sha256": "07904a2bb361cac28fa0b88abda1e482165db55d72465f02b70206090a49d0b1"
+    }
+  ],
+  "hardware_timing_admitted": false,
+  "publication_match_admitted": false,
+  "production_baseline_admitted": false,
+  "new_spine_comparison_executed": false
+}

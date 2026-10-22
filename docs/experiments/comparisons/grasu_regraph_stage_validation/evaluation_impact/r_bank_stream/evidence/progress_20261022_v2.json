@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "status": "READ_ONLY_PROGRESS_REPLAY_EXACT",
+  "claim": "overlapping_completion_offsets_not_exclusive_stage_costs",
+  "raw_root": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/progress-v2",
+  "raw_files": {
+    "results.json": "fa1cdba70c34ad1e72e4c78399ac9825ef1b54137caa350cf4fa61bf767555e8",
+    "admission.json": "3b49bf81bbcd47140185b23529d13056f6c570d276a7c5b4b8eda7b8d698a3ca",
+    "live_memory.json": "975c4ff50a421f5220dea5681f69098926f4a4dc6c103bcfe21d33c1be90ace4"
+  },
+  "reference": "cpu_core_20261022_v2.json",
+  "matrix_executions": 4,
+  "rounds_per_execution": 46,
+  "destination_partitions": 4,
+  "reference_observations_and_state_replayed_exactly": true,
+  "registration_order_invariant": true,
+  "pins_unchanged": true,
+  "own_hard_limit_bytes": 4294967296,
+  "own_peak_bytes": 1192955904,
+  "own_swap_bytes": 0,
+  "completion_offset_cycles_by_latency": {
+    "64": {
+      "adapter_last": 25664688,
+      "compute_last": 32151562,
+      "apply_done": 32175022,
+      "writeback_done": 32178334,
+      "status_done": 32178380,
+      "end": 32178380,
+      "tail_after_frontends": 26818
+    },
+    "128": {
+      "adapter_last": 45045362,
+      "compute_last": 57540848,
+      "apply_done": 57582202,
+      "writeback_done": 57585514,
+      "status_done": 57588504,
+      "end": 57588504,
+      "tail_after_frontends": 47656
+    }
+  },
+  "worker_completion_offset_cycles_by_latency": {
+    "64": {
+      "0": {"adapter_last": 25664688, "compute_last": 27276298},
+      "1": {"adapter_last": 23965494, "compute_last": 28901386},
+      "2": {"adapter_last": 19489326, "compute_last": 30526474},
+      "3": {"adapter_last": 16784020, "compute_last": 32151562}
+    },
+    "128": {
+      "0": {"adapter_last": 45045362, "compute_last": 48143600},
+      "1": {"adapter_last": 40614964, "compute_last": 51276016},
+      "2": {"adapter_last": 28911414, "compute_last": 54408432},
+      "3": {"adapter_last": 18466148, "compute_last": 57540848}
+    }
+  },
+  "retained_attempts": [
+    {
+      "path": "../progress-v1",
+      "status": "FAILED_RETAINED",
+      "reason": "admission denied before compilation or numerical execution",
+      "results_sha256": "d9384154ed10b5e73479a8c1e994eafaee83fe56fad5ba84ad1de0d6b893192f"
+    }
+  ],
+  "exclusive_stage_attribution": false,
+  "retention_gate_passed": false,
+  "timing_model_changed": false,
+  "hardware_timing_admitted": false,
+  "new_spine_comparison_executed": false
+}

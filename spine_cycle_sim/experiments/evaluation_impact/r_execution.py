@@ -9,7 +9,7 @@ from ..upstream_controls.execution import available_memory_bytes, run_bounded
 from .analysis import MATRIX, parse_demo
 
 
-def run_case(root, output, binary, cpu, maximum, timeout, identity, reserve_gib=24):
+def run_case(root, output, binary, cpu, maximum, timeout, identity, reserve_gib=24, progress=None):
     latency, reverse, arm = identity
     label = f"r_lat{latency}_reverse{reverse}_{arm}"
     state = output / "states" / label
@@ -17,6 +17,9 @@ def run_case(root, output, binary, cpu, maximum, timeout, identity, reserve_gib=
     print("RUN " + label, flush=True)
     command = ["taskset", "-c", str(cpu), str(binary), str(output / "inputs/warm_update"),
                str(state), str(latency), str(reverse), str(maximum), arm]
+    if progress is not None:
+        progress.mkdir(parents=True, exist_ok=False)
+        command.append(str(progress))
     step = run_bounded(command, root, output / "raw" / label,
                        timeout=timeout, memory_gib=4, reserve_gib=reserve_gib)
     case = {"identity": identity, "step": step}

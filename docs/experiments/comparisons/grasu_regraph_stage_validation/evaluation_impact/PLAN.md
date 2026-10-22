@@ -2,6 +2,12 @@
 
 ## Objective
 
+Current execution scope: **simulator only**, per the user's 2026-10-22
+instruction. Defer new FPGA compilation, routing and board experiments;
+historical hardware gates below describe remaining evidence, not prerequisites
+for running the bounded simulator comparisons. A simulator demo must retain
+its prediction label even when hardware gates are deferred.
+
 Establish that the implemented GraSU update path and ReGraph computation path
 retain defensible performance relative to their independent originals before
 using their composition as a baseline against Spine. A requested 10% match is
@@ -223,8 +229,11 @@ then a passing performance-retention decision. Failure retains the gate open.
 
 ## Phase 3: Validate R Separately
 
-Status: all twelve full-convergence executions passed state/traffic gates;
-the candidate meets the 10% A4 prediction target on this fixed SSSP slice.
+Status: correctness passes, but the current path fails the 10% retention
+target against the stronger A4-io16 control. The completed 32-row local matrix
+replays all 28 preceding observations exactly. Current bank stream is
+2.951 / 3.635 times slower at 64/128-cycle memory latency. The initial
+twelve-row match used weaker legacy A4 limits and is not baseline admission.
 Broader workload, resource and publication timing admission remains open.
 
 Run original A4, unchanged cross-row K4 and bank-stream candidate on the fixed
@@ -244,8 +253,24 @@ merge/apply widths and clock: A4 and K4 are not strictly resource-identical.
 The [credit/window sensitivity study](r_credits/README.md) retains all three
 legacy arms and adds four explicit controls over both latencies and
 registration orders. Its 28-row matrix requires exact replay of the twelve
-old rows before interpreting new ratios. Numerical results remain pending;
-even equal credits would not equalize banks, replicas and source buffering.
+old rows before interpreting new ratios. The completed credit study reports
+2.949/3.635 candidate/A4-io16 at
+64/128-cycle latency, so the old candidate does not pass retention against
+that control. Equal credits do not equalize banks, replicas or source buffering.
+The separate [current bank-stream study](r_bank_stream/README.md) adds the
+seven-master production profile and requires exact replay of all 28 prior
+rows before accepting its four new observations. That gate is complete in
+the 2026-10-22 local CPU-only run; the remote final result remains unavailable.
+Strict local admission denial and the first CPU-only regression timeout are
+retained separately. The read-only frontend/Apply/writeback export now replays
+all four current rows exactly; final drain is below 0.1%. Frontend and backend
+waits still overlap, so endpoints are not additive stage or causal stall costs.
+Next assess finite live-lane compaction with explicit buffering, source-window
+flushes and variable packet termination, retaining physical PMA reads. Do not
+silently drop padded packets or remove the existing combined Apply credit
+limit: that limit is an explicit old-profile contract, not an accidental bug.
+No performance recovery follows from this diagnostic. No FPGA build or board
+test is launched in this phase.
 Compare A with A4 separately; never pretend four Little reproduces 11+3.
 Use an admitted publication case to test the original R model's timing,
 independently of the A4/B retention control.

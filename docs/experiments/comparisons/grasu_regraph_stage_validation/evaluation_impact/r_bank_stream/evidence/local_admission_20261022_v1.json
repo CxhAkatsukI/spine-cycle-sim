@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "status": "ADMISSION_NOT_GRANTED_NO_EXECUTION",
+  "claim": "execution_admission_only_not_performance_evidence",
+  "raw_root": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/local-admission-v1",
+  "raw_files": {
+    "admission.json": "9fd58a0e63e5811c36fa474c6e6e8e45c48939bdfd4a43efbd3f58f02f00e0a9",
+    "results.json": "ad24dcfc089d0e36c69ae59d96fbe8799308cadf883c6b3f7d2a16c54f475e24"
+  },
+  "profile": "local-finite-6g-v1",
+  "own_max_bytes": 6442450944,
+  "own_high_bytes": 5368709120,
+  "own_swap_max_bytes": 0,
+  "available_bytes": 57696542720,
+  "strict_peer_rejection": "positive finite compiler limit and zero swap required",
+  "rejected_compiler_pids": [1202904, 1202956, 1203805, 1203849, 1267681, 1267792, 1268079, 1268123],
+  "observed_peer_hard_limits_bytes": [34359738368, 34359738368],
+  "observed_peer_swap_allowances_bytes": [34359738368, 34359738368],
+  "hypothetical_required_bytes_if_peers_were_valid": 109521666048,
+  "build_steps": 0,
+  "matrix_rows": 0,
+  "performance_gate_evaluated": false,
+  "foreign_jobs_modified": false
+}
