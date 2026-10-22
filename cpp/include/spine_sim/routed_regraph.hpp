@@ -11,6 +11,12 @@ enum class RoutedSourceTopology {
   kTwoPairwise,
 };
 
+enum class RoutedInputPath {
+  kPhysicalSlots,
+  // Finite model candidate; no routed-hardware or timing-calibration claim.
+  kPrefetchCompactedExperimental,
+};
+
 struct RoutedReGraphConfig {
   RoutedReGraphConfig();
   GraSuReGraphConfig compute;
@@ -31,6 +37,7 @@ struct RoutedReGraphConfig {
   // Inspect, but never rewrite, the PMA/rows left by a drained G invocation.
   // State/seed initialization is still caller-prepared, outside device timing.
   bool reuse_resident_pma{};
+  RoutedInputPath input_path{RoutedInputPath::kPhysicalSlots};
 };
 
 struct RoutedReGraphInvocation {

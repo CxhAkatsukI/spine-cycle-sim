@@ -83,8 +83,8 @@ void RoutedReGraphSystem::Impl::build() {
     auto &adapter_port = port("adapter-master" + suffix, 0, config.adapter.cross_row.bank_read_beats);
     const auto source_endpoint = source_memory(worker,
         worker % 2 == 0 ? primary_write.endpoint() : mirror_write.endpoint());
-    f.adapter = std::make_unique<ReGraphPmaAdapter>("adapter" + suffix, clock,
-                                                  config.adapter, adapter_port, f.raw);
+    f.adapter = std::make_unique<RoutedPmaInput>("adapter" + suffix, clock,
+                                               config, adapter_port, f.raw);
     f.ingress = std::make_unique<RoutedStreamBridge<ReGraphPmaPacket>>(
         "ingress" + suffix, clock, f.raw, f.edges, true);
     f.request_bridge = std::make_unique<RoutedStreamBridge<ReGraphSourceCacheRequest>>(

@@ -1,0 +1,427 @@
+{
+  "schema": 1,
+  "scope": "simulator-only finite prefetch/compaction input, complete warm weighted SSSP convergence",
+  "status": "COMPACT_CONVERGENCE_COMPLETE_NOT_HARDWARE_ADMISSION",
+  "preedit_commit": "759c8bc",
+  "experiment_architecture": "RoutedInputPath::kPrefetchCompactedExperimental",
+  "comparison": {
+    "graph": "frozen Amazon real-ID slice",
+    "vertices": 258046,
+    "live_weighted_edges": 1450899,
+    "destination_shards": 4,
+    "source": "three source-0 weight decreases from old converged distances",
+    "rounds": 46,
+    "clock_mhz": 150,
+    "read_latencies_cycles": [
+      64,
+      128
+    ],
+    "registration_orders": [
+      0,
+      1
+    ],
+    "arms": [
+      "a4_io16",
+      "bank_stream",
+      "prefetch_compact"
+    ],
+    "window": "updated graph and seed resident to convergence; excludes G, host, DMA on both sides",
+    "resources": {
+      "a4_io16": {
+        "physical_masters": 13,
+        "banks": 9,
+        "state_copies": 4
+      },
+      "integrated_r": {
+        "physical_masters": 7,
+        "state_copies": 3
+      }
+    },
+    "correctness": "full final padded state in every replica plus per-round active trajectory against independent synchronous oracle; not full intermediate-state captures"
+  },
+  "gates": {
+    "comparisons": [
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 10904254,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "bank_stream": {
+            "arm": "bank_stream",
+            "cycles": 32178380,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_compact": {
+            "arm": "prefetch_compact",
+            "cycles": 28250210,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "compact_over_a4_io16": 2.590751279271374,
+        "latency": 64,
+        "within_ten_percent": false
+      },
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 15840606,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "bank_stream": {
+            "arm": "bank_stream",
+            "cycles": 57588504,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_compact": {
+            "arm": "prefetch_compact",
+            "cycles": 34809212,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "compact_over_a4_io16": 2.197467192858657,
+        "latency": 128,
+        "within_ten_percent": false
+      }
+    ],
+    "hardware_timing_admitted": false,
+    "legacy_rows_replayed_exactly": 8,
+    "new_spine_comparison_executed": false,
+    "production_baseline_admitted": false,
+    "publication_match_admitted": false,
+    "retention_pass": false,
+    "strict_resource_match_admitted": false,
+    "rows": 12,
+    "cpp_core_tests": 36,
+    "sst_default_path_regressions": 5,
+    "source_and_artifact_pins_verified_at_completion": true
+  },
+  "final_state": {
+    "bytes": 1048576,
+    "name": "replica0.u32le",
+    "sha256": "ff001ca203b3b7e0b4ae60b630cee6755acd2f2401fb08e1069e081562dd2c00"
+  },
+  "completion_offsets": [
+    {
+      "latency": 64,
+      "reverse": 0,
+      "arm": "bank_stream",
+      "analysis": {
+        "rounds": 46,
+        "partitions": 4,
+        "completion_offset_cycles": {
+          "adapter_last": 25664688,
+          "compute_last": 32151562,
+          "apply_done": 32175022,
+          "writeback_done": 32178334,
+          "status_done": 32178380,
+          "end": 32178380,
+          "tail_after_frontends": 26818
+        },
+        "completion_offset_fraction": {
+          "adapter_last": 0.7975755149886352,
+          "compute_last": 0.9991665832773433,
+          "apply_done": 0.9998956442182608,
+          "writeback_done": 0.9999985704687433,
+          "status_done": 1,
+          "end": 1,
+          "tail_after_frontends": 0.0008334167226566409
+        },
+        "worker_completion_offset_cycles": {
+          "0": {
+            "adapter_last": 25664688,
+            "compute_last": 27276298
+          },
+          "1": {
+            "adapter_last": 23965494,
+            "compute_last": 28901386
+          },
+          "2": {
+            "adapter_last": 19489326,
+            "compute_last": 30526474
+          },
+          "3": {
+            "adapter_last": 16784020,
+            "compute_last": 32151562
+          }
+        },
+        "interpretation": "overlapping completion offsets, not exclusive stage attribution or stall causes"
+      }
+    },
+    {
+      "latency": 64,
+      "reverse": 0,
+      "arm": "prefetch_compact",
+      "analysis": {
+        "rounds": 46,
+        "partitions": 4,
+        "completion_offset_cycles": {
+          "adapter_last": 21736518,
+          "compute_last": 28223392,
+          "apply_done": 28246852,
+          "writeback_done": 28250164,
+          "status_done": 28250210,
+          "end": 28250210,
+          "tail_after_frontends": 26818
+        },
+        "completion_offset_fraction": {
+          "adapter_last": 0.7694285458408981,
+          "compute_last": 0.99905069732225,
+          "apply_done": 0.9998811336269713,
+          "writeback_done": 0.9999983716935201,
+          "status_done": 1,
+          "end": 1,
+          "tail_after_frontends": 0.0009493026777500061
+        },
+        "worker_completion_offset_cycles": {
+          "0": {
+            "adapter_last": 21736518,
+            "compute_last": 23348128
+          },
+          "1": {
+            "adapter_last": 19496686,
+            "compute_last": 24973216
+          },
+          "2": {
+            "adapter_last": 13558408,
+            "compute_last": 26598304
+          },
+          "3": {
+            "adapter_last": 8777858,
+            "compute_last": 28223392
+          }
+        },
+        "interpretation": "overlapping completion offsets, not exclusive stage attribution or stall causes"
+      }
+    },
+    {
+      "latency": 128,
+      "reverse": 0,
+      "arm": "bank_stream",
+      "analysis": {
+        "rounds": 46,
+        "partitions": 4,
+        "completion_offset_cycles": {
+          "adapter_last": 45045362,
+          "compute_last": 57540848,
+          "apply_done": 57582202,
+          "writeback_done": 57585514,
+          "status_done": 57588504,
+          "end": 57588504,
+          "tail_after_frontends": 47656
+        },
+        "completion_offset_fraction": {
+          "adapter_last": 0.7821936475377099,
+          "compute_last": 0.9991724737284372,
+          "apply_done": 0.9998905684370617,
+          "writeback_done": 0.9999480799153943,
+          "status_done": 1,
+          "end": 1,
+          "tail_after_frontends": 0.0008275262715628105
+        },
+        "worker_completion_offset_cycles": {
+          "0": {
+            "adapter_last": 45045362,
+            "compute_last": 48143600
+          },
+          "1": {
+            "adapter_last": 40614964,
+            "compute_last": 51276016
+          },
+          "2": {
+            "adapter_last": 28911414,
+            "compute_last": 54408432
+          },
+          "3": {
+            "adapter_last": 18466148,
+            "compute_last": 57540848
+          }
+        },
+        "interpretation": "overlapping completion offsets, not exclusive stage attribution or stall causes"
+      }
+    },
+    {
+      "latency": 128,
+      "reverse": 0,
+      "arm": "prefetch_compact",
+      "analysis": {
+        "rounds": 46,
+        "partitions": 4,
+        "completion_offset_cycles": {
+          "adapter_last": 22266070,
+          "compute_last": 34761556,
+          "apply_done": 34802910,
+          "writeback_done": 34806222,
+          "status_done": 34809212,
+          "end": 34809212,
+          "tail_after_frontends": 47656
+        },
+        "completion_offset_fraction": {
+          "adapter_last": 0.6396602715396142,
+          "compute_last": 0.9986309371208978,
+          "apply_done": 0.9998189559706206,
+          "writeback_done": 0.9999141031977398,
+          "status_done": 1,
+          "end": 1,
+          "tail_after_frontends": 0.001369062879102233
+        },
+        "worker_completion_offset_cycles": {
+          "0": {
+            "adapter_last": 22266070,
+            "compute_last": 25364308
+          },
+          "1": {
+            "adapter_last": 20759846,
+            "compute_last": 28496724
+          },
+          "2": {
+            "adapter_last": 14972080,
+            "compute_last": 31629140
+          },
+          "3": {
+            "adapter_last": 11240560,
+            "compute_last": 34761556
+          }
+        },
+        "interpretation": "overlapping completion offsets, not exclusive stage attribution or stall causes"
+      }
+    }
+  ],
+  "safety": {
+    "cgroup": {
+      "limits": {
+        "memory.high": "19327352832",
+        "memory.max": "21474836480",
+        "memory.oom.group": "1",
+        "memory.swap.max": "0"
+      },
+      "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-r-compact-convergence-20261022-v2.service"
+    },
+    "policy": {
+      "allow_bounded_builds": true,
+      "background_memory_gib": 8,
+      "reserve_gib": 24,
+      "tree_memory_gib": 20
+    },
+    "profile": "local-finite-20g-v1",
+    "cgroup_peak_bytes": 1227538432,
+    "swap_peak_bytes": 0,
+    "wall_seconds": 1190.565,
+    "cpu_assignment": "case index modulo declared CPUs; no exclusive-core host timing claim"
+  },
+  "artifacts": {
+    "results.json": {
+      "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/results.json",
+      "sha256": "d65d9849f7ceffcdfaa2c6b2b2da768080a6844c1d45ea9e2dcb6e152879a210"
+    },
+    "admission.json": {
+      "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/admission.json",
+      "sha256": "2896aa5b5820ffd8d6fbbe0093a415cc27e5682235bbea7f155e12ce9cb35314"
+    },
+    "live_memory.json": {
+      "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/live_memory.json",
+      "sha256": "943ed210512603308cb9344e5df3333fcf74ba7a193af191c43cfba2bb104e00"
+    },
+    "sources.tar.gz": {
+      "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/sources.tar.gz",
+      "sha256": "a6fc03088fe1ddb0670c26f37e5f529e7064bf6e4921089b185fe464b38aed1e"
+    },
+    "build_pins": [
+      {
+        "bytes": 16992105,
+        "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/sources.tar.gz",
+        "sha256": "a6fc03088fe1ddb0670c26f37e5f529e7064bf6e4921089b185fe464b38aed1e"
+      },
+      {
+        "bytes": 15428,
+        "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/build/CMakeCache.txt",
+        "sha256": "cdb621822c9b5b493351100cee55006697b34e7242e3486b0f5dc46bf17c586d"
+      },
+      {
+        "bytes": 89064,
+        "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/build/compile_commands.json",
+        "sha256": "7baf9724f4d190921c330f36b60a7adfb6aa6f7197b08b8b18f48027137d1019"
+      },
+      {
+        "bytes": 1263448,
+        "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/build/regraph_convergence_demo",
+        "sha256": "0a7b8cad1accdf364e2d9eb70f95b4e278b7687b24caa3e7729f2f071fbbe3b2"
+      },
+      {
+        "bytes": 4363372,
+        "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/build/simulator/cpp/libspine_cycle_core.a",
+        "sha256": "2f4c20d82c4a110f0492671250539c5cc2260ff366645901342ac4ad4e16561b"
+      },
+      {
+        "bytes": 571348,
+        "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v2/build/simulator/cpp/liboriginal_regraph_cycle.a",
+        "sha256": "7a6ead77c42a1ec787578d6f77f50e1a08136bc694b9a1e0b1502a37b97ce02c"
+      }
+    ]
+  },
+  "retained_attempt": {
+    "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-convergence-v1/results.json",
+    "status": "FAILED_RETAINED",
+    "reason": "intentionally interrupted after summary-only cross-architecture filename/count comparison error; 36 core tests and four numerical rows completed; no raw rewrite"
+  },
+  "reference": {
+    "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/cpu-core-matrix-v2/results.json",
+    "sha256": "e7379ce608e0c0b34d7927fa37e15b783ead1058dda681e6c27e615e422544ff",
+    "rows": 32
+  },
+  "source_before_edit": {
+    "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/prefetch-compact-freeze/source-759c8bc.tar.gz",
+    "sha256": "0aefec04822f8fb57f42ec94f2cef53948223f6db123293ed0cb8a4932a9446f"
+  },
+  "compiler": {
+    "path": "/usr/bin/g++",
+    "version": "GCC 15.2.0",
+    "sha256": "a7042ba0877cf13e2b03a4bc172db6ba961b189c493a73407cbedd3f6b9110db",
+    "build_type": "Release -O3 -DNDEBUG"
+  },
+  "sst": {
+    "status": "PASS_SST_COMPATIBILITY_NOT_TIMING_ADMISSION",
+    "plugin": {
+      "bytes": 3847904,
+      "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-sst-v1/plugin/libspine_cycle.so",
+      "sha256": "75450859765a748b812329c58942baa388bd04191809b8bd84317e612d44242f"
+    },
+    "artifacts": {
+      "results.json": {
+        "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-sst-v1/results.json",
+        "sha256": "8e728251c6e199a00ea16b294a2bea49f96b7698e3ebc152b4d0cb2d7c0bcfbb"
+      },
+      "legacy/equivalence.json": {
+        "path": "/data/chuxiao/experiments/r_bank_stream_comparison_20261022/compact-sst-v1/legacy/equivalence.json",
+        "sha256": "808f629b598c0e5afcd5a4d65d1745cecb00d99817dfc2ce75a1efee061edaf3"
+      }
+    },
+    "claim": "fresh default-path compatibility, not candidate timing calibration"
+  }
+}

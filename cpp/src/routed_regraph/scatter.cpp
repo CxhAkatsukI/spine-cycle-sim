@@ -113,11 +113,15 @@ void RoutedScatter::evaluate(const CycleContext &context) {
     if (pipeline_.size() == timing_.capacity || context.domain_cycle < next_issue_) {
       ++counters_.pipeline_stalls; return;
     }
-    if (next_.edge.last != (next_.accepted + 1 == partition_.physical_slots / 8))
+    const auto at_bound = next_.accepted + 1 == partition_.physical_slots / 8;
+    if ((!partition_.terminal_framed && next_.edge.last != at_bound) ||
+        (partition_.terminal_framed && (next_.accepted >= partition_.physical_slots / 8 ||
+                                      (at_bound && !next_.edge.last))))
       throw std::logic_error("routed adapter TLAST disagrees with declared packet count");
     accepted_ = Entry{context.domain_cycle + timing_.latency, map_sources()};
     ++next_.accepted;
-    next_.phase = next_.accepted == partition_.physical_slots / 8 ? Phase::kEndRequest : Phase::kRequest;
+    next_.terminal_accepted = next_.edge.last;
+    next_.phase = next_.edge.last ? Phase::kEndRequest : Phase::kRequest;
     return;
   }
   if (next_.phase == Phase::kEndRequest) {
@@ -150,7 +154,7 @@ void RoutedScatter::commit(const CycleContext &context) {
     next_issue_ = context.domain_cycle + timing_.initiation_interval;
   }
   control_ = next_;
-  if (!stream_done_ && control_.phase != Phase::kIdle && control_.emitted == partition_.physical_slots / 8) {
+  if (!stream_done_ && control_.terminal_accepted && control_.emitted == control_.accepted) {
     stream_done_ = true;
     notify_done();
   }

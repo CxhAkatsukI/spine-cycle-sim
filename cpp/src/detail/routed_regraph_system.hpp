@@ -2,6 +2,7 @@
 
 #include "routed_regraph_scatter.hpp"
 #include "routed_regraph_transport.hpp"
+#include "routed_regraph_input.hpp"
 #include "spine_sim/routed_regraph.hpp"
 #include "spine_sim/shared_axi_port.hpp"
 
@@ -47,7 +48,7 @@ public:
     std::unique_ptr<detail::RoutedStreamBridge<ReGraphPmaPacket>> ingress;
     std::unique_ptr<detail::RoutedStreamBridge<detail::ReGraphSourceCacheRequest>> request_bridge;
     std::unique_ptr<detail::RoutedStreamBridge<detail::ReGraphSourceCacheResponse>> response_bridge;
-    std::unique_ptr<ReGraphPmaAdapter> adapter;
+    std::unique_ptr<detail::RoutedPmaInput> adapter;
     std::unique_ptr<detail::RoutedScatter> scatter;
     detail::RoutedSourceService *source{};
     std::unique_ptr<detail::ReGraphGatherEngine> gather;

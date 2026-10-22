@@ -35,6 +35,7 @@ add_library(spine_cycle_core STATIC
   src/routed_regraph/source_topology.cpp
   src/routed_regraph/profile.cpp
   src/routed_regraph/scatter.cpp
+  src/routed_regraph/input.cpp
   src/routed_regraph/transport.cpp
   src/routed_regraph/admission.cpp
   src/routed_regraph/resident_memory.cpp
@@ -150,6 +151,11 @@ if(BUILD_TESTING)
   target_link_libraries(routed_regraph_system_tests PRIVATE spine_cycle_core)
   target_compile_options(routed_regraph_system_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME routed_regraph_system_tests COMMAND routed_regraph_system_tests)
+
+  add_executable(routed_compact_input_tests tests/routed_regraph/compact_input_tests.cpp)
+  target_link_libraries(routed_compact_input_tests PRIVATE spine_cycle_core)
+  target_compile_options(routed_compact_input_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME routed_compact_input_tests COMMAND routed_compact_input_tests)
 
   add_executable(grasu_routed_handoff_tests tests/evaluation_impact/handoff/tests.cpp)
   target_link_libraries(grasu_routed_handoff_tests PRIVATE spine_cycle_core)

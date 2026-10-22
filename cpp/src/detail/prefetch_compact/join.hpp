@@ -1,6 +1,6 @@
 #pragma once
 
-namespace evaluation_impact::prefetch_compact {
+namespace spine::sim::detail::prefetch_compact {
 inline void Reader::prepare_join(const CycleContext& context) {
   next_source_ = source_;
   skipped_ = 0;
@@ -113,4 +113,4 @@ inline void Reader::commit(const CycleContext& context) {
     stats_.max_bank_lines = std::max(stats_.max_bank_lines, occupied);
   }
 }
-}  // namespace evaluation_impact::prefetch_compact
+}  // namespace spine::sim::detail::prefetch_compact

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace evaluation_impact::prefetch_compact {
+namespace spine::sim::detail::prefetch_compact {
 inline std::size_t Reader::outstanding_directory() const {
   return std::count_if(pending_.begin(), pending_.end(), [](const auto& item) {
     return item.second.kind == Kind::kDirectory;
@@ -53,10 +53,12 @@ inline void Reader::accept_beat(const AxiReadBeatResponse& beat, std::uint64_t c
       beat.last == (request.received + 1 == request.count), "candidate beat/order mismatch");
   const auto index = request.first + request.received;
   if (request.kind == Kind::kExtent) {
+    ++stats_.extent_beats;
     total_ = word(beat.read_data, ((partition_.vertices - 1) * 8) & 63U);
     check(total_ == partition_.slots && total_ % 16 == 0, "candidate normalized extent mismatch");
     extent_ = true;
   } else if (request.kind == Kind::kDirectory) {
+    ++stats_.directory_beats;
     check(index < 128 && !directory_valid_[index], "candidate directory overwrite");
     for (unsigned lane = 0; lane < 8 && index * 8 + lane < 1024; ++lane)
       directory_[index * 8 + lane] = word(beat.read_data, lane * 8) |
@@ -64,6 +66,7 @@ inline void Reader::accept_beat(const AxiReadBeatResponse& beat, std::uint64_t c
     directory_valid_[index] = true;
     directory_ready_[index] = cycle + 3;
   } else {
+    ++stats_.pma_beats;
     auto& line = banks_[request.parity][index % 256];
     check(line.reserved && !line.ready, "candidate bank ring overwrite");
     for (unsigned lane = 0; lane < 16; ++lane) line.words[lane] = word(beat.read_data, lane * 4);
@@ -72,4 +75,4 @@ inline void Reader::accept_beat(const AxiReadBeatResponse& beat, std::uint64_t c
   ++request.received;
   ++stats_.beats;
 }
-}  // namespace evaluation_impact::prefetch_compact
+}  // namespace spine::sim::detail::prefetch_compact

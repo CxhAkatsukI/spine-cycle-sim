@@ -3,10 +3,46 @@
 ## Decision
 
 Simulator only. Correctness, conservation and finite-storage checks pass;
-**complete R performance retention has not passed**. This is a test-owned
-reader/compactor candidate with stall-free sinks, not a replacement production
-profile, FPGA timing measurement or new Spine comparison. No HLS or paper is
-changed. Start with the [parent study](../README.md) for the complete R matrix.
+**complete R performance retention has not passed**. The reader/compactor was
+first tested with stall-free sinks; a default-off complete-R extension now
+passes all twelve correctness/conservation executions but fails retention.
+Neither is a replacement production profile, FPGA timing
+measurement or new Spine comparison. No HLS or paper is changed. Start with
+the [parent study](../README.md) for the unchanged R matrix and the
+[complete-convergence record](CONVERGENCE.md) for the new extension.
+
+## Complete-Convergence Extension
+
+The explicit `RoutedInputPath::kPrefetchCompactedExperimental` selection now
+connects this reader and compactor to the existing Scatter, source service,
+Gather, shared Apply, writeback and round barriers. The physical-slot path
+remains the default. A private input owner holds the finite segment FIFO;
+the reusable candidate is owned by `cpp/src/detail/prefetch_compact/`, not
+duplicated in the diagnostic harness.
+
+Compaction changes packet counts, not physical reads. Ingress and Scatter
+therefore stop at TLAST with the physical packet count as a hard upper bound.
+Ingress must not consume the next queued partition. Scatter must drain every
+accepted packet before terminating. The complete round still waits for AXI,
+state replicas, status and the existing downstream barriers. This experimental
+selection currently admits positive weighted SSSP only; unsupported zero-weight
+inputs and insufficient parent capacity are rejected explicitly.
+
+`prefetch_convergence.py` declares twelve executions: strong original A4,
+unchanged bank stream and compact-input R, at both memory latencies and both
+registration orders. Eight legacy results must exactly replay the frozen
+32-row matrix. The candidate must match all final state replicas and every
+round's active count. Fresh core regression includes empty input, throttling,
+source-cache window crossings, more than four destination partitions and
+terminal-marker restart/rejection checks. No memory timing coefficient changes.
+
+The complete integrated cases take 28,250,210 / 34,809,212 cycles, versus
+A4's 10,904,254 / 15,840,606: **2.591 / 2.197 times** A4. All twelve rows pass
+correctness, eight old rows replay exactly and fresh core/SST gates pass.
+This is not a retention pass. The complete matrix and acceptance status are
+tracked in the convergence record and its [evidence index](convergence.json). Raw
+attempts remain separate; the older diagnostic below is unchanged and is
+not a complete-R measurement.
 
 The workload remains the frozen Amazon real-ID slice: 258,046 vertices,
 1,450,899 weighted edges and four destination shards. The reference starts
@@ -91,7 +127,11 @@ retain finite credits, fairness, order independence and request conservation,
 and must be applied to/retested on **both A4 and candidate R**. A4's 13 masters
 on nine banks versus the current R's seven masters remain a resource difference.
 
-## Remaining Gates
+## Diagnostic Checkpoint Gates
+
+The following list records the gates at the diagnostic-only checkpoint.
+The extension above implements and passes the first three correctness and
+compatibility gates, but the complete performance-retention gate still fails.
 
 1. Define variable-packet end-marker handling through ingress, Scatter,
    Gather and round barriers. The production interface currently expects a
@@ -99,7 +139,8 @@ on nine banks versus the current R's seven masters remain a resource difference.
 2. Integrate an explicit candidate configuration and rerun full state,
    replica, active-trajectory and physical-traffic checks to convergence.
 3. If production numerical code changes, freshly build/test core and SST in
-   new directories and replay legacy evidence. This diagnostic changes none.
+   new directories and replay legacy evidence. The extension does so; the
+   original diagnostic did not change production numerical code.
 4. Retest A4 alongside any shared transport-model change. Keep both memory
    latencies and registration orders, then broaden input/resource controls.
 5. Only then use an admitted baseline for the common warm-state Spine demo.

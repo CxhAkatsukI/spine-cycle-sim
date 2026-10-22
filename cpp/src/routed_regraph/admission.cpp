@@ -17,6 +17,14 @@ RoutedReGraphConfig::RoutedReGraphConfig() {
 
 void RoutedReGraphSystem::Impl::admit() {
   const auto &c = config.compute;
+  if (config.input_path != RoutedInputPath::kPhysicalSlots &&
+      config.input_path != RoutedInputPath::kPrefetchCompactedExperimental)
+    throw std::invalid_argument("unsupported routed input path");
+  const bool compact = config.input_path == RoutedInputPath::kPrefetchCompactedExperimental;
+  if (compact && (!config.adapter.cross_row.bank_read_beats ||
+                  !config.adapter.read_pipeline_cycles || c.max_pending_requests < 16 ||
+                  c.max_outstanding_bursts < 16))
+    throw std::invalid_argument("experimental prefetch input requires streaming beats and sixteen parent slots");
   if (config.source_topology != RoutedSourceTopology::kFourDedicated &&
       config.source_topology != RoutedSourceTopology::kTwoPairwise)
     throw std::invalid_argument("unsupported routed source-reader topology");
@@ -91,6 +99,8 @@ void RoutedReGraphSystem::Impl::admit() {
         if ((word & 0x7ffffU) >= part.destination_vertices)
           throw std::invalid_argument("PMA live destination is outside its logical shard");
         largest_weight = std::max(largest_weight, std::uint64_t((word >> 19) & 0xfffU));
+        if (compact && ((word >> 19) & 0xfffU) == 0)
+          throw std::invalid_argument("experimental compact input currently admits positive weights only");
       }
 
     // The routed host reserves a real all-dummy source-0 segment even if that

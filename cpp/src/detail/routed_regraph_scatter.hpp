@@ -15,6 +15,7 @@ struct RoutedScatterTiming {
 struct RoutedScatterPartition {
   std::size_t physical_slots{}, destination_base{}, destination_vertices{};
   AlgorithmIterationContext iteration{};
+  bool terminal_framed{};
 };
 
 struct RoutedScatterCounters {
@@ -46,7 +47,7 @@ private:
   struct Control {
     Phase phase{Phase::kIdle};
     std::size_t request_round{}, last_request{}, read_round{}, write_round{}, accepted{}, emitted{};
-    bool waiting{};
+    bool waiting{}, terminal_accepted{};
     ReGraphPmaPacket edge;
   };
   struct Entry { std::uint64_t ready; PmaEdgeBatch batch; };

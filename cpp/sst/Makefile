@@ -79,6 +79,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/routed_regraph/source_topology.cpp \
            $(ROOT)/cpp/src/routed_regraph/profile.cpp \
            $(ROOT)/cpp/src/routed_regraph/scatter.cpp \
+           $(ROOT)/cpp/src/routed_regraph/input.cpp \
            $(ROOT)/cpp/src/routed_regraph/transport.cpp \
            $(ROOT)/cpp/src/routed_regraph/admission.cpp \
            $(ROOT)/cpp/src/routed_regraph/resident_memory.cpp \
@@ -99,6 +100,7 @@ HEADERS := $(wildcard $(ROOT)/cpp/include/spine_sim/*.hpp) $(wildcard *.hpp) \
            $(wildcard $(ROOT)/cpp/include/spine_sim/grasu_update/*.hpp) \
            $(wildcard $(ROOT)/cpp/src/grasu_update/finite_search/*.hpp) \
            $(wildcard $(ROOT)/cpp/src/detail/*.hpp) \
+           $(wildcard $(ROOT)/cpp/src/detail/prefetch_compact/*.hpp) \
            $(wildcard $(ROOT)/cpp/src/regraph_pma_cross_row/*.hpp)
 
 .PHONY: all clean native pgo-generate pgo-use pgo-native-generate \

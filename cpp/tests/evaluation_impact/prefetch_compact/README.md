@@ -1,19 +1,23 @@
 # Finite Prefetch And Compaction Candidate
 
-This test-owned architecture is deliberately separate from the production
-`ReGraphPmaAdapter`, routed profiles and SST plugin. It is a hypothesis under
-test, not hardware-calibrated performance or a completed integrated-R result.
+The finite reader/compactor is owned by the C++ core and shared by the
+standalone diagnostic and a default-off complete-R experiment. The legacy
+`ReGraphPmaAdapter` and default profiles are unchanged. Complete convergence
+passes correctness, not performance retention or hardware timing calibration.
 
 | Owner | Responsibility |
 | --- | --- |
-| `reader.hpp` | Resource contract, state and component interface |
-| `requests.hpp` | Shared-master arbitration, reservations and actual AXI returns |
-| `join.hpp` | Banked metadata selection and bounded segment pipeline |
-| `compactor.hpp` | Stable live-lane packing within one source-cache window |
+| `cpp/src/detail/prefetch_compact/reader.hpp` | Resource contract, state and component interface |
+| `cpp/src/detail/prefetch_compact/requests.hpp` | Shared-master arbitration, reservations and actual AXI returns |
+| `cpp/src/detail/prefetch_compact/join.hpp` | Banked metadata selection and bounded segment pipeline |
+| `cpp/src/detail/prefetch_compact/compactor.hpp` | Stable live-lane packing within one source-cache window |
+| Local `reader.hpp`, `compactor.hpp` | Thin diagnostic aliases of the core owners; no duplicated implementation |
+| `cpp/src/routed_regraph/input.cpp` | Private legacy/experimental input owner and finite FIFO lifecycle |
 | `sink.hpp` | Throttled diagnostic consumer and packet/window ABI checks |
 | `transport_probe.hpp` | Single-initiator beat-issue probe, with exact payload and arbitration ledgers |
 | `../prefetch_compact_test.cpp` | Synthetic correctness, ring wrap and backpressure |
 | `../prefetch_compact.cpp` | Frozen real-input diagnostic, independent weighted CSR gate |
+| `cpp/tests/routed_regraph/compact_input_tests.cpp` | Complete-R empty, throttled, multipart, source-window and TLAST bounds |
 
 ## Explicit Architecture
 
@@ -39,10 +43,24 @@ validated as well as the progressive beats; it is not an uncounted data path.
 The reader stops issuing trailing directory tiles once all physical slots
 are consumed, then drains already-issued reads before reporting completion.
 
-The variable packet count is intentionally not wired to production R's
-fixed-count ingress/scatter. Promotion needs a separate end-marker contract,
-fresh core/SST gates and complete convergence controls. Faster diagnostic
-reads alone cannot admit the baseline or authorize replacing figures.
+The explicit `RoutedInputPath::kPrefetchCompactedExperimental` selection
+connects to the real Scatter/source/Gather/Apply/writeback path. Ingress and
+Scatter stop at TLAST, bounded by the physical packet count, and never eat
+the next partition. Legacy fixed-count operation remains the default. The
+candidate requires positive weighted SSSP and sufficient finite parent credits;
+unsupported configurations are rejected rather than silently approximated.
+
+All 36 fresh Release core tests pass, as do twelve full-convergence controls
+and eight exact old-row replays. The fresh SST plugin reproduces all five
+default-path regressions; the experimental selection is not exposed through
+SST. It remains 2.591 / 2.197 times strong A4 in the declared case, so neither
+correctness nor faster diagnostic reads admit a replacement baseline.
+See the [complete-convergence record](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/CONVERGENCE.md).
+
+Reader counters include accepted physical extent, directory and PMA beats.
+`max_buffered_segments` is a conservative reservation-capacity bound derived
+from both PMA rings, not a measured simultaneous queue occupancy. It is not
+used to alter timing.
 
 ## Transport Observation
 

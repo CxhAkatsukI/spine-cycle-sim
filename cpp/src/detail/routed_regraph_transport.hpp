@@ -16,7 +16,14 @@ public:
       : Component(std::move(name), clock), input_(input), output_(output), counted_(counted) {}
   void start(std::size_t count) {
     if (!counted_ || !done() || !count) throw std::logic_error("invalid counted ingress restart");
+    terminal_framed_ = false;
     remaining_ = count;
+  }
+  void start_until_last(std::size_t maximum) {
+    if constexpr (requires(T value) { value.last; }) {
+      start(maximum);
+      terminal_framed_ = true;
+    } else throw std::logic_error("terminal ingress requires a packet marker");
   }
   [[nodiscard]] bool done() const noexcept { return remaining_ == 0 && !held_; }
   void evaluate(const CycleContext &) override {
@@ -31,12 +38,20 @@ public:
     if (retired_) held_.reset();
     if (accepted_) {
       held_ = std::move(accepted_);
-      if (counted_) --remaining_;
+      if (counted_) {
+        --remaining_;
+        if constexpr (requires(T value) { value.last; }) {
+          if (terminal_framed_) {
+            if (held_->last) remaining_ = 0;
+            else if (!remaining_) throw std::logic_error("terminal ingress exceeded physical packet bound");
+          }
+        }
+      }
     }
   }
 private:
   Fifo<T> &input_, &output_;
-  bool counted_{}, retired_{};
+  bool counted_{}, retired_{}, terminal_framed_{};
   std::size_t remaining_{};
   std::optional<T> held_, accepted_;
 };

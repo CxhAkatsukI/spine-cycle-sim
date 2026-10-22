@@ -30,6 +30,8 @@ inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected)
   }
   config.compute.max_pending_requests = selected.k4_parents;
   config.compute.apply_request_window = selected.k4_apply_window;
+  if (selected.prefetch_compact)
+    config.input_path = RoutedInputPath::kPrefetchCompactedExperimental;
   return config;
 }
 }  // namespace evaluation_impact

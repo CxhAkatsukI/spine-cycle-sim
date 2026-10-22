@@ -13,8 +13,9 @@ from ...sharded_k4_stages.row_line.directory_tile.hardware.containment import cu
 
 
 LOCAL = "local-finite-6g-v1"
+LOCAL_PARALLEL = "local-finite-20g-v1"
 CPU_ONLY = "cpu-only-cached-core-4g-v1"
-PROFILES = (memory_profiles.SEELE, LOCAL, CPU_ONLY)
+PROFILES = (memory_profiles.SEELE, LOCAL, LOCAL_PARALLEL, CPU_ONLY)
 
 
 class AdmissionUnavailable(TimeoutError):
@@ -40,6 +41,11 @@ def settings(profile, workers):
         if workers != 1:
             raise ValueError("local profile requires one worker")
         return {"profile": profile, "high_gib": 5, "policy": dict(tree_memory_gib=6,
+            reserve_gib=24, background_memory_gib=8, allow_bounded_builds=True)}
+    if profile == LOCAL_PARALLEL:
+        if not 2 <= workers <= 4:
+            raise ValueError("parallel local profile requires two to four workers")
+        return {"profile": profile, "high_gib": 18, "policy": dict(tree_memory_gib=20,
             reserve_gib=24, background_memory_gib=8, allow_bounded_builds=True)}
     if profile == CPU_ONLY:
         if workers > 4:

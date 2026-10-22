@@ -233,10 +233,19 @@ and pipeline costs, weighted-edge/window conservation and backpressure tests.
 Its four real-input executions and sixteen synthetic cases pass, but the
 46-scan reader floor is still 1.789 / 1.256 times strong A4's complete result.
 It is **not integrated R** and has not recovered the requested performance.
-Variable packet counts and termination still need an explicit integrated
-contract; silently dropping dummy packets from the fixed-count interface
-would be invalid. The diagnostic also isolates a registered-arbiter issue
-interval; changing it for only G+R would not be a valid control.
+For that diagnostic, variable packet counts and termination still required
+an explicit integrated contract; silently dropping dummy packets from the
+fixed-count interface would be invalid. The diagnostic also isolates a
+registered-arbiter issue interval; changing it for only G+R would not be a
+valid control.
+
+The separate [complete-convergence extension](prefetch_compact/CONVERGENCE.md)
+now adds a default-off input owner and bounded TLAST framing to the actual
+R composition. The default bank-stream results above are unchanged. Its
+complete twelve-row matrix passes correctness/conservation and exactly
+replays eight old rows. It improves that path by 12.2% / 39.6% but remains
+2.591 / 2.197 times strong A4, failing the retention gate. It is not a
+production-baseline admission, new Spine comparison or hardware result.
 
 The first diagnostic attempt failed its independent CSR gate: it used the
 pre-admission slot count instead of the runtime plan's normalized extent and

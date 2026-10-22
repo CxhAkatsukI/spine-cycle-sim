@@ -21,9 +21,12 @@ void RoutedReGraphSystem::Impl::start_lksg(std::size_t worker) {
   const auto &part = partitions[f.next_lksg];
   f.lksg_record = invocations.size();
   invocations.push_back({rounds.size(), f.next_lksg, worker, false, cycle(), 0});
-  f.ingress->start(part.slots / 8);
+  const bool compact = config.input_path == RoutedInputPath::kPrefetchCompactedExperimental;
+  if (compact) f.ingress->start_until_last(part.slots / 8);
+  else f.ingress->start(part.slots / 8);
   f.scatter->start_partition({.physical_slots = part.slots, .destination_base = part.destination_base,
-                             .destination_vertices = part.destination_vertices});
+                             .destination_vertices = part.destination_vertices,
+                             .terminal_framed = compact});
   f.gather->start_partition(part.destination_vertices, true);
   f.next_lksg += 4;
 }
