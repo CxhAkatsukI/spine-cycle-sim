@@ -45,6 +45,15 @@ complete executions and eight exact old replays pass. It improves 4.85% /
 0.11% from one tile but remains **1.479 / 1.552 times A4**; both retention
 gates fail. The observed input endpoint includes downstream backpressure,
 so it is not an intrinsic floor for a different output schedule.
+The [finite ready-burst follow-up](READY_BURSTS.md) tests whether choosing
+ready workers at eight-row boundaries reduces partition-order blocking.
+It carries real offsets through bounded downstream stages, preserves all
+physical traffic, and leaves the old sequential default unchanged. Its
+complete twelve-execution comparison passes correctness and exact old replay.
+It improves 26.47% / 19.65% from directory lookahead, reaching **1.0875 /
+1.2474 times A4**. Only latency 64 meets the 10% gate; overall retention still
+fails. It remains a default-off simulator candidate, not publication matching
+or admission of a new Spine comparison.
 
 ## Complete-Convergence Extension
 

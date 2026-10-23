@@ -18,13 +18,16 @@ public:
                AxiEndpoint write_port, std::optional<AxiEndpoint> degree_port,
                const ReGraphReaderContext &iteration_context,
                std::optional<AxiEndpoint> auxiliary_read_port = std::nullopt,
-               std::optional<AxiEndpoint> auxiliary_write_port = std::nullopt)
+               std::optional<AxiEndpoint> auxiliary_write_port = std::nullopt,
+               ReGraphBurstOrder order = ReGraphBurstOrder::kSequential)
       : ReGraphApplyEngine(std::move(name), clock_id), vertices_(vertices),
         policy_(std::move(policy)), config_(config), input_(input),
         output_(output), read_port_(read_port), write_port_(write_port),
         degree_port_(degree_port), iteration_context_(iteration_context),
         auxiliary_read_port_(auxiliary_read_port),
-        auxiliary_write_port_(auxiliary_write_port) {
+        auxiliary_write_port_(auxiliary_write_port), coverage_(order) {
+    if (coverage_.addressed() && policy_.config().kind != GraphAlgorithmKind::kWeightedSssp)
+      throw std::invalid_argument("addressed Apply currently admits weighted SSSP only");
     if (uses_page_rank() && degree_port_ == std::nullopt) {
       throw std::invalid_argument("PageRank apply requires a degree AXI port");
     }
@@ -71,13 +74,14 @@ public:
                        bool reset_iteration_totals) override {
     if (round == 0 || running_ || !read_inflight_.empty() ||
         !write_inflight_.empty() || !auxiliary_write_inflight_.empty() ||
-        !ready_writes_.empty()) {
+        !ready_writes_.empty() || !arrival_offsets_.empty()) {
       throw std::logic_error("ReGraph apply round started while busy");
     }
     completed_writes_ = 0;
     completed_auxiliary_writes_ = 0;
     input_bursts_this_round_ = 0;
     next_write_offset_ = 0;
+    coverage_.reset(config_.partition_vertices);
     round_ = round;
     destination_base_ = destination_base;
     destination_vertices_ = destination_vertices;
@@ -223,7 +227,7 @@ public:
     const auto ready =
         std::find_if(ready_writes_.begin(), ready_writes_.end(),
                      [&](const ReadyWrite &item) {
-                       return item.offset == next_write_offset_ &&
+                       return item.offset == write_offset() &&
                               item.due_cycle <= context.domain_cycle;
                      });
     if (ready != ready_writes_.end()) {
@@ -385,6 +389,12 @@ public:
     }
     if (staged_read_issue_.has_value()) {
       const std::uint64_t id = transaction_id(staged_read_issue_->offset);
+      if (coverage_.addressed()) {
+        coverage_.accept(staged_read_issue_->offset);
+        if (arrival_offsets_.size() >= config_.apply_pipeline_capacity)
+          throw std::logic_error("addressed Apply offset queue exceeded its finite capacity");
+        arrival_offsets_.push_back(staged_read_issue_->offset);
+      }
       if (!read_inflight_
                .emplace(id, PendingRead{.burst = std::move(*staged_read_issue_),
                                         .state_data = std::nullopt,
@@ -411,7 +421,11 @@ public:
             "duplicate ReGraph apply auxiliary write transaction");
       }
       writes_ += 1 + (auxiliary_write_port_ != std::nullopt ? 1 : 0);
-      next_write_offset_ += kStateWordsPerBurst;
+      if (coverage_.addressed()) {
+        if (arrival_offsets_.empty() || arrival_offsets_.front() != item.offset)
+          throw std::logic_error("addressed Apply lost arrival-order ownership");
+        arrival_offsets_.pop_front();
+      } else next_write_offset_ += kStateWordsPerBurst;
     }
     max_reads_inflight_ = std::max(max_reads_inflight_, read_inflight_.size());
     max_writes_inflight_ =
@@ -430,6 +444,11 @@ public:
   }
 
 private:
+  [[nodiscard]] std::size_t write_offset() const noexcept {
+    return coverage_.addressed() ? (arrival_offsets_.empty()
+        ? std::numeric_limits<std::size_t>::max() : arrival_offsets_.front()) : next_write_offset_;
+  }
+
   enum class ReadKind { kPrimary, kAuxiliary, kDegree };
 
   struct PendingRead {
@@ -700,6 +719,8 @@ private:
   const ReGraphReaderContext &iteration_context_;
   std::optional<AxiEndpoint> auxiliary_read_port_;
   std::optional<AxiEndpoint> auxiliary_write_port_;
+  ReGraphBurstCoverage coverage_;
+  std::deque<std::size_t> arrival_offsets_;
   std::unordered_map<std::uint64_t, PendingRead> read_inflight_;
   std::unordered_map<std::uint64_t, std::size_t> write_inflight_;
   std::unordered_map<std::uint64_t, std::size_t> auxiliary_write_inflight_;
@@ -746,11 +767,11 @@ std::unique_ptr<ReGraphApplyEngine> make_regraph_apply(
     std::string name, ClockId clock, std::size_t vertices, GraphAlgorithmPolicy policy,
     const GraSuReGraphConfig &config, Fifo<ReGraphMergedBurst> &input,
     Fifo<ReGraphAppliedBurst> &output, ReGraphApplyPorts ports,
-    const ReGraphReaderContext &context) {
+    const ReGraphReaderContext &context, ReGraphBurstOrder order) {
   return std::make_unique<ReGraphApply>(
       std::move(name), clock, vertices, std::move(policy), config, input, output,
       ports.read, ports.write, ports.degree, context,
-      ports.auxiliary_read, ports.auxiliary_write);
+      ports.auxiliary_read, ports.auxiliary_write, order);
 }
 
 std::unique_ptr<ReGraphApplyEngine> make_regraph_apply(

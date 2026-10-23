@@ -29,6 +29,12 @@ enum class RoutedApplyTopology {
   kSplitMastersExperimental,
 };
 
+enum class RoutedGatherSchedule {
+  kPartitionOrder,
+  // Eight-row ownership, addressed publication and bounded arrival-order Apply.
+  kReadyBurstsExperimental,
+};
+
 struct RoutedReGraphConfig {
   RoutedReGraphConfig();
   GraSuReGraphConfig compute;
@@ -54,6 +60,7 @@ struct RoutedReGraphConfig {
   std::size_t experimental_directory_tiles{1};
   RoutedSourceLoading source_loading{RoutedSourceLoading::kEdgeCoupled};
   RoutedApplyTopology apply_topology{RoutedApplyTopology::kSharedMaster};
+  RoutedGatherSchedule gather_schedule{RoutedGatherSchedule::kPartitionOrder};
 };
 
 struct RoutedReGraphInvocation {

@@ -96,6 +96,27 @@ predeclares twelve complete convergence observations, eight exact old-control
 replays, 128 synthetic input executions and fresh core/SST regression. Its
 performance result is not presumed by this architecture contract.
 
+## Addressed Output Control
+
+The default-off `prefetch_ready_bursts` arm retains directory lookahead and
+all its input/state masters. `RoutedGatherSchedule::kReadyBurstsExperimental`
+arbitrates four ready workers at eight-row boundaries; one registered row is
+still transferred per cycle, and a partial burst retains its worker lock.
+The merger's existing eight-row packer carries the actual global offset.
+Apply's offset FIFO is bounded by `apply_pipeline_capacity` (100 entries in
+this experiment); it preserves arrival order through independently returning
+state reads. Merger, Apply and writeback each use four monotonic coverage
+counters, not a full-graph bitmap or partition reorder buffer. Existing
+pipeline, AXI and completion limits remain in force.
+
+This explicit weighted-SSSP protocol is separate from the default sequential
+path. `routed_ready_burst_tests` covers malformed/duplicate offsets, delayed
+workers, mid-burst stalls, five partitions, restarts and both registration
+orders; `routed_compact_input_tests` checks complete computation and traffic.
+The [predeclared complete comparison](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/READY_BURSTS.md)
+must pass exact old-row replay before any performance conclusion. More ready
+outputs need not improve input-bound execution; no improvement is presumed.
+
 ## Transport Observation
 
 The synthetic executable also runs a 512-beat continuous read with one

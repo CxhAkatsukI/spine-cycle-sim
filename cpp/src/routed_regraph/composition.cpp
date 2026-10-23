@@ -121,16 +121,19 @@ void RoutedReGraphSystem::Impl::build() {
   }
   auto global = config.compute;
   global.partition_vertices = padded_vertices;
-  mux = std::make_unique<RoutedGatherMux>("gather-mux", clock, gather_rows, ordered_rows, partitions.size());
-  merger = make_regraph_merger("global-merger", clock, global, ordered_rows, merged);
+  const bool ready_bursts = config.gather_schedule == RoutedGatherSchedule::kReadyBurstsExperimental;
+  const auto order = ready_bursts ? ReGraphBurstOrder::kFourWorkerAddressed : ReGraphBurstOrder::kSequential;
+  mux = std::make_unique<RoutedGatherMux>("gather-mux", clock, gather_rows, ordered_rows,
+                                        partitions.size(), ready_bursts);
+  merger = make_regraph_merger("global-merger", clock, global, ordered_rows, merged, order);
   // The hardware processes padding as initialized zero-valued vertices, not
   // the legacy simulator's out-of-range INF sentinel branch.
   apply = make_regraph_apply("global-apply", clock, padded_vertices, policy, global, merged, applied,
       ReGraphApplyPorts{read.endpoint(), write.endpoint(), std::nullopt, std::nullopt, std::nullopt},
-      *frontends[0]->scatter);
+      *frontends[0]->scatter, order);
   apply_observer = std::make_unique<RoutedApplyObserver>(clock, *apply);
   writeback = make_regraph_writeback("global-writeback", clock, global, policy, applied,
-                                    primary_write.endpoint(), mirror_write.endpoint());
+                                    primary_write.endpoint(), mirror_write.endpoint(), order);
   status = std::make_unique<RoutedStatusWriter>("active-status", clock, status_client.endpoint(),
                                                30, config.status_address);
   components.insert(components.end(), {mux.get(), merger.get(), apply.get(), writeback.get(), status.get()});

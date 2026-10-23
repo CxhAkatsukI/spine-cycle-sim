@@ -17,6 +17,9 @@ RoutedReGraphConfig::RoutedReGraphConfig() {
 
 void RoutedReGraphSystem::Impl::admit() {
   const auto &c = config.compute;
+  if (config.gather_schedule != RoutedGatherSchedule::kPartitionOrder &&
+      config.gather_schedule != RoutedGatherSchedule::kReadyBurstsExperimental)
+    throw std::invalid_argument("unsupported routed Gather output schedule");
   if (config.apply_topology != RoutedApplyTopology::kSharedMaster &&
       config.apply_topology != RoutedApplyTopology::kSplitMastersExperimental)
     throw std::invalid_argument("unsupported routed Apply master topology");

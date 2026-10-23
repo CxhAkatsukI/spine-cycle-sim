@@ -1,0 +1,246 @@
+{
+  "acceptance": {
+    "comparisons": [
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 10904254,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "prefetch_directory_lookahead": {
+            "arm": "prefetch_directory_lookahead",
+            "cycles": 16128290,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_ready_bursts": {
+            "arm": "prefetch_ready_bursts",
+            "cycles": 11858340,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.0874966779020372,
+        "cycle_reduction_from_partition_order": 0.26474908375283435,
+        "latency": 64,
+        "within_ten_percent": true
+      },
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 15840606,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "prefetch_directory_lookahead": {
+            "arm": "prefetch_directory_lookahead",
+            "cycles": 24591738,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_ready_bursts": {
+            "arm": "prefetch_ready_bursts",
+            "cycles": 19758840,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.2473537944192286,
+        "cycle_reduction_from_partition_order": 0.19652527202428716,
+        "latency": 128,
+        "within_ten_percent": false
+      }
+    ],
+    "hardware_timing_admitted": false,
+    "new_spine_comparison_executed": false,
+    "physical_masters": {
+      "a4_io16": 13,
+      "prefetch_directory_lookahead": 16,
+      "prefetch_ready_bursts": 16
+    },
+    "pre_edit_controls_replayed_exactly": 8,
+    "production_baseline_admitted": false,
+    "publication_match_admitted": false,
+    "retention_pass": false,
+    "strict_resource_match_admitted": false
+  },
+  "artifacts": {
+    "complete_convergence": {
+      "bytes": 749370,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/convergence-v1/results.json",
+      "sha256": "63a6772d0291cf87547e8d06ab8f37fa974c5c2fe8e781e5018bca98a5dc577e"
+    },
+    "independent_verification": {
+      "bytes": 570,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/verification.json",
+      "sha256": "00622466145097f725e85effc0e2125d073e8233182449bd6c5f6f31833f49e3"
+    },
+    "pre_edit_freeze": {
+      "bytes": 618705,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/before/freeze.json",
+      "sha256": "c2aa30d876b49ec78477a7a3244c5e3e56b861f0f77502d5b41e97861ab3127e"
+    },
+    "pre_edit_sources": {
+      "bytes": 17022428,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/before/sources.tar.gz",
+      "sha256": "ee81753238bfd16645ca41d6c6285c81e960151585acba11e03ab77b8786206d"
+    },
+    "quality": {
+      "bytes": 5214,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/quality-v1/results.json",
+      "sha256": "12f7cb1ffe24565996c89cd52e88b67be0c0eca4a1bb3ce863e54c1f694c9379"
+    },
+    "sst_compatibility": {
+      "bytes": 720402,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/sst-v1/results.json",
+      "sha256": "ae9f1067b80260d7137b107a54b53937a2722f1495df8af4c9fbe79b8d32f108"
+    },
+    "sst_equivalence": {
+      "bytes": 395284,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/sst-v1/legacy/equivalence.json",
+      "sha256": "f2f81cc800061b8acbf399029d9d18e7823303e16c58d8036d59fe4a49e4ca20"
+    },
+    "verification_resources": {
+      "bytes": 1351,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/verify-v1/results.json",
+      "sha256": "ecf1e67421ff9754d930c38105613af8ab32ac3fad2883d34c00676cfd016685"
+    },
+    "verification_runner": {
+      "bytes": 3387,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/verify_delivery.py",
+      "sha256": "0915b0f0f1f2549b50f127efb2e7b4154e7bb37a318a5b4268d8e88038343bff"
+    }
+  },
+  "boundary": "resident warm weighted SSSP compute to convergence; no G/host/DMA",
+  "checks": {
+    "compact_complete_executions": 56,
+    "control_arms": 15,
+    "core_ctest": 37,
+    "delivery_quality": "PASS",
+    "diff_check": "PASS",
+    "document_layout": "PASS",
+    "finite_input_executions": 128,
+    "generated_catalogs": "PASS",
+    "organization": 15,
+    "publisher_probes": 4,
+    "regraph_python": 128
+  },
+  "complete_executions": 12,
+  "correctness_admitted": true,
+  "open_gates": [
+    "R performance retention fails at latency 128",
+    "complete G validation",
+    "host orchestration timing",
+    "new Spine demo",
+    "original-publication reproduction not established; FPGA work deferred"
+  ],
+  "registration_order_pairs": 6,
+  "rounds_per_execution": 46,
+  "safety": {
+    "background_allowance_gib": 8,
+    "core_service_peak_bytes": 847036416,
+    "core_wall_seconds": 2318.45,
+    "live_reserve_gib": 24,
+    "memory_high_gib": 5,
+    "memory_max_gib": 6,
+    "sst_service_peak_bytes": 1045352448,
+    "sst_wall_seconds": 507.799,
+    "swap_max_bytes": 0,
+    "workers": 1
+  },
+  "schema_version": 1,
+  "scope": "simulator-only finite addressed output; no HLS/FPGA/paper changes",
+  "sst_default_compatibility": {
+    "cases": [
+      {
+        "case": "sssp_mixed_cold",
+        "cycles": 99885,
+        "equivalent": true
+      },
+      {
+        "case": "sssp_multipart_warm",
+        "cycles": 5997674,
+        "equivalent": true
+      },
+      {
+        "case": "cc_reciprocal",
+        "cycles": 133841,
+        "equivalent": true
+      },
+      {
+        "case": "residual_warm",
+        "cycles": 1487890,
+        "equivalent": true
+      },
+      {
+        "case": "residual_update_only",
+        "cycles": 200,
+        "equivalent": true
+      }
+    ],
+    "claim": "default SST software compatibility only; no candidate timing admission",
+    "plugin": {
+      "bytes": 3860784,
+      "path": "/data/chuxiao/experiments/r_ready_bursts_20261022/sst-v1/plugin/libspine_cycle.so",
+      "sha256": "a4a1bd8c980ce404f69103dad54fbfe3202f8acf48d57b26657d5c5385f5bb28"
+    },
+    "status": "PASS"
+  },
+  "status": "READY_BURSTS_COMPLETE_SIMULATOR_PREDICTION",
+  "verification": {
+    "core_pins": {
+      "checked": 2400,
+      "mismatches": 0
+    },
+    "current_archive_members": {
+      "checked": 2380,
+      "mismatches": 0
+    },
+    "full_states": {
+      "checked": 40,
+      "mismatches": 0
+    },
+    "pre_edit_archive_members": {
+      "checked": 2376,
+      "mismatches": 0
+    },
+    "pre_edit_artifacts": {
+      "checked": 3,
+      "mismatches": 0
+    },
+    "pre_edit_external": {
+      "checked": 18,
+      "mismatches": 0
+    },
+    "progress_files": {
+      "checked": 40,
+      "mismatches": 0
+    },
+    "sst_pins": {
+      "checked": 2761,
+      "mismatches": 0
+    },
+    "status": "PASS"
+  }
+}

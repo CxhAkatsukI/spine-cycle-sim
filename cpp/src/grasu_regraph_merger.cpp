@@ -13,9 +13,9 @@ class ReGraphMerger final : public ReGraphMergerEngine {
 public:
   ReGraphMerger(std::string name, ClockId clock_id,
                 const GraSuReGraphConfig &config, Fifo<ReGraphGatherRow> &input,
-                Fifo<ReGraphMergedBurst> &output)
+                Fifo<ReGraphMergedBurst> &output, ReGraphBurstOrder order)
       : ReGraphMergerEngine(std::move(name), clock_id), config_(config), input_(input),
-        output_(output) {
+        output_(output), coverage_(order) {
     input_.bind_nonempty_notifier(this, &ReGraphMerger::notify_input_nonempty);
     output_.bind_nonfull_notifier(this, &ReGraphMerger::notify_output_nonfull);
     refresh_evaluate_ready();
@@ -31,6 +31,7 @@ public:
       throw std::logic_error("ReGraph merger round started while busy");
     }
     consumed_rows_this_round_ = 0;
+    coverage_.reset(config_.partition_vertices);
     done_ = false;
     running_ = true;
     refresh_evaluate_ready();
@@ -115,7 +116,11 @@ public:
       ++bursts_emitted_;
     }
     if (staged_input_.has_value()) {
-      if (staged_input_->row != consumed_rows_this_round_) {
+      if (packed_rows_ == 0) {
+        coverage_.accept(staged_input_->row * 2);
+        burst_base_row_ = staged_input_->row;
+      }
+      if (staged_input_->row != burst_base_row_ + packed_rows_) {
         throw std::runtime_error("ReGraph merger received a row out of order");
       }
       const std::size_t base = packed_rows_ * 2;
@@ -126,7 +131,7 @@ public:
       ++rows_consumed_;
       if (packed_rows_ == kRowsPerBurst) {
         pending_output_ = ReGraphMergedBurst{
-            .offset = (consumed_rows_this_round_ - kRowsPerBurst) * 2,
+            .offset = burst_base_row_ * 2,
             .candidates = packed_candidates_,
         };
         packed_candidates_.fill(std::nullopt);
@@ -195,12 +200,14 @@ private:
   GraSuReGraphConfig config_;
   Fifo<ReGraphGatherRow> &input_;
   Fifo<ReGraphMergedBurst> &output_;
+  ReGraphBurstCoverage coverage_;
   std::array<std::optional<std::uint32_t>, kStateWordsPerBurst>
       packed_candidates_{};
   std::optional<ReGraphGatherRow> staged_input_;
   std::optional<ReGraphMergedBurst> pending_output_;
   std::size_t consumed_rows_this_round_{};
   std::size_t packed_rows_{};
+  std::size_t burst_base_row_{};
   bool staged_output_{};
   bool staged_output_stall_{};
   bool running_{};
@@ -218,9 +225,10 @@ private:
 
 std::unique_ptr<ReGraphMergerEngine> make_regraph_merger(
     std::string name, ClockId clock, const GraSuReGraphConfig &config,
-    Fifo<ReGraphGatherRow> &input, Fifo<ReGraphMergedBurst> &output) {
+    Fifo<ReGraphGatherRow> &input, Fifo<ReGraphMergedBurst> &output,
+    ReGraphBurstOrder order) {
   return std::make_unique<ReGraphMerger>(
-      std::move(name), clock, config, input, output);
+      std::move(name), clock, config, input, output, order);
 }
 
 } // namespace spine::sim::detail

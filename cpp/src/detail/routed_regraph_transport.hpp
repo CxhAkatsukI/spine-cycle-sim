@@ -60,9 +60,10 @@ class RoutedGatherMux final : public Component {
 public:
   RoutedGatherMux(std::string name, ClockId clock,
                   std::array<Fifo<ReGraphGatherRow> *, 4> inputs,
-                  Fifo<ReGraphGatherRow> &output, std::size_t partitions);
+                  Fifo<ReGraphGatherRow> &output, std::size_t partitions,
+                  bool ready_bursts = false);
   void start_round();
-  [[nodiscard]] bool done() const noexcept { return partition_ == partitions_; }
+  [[nodiscard]] bool done() const noexcept { return round_rows_ == partitions_ * (65536 / 2); }
   [[nodiscard]] std::uint64_t rows() const noexcept { return rows_; }
   void evaluate(const CycleContext &) override;
   void commit(const CycleContext &) override;
@@ -70,6 +71,10 @@ private:
   std::array<Fifo<ReGraphGatherRow> *, 4> inputs_;
   Fifo<ReGraphGatherRow> &output_;
   std::size_t partitions_{}, partition_{}, local_row_{};
+  std::size_t round_rows_{}, next_worker_{}, staged_worker_{};
+  std::array<std::size_t, 4> worker_partitions_{}, worker_rows_{};
+  std::optional<std::size_t> locked_worker_;
+  bool ready_bursts_{};
   std::uint64_t rows_{};
   bool staged_{}, started_{};
 };

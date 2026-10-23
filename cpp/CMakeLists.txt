@@ -157,6 +157,11 @@ if(BUILD_TESTING)
   target_compile_options(routed_compact_input_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME routed_compact_input_tests COMMAND routed_compact_input_tests)
 
+  add_executable(routed_ready_burst_tests tests/routed_regraph/ready_burst_tests.cpp)
+  target_link_libraries(routed_ready_burst_tests PRIVATE spine_cycle_core)
+  target_compile_options(routed_ready_burst_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME routed_ready_burst_tests COMMAND routed_ready_burst_tests)
+
   add_executable(grasu_routed_handoff_tests tests/evaluation_impact/handoff/tests.cpp)
   target_link_libraries(grasu_routed_handoff_tests PRIVATE spine_cycle_core)
   target_compile_options(grasu_routed_handoff_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "grasu_regraph_streams.hpp"
+#include "regraph_burst_order.hpp"
 #include "spine_sim/axi_endpoint.hpp"
 
 namespace spine::sim::detail {
@@ -83,7 +84,8 @@ std::unique_ptr<ReGraphGatherEngine> make_regraph_gather(
     Fifo<ReGraphGatherRow> &output, ReGraphReaderContext &reader);
 std::unique_ptr<ReGraphMergerEngine> make_regraph_merger(
     std::string name, ClockId clock, const GraSuReGraphConfig &config,
-    Fifo<ReGraphGatherRow> &input, Fifo<ReGraphMergedBurst> &output);
+    Fifo<ReGraphGatherRow> &input, Fifo<ReGraphMergedBurst> &output,
+    ReGraphBurstOrder order = ReGraphBurstOrder::kSequential);
 
 struct ReGraphApplyPorts {
   AxiEndpoint read;
@@ -97,7 +99,8 @@ std::unique_ptr<ReGraphApplyEngine> make_regraph_apply(
     std::string name, ClockId clock, std::size_t vertices, GraphAlgorithmPolicy policy,
     const GraSuReGraphConfig &config, Fifo<ReGraphMergedBurst> &input,
     Fifo<ReGraphAppliedBurst> &output, ReGraphApplyPorts ports,
-    const ReGraphReaderContext &context);
+    const ReGraphReaderContext &context,
+    ReGraphBurstOrder order = ReGraphBurstOrder::kSequential);
 std::unique_ptr<ReGraphApplyEngine> make_regraph_apply(
     std::string name, ClockId clock, std::size_t vertices, GraphAlgorithmPolicy policy,
     const GraSuReGraphConfig &config, Fifo<ReGraphMergedBurst> &input,
@@ -107,7 +110,8 @@ std::unique_ptr<ReGraphApplyEngine> make_regraph_apply(
 std::unique_ptr<ReGraphWritebackEngine> make_regraph_writeback(
     std::string name, ClockId clock, const GraSuReGraphConfig &config,
     GraphAlgorithmPolicy policy, Fifo<ReGraphAppliedBurst> &input,
-    AxiEndpoint primary, AxiEndpoint mirror);
+    AxiEndpoint primary, AxiEndpoint mirror,
+    ReGraphBurstOrder order = ReGraphBurstOrder::kSequential);
 std::unique_ptr<ReGraphWritebackEngine> make_regraph_writeback(
     std::string name, ClockId clock, const GraSuReGraphConfig &config,
     GraphAlgorithmPolicy policy, Fifo<ReGraphAppliedBurst> &input,

@@ -16,10 +16,12 @@ public:
                     GraphAlgorithmPolicy policy,
                     Fifo<ReGraphAppliedBurst> &input,
                     AxiEndpoint primary_write_port,
-                    AxiEndpoint mirror_write_port)
+                    AxiEndpoint mirror_write_port, ReGraphBurstOrder order)
       : ReGraphWritebackEngine(std::move(name), clock_id), config_(config), input_(input),
         write_ports_{primary_write_port, mirror_write_port},
-        policy_(std::move(policy)) {
+        policy_(std::move(policy)), coverage_(order) {
+    if (coverage_.addressed() && policy_.config().kind != GraphAlgorithmKind::kWeightedSssp)
+      throw std::invalid_argument("addressed writeback currently admits weighted SSSP only");
     input_.bind_nonempty_notifier(this,
                                   &ReGraphHbmWrapper::notify_work_available);
     for (const AxiEndpoint &port : write_ports_) {
@@ -48,6 +50,7 @@ public:
                           destination_base * 4;
     destination_base_ = destination_base;
     input_bursts_this_round_ = 0;
+    coverage_.reset(config_.partition_vertices);
     completed_writes_ = 0;
     done_ = false;
     running_ = true;
@@ -198,12 +201,7 @@ public:
       source_writes_ += write_ports_.size();
     }
     if (staged_input_.has_value()) {
-      const std::size_t expected_offset =
-          input_bursts_this_round_ * kStateWordsPerBurst;
-      if (staged_input_->offset != expected_offset) {
-        throw std::runtime_error(
-            "ReGraph HBM wrapper received a burst out of order");
-      }
+      coverage_.accept(staged_input_->offset);
       pipeline_.push_back(ReadyWrite{
           .burst = std::move(*staged_input_),
           .due_cycle =
@@ -299,6 +297,7 @@ private:
   Fifo<ReGraphAppliedBurst> &input_;
   std::array<AxiEndpoint, 2> write_ports_;
   GraphAlgorithmPolicy policy_;
+  ReGraphBurstCoverage coverage_;
   std::array<std::unordered_map<std::uint64_t, std::size_t>, 2> write_inflight_;
   std::deque<ReadyWrite> pipeline_;
   std::optional<ReGraphAppliedBurst> staged_input_;
@@ -325,9 +324,9 @@ private:
 std::unique_ptr<ReGraphWritebackEngine> make_regraph_writeback(
     std::string name, ClockId clock, const GraSuReGraphConfig &config,
     GraphAlgorithmPolicy policy, Fifo<ReGraphAppliedBurst> &input,
-    AxiEndpoint primary, AxiEndpoint mirror) {
+    AxiEndpoint primary, AxiEndpoint mirror, ReGraphBurstOrder order) {
   return std::make_unique<ReGraphHbmWrapper>(
-      std::move(name), clock, config, std::move(policy), input, primary, mirror);
+      std::move(name), clock, config, std::move(policy), input, primary, mirror, order);
 }
 
 std::unique_ptr<ReGraphWritebackEngine> make_regraph_writeback(

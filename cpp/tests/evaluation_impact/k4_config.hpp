@@ -44,6 +44,7 @@ inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected)
   if (selected.split_apply)
     config.apply_topology = RoutedApplyTopology::kSplitMastersExperimental;
   if (selected.directory_lookahead) config.experimental_directory_tiles = 2;
+  if (selected.ready_bursts) config.gather_schedule = RoutedGatherSchedule::kReadyBurstsExperimental;
   return config;
 }
 }  // namespace evaluation_impact
