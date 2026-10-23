@@ -1,0 +1,17 @@
+{
+  "admitted": true,
+  "available_bytes": 77169025024,
+  "cgroup": {
+    "limits": {
+      "memory.high": "5368709120",
+      "memory.max": "6442450944",
+      "memory.oom.group": "1",
+      "memory.swap.max": "0"
+    },
+    "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/fig9-final-checks-v1.service"
+  },
+  "host_swap_disabled_verified": true,
+  "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+  "required_bytes": 40802189312,
+  "reservations": []
+}

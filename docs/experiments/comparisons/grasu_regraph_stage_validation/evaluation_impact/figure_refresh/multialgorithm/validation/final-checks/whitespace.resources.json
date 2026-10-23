@@ -1,0 +1,22 @@
+{
+  "available_before_bytes": 77167497216,
+  "command": [
+    "taskset",
+    "-c",
+    "6",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+  "exit_code": 0,
+  "memory_limit_gib": 2,
+  "peak_rss_kib": 16340,
+  "reserve_gib": 24,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/data/chuxiao/experiments/figure9_multialgorithm_delivery_20261023/final-checks-v1/whitespace.stderr.txt",
+  "stdout": "/data/chuxiao/experiments/figure9_multialgorithm_delivery_20261023/final-checks-v1/whitespace.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 0.054825530387461185
+}

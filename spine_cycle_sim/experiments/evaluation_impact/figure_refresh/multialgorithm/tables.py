@@ -1,4 +1,4 @@
-"""One explicit nine-pair Figure 9 view, retaining SSSP source provenance."""
+"""Nine fresh Figure 9 pairs with one timing/energy model and explicit scope."""
 
 import csv
 import io
@@ -14,12 +14,10 @@ def csv_bytes(rows):
 
 def export_rows(summary):
     ratios, absolute = [], []
-    rows = [*summary["retained_sssp"], *summary["comparisons"]]
-    for row in rows:
+    for row in summary["comparisons"]:
         case = row["case"]
-        scope = "retained_pinned_SSSP" if row["algorithm"] == "SSSP" else "fresh_CC_ResPR"
         common = dict(dataset=row["dataset"], algorithm=row["algorithm"], updates=row["updates"],
-                      projection=case.get("projection", "directed"), provenance=scope)
+                      projection=case["projection"], provenance="fresh_same_model")
         ratios.append(dict(**common, memory_ratio_gr_over_spine=row["accepted_bytes_ratio"],
             hbm_energy_ratio_gr_over_spine=row["hbm_energy_ratio"],
             spine_memory_bytes=row["spine"]["read_bytes"] + row["spine"]["write_bytes"],
@@ -27,8 +25,7 @@ def export_rows(summary):
             source_report_sha256=row["source_report_sha256"]))
         for arm in ("spine", "gr"):
             data = row[arm]
-            energy = (summary["retained_energy_details"][row["dataset"]][arm]
-                      if row["algorithm"] == "SSSP" else data["energy_details"])
+            energy = data["energy_details"]
             absolute.append(dict(**common, arm=arm, vertices=case["vertices"],
                 initial_edges=case["initial_edges"], physical_update_records=case.get("physical_update_records", 8),
                 device_cycles=data["cycles"], rounds=data["rounds"], read_bytes=data["read_bytes"],

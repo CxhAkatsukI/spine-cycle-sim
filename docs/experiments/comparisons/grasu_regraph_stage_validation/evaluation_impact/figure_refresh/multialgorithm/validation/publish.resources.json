@@ -1,0 +1,25 @@
+{
+  "available_before_bytes": 77612851200,
+  "command": [
+    "taskset",
+    "-c",
+    "6",
+    "python3",
+    "-m",
+    "spine_cycle_sim.experiments.evaluation_impact.figure_refresh.multialgorithm.delivery",
+    "--publish-from",
+    "/data/chuxiao/experiments/figure9_multialgorithm_delivery_20261023/unsplit-package-v1",
+    "--output",
+    "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure_refresh/multialgorithm"
+  ],
+  "cwd": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence",
+  "exit_code": 0,
+  "memory_limit_gib": 4,
+  "peak_rss_kib": 157912,
+  "reserve_gib": 24,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/data/chuxiao/experiments/figure9_multialgorithm_delivery_20261023/split-package-v1/publish.stderr.txt",
+  "stdout": "/data/chuxiao/experiments/figure9_multialgorithm_delivery_20261023/split-package-v1/publish.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 132.82226269878447
+}

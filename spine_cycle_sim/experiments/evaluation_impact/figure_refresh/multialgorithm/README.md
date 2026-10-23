@@ -1,4 +1,4 @@
-# CC And Residual PageRank Figure Data
+# Three-Algorithm Figure Data
 
 This package extends the preceding SSSP-only Figure 9 study. It does not edit
 the paper, rebuild FPGA kernels, or admit original-publication performance.
@@ -7,14 +7,16 @@ the paper, rebuild FPGA kernels, or admit original-publication performance.
 
 | Owner | Responsibility |
 | --- | --- |
-| `matrix.py` | AU/SU/WK, eight user mutations, reciprocal CC and sink-free PR projections |
+| `core_gates.py` | Fresh frozen Release build, focused PR gate and complete core regression |
+| `matrix.py` | AU/SU/WK, eight user mutations, directed SSSP, reciprocal CC and sink-free PR projections |
 | `study.py`, `sst_config.py` | Frozen sources, bounded fresh SST harness, per-arm execution and saved failures |
-| `regression.py` | Exact twelve-trajectory SSSP replay: states, cycles and traffic |
+| `regression.py`, `sssp_replay.py` | Twelve SSSP trajectories; strict exact gate by default, explicit read-credit correction mode |
 | `validation.py` | Complete pair selection, raw/configuration/state checks, core gates and all-channel energy |
 | `tables.py`, `delivery.py` | Derived CSVs and a portable, hash-checked evidence extension |
+| `source_snapshots.py` | Explicitly index the redundant full-repository snapshot while archiving and verifying its corresponding code-only snapshot |
 
 The C++ harness has separate input/oracle, finite resident G/R composition,
-Spine execution and SST wiring owners under
+Spine execution, a thin existing-SSSP path and SST wiring owners under
 `cpp/tests/evaluation_impact/figure_refresh/multialgorithm/`.
 The new production-core PageRank preparation module owns finite state/degree
 reads, acknowledged degree updates and replicated source publication. Its
@@ -26,6 +28,9 @@ both preparation and split-state Apply charge 128 final reduction cycles.
 Use a new Release CMake directory with tests enabled. Run all 39 core tests,
 including the independent CC and warm-PR oracle gates. Do not overwrite a
 frozen core. Saved commands and resource records accompany each attempt.
+The `core_gates --output OUT` command freezes the sources and performs these
+checks under the same finite memory reservation; invoke it in the cgroup
+shown below, with a separate unit and fresh output directory.
 Then run the study from the repository root, replacing `OUT`, `CORE` and CPU
 with a fresh output path, that verified core directory and an allowed CPU:
 
@@ -39,16 +44,32 @@ systemd-run --user --wait --pipe --collect --unit=fig9-multi \
 ```
 
 The runner atomically reserves the entire finite budget, preserves a 24-GiB
-live reserve and bounds each child to 4 GiB. Four smoke arms must pass before
-the twelve real-input arms run. Device completion, independent final-state
+live reserve and bounds each child to 4 GiB. Six smoke arms must pass before
+the eighteen real-input arms run. Device completion, independent final-state
 checks and physical request/beat closure are mandatory; timeouts are retained,
-never replaced with projected values. `--smoke-only` selects only the four
+never replaced with projected values. `--smoke-only` selects only the six
 small correctness fixtures.
 
 Run `regression --help` for the twelve-case SSSP replay. Run `delivery --help`
 for packaging and `delivery --output PATH --verify` for offline verification.
-The delivery is a new subdirectory beside the preceding frozen figure data;
-it includes that package unchanged and records which SSSP rows were retained.
+`delivery --publish-from UNSPLIT --output FRESH` reuses the existing 64-MiB
+archive transport, preserves the unsplit source, and verifies the published
+parts. Both forms retain the same complete-archive hash and numerical evidence.
+The delivery is a new subdirectory beside the preceding frozen figure data.
+All nine Figure 9 pairs are fresh; no old SSSP energy is reused. The preceding
+package remains unchanged and is nested only as historical evidence.
+The delivered [results and test report](../../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure_refresh/multialgorithm/README.md)
+retain the PR counterexample and distinguish passing core gates from the
+non-green full Python suite.
+
+The finite AXI repair reserves a reorder slot before issuing a streamed read
+beat. An adversarial backend checks delayed early responses, held consumers,
+capacities 1/2/4/32, issue widths 1/4 and both registration/scheduling orders.
+This fixes a real deadlock without enlarging the 32-beat production storage.
+It can change R cycles, so `regression --allow-read-credit-correction` admits
+only an explicit R-cycle delta: complete input/state/byte identities, G cycles
+and all Spine outputs must remain exact, and both R registration orders must
+agree. The failed strict exact-cycle replay is retained, not relabeled.
 
 ## Limits
 

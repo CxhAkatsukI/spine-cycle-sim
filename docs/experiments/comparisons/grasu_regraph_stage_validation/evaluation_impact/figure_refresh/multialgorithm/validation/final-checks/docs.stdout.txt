@@ -1,0 +1,1 @@
+PASS topic guides, document relocations, and clean docs root

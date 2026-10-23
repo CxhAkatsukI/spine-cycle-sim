@@ -5,11 +5,15 @@ import hashlib
 import io
 import json
 from pathlib import Path, PurePosixPath
+import shutil
 import tarfile
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.continuous_directory.archive_parts import (
+    PART_BYTES, assembled, split,
+)
 from .. import delivery as legacy_delivery
-from . import tables, validation
+from . import source_snapshots, sssp_replay, tables, validation
 
 
 def checked_archive(handle, index):
@@ -38,19 +42,11 @@ def package(output, report_path, attempts, legacy, before, after, core_tests):
     identity = dict(source_report=str(report_path), source_report_sha256=sha256_file(report_path))
     comparisons = validation.selection(report, identity)
     legacy_delivery.verify(legacy)
-    prior = json.loads((legacy / "data/summary.json").read_text())
-    retained = [r for r in prior["comparisons"] if r["figure"] == 9]
-    if {(r["algorithm"], r["dataset"]) for r in retained} != {("SSSP", d) for d in ("AU", "SU", "WK")}:
-        raise ValueError("three pinned SSSP rows required, not historical missing CC/PR")
-    replay = legacy_delivery.equivalence(before, after)
-    with tarfile.open(legacy / "evidence/evidence.tar.gz") as handle:
-        read = checked_archive(handle, json.loads((legacy / "evidence/index.json").read_text()))
-        retained_energy = {r["dataset"]: {arm: validation.energy_details(read,
-            Path(r["source_report"]).parent.name + "/" + Path(r[arm]["evidence"]).name)
-            for arm in ("spine", "gr")} for r in retained}
+    replay = sssp_replay.compare(json.loads(before.read_text()), json.loads(after.read_text()))
+    replay.update(before=dict(path=str(before), sha256=sha256_file(before)),
+                  after=dict(path=str(after), sha256=sha256_file(after)))
     summary = dict(status="COMPLETE_NINE_PAIR_SIMULATOR_DIAGNOSTIC", baseline_admitted=False,
-        fresh_pairs=6, retained_sssp_pairs=3, figure9_pairs=9, comparisons=comparisons,
-        retained_sssp=retained, retained_energy_details=retained_energy,
+        fresh_pairs=9, retained_sssp_pairs=0, figure9_pairs=9, comparisons=comparisons,
         model=report["model"], sssp_regression=replay,
         core_tests=dict(path=str(core_tests), sha256=sha256_file(core_tests)),
         original_r_control=dict(status="NOT_ADMITTED_FOR_CC_OR_RES_PR",
@@ -64,6 +60,7 @@ def package(output, report_path, attempts, legacy, before, after, core_tests):
         (output / "data" / name).write_bytes(blob)
     files = {"legacy/evidence.tar.gz": legacy / "evidence/evidence.tar.gz",
              "legacy/index.json": legacy / "evidence/index.json", "pre_extension/results.json": before}
+    excluded_snapshots, external_snapshots = source_snapshots.collect(attempts)
     indexed = []
     for directory in sorted(p for p in attempts.iterdir() if p.is_dir()):
         result_path = directory / "results.json"
@@ -77,6 +74,8 @@ def package(output, report_path, attempts, legacy, before, after, core_tests):
                 continue
             if path.is_symlink():
                 raise ValueError("symlink evidence rejected")
+            if path in excluded_snapshots:
+                continue
             if path.suffix in (".json", ".csv", ".txt", ".gz", ".u32le"):
                 files[directory.name + "/" + str(path.relative_to(directory))] = path
     if after.parent.name + "/results.json" not in files:
@@ -93,7 +92,7 @@ def package(output, report_path, attempts, legacy, before, after, core_tests):
         for name, path in sorted(files.items()):
             handle.add(path, arcname=name, recursive=False)
     index = dict(status=summary["status"], baseline_admitted=False, archive=archive.name,
-        sha256=sha256_file(archive), attempts=indexed,
+        sha256=sha256_file(archive), attempts=indexed, external_source_snapshots=external_snapshots,
         members=[dict(path=n, bytes=p.stat().st_size, sha256=sha256_file(p)) for n, p in sorted(files.items())],
         external="Full graph/update inputs, compiler/SST/DRAMSim3 and linked binaries are external pinned dependencies; full output states, logs, sources and memory reports are archived.")
     atomic_write_json(output / "evidence/index.json", index)
@@ -102,11 +101,15 @@ def package(output, report_path, attempts, legacy, before, after, core_tests):
 
 def verify(output):
     index = json.loads((output / "evidence/index.json").read_text())
-    archive = output / "evidence/evidence.tar.gz"
-    if index["archive"] != archive.name or sha256_file(archive) != index["sha256"]:
-        raise ValueError("extension archive changed")
-    with tarfile.open(archive) as handle:
+    if index["archive"] != "evidence.tar.gz":
+        raise ValueError("unexpected extension archive name")
+    record = dict(index, archive_sha256=index["sha256"])
+    with assembled(output / "evidence", record, archive_name=index["archive"]) as archive, \
+            tarfile.open(archive) as handle:
+        if sha256_file(archive) != index["sha256"]:
+            raise ValueError("extension archive changed")
         read = checked_archive(handle, index)
+        source_snapshots.verify(read, handle.getnames(), index.get("external_source_snapshots", []))
         summary = json.loads(read("data/summary.json"))
         if summary["baseline_admitted"] is not False or summary["status"] != index["status"]:
             raise ValueError("exploratory evidence boundary changed")
@@ -124,33 +127,46 @@ def verify(output):
         validation.core_gates(json.loads(core_blob), matrix_report, read, core_prefix)
         prior_archive = read("legacy/evidence.tar.gz")
         if hashlib.sha256(prior_archive).hexdigest() != summary["legacy_archive_sha256"]:
-            raise ValueError("retained SSSP archive differs")
+            raise ValueError("historical archive differs")
         with tarfile.open(fileobj=io.BytesIO(prior_archive)) as prior_handle:
             prior_read = checked_archive(prior_handle, json.loads(read("legacy/index.json")))
             prior_summary = json.loads(prior_read("data/summary.json"))
-            if [r for r in prior_summary["comparisons"] if r["figure"] == 9] != summary["retained_sssp"]:
-                raise ValueError("SSSP rows differ from preceding pinned delivery")
-            legacy_delivery.validate_raw(dict(comparisons=summary["retained_sssp"]), prior_read)
-            for row in summary["retained_sssp"]:
-                for arm in ("spine", "gr"):
-                    directory = Path(row["source_report"]).parent.name + "/" + Path(row[arm]["evidence"]).name
-                    if validation.energy_details(prior_read, directory) != summary["retained_energy_details"][row["dataset"]][arm]:
-                        raise ValueError("retained SSSP energy components differ")
+            legacy_delivery.validate_raw(prior_summary, prior_read)
         replay = summary["sssp_regression"]
         old_blob = read("pre_extension/results.json")
         new_blob = read(Path(replay["after"]["path"]).parent.name + "/results.json")
         if any(hashlib.sha256(blob).hexdigest() != replay[key]["sha256"]
                for key, blob in (("before", old_blob), ("after", new_blob))):
             raise ValueError("SSSP regression evidence identity differs")
-        old = json.loads(old_blob)
-        new = json.loads(new_blob)
-        key = lambda r: (r["workload"], r["latency"], r["arm"], r["reverse"])
-        previous = {key(r): r for r in old["rows"]}
-        if len(previous) != 12 or len(new["rows"]) != 12 or not new["pins_unchanged"] or new["failures"]:
-            raise ValueError("complete SSSP replay required")
-        for row in new["rows"]:
-            if any(row[k] != previous[key(row)][k] for k in ("input", "result", "state_hashes")):
-                raise ValueError("SSSP replay changed numerical result")
+        checked = sssp_replay.compare(json.loads(old_blob), json.loads(new_blob))
+        if checked != {k: v for k, v in replay.items() if k not in ("before", "after")}:
+            raise ValueError("reported SSSP read-credit correction differs from trajectories")
+        validation.replay_sources(json.loads(new_blob), matrix_report)
+    return index
+
+
+def publish(source, destination, *, part_bytes=PART_BYTES):
+    """Split transport only; the CLI then rechecks every archived result."""
+    index = json.loads((source / "evidence/index.json").read_text())
+    archive = source / "evidence/evidence.tar.gz"
+    if (destination.exists() or index["archive"] != archive.name or
+            "archive_parts" in index or sha256_file(archive) != index["sha256"]):
+        raise ValueError("unchanged unsplit source and fresh destination required")
+    expected = {"README.md", "TEST_REPORT.md", "data", "evidence"}
+    if {p.name for p in source.iterdir()} != expected:
+        raise ValueError("unexpected delivery entry; do not silently omit it")
+    if {p.name for p in (source / "evidence").iterdir()} != {"index.json", archive.name}:
+        raise ValueError("unexpected evidence entry; do not silently omit it")
+    if any(p.is_symlink() for p in source.rglob("*")):
+        raise ValueError("symlink delivery rejected")
+    destination.mkdir(parents=True)
+    index["archive_parts"] = split(archive, destination / "evidence",
+                                    archive_name=archive.name, part_bytes=part_bytes)
+    index["archive_bytes"] = archive.stat().st_size
+    shutil.copytree(source / "data", destination / "data")
+    for name in ("README.md", "TEST_REPORT.md"):
+        shutil.copyfile(source / name, destination / name)
+    atomic_write_json(destination / "evidence/index.json", index)
     return index
 
 
@@ -158,11 +174,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--verify", action="store_true")
+    parser.add_argument("--publish-from", type=Path)
     for name in ("report", "attempts", "legacy", "before", "after", "core-tests"):
         parser.add_argument("--" + name, type=Path)
     args = parser.parse_args()
-    if not args.verify and any(getattr(args, k) is None for k in ("report", "attempts", "legacy", "before", "after", "core_tests")):
+    if args.publish_from and args.verify:
+        parser.error("--publish-from and --verify are mutually exclusive")
+    if not args.verify and not args.publish_from and any(getattr(args, k) is None for k in ("report", "attempts", "legacy", "before", "after", "core_tests")):
         parser.error("packaging requires all six source paths")
-    result = verify(args.output) if args.verify else package(args.output, args.report, args.attempts,
-                                                           args.legacy, args.before, args.after, args.core_tests)
+    if args.publish_from:
+        publish(args.publish_from, args.output)
+        result = verify(args.output)
+    elif args.verify:
+        result = verify(args.output)
+    else:
+        result = package(args.output, args.report, args.attempts,
+                         args.legacy, args.before, args.after, args.core_tests)
     print(json.dumps(dict(status=result["status"], archive_sha256=result["sha256"])))

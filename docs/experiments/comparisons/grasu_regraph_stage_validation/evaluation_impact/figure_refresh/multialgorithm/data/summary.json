@@ -1,0 +1,1083 @@
+{
+  "baseline_admitted": false,
+  "comparisons": [
+    {
+      "accepted_bytes_ratio": 5129.996255850234,
+      "algorithm": "SSSP",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "SSSP",
+        "dataset": "AU",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "initial_edges": 390847,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/materialization_manifest.json",
+        "physical_update_records": 8,
+        "projection": "directed",
+        "root": 11,
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/updates/directed/insert_u8.slice",
+        "updates": 8,
+        "vertices": 515281
+      },
+      "dataset": "AU",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 1066959,
+        "energy_details": {
+          "act_energy_pj": 84884904.0,
+          "act_stb_energy_pj": 2710643298.0,
+          "num_read_cmds": 1858573,
+          "num_write_cmds": 196606,
+          "pre_stb_energy_pj": 8954272464.0,
+          "read_energy_pj": 1494292692.0,
+          "ref_energy_pj": 3549162240.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 17003230806.0,
+          "write_energy_pj": 209975208.0
+        },
+        "energy_pj": 17003230806.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_AU_u8_gr",
+        "final_state": {
+          "bytes": 2061124,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_AU_u8_gr/final.u32le",
+          "sha256": "777309fe0f9736f62c5f967b5014289a58f31bc72948137a0c0572d743d12a9e"
+        },
+        "g_cycles": 380,
+        "g_read_bytes": 680,
+        "g_write_bytes": 512,
+        "handoff_cycle_gap": 0,
+        "ledger_closed": true,
+        "physical_handoff": true,
+        "r_cycles": 1066579,
+        "read_bytes": 118949672,
+        "rounds": 2,
+        "state_hashes": {
+          "expected": "777309fe0f9736f62c5f967b5014289a58f31bc72948137a0c0572d743d12a9e",
+          "final": "777309fe0f9736f62c5f967b5014289a58f31bc72948137a0c0572d743d12a9e",
+          "old_state": "a2e2d33fdb1f42e246f26f9dc7d952a867504b2184ff2548fdf1a787e977bc65"
+        },
+        "write_bytes": 12583432
+      },
+      "hbm_energy_ratio": 21.344389200262768,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correctness": true,
+        "cycles": 58338,
+        "energy_details": {
+          "act_energy_pj": 269928.0,
+          "act_stb_energy_pj": 11776116.0,
+          "num_read_cmds": 2920,
+          "num_write_cmds": 630,
+          "pre_stb_energy_pj": 588805920.0,
+          "read_energy_pj": 2347680.0,
+          "ref_energy_pj": 192741120.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 796613604.0,
+          "write_energy_pj": 672840.0
+        },
+        "energy_pj": 796613604.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_AU_u8_spine",
+        "final_state": {
+          "bytes": 2061124,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_AU_u8_spine/final.u32le",
+          "sha256": "777309fe0f9736f62c5f967b5014289a58f31bc72948137a0c0572d743d12a9e"
+        },
+        "host_handoffs": 0,
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "owner_control_cycles": 3,
+        "read_bytes": 21868,
+        "rounds": 2,
+        "state_hashes": {
+          "expected": "777309fe0f9736f62c5f967b5014289a58f31bc72948137a0c0572d743d12a9e",
+          "final": "777309fe0f9736f62c5f967b5014289a58f31bc72948137a0c0572d743d12a9e",
+          "old_state": "a2e2d33fdb1f42e246f26f9dc7d952a867504b2184ff2548fdf1a787e977bc65"
+        },
+        "write_bytes": 3772
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    },
+    {
+      "accepted_bytes_ratio": 6916.253322119428,
+      "algorithm": "SSSP",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "SSSP",
+        "dataset": "SU",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/graphs/directed_weighted.slice",
+        "initial_edges": 616118,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/materialization_manifest.json",
+        "physical_update_records": 8,
+        "projection": "directed",
+        "root": 23,
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/updates/directed/insert_u8.slice",
+        "updates": 8,
+        "vertices": 567316
+      },
+      "dataset": "SU",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 1436899,
+        "energy_details": {
+          "act_energy_pj": 81131580.0,
+          "act_stb_energy_pj": 3381664110.0,
+          "num_read_cmds": 2348628,
+          "num_write_cmds": 221174,
+          "pre_stb_energy_pj": 12254443440.0,
+          "read_energy_pj": 1888296912.0,
+          "ref_energy_pj": 4781537280.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 22623287154.0,
+          "write_energy_pj": 236213832.0
+        },
+        "energy_pj": 22623287154.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_SU_u8_gr",
+        "final_state": {
+          "bytes": 2269264,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_SU_u8_gr/final.u32le",
+          "sha256": "be4c73aefcacdd2f8534757a9748f76eec36ae5200f96e12eec41c980d125bfe"
+        },
+        "g_cycles": 383,
+        "g_read_bytes": 656,
+        "g_write_bytes": 512,
+        "handoff_cycle_gap": 0,
+        "ledger_closed": true,
+        "physical_handoff": true,
+        "r_cycles": 1436516,
+        "read_bytes": 150312208,
+        "rounds": 2,
+        "state_hashes": {
+          "expected": "be4c73aefcacdd2f8534757a9748f76eec36ae5200f96e12eec41c980d125bfe",
+          "final": "be4c73aefcacdd2f8534757a9748f76eec36ae5200f96e12eec41c980d125bfe",
+          "old_state": "b04665481c02c58667cba2b0188860c74b47e9b9330234e41238133c5b35426c"
+        },
+        "write_bytes": 14156296
+      },
+      "hbm_energy_ratio": 28.144547748871563,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correctness": true,
+        "cycles": 58872,
+        "energy_details": {
+          "act_energy_pj": 322092.0,
+          "act_stb_energy_pj": 11807664.0,
+          "num_read_cmds": 2579,
+          "num_write_cmds": 639,
+          "pre_stb_energy_pj": 594251136.0,
+          "read_energy_pj": 2073516.0,
+          "ref_energy_pj": 194688000.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 803824860.0,
+          "write_energy_pj": 682452.0
+        },
+        "energy_pj": 803824860.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_SU_u8_spine",
+        "final_state": {
+          "bytes": 2269264,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_SU_u8_spine/final.u32le",
+          "sha256": "be4c73aefcacdd2f8534757a9748f76eec36ae5200f96e12eec41c980d125bfe"
+        },
+        "host_handoffs": 0,
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "owner_control_cycles": 3,
+        "read_bytes": 19860,
+        "rounds": 2,
+        "state_hashes": {
+          "expected": "be4c73aefcacdd2f8534757a9748f76eec36ae5200f96e12eec41c980d125bfe",
+          "final": "be4c73aefcacdd2f8534757a9748f76eec36ae5200f96e12eec41c980d125bfe",
+          "old_state": "b04665481c02c58667cba2b0188860c74b47e9b9330234e41238133c5b35426c"
+        },
+        "write_bytes": 3920
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    },
+    {
+      "accepted_bytes_ratio": 1265.3071138696587,
+      "algorithm": "SSSP",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "SSSP",
+        "dataset": "WK",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/graphs/directed_weighted.slice",
+        "initial_edges": 1142352,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/materialization_manifest.json",
+        "physical_update_records": 8,
+        "projection": "directed",
+        "root": 0,
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/updates/directed/insert_u8.slice",
+        "updates": 8,
+        "vertices": 1140149
+      },
+      "dataset": "WK",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 693723,
+        "energy_details": {
+          "act_energy_pj": 25605072.0,
+          "act_stb_energy_pj": 1045735746.0,
+          "num_read_cmds": 441361,
+          "num_write_cmds": 221184,
+          "pre_stb_energy_pj": 6343177680.0,
+          "read_energy_pj": 354854244.0,
+          "ref_energy_pj": 2307052800.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 10312650054.0,
+          "write_energy_pj": 236224512.0
+        },
+        "energy_pj": 10312650054.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_WK_u8_gr",
+        "final_state": {
+          "bytes": 4560596,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_WK_u8_gr/final.u32le",
+          "sha256": "a4e44c532a6dd52ba5e610283a6ee0febb2047c515341878fc56fdddfaf03d85"
+        },
+        "g_cycles": 285,
+        "g_read_bytes": 664,
+        "g_write_bytes": 512,
+        "handoff_cycle_gap": 0,
+        "ledger_closed": true,
+        "physical_handoff": true,
+        "r_cycles": 693438,
+        "read_bytes": 28246680,
+        "rounds": 1,
+        "state_hashes": {
+          "expected": "a4e44c532a6dd52ba5e610283a6ee0febb2047c515341878fc56fdddfaf03d85",
+          "final": "a4e44c532a6dd52ba5e610283a6ee0febb2047c515341878fc56fdddfaf03d85",
+          "old_state": "a4e44c532a6dd52ba5e610283a6ee0febb2047c515341878fc56fdddfaf03d85"
+        },
+        "write_bytes": 14156292
+      },
+      "hbm_energy_ratio": 18.78447128742308,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correctness": true,
+        "cycles": 40005,
+        "energy_details": {
+          "act_energy_pj": 309672.0,
+          "act_stb_energy_pj": 9676458.0,
+          "num_read_cmds": 4318,
+          "num_write_cmds": 515,
+          "pre_stb_energy_pj": 402603024.0,
+          "read_energy_pj": 3471672.0,
+          "ref_energy_pj": 132387840.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 548998686.0,
+          "write_energy_pj": 550020.0
+        },
+        "energy_pj": 548998686.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_WK_u8_spine",
+        "final_state": {
+          "bytes": 4560596,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_SSSP_WK_u8_spine/final.u32le",
+          "sha256": "a4e44c532a6dd52ba5e610283a6ee0febb2047c515341878fc56fdddfaf03d85"
+        },
+        "host_handoffs": 0,
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "owner_control_cycles": 2,
+        "read_bytes": 30392,
+        "rounds": 1,
+        "state_hashes": {
+          "expected": "a4e44c532a6dd52ba5e610283a6ee0febb2047c515341878fc56fdddfaf03d85",
+          "final": "a4e44c532a6dd52ba5e610283a6ee0febb2047c515341878fc56fdddfaf03d85",
+          "old_state": "a4e44c532a6dd52ba5e610283a6ee0febb2047c515341878fc56fdddfaf03d85"
+        },
+        "write_bytes": 3120
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    },
+    {
+      "accepted_bytes_ratio": 1695.6108559882439,
+      "algorithm": "CC",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "CC",
+        "dataset": "AU",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/graphs/reciprocal_weighted.slice",
+        "initial_edges": 679246,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/materialization_manifest.json",
+        "physical_update_records": 16,
+        "projection": "reciprocal",
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/updates/reciprocal/insert_u8.slice",
+        "updates": 8,
+        "vertices": 515281
+      },
+      "dataset": "AU",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 541867,
+        "energy_details": {
+          "act_energy_pj": 36859248.0,
+          "act_stb_energy_pj": 1594681242.0,
+          "num_read_cmds": 1055583,
+          "num_write_cmds": 98305,
+          "pre_stb_energy_pj": 4388939664.0,
+          "read_energy_pj": 848688732.0,
+          "ref_energy_pj": 1802810880.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 8776969506.0,
+          "write_energy_pj": 104989740.0
+        },
+        "energy_pj": 8776969506.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_AU_u8_gr",
+        "final_state": {
+          "bytes": 2061124,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_AU_u8_gr/final.u32le",
+          "sha256": "a38f4b106eda03cf10ef06541d2324febc746830b41ea8ced5096609e15db4ed"
+        },
+        "g_cycles": 538,
+        "g_read_bytes": 1544,
+        "g_write_bytes": 1024,
+        "ledger_closed": true,
+        "oracle_max_error": 0,
+        "physical_handoff": true,
+        "preparation_cycles": 0,
+        "r_cycles": 541329,
+        "read_bytes": 67554760,
+        "rounds": 1,
+        "state_hashes": {
+          "expected": "a38f4b106eda03cf10ef06541d2324febc746830b41ea8ced5096609e15db4ed",
+          "final": "a38f4b106eda03cf10ef06541d2324febc746830b41ea8ced5096609e15db4ed",
+          "old_state": "a38f4b106eda03cf10ef06541d2324febc746830b41ea8ced5096609e15db4ed"
+        },
+        "write_bytes": 6292484
+      },
+      "hbm_energy_ratio": 9.787601382567676,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correction_oracle_directed": false,
+        "correctness": true,
+        "cycles": 65497,
+        "energy_details": {
+          "act_energy_pj": 805644.0,
+          "act_stb_energy_pj": 15120534.0,
+          "num_read_cmds": 5396,
+          "num_write_cmds": 649,
+          "pre_stb_energy_pj": 659682288.0,
+          "read_energy_pj": 4338384.0,
+          "ref_energy_pj": 216103680.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 896743662.0,
+          "write_energy_pj": 693132.0
+        },
+        "energy_pj": 896743662.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_AU_u8_spine",
+        "final_state": {
+          "bytes": 2061124,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_AU_u8_spine/final.u32le",
+          "sha256": "a38f4b106eda03cf10ef06541d2324febc746830b41ea8ced5096609e15db4ed"
+        },
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "oracle_max_error": 0,
+        "read_bytes": 38976,
+        "rounds": 1,
+        "state_hashes": {
+          "expected": "a38f4b106eda03cf10ef06541d2324febc746830b41ea8ced5096609e15db4ed",
+          "final": "a38f4b106eda03cf10ef06541d2324febc746830b41ea8ced5096609e15db4ed",
+          "old_state": "a38f4b106eda03cf10ef06541d2324febc746830b41ea8ced5096609e15db4ed"
+        },
+        "write_bytes": 4576
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    },
+    {
+      "accepted_bytes_ratio": 3587.3011804908356,
+      "algorithm": "CC",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "CC",
+        "dataset": "SU",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/graphs/reciprocal_weighted.slice",
+        "initial_edges": 1061248,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/materialization_manifest.json",
+        "physical_update_records": 16,
+        "projection": "reciprocal",
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/updates/reciprocal/insert_u8.slice",
+        "updates": 8,
+        "vertices": 567316
+      },
+      "dataset": "SU",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 727821,
+        "energy_details": {
+          "act_energy_pj": 49417524.0,
+          "act_stb_energy_pj": 1994882208.0,
+          "num_read_cmds": 1332844,
+          "num_write_cmds": 110579,
+          "pre_stb_energy_pj": 6002052864.0,
+          "read_energy_pj": 1071606576.0,
+          "ref_energy_pj": 2421918720.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 11657976264.0,
+          "write_energy_pj": 118098372.0
+        },
+        "energy_pj": 11657976264.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_SU_u8_gr",
+        "final_state": {
+          "bytes": 2269264,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_SU_u8_gr/final.u32le",
+          "sha256": "cc4a58857a626859bbe5d10ab4cb27e63817c69511e66e8eaeb8cfaf6e781f23"
+        },
+        "g_cycles": 643,
+        "g_read_bytes": 1296,
+        "g_write_bytes": 1024,
+        "ledger_closed": true,
+        "oracle_max_error": 0,
+        "physical_handoff": true,
+        "preparation_cycles": 0,
+        "r_cycles": 727178,
+        "read_bytes": 85301264,
+        "rounds": 1,
+        "state_hashes": {
+          "expected": "cc4a58857a626859bbe5d10ab4cb27e63817c69511e66e8eaeb8cfaf6e781f23",
+          "final": "cc4a58857a626859bbe5d10ab4cb27e63817c69511e66e8eaeb8cfaf6e781f23",
+          "old_state": "cc4a58857a626859bbe5d10ab4cb27e63817c69511e66e8eaeb8cfaf6e781f23"
+        },
+        "write_bytes": 7078916
+      },
+      "hbm_energy_ratio": 13.712817019290627,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correction_oracle_directed": false,
+        "correctness": true,
+        "cycles": 62190,
+        "energy_details": {
+          "act_energy_pj": 533232.0,
+          "act_stb_energy_pj": 13026222.0,
+          "num_read_cmds": 2709,
+          "num_write_cmds": 659,
+          "pre_stb_energy_pj": 627341232.0,
+          "read_energy_pj": 2178036.0,
+          "ref_energy_pj": 206369280.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 850151814.0,
+          "write_energy_pj": 703812.0
+        },
+        "energy_pj": 850151814.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_SU_u8_spine",
+        "final_state": {
+          "bytes": 2269264,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_SU_u8_spine/final.u32le",
+          "sha256": "cc4a58857a626859bbe5d10ab4cb27e63817c69511e66e8eaeb8cfaf6e781f23"
+        },
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "oracle_max_error": 0,
+        "read_bytes": 21112,
+        "rounds": 1,
+        "state_hashes": {
+          "expected": "cc4a58857a626859bbe5d10ab4cb27e63817c69511e66e8eaeb8cfaf6e781f23",
+          "final": "cc4a58857a626859bbe5d10ab4cb27e63817c69511e66e8eaeb8cfaf6e781f23",
+          "old_state": "cc4a58857a626859bbe5d10ab4cb27e63817c69511e66e8eaeb8cfaf6e781f23"
+        },
+        "write_bytes": 4640
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    },
+    {
+      "accepted_bytes_ratio": 1854.2942717077428,
+      "algorithm": "CC",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "CC",
+        "dataset": "WK",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/graphs/reciprocal_weighted.slice",
+        "initial_edges": 2032558,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/materialization_manifest.json",
+        "physical_update_records": 16,
+        "projection": "reciprocal",
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/updates/reciprocal/insert_u8.slice",
+        "updates": 8,
+        "vertices": 1140149
+      },
+      "dataset": "WK",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 1357985,
+        "energy_details": {
+          "act_energy_pj": 59991912.0,
+          "act_stb_energy_pj": 2472688614.0,
+          "num_read_cmds": 1283387,
+          "num_write_cmds": 442366,
+          "pre_stb_energy_pj": 12107437680.0,
+          "read_energy_pj": 1031843148.0,
+          "ref_energy_pj": 4518708480.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 20663116722.0,
+          "write_energy_pj": 472446888.0
+        },
+        "energy_pj": 20663116722.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_WK_u8_gr",
+        "final_state": {
+          "bytes": 4560596,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_WK_u8_gr/final.u32le",
+          "sha256": "07a0d7054c942d9bffe10facdfba78bf14de935425c72efadd800b7636bdddf1"
+        },
+        "g_cycles": 375,
+        "g_read_bytes": 1304,
+        "g_write_bytes": 1024,
+        "ledger_closed": true,
+        "oracle_max_error": 0,
+        "physical_handoff": true,
+        "preparation_cycles": 0,
+        "r_cycles": 1357610,
+        "read_bytes": 82136600,
+        "rounds": 2,
+        "state_hashes": {
+          "expected": "07a0d7054c942d9bffe10facdfba78bf14de935425c72efadd800b7636bdddf1",
+          "final": "07a0d7054c942d9bffe10facdfba78bf14de935425c72efadd800b7636bdddf1",
+          "old_state": "c6f4b20c11a5557e79f1a5b7c44c13ac495db9346602b2543da162c2eb400a98"
+        },
+        "write_bytes": 28312584
+      },
+      "hbm_energy_ratio": 19.97712907856629,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correction_oracle_directed": false,
+        "correctness": true,
+        "cycles": 75406,
+        "energy_details": {
+          "act_energy_pj": 573804.0,
+          "act_stb_energy_pj": 20055354.0,
+          "num_read_cmds": 7573,
+          "num_write_cmds": 804,
+          "pre_stb_energy_pj": 757561488.0,
+          "read_energy_pj": 6088692.0,
+          "ref_energy_pj": 249200640.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 1034338650.0,
+          "write_energy_pj": 858672.0
+        },
+        "energy_pj": 1034338650.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_WK_u8_spine",
+        "final_state": {
+          "bytes": 4560596,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_CC_WK_u8_spine/final.u32le",
+          "sha256": "07a0d7054c942d9bffe10facdfba78bf14de935425c72efadd800b7636bdddf1"
+        },
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "oracle_max_error": 0,
+        "read_bytes": 54128,
+        "rounds": 2,
+        "state_hashes": {
+          "expected": "07a0d7054c942d9bffe10facdfba78bf14de935425c72efadd800b7636bdddf1",
+          "final": "07a0d7054c942d9bffe10facdfba78bf14de935425c72efadd800b7636bdddf1",
+          "old_state": "c6f4b20c11a5557e79f1a5b7c44c13ac495db9346602b2543da162c2eb400a98"
+        },
+        "write_bytes": 5436
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    },
+    {
+      "accepted_bytes_ratio": 21.242249249493995,
+      "algorithm": "ResPR",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "ResPR",
+        "dataset": "AU",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/graphs/residual_sink_free_weighted.slice",
+        "initial_edges": 826848,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/materialization_manifest.json",
+        "physical_update_records": 8,
+        "projection": "residual_sink_free",
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/updates/residual_sink_free/insert_u8.slice",
+        "updates": 8,
+        "vertices": 515281
+      },
+      "dataset": "AU",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 34974705,
+        "energy_details": {
+          "act_energy_pj": 6811134624.0,
+          "act_stb_energy_pj": 101200235664.0,
+          "num_read_cmds": 83051001,
+          "num_write_cmds": 7666630,
+          "pre_stb_energy_pj": 284540813952.0,
+          "read_energy_pj": 66773004804.0,
+          "ref_energy_pj": 116394220800.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 583907370684.0,
+          "write_energy_pj": 8187960840.0
+        },
+        "energy_pj": 583907370684.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_AU_u8_gr",
+        "final_state": {
+          "bytes": 2061124,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_AU_u8_gr/final.u32le",
+          "sha256": "b72a9e2d9c73981a4f476572d0738fe6151927f79c40455750c703587b9b455a"
+        },
+        "g_cycles": 380,
+        "g_read_bytes": 680,
+        "g_write_bytes": 512,
+        "ledger_closed": true,
+        "oracle_max_error": 3.79946e-09,
+        "physical_handoff": true,
+        "preparation_cycles": 134708,
+        "r_cycles": 34974325,
+        "read_bytes": 5315345512,
+        "rounds": 58,
+        "state_hashes": {
+          "expected": "1c64e6b5ea4c11243bb64d41536da7f9ab9fdb93be9897534442197c6f971ce8",
+          "final": "b72a9e2d9c73981a4f476572d0738fe6151927f79c40455750c703587b9b455a",
+          "old_state": "d34cad333f295f442690eab40e696d967cde8cd14dccef8231a561c7333e67b8"
+        },
+        "write_bytes": 490662440
+      },
+      "hbm_energy_ratio": 0.2276377009326282,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correction_oracle_directed": true,
+        "correctness": true,
+        "cycles": 183160033,
+        "energy_details": {
+          "act_energy_pj": 1054506852.0,
+          "act_stb_energy_pj": 73650977532.0,
+          "num_read_cmds": 33613837,
+          "num_write_cmds": 29767126,
+          "pre_stb_energy_pj": 1821994474080.0,
+          "read_energy_pj": 27025524948.0,
+          "ref_energy_pj": 609556446720.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 2565073220700.0,
+          "write_energy_pj": 31791290568.0
+        },
+        "energy_pj": 2565073220700.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_AU_u8_spine",
+        "final_state": {
+          "bytes": 2061124,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_AU_u8_spine/final.u32le",
+          "sha256": "683a42f862337c840b4b7447070b7a90c48495d2bc90db67254b627af0f700da"
+        },
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "oracle_max_error": 3.79946e-09,
+        "read_bytes": 152171476,
+        "rounds": 57,
+        "state_hashes": {
+          "expected": "1c64e6b5ea4c11243bb64d41536da7f9ab9fdb93be9897534442197c6f971ce8",
+          "final": "683a42f862337c840b4b7447070b7a90c48495d2bc90db67254b627af0f700da",
+          "old_state": "d34cad333f295f442690eab40e696d967cde8cd14dccef8231a561c7333e67b8"
+        },
+        "write_bytes": 121152120
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    },
+    {
+      "accepted_bytes_ratio": 22.641483431433247,
+      "algorithm": "ResPR",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "ResPR",
+        "dataset": "SU",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/graphs/residual_sink_free_weighted.slice",
+        "initial_edges": 1075035,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/materialization_manifest.json",
+        "physical_update_records": 8,
+        "projection": "residual_sink_free",
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/updates/residual_sink_free/insert_u8.slice",
+        "updates": 8,
+        "vertices": 567316
+      },
+      "dataset": "SU",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 39893391,
+        "energy_details": {
+          "act_energy_pj": 6248097108.0,
+          "act_stb_energy_pj": 102617040966.0,
+          "num_read_cmds": 83711334,
+          "num_write_cmds": 7296295,
+          "pre_stb_energy_pj": 333877757808.0,
+          "read_energy_pj": 67303912536.0,
+          "ref_energy_pj": 132763587840.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 650602839318.0,
+          "write_energy_pj": 7792443060.0
+        },
+        "energy_pj": 650602839318.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_SU_u8_gr",
+        "final_state": {
+          "bytes": 2269264,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_SU_u8_gr/final.u32le",
+          "sha256": "c2e42dd04b7d32ed8e6ec77ab23106ac1806aa222f6bba6ebbddd1df15403ffa"
+        },
+        "g_cycles": 383,
+        "g_read_bytes": 656,
+        "g_write_bytes": 512,
+        "ledger_closed": true,
+        "oracle_max_error": 3.89613e-09,
+        "physical_handoff": true,
+        "preparation_cycles": 148305,
+        "r_cycles": 39893008,
+        "read_bytes": 5357544016,
+        "rounds": 49,
+        "state_hashes": {
+          "expected": "9024dd9d36d9d75769d14baed658a89130a5d6446e85caf149a578d5050701a2",
+          "final": "c2e42dd04b7d32ed8e6ec77ab23106ac1806aa222f6bba6ebbddd1df15403ffa",
+          "old_state": "07cf70e8ba49ebf03cee2226347901f1a907c9a9328ecd8a717431f79499bfe1"
+        },
+        "write_bytes": 466961476
+      },
+      "hbm_energy_ratio": 0.28163499694733735,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correction_oracle_directed": true,
+        "correctness": true,
+        "cycles": 164806227,
+        "energy_details": {
+          "act_energy_pj": 837667728.0,
+          "act_stb_energy_pj": 66804433938.0,
+          "num_read_cmds": 31717502,
+          "num_write_cmds": 27568823,
+          "pre_stb_energy_pj": 1639030795344.0,
+          "read_energy_pj": 25500871608.0,
+          "ref_energy_pj": 548475033600.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 2310092305182.0,
+          "write_energy_pj": 29443502964.0
+        },
+        "energy_pj": 2310092305182.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_SU_u8_spine",
+        "final_state": {
+          "bytes": 2269264,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_SU_u8_spine/final.u32le",
+          "sha256": "100bc6ce8cc7ded046f4aa0ff48c8ae93e54c896320d8ac9d0efef88f6b0fde3"
+        },
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "oracle_max_error": 3.89613e-09,
+        "read_bytes": 145316684,
+        "rounds": 48,
+        "state_hashes": {
+          "expected": "9024dd9d36d9d75769d14baed658a89130a5d6446e85caf149a578d5050701a2",
+          "final": "100bc6ce8cc7ded046f4aa0ff48c8ae93e54c896320d8ac9d0efef88f6b0fde3",
+          "old_state": "07cf70e8ba49ebf03cee2226347901f1a907c9a9328ecd8a717431f79499bfe1"
+        },
+        "write_bytes": 111932604
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    },
+    {
+      "accepted_bytes_ratio": 21.25618441282349,
+      "algorithm": "ResPR",
+      "baseline_admitted": false,
+      "case": {
+        "algorithm": "ResPR",
+        "dataset": "WK",
+        "figure": 9,
+        "graph": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/graphs/residual_sink_free_weighted.slice",
+        "initial_edges": 2190639,
+        "manifest": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/materialization_manifest.json",
+        "physical_update_records": 8,
+        "projection": "residual_sink_free",
+        "update_file": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/updates/residual_sink_free/insert_u8.slice",
+        "updates": 8,
+        "vertices": 1140149
+      },
+      "dataset": "WK",
+      "figure": 9,
+      "gr": {
+        "arm": "gr",
+        "correctness": true,
+        "cycles": 65040895,
+        "energy_details": {
+          "act_energy_pj": 10577796876.0,
+          "act_stb_energy_pj": 167444183544.0,
+          "num_read_cmds": 168756523,
+          "num_write_cmds": 16657635,
+          "pre_stb_energy_pj": 544241198784.0,
+          "read_energy_pj": 135680244492.0,
+          "ref_energy_pj": 216456065280.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 1092189843156.0,
+          "write_energy_pj": 17790354180.0
+        },
+        "energy_pj": 1092189843156.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_WK_u8_gr",
+        "final_state": {
+          "bytes": 4560596,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_WK_u8_gr/final.u32le",
+          "sha256": "66b1a156b5b975624d5cfc11e26058157a8da3e9436fb91578d3db29a481687f"
+        },
+        "g_cycles": 285,
+        "g_read_bytes": 664,
+        "g_write_bytes": 512,
+        "ledger_closed": true,
+        "oracle_max_error": 1.37775e-09,
+        "physical_handoff": true,
+        "preparation_cycles": 297614,
+        "r_cycles": 65040610,
+        "read_bytes": 10800424152,
+        "rounds": 56,
+        "state_hashes": {
+          "expected": "60a8a2b48fa41354c2839aac73a725f26b2ffbb65e73ca20e23c1d890ba29431",
+          "final": "66b1a156b5b975624d5cfc11e26058157a8da3e9436fb91578d3db29a481687f",
+          "old_state": "c0e0aa17a258753f9c2e4142337c41988544c059d496197a36d87fa54c3b732d"
+        },
+        "write_bytes": 1066086688
+      },
+      "hbm_energy_ratio": 0.25255045074349863,
+      "source_report": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json",
+      "source_report_sha256": "1d70cb7ee64019729430f0815c0debc811da2934d4240a870a37c83f59bbf239",
+      "spine": {
+        "arm": "spine",
+        "correction_oracle_directed": true,
+        "correctness": true,
+        "cycles": 307094993,
+        "energy_details": {
+          "act_energy_pj": 945147096.0,
+          "act_stb_energy_pj": 124672972644.0,
+          "num_read_cmds": 69434769,
+          "num_write_cmds": 62925268,
+          "pre_stb_energy_pj": 3053981622432.0,
+          "read_energy_pj": 55825554276.0,
+          "ref_energy_pj": 1022010762240.0,
+          "refb_energy_pj": 0.0,
+          "sref_energy_pj": 0.0,
+          "total_energy_pj": 4324640244912.0,
+          "write_energy_pj": 67204186224.0
+        },
+        "energy_pj": 4324640244912.0,
+        "evidence": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_WK_u8_spine",
+        "final_state": {
+          "bytes": 4560596,
+          "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/fig9_ResPR_WK_u8_spine/final.u32le",
+          "sha256": "97cc80e931faf60bbe2c344b3a035ff68da539310f4a74b0e415cde8676d9ca5"
+        },
+        "hot_vertices": 0,
+        "ledger_closed": true,
+        "oracle_max_error": 1.40105e-09,
+        "read_bytes": 305245228,
+        "rounds": 55,
+        "state_hashes": {
+          "expected": "60a8a2b48fa41354c2839aac73a725f26b2ffbb65e73ca20e23c1d890ba29431",
+          "final": "97cc80e931faf60bbe2c344b3a035ff68da539310f4a74b0e415cde8676d9ca5",
+          "old_state": "c0e0aa17a258753f9c2e4142337c41988544c059d496197a36d87fa54c3b732d"
+        },
+        "write_bytes": 253016340
+      },
+      "status": "PREDICTION_ONLY",
+      "updates": 8
+    }
+  ],
+  "core_tests": {
+    "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/core-tests-v7/results.json",
+    "sha256": "be038e2948c04f8a1ea75265f82bf02424486c77782940022d3b88403f072984"
+  },
+  "figure9_pairs": 9,
+  "fresh_pairs": 9,
+  "legacy_archive_sha256": "e397676730eb13c91bedd271ab6e4b09df0ef5ba4ca18b6a777d1f23566fbd91",
+  "model": {
+    "boundary": "resident old convergence, batch maintenance and device preparation through new convergence; no host time",
+    "clock_mhz": 150,
+    "correction": "Spine residual correction is oracle-directed timed work replay, not a functional AXI-derived seed implementation",
+    "energy": "all-32-channel DRAMSim3 total incl. background/refresh; modeled HBM, not measured FPGA energy",
+    "g": "finite natural-geometry/shared-metadata G; original-G performance not admitted",
+    "memory": "Direct DRAMSim3, all 32 channels, 512 MiB/channel, 32 outstanding/channel",
+    "pma_reservation": "exact future batch and zero-source reservation convention retained from SSSP study",
+    "r": "prefetch_gather_reuse, algorithm-specific finite apply and timed PR preparation",
+    "rank_oracle": "independent double Jacobi; L1 error <= V*epsilon/(1-damping)",
+    "residual_contract": "hardware-warm dangling L-infinity, epsilon=1e-5/V, damping=FP32(0.85)",
+    "resource_control": "latest R resource budget, not a strict same-resource original-A4 reproduction",
+    "spine": "Candidate10OnePass; device-active and owner closure"
+  },
+  "original_r_control": {
+    "reason": "Original source-derived control has fixed-point full PR and a local weighted-SSSP UDF, not CC or warm FP32 residual PR; SSSP timing parity is not transferred.",
+    "status": "NOT_ADMITTED_FOR_CC_OR_RES_PR"
+  },
+  "retained_sssp_pairs": 0,
+  "sssp_regression": {
+    "after": {
+      "path": "/data/chuxiao/experiments/figure9_multialgorithm_20261023/sssp-replay-v5/results.json",
+      "sha256": "0efe1f2bead0d6271e220b1aa27f5eabca5f5ebe5f66ef757f55253e305033ff"
+    },
+    "before": {
+      "path": "/data/chuxiao/experiments/warm_spine_comparison_20261023/attempt-v6/results.json",
+      "sha256": "8653b16b6bd9dd9697cc912aebd56f3dc426a245e1f9a5c83456fbe053081910"
+    },
+    "cycle_deltas": [
+      {
+        "after_cycles": 491253,
+        "arm": "gr",
+        "before_cycles": 483020,
+        "delta_cycles": 8233,
+        "latency": 64,
+        "reverse": 0,
+        "workload": "amazon"
+      },
+      {
+        "after_cycles": 491253,
+        "arm": "gr",
+        "before_cycles": 483020,
+        "delta_cycles": 8233,
+        "latency": 64,
+        "reverse": 1,
+        "workload": "amazon"
+      },
+      {
+        "after_cycles": 90749,
+        "arm": "spine",
+        "before_cycles": 90749,
+        "delta_cycles": 0,
+        "latency": 64,
+        "reverse": 0,
+        "workload": "amazon"
+      },
+      {
+        "after_cycles": 838373,
+        "arm": "gr",
+        "before_cycles": 827197,
+        "delta_cycles": 11176,
+        "latency": 128,
+        "reverse": 0,
+        "workload": "amazon"
+      },
+      {
+        "after_cycles": 838373,
+        "arm": "gr",
+        "before_cycles": 827197,
+        "delta_cycles": 11176,
+        "latency": 128,
+        "reverse": 1,
+        "workload": "amazon"
+      },
+      {
+        "after_cycles": 156817,
+        "arm": "spine",
+        "before_cycles": 156817,
+        "delta_cycles": 0,
+        "latency": 128,
+        "reverse": 0,
+        "workload": "amazon"
+      },
+      {
+        "after_cycles": 100066,
+        "arm": "gr",
+        "before_cycles": 100052,
+        "delta_cycles": 14,
+        "latency": 64,
+        "reverse": 0,
+        "workload": "smoke"
+      },
+      {
+        "after_cycles": 100066,
+        "arm": "gr",
+        "before_cycles": 100052,
+        "delta_cycles": 14,
+        "latency": 64,
+        "reverse": 1,
+        "workload": "smoke"
+      },
+      {
+        "after_cycles": 81469,
+        "arm": "spine",
+        "before_cycles": 81469,
+        "delta_cycles": 0,
+        "latency": 64,
+        "reverse": 0,
+        "workload": "smoke"
+      },
+      {
+        "after_cycles": 106638,
+        "arm": "gr",
+        "before_cycles": 106624,
+        "delta_cycles": 14,
+        "latency": 128,
+        "reverse": 0,
+        "workload": "smoke"
+      },
+      {
+        "after_cycles": 106638,
+        "arm": "gr",
+        "before_cycles": 106624,
+        "delta_cycles": 14,
+        "latency": 128,
+        "reverse": 1,
+        "workload": "smoke"
+      },
+      {
+        "after_cycles": 147606,
+        "arm": "spine",
+        "before_cycles": 147606,
+        "delta_cycles": 0,
+        "latency": 128,
+        "reverse": 0,
+        "workload": "smoke"
+      }
+    ],
+    "spine_cycles_exact": true,
+    "states_and_bytes_exact": true,
+    "status": "SSSP_READ_CREDIT_CORRECTION",
+    "trajectories": 12
+  },
+  "status": "COMPLETE_NINE_PAIR_SIMULATOR_DIAGNOSTIC"
+}

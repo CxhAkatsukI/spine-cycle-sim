@@ -1,4 +1,4 @@
-"""Build a freshly pinned CC/ResPR harness, then run finite comparison pairs."""
+"""Build one frozen three-algorithm harness, then run finite comparison pairs."""
 
 import argparse
 import json
@@ -67,7 +67,7 @@ def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_
         directory.mkdir()
         params = dict(arm=arm, algorithm=case["algorithm"], graph=case["graph"],
             updates=case.get("update_file", ""), output=str(directory),
-            dram_config=str(dram_config), maximum=150000000)
+            root=case.get("root", 0), dram_config=str(dram_config), maximum=150000000)
         atomic_write_json(directory / "config.json", params)
         print("START " + name, flush=True)
         step = execute(["env", "LD_LIBRARY_PATH=" + str(DRAM), "taskset", "-c", str(cpu), str(SST),
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     parser.add_argument("--cpu", type=int, required=True)
     parser.add_argument("--timeout", type=int, default=1800)
     parser.add_argument("--datasets", nargs="+", choices=("AU", "SU", "WK"), default=("AU", "SU", "WK"))
-    parser.add_argument("--algorithms", nargs="+", choices=("CC", "ResPR"), default=("CC", "ResPR"))
+    parser.add_argument("--algorithms", nargs="+", choices=("SSSP", "CC", "ResPR"), default=("SSSP", "CC", "ResPR"))
     parser.add_argument("--memory-profile", choices=(runtime.FRESH_CPU, runtime.LARGE_CPU), default=runtime.FRESH_CPU)
     parser.add_argument("--smoke-only", action="store_true")
     args = parser.parse_args()

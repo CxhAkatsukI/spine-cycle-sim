@@ -9,9 +9,21 @@ import io
 import tarfile
 
 from .. import analysis
+from ..matrix import HISTORICAL_ROOTS
 
 
-EXPECTED = {(a, d) for a in ("CC", "ResPR") for d in ("AU", "SU", "WK")}
+EXPECTED = {(a, d) for a in ("SSSP", "CC", "ResPR") for d in ("AU", "SU", "WK")}
+
+
+def replay_sources(replay, matrix):
+    if replay.get("status") != "SSSP_READ_CREDIT_CORRECTION":
+        raise ValueError("explicit read-credit replay status required")
+    pins = {p["path"]: p for p in matrix["pins"]}
+    shared = [p for p in replay["pins"] if p["path"] in pins]
+    if (len([p for p in shared if p["path"].endswith(".a")]) != 2 or
+            not any("/cpp/tests/evaluation_impact/" in p["path"] for p in shared) or
+            any(p != pins[p["path"]] for p in shared)):
+        raise ValueError("SSSP replay and matrix source/core identities differ")
 
 
 def core_gates(report, matrix, read, prefix):
@@ -79,14 +91,16 @@ def selection(report, identity):
         raise ValueError("complete unchanged exploratory matrix required")
     cases = {(c["algorithm"], c["dataset"]): c for c in report["matrix"]}
     rows = {(r["algorithm"], r["dataset"]): r for r in report["rows"]}
-    if (len(report["matrix"]) != 6 or len(report["rows"]) != 6 or
+    if (len(report["matrix"]) != 9 or len(report["rows"]) != 9 or
             set(cases) != EXPECTED or set(rows) != EXPECTED):
-        raise ValueError("exact six-pair registered matrix required")
+        raise ValueError("exact nine-pair registered matrix required")
     result = []
     for key, case in cases.items():
         row = rows[key]
         if (case["updates"] != 8 or case["projection"] !=
-                ("reciprocal" if key[0] == "CC" else "residual_sink_free")):
+                {"SSSP": "directed", "CC": "reciprocal", "ResPR": "residual_sink_free"}[key[0]] or
+                case["physical_update_records"] != (16 if key[0] == "CC" else 8) or
+                (key[0] == "SSSP" and case.get("root") != HISTORICAL_ROOTS[key[1]])):
             raise ValueError("registered graph projection and update count required")
         if analysis.comparison(case, {a: row[a] for a in ("spine", "gr")}) != row:
             raise ValueError("comparison arithmetic or prediction boundary changed")
@@ -129,14 +143,16 @@ def validate_raw(comparisons, read):
             if config["arm"] != arm or any(config[k] != row["case"][v] for k, v in
                     (("algorithm", "algorithm"), ("graph", "graph"), ("updates", "update_file"))):
                 raise ValueError("arm input configuration differs")
+            if row["algorithm"] == "SSSP" and config["root"] != row["case"]["root"]:
+                raise ValueError("SSSP source vertex differs")
             for state in ("old_state", "expected", "final"):
                 state_blob = read(prefix + name + "/" + state + ".u32le")
                 if (len(state_blob) != 4 * row["case"]["vertices"] or
                         hashlib.sha256(state_blob).hexdigest() != expected["state_hashes"][state]):
                     raise ValueError("complete state identity differs")
-            if row["algorithm"] == "CC":
+            if row["algorithm"] in ("SSSP", "CC"):
                 if expected["state_hashes"]["final"] != expected["state_hashes"]["expected"]:
-                    raise ValueError("CC must exactly match independent union-find")
+                    raise ValueError("SSSP/CC must exactly match their independent oracle")
             else:
                 oracle = [json.loads(s.removeprefix("PR_ORACLE ")) for s in text.splitlines()
                           if s.startswith("PR_ORACLE ")]

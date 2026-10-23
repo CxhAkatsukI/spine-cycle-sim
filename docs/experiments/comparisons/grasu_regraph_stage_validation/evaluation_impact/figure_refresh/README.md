@@ -7,9 +7,12 @@ unsupported or failed pairs. Missing values are not projected or copied from
 the old evaluation. No new FPGA timing calibration is claimed.
 
 The data and conclusions below describe the preceding frozen SSSP-only
-collection. A separate [CC/ResPR completion plan](MULTIALGORITHM_PLAN.md)
-tracks the extension; until its full matrix and evidence package pass, it
-does not replace this collection or retroactively change its coverage.
+collection. The separate [three-algorithm extension](multialgorithm/README.md)
+now supplies nine fresh Figure 9 pairs, including the six previously missing
+CC/ResPR pairs and a same-model SSSP rerun. It retains a negative ResPR result
+and does not retroactively change this collection's Figure 8 measurements or
+baseline-admission status. See its [completion plan](MULTIALGORITHM_PLAN.md)
+and test report for the scope and retained failures.
 
 ## Completed Results
 

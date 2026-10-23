@@ -11,9 +11,10 @@ from ...r_bank_stream import runtime
 from ...r_credits.freeze import ROOT, pin
 from ...warm_comparison.analysis import record, summarize
 from ..delivery import equivalence
+from . import sssp_replay
 
 
-def run(output, core, before, input_root, cpu):
+def run(output, core, before, input_root, cpu, allow_read_credit_correction=False):
     output.mkdir(parents=True, exist_ok=False)
     (output / "build").mkdir()
     sources = [p for p in (ROOT / "cpp/tests/evaluation_impact").rglob("*")
@@ -58,8 +59,15 @@ def run(output, core, before, input_root, cpu):
                 raise ValueError("regression dependency changed")
             report["pins_unchanged"] = True
             save()
-            report["equivalence"] = equivalence(before, output / "results.json")
-            report["status"] = "EXACT_SSSP_STATE_CYCLE_TRAFFIC_REPLAY"
+            if allow_read_credit_correction:
+                checked = sssp_replay.compare(json.loads(before.read_text()), report)
+                checked.update(before=dict(path=str(before), sha256=pin(before)["sha256"]),
+                    after=dict(path=str(output / "results.json")))
+                report["equivalence"] = checked
+                report["status"] = checked["status"]
+            else:
+                report["equivalence"] = equivalence(before, output / "results.json")
+                report["status"] = "EXACT_SSSP_STATE_CYCLE_TRAFFIC_REPLAY"
             save()
     except Exception as error:
         report["status"] = "FAILED_RETAINED"
@@ -74,6 +82,7 @@ if __name__ == "__main__":
     for name in ("output", "core", "before", "input-root"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--cpu", type=int, required=True)
+    parser.add_argument("--allow-read-credit-correction", action="store_true")
     args = parser.parse_args()
     print(json.dumps(dict(status=run(args.output.resolve(), args.core.resolve(), args.before.resolve(),
-        args.input_root.resolve(), args.cpu)["status"])))
+        args.input_root.resolve(), args.cpu, args.allow_read_credit_correction)["status"])))
