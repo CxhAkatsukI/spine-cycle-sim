@@ -2113,6 +2113,11 @@ void SpinePageRankVerticalSliceSystem::register_components() {
   }
 }
 
+void SpinePageRankVerticalSliceSystem::configure_residual_apply_mode(
+    SpineResidualApplyMode mode) {
+  compute_->configure_residual_apply_mode(mode);
+}
+
 void SpinePageRankVerticalSliceSystem::restart_iteration() {
   if (!registered_ || !done() || failed() || !idle()) {
     throw std::logic_error(

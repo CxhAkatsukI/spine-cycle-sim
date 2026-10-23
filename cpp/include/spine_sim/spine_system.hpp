@@ -316,6 +316,7 @@ class SpineVerticalSliceSystem {
 
 class SpinePageRankVerticalSliceSystem {
  public:
+  void configure_residual_apply_mode(SpineResidualApplyMode mode);
   SpinePageRankVerticalSliceSystem(
       Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
       SpineEdgeSlice workload, float damping = 0.85F,

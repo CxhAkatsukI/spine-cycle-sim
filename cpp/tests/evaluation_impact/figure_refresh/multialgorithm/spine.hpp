@@ -6,7 +6,8 @@
 
 namespace figure_refresh::multi {
 inline void spine(const Input& input, const std::filesystem::path& output, Scheduler& scheduler,
-                  ClockId clock, MemoryBackend& backend, std::uint64_t maximum) {
+                  ClockId clock, MemoryBackend& backend, std::uint64_t maximum,
+                  SpineResidualApplyMode apply_mode = SpineResidualApplyMode::kDense) {
   auto config = spine_config();
   SpineResidentClassification classification;
   auto resident = preload_spine_resident_snapshot(slice(input.graph, false), config, &classification);
@@ -18,6 +19,9 @@ inline void spine(const Input& input, const std::filesystem::path& output, Sched
   std::size_t rounds_count = 0;
   std::size_t nonempty_rounds = 0;
   std::uint64_t active_vertices = 0, active_edges = 0, computed_edges = 0;
+  std::uint64_t applied = 0, sparse_applied = 0, bitmap_clear = 0, bitmap_read = 0, bitmap_marks = 0;
+  std::uint64_t fallback_tiles = 0;
+  std::size_t bitmap_bytes = 0;
   double error = 0;
   std::vector<std::uint32_t> final;
   std::ofstream rounds(output / "rounds.csv");
@@ -35,10 +39,22 @@ inline void spine(const Input& input, const std::filesystem::path& output, Sched
     end = result.end_cycle;
     rounds_count = result.rounds.size();
     for (const auto& r : result.rounds) {
+      const auto prefix = "frontier-" + std::to_string(r.round);
+      wc::ei::wt::write_words(output / (prefix + "-in.u32le"), r.active_in);
+      wc::ei::wt::write_words(output / (prefix + "-out.u32le"), r.active_out);
       nonempty_rounds += !r.active_in.empty();
       active_vertices += r.active_in.size();
       active_edges += r.reader.edges_emitted;
       if constexpr (requires { r.compute.edges_received; }) computed_edges += r.compute.edges_received;
+      if constexpr (requires { r.compute.sparse_vertices_applied; }) {
+        applied += r.compute.vertices_applied;
+        sparse_applied += r.compute.sparse_vertices_applied;
+        bitmap_clear += r.compute.apply_bitmap_clear_cycles;
+        bitmap_read += r.compute.apply_bitmap_read_cycles;
+        bitmap_marks += r.compute.apply_bitmap_marks;
+        fallback_tiles += r.compute.dense_fallback_tiles;
+        bitmap_bytes = std::max(bitmap_bytes, r.compute.apply_bitmap_storage_bytes);
+      }
       const auto sources = [&] {
         if constexpr (requires { r.reader_sources; }) return r.reader_sources.size();
         else return r.active_in.size();
@@ -74,6 +90,7 @@ inline void spine(const Input& input, const std::filesystem::path& output, Sched
         GraphAlgorithmPolicy(input.algorithm), config, SpineAxiInterfaceProfile{}, AlgorithmPipelineConfig{},
         SpineSplitPageRankCompute::kDefaultMemoryRequestWindow, std::move(resident), execution,
         std::nullopt, initial, input.correction, SpineOwnerSchedulerConfig{});
+    system.configure_residual_apply_mode(apply_mode);
     system.register_components(); scheduler.add_component(backend);
     record(system.run_frontier_to_convergence(256, maximum));
     final = system.compute().rank_words();
@@ -93,6 +110,11 @@ inline void spine(const Input& input, const std::filesystem::path& output, Sched
         << ",\"active_write_bytes\":" << c.write_bytes << "}" << std::endl;
   }
   rounds.close();
+  std::cout << "APPLY_TRACE {\"dirty_bitmap\":" << (apply_mode == SpineResidualApplyMode::kDirtyBitmap)
+      << ",\"vertices_applied\":" << applied << ",\"sparse_vertices_applied\":" << sparse_applied
+      << ",\"bitmap_clear_cycles\":" << bitmap_clear << ",\"bitmap_read_cycles\":" << bitmap_read
+      << ",\"bitmap_marks\":" << bitmap_marks << ",\"bitmap_storage_bytes\":" << bitmap_bytes
+      << ",\"dense_fallback_tiles\":" << fallback_tiles << "}" << std::endl;
   std::cout << "PROPAGATION_TRACE {\"nonempty_rounds\":" << nonempty_rounds
       << ",\"active_vertex_visits\":" << active_vertices << ",\"reader_edges\":" << active_edges
       << ",\"computed_edges\":" << computed_edges << "}" << std::endl;

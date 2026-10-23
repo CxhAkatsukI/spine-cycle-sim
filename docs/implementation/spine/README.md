@@ -26,6 +26,8 @@
 - Algorithm execution: [SSSP rounds](spine_multiround_sssp_20260723.md),
   [residual PageRank](spine_timed_residual_pagerank_20260725.md), and
   [Full PageRank](spine_timed_full_pagerank_compute_20260725.md).
+- Simulator candidate: [tile-local sparse residual Apply](residual_sparse_apply.md),
+  including its zero-share invariant, timed bitmap, and dense dangling fallback.
 - Reader optimizations: [opt-v1](spine_opt_v1_fallback_level_cache_20260728.md)
   and [opt-v2](spine_opt_v2_reader_working_set_20260728.md).
 

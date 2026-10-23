@@ -30,10 +30,14 @@ def residual_threshold(value):
 
 
 def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_only=False,
-        residual_epsilon=1e-6, case_set="figure9"):
+        residual_epsilon=1e-6, case_set="figure9", spine_residual_apply="dense"):
     if cpu not in os.sched_getaffinity(0) or timeout <= 0:
         raise ValueError("allowed CPU and positive timeout required")
     epsilon = residual_threshold(residual_epsilon)
+    if spine_residual_apply not in ("dense", "dirty-bitmap"):
+        raise ValueError("registered Spine residual Apply mode required")
+    if spine_residual_apply != "dense" and tuple(algorithms) != ("ResPR",):
+        raise ValueError("dirty-bitmap candidate requires ResPR-only selection")
     if case_set not in ("figure9", "historical-residual-u8") or (
             case_set == "historical-residual-u8" and tuple(algorithms) != ("ResPR",)):
         raise ValueError("registered case set and ResPR-only historical selection required")
@@ -63,6 +67,8 @@ def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_
             g="finite natural-geometry/shared-metadata G; original-G performance not admitted",
             r="prefetch_gather_reuse, algorithm-specific finite apply and timed PR preparation",
             spine="Candidate10OnePass; device-active and owner closure",
+            spine_residual_apply=spine_residual_apply,
+            apply_evidence="simulator-only dirty-bitmap candidate, not routed HLS" if spine_residual_apply != "dense" else "unchanged dense Apply control",
             correction="Spine residual correction is oracle-directed timed work replay, not a functional AXI-derived seed implementation",
             residual_contract="hardware-warm dangling L-infinity, fixed per-vertex epsilon, damping=FP32(0.85)",
             residual_epsilon=epsilon,
@@ -88,6 +94,7 @@ def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_
         params = dict(arm=arm, algorithm=case["algorithm"], graph=case["graph"],
             updates=case.get("update_file", ""), output=str(directory),
             root=case.get("root", 0), residual_epsilon=epsilon,
+            spine_residual_apply=spine_residual_apply,
             dram_config=str(dram_config), maximum=150000000)
         atomic_write_json(directory / "config.json", params)
         print("START " + name, flush=True)
@@ -170,7 +177,8 @@ if __name__ == "__main__":
     parser.add_argument("--case-set", choices=("figure9", "historical-residual-u8"), default="figure9")
     parser.add_argument("--residual-epsilon", type=residual_threshold, default=1e-6,
                         help="Fixed per-vertex ResPR threshold; historical setting is 1e-6 (no division by V)")
+    parser.add_argument("--spine-residual-apply", choices=("dense", "dirty-bitmap"), default="dense")
     args = parser.parse_args()
     print(json.dumps(dict(status=run(args.output.resolve(), args.core.resolve(), args.cpu, args.timeout,
         args.datasets, args.algorithms, args.memory_profile, args.smoke_only, args.residual_epsilon,
-        args.case_set)["status"])))
+        args.case_set, args.spine_residual_apply)["status"])))

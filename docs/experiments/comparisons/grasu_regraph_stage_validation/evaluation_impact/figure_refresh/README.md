@@ -27,6 +27,16 @@ the AskUbuntu 540K/904K reciprocal u8 inputs with the current model and fixed
 These results must accompany the zero-active AU/SU/WK threshold-restoration
 results when discussing whether sparse updates provide a latency advantage.
 
+**Sparse Apply candidate:** a separate
+[dense/sparse controlled follow-up](respr_sparse_apply/README.md) adds a
+finite, timed tile-local bitmap to Spine ResPR. On the same nonempty inputs,
+G+R/Spine changes to 0.630 / 11.572 / 15.069 for FL / AU540 / AU904. The dense
+default exactly reproduces the preceding collection, and G+R is unchanged.
+Final ranks and per-round active vertex sets match; tiny Flickr residual
+differences and a post-hoc diagnostic comparison tolerance are explicitly
+reported. This is a simulator architecture candidate, not routed HLS timing
+or an admission of original-publication G/R performance.
+
 ## Completed Results
 
 Seven Figure 8 pairs and three Figure 9 SSSP pairs pass correctness and

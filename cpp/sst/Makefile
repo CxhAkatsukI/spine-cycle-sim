@@ -93,6 +93,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/spine_l0.cpp \
            $(ROOT)/cpp/src/spine_owner.cpp \
            $(ROOT)/cpp/src/spine_pagerank.cpp \
+           $(ROOT)/cpp/src/spine_residual_apply.cpp \
            $(ROOT)/cpp/src/spine_split.cpp \
            $(ROOT)/cpp/src/spine_sssp_compute.cpp \
            $(ROOT)/cpp/src/spine_system.cpp \

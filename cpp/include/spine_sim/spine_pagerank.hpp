@@ -12,6 +12,7 @@
 #include "spine_sim/algorithm_pipeline.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
 #include "spine_sim/spine_split.hpp"
+#include "spine_sim/spine_residual_apply.hpp"
 
 namespace spine::sim {
 
@@ -34,6 +35,12 @@ struct SpinePageRankCounters {
   std::uint64_t edges_received{};
   std::uint64_t edge_reduce_operations{};
   std::uint64_t vertices_applied{};
+  std::uint64_t apply_bitmap_clear_cycles{};
+  std::uint64_t apply_bitmap_read_cycles{};
+  std::uint64_t apply_bitmap_marks{};
+  std::size_t apply_bitmap_storage_bytes{};
+  std::uint64_t sparse_vertices_applied{};
+  std::uint64_t dense_fallback_tiles{};
   std::uint64_t vertices_activated{};
   std::uint64_t owner_activation_attempts{};
   std::uint64_t owner_activations_accepted{};
@@ -84,6 +91,7 @@ class SpineSplitPageRankCompute final : public Component {
 
   void register_components(Scheduler &scheduler);
   void configure_initial_start_gate(const bool *start_ready);
+  void configure_residual_apply_mode(SpineResidualApplyMode mode);
   [[nodiscard]] bool done() const noexcept { return done_; }
   [[nodiscard]] bool failed() const noexcept { return failed_; }
   [[nodiscard]] const std::vector<std::uint32_t> &rank_words() const noexcept {
@@ -128,6 +136,7 @@ class SpineSplitPageRankCompute final : public Component {
  private:
   enum class Phase {
     kInput,
+    kClearApplyBitmap,
     kSourceMemory,
     kSourceMapPush,
     kSourceMapWait,
@@ -215,6 +224,7 @@ class SpineSplitPageRankCompute final : public Component {
   [[nodiscard]] bool memory_drained() const noexcept;
   [[nodiscard]] bool algorithm_queues_drained() const noexcept;
   [[nodiscard]] bool tile_apply_drained() const noexcept;
+  [[nodiscard]] bool sparse_residual_apply() const noexcept;
   void set_protocol_status(SpineSourceProtocolStatus status);
   void begin_owner_protocol(OwnerProtocolKind kind, std::uint32_t subject,
                             Phase return_phase);
@@ -253,6 +263,9 @@ class SpineSplitPageRankCompute final : public Component {
   std::vector<std::uint32_t> next_active_;
   std::vector<bool> tile_applied_;
   std::vector<std::uint32_t> tile_accumulators_;
+  SpineResidualApplyMode residual_apply_mode_{SpineResidualApplyMode::kDense};
+  SpineResidualApplyBitmap apply_bitmap_;
+  std::size_t apply_target_count_{};
   std::deque<MemoryTask> memory_tasks_;
   std::unordered_map<std::uint64_t, MemoryTask> inflight_memory_;
   std::unordered_map<std::uint64_t, EdgeReduction> edge_reductions_;
@@ -276,6 +289,8 @@ class SpineSplitPageRankCompute final : public Component {
   bool staged_memory_issue_{};
   bool staged_value_push_{};
   bool staged_apply_tile_complete_{};
+  bool staged_bitmap_clear_{};
+  bool staged_bitmap_read_{};
   bool staged_owner_activation_{};
   bool staged_owner_publication_{};
   bool staged_owner_dispatch_{};

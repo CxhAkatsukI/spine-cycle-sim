@@ -49,6 +49,7 @@ add_library(spine_cycle_core STATIC
   src/spine_l0.cpp
   src/spine_owner.cpp
   src/spine_pagerank.cpp
+  src/spine_residual_apply.cpp
   src/spine_split.cpp
   src/spine_sssp_compute.cpp
   src/spine_system.cpp
@@ -298,6 +299,10 @@ if(BUILD_TESTING)
   add_test(NAME sst_hbm_mapper_tests COMMAND sst_hbm_mapper_tests)
 
   add_executable(spine_cycle_core_tests tests/core_tests.cpp)
+  add_executable(spine_residual_apply_tests tests/spine_residual_apply_tests.cpp)
+  target_link_libraries(spine_residual_apply_tests PRIVATE spine_cycle_core)
+  target_compile_options(spine_residual_apply_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME spine_residual_apply_tests COMMAND spine_residual_apply_tests)
   target_link_libraries(spine_cycle_core_tests PRIVATE spine_cycle_core)
   target_compile_definitions(
     spine_cycle_core_tests PRIVATE SPINE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")

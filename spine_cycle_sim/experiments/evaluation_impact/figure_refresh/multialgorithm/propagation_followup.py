@@ -61,7 +61,7 @@ def check_arm(report, case, arm, result, read):
     return text, oracle, max(abs(v) for v in residual)
 
 
-def summarize(report, core, read):
+def summarize(report, core, read, *, expected_core_tests=39):
     if (report.get("status") != "COMPLETE_SUPPORTED_SCOPE" or report.get("failures") != [] or
             report.get("pins_unchanged") is not True or report.get("baseline_admitted") is not False or
             report.get("case_set") != "historical-residual-u8" or
@@ -72,7 +72,7 @@ def summarize(report, core, read):
     if (len(cases) != 3 or len(report["rows"]) != 3 or {c["dataset"] for c in cases} != set(declared)):
         raise ValueError("all three predeclared cases required")
     validation.source_snapshot(report, read, "matrix/")
-    validation.core_gates(core, report, read, "core-gates/")
+    validation.core_gates(core, report, read, "core-gates/", expected_tests=expected_core_tests)
     pins = {p["path"]: p for p in report["pins"]}
     rows = []
     for case in cases:

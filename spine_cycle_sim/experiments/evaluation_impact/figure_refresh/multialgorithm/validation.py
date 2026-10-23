@@ -26,14 +26,14 @@ def replay_sources(replay, matrix):
         raise ValueError("SSSP replay and matrix source/core identities differ")
 
 
-def core_gates(report, matrix, read, prefix):
+def core_gates(report, matrix, read, prefix, *, expected_tests=39):
     if report.get("status") != "COMPLETE_CORE_GATES" or report.get("pins_unchanged") is not True:
         raise ValueError("successful unchanged core regression required")
     steps = report.get("steps", [])
     if len(steps) != 4 or any(s["exit_code"] or s["timed_out"] for s in steps):
         raise ValueError("complete configure, build, PageRank and full-core gates required")
-    if "100% tests passed, 0 tests failed out of 39" not in read(prefix + "ctest.stdout.txt").decode():
-        raise ValueError("all thirty-nine registered core tests must pass")
+    if f"100% tests passed, 0 tests failed out of {expected_tests}" not in read(prefix + "ctest.stdout.txt").decode():
+        raise ValueError(f"all {expected_tests} registered core tests must pass")
     pins = {p["path"]: p for p in matrix["pins"]}
     if any(p != pins.get(p["path"]) for p in report["pins"]
            if not p["path"].endswith("/sources.tar.gz")):

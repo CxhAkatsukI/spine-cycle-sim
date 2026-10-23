@@ -201,6 +201,8 @@ void SpineSplitPageRankCompute::reset_iteration() {
   staged_memory_issue_ = false;
   staged_value_push_ = false;
   staged_apply_tile_complete_ = false;
+  staged_bitmap_clear_ = false;
+  staged_bitmap_read_ = false;
   staged_owner_activation_ = false;
   staged_owner_publication_ = false;
   staged_owner_dispatch_ = false;
@@ -219,6 +221,7 @@ void SpineSplitPageRankCompute::reset_iteration() {
   dangling_share_word_ = GraphAlgorithmPolicy::float_to_word(0.0F);
   tile_base_ = 0;
   tile_size_ = 0;
+  apply_target_count_ = 0;
   apply_reads_issued_ = 0;
   apply_reads_completed_ = 0;
   apply_operations_issued_ = 0;
@@ -379,12 +382,25 @@ bool SpineSplitPageRankCompute::algorithm_queues_drained() const noexcept {
          pipeline_.drained();
 }
 
+void SpineSplitPageRankCompute::configure_residual_apply_mode(
+    SpineResidualApplyMode mode) {
+  if (registered_ || policy_.config().kind != GraphAlgorithmKind::kResidualPageRank) {
+    throw std::logic_error("residual Apply mode requires unregistered ResPR compute");
+  }
+  residual_apply_mode_ = mode;
+}
+
+bool SpineSplitPageRankCompute::sparse_residual_apply() const noexcept {
+  return residual_apply_mode_ == SpineResidualApplyMode::kDirtyBitmap &&
+         dangling_share() == 0.0F;
+}
+
 bool SpineSplitPageRankCompute::tile_apply_drained() const noexcept {
-  return apply_reads_issued_ == tile_size_ &&
-         apply_reads_completed_ == tile_size_ &&
-         apply_operations_issued_ == tile_size_ &&
-         apply_operations_completed_ == tile_size_ &&
-         apply_writes_completed_ == tile_size_ && ready_apply_.empty() &&
+  return apply_reads_issued_ == apply_target_count_ &&
+         apply_reads_completed_ == apply_target_count_ &&
+         apply_operations_issued_ == apply_target_count_ &&
+         apply_operations_completed_ == apply_target_count_ &&
+         apply_writes_completed_ == apply_target_count_ && ready_apply_.empty() &&
          apply_transactions_.empty() && memory_drained() &&
          algorithm_queues_drained();
 }
@@ -409,6 +425,12 @@ void SpineSplitPageRankCompute::begin_apply_tile(std::uint32_t tile_base,
     tile_accumulators_.assign(tile_size_, policy_.reduction_identity_word());
   }
   tile_applied_.at(tile_base_ / tile_vertices_) = true;
+  apply_target_count_ = sparse_residual_apply() ? apply_bitmap_.count() : tile_size_;
+  if (sparse_residual_apply()) {
+    apply_bitmap_.begin_scan();
+  } else if (residual_apply_mode_ == SpineResidualApplyMode::kDirtyBitmap) {
+    ++counters_.dense_fallback_tiles;
+  }
   apply_reads_issued_ = 0;
   apply_reads_completed_ = 0;
   apply_operations_issued_ = 0;
@@ -422,6 +444,8 @@ void SpineSplitPageRankCompute::begin_apply_tile(std::uint32_t tile_base,
 
 std::optional<std::uint32_t>
 SpineSplitPageRankCompute::next_unapplied_tile() const {
+  // With zero global share, a tile absent from the edge stream is unchanged.
+  if (sparse_residual_apply()) return std::nullopt;
   for (std::size_t tile = 0; tile < tile_applied_.size(); ++tile) {
     if (!tile_applied_[tile]) {
       const std::uint64_t base = tile * tile_vertices_;
@@ -542,6 +566,8 @@ void SpineSplitPageRankCompute::consume_memory_response(
 }
 
 void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
+  staged_bitmap_clear_ = false;
+  staged_bitmap_read_ = false;
   staged_input_action_ = InputAction::kNone;
   staged_memory_response_.reset();
   staged_source_response_.reset();
@@ -764,11 +790,15 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
       staged_value_push_ = value_out_.try_push(staged_value_word_);
       return;
     case Phase::kApplyTile:
-      if (apply_reads_issued_ < tile_size_ &&
+      if (sparse_residual_apply() && apply_bitmap_.needs_word()) {
+        staged_bitmap_read_ = true;
+      }
+      if (apply_reads_issued_ < apply_target_count_ &&
           memory_tasks_.size() + inflight_memory_.size() <
               memory_request_window_) {
-        staged_apply_read_vertex_ =
-            tile_base_ + static_cast<std::uint32_t>(apply_reads_issued_);
+        const auto local = sparse_residual_apply() ? apply_bitmap_.selected() :
+            std::optional<std::uint32_t>(static_cast<std::uint32_t>(apply_reads_issued_));
+        if (local) staged_apply_read_vertex_ = tile_base_ + *local;
       }
       if (!ready_apply_.empty()) {
         const ReadyApply &ready = ready_apply_.front();
@@ -786,6 +816,9 @@ void SpineSplitPageRankCompute::evaluate(const CycleContext &) {
       if (tile_apply_drained()) {
         staged_apply_tile_complete_ = true;
       }
+      return;
+    case Phase::kClearApplyBitmap:
+      staged_bitmap_clear_ = true;
       return;
     case Phase::kOwnerProtocol:
       return;
@@ -988,6 +1021,10 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       const std::uint32_t destination = found->second.destination;
       tile_accumulators_.at(destination - tile_base_) =
           staged_reduce_response_->reduced;
+      if (residual_apply_mode_ == SpineResidualApplyMode::kDirtyBitmap) {
+        apply_bitmap_.mark(destination - tile_base_);
+        ++counters_.apply_bitmap_marks;
+      }
       pending_destinations_.erase(destination);
       edge_reductions_.erase(found);
     }
@@ -1003,6 +1040,10 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
                    MemoryPayloadKind::kApplyPrimary, vertex);
     }
     ++apply_reads_issued_;
+    if (sparse_residual_apply()) {
+      apply_bitmap_.consume();
+      ++counters_.sparse_vertices_applied;
+    }
   }
   if (staged_apply_request_.has_value()) {
     const std::uint64_t transaction = next_algorithm_transaction_++;
@@ -1179,6 +1220,12 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
       tile_size_ =
           std::min<std::size_t>(tile_vertices_, vertices_ - tile_base_);
       tile_accumulators_.assign(tile_size_, policy_.reduction_identity_word());
+      if (residual_apply_mode_ == SpineResidualApplyMode::kDirtyBitmap) {
+        apply_bitmap_.begin_tile(tile_size_);
+        counters_.apply_bitmap_storage_bytes = std::max(
+            counters_.apply_bitmap_storage_bytes, apply_bitmap_.storage_bytes());
+        phase_ = Phase::kClearApplyBitmap;
+      }
       ++counters_.tiles_received;
       break;
     case InputAction::kEdge:
@@ -1216,6 +1263,15 @@ void SpineSplitPageRankCompute::commit(const CycleContext &context) {
     }
   }
 
+  if (staged_bitmap_clear_) {
+    apply_bitmap_.clear_word();
+    ++counters_.apply_bitmap_clear_cycles;
+    if (!apply_bitmap_.clearing()) phase_ = Phase::kInput;
+  }
+  if (staged_bitmap_read_) {
+    apply_bitmap_.read_word();
+    ++counters_.apply_bitmap_read_cycles;
+  }
   if (staged_apply_tile_complete_) {
     advance_after_apply_tile();
   }

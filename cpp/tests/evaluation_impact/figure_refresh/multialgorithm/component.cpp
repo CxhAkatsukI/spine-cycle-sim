@@ -46,7 +46,12 @@ class Refresh final : public SST::Component {
           for (double value : input.expected_rank) expected.push_back(GraphAlgorithmPolicy::float_to_word(value));
         wc::ei::wt::write_words(std::filesystem::path(output) / "expected.u32le", expected);
         if (arm == "gr") integrated(input, output, scheduler, clock, backend, maximum);
-        else spine(input, output, scheduler, clock, backend, maximum);
+        else {
+          const auto apply = params_.find<std::string>("spine_residual_apply", "dense");
+          require(apply == "dense" || apply == "dirty-bitmap", "invalid residual Apply mode");
+          spine(input, output, scheduler, clock, backend, maximum,
+              apply == "dense" ? SpineResidualApplyMode::kDense : SpineResidualApplyMode::kDirtyBitmap);
+        }
       }
       backend.print_direct_stats();
       std::ofstream summary(output + "/backend.json"); summary << backend.arbitration_json();
@@ -63,6 +68,7 @@ class Refresh final : public SST::Component {
       {"graph", "Materialized old graph", ""}, {"updates", "Materialized insertion batch", ""},
       {"root", "SSSP source vertex", "0"},
       {"residual_epsilon", "Fixed per-vertex residual activation/stop threshold (not divided by V)", "1e-6"},
+      {"spine_residual_apply", "dense control or dirty-bitmap simulator candidate", "dense"},
       {"output", "Fresh output directory", ""}, {"dram_config", "DRAMSim3 configuration", ""},
       {"maximum", "Finite cycle budget", "150000000"})
  private:

@@ -232,6 +232,7 @@ Start with the [documentation index](../README.md) and its topic guides.
 - [deltahls_optimization_execution_contract_20260727.md](../implementation/spine/deltahls_optimization_execution_contract_20260727.md)
 - [device_source_directory_spool_20260803.md](../implementation/spine/device_source_directory_spool_20260803.md)
 - [device_timed_active_e2e_20260801.md](../implementation/spine/device_timed_active_e2e_20260801.md)
+- [residual_sparse_apply.md](../implementation/spine/residual_sparse_apply.md)
 - [spine_axi_request_window_20260724.md](../implementation/spine/spine_axi_request_window_20260724.md)
 - [spine_candidate10_one_pass_model_20260726.md](../implementation/spine/spine_candidate10_one_pass_model_20260726.md)
 - [spine_capacity_safe_hierarchy_20260729.md](../implementation/spine/spine_capacity_safe_hierarchy_20260729.md)
