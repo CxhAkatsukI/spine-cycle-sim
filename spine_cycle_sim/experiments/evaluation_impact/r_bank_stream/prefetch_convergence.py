@@ -14,7 +14,7 @@ from ...upstream_controls.execution import run_bounded
 from ..r_credits.freeze import ROOT, pin
 from ..r_execution import run_case
 from .compact_analysis import MATRIX, summarize
-from .runtime import LOCAL, LOCAL_PARALLEL, reservation, settings
+from .runtime import CACHED_LOCAL, LOCAL, LOCAL_PARALLEL, reservation, settings
 from .study import COMPILER, configure_command
 from . import cached_core
 
@@ -24,9 +24,17 @@ def validate_cpus(cpus):
         raise ValueError("one to four distinct allowed CPUs required")
 
 
+def execution_profile(cached, cpus, memory_profile):
+    if memory_profile not in (None, CACHED_LOCAL):
+        raise ValueError("unsupported convergence memory profile override")
+    if memory_profile == CACHED_LOCAL and cached is None:
+        raise ValueError("small cached profile requires an exactly validated core")
+    return settings(memory_profile or (LOCAL if len(cpus) == 1 else LOCAL_PARALLEL), len(cpus))
+
+
 def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
         extra_references=(), complete_status="COMPACT_CONVERGENCE_COMPLETE_NOT_HARDWARE_ADMISSION",
-        prefetch_checks=False, extra_input_checks=None, cached_reference=None):
+        prefetch_checks=False, extra_input_checks=None, cached_reference=None, memory_profile=None):
     validate_cpus(cpus)
     reference = json.loads(reference_path.read_text())
     cached = None
@@ -36,6 +44,7 @@ def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
         cached = cached_core.validate_convergence(ROOT, cached_reference, COMPILER)
     elif reference.get("pins_unchanged") is not True or len(reference.get("r_rows", [])) != 32:
         raise ValueError("checked complete bank-stream reference required")
+    selected_memory = execution_profile(cached, cpus, memory_profile)
     output.mkdir(parents=True, exist_ok=False)
     shutil.copytree(reference_path.parent / "inputs/warm_update", output / "inputs/warm_update")
     sources = sorted(path for owner in ("cpp", "spine_cycle_sim", "configs", "tests", "scripts", "sst")
@@ -71,8 +80,7 @@ def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
 
     save()
     try:
-        profile = LOCAL if len(cpus) == 1 else LOCAL_PARALLEL
-        with reservation(output, settings(profile, len(cpus)), 600) as safety:
+        with reservation(output, selected_memory, 600) as safety:
             report.update(status="BUILDING_CHECKED_CORE_HARNESS" if cached else "BUILDING_FRESH_CORE",
                           safety=safety); save()
             build = output / "build"

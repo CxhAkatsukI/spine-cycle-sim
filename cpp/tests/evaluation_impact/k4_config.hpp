@@ -39,6 +39,9 @@ inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected)
   // Both Apply models start this interval after accepting the old-state response.
   if (selected.sssp_response_timing)
     config.compute.apply_pipeline_latency = original_regraph::kSsspSchedulePostReadTiming.latency;
+  // Existing wrapper RTL issues AW at iter1 and W at iter2; B is still an
+  // explicit backend response. Its total depth 71 is not pre-request work.
+  if (selected.sssp_write_issue_timing) config.compute.hbm_wrapper_pipeline_latency = 2;
   if (selected.prefetch_compact)
     config.input_path = selected.triple_elastic ? RoutedInputPath::kTriplePrefetchElasticExperimental :
                        selected.dual_elastic ? RoutedInputPath::kDualPrefetchElasticExperimental :

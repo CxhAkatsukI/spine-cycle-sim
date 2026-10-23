@@ -57,6 +57,23 @@ int main() {
   const auto refill = control("prefetch_ready_fullburst");
   const auto larger = control("prefetch_ready_capacity512");
   const auto response = control("prefetch_sssp_response");
+  const auto write_issue = control("prefetch_sssp_write_issue");
+  const auto write_config = k4_configuration(write_issue);
+  require(write_issue.sssp_write_issue_timing && write_issue.sssp_response_timing &&
+          !response.sssp_write_issue_timing && write_issue.prefetch_bank_lines == 512 &&
+          write_issue.full_burst_refill && write_issue.ready_bursts &&
+          write_issue.directory_lookahead && write_issue.split_apply &&
+          write_issue.triple_elastic && write_issue.independent_source &&
+          write_config.compute.hbm_wrapper_pipeline_latency == 2 &&
+          k4_configuration(response).compute.hbm_wrapper_pipeline_latency == 71 &&
+          spine::sim::RoutedReGraphConfig{}.compute.hbm_wrapper_pipeline_latency == 71 &&
+          write_config.compute.hbm_wrapper_pipeline_capacity ==
+              k4_configuration(response).compute.hbm_wrapper_pipeline_capacity &&
+          write_config.compute.max_outstanding_bursts ==
+              k4_configuration(response).compute.max_outstanding_bursts &&
+          write_config.compute.apply_pipeline_latency == 1 &&
+          write_config.compute.max_pending_requests == 16 &&
+          write_config.compute.apply_request_window == 16);
   require(response.sssp_response_timing && !larger.sssp_response_timing &&
           response.prefetch_bank_lines == 512 && response.full_burst_refill &&
           response.ready_bursts && response.directory_lookahead && response.split_apply &&
@@ -89,7 +106,8 @@ int main() {
       std::pair{"prefetch_dual_elastic", 11U}, std::pair{"prefetch_triple_elastic", 15U},
       std::pair{"prefetch_triple_split_apply", 16U}, std::pair{"prefetch_directory_lookahead", 16U},
       std::pair{"prefetch_ready_bursts", 16U}, std::pair{"prefetch_ready_fullburst", 16U},
-      std::pair{"prefetch_ready_capacity512", 16U}, std::pair{"prefetch_sssp_response", 16U}}) {
+      std::pair{"prefetch_ready_capacity512", 16U}, std::pair{"prefetch_sssp_response", 16U},
+      std::pair{"prefetch_sssp_write_issue", 16U}}) {
     using namespace spine::sim;
     const auto selected = control(arm);
     require(k4_physical_masters(selected) == masters);
@@ -106,5 +124,5 @@ int main() {
     require(backend.traffic_stats_by_initiator().size() == masters);
   }
   try { control("unknown"); return 1; } catch (const std::invalid_argument&) {}
-  std::cout << "CREDIT_CONTROL_PASS eighteen explicit arms; old source topology and A4 credits unchanged\n";
+  std::cout << "CREDIT_CONTROL_PASS nineteen explicit arms; old source topology and A4 credits unchanged\n";
 }

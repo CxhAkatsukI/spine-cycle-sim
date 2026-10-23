@@ -3,12 +3,13 @@
 ## Decision
 
 Simulator only. **Complete R performance retention has not passed.** The
-latest [response-anchored Apply control](APPLY_SCHEDULE.md) passes all twelve
+latest [wrapper write-issue control](WRAPPER_SCHEDULE.md) passes all twelve
 complete-convergence correctness/conservation executions and exactly replays
 eight old controls. Candidate/A4 cycles are **1.084725 / 1.243611** at memory
 latencies 64 / 128: only the first meets the declared +/-10% band. The
-source-backed post-response interval changes complete time by less than
-0.04%, including a small high-latency regression. It does not close the gap.
+source-backed pre-request interval changes zero complete cycles. The preceding
+[Apply interval control](APPLY_SCHEDULE.md) changed complete time by less than
+0.04%, including a small high-latency regression. Neither closes the gap.
 The preceding [ring increase](PREFETCH_CAPACITY.md) also failed despite
 128 KiB of added data storage. Both negative controls remain available.
 
@@ -24,9 +25,10 @@ and negative result without substituting an isolated reader floor for R time.
 
 Ratios below are complete candidate/A4 cycles at latencies 64 / 128.
 Every listed complete candidate fails the overall +/-10% retention gate.
-Physical-memory service is unchanged across controls. The Apply record
-explicitly changes one response-anchored component interval using schedule
-and RTL evidence; preceding architecture controls leave timing unchanged.
+Physical-memory service is unchanged across controls. The Apply and wrapper
+records explicitly change response-anchored and pre-request component
+intervals using schedule and RTL evidence; preceding architecture controls
+leave timing unchanged.
 
 | Record | Question or explicit resource change | Complete R ratio |
 | --- | --- | ---: |
@@ -44,6 +46,7 @@ and RTL evidence; preceding architecture controls leave timing unchanged.
 | [Finite ring capacity](PREFETCH_CAPACITY.md) | 512 rather than 256 lines per parity; 128 KiB extra data | 1.08514 / 1.24316 |
 | [Passive wait overlap](WAIT_OVERLAP.md) | First-round sampling on/off replay; no timing change | Not a new complete R result |
 | [SSSP Apply schedule](APPLY_SCHEDULE.md) | Explicit post-response interval 100 -> 1, based on schedule/RTL | 1.084725 / 1.243611 |
+| [SSSP wrapper schedule](WRAPPER_SCHEDULE.md) | Explicit pre-write interval 71 -> 2; all physical writes/responses retained | 1.084725 / 1.243611 (unchanged) |
 
 Each complete follow-up retains full state, active trajectory, physical traffic,
 registration-order equality and exact old controls. Wait counters overlap and

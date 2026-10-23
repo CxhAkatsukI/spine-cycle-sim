@@ -141,3 +141,7 @@ combined AW/W transaction as a cycle-exact AXI implementation or assume that
 an earlier write request will close the performance gap. No wrapper timing
 change is executed or admitted in this record. No FPGA tool is needed for the
 next simulator control.
+
+The subsequent [wrapper schedule control](WRAPPER_SCHEDULE.md) executes that
+separate test and exactly replays this record's eight shared observations.
+It changes no complete cycles and also fails overall retention.

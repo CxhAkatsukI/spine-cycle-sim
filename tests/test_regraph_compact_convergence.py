@@ -112,6 +112,21 @@ class CompactConvergenceTests(unittest.TestCase):
                 with self.subTest(cpus=cpus), self.assertRaises(ValueError):
                     prefetch_convergence.validate_cpus(cpus)
 
+    def test_smaller_cached_profile_keeps_reserve_and_cannot_build_a_new_core(self):
+        self.assertNotIn(runtime.CACHED_LOCAL, runtime.PROFILES)
+        selected = prefetch_convergence.execution_profile(("checked", []), [1, 2, 3, 4], runtime.CACHED_LOCAL)
+        self.assertEqual(selected["high_gib"], 3)
+        self.assertEqual(selected["policy"], dict(tree_memory_gib=4, reserve_gib=24,
+            background_memory_gib=8, allow_bounded_builds=True))
+        self.assertEqual(runtime.high_memory.required_bytes(selected["policy"], []), 36 * 1024**3)
+        with self.assertRaisesRegex(ValueError, "validated core"):
+            prefetch_convergence.execution_profile(None, [1], runtime.CACHED_LOCAL)
+        with self.assertRaisesRegex(ValueError, "unsupported"):
+            prefetch_convergence.execution_profile(("checked", []), [1], runtime.CPU_ONLY)
+        with self.assertRaises(ValueError): runtime.settings(runtime.CACHED_LOCAL, 5)
+        self.assertEqual(prefetch_convergence.execution_profile(None, [1, 2], None)["profile"],
+                         runtime.LOCAL_PARALLEL)
+
 
 if __name__ == "__main__":
     unittest.main()
