@@ -72,6 +72,29 @@ and does not prove agreement across algorithms, workloads or all scenarios.
 
 ## Completed Results
 
+### Same-Batch A4 Follow-Up (Predeclared)
+
+The preceding R/A4 parity evidence used a different batch. The follow-up runs
+original four-Little/zero-Big A4 on exactly the three inserted edges below,
+using the same old converged vector, weights, vertex IDs and complete new
+convergence. The matrix is smoke/Amazon x latency 64/128 x normal/reverse
+registration (eight runs). The original author's `partitionGraph` and
+`schedulePartitions` prepare the new compact input; DBG is deliberately not
+repeated because the shared input IDs are already fixed. Captured task edge
+multisets must exactly match the new logical graph before weighted encoding.
+The original host's temporary PR properties validate only its layout and are
+replaced by the common SSSP state before execution; no PR timing is measured.
+
+No core, memory parameter, topology or timing multiplier changes are allowed.
+R/A4 within 15% is an exploratory comparison, not a publication reproduction
+or a gate permitting a mismatched warm state. All rows, including ratios
+outside that interval, are retained. The candidate's 16-master/three-replica
+layout and A4's 13-master/four-replica layout remain distinct. Host preparation
+is outside both device windows, so this does not complete the host-time goal.
+Run `warm_comparison.a4_study` with the original warm report, the Gather-reuse
+core report, a verified clean upstream ReGraph source and a **fresh** output
+under the same 6/5-GiB zero-swap, 24-GiB-reserve containment documented above.
+
 Attempt v6 completes all twelve executions with identical common old/final
 state hashes, independent full-vector Dijkstra agreement, drained request/beat
 ledgers and exact G+R reverse-registration replay. Every case takes two rounds
@@ -104,8 +127,11 @@ This does **not** establish a final evaluation:
   shortcut destinations produce a short, two-round propagation; there is no
   coverage of broad/deep propagation, CC, ResPR, FullPR or mixed/deletion work.
 - Earlier R/A4 ratios, 0.953364 and 1.157245, describe a different 46-round
-  root-weight-decrease batch. A4 was not rerun on this new insertion batch.
-  Thus neither per-case parity nor across-scenario agreement is established.
+  root-weight-decrease batch. The subsequent
+  [same-batch A4 check](SAME_BATCH_A4.md) gives R/A4 ratios 1.017585 / 1.199468
+  on Amazon and approximately 1.480 on the smoke. Thus across-scenario
+  agreement within 15% is **not** established; the 5.3-times Spine diagnostic
+  must not be presented as if all its baseline parity gates had passed.
 - The earlier A4 uses 13 masters/four state replicas versus the candidate's
   16 masters/three replicas. Strict resource equality remains unestablished.
 - This naturally small-shard diagnostic uses direct segment RMW for G,
@@ -151,3 +177,7 @@ python3 -m unittest discover -s tests -p 'test_warm_spine*.py' -v
 For a new run use a fresh attempt path and unit name in the command above.
 Package it into a **fresh** directory with the same delivery command plus
 `--attempt /path/to/new-attempt`; the packager refuses changed pinned files.
+
+The original capsule above remains unchanged. Read
+[the same-batch A4 follow-up](SAME_BATCH_A4.md) for its separate reproduction,
+eight-run comparison, resource limits and portable evidence package.

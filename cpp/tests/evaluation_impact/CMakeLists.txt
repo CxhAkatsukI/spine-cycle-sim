@@ -14,3 +14,6 @@ target_compile_options(regraph_credit_control_test PRIVATE -Wall -Wextra -Wpedan
 add_executable(warm_spine_comparison warm_comparison/main.cpp)
 target_link_libraries(warm_spine_comparison PRIVATE original_regraph_cycle)
 target_compile_options(warm_spine_comparison PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_executable(warm_a4_comparison warm_comparison/a4_main.cpp)
+target_link_libraries(warm_a4_comparison PRIVATE original_regraph_cycle)
+target_compile_options(warm_a4_comparison PRIVATE -Wall -Wextra -Wpedantic -Werror)
