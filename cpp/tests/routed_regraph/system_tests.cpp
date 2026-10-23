@@ -220,6 +220,10 @@ void rejection_tests() {
   check(fixture(129, false), [](auto &, auto &, auto &c) { c.adapter_stream_depth = 0; });
   check(fixture(129, false), [](auto &, auto &, auto &c) { c.gather_stream_depth = 0; });
   check(fixture(129, false), [](auto &, auto &, auto &c) { c.mux_stream_depth = 0; });
+  for (auto tiles : {0U, 2U, 3U})
+    check(fixture(129, false), [tiles](auto &, auto &, auto &c) {
+      c.experimental_directory_tiles = tiles;
+    });
   check(fixture(129, false), [](auto &, auto &, auto &c) {
     c.apply_topology = static_cast<RoutedApplyTopology>(-1);
   });

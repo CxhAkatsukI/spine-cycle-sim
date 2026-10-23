@@ -43,6 +43,7 @@ inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected)
     config.source_loading = RoutedSourceLoading::kIndependentExperimental;
   if (selected.split_apply)
     config.apply_topology = RoutedApplyTopology::kSplitMastersExperimental;
+  if (selected.directory_lookahead) config.experimental_directory_tiles = 2;
   return config;
 }
 }  // namespace evaluation_impact

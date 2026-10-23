@@ -1,0 +1,219 @@
+{
+  "acceptance": {
+    "added_directory_value_bytes": 32768,
+    "comparisons": [
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 10904254,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "prefetch_directory_lookahead": {
+            "arm": "prefetch_directory_lookahead",
+            "cycles": 16128290,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_triple_split_apply": {
+            "arm": "prefetch_triple_split_apply",
+            "cycles": 16950908,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.4790823838109421,
+        "cycle_reduction_from_single_directory": 0.048529435709284696,
+        "extra_directory_read_bytes": 0,
+        "latency": 64,
+        "within_ten_percent": false
+      },
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 15840606,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "prefetch_directory_lookahead": {
+            "arm": "prefetch_directory_lookahead",
+            "cycles": 24591738,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_triple_split_apply": {
+            "arm": "prefetch_triple_split_apply",
+            "cycles": 24619522,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.552449319173774,
+        "cycle_reduction_from_single_directory": 0.0011285353143737353,
+        "extra_directory_read_bytes": 0,
+        "latency": 128,
+        "within_ten_percent": false
+      }
+    ],
+    "hardware_timing_admitted": false,
+    "new_spine_comparison_executed": false,
+    "physical_masters": {
+      "a4_io16": 13,
+      "prefetch_directory_lookahead": 16,
+      "prefetch_triple_split_apply": 16
+    },
+    "pre_edit_controls_replayed_exactly": 8,
+    "production_baseline_admitted": false,
+    "publication_match_admitted": false,
+    "retention_pass": false,
+    "strict_resource_match_admitted": false
+  },
+  "artifacts": {
+    "complete_convergence": {
+      "bytes": 750688,
+      "path": "/data/chuxiao/experiments/r_directory_overlap_20261022/convergence-v1/results.json",
+      "sha256": "a60911226232e115c0521d641503e6e13938f523baef90bbbbcbf6b0c984cad6"
+    },
+    "pre_edit_freeze": {
+      "bytes": 617375,
+      "path": "/data/chuxiao/experiments/r_directory_overlap_20261022/before/freeze.json",
+      "sha256": "a832e4906b5cca2a9fe369ec815ca1e38e3b340226b68873aea8b2f3d2bafc5a"
+    },
+    "pre_edit_sources": {
+      "bytes": 17018397,
+      "path": "/data/chuxiao/experiments/r_directory_overlap_20261022/before/sources.tar.gz",
+      "sha256": "03ac95b135330fd29bfeacd9dd3ace3d371c7ee2848188c42894f1d710302632"
+    },
+    "quality": {
+      "bytes": 4505,
+      "path": "/data/chuxiao/experiments/r_directory_overlap_20261022/quality-v1/results.json",
+      "sha256": "398149b575cca3568a29d929cd038f29adc15372dc8fd3619934b9085f59d813"
+    },
+    "sst_compatibility": {
+      "bytes": 719550,
+      "path": "/data/chuxiao/experiments/r_directory_overlap_20261022/sst-v1/results.json",
+      "sha256": "23afa498d7d0912596b29eab96376cc50b4880d64f21661f1c5bbe216d6481d2"
+    },
+    "sst_equivalence": {
+      "bytes": 383344,
+      "path": "/data/chuxiao/experiments/r_directory_overlap_20261022/sst-v1/legacy/equivalence.json",
+      "sha256": "9e5a8dd6ba19789e04d663d3c8be93a35393762616cf9c5365daf53cb278607e"
+    }
+  },
+  "boundary": "resident warm weighted SSSP compute to convergence; no G/host/DMA",
+  "checks": {
+    "compact_complete_executions": 48,
+    "control_arms": 14,
+    "core_ctest": 36,
+    "diff_check": "PASS",
+    "document_layout": "PASS",
+    "finite_input_executions": 128,
+    "generated_catalogs": "PASS",
+    "organization": 15,
+    "regraph_python": 125
+  },
+  "complete_executions": 12,
+  "correctness_admitted": true,
+  "open_gates": [
+    "R performance retention fails at both latencies",
+    "complete G validation",
+    "host orchestration timing",
+    "new Spine demo",
+    "FPGA timing and publication reproduction not performed"
+  ],
+  "registration_order_pairs": 6,
+  "rounds_per_execution": 46,
+  "safety": {
+    "background_allowance_gib": 8,
+    "core_service_peak_bytes": 846020608,
+    "core_wall_seconds": 2307.138,
+    "live_reserve_gib": 24,
+    "memory_high_gib": 5,
+    "memory_max_gib": 6,
+    "sst_service_peak_bytes": 1045278720,
+    "sst_wall_seconds": 509.087,
+    "swap_max_bytes": 0,
+    "workers": 1
+  },
+  "schema_version": 1,
+  "scope": "simulator-only finite directory lookahead; no HLS/FPGA/paper changes",
+  "sst_default_compatibility": {
+    "cases": [
+      {
+        "case": "sssp_mixed_cold",
+        "cycles": 99885,
+        "equivalent": true
+      },
+      {
+        "case": "sssp_multipart_warm",
+        "cycles": 5997674,
+        "equivalent": true
+      },
+      {
+        "case": "cc_reciprocal",
+        "cycles": 133841,
+        "equivalent": true
+      },
+      {
+        "case": "residual_warm",
+        "cycles": 1487890,
+        "equivalent": true
+      },
+      {
+        "case": "residual_update_only",
+        "cycles": 200,
+        "equivalent": true
+      }
+    ],
+    "claim": "default SST software compatibility only; no FPGA or candidate timing admission",
+    "plugin": {
+      "bytes": 3856552,
+      "path": "/data/chuxiao/experiments/r_directory_overlap_20261022/sst-v1/plugin/libspine_cycle.so",
+      "sha256": "3938f6de6b58c2bfdbb2df5f867aabb0402f0b6ba08794fa378e1def5693123b"
+    },
+    "status": "PASS"
+  },
+  "status": "DIRECTORY_OVERLAP_COMPLETE_SIMULATOR_PREDICTION",
+  "verification": {
+    "core_pins": {
+      "checked": 2396,
+      "mismatches": 0
+    },
+    "full_states": {
+      "checked": 40,
+      "mismatches": 0
+    },
+    "pre_edit_archive_members": {
+      "checked": 2372,
+      "mismatches": 0
+    },
+    "progress_files": {
+      "checked": 40,
+      "mismatches": 0
+    },
+    "sst_pins": {
+      "checked": 2758,
+      "mismatches": 0
+    }
+  }
+}

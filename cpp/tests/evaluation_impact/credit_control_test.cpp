@@ -52,10 +52,15 @@ int main() {
   require(!triple.split_apply &&
           k4_configuration(triple).apply_topology == spine::sim::RoutedApplyTopology::kSharedMaster &&
           spine::sim::RoutedReGraphConfig{}.apply_topology == spine::sim::RoutedApplyTopology::kSharedMaster);
+  const auto directory = control("prefetch_directory_lookahead");
+  require(directory.directory_lookahead && directory.split_apply && directory.triple_elastic &&
+          k4_configuration(directory).experimental_directory_tiles == 2 &&
+          k4_configuration(split).experimental_directory_tiles == 1 &&
+          spine::sim::RoutedReGraphConfig{}.experimental_directory_tiles == 1);
   for (const auto& [arm, masters] : {
       std::pair{"candidate", 9U}, std::pair{"bank_stream", 7U},
       std::pair{"prefetch_dual_elastic", 11U}, std::pair{"prefetch_triple_elastic", 15U},
-      std::pair{"prefetch_triple_split_apply", 16U}}) {
+      std::pair{"prefetch_triple_split_apply", 16U}, std::pair{"prefetch_directory_lookahead", 16U}}) {
     using namespace spine::sim;
     const auto selected = control(arm);
     require(k4_physical_masters(selected) == masters);
@@ -72,5 +77,5 @@ int main() {
     require(backend.traffic_stats_by_initiator().size() == masters);
   }
   try { control("unknown"); return 1; } catch (const std::invalid_argument&) {}
-  std::cout << "CREDIT_CONTROL_PASS thirteen explicit arms; old source topology and A4 credits unchanged\n";
+  std::cout << "CREDIT_CONTROL_PASS fourteen explicit arms; old source topology and A4 credits unchanged\n";
 }

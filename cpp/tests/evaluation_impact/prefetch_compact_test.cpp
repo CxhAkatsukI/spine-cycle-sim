@@ -2,6 +2,7 @@
 #include "prefetch_compact/sink.hpp"
 #include "prefetch_compact/transport_probe.hpp"
 #include "prefetch_compact/pipeline_probe.hpp"
+#include "prefetch_compact/directory_probe.hpp"
 #include "spine_sim/scheduler.hpp"
 
 namespace {
@@ -14,7 +15,7 @@ void store(std::vector<std::uint8_t>& bytes, std::size_t offset, std::uint32_t v
 std::array<std::uint64_t, 4> run(std::uint64_t latency, bool reverse,
                                 std::uint64_t period, bool all_dummy, bool dual = false,
                                 bool full_burst = false, std::size_t capacity = 2,
-                                bool triple = false) {
+                                bool triple = false, std::size_t directory_tiles = 1) {
   constexpr std::size_t vertices = 8291, half = 16;
   std::array<std::size_t, vertices> rows{};
   rows[0] = 1; rows[1] = 2; rows[4095] = 600; rows[4096] = 2; rows[8290] = 1;
@@ -67,7 +68,7 @@ std::array<std::uint64_t, 4> run(std::uint64_t latency, bool reverse,
   Fifo<ReGraphPmaPacket> packets("packets", clock, 2);
   Reader reader(clock, memory, segments, partition, 71, odd.get(),
                 full_burst ? RefillPolicy::kFullBurst : RefillPolicy::kAvailableSpace,
-                capacity, metadata.get());
+                capacity, metadata.get(), directory_tiles);
   Compactor compactor(clock, segments, packets, vertices, capacity);
   Sink sink(clock, packets, partition, period);
   std::vector<Component*> components{&backend, &memory.requests(), &memory.responses(), &memory.read_beats(),
@@ -95,6 +96,7 @@ std::array<std::uint64_t, 4> run(std::uint64_t latency, bool reverse,
       (odd ? odd->master().stats().requests_completed : 0) +
       (metadata ? metadata->master().stats().requests_completed : 0);
   check(r.segments == segment && r.beats * 64 == r.bytes && r.responses == r.requests &&
+      r.directory_beats == (vertices + 7) / 8 &&
       r.requests == completed && r.max_parents > 1 && r.max_parents <= (triple ? 48U : dual ? 32U : 16U) &&
       r.max_parents_per_port[0] <= 16 && r.max_parents_per_port[1] <= 16 &&
       r.max_parents_per_port[2] <= 16 && (!triple || r.max_parents_per_port[2] > 0) &&
@@ -114,6 +116,7 @@ std::array<std::uint64_t, 4> run(std::uint64_t latency, bool reverse,
 
 int main() {
   try {
+    check_directory_ownership();
     check_pipeline_probes();
     for (auto registered : {false, true}) {
       const auto value = transport_probe(registered, false);
@@ -159,5 +162,12 @@ int main() {
                 run(latency, true, period, all_dummy, true, false, 3, true),
                 "triple-port candidate depends on registration order");
     std::cout << "TRIPLE_PORT_PREFETCH_TEST PASS 16 executions\n";
+    for (auto latency : {64U, 128U})
+      for (auto period : {1U, 5U})
+        for (auto all_dummy : {false, true})
+          check(run(latency, false, period, all_dummy, true, false, 3, true, 2) ==
+                run(latency, true, period, all_dummy, true, false, 3, true, 2),
+                "directory lookahead depends on registration order");
+    std::cout << "DIRECTORY_LOOKAHEAD_TEST PASS 16 executions\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

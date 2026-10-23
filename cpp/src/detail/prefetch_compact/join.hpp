@@ -5,17 +5,15 @@ inline void Reader::prepare_join(const CycleContext& context) {
   next_source_ = source_;
   skipped_ = 0;
   if (!extent_ || consumed_ == total_) return;
-  const auto tile_end = std::min(tile_base_ + 1024, partition_.vertices);
+  const auto tile_end = directory_.end();
   if (source_ == tile_end) {
-    const auto lines = (tile_end - tile_base_ + 7) / 8;
-    advance_tile_ = dir_issued_ == lines && outstanding_directory() == 0;
+    advance_tile_ = directory_.fully_issued() && outstanding_directory() == 0;
     return;
   }
   // An eight-bank priority selector can skip at most eight empty rows per cycle.
   for (unsigned lane = 0; lane < 8 && next_source_ < tile_end; ++lane) {
-    const auto offset = next_source_ - tile_base_, line_index = offset / 8;
-    if (!directory_valid_[line_index] || context.domain_cycle < directory_ready_[line_index]) break;
-    const auto value = directory_[offset];
+    if (!directory_.ready(next_source_, context.domain_cycle)) break;
+    const auto value = directory_.value(next_source_);
     const auto begin = std::size_t(value >> 32), end = std::size_t(std::uint32_t(value));
     check(begin % 16 == 0 && end % 16 == 0 && begin <= consumed_ && end >= consumed_ &&
         end <= total_, "candidate noncontiguous directory");
@@ -88,7 +86,8 @@ inline void Reader::commit(const CycleContext& context) {
     pending_.emplace(issue->id, *issue);
     next_id_ = std::max(next_id_, issue->id + 1); ++stats_.requests;
     stats_.bytes += issue->count * 64;
-    if (issue->kind == Kind::kDirectory) dir_issued_ += issue->count;
+    if (issue->kind == Kind::kDirectory)
+      directory_.reserve({issue->directory_base, issue->first, issue->count});
     if (issue->kind == Kind::kPma) {
       ++stats_.pma_requests;
       if (issue->count < 16) ++stats_.short_pma_requests;
@@ -112,11 +111,7 @@ inline void Reader::commit(const CycleContext& context) {
   stats_.rows += next_source_ - source_;
   stats_.empty_rows += skipped_;
   source_ = next_source_;
-  if (advance_tile_) {
-    tile_base_ += 1024;
-    dir_issued_ = 0;
-    directory_valid_.fill(false);
-  }
+  if (advance_tile_) directory_.advance();
   stats_.max_parents = std::max(stats_.max_parents, pending_.size());
   for (std::size_t port = 0; port < port_count(); ++port) {
     const auto parents = outstanding(port);

@@ -10,6 +10,7 @@ RoutedPmaInput::RoutedPmaInput(std::string name, ClockId clock,
       read_delay_(config.adapter.read_pipeline_cycles),
       pipeline_capacity_(config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ||
                          config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental ? 3 : 2),
+      directory_tiles_(config.experimental_directory_tiles),
       segments_(name + "-segments", clock, 16) {
   if ((odd_memory_ != nullptr) !=
       (config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ||
@@ -34,7 +35,7 @@ void RoutedPmaInput::start_partition(ReGraphPmaPartition partition) {
   completed_ = counters();
   reader_ = std::make_unique<prefetch_compact::Reader>(clock_id(), memory_, segments_, partition,
       read_delay_, odd_memory_, prefetch_compact::RefillPolicy::kAvailableSpace, pipeline_capacity_,
-      directory_memory_);
+      directory_memory_, directory_tiles_);
   compactor_ = std::make_unique<prefetch_compact::Compactor>(clock_id(), segments_, output_,
                                                          partition.destination_vertices, pipeline_capacity_);
 }

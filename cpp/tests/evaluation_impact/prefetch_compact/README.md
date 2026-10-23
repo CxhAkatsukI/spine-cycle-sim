@@ -8,6 +8,7 @@ passes correctness, not performance retention or hardware timing calibration.
 | Owner | Responsibility |
 | --- | --- |
 | `cpp/src/detail/prefetch_compact/reader.hpp` | Resource contract, state and component interface |
+| `cpp/src/detail/prefetch_compact/directory.hpp` | One/two finite tiles, base ownership, issued/returned lines and selector availability |
 | `cpp/src/detail/prefetch_compact/requests.hpp` | Shared-master arbitration, reservations and actual AXI returns |
 | `cpp/src/detail/prefetch_compact/join.hpp` | Banked metadata selection and bounded segment pipeline |
 | `cpp/src/detail/prefetch_compact/compactor.hpp` | Stable live-lane packing within one source-cache window |
@@ -16,6 +17,7 @@ passes correctness, not performance retention or hardware timing calibration.
 | `sink.hpp` | Throttled diagnostic consumer and packet/window ABI checks |
 | `transport_probe.hpp` | Single-initiator beat-issue probe, with exact payload and arbitration ledgers |
 | `pipeline_probe.hpp` | Saturated publisher cadence, finite storage and backpressure, with unchanged latency |
+| `directory_probe.hpp` | Finite lookahead, stale/duplicate rejection, delayed visibility and partial-tail ownership |
 | `../prefetch_compact_test.cpp` | Synthetic correctness, ring wrap and backpressure |
 | `../prefetch_compact.cpp` | Frozen real-input diagnostic, independent weighted CSR gate |
 | `cpp/tests/routed_regraph/compact_input_tests.cpp` | Complete-R empty, throttled, multipart, source-window and TLAST bounds |
@@ -83,6 +85,16 @@ Reader counters include accepted physical extent, directory and PMA beats.
 `max_buffered_segments` is a conservative reservation-capacity bound derived
 from both PMA rings, not a measured simultaneous queue occupancy. It is not
 used to alter timing.
+
+The explicit `prefetch_directory_lookahead` arm retains triple input and split
+Apply, adding one 8-KiB value tile per frontend. It does not add a physical
+master or change service latency. `experimental_directory_tiles=2` requires
+the dedicated directory master; default profiles retain one tile. Current
+tile selection and parent drainage precede reuse; speculative trailing reads
+remain finite and counted. The [directory study](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/DIRECTORY_OVERLAP.md)
+predeclares twelve complete convergence observations, eight exact old-control
+replays, 128 synthetic input executions and fresh core/SST regression. Its
+performance result is not presumed by this architecture contract.
 
 ## Transport Observation
 

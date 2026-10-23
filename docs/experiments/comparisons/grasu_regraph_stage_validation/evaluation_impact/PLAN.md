@@ -265,12 +265,26 @@ Strict local admission denial and the first CPU-only regression timeout are
 retained separately. The read-only frontend/Apply/writeback export now replays
 all four current rows exactly; final drain is below 0.1%. Frontend and backend
 waits still overlap, so endpoints are not additive stage or causal stall costs.
-Next assess finite live-lane compaction with explicit buffering, source-window
-flushes and variable packet termination, retaining physical PMA reads. Do not
-silently drop padded packets or remove the existing combined Apply credit
-limit: that limit is an explicit old-profile contract, not an accidental bug.
-No performance recovery follows from this diagnostic. No FPGA build or board
-test is launched in this phase.
+The [finite input studies](r_bank_stream/prefetch_compact/README.md) now test
+compaction, explicit source loading, reader/directory ports, finite elastic
+queues and separate Apply masters as named default-off architectures. Old
+arms retain their original resources, traffic and timing. Their successive
+complete predictions reduce the gap without yet meeting retention.
+The latest [two-tile directory study](r_bank_stream/prefetch_compact/DIRECTORY_OVERLAP.md)
+passes all twelve complete executions, exact eight-row replay, 36 fresh CTest
+targets and 128 finite-input executions. It takes 1.479 / 1.552 times A4 at
+latency 64/128; both retention gates fail. Its added 32 KiB of directory values
+and 16-versus-13 physical masters are explicit resource differences.
+
+Next isolate output head-of-line waiting and its propagated input pressure
+with an addressed, finite ready-partition/burst protocol. A mux-only change
+would violate current merger, Apply and writeback order contracts. Predeclare
+complete unique row coverage, unchanged old controls, bounded buffering,
+complete-state/active equality and traffic conservation before implementing.
+Current input endpoints are observations under existing backpressure, not
+lower bounds for a changed output schedule. No improvement or retention pass
+is assumed. Broader workloads and G/host/composition gates remain open.
+No FPGA build or board test is launched in this phase.
 Compare A with A4 separately; never pretend four Little reproduces 11+3.
 Use an admitted publication case to test the original R model's timing,
 independently of the A4/B retention control.

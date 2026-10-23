@@ -34,19 +34,24 @@ struct ReaderStats {
 };
 enum class RefillPolicy { kAvailableSpace, kFullBurst };
 
-// Experimental architecture, not the routed profile: one 1024-row banked
+}  // namespace spine::sim::detail::prefetch_compact
+#include "directory.hpp"
+namespace spine::sim::detail::prefetch_compact {
+
+// Experimental architecture, not the routed profile: finite 1024-row banked
 // directory, two 256-line reserved rings, <=16 parents of <=16 beats, and a
 // latency-two segment pipeline. Optional physical masters separate odd PMA
-// segments and directory reads; the default remains one input master.
+// segments and directory reads; the default remains one tile/input master.
 class Reader final : public Component {
 public:
   Reader(ClockId clock, FixedAxiPort& memory, Fifo<Segment>& output,
          ReGraphPmaPartition partition, std::uint64_t read_delay = 71,
          FixedAxiPort* odd_memory = nullptr, RefillPolicy refill = RefillPolicy::kAvailableSpace,
-         std::size_t pipeline_capacity = 2, FixedAxiPort* directory_memory = nullptr)
+         std::size_t pipeline_capacity = 2, FixedAxiPort* directory_memory = nullptr,
+         std::size_t directory_tiles = 1)
       : Component("prefetch-reader", clock), memory_(memory), odd_memory_(odd_memory), output_(output),
         partition_(partition), delay_(read_delay), refill_(refill), pipeline_capacity_(pipeline_capacity),
-        directory_memory_(directory_memory) {
+        directory_memory_(directory_memory), directory_(partition.vertices, directory_tiles) {
     check(pipeline_capacity_ == 2 || pipeline_capacity_ == 3, "unsupported finite segment pipeline");
     check(partition.vertices && partition.slots && partition.slots % 16 == 0 &&
         partition.cache_segments_per_half && memory.read_beat_stream_enabled(),
@@ -56,6 +61,7 @@ public:
     check(!directory_memory_ || (odd_memory_ && directory_memory_ != &memory_ &&
         directory_memory_ != odd_memory_ && directory_memory_->read_beat_stream_enabled()),
         "directory port requires three distinct streaming physical masters");
+    check(directory_tiles == 1 || directory_memory_, "directory lookahead requires its dedicated master");
   }
   void evaluate(const CycleContext& context) override;
   void commit(const CycleContext& context) override;
@@ -72,6 +78,7 @@ private:
     std::size_t first{}, count{}, parity{}, received{};
     bool acknowledged{};
     std::size_t port{};
+    std::size_t directory_base{};
   };
   struct Line { std::array<std::uint32_t, 16> words{}; bool reserved{}, ready{}; };
   struct TimedSegment { Segment value; std::uint64_t ready{}; };
@@ -94,10 +101,8 @@ private:
   const std::size_t pipeline_capacity_;
   FixedAxiPort* directory_memory_;
   bool extent_{};
-  std::size_t total_{}, consumed_{}, source_{}, segment_{}, tile_base_{}, dir_issued_{};
-  std::array<std::uint64_t, 1024> directory_{};
-  std::array<bool, 128> directory_valid_{};
-  std::array<std::uint64_t, 128> directory_ready_{};
+  std::size_t total_{}, consumed_{}, source_{}, segment_{};
+  DirectoryTiles directory_;
   std::array<std::array<Line, 256>, 2> banks_{};
   std::array<std::size_t, 2> issued_{}, released_{};
   std::map<std::uint64_t, Request> pending_;

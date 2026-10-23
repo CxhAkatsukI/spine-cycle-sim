@@ -39,6 +39,12 @@ All twelve complete executions pass, with eight exact old replays. It improves
 Both retention gates fail; sixteen versus thirteen physical masters are not
 strict resource equivalence. Fixed partition-order draining and input work
 remain diagnostic targets, not an already-proved explanation or correction.
+The [finite directory-lookahead study](DIRECTORY_OVERLAP.md) tests a second
+8-KiB tile per frontend, with the same masters and memory service. All twelve
+complete executions and eight exact old replays pass. It improves 4.85% /
+0.11% from one tile but remains **1.479 / 1.552 times A4**; both retention
+gates fail. The observed input endpoint includes downstream backpressure,
+so it is not an intrinsic floor for a different output schedule.
 
 ## Complete-Convergence Extension
 

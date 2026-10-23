@@ -129,11 +129,14 @@ zero merger-stall counter does not exclude this head-of-line wait. A4 instead
 uses its four Little pipelines within each destination task. These different
 task schedules and remaining PMA/metadata reads need separate investigation.
 
-At latency 128, the unchanged adapter completion alone is 1.145304 times
-A4's complete window, already above the 1.1 retention ceiling. Round
-publication cannot precede input completion. Reordering output without
-improving this input path therefore cannot meet the declared performance
-gate, even if every later wait could be hidden.
+At latency 128, the unchanged adapter completion is 1.145304 times A4's
+complete window, above the 1.1 retention ceiling under this output schedule.
+Interpretation correction in the [directory-lookahead follow-up](DIRECTORY_OVERLAP.md):
+this endpoint includes downstream backpressure. It is not an intrinsic input
+floor, so it does not prove that output reordering alone must fail. Round
+publication cannot precede input completion, but a changed output schedule
+can also change when that input completes. The recorded measurements and
+failed retention decision are unchanged.
 
 Next isolate a finite ready-partition drain schedule, without changing the
 graph, row coverage, arithmetic or memory timing. This is not a mux-only

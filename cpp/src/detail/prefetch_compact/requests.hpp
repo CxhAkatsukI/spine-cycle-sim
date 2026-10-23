@@ -2,8 +2,8 @@
 
 namespace spine::sim::detail::prefetch_compact {
 inline std::size_t Reader::outstanding_directory() const {
-  return std::count_if(pending_.begin(), pending_.end(), [](const auto& item) {
-    return item.second.kind == Kind::kDirectory;
+  return std::count_if(pending_.begin(), pending_.end(), [this](const auto& item) {
+    return item.second.kind == Kind::kDirectory && item.second.directory_base == directory_.base();
   });
 }
 
@@ -30,10 +30,11 @@ inline void Reader::prepare_request(const CycleContext& context, std::size_t por
         if ((which == 0 ? 2U : which - 1) != port) continue;
       } else if (odd_memory_ && ((which == 2) != (port == 1))) continue;
       if (which == 0) {
-        const auto lines = (std::min<std::size_t>(1024, partition_.vertices - tile_base_) + 7) / 8;
-        if (consumed_ == total_ || dir_issued_ == lines) continue;
-        request = {Kind::kDirectory, next_id_, partition_.row_base + tile_base_ * 8 + dir_issued_ * 64,
-            context.domain_cycle + delay_, dir_issued_, std::min<std::size_t>(16, lines - dir_issued_)};
+        const auto read = directory_.next();
+        if (consumed_ == total_ || !read) continue;
+        request = {Kind::kDirectory, next_id_, partition_.row_base + read->base * 8 + read->first * 64,
+            context.domain_cycle + delay_, read->first, read->count};
+        request.directory_base = read->base;
       } else {
         const auto parity = which - 1;
         const auto end = (total_ / 16 + 1 - parity) / 2;
@@ -73,12 +74,7 @@ inline void Reader::accept_beat(const AxiReadBeatResponse& beat, std::uint64_t c
     extent_ = true;
   } else if (request.kind == Kind::kDirectory) {
     ++stats_.directory_beats;
-    check(index < 128 && !directory_valid_[index], "candidate directory overwrite");
-    for (unsigned lane = 0; lane < 8 && index * 8 + lane < 1024; ++lane)
-      directory_[index * 8 + lane] = word(beat.read_data, lane * 8) |
-          (std::uint64_t{word(beat.read_data, lane * 8 + 4)} << 32);
-    directory_valid_[index] = true;
-    directory_ready_[index] = cycle + 3;
+    directory_.accept(request.directory_base, index, beat.read_data, cycle);
   } else {
     ++stats_.pma_beats;
     auto& line = banks_[request.parity][index % 256];

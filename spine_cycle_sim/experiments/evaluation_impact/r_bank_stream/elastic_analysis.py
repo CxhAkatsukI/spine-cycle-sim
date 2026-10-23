@@ -13,7 +13,8 @@ MATRIX = [(latency, reverse, arm) for latency in (64, 128)
 
 
 def summarize(rows, _reference, *, before, arms=ARMS, before_matrix=BEFORE_MATRIX,
-              physical_masters=None, reduction_key="cycle_reduction_from_source"):
+              physical_masters=None, reduction_key="cycle_reduction_from_source",
+              candidate_traffic=None):
     matrix = [(latency, reverse, arm) for latency in (64, 128)
               for reverse in (0, 1) for arm in arms]
     if [identity(row) for row in rows] != matrix:
@@ -42,9 +43,12 @@ def summarize(rows, _reference, *, before, arms=ARMS, before_matrix=BEFORE_MATRI
             raise ValueError("full state or converged active trajectory differs from A4")
         if row["arm"] == arms[2]:
             old = previous[(row["latency"], row["reverse"], arms[1])]["observations"]["result"]
-            for field in ("read_bytes", "write_bytes"):
-                if type(obs["result"].get(field)) is not int or obs["result"][field] != old[field]:
-                    raise ValueError("candidate changed physical traffic")
+            if candidate_traffic is not None:
+                candidate_traffic(obs["result"], old)
+            else:
+                for field in ("read_bytes", "write_bytes"):
+                    if type(obs["result"].get(field)) is not int or obs["result"][field] != old[field]:
+                        raise ValueError("candidate changed physical traffic")
     comparisons = []
     for latency in (64, 128):
         values = {arm: indexed[(latency, 0, arm)]["observations"]["result"] for arm in arms}

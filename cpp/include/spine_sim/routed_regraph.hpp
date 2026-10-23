@@ -50,6 +50,8 @@ struct RoutedReGraphConfig {
   // State/seed initialization is still caller-prepared, outside device timing.
   bool reuse_resident_pma{};
   RoutedInputPath input_path{RoutedInputPath::kPhysicalSlots};
+  // Default one; two finite tiles explicitly enable directory read lookahead.
+  std::size_t experimental_directory_tiles{1};
   RoutedSourceLoading source_loading{RoutedSourceLoading::kEdgeCoupled};
   RoutedApplyTopology apply_topology{RoutedApplyTopology::kSharedMaster};
 };

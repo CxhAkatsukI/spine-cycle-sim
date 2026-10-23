@@ -29,6 +29,10 @@ void RoutedReGraphSystem::Impl::admit() {
       config.input_path != RoutedInputPath::kTriplePrefetchElasticExperimental)
     throw std::invalid_argument("unsupported routed input path");
   const bool compact = config.input_path != RoutedInputPath::kPhysicalSlots;
+  if ((config.experimental_directory_tiles != 1 && config.experimental_directory_tiles != 2) ||
+      (config.experimental_directory_tiles == 2 &&
+       config.input_path != RoutedInputPath::kTriplePrefetchElasticExperimental))
+    throw std::invalid_argument("directory lookahead requires two finite tiles and a dedicated input master");
   const auto masters = (config.source_topology == RoutedSourceTopology::kTwoPairwise ? 7U : 9U) +
       (config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental ? 8U :
        config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ? 4U : 0U) +

@@ -16,6 +16,13 @@ is **2.951 / 3.635 times slower than A4-io16**, so the requested approximately
 10% retention gate is **not met**. This is a retained mismatch, not a completed
 baseline validation. See the [compact evidence index](evidence/cpu_core_20261022_v2.json).
 
+For the latest default-off correction, read the
+[finite directory-lookahead result](prefetch_compact/DIRECTORY_OVERLAP.md).
+It reduces complete cycles to 1.479 / 1.552 times A4 with all twelve correctness
+and eight old-replay checks passing; the 10% retention gate still fails.
+The historical seven-master result below is unchanged, not silently replaced
+by that sixteen-master experimental architecture.
+
 Earlier attempts remain separate: a strict local run was denied admission;
 the first checked-core run hit a 120-second regression timeout before any
 numerical row. Its replacement uses the original campaign's 600-second
