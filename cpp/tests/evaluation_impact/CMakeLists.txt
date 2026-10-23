@@ -17,3 +17,6 @@ target_compile_options(warm_spine_comparison PRIVATE -Wall -Wextra -Wpedantic -W
 add_executable(warm_a4_comparison warm_comparison/a4_main.cpp)
 target_link_libraries(warm_a4_comparison PRIVATE original_regraph_cycle)
 target_compile_options(warm_a4_comparison PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_executable(warm_host_preparation warm_comparison/host_main.cpp)
+target_link_libraries(warm_host_preparation PRIVATE spine_cycle_core)
+target_compile_options(warm_host_preparation PRIVATE -Wall -Wextra -Wpedantic -Werror)

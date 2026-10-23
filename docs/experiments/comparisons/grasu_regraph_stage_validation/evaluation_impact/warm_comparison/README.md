@@ -5,6 +5,11 @@ Its purpose is to ask whether the improved baseline changes the direction of
 the Spine comparison. It is not a replacement evaluation or admission decision.
 No FPGA, HLS, paper, or numerical-core change is part of this study.
 
+The separate [warm-batch CPU preparation audit](HOST_PREPARATION.md) now
+measures the common input's small-batch sorting/packing costs. These do not
+change the diagnostic's direction, but omit active-state application, DMA,
+launch/relaunch and readback; full host-inclusive timing remains unavailable.
+
 ## Fixed Scope
 
 - Weighted SSSP only; a 96-vertex smoke followed by the existing Amazon
