@@ -146,6 +146,7 @@ struct AxiStats {
   std::uint64_t response_queue_stalls{};
   std::uint64_t read_beat_queue_stalls{};
   std::uint64_t read_reorder_stalls{};
+  std::uint64_t read_issue_credit_stalls{};
   std::uint64_t read_data_pipeline_stalls{};
   std::uint64_t read_beats_streamed{};
   std::uint64_t bursts_accepted{};
@@ -193,6 +194,10 @@ class AxiMaster final : public Component {
     return active_bursts_.size();
   }
   [[nodiscard]] bool idle() const noexcept;
+  [[nodiscard]] std::string diagnostic() const;
+  [[nodiscard]] std::size_t reserved_read_beats() const noexcept {
+    return reserved_read_beats_;
+  }
   [[nodiscard]] bool has_dynamic_evaluate_guard() const noexcept override {
     return true;
   }
@@ -314,7 +319,8 @@ class AxiMaster final : public Component {
   void evaluate_write_ingress(const CycleContext &context);
   void evaluate_address_channel(const CycleContext &context);
   void evaluate_independent_addresses(const CycleContext &context);
-  [[nodiscard]] std::size_t independent_issue_index(const CycleContext &context);
+  [[nodiscard]] std::size_t independent_issue_index(
+      const CycleContext &context, bool stream_credit_available);
   void evaluate_data_channel(const CycleContext &context);
   void commit_backend_responses(const CycleContext &context);
   void commit_request_input();
@@ -361,6 +367,8 @@ class AxiMaster final : public Component {
   std::unordered_map<std::uint64_t, BackendMapping> backend_mappings_;
   std::deque<ReadyResponse> ready_responses_;
   std::size_t read_reorder_occupancy_{};
+  // Includes both in-flight and returned streamed beats, until publication.
+  std::size_t reserved_read_beats_{};
   std::vector<AxiBurstTrace> burst_trace_;
   std::vector<AxiBeatTrace> beat_trace_;
   std::vector<AxiWriteIngressTrace> write_ingress_trace_;

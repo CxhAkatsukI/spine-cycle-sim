@@ -106,7 +106,8 @@ void AxiMaster::evaluate_independent_addresses(const CycleContext &context) {
   }
 }
 
-std::size_t AxiMaster::independent_issue_index(const CycleContext &context) {
+std::size_t AxiMaster::independent_issue_index(
+    const CycleContext &context, bool stream_credit_available) {
   std::array<std::size_t, 2> chosen{active_bursts_.size(),
                                     active_bursts_.size()};
   std::array<std::pair<std::uint64_t, std::uint64_t>, 2> keys;
@@ -117,6 +118,11 @@ std::size_t AxiMaster::independent_issue_index(const CycleContext &context) {
     const auto issued = burst.beats_issued + staged_additional_issued_[index];
     if (issued == burst.beats_total)
       continue;
+    if (!stream_credit_available &&
+        parents_.at(burst.parent_id).request.stream_read_beats) {
+      ++stats_.read_issue_credit_stalls;
+      continue;
+    }
     const auto op = direction(burst.operation);
     const auto key =
         std::pair(burst.parent_id,

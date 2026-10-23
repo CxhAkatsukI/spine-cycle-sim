@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
@@ -19,6 +20,7 @@ void accumulate_axi_stats(AxiStats &total, const AxiStats &sample) noexcept {
   total.response_queue_stalls += sample.response_queue_stalls;
   total.read_beat_queue_stalls += sample.read_beat_queue_stalls;
   total.read_reorder_stalls += sample.read_reorder_stalls;
+  total.read_issue_credit_stalls += sample.read_issue_credit_stalls;
   total.read_data_pipeline_stalls += sample.read_data_pipeline_stalls;
   total.read_beats_streamed += sample.read_beats_streamed;
   total.bursts_accepted += sample.bursts_accepted;
@@ -242,6 +244,31 @@ void AxiMaster::evaluate_output() {
   }
 }
 
+std::string AxiMaster::diagnostic() const {
+  std::ostringstream out;
+  out << "issueable=" << active_issueable_bursts_
+      << " stream-bursts=" << active_stream_bursts_
+      << " reorder=" << read_reorder_occupancy_
+      << " reserved=" << reserved_read_beats_
+      << " backend-responses=" << backend_.response_count(config_.initiator_id)
+      << " mappings=" << backend_mappings_.size();
+  for (const auto &[id, parent] : parents_) {
+    out << "\nparent=" << id << " op=" << static_cast<int>(parent.request.operation)
+        << " completed=" << parent.completed_bursts << '/' << parent.total_bursts
+        << " next=" << parent.next_stream_offset
+        << " published=" << parent.stream_beats_published
+        << " ready=" << parent.ready_stream_beats.size();
+    if (!parent.ready_stream_beats.empty())
+      out << " first=" << parent.ready_stream_beats.begin()->first
+          << " last=" << parent.ready_stream_beats.rbegin()->first;
+  }
+  for (const auto &burst : active_bursts_)
+    out << "\nburst=" << burst.burst_id << " parent=" << burst.parent_id
+        << " offset=" << burst.parent_offset << " beats=" << burst.beats_issued
+        << '/' << burst.beats_completed << '/' << burst.beats_total;
+  return out.str();
+}
+
 void AxiMaster::evaluate_read_beat_output(const CycleContext &context) {
   if (read_beats_ == nullptr) {
     return;
@@ -461,6 +488,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
     staged_additional_issued_.resize(active_bursts_.size(), 0);
   }
   std::size_t staged_fully_issued = 0;
+  std::size_t staged_stream_reads = 0;
   std::size_t inspected_without_issue = 0;
   const bool ordered_stream = active_stream_bursts_ != 0;
   std::size_t cursor = issue_round_robin_ % active_bursts_.size();
@@ -468,7 +496,9 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
          inspected_without_issue < active_bursts_.size()) {
     if (ordered_stream || config_.independent_read_write) {
       if (config_.independent_read_write) {
-        cursor = independent_issue_index(context);
+        cursor = independent_issue_index(
+            context, reserved_read_beats_ + staged_stream_reads <
+                         config_.read_reorder_capacity);
         if (cursor == active_bursts_.size())
           break;
       } else {
@@ -503,6 +533,14 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
     const Burst &burst = active_bursts_[cursor];
     const std::size_t extra = staged_additional_issued_[cursor];
     if (burst.beats_issued + extra < burst.beats_total) {
+      const bool streamed_read = parents_.at(burst.parent_id).request.stream_read_beats;
+      // Reserve before issue: later DRAM returns must not fill the ROB and
+      // prevent an earlier beat from entering the finite response FIFO.
+      if (streamed_read && reserved_read_beats_ + staged_stream_reads >=
+                               config_.read_reorder_capacity) {
+        ++stats_.read_issue_credit_stalls;
+        break;
+      }
       if (burst.operation == MemoryOperation::kWrite &&
           write_ingress_enabled() &&
           (write_throttle_fifo_.empty() ||
@@ -568,6 +606,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
           staged_additional_issued_touched_.push_back(cursor);
         }
         ++staged_additional_issued_[cursor];
+        staged_stream_reads += streamed_read ? 1 : 0;
         staged_fully_issued +=
             burst.beats_issued + staged_additional_issued_[cursor] ==
                     burst.beats_total
@@ -945,6 +984,11 @@ void AxiMaster::commit_data_channel() {
       write_throttle_fifo_.pop_front();
     }
     ++burst->beats_issued;
+    if (parents_.at(burst->parent_id).request.stream_read_beats) {
+      if (reserved_read_beats_ >= config_.read_reorder_capacity)
+        throw std::logic_error("AXI streamed read reservation overflow");
+      ++reserved_read_beats_;
+    }
     if (burst->beats_issued == burst->beats_total) {
       if (active_issueable_bursts_ == 0) {
         throw std::logic_error("AXI issueable burst count underflow");
@@ -1055,6 +1099,9 @@ void AxiMaster::commit_read_beat_output() {
     throw std::logic_error("AXI read reorder occupancy underflow");
   }
   --read_reorder_occupancy_;
+  if (reserved_read_beats_ == 0)
+    throw std::logic_error("AXI streamed read reservation underflow");
+  --reserved_read_beats_;
   ++parent.stream_beats_published;
   ++stats_.read_beats_streamed;
   queue_parent_response_if_ready(parent_id);

@@ -96,8 +96,9 @@ bool SpineOwnerScheduler::quiescent() const noexcept {
          !staged(staged_reactivation_publications_);
 }
 
-std::uint64_t SpineOwnerScheduler::structural_credits() const noexcept {
-  std::uint64_t credits = 0;
+bool SpineOwnerScheduler::credits_conserved(
+    std::uint64_t in_flight) const noexcept {
+  std::uint64_t credits = in_flight;
   for (const auto &queue : owner_queues_) {
     credits += queue.size();
   }
@@ -110,18 +111,19 @@ std::uint64_t SpineOwnerScheduler::structural_credits() const noexcept {
   for (const auto &queue : deferred_reactivation_queues_) {
     credits += queue.size();
   }
-  for (const auto &[key, key_state] : states_) {
-    static_cast<void>(key);
-    credits += key_state.in_flight ? 1U : 0U;
-  }
-  return credits;
-}
-
-bool SpineOwnerScheduler::ledger_closed() const noexcept {
   return stats_.work_credits_created >= stats_.work_credits_retired &&
          work_credits_ ==
              stats_.work_credits_created - stats_.work_credits_retired &&
-         work_credits_ == structural_credits();
+         work_credits_ == credits;
+}
+
+bool SpineOwnerScheduler::ledger_closed() const noexcept {
+  std::uint64_t actual_in_flight = 0;
+  for (const auto &[key, key_state] : states_) {
+    static_cast<void>(key);
+    actual_in_flight += key_state.in_flight ? 1U : 0U;
+  }
+  return actual_in_flight == in_flight_ && credits_conserved(actual_in_flight);
 }
 
 SpineOwnerKeyState &SpineOwnerScheduler::mutable_state(std::uint32_t key) {
@@ -360,6 +362,7 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
     }
     current.queued = false;
     current.in_flight = true;
+    ++in_flight_;
     ++stats_.dispatches;
   }
 
@@ -414,10 +417,11 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
     }
     const std::uint32_t key = *staged_completions_[partition];
     SpineOwnerKeyState &current = mutable_state(key);
-    if (!current.in_flight || work_credits_ == 0) {
+    if (!current.in_flight || work_credits_ == 0 || in_flight_ == 0) {
       throw std::logic_error("Spine owner completion has no work credit");
     }
     current.in_flight = false;
+    --in_flight_;
     --work_credits_;
     ++stats_.work_credits_retired;
     ++stats_.completions;
@@ -465,6 +469,17 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
     ++stats_.reactivation_requeues;
   }
 
+  // Only completion can leave an empty key. Avoid scanning every active key
+  // on each simulated cycle; ledger_closed() still independently audits them.
+  for (const auto &completion : staged_completions_) {
+    if (!completion.has_value()) {
+      continue;
+    }
+    const auto found = states_.find(*completion);
+    if (found != states_.end() && found->second == SpineOwnerKeyState{}) {
+      states_.erase(found);
+    }
+  }
   staged_activation_.reset();
   for (std::size_t partition = 0; partition < config_.partitions;
        ++partition) {
@@ -475,15 +490,8 @@ void SpineOwnerScheduler::commit(const CycleContext &) {
     staged_reactivation_publications_[partition].reset();
   }
   update_maxima();
-  if (!ledger_closed()) {
+  if (!credits_conserved(in_flight_)) {
     throw std::logic_error("Spine owner work-credit ledger diverged");
-  }
-  for (auto iterator = states_.begin(); iterator != states_.end();) {
-    if (iterator->second == SpineOwnerKeyState{}) {
-      iterator = states_.erase(iterator);
-    } else {
-      ++iterator;
-    }
   }
 }
 

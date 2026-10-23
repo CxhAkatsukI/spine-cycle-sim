@@ -1,5 +1,6 @@
 #include "../../src/detail/backend_response_selection.hpp"
 #include "spine_sim/fixed_axi_port.hpp"
+#include "reordered_reads.hpp"
 
 #include <iostream>
 #include <map>
@@ -201,6 +202,12 @@ void selection_checks() {
 int main() {
   try {
     selection_checks();
+    for (auto capacity : {1U, 2U, 4U, 32U})
+      for (bool independent : {false, true})
+        for (auto width : {1U, 4U})
+          require(axi_test::check_reordered_reads(capacity, independent, false, width) ==
+                      axi_test::check_reordered_reads(capacity, independent, true, width),
+                  "reordered read timing depends on registration order");
     std::size_t cases = 0;
     for (auto bytes : {512U, 16384U})
       for (auto credit : {1U, 4U, 16U})

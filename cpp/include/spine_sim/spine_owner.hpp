@@ -118,7 +118,7 @@ class SpineOwnerScheduler final : public Component {
   [[nodiscard]] SpineOwnerKeyState &mutable_state(std::uint32_t key);
   [[nodiscard]] std::size_t reserved_owner_enqueues(
       std::size_t partition) const noexcept;
-  [[nodiscard]] std::uint64_t structural_credits() const noexcept;
+  [[nodiscard]] bool credits_conserved(std::uint64_t in_flight) const noexcept;
   void update_maxima() noexcept;
 
   SpineOwnerSchedulerConfig config_;
@@ -139,6 +139,7 @@ class SpineOwnerScheduler final : public Component {
   std::vector<std::optional<std::uint32_t>>
       staged_reactivation_publications_;
   std::uint64_t work_credits_{};
+  std::uint64_t in_flight_{};
 };
 
 // Drives the round boundary around the per-key owner. It models device-owned

@@ -139,10 +139,12 @@ std::string RoutedReGraphSystem::diagnostic() const {
         << ',' << f.updates.size() << ',' << f.rows.size() << ',' << f.internal_requests.size()
         << ',' << f.requests.size() << ',' << f.responses.size() << ',' << f.internal_responses.size();
   }
-  for (const auto &p : impl_->ports)
+  for (const auto &p : impl_->ports) {
     out << "\nmaster=" << p->master().name() << " pending=" << p->master().pending_requests()
         << " bursts=" << p->master().outstanding_bursts() << " queues=" << p->requests().size()
         << ',' << p->responses().size() << ',' << p->read_beats().size();
+    if (!p->master().idle()) out << ' ' << p->master().diagnostic();
+  }
   for (const auto &p : impl_->shared) out << "\nshared=" << p->name() << " pending=" << p->pending();
   for (const auto *c : impl_->components)
     if (c->has_latched_evaluate_guard())

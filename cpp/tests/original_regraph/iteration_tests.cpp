@@ -1,5 +1,6 @@
 #include "frontend_wiring.hpp"
 #include "state_support.hpp"
+#include "shared_channel_pressure.hpp"
 
 namespace {
 namespace ft = original_regraph_frontend_test;
@@ -18,6 +19,12 @@ struct Observation {
 Observation run(const char* id, bool reverse = false) {
   ft::Wiring frontend({.little = 4, .gather = true, .reverse_registration = reverse});
   st::StatePath state(frontend.memory, *frontend.merged_output, 4096);
+  for (unsigned index = 0; index < 4; ++index) {
+    const auto channel = index * 2 + 1;
+    st::require(frontend.paths[index].source_port.master->config().fixed_channel == channel &&
+                state.writers[index].master->config().fixed_channel == channel,
+                "source reader and property writer must share their physical channel");
+  }
   frontend.memory.register_components(reverse);
   std::vector<std::vector<rg::EdgeBurst>> edges;
   for (unsigned pipeline = 0; pipeline < 4; ++pipeline) edges.push_back(ft::fixture({0, 1, 2}, pipeline));
@@ -65,7 +72,6 @@ Observation run(const char* id, bool reverse = false) {
   }
   observed.final_values = properties;
   observed.contended_cycles = frontend.backend->arbitration_stats()->contended_cycles;
-  st::require(observed.contended_cycles > 0, "source reads and property writes did not share HBM arbitration");
   st::require(state.apply->counters().degree_responses == 4096 * 3 &&
               state.writer->counters().acknowledgements == 4096 * 4 * 3 &&
               state.writer->counters().input_terminators == 3, "full A4 round/state conservation failed");
@@ -88,6 +94,9 @@ int main() {
     const auto forward = run("a4_complete_rounds");
     st::require(run("a4_complete_rounds_reverse", true) == forward,
                 "registration order changed complete A4 states/cycles/traffic/contention");
+    const auto pressure = original_regraph_pressure_test::run(false);
+    st::require(original_regraph_pressure_test::run(true) == pressure,
+                "registration order changed explicit shared-channel pressure");
     std::cout << "Three complete original A4 rounds pass, with resident ping-pong state and shared channels\n";
     return 0;
   } catch (const std::exception& error) {

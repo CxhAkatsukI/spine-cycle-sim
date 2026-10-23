@@ -32,7 +32,10 @@ struct Fixture {
     scheduler.add_component(owner);
   }
 
-  void step() { scheduler.step(); }
+  void step() {
+    scheduler.step();
+    require(owner.ledger_closed(), "full state audit differs from incremental ledger");
+  }
 };
 
 void test_initial_dispatch_completion_closes_credit() {
@@ -179,6 +182,50 @@ void test_bounded_domain_rejects_unknown_vertex() {
   require(rejected, "owner scheduler accepted an out-of-domain vertex");
 }
 
+void test_many_live_keys_and_reused_seed_epochs() {
+  Fixture fixture(SpineOwnerSchedulerConfig{
+      .max_vertices = 512, .partitions = 4, .vertices_per_partition = 128,
+      .owner_fifo_depth = 128, .reactivation_fifo_depth = 128,
+  });
+  for (int epoch = 0; epoch < 2; ++epoch) {
+    for (std::uint32_t key = 0; key < 512; ++key) {
+      require(fixture.owner.try_dispatch_source(key, true), "seed dispatch failed");
+      fixture.step();
+    }
+    require(fixture.owner.work_credits() == 512, "live seed credit count differs");
+    for (std::uint32_t local = 0; local < 128; ++local) {
+      for (std::uint32_t partition = 0; partition < 4; ++partition) {
+        require(fixture.owner.try_complete(partition * 128 + local),
+                "parallel seed completion failed");
+      }
+      fixture.step();
+    }
+    require(fixture.owner.quiescent(), "seed epoch did not retire all keys");
+  }
+  require(fixture.owner.stats().dispatches == 1024 &&
+              fixture.owner.stats().completions == 1024,
+          "reused seed epoch changed scheduling counts");
+}
+
+void test_completion_and_reactivation_same_cycle() {
+  Fixture fixture;
+  require(fixture.owner.try_dispatch_source(7, true), "seed dispatch failed");
+  fixture.step();
+  require(fixture.owner.try_complete(7) && fixture.owner.try_activate(7),
+          "concurrent completion/reactivation failed");
+  fixture.step();
+  require(fixture.owner.state(7) == SpineOwnerKeyState{false, false, true},
+          "completion cleanup removed a reactivated key");
+  fixture.step();
+  std::uint32_t key = 0;
+  require(fixture.owner.try_dispatch(0, key) && key == 7,
+          "reactivated key did not dispatch");
+  fixture.step();
+  require(fixture.owner.try_complete(7), "second completion failed");
+  fixture.step();
+  require(fixture.owner.quiescent(), "reactivation left a credit behind");
+}
+
 }  // namespace
 
 int main() {
@@ -193,6 +240,8 @@ int main() {
       {"partition_parallelism",
        test_partitions_dispatch_independently_in_one_cycle},
       {"bounded_domain", test_bounded_domain_rejects_unknown_vertex},
+      {"many_live_seed_epochs", test_many_live_keys_and_reused_seed_epochs},
+      {"completion_with_reactivation", test_completion_and_reactivation_same_cycle},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {
