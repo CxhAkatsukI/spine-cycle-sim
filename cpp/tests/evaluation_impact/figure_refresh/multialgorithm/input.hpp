@@ -46,9 +46,11 @@ inline std::vector<double> pagerank(std::size_t vertices, const std::vector<GraS
   throw std::runtime_error("independent double-precision PageRank oracle did not converge");
 }
 
-inline Input load(const std::string& path, const std::string& updates, const std::string& algorithm) {
+inline Input load(const std::string& path, const std::string& updates, const std::string& algorithm,
+                  float residual_epsilon = 1e-6f) {
   Input result;
   require(algorithm == "CC" || algorithm == "ResPR", "unsupported multialgorithm workload");
+  require(std::isfinite(residual_epsilon) && residual_epsilon > 0, "positive finite residual epsilon required");
   auto& g = result.graph;
   if (path == "smoke") {
     g.after.compact.vertices = 16;
@@ -64,7 +66,7 @@ inline Input load(const std::string& path, const std::string& updates, const std
   } else g = figure_refresh::load(path, updates, 0, false);
   const auto vertices = g.after.compact.vertices;
   result.algorithm = {.kind = algorithm == "CC" ? GraphAlgorithmKind::kConnectedComponents :
-      GraphAlgorithmKind::kResidualPageRank, .vertices = vertices, .epsilon = float(1e-5 / vertices),
+      GraphAlgorithmKind::kResidualPageRank, .vertices = vertices, .epsilon = residual_epsilon,
       .residual_contract = ResidualPageRankContract::kHardwareWarmDanglingLinf};
   auto& initial = g.after.initial;
   initial.active_vertices.clear();

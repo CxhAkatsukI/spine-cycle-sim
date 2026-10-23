@@ -84,16 +84,17 @@ def source_snapshot(report, read, prefix):
                 raise ValueError("source member differs from frozen pin")
 
 
-def selection(report, identity):
+def selection(report, identity, *, expected=EXPECTED):
     if (report.get("pins_unchanged") is not True or report.get("failures") != [] or
             report.get("status") != "COMPLETE_SUPPORTED_SCOPE" or
             report.get("baseline_admitted") is not False):
         raise ValueError("complete unchanged exploratory matrix required")
     cases = {(c["algorithm"], c["dataset"]): c for c in report["matrix"]}
     rows = {(r["algorithm"], r["dataset"]): r for r in report["rows"]}
-    if (len(report["matrix"]) != 9 or len(report["rows"]) != 9 or
-            set(cases) != EXPECTED or set(rows) != EXPECTED):
-        raise ValueError("exact nine-pair registered matrix required")
+    if (len(report["matrix"]) != len(expected) or len(report["rows"]) != len(expected) or
+            set(cases) != expected or set(rows) != expected):
+        scope = "nine-pair" if expected == EXPECTED else "requested"
+        raise ValueError("exact " + scope + " registered matrix required")
     result = []
     for key, case in cases.items():
         row = rows[key]
@@ -111,22 +112,38 @@ def selection(report, identity):
     return result
 
 
-def validate_raw(comparisons, read):
+def pagerank_threshold(config, model, vertices):
+    # Sealed older runs omitted the parameter and used the size-scaled rule.
+    value = config.get("residual_epsilon", 1e-5 / vertices)
+    try:
+        epsilon = struct.unpack("<f", struct.pack("<f", value))[0]
+    except (TypeError, OverflowError, struct.error) as error:
+        raise ValueError("positive finite FP32 epsilon required") from error
+    if not math.isfinite(epsilon) or epsilon <= 0:
+        raise ValueError("positive finite FP32 epsilon required")
+    if (("residual_epsilon" in config) != ("residual_epsilon" in model) or
+            ("residual_epsilon" in config and epsilon != model["residual_epsilon"])):
+        raise ValueError("PageRank threshold differs from model identity")
+    damping = struct.unpack("<f", struct.pack("<f", 0.85))[0]
+    return epsilon, vertices * epsilon / (1.0 - damping)
+
+
+def validate_raw(comparisons, read, *, expected=EXPECTED):
     for row in comparisons:
         prefix = Path(row["source_report"]).parent.name + "/"
         blob = read(prefix + "results.json")
         if hashlib.sha256(blob).hexdigest() != row["source_report_sha256"]:
             raise ValueError("selected report identity changed")
         report = json.loads(blob)
-        selected = [r for r in selection(report, {}) if
+        selected = [r for r in selection(report, {}, expected=expected) if
                     (r["algorithm"], r["dataset"]) == (row["algorithm"], row["dataset"])]
         if len(selected) != 1 or dict(selected[0], source_report=row["source_report"],
                                      source_report_sha256=row["source_report_sha256"]) != row:
             raise ValueError("selected comparison differs from frozen report")
         source_snapshot(report, read, prefix)
         for arm in ("spine", "gr"):
-            expected = row[arm]
-            name = Path(expected["evidence"]).name
+            arm_result = row[arm]
+            name = Path(arm_result["evidence"]).name
             steps = [s for s in report["steps"] if Path(s["stdout"]).name == name + ".stdout.txt"]
             if len(steps) != 1 or steps[0]["exit_code"] or steps[0]["timed_out"]:
                 raise ValueError("successful bounded device command required")
@@ -136,7 +153,7 @@ def validate_raw(comparisons, read):
             raw = [json.loads(s.removeprefix("WARM_RESULT ")) for s in text.splitlines()
                    if s.startswith("WARM_RESULT ")]
             if (len(raw) != 1 or "REFRESH_COMPLETE" not in text or
-                    any(expected.get(k) != v for k, v in raw[0].items()) or
+                    any(arm_result.get(k) != v for k, v in raw[0].items()) or
                     raw[0].get("correctness") is not True or raw[0].get("ledger_closed") is not True):
                 raise ValueError("arm differs from correctness-admitted raw result")
             config = json.loads(read(prefix + name + "/config.json"))
@@ -148,24 +165,24 @@ def validate_raw(comparisons, read):
             for state in ("old_state", "expected", "final"):
                 state_blob = read(prefix + name + "/" + state + ".u32le")
                 if (len(state_blob) != 4 * row["case"]["vertices"] or
-                        hashlib.sha256(state_blob).hexdigest() != expected["state_hashes"][state]):
+                        hashlib.sha256(state_blob).hexdigest() != arm_result["state_hashes"][state]):
                     raise ValueError("complete state identity differs")
             if row["algorithm"] in ("SSSP", "CC"):
-                if expected["state_hashes"]["final"] != expected["state_hashes"]["expected"]:
+                if arm_result["state_hashes"]["final"] != arm_result["state_hashes"]["expected"]:
                     raise ValueError("SSSP/CC must exactly match their independent oracle")
             else:
+                epsilon, bound = pagerank_threshold(config, report.get("model", {}), row["case"]["vertices"])
                 oracle = [json.loads(s.removeprefix("PR_ORACLE ")) for s in text.splitlines()
                           if s.startswith("PR_ORACLE ")]
                 if (len(oracle) != 1 or any(not math.isfinite(v) or v < 0 for v in oracle[0].values()) or
                         oracle[0]["l1_error"] > oracle[0]["l1_error_bound"] or
-                        oracle[0]["l1_error_bound"] > 6.668e-5):
+                        not math.isclose(oracle[0]["l1_error_bound"], bound, rel_tol=2e-5)):
                     raise ValueError("independent PageRank L1 oracle gate failed")
-                if arm == "spine" and expected.get("correction_oracle_directed") is not True:
+                if arm == "spine" and arm_result.get("correction_oracle_directed") is not True:
                     raise ValueError("Spine correction replay boundary must remain visible")
                 residual = read(prefix + name + "/residual.u32le")
                 if len(residual) != 4 * row["case"]["vertices"]:
                     raise ValueError("complete residual state required")
-                epsilon = struct.unpack("<f", struct.pack("<f", 1e-5 / row["case"]["vertices"]))[0]
                 if any(not math.isfinite(v) or abs(v) > epsilon for (v,) in struct.iter_unpack("<f", residual)):
                     raise ValueError("stored PageRank residual did not converge")
             ledger = json.loads(read(prefix + name + "/backend.json"))
@@ -173,5 +190,5 @@ def validate_raw(comparisons, read):
                     len({ledger[k] for k in ("unique_intents", "grants", "consumed_grants")}) != 1):
                 raise ValueError("physical request ledger did not drain")
             details = energy_details(read, prefix + name)
-            if details != expected["energy_details"] or details["total_energy_pj"] != expected["energy_pj"]:
+            if details != arm_result["energy_details"] or details["total_energy_pj"] != arm_result["energy_pj"]:
                 raise ValueError("all-channel DRAMSim3 energy differs")

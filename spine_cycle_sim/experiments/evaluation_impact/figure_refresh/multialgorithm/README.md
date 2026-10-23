@@ -13,6 +13,7 @@ the paper, rebuild FPGA kernels, or admit original-publication performance.
 | `regression.py`, `sssp_replay.py` | Twelve SSSP trajectories; strict exact gate by default, explicit read-credit correction mode |
 | `validation.py` | Complete pair selection, raw/configuration/state checks, core gates and all-channel energy |
 | `tables.py`, `delivery.py` | Derived CSVs and a portable, hash-checked evidence extension |
+| `residual_followup.py` | Fixed-epsilon ResPR rerun, threshold-only identities and separately sealed evidence |
 | `source_snapshots.py` | Explicitly index the redundant full-repository snapshot while archiving and verifying its corresponding code-only snapshot |
 
 The C++ harness has separate input/oracle, finite resident G/R composition,
@@ -49,6 +50,15 @@ the eighteen real-input arms run. Device completion, independent final-state
 checks and physical request/beat closure are mandatory; timeouts are retained,
 never replaced with projected values. `--smoke-only` selects only the six
 small correctness fixtures.
+
+Residual PageRank now defaults to a fixed per-vertex `--residual-epsilon 1e-6`.
+The earlier nine-pair archive used `1e-5/V` and remains frozen; that stricter
+rule was not equivalent normalization. The separately packaged
+[threshold restoration](../../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure_refresh/respr_fixed_epsilon/README.md)
+reruns the same three PR pairs and retains before/after identities and work.
+Do not silently combine its rows with the old archive. Raw validation uses
+the configured FP32 epsilon and its derived L1 bound; the legacy fallback
+applies only to sealed records that did not specify the parameter.
 
 Run `regression --help` for the twelve-case SSSP replay. Run `delivery --help`
 for packaging and `delivery --output PATH --verify` for offline verification.

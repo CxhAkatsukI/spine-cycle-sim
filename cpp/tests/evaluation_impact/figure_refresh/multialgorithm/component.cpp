@@ -39,7 +39,7 @@ class Refresh final : public SST::Component {
         sssp(graph, updates, params_.find<std::uint32_t>("root", 0), output, arm,
              scheduler, clock, backend, maximum);
       } else {
-        const auto input = load(graph, updates, algorithm);
+        const auto input = load(graph, updates, algorithm, params_.find<float>("residual_epsilon", 1e-6f));
         wc::ei::wt::write_words(std::filesystem::path(output) / "old_state.u32le", input.graph.after.initial.primary);
         std::vector<std::uint32_t> expected = input.expected_labels;
         if (input.algorithm.kind == GraphAlgorithmKind::kResidualPageRank)
@@ -62,6 +62,7 @@ class Refresh final : public SST::Component {
   SST_ELI_DOCUMENT_PARAMS({"arm", "gr or spine", ""}, {"algorithm", "SSSP, CC or ResPR", ""},
       {"graph", "Materialized old graph", ""}, {"updates", "Materialized insertion batch", ""},
       {"root", "SSSP source vertex", "0"},
+      {"residual_epsilon", "Fixed per-vertex residual activation/stop threshold (not divided by V)", "1e-6"},
       {"output", "Fresh output directory", ""}, {"dram_config", "DRAMSim3 configuration", ""},
       {"maximum", "Finite cycle budget", "150000000"})
  private:

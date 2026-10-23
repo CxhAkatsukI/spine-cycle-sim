@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from spine_cycle_sim.experiments.evaluation_impact.figure_refresh import analysis
 from spine_cycle_sim.experiments.evaluation_impact.figure_refresh.multialgorithm import (
-    delivery, matrix, tables, validation,
+    delivery, matrix, study, tables, validation,
 )
 
 
@@ -33,6 +33,12 @@ def complete_report():
 
 
 class MultialgorithmFigureTests(unittest.TestCase):
+    def test_fixed_residual_threshold_is_not_scaled_by_vertex_count(self):
+        self.assertAlmostEqual(study.residual_threshold(1e-6), 1e-6, delta=1e-13)
+        for value in (0, -1, float("nan"), float("inf"), 1e-100, 1e100):
+            with self.assertRaisesRegex(ValueError, "positive finite FP32"):
+                study.residual_threshold(value)
+
     def test_nine_cases_keep_algorithm_specific_projections_and_physical_records(self):
         manifest = dict(graphs={p: dict(path=p, vertices=10, records=20) for p in
                         ("directed", "reciprocal", "residual_sink_free")}, updates=[dict(

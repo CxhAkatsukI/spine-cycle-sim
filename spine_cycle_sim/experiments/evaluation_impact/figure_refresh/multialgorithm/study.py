@@ -2,9 +2,11 @@
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
+import struct
 import tarfile
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
@@ -16,9 +18,22 @@ from ..study import DRAM, SST
 from . import matrix
 
 
-def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_only=False):
+def residual_threshold(value):
+    """Record the actual FP32 per-vertex threshold shared by both device arms."""
+    try:
+        rounded = struct.unpack("<f", struct.pack("<f", float(value)))[0]
+    except (ValueError, TypeError, OverflowError, struct.error) as error:
+        raise ValueError("positive finite FP32 residual epsilon required") from error
+    if not math.isfinite(rounded) or rounded <= 0:
+        raise ValueError("positive finite FP32 residual epsilon required")
+    return rounded
+
+
+def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_only=False,
+        residual_epsilon=1e-6):
     if cpu not in os.sched_getaffinity(0) or timeout <= 0:
         raise ValueError("allowed CPU and positive timeout required")
+    epsilon = residual_threshold(residual_epsilon)
     cases = [] if smoke_only else matrix.cases(datasets, algorithms)
     selected = runtime.settings(memory_profile, 1)
     process_gib = 32 if memory_profile == runtime.LARGE_CPU else 4
@@ -45,7 +60,8 @@ def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_
             r="prefetch_gather_reuse, algorithm-specific finite apply and timed PR preparation",
             spine="Candidate10OnePass; device-active and owner closure",
             correction="Spine residual correction is oracle-directed timed work replay, not a functional AXI-derived seed implementation",
-            residual_contract="hardware-warm dangling L-infinity, epsilon=1e-5/V, damping=FP32(0.85)",
+            residual_contract="hardware-warm dangling L-infinity, fixed per-vertex epsilon, damping=FP32(0.85)",
+            residual_epsilon=epsilon,
             rank_oracle="independent double Jacobi; L1 error <= V*epsilon/(1-damping)",
             resource_control="latest R resource budget, not a strict same-resource original-A4 reproduction",
             boundary="resident old convergence, batch maintenance and device preparation through new convergence; no host time",
@@ -67,7 +83,8 @@ def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_
         directory.mkdir()
         params = dict(arm=arm, algorithm=case["algorithm"], graph=case["graph"],
             updates=case.get("update_file", ""), output=str(directory),
-            root=case.get("root", 0), dram_config=str(dram_config), maximum=150000000)
+            root=case.get("root", 0), residual_epsilon=epsilon,
+            dram_config=str(dram_config), maximum=150000000)
         atomic_write_json(directory / "config.json", params)
         print("START " + name, flush=True)
         step = execute(["env", "LD_LIBRARY_PATH=" + str(DRAM), "taskset", "-c", str(cpu), str(SST),
@@ -146,6 +163,8 @@ if __name__ == "__main__":
     parser.add_argument("--algorithms", nargs="+", choices=("SSSP", "CC", "ResPR"), default=("SSSP", "CC", "ResPR"))
     parser.add_argument("--memory-profile", choices=(runtime.FRESH_CPU, runtime.LARGE_CPU), default=runtime.FRESH_CPU)
     parser.add_argument("--smoke-only", action="store_true")
+    parser.add_argument("--residual-epsilon", type=residual_threshold, default=1e-6,
+                        help="Fixed per-vertex ResPR threshold; historical setting is 1e-6 (no division by V)")
     args = parser.parse_args()
     print(json.dumps(dict(status=run(args.output.resolve(), args.core.resolve(), args.cpu, args.timeout,
-        args.datasets, args.algorithms, args.memory_profile, args.smoke_only)["status"])))
+        args.datasets, args.algorithms, args.memory_profile, args.smoke_only, args.residual_epsilon)["status"])))

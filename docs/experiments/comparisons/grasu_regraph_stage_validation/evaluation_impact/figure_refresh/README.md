@@ -14,6 +14,12 @@ and does not retroactively change this collection's Figure 8 measurements or
 baseline-admission status. See its [completion plan](MULTIALGORITHM_PLAN.md)
 and test report for the scope and retained failures.
 
+**ResPR threshold correction:** that extension used `epsilon=1e-5/V`, not
+the historical fixed per-vertex `epsilon=1e-6`. A separate
+[fixed-threshold rerun](respr_fixed_epsilon/README.md) restores the historical
+activation/stop setting on both arms. The strict-threshold collection remains
+frozen evidence, not the result at the historical precision.
+
 ## Completed Results
 
 Seven Figure 8 pairs and three Figure 9 SSSP pairs pass correctness and
