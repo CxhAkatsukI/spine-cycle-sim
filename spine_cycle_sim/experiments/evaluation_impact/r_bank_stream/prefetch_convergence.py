@@ -26,7 +26,7 @@ def validate_cpus(cpus):
 
 def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
         extra_references=(), complete_status="COMPACT_CONVERGENCE_COMPLETE_NOT_HARDWARE_ADMISSION",
-        prefetch_checks=False):
+        prefetch_checks=False, extra_input_checks=None):
     validate_cpus(cpus)
     reference = json.loads(reference_path.read_text())
     if reference.get("pins_unchanged") is not True or len(reference.get("r_rows", [])) != 32:
@@ -86,8 +86,10 @@ def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
                 required = {"PREFETCH_COMPACT_TEST": 16, "DUAL_PORT_PREFETCH_TEST": 16,
                             "FULL_BURST_PREFETCH_TEST": 32, "ELASTIC_PREFETCH_TEST": 32,
                             "TRIPLE_PORT_PREFETCH_TEST": 16, "DIRECTORY_LOOKAHEAD_TEST": 16}
+                required.update(extra_input_checks or {})
                 if any(f"{name} PASS {count} executions" not in stdout for name, count in required.items()):
-                    raise ValueError("all 128 finite input executions required")
+                    raise ValueError("all declared finite input executions required")
+                report["finite_input_checks"] = required
                 report["input_probes"] = [json.loads(line.partition(" ")[2]) for line in stdout.splitlines()
                                           if line.startswith("PIPELINE_PROBE ")]
                 if len(report["input_probes"]) != 4:

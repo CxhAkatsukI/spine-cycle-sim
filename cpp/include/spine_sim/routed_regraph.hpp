@@ -60,6 +60,8 @@ struct RoutedReGraphConfig {
   std::size_t experimental_directory_tiles{1};
   // Reserve a complete <=16-beat PMA parent before issuing, with unchanged rings.
   bool experimental_full_burst_refill{};
+  // Per-parity reserved 64-byte lines; only explicit compact-input controls may enlarge them.
+  std::size_t experimental_prefetch_bank_lines{256};
   RoutedSourceLoading source_loading{RoutedSourceLoading::kEdgeCoupled};
   RoutedApplyTopology apply_topology{RoutedApplyTopology::kSharedMaster};
   RoutedGatherSchedule gather_schedule{RoutedGatherSchedule::kPartitionOrder};

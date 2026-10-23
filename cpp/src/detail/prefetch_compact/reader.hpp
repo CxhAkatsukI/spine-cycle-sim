@@ -4,6 +4,7 @@
 #include <array>
 #include <deque>
 #include <map>
+#include <vector>
 #include "spine_sim/regraph_pma_adapter.hpp"
 
 namespace spine::sim::detail::prefetch_compact {
@@ -39,7 +40,7 @@ enum class RefillPolicy { kAvailableSpace, kFullBurst };
 namespace spine::sim::detail::prefetch_compact {
 
 // Experimental architecture, not the routed profile: finite 1024-row banked
-// directory, two 256-line reserved rings, <=16 parents of <=16 beats, and a
+// directory, two finite reserved rings, <=16 parents of <=16 beats, and a
 // latency-two segment pipeline. Optional physical masters separate odd PMA
 // segments and directory reads; the default remains one tile/input master.
 class Reader final : public Component {
@@ -48,10 +49,11 @@ public:
          ReGraphPmaPartition partition, std::uint64_t read_delay = 71,
          FixedAxiPort* odd_memory = nullptr, RefillPolicy refill = RefillPolicy::kAvailableSpace,
          std::size_t pipeline_capacity = 2, FixedAxiPort* directory_memory = nullptr,
-         std::size_t directory_tiles = 1)
+         std::size_t directory_tiles = 1, std::size_t bank_lines = 256)
       : Component("prefetch-reader", clock), memory_(memory), odd_memory_(odd_memory), output_(output),
         partition_(partition), delay_(read_delay), refill_(refill), pipeline_capacity_(pipeline_capacity),
-        directory_memory_(directory_memory), directory_(partition.vertices, directory_tiles) {
+        directory_memory_(directory_memory), directory_(partition.vertices, directory_tiles),
+        banks_(make_banks(bank_lines)) {
     check(pipeline_capacity_ == 2 || pipeline_capacity_ == 3, "unsupported finite segment pipeline");
     check(partition.vertices && partition.slots && partition.slots % 16 == 0 &&
         partition.cache_segments_per_half && memory.read_beat_stream_enabled(),
@@ -81,6 +83,11 @@ private:
     std::size_t directory_base{};
   };
   struct Line { std::array<std::uint32_t, 16> words{}; bool reserved{}, ready{}; };
+  static std::array<std::vector<Line>, 2> make_banks(std::size_t lines) {
+    check(lines == 256 || lines == 512, "unsupported finite PMA ring capacity");
+    return {std::vector<Line>(lines), std::vector<Line>(lines)};
+  }
+  std::size_t bank_lines() const noexcept { return banks_[0].size(); }
   struct TimedSegment { Segment value; std::uint64_t ready{}; };
   void prepare_request(const CycleContext& context, std::size_t port);
   void prepare_join(const CycleContext& context);
@@ -103,7 +110,7 @@ private:
   bool extent_{};
   std::size_t total_{}, consumed_{}, source_{}, segment_{};
   DirectoryTiles directory_;
-  std::array<std::array<Line, 256>, 2> banks_{};
+  std::array<std::vector<Line>, 2> banks_;
   std::array<std::size_t, 2> issued_{}, released_{};
   std::map<std::uint64_t, Request> pending_;
   std::deque<TimedSegment> pipeline_;

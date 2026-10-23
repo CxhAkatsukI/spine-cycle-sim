@@ -228,6 +228,14 @@ void rejection_tests() {
     c.experimental_full_burst_refill = true;
   });
   check(fixture(129, false), [](auto &, auto &, auto &c) {
+    c.experimental_prefetch_bank_lines = 512;
+  });
+  for (auto lines : {0U, 257U, 513U})
+    check(fixture(129, false), [lines](auto &, auto &, auto &c) {
+      c.input_path = RoutedInputPath::kPrefetchCompactedExperimental;
+      c.experimental_prefetch_bank_lines = lines;
+    });
+  check(fixture(129, false), [](auto &, auto &, auto &c) {
     c.apply_topology = static_cast<RoutedApplyTopology>(-1);
   });
   check(fixture(129, false), [](auto &, auto &, auto &c) {

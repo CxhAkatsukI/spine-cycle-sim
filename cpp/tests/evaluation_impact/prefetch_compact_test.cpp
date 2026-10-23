@@ -15,10 +15,12 @@ void store(std::vector<std::uint8_t>& bytes, std::size_t offset, std::uint32_t v
 std::array<std::uint64_t, 4> run(std::uint64_t latency, bool reverse,
                                 std::uint64_t period, bool all_dummy, bool dual = false,
                                 bool full_burst = false, std::size_t capacity = 2,
-                                bool triple = false, std::size_t directory_tiles = 1) {
+                                bool triple = false, std::size_t directory_tiles = 1,
+                                std::size_t bank_lines = 256) {
   constexpr std::size_t vertices = 8291, half = 16;
   std::array<std::size_t, vertices> rows{};
-  rows[0] = 1; rows[1] = 2; rows[4095] = 600; rows[4096] = 2; rows[8290] = 1;
+  rows[0] = 1; rows[1] = 2; rows[4095] = bank_lines == 512 ? 1300 : 600;
+  rows[4096] = 2; rows[8290] = 1;
   std::vector<std::uint8_t> directory((vertices + 7) / 8 * 64);
   std::array<std::vector<std::uint8_t>, 4> banks;
   std::vector<Edge> expected;
@@ -68,7 +70,7 @@ std::array<std::uint64_t, 4> run(std::uint64_t latency, bool reverse,
   Fifo<ReGraphPmaPacket> packets("packets", clock, 2);
   Reader reader(clock, memory, segments, partition, 71, odd.get(),
                 full_burst ? RefillPolicy::kFullBurst : RefillPolicy::kAvailableSpace,
-                capacity, metadata.get(), directory_tiles);
+                capacity, metadata.get(), directory_tiles, bank_lines);
   Compactor compactor(clock, segments, packets, vertices, capacity);
   Sink sink(clock, packets, partition, period);
   std::vector<Component*> components{&backend, &memory.requests(), &memory.responses(), &memory.read_beats(),
@@ -100,7 +102,7 @@ std::array<std::uint64_t, 4> run(std::uint64_t latency, bool reverse,
       r.requests == completed && r.max_parents > 1 && r.max_parents <= (triple ? 48U : dual ? 32U : 16U) &&
       r.max_parents_per_port[0] <= 16 && r.max_parents_per_port[1] <= 16 &&
       r.max_parents_per_port[2] <= 16 && (!triple || r.max_parents_per_port[2] > 0) &&
-      (!dual || r.max_parents_per_port[1] > 0) && r.max_bank_lines <= 256 && r.max_pipeline <= capacity &&
+      (!dual || r.max_parents_per_port[1] > 0) && r.max_bank_lines <= bank_lines && r.max_pipeline <= capacity &&
       c.input_segments == segment && c.live_edges == expected.size() &&
       c.live_edges + c.input_dummy == segment * 16 && c.packets == sink.packets &&
       c.output_dummy == sink.dummy && c.packets * 8 == c.live_edges + c.output_dummy &&
@@ -169,5 +171,12 @@ int main() {
                 run(latency, true, period, all_dummy, true, false, 3, true, 2),
                 "directory lookahead depends on registration order");
     std::cout << "DIRECTORY_LOOKAHEAD_TEST PASS 16 executions\n";
+    for (auto latency : {64U, 128U})
+      for (auto period : {1U, 5U})
+        for (auto all_dummy : {false, true})
+          check(run(latency, false, period, all_dummy, true, true, 3, true, 2, 512) ==
+                run(latency, true, period, all_dummy, true, true, 3, true, 2, 512),
+                "larger finite ring depends on registration order");
+    std::cout << "PREFETCH_CAPACITY_TEST PASS 16 executions\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

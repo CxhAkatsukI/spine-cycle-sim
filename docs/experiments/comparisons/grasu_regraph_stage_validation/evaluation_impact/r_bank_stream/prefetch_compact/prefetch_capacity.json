@@ -1,0 +1,506 @@
+{
+  "acceptance": {
+    "added_ring_data_bytes": 131072,
+    "comparisons": [
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 10904254,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "prefetch_ready_capacity512": {
+            "arm": "prefetch_ready_capacity512",
+            "cycles": 11832672,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_ready_fullburst": {
+            "arm": "prefetch_ready_fullburst",
+            "cycles": 11856592,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.0851427342026332,
+        "cycle_reduction_from_256_line_rings": 0.002017443123622731,
+        "latency": 64,
+        "within_ten_percent": true
+      },
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 15840606,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "prefetch_ready_capacity512": {
+            "arm": "prefetch_ready_capacity512",
+            "cycles": 19692370,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_ready_fullburst": {
+            "arm": "prefetch_ready_fullburst",
+            "cycles": 19757874,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.2431576165709821,
+        "cycle_reduction_from_256_line_rings": 0.003315336457758611,
+        "latency": 128,
+        "within_ten_percent": false
+      }
+    ],
+    "hardware_timing_admitted": false,
+    "new_spine_comparison_executed": false,
+    "physical_masters": {
+      "a4_io16": 13,
+      "prefetch_ready_capacity512": 16,
+      "prefetch_ready_fullburst": 16
+    },
+    "pre_edit_controls_replayed_exactly": 8,
+    "production_baseline_admitted": false,
+    "publication_match_admitted": false,
+    "retention_pass": false,
+    "strict_resource_match_admitted": false
+  },
+  "artifacts": {
+    "capacity_check_first_attempt": {
+      "bytes": 623484,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/capacity-checks-v1/results.json",
+      "sha256": "f9cd6e6fbc8054cf4e48fcf5c26803867d0f6f19c5cf013d37495b89a95081d0"
+    },
+    "capacity_check_first_source": {
+      "bytes": 5114,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/capacity-checks-v1/capacity_probe.cpp",
+      "sha256": "c95ae9b674ae6f24b43f831227957bc76058829d5b3a7952f020536c9d486779"
+    },
+    "capacity_check_runner": {
+      "bytes": 3637,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/supplement_delivery.py",
+      "sha256": "9659831e053b8b4912e4e6c32d94b53f841d29ed4b5c8fa73ac77365abab6a08"
+    },
+    "capacity_exercise_and_counters": {
+      "bytes": 624477,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/capacity-checks-v2/results.json",
+      "sha256": "6685d25fedb39243e53d62a78bef3e9cae718523b82d20a97a2054540595c3cd"
+    },
+    "complete_convergence": {
+      "bytes": 751710,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/convergence-v2/results.json",
+      "sha256": "5413c108fc0de31eb86c17702e0c8268774aece6230c8be0c20f0435ad05987d"
+    },
+    "independent_verification": {
+      "bytes": 570,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/verification.json",
+      "sha256": "a379b414218ee6f67054ae8d0e5eba66205ac0e2cd679358824071dcfd249845"
+    },
+    "index_runner": {
+      "bytes": 5826,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/index_delivery.py",
+      "sha256": "613a3cc021725fb464d51ce847f523194f96b3f4c50160474afe92b496706d6f"
+    },
+    "pre_edit_freeze": {
+      "bytes": 622049,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/before/freeze.json",
+      "sha256": "0d6e53c09ffeda2c5b240d4670627d17809f7adfa5493480758be81d786ef24a"
+    },
+    "pre_edit_sources": {
+      "bytes": 17028218,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/before/sources.tar.gz",
+      "sha256": "7e6940f5ca9093c71ea1575f65a92b85b38e726faed46b95b042c19f798880e6"
+    },
+    "quality": {
+      "bytes": 5137,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/quality-v1/results.json",
+      "sha256": "6348d003d671581d9107609cc3950afe33649ad267838c8c86d5b4c8c8289598"
+    },
+    "resource_collector": {
+      "bytes": 2094,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/collect_resources.py",
+      "sha256": "62ee3888d1dafcae7e845ad0085ebb44e398d8879ce5a193e03d7d9c84b6702c"
+    },
+    "safe_abort": {
+      "bytes": 70,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/convergence-v1/reserve_failure.json",
+      "sha256": "e47a9fc2f8a9ed893351ae76a81ddc80ae6945b2f9c008de65a032c420ba42f8"
+    },
+    "safe_abort_last_state": {
+      "bytes": 621452,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/convergence-v1/results.json",
+      "sha256": "b214df8033a697ff43d28762a882726b888c8afc51f275cd2065ba4a26e90d35"
+    },
+    "safe_abort_memory": {
+      "bytes": 83,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/convergence-v1/live_memory.json",
+      "sha256": "400904a849a52abcfc8b0a6064356e79fb3f31e6b9b708f00c8f5105b65bfe70"
+    },
+    "service_resources": {
+      "bytes": 7697,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/service_resources.json",
+      "sha256": "2f95e5733d1751c879e41b8a1651fe90bab564d1f47f91103273e1c3cf0a9440"
+    },
+    "sst_compatibility": {
+      "bytes": 714030,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/sst-v1/results.json",
+      "sha256": "635a134fca1299703220fea54e5e56fd84c24a0e3a27abadec4f4276c50a19d0"
+    },
+    "sst_equivalence": {
+      "bytes": 386995,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/sst-v1/legacy/equivalence.json",
+      "sha256": "ea26cc068fd4fdcabf06b0bf76dd3a2be0f46beb64f711b82c419b7f14f15a43"
+    },
+    "verification_resources": {
+      "bytes": 1314,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/verify-v1/results.json",
+      "sha256": "cdc0fe761073d4d3c13cea2ede3b80756c4c2a461f224ce92d4f7ef64e50cf6a"
+    },
+    "verification_runner": {
+      "bytes": 3443,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/verify_delivery.py",
+      "sha256": "90a25b5d9f532fc23c6d58b5cce530548e20bb40f8e6f86ab13c9737dd7cdc5c"
+    },
+    "verification_service_runner": {
+      "bytes": 2525,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/check_delivery.py",
+      "sha256": "937d7fe39ce86d2d74582849054e40221a85c810c58296ccaabf7ff8607c6ccb"
+    }
+  },
+  "boundary": "resident warm weighted SSSP compute to convergence; no G/host/DMA",
+  "capacity_exercise": {
+    "probes": [
+      {
+        "bytes": 131200,
+        "capacity": 256,
+        "cycles": 12048,
+        "latency": 64,
+        "max_bank_lines": 256,
+        "requests": 130
+      },
+      {
+        "bytes": 131200,
+        "capacity": 512,
+        "cycles": 12048,
+        "latency": 64,
+        "max_bank_lines": 512,
+        "requests": 130
+      },
+      {
+        "bytes": 131200,
+        "capacity": 256,
+        "cycles": 13118,
+        "latency": 128,
+        "max_bank_lines": 256,
+        "requests": 130
+      },
+      {
+        "bytes": 131200,
+        "capacity": 512,
+        "cycles": 12151,
+        "latency": 128,
+        "max_bank_lines": 512,
+        "requests": 130
+      }
+    ],
+    "progress_replay": {
+      "exact": true,
+      "files": 20,
+      "scope": "all five full-burst progress CSVs at both latencies and registration orders"
+    },
+    "source_pins": [
+      {
+        "bytes": 5178,
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/cpp/tests/evaluation_impact/prefetch_compact/capacity_probe.cpp",
+        "sha256": "035161394b699179a042dc888f83acef54322f3a64d5f7fd1e142809be380d48"
+      }
+    ]
+  },
+  "checks": {
+    "compact_complete_executions": 72,
+    "control_arms": 17,
+    "core_ctest": 37,
+    "delivery_quality": "PASS",
+    "diff_check": "PASS",
+    "document_layout": "PASS",
+    "finite_input_executions": 144,
+    "generated_catalogs": "PASS",
+    "legacy_progress_exact_files": 20,
+    "organization": 15,
+    "publisher_probes": 4,
+    "regraph_python": 134,
+    "ring_fill_executions": 8
+  },
+  "complete_executions": 12,
+  "correctness_admitted": true,
+  "open_gates": [
+    "R performance retention fails on the complete declared matrix",
+    "complete G validation",
+    "host orchestration timing",
+    "new Spine demo",
+    "original-publication reproduction not established; FPGA work deferred"
+  ],
+  "registration_order_pairs": 6,
+  "rounds_per_execution": 46,
+  "safety": {
+    "background_allowance_gib": 8,
+    "completion_workers": 1,
+    "initial_workers": 4,
+    "live_reserve_gib": 24,
+    "memory_high_gib": 5,
+    "memory_max_gib": 6,
+    "services": {
+      "core": {
+        "approximate_lifetime_seconds": 2209.382365,
+        "cpu_seconds": 2208.248073,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-prefetch-capacity-20261022-v2.service - [systemd-run] /usr/bin/python3 -m spine_cycle_sim.experiments.evaluation_impact.r_bank_stream.prefetch_capacity --output /data/chuxiao/experiments/r_prefetch_capacity_20261022/convergence-v2 --reference /data/chuxiao/experiments/r_bank_stream_comparison_20261022/cpu-core-matrix-v2/results.json --before /data/chuxiao/experiments/r_ready_fullburst_20261022/completion-v3/results.json --freeze /data/chuxiao/experiments/r_prefetch_capacity_20261022/before/freeze.json --cpus 124.",
+            "__REALTIME_TIMESTAMP": "1792724977331337"
+          },
+          {
+            "CPU_USAGE_NSEC": "2208248073000",
+            "MEMORY_PEAK": "1101148160",
+            "MESSAGE": "spine-r-prefetch-capacity-20261022-v2.service: Consumed 36min 48.248s CPU time, 1G memory peak.",
+            "__REALTIME_TIMESTAMP": "1792727186713702"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 1101148160,
+        "unit": "spine-r-prefetch-capacity-20261022-v2"
+      },
+      "quality": {
+        "approximate_lifetime_seconds": 17.845198,
+        "cpu_seconds": 12.626553,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-prefetch-capacity-quality-20261022-v1.service - [systemd-run] /usr/bin/python3 /data/chuxiao/experiments/r_prefetch_capacity_20261022/check_delivery.py quality.",
+            "__REALTIME_TIMESTAMP": "1792728289922940"
+          },
+          {
+            "CPU_USAGE_NSEC": "12626553000",
+            "MEMORY_PEAK": "93585408",
+            "MESSAGE": "spine-r-prefetch-capacity-quality-20261022-v1.service: Consumed 12.626s CPU time, 89.2M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792728307768138"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 93585408,
+        "unit": "spine-r-prefetch-capacity-quality-20261022-v1"
+      },
+      "safe_abort_v1": {
+        "approximate_lifetime_seconds": 83.998313,
+        "cpu_seconds": 83.830212,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-prefetch-capacity-20261022-v1.service - [systemd-run] /usr/bin/python3 -m spine_cycle_sim.experiments.evaluation_impact.r_bank_stream.prefetch_capacity --output /data/chuxiao/experiments/r_prefetch_capacity_20261022/convergence-v1 --reference /data/chuxiao/experiments/r_bank_stream_comparison_20261022/cpu-core-matrix-v2/results.json --before /data/chuxiao/experiments/r_ready_fullburst_20261022/completion-v3/results.json --freeze /data/chuxiao/experiments/r_prefetch_capacity_20261022/before/freeze.json --cpus 124 125 126 127.",
+            "__REALTIME_TIMESTAMP": "1792724730743267"
+          },
+          {
+            "EXIT_CODE": "killed",
+            "EXIT_STATUS": "9",
+            "MESSAGE": "spine-r-prefetch-capacity-20261022-v1.service: Main process exited, code=killed, status=9/KILL",
+            "__REALTIME_TIMESTAMP": "1792724814714035"
+          },
+          {
+            "MESSAGE": "spine-r-prefetch-capacity-20261022-v1.service: Failed with result 'signal'.",
+            "UNIT_RESULT": "signal",
+            "__REALTIME_TIMESTAMP": "1792724814739892"
+          },
+          {
+            "CPU_USAGE_NSEC": "83830212000",
+            "MEMORY_PEAK": "412479488",
+            "MESSAGE": "spine-r-prefetch-capacity-20261022-v1.service: Consumed 1min 23.830s CPU time, 393.3M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792724814741580"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 412479488,
+        "unit": "spine-r-prefetch-capacity-20261022-v1"
+      },
+      "sst": {
+        "approximate_lifetime_seconds": 513.552014,
+        "cpu_seconds": 509.959772,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-prefetch-capacity-sst-20261022-v1.service - [systemd-run] /usr/bin/python3 -m spine_cycle_sim.experiments.evaluation_impact.r_bank_stream.software_compatibility --output /data/chuxiao/experiments/r_prefetch_capacity_20261022/sst-v1 --core-result /data/chuxiao/experiments/r_prefetch_capacity_20261022/convergence-v2/results.json --baseline /data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v2/legacy.",
+            "__REALTIME_TIMESTAMP": "1792727205119377"
+          },
+          {
+            "CPU_USAGE_NSEC": "509959772000",
+            "MEMORY_PEAK": "1049464832",
+            "MESSAGE": "spine-r-prefetch-capacity-sst-20261022-v1.service: Consumed 8min 29.959s CPU time, 1000.8M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792727718671391"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 1049464832,
+        "unit": "spine-r-prefetch-capacity-sst-20261022-v1"
+      },
+      "supplement": {
+        "approximate_lifetime_seconds": 3.25479,
+        "cpu_seconds": 3.105973,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-prefetch-capacity-supplement-20261022-v2.service - [systemd-run] /usr/bin/python3 /data/chuxiao/experiments/r_prefetch_capacity_20261022/supplement_delivery.py.",
+            "__REALTIME_TIMESTAMP": "1792728113784525"
+          },
+          {
+            "CPU_USAGE_NSEC": "3105973000",
+            "MEMORY_PEAK": "252063744",
+            "MESSAGE": "spine-r-prefetch-capacity-supplement-20261022-v2.service: Consumed 3.105s CPU time, 240.3M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792728117039315"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 252063744,
+        "unit": "spine-r-prefetch-capacity-supplement-20261022-v2"
+      },
+      "supplement_first_attempt": {
+        "approximate_lifetime_seconds": 3.918966,
+        "cpu_seconds": 2.863201,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-prefetch-capacity-supplement-20261022-v1.service - [systemd-run] /usr/bin/python3 /data/chuxiao/experiments/r_prefetch_capacity_20261022/supplement_delivery.py.",
+            "__REALTIME_TIMESTAMP": "1792728042343288"
+          },
+          {
+            "EXIT_CODE": "exited",
+            "EXIT_STATUS": "1",
+            "MESSAGE": "spine-r-prefetch-capacity-supplement-20261022-v1.service: Main process exited, code=exited, status=1/FAILURE",
+            "__REALTIME_TIMESTAMP": "1792728046252654"
+          },
+          {
+            "MESSAGE": "spine-r-prefetch-capacity-supplement-20261022-v1.service: Failed with result 'exit-code'.",
+            "UNIT_RESULT": "exit-code",
+            "__REALTIME_TIMESTAMP": "1792728046260356"
+          },
+          {
+            "CPU_USAGE_NSEC": "2863201000",
+            "MEMORY_PEAK": "251604992",
+            "MESSAGE": "spine-r-prefetch-capacity-supplement-20261022-v1.service: Consumed 2.863s CPU time, 239.9M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792728046262254"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 251604992,
+        "unit": "spine-r-prefetch-capacity-supplement-20261022-v1"
+      },
+      "verification": {
+        "approximate_lifetime_seconds": 2.442436,
+        "cpu_seconds": 2.358537,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-prefetch-capacity-verify-20261022-v1.service - [systemd-run] /usr/bin/python3 /data/chuxiao/experiments/r_prefetch_capacity_20261022/check_delivery.py verify.",
+            "__REALTIME_TIMESTAMP": "1792727757310178"
+          },
+          {
+            "CPU_USAGE_NSEC": "2358537000",
+            "MEMORY_PEAK": "43315200",
+            "MESSAGE": "spine-r-prefetch-capacity-verify-20261022-v1.service: Consumed 2.358s CPU time, 41.3M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792727759752614"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 43315200,
+        "unit": "spine-r-prefetch-capacity-verify-20261022-v1"
+      }
+    },
+    "swap_max_bytes": 0
+  },
+  "schema_version": 1,
+  "scope": "simulator-only finite PMA ring capacity; no HLS/FPGA/paper changes",
+  "sst_default_compatibility": {
+    "cases": [
+      {
+        "case": "sssp_mixed_cold",
+        "cycles": 99885,
+        "equivalent": true
+      },
+      {
+        "case": "sssp_multipart_warm",
+        "cycles": 5997674,
+        "equivalent": true
+      },
+      {
+        "case": "cc_reciprocal",
+        "cycles": 133841,
+        "equivalent": true
+      },
+      {
+        "case": "residual_warm",
+        "cycles": 1487890,
+        "equivalent": true
+      },
+      {
+        "case": "residual_update_only",
+        "cycles": 200,
+        "equivalent": true
+      }
+    ],
+    "claim": "default SST software compatibility only; no candidate timing admission",
+    "plugin": {
+      "bytes": 3860784,
+      "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/sst-v1/plugin/libspine_cycle.so",
+      "sha256": "93c80322e118a48668c8de37085a6eb5de61225daab42f4d86bf8cc2db4718ac"
+    },
+    "status": "PASS"
+  },
+  "status": "PREFETCH_CAPACITY_COMPLETE_SIMULATOR_PREDICTION",
+  "verification": {
+    "core_pins": {
+      "checked": 2404,
+      "mismatches": 0
+    },
+    "current_archive_members": {
+      "checked": 2384,
+      "mismatches": 0
+    },
+    "full_states": {
+      "checked": 40,
+      "mismatches": 0
+    },
+    "pre_edit_archive_members": {
+      "checked": 2382,
+      "mismatches": 0
+    },
+    "pre_edit_artifacts": {
+      "checked": 3,
+      "mismatches": 0
+    },
+    "pre_edit_external": {
+      "checked": 25,
+      "mismatches": 0
+    },
+    "progress_files": {
+      "checked": 40,
+      "mismatches": 0
+    },
+    "sst_pins": {
+      "checked": 2765,
+      "mismatches": 0
+    },
+    "status": "PASS"
+  }
+}

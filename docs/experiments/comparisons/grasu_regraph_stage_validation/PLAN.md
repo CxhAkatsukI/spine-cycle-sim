@@ -2,6 +2,15 @@
 
 ## Current Scope
 
+The current user scope is simulator only: no FPGA build, routing or board
+experiments. The latest completed R control is the
+[finite ring-capacity study](evaluation_impact/r_bank_stream/prefetch_compact/PREFETCH_CAPACITY.md).
+It changes explicit storage, not timing coefficients. Correctness passes, but
+1.08514 / 1.24316 times A4 cycles at latencies 64 / 128 fails the overall
+retention gate. No new baseline or Spine comparison is admitted. The next
+R diagnostic should locate ready-work blocking in Apply/publication rather
+than assuming another capacity increase will close the gap.
+
 See the [delivery conclusions](CONCLUSIONS.md) for the verified outcome and
 external evidence required to unblock original-publication timing admission.
 The control-study implementation is delivered; the approximately 10% speed

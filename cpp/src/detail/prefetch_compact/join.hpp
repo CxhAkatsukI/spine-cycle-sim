@@ -19,7 +19,7 @@ inline void Reader::prepare_join(const CycleContext& context) {
         end <= total_, "candidate noncontiguous directory");
     if (begin == end) { ++next_source_; ++skipped_; continue; }
     check(segment_ * 16 == consumed_ && consumed_ < end, "candidate source/segment mismatch");
-    const auto& line = banks_[segment_ % 2][(segment_ / 2) % 256];
+    const auto& line = banks_[segment_ % 2][(segment_ / 2) % bank_lines()];
     if (pipeline_.size() < pipeline_capacity_ && line.ready) {
       join_ = TimedSegment{Segment{static_cast<std::uint32_t>(next_source_), line.words,
                                   consumed_ + 16 == total_}, context.domain_cycle + 2};
@@ -92,7 +92,7 @@ inline void Reader::commit(const CycleContext& context) {
       ++stats_.pma_requests;
       if (issue->count < 16) ++stats_.short_pma_requests;
       for (std::size_t i = 0; i < issue->count; ++i) {
-        auto& line = banks_[issue->parity][(issue->first + i) % 256];
+        auto& line = banks_[issue->parity][(issue->first + i) % bank_lines()];
         check(!line.reserved && !line.ready, "candidate overwrote reserved bank data");
         line.reserved = true;
       }
@@ -103,7 +103,7 @@ inline void Reader::commit(const CycleContext& context) {
   }
   if (retired_) pipeline_.pop_front();
   if (join_) {
-    auto& line = banks_[segment_ % 2][(segment_ / 2) % 256];
+    auto& line = banks_[segment_ % 2][(segment_ / 2) % bank_lines()];
     line.reserved = line.ready = false;
     ++released_[segment_ % 2]; ++segment_; consumed_ += 16; ++stats_.segments;
     pipeline_.push_back(*join_);
@@ -122,7 +122,7 @@ inline void Reader::commit(const CycleContext& context) {
   check(pipeline_.size() <= pipeline_capacity_, "candidate segment pipeline exceeded finite storage");
   for (unsigned parity = 0; parity < 2; ++parity) {
     const auto occupied = issued_[parity] - released_[parity];
-    check(occupied <= 256, "candidate bank ring reservation exceeded");
+    check(occupied <= bank_lines(), "candidate bank ring reservation exceeded");
     stats_.max_bank_lines = std::max(stats_.max_bank_lines, occupied);
   }
 }

@@ -32,6 +32,9 @@ void RoutedReGraphSystem::Impl::admit() {
       config.input_path != RoutedInputPath::kTriplePrefetchElasticExperimental)
     throw std::invalid_argument("unsupported routed input path");
   const bool compact = config.input_path != RoutedInputPath::kPhysicalSlots;
+  if ((config.experimental_prefetch_bank_lines != 256 && config.experimental_prefetch_bank_lines != 512) ||
+      (!compact && config.experimental_prefetch_bank_lines != 256))
+    throw std::invalid_argument("PMA ring capacity requires 256/512 lines and an explicit compact input");
   if (config.experimental_full_burst_refill && !compact)
     throw std::invalid_argument("full-burst refill requires the explicit finite prefetch input");
   if ((config.experimental_directory_tiles != 1 && config.experimental_directory_tiles != 2) ||

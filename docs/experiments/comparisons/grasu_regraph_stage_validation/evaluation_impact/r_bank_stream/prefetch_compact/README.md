@@ -3,11 +3,12 @@
 ## Decision
 
 Simulator only. **Complete R performance retention has not passed.** The
-latest [whole-parent refill comparison](READY_FULLBURST.md) passes all twelve
+latest [finite ring-capacity comparison](PREFETCH_CAPACITY.md) passes all twelve
 complete-convergence correctness/conservation executions and exactly replays
-eight old controls. Candidate/A4 cycles are **1.08734 / 1.24729** at memory
-latencies 64 / 128: only the first meets the declared +/-10% band. Refill
-changes less than 0.015%, so it does not close the remaining gap.
+eight old controls. Candidate/A4 cycles are **1.08514 / 1.24316** at memory
+latencies 64 / 128: only the first meets the declared +/-10% band. Doubling
+the PMA rings adds 128 KiB of data storage but improves complete cycles by
+only 0.2017% / 0.3315%, so it does not close the remaining gap.
 
 All new architectures remain default-off. The latest candidate has sixteen
 physical masters versus A4's thirteen and three state copies versus four;
@@ -36,6 +37,7 @@ Physical-memory service and timing coefficients are unchanged across controls.
 | [Directory overlap](DIRECTORY_OVERLAP.md) | Second 8-KiB directory tile per frontend | 1.479 / 1.552 |
 | [Ready bursts](READY_BURSTS.md) | Bounded addressed publication at eight-row boundaries | 1.0875 / 1.2474 |
 | [Complete-path refill](READY_FULLBURST.md) | Same full-burst policy on the ready-burst topology | 1.08734 / 1.24729 |
+| [Finite ring capacity](PREFETCH_CAPACITY.md) | 512 rather than 256 lines per parity; 128 KiB extra data | 1.08514 / 1.24316 |
 
 Each complete follow-up retains full state, active trajectory, physical traffic,
 registration-order equality and exact old controls. Wait counters overlap and

@@ -39,13 +39,13 @@ inline void Reader::prepare_request(const CycleContext& context, std::size_t por
         const auto parity = which - 1;
         const auto end = (total_ / 16 + 1 - parity) / 2;
         const auto first = issued_[parity], occupied = first - released_[parity];
-        if (first == end || occupied == 256) continue;
+        if (first == end || occupied == bank_lines()) continue;
         const auto half = partition_.cache_segments_per_half;
         const auto stop = first < half ? std::min(end, half) : end;
         // Reserve a whole parent before issuing; only physical bank tails may be short.
         if (refill_ == RefillPolicy::kFullBurst &&
-            256 - occupied < std::min(std::size_t{16}, stop - first)) continue;
-        const auto count = std::min({std::size_t{16}, stop - first, 256 - occupied});
+            bank_lines() - occupied < std::min(std::size_t{16}, stop - first)) continue;
+        const auto count = std::min({std::size_t{16}, stop - first, bank_lines() - occupied});
         const auto bank = parity * 2 + (first < half ? 0 : 1);
         channel = partition_.pma_channel[bank];
         request = {Kind::kPma, next_id_, partition_.pma_base[bank] + first * 64,
@@ -77,7 +77,7 @@ inline void Reader::accept_beat(const AxiReadBeatResponse& beat, std::uint64_t c
     directory_.accept(request.directory_base, index, beat.read_data, cycle);
   } else {
     ++stats_.pma_beats;
-    auto& line = banks_[request.parity][index % 256];
+    auto& line = banks_[request.parity][index % bank_lines()];
     check(line.reserved && !line.ready, "candidate bank ring overwrite");
     for (unsigned lane = 0; lane < 16; ++lane) line.words[lane] = word(beat.read_data, lane * 4);
     line.ready = true;
