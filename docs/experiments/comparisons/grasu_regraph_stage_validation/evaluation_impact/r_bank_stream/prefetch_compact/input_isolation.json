@@ -1,0 +1,84 @@
+{
+  "status": "CURRENT_INPUT_DIAGNOSTIC_COMPLETE_NOT_R_RETENTION",
+  "claim": "Same finite reader without downstream; not complete R or hardware timing",
+  "baseline_admitted": false,
+  "integrated_R_retention_passed": false,
+  "hardware_calibrated": false,
+  "numerical_core_changed": false,
+  "core_validation": "Checked unchanged 37/37-test core reused; not rerun",
+  "executions": 16,
+  "historical_rows_exact": 8,
+  "registration_pairs_exact": 8,
+  "synthetic_finite_input_executions": 144,
+  "comparisons": [
+    {
+      "latency": 64,
+      "historical_single_cycles": 424166,
+      "historical_dual_cycles": 292040,
+      "current_fast_sink_cycles": 184004,
+      "current_period_five_cycles": 530366,
+      "complete_R_cycles": 11828118,
+      "complete_A4_cycles": 10904254,
+      "unchanged_46_input_scans_projection_cycles": 8464184
+    },
+    {
+      "latency": 128,
+      "historical_single_cycles": 432565,
+      "historical_dual_cycles": 452891,
+      "current_fast_sink_cycles": 362046,
+      "current_period_five_cycles": 536201,
+      "complete_R_cycles": 19699546,
+      "complete_A4_cycles": 15840606,
+      "unchanged_46_input_scans_projection_cycles": 16654116
+    }
+  ],
+  "physical_bytes_per_scan": 38696960,
+  "accepted_beats_per_scan": 604640,
+  "current_parent_requests_per_scan": 37796,
+  "current_input_masters": 12,
+  "verification": {
+    "artifact_pins_rehashed": 2586,
+    "run_archive_members_checked": 2399,
+    "pre_edit_archive_members_checked": 2397,
+    "bounded_steps_passed": 19,
+    "raw_outputs_reparsed": 16,
+    "analysis_recomputed_exactly": true
+  },
+  "artifacts": [
+    {
+      "path": "/data/chuxiao/experiments/r_current_input_isolation_20261022/diagnostic-v2/results.json",
+      "sha256": "3b565bb204dd95f615a8d63dc6b925359fcd77e484b88436aa8bb3446c390ea2"
+    },
+    {
+      "path": "/data/chuxiao/experiments/r_current_input_isolation_20261022/diagnostic-v2/sources.tar.gz",
+      "sha256": "65bb952c5fc4de005f20225f459c6f48c97dc8cd7cb8593e9468ec92d471b9b4"
+    },
+    {
+      "path": "/data/chuxiao/experiments/r_current_input_isolation_20261022/before/freeze.json",
+      "sha256": "acf85ef995e040ac260d530167f4f652d93f57af9b2fe2ed9f502042293f2754"
+    },
+    {
+      "path": "/data/chuxiao/experiments/r_current_input_isolation_20261022/diagnostic-v1/results.json",
+      "sha256": "d3ece2580a832c2a169e9946df52bdc3bad3c9910a72997783becfb4c57b18ac"
+    }
+  ],
+  "safety": {
+    "profile": "cpu-only-cached-core-4g-v1",
+    "hard_gib": 4,
+    "high_gib": 3,
+    "reserve_gib": 8,
+    "background_gib": 4,
+    "peer_reserved_gib": 16,
+    "swap_bytes": 0,
+    "cgroup_lifetime_peak_bytes": 374661120,
+    "runtime_seconds": 81.546,
+    "workers": 1,
+    "cpu": 124
+  },
+  "limitations": [
+    "46-scan values are conditional projections, not executed complete R",
+    "Credit occupancy explanation is a steady-state estimate, not exact attribution",
+    "No FPGA, HLS or paper change",
+    "Complete R still fails the latency-128 retention gate; no new Spine claim"
+  ]
+}

@@ -30,6 +30,12 @@ records explicitly change response-anchored and pre-request component
 intervals using schedule and RTL evidence; preceding architecture controls
 leave timing unchanged.
 
+The subsequent [current-input isolation](INPUT_ISOLATION.md) reuses that
+latest finite reader without downstream computation. All sixteen executions
+pass, with eight exact historical replays; fast-sink scans take 184,004 /
+362,046 cycles. It exposes a high-latency credit/placement restriction without
+changing the numerical core or admitting a new complete-R performance result.
+
 | Record | Question or explicit resource change | Complete R ratio |
 | --- | --- | ---: |
 | [Complete convergence](CONVERGENCE.md) | Connect finite reader/compactor to the full R path | 2.591 / 2.197 |
@@ -47,6 +53,7 @@ leave timing unchanged.
 | [Passive wait overlap](WAIT_OVERLAP.md) | First-round sampling on/off replay; no timing change | Not a new complete R result |
 | [SSSP Apply schedule](APPLY_SCHEDULE.md) | Explicit post-response interval 100 -> 1, based on schedule/RTL | 1.084725 / 1.243611 |
 | [SSSP wrapper schedule](WRAPPER_SCHEDULE.md) | Explicit pre-write interval 71 -> 2; all physical writes/responses retained | 1.084725 / 1.243611 (unchanged) |
+| [Current-input isolation](INPUT_ISOLATION.md) | Same latest finite reader, fast and throttled sinks; unchanged numerical core | Not complete R |
 
 Each complete follow-up retains full state, active trajectory, physical traffic,
 registration-order equality and exact old controls. Wait counters overlap and

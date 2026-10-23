@@ -3,14 +3,15 @@
 #include "../original_regraph/sssp/real_input.hpp"
 #include "../routed_regraph/round_execution.hpp"
 #include "prefetch_compact/sink.hpp"
+#include "prefetch_compact/diagnostic_config.hpp"
 
 namespace {
 using namespace evaluation_impact::prefetch_compact;
 
 void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t latency,
-         bool reverse, std::uint64_t maximum, std::uint64_t sink_period, bool dual, bool full_burst,
-         bool elastic) {
-  const auto capacity = elastic ? 3U : 2U;
+         bool reverse, std::uint64_t maximum, std::uint64_t sink_period, const DiagnosticConfig& model) {
+  const auto capacity = model.capacity();
+  const auto dual = model.dual, full_burst = model.full_burst, elastic = model.elastic;
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("core", 150);
   MockMemoryBackend backend("memory", clock, {32, latency, 1, 32, 32, true});
@@ -25,6 +26,7 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
   const auto& plan = resident.runtime_plan();
   std::array<std::unique_ptr<FixedAxiPort>, 4> memories;
   std::array<std::unique_ptr<FixedAxiPort>, 4> odd_memories;
+  std::array<std::unique_ptr<FixedAxiPort>, 4> directory_memories;
   std::array<std::unique_ptr<Fifo<Segment>>, 4> segments;
   std::array<std::unique_ptr<Fifo<ReGraphPmaPacket>>, 4> packets;
   std::array<std::unique_ptr<Reader>, 4> readers;
@@ -62,11 +64,22 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
       auto& odd = *odd_memories[worker];
       components.insert(components.end(), {&odd.requests(), &odd.responses(), &odd.read_beats(), &odd.master()});
     }
+    if (model.current) {
+      directory_memories[worker] = std::make_unique<FixedAxiPort>("candidate-directory-master", clock,
+          FixedAxiPortConfig{.memory_channels = 32, .channel = 0,
+              .initiator_id = 1008 + static_cast<std::uint32_t>(worker), .stream_read_beats = true,
+              .max_pending_requests = 16, .max_outstanding_bursts = 16,
+              .response_beats_per_cycle = config.compute.response_beats_per_cycle,
+              .independent_read_write = config.independent_read_write}, backend);
+      auto& directory = *directory_memories[worker];
+      components.insert(components.end(), {&directory.requests(), &directory.responses(),
+          &directory.read_beats(), &directory.master()});
+    }
     segments[worker] = std::make_unique<Fifo<Segment>>("candidate-segments", clock, 16);
     packets[worker] = std::make_unique<Fifo<ReGraphPmaPacket>>("candidate-packets", clock, 32);
     readers[worker] = std::make_unique<Reader>(clock, memory, *segments[worker], p, 71,
         odd_memories[worker].get(), full_burst ? RefillPolicy::kFullBurst : RefillPolicy::kAvailableSpace,
-        capacity);
+        capacity, directory_memories[worker].get(), model.directory_tiles, model.bank_lines);
     compactors[worker] = std::make_unique<Compactor>(clock, *segments[worker], *packets[worker],
                                                    p.destination_vertices, capacity);
     sinks[worker] = std::make_unique<Sink>(clock, *packets[worker], p, sink_period);
@@ -83,6 +96,7 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
     for (std::size_t worker = 0; worker < 4; ++worker)
       done &= readers[worker]->done() && compactors[worker]->done() && memories[worker]->idle() &&
           (!odd_memories[worker] || odd_memories[worker]->idle()) &&
+          (!directory_memories[worker] || directory_memories[worker]->idle()) &&
           segments[worker]->empty() && packets[worker]->empty() && sinks[worker]->finished();
     if (done) { ++cycles; break; }
   }
@@ -90,20 +104,23 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
   std::vector<Edge> observed, expected;
   for (const auto& edge : input.edges) expected.push_back({edge.source, edge.destination, edge.weight});
   std::uint64_t reads = 0, requests = 0, live = 0, output_packets = 0, beats = 0, submit_stalls = 0;
-  std::cout << "PREFETCH_COMPACT {\"schema_version\":" << (elastic ? 5 : full_burst ? 4 : dual ? 3 : 2)
+  std::cout << "PREFETCH_COMPACT {\"schema_version\":" << (model.current ? 6 : elastic ? 5 : full_burst ? 4 : dual ? 3 : 2)
       << ",\"cycles\":" << cycles << ",\"workers\":[";
   for (std::size_t worker = 0; worker < 4; ++worker) {
     const auto& r = readers[worker]->stats();
     const auto& c = compactors[worker]->stats();
     const auto& axi = memories[worker]->master().stats();
     const auto odd = odd_memories[worker] ? odd_memories[worker]->master().stats() : AxiStats{};
+    const auto directory = directory_memories[worker] ? directory_memories[worker]->master().stats() : AxiStats{};
     check(r.segments * 16 == slots[worker] && r.responses == r.requests &&
-        r.beats * 64 == r.bytes && axi.requests_accepted + odd.requests_accepted == r.requests &&
-        axi.requests_completed + odd.requests_completed == r.requests &&
-        axi.beats_completed + odd.beats_completed == r.beats &&
-        r.max_parents <= (dual ? 32U : 16U) && r.max_parents_per_port[0] <= 16 &&
+        r.beats * 64 == r.bytes && axi.requests_accepted + odd.requests_accepted + directory.requests_accepted == r.requests &&
+        axi.requests_completed + odd.requests_completed + directory.requests_completed == r.requests &&
+        axi.beats_completed + odd.beats_completed + directory.beats_completed == r.beats &&
+        r.extent_beats + r.directory_beats + r.pma_beats == r.beats &&
+        r.max_parents <= model.ports() * 16 && r.max_parents_per_port[0] <= 16 &&
         r.max_parents_per_port[1] <= 16 && (!dual || r.max_parents_per_port[1] > 0) &&
-        r.max_bank_lines <= 256 && r.max_pipeline <= capacity &&
+        r.max_parents_per_port[2] <= 16 && (!model.current || r.max_parents_per_port[2] > 0) &&
+        r.max_bank_lines <= model.bank_lines && r.max_pipeline <= capacity &&
         c.input_segments == r.segments && c.live_edges + c.input_dummy == slots[worker] &&
         c.packets == sinks[worker]->packets && c.live_edges == sinks[worker]->edges.size() &&
         c.output_dummy == sinks[worker]->dummy && c.packets * 8 == c.live_edges + c.output_dummy &&
@@ -112,7 +129,8 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
     check(!full_burst || (r.short_pma_requests <= 4 && r.pma_requests <= r.requests),
         "full-burst parent fragmentation gate failed");
     reads += r.bytes; requests += r.requests; live += c.live_edges; output_packets += c.packets;
-    beats += r.beats; submit_stalls += axi.backend_submit_stalls + odd.backend_submit_stalls;
+    beats += r.beats;
+    submit_stalls += axi.backend_submit_stalls + odd.backend_submit_stalls + directory.backend_submit_stalls;
     observed.insert(observed.end(), sinks[worker]->edges.begin(), sinks[worker]->edges.end());
     if (worker) std::cout << ',';
     std::cout << "{\"worker\":" << worker << ",\"sink_done\":" << sinks[worker]->end
@@ -122,16 +140,22 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
         << ",\"output_dummy\":" << c.output_dummy << ",\"max_parents\":" << r.max_parents
         << ",\"max_bank_lines\":" << r.max_bank_lines << ",\"max_lanes\":" << c.max_lanes
         << ",\"read_beats\":" << r.beats << ",\"backend_submit_stalls\":"
-        << axi.backend_submit_stalls + odd.backend_submit_stalls
+        << axi.backend_submit_stalls + odd.backend_submit_stalls + directory.backend_submit_stalls
         << ",\"selector_wait\":" << r.selector_wait
         << ",\"reader_pipeline_peak\":" << r.max_pipeline
         << ",\"publisher_pipeline_peak\":" << c.max_pipeline
         << ",\"reader_output_stalls\":" << r.output_stalls
         << ",\"publisher_output_stalls\":" << c.output_stalls;
-    if (dual) std::cout << ",\"parents_per_port\":[" << r.max_parents_per_port[0] << ','
-        << r.max_parents_per_port[1] << ']';
+    if (dual) {
+      std::cout << ",\"parents_per_port\":[" << r.max_parents_per_port[0] << ',' << r.max_parents_per_port[1];
+      if (model.current) std::cout << ',' << r.max_parents_per_port[2];
+      std::cout << ']';
+    }
     if (full_burst) std::cout << ",\"pma_requests\":" << r.pma_requests
         << ",\"short_pma_requests\":" << r.short_pma_requests;
+    if (model.current) std::cout << ",\"extent_beats\":" << r.extent_beats
+        << ",\"directory_beats\":" << r.directory_beats << ",\"pma_beats\":" << r.pma_beats
+        << ",\"rows\":" << r.rows << ",\"empty_rows\":" << r.empty_rows;
     std::cout << '}';
   }
   std::sort(observed.begin(), observed.end()); std::sort(expected.begin(), expected.end());
@@ -151,14 +175,20 @@ void run(const original_regraph_sssp_real_test::Input& input, std::uint64_t late
       << ",\"contended_cycles\":" << arbitration->contended_cycles
       << ",\"capacity_blocked_cycles\":" << arbitration->capacity_blocked_cycles
       << ",\"max_contenders\":" << arbitration->max_contenders << '}';
-  if (dual) std::cout << ",\"physical_masters\":8,\"masters_per_frontend\":2";
-  if (full_burst) {
-    if (!dual) std::cout << ",\"physical_masters\":4,\"masters_per_frontend\":1";
-    std::cout << ",\"refill_policy\":\"full-burst\"";
-  }
-  if (elastic) {
-    if (!dual) std::cout << ",\"physical_masters\":4,\"masters_per_frontend\":1";
-    std::cout << ",\"pipeline_capacity\":3,\"pipeline_latency\":2,\"refill_policy\":\"available-space\"";
+  if (model.current) {
+    std::cout << ",\"physical_masters\":12,\"masters_per_frontend\":3,\"directory_tiles\":"
+        << model.directory_tiles << ",\"bank_lines\":" << model.bank_lines
+        << ",\"pipeline_capacity\":" << capacity << ",\"pipeline_latency\":2,\"refill_policy\":\"full-burst\"";
+  } else {
+    if (dual) std::cout << ",\"physical_masters\":8,\"masters_per_frontend\":2";
+    if (full_burst) {
+      if (!dual) std::cout << ",\"physical_masters\":4,\"masters_per_frontend\":1";
+      std::cout << ",\"refill_policy\":\"full-burst\"";
+    }
+    if (elastic) {
+      if (!dual) std::cout << ",\"physical_masters\":4,\"masters_per_frontend\":1";
+      std::cout << ",\"pipeline_capacity\":3,\"pipeline_latency\":2,\"refill_policy\":\"available-space\"";
+    }
   }
   std::cout << ",\"passed\":true}\n";
   for (auto it = components.rbegin(); it != components.rend(); ++it) scheduler.remove_component(**it);
@@ -169,19 +199,14 @@ int main(int argc, char** argv) {
   try {
     check(argc == 6 || argc == 7,
         "usage: prefetch_compact INPUT LATENCY REVERSE MAX_CYCLES SINK_PERIOD "
-        "[dual-port|full-burst|dual-port-full-burst|elastic|dual-port-elastic]");
+        "[dual-port|full-burst|dual-port-full-burst|elastic|dual-port-elastic|current-input]");
     const auto latency = routed_regraph_round_test::number(argv[2]);
     const auto reverse = routed_regraph_round_test::number(argv[3]);
     const auto maximum = routed_regraph_round_test::number(argv[4]);
     const auto period = routed_regraph_round_test::number(argv[5]);
     check(latency > 0 && reverse <= 1 && maximum > 0 && period > 0, "invalid candidate bound");
     const auto mode = argc == 7 ? std::string(argv[6]) : std::string{};
-    check(mode.empty() || mode == "dual-port" || mode == "full-burst" || mode == "dual-port-full-burst" ||
-        mode == "elastic" || mode == "dual-port-elastic",
-        "unknown candidate reader topology/policy");
     run(original_regraph_sssp_real_test::Input::load(argv[1]), latency, reverse, maximum, period,
-        mode == "dual-port" || mode == "dual-port-full-burst" || mode == "dual-port-elastic",
-        mode == "full-burst" || mode == "dual-port-full-burst",
-        mode == "elastic" || mode == "dual-port-elastic");
+        DiagnosticConfig::from_mode(mode));
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

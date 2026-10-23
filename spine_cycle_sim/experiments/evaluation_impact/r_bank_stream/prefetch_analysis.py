@@ -32,8 +32,13 @@ def parse(stdout):
         raise ValueError("exactly one candidate observation required")
     row = json.loads(lines[0])
     version = row.get("schema_version", 1)
-    if type(version) is not int or version not in (1, 2, 3, 4, 5):
+    if type(version) is not int or version not in (1, 2, 3, 4, 5, 6):
         raise ValueError("unsupported candidate observation schema")
+    if version == 6 and (row.get("refill_policy") != "full-burst" or any(
+            type(row.get(key)) is not int or row[key] != expected for key, expected in
+            (("physical_masters", 12), ("masters_per_frontend", 3), ("directory_tiles", 2),
+             ("bank_lines", 512), ("pipeline_capacity", 3), ("pipeline_latency", 2)))):
+        raise ValueError("current input requires explicit triple masters and finite 2-tile/512-line storage")
     if version == 5 and (row.get("refill_policy") != "available-space" or
             type(row.get("pipeline_capacity")) is not int or row["pipeline_capacity"] != 3 or
             type(row.get("pipeline_latency")) is not int or row["pipeline_latency"] != 2 or
@@ -69,18 +74,19 @@ def parse(stdout):
     if not all(0 < w["sink_done"] <= row["cycles"] for w in row["workers"]):
         raise ValueError("candidate completion exceeds closed window")
     for w in row["workers"]:
-        if version == 4 and (any(type(w.get(k)) is not int for k in
+        if version in (4, 6) and (any(type(w.get(k)) is not int for k in
                 ("pma_requests", "short_pma_requests")) or
                 not 0 < w["pma_requests"] <= w["requests"] or
                 not 0 <= w["short_pma_requests"] <= min(4, w["pma_requests"])):
             raise ValueError("full-burst PMA parent/physical-tail ledger failed")
-        if dual:
+        if dual or version == 6:
             parents = w.get("parents_per_port", [])
-            if (not isinstance(parents, list) or len(parents) != 2 or
+            if (not isinstance(parents, list) or len(parents) != (3 if version == 6 else 2) or
                     any(type(p) is not int or not 0 < p <= 16 for p in parents) or
                     w["max_parents"] > sum(parents)):
                 raise ValueError("dual-port physical parent bounds do not close")
-        if not (1 < w["max_parents"] <= (32 if dual else 16) and 0 < w["max_bank_lines"] <= 256 and
+        if not (1 < w["max_parents"] <= (48 if version == 6 else 32 if dual else 16) and
+                0 < w["max_bank_lines"] <= (512 if version == 6 else 256) and
                 0 < w["max_lanes"] <= 32 and w["live_edges"] + w["input_dummy"] == w["physical_slots"] and
                 w["packets"] * 8 == w["live_edges"] + w["output_dummy"]):
             raise ValueError("candidate finite storage/physical lane gate failed")
@@ -89,11 +95,19 @@ def parse(stdout):
                 "publisher_pipeline_peak")
         if any(type(w.get(k)) is not int or w[k] < 0 for w in row["workers"] for k in keys):
             raise ValueError("integer candidate transport counters required")
-        capacity = 3 if version == 5 else 2
+        capacity = 3 if version in (5, 6) else 2
         if any(w["read_beats"] * 64 != w["read_bytes"] or
                not 0 < w["reader_pipeline_peak"] <= capacity or
                not 0 < w["publisher_pipeline_peak"] <= capacity for w in row["workers"]):
             raise ValueError("candidate beat/pipeline ledger failed")
+        if version == 6:
+            keys = ("extent_beats", "directory_beats", "pma_beats", "rows", "empty_rows")
+            if any(type(w.get(k)) is not int or w[k] < 0 for w in row["workers"] for k in keys) or any(
+                    w["extent_beats"] != 1 or not 0 < w["directory_beats"] or
+                    w["pma_beats"] * 16 != w["physical_slots"] or
+                    sum(w[k] for k in keys[:3]) != w["read_beats"] or
+                    not w["empty_rows"] <= w["rows"] for w in row["workers"]):
+                raise ValueError("current input directory/PMA beat/row ledger failed")
         transport = row.get("transport", {})
         keys = ("accepted_beats", "intents", "grants", "consumed_grants", "request_waits",
                 "contended_cycles", "capacity_blocked_cycles", "max_contenders")

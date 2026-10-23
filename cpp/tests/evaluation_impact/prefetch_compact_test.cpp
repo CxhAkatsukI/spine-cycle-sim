@@ -3,6 +3,7 @@
 #include "prefetch_compact/transport_probe.hpp"
 #include "prefetch_compact/pipeline_probe.hpp"
 #include "prefetch_compact/directory_probe.hpp"
+#include "prefetch_compact/diagnostic_config.hpp"
 #include "spine_sim/scheduler.hpp"
 
 namespace {
@@ -118,6 +119,13 @@ std::array<std::uint64_t, 4> run(std::uint64_t latency, bool reverse,
 
 int main() {
   try {
+    const auto current = DiagnosticConfig::from_mode("current-input");
+    check(current.ports() == 3 && current.capacity() == 3 && current.full_burst &&
+          current.directory_tiles == 2 && current.bank_lines == 512,
+          "current input diagnostic differs from complete-R resources");
+    check(DiagnosticConfig::from_mode("").ports() == 1 &&
+          DiagnosticConfig::from_mode("dual-port").bank_lines == 256,
+          "historical diagnostic resources changed");
     check_directory_ownership();
     check_pipeline_probes();
     for (auto registered : {false, true}) {

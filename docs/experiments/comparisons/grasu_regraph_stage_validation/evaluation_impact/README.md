@@ -27,6 +27,12 @@ latency, credits or an upstream control to manufacture agreement. Original
 paper reproduction additionally requires its actual workload and denominator;
 same-source controls cannot silently stand in for that claim.
 
+The latest [current-input isolation](r_bank_stream/prefetch_compact/INPUT_ISOLATION.md)
+passes sixteen diagnostic executions, eight exact historical replays and
+physical-byte conservation. High-latency input service remains restricted;
+this is not a complete-R admission. The latest complete ratios below remain
+unchanged, and no FPGA work is required for this simulator-only diagnosis.
+
 ## Current Decisions
 
 | Gate | Evidence now | Decision still open |

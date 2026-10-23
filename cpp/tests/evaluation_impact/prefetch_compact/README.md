@@ -18,6 +18,7 @@ passes correctness, not performance retention or hardware timing calibration.
 | `transport_probe.hpp` | Single-initiator beat-issue probe, with exact payload and arbitration ledgers |
 | `pipeline_probe.hpp` | Saturated publisher cadence, finite storage and backpressure, with unchanged latency |
 | `directory_probe.hpp` | Finite lookahead, stale/duplicate rejection, delayed visibility and partial-tail ownership |
+| `diagnostic_config.hpp` | Explicit historical/current reader selections; current geometry comes from the complete-R control |
 | `../prefetch_compact_test.cpp` | Synthetic correctness, ring wrap and backpressure |
 | `../prefetch_compact.cpp` | Frozen real-input diagnostic, independent weighted CSR gate |
 | `cpp/tests/routed_regraph/compact_input_tests.cpp` | Complete-R empty, throttled, multipart, source-window and TLAST bounds |
@@ -146,3 +147,16 @@ Every schema-1 observation replays exactly, including cycles, requests,
 traffic, packet counts and bounded-storage peaks. Detailed reproduction and
 retained raw-output hashes are in the
 [study guide](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/README.md).
+
+## Current-Input Isolation
+
+The `current-input` diagnostic selection derives the latest complete-R reader
+configuration from its owning control. It does not copy the implementation
+or change the numerical core. Schema 6 records the three-master, two-tile,
+512-line-ring contract and additional finite-input observations. Historical
+single/dual modes preserve their schemas and exact observations. The fast
+and period-five sinks check both intrinsic input service and propagated
+backpressure, without source service or computation. Eight historical rows
+must replay exactly before interpreting the sixteen-row matrix. See the
+[input-isolation record](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/INPUT_ISOLATION.md);
+neither a sink endpoint nor its 46-scan projection admits complete R.
