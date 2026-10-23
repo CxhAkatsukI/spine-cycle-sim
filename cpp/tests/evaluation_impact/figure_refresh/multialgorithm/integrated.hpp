@@ -65,6 +65,9 @@ inline void integrated(const Input& input, const std::filesystem::path& output, 
   if (pr) wc::ei::wt::write_words(output / "residual.u32le", r.residual_words());
   const auto& gc = resident.counters;
   const auto& gt = resident.traffic;
+  std::cout << "R_SCAN_TRACE {\"rounds\":" << r.rounds().size()
+      << ",\"live_edges_scanned\":" << rc.live_edges << ",\"dummy_edges\":" << rc.dummy_edges
+      << "}" << std::endl;
   std::cout << "WARM_RESULT {\"arm\":\"gr\",\"g_cycles\":" << gc.end_cycle - gc.start_cycle
       << ",\"r_cycles\":" << rc.end_cycle - rc.start_cycle << ",\"cycles\":" << rc.end_cycle - gc.start_cycle
       << ",\"rounds\":" << r.rounds().size() << ",\"g_read_bytes\":" << gt.reads.bytes

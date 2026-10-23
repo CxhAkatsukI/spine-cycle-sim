@@ -20,6 +20,13 @@ the historical fixed per-vertex `epsilon=1e-6`. A separate
 activation/stop setting on both arms. The strict-threshold collection remains
 frozen evidence, not the result at the historical precision.
 
+**Nonempty ResPR propagation:** the separate
+[historical-input follow-up](respr_propagation/README.md) reruns Flickr u8 and
+the AskUbuntu 540K/904K reciprocal u8 inputs with the current model and fixed
+`epsilon=1e-6`. All three propagate real work; G+R is faster on all three.
+These results must accompany the zero-active AU/SU/WK threshold-restoration
+results when discussing whether sparse updates provide a latency advantage.
+
 ## Completed Results
 
 Seven Figure 8 pairs and three Figure 9 SSSP pairs pass correctness and

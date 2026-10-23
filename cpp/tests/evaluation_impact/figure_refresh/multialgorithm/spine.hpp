@@ -16,6 +16,8 @@ inline void spine(const Input& input, const std::filesystem::path& output, Sched
   });
   std::uint64_t start = 0, end = 0;
   std::size_t rounds_count = 0;
+  std::size_t nonempty_rounds = 0;
+  std::uint64_t active_vertices = 0, active_edges = 0, computed_edges = 0;
   double error = 0;
   std::vector<std::uint32_t> final;
   std::ofstream rounds(output / "rounds.csv");
@@ -33,6 +35,10 @@ inline void spine(const Input& input, const std::filesystem::path& output, Sched
     end = result.end_cycle;
     rounds_count = result.rounds.size();
     for (const auto& r : result.rounds) {
+      nonempty_rounds += !r.active_in.empty();
+      active_vertices += r.active_in.size();
+      active_edges += r.reader.edges_emitted;
+      if constexpr (requires { r.compute.edges_received; }) computed_edges += r.compute.edges_received;
       const auto sources = [&] {
         if constexpr (requires { r.reader_sources; }) return r.reader_sources.size();
         else return r.active_in.size();
@@ -87,6 +93,9 @@ inline void spine(const Input& input, const std::filesystem::path& output, Sched
         << ",\"active_write_bytes\":" << c.write_bytes << "}" << std::endl;
   }
   rounds.close();
+  std::cout << "PROPAGATION_TRACE {\"nonempty_rounds\":" << nonempty_rounds
+      << ",\"active_vertex_visits\":" << active_vertices << ",\"reader_edges\":" << active_edges
+      << ",\"computed_edges\":" << computed_edges << "}" << std::endl;
   wc::ei::wt::write_words(output / "final.u32le", final);
   const auto traffic = backend.traffic_stats();
   std::cout << "WARM_RESULT {\"arm\":\"spine\",\"cycles\":" << end - start

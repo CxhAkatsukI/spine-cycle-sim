@@ -30,11 +30,15 @@ def residual_threshold(value):
 
 
 def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_only=False,
-        residual_epsilon=1e-6):
+        residual_epsilon=1e-6, case_set="figure9"):
     if cpu not in os.sched_getaffinity(0) or timeout <= 0:
         raise ValueError("allowed CPU and positive timeout required")
     epsilon = residual_threshold(residual_epsilon)
-    cases = [] if smoke_only else matrix.cases(datasets, algorithms)
+    if case_set not in ("figure9", "historical-residual-u8") or (
+            case_set == "historical-residual-u8" and tuple(algorithms) != ("ResPR",)):
+        raise ValueError("registered case set and ResPR-only historical selection required")
+    cases = [] if smoke_only else (matrix.historical_residual_cases() if
+        case_set == "historical-residual-u8" else matrix.cases(datasets, algorithms))
     selected = runtime.settings(memory_profile, 1)
     process_gib = 32 if memory_profile == runtime.LARGE_CPU else 4
     compiler = Path("/usr/bin/g++").resolve()
@@ -53,7 +57,7 @@ def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_
     pins += [pin(p) for p in sorted({Path(c[k]) for c in cases for k in ("graph", "update_file", "manifest")})]
     report = dict(status="RUNNING", baseline_admitted=False, pins=pins, matrix=cases,
         rows=[], failures=[], steps=[], smokes=[], cpu=cpu, case_timeout_seconds=timeout,
-        memory_profile=memory_profile, process_limit_gib=process_gib,
+        memory_profile=memory_profile, process_limit_gib=process_gib, case_set=case_set,
         git_head=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         model=dict(clock_mhz=150, memory="Direct DRAMSim3, all 32 channels, 512 MiB/channel, 32 outstanding/channel",
             g="finite natural-geometry/shared-metadata G; original-G performance not admitted",
@@ -163,8 +167,10 @@ if __name__ == "__main__":
     parser.add_argument("--algorithms", nargs="+", choices=("SSSP", "CC", "ResPR"), default=("SSSP", "CC", "ResPR"))
     parser.add_argument("--memory-profile", choices=(runtime.FRESH_CPU, runtime.LARGE_CPU), default=runtime.FRESH_CPU)
     parser.add_argument("--smoke-only", action="store_true")
+    parser.add_argument("--case-set", choices=("figure9", "historical-residual-u8"), default="figure9")
     parser.add_argument("--residual-epsilon", type=residual_threshold, default=1e-6,
                         help="Fixed per-vertex ResPR threshold; historical setting is 1e-6 (no division by V)")
     args = parser.parse_args()
     print(json.dumps(dict(status=run(args.output.resolve(), args.core.resolve(), args.cpu, args.timeout,
-        args.datasets, args.algorithms, args.memory_profile, args.smoke_only, args.residual_epsilon)["status"])))
+        args.datasets, args.algorithms, args.memory_profile, args.smoke_only, args.residual_epsilon,
+        args.case_set)["status"])))

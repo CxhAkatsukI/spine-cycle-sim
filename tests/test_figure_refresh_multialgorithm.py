@@ -33,6 +33,24 @@ def complete_report():
 
 
 class MultialgorithmFigureTests(unittest.TestCase):
+    def test_historical_residual_scope_reuses_exact_reciprocal_inputs(self):
+        manifests = [dict(runs=[dict(run_id=run_id, user_mutations=8, physical_records=16,
+            scenario="insert", graph=dict(path="graph", sha256="g", vertices=10, records=20),
+            update=dict(path="update", sha256="u"))])
+            for _, _, run_id in matrix.HISTORICAL_RESIDUAL]
+        with patch.object(matrix.json, "loads", side_effect=manifests), \
+                patch("pathlib.Path.read_text", return_value="manifest"), \
+                patch.object(matrix, "sha256_file", side_effect=["g", "u"] * 3):
+            rows = matrix.historical_residual_cases()
+        self.assertEqual([r["dataset"] for r in rows], ["FL", "AU540", "AU904"])
+        self.assertEqual({(r["algorithm"], r["updates"], r["physical_update_records"]) for r in rows},
+                         {("ResPR", 8, 16)})
+        with patch.object(matrix.json, "loads", return_value=manifests[0]), \
+                patch("pathlib.Path.read_text", return_value="manifest"), \
+                patch.object(matrix, "sha256_file", return_value="changed"):
+            with self.assertRaisesRegex(ValueError, "input identity changed"):
+                matrix.historical_residual_cases()
+
     def test_fixed_residual_threshold_is_not_scaled_by_vertex_count(self):
         self.assertAlmostEqual(study.residual_threshold(1e-6), 1e-6, delta=1e-13)
         for value in (0, -1, float("nan"), float("inf"), 1e-100, 1e100):

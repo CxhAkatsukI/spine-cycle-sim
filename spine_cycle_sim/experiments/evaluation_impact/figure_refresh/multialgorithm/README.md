@@ -14,6 +14,7 @@ the paper, rebuild FPGA kernels, or admit original-publication performance.
 | `validation.py` | Complete pair selection, raw/configuration/state checks, core gates and all-channel energy |
 | `tables.py`, `delivery.py` | Derived CSVs and a portable, hash-checked evidence extension |
 | `residual_followup.py` | Fixed-epsilon ResPR rerun, threshold-only identities and separately sealed evidence |
+| `propagation_followup.py` | Historical reciprocal u8 inputs, actual propagation counts, retained losses and a separately sealed audit |
 | `source_snapshots.py` | Explicitly index the redundant full-repository snapshot while archiving and verifying its corresponding code-only snapshot |
 
 The C++ harness has separate input/oracle, finite resident G/R composition,
@@ -59,6 +60,16 @@ reruns the same three PR pairs and retains before/after identities and work.
 Do not silently combine its rows with the old archive. Raw validation uses
 the configured FP32 epsilon and its derived L1 bound; the legacy fallback
 applies only to sealed records that did not specify the parameter.
+
+For the nonempty-propagation diagnostic, select `--algorithms ResPR
+--case-set historical-residual-u8 --residual-epsilon 1e-6`. This predeclares
+Flickr u8 and AskUbuntu reciprocal 540K/904K u8 inputs. It does not reuse old
+K1 timings or promise bit-identical historical old-rank preparation. The
+[follow-up report](../../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure_refresh/respr_propagation/README.md)
+keeps all three outcomes, with passive initial-active, nonempty-round and
+edge-work counters. Seal it with `propagation_followup --output FRESH
+--report MATRIX/results.json --core-tests CORE-GATES/results.json`; use the
+same module with `--output PATH --verify` for the portable evidence audit.
 
 Run `regression --help` for the twelve-case SSSP replay. Run `delivery --help`
 for packaging and `delivery --output PATH --verify` for offline verification.
