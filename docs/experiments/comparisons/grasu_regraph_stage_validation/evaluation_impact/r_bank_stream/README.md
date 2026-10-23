@@ -17,10 +17,12 @@ is **2.951 / 3.635 times slower than A4-io16**, so the requested approximately
 baseline validation. See the [compact evidence index](evidence/cpu_core_20261022_v2.json).
 
 For the latest completed default-off correction, read the
-[finite ring-capacity result](prefetch_compact/PREFETCH_CAPACITY.md).
-It reduces complete cycles to 1.08514 / 1.24316 times A4 with all twelve
+[response-anchored Apply result](prefetch_compact/APPLY_SCHEDULE.md).
+It takes 1.084725 / 1.243611 times A4 with all twelve
 correctness and eight old-replay checks passing. Only the lower-latency row
-meets the +/-10% band, so the complete retention gate still fails. The
+meets the +/-10% band, so the complete retention gate still fails. It changes
+one post-response interval using existing schedule/RTL evidence; the effect
+is below 0.04%, not an explanation of the remaining high-latency gap. The
 [passive first-round overlap diagnostic](prefetch_compact/WAIT_OVERLAP.md)
 passes all sixteen exact replays: the high-latency configuration shows
 overlapping Apply/read and replica-publication waits. It changes no timing

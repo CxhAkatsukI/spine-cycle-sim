@@ -56,6 +56,16 @@ int main() {
   const auto ready = control("prefetch_ready_bursts");
   const auto refill = control("prefetch_ready_fullburst");
   const auto larger = control("prefetch_ready_capacity512");
+  const auto response = control("prefetch_sssp_response");
+  require(response.sssp_response_timing && !larger.sssp_response_timing &&
+          response.prefetch_bank_lines == 512 && response.full_burst_refill &&
+          response.ready_bursts && response.directory_lookahead && response.split_apply &&
+          response.triple_elastic && response.independent_source &&
+          k4_configuration(response).compute.apply_pipeline_latency == 1 &&
+          k4_configuration(larger).compute.apply_pipeline_latency == 100 &&
+          spine::sim::RoutedReGraphConfig{}.compute.apply_pipeline_latency == 100 &&
+          k4_configuration(response).compute.apply_request_window == 16 &&
+          k4_configuration(response).compute.max_pending_requests == 16);
   require(larger.prefetch_bank_lines == 512 && larger.full_burst_refill && larger.triple_elastic &&
           larger.ready_bursts && larger.split_apply && larger.directory_lookahead &&
           k4_configuration(larger).experimental_prefetch_bank_lines == 512 &&
@@ -79,7 +89,7 @@ int main() {
       std::pair{"prefetch_dual_elastic", 11U}, std::pair{"prefetch_triple_elastic", 15U},
       std::pair{"prefetch_triple_split_apply", 16U}, std::pair{"prefetch_directory_lookahead", 16U},
       std::pair{"prefetch_ready_bursts", 16U}, std::pair{"prefetch_ready_fullburst", 16U},
-      std::pair{"prefetch_ready_capacity512", 16U}}) {
+      std::pair{"prefetch_ready_capacity512", 16U}, std::pair{"prefetch_sssp_response", 16U}}) {
     using namespace spine::sim;
     const auto selected = control(arm);
     require(k4_physical_masters(selected) == masters);
@@ -96,5 +106,5 @@ int main() {
     require(backend.traffic_stats_by_initiator().size() == masters);
   }
   try { control("unknown"); return 1; } catch (const std::invalid_argument&) {}
-  std::cout << "CREDIT_CONTROL_PASS seventeen explicit arms; old source topology and A4 credits unchanged\n";
+  std::cout << "CREDIT_CONTROL_PASS eighteen explicit arms; old source topology and A4 credits unchanged\n";
 }

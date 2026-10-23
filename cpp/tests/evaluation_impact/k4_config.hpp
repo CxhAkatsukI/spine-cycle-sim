@@ -1,6 +1,7 @@
 #pragma once
 
 #include "control.hpp"
+#include "spine_sim/original_regraph/sssp_apply.hpp"
 #include "spine_sim/routed_regraph_profile.hpp"
 
 namespace evaluation_impact {
@@ -35,6 +36,9 @@ inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected)
   }
   config.compute.max_pending_requests = selected.k4_parents;
   config.compute.apply_request_window = selected.k4_apply_window;
+  // Both Apply models start this interval after accepting the old-state response.
+  if (selected.sssp_response_timing)
+    config.compute.apply_pipeline_latency = original_regraph::kSsspSchedulePostReadTiming.latency;
   if (selected.prefetch_compact)
     config.input_path = selected.triple_elastic ? RoutedInputPath::kTriplePrefetchElasticExperimental :
                        selected.dual_elastic ? RoutedInputPath::kDualPrefetchElasticExperimental :

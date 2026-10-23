@@ -3,12 +3,14 @@
 ## Decision
 
 Simulator only. **Complete R performance retention has not passed.** The
-latest [finite ring-capacity comparison](PREFETCH_CAPACITY.md) passes all twelve
+latest [response-anchored Apply control](APPLY_SCHEDULE.md) passes all twelve
 complete-convergence correctness/conservation executions and exactly replays
-eight old controls. Candidate/A4 cycles are **1.08514 / 1.24316** at memory
-latencies 64 / 128: only the first meets the declared +/-10% band. Doubling
-the PMA rings adds 128 KiB of data storage but improves complete cycles by
-only 0.2017% / 0.3315%, so it does not close the remaining gap.
+eight old controls. Candidate/A4 cycles are **1.084725 / 1.243611** at memory
+latencies 64 / 128: only the first meets the declared +/-10% band. The
+source-backed post-response interval changes complete time by less than
+0.04%, including a small high-latency regression. It does not close the gap.
+The preceding [ring increase](PREFETCH_CAPACITY.md) also failed despite
+128 KiB of added data storage. Both negative controls remain available.
 
 All new architectures remain default-off. The latest candidate has sixteen
 physical masters versus A4's thirteen and three state copies versus four;
@@ -22,7 +24,9 @@ and negative result without substituting an isolated reader floor for R time.
 
 Ratios below are complete candidate/A4 cycles at latencies 64 / 128.
 Every listed complete candidate fails the overall +/-10% retention gate.
-Physical-memory service and timing coefficients are unchanged across controls.
+Physical-memory service is unchanged across controls. The Apply record
+explicitly changes one response-anchored component interval using schedule
+and RTL evidence; preceding architecture controls leave timing unchanged.
 
 | Record | Question or explicit resource change | Complete R ratio |
 | --- | --- | ---: |
@@ -39,6 +43,7 @@ Physical-memory service and timing coefficients are unchanged across controls.
 | [Complete-path refill](READY_FULLBURST.md) | Same full-burst policy on the ready-burst topology | 1.08734 / 1.24729 |
 | [Finite ring capacity](PREFETCH_CAPACITY.md) | 512 rather than 256 lines per parity; 128 KiB extra data | 1.08514 / 1.24316 |
 | [Passive wait overlap](WAIT_OVERLAP.md) | First-round sampling on/off replay; no timing change | Not a new complete R result |
+| [SSSP Apply schedule](APPLY_SCHEDULE.md) | Explicit post-response interval 100 -> 1, based on schedule/RTL | 1.084725 / 1.243611 |
 
 Each complete follow-up retains full state, active trajectory, physical traffic,
 registration-order equality and exact old controls. Wait counters overlap and

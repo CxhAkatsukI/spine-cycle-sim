@@ -8,6 +8,7 @@ import unittest
 from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 from spine_cycle_sim.experiments.evaluation_impact.r_bank_stream import cached_core, runtime
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import admission
+from spine_cycle_sim.experiments.evaluation_impact.r_credits.freeze import pin
 
 
 class CachedCoreTests(unittest.TestCase):
@@ -104,6 +105,57 @@ class CachedCoreTests(unittest.TestCase):
         (groups / "foreign/memory.max").write_text("max")
         with self.assertRaisesRegex(ValueError, "no finite"):
             admission.budget(9, proc=proc, root=groups, host_swap_disabled=True)
+
+    def capacity_reference(self):
+        build = self.gates / "build"
+        paths = [self.root / row["path"] for row in self.rows]
+        for name in ("simulator/cpp/libspine_cycle_core.a", "simulator/cpp/liboriginal_regraph_cycle.a",
+                     "CMakeCache.txt", "compile_commands.json"):
+            path = build / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("frozen\n")
+            paths.append(path)
+        compiler = self.root / "compiler"
+        compiler.write_text("compiler\n")
+        paths.append(compiler)
+        inputs = self.gates / "inputs/warm_update"
+        inputs.mkdir(parents=True)
+        (inputs / "graph.txt").write_text("graph\n")
+        paths.append(inputs / "graph.txt")
+        steps = []
+        for name in ("build_core", "core_ctest"):
+            path = self.gates / (name + ".stdout.txt")
+            path.write_text("100% tests passed, 0 tests failed out of 37\n")
+            steps.append(dict(stdout=str(path), exit_code=0, timed_out=False))
+        reference = self.gates / "results.json"
+        report = dict(status="PREFETCH_CAPACITY_COMPLETE_SIMULATOR_PREDICTION", pins_unchanged=True,
+                      r_rows=[{}] * 12, failures=[], pins=[pin(p) for p in paths], steps=steps)
+        reference.write_text(json.dumps(report))
+        return reference, compiler
+
+    def test_complete_convergence_core_reuse_is_fail_closed(self):
+        reference, compiler = self.capacity_reference()
+        core, evidence = cached_core.validate_convergence(self.root, reference, compiler)
+        self.assertEqual(core, self.gates / "build/simulator/cpp")
+        self.assertTrue(any(p["path"] == str(reference) for p in evidence))
+        (self.root / "cpp/src/new.cpp").write_text("new\n")
+        with self.assertRaisesRegex(ValueError, "omits"):
+            cached_core.validate_convergence(self.root, reference, compiler)
+        (self.root / "cpp/src/new.cpp").unlink()
+        compiler.write_text("changed\n")
+        with self.assertRaisesRegex(ValueError, "differs"):
+            cached_core.validate_convergence(self.root, reference, compiler)
+
+    def test_complete_convergence_cannot_hide_failed_tests_or_changed_input(self):
+        reference, compiler = self.capacity_reference()
+        stdout = self.gates / "core_ctest.stdout.txt"
+        stdout.write_text("36 tests passed\n")
+        with self.assertRaisesRegex(ValueError, "all 37"):
+            cached_core.validate_convergence(self.root, reference, compiler)
+        stdout.write_text("100% tests passed, 0 tests failed out of 37\n")
+        (self.gates / "inputs/warm_update/graph.txt").write_text("changed\n")
+        with self.assertRaisesRegex(ValueError, "differs"):
+            cached_core.validate_convergence(self.root, reference, compiler)
 
 
 if __name__ == "__main__":

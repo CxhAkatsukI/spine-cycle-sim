@@ -1,0 +1,73 @@
+{
+  "status": "SSSP_APPLY_CONTROL_COMPLETE_SIMULATOR_PREDICTION",
+  "claim": "source_backed_post_response_interval_control_not_hardware_calibration",
+  "baseline_admitted": false,
+  "production_model_changed": false,
+  "retention_pass": false,
+  "executions": 12,
+  "rounds_per_execution": 46,
+  "exact_pre_edit_controls": 8,
+  "registration_order_pairs": 6,
+  "only_change": "Apply post-response latency 100 -> 1; all other resources/timing unchanged",
+  "comparisons": [
+    {
+      "mock_latency": 64,
+      "a4_cycles": 10904254,
+      "prior_cycles": 11832672,
+      "candidate_cycles": 11828118,
+      "candidate_over_a4": 1.0847250990301582,
+      "cycle_reduction_from_prior": 0.0003848665795856965,
+      "within_ten_percent": true
+    },
+    {
+      "mock_latency": 128,
+      "a4_cycles": 15840606,
+      "prior_cycles": 19692370,
+      "candidate_cycles": 19699546,
+      "candidate_over_a4": 1.2436106295428344,
+      "cycle_reduction_from_prior": -0.0003644050969995316,
+      "within_ten_percent": false
+    }
+  ],
+  "core_validation": "unchanged numerical core; prior 37/37 tests reused, not rerun",
+  "fresh_resource_controls": 18,
+  "fresh_finite_input_executions": 144,
+  "storage_backpressure_probes": 4,
+  "independent_verification": {
+    "pins": 2593,
+    "progress_files": 40,
+    "full_state_files": 40,
+    "source_archive_members": 2393,
+    "pre_edit_archive_members": 2392
+  },
+  "raw_report": {
+    "path": "/data/chuxiao/experiments/r_sssp_apply_schedule_20261022/convergence-v1/results.json",
+    "sha256": "bd6e5eb3429a9753bc3dda9dc09f5f6052e5fd7698ee1909c6476cd4434c8500"
+  },
+  "pre_edit_freeze": {
+    "path": "/data/chuxiao/experiments/r_sssp_apply_schedule_20261022/before/freeze.json",
+    "sha256": "be59b64de87cc9390e9de0677e5b82b73cc226acfb60c8bf423f3be6cfbc4ae7"
+  },
+  "source_archive": {
+    "path": "/data/chuxiao/experiments/r_sssp_apply_schedule_20261022/convergence-v1/sources.tar.gz",
+    "sha256": "8fb7f767452a286021ece97ecf4d80b9d4d8bbb6a3f909860fbfc35c9fed2d5b"
+  },
+  "safety": {
+    "hard_gib": 20,
+    "high_gib": 18,
+    "live_reserve_gib": 24,
+    "background_budget_gib": 8,
+    "swap_bytes": 0,
+    "peak_bytes": 1207980032,
+    "wall_seconds": 558.840,
+    "workers": 4,
+    "cpus": [124, 125, 126, 127]
+  },
+  "notes": [
+    "Candidate has 16 physical masters/three state copies versus A4's 13/four.",
+    "Identical resident post-update Amazon input, old converged state, batch and final convergence.",
+    "This window excludes G, preparation, DMA and host orchestration on both sides.",
+    "The separate wrapper timing boundary is identified but unchanged and untested here.",
+    "No FPGA build, HLS edit, hardware calibration, publication reproduction or new Spine comparison."
+  ]
+}

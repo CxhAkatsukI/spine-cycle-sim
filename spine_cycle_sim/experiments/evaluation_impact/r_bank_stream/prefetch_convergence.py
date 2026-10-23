@@ -26,10 +26,15 @@ def validate_cpus(cpus):
 
 def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
         extra_references=(), complete_status="COMPACT_CONVERGENCE_COMPLETE_NOT_HARDWARE_ADMISSION",
-        prefetch_checks=False, extra_input_checks=None):
+        prefetch_checks=False, extra_input_checks=None, cached_reference=None):
     validate_cpus(cpus)
     reference = json.loads(reference_path.read_text())
-    if reference.get("pins_unchanged") is not True or len(reference.get("r_rows", [])) != 32:
+    cached = None
+    if cached_reference is not None:
+        if cached_reference != reference_path:
+            raise ValueError("cached core and complete convergence reference must be identical")
+        cached = cached_core.validate_convergence(ROOT, cached_reference, COMPILER)
+    elif reference.get("pins_unchanged") is not True or len(reference.get("r_rows", [])) != 32:
         raise ValueError("checked complete bank-stream reference required")
     output.mkdir(parents=True, exist_ok=False)
     shutil.copytree(reference_path.parent / "inputs/warm_update", output / "inputs/warm_update")
@@ -68,19 +73,30 @@ def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
     try:
         profile = LOCAL if len(cpus) == 1 else LOCAL_PARALLEL
         with reservation(output, settings(profile, len(cpus)), 600) as safety:
-            report.update(status="BUILDING_FRESH_CORE", safety=safety); save()
+            report.update(status="BUILDING_CHECKED_CORE_HARNESS" if cached else "BUILDING_FRESH_CORE",
+                          safety=safety); save()
             build = output / "build"
-            checked(configure_command(build), "configure")
-            # EXCLUDE_FROM_ALL in the experiment project requires an explicit core build.
-            checked(["cmake", "--build", str(build), "--target", "regraph_convergence_demo",
-                     "regraph_credit_control_test", "-j1"], "build_harness")
-            checked(["cmake", "--build", str(build / "simulator"), "-j1"], "build_core")
-            checked(["ctest", "--test-dir", str(build / "simulator"), "--output-on-failure",
-                     "--timeout", "600", "-j1"], "core_ctest", 2400)
+            if cached:
+                core, evidence = cached
+                build.mkdir()
+                report["pins"] += evidence
+                report["core_validation"] = "unchanged numerical core; reused prior 37/37 tests, not rerun"
+                for source, target in (("convergence", "regraph_convergence_demo"),
+                                       ("credit_control_test", "regraph_credit_control_test")):
+                    checked(cached_core.command(ROOT, core, build / target, COMPILER, source),
+                            "build_" + source)
+            else:
+                checked(configure_command(build), "configure")
+                # EXCLUDE_FROM_ALL in the experiment project requires an explicit core build.
+                checked(["cmake", "--build", str(build), "--target", "regraph_convergence_demo",
+                         "regraph_credit_control_test", "-j1"], "build_harness")
+                checked(["cmake", "--build", str(build / "simulator"), "-j1"], "build_core")
+                checked(["ctest", "--test-dir", str(build / "simulator"), "--output-on-failure",
+                         "--timeout", "600", "-j1"], "core_ctest", 2400)
             checked([str(build / "regraph_credit_control_test")], "control_test", 30)
             if prefetch_checks:
                 binary = build / "prefetch_compact_test"
-                checked(cached_core.command(ROOT, build / "simulator/cpp", binary, COMPILER,
+                checked(cached_core.command(ROOT, core if cached else build / "simulator/cpp", binary, COMPILER,
                                             "prefetch_compact_test"), "build_input_tests")
                 stdout = checked(["taskset", "-c", str(cpus[0]), str(binary)], "input_tests", 120)
                 required = {"PREFETCH_COMPACT_TEST": 16, "DUAL_PORT_PREFETCH_TEST": 16,
@@ -95,9 +111,11 @@ def run(output, reference_path, cpus, *, matrix=MATRIX, analyze=summarize,
                 if len(report["input_probes"]) != 4:
                     raise ValueError("all four publisher storage/backpressure probes required")
                 report["pins"].append(pin(binary))
-            report["pins"] += [pin(build / name) for name in ("CMakeCache.txt", "compile_commands.json",
-                "regraph_convergence_demo", "simulator/cpp/libspine_cycle_core.a",
-                "simulator/cpp/liboriginal_regraph_cycle.a")]
+            names = ("regraph_convergence_demo", "regraph_credit_control_test") if cached else (
+                "CMakeCache.txt", "compile_commands.json", "regraph_convergence_demo",
+                "regraph_credit_control_test", "simulator/cpp/libspine_cycle_core.a",
+                "simulator/cpp/liboriginal_regraph_cycle.a")
+            report["pins"] += [pin(build / name) for name in names]
             verify()
             report["status"] = "RUNNING_COMPLETE_CONVERGENCE_MATRIX"; save()
             with ProcessPoolExecutor(max_workers=len(cpus),

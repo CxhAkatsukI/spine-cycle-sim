@@ -1,6 +1,7 @@
 """Reuse a checked core without changing it; compile only the experiment entry points."""
 
 import json
+from pathlib import Path
 from spine_cycle_sim.experiments.campaign_runtime import sha256_file
 from ..r_credits.freeze import pin
 
@@ -37,3 +38,40 @@ def command(root, core, output, compiler, source):
     return [str(compiler), "-O3", "-DNDEBUG", "-std=gnu++20", "-Wall", "-Wextra", "-Wpedantic", "-Werror",
             "-I" + str(root / "cpp/include"), str(root / ("cpp/tests/evaluation_impact/" + source + ".cpp")),
             "-o", str(output), str(core / "liboriginal_regraph_cycle.a"), str(core / "libspine_cycle_core.a")]
+
+
+def validate_convergence(root, reference, compiler):
+    """Reuse only unchanged numerical code from a complete, tested capacity run."""
+    report = json.loads(reference.read_text())
+    if (report.get("status") != "PREFETCH_CAPACITY_COMPLETE_SIMULATOR_PREDICTION" or
+            report.get("pins_unchanged") is not True or len(report.get("r_rows", [])) != 12 or
+            report.get("failures") != []):
+        raise ValueError("complete tested capacity reference required for core reuse")
+    pins = {Path(row["path"]): row for row in report["pins"]}
+    sources = {p for owner in ("cpp/src", "cpp/include") for p in (root / owner).rglob("*")
+               if p.is_file()} | {root / name for name in ("CMakeLists.txt", "cpp/CMakeLists.txt")}
+    if not sources <= pins.keys():
+        raise ValueError("capacity snapshot omits current core source files")
+    libraries = [p for p in pins if p.name == "libspine_cycle_core.a"]
+    if len(libraries) != 1:
+        raise ValueError("one checked numerical library required")
+    core = libraries[0].parent
+    required = sources | {compiler.resolve(), core / "libspine_cycle_core.a",
+        core / "liboriginal_regraph_cycle.a", core.parent.parent / "CMakeCache.txt",
+        core.parent.parent / "compile_commands.json"}
+    inputs = reference.parent / "inputs/warm_update"
+    required.update(p for p in inputs.iterdir() if p.is_file())
+    if not required <= pins.keys() or any(
+            sha256_file(p) != pins[p]["sha256"] for p in required):
+        raise ValueError("cached numerical source, input, compiler or library differs")
+    evidence = []
+    for name in ("build_core", "core_ctest"):
+        matches = [step for step in report["steps"]
+                   if Path(step["stdout"]).name == name + ".stdout.txt"]
+        if len(matches) != 1 or matches[0]["exit_code"] or matches[0]["timed_out"]:
+            raise ValueError("complete passing core build/test evidence required")
+        stdout = Path(matches[0]["stdout"])
+        if name == "core_ctest" and "100% tests passed, 0 tests failed out of 37" not in stdout.read_text():
+            raise ValueError("all 37 core tests required")
+        evidence.append(pin(stdout))
+    return core, [pin(reference), *[pins[p] for p in sorted(required)], *evidence]
