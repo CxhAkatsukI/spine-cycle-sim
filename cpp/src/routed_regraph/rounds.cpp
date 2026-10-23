@@ -27,7 +27,9 @@ void RoutedReGraphSystem::Impl::start_lksg(std::size_t worker) {
   f.scatter->start_partition({.physical_slots = part.slots, .destination_base = part.destination_base,
                              .destination_vertices = part.destination_vertices,
                              .terminal_framed = compact});
-  f.gather->start_partition(part.destination_vertices, true);
+  f.gather->start_partition(part.destination_vertices,
+                            !config.experimental_gather_reuse || !f.gather_initialized);
+  f.gather_initialized = true;
   f.next_lksg += 4;
 }
 

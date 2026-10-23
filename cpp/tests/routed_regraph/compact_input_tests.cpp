@@ -133,9 +133,18 @@ Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled,
   check(observation.backend.apply_read_stalls <= c.end_cycle - c.start_cycle,
         "sampled Apply read-window waits exceed execution cycles");
   std::uint64_t packets = 0, rows = 0, lines = 0, parents = 0, completions = 0;
-  for (const auto& f : observation.frontends) {
+  for (std::size_t worker = 0; worker < observation.frontends.size(); ++worker) {
+    const auto& f = observation.frontends[worker];
     packets += f.packets; rows += f.gather_rows;
     check(f.packets == f.emitted, "observation lost scatter packet completion");
+    const auto partitions = (vertices + 65535) / 65536;
+    const auto invocations = worker < partitions ? (partitions - worker + 3) / 4 : 0;
+    const auto resets = config.experimental_gather_reuse ? (invocations ? 1U : 0U) :
+                                                        invocations * expected.size();
+    check(f.gather_reset == resets * 32768,
+          "Gather resets differ from first-invocation or legacy reset policy");
+    check(f.gather_rows == invocations * expected.size() * 32768,
+          "Gather reuse omitted physical output/clear rows");
   }
   for (const auto& s : observation.sources) {
     lines += s.lines; parents += s.parents; completions += s.completions;
@@ -192,7 +201,8 @@ int main() {
     for (const auto& arm : {"prefetch_compact", "prefetch_source", "prefetch_dual_elastic",
                            "prefetch_triple_elastic", "prefetch_triple_split_apply",
                            "prefetch_directory_lookahead", "prefetch_ready_bursts",
-                           "prefetch_ready_fullburst", "prefetch_ready_capacity512"})
+                           "prefetch_ready_fullburst", "prefetch_ready_capacity512",
+                           "prefetch_gather_reuse"})
      for (const auto [vertices, empty, throttled] : {
         std::tuple{129U, false, false}, std::tuple{129U, true, true},
         std::tuple{8193U, false, true}, std::tuple{262273U, false, false}}) {
@@ -201,6 +211,6 @@ int main() {
       check_observation(forward.observation, reverse.observation);
       check(forward == reverse, "compact results depend on registration order");
     }
-    std::cout << "PASS: 72 coupled/independent/dual/triple/split-Apply/directory/ready-burst/full-refill/capacity compact convergence executions and terminal framing/restart/rejection\n";
+    std::cout << "PASS: 80 coupled/independent/dual/triple/split-Apply/directory/ready-burst/full-refill/capacity/Gather-reuse compact convergence executions and terminal framing/restart/rejection\n";
   } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

@@ -55,6 +55,7 @@ public:
     std::unique_ptr<detail::ReGraphGatherEngine> gather;
     std::size_t next_adapter{}, next_lksg{};
     std::optional<std::size_t> adapter_record, lksg_record;
+    bool gather_initialized{};
   };
   Client &client(std::string name);
   FixedAxiPort &port(std::string name, std::size_t channel, bool stream = false);

@@ -14,7 +14,7 @@ from ...upstream_controls.execution import run_bounded
 from ..r_credits.freeze import ROOT, pin
 from ..r_execution import run_case
 from .compact_analysis import MATRIX, summarize
-from .runtime import CACHED_LOCAL, LOCAL, LOCAL_PARALLEL, reservation, settings
+from .runtime import CACHED_LOCAL, FRESH_CPU, LOCAL, LOCAL_PARALLEL, reservation, settings
 from .study import COMPILER, configure_command
 from . import cached_core
 
@@ -25,10 +25,12 @@ def validate_cpus(cpus):
 
 
 def execution_profile(cached, cpus, memory_profile):
-    if memory_profile not in (None, CACHED_LOCAL):
+    if memory_profile not in (None, CACHED_LOCAL, FRESH_CPU):
         raise ValueError("unsupported convergence memory profile override")
     if memory_profile == CACHED_LOCAL and cached is None:
         raise ValueError("small cached profile requires an exactly validated core")
+    if memory_profile == FRESH_CPU and cached is not None:
+        raise ValueError("fresh CPU profile requires a fresh numerical core build")
     return settings(memory_profile or (LOCAL if len(cpus) == 1 else LOCAL_PARALLEL), len(cpus))
 
 

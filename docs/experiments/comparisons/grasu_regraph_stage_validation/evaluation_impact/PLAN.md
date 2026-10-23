@@ -298,6 +298,17 @@ Compare A with A4 separately; never pretend four Little reproduces 11+3.
 Use an admitted publication case to test the original R model's timing,
 independently of the A4/B retention control.
 
+The latest [destructive Gather reuse control](r_bank_stream/prefetch_compact/GATHER_REUSE.md)
+now preserves all output rows while initializing each physical frontend once.
+The original non-SW_EMU source clears each row during output and resets only
+on the first superstep. Twelve complete convergence executions pass; eight
+old controls replay exactly, along with fresh 37-target core regression and
+144 finite-input executions. Complete candidate/A4 cycles are 0.953364 /
+1.157245 at latencies 64/128, improving 12.11% / 6.94% without changing traffic
+or memory timing. The high-latency row still misses the 10% band. The control
+remains default-off, with sixteen masters/three state copies versus A4's
+thirteen/four. No hardware, publication, broader-input or Spine claim follows.
+
 Exit: no hidden resource/work advantage and passing retention on the declared
 matrix. Simulation-only closeness remains prediction evidence until timing
 admission. R success cannot compensate for failed G.

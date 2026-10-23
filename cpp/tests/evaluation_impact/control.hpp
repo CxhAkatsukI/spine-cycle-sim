@@ -10,6 +10,7 @@ struct Control {
   bool original{}, candidate{}, bank_stream{}, prefetch_compact{}, independent_source{};
   bool dual_elastic{}, triple_elastic{}, split_apply{}, directory_lookahead{}, ready_bursts{};
   bool full_burst_refill{}, sssp_response_timing{}, sssp_write_issue_timing{};
+  bool gather_reuse{};
   std::size_t prefetch_bank_lines{256};
   std::size_t a4_input_parents{2}, a4_state_parents{2};
   std::size_t k4_parents{16}, k4_apply_window{16};
@@ -25,11 +26,12 @@ inline Control control(const std::string& arm) {
              arm == "prefetch_triple_split_apply" || arm == "prefetch_directory_lookahead" ||
              arm == "prefetch_ready_bursts" || arm == "prefetch_ready_fullburst" ||
              arm == "prefetch_ready_capacity512" || arm == "prefetch_sssp_response" ||
-             arm == "prefetch_sssp_write_issue") {
+             arm == "prefetch_sssp_write_issue" || arm == "prefetch_gather_reuse") {
     result.candidate = result.bank_stream = true;
     result.prefetch_compact = arm != "bank_stream";
     result.dual_elastic = arm == "prefetch_dual_elastic";
-    result.sssp_write_issue_timing = arm == "prefetch_sssp_write_issue";
+    result.gather_reuse = arm == "prefetch_gather_reuse";
+    result.sssp_write_issue_timing = arm == "prefetch_sssp_write_issue" || result.gather_reuse;
     result.sssp_response_timing = arm == "prefetch_sssp_response" || result.sssp_write_issue_timing;
     if (arm == "prefetch_ready_capacity512" || result.sssp_response_timing)
       result.prefetch_bank_lines = 512;

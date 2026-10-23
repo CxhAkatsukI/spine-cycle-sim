@@ -17,12 +17,15 @@ is **2.951 / 3.635 times slower than A4-io16**, so the requested approximately
 baseline validation. See the [compact evidence index](evidence/cpu_core_20261022_v2.json).
 
 For the latest completed default-off control, read the
-[wrapper write-issue result](prefetch_compact/WRAPPER_SCHEDULE.md).
-It takes 1.084725 / 1.243611 times A4 with all twelve
+[destructive Gather reuse result](prefetch_compact/GATHER_REUSE.md).
+It takes 0.953364 / 1.157245 times A4 with all twelve
 correctness and eight old-replay checks passing. Only the lower-latency row
-meets the +/-10% band, so the complete retention gate still fails. It changes
-one pre-request interval using existing schedule/RTL evidence; the effect
-is zero complete cycles. The preceding
+meets the +/-10% band, so the complete retention gate still fails. Initializing
+each frontend once, then relying on the existing destructive output scan,
+reduces complete cycles by 12.11% / 6.94% with unchanged physical traffic.
+Fresh numerical regression passes all 37 CTest targets. The preceding
+[wrapper interval control](prefetch_compact/WRAPPER_SCHEDULE.md) changes zero
+complete cycles. The preceding
 [response-anchored Apply control](prefetch_compact/APPLY_SCHEDULE.md) changes
 less than 0.04%, not an explanation of the remaining high-latency gap. The
 [passive first-round overlap diagnostic](prefetch_compact/WAIT_OVERLAP.md)

@@ -30,15 +30,18 @@ same-source controls cannot silently stand in for that claim.
 The latest [current-input isolation](r_bank_stream/prefetch_compact/INPUT_ISOLATION.md)
 passes sixteen diagnostic executions, eight exact historical replays and
 physical-byte conservation. High-latency input service remains restricted;
-this is not a complete-R admission. The latest complete ratios below remain
-unchanged, and no FPGA work is required for this simulator-only diagnosis.
+this is not a complete-R admission. The latest complete
+[Gather reuse control](r_bank_stream/prefetch_compact/GATHER_REUSE.md) now
+takes 0.953364 / 1.157245 times A4 with unchanged traffic: only latency 64
+meets the declared 10% band. This is still an experimental prediction,
+not production admission, and no FPGA work is required for these diagnostics.
 
 ## Current Decisions
 
 | Gate | Evidence now | Decision still open |
 | --- | --- | --- |
 | G, prepared PMA windows and complete shards | One-shard chronological runtime fails all six 64K comparisons (22.7--35.5% slower); both-table copies reduce maximum difference to 4.3618%. The new resident AU/SU/WK check passes 18 executions/54 batches; both-copy maximum difference is 0.7432%, while shared last batches still fail. Both extractions preserve the preceding 12-row lifecycle matrix exactly | Routed 64K-partition geometry, changed-reservation refresh, measured host costs, original temporal conversion, mixed hot/cold occupancy, actual HLS binding/II/clock/resource fit, original-paper timing |
-| R, fixed Amazon warm SSSP | Default current/A4 remains 2.951 / 3.635 at latency 64/128. The latest source-backed wrapper interval control passes twelve complete executions, exact eight-row old replay and 144 fresh finite-input executions; unchanged numerical core reuses prior 37/37 tests. It takes 1.084725 / 1.243611 times A4, exactly the same complete cycles as the preceding Apply control | Only latency 64 passes the 10% gate; overall retention still fails and the candidate stays default-off. Neither larger rings nor the Apply/wrapper boundary controls explains the remaining gap; do not adjust timing to fit. A4 has 13 masters/four state replicas versus candidate 16/three, not strict resource equality. Remaining input/service restrictions, broader inputs, host costs and original-publication matching remain open |
+| R, fixed Amazon warm SSSP | Default current/A4 remains 2.951 / 3.635 at latency 64/128. The latest source-backed Gather reuse control passes twelve complete executions, exact eight-row old replay, 144 finite-input executions and a fresh 37/37 numerical-core suite. It takes 0.953364 / 1.157245 times A4, reducing complete cycles by 12.11% / 6.94% from the wrapper control without changing traffic | Only latency 64 passes the 10% gate; overall retention still fails and the candidate stays default-off. A4 has 13 masters/four state replicas versus candidate 16/three, not strict resource equality. Remaining input/service restrictions, broader inputs, host costs and original-publication matching remain open; do not adjust timing to fit |
 | Physical G-to-R handoff | All 12 complete-cache executions pass high source IDs, hot/DDR edits, full preload/writeback and exact downstream convergence; 34 CTest targets, 228 old G rows and default SST regressions pass | Correctness alone cannot admit realistic batch performance; cache cost is paid once per updated shard |
 | Host/seed and complete baseline | Device windows and excluded preparation are defined explicitly | Host/seed timing and complete baseline admission are not established |
 | New Spine comparison | No replacement evaluation claimed | Requires the preceding gates and a common warm-state-to-convergence run |
@@ -89,6 +92,8 @@ scope; they are not overwritten when a later candidate improves.
 | Does increasing finite PMA storage close the remaining R gap? | [512-line ring candidate](r_bank_stream/prefetch_compact/PREFETCH_CAPACITY.md), twelve correct complete executions, eight exact old replays and unchanged traffic; 1.08514 / 1.24316 times A4. Less than 0.34% improvement despite 128 KiB added storage; overall retention fails |
 | Does correcting the SSSP post-response interval close the gap? | [Apply schedule control](r_bank_stream/prefetch_compact/APPLY_SCHEDULE.md), twelve correct complete executions and eight exact old replays; 1.084725 / 1.243611 times A4. Source-backed interval correction changes complete time by less than 0.04%; overall retention still fails |
 | Does correcting the wrapper pre-write interval close the gap? | [Wrapper schedule control](r_bank_stream/prefetch_compact/WRAPPER_SCHEDULE.md), twelve correct complete executions and eight exact old replays; all complete cycles equal the preceding Apply control. Both physical writes/responses remain; overall retention still fails |
+| Can the latest reader alone approach the high-latency A4 window? | [Current-input isolation](r_bank_stream/prefetch_compact/INPUT_ISOLATION.md), sixteen executions and eight exact replays; finite fast-sink scans expose a credit/placement restriction without replacing complete-R time |
+| Does eliminating redundant Gather initialization close the gap? | [Destructive Gather reuse](r_bank_stream/prefetch_compact/GATHER_REUSE.md), twelve correct complete executions, eight exact old replays and fresh 37-target core regression; 0.953364 / 1.157245 times A4 with unchanged physical traffic. Only latency 64 passes, so overall retention still fails |
 | What is the current hardware execution and acceptance order? | [Hardware validation campaign](hardware_validation/README.md), separate component, routed, publication and complete-system gates |
 | What failed in the first matched G/R diagnostic? | [Initial results](RESULTS.md), [frozen evidence index](evidence/index.json) |
 | Did parallel search alone solve G? | [Parallel search](parallel_search/README.md), [hot owners](hot_lanes/README.md) |

@@ -16,6 +16,7 @@ LOCAL = "local-finite-6g-v1"
 LOCAL_PARALLEL = "local-finite-20g-v1"
 CPU_ONLY = "cpu-only-cached-core-4g-v1"
 CACHED_LOCAL = "local-cached-core-4g-reserve24-v1"
+FRESH_CPU = "cpu-fresh-core-6g-reserve24-v1"
 # The small cached profile is private to runners that validate the core first.
 PROFILES = (memory_profiles.SEELE, LOCAL, LOCAL_PARALLEL, CPU_ONLY)
 
@@ -59,6 +60,11 @@ def settings(profile, workers):
             raise ValueError("cached local profile permits at most four workers")
         return {"profile": profile, "high_gib": 3, "policy": dict(tree_memory_gib=4,
             reserve_gib=24, background_memory_gib=8, allow_bounded_builds=True)}
+    if profile == FRESH_CPU:
+        if workers > 4:
+            raise ValueError("fresh CPU profile permits at most four workers")
+        return {"profile": profile, "high_gib": 5, "policy": dict(tree_memory_gib=6,
+            reserve_gib=24, background_memory_gib=8, allow_bounded_builds=True)}
     raise ValueError("unknown execution memory profile")
 
 
@@ -78,7 +84,7 @@ def reservation(output, selected, wait_seconds=600):
     guard = containment(group, selected)
     policy = selected["policy"]
     directory = Path.home() / ".cache/spine-cycle-sim/compiler-reservations"
-    swapless_host = selected["profile"] in (CPU_ONLY, CACHED_LOCAL)
+    swapless_host = selected["profile"] in (CPU_ONLY, CACHED_LOCAL, FRESH_CPU)
     lease = (Lease(directory, group, host_swap_disabled=True) if swapless_host
              else high_memory.lease(directory, group, policy))
     stopped = threading.Event()

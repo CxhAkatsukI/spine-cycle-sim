@@ -38,6 +38,9 @@ public:
     }
     destination_vertices_ = destination_vertices;
     for (auto &rows : bank_rows_) {
+      if (!reset_tmp_prop && !rows.empty()) {
+        throw std::logic_error("ReGraph gather reuse requires a completed destructive output scan");
+      }
       rows.clear();
     }
     for (auto &entries : bypass_) {

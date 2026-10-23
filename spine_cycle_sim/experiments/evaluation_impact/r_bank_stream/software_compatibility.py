@@ -7,10 +7,12 @@ from pathlib import Path
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from ...upstream_controls.execution import run_bounded
 from ..r_credits.freeze import ROOT, pin
-from .runtime import LOCAL, reservation, settings
+from .runtime import FRESH_CPU, LOCAL, reservation, settings
 
 
-def run(output, core_result, baseline):
+def run(output, core_result, baseline, *, memory_profile=LOCAL):
+    if memory_profile not in (LOCAL, FRESH_CPU):
+        raise ValueError("SST compatibility requires a finite fresh-build profile")
     core = json.loads(core_result.read_text())
     if core.get("pins_unchanged") is not True or not core.get("steps"):
         raise ValueError("completed source-pinned core checks required")
@@ -27,7 +29,7 @@ def run(output, core_result, baseline):
 
     save()
     try:
-        with reservation(output, settings(LOCAL, 1), 600) as safety:
+        with reservation(output, settings(memory_profile, 1), 600) as safety:
             report.update(status="RUNNING", safety=safety); save(); verify()
             commands = [("build", ["make", "-C", "cpp/sst", "-j1", "BUILD_DIR=" + str(output / "plugin"),
                 "CXX=/usr/bin/g++", "DRAMSIM3_ROOT=/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729",
@@ -64,6 +66,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("output", "core-result", "baseline"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--memory-profile", choices=(LOCAL, FRESH_CPU), default=LOCAL)
     args = parser.parse_args()
     print(json.dumps({"status": run(args.output.resolve(), args.core_result.resolve(),
-                                  args.baseline.resolve())["status"]}))
+                                  args.baseline.resolve(), memory_profile=args.memory_profile)["status"]}))

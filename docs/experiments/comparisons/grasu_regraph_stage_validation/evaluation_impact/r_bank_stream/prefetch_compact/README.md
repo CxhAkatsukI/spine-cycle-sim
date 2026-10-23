@@ -3,11 +3,14 @@
 ## Decision
 
 Simulator only. **Complete R performance retention has not passed.** The
-latest [wrapper write-issue control](WRAPPER_SCHEDULE.md) passes all twelve
+latest [destructive Gather reuse control](GATHER_REUSE.md) passes all twelve
 complete-convergence correctness/conservation executions and exactly replays
-eight old controls. Candidate/A4 cycles are **1.084725 / 1.243611** at memory
+eight old controls. Candidate/A4 cycles are **0.953364 / 1.157245** at memory
 latencies 64 / 128: only the first meets the declared +/-10% band. The
-source-backed pre-request interval changes zero complete cycles. The preceding
+complete output scan already clears every row; removing repeated initialization
+reduces complete cycles by 12.11% / 6.94% without changing physical traffic.
+The preceding [wrapper write-issue control](WRAPPER_SCHEDULE.md) changes zero
+complete cycles. The preceding
 [Apply interval control](APPLY_SCHEDULE.md) changed complete time by less than
 0.04%, including a small high-latency regression. Neither closes the gap.
 The preceding [ring increase](PREFETCH_CAPACITY.md) also failed despite
@@ -28,7 +31,8 @@ Every listed complete candidate fails the overall +/-10% retention gate.
 Physical-memory service is unchanged across controls. The Apply and wrapper
 records explicitly change response-anchored and pre-request component
 intervals using schedule and RTL evidence; preceding architecture controls
-leave timing unchanged.
+leave timing unchanged. Gather reuse changes the initialization schedule,
+not memory service or a timing coefficient.
 
 The subsequent [current-input isolation](INPUT_ISOLATION.md) reuses that
 latest finite reader without downstream computation. All sixteen executions
@@ -54,6 +58,7 @@ changing the numerical core or admitting a new complete-R performance result.
 | [SSSP Apply schedule](APPLY_SCHEDULE.md) | Explicit post-response interval 100 -> 1, based on schedule/RTL | 1.084725 / 1.243611 |
 | [SSSP wrapper schedule](WRAPPER_SCHEDULE.md) | Explicit pre-write interval 71 -> 2; all physical writes/responses retained | 1.084725 / 1.243611 (unchanged) |
 | [Current-input isolation](INPUT_ISOLATION.md) | Same latest finite reader, fast and throttled sinks; unchanged numerical core | Not complete R |
+| [Destructive Gather reuse](GATHER_REUSE.md) | Initialize each frontend once; retain every destructive output scan | 0.953364 / 1.157245 |
 
 Each complete follow-up retains full state, active trajectory, physical traffic,
 registration-order equality and exact old controls. Wait counters overlap and

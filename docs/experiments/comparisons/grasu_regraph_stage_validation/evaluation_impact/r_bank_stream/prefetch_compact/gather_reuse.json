@@ -1,0 +1,97 @@
+{
+  "status": "GATHER_REUSE_COMPLETE_SIMULATOR_PREDICTION",
+  "claim": "source_backed_destructive_gather_reuse_not_hardware_calibration",
+  "baseline_admitted": false,
+  "production_model_changed": false,
+  "retention_pass": false,
+  "executions": 12,
+  "rounds_per_execution": 46,
+  "exact_pre_edit_controls": 8,
+  "registration_order_pairs": 6,
+  "only_change": "first invocation initializes each physical Gather; later invocations rely on the complete destructive output scan, with output rows, traffic, barriers and memory timing retained",
+  "comparisons": [
+    {
+      "mock_latency": 64,
+      "a4_cycles": 10904254,
+      "prior_cycles": 11828118,
+      "candidate_cycles": 10395723,
+      "candidate_over_a4": 0.9533639806996426,
+      "cycle_reduction_from_prior": 0.12110083785095815,
+      "within_ten_percent": true
+    },
+    {
+      "mock_latency": 128,
+      "a4_cycles": 15840606,
+      "prior_cycles": 19699546,
+      "candidate_cycles": 18331456,
+      "candidate_over_a4": 1.1572446155153409,
+      "cycle_reduction_from_prior": 0.0694477933653902,
+      "within_ten_percent": false
+    }
+  ],
+  "resets_per_used_frontend": {
+    "prior_cycles": 1507328,
+    "candidate_cycles": 32768,
+    "unchanged_output_rows": 1507328,
+    "unchanged_merge_rows": 1507328
+  },
+  "core_validation": "fresh numerical build; all 37 CTest targets passed, including 80 compact convergence executions",
+  "fresh_resource_controls": 20,
+  "fresh_finite_input_executions": 144,
+  "storage_backpressure_probes": 4,
+  "python_regraph_tests": 158,
+  "sst_validation": "fresh plugin; five exact legacy cases; software compatibility only",
+  "independent_verification": {
+    "status": "PASS",
+    "core_pins": 2426,
+    "sst_pins": 2787,
+    "progress_files": 40,
+    "full_state_files": 40,
+    "source_archive_members": 2401,
+    "pre_edit_archive_members": 2400
+  },
+  "raw_report": {
+    "path": "/data/chuxiao/experiments/r_gather_reuse_20261022/convergence-v2/results.json",
+    "sha256": "c225c90eb662bd28881b2f84af715141c50eb770adda5ef6f347bd17db551904"
+  },
+  "pre_edit_freeze": {
+    "path": "/data/chuxiao/experiments/r_gather_reuse_20261022/before/freeze.json",
+    "sha256": "3600f05dd9ef00a18524670d0366685c8ba4857ce33cf0eae29c35398c669ac0"
+  },
+  "source_archive": {
+    "path": "/data/chuxiao/experiments/r_gather_reuse_20261022/convergence-v2/sources.tar.gz",
+    "sha256": "e886f11e264a4b7ff5b9b61a18c0ddfb23ca73aaee7e9d1c10d145bbb7baafb6"
+  },
+  "sst_report": {
+    "path": "/data/chuxiao/experiments/r_gather_reuse_20261022/sst-v1/results.json",
+    "sha256": "c128a30f4cd20723ec9e470bfe29aa43fc46f883c432f4208233a396a8e72eff"
+  },
+  "retained_attempt": {
+    "path": "/data/chuxiao/experiments/r_gather_reuse_20261022/convergence-v1/results.json",
+    "sha256": "351efb8b58a4ab97f7e50a48053deff74f9642a054ad5aed81f088a0c67cd673",
+    "status": "FAILED_RETAINED",
+    "reason": "KeyboardInterrupt(); one configure step, zero convergence rows"
+  },
+  "verification": {
+    "path": "/data/chuxiao/experiments/r_gather_reuse_20261022/verification.json",
+    "sha256": "4cbba576ef90df18906e89d5adf7bc487d1c482c512f9b19da65931c1064017b"
+  },
+  "safety": {
+    "hard_gib": 6,
+    "high_gib": 5,
+    "live_reserve_gib": 24,
+    "background_budget_gib": 8,
+    "swap_bytes": 0,
+    "sampled_peak_bytes": 1312694272,
+    "wall_seconds": 1381.463,
+    "workers": 4,
+    "cpus": [124, 125, 126, 127]
+  },
+  "notes": [
+    "Candidate has 16 physical masters/three state copies versus A4's 13/four; not strict resource equivalence.",
+    "Identical resident post-update Amazon input, old converged state, batch and final convergence.",
+    "This window excludes G, preparation, DMA and host orchestration on both sides.",
+    "Original non-SW_EMU Gather respects first-superstep reset; software emulation always resets.",
+    "No FPGA build, HLS edit, hardware calibration, publication reproduction or new Spine comparison."
+  ]
+}

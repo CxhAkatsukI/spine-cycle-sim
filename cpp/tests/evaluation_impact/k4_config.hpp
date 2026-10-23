@@ -54,6 +54,7 @@ inline spine::sim::RoutedReGraphConfig k4_configuration(const Control& selected)
   if (selected.ready_bursts) config.gather_schedule = RoutedGatherSchedule::kReadyBurstsExperimental;
   config.experimental_full_burst_refill = selected.full_burst_refill;
   config.experimental_prefetch_bank_lines = selected.prefetch_bank_lines;
+  config.experimental_gather_reuse = selected.gather_reuse;
   return config;
 }
 }  // namespace evaluation_impact

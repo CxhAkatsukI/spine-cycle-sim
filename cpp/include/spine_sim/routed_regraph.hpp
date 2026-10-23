@@ -65,6 +65,8 @@ struct RoutedReGraphConfig {
   RoutedSourceLoading source_loading{RoutedSourceLoading::kEdgeCoupled};
   RoutedApplyTopology apply_topology{RoutedApplyTopology::kSharedMaster};
   RoutedGatherSchedule gather_schedule{RoutedGatherSchedule::kPartitionOrder};
+  // First invocation resets; later invocations rely on the destructive output scan.
+  bool experimental_gather_reuse{};
 };
 
 struct RoutedReGraphInvocation {
