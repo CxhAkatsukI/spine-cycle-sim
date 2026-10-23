@@ -2,58 +2,45 @@
 
 ## Decision
 
-Simulator only. Correctness, conservation and finite-storage checks pass;
-**complete R performance retention has not passed**. The reader/compactor was
-first tested with stall-free sinks; a default-off complete-R extension now
-passes all twelve correctness/conservation executions but fails retention.
-Neither is a replacement production profile, FPGA timing
-measurement or new Spine comparison. No HLS or paper is changed. Start with
-the [parent study](../README.md) for the unchanged R matrix and the
-[complete-convergence record](CONVERGENCE.md) for the new extension. The
-[passive wait observations](OBSERVATIONS.md) exactly replay all twelve
-convergence results; they diagnose overlapping waits, not a further speedup.
-The subsequent default-off [source-loading experiment](SOURCE_LOADING.md)
-tests independent finite cache writes without changing old controls; its
-complete performance gate is not yet admitted.
-The [explicit reader-port diagnostic](READER_PORTS.md) separately tests two
-physical masters per frontend with unchanged PMA traffic. It does not change
-the integrated default or substitute a reader floor for complete-R timing.
-The [full-burst refill experiment](BURST_REFILL.md) tests whether reserving
-whole parents reduces short-request fragmentation with the same rings and
-physical reads. Its preregistered gates remain separate from R admission.
-The [explicit elastic-pipeline candidate](ELASTIC_PIPELINE.md) adds a third
-finite pipeline slot and a second physical reader master. All twelve complete
-executions pass correctness and eight old controls replay exactly. Retention
-still fails: 1.787 / 2.209 times A4 cycles. The candidate improves latency 64
-by 29.05% but regresses latency 128 by 2.73%; it remains default-off.
-The [separate metadata-port experiment](METADATA_PORTS.md) tests a third
-physical input master per frontend without changing latency, physical traffic
-or the old controls. All twelve complete executions and eight exact old
-replays pass; cycles improve 10.61% / 12.30% from dual, but remain
-**1.598 / 1.937 times A4**. Retention still fails; the candidate has 15
-physical masters versus A4's 13 and is not strict resource equivalence.
-The [separate Apply-master experiment](APPLY_PORTS.md) tests read/write
-concurrency on the same HBM bank with one additional physical master.
-All twelve complete executions pass, with eight exact old replays. It improves
-2.69% / 19.77% from shared Apply, but remains **1.555 / 1.554 times A4**.
-Both retention gates fail; sixteen versus thirteen physical masters are not
-strict resource equivalence. Fixed partition-order draining and input work
-remain diagnostic targets, not an already-proved explanation or correction.
-The [finite directory-lookahead study](DIRECTORY_OVERLAP.md) tests a second
-8-KiB tile per frontend, with the same masters and memory service. All twelve
-complete executions and eight exact old replays pass. It improves 4.85% /
-0.11% from one tile but remains **1.479 / 1.552 times A4**; both retention
-gates fail. The observed input endpoint includes downstream backpressure,
-so it is not an intrinsic floor for a different output schedule.
-The [finite ready-burst follow-up](READY_BURSTS.md) tests whether choosing
-ready workers at eight-row boundaries reduces partition-order blocking.
-It carries real offsets through bounded downstream stages, preserves all
-physical traffic, and leaves the old sequential default unchanged. Its
-complete twelve-execution comparison passes correctness and exact old replay.
-It improves 26.47% / 19.65% from directory lookahead, reaching **1.0875 /
-1.2474 times A4**. Only latency 64 meets the 10% gate; overall retention still
-fails. It remains a default-off simulator candidate, not publication matching
-or admission of a new Spine comparison.
+Simulator only. **Complete R performance retention has not passed.** The
+latest [whole-parent refill comparison](READY_FULLBURST.md) passes all twelve
+complete-convergence correctness/conservation executions and exactly replays
+eight old controls. Candidate/A4 cycles are **1.08734 / 1.24729** at memory
+latencies 64 / 128: only the first meets the declared +/-10% band. Refill
+changes less than 0.015%, so it does not close the remaining gap.
+
+All new architectures remain default-off. The latest candidate has sixteen
+physical masters versus A4's thirteen and three state copies versus four;
+this is not strict resource equivalence. No production replacement, hardware
+timing calibration, publication reproduction or new Spine comparison is
+admitted. No HLS or paper is changed. The [parent study](../README.md) owns
+the unchanged production comparison; the records below preserve each control
+and negative result without substituting an isolated reader floor for R time.
+
+## Reading Guide
+
+Ratios below are complete candidate/A4 cycles at latencies 64 / 128.
+Every listed complete candidate fails the overall +/-10% retention gate.
+Physical-memory service and timing coefficients are unchanged across controls.
+
+| Record | Question or explicit resource change | Complete R ratio |
+| --- | --- | ---: |
+| [Complete convergence](CONVERGENCE.md) | Connect finite reader/compactor to the full R path | 2.591 / 2.197 |
+| [Wait observations](OBSERVATIONS.md) | Read-only overlapping waits; exact replay, not a speedup | Unchanged |
+| [Source loading](SOURCE_LOADING.md) | Independent finite source-cache loading | See complete record |
+| [Reader ports](READER_PORTS.md) | Isolated two-master input diagnostic | Not complete R |
+| [Isolated refill](BURST_REFILL.md) | Whole-parent reservation; high-latency regression retained | Not complete R |
+| [Elastic pipeline](ELASTIC_PIPELINE.md) | Second reader master and third pipeline slot | 1.787 / 2.209 |
+| [Metadata ports](METADATA_PORTS.md) | Third physical input master per frontend | 1.598 / 1.937 |
+| [Apply ports](APPLY_PORTS.md) | Separate read/write masters on the same HBM bank | 1.555 / 1.554 |
+| [Directory overlap](DIRECTORY_OVERLAP.md) | Second 8-KiB directory tile per frontend | 1.479 / 1.552 |
+| [Ready bursts](READY_BURSTS.md) | Bounded addressed publication at eight-row boundaries | 1.0875 / 1.2474 |
+| [Complete-path refill](READY_FULLBURST.md) | Same full-burst policy on the ready-burst topology | 1.08734 / 1.24729 |
+
+Each complete follow-up retains full state, active trajectory, physical traffic,
+registration-order equality and exact old controls. Wait counters overlap and
+are not additive stage times. An observed input endpoint includes downstream
+backpressure, so it is not an intrinsic floor for another output schedule.
 
 ## Complete-Convergence Extension
 

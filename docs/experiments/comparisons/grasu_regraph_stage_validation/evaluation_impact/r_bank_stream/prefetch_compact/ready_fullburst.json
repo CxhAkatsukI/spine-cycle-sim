@@ -1,0 +1,498 @@
+{
+  "acceptance": {
+    "comparisons": [
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 10904254,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "prefetch_ready_bursts": {
+            "arm": "prefetch_ready_bursts",
+            "cycles": 11858340,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_ready_fullburst": {
+            "arm": "prefetch_ready_fullburst",
+            "cycles": 11856592,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.0873363734924002,
+        "cycle_reduction_from_available_space_refill": 0.00014740680398772632,
+        "latency": 64,
+        "within_ten_percent": true
+      },
+      {
+        "arms": {
+          "a4_io16": {
+            "arm": "a4_io16",
+            "cycles": 15840606,
+            "passed": true,
+            "read_bytes": 802534400,
+            "replicas": 4,
+            "rounds": 46,
+            "write_bytes": 192937984
+          },
+          "prefetch_ready_bursts": {
+            "arm": "prefetch_ready_bursts",
+            "cycles": 19758840,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          },
+          "prefetch_ready_fullburst": {
+            "arm": "prefetch_ready_fullburst",
+            "cycles": 19757874,
+            "passed": true,
+            "read_bytes": 2021232640,
+            "replicas": 3,
+            "rounds": 46,
+            "write_bytes": 144703672
+          }
+        },
+        "candidate_over_a4": 1.247292811903787,
+        "cycle_reduction_from_available_space_refill": 4.888950970804995e-05,
+        "latency": 128,
+        "within_ten_percent": false
+      }
+    ],
+    "hardware_timing_admitted": false,
+    "new_spine_comparison_executed": false,
+    "physical_masters": {
+      "a4_io16": 13,
+      "prefetch_ready_bursts": 16,
+      "prefetch_ready_fullburst": 16
+    },
+    "pre_edit_controls_replayed_exactly": 8,
+    "production_baseline_admitted": false,
+    "publication_match_admitted": false,
+    "retention_pass": false,
+    "strict_resource_match_admitted": false
+  },
+  "artifacts": {
+    "complete_convergence": {
+      "bytes": 750956,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/completion-v3/results.json",
+      "sha256": "9f291cba943efeadbba0de5b4ba876c71503d653ac03404a62106db13b03cec7"
+    },
+    "independent_verification": {
+      "bytes": 570,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/verification.json",
+      "sha256": "3eb9d37bb0b4d46a7cc591a08fb109dc003578a1d4bb8eecb3e70a5f64a5f4b2"
+    },
+    "pre_edit_freeze": {
+      "bytes": 619221,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/before/freeze.json",
+      "sha256": "5974cbc969a78ad36d3911d2b463511e4717b5dc563d9e40821ab7ba8bff96f3"
+    },
+    "pre_edit_sources": {
+      "bytes": 17027953,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/before/sources.tar.gz",
+      "sha256": "82977a09dca5567667fa4f839b7af4b6c68a2fd0e3fdaf782b49c878af677b5c"
+    },
+    "quality": {
+      "bytes": 5111,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/quality-v1/results.json",
+      "sha256": "6692ff50a353d595a686daa9fee0276e5d9cb6d7d94ca409f3e1b35ee26db810"
+    },
+    "recovery_runner": {
+      "bytes": 5675,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/recover_interrupted.py",
+      "sha256": "885dc34232f1062034b919d6b2f1e473369ff6b246bb54855d0b4bad83b0661a"
+    },
+    "resource_collector": {
+      "bytes": 2072,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/collect_resources.py",
+      "sha256": "f13c49fd6b1ea6f02261db7fc6a651a2c80f3e44919ba8ad96054907fd4104e4"
+    },
+    "safe_abort": {
+      "bytes": 70,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v1/reserve_failure.json",
+      "sha256": "e47a9fc2f8a9ed893351ae76a81ddc80ae6945b2f9c008de65a032c420ba42f8"
+    },
+    "safe_abort_last_state": {
+      "bytes": 622510,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v1/results.json",
+      "sha256": "a3fdd4d8be30895a7345e769f679e5c4ced11b8628157aed3e960306b4aab82b"
+    },
+    "safe_abort_memory": {
+      "bytes": 83,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v1/live_memory.json",
+      "sha256": "63cdabe64afa1dd91ac84ba6e26b3b410895d5b73edb300dcb3de08a5243019e"
+    },
+    "second_safe_abort": {
+      "bytes": 70,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v2/reserve_failure.json",
+      "sha256": "e47a9fc2f8a9ed893351ae76a81ddc80ae6945b2f9c008de65a032c420ba42f8"
+    },
+    "second_safe_abort_last_state": {
+      "bytes": 709261,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v2/results.json",
+      "sha256": "62b84008e613291db3e991c668f0f38ec3d94253ab06acaa53073ed165a21f0f"
+    },
+    "second_safe_abort_memory": {
+      "bytes": 84,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v2/live_memory.json",
+      "sha256": "3627f9de12a9471e8cfae57ce1638138db57891fd06af9e19f2d64021e770db5"
+    },
+    "service_resources": {
+      "bytes": 8549,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/service_resources.json",
+      "sha256": "f749ef7355fac8ea5d1f784b3b8de7baef510f2dc4b7e2a76542a075a6001885"
+    },
+    "sst_compatibility": {
+      "bytes": 721659,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v2/results.json",
+      "sha256": "f584b15e9ad6a18740f05b730e33f0f5df73328cd668ac6fe7443bd4bce01d0b"
+    },
+    "sst_equivalence": {
+      "bytes": 375303,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v2/legacy/equivalence.json",
+      "sha256": "13881228312e77a06bc573589fd172e326a92c6c1e1c8aa32164dc3622ec4dda"
+    },
+    "sst_safe_abort": {
+      "bytes": 70,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v1/reserve_failure.json",
+      "sha256": "e47a9fc2f8a9ed893351ae76a81ddc80ae6945b2f9c008de65a032c420ba42f8"
+    },
+    "sst_safe_abort_last_state": {
+      "bytes": 621217,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v1/results.json",
+      "sha256": "9fe991db98b8375bcc1c9e375880b8b32d43b5bfc1ad9baa60ffb78091d32221"
+    },
+    "sst_safe_abort_memory": {
+      "bytes": 84,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v1/live_memory.json",
+      "sha256": "7382a6d807fcf96ffea2d76a06203d795612398504c109d2b9ecf255c81a1136"
+    },
+    "verification_resources": {
+      "bytes": 1307,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/verify-v1/results.json",
+      "sha256": "42d5f80a0ab1abe3fafc6a79ee8995af8e244aa48cddd060aad833a8d0d5432e"
+    },
+    "verification_runner": {
+      "bytes": 3627,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/verify_delivery.py",
+      "sha256": "bb6ffd3c49d32fd9cd892d1218a816dc2782f39cb2f44b484d7e8e050c94e0b2"
+    },
+    "verification_service_runner": {
+      "bytes": 1451,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/run_verification.py",
+      "sha256": "5d8de1c29c5c59131abd5538ec33d36fdda7c0964f264723c47466720b88ee0e"
+    }
+  },
+  "boundary": "resident warm weighted SSSP compute to convergence; no G/host/DMA",
+  "checks": {
+    "compact_complete_executions": 64,
+    "control_arms": 16,
+    "core_ctest": 37,
+    "delivery_quality": "PASS",
+    "diff_check": "PASS",
+    "document_layout": "PASS",
+    "finite_input_executions": 128,
+    "generated_catalogs": "PASS",
+    "organization": 15,
+    "publisher_probes": 4,
+    "regraph_python": 131
+  },
+  "complete_executions": 12,
+  "correctness_admitted": true,
+  "open_gates": [
+    "R performance retention fails on the complete declared matrix",
+    "complete G validation",
+    "host orchestration timing",
+    "new Spine demo",
+    "original-publication reproduction not established; FPGA work deferred"
+  ],
+  "recovery": {
+    "binary_rebuilt": false,
+    "completed_rows_reused": 9,
+    "previous_report": {
+      "bytes": 709261,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v2/results.json",
+      "sha256": "62b84008e613291db3e991c668f0f38ec3d94253ab06acaa53073ed165a21f0f"
+    },
+    "reason": "live reserve killed the previous owned service; preserve its report unchanged",
+    "reserve_failure": {
+      "bytes": 70,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v2/reserve_failure.json",
+      "sha256": "e47a9fc2f8a9ed893351ae76a81ddc80ae6945b2f9c008de65a032c420ba42f8"
+    },
+    "rows_to_execute": 3,
+    "runner": {
+      "bytes": 5675,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/recover_interrupted.py",
+      "sha256": "885dc34232f1062034b919d6b2f1e473369ff6b246bb54855d0b4bad83b0661a"
+    },
+    "timing_or_resource_change": false
+  },
+  "registration_order_pairs": 6,
+  "rounds_per_execution": 46,
+  "safety": {
+    "background_allowance_gib": 8,
+    "completion_workers": 3,
+    "initial_workers": 4,
+    "live_reserve_gib": 24,
+    "memory_high_gib": 18,
+    "memory_max_gib": 20,
+    "services": {
+      "completion_v3": {
+        "approximate_lifetime_seconds": 267.748056,
+        "cpu_seconds": 513.907581,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-ready-fullburst-recovery-20261022-v3.service - [systemd-run] /usr/bin/env PYTHONPATH=/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence python3 /data/chuxiao/experiments/r_ready_fullburst_20261022/recover_interrupted.py.",
+            "__REALTIME_TIMESTAMP": "1792722979628683"
+          },
+          {
+            "CPU_USAGE_NSEC": "513907581000",
+            "MEMORY_PEAK": "846163968",
+            "MESSAGE": "spine-r-ready-fullburst-recovery-20261022-v3.service: Consumed 8min 33.907s CPU time, 806.9M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792723247376739"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 846163968,
+        "unit": "spine-r-ready-fullburst-recovery-20261022-v3"
+      },
+      "quality": {
+        "approximate_lifetime_seconds": 12.473462,
+        "cpu_seconds": 12.276813,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-ready-fullburst-quality-20261022-v1.service - [systemd-run] /usr/bin/env PYTHONPATH=/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence python3 /data/chuxiao/experiments/r_ready_fullburst_20261022/quality_delivery.py.",
+            "__REALTIME_TIMESTAMP": "1792724100507051"
+          },
+          {
+            "CPU_USAGE_NSEC": "12276813000",
+            "MEMORY_PEAK": "97333248",
+            "MESSAGE": "spine-r-ready-fullburst-quality-20261022-v1.service: Consumed 12.276s CPU time, 92.8M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792724112980513"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 97333248,
+        "unit": "spine-r-ready-fullburst-quality-20261022-v1"
+      },
+      "safe_abort_v1": {
+        "approximate_lifetime_seconds": 749.353316,
+        "cpu_seconds": 749.073437,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-ready-fullburst-20261022-v1.service - [systemd-run] /usr/bin/python3 -m spine_cycle_sim.experiments.evaluation_impact.r_bank_stream.ready_fullburst --output /data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v1 --reference /data/chuxiao/experiments/r_bank_stream_comparison_20261022/cpu-core-matrix-v2/results.json --before /data/chuxiao/experiments/r_ready_bursts_20261022/convergence-v1/results.json --freeze /data/chuxiao/experiments/r_ready_fullburst_20261022/before/freeze.json --cpus 124.",
+            "__REALTIME_TIMESTAMP": "1792720586645935"
+          },
+          {
+            "EXIT_CODE": "killed",
+            "EXIT_STATUS": "9",
+            "MESSAGE": "spine-r-ready-fullburst-20261022-v1.service: Main process exited, code=killed, status=9/KILL",
+            "__REALTIME_TIMESTAMP": "1792721335936828"
+          },
+          {
+            "MESSAGE": "spine-r-ready-fullburst-20261022-v1.service: Failed with result 'signal'.",
+            "UNIT_RESULT": "signal",
+            "__REALTIME_TIMESTAMP": "1792721335998963"
+          },
+          {
+            "CPU_USAGE_NSEC": "749073437000",
+            "MEMORY_PEAK": "850935808",
+            "MESSAGE": "spine-r-ready-fullburst-20261022-v1.service: Consumed 12min 29.073s CPU time, 811.5M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792721335999251"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 850935808,
+        "unit": "spine-r-ready-fullburst-20261022-v1"
+      },
+      "safe_abort_v2": {
+        "approximate_lifetime_seconds": 1229.80518,
+        "cpu_seconds": 2164.71911,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-ready-fullburst-20261022-v2.service - [systemd-run] /usr/bin/python3 -m spine_cycle_sim.experiments.evaluation_impact.r_bank_stream.ready_fullburst --output /data/chuxiao/experiments/r_ready_fullburst_20261022/convergence-v2 --reference /data/chuxiao/experiments/r_bank_stream_comparison_20261022/cpu-core-matrix-v2/results.json --before /data/chuxiao/experiments/r_ready_bursts_20261022/convergence-v1/results.json --freeze /data/chuxiao/experiments/r_ready_fullburst_20261022/before/freeze.json --cpus 124 125 126 127.",
+            "__REALTIME_TIMESTAMP": "1792721590678152"
+          },
+          {
+            "EXIT_CODE": "killed",
+            "EXIT_STATUS": "9",
+            "MESSAGE": "spine-r-ready-fullburst-20261022-v2.service: Main process exited, code=killed, status=9/KILL",
+            "__REALTIME_TIMESTAMP": "1792722820456497"
+          },
+          {
+            "MESSAGE": "spine-r-ready-fullburst-20261022-v2.service: Failed with result 'signal'.",
+            "UNIT_RESULT": "signal",
+            "__REALTIME_TIMESTAMP": "1792722820482227"
+          },
+          {
+            "CPU_USAGE_NSEC": "2164719110000",
+            "MEMORY_PEAK": "1457446912",
+            "MESSAGE": "spine-r-ready-fullburst-20261022-v2.service: Consumed 36min 4.719s CPU time, 1.3G memory peak.",
+            "__REALTIME_TIMESTAMP": "1792722820483332"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 1457446912,
+        "unit": "spine-r-ready-fullburst-20261022-v2"
+      },
+      "sst": {
+        "approximate_lifetime_seconds": 507.067548,
+        "cpu_seconds": 504.136841,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-ready-fullburst-sst-20261022-v2.service - [systemd-run] /usr/bin/python3 -m spine_cycle_sim.experiments.evaluation_impact.r_bank_stream.software_compatibility --output /data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v2 --core-result /data/chuxiao/experiments/r_ready_fullburst_20261022/completion-v3/results.json --baseline /data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/gates-v1/legacy_final.",
+            "__REALTIME_TIMESTAMP": "1792723514678917"
+          },
+          {
+            "CPU_USAGE_NSEC": "504136841000",
+            "MEMORY_PEAK": "1130659840",
+            "MESSAGE": "spine-r-ready-fullburst-sst-20261022-v2.service: Consumed 8min 24.136s CPU time, 1G memory peak.",
+            "__REALTIME_TIMESTAMP": "1792724021746465"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 1130659840,
+        "unit": "spine-r-ready-fullburst-sst-20261022-v2"
+      },
+      "sst_safe_abort": {
+        "approximate_lifetime_seconds": 95.342682,
+        "cpu_seconds": 95.140334,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-ready-fullburst-sst-20261022-v1.service - [systemd-run] /usr/bin/python3 -m spine_cycle_sim.experiments.evaluation_impact.r_bank_stream.software_compatibility --output /data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v1 --core-result /data/chuxiao/experiments/r_ready_fullburst_20261022/completion-v3/results.json --baseline /data/chuxiao/experiments/sharded_k4_bank_stream_profile_20261019/gates-v1/legacy_final.",
+            "__REALTIME_TIMESTAMP": "1792723307659977"
+          },
+          {
+            "EXIT_CODE": "killed",
+            "EXIT_STATUS": "9",
+            "MESSAGE": "spine-r-ready-fullburst-sst-20261022-v1.service: Main process exited, code=killed, status=9/KILL",
+            "__REALTIME_TIMESTAMP": "1792723402971240"
+          },
+          {
+            "MESSAGE": "spine-r-ready-fullburst-sst-20261022-v1.service: Failed with result 'signal'.",
+            "UNIT_RESULT": "signal",
+            "__REALTIME_TIMESTAMP": "1792723403001156"
+          },
+          {
+            "CPU_USAGE_NSEC": "95140334000",
+            "MEMORY_PEAK": "1076408320",
+            "MESSAGE": "spine-r-ready-fullburst-sst-20261022-v1.service: Consumed 1min 35.140s CPU time, 1G memory peak.",
+            "__REALTIME_TIMESTAMP": "1792723403002659"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 1076408320,
+        "unit": "spine-r-ready-fullburst-sst-20261022-v1"
+      },
+      "verification": {
+        "approximate_lifetime_seconds": 2.392888,
+        "cpu_seconds": 2.327014,
+        "events": [
+          {
+            "MESSAGE": "Started spine-r-ready-fullburst-verify-20261022-v1.service - [systemd-run] /usr/bin/env PYTHONPATH=/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence python3 /data/chuxiao/experiments/r_ready_fullburst_20261022/run_verification.py.",
+            "__REALTIME_TIMESTAMP": "1792724057746761"
+          },
+          {
+            "CPU_USAGE_NSEC": "2327014000",
+            "MEMORY_PEAK": "44687360",
+            "MESSAGE": "spine-r-ready-fullburst-verify-20261022-v1.service: Consumed 2.327s CPU time, 42.6M memory peak.",
+            "__REALTIME_TIMESTAMP": "1792724060139649"
+          }
+        ],
+        "lifetime_clock": "journal start-to-resource-message, not device cycles",
+        "memory_peak_bytes": 44687360,
+        "unit": "spine-r-ready-fullburst-verify-20261022-v1"
+      }
+    },
+    "swap_max_bytes": 0
+  },
+  "schema_version": 1,
+  "scope": "simulator-only full-parent refill; no HLS/FPGA/paper changes",
+  "sst_default_compatibility": {
+    "cases": [
+      {
+        "case": "sssp_mixed_cold",
+        "cycles": 99885,
+        "equivalent": true
+      },
+      {
+        "case": "sssp_multipart_warm",
+        "cycles": 5997674,
+        "equivalent": true
+      },
+      {
+        "case": "cc_reciprocal",
+        "cycles": 133841,
+        "equivalent": true
+      },
+      {
+        "case": "residual_warm",
+        "cycles": 1487890,
+        "equivalent": true
+      },
+      {
+        "case": "residual_update_only",
+        "cycles": 200,
+        "equivalent": true
+      }
+    ],
+    "claim": "default SST software compatibility only; no candidate timing admission",
+    "plugin": {
+      "bytes": 3860784,
+      "path": "/data/chuxiao/experiments/r_ready_fullburst_20261022/sst-v2/plugin/libspine_cycle.so",
+      "sha256": "854bd9c461d25f614d8b09ef0865ced66c67c5cc530ab4fe30c17a71121d38e4"
+    },
+    "status": "PASS"
+  },
+  "status": "READY_FULLBURST_COMPLETE_SIMULATOR_PREDICTION",
+  "verification": {
+    "core_pins": {
+      "checked": 2405,
+      "mismatches": 0
+    },
+    "current_archive_members": {
+      "checked": 2382,
+      "mismatches": 0
+    },
+    "full_states": {
+      "checked": 40,
+      "mismatches": 0
+    },
+    "pre_edit_archive_members": {
+      "checked": 2380,
+      "mismatches": 0
+    },
+    "pre_edit_artifacts": {
+      "checked": 3,
+      "mismatches": 0
+    },
+    "pre_edit_external": {
+      "checked": 17,
+      "mismatches": 0
+    },
+    "progress_files": {
+      "checked": 40,
+      "mismatches": 0
+    },
+    "sst_pins": {
+      "checked": 2766,
+      "mismatches": 0
+    },
+    "status": "PASS"
+  }
+}

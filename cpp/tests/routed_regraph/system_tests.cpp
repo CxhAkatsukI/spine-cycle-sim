@@ -225,6 +225,9 @@ void rejection_tests() {
       c.experimental_directory_tiles = tiles;
     });
   check(fixture(129, false), [](auto &, auto &, auto &c) {
+    c.experimental_full_burst_refill = true;
+  });
+  check(fixture(129, false), [](auto &, auto &, auto &c) {
     c.apply_topology = static_cast<RoutedApplyTopology>(-1);
   });
   check(fixture(129, false), [](auto &, auto &, auto &c) {

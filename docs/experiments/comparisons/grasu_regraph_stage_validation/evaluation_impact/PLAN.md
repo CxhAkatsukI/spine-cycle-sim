@@ -270,20 +270,29 @@ compaction, explicit source loading, reader/directory ports, finite elastic
 queues and separate Apply masters as named default-off architectures. Old
 arms retain their original resources, traffic and timing. Their successive
 complete predictions reduce the gap without yet meeting retention.
-The latest [two-tile directory study](r_bank_stream/prefetch_compact/DIRECTORY_OVERLAP.md)
+The [two-tile directory study](r_bank_stream/prefetch_compact/DIRECTORY_OVERLAP.md)
 passes all twelve complete executions, exact eight-row replay, 36 fresh CTest
 targets and 128 finite-input executions. It takes 1.479 / 1.552 times A4 at
 latency 64/128; both retention gates fail. Its added 32 KiB of directory values
 and 16-versus-13 physical masters are explicit resource differences.
 
-Next isolate output head-of-line waiting and its propagated input pressure
-with an addressed, finite ready-partition/burst protocol. A mux-only change
-would violate current merger, Apply and writeback order contracts. Predeclare
-complete unique row coverage, unchanged old controls, bounded buffering,
-complete-state/active equality and traffic conservation before implementing.
-Current input endpoints are observations under existing backpressure, not
-lower bounds for a changed output schedule. No improvement or retention pass
-is assumed. Broader workloads and G/host/composition gates remain open.
+The [ready-burst protocol](r_bank_stream/prefetch_compact/READY_BURSTS.md)
+now passes twelve complete executions, eight exact old replays, 37 fresh
+CTest targets and 128 finite-input executions. It preserves physical traffic
+and complete state, improving 26.47% / 19.65% from directory lookahead.
+Ratios are 1.0875 / 1.2474 times A4: only latency 64 passes the 10% gate,
+so overall retention still fails. It remains default-off.
+
+The [whole-parent refill study](r_bank_stream/prefetch_compact/READY_FULLBURST.md)
+now completes all twelve executions and eight exact old replays on the same
+topology, rings, masters, credits, traffic and memory service. Ratios remain
+1.08734 / 1.24729 times A4; reductions below 0.015% do not close the complete
+retention gate. Both live-memory safe aborts and verified same-binary recovery
+are retained. Next distinguish finite prefetch lookahead/storage from
+downstream waits; additional buffer capacity needs an explicit resource
+control, not a faster latency coefficient. Input endpoints remain observations
+under downstream backpressure, not additive stage times or intrinsic floors.
+Broader workloads and G/host/composition gates remain open.
 No FPGA build or board test is launched in this phase.
 Compare A with A4 separately; never pretend four Little reproduces 11+3.
 Use an admitted publication case to test the original R model's timing,

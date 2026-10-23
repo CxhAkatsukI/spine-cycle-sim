@@ -117,6 +117,20 @@ The [predeclared complete comparison](../../../../docs/experiments/comparisons/g
 must pass exact old-row replay before any performance conclusion. More ready
 outputs need not improve input-bound execution; no improvement is presumed.
 
+## Whole-Parent Refill Control
+
+`prefetch_ready_fullburst` retains the complete ready-burst topology and
+selects the existing `RefillPolicy::kFullBurst` through the explicit
+`experimental_full_burst_refill` flag. Each parity ring remains 256 lines;
+the reader waits for space for the next <=16-beat bank-bounded parent.
+Physical tails may be short, but newly freed single slots cannot fragment
+new PMA parents. No extra storage, physical master or timing factor is added.
+Default available-space refill and all earlier arms remain unchanged; a
+legacy physical-slot input rejects the new flag. Existing finite full-burst
+tests and the new integrated compact arm cover ring wrap, tails, stalls,
+restart and registration order. The [complete-path study](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/r_bank_stream/prefetch_compact/READY_FULLBURST.md)
+keeps the earlier standalone full-burst regression as a separate result.
+
 ## Transport Observation
 
 The synthetic executable also runs a 512-beat continuous read with one

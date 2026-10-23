@@ -54,6 +54,12 @@ int main() {
           spine::sim::RoutedReGraphConfig{}.apply_topology == spine::sim::RoutedApplyTopology::kSharedMaster);
   const auto directory = control("prefetch_directory_lookahead");
   const auto ready = control("prefetch_ready_bursts");
+  const auto refill = control("prefetch_ready_fullburst");
+  require(refill.full_burst_refill && refill.ready_bursts && refill.directory_lookahead &&
+          refill.split_apply && refill.triple_elastic &&
+          k4_configuration(refill).experimental_full_burst_refill &&
+          !k4_configuration(ready).experimental_full_burst_refill &&
+          !spine::sim::RoutedReGraphConfig{}.experimental_full_burst_refill);
   require(ready.ready_bursts && ready.directory_lookahead && ready.triple_elastic && ready.split_apply &&
           k4_configuration(ready).gather_schedule == spine::sim::RoutedGatherSchedule::kReadyBurstsExperimental &&
           k4_configuration(directory).gather_schedule == spine::sim::RoutedGatherSchedule::kPartitionOrder &&
@@ -66,7 +72,7 @@ int main() {
       std::pair{"candidate", 9U}, std::pair{"bank_stream", 7U},
       std::pair{"prefetch_dual_elastic", 11U}, std::pair{"prefetch_triple_elastic", 15U},
       std::pair{"prefetch_triple_split_apply", 16U}, std::pair{"prefetch_directory_lookahead", 16U},
-      std::pair{"prefetch_ready_bursts", 16U}}) {
+      std::pair{"prefetch_ready_bursts", 16U}, std::pair{"prefetch_ready_fullburst", 16U}}) {
     using namespace spine::sim;
     const auto selected = control(arm);
     require(k4_physical_masters(selected) == masters);
@@ -83,5 +89,5 @@ int main() {
     require(backend.traffic_stats_by_initiator().size() == masters);
   }
   try { control("unknown"); return 1; } catch (const std::invalid_argument&) {}
-  std::cout << "CREDIT_CONTROL_PASS fifteen explicit arms; old source topology and A4 credits unchanged\n";
+  std::cout << "CREDIT_CONTROL_PASS sixteen explicit arms; old source topology and A4 credits unchanged\n";
 }
