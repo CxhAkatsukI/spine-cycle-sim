@@ -38,6 +38,7 @@ Physical-memory service and timing coefficients are unchanged across controls.
 | [Ready bursts](READY_BURSTS.md) | Bounded addressed publication at eight-row boundaries | 1.0875 / 1.2474 |
 | [Complete-path refill](READY_FULLBURST.md) | Same full-burst policy on the ready-burst topology | 1.08734 / 1.24729 |
 | [Finite ring capacity](PREFETCH_CAPACITY.md) | 512 rather than 256 lines per parity; 128 KiB extra data | 1.08514 / 1.24316 |
+| [Passive wait overlap](WAIT_OVERLAP.md) | First-round sampling on/off replay; no timing change | Not a new complete R result |
 
 Each complete follow-up retains full state, active trajectory, physical traffic,
 registration-order equality and exact old controls. Wait counters overlap and

@@ -1,0 +1,45 @@
+{
+  "status": "PASS_READ_ONLY_WAIT_OVERLAP",
+  "claim": "passive_first_round_simulator_diagnostic_not_complete_convergence_or_hardware",
+  "baseline_admitted": false,
+  "production_model_changed": false,
+  "executions": 16,
+  "exact_instrumentation_pairs": 8,
+  "exact_reference_first_rounds": 16,
+  "pins_unchanged": true,
+  "raw_report": {
+    "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/wait-overlap-v2/results.json",
+    "sha256": "f76d0b4f85d12550b4d2828172d70ce9f28daf5da9dfc3ca8f3ffa5a997dd556"
+  },
+  "source_archive": {
+    "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/wait-overlap-v2/sources.tar.gz",
+    "sha256": "cf3da2be5b2b9bdd66d93b696001a3cf3d474e86b9e78b879ba71525b0c6dedb"
+  },
+  "binary": {
+    "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/wait-overlap-v2/wait_probe",
+    "sha256": "90b33c3061e5caad4ff46a1c5180bc7ad8ba3b29de14ea335ebf2f4bdeaad2d4"
+  },
+  "admission": {
+    "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/wait-overlap-v2/admission.json",
+    "sha256": "7d623e131b082e4974a8702a150dbcc2f10434bc56a807f9522fd9b6b2255dc0",
+    "profile": "local-finite-6g-v1",
+    "hard_gib": 6,
+    "high_gib": 5,
+    "swap_max_bytes": 0,
+    "live_reserve_gib": 24,
+    "background_budget_gib": 8,
+    "cpu": 124
+  },
+  "retained_failed_attempt": {
+    "path": "/data/chuxiao/experiments/r_prefetch_capacity_20261022/wait-overlap-v1/results.json",
+    "sha256": "adcb39f97e136a35e560b4b83cc89b3f2b1e12ea33d00ea6df249b0f36f0ce5a",
+    "reason": "diagnostic compile-time helper argument mismatch; no numerical row executed"
+  },
+  "complete_convergence_reference": "prefetch_capacity.json",
+  "complete_performance_gate": "FAIL_AT_LATENCY_128",
+  "notes": [
+    "Marginal wait counts overlap and are not additive or causal stage times.",
+    "The reference libraries are unchanged; the diagnostic is freshly compiled.",
+    "No new hardware, publication reproduction or Spine performance claim."
+  ]
+}

@@ -16,10 +16,15 @@ is **2.951 / 3.635 times slower than A4-io16**, so the requested approximately
 10% retention gate is **not met**. This is a retained mismatch, not a completed
 baseline validation. See the [compact evidence index](evidence/cpu_core_20261022_v2.json).
 
-For the latest default-off correction, read the
-[finite directory-lookahead result](prefetch_compact/DIRECTORY_OVERLAP.md).
-It reduces complete cycles to 1.479 / 1.552 times A4 with all twelve correctness
-and eight old-replay checks passing; the 10% retention gate still fails.
+For the latest completed default-off correction, read the
+[finite ring-capacity result](prefetch_compact/PREFETCH_CAPACITY.md).
+It reduces complete cycles to 1.08514 / 1.24316 times A4 with all twelve
+correctness and eight old-replay checks passing. Only the lower-latency row
+meets the +/-10% band, so the complete retention gate still fails. The
+[passive first-round overlap diagnostic](prefetch_compact/WAIT_OVERLAP.md)
+passes all sixteen exact replays: the high-latency configuration shows
+overlapping Apply/read and replica-publication waits. It changes no timing
+and does not replace the full-convergence result with a partial run.
 The historical seven-master result below is unchanged, not silently replaced
 by that sixteen-master experimental architecture.
 
