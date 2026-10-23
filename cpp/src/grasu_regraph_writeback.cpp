@@ -20,8 +20,10 @@ public:
       : ReGraphWritebackEngine(std::move(name), clock_id), config_(config), input_(input),
         write_ports_{primary_write_port, mirror_write_port},
         policy_(std::move(policy)), coverage_(order) {
-    if (coverage_.addressed() && policy_.config().kind != GraphAlgorithmKind::kWeightedSssp)
-      throw std::invalid_argument("addressed writeback currently admits weighted SSSP only");
+    if (coverage_.addressed() && policy_.config().kind != GraphAlgorithmKind::kWeightedSssp &&
+        policy_.config().kind != GraphAlgorithmKind::kConnectedComponents &&
+        policy_.config().kind != GraphAlgorithmKind::kResidualPageRank)
+      throw std::invalid_argument("addressed writeback admits SSSP, CC and ResPR only");
     input_.bind_nonempty_notifier(this,
                                   &ReGraphHbmWrapper::notify_work_available);
     for (const AxiEndpoint &port : write_ports_) {

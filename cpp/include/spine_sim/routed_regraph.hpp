@@ -37,6 +37,12 @@ enum class RoutedGatherSchedule {
 
 struct RoutedReGraphConfig {
   RoutedReGraphConfig();
+  // Vertex count is taken from the PMA layout; other policy fields are explicit.
+  AlgorithmPolicyConfig algorithm;
+  // PR starts from old resident rank/degrees. Deltas come from this batch;
+  // device preparation applies them and constructs the correction input.
+  std::vector<std::uint32_t> old_out_degrees;
+  std::vector<std::int32_t> degree_deltas;
   GraSuReGraphConfig compute;
   ReGraphPmaAdapterConfig adapter;
   std::size_t internal_fifo_depth{8};
@@ -53,7 +59,7 @@ struct RoutedReGraphConfig {
   // Preserve the earlier paired experiment's four-master XO by default.
   RoutedSourceTopology source_topology{RoutedSourceTopology::kFourDedicated};
   // Inspect, but never rewrite, the PMA/rows left by a drained G invocation.
-  // State/seed initialization is still caller-prepared, outside device timing.
+  // Old state initialization is outside timing; PR correction/degree updates are not.
   bool reuse_resident_pma{};
   RoutedInputPath input_path{RoutedInputPath::kPhysicalSlots};
   // Default one; two finite tiles explicitly enable directory read lookahead.
@@ -86,6 +92,8 @@ struct RoutedReGraphCounters {
   std::uint64_t extent_reads{}, row_reads{}, segment_reads{}, packets{}, live_edges{}, dummy_edges{};
   std::uint64_t source_blocks{}, source_lines{}, source_terminators{}, gather_rows{}, mux_rows{};
   std::uint64_t apply_reads{}, apply_writes{}, source_writes{}, status_writes{};
+  std::uint64_t degree_reads{}, prepare_state_reads{}, prepare_degree_reads{};
+  std::uint64_t prepare_degree_writes{}, prepare_source_writes{}, prepare_cycles{};
   std::uint64_t axi_requests{}, axi_completions{}, axi_beats{}, axi_completed_beats{};
   std::uint64_t start_cycle{}, end_cycle{};
   bool operator==(const RoutedReGraphCounters &) const = default;
@@ -93,8 +101,8 @@ struct RoutedReGraphCounters {
 
 // Compute-only, with PMA and the old graph's state already resident. The caller
 // advances the controller after every scheduler step. No host/DMA time is
-// silently represented as device cycles. SSSP only until other routed XOs are
-// separately admitted.
+// silently represented as device cycles. Algorithm support here is a simulator
+// contract, not admission of another algorithm's routed hardware or timing.
 class RoutedReGraphSystem {
 public:
   RoutedReGraphSystem(Scheduler &, ClockId, MemoryBackend &,
@@ -111,6 +119,7 @@ public:
   [[nodiscard]] const std::string &failure() const noexcept;
   [[nodiscard]] std::vector<std::uint32_t> distances() const;
   [[nodiscard]] std::vector<std::uint32_t> encoded_state() const;
+  [[nodiscard]] std::vector<std::uint32_t> residual_words() const;
   [[nodiscard]] std::vector<std::uint32_t> source_state(std::size_t copy, std::size_t buffer) const;
   [[nodiscard]] const GraSuReGraphRuntimePlan &runtime_plan() const noexcept;
   [[nodiscard]] const std::vector<RoutedReGraphInvocation> &invocations() const noexcept;

@@ -55,15 +55,21 @@ void RoutedReGraphSystem::Impl::initialize_memory() {
   }
   const auto &c = config.compute;
   const std::set<std::uint32_t> active(initial.active_vertices.begin(), initial.active_vertices.end());
-  std::vector<std::uint8_t> state, source;
+  const bool pr = policy.config().kind == GraphAlgorithmKind::kResidualPageRank;
+  std::vector<std::uint8_t> state, source, degrees;
   state.reserve(padded_vertices * 4);
   source.reserve(padded_vertices * 4);
   for (std::size_t vertex = 0; vertex < padded_vertices; ++vertex) {
-    const auto word = vertex < layout.vertices ? detail::encode_distance(initial.primary[vertex], false) : 0;
+    const auto word = vertex < layout.vertices ? detail::encode_policy_value(policy, initial.primary[vertex], false) : 0;
     append(state, word, 4);
-    append(source, word | (active.contains(vertex) ? detail::kReGraphActive : 0U), 4);
+    append(source, pr ? 0U : word | (active.contains(vertex) ? detail::kReGraphActive : 0U), 4);
+    if (pr) append(degrees, vertex < layout.vertices ? config.old_out_degrees[vertex] : 0U, 4);
   }
   backend.initialize_payload(30, c.vertex_state_base, state);
+  if (pr) {
+    backend.initialize_payload(30, c.degree_base, degrees);
+    backend.fill_payload(30, c.residual_state_base, padded_vertices * 4, 0);
+  }
   for (auto channel : {23U, 24U}) {
     backend.initialize_payload(channel, c.source_state_base, source);
     backend.fill_payload(channel, c.source_state_base + c.source_state_buffer_stride, padded_vertices * 4, 0);

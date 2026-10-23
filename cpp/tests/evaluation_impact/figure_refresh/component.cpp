@@ -3,6 +3,7 @@
 // clang-format on
 #include "host.hpp"
 #include "update.hpp"
+#include "dram_clock.hpp"
 #include "../warm_comparison/integrated.hpp"
 #include "../warm_comparison/spine.hpp"
 #include "../../../sst/sst_memory_backend.hpp"
@@ -11,19 +12,6 @@
 #include <numeric>
 
 namespace figure_refresh {
-class DramClock final : public Component {
- public:
-  DramClock(ClockId clock, spine::sim::sst_adapter::SstMemoryBackend& backend)
-      : Component("dram-clock", clock), backend_(backend) {}
-  bool has_prepare_phase() const noexcept override { return true; }
-  bool has_evaluate_phase() const noexcept override { return false; }
-  void prepare(const CycleContext& context) override { backend_.advance_direct_to(context.now_fs / 1000); }
-  void evaluate(const CycleContext&) override {}
-  void commit(const CycleContext&) override {}
- private:
-  spine::sim::sst_adapter::SstMemoryBackend& backend_;
-};
-
 class Refresh final : public SST::Component {
  public:
   Refresh(SST::ComponentId_t id, SST::Params& params) : SST::Component(id), params_(params) {

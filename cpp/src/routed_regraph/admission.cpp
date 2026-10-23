@@ -1,6 +1,7 @@
 #include "../detail/routed_regraph_system.hpp"
 
 #include <limits>
+#include <cmath>
 #include <set>
 
 namespace spine::sim {
@@ -17,6 +18,17 @@ RoutedReGraphConfig::RoutedReGraphConfig() {
 
 void RoutedReGraphSystem::Impl::admit() {
   const auto &c = config.compute;
+  const bool sssp = policy.config().kind == GraphAlgorithmKind::kWeightedSssp;
+  const bool cc = policy.config().kind == GraphAlgorithmKind::kConnectedComponents;
+  const bool pr = policy.config().kind == GraphAlgorithmKind::kResidualPageRank;
+  if (!sssp && !cc && !pr)
+    throw std::invalid_argument("routed algorithm is not admitted by the simulator");
+  if (pr && (policy.config().residual_contract != ResidualPageRankContract::kHardwareWarmDanglingLinf ||
+             !c.split_pagerank_state || c.degree_channel != 30 || !c.pagerank_source_map_latency ||
+             config.old_out_degrees.size() != layout.vertices || config.degree_deltas.size() != layout.vertices))
+    throw std::invalid_argument("routed ResPR requires warm dangling/Linf, split state and explicit old degrees/batch deltas");
+  if (!pr && (!config.old_out_degrees.empty() || !config.degree_deltas.empty()))
+    throw std::invalid_argument("non-PR algorithms must not carry hidden degree preparation");
   if (config.gather_schedule != RoutedGatherSchedule::kPartitionOrder &&
       config.gather_schedule != RoutedGatherSchedule::kReadyBurstsExperimental)
     throw std::invalid_argument("unsupported routed Gather output schedule");
@@ -70,7 +82,7 @@ void RoutedReGraphSystem::Impl::admit() {
       config.fixed_rounds > c.max_supersteps ||
       c.runtime_channel_capacity_bytes > kGraSuReGraphU55cChannelCapacityBytes ||
       config.adapter.format != ReGraphPmaFormat::kWeighted)
-    throw std::invalid_argument("unsupported measured SSSP K4 topology, dimensions or finite capacities");
+    throw std::invalid_argument("unsupported K4 topology, dimensions or finite capacities");
   padded_vertices = layout.partitions.size() * 65536;
   const auto state_bytes = padded_vertices * 4;
   if (state_bytes > kGraSuReGraphU55cChannelCapacityBytes / 2 ||
@@ -84,19 +96,47 @@ void RoutedReGraphSystem::Impl::admit() {
       (config.status_address < c.vertex_state_base + state_bytes &&
        config.status_address + 4 > c.vertex_state_base))
     throw std::invalid_argument("invalid or overlapping resident state allocations");
-  if (initial.primary.size() != layout.vertices || !initial.auxiliary.empty())
-    throw std::invalid_argument("SSSP resident state shape differs from the logical graph");
+  if (pr) {
+    const auto capacity = std::min(c.runtime_channel_capacity_bytes, kGraSuReGraphU55cChannelCapacityBytes);
+    const std::array<std::pair<std::uint64_t, std::uint64_t>, 4> regions{{
+        {c.vertex_state_base, state_bytes}, {c.residual_state_base, state_bytes},
+        {c.degree_base, state_bytes}, {config.status_address, 4}}};
+    for (std::size_t i = 0; i < regions.size(); ++i) {
+      const auto [base, bytes] = regions[i];
+      if ((i != 3 && base % 64) || base > capacity || bytes > capacity - base)
+        throw std::invalid_argument("PageRank state allocation exceeds its physical HBM bank");
+      for (std::size_t j = 0; j < i; ++j)
+        if (base < regions[j].first + regions[j].second && regions[j].first < base + bytes)
+          throw std::invalid_argument("PageRank rank/residual/degree/status allocations overlap");
+    }
+    if (c.source_state_base > capacity || c.source_state_buffer_stride > capacity - c.source_state_base ||
+        state_bytes > capacity - c.source_state_base - c.source_state_buffer_stride)
+      throw std::invalid_argument("PageRank source ping-pong exceeds its physical HBM bank");
+  }
+  if (initial.primary.size() != layout.vertices ||
+      (pr ? initial.auxiliary.size() != layout.vertices : !initial.auxiliary.empty()))
+    throw std::invalid_argument("resident state shape differs from the logical graph");
+  if (pr && (!initial.active_vertices.empty() ||
+             std::any_of(initial.auxiliary.begin(), initial.auxiliary.end(), [](auto v) { return v != 0; })))
+    throw std::invalid_argument("warm ResPR must begin before device correction, with zero residual and no host seed");
   std::set<std::uint32_t> active;
   for (auto vertex : initial.active_vertices)
     if (vertex >= layout.vertices || !active.insert(vertex).second)
-      throw std::invalid_argument("invalid or duplicate SSSP active vertex");
+      throw std::invalid_argument("invalid or duplicate active vertex");
   std::uint64_t largest_initial = 0, largest_weight = 0;
   for (auto value : initial.primary) {
-    if (value != GraphAlgorithmPolicy::kSsspInfinity && value >= detail::kReGraphInfinity)
+    if (cc && value >= layout.vertices)
+      throw std::invalid_argument("CC label is outside the logical vertex domain");
+    if (pr && (!std::isfinite(GraphAlgorithmPolicy::word_to_float(value)) ||
+               GraphAlgorithmPolicy::word_to_float(value) < 0))
+      throw std::invalid_argument("PageRank initial rank must be nonnegative finite FP32");
+    if (sssp && value != GraphAlgorithmPolicy::kSsspInfinity && value >= detail::kReGraphInfinity)
       throw std::invalid_argument("SSSP state does not fit the routed signed payload ABI");
-    if (value != GraphAlgorithmPolicy::kSsspInfinity) largest_initial = std::max(largest_initial, std::uint64_t(value));
+    if (sssp && value != GraphAlgorithmPolicy::kSsspInfinity)
+      largest_initial = std::max(largest_initial, std::uint64_t(value));
   }
 
+  std::vector<std::uint64_t> new_degrees(pr ? layout.vertices : 0);
   for (std::size_t p = 0; p < layout.partitions.size(); ++p) {
     auto &part = layout.partitions[p];
     const auto expected_vertices = std::min<std::size_t>(65536, layout.vertices - p * 65536);
@@ -117,13 +157,19 @@ void RoutedReGraphSystem::Impl::admit() {
       throw std::invalid_argument("PMA extent differs from the allocated segments");
     if ((last_source / 4096 + 2) * 4096 > padded_vertices)
       throw std::invalid_argument("Scatter source lookahead exceeds the measured host allocation");
+    if (pr)
+      for (std::size_t source = 0; source < layout.vertices; ++source) {
+        const auto [begin, end] = part.row_slot_bounds[source];
+        for (auto slot = begin; slot < end; ++slot)
+          new_degrees[source] += (part.segments[slot / 16][slot % 16] & 0x80000000U) == 0;
+      }
     for (const auto &segment : part.segments)
       for (auto word : segment) {
         if (word & 0x80000000U) continue;
         if ((word & 0x7ffffU) >= part.destination_vertices)
           throw std::invalid_argument("PMA live destination is outside its logical shard");
         largest_weight = std::max(largest_weight, std::uint64_t((word >> 19) & 0xfffU));
-        if (compact && ((word >> 19) & 0xfffU) == 0)
+        if (sssp && compact && ((word >> 19) & 0xfffU) == 0)
           throw std::invalid_argument("experimental compact input currently admits positive weights only");
       }
 
@@ -144,11 +190,17 @@ void RoutedReGraphSystem::Impl::admit() {
     // contents are maintenance state, not read by this compute-only system.
     part.binary_heads.resize(part.segments.size());
   }
+  if (pr)
+    for (std::size_t v = 0; v < layout.vertices; ++v) {
+      const auto expected = std::int64_t(config.old_out_degrees[v]) + config.degree_deltas[v];
+      if (expected < 0 || std::uint64_t(expected) != new_degrees[v])
+        throw std::invalid_argument("old degree plus batch delta differs from physical new PMA graph");
+    }
   // Legacy arithmetic saturates at a different infinity from the HLS UDF.
   // Admit only a conservative domain where no executed walk can hit that
   // difference; do not silently clip a candidate and call it HLS-equivalent.
   const auto horizon = config.fixed_rounds ? config.fixed_rounds : c.max_supersteps;
-  if (largest_weight && horizon > (detail::kReGraphInfinity - 1 - largest_initial) / largest_weight)
+  if (sssp && largest_weight && horizon > (detail::kReGraphInfinity - 1 - largest_initial) / largest_weight)
     throw std::invalid_argument("routed SSSP near-infinity arithmetic is outside the admitted domain");
   auto updates = c.runtime_physical_updates_per_shard;
   if (updates.empty()) updates.resize(layout.partitions.size());

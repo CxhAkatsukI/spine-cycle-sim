@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input.hpp"
+#include "resident_g.hpp"
 #include "../k4_config.hpp"
 #include "../handoff/memory.hpp"
 #include "../progress.hpp"
@@ -12,72 +13,22 @@ inline void integrated_with_backend(const Input& input, const std::filesystem::p
     std::uint64_t maximum, bool update_only = false) {
   const auto external_components = scheduler.component_count();
   scheduler.add_component(backend);
-  handoff_test::Fixture fixture{};
-  fixture.vertices = input.after.compact.vertices;
-  fixture.before = input.before;
-  fixture.after = input.after.edges;
-  fixture.updates = input.updates;
-  fixture.warm = input.after.initial;
-  auto reservations = fixture.updates;
-  // Routed R requires a physical source-0 row in every shard, even if empty.
-  // Reserve it before G; the resident handoff must never inject graph storage.
-  for (std::size_t p = 0; p * 65536 < fixture.vertices; ++p) {
-    const auto owns_source_zero = [p](const auto& edge) {
-      return edge.source == 0 && edge.destination / 65536 == p;
-    };
-    if (std::none_of(fixture.before.begin(), fixture.before.end(), owns_source_zero) &&
-        std::none_of(fixture.updates.begin(), fixture.updates.end(), owns_source_zero))
-      reservations.push_back({0, static_cast<std::uint32_t>(p * 65536), 1, false});
-  }
-  fixture.layout = GraSuPartitionedPmaLayout::build(fixture.vertices, 65536, fixture.before,
-      reservations, GraSuPmaWordAbi::kWeightedFullWord);
-  fixture.physical_counts.resize(fixture.layout.partitions.size());
-  for (const auto& edge : fixture.updates) ++fixture.physical_counts.at(edge.destination / 65536);
-  GraSuNativeConfig g_config;
-  g_config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
-  g_config.cache_segments_per_half = 131072;
-  // Preserve natural row geometry instead of padding this diagnostic to a
-  // synthetic 16-MiB cache window; every edited segment is physically read/written.
-  g_config.compact_parallel_search = g_config.compact_finite_search = true;
-  g_config.compact_search_contexts = 64;
-  g_config.compact_metadata_credits = 32;
-  GraSuShardedPmaUpdateSystem g(scheduler, clock, backend, fixture.layout, fixture.updates, g_config,
-                               kGraSuReGraphU55cChannelCapacityBytes);
-  const auto plan = g.runtime_plan();
-  for (std::size_t p = 0; p < fixture.layout.partitions.size(); ++p)
-    initialize_grasu_pma_layout_payloads(backend, fixture.layout.partitions[p],
-        handoff_test::shard_config(plan, p, g_config.cache_segments_per_half));
-  g.register_components();
-  for (std::uint64_t i = 0; i < maximum && !g.done() && !g.failed(); ++i) {
-    scheduler.step(); g.advance_if_complete();
-  }
-  require(g.done() && !g.failed() && backend.outstanding() == 0, "G failed or exhausted cycle budget");
-  require(handoff_test::edge_set(g.live_edges()) == handoff_test::edge_set(fixture.after),
-          "G graph does not match the declared batch");
-  const auto layout = g.materialized_partitioned_layout();
-  const auto expected = handoff_test::edited_layout(fixture);
-  for (std::size_t p = 0; p < layout.partitions.size(); ++p)
-    require(layout.partitions[p].segments == expected.partitions[p].segments &&
-        layout.partitions[p].row_slot_bounds == fixture.layout.partitions[p].row_slot_bounds,
-        "G physical PMA differs from independent edit oracle");
-  const auto gc = g.counters();
-  const auto gt = backend.traffic_stats();
-  require(gc.updates == input.updates.size() &&
-      gt.reads.bytes == gc.update_read_bytes + gc.row_read_bytes + gc.binary_read_bytes + gc.pma_read_bytes &&
-      gt.writes.bytes == gc.pma_write_bytes, "G physical byte ledger mismatch");
-  std::cout << "WARM_STAGE {\"stage\":\"G\",\"cycles\":" << gc.end_cycle - gc.start_cycle << "}" << std::endl;
-  g.unregister_components();
+  const auto resident = resident_g(input, scheduler, clock, backend, maximum);
+  const auto& layout = resident.layout;
+  const auto& plan = resident.plan;
+  const auto& gc = resident.counters;
+  const auto& gt = resident.traffic;
   if (update_only) {
     std::cout << "WARM_RESULT {\"arm\":\"gr\",\"cycles\":" << gc.end_cycle - gc.start_cycle
         << ",\"read_bytes\":" << gt.reads.bytes << ",\"write_bytes\":" << gt.writes.bytes
         << ",\"correctness\":true,\"ledger_closed\":true}" << std::endl;
     return;
   }
-  const auto graph = handoff_test::graph_bytes(backend, layout, plan);
+  const auto& graph = resident.graph;
   auto config = ei::k4_configuration(ei::control("prefetch_gather_reuse"));
   config.reuse_resident_pma = true;
-  config.compute.cache_segments_per_half = g_config.cache_segments_per_half;
-  config.compute.runtime_physical_updates_per_shard = fixture.physical_counts;
+  config.compute.cache_segments_per_half = 131072;
+  config.compute.runtime_physical_updates_per_shard = resident.physical_counts;
   config.compute.vertex_state_base = config.compute.source_state_base = 0;
   config.compute.source_state_buffer_stride = input.after.compact.aligned_vertices * 4ull;
   config.status_address = config.compute.source_state_buffer_stride;

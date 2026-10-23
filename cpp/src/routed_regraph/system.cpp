@@ -27,6 +27,16 @@ RoutedReGraphCounters RoutedReGraphSystem::Impl::counters() const {
   c.mux_rows = mux->rows();
   c.apply_reads = apply->reads();
   c.apply_writes = apply->writes();
+  c.degree_reads = apply->degree_reads();
+  if (pagerank_prepare) {
+    const auto p = pagerank_prepare->counters();
+    c.prepare_state_reads = p.state_reads;
+    c.prepare_degree_reads = p.degree_reads;
+    c.prepare_degree_writes = p.degree_writes;
+    c.prepare_source_writes = p.source_writes;
+    c.prepare_cycles = p.end ? p.end - p.start : 0;
+    c.start_cycle = p.start;
+  }
   c.source_writes = writeback->source_writes();
   c.status_writes = status->writes();
   for (const auto &port : ports) {
@@ -36,7 +46,10 @@ RoutedReGraphCounters RoutedReGraphSystem::Impl::counters() const {
     c.axi_beats += s.beats_issued;
     c.axi_completed_beats += s.beats_completed;
   }
-  if (!rounds.empty()) { c.start_cycle = rounds.front().start; c.end_cycle = rounds.back().end; }
+  if (!rounds.empty()) {
+    if (!pagerank_prepare) c.start_cycle = rounds.front().start;
+    c.end_cycle = rounds.back().end;
+  }
   return c;
 }
 
@@ -57,7 +70,13 @@ std::vector<std::uint32_t> RoutedReGraphSystem::encoded_state() const {
 std::vector<std::uint32_t> RoutedReGraphSystem::distances() const {
   auto words = encoded_state();
   words.resize(impl_->layout.vertices);
-  for (auto &word : words) word = detail::policy_distance(word);
+  for (auto &word : words) word = detail::decode_policy_value(impl_->policy, word);
+  return words;
+}
+std::vector<std::uint32_t> RoutedReGraphSystem::residual_words() const {
+  if (!impl_->pagerank_prepare) return {};
+  auto words = impl_->read_words(30, impl_->config.compute.residual_state_base);
+  words.resize(impl_->layout.vertices);
   return words;
 }
 std::vector<std::uint32_t> RoutedReGraphSystem::source_state(std::size_t copy, std::size_t buffer) const {

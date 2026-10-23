@@ -6,6 +6,11 @@ Read `data/summary.json` for the completed coverage and `data/missing.csv` for
 unsupported or failed pairs. Missing values are not projected or copied from
 the old evaluation. No new FPGA timing calibration is claimed.
 
+The data and conclusions below describe the preceding frozen SSSP-only
+collection. A separate [CC/ResPR completion plan](MULTIALGORITHM_PLAN.md)
+tracks the extension; until its full matrix and evidence package pass, it
+does not replace this collection or retroactively change its coverage.
+
 ## Completed Results
 
 Seven Figure 8 pairs and three Figure 9 SSSP pairs pass correctness and

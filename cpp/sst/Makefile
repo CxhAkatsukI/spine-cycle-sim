@@ -82,6 +82,7 @@ SOURCES := online_memory_probe.cpp \
            $(ROOT)/cpp/src/routed_regraph/input.cpp \
            $(ROOT)/cpp/src/routed_regraph/transport.cpp \
            $(ROOT)/cpp/src/routed_regraph/admission.cpp \
+           $(ROOT)/cpp/src/routed_regraph/pagerank_prepare.cpp \
            $(ROOT)/cpp/src/routed_regraph/resident_memory.cpp \
            $(ROOT)/cpp/src/routed_regraph/composition.cpp \
            $(ROOT)/cpp/src/routed_regraph/rounds.cpp \

@@ -26,6 +26,7 @@ void RoutedReGraphSystem::Impl::start_lksg(std::size_t worker) {
   else f.ingress->start(part.slots / 8);
   f.scatter->start_partition({.physical_slots = part.slots, .destination_base = part.destination_base,
                              .destination_vertices = part.destination_vertices,
+                             .iteration = {.base = 0, .dangling_share = dangling_share},
                              .terminal_framed = compact});
   f.gather->start_partition(part.destination_vertices,
                             !config.experimental_gather_reuse || !f.gather_initialized);
@@ -69,6 +70,12 @@ bool RoutedReGraphSystem::Impl::idle() const {
 bool RoutedReGraphSystem::Impl::advance() {
   if (!registered) throw std::logic_error("cannot advance an unregistered routed system");
   if (complete) return true;
+  if (rounds.empty() && pagerank_prepare) {
+    if (!pagerank_prepare->done()) return false;
+    dangling_share = pagerank_prepare->dangling_share();
+    start_round();
+    return false;
+  }
   bool frontends_done = true;
   for (std::size_t worker = 0; worker < 4; ++worker) {
     auto &f = *frontends[worker];
@@ -103,8 +110,13 @@ bool RoutedReGraphSystem::Impl::advance() {
     complete = true;
   } else if (rounds.size() >= config.compute.max_supersteps) {
     complete = failed = true;
-    failure = "routed SSSP reached the superstep limit before the declared completion boundary";
-  } else start_round();
+    failure = "routed graph algorithm reached the superstep limit before the declared completion boundary";
+  } else {
+    if (pagerank_prepare)
+      dangling_share = GraphAlgorithmPolicy::float_to_word(policy.config().damping *
+          apply->next_dangling() / static_cast<float>(layout.vertices));
+    start_round();
+  }
   return complete;
 }
 

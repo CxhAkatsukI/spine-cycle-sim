@@ -2,6 +2,13 @@
 
 namespace spine::sim {
 using namespace detail;
+namespace {
+AlgorithmPolicyConfig layout_policy(const RoutedReGraphConfig &config, std::size_t vertices) {
+  auto policy = config.algorithm;
+  policy.vertices = vertices;
+  return policy;
+}
+}
 
 RoutedReGraphSystem::Impl::Client::Client(std::string name, ClockId clock, std::size_t depth)
     : requests(name + "-requests", clock, depth), responses(name + "-responses", clock, depth),
@@ -25,7 +32,7 @@ RoutedReGraphSystem::Impl::Impl(Scheduler &scheduler_, ClockId clock_, MemoryBac
     GraSuPartitionedPmaLayout layout_, AlgorithmInitialState initial_, RoutedReGraphConfig config_)
     : scheduler(scheduler_), clock(clock_), backend(backend_), layout(std::move(layout_)),
       initial(std::move(initial_)), config(std::move(config_)),
-      policy({.kind = GraphAlgorithmKind::kWeightedSssp, .vertices = layout.vertices}),
+      policy(layout_policy(config, layout.vertices)),
       ordered_rows("ordered-rows", clock, config.mux_stream_depth),
       merged("merged", clock, config.compute.merger_apply_fifo_depth),
       applied("applied", clock, config.compute.apply_wrapper_fifo_depth) {
@@ -110,14 +117,32 @@ void RoutedReGraphSystem::Impl::build() {
   auto &read = client("apply-read");
   auto &write = client("apply-write");
   auto &status_client = client("apply-status");
+  const bool pr = policy.config().kind == GraphAlgorithmKind::kResidualPageRank;
+  std::vector<AxiEndpoint> reads{read.endpoint()}, writes{write.endpoint(), status_client.endpoint()};
+  std::optional<AxiEndpoint> degree, auxiliary_read, auxiliary_write;
+  if (pr) {
+    degree = client("apply-degree").endpoint();
+    auxiliary_read = client("apply-residual-read").endpoint();
+    auxiliary_write = client("apply-residual-write").endpoint();
+    auto prepare_read = client("prepare-rank-read").endpoint();
+    auto prepare_degree = client("prepare-degree-read").endpoint();
+    auto prepare_write = client("prepare-degree-write").endpoint();
+    reads.insert(reads.end(), {*degree, *auxiliary_read, prepare_read, prepare_degree});
+    writes.insert(writes.end(), {*auxiliary_write, prepare_write});
+    pagerank_prepare = std::make_unique<RoutedPageRankPrepare>(clock, layout.vertices, policy,
+        config.compute, config.degree_deltas, RoutedPageRankPreparePorts{
+            prepare_read, prepare_degree, prepare_write, primary_write.endpoint(), mirror_write.endpoint()});
+    components.push_back(pagerank_prepare.get());
+  }
   if (config.apply_topology == RoutedApplyTopology::kSplitMastersExperimental) {
     // Keep registered routing on both paths; only physical parent storage splits.
-    share("apply-read-mux", port("apply-read-master", 30), {read.endpoint()});
+    share("apply-read-mux", port("apply-read-master", 30), reads);
     share("apply-write-mux", port("apply-write-master", 30),
-          {write.endpoint(), status_client.endpoint()});
+          writes);
   } else {
+    reads.insert(reads.end(), writes.begin(), writes.end());
     share("apply-master-mux", port("apply-master", 30),
-          {read.endpoint(), write.endpoint(), status_client.endpoint()});
+          reads);
   }
   auto global = config.compute;
   global.partition_vertices = padded_vertices;
@@ -128,8 +153,9 @@ void RoutedReGraphSystem::Impl::build() {
   merger = make_regraph_merger("global-merger", clock, global, ordered_rows, merged, order);
   // The hardware processes padding as initialized zero-valued vertices, not
   // the legacy simulator's out-of-range INF sentinel branch.
-  apply = make_regraph_apply("global-apply", clock, padded_vertices, policy, global, merged, applied,
-      ReGraphApplyPorts{read.endpoint(), write.endpoint(), std::nullopt, std::nullopt, std::nullopt},
+  apply = make_regraph_apply("global-apply", clock, pr ? layout.vertices : padded_vertices,
+      policy, global, merged, applied,
+      ReGraphApplyPorts{read.endpoint(), write.endpoint(), degree, auxiliary_read, auxiliary_write},
       *frontends[0]->scatter, order);
   apply_observer = std::make_unique<RoutedApplyObserver>(clock, *apply);
   writeback = make_regraph_writeback("global-writeback", clock, global, policy, applied,
@@ -145,7 +171,8 @@ void RoutedReGraphSystem::Impl::register_components(bool reverse) {
   if (reverse) std::reverse(components.begin(), components.end());
   for (auto *component : components) scheduler.add_component(*component);
   registered = started = true;
-  start_round();
+  if (pagerank_prepare) pagerank_prepare->start(cycle());
+  else start_round();
 }
 
 void RoutedReGraphSystem::Impl::unregister_components() {

@@ -1,4 +1,5 @@
 #include "detail/grasu_regraph_compute.hpp"
+#include "detail/pagerank_dangling_reduction.hpp"
 
 #include <cmath>
 #include <deque>
@@ -26,8 +27,10 @@ public:
         degree_port_(degree_port), iteration_context_(iteration_context),
         auxiliary_read_port_(auxiliary_read_port),
         auxiliary_write_port_(auxiliary_write_port), coverage_(order) {
-    if (coverage_.addressed() && policy_.config().kind != GraphAlgorithmKind::kWeightedSssp)
-      throw std::invalid_argument("addressed Apply currently admits weighted SSSP only");
+    if (coverage_.addressed() && policy_.config().kind != GraphAlgorithmKind::kWeightedSssp &&
+        policy_.config().kind != GraphAlgorithmKind::kConnectedComponents &&
+        policy_.config().kind != GraphAlgorithmKind::kResidualPageRank)
+      throw std::invalid_argument("addressed Apply admits SSSP, CC and ResPR only");
     if (uses_page_rank() && degree_port_ == std::nullopt) {
       throw std::invalid_argument("PageRank apply requires a degree AXI port");
     }
@@ -90,6 +93,9 @@ public:
       iteration_error_ = 0.0F;
       next_dangling_ = 0.0F;
     }
+    dangling_partials_ = {};
+    dangling_reduction_step_ = 0;
+    reducing_dangling_ = false;
     done_ = false;
     running_ = true;
     refresh_evaluate_ready();
@@ -170,7 +176,7 @@ public:
             staged_degree_response_.has_value() ||
             staged_write_response_.has_value() ||
             staged_auxiliary_write_response_.has_value() ||
-            staged_output_stall_);
+            staged_output_stall_ || reducing_dangling_);
   }
 
   void evaluate(const CycleContext &context) override {
@@ -361,6 +367,17 @@ public:
       refresh_evaluate_ready();
       return;
     }
+    if (reducing_dangling_) {
+      next_dangling_ += dangling_partials_.partial(dangling_reduction_step_++);
+      if (dangling_reduction_step_ == PageRankDanglingReduction::cycles) {
+        running_ = reducing_dangling_ = false;
+        done_ = true;
+        done_signal_.notify();
+      }
+      clear_staged();
+      refresh_evaluate_ready();
+      return;
+    }
     if (staged_read_response_.has_value()) {
       consume_read_response(*staged_read_response_, context.domain_cycle,
                             ReadKind::kPrimary);
@@ -435,9 +452,13 @@ public:
     if (completed_writes_ == total_bursts() &&
         (auxiliary_write_port_ == std::nullopt ||
          completed_auxiliary_writes_ == total_bursts())) {
-      running_ = false;
-      done_ = true;
-      done_signal_.notify();
+      if (config_.split_pagerank_state && uses_page_rank()) {
+        reducing_dangling_ = true;
+      } else {
+        running_ = false;
+        done_ = true;
+        done_signal_.notify();
+      }
     }
     clear_staged();
     refresh_evaluate_ready();
@@ -509,7 +530,7 @@ private:
     suspended_read_window_ = pure_read_window_wait;
     evaluate_ready_ = running_ && !pure_read_window_wait &&
                       (response_available() || staged_response ||
-                       !ready_writes_.empty() || input_available);
+                       !ready_writes_.empty() || input_available || reducing_dangling_);
     set_latched_evaluate_ready(evaluate_ready_);
   }
 
@@ -665,7 +686,8 @@ private:
                 ? policy_.config().damping * value / static_cast<float>(degree)
                 : 0.0F);
         if (source_active && degree == 0) {
-          next_dangling_ += value;
+          if (config_.split_pagerank_state) dangling_partials_.add(vertex, value);
+          else next_dangling_ += value;
         }
       } else {
         source_payload[lane] = result[lane];
@@ -739,6 +761,9 @@ private:
   std::size_t active_vertices_{};
   float iteration_error_{};
   float next_dangling_{};
+  PageRankDanglingReduction dangling_partials_;
+  std::size_t dangling_reduction_step_{};
+  bool reducing_dangling_{};
   bool staged_output_stall_{};
   bool running_{};
   bool done_{};

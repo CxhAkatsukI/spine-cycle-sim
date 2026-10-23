@@ -38,6 +38,7 @@ add_library(spine_cycle_core STATIC
   src/routed_regraph/input.cpp
   src/routed_regraph/transport.cpp
   src/routed_regraph/admission.cpp
+  src/routed_regraph/pagerank_prepare.cpp
   src/routed_regraph/resident_memory.cpp
   src/routed_regraph/composition.cpp
   src/routed_regraph/rounds.cpp
@@ -161,6 +162,16 @@ if(BUILD_TESTING)
   target_link_libraries(routed_ready_burst_tests PRIVATE spine_cycle_core)
   target_compile_options(routed_ready_burst_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME routed_ready_burst_tests COMMAND routed_ready_burst_tests)
+
+  add_executable(routed_algorithm_tests tests/routed_regraph/algorithm_tests.cpp)
+  target_link_libraries(routed_algorithm_tests PRIVATE spine_cycle_core)
+  target_compile_options(routed_algorithm_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME routed_algorithm_tests COMMAND routed_algorithm_tests)
+
+  add_executable(routed_pagerank_tests tests/routed_regraph/pagerank_tests.cpp)
+  target_link_libraries(routed_pagerank_tests PRIVATE spine_cycle_core)
+  target_compile_options(routed_pagerank_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME routed_pagerank_tests COMMAND routed_pagerank_tests)
 
   add_executable(grasu_routed_handoff_tests tests/evaluation_impact/handoff/tests.cpp)
   target_link_libraries(grasu_routed_handoff_tests PRIVATE spine_cycle_core)
