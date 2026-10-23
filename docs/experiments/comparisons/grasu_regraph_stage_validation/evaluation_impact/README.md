@@ -27,6 +27,11 @@ latency, credits or an upstream control to manufacture agreement. Original
 paper reproduction additionally requires its actual workload and denominator;
 same-source controls cannot silently stand in for that claim.
 
+On 2026-10-23 the user authorized an
+[exploratory common-warm Spine diagnostic](warm_comparison/README.md)
+before complete admission. This preserves the outstanding gates and reports
+device-cycle predictions, including failures, rather than replacing Figure 7.
+
 The latest [current-input isolation](r_bank_stream/prefetch_compact/INPUT_ISOLATION.md)
 passes sixteen diagnostic executions, eight exact historical replays and
 physical-byte conservation. High-latency input service remains restricted;
@@ -44,7 +49,7 @@ not production admission, and no FPGA work is required for these diagnostics.
 | R, fixed Amazon warm SSSP | Default current/A4 remains 2.951 / 3.635 at latency 64/128. The latest source-backed Gather reuse control passes twelve complete executions, exact eight-row old replay, 144 finite-input executions and a fresh 37/37 numerical-core suite. It takes 0.953364 / 1.157245 times A4, reducing complete cycles by 12.11% / 6.94% from the wrapper control without changing traffic | Only latency 64 passes the 10% gate; overall retention still fails and the candidate stays default-off. A4 has 13 masters/four state replicas versus candidate 16/three, not strict resource equality. Remaining input/service restrictions, broader inputs, host costs and original-publication matching remain open; do not adjust timing to fit |
 | Physical G-to-R handoff | All 12 complete-cache executions pass high source IDs, hot/DDR edits, full preload/writeback and exact downstream convergence; 34 CTest targets, 228 old G rows and default SST regressions pass | Correctness alone cannot admit realistic batch performance; cache cost is paid once per updated shard |
 | Host/seed and complete baseline | Device windows and excluded preparation are defined explicitly | Host/seed timing and complete baseline admission are not established |
-| New Spine comparison | No replacement evaluation claimed | Requires the preceding gates and a common warm-state-to-convergence run |
+| Exploratory Spine comparison | Complete 12-execution common-warm diagnostic: Amazon three-insertion SSSP gives 5.3226 / 5.2749 times G+R/Spine at latency 64/128; the small latency-128 smoke instead gives 0.7224. Full-state and ledger checks pass | Device-only, one real slice/two-round propagation; current-batch A4, broader algorithms/batches, resource equality and host-inclusive comparison remain open. No replacement evaluation claimed |
 
 These are simulator predictions and correctness checks, not new measured FPGA
 speedups. The original G window is co-located; the newer whole-batch study
@@ -78,6 +83,7 @@ scope; they are not overwritten when a later candidate improves.
 
 | Question | Guide |
 | --- | --- |
+| Does improved R erase Spine's advantage in a first common-warm diagnostic? | [Exploratory Spine comparison](warm_comparison/README.md), twelve complete SSSP executions with real physical G-to-R handoff, approximately 5.3-times advantage on one real slice and a retained negative smoke; device prediction only |
 | Does the current two-pair bank-stream R retain A4 compute performance? | [Current bank-stream convergence controls](r_bank_stream/README.md), completed 32-row matrix, exact 28-row replay and retained approximately 3-times mismatch |
 | Does finite prefetch and padding compaction recover complete R performance? | [Compact-input convergence](r_bank_stream/prefetch_compact/CONVERGENCE.md), default-off input owner, full-state and legacy replay gates; retention has not passed |
 | Which waits remain after compaction? | [Passive R observations](r_bank_stream/prefetch_compact/OBSERVATIONS.md), exact twelve-row replay, order-independent overlapping counters and candidate next steps; no timing change |

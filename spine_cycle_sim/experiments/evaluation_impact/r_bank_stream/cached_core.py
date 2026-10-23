@@ -40,10 +40,13 @@ def command(root, core, output, compiler, source):
             "-o", str(output), str(core / "liboriginal_regraph_cycle.a"), str(core / "libspine_cycle_core.a")]
 
 
-def validate_convergence(root, reference, compiler):
+def validate_convergence(root, reference, compiler, *, complete_status="PREFETCH_CAPACITY_COMPLETE_SIMULATOR_PREDICTION"):
     """Reuse only unchanged numerical code from a complete, tested capacity run."""
     report = json.loads(reference.read_text())
-    if (report.get("status") != "PREFETCH_CAPACITY_COMPLETE_SIMULATOR_PREDICTION" or
+    if complete_status not in ("PREFETCH_CAPACITY_COMPLETE_SIMULATOR_PREDICTION",
+                              "GATHER_REUSE_COMPLETE_SIMULATOR_PREDICTION"):
+        raise ValueError("unknown complete-core reference type")
+    if (report.get("status") != complete_status or
             report.get("pins_unchanged") is not True or len(report.get("r_rows", [])) != 12 or
             report.get("failures") != []):
         raise ValueError("complete tested capacity reference required for core reuse")

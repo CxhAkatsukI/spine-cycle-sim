@@ -157,6 +157,17 @@ class CachedCoreTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "differs"):
             cached_core.validate_convergence(self.root, reference, compiler)
 
+    def test_gather_reference_requires_explicit_known_status(self):
+        reference, compiler = self.capacity_reference()
+        report = json.loads(reference.read_text())
+        report["status"] = "GATHER_REUSE_COMPLETE_SIMULATOR_PREDICTION"
+        reference.write_text(json.dumps(report))
+        with self.assertRaises(ValueError):
+            cached_core.validate_convergence(self.root, reference, compiler)
+        cached_core.validate_convergence(self.root, reference, compiler, complete_status=report["status"])
+        with self.assertRaisesRegex(ValueError, "unknown"):
+            cached_core.validate_convergence(self.root, reference, compiler, complete_status="RUNNING")
+
 
 if __name__ == "__main__":
     unittest.main()
