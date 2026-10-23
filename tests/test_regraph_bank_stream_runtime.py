@@ -10,6 +10,14 @@ from spine_cycle_sim.experiments.evaluation_impact.r_bank_stream import runtime
 
 
 class ReservationTests(unittest.TestCase):
+    def test_large_input_profile_is_serial_and_reserves_full_limit(self):
+        selected = runtime.settings(runtime.LARGE_CPU, 1)
+        self.assertEqual(selected["high_gib"], 36)
+        self.assertEqual(selected["policy"]["tree_memory_gib"], 40)
+        self.assertEqual(selected["policy"]["reserve_gib"], 24)
+        with self.assertRaisesRegex(ValueError, "one worker"):
+            runtime.settings(runtime.LARGE_CPU, 2)
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)

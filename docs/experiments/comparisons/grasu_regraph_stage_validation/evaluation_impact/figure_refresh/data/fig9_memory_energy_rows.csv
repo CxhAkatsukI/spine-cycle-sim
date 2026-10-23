@@ -1,0 +1,4 @@
+dataset,algorithm,algorithm_label,memory_ratio_gr_over_spine,hbm_energy_ratio_gr_over_spine,spine_memory_bytes,gr_memory_bytes
+AU,weighted_sssp,SSSP,5129.996255850234,21.344389200262768,25640,131533104
+SU,weighted_sssp,SSSP,6916.253322119428,28.144547748871563,23780,164468504
+WK,weighted_sssp,SSSP,1265.3071138696587,18.78447128742308,33512,42402972

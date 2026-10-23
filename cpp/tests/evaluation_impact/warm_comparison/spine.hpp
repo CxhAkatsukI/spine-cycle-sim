@@ -6,11 +6,8 @@
 #include <iostream>
 
 namespace warm_comparison {
-inline void spine(const Input& input, const std::filesystem::path& output,
-                  std::uint64_t latency, std::uint64_t maximum) {
-  Scheduler scheduler;
-  const auto clock = scheduler.add_clock_mhz("core", 150);
-  MockMemoryBackend backend("memory", clock, {32, latency, 1, 32, 32, true});
+inline void spine_with_backend(const Input& input, const std::filesystem::path& output,
+    Scheduler& scheduler, ClockId clock, MemoryBackend& backend, std::uint64_t maximum) {
   SpineL0Config config;
   config.maintenance_architecture = SpineMaintenanceArchitecture::kCandidate10OnePass;
   config.segmented_fallback = true;
@@ -69,5 +66,12 @@ inline void spine(const Input& input, const std::filesystem::path& output,
       << ",\"owner_control_cycles\":" << result.owner_control_cycles
       << ",\"hot_vertices\":" << classification.hot_vertices.size()
       << ",\"correctness\":true,\"ledger_closed\":true}" << std::endl;
+}
+inline void spine(const Input& input, const std::filesystem::path& output,
+                  std::uint64_t latency, std::uint64_t maximum) {
+  Scheduler scheduler;
+  const auto clock = scheduler.add_clock_mhz("core", 150);
+  MockMemoryBackend backend("memory", clock, {32, latency, 1, 32, 32, true});
+  spine_with_backend(input, output, scheduler, clock, backend, maximum);
 }
 }  // namespace warm_comparison

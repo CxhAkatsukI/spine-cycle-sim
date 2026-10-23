@@ -1,0 +1,15 @@
+table,dataset,updates,metric,old,new,new_over_old,controlled_ablation,caveat
+fig8_update_cross_dataset.csv,AU,512,spine_speedup,11.24095305751264,3.4157432060437594,0.3038659790293247,False,new implementation and traces; energy includes all 32 budget channels
+fig8_update_cross_dataset.csv,SU,512,spine_speedup,10.366958218808586,2.706794715185349,0.26109825640798473,False,new implementation and traces; energy includes all 32 budget channels
+fig8_update_cross_dataset.csv,WK,512,spine_speedup,18.479548982458642,8.800528207745996,0.47623068160915233,False,new implementation and traces; energy includes all 32 budget channels
+fig8_update_cross_dataset.csv,SO,512,spine_speedup,18.938574830632575,4.49373606213985,0.23727952616959155,False,new implementation and traces; energy includes all 32 budget channels
+fig8_update_cross_dataset.csv,PK,512,spine_speedup,6.090461726822399,1.3149277458605262,0.21589951712028388,False,new implementation and traces; energy includes all 32 budget channels
+fig8_update_batch_sensitivity.csv,AU,64,spine_speedup,11.46878804653828,3.098812051844418,0.2701952498616241,False,new implementation and traces; energy includes all 32 budget channels
+fig8_update_batch_sensitivity.csv,AU,512,spine_speedup,11.24095305751264,3.4157432060437594,0.3038659790293247,False,new implementation and traces; energy includes all 32 budget channels
+fig8_update_batch_sensitivity.csv,AU,4096,spine_speedup,10.065806368826141,3.269929002994887,0.3248551465406562,False,new implementation and traces; energy includes all 32 budget channels
+fig9_memory_energy_rows.csv,AU,8,memory_ratio_gr_over_spine,4016.5934477379096,5129.996255850234,1.2772007728936015,False,new implementation and traces; energy includes all 32 budget channels
+fig9_memory_energy_rows.csv,AU,8,hbm_energy_ratio_gr_over_spine,1421.7753663411363,21.344389200262768,0.015012490514019402,False,new implementation and traces; energy includes all 32 budget channels
+fig9_memory_energy_rows.csv,SU,8,memory_ratio_gr_over_spine,5459.606391925989,6916.253322119428,1.2668043858157285,False,new implementation and traces; energy includes all 32 budget channels
+fig9_memory_energy_rows.csv,SU,8,hbm_energy_ratio_gr_over_spine,2251.5744822348024,28.144547748871563,0.012499940806282661,False,new implementation and traces; energy includes all 32 budget channels
+fig9_memory_energy_rows.csv,WK,8,memory_ratio_gr_over_spine,5848.6044402005255,1265.3071138696587,0.21634342462494802,False,new implementation and traces; energy includes all 32 budget channels
+fig9_memory_energy_rows.csv,WK,8,hbm_energy_ratio_gr_over_spine,5141.8015481363045,18.78447128742308,0.0036532859371501206,False,new implementation and traces; energy includes all 32 budget channels

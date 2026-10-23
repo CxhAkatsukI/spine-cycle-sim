@@ -7,11 +7,10 @@
 #include <iostream>
 
 namespace warm_comparison {
-inline void integrated(const Input& input, const std::filesystem::path& output,
-                       std::uint64_t latency, bool reverse, std::uint64_t maximum) {
-  Scheduler scheduler;
-  const auto clock = scheduler.add_clock_mhz("core", 150);
-  MockMemoryBackend backend("memory", clock, {32, latency, 1, 32, 32, true});
+inline void integrated_with_backend(const Input& input, const std::filesystem::path& output,
+    Scheduler& scheduler, ClockId clock, MemoryBackend& backend, bool reverse,
+    std::uint64_t maximum, bool update_only = false) {
+  const auto external_components = scheduler.component_count();
   scheduler.add_component(backend);
   handoff_test::Fixture fixture{};
   fixture.vertices = input.after.compact.vertices;
@@ -68,6 +67,12 @@ inline void integrated(const Input& input, const std::filesystem::path& output,
       gt.writes.bytes == gc.pma_write_bytes, "G physical byte ledger mismatch");
   std::cout << "WARM_STAGE {\"stage\":\"G\",\"cycles\":" << gc.end_cycle - gc.start_cycle << "}" << std::endl;
   g.unregister_components();
+  if (update_only) {
+    std::cout << "WARM_RESULT {\"arm\":\"gr\",\"cycles\":" << gc.end_cycle - gc.start_cycle
+        << ",\"read_bytes\":" << gt.reads.bytes << ",\"write_bytes\":" << gt.writes.bytes
+        << ",\"correctness\":true,\"ledger_closed\":true}" << std::endl;
+    return;
+  }
   const auto graph = handoff_test::graph_bytes(backend, layout, plan);
   auto config = ei::k4_configuration(ei::control("prefetch_gather_reuse"));
   config.reuse_resident_pma = true;
@@ -112,6 +117,13 @@ inline void integrated(const Input& input, const std::filesystem::path& output,
       << ",\"write_bytes\":" << gt.writes.bytes + rt.writes.bytes
       << ",\"physical_handoff\":true,\"correctness\":true,\"ledger_closed\":true}" << std::endl;
   r.unregister_components(); scheduler.remove_component(backend);
-  require(scheduler.component_count() == 0, "G/R leaked scheduler components");
+  require(scheduler.component_count() == external_components, "G/R leaked scheduler components");
+}
+inline void integrated(const Input& input, const std::filesystem::path& output,
+                       std::uint64_t latency, bool reverse, std::uint64_t maximum) {
+  Scheduler scheduler;
+  const auto clock = scheduler.add_clock_mhz("core", 150);
+  MockMemoryBackend backend("memory", clock, {32, latency, 1, 32, 32, true});
+  integrated_with_backend(input, output, scheduler, clock, backend, reverse, maximum);
 }
 }  // namespace warm_comparison

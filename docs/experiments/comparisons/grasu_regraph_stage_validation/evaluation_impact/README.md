@@ -32,6 +32,11 @@ On 2026-10-23 the user authorized an
 before complete admission. This preserves the outstanding gates and reports
 device-cycle predictions, including failures, rather than replacing Figure 7.
 
+The separate [fresh Figures 8--9 data collection](figure_refresh/README.md)
+retains setup-inclusive update-only measurements and direct-DRAMSim3 SSSP
+traffic/energy predictions. It explicitly lists unsupported CC/ResPR rows
+and does not replace the frozen evaluation handoff or admit the baseline.
+
 The latest [current-input isolation](r_bank_stream/prefetch_compact/INPUT_ISOLATION.md)
 passes sixteen diagnostic executions, eight exact historical replays and
 physical-byte conservation. High-latency input service remains restricted;
@@ -83,6 +88,7 @@ scope; they are not overwritten when a later candidate improves.
 
 | Question | Guide |
 | --- | --- |
+| Which Figures 8--9 rows can the latest candidate regenerate? | [Fresh comparison data](figure_refresh/README.md), separate setup/device contributions, historical-source SSSP traffic and all-budget-channel modeled energy; unsupported algorithms remain missing |
 | Does improved R erase Spine's advantage in a first common-warm diagnostic? | [Exploratory Spine comparison](warm_comparison/README.md), twelve complete SSSP executions with real physical G-to-R handoff, approximately 5.3-times advantage on one real slice and a retained negative smoke; device prediction only |
 | Does that exact insertion batch retain original A4 performance? | [Same-batch A4 follow-up](warm_comparison/SAME_BATCH_A4.md), eight executions and portable full-state/raw evidence; Amazon +1.76% / +19.95%, smoke approximately +48%. Across-scenario parity is not established |
 | Does measured warm-batch CPU preparation change the demo's direction? | [Partial host audit](warm_comparison/HOST_PREPARATION.md), fourteen fresh process repetitions plus retained pilot; small-batch sorting/packing is negligible here, but full host-inclusive time remains unknown |

@@ -1,0 +1,16 @@
+{
+  "after": {
+    "path": "/data/chuxiao/experiments/figure89_refresh_20261023/harness-equivalence-final/results.json",
+    "sha256": "08ad4833ec527f268747eefd9d5ea3848d69a5e53a26afe2a045f667534357e4"
+  },
+  "before": {
+    "path": "/data/chuxiao/experiments/warm_spine_comparison_20261023/attempt-v6/results.json",
+    "sha256": "8653b16b6bd9dd9697cc912aebd56f3dc426a245e1f9a5c83456fbe053081910"
+  },
+  "fields": [
+    "input",
+    "result",
+    "state_hashes"
+  ],
+  "status": "EXACT_TWELVE_EXECUTION_REPLAY"
+}

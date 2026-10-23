@@ -1,0 +1,7 @@
+figure,dataset,algorithm,status,reason
+9,AU,CC,UNSUPPORTED_LATEST_R,RoutedReGraphSystem currently admits SSSP only
+9,SU,CC,UNSUPPORTED_LATEST_R,RoutedReGraphSystem currently admits SSSP only
+9,WK,CC,UNSUPPORTED_LATEST_R,RoutedReGraphSystem currently admits SSSP only
+9,AU,ResPR,UNSUPPORTED_LATEST_R,RoutedReGraphSystem currently admits SSSP only
+9,SU,ResPR,UNSUPPORTED_LATEST_R,RoutedReGraphSystem currently admits SSSP only
+9,WK,ResPR,UNSUPPORTED_LATEST_R,RoutedReGraphSystem currently admits SSSP only
