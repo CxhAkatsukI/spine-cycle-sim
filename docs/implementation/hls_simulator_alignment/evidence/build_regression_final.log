@@ -1,0 +1,17 @@
+test_full_pagerank_k1_and_k2_master_projection (test_check_pipeline_master_budget.PipelineMasterBudgetTests.test_full_pagerank_k1_and_k2_master_projection) ... ok
+test_integer_nonsharded_topology_is_not_silently_assumed (test_check_pipeline_master_budget.PipelineMasterBudgetTests.test_integer_nonsharded_topology_is_not_silently_assumed) ... ok
+test_prefetch_compact_full_system_exceeds_u55c_budget (test_check_pipeline_master_budget.PipelineMasterBudgetTests.test_prefetch_compact_full_system_exceeds_u55c_budget) ... ok
+test_rejects_non_positive_pipeline_count (test_check_pipeline_master_budget.PipelineMasterBudgetTests.test_rejects_non_positive_pipeline_count) ... ok
+test_sharded_k4_residual_pagerank_fits_u55c_budget (test_check_pipeline_master_budget.PipelineMasterBudgetTests.test_sharded_k4_residual_pagerank_fits_u55c_budget) ... ok
+test_counts_only_axi_memory_masters (test_check_xo_master_budget.XoMasterBudgetTests.test_counts_only_axi_memory_masters) ... ok
+test_rejects_ambiguous_metadata (test_check_xo_master_budget.XoMasterBudgetTests.test_rejects_ambiguous_metadata) ... ok
+test_complete_four_algorithms_and_both_hardware_targets (test_grasu_kernel_selection.SourceSelectionTests.test_complete_four_algorithms_and_both_hardware_targets) ... ok
+test_invalid_requests_fail_before_output_creation (test_grasu_kernel_selection.SourceSelectionTests.test_invalid_requests_fail_before_output_creation) ... ok
+test_legacy_compile_and_connectivity_are_unchanged (test_grasu_kernel_selection.SourceSelectionTests.test_legacy_compile_and_connectivity_are_unchanged) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 4.948s
+
+OK
+test_prepare_pagerank_pipeline_build PASS
+test_prepare_algorithm_policy_hls_build PASS

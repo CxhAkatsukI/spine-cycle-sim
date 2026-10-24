@@ -9,6 +9,7 @@ component relevant to the change.
 | GraSU + ReGraph | [G+R implementation](grasu_regraph/README.md) | PMA updates, adapter, sharding, reader/compute paths, and partition limits |
 | Runtime and memory | [Runtime integration](runtime/README.md) | SST, AXI scheduling, DRAMSim3, and simulator execution |
 | Algorithm policies | [Algorithm implementation](algorithms/README.md) | Arithmetic, timing primitives, and fallback protocols |
+| Simulator-to-HLS source handoff | [Pinned sources, tests and remaining gates](hls_simulator_alignment/README.md) | Default-off source ports, verification limits and full-system build blockers |
 
 For the actual source boundaries, use the [C++ code map](../../cpp/README.md).
 For executable workflows, use the [script guide](../../scripts/README.md).

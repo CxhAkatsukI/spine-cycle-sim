@@ -1,0 +1,6 @@
+PMA_PREFETCH_COMPACT PASS cases=132 packets=48244
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 10633
+PMA_PREFETCH_COMPACT PASS cases=132 packets=48244
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 10633
+PMA_PREFETCH_COMPACT PASS cases=132 packets=48244
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 10633

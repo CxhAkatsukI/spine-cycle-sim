@@ -4,6 +4,10 @@ The ported baseline connects a GraSU PMA update stage to a PMA-native edge
 adapter and ReGraph-style compute. Its routed configuration must not be
 confused with the original ReGraph publication's configuration.
 
+For the default-off prefetch/compact HLS port, read the
+[source handoff and unresolved build gates](../hls_simulator_alignment/README.md).
+It is a source candidate, not a replacement for the previously routed baseline.
+
 ## Reading Order
 
 1. [Sharded-K4 hardware reconciliation](grasu_regraph_sharded_k4_hardware_reconcile_20260807.md):

@@ -1,0 +1,64 @@
+In file included from /home/chuxiao/grasu-regraph-sim-aligned/tools/weighted_pma_native_host.cpp:6,
+                 from /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_native_host.cpp:3:
+/usr/include/CL/cl2.hpp:18:151: note: ‘#pragma message: cl2.hpp has been renamed to opencl.hpp to make it clear that it supports all versions of OpenCL. Please include opencl.hpp directly.’
+   18 | #pragma message("cl2.hpp has been renamed to opencl.hpp to make it clear that it supports all versions of OpenCL. Please include opencl.hpp directly.")
+      |                                                                                                                                                       ^
+11c4f39973b17e70f246b52f9f46022a97b168ffd684ce4a892260ce7461ee40  /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_native_host.cpp
+82ba428c94b796e607661c22ce1ef68b0b1fa5526527a5e9a49b2d87d8250f78  /home/chuxiao/grasu-regraph-sim-aligned/tools/weighted_pma_native_host.cpp
+e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_graph.hpp
+e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_runtime_plan.hpp
+103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_update_reference.hpp
+2681adc0c59cfae4bfb25a90bf93ab548a0b924ecb2dc5ce923533366b9dfc71  /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch/sssp/sharded_k4_sssp_native_host
+built /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch/sssp/sharded_k4_sssp_native_host
+In file included from /home/chuxiao/grasu-regraph-sim-aligned/tools/weighted_pma_native_host.cpp:6,
+                 from /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_native_host.cpp:3:
+/usr/include/CL/cl2.hpp:18:151: note: ‘#pragma message: cl2.hpp has been renamed to opencl.hpp to make it clear that it supports all versions of OpenCL. Please include opencl.hpp directly.’
+   18 | #pragma message("cl2.hpp has been renamed to opencl.hpp to make it clear that it supports all versions of OpenCL. Please include opencl.hpp directly.")
+      |                                                                                                                                                       ^
+11c4f39973b17e70f246b52f9f46022a97b168ffd684ce4a892260ce7461ee40  /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_native_host.cpp
+82ba428c94b796e607661c22ce1ef68b0b1fa5526527a5e9a49b2d87d8250f78  /home/chuxiao/grasu-regraph-sim-aligned/tools/weighted_pma_native_host.cpp
+e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_graph.hpp
+e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_runtime_plan.hpp
+103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_update_reference.hpp
+66d77bfd133ffaf158823ec1d4b3d7b232a5beed954cfc270b9b0eab8a6e9600  /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch/cc/sharded_k4_cc_native_host
+built /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch/cc/sharded_k4_cc_native_host
+In file included from /home/chuxiao/grasu-regraph-sim-aligned/tools/weighted_pma_native_host.cpp:6,
+                 from /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_native_host.cpp:3,
+                 from /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_pagerank_native_host.cpp:2:
+/usr/include/CL/cl2.hpp:18:151: note: ‘#pragma message: cl2.hpp has been renamed to opencl.hpp to make it clear that it supports all versions of OpenCL. Please include opencl.hpp directly.’
+   18 | #pragma message("cl2.hpp has been renamed to opencl.hpp to make it clear that it supports all versions of OpenCL. Please include opencl.hpp directly.")
+      |                                                                                                                                                       ^
+f70efb8aeaaca78bc1ded36021c228caf29975d5a73af027cdd3d06354c4d98d  /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_pagerank_native_host.cpp
+82ba428c94b796e607661c22ce1ef68b0b1fa5526527a5e9a49b2d87d8250f78  /home/chuxiao/grasu-regraph-sim-aligned/tools/weighted_pma_native_host.cpp
+e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_graph.hpp
+e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_runtime_plan.hpp
+103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_update_reference.hpp
+c5ea403ebd753420f7faeb545dee486f8f7fb6631962bed6c6a1e7d4119a938e  /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch/full_pr/sharded_k4_full_pagerank_native_host
+built /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch/full_pr/sharded_k4_full_pagerank_native_host
+In file included from /home/chuxiao/grasu-regraph-sim-aligned/tools/weighted_pma_native_host.cpp:6,
+                 from /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_native_host.cpp:3,
+                 from /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_pagerank_native_host.cpp:2:
+/usr/include/CL/cl2.hpp:18:151: note: ‘#pragma message: cl2.hpp has been renamed to opencl.hpp to make it clear that it supports all versions of OpenCL. Please include opencl.hpp directly.’
+   18 | #pragma message("cl2.hpp has been renamed to opencl.hpp to make it clear that it supports all versions of OpenCL. Please include opencl.hpp directly.")
+      |                                                                                                                                                       ^
+f70efb8aeaaca78bc1ded36021c228caf29975d5a73af027cdd3d06354c4d98d  /home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_pagerank_native_host.cpp
+82ba428c94b796e607661c22ce1ef68b0b1fa5526527a5e9a49b2d87d8250f78  /home/chuxiao/grasu-regraph-sim-aligned/tools/weighted_pma_native_host.cpp
+e246456d9bce914d079b8e8dad62700c75289db9406655ef5a73801d63ecb514  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_graph.hpp
+e330e246bda0c1251f6e155173369b2faee10e94472417be8dbc00a47c1a6e4c  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_runtime_plan.hpp
+103122b02d166f500907322a227dccbd630a68c4efacbd54002e6669e50ea625  /home/chuxiao/grasu-regraph-sim-aligned/include/weighted_pma_update_reference.hpp
+038781ea5d973a01e5458e5be624b821091fb37bae2e2ede492aa5efa8988d6e  /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch/residual_pr/sharded_k4_residual_pagerank_native_host
+built /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch/residual_pr/sharded_k4_residual_pagerank_native_host
+WEIGHTED_PMA_NATIVE_SHARDED_INPUT vertices=327681 static_edges=3 logical_updates=1 physical_updates=1 final_edges=4 destination_partitions=6 pma_slots_total=144 hbm_graph_allocated_bytes=116588544 source_external=0 source_internal=1 oracle_supersteps=2 oracle_converged=1 resident_state=old_graph_converged
+GRASU_SHARDED_UPDATE_LAYOUT shard=0 destination_base=0 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=64 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+WEIGHTED_PMA_NATIVE_SHARDED_PREP status=PASS vertices=327681 static_edges=3 logical_updates=1 physical_updates=1 destination_partitions=6 pma_slots_total=144 pma_slots_max_shard=64 hbm_graph_channels=23 hbm_graph_allocated_bytes=116588544 hbm_max_channel_bytes=8392704 source_external=0 source_internal=1 max_supersteps=16 oracle_supersteps=2 oracle_converged=1 reachable_vertices=5 max_value=10 pma_destination_abi=local_dst19 partition_size=65536 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent
+CC_PMA_NATIVE_SHARDED_INPUT vertices=327681 static_edges=6 logical_updates=2 physical_updates=2 final_edges=8 destination_partitions=6 pma_slots_total=160 hbm_graph_allocated_bytes=116588544 source_external=0 source_internal=2 oracle_supersteps=5 oracle_converged=1 resident_state=old_graph_converged
+GRASU_SHARDED_UPDATE_LAYOUT shard=0 destination_base=0 destination_vertices=65536 updates=2 unique_sources=2 pma_slots=80 source_segments=2 binary_probes=0 cache_updates=2 ddr_updates=0
+CC_PMA_NATIVE_SHARDED_PREP status=PASS vertices=327681 static_edges=6 logical_updates=2 physical_updates=2 destination_partitions=6 pma_slots_total=160 pma_slots_max_shard=80 hbm_graph_channels=23 hbm_graph_allocated_bytes=116588544 hbm_max_channel_bytes=8392704 source_external=0 source_internal=2 max_supersteps=16 oracle_supersteps=5 oracle_converged=1 reachable_vertices=327681 max_value=327680 components=327677 pma_destination_abi=local_dst19 partition_size=65536 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent
+FULL_PR_PMA_NATIVE_SHARDED_INPUT vertices=327681 static_edges=3 logical_updates=1 physical_updates=1 final_edges=4 destination_partitions=6 pma_slots_total=144 hbm_graph_allocated_bytes=116588544 damping=0.85 rounds=3
+GRASU_SHARDED_UPDATE_LAYOUT shard=0 destination_base=0 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=64 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+FULL_PR_PMA_NATIVE_SHARDED_PREP status=PASS vertices=327681 destination_partitions=6 pma_slots_total=144 pma_slots_max_shard=64 rank_sum=0.9961750 pma_destination_abi=local_dst19 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent
+RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=327681 static_edges=3 logical_updates=1 physical_updates=1 final_edges=4 destination_partitions=6 pma_slots_total=144 hbm_graph_allocated_bytes=116588544 damping=0.85 epsilon=1e-06 threshold_semantics=direct_per_vertex oracle_propagation_rounds=1 oracle_converged=1
+GRASU_SHARDED_UPDATE_LAYOUT shard=0 destination_base=0 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=64 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_PREP status=PASS vertices=327681 destination_partitions=6 pma_slots_total=144 pma_slots_max_shard=64 rank_sum=0.9961765 pma_destination_abi=local_dst19 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent
+Sharded K4 native host checks passed:
+  /data/chuxiao/validation/hls_simulator_alignment_20261024/host_prefetch

@@ -1,0 +1,16 @@
+REGRAPH_FRAMED PASS invocations=6 policies=1 reset_reuse=5 connected_adapter=0
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 32768
+REGRAPH_FRAMED PASS invocations=6 policies=1 reset_reuse=5 connected_adapter=1
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 32768
+REGRAPH_PREFETCH_APPLY PASS cases=6 partitions=0,1,2 separate_and_in_place
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 8193
+REGRAPH_FRAMED PASS invocations=6 policies=1 reset_reuse=5 connected_adapter=0
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 32768
+REGRAPH_FRAMED PASS invocations=6 policies=1 reset_reuse=5 connected_adapter=1
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 32768
+REGRAPH_PREFETCH_APPLY PASS cases=6 partitions=0,1,2 separate_and_in_place
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 8193
+REGRAPH_FRAMED PASS invocations=6 policies=1 reset_reuse=5 connected_adapter=0
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 32768
+REGRAPH_FRAMED PASS invocations=6 policies=1 reset_reuse=5 connected_adapter=1
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 32768

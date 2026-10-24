@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "delivery_date_utc": "2026-10-24",
+  "scope": "Default-off HLS source candidates and bounded functional checks; no new FPGA evidence",
+  "status": "source_delivery_with_unresolved_full_alignment_gates",
+  "simulator": {
+    "remote": "https://github.com/CxhAkatsukI/spine-cycle-sim",
+    "branch": "codex/fullgraph-readiness-evidence",
+    "numerical_source_commit": "567a37a406dddea8917cbdc8ba8c59d8cee87198",
+    "numerical_source_modified_in_this_delivery": false
+  },
+  "spine_hls": {
+    "remote": "https://github.com/jayfeather9/spine-dynamic-graph",
+    "branch": "codex/simulator-aligned-hls-20261024",
+    "commit": "c5fb7a7df41d1496f2aebede99595bea4a2d42b9",
+    "opt_in": "SPINE_RESIDUAL_SPARSE_APPLY=1",
+    "default_enabled": false
+  },
+  "grasu_regraph_hls": {
+    "remote": "https://github.com/CxhAkatsukI/grasu-regraph-integration",
+    "branch": "codex/simulator-aligned-hls-20261024",
+    "commit": "8a46817c102a411d70f43f05fa530e32be0806df",
+    "adapter_opt_in": "--adapter-policy prefetch-compact",
+    "host_opt_in": "--prefetch-compact",
+    "default_enabled": false,
+    "grasu_external_commit": "d5c707c5b30b6c0e19ff1e56ea4b16801a46cfae",
+    "regraph_external_commit": null,
+    "external_file_hashes": "evidence/build_packets/*/inputs.tsv"
+  },
+  "full_system_axi_master_estimates": {
+    "kind": "source_interface_projection_not_synthesized_xo",
+    "admission_budget": 32,
+    "weighted_sssp": 34,
+    "connected_components": 34,
+    "full_pagerank": 39,
+    "residual_pagerank": 40,
+    "full_system_link_admitted": false
+  },
+  "validation": {
+    "memory_limit_bytes_per_small_test_process": 8589934592,
+    "timeout_seconds_per_small_test_command": 1200,
+    "routing_started": false,
+    "hardware_executed": false,
+    "finite_rtl_cosimulation_completed": false,
+    "new_calibration_completed": false
+  }
+}

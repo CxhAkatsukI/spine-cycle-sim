@@ -1,0 +1,16 @@
+test_complete_four_algorithms_and_both_hardware_targets (test_pma_adapter_selection.AdapterSelectionTests.test_complete_four_algorithms_and_both_hardware_targets) ... ok
+test_explicit_policy_four_algorithms (test_pma_adapter_selection.AdapterSelectionTests.test_explicit_policy_four_algorithms) ... ok
+test_invalid_adapter_policy_before_output (test_pma_adapter_selection.AdapterSelectionTests.test_invalid_adapter_policy_before_output) ... ok
+test_invalid_requests_fail_before_output_creation (test_pma_adapter_selection.AdapterSelectionTests.test_invalid_requests_fail_before_output_creation) ... ok
+test_legacy_compile_and_connectivity_are_unchanged (test_pma_adapter_selection.AdapterSelectionTests.test_legacy_compile_and_connectivity_are_unchanged) ... ok
+test_over_budget_link_stops_before_tool_setup (test_pma_adapter_selection.AdapterSelectionTests.test_over_budget_link_stops_before_tool_setup) ... ok
+test_pagerank_source_archive_records_unavailable_git_identity (test_pma_adapter_selection.AdapterSelectionTests.test_pagerank_source_archive_records_unavailable_git_identity) ... ok
+test_prefetch_compact_four_algorithms_both_targets (test_pma_adapter_selection.AdapterSelectionTests.test_prefetch_compact_four_algorithms_both_targets) ... ok
+test_complete_four_algorithms_and_both_hardware_targets (test_grasu_kernel_selection.SourceSelectionTests.test_complete_four_algorithms_and_both_hardware_targets) ... ok
+test_invalid_requests_fail_before_output_creation (test_grasu_kernel_selection.SourceSelectionTests.test_invalid_requests_fail_before_output_creation) ... ok
+test_legacy_compile_and_connectivity_are_unchanged (test_grasu_kernel_selection.SourceSelectionTests.test_legacy_compile_and_connectivity_are_unchanged) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 16.080s
+
+OK

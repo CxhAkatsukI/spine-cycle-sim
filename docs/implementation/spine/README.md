@@ -28,6 +28,8 @@
   [Full PageRank](spine_timed_full_pagerank_compute_20260725.md).
 - Simulator candidate: [tile-local sparse residual Apply](residual_sparse_apply.md),
   including its zero-share invariant, timed bitmap, and dense dangling fallback.
+- HLS source candidate: [cross-repository source handoff](../hls_simulator_alignment/README.md),
+  with sparse Apply equivalence checks and the still-open PR correction gap.
 - Reader optimizations: [opt-v1](spine_opt_v1_fallback_level_cache_20260728.md)
   and [opt-v2](spine_opt_v2_reader_working_set_20260728.md).
 

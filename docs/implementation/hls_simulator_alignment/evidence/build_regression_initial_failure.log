@@ -1,0 +1,38 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/usr/lib/python3.13/unittest/__main__.py", line 18, in <module>
+    main(module=None)
+    ~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/main.py", line 103, in __init__
+    self.parseArgs(argv)
+    ~~~~~~~~~~~~~~^^^^^^
+  File "/usr/lib/python3.13/unittest/main.py", line 142, in parseArgs
+    self.createTests()
+    ~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/unittest/main.py", line 153, in createTests
+    self.test = self.testLoader.loadTestsFromNames(self.testNames,
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+                                                   self.module)
+                                                   ^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/loader.py", line 207, in loadTestsFromNames
+    suites = [self.loadTestsFromName(name, module) for name in names]
+              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "/home/chuxiao/grasu-regraph-sim-aligned/tests/test_prepare_pagerank_pipeline_build.py", line 57, in <module>
+    full = prepare(temp, "full_pagerank", "sw_emu")
+  File "/home/chuxiao/grasu-regraph-sim-aligned/tests/test_prepare_pagerank_pipeline_build.py", line 32, in prepare
+    subprocess.run(
+    ~~~~~~~~~~~~~~^
+        [
+        ^
+    ...<16 lines>...
+        text=True,
+        ^^^^^^^^^^
+    )
+    ^
+  File "/usr/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/home/chuxiao/grasu-regraph-sim-aligned/scripts/prepare_pagerank_pipeline_build.sh', '--target', 'sw_emu', '--algorithm', 'full_pagerank', '--compute-pipelines', '1', '--pipeline-mode', 'weighted-axis', '--build-root', '/tmp/tmp_q1s1uhr/full_pagerank-sw_emu-weighted-axis-k1']' returned non-zero exit status 1.

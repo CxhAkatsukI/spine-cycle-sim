@@ -1,0 +1,2 @@
+# Only this handoff's saved validation logs are evidence, not scratch output.
+!/*.log

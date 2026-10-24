@@ -1,0 +1,3 @@
+# Preserve raw tool output, including diagnostic padding and emitted flags.
+/*.log -whitespace
+/build_packets/*/manifest.env -whitespace

@@ -1,0 +1,2 @@
+PAGERANK_COMPUTE_PROTOCOL PASS legacy_cases=5 selector_pairs=12
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 19
