@@ -1,0 +1,27 @@
+{
+  "status": "PARTIAL_NOT_FINAL",
+  "measured_rows": 1,
+  "expected_rows": 24,
+  "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+  "source_pins": [
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/respr/execution.json",
+      "sha256": "9afdc92b77e09557596f1de3150ac21856893b33559e5404dd1899b548168331"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/cc/execution.json",
+      "sha256": "8cd426e67ef499503df425a940a6c6abe4c9dedc23f13b852a6d78f8a9aa5bf4"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/execution.json",
+      "sha256": "102f43dfd739eb56e7870d7b4e925227b2db2f0e25fca2017c3b4b2130c90767"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/manifest.json",
+      "sha256": "b913e99f6527ad4f0c717fbf748b27894474236dfa1da5596deda3ab21b79021"
+    }
+  ],
+  "convention": "G+R median wall / Spine median wall; below one means G+R is faster",
+  "clock_policy": "actual packaged clocks; no 450-MHz requirement or normalization",
+  "absent_data": "pending or failed rows are absent, never replaced by historical/projected data"
+}

@@ -1,0 +1,18 @@
+{
+  "algorithm": "respr",
+  "board_tested": false,
+  "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+  "containment": {
+    "limits": {
+      "memory.high": "15032385536",
+      "memory.max": "17179869184",
+      "memory.oom.group": "1",
+      "memory.swap.max": "0"
+    },
+    "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/gr-actual-frequency-matrix-v2-respr.service"
+  },
+  "pending": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-live-v1/respr/execution.json",
+  "rows": [],
+  "scope": "actual packaged clocks; fresh matrix with service-cgroup monitor",
+  "status": "WAITING_FOR_HARDWARE_LINK"
+}

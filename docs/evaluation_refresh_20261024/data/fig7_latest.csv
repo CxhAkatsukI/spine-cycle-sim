@@ -1,0 +1,2 @@
+algorithm,dataset,gr_median_ms,spine_median_ms,speedup,measured_pairs,gr_min_ms,gr_max_ms,spine_min_ms,spine_max_ms
+sssp,AU,33.89451,110.216,0.3075280358568629,3,33.330822,34.784016,107.347,110.535

@@ -1,0 +1,296 @@
+{
+  "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+  "clocks": {
+    "gr": [
+      {
+        "m_freq_Mhz": "440",
+        "m_name": "hbm_aclk",
+        "m_type": "SYSTEM"
+      },
+      {
+        "m_freq_Mhz": "500",
+        "m_name": "KERNEL_CLK",
+        "m_type": "KERNEL"
+      },
+      {
+        "m_freq_Mhz": "150",
+        "m_name": "DATA_CLK",
+        "m_type": "DATA"
+      }
+    ],
+    "spine": [
+      {
+        "m_freq_Mhz": "450",
+        "m_name": "hbm_aclk",
+        "m_type": "SYSTEM"
+      },
+      {
+        "m_freq_Mhz": "500",
+        "m_name": "KERNEL_CLK",
+        "m_type": "KERNEL"
+      },
+      {
+        "m_freq_Mhz": "150",
+        "m_name": "DATA_CLK",
+        "m_type": "DATA"
+      }
+    ]
+  },
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "device": "0000:c1:00.1",
+  "fixed_450mhz_signoff_required": false,
+  "measured_pairs": 3,
+  "monitor": "dedicated 16-GiB cgroup, 40-GiB live host reserve; no global ps scan",
+  "pins": [
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual_frequency_campaign.py",
+      "sha256": "25f37284fc2dd24333d45b125cbc80b2b6ec686f741eb4fdc71faad6cb3477ed"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/board_runtime.py",
+      "sha256": "2857a34a0f18e0a622bd02342f02ef05f53a2e405fd899700a7403d36fd07bfa"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/paired_measure.py",
+      "sha256": "7857e50508c028f8c21b61c032f8b880895888918ffa1f4615bf1eda1cc839e7"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/paired_inputs.py",
+      "sha256": "1c212604398a5ceb19246883a5642028bd1294622c0d097c23eeefb855f61e33"
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+      "sha256": "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f"
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/run_pma_native_hw.sh",
+      "sha256": "0b86346132c5de94a4061668dfdffad11da90d1ab4abff1cb0b895450fad1e53"
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/env.sh",
+      "sha256": "e9a7b13d8a878b7c27d86eb40c6914eaa02c9d651b6f9a75a1c875ac39590cb0"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+      "sha256": "babe48e3bf3cc87b6f06b3e3ccf696dadd4b9f8bfcf0c1629a67a115e4ba39be"
+    },
+    {
+      "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/sssp/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+      "sha256": "b6e415f0d749d831a5ee5d98acbd691749cbd13b8a20945b306085f668b69862"
+    },
+    {
+      "path": "/data/chuxiao/checks/sharded-k4-host-final-20261024/sssp/sharded_k4_sssp_native_host",
+      "sha256": "2681adc0c59cfae4bfb25a90bf93ab548a0b924ecb2dc5ce923533366b9dfc71"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/spine-resident-host-v7/weighted_sssp.host",
+      "sha256": "2353e85466f09d97b7af02bbf0a8423700b74d9df7a158fc28aaa8a53ba826aa"
+    },
+    {
+      "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/manifest.json",
+      "sha256": "43eb52edd5b2cbac99accb83fee7383fa50fa58c15c85967a8a53e2a589d5516"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/execution.json",
+      "sha256": "db838e0d97e4b3573e2e0b61c35104a623f070abcc50319f724a68f15dd5d6c1"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/docs/evidence/paper_owner_fifo_sssp_routed_v1.json",
+      "sha256": "5e03b280f146e2ec1beb9f06eec22499fbc292fd1e3bf86c3703d80a1445c878"
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/spine-historical-source-diff.patch",
+      "sha256": "92c4e70429846c4aa1a93c6d6da40ad69396ff0acddbce11b9034a8b2571eb87"
+    },
+    {
+      "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/sssp/logs/build.log",
+      "sha256": "63012abcb198c625fe1c1bd55865a21591bd076ed904f9945d5714884a8bad3a"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/level_csr.hpp",
+      "sha256": "ad4bc026eb86563f1c29fe3bec9a59e3b86de02f430a3aad6888e8d61a75514d"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/switch_network.hpp",
+      "sha256": "5b724326b3014aa5dd000808f0f3663d07aec4b06751c718da9039685905003f"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/spine_partitioned.hpp",
+      "sha256": "1afd30323526a6f0d9f6f29ecf0aa43b2f43c79517ed26c7802755e10ab13862"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/spine_algorithm_policy.hpp",
+      "sha256": "1a851c871164e87c14366df2c9702596a11a117b782a79dd22611a2e664b66eb"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/parallel_lookup.hpp",
+      "sha256": "b00a9e08a5cf95fb71b03ab5f08a461d6a38aea1d9f574922d6dedf7acf1f441"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/common_types.hpp",
+      "sha256": "e1c5a22ca701078b51f4a899cbbbba85c4d5a983f23726a819b46450912d933a"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/sort_128.hpp",
+      "sha256": "6206b2c5e2a8a83fbb6dfc8999bfdca6837862020e0855c9780ebbc3041fca5a"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/spine_paper_architecture_contract.hpp",
+      "sha256": "df652109671cd8ec3b6ae0ca84ccbc5d744820d34c3e8dd82b0da6cdab95aca5"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/spine_pagerank_compute.hpp",
+      "sha256": "23458ff8856f04cdf5313ad00cf6eb91382ee8e3a0e28b077d160cd2bde7e3f1"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/spine_residual_apply_bitmap.hpp",
+      "sha256": "907c59c1cd9440d2c8506228462c627cda3bcd35b62bcbdfee64ca0c12fc4d04"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/merge4_l0.hpp",
+      "sha256": "293996ba4f9d7aa4fa32e2afd3f4a51fbfe3b7a309181894a21ec6e8fafee7fa"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/spine_owner_state.hpp",
+      "sha256": "71cbbc17bc31099d7feaea5f76e3f22ac0318761de8350a6e0b67db0adbf203e"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/scatter_compare.hpp",
+      "sha256": "a55cfc0c4e3802c4edba20e7dace5bb278a2b12d68510812889c5522a41b6cb8"
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-sim-aligned/src/spine_integrated.hpp",
+      "sha256": "6758e2ac46c622212594a697cb457d3032054666f23ef8165fc1d05bc8c4dac8"
+    }
+  ],
+  "spine_scope": {
+    "direct_build_commit_record": false,
+    "historical_bitstream": true,
+    "limitation": "SSSP build commit is an explicit collector fallback, not a direct build record",
+    "recorded_build_commit": "d8c2a2cc7152c839e4739d8d6caa51aecd73a537",
+    "source_diff_only": [
+      "src/spine_pagerank_compute.hpp",
+      "src/spine_residual_apply_bitmap.hpp"
+    ]
+  },
+  "warmup_pairs": 1,
+  "workloads": [
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "dataset": "AU",
+      "dataset_id": "sx_askubuntu",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+      "initial_edges": 390847,
+      "metadata": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.json",
+      "reused": true,
+      "sha256": "c59f311efc83dc1c748b7e1121cca055c3b86aaca4e04c5d1de57e694022e734",
+      "source": 11,
+      "updates": 8,
+      "vertices": 515281
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "dataset": "SU",
+      "dataset_id": "sx_superuser",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_weighted_sssp_insert_u8.graph",
+      "initial_edges": 616118,
+      "metadata": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_weighted_sssp_insert_u8.json",
+      "reused": true,
+      "sha256": "9e137a0a4f44163c04d18219577093b93b4426d182cf017ecce7aa1e2560b6a2",
+      "source": 23,
+      "updates": 8,
+      "vertices": 567316
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "dataset": "WK",
+      "dataset_id": "wiki_talk_temporal",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+      "initial_edges": 1142352,
+      "metadata": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.json",
+      "reused": true,
+      "sha256": "e23457cd3dcb6c15c0a7c4379072ed12051f0230c3158e4e812807e1bc5bdcb7",
+      "source": 0,
+      "updates": 8,
+      "vertices": 1140149
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "dataset": "SO",
+      "dataset_id": "sx_stackoverflow",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/so_weighted_sssp_insert_u8.graph",
+      "initial_edges": 23724166,
+      "metadata": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/so_weighted_sssp_insert_u8.json",
+      "reused": true,
+      "sha256": "75b6938f70ac68286dc2a144d382f78aa489bdcdf3ee70ef1a39f943322a0a91",
+      "source": 32,
+      "updates": 8,
+      "vertices": 6024271
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "dataset": "PK",
+      "dataset_id": "soc_pokec",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/pk_weighted_sssp_insert_u8.graph",
+      "initial_edges": 44603928,
+      "metadata": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/pk_weighted_sssp_insert_u8.json",
+      "reused": true,
+      "sha256": "efddd1bebd16d8fd64b29f17783d2615d8a2513f3f9c541a1a1d353cb81bb2dd",
+      "source": 64,
+      "updates": 8,
+      "vertices": 1632803
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "dataset": "LJ",
+      "dataset_id": "soc_livejournal1",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj_weighted_sssp_insert_u8.graph",
+      "initial_edges": 85702474,
+      "metadata": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj_weighted_sssp_insert_u8.json",
+      "reused": true,
+      "sha256": "ecca323e5bd5117cc7736bdaa2dc24516628fd1d2af505c246f46a7d61793724",
+      "source": 71,
+      "updates": 8,
+      "vertices": 4847571
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "dataset": "LJ08",
+      "dataset_id": "ljournal_2008",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj08_weighted_sssp_insert_u8.graph",
+      "initial_edges": 99028542,
+      "metadata": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj08_weighted_sssp_insert_u8.json",
+      "reused": true,
+      "sha256": "46d20465acf3839d8b76431db5e7c8836b8378fe07fd7f1357f4dfb2abd41e0d",
+      "source": 26,
+      "updates": 8,
+      "vertices": 5363260
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "dataset": "R19",
+      "dataset_id": "rmat_19_32",
+      "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_weighted_sssp_insert_u8.graph",
+      "initial_edges": 15483485,
+      "metadata": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_weighted_sssp_insert_u8.json",
+      "reused": true,
+      "sha256": "e61c9c21746e6f03d34f6904f5af4c17fc615054a3786ccf709ec205946dedc5",
+      "source": 113,
+      "updates": 8,
+      "vertices": 524288
+    }
+  ]
+}

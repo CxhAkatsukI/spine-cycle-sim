@@ -4,6 +4,7 @@
 
 | What you need | Read this |
 | --- | --- |
+| Latest FPGA Fig. 7, including pending/failed rows | [October 24 hardware refresh](evaluation_refresh_20261024/README.md) |
 | Figures, plotting code, and the handoff explanation | [Figures 7--11 package](evaluation_refresh_20260810/figure7_10_handoff_v1/README.md) |
 | Corrections and limits of that package | [September 17 evidence audit](evaluation_refresh_20260810/figure7_10_handoff_v1/EVIDENCE_AUDIT_20260917.md) |
 | Architecture, algorithm semantics, and timing boundaries | [Architecture and contracts](architecture/README.md) |
