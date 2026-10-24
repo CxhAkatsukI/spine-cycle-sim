@@ -53,8 +53,8 @@
     2,
     3
   ],
-  "current_dataset": "SU",
-  "current_sample": 3,
+  "current_dataset": "SO",
+  "current_sample": 0,
   "rows": [
     {
       "dataset": "AU",
@@ -799,8 +799,589 @@
           },
           "sample_index": 2,
           "warmup": false
+        },
+        {
+          "order": [
+            "spine",
+            "gr"
+          ],
+          "pair": {
+            "algorithm": "weighted_sssp",
+            "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+            "gr_rounds": 2,
+            "gr_wall_ms": 43.66623,
+            "logical_updates": 8,
+            "physical_updates": 8,
+            "scope": "log_semantics_only_not_provenance_or_hardware_acceptance",
+            "speedup_gr_over_spine": 0.4072088815942853,
+            "spine_rounds": 2,
+            "spine_wall_ms": 107.233,
+            "vertices": 567316
+          },
+          "resources": {
+            "gr": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "bash",
+                "/home/chuxiao/grasu-regraph-sim-aligned/scripts/run_pma_native_hw.sh",
+                "--algorithm",
+                "weighted_sssp",
+                "--host",
+                "/data/chuxiao/checks/sharded-k4-host-final-20261024/sssp/sharded_k4_sssp_native_host",
+                "--xclbin",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+                "--graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_weighted_sssp_insert_u8.graph",
+                "--out-dir",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/SU/sample-3/gr",
+                "--device-index",
+                "1",
+                "--source",
+                "23",
+                "--max-supersteps",
+                "256",
+                "--timeout",
+                "1800"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/SU/sample-3",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 136648822784,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 588197888,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 21.016425789988716
+            },
+            "spine": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/spine-resident-host-v7/weighted_sssp.host",
+                "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/sssp/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "--dynamic-graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_weighted_sssp_insert_u8.graph",
+                "--source",
+                "23",
+                "--resident-benchmark"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/SU/sample-3",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 147502313472,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 1145274368,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 2.002270152006531
+            }
+          },
+          "sample_index": 3,
+          "warmup": false
         }
       ],
+      "status": "PASS",
+      "summary": {
+        "algorithm": "weighted_sssp",
+        "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+        "excluded_warmup_pairs": 1,
+        "logical_updates": 8,
+        "measured_pairs": 3,
+        "physical_updates": 8,
+        "scope": "log_semantics_only_not_provenance_or_hardware_acceptance",
+        "speedup_ratio_of_median_walls": 0.4212185052386496,
+        "vertices": 567316,
+        "walls": {
+          "gr": {
+            "coefficient_of_variation": 0.03848035662091666,
+            "max_ms": 47.915325,
+            "median_ms": 45.228337,
+            "min_ms": 43.66623,
+            "samples_ms": [
+              47.915325,
+              45.228337,
+              43.66623
+            ]
+          },
+          "spine": {
+            "coefficient_of_variation": 0.002741447952558684,
+            "max_ms": 107.917,
+            "median_ms": 107.375,
+            "min_ms": 107.233,
+            "samples_ms": [
+              107.375,
+              107.917,
+              107.233
+            ]
+          }
+        }
+      }
+    },
+    {
+      "dataset": "WK",
+      "samples": [
+        {
+          "order": [
+            "gr",
+            "spine"
+          ],
+          "pair": {
+            "algorithm": "weighted_sssp",
+            "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+            "gr_rounds": 1,
+            "gr_wall_ms": 62.345335,
+            "logical_updates": 8,
+            "physical_updates": 8,
+            "scope": "log_semantics_only_not_provenance_or_hardware_acceptance",
+            "speedup_gr_over_spine": 0.7689597607227653,
+            "spine_rounds": 1,
+            "spine_wall_ms": 81.0775,
+            "vertices": 1140149
+          },
+          "resources": {
+            "gr": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "bash",
+                "/home/chuxiao/grasu-regraph-sim-aligned/scripts/run_pma_native_hw.sh",
+                "--algorithm",
+                "weighted_sssp",
+                "--host",
+                "/data/chuxiao/checks/sharded-k4-host-final-20261024/sssp/sharded_k4_sssp_native_host",
+                "--xclbin",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+                "--graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+                "--out-dir",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-0/gr",
+                "--device-index",
+                "1",
+                "--source",
+                "0",
+                "--max-supersteps",
+                "256",
+                "--timeout",
+                "1800"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-0",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 133665046528,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 1080426496,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 9.007765353992
+            },
+            "spine": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/spine-resident-host-v7/weighted_sssp.host",
+                "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/sssp/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "--dynamic-graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+                "--source",
+                "0",
+                "--resident-benchmark"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-0",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 136699625472,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 1310285824,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 11.009201772001688
+            }
+          },
+          "sample_index": 0,
+          "warmup": true
+        },
+        {
+          "order": [
+            "spine",
+            "gr"
+          ],
+          "pair": {
+            "algorithm": "weighted_sssp",
+            "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+            "gr_rounds": 1,
+            "gr_wall_ms": 58.906222,
+            "logical_updates": 8,
+            "physical_updates": 8,
+            "scope": "log_semantics_only_not_provenance_or_hardware_acceptance",
+            "speedup_gr_over_spine": 0.7515897442440558,
+            "spine_rounds": 1,
+            "spine_wall_ms": 78.3755,
+            "vertices": 1140149
+          },
+          "resources": {
+            "gr": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "bash",
+                "/home/chuxiao/grasu-regraph-sim-aligned/scripts/run_pma_native_hw.sh",
+                "--algorithm",
+                "weighted_sssp",
+                "--host",
+                "/data/chuxiao/checks/sharded-k4-host-final-20261024/sssp/sharded_k4_sssp_native_host",
+                "--xclbin",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+                "--graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+                "--out-dir",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-1/gr",
+                "--device-index",
+                "1",
+                "--source",
+                "0",
+                "--max-supersteps",
+                "256",
+                "--timeout",
+                "1800"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-1",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 124466237440,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 1080012800,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 23.0206653639907
+            },
+            "spine": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/spine-resident-host-v7/weighted_sssp.host",
+                "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/sssp/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "--dynamic-graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+                "--source",
+                "0",
+                "--resident-benchmark"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-1",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 136602927104,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 2529693696,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 3.003113126003882
+            }
+          },
+          "sample_index": 1,
+          "warmup": false
+        },
+        {
+          "order": [
+            "gr",
+            "spine"
+          ],
+          "pair": {
+            "algorithm": "weighted_sssp",
+            "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+            "gr_rounds": 1,
+            "gr_wall_ms": 58.381948,
+            "logical_updates": 8,
+            "physical_updates": 8,
+            "scope": "log_semantics_only_not_provenance_or_hardware_acceptance",
+            "speedup_gr_over_spine": 0.7041749499145442,
+            "spine_rounds": 1,
+            "spine_wall_ms": 82.9083,
+            "vertices": 1140149
+          },
+          "resources": {
+            "gr": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "bash",
+                "/home/chuxiao/grasu-regraph-sim-aligned/scripts/run_pma_native_hw.sh",
+                "--algorithm",
+                "weighted_sssp",
+                "--host",
+                "/data/chuxiao/checks/sharded-k4-host-final-20261024/sssp/sharded_k4_sssp_native_host",
+                "--xclbin",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+                "--graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+                "--out-dir",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-2/gr",
+                "--device-index",
+                "1",
+                "--source",
+                "0",
+                "--max-supersteps",
+                "256",
+                "--timeout",
+                "1800"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-2",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 115080970240,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 1087369216,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 9.007951043007779
+            },
+            "spine": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/spine-resident-host-v7/weighted_sssp.host",
+                "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/sssp/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "--dynamic-graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+                "--source",
+                "0",
+                "--resident-benchmark"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-2",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 96987516928,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 2082263040,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 12.010129018002772
+            }
+          },
+          "sample_index": 2,
+          "warmup": false
+        },
+        {
+          "order": [
+            "spine",
+            "gr"
+          ],
+          "pair": {
+            "algorithm": "weighted_sssp",
+            "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+            "gr_rounds": 1,
+            "gr_wall_ms": 63.784843,
+            "logical_updates": 8,
+            "physical_updates": 8,
+            "scope": "log_semantics_only_not_provenance_or_hardware_acceptance",
+            "speedup_gr_over_spine": 0.7942338740304745,
+            "spine_rounds": 1,
+            "spine_wall_ms": 80.3099,
+            "vertices": 1140149
+          },
+          "resources": {
+            "gr": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "bash",
+                "/home/chuxiao/grasu-regraph-sim-aligned/scripts/run_pma_native_hw.sh",
+                "--algorithm",
+                "weighted_sssp",
+                "--host",
+                "/data/chuxiao/checks/sharded-k4-host-final-20261024/sssp/sharded_k4_sssp_native_host",
+                "--xclbin",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+                "--graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+                "--out-dir",
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-3/gr",
+                "--device-index",
+                "1",
+                "--source",
+                "0",
+                "--max-supersteps",
+                "256",
+                "--timeout",
+                "1800"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-3",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 97299681280,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 1085538304,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 23.018922517003375
+            },
+            "spine": {
+              "cleanup_scope": "pidfd-bound members of dedicated board service",
+              "cleanup_signaled_pids": [],
+              "cleanup_snapshot_error": null,
+              "command": [
+                "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/spine-resident-host-v7/weighted_sssp.host",
+                "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/sssp/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "--dynamic-graph",
+                "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+                "--source",
+                "0",
+                "--resident-benchmark"
+              ],
+              "cwd": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/WK/sample-3",
+              "exit_code": 0,
+              "host_affinity": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "memory_events_after": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_events_before": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+              "memory_scope": "dedicated service cgroup: host, launcher and file cache",
+              "minimum_available_bytes": 95490490368,
+              "reserve_gib": 40,
+              "service_memory_max_bytes": 17179869184,
+              "service_peak_bytes": 2364866560,
+              "stop_reason": "process_exit",
+              "timeout_seconds": 1860,
+              "wall_seconds": 3.003091727994615
+            }
+          },
+          "sample_index": 3,
+          "warmup": false
+        }
+      ],
+      "status": "PASS",
+      "summary": {
+        "algorithm": "weighted_sssp",
+        "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+        "excluded_warmup_pairs": 1,
+        "logical_updates": 8,
+        "measured_pairs": 3,
+        "physical_updates": 8,
+        "scope": "log_semantics_only_not_provenance_or_hardware_acceptance",
+        "speedup_ratio_of_median_walls": 0.7334864319342945,
+        "vertices": 1140149,
+        "walls": {
+          "gr": {
+            "coefficient_of_variation": 0.04030655855012318,
+            "max_ms": 63.784843,
+            "median_ms": 58.906222,
+            "min_ms": 58.381948,
+            "samples_ms": [
+              58.906222,
+              58.381948,
+              63.784843
+            ]
+          },
+          "spine": {
+            "coefficient_of_variation": 0.023060795478287915,
+            "max_ms": 82.9083,
+            "median_ms": 80.3099,
+            "min_ms": 78.3755,
+            "samples_ms": [
+              78.3755,
+              82.9083,
+              80.3099
+            ]
+          }
+        }
+      }
+    },
+    {
+      "dataset": "SO",
+      "samples": [],
       "status": "RUNNING"
     }
   ],

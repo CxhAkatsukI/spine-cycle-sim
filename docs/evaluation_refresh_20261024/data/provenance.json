@@ -1,6 +1,6 @@
 {
   "status": "PARTIAL_NOT_FINAL",
-  "measured_rows": 1,
+  "measured_rows": 3,
   "expected_rows": 24,
   "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
   "source_pins": [
@@ -14,7 +14,7 @@
     },
     {
       "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/execution.json",
-      "sha256": "102f43dfd739eb56e7870d7b4e925227b2db2f0e25fca2017c3b4b2130c90767"
+      "sha256": "ff489da3e046361c980ba5e93c19166ce17e5f1c69487591461df3f8cee9a529"
     },
     {
       "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/actual-frequency-matrix-v2/sssp/manifest.json",
