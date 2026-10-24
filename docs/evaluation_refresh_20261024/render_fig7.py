@@ -114,7 +114,7 @@ def export(campaign):
     data = ROOT / 'data'
     data.mkdir(exist_ok=True)
     with (data / 'fig7_latest.csv').open('w', newline='') as stream:
-        writer = csv.DictWriter(stream, fieldnames=(
+        writer = csv.DictWriter(stream, lineterminator='\n', fieldnames=(
             'algorithm', 'dataset', 'gr_median_ms', 'spine_median_ms', 'speedup',
             'measured_pairs', 'gr_min_ms', 'gr_max_ms', 'spine_min_ms', 'spine_max_ms'))
         writer.writeheader()
