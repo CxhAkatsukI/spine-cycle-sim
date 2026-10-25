@@ -1,0 +1,943 @@
+{
+  "schema_version": 1,
+  "publication_match": false,
+  "status": "CORRECTNESS_PASS_DIAGNOSTIC_NOT_PUBLICATION_MATCH",
+  "raw_index": [
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r0.result.txt",
+      "sha256": "774fce9a0e5eb8a450a3468ebbe18d2c76de37c75a102d83f7f3056d0f7e1035",
+      "bytes": 69
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r0.stdout.txt",
+      "sha256": "2d8a2e7c870900881f82ee3f13a68ede55750bd67972b7de1da71f655159bb15",
+      "bytes": 19208
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r1.result.txt",
+      "sha256": "774fce9a0e5eb8a450a3468ebbe18d2c76de37c75a102d83f7f3056d0f7e1035",
+      "bytes": 69
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r1.stdout.txt",
+      "sha256": "9fb4eece303f9bc07a332754403c11b7d3a7f7a2803aa1a9b55764f291765e14",
+      "bytes": 19208
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r2.result.txt",
+      "sha256": "774fce9a0e5eb8a450a3468ebbe18d2c76de37c75a102d83f7f3056d0f7e1035",
+      "bytes": 69
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/r2.stdout.txt",
+      "sha256": "4581af60f980f4e88c2ecc4f0e570f78b134ba268a916903955e7683176e7b2d",
+      "bytes": 19208
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/results.json",
+      "sha256": "f8a1881d6f6c88a3b728f2dd6f45566ca5ccfd64185489610938022ee5f0b957",
+      "bytes": 4467
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_author_initial_r0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_author_initial_r0.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_author_initial_r1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_author_initial_r1.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_author_initial_r2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_author_initial_r2.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_csr_degree_r0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_csr_degree_r0.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_csr_degree_r1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_csr_degree_r1.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_csr_degree_r2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/a4_csr_degree_r2.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_author_initial_r0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_author_initial_r0.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_author_initial_r1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_author_initial_r1.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_author_initial_r2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_author_initial_r2.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_csr_degree_r0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_csr_degree_r0.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_csr_degree_r1.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_csr_degree_r1.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_csr_degree_r2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/original_example_csr_degree_r2.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/regraph/results.json",
+      "sha256": "ff3b013240553fa36e0713f8f32de6ea0a74da2a046f95a099516bee996bdc10",
+      "bytes": 166664
+    }
+  ],
+  "papers": [
+    {
+      "path": "/data/feiyang/delta-hls-paper/related_papers/2021_FPGA_GraSU.pdf",
+      "sha256": "f0604446fe12b9aaad9249b7064ccea47bdc455db4d2f75e9808398317ceff5c",
+      "bytes": 2456322
+    },
+    {
+      "path": "/data/feiyang/delta-hls-paper/related_papers/2022_MICRO_ReGraph.pdf",
+      "sha256": "fb86a59ec3165300a91569a93bb2e03226927457aad6ed875487e8a7ec106283",
+      "bytes": 864316
+    }
+  ],
+  "grasu": {
+    "summary": {
+      "median_update_ms": 46.143043,
+      "median_mupdates_per_second": 2.8405582180611715,
+      "minimum_update_ms": 44.613359,
+      "maximum_update_ms": 47.345677
+    },
+    "workload": {
+      "vertices": 515281,
+      "base_edges": 390847,
+      "successful_insertions_expected": 131072,
+      "original_ids_preserved": true,
+      "reciprocal_expansion": false,
+      "initial": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/updates/directed/insert_u131072.slice",
+        "sha256": "c4f28835520200c9f75a1a0833d77b561e7a4096dec4e0e1828e3245a007bf5c",
+        "bytes": 2378092
+      },
+      "input": {
+        "path": "/data/chuxiao/checks/publication-board-probe-20261025-v3/grasu/input.graph",
+        "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+        "bytes": 8324454
+      }
+    },
+    "host": {
+      "path": "/data/chuxiao/checks/sharded-k4-host-final-20261024/sssp/sharded_k4_sssp_native_host",
+      "sha256": "2681adc0c59cfae4bfb25a90bf93ab548a0b924ecb2dc5ce923533366b9dfc71",
+      "bytes": 177840
+    },
+    "xclbin": {
+      "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+      "sha256": "babe48e3bf3cc87b6f06b3e3ccf696dadd4b9f8bfcf0c1629a67a115e4ba39be",
+      "bytes": 80015767
+    },
+    "boundary": "nine update-CU event envelope over all destination shards, including inter-shard gaps; excludes initial preparation/DMA and final validation readback",
+    "repetitions": [
+      {
+        "repeat": 0,
+        "result": {
+          "status": "PASS",
+          "algorithm": "weighted_sssp",
+          "update_ms": "44.613359",
+          "touched_segments": "44812",
+          "checked_words": "716992",
+          "pma_mismatches": "0",
+          "repeats": "1",
+          "measurement_window": "same_process_update_events",
+          "first_repeat": "cold_diagnostic",
+          "conversion_cost": "absent"
+        },
+        "update_ms": 44.613359,
+        "mupdates_per_second": 2.937954077835744
+      },
+      {
+        "repeat": 1,
+        "result": {
+          "status": "PASS",
+          "algorithm": "weighted_sssp",
+          "update_ms": "46.143043",
+          "touched_segments": "44812",
+          "checked_words": "716992",
+          "pma_mismatches": "0",
+          "repeats": "1",
+          "measurement_window": "same_process_update_events",
+          "first_repeat": "cold_diagnostic",
+          "conversion_cost": "absent"
+        },
+        "update_ms": 46.143043,
+        "mupdates_per_second": 2.8405582180611715
+      },
+      {
+        "repeat": 2,
+        "result": {
+          "status": "PASS",
+          "algorithm": "weighted_sssp",
+          "update_ms": "47.345677",
+          "touched_segments": "44812",
+          "checked_words": "716992",
+          "pma_mismatches": "0",
+          "repeats": "1",
+          "measurement_window": "same_process_update_events",
+          "first_repeat": "cold_diagnostic",
+          "conversion_cost": "absent"
+        },
+        "update_ms": 47.345677,
+        "mupdates_per_second": 2.768404811277701
+      }
+    ],
+    "timelines": [
+      {
+        "shard_count": 8,
+        "shard_span_sum_ms": 42.708605,
+        "inter_shard_gap_sum_ms": 1.904754,
+        "median_within_shard_cu_start_spread_ms": 3.3370495,
+        "shards": [
+          {
+            "shard": "0",
+            "gap_from_previous_ms": "0.000000",
+            "union_ms": "8.487782",
+            "cache0_ms": "6.793044",
+            "cache1_ms": "6.637969",
+            "ddr0_ms": "5.645861",
+            "ddr1_ms": "5.583380",
+            "dispatch_ms": "7.415062",
+            "search0_ms": "4.630052",
+            "search1_ms": "4.223301",
+            "search2_ms": "3.425318",
+            "search3_ms": "3.206562"
+          },
+          {
+            "shard": "1",
+            "gap_from_previous_ms": "0.296238",
+            "union_ms": "5.263430",
+            "cache0_ms": "3.433047",
+            "cache1_ms": "3.341065",
+            "ddr0_ms": "2.270284",
+            "ddr1_ms": "2.209652",
+            "dispatch_ms": "4.150268",
+            "search0_ms": "1.510153",
+            "search1_ms": "1.428640",
+            "search2_ms": "0.774442",
+            "search3_ms": "0.691400"
+          },
+          {
+            "shard": "2",
+            "gap_from_previous_ms": "0.317949",
+            "union_ms": "4.540899",
+            "cache0_ms": "2.740058",
+            "cache1_ms": "2.683876",
+            "ddr0_ms": "1.603445",
+            "ddr1_ms": "1.552894",
+            "dispatch_ms": "3.431777",
+            "search0_ms": "0.861225",
+            "search1_ms": "0.791222",
+            "search2_ms": "0.150794",
+            "search3_ms": "0.082162"
+          },
+          {
+            "shard": "3",
+            "gap_from_previous_ms": "0.250057",
+            "union_ms": "4.297783",
+            "cache0_ms": "2.801480",
+            "cache1_ms": "2.529153",
+            "ddr0_ms": "1.666488",
+            "ddr1_ms": "1.606786",
+            "dispatch_ms": "3.192411",
+            "search0_ms": "1.000799",
+            "search1_ms": "0.716830",
+            "search2_ms": "0.316610",
+            "search3_ms": "0.115893"
+          },
+          {
+            "shard": "4",
+            "gap_from_previous_ms": "0.252487",
+            "union_ms": "4.850127",
+            "cache0_ms": "3.053307",
+            "cache1_ms": "2.830190",
+            "ddr0_ms": "1.916944",
+            "ddr1_ms": "1.836812",
+            "dispatch_ms": "3.755856",
+            "search0_ms": "1.202034",
+            "search1_ms": "1.030870",
+            "search2_ms": "0.521795",
+            "search3_ms": "0.382421"
+          },
+          {
+            "shard": "5",
+            "gap_from_previous_ms": "0.251618",
+            "union_ms": "4.817807",
+            "cache0_ms": "3.142670",
+            "cache1_ms": "2.854371",
+            "ddr0_ms": "1.973126",
+            "ddr1_ms": "1.909164",
+            "dispatch_ms": "3.712995",
+            "search0_ms": "1.308908",
+            "search1_ms": "1.082701",
+            "search2_ms": "0.641868",
+            "search3_ms": "0.461933"
+          },
+          {
+            "shard": "6",
+            "gap_from_previous_ms": "0.261077",
+            "union_ms": "5.282030",
+            "cache0_ms": "3.680404",
+            "cache1_ms": "3.437517",
+            "ddr0_ms": "2.500771",
+            "ddr1_ms": "2.439099",
+            "dispatch_ms": "4.190939",
+            "search0_ms": "1.752500",
+            "search1_ms": "1.648527",
+            "search2_ms": "1.061000",
+            "search3_ms": "0.970118"
+          },
+          {
+            "shard": "7",
+            "gap_from_previous_ms": "0.275328",
+            "union_ms": "5.168747",
+            "cache0_ms": "3.356785",
+            "cache1_ms": "3.225411",
+            "ddr0_ms": "2.183451",
+            "ddr1_ms": "2.121960",
+            "dispatch_ms": "4.068616",
+            "search0_ms": "1.417150",
+            "search1_ms": "1.372349",
+            "search2_ms": "0.666079",
+            "search3_ms": "0.620678"
+          }
+        ],
+        "interpretation": "Observed start staggering, not an attribution of all waiting to host or device."
+      },
+      {
+        "shard_count": 8,
+        "shard_span_sum_ms": 44.076603,
+        "inter_shard_gap_sum_ms": 2.06644,
+        "median_within_shard_cu_start_spread_ms": 3.54058,
+        "shards": [
+          {
+            "shard": "0",
+            "gap_from_previous_ms": "0.000000",
+            "union_ms": "8.096590",
+            "cache0_ms": "6.461233",
+            "cache1_ms": "6.160694",
+            "ddr0_ms": "5.275390",
+            "ddr1_ms": "5.234829",
+            "dispatch_ms": "6.991919",
+            "search0_ms": "4.321453",
+            "search1_ms": "4.196739",
+            "search2_ms": "3.426087",
+            "search3_ms": "3.287253"
+          },
+          {
+            "shard": "1",
+            "gap_from_previous_ms": "0.366141",
+            "union_ms": "5.209658",
+            "cache0_ms": "3.471429",
+            "cache1_ms": "3.377346",
+            "ddr0_ms": "2.285936",
+            "ddr1_ms": "2.254384",
+            "dispatch_ms": "4.109577",
+            "search0_ms": "1.558514",
+            "search1_ms": "1.453562",
+            "search2_ms": "0.775213",
+            "search3_ms": "0.735661"
+          },
+          {
+            "shard": "2",
+            "gap_from_previous_ms": "0.359971",
+            "union_ms": "4.686443",
+            "cache0_ms": "2.855051",
+            "cache1_ms": "2.800140",
+            "ddr0_ms": "1.664957",
+            "ddr1_ms": "1.639666",
+            "dispatch_ms": "3.584581",
+            "search0_ms": "0.941476",
+            "search1_ms": "0.848864",
+            "search2_ms": "0.170075",
+            "search3_ms": "0.110383"
+          },
+          {
+            "shard": "3",
+            "gap_from_previous_ms": "0.253767",
+            "union_ms": "4.895999",
+            "cache0_ms": "2.930713",
+            "cache1_ms": "2.867872",
+            "ddr0_ms": "1.740249",
+            "ddr1_ms": "1.719549",
+            "dispatch_ms": "3.811798",
+            "search0_ms": "1.052740",
+            "search1_ms": "0.967498",
+            "search2_ms": "0.194635",
+            "search3_ms": "0.134074"
+          },
+          {
+            "shard": "4",
+            "gap_from_previous_ms": "0.247917",
+            "union_ms": "5.300821",
+            "cache0_ms": "3.155860",
+            "cache1_ms": "3.095238",
+            "ddr0_ms": "1.965746",
+            "ddr1_ms": "1.944466",
+            "dispatch_ms": "4.217400",
+            "search0_ms": "1.227495",
+            "search1_ms": "1.155034",
+            "search2_ms": "0.461613",
+            "search3_ms": "0.413632"
+          },
+          {
+            "shard": "5",
+            "gap_from_previous_ms": "0.273088",
+            "union_ms": "5.326351",
+            "cache0_ms": "3.262583",
+            "cache1_ms": "3.171420",
+            "ddr0_ms": "2.072228",
+            "ddr1_ms": "2.031158",
+            "dispatch_ms": "4.197189",
+            "search0_ms": "1.312467",
+            "search1_ms": "1.240045",
+            "search2_ms": "0.529465",
+            "search3_ms": "0.489374"
+          },
+          {
+            "shard": "6",
+            "gap_from_previous_ms": "0.249647",
+            "union_ms": "5.483926",
+            "cache0_ms": "3.726086",
+            "cache1_ms": "3.583382",
+            "ddr0_ms": "2.540282",
+            "ddr1_ms": "2.501821",
+            "dispatch_ms": "4.385435",
+            "search0_ms": "1.794561",
+            "search1_ms": "1.720089",
+            "search2_ms": "1.037459",
+            "search3_ms": "1.014489"
+          },
+          {
+            "shard": "7",
+            "gap_from_previous_ms": "0.315909",
+            "union_ms": "5.076815",
+            "cache0_ms": "3.331735",
+            "cache1_ms": "3.205851",
+            "ddr0_ms": "2.149021",
+            "ddr1_ms": "2.086929",
+            "dispatch_ms": "3.973803",
+            "search0_ms": "1.428210",
+            "search1_ms": "1.339258",
+            "search2_ms": "0.730691",
+            "search3_ms": "0.664518"
+          }
+        ],
+        "interpretation": "Observed start staggering, not an attribution of all waiting to host or device."
+      },
+      {
+        "shard_count": 8,
+        "shard_span_sum_ms": 44.872656,
+        "inter_shard_gap_sum_ms": 2.473021,
+        "median_within_shard_cu_start_spread_ms": 3.4606434999999998,
+        "shards": [
+          {
+            "shard": "0",
+            "gap_from_previous_ms": "0.000000",
+            "union_ms": "8.508752",
+            "cache0_ms": "6.662799",
+            "cache1_ms": "6.594547",
+            "ddr0_ms": "5.461065",
+            "ddr1_ms": "5.427545",
+            "dispatch_ms": "7.420762",
+            "search0_ms": "4.602451",
+            "search1_ms": "4.236180",
+            "search2_ms": "3.484889",
+            "search3_ms": "3.329915"
+          },
+          {
+            "shard": "1",
+            "gap_from_previous_ms": "0.344100",
+            "union_ms": "5.171177",
+            "cache0_ms": "3.548021",
+            "cache1_ms": "3.363385",
+            "ddr0_ms": "2.366047",
+            "ddr1_ms": "2.313966",
+            "dispatch_ms": "4.070766",
+            "search0_ms": "1.561274",
+            "search1_ms": "1.505502",
+            "search2_ms": "0.798872",
+            "search3_ms": "0.767842"
+          },
+          {
+            "shard": "2",
+            "gap_from_previous_ms": "0.445643",
+            "union_ms": "4.539459",
+            "cache0_ms": "2.901423",
+            "cache1_ms": "2.797810",
+            "ddr0_ms": "1.696968",
+            "ddr1_ms": "1.658347",
+            "dispatch_ms": "3.422757",
+            "search0_ms": "0.921286",
+            "search1_ms": "0.872035",
+            "search2_ms": "0.186825",
+            "search3_ms": "0.099033"
+          },
+          {
+            "shard": "3",
+            "gap_from_previous_ms": "0.253297",
+            "union_ms": "4.764116",
+            "cache0_ms": "2.961684",
+            "cache1_ms": "2.808970",
+            "ddr0_ms": "1.742530",
+            "ddr1_ms": "1.653407",
+            "dispatch_ms": "3.645224",
+            "search0_ms": "0.956898",
+            "search1_ms": "0.858485",
+            "search2_ms": "0.273668",
+            "search3_ms": "0.148134"
+          },
+          {
+            "shard": "4",
+            "gap_from_previous_ms": "0.246337",
+            "union_ms": "5.419623",
+            "cache0_ms": "3.240332",
+            "cache1_ms": "3.192910",
+            "ddr0_ms": "2.034288",
+            "ddr1_ms": "1.976446",
+            "dispatch_ms": "4.320402",
+            "search0_ms": "1.221865",
+            "search1_ms": "1.183524",
+            "search2_ms": "0.440133",
+            "search3_ms": "0.427933"
+          },
+          {
+            "shard": "5",
+            "gap_from_previous_ms": "0.342760",
+            "union_ms": "5.710843",
+            "cache0_ms": "3.378027",
+            "cache1_ms": "3.432978",
+            "ddr0_ms": "2.205123",
+            "ddr1_ms": "2.160461",
+            "dispatch_ms": "4.604751",
+            "search0_ms": "1.368189",
+            "search1_ms": "1.317318",
+            "search2_ms": "0.587857",
+            "search3_ms": "0.516045"
+          },
+          {
+            "shard": "6",
+            "gap_from_previous_ms": "0.453113",
+            "union_ms": "5.572458",
+            "cache0_ms": "3.936332",
+            "cache1_ms": "3.753306",
+            "ddr0_ms": "2.737628",
+            "ddr1_ms": "2.633685",
+            "dispatch_ms": "4.477187",
+            "search0_ms": "1.923005",
+            "search1_ms": "1.829972",
+            "search2_ms": "1.077371",
+            "search3_ms": "1.015789"
+          },
+          {
+            "shard": "7",
+            "gap_from_previous_ms": "0.387771",
+            "union_ms": "5.186228",
+            "cache0_ms": "3.474559",
+            "cache1_ms": "3.295234",
+            "ddr0_ms": "2.248874",
+            "ddr1_ms": "2.147361",
+            "dispatch_ms": "4.104197",
+            "search0_ms": "1.483393",
+            "search1_ms": "1.374259",
+            "search2_ms": "0.695460",
+            "search3_ms": "0.650789"
+          }
+        ],
+        "interpretation": "Observed start staggering, not an attribution of all waiting to host or device."
+      }
+    ],
+    "paper_au_reference_mupdates_per_second": 190.77,
+    "diagnostic_ratio": {
+      "reference_over_measured_rate": 67.15933466423034,
+      "measured_fraction_of_reference": 0.01488996287708325,
+      "publication_match": false,
+      "interpretation": "Unmatched configuration diagnostic, not a controlled reproduction error."
+    }
+  },
+  "regraph": {
+    "summaries": [
+      {
+        "topology": "a4",
+        "binding": "author_initial",
+        "event_span_ms": 10.269572,
+        "event_gteps": 0.5022982457302018,
+        "resident_wall_ms": 12.831135,
+        "minimum_event_ms": 10.006614,
+        "maximum_event_ms": 10.365945
+      },
+      {
+        "topology": "a4",
+        "binding": "csr_degree",
+        "event_span_ms": 10.21203,
+        "event_gteps": 0.5051285591601278,
+        "resident_wall_ms": 12.864525,
+        "minimum_event_ms": 9.981423,
+        "maximum_event_ms": 10.457577
+      },
+      {
+        "topology": "original_example",
+        "binding": "author_initial",
+        "event_span_ms": 9.264593,
+        "event_gteps": 0.5567851712428166,
+        "resident_wall_ms": 22.305504,
+        "minimum_event_ms": 9.203442,
+        "maximum_event_ms": 9.50697
+      },
+      {
+        "topology": "original_example",
+        "binding": "csr_degree",
+        "event_span_ms": 9.598572,
+        "event_gteps": 0.5374120233718098,
+        "resident_wall_ms": 22.842649,
+        "minimum_event_ms": 9.5047,
+        "maximum_event_ms": 9.603013
+      }
+    ],
+    "boundary": "resident enqueue-to-finish wall and overlap-aware device event span; no preparation/DMA/readback",
+    "manifests": [
+      {
+        "identity": {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-board-supervisor-v4/manifest.json",
+          "sha256": "4c6a4fbe58910c64f3bc3a65ce13f1848479bf713164b89dcc978f5f3377f30b",
+          "bytes": 245414
+        },
+        "host": {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/bin/release_control",
+          "sha256": "3f843b2a2229460f9502ad2586cc0df95cb84bbdb76740848feaf891ee9450c9",
+          "bytes": 107992
+        },
+        "xclbin": {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-source-route-v6/build/original_r_11l3b.hw.xclbin",
+          "sha256": "3e670e27d0ca04fc2b007c6f055c3c6149e6859f0701947a8d48cab245e39409",
+          "bytes": 75477441
+        },
+        "runtime": {
+          "device": {
+            "render": "/dev/dri/renderD129",
+            "sysfs": "/sys/devices/pci0000:c0/0000:c0:01.1/0000:c1:00.1",
+            "bdf": "0000:c1:00.1",
+            "driver_version": "2.18.179,3ade2e671e5ab463400813fc2846c57edf82bb10",
+            "driver_srcversion": "4567E9852B56A011AA88A47",
+            "kernel_release": "6.1.0-35-amd64"
+          },
+          "platform": {
+            "static_region": {
+              "vbnv": "xilinx_u55c_gen3x16_xdma_base_3",
+              "logic_uuid": "97088961-FEAE-DA91-52A2-1D9DFD63CCEF",
+              "jtag_idcode": "0x14b7d093",
+              "fpga_name": ""
+            },
+            "controller": {
+              "satellite_controller": {
+                "version": "7.1.23",
+                "expected_version": "7.1.23"
+              },
+              "card_mgmt_controller": {
+                "version": "1.5.25",
+                "serial_number": "XFL1HYCSAE0X",
+                "oem_id": "Xilinx"
+              }
+            },
+            "status": {
+              "mig_calibrated": "true",
+              "p2p_status": "disabled",
+              "host_memory_status": "disabled"
+            }
+          },
+          "pins": [
+            {
+              "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-regraph-a4-board/spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/execution/runtime.py",
+              "sha256": "807fed2493c009c8e62c1987bea267fe66b1455862107dfd0f3c070063774329"
+            },
+            {
+              "path": "/opt/xilinx/xrt/bin/xbutil",
+              "sha256": "ddde1afac997061be658b56fdf9e36b049b973ddc8bde45462d28c18ded516c0"
+            },
+            {
+              "path": "/opt/xilinx/xrt/lib/libxilinxopencl.so.2.18.179",
+              "sha256": "9f460ce2480f51c8bd086af15df8c0b7748663583d7dccee6cb8b56a0feb87e8"
+            },
+            {
+              "path": "/opt/xilinx/xrt/lib/libxrt++.so.2.18.179",
+              "sha256": "252e1b0a9f4e4c39e7fe2e9afd9a792867772a6a49f7994810d380f2d43dc87b"
+            },
+            {
+              "path": "/opt/xilinx/xrt/lib/libxrt_core.so.2.18.179",
+              "sha256": "656aae8d0dc92afa599b2490745fe29c5d813f1a86c63a9a19e44185acb98bd7"
+            },
+            {
+              "path": "/opt/xilinx/xrt/lib/libxrt_coreutil.so.2.18.179",
+              "sha256": "5baf16a47b13053834ac23504283a0af8c3746bc9d718436bc3706ee3322fb76"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "sha256": "ecf6714e474183ea3ab6789ff1dfbe7edccc03bdb1f5eeb188bc1d6f74aec6c7"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "sha256": "47178713f5bda59f2ea8240a56971de4dc0b3a6cb71e996e2782d9a59746bfef"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "sha256": "026eddaa258e663f6f28442a208cea302375494bce8294b7614e25c53890fe75"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "sha256": "d765d99423b9aba7fc34b7af48d91aeecc70bdc0ae6233a9a7ba60d4c6d3c13d"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.35",
+              "sha256": "ae1cbed999039c964c14dbd77a0d0bd84c605d1f6e45a8172b387b68048bb685"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0",
+              "sha256": "94176513740e4b8d24a68e6c37a43986b488f2910c9eaa34f69bd7ba8c49307d"
+            }
+          ]
+        }
+      },
+      {
+        "identity": {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/a4-board-supervisor-v3/manifest.json",
+          "sha256": "2fdc655637e4eca5a8a6489c18ad74d8178f35adbe9c66e9fd0c8e3ed55a2f16",
+          "bytes": 268817
+        },
+        "host": {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/bin/release_control",
+          "sha256": "3f843b2a2229460f9502ad2586cc0df95cb84bbdb76740848feaf891ee9450c9",
+          "bytes": 107992
+        },
+        "xclbin": {
+          "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/a4-source-route-v2/build/original_r_a4.hw.xclbin",
+          "sha256": "b19b89545306460298c080550860e8836d8e5beb71cf161d0eacee2aec60436e",
+          "bytes": 56032800
+        },
+        "runtime": {
+          "device": {
+            "render": "/dev/dri/renderD129",
+            "sysfs": "/sys/devices/pci0000:c0/0000:c0:01.1/0000:c1:00.1",
+            "bdf": "0000:c1:00.1",
+            "driver_version": "2.18.179,3ade2e671e5ab463400813fc2846c57edf82bb10",
+            "driver_srcversion": "4567E9852B56A011AA88A47",
+            "kernel_release": "6.1.0-35-amd64"
+          },
+          "platform": {
+            "static_region": {
+              "vbnv": "xilinx_u55c_gen3x16_xdma_base_3",
+              "logic_uuid": "97088961-FEAE-DA91-52A2-1D9DFD63CCEF",
+              "jtag_idcode": "0x14b7d093",
+              "fpga_name": ""
+            },
+            "controller": {
+              "satellite_controller": {
+                "version": "7.1.23",
+                "expected_version": "7.1.23"
+              },
+              "card_mgmt_controller": {
+                "version": "1.5.25",
+                "serial_number": "XFL1HYCSAE0X",
+                "oem_id": "Xilinx"
+              }
+            },
+            "status": {
+              "mig_calibrated": "true",
+              "p2p_status": "disabled",
+              "host_memory_status": "disabled"
+            }
+          },
+          "pins": [
+            {
+              "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-regraph-a4-board/spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/execution/runtime.py",
+              "sha256": "807fed2493c009c8e62c1987bea267fe66b1455862107dfd0f3c070063774329"
+            },
+            {
+              "path": "/opt/xilinx/xrt/bin/xbutil",
+              "sha256": "ddde1afac997061be658b56fdf9e36b049b973ddc8bde45462d28c18ded516c0"
+            },
+            {
+              "path": "/opt/xilinx/xrt/lib/libxilinxopencl.so.2.18.179",
+              "sha256": "9f460ce2480f51c8bd086af15df8c0b7748663583d7dccee6cb8b56a0feb87e8"
+            },
+            {
+              "path": "/opt/xilinx/xrt/lib/libxrt++.so.2.18.179",
+              "sha256": "252e1b0a9f4e4c39e7fe2e9afd9a792867772a6a49f7994810d380f2d43dc87b"
+            },
+            {
+              "path": "/opt/xilinx/xrt/lib/libxrt_core.so.2.18.179",
+              "sha256": "656aae8d0dc92afa599b2490745fe29c5d813f1a86c63a9a19e44185acb98bd7"
+            },
+            {
+              "path": "/opt/xilinx/xrt/lib/libxrt_coreutil.so.2.18.179",
+              "sha256": "5baf16a47b13053834ac23504283a0af8c3746bc9d718436bc3706ee3322fb76"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+              "sha256": "ecf6714e474183ea3ab6789ff1dfbe7edccc03bdb1f5eeb188bc1d6f74aec6c7"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+              "sha256": "47178713f5bda59f2ea8240a56971de4dc0b3a6cb71e996e2782d9a59746bfef"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+              "sha256": "026eddaa258e663f6f28442a208cea302375494bce8294b7614e25c53890fe75"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+              "sha256": "d765d99423b9aba7fc34b7af48d91aeecc70bdc0ae6233a9a7ba60d4c6d3c13d"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.35",
+              "sha256": "ae1cbed999039c964c14dbd77a0d0bd84c605d1f6e45a8172b387b68048bb685"
+            },
+            {
+              "path": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0",
+              "sha256": "94176513740e4b8d24a68e6c37a43986b488f2910c9eaa34f69bd7ba8c49307d"
+            }
+          ]
+        }
+      }
+    ],
+    "paper_am_selected_reference_gteps_approximate": 4.0,
+    "note": "The 4 GTEPS chart reference is a selected 14-pipeline configuration, not an exact 11L3B reference.",
+    "diagnostic_ratios": [
+      {
+        "topology": "a4",
+        "binding": "author_initial",
+        "reference_over_measured_rate": 7.963396316833864,
+        "measured_fraction_of_reference": 0.12557456143255044,
+        "publication_match": false,
+        "interpretation": "Unmatched configuration diagnostic, not a controlled reproduction error."
+      },
+      {
+        "topology": "a4",
+        "binding": "csr_degree",
+        "reference_over_measured_rate": 7.918776175813065,
+        "measured_fraction_of_reference": 0.12628213979003194,
+        "publication_match": false,
+        "interpretation": "Unmatched configuration diagnostic, not a controlled reproduction error."
+      },
+      {
+        "topology": "original_example",
+        "binding": "author_initial",
+        "reference_over_measured_rate": 7.184099373680305,
+        "measured_fraction_of_reference": 0.13919629281070414,
+        "publication_match": false,
+        "interpretation": "Unmatched configuration diagnostic, not a controlled reproduction error."
+      },
+      {
+        "topology": "original_example",
+        "binding": "csr_degree",
+        "reference_over_measured_rate": 7.443078729246425,
+        "measured_fraction_of_reference": 0.13435300584295246,
+        "publication_match": false,
+        "interpretation": "Unmatched configuration diagnostic, not a controlled reproduction error."
+      }
+    ]
+  },
+  "latest_k4_adapter_r_publication_gap": null,
+  "limitation": "Original-R port diagnostics do not measure the latest K4 adapter+R; G uses a different AU trace and launch boundary."
+}

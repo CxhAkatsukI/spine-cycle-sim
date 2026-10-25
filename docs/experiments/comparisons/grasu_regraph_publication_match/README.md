@@ -2,6 +2,14 @@
 
 ## Decision
 
+Fresh board follow-up: [publication board diagnostics](board_probe/README.md)
+reports 15 correctness-passing runs, large apparent G/R rate gaps and the
+remaining comparability limits. The checkpoint below retains its original
+scope; it is not the status of all subsequent hardware work.
+The subsequent [launch diagnosis](board_probe/launch_diagnosis.md) isolates a
+nearly twofold cold-execution effect on original R. It also corrects the
+camera-ready references below; neither finding establishes publication matching.
+
 **The existing evidence does not establish a performance match within 10% of
 the original GraSU or ReGraph publication.** This is a comparability finding,
 not a measured slowdown and not a rejection of the newer FPGA figure matrix.
@@ -50,12 +58,18 @@ cycles or demonstrate original-publication performance.
   Components. Weighted SSSP and residual PR are also not the paper's BFS and
   static PR. Full PR is the most direct common starting point, after verifying
   arithmetic, iteration and TEPS conventions.
-- **ReGraph configurations:** `11L+3B` is an artifact example. Table IV uses
-  graph-selected heterogeneous combinations. Figure 9 offers single-pipeline
+- **ReGraph configurations:** `11L+3B` is an artifact example. Figure 10 marks
+  heterogeneous combinations; Table IV reports the Best and System performance
+  of graph-selected configurations. Table V reports preprocessing time.
+  Figure 9 offers single-pipeline
   partition timings; Figure 12 includes 4-pipeline results. A four-pipeline
   mixed configuration is not automatically the all-Little `4L+0B` control.
-- **Clock and denominator:** Figure 10 explicitly normalizes to 210 MHz.
-  Do not silently apply that statement to another table or multiply a U55C
+- **Clock and denominator:** The camera-ready Section VII-C explicitly
+  normalizes Figure 10 to 210 MHz; Figure 11 separately gives implementation
+  frequencies. An earlier statement denying normalization confused the local
+  13-page preprint with the 17-page camera-ready and was incorrect. Frozen
+  source contracts retain their original identities, not an authoritative
+  interpretation of the final paper. Do not automatically multiply a U55C
   result by a frequency ratio. Successful updates, trace events, traversed
   edges, unique edges, reciprocal edges, and physical PMA slots differ.
 

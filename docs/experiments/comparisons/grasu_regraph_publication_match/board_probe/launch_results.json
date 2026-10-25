@@ -1,0 +1,197 @@
+{
+  "status": "HOST_LAUNCH_DIAGNOSTIC_PASS_NOT_PUBLICATION_MATCH",
+  "publication_match": false,
+  "raw_report": {
+    "path": "/data/chuxiao/checks/publication-board-launch-20261025-v3/results.json",
+    "sha256": "8c3e7d6deb5e6ede32659611ccbfadcbff5cba0f8c45e242d19857d89345b511",
+    "bytes": 95609
+  },
+  "runner": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/publication_board_probe/launch.py",
+    "sha256": "1a18588224a73ba0c0e2648a68afee81bc0fdcfbab43dc493b378d5a20574231",
+    "bytes": 7560
+  },
+  "source": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/publication_board_probe/launch_control.cpp",
+    "sha256": "0457625fc87013002470aab6c2a5c05ed205d78ed39dc38622e021fab9a1be93",
+    "bytes": 8476
+  },
+  "host": {
+    "path": "/data/chuxiao/checks/publication-board-launch-20261025-v3/launch_control",
+    "sha256": "b2e7459b7023aaee473e579f663cf3d07063366db9282073a287a130a1ecbe7a",
+    "bytes": 113912
+  },
+  "xclbin": {
+    "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-source-route-v6/build/original_r_11l3b.hw.xclbin",
+    "sha256": "3e670e27d0ca04fc2b007c6f055c3c6149e6859f0701947a8d48cab245e39409",
+    "bytes": 75477441
+  },
+  "frozen_commit": "535f8e8249e52a53142371c5d218e7621412eb23",
+  "manifest": {
+    "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-board-supervisor-v4/manifest.json",
+    "sha256": "4c6a4fbe58910c64f3bc3a65ce13f1848479bf713164b89dcc978f5f3377f30b",
+    "bytes": 245414
+  },
+  "runtime": {
+    "device": {
+      "render": "/dev/dri/renderD129",
+      "sysfs": "/sys/devices/pci0000:c0/0000:c0:01.1/0000:c1:00.1",
+      "bdf": "0000:c1:00.1",
+      "driver_version": "2.18.179,3ade2e671e5ab463400813fc2846c57edf82bb10",
+      "driver_srcversion": "4567E9852B56A011AA88A47",
+      "kernel_release": "6.1.0-35-amd64"
+    },
+    "platform": {
+      "static_region": {
+        "vbnv": "xilinx_u55c_gen3x16_xdma_base_3",
+        "logic_uuid": "97088961-FEAE-DA91-52A2-1D9DFD63CCEF",
+        "jtag_idcode": "0x14b7d093",
+        "fpga_name": ""
+      },
+      "controller": {
+        "satellite_controller": {
+          "version": "7.1.23",
+          "expected_version": "7.1.23"
+        },
+        "card_mgmt_controller": {
+          "version": "1.5.25",
+          "serial_number": "XFL1HYCSAE0X",
+          "oem_id": "Xilinx"
+        }
+      },
+      "status": {
+        "mig_calibrated": "true",
+        "p2p_status": "disabled",
+        "host_memory_status": "disabled"
+      }
+    },
+    "pins": [
+      {
+        "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-regraph-a4-board/spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/execution/runtime.py",
+        "sha256": "807fed2493c009c8e62c1987bea267fe66b1455862107dfd0f3c070063774329"
+      },
+      {
+        "path": "/opt/xilinx/xrt/bin/xbutil",
+        "sha256": "ddde1afac997061be658b56fdf9e36b049b973ddc8bde45462d28c18ded516c0"
+      },
+      {
+        "path": "/opt/xilinx/xrt/lib/libxilinxopencl.so.2.18.179",
+        "sha256": "9f460ce2480f51c8bd086af15df8c0b7748663583d7dccee6cb8b56a0feb87e8"
+      },
+      {
+        "path": "/opt/xilinx/xrt/lib/libxrt++.so.2.18.179",
+        "sha256": "252e1b0a9f4e4c39e7fe2e9afd9a792867772a6a49f7994810d380f2d43dc87b"
+      },
+      {
+        "path": "/opt/xilinx/xrt/lib/libxrt_core.so.2.18.179",
+        "sha256": "656aae8d0dc92afa599b2490745fe29c5d813f1a86c63a9a19e44185acb98bd7"
+      },
+      {
+        "path": "/opt/xilinx/xrt/lib/libxrt_coreutil.so.2.18.179",
+        "sha256": "5baf16a47b13053834ac23504283a0af8c3746bc9d718436bc3706ee3322fb76"
+      },
+      {
+        "path": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+        "sha256": "ecf6714e474183ea3ab6789ff1dfbe7edccc03bdb1f5eeb188bc1d6f74aec6c7"
+      },
+      {
+        "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "sha256": "47178713f5bda59f2ea8240a56971de4dc0b3a6cb71e996e2782d9a59746bfef"
+      },
+      {
+        "path": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+        "sha256": "026eddaa258e663f6f28442a208cea302375494bce8294b7614e25c53890fe75"
+      },
+      {
+        "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+        "sha256": "d765d99423b9aba7fc34b7af48d91aeecc70bdc0ae6233a9a7ba60d4c6d3c13d"
+      },
+      {
+        "path": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.35",
+        "sha256": "ae1cbed999039c964c14dbd77a0d0bd84c605d1f6e45a8172b387b68048bb685"
+      },
+      {
+        "path": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0",
+        "sha256": "94176513740e4b8d24a68e6c37a43986b488f2910c9eaa34f69bd7ba8c49307d"
+      }
+    ]
+  },
+  "scope": "same resident static PR superstep; three interleaved warm repeats per launch mode",
+  "correctness_passing_executions": 10,
+  "cold_baseline": {
+    "event_span_ms": 9.011575,
+    "resident_wall_ms": 22.403596,
+    "first_wave_start_spread_ms": 4.007334,
+    "gteps": 0.5724180290348801
+  },
+  "warm_medians": [
+    {
+      "mode": "baseline",
+      "repeats": 3,
+      "event_span_ms": 4.693463,
+      "resident_wall_ms": 4.740925,
+      "first_wave_start_spread_ms": 0.101753,
+      "gteps": 1.099057987673494
+    },
+    {
+      "mode": "prebound",
+      "repeats": 3,
+      "event_span_ms": 4.840417,
+      "resident_wall_ms": 1400.371199,
+      "first_wave_start_spread_ms": 0.102303,
+      "gteps": 1.0656908278770196
+    },
+    {
+      "mode": "author_order",
+      "repeats": 3,
+      "event_span_ms": 4.686533,
+      "resident_wall_ms": 4.725584,
+      "first_wave_start_spread_ms": 0.108824,
+      "gteps": 1.100683170266805,
+      "post_enqueue_wait_ms": 4.549889
+    }
+  ],
+  "warm_baseline_event_range_ms": [
+    4.682933,
+    5.186787
+  ],
+  "cold_over_warm_event_span_ratio": 1.920026854371708,
+  "author_timer_fraction_of_full_event_span": 0.9708432651599809,
+  "warm_baseline_timeline": [
+    {
+      "repeat": 1,
+      "event_span_ms": 4.693463,
+      "longest_little_event_ms": 0.562196,
+      "longest_big_lane_event_sum_ms": 4.517158,
+      "longest_big_first_wave_event_ms": 3.437108,
+      "longest_big_second_wave_event_ms": 1.081271
+    },
+    {
+      "repeat": 2,
+      "event_span_ms": 4.682933,
+      "longest_little_event_ms": 0.559926,
+      "longest_big_lane_event_sum_ms": 4.56226,
+      "longest_big_first_wave_event_ms": 3.464028,
+      "longest_big_second_wave_event_ms": 1.098461
+    },
+    {
+      "repeat": 3,
+      "event_span_ms": 5.186787,
+      "longest_little_event_ms": 1.018459,
+      "longest_big_lane_event_sum_ms": 5.062453,
+      "longest_big_first_wave_event_ms": 3.943792,
+      "longest_big_second_wave_event_ms": 1.119992
+    }
+  ],
+  "warm_baseline_median_longest_big_lane_ms": 4.56226,
+  "timeline_limit": "CU lifetimes include stream/HBM waiting; these are not internal-stage counters.",
+  "publication_reference": {
+    "url": "https://soldierchen.github.io/assets/pdf/regraph.pdf",
+    "version": "17-page MICRO 2022 camera-ready; not the local 13-page arXiv preprint",
+    "table_iv_am_pr_system_gteps": 3.744,
+    "table_iv_am_pr_best_gteps": 4.224,
+    "figure_10_normalized_clock_mhz": 210,
+    "same_configuration_match_established": false
+  },
+  "remaining_scope": "Current sharded K4 adapter+R and original G publication matches remain unestablished."
+}
