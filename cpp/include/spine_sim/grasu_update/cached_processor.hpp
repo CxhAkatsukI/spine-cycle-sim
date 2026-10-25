@@ -14,9 +14,11 @@ inline constexpr std::uint64_t kCachedUpdateInterval = 3;
 inline constexpr std::uint64_t kCachedUpdateLatency = 7;
 
 // input_closed must become true only after the producer has committed its last
-// packet. Completion includes the complete preload and acknowledged writeback.
+// packet. Completion includes bank-rounded preload and acknowledged writeback.
+// The default preserves the legacy full-capacity transfer; zero skips memory.
 std::unique_ptr<Processor> make_cached_processor(
     std::string name, ClockId clock, std::uint64_t pma_base,
-    Processor::Ports ports, std::function<bool()> input_closed);
+    Processor::Ports ports, std::function<bool()> input_closed,
+    std::size_t valid_segments = kCachedHotSegments);
 
 }  // namespace spine::sim::grasu_update_detail

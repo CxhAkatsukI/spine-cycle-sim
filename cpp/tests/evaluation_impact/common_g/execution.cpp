@@ -58,6 +58,7 @@ Observation current(const cg::Fixture& fixture, unsigned latency, unsigned maxim
   config.compact_parallel_search = arm != "current";
   config.compact_parallel_hot = arm == "parallel_hot";
   config.compact_cached_hot = arm == "cached_hot" || arm.starts_with("cached_hot64");
+  config.compact_cache_valid_extent = arm == "cached_hot64_bounded";
   config.compact_search_contexts = arm.starts_with("cached_hot64") ? 64 : 16;
   if (arm == "cached_hot64_m32") config.compact_metadata_credits = 32;
   if (arm == "cached_hot64_m64") config.compact_metadata_credits = 64;
@@ -98,7 +99,7 @@ int main(int argc, char** argv) {
     const std::string arm(argv[4]);
     if (arm != "original" && arm != "original_forwarded" && arm != "current" &&
         arm != "parallel" && arm != "parallel_hot" && arm != "cached_hot" && arm != "cached_hot64" &&
-        arm != "cached_hot64_m32" && arm != "cached_hot64_m64")
+        arm != "cached_hot64_m32" && arm != "cached_hot64_m64" && arm != "cached_hot64_bounded")
       throw std::invalid_argument("unknown common G arm");
     constexpr unsigned maximum = 128000000;
     auto result = arm == "original" || arm == "original_forwarded"

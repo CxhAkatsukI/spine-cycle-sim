@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -137,6 +138,58 @@ void test_sharded_k4_runtime_plan_accepts_empty_destination_shard() {
           "empty destination shard omitted its routed minimum buffers");
 }
 
+void test_bounded_cache_short_layout_preserves_state_and_traffic() {
+  using namespace spine::sim;
+  for (const unsigned rows : {0U, 1U, 31U, 32U, 33U}) {
+    for (const bool degree : {false, true}) {
+      std::vector<GraSuEdge> initial, updates, expected;
+      for (unsigned source = 0; source < rows; ++source)
+        initial.push_back({.source = source, .destination = 1, .weight = 3});
+      expected = initial;
+      if (rows) {
+        updates.push_back({.source = rows - 1, .destination = 2, .weight = 5});
+        expected.push_back(updates.back());
+        updates.push_back({.source = 0, .destination = 1, .weight = 3, .delete_op = true});
+        expected.erase(expected.begin());
+      }
+      auto layout = GraSuPmaLayout::build(64, initial, updates, GraSuPmaWordAbi::kWeightedFullWord);
+      require(layout.segments.size() == rows, "short-cache fixture changed its parity geometry");
+      Scheduler scheduler;
+      const auto clock = scheduler.add_clock_mhz("G", 150);
+      MockMemoryBackend backend("memory", clock, {32, 7, 1, 16, 64, true});
+      GraSuNativeConfig config;
+      config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
+      config.compact_parallel_search = true;
+      config.compact_search_contexts = 64;
+      config.compact_cached_hot = true;
+      config.compact_cache_valid_extent = true;
+      config.maintain_out_degree = degree;
+      GraSuPmaUpdateSystem system(scheduler, clock, backend, std::move(layout), updates, config);
+      system.register_components();
+      scheduler.add_component(backend);
+      scheduler.run_until([&] { return system.done() || system.failed(); }, 100000);
+      require(system.done() && !system.failed(), "bounded short-layout update failed: " + system.failure());
+      auto keys = [](const std::vector<GraSuEdge> &edges) {
+        std::vector<std::tuple<unsigned, unsigned, unsigned>> result;
+        for (const auto &edge : edges) result.emplace_back(edge.source, edge.destination, edge.weight);
+        std::sort(result.begin(), result.end());
+        return result;
+      };
+      require(keys(system.live_edges()) == keys(expected), "bounded cache changed the logical graph");
+      const auto counters = system.counters();
+      const auto aligned = [](unsigned count) { return (count + 15) / 16 * 16; };
+      const auto transferred = aligned((rows + 1) / 2) + aligned(rows / 2);
+      require(counters.pma_reads == transferred && counters.pma_writes == transferred &&
+                  counters.pma_read_bytes == transferred * 64 && counters.pma_write_bytes == transferred * 64 &&
+                  counters.updates == updates.size() && counters.cache_updates == updates.size() &&
+                  counters.ddr_updates == 0 && backend.outstanding() == 0,
+              "bounded cache parity, padding, update or drain ledger differs from HLS");
+      system.unregister_components();
+      scheduler.remove_component(backend);
+    }
+  }
+}
+
 } // namespace
 
 int main() {
@@ -147,6 +200,7 @@ int main() {
        test_sharded_k4_runtime_plan_rejects_channel_overflow},
       {"sharded_k4_runtime_empty_shard",
        test_sharded_k4_runtime_plan_accepts_empty_destination_shard},
+      {"bounded_cache_short_layout", test_bounded_cache_short_layout_preserves_state_and_traffic},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {

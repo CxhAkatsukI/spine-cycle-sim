@@ -1788,11 +1788,15 @@ private:
         (!config_.compact_parallel_search && config_.compact_search_contexts != 16)) {
       throw std::invalid_argument("search contexts require explicit parallel-search geometry 16 or 64");
     }
+    if (config_.compact_cache_valid_extent && !config_.compact_cached_hot) {
+      throw std::invalid_argument("bounded cache transfer requires the cached hot topology");
+    }
     if (config_.compact_cached_hot &&
         (!config_.compact_parallel_search || config_.compact_parallel_hot ||
          config_.cache_segments_per_half != grasu_update_detail::kCachedHotSegments ||
          layout_.partitions.size() != 1 ||
-         layout_.partitions.front().segments.size() < 2 * grasu_update_detail::kCachedHotSegments)) {
+         (!config_.compact_cache_valid_extent &&
+          layout_.partitions.front().segments.size() < 2 * grasu_update_detail::kCachedHotSegments))) {
       throw std::invalid_argument("cached hot candidate requires source16 single-window capacity and parallel search only");
     }
     if (config_.compact_parallel_hot && !config_.compact_parallel_search) {
@@ -2098,6 +2102,11 @@ private:
                                                 : 3;
       auto &ports = processor_ports_[index];
       if (cache && config_.compact_cached_hot) {
+        const auto segments = layout_.partitions.front().segments.size();
+        const auto valid = config_.compact_cache_valid_extent
+            ? std::min(grasu_update_detail::kCachedHotSegments,
+                       segments / 2 + (index == 0 ? segments % 2 : 0))
+            : grasu_update_detail::kCachedHotSegments;
         processors_[index] = grasu_update_detail::make_cached_processor(
             "grasu-cached-processor" + std::to_string(index), clock_id_,
             config_.explicit_runtime_regions ? config_.pma_bases[pma_lane]
@@ -2106,7 +2115,7 @@ private:
              .reads = {ports.reads[0].get(), nullptr},
              .writes = {ports.reads[0].get(), nullptr},
              .degree_output = degree_outputs_[index].get()},
-            [this] { return dispatch_->done(); });
+            [this] { return dispatch_->done(); }, valid);
         continue;
       }
       processors_[index] = grasu_update_detail::make_direct_processor(

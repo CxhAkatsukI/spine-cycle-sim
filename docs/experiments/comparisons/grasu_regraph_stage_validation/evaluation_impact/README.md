@@ -1,5 +1,11 @@
 # Baseline Validation Before Spine Comparison
 
+The current hardware follow-up is the [bounded GraSU cache and resident FPGA
+matrix](cache_extent/README.md). It separates the host residency fix, the
+source-grounded opt-in core model, fresh HLS/ABI exports and the pending
+24-case revised-kernel board comparison. Earlier controls below keep their
+original evidence boundaries.
+
 ## Acceptance Order
 
 1. **G versus original G:** identical prepared updates, initial PMA, physical

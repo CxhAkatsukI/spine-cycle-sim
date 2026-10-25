@@ -32,13 +32,19 @@ Segment edit(Segment value, const LocatedUpdate& item) {
 class CachedProcessor final : public Processor {
 public:
   CachedProcessor(std::string name, ClockId clock, std::uint64_t base,
-                  Ports ports, std::function<bool()> input_closed)
+                  Ports ports, std::function<bool()> input_closed,
+                  std::size_t valid_segments)
       : Processor(std::move(name), clock), base_(base), ports_(ports),
-        input_closed_(std::move(input_closed)), cache_(kCachedHotSegments) {
+        input_closed_(std::move(input_closed)), cache_(kCachedHotSegments),
+        valid_segments_(valid_segments) {
     if (base % kGraSuSegmentBytes || !ports.input || !ports.reads[0] ||
         ports.writes[0] != ports.reads[0] || ports.reads[1] || ports.writes[1] ||
-        !ports.reads[0]->read_beat_stream_enabled() || !input_closed_)
+        !ports.reads[0]->read_beat_stream_enabled() || !input_closed_ ||
+        valid_segments > kCachedHotSegments)
       throw std::invalid_argument("invalid cached GraSU ports or completion boundary");
+    transfer_segments_ = (valid_segments + kCachedHotBanks - 1) /
+                         kCachedHotBanks * kCachedHotBanks;
+    if (!transfer_segments_) phase_ = Phase::kProcess;
   }
 
   bool idle() const noexcept override { return phase_ == Phase::kDone; }
@@ -76,7 +82,7 @@ public:
     }
     if (stage_issue_) {
       issued_ = true;
-      if (phase_ == Phase::kStore) written_ = kCachedHotSegments;
+      if (phase_ == Phase::kStore) written_ = transfer_segments_;
     }
     if (stage_ack_) acknowledged_ = true;
     if (staged_beat_) cache_[loaded_++] = *staged_beat_;
@@ -93,15 +99,15 @@ public:
       lane.pending.push_back({context.domain_cycle + kCachedUpdateLatency, start.item});
       lane.next_accept = context.domain_cycle + kCachedUpdateInterval;
     }
-    if (phase_ == Phase::kLoad && acknowledged_ && loaded_ == kCachedHotSegments)
+    if (phase_ == Phase::kLoad && acknowledged_ && loaded_ == transfer_segments_)
       phase_ = Phase::kProcess;
     if (stage_store_) {
-      write_data_.clear(); write_data_.reserve(kBytes);
-      for (const auto& segment : cache_) {
-        const auto bytes = encode_segment(segment);
+      write_data_.clear(); write_data_.reserve(transfer_bytes());
+      for (std::size_t index = 0; index < transfer_segments_; ++index) {
+        const auto bytes = encode_segment(cache_[index]);
         write_data_.insert(write_data_.end(), bytes.begin(), bytes.end());
       }
-      phase_ = Phase::kStore;
+      phase_ = transfer_segments_ ? Phase::kStore : Phase::kDone;
       issued_ = acknowledged_ = false;
     }
     if (phase_ == Phase::kStore && acknowledged_) {
@@ -111,7 +117,7 @@ public:
   }
 
 private:
-  static constexpr std::uint64_t kBytes = kCachedHotSegments * kGraSuSegmentBytes;
+  std::uint64_t transfer_bytes() const { return transfer_segments_ * kGraSuSegmentBytes; }
   static constexpr std::size_t kPipelineEntries =
       (kCachedUpdateLatency + kCachedUpdateInterval - 1) / kCachedUpdateInterval;
   enum class Phase { kLoad, kProcess, kStore, kDone };
@@ -127,7 +133,7 @@ private:
     const auto* item = ports_.input->front();
     if (!item) return;
     const std::size_t index = item->segment_head_slot >> 5;
-    if (item->partition != 0 || index >= kCachedHotSegments)
+    if (item->partition != 0 || index >= valid_segments_)
       throw std::runtime_error("cached GraSU packet is outside its single hot window");
     const auto bank = index % kCachedHotBanks;
     if (lanes_[bank].queue.size() == kCachedBankQueueDepth) { ++stalls_; return; }
@@ -161,21 +167,21 @@ private:
     if (!issued_)
       stage_issue_ = port.requests().try_push(AxiRequest{
           .transaction_id = transaction, .operation = operation, .address = base_,
-          .bytes = kBytes, .stream_read_beats = loading, .write_data = write_data_});
+          .bytes = transfer_bytes(), .stream_read_beats = loading, .write_data = write_data_});
     if (!port.responses().empty()) {
       AxiResponse response; port.responses().try_pop(response);
       if (acknowledged_ || !response.success || response.operation != operation ||
           response.transaction_id != transaction ||
-          response.read_data.size() != (loading ? kBytes : 0))
+          response.read_data.size() != (loading ? transfer_bytes() : 0))
         throw std::runtime_error("cached GraSU parent acknowledgement mismatch");
       stage_ack_ = true;
     }
     if (loading && !port.read_beats().empty()) {
       AxiReadBeatResponse beat; port.read_beats().try_pop(beat);
-      if (!beat.success || beat.transaction_id != transaction || loaded_ >= kCachedHotSegments ||
+      if (!beat.success || beat.transaction_id != transaction || loaded_ >= transfer_segments_ ||
           beat.parent_offset != loaded_ * kGraSuSegmentBytes ||
           beat.address != base_ + beat.parent_offset ||
-          beat.last != (loaded_ + 1 == kCachedHotSegments))
+          beat.last != (loaded_ + 1 == transfer_segments_))
         throw std::runtime_error("cached GraSU preload beat identity/order mismatch");
       staged_beat_ = decode_segment(beat.read_data);
     }
@@ -185,6 +191,7 @@ private:
   Ports ports_;
   std::function<bool()> input_closed_;
   std::vector<Segment> cache_;
+  std::size_t valid_segments_{}, transfer_segments_{};
   std::array<Lane, kCachedHotBanks> lanes_;
   Phase phase_{Phase::kLoad};
   bool issued_{}, acknowledged_{}, stage_issue_{}, stage_ack_{}, stage_store_{};
@@ -201,9 +208,10 @@ private:
 
 std::unique_ptr<Processor> make_cached_processor(
     std::string name, ClockId clock, std::uint64_t pma_base,
-    Processor::Ports ports, std::function<bool()> input_closed) {
+    Processor::Ports ports, std::function<bool()> input_closed,
+    std::size_t valid_segments) {
   return std::make_unique<CachedProcessor>(std::move(name), clock, pma_base,
-                                            ports, std::move(input_closed));
+                                            ports, std::move(input_closed), valid_segments);
 }
 
 }  // namespace spine::sim::grasu_update_detail
