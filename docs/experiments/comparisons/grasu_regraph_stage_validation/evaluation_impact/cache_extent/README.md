@@ -17,7 +17,7 @@ timing coefficient is introduced to remove it.
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP routed with passing final timing; CC and ResPR links running |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | 2 of 24 pairs passed: SSSP AU and SU; WK running |
+| New-kernel FPGA comparisons | 3 of 24 pairs passed: SSSP AU, SU and WK; SO waiting for memory admission |
 | Production SST bounded-cache option and numerical calibration | Not promoted or rerun |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -249,7 +249,8 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `spine-respr-zfs-v1/` | Compiler completed; original dependency-postprocessing failure retained |
 | `spine-respr-zfs-audit-v1/` | Independent exact-binary/source/provenance/clock audit; routed, not board-tested |
 | `spine-respr-au-smoke-v1/` | Independent AU board correctness of the audited binary; not a paired measurement |
-| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; SSSP AU and SU passed, WK running |
+| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; SSSP AU, SU and WK passed, SO waiting for memory admission |
+| `independent-pair-audit-v1/` | Saved three-pair checkpoint, frozen plan and independent raw-log/hash/clock recheck; not a terminal matrix export |
 | `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Superseded and stopped before any board pair; eight ResPR rows were blocked by the wrapper failure |
 | `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
 | `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
@@ -292,29 +293,35 @@ live links.
 
 ### First Paired Hardware Results
 
-SSSP AU and SU have each passed one warmup and three measured pairs. The
+SSSP AU, SU and WK have each passed one warmup and three measured pairs. The
 following medians exclude the warmup and retain host relaunch and final
 readback. Both architectures start from the old converged distances, apply
-eight insertions and converge in two hardware rounds with zero mismatches.
+eight insertions and converge with zero mismatches. AU and SU take two
+hardware rounds on each architecture; WK takes one on each.
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine |
 | --- | ---: | ---: | ---: |
 | AU | 18.519382 | 4.302790 | 4.304040 |
 | SU | 27.683435 | 4.335280 | 6.385616 |
+| WK | 27.489030 | 4.525010 | 6.074910 |
 
-These two rows were independently rechecked through the delivery verifier:
+These three rows were independently rechecked through the delivery verifier:
 all four raw paired logs were reparsed, measured medians recomputed, and
 manifest/source/host/bitstream/input hashes and actual clock dumps checked.
 Both DATA clocks are 150 MHz. Evidence lives in
-`matrix-zfs-v3/sssp-{au,su}/`, including `results.json`, `manifest.json`,
-clock dumps and four `sample-*` directories. The recheck ran in a 2-GiB
-hard/1.5-GiB high/zero-swap scope and exited zero.
+`matrix-zfs-v3/sssp-{au,su,wk}/`, including `results.json`, `manifest.json`,
+clock dumps and four `sample-*` directories. The saved independent recheck
+is `independent-pair-audit-v1/results.json`, alongside its exact matrix
+checkpoint, plan and stderr. It verified 1470 unique pinned files, exited
+zero in 19.777 seconds and peaked at 17.8 MiB under a 1-GiB hard/768-MiB
+high/zero-swap group. Its status explicitly excludes matrix completion.
 
-This is a two-case checkpoint, not a completed eight-graph result or proof
+This is a three-case checkpoint, not a completed eight-graph result or proof
 of an isolated cache-optimization speedup. It must not be mixed with the
-older full-cache control. The remaining 22 declared pairs are unfinished;
-WK is running, and CC/ResPR still require their new routed artifacts and AU
-correctness gates. No terminal figure package has been exported.
+older full-cache control. The remaining 21 declared pairs are unfinished;
+SO is waiting for memory admission, and CC/ResPR still require their new
+routed artifacts and AU correctness gates. No terminal figure package has
+been exported.
 
 ### Spine Artifact Audit, Not Recompilation
 
@@ -428,7 +435,7 @@ Large bitstreams, graphs and compiler trees remain at the indexed original
 locations. Twelve cache-study/export tests pass, including rejection of old
 kernel controls, changed logs/hashes and unfinished or duplicated matrices.
 This exporter has not yet packaged the running new-kernel board matrix.
-The two passing SSSP cases above do not constitute the complete 24-case
+The three passing SSSP cases above do not constitute the complete 24-case
 delivery and are not exported by relabeling pending cases as terminal.
 
 ### Hardware Speedup Preview
