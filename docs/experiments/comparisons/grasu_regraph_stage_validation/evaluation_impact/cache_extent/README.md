@@ -15,9 +15,9 @@ timing coefficient is introduced to remove it.
 | Three native G+R hosts | Built, backward-compatible argument selection |
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
-| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP and ResPR running; CC waiting for finite memory admission |
+| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP routed with passing final timing; CC and ResPR links running |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | 0 of 24 pairs; pending hardware |
+| New-kernel FPGA comparisons | 0 of 24 pairs; first SSSP AU task started |
 | Production SST bounded-cache option and numerical calibration | Not promoted or rerun |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -249,7 +249,7 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `spine-respr-zfs-v1/` | Compiler completed; original dependency-postprocessing failure retained |
 | `spine-respr-zfs-audit-v1/` | Independent exact-binary/source/provenance/clock audit; routed, not board-tested |
 | `spine-respr-au-smoke-v1/` | Independent AU board correctness of the audited binary; not a paired measurement |
-| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner, waiting for exact new artifacts |
+| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; SSSP artifact ready, first AU task started |
 | `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Superseded and stopped before any board pair; eight ResPR rows were blocked by the wrapper failure |
 | `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
 | `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
@@ -272,6 +272,23 @@ Historical complete G+R tree peaks were around
 41--45 GiB. Concurrent compilers are admitted only if that total budget fits.
 Board hosts have finite 16--32-GiB groups and share an exclusive board lock.
 Interrupted `v1` runs and their logs are retained, not relabeled as passes.
+
+### Revised SSSP Route Evidence
+
+On 2026-10-25, `route-zfs-v2/sssp/results.json` reached
+`ROUTED_NOT_BOARD_TESTED`: compiler exit zero, no watchdog stop and no cgroup
+memory events. The bounded-cache xclbin SHA-256 is
+`ed674b033c738506bd8ac32da9ab2b51e3e70e8925113aed048f50eb35dbf11e`.
+Actual metadata retain DATA 150 MHz and HBM 450 MHz without downscaling.
+
+The final `hw_bb_locked_timing_summary_routed.rpt` under
+`work/link/vivado/vpl/prj/prj.runs/impl_1/` reports setup WNS +0.002 ns,
+TNS zero and no setup-failing endpoints; hold WNS +0.009 ns, THS zero and
+no hold-failing endpoints. All user-specified timing constraints are met.
+Intermediate negative-slack messages do not supersede that final report.
+This is a routed-artifact gate, not board correctness or a measured speedup.
+The matrix created SSSP AU with this exact binary; no paired sample had
+passed at this checkpoint. CC and ResPR remain separate live links.
 
 ### Spine Artifact Audit, Not Recompilation
 
