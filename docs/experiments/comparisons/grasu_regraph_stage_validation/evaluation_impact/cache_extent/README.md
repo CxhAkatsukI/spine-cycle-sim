@@ -1,5 +1,9 @@
 # Bounded GraSU Cache And Revised FPGA Matrix
 
+Start with the [short review summary](REPORT.md) for the current measured
+results, timing contract, limitations and remaining delivery gates. This
+guide retains the detailed source, command and investigation records.
+
 ## What Is Being Delivered
 
 The requested follow-up is an actual SSSP/CC/ResPR G+R versus Spine FPGA
