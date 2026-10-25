@@ -768,6 +768,18 @@ algorithms and reject even mutually matching host logs when their record
 count disagrees with the frozen workload. The hash-pinned live board runner
 and HLS worktree were not edited to apply this packaging-only fix.
 
+The CSV now additionally retains all three formal `gr_rounds_samples` and
+`spine_rounds_samples` (semicolon-separated) and their `propagation_scope`.
+Zero rounds on both sides in every formal sample are explicitly labeled
+`no_propagation_rounds`; this is update/correction/completion evidence, not
+iterative propagation performance. A separate ResPR table and scope warning
+are generated in the portable README. Failed rows keep blank counts, and
+excluded warmups cannot change the formal-round classification. The eleven
+delivery tests pass with the additional zero/nonzero-round and invalid-count
+checks; their output is retained in
+`propagation-scope-preflight-v1/tests.log` under the live root. This reporting
+change does not modify the measured hosts, bitstreams, inputs or thresholds.
+
 ### Hardware Speedup Preview
 
 After exporting the terminal evidence, render it independently of the paper:
