@@ -185,3 +185,28 @@ locations. Twelve cache-study/export tests pass, including rejection of old
 kernel controls, changed logs/hashes and unfinished or duplicated matrices.
 This exporter has not yet packaged the pending new-kernel board matrix;
 there is still no claim of completed FPGA results at this checkpoint.
+
+### Hardware Speedup Preview
+
+After exporting the terminal evidence, render it independently of the paper:
+Use an environment with the project's `plots` extra and LaTeX `txfonts`
+installed; the original handoff environment is
+`/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python` on this machine.
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.fpga_plot \
+  --delivery /path/to/exported-fpga-results \
+  --output /path/to/fresh-preview
+```
+
+The renderer uses the earlier Python handoff's TX Typewriter font, eight-fold
+hatch patterns and black outlines. All eight dataset groups contain adjacent
+ResPR, CC and SSSP positions. The log-scale ratio is measured median G+R wall
+time divided by measured median Spine wall time; one marks equal performance.
+Slowdowns remain below one. Failed cases retain their positions and are marked
+with an `x`, not assigned zero, projected or copied from an older experiment.
+The parser checks delivery-file hashes, complete matrix coverage and each CSV
+median/ratio against the terminal report. Pending matrices and matrices with
+no measured pair are rejected. PNG, PDF and renderer/input provenance are
+written to a fresh directory. Unit fixtures only test validation; they are not
+board results or replacement figure data.
