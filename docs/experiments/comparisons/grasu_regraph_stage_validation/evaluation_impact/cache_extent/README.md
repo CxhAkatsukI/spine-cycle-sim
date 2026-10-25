@@ -18,7 +18,7 @@ timing coefficient is introduced to remove it.
 | Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP routed with passing final timing; CC and ResPR links running |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
 | New-kernel FPGA comparisons | 3 of 24 pairs passed: SSSP AU, SU and WK; SO waiting for memory admission |
-| Production SST bounded-cache option and numerical calibration | Not promoted or rerun |
+| Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
 are authoritative after this checkpoint. Existing figure data and the paper
@@ -55,10 +55,10 @@ hazards, acknowledged writes and both registration orders. Ten short-layout
 runtime cases additionally compare the final graph to an independent oracle
 and check the complete transfer ledger.
 
-The production SST plugin does not yet expose this opt-in configuration.
-Passing these core checks is neither a refreshed production-plugin result nor
-new FPGA calibration. Timing differences caused by real HBM, host scheduling
-and physical routing remain empirical questions for the new board matrix.
+The SST plugin now exposes the configuration explicitly, with defaults still
+off. The separate functional checks below do not establish new FPGA timing
+calibration. Timing differences caused by real HBM, host scheduling and
+physical routing remain empirical questions for the new board matrix.
 
 ## Portable Component Prediction
 
@@ -95,9 +95,10 @@ also passed: 41 complete-G validation tests, eight cache-study tests and
 four resident-log comparison tests. The HLS-side source/runner checkpoint
 is commit `9f6d1a6` in `grasu-regraph-integration`.
 
-No fresh SST-plugin timing or FPGA calibration was run for this opt-in
-simulator path. The frozen production plugin is unchanged. Core regression,
-HLS synthesis and future routed measurements are distinct evidence gates.
+A fresh, separately built SST plugin exercises this opt-in simulator path,
+as described below. Frozen production plugins and calibration contracts are
+unchanged. Functional SST execution, core regression, HLS synthesis and
+matched FPGA timing are distinct evidence gates.
 
 ### Sharded Metadata Routing
 
@@ -150,6 +151,73 @@ It uses the existing patched DRAMSim3 dependency
 against an unpatched dependency failed on the required idle APIs. Both
 failed attempts remain in their systemd journals. No frozen production
 plugin, numerical calibration or figure data was replaced.
+
+### SST Opt-In Functional Validation
+
+The fresh `sst-bounded-v1/libspine_cycle.so` exposes four explicit settings
+through `sst/grasu_regraph_vertical.py`:
+
+| Environment variable | Default | Meaning |
+| --- | ---: | --- |
+| `GRASU_SST_COMPACT_PARALLEL_SEARCH` | `0` | Select the finite parallel-search topology |
+| `GRASU_SST_COMPACT_SEARCH_CONTEXTS` | `16` | Select 16 or 64 search contexts per CU |
+| `GRASU_SST_COMPACT_CACHED_HOT` | `0` | Select the full-capacity hot cache |
+| `GRASU_SST_COMPACT_CACHE_VALID_EXTENT` | `0` | Bound transfers to the rounded valid span |
+
+The result's `update_observability.configuration` records all four settings
+and the physical cache capacity. Core validation rejects bounded transfers
+without the cached topology, or a short PMA layout requesting the old
+full-cache transfer. No historical profile is silently upgraded.
+
+The [opt-in integration suite](../../../../../../tests/test_sst_cached_update.py)
+uses the exact requested plugin search path and records its SHA-256, input
+hashes, command, environment, raw stdout/stderr and JSON for every invocation.
+The five tests perform seven SST invocations on the existing fixture: one
+insertion and one deletion. The backend is actual SST memHierarchy/DRAMSim3,
+not the mock-memory component benchmark above.
+
+| Configuration | Update cycles | PMA reads / writes | Backend requests |
+| --- | ---: | ---: | ---: |
+| Bounded cache, 16 contexts | 98 | 32 / 32 | 68 |
+| Bounded cache, 64 contexts | 98 | 32 / 32 | 68 |
+| Bounded cache, two touched destination shards | 182 | 48 / 48 | 100 |
+| Default topology, frozen and new plugin | 54 | 2 / 2 | 8 |
+
+All successful cases pass final-graph correctness and request conservation;
+the two illegal configurations fail with their expected validation errors.
+The default new-plugin JSON is identical to the frozen baseline after removing
+only the new configuration object, including cycles, counters, final state and
+backend statistics. These tiny update-only cases do not execute ReGraph or
+validate total-system timing. Their outputs explicitly retain
+`execution_driven_update_engine_sst_hbm_not_cycle_calibrated`.
+
+The first `sst-bounded-verification-v1/` suite retained a failed test
+expectation: it demanded a nonzero legacy `partition_routes` counter from
+host-selected single-window shard children. That counter does not describe
+this path. The real sharded run itself passed correctness and conservation.
+The corrected test checks two touched shards and all 48 reads/writes; the
+fresh `sst-bounded-verification-v2/` suite passes all five tests in 1.345 s.
+No model timing or hardware source was changed to make that test pass.
+
+The new plugin SHA-256 is
+`0da332ef86a40e44b3555a89de9e4ed1d340a8722de2fbafc185b6678849fa39`.
+Its build completed in a 2-GiB hard/1.5-GiB high/zero-swap group, peaking at
+1013.9 MiB. The before-edit source archive is `sst-bounded-before-v1.tar`;
+the old `sst-sharded-v2/` plugin remains intact. To reproduce the opt-in tests
+from the repository root with separately built new and old libraries:
+
+```bash
+SPINE_SST_CACHE_TEST_LIBRARY=/path/to/fresh-plugin-directory \
+SPINE_SST_CACHE_BASELINE_LIBRARY=/path/to/frozen-baseline-directory \
+SPINE_SST_CACHE_TEST_OUTPUT=/path/to/fresh-test-output \
+python3 -m unittest discover -s tests -p test_sst_cached_update.py -v
+python3 -m unittest discover -s tests -p test_sharded_runtime_wiring.py -v
+```
+
+Without an explicit new library directory, the five optional SST tests skip;
+the four parameter/placement wiring tests do not require SST. Neither this
+suite nor the plugin hash replaces the frozen v20 calibration contract or
+generates new figure data.
 
 ## Frozen Hardware Matrix
 
@@ -258,6 +326,9 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `sim-before/`, `sim-after/` | Separate Release component builds |
 | `sim-sharded-v1/` | Fresh shared-metadata routing build and passing 31-test regression |
 | `sst-sharded-v2/`, `sst-sharded-smoke-v1/`, `sst-sharded-payload-v1/` | Fresh default-plugin compatibility build and passing memory/payload probes; not a timing calibration |
+| `sst-bounded-before-v1.tar`, `sst-bounded-v1/` | Before-edit source freeze and separately built opt-in SST plugin; old plugins intact |
+| `sst-bounded-probe-v1/`, `sst-bounded-verification-v2/` | Actual SST bounded/sharded/default/negative tests, raw logs, exact plugin/input hashes; functional evidence, not FPGA calibration |
+| `sst-bounded-verification-v1/` | Retained initial test-expectation failure on the legacy router counter; underlying sharded run passed |
 | `sim-extent-benchmark-v1.csv` | Original portable component diagnostic |
 | `host-control-au-v1/results.json` | OLD G+R kernel with the revised host |
 

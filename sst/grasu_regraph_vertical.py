@@ -126,6 +126,18 @@ probe.addParams(
         "grasu_cache_segments_per_half": int(
             os.environ.get("GRASU_SST_CACHE_SEGMENTS_PER_HALF", "131072")
         ),
+        "grasu_compact_parallel_search": int(
+            os.environ.get("GRASU_SST_COMPACT_PARALLEL_SEARCH", "0")
+        ),
+        "grasu_compact_search_contexts": int(
+            os.environ.get("GRASU_SST_COMPACT_SEARCH_CONTEXTS", "16")
+        ),
+        "grasu_compact_cached_hot": int(
+            os.environ.get("GRASU_SST_COMPACT_CACHED_HOT", "0")
+        ),
+        "grasu_compact_cache_valid_extent": int(
+            os.environ.get("GRASU_SST_COMPACT_CACHE_VALID_EXTENT", "0")
+        ),
         "grasu_partition_vertices": int(
             os.environ.get("GRASU_SST_PARTITION_VERTICES", "16")
         ),

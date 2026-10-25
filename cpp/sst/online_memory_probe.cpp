@@ -1221,8 +1221,17 @@ void write_memory_traffic(std::ostream &output,
 }
 
 void write_grasu_update_observability(std::ostream &output,
-                                      const GraSuUpdateCounters &update) {
-  output << "{\"updates\":" << update.updates
+                                      const GraSuUpdateCounters &update,
+                                      const GraSuNativeConfig &config) {
+  output << "{\"configuration\":{\"compact_parallel_search\":"
+         << (config.compact_parallel_search ? "true" : "false")
+         << ",\"compact_search_contexts\":" << config.compact_search_contexts
+         << ",\"compact_cached_hot\":"
+         << (config.compact_cached_hot ? "true" : "false")
+         << ",\"compact_cache_valid_extent\":"
+         << (config.compact_cache_valid_extent ? "true" : "false")
+         << ",\"cache_segments_per_half\":" << config.cache_segments_per_half
+         << "},\"updates\":" << update.updates
          << ",\"update_record_bytes\":" << update.update_record_bytes
          << ",\"destination_partitions_touched\":"
          << update.destination_partitions_touched
@@ -2064,6 +2073,14 @@ class OnlineMemoryProbe final : public SST::Component {
         params.find<std::size_t>("grasu_degree_fifo_depth", 16);
     grasu_update_config_.degree_reorder_entries =
         params.find<std::size_t>("grasu_degree_reorder_entries", 4096);
+    grasu_update_config_.compact_parallel_search =
+        params.find<bool>("grasu_compact_parallel_search", false);
+    grasu_update_config_.compact_search_contexts =
+        params.find<std::size_t>("grasu_compact_search_contexts", 16);
+    grasu_update_config_.compact_cached_hot =
+        params.find<bool>("grasu_compact_cached_hot", false);
+    grasu_update_config_.compact_cache_valid_extent =
+        params.find<bool>("grasu_compact_cache_valid_extent", false);
     const bool native_grasu_sssp = mode_ == "grasu_regraph_native_sssp";
     const bool hls_weighted_grasu_sssp =
         mode_ == "grasu_regraph_hls_weighted_sssp";
@@ -4161,6 +4178,17 @@ class OnlineMemoryProbe final : public SST::Component {
        "shared_engine_serial"},
       {"grasu_cache_segments_per_half", "GraSU cache segments per PMA half",
        "131072"},
+      {"grasu_compact_parallel_search",
+       "Explicit weighted-PMA parallel-search topology", "false"},
+      {"grasu_compact_search_contexts",
+       "Search contexts per CU in the explicit parallel topology (16 or 64)",
+       "16"},
+      {"grasu_compact_cached_hot",
+       "Explicit full-depth hot-cache topology; requires parallel search",
+       "false"},
+      {"grasu_compact_cache_valid_extent",
+       "Bound cache preload/writeback to rounded valid PMA spans; requires cached hot",
+       "false"},
       {"grasu_partition_vertices", "ReGraph destination partition size",
        "65536"},
       {"grasu_compute_pipelines", "Parallel ReGraph partition workers", "1"},
@@ -4698,7 +4726,7 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"backend_arbitration\": "
              << backend_->arbitration_json() << ",\n"
              << "  \"update_observability\": ";
-      write_grasu_update_observability(result, update);
+      write_grasu_update_observability(result, update, grasu_update_config_);
       result << ",\n  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
       result << ",\n  \"update_backend_traffic\": ";
@@ -5183,7 +5211,7 @@ class OnlineMemoryProbe final : public SST::Component {
              << "  \"memory_locality_ledger_match\": "
              << (memory_locality_ledger_match ? "true" : "false") << ",\n"
              << "  \"update_observability\": ";
-      write_grasu_update_observability(result, update);
+      write_grasu_update_observability(result, update, grasu_update_config_);
       result << ",\n  \"active_edges\": " << reference.active_edges << ",\n"
              << "  \"destination_partitions\": "
              << compute.destination_partitions << ",\n"
@@ -6264,7 +6292,7 @@ class OnlineMemoryProbe final : public SST::Component {
       result << "  \"update_failure\": ";
       write_json_string(result, grasu_update_system_->failure());
       result << ",\n  \"update_observability\": ";
-      write_grasu_update_observability(result, update);
+      write_grasu_update_observability(result, update, grasu_update_config_);
       result << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
@@ -6704,7 +6732,7 @@ class OnlineMemoryProbe final : public SST::Component {
           << "  \"backend_arbitration\": " << backend_->arbitration_json()
           << ",\n";
       result << "  \"update_observability\": ";
-      write_grasu_update_observability(result, update);
+      write_grasu_update_observability(result, update, grasu_update_config_);
       result << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
@@ -7077,7 +7105,7 @@ class OnlineMemoryProbe final : public SST::Component {
       result << "  \"update_failure\": ";
       write_json_string(result, grasu_update_system_->failure());
       result << ",\n  \"update_observability\": ";
-      write_grasu_update_observability(result, update);
+      write_grasu_update_observability(result, update, grasu_update_config_);
       result << ",\n";
       result << "  \"backend_traffic\": ";
       write_memory_traffic(result, total_backend_traffic);
