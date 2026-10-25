@@ -17,7 +17,7 @@ timing coefficient is introduced to remove it.
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | All three `route-zfs-v2` artifacts complete; ResPR metadata records DATA 149/HBM 432 MHz after automatic scaling, with an independent artifact audit |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | All eight SSSP pairs, all eight CC pairs and ResPR AU/SU passed (18 of 24 total); ResPR WK running; AU/SU have zero residual propagation rounds; SSSP SO has a large retained timing outlier |
+| New-kernel FPGA comparisons | All eight SSSP pairs, all eight CC pairs and ResPR AU/SU/WK passed (19 of 24 total); ResPR SO running; AU/SU/WK have zero residual propagation rounds; SSSP SO has a large retained timing outlier |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -328,7 +328,7 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `independent-pair-audit-v8/` | Ten-pair checkpoint including CC AU/SU, independently rechecked against the same frozen plan; not a terminal matrix export |
 | `independent-pair-audit-v9/` | Eleven-pair checkpoint including CC WK; additionally verifies saved memory containment, admission and zero OOM counters; not a terminal matrix export |
 | `independent-pair-audit-v10/` through `independent-pair-audit-v12/` | Saved twelve- through fourteen-pair checkpoints including CC SO/PK/LJ, with independent raw-log, pin, clock and saved memory-contract verification; not terminal matrix exports |
-| `independent-pair-audit-v13/` through `independent-pair-audit-v16/` | Saved fifteen- through eighteen-pair checkpoints, completing CC and adding ResPR AU/SU; each independently rechecks raw logs, pins, clocks and saved memory contracts; not terminal matrix exports |
+| `independent-pair-audit-v13/` through `independent-pair-audit-v17/` | Saved fifteen- through nineteen-pair checkpoints, completing CC and adding ResPR AU/SU/WK; each independently rechecks raw logs, pins, clocks and saved memory contracts; not terminal matrix exports |
 | `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Superseded and stopped before any board pair; eight ResPR rows were blocked by the wrapper failure |
 | `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
 | `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
@@ -579,20 +579,25 @@ experiment must be separate rather than replacing these samples.
 
 ### First ResPR Hardware Pairs
 
-ResPR AU and SU passed one warmup and three measured pairs, with eight
+ResPR AU, SU and WK passed one warmup and three measured pairs, with eight
 directed insertion records and zero rank, degree or nonfinite mismatches:
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine | Propagation rounds, both |
 | --- | ---: | ---: | ---: | ---: |
 | AU | 21.407410 | 53.835500 | 0.397645 | 0 |
 | SU | 27.242188 | 52.652600 | 0.517395 | 0 |
+| WK | 52.660617 | 64.281500 | 0.819219 | 0 |
 
-Spine is approximately 2.51 times slower on AU and 1.93 times slower on SU.
+Spine is approximately 2.51 times slower on AU, 1.93 times slower on SU and
+1.22 times slower on WK.
 AU's measured samples are 20.841104, 21.479141 and 21.407410 ms for G+R,
 and 53.8355, 53.0491 and 54.0927 ms for Spine. Their coefficients of variation
 are 1.343% and 0.827%, respectively. SU's are 27.251839, 27.242188 and
 27.135669 ms for G+R, and 52.6526, 53.0596 and 51.7923 ms for Spine, with
 coefficients of variation of 0.193% and 1.006%.
+WK's measured samples are 52.862293, 52.660617 and 52.650738 ms for G+R,
+and 64.8915, 64.2815 and 63.6689 ms for Spine, with coefficients of variation
+of 0.185% and 0.776%, respectively.
 
 The fixed threshold is direct per-vertex `epsilon=1e-6`, not divided by the
 vertex count; damping remains 0.85. Both hardware paths and the CPU oracle
@@ -605,27 +610,27 @@ or host binary was changed to manufacture propagation or a Spine win.
 G+R's packaged DATA/HBM clocks are 149/432 MHz; Spine's are 150/448 MHz.
 Measured walls are not frequency-normalized. Both 16-GiB hard/14-GiB high/
 zero-swap groups completed with whole-group OOM containment and zero memory
-events. The remaining six ResPR datasets are a separate, unfinished gate.
+events. The remaining five ResPR datasets are a separate, unfinished gate.
 
 ### Independent Paired-Result Audit
 
-`independent-pair-audit-v16/results.json` verifies all eighteen completed
-cases and seventy-two paired samples including warmups. Besides raw logs,
-medians, clocks and 1550 unique pinned files, it validates each case's saved
+`independent-pair-audit-v17/results.json` verifies all nineteen completed
+cases and seventy-six paired samples including warmups. Besides raw logs,
+medians, clocks and 1551 unique pinned files, it validates each case's saved
 hard/high limits, zero swap, whole-group OOM containment, admission and
 per-process budget/reserve policy, and zero post-run OOM counters. The audit
-took 19.421 seconds with 28.9-MiB process RSS under a 1-GiB hard/768-MiB high/
+took 19.694 seconds with 29.0-MiB process RSS under a 1-GiB hard/768-MiB high/
 zero-swap cap, with zero memory events. Its verifier is integration revision
-`98503e6`, unchanged from implementation commit `bca49d0` (SHA-256
+`92af056`, unchanged from implementation commit `bca49d0` (SHA-256
 `91d54436a94f8a1cf431031c1b25ba9217a9f168a7bfa056ce394165adc73138`).
 The matrix snapshot SHA-256 is
-`37bd37fd19572bb94eb9630bbf26eff6d6bc9f0908ee0dc066ac283836d435e7`;
+`61a95cffa10094bd499f7020281472437031811bc247dcae0ec63b51426d3706`;
 the plan SHA-256 remains
 `dcfa6e48f3db23f7ab6c213207c8f4a733093a1d8dd082ab055cc19bf5e57a92`.
-Six ResPR cases remain unfinished; ResPR WK is running. This audit is a
+Five ResPR cases remain unfinished; ResPR SO is running. This audit is a
 read-only checkpoint, not a new board run or terminal delivery.
-The earlier `independent-pair-audit-v7/` through `v15/` directories retain
-their nine- through seventeen-case snapshots and exact verifier identities.
+The earlier `independent-pair-audit-v7/` through `v16/` directories retain
+their nine- through eighteen-case snapshots and exact verifier identities.
 
 ### Spine Artifact Audit, Not Recompilation
 
@@ -855,8 +860,8 @@ rejection of changed summary statistics, and blank failed-case variability rows.
 They pass without FPGA/plotting dependencies. The recomputation also accepts
 both architectures' actual AU/SU/WK/SO/PK/LJ/LJ08/R19 measured-wall summaries
 without changing those reports. The running board matrix has not been exported
-as final event diagnostics. The analyzer reparsed all 54 measured G+R logs
-from the eight SSSP, eight CC and first two ResPR cases against their admitted
+as final event diagnostics. The analyzer reparsed all 57 measured G+R logs
+from the eight SSSP, eight CC and first three ResPR cases against their admitted
 per-sample walls, and rechecked both architectures' wall statistics:
 
 | Algorithm | Dataset | G event-union median (ms) | Total kernel-event union median (ms) | Kernel-uncovered-wall median (ms) |
@@ -879,14 +884,15 @@ per-sample walls, and rechecked both architectures' wall statistics:
 | CC | R19 | 2.199493 | 90.951757 | 0.688890 |
 | ResPR | AU | 3.322216 | 20.357059 | 1.050351 |
 | ResPR | SU | 3.130331 | 26.129807 | 1.121222 |
+| ResPR | WK | 1.438732 | 51.055911 | 1.623346 |
 
 For example, CC SO's G event union is approximately 2.23 ms, whereas its
 resident G+R wall median is 823.09 ms. This is not an isolated measurement
 of adapter/R overhead or proof of original-GraSU performance matching.
 Overlapping event unions and separately computed medians must not be added
 or subtracted to manufacture an exclusive stage attribution. This is a
-eighteen-case diagnostic checkpoint, not a terminal 24-case profiling export.
-The two ResPR cases have zero propagation rounds; their G event union includes
+nineteen-case diagnostic checkpoint, not a terminal 24-case profiling export.
+The three ResPR cases have zero propagation rounds; their G event union includes
 device degree update. Unlogged ResPR barrier/readback metrics remain absent.
 
 The final-delivery preflight also passes nine integration export tests, ten
