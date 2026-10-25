@@ -306,6 +306,27 @@ Vivado independently checks cache fingerprints before using an entry. This
 does not reuse an old xclbin, replace the new bounded cache XO or establish
 board performance. Original failed evidence and compiler caches are intact.
 
+The current queued `route-zfs-v2/cc` and `route-zfs-v2/respr` jobs also
+received independent compiler-cache copies on 2026-10-25. The copy held the
+same admission lock as the compiler supervisors and checked live PID/start
+identity, absence of an admission lease, waiting status and no compiler
+outputs before and after copying. The prior inventory's complete member set,
+sizes and SHA-256 values matched, with separate source/destination inodes.
+
+| Current output | Files | Logical bytes | New `ip-cache-seed.json` SHA-256 |
+| --- | ---: | ---: | --- |
+| `route-zfs-v2/cc` | 848 | 937262532 | `71da84390731441152ca71db2917b01345602f85fe0ea0bbf3b0f4e78be6245c` |
+| `route-zfs-v2/respr` | 909 | 1439763700 | `e14849683a398ff63bc29a1fdd40fb5f1f1a80f1c268f42e50ec5e661006867c` |
+
+The retained helper is `seed-queued-ip-cache.py` under the live root
+(SHA-256 `8a74d96cda17e6af361ff5f04e35e6131eb920524cd8c61af4d4f35682e99a64`).
+Both copies completed under a 2-GiB hard/1.5-GiB high/zero-swap group,
+peaking below 12 MiB. The source inventories and original directories are
+recorded in the new seed reports. Live kernel XOs, configurations, runner
+pins and the in-progress SSSP/Spine projects were not changed. A seed report
+describes the initial cache only: Vivado may subsequently update its private
+copy. Reuse remains subject to Vivado's fingerprint check.
+
 No large bitstream or raw compiler log is checked into this repository.
 The integration guide owns runner commands; immutable manifests above retain
 the exact arguments and source hashes. This guide and the portable CSV are
