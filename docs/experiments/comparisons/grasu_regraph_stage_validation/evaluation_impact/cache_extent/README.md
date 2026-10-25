@@ -15,9 +15,9 @@ timing coefficient is introduced to remove it.
 | Three native G+R hosts | Built, backward-compatible argument selection |
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
-| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP and CC artifacts complete; ResPR target-frequency setup failed, final artifact/clocks pending |
+| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP and CC artifacts complete; ResPR auto-scaled to DATA 149.8/HBM 432.7 MHz in the tool log, final artifact/metadata pending |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | 3 of 24 pairs passed: SSSP AU, SU and WK; SO admitted and running its warmup pair |
+| New-kernel FPGA comparisons | 4 of 24 pairs passed: SSSP AU, SU, WK and SO; PK running; SO has a large retained timing outlier |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -317,8 +317,9 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `spine-respr-zfs-v1/` | Compiler completed; original dependency-postprocessing failure retained |
 | `spine-respr-zfs-audit-v1/` | Independent exact-binary/source/provenance/clock audit; routed, not board-tested |
 | `spine-respr-au-smoke-v1/` | Independent AU board correctness of the audited binary; not a paired measurement |
-| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; SSSP AU, SU and WK passed, SO waiting for memory admission |
+| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; SSSP AU, SU, WK and SO passed, PK running |
 | `independent-pair-audit-v1/` | Saved three-pair checkpoint, frozen plan and independent raw-log/hash/clock recheck; not a terminal matrix export |
+| `independent-pair-audit-v2/` | Saved four-pair checkpoint and independent recheck, retaining all measured samples and variability; not a terminal matrix export |
 | `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Superseded and stopped before any board pair; eight ResPR rows were blocked by the wrapper failure |
 | `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
 | `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
@@ -394,44 +395,59 @@ This admits the artifact to testing, not a CC performance or correctness claim.
 The existing routed-timing checker accepts CC and rejects ResPR at the
 requested frequencies. ResPR's failures comprise 18 DATA-clock endpoints
 (WNS -0.006 ns) and 34 HBM-clock endpoints (WNS -0.089 ns), with no hold or
-pulse-width failures. This is not closure at DATA 150/HBM 450 MHz. Subsequent
-compiler frequency scaling and the final binary's clock metadata remain to
-be inspected; no downscaled clock is inferred from the slack alone. Board
-measurements may use the actual resulting frequencies with this limitation
-disclosed, but require the same independent correctness gates. Neither the
-routed reports nor the three SSSP pairs establish CC/ResPR performance.
+pulse-width failures. This is not closure at DATA 150/HBM 450 MHz. The
+subsequent `runme.log` and `_new_clk_freq` explicitly record automatic
+frequency scaling to DATA 149.8 MHz and HBM 432.7 MHz; these values are not
+inferred from slack. Bitstream writing is still running at this checkpoint.
+The final binary and its clock metadata must be independently inspected
+before reporting packaged clocks. Board measurements may use those actual
+frequencies with the limitation disclosed, but require the same independent
+correctness gates. Neither routed reports nor SSSP pairs establish
+CC/ResPR performance.
 
 ### First Paired Hardware Results
 
-SSSP AU, SU and WK have each passed one warmup and three measured pairs. The
+SSSP AU, SU, WK and SO have each passed one warmup and three measured pairs. The
 following medians exclude the warmup and retain host relaunch and final
 readback. Both architectures start from the old converged distances, apply
 eight insertions and converge with zero mismatches. AU and SU take two
-hardware rounds on each architecture; WK takes one on each.
+hardware rounds on each architecture; WK and SO take one on each.
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine |
 | --- | ---: | ---: | ---: |
 | AU | 18.519382 | 4.302790 | 4.304040 |
 | SU | 27.683435 | 4.335280 | 6.385616 |
 | WK | 27.489030 | 4.525010 | 6.074910 |
+| SO | 751.955400 | 18.033600 | 41.697465 |
 
-These three rows were independently rechecked through the delivery verifier:
+These four rows were independently rechecked through the delivery verifier:
 all four raw paired logs were reparsed, measured medians recomputed, and
 manifest/source/host/bitstream/input hashes and actual clock dumps checked.
 Both DATA clocks are 150 MHz. Evidence lives in
-`matrix-zfs-v3/sssp-{au,su,wk}/`, including `results.json`, `manifest.json`,
+`matrix-zfs-v3/sssp-{au,su,wk,so}/`, including `results.json`, `manifest.json`,
 clock dumps and four `sample-*` directories. The saved independent recheck
-is `independent-pair-audit-v1/results.json`, alongside its exact matrix
-checkpoint, plan and stderr. It verified 1470 unique pinned files, exited
-zero in 19.777 seconds and peaked at 17.8 MiB under a 1-GiB hard/768-MiB
-high/zero-swap group. Its status explicitly excludes matrix completion.
+is `independent-pair-audit-v2/results.json`, alongside its exact matrix
+checkpoint and plan. It verified 1471 unique pinned files, exited zero in
+19.006 seconds and peaked at 28.9 MiB under a 1-GiB hard/768-MiB high/zero-swap
+group, with zero memory events. The additional file is the SO case's generated
+configuration. Its status explicitly excludes matrix completion; the earlier
+three-pair `v1` audit is retained.
 
-This is a three-case checkpoint, not a completed eight-graph result or proof
+SO's three measured Spine walls are 15.5080, 18.0336 and 73.8605 ms, giving
+a coefficient of variation of 75.23%; G+R's is 1.10%. The slow Spine sample
+passes correctness and remains included in both the median and raw evidence.
+WK's Spine coefficient of variation is 9.30%. CPU affinity is fixed to cores
+0--3 but not exclusive, and compilation/other users' work can overlap these
+measurements. The evidence does not identify the cause of the SO outlier;
+do not claim stable isolated latency or silently discard it. Any follow-up
+repetition needs a separate declared run, not replacement of this matrix.
+
+This is a four-case checkpoint, not a completed eight-graph result or proof
 of an isolated cache-optimization speedup. It must not be mixed with the
-older full-cache control. The remaining 21 declared pairs are unfinished.
-After the CC compiler exited and released its finite reservation, SO was
-automatically admitted with a 32-GiB hard cap and began its warmup pair;
-no live cap, pin, or admission threshold was changed to force that admission.
+older full-cache control. The remaining 20 declared pairs are unfinished.
+SO completed under its 32-GiB hard cap with zero memory events, and the
+queue automatically advanced to PK. No live cap, pin, or admission threshold
+was changed to force admission.
 CC still requires its AU correctness gate; ResPR still requires a completed
 artifact and its AU correctness gate. No terminal figure package has been
 exported.
