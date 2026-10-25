@@ -153,3 +153,18 @@ The integration guide owns runner commands; immutable manifests above retain
 the exact arguments and source hashes. This guide and the portable CSV are
 the reviewable simulator-side entry point, not a substitute for pending board
 evidence.
+
+## Terminal Board Delivery
+
+The integration repository's `validation/cache_extent/delivery.py` owns the
+final portable export (commit `7a52eba`). It refuses a running matrix and
+retains every one of the 24 terminal rows, including blocked or failed cases.
+Before admitting a speedup, it checks immutable source, host, bitstream and
+graph hashes, reparses all four paired raw logs and recomputes the measured
+medians. The exported folder contains an overall README, a 24-row CSV with
+actual data frequencies, copied reports/manifests/logs and a file-hash index.
+Large bitstreams, graphs and compiler trees remain at the indexed original
+locations. Twelve cache-study/export tests pass, including rejection of old
+kernel controls, changed logs/hashes and unfinished or duplicated matrices.
+This exporter has not yet packaged the pending new-kernel board matrix;
+there is still no claim of completed FPGA results at this checkpoint.
