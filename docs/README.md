@@ -6,6 +6,7 @@
 | --- | --- |
 | Figures, plotting code, and the handoff explanation | [Figures 7--11 package](evaluation_refresh_20260810/figure7_10_handoff_v1/README.md) |
 | Corrections and limits of that package | [September 17 evidence audit](evaluation_refresh_20260810/figure7_10_handoff_v1/EVIDENCE_AUDIT_20260917.md) |
+| Revised measured G+R versus Spine results, separate from the old figures | [Current FPGA comparison](experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/cache_extent/REPORT.md) |
 | Architecture, algorithm semantics, and timing boundaries | [Architecture and contracts](architecture/README.md) |
 | How the simulator components work | [Implementation guide](implementation/README.md) |
 | Calibration, comparisons, and cost-model investigations | [Experiment guide](experiments/README.md) |
