@@ -15,7 +15,7 @@ timing coefficient is introduced to remove it.
 | Three native G+R hosts | Built, backward-compatible argument selection |
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
-| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP routed with passing final timing; CC and ResPR links running |
+| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP artifact complete; CC final timing passed, bitstream generation running; ResPR target-frequency setup failed, final artifact/clocks pending |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
 | New-kernel FPGA comparisons | 3 of 24 pairs passed: SSSP AU, SU and WK; SO waiting for memory admission |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
@@ -361,6 +361,35 @@ Intermediate negative-slack messages do not supersede that final report.
 This is a routed-artifact gate, not board correctness or a measured speedup.
 The separate matrix uses this exact binary. CC and ResPR remain separate
 live links.
+
+### CC And ResPR Routed Timing Checkpoint
+
+On 2026-10-26, both remaining links completed routing and DFX DRC with zero
+errors. CC also passed the pre-bitstream DRC and entered bitstream generation.
+Neither link had completed its xclbin at this checkpoint. Their final routed
+timing reports, before any automatic frequency scaling, contain:
+
+| Algorithm | Setup WNS (ns) | TNS (ns) | Setup-failing endpoints | Hold WNS (ns) | Hold-failing endpoints |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| CC | +0.001 | 0 | 0 | +0.009 | 0 |
+| ResPR | -0.089 | -1.447 | 52 | +0.006 | 0 |
+
+The reports are under each algorithm's
+`route-zfs-v2/<algorithm>/work/link/vivado/vpl/prj/prj.runs/impl_1/`, named
+`hw_bb_locked_timing_summary_routed.rpt`. Their SHA-256 values are:
+
+- CC: `84805f408b449ec360fe98f419f136165fe64ca7f615c5fdb0b0e3e0aff10d2e`.
+- ResPR: `1c54e388ca5b87a4e15f217c5455c9a8fe19ddfac653486d3ce63f718fbf2d47`.
+
+The existing routed-timing checker accepts CC and rejects ResPR at the
+requested frequencies. ResPR's failures comprise 18 DATA-clock endpoints
+(WNS -0.006 ns) and 34 HBM-clock endpoints (WNS -0.089 ns), with no hold or
+pulse-width failures. This is not closure at DATA 150/HBM 450 MHz. Subsequent
+compiler frequency scaling and the final binary's clock metadata remain to
+be inspected; no downscaled clock is inferred from the slack alone. Board
+measurements may use the actual resulting frequencies with this limitation
+disclosed, but require the same independent correctness gates. Neither the
+routed reports nor the three SSSP pairs establish CC/ResPR performance.
 
 ### First Paired Hardware Results
 
