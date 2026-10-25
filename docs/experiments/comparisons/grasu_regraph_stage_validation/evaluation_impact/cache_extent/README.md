@@ -11,12 +11,12 @@ timing coefficient is introduced to remove it.
 | Evidence | Checkpoint status |
 | --- | --- |
 | Bounded-cache source oracle and token/plain functional checks | Passed |
-| Fresh HLS exports and exact comparison against old exported ABI | Passed |
+| HLS exports and exact comparison against old exported ABI | Fresh `hls-zfs-v3` export passed; new link ABI review passed |
 | Three native G+R hosts | Built, backward-compatible argument selection |
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
-| Revised G+R SSSP, CC, ResPR hardware | Queued under memory admission |
-| Sparse-apply Spine ResPR hardware | Fresh retry queued under memory admission |
+| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP running, CC/ResPR waiting for finite memory admission |
+| Sparse-apply Spine ResPR hardware | `spine-respr-zfs-v1` running with corrected memory accounting |
 | New-kernel FPGA comparisons | 0 of 24 pairs; pending hardware |
 | Production SST bounded-cache option and numerical calibration | Not promoted or rerun |
 
@@ -126,13 +126,15 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 
 | Path under the root | Meaning |
 | --- | --- |
-| `source-v1/results.json` | Frozen executable source checks |
-| `hls-v1/results.json` | Both HLS exports; no routed timing claim |
-| `route-v3/sssp/{manifest,results}.json` | Fresh bounded-cache SSSP retry and ABI review |
-| `route-v3/{cc,respr}` | Explicit links to unchanged `route-v2` builds |
-| `spine-respr-v3/` | Fresh sparse-apply Spine ResPR retry and build provenance |
-| `matrix-inputs-v5/plan.json` | Frozen graph, host, source, tool and binary identities |
-| `matrix-v4/{results.json,summary.csv}` | All 24 cases, including missing/failed rows |
+| `source-v1/results.json`, `hls-v1/results.json` | Original passing checks/exports; runner hashes predate the guard correction |
+| `source-zfs-v3/results.json` | Passing executable checks with corrected guard |
+| `hls-zfs-v3/results.json` | Both fresh passing cache exports; not routed timing |
+| `route-zfs-v2/{sssp,cc,respr}/` | New links with exact ABI reviews and bounded admission |
+| `spine-respr-zfs-v1/` | Running sparse-apply Spine ResPR build and provenance |
+| `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Current frozen 24-case plan and runner, waiting for the exact new artifacts |
+| `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
+| `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
+| `matrix-v1` through `matrix-v5` | Stopped/incomplete matrices; zero board pairs |
 | `sim-before/`, `sim-after/` | Separate Release component builds |
 | `sim-extent-benchmark-v1.csv` | Original portable component diagnostic |
 | `host-control-au-v1/results.json` | OLD G+R kernel with the revised host |
@@ -150,20 +152,41 @@ Historical complete G+R tree peaks were around
 Board hosts have finite 16--32-GiB groups and share an exclusive board lock.
 Interrupted `v1` runs and their logs are retained, not relabeled as passes.
 
-The `spine-respr-v2` attempt completed its three HLS XOs, then the watchdog
-stopped Vivado synthesis at the live system-memory reserve. Its recorded
-minimum available memory was 24,889,225,216 bytes and its stop reason was
-`live_memory_reserve`, not a reported synthesis error. All failed-attempt
-artifacts remain intact. The fresh-build entry point requires a new provenance
-directory, so `spine-respr-v3` is a fresh, identically configured retry with
-the same 56-GiB cap and 24-GiB reserve. The later `route-v2/sssp` attempt
-also stopped at the live reserve (minimum 24,537,829,376 available bytes;
-process-tree peak 5,192,324 KiB). This was a watchdog stop, not a reported
-synthesis/routing error. Its evidence remains intact. `route-v3/sssp` is a
-fresh retry; `route-v3/{cc,respr}` link to the unchanged, live `route-v2`
-jobs rather than duplicating their builds or substituting old kernels.
-Both `matrix-v2` and `matrix-v3` were interrupted before any board pair.
-`matrix-v4` uses `matrix-inputs-v5` to require the current retries.
+### Memory-Guard Correction
+
+The old watchdog used Linux `MemAvailable` alone. On this ZFS host that
+omits most reclaimable ARC data, so it prematurely stopped builds even while
+btop showed roughly 137 GiB available. These were guard stops, not evidence
+of physical memory exhaustion or synthesis errors. The integration guide
+retains the original per-attempt counters and failure paths.
+
+The [shared memory probe](../../../../../implementation/runtime/host_memory_admission.md)
+now adds only evictable ARC data, bounded by `ARC_size - c_min` and remaining
+physical RAM. It excludes ARC metadata/anonymous entries and falls back to
+raw Linux values on absent/invalid ARC counters. Both compile admission/live
+watchdogs and the Spine shell preflight use this policy. Single-job limits,
+zero swap, the 24-GiB reserve and full peer-budget accounting remain enforced;
+no system-wide ZFS setting was changed.
+
+The actual build-runtime worktree is branch
+`codex/production-board-zfs-guard-20261025` at `07f8863`, containing main's
+`341ad41` memory fix. G+R uses `7975080` plus mixed-budget peer fix `196060f`;
+Spine's pinned shell probe is `9e5cb2b`. The 13 memory-helper tests retain the
+two preexisting heap-release tests. Source/HLS stages still require exactly
+1/8 GiB; their peer validator now accepts the existing bounded 56-GiB build.
+
+`route-zfs-v1` rejected the old export's changed runner hash before linking.
+`source-zfs-v2` rejected the larger bounded peer before compilation. Both
+are retained failures. Fresh source and HLS gates must pass before another
+link: no historical gate is repinned, and no old kernel fills a missing row.
+
+Three historical G+R jobs received independent copies of the corresponding
+previous build's Vivado IP compilation cache to reduce redundant synthesis.
+Each output's `ip-cache-seed.json` retains a byte-checked source inventory;
+the integration guide records the inventory hashes and original paths.
+Vivado independently checks cache fingerprints before using an entry. This
+does not reuse an old xclbin, replace the new bounded cache XO or establish
+board performance. Original failed evidence and compiler caches are intact.
 
 No large bitstream or raw compiler log is checked into this repository.
 The integration guide owns runner commands; immutable manifests above retain
