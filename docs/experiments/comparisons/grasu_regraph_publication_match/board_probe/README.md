@@ -2,6 +2,12 @@
 
 ## Result
 
+**Latest parameter control:** [numD=1 versus numD=3](dense_partitions.md)
+uses the same 11L3B bitstream and identical logical input. Warm median throughput
+increases from 1.110 to 1.518 GTEPS; all 20 executions pass the guarded oracle.
+The author's camera-ready Amazon example passes `3`. The earlier `numD=1`
+measurements below remain valid for that configuration, not that example.
+
 Fresh U55C measurements on October 25, 2026 **do not establish a match to the
 original GraSU or ReGraph publication**. All 15 measured runs passed their
 correctness checks. No HLS, simulator timing coefficients, paper, or figure

@@ -1,0 +1,409 @@
+{
+  "status": "NUMD_BOARD_COMPARISON_PASS_NOT_PUBLICATION_MATCH",
+  "publication_match": false,
+  "preparation": {
+    "path": "/data/chuxiao/checks/original-r-numd-20261025-v1/preparation.json",
+    "sha256": "9bbd5112a7a42b6f2cd8b13381acf015005580c9a77ce95f22af052480da5750",
+    "bytes": 16248
+  },
+  "graph": {
+    "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-source-route-v6/build/source/dataset/amazon-2008.mtx",
+    "sha256": "60b383901873b49883d0c67d8b524244ada1977719d25c834014b75238f3a815",
+    "bytes": 70632871
+  },
+  "source": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/publication_board_probe/launch_control.cpp",
+    "sha256": "0457625fc87013002470aab6c2a5c05ed205d78ed39dc38622e021fab9a1be93",
+    "bytes": 8476
+  },
+  "xclbin": {
+    "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-source-route-v6/build/original_r_11l3b.hw.xclbin",
+    "sha256": "3e670e27d0ca04fc2b007c6f055c3c6149e6859f0701947a8d48cab245e39409",
+    "bytes": 75477441
+  },
+  "admission_patch": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/publication_board_probe/dense_admission.patch",
+    "sha256": "d020176d10cd12c2ca8cf365c1a18ec2b04a748be4feec0eda6a109117e33d26",
+    "bytes": 934
+  },
+  "cases": [
+    {
+      "numD": 1,
+      "shape": {
+        "status": "ORIGINAL_R_CONTROL_OFFLINE_PASS_NOT_FPGA",
+        "board_programmed": false,
+        "hardware_timing_measured": false,
+        "publication_match": false,
+        "topology": "original_example",
+        "binding": "author_initial",
+        "bdf": "",
+        "iterations": 1,
+        "argument": 0,
+        "vertices": 735324,
+        "logical_edges": 5158388,
+        "physical_edges": 5165928,
+        "dummy_edges": 7540,
+        "aligned_vertices": 786432,
+        "published_vertices": 1114112,
+        "allocation_vertices": 1114112,
+        "extra_padding_vertices": 327680,
+        "guard_words": 16,
+        "little": 11,
+        "big": 3,
+        "dense": 1,
+        "sparse": 2,
+        "tasks": 17,
+        "enqueue_to_completion_ms": null,
+        "event_union_ns": null,
+        "event_span_ns": null,
+        "events": []
+      },
+      "correctness_passing_executions": 10,
+      "cold_baseline": {
+        "event_span_ms": 9.622987,
+        "resident_wall_ms": 23.153177,
+        "gteps": 0.5360485263047742
+      },
+      "warm_medians": [
+        {
+          "mode": "baseline",
+          "repeats": 3,
+          "event_span_ms": 4.647963,
+          "resident_wall_ms": 4.691264,
+          "first_wave_start_spread_ms": 0.102223,
+          "gteps": 1.1098169241020206
+        },
+        {
+          "mode": "prebound",
+          "repeats": 3,
+          "event_span_ms": 4.701555,
+          "resident_wall_ms": 1415.129978,
+          "first_wave_start_spread_ms": 0.105553,
+          "gteps": 1.0971663630437163
+        },
+        {
+          "mode": "author_order",
+          "repeats": 3,
+          "event_span_ms": 4.628713,
+          "resident_wall_ms": 4.660074,
+          "first_wave_start_spread_ms": 0.111253,
+          "gteps": 1.1144324567109691,
+          "post_enqueue_wait_ms": 4.479219
+        }
+      ],
+      "warm_baseline_timeline": [
+        {
+          "repeat": 1,
+          "event_span_ms": 4.647963,
+          "longest_little_lane_event_sum_ms": 0.551295,
+          "longest_big_lane_event_sum_ms": 4.504339
+        },
+        {
+          "repeat": 2,
+          "event_span_ms": 4.650774,
+          "longest_little_lane_event_sum_ms": 0.544465,
+          "longest_big_lane_event_sum_ms": 4.50218
+        },
+        {
+          "repeat": 3,
+          "event_span_ms": 4.602862,
+          "longest_little_lane_event_sum_ms": 0.511784,
+          "longest_big_lane_event_sum_ms": 4.481899
+        }
+      ],
+      "warm_baseline_event_range_ms": [
+        4.602862,
+        4.650774
+      ],
+      "raw": {
+        "path": "/data/chuxiao/checks/original-r-numd-20261025-v1/board_numd1/results.json",
+        "sha256": "bd5f57df4f30140acd435c3fe50ce638e10b05cb4ff994b6b5dde6520baeaf9a",
+        "bytes": 100168
+      },
+      "runtime": {
+        "device": {
+          "render": "/dev/dri/renderD129",
+          "sysfs": "/sys/devices/pci0000:c0/0000:c0:01.1/0000:c1:00.1",
+          "bdf": "0000:c1:00.1",
+          "driver_version": "2.18.179,3ade2e671e5ab463400813fc2846c57edf82bb10",
+          "driver_srcversion": "4567E9852B56A011AA88A47",
+          "kernel_release": "6.1.0-35-amd64"
+        },
+        "platform": {
+          "static_region": {
+            "vbnv": "xilinx_u55c_gen3x16_xdma_base_3",
+            "logic_uuid": "97088961-FEAE-DA91-52A2-1D9DFD63CCEF",
+            "jtag_idcode": "0x14b7d093",
+            "fpga_name": ""
+          },
+          "controller": {
+            "satellite_controller": {
+              "version": "7.1.23",
+              "expected_version": "7.1.23"
+            },
+            "card_mgmt_controller": {
+              "version": "1.5.25",
+              "serial_number": "XFL1HYCSAE0X",
+              "oem_id": "Xilinx"
+            }
+          },
+          "status": {
+            "mig_calibrated": "true",
+            "p2p_status": "disabled",
+            "host_memory_status": "disabled"
+          }
+        },
+        "pins": [
+          {
+            "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-regraph-a4-board/spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/execution/runtime.py",
+            "sha256": "807fed2493c009c8e62c1987bea267fe66b1455862107dfd0f3c070063774329"
+          },
+          {
+            "path": "/opt/xilinx/xrt/bin/xbutil",
+            "sha256": "ddde1afac997061be658b56fdf9e36b049b973ddc8bde45462d28c18ded516c0"
+          },
+          {
+            "path": "/opt/xilinx/xrt/lib/libxilinxopencl.so.2.18.179",
+            "sha256": "9f460ce2480f51c8bd086af15df8c0b7748663583d7dccee6cb8b56a0feb87e8"
+          },
+          {
+            "path": "/opt/xilinx/xrt/lib/libxrt++.so.2.18.179",
+            "sha256": "252e1b0a9f4e4c39e7fe2e9afd9a792867772a6a49f7994810d380f2d43dc87b"
+          },
+          {
+            "path": "/opt/xilinx/xrt/lib/libxrt_core.so.2.18.179",
+            "sha256": "656aae8d0dc92afa599b2490745fe29c5d813f1a86c63a9a19e44185acb98bd7"
+          },
+          {
+            "path": "/opt/xilinx/xrt/lib/libxrt_coreutil.so.2.18.179",
+            "sha256": "5baf16a47b13053834ac23504283a0af8c3746bc9d718436bc3706ee3322fb76"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+            "sha256": "ecf6714e474183ea3ab6789ff1dfbe7edccc03bdb1f5eeb188bc1d6f74aec6c7"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+            "sha256": "47178713f5bda59f2ea8240a56971de4dc0b3a6cb71e996e2782d9a59746bfef"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+            "sha256": "026eddaa258e663f6f28442a208cea302375494bce8294b7614e25c53890fe75"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+            "sha256": "d765d99423b9aba7fc34b7af48d91aeecc70bdc0ae6233a9a7ba60d4c6d3c13d"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.35",
+            "sha256": "ae1cbed999039c964c14dbd77a0d0bd84c605d1f6e45a8172b387b68048bb685"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0",
+            "sha256": "94176513740e4b8d24a68e6c37a43986b488f2910c9eaa34f69bd7ba8c49307d"
+          }
+        ]
+      },
+      "host": {
+        "path": "/data/chuxiao/checks/original-r-numd-20261025-v1/board_numd1/launch_control",
+        "sha256": "06250abfb1ff8bee6dd8b1da195d67128a24dc8ba1db1be4e0a4781958a6e9a3",
+        "bytes": 113912
+      }
+    },
+    {
+      "numD": 3,
+      "shape": {
+        "status": "ORIGINAL_R_CONTROL_OFFLINE_PASS_NOT_FPGA",
+        "board_programmed": false,
+        "hardware_timing_measured": false,
+        "publication_match": false,
+        "topology": "original_example",
+        "binding": "author_initial",
+        "bdf": "",
+        "iterations": 1,
+        "argument": 0,
+        "vertices": 735324,
+        "logical_edges": 5158388,
+        "physical_edges": 5165928,
+        "dummy_edges": 7540,
+        "aligned_vertices": 786432,
+        "published_vertices": 1245184,
+        "allocation_vertices": 1245184,
+        "extra_padding_vertices": 458752,
+        "guard_words": 16,
+        "little": 11,
+        "big": 3,
+        "dense": 3,
+        "sparse": 2,
+        "tasks": 39,
+        "enqueue_to_completion_ms": null,
+        "event_union_ns": null,
+        "event_span_ns": null,
+        "events": []
+      },
+      "correctness_passing_executions": 10,
+      "cold_baseline": {
+        "event_span_ms": 6.621171,
+        "resident_wall_ms": 21.339735,
+        "gteps": 0.7790748796549735
+      },
+      "warm_medians": [
+        {
+          "mode": "baseline",
+          "repeats": 3,
+          "event_span_ms": 3.399128,
+          "resident_wall_ms": 3.437139,
+          "first_wave_start_spread_ms": 0.141504,
+          "gteps": 1.5175621512340811
+        },
+        {
+          "mode": "prebound",
+          "repeats": 3,
+          "event_span_ms": 3.411758,
+          "resident_wall_ms": 3287.041278,
+          "first_wave_start_spread_ms": 0.153315,
+          "gteps": 1.511944282097382
+        },
+        {
+          "mode": "author_order",
+          "repeats": 3,
+          "event_span_ms": 3.318646,
+          "resident_wall_ms": 3.349587,
+          "first_wave_start_spread_ms": 0.141424,
+          "gteps": 1.5543652441387241,
+          "post_enqueue_wait_ms": 3.151351
+        }
+      ],
+      "warm_baseline_timeline": [
+        {
+          "repeat": 1,
+          "event_span_ms": 3.399128,
+          "longest_little_lane_event_sum_ms": 1.400241,
+          "longest_big_lane_event_sum_ms": 3.227453
+        },
+        {
+          "repeat": 2,
+          "event_span_ms": 3.336826,
+          "longest_little_lane_event_sum_ms": 1.380349,
+          "longest_big_lane_event_sum_ms": 3.187162
+        },
+        {
+          "repeat": 3,
+          "event_span_ms": 3.407728,
+          "longest_little_lane_event_sum_ms": 1.347489,
+          "longest_big_lane_event_sum_ms": 3.254343
+        }
+      ],
+      "warm_baseline_event_range_ms": [
+        3.336826,
+        3.407728
+      ],
+      "raw": {
+        "path": "/data/chuxiao/checks/original-r-numd-20261025-v1/board_numd3/results.json",
+        "sha256": "278a588ea1dd0dd1c22da73aad69975b18b1d62991d943a792438cb08563fdae",
+        "bytes": 151776
+      },
+      "runtime": {
+        "device": {
+          "render": "/dev/dri/renderD129",
+          "sysfs": "/sys/devices/pci0000:c0/0000:c0:01.1/0000:c1:00.1",
+          "bdf": "0000:c1:00.1",
+          "driver_version": "2.18.179,3ade2e671e5ab463400813fc2846c57edf82bb10",
+          "driver_srcversion": "4567E9852B56A011AA88A47",
+          "kernel_release": "6.1.0-35-amd64"
+        },
+        "platform": {
+          "static_region": {
+            "vbnv": "xilinx_u55c_gen3x16_xdma_base_3",
+            "logic_uuid": "97088961-FEAE-DA91-52A2-1D9DFD63CCEF",
+            "jtag_idcode": "0x14b7d093",
+            "fpga_name": ""
+          },
+          "controller": {
+            "satellite_controller": {
+              "version": "7.1.23",
+              "expected_version": "7.1.23"
+            },
+            "card_mgmt_controller": {
+              "version": "1.5.25",
+              "serial_number": "XFL1HYCSAE0X",
+              "oem_id": "Xilinx"
+            }
+          },
+          "status": {
+            "mig_calibrated": "true",
+            "p2p_status": "disabled",
+            "host_memory_status": "disabled"
+          }
+        },
+        "pins": [
+          {
+            "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-regraph-a4-board/spine_cycle_sim/experiments/evaluation_impact/common_g/continuous_board/execution/runtime.py",
+            "sha256": "807fed2493c009c8e62c1987bea267fe66b1455862107dfd0f3c070063774329"
+          },
+          {
+            "path": "/opt/xilinx/xrt/bin/xbutil",
+            "sha256": "ddde1afac997061be658b56fdf9e36b049b973ddc8bde45462d28c18ded516c0"
+          },
+          {
+            "path": "/opt/xilinx/xrt/lib/libxilinxopencl.so.2.18.179",
+            "sha256": "9f460ce2480f51c8bd086af15df8c0b7748663583d7dccee6cb8b56a0feb87e8"
+          },
+          {
+            "path": "/opt/xilinx/xrt/lib/libxrt++.so.2.18.179",
+            "sha256": "252e1b0a9f4e4c39e7fe2e9afd9a792867772a6a49f7994810d380f2d43dc87b"
+          },
+          {
+            "path": "/opt/xilinx/xrt/lib/libxrt_core.so.2.18.179",
+            "sha256": "656aae8d0dc92afa599b2490745fe29c5d813f1a86c63a9a19e44185acb98bd7"
+          },
+          {
+            "path": "/opt/xilinx/xrt/lib/libxrt_coreutil.so.2.18.179",
+            "sha256": "5baf16a47b13053834ac23504283a0af8c3746bc9d718436bc3706ee3322fb76"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+            "sha256": "ecf6714e474183ea3ab6789ff1dfbe7edccc03bdb1f5eeb188bc1d6f74aec6c7"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+            "sha256": "47178713f5bda59f2ea8240a56971de4dc0b3a6cb71e996e2782d9a59746bfef"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+            "sha256": "026eddaa258e663f6f28442a208cea302375494bce8294b7614e25c53890fe75"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+            "sha256": "d765d99423b9aba7fc34b7af48d91aeecc70bdc0ae6233a9a7ba60d4c6d3c13d"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.35",
+            "sha256": "ae1cbed999039c964c14dbd77a0d0bd84c605d1f6e45a8172b387b68048bb685"
+          },
+          {
+            "path": "/usr/lib/x86_64-linux-gnu/libuuid.so.1.3.0",
+            "sha256": "94176513740e4b8d24a68e6c37a43986b488f2910c9eaa34f69bd7ba8c49307d"
+          }
+        ]
+      },
+      "host": {
+        "path": "/data/chuxiao/checks/original-r-numd-20261025-v1/board_numd3/launch_control",
+        "sha256": "06250abfb1ff8bee6dd8b1da195d67128a24dc8ba1db1be4e0a4781958a6e9a3",
+        "bytes": 113912
+      }
+    }
+  ],
+  "numd3_over_numd1_throughput": 1.3673986387096926,
+  "timing_boundary": "earliest CU start to latest CU end, with no time subtraction",
+  "clock_mhz": 150,
+  "scope": "Amazon, unchanged static PR superstep; numD=1 and 3; author_initial binding",
+  "timeline_limit": "CU lifetimes include waiting; no internal-stage attribution.",
+  "publication_reference": {
+    "url": "https://soldierchen.github.io/assets/pdf/regraph.pdf",
+    "table_iv_am_pr_system_gteps": 3.744,
+    "table_iv_am_pr_best_gteps": 4.224,
+    "appendix_amazon_command_numD": 3,
+    "same_configuration_match_established": false
+  }
+}

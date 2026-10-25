@@ -54,8 +54,8 @@ def run(args):
             raise MemoryError("24 GiB available-memory reserve required")
         frozen = args.frozen.resolve()
         report["frozen_commit"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=frozen, text=True).strip()
-        headers = frozen / "cpp/tests/original_regraph/hardware"
-        report["headers"] = [identity(path) for path in sorted(headers.glob("*.hpp"))]
+        headers = (args.headers or frozen / "cpp/tests/original_regraph/hardware").resolve()
+        report["headers"] = [identity(path) for path in sorted(headers.parent.rglob("*.hpp"))]
         source = Path(__file__).with_name("launch_control.cpp")
         host = output / "launch_control"
         command = ["/usr/bin/x86_64-linux-gnu-g++-15", "-std=c++20", "-O2", "-DNDEBUG", "-Wall",
@@ -124,6 +124,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--frozen", required=True, type=Path)
+    parser.add_argument("--headers", type=Path, help="staged hardware headers; default: unchanged frozen headers")
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--binding", choices=("author_initial", "csr_degree"), default="author_initial")
     parser.add_argument("--device", required=True, type=int, choices=(0, 1))

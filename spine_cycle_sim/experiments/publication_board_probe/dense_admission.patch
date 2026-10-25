@@ -1,0 +1,12 @@
+diff --git a/whole_graph/mixed/input.hpp b/whole_graph/mixed/input.hpp
+--- a/whole_graph/mixed/input.hpp
++++ b/whole_graph/mixed/input.hpp
+@@ -24,7 +24,7 @@ struct Input {
+     input.vertices = descriptor[2]; input.logical_edges = descriptor[3];
+     input.aligned_vertices = descriptor[4]; input.published_vertices = descriptor[5];
+     input.allocation_vertices = descriptor[6]; input.dense = descriptor[8]; input.sparse = descriptor[9];
+-    require(input.vertices && input.logical_edges && input.dense == 1 && input.sparse <= 255 &&
++    require(input.vertices && input.logical_edges && (input.dense == 1 || input.dense == 3) && input.sparse <= 255 &&
+         input.aligned_vertices == (std::uint64_t{input.vertices} + 65535) / 65536 * 65536 &&
+         input.published_vertices == input.dense * 65536 + input.sparse * 524288 &&
+         input.allocation_vertices == std::max(input.aligned_vertices, input.published_vertices) &&
