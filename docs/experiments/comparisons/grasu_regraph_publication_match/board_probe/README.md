@@ -2,6 +2,13 @@
 
 ## Result
 
+**G follow-up:** [startup and cache diagnosis](grasu_diagnosis.md) measures
+46.398 ms on first use versus 24.744 ms warmed, and 24.039 ms on first use
+after explicit premigration. Both final repetitions pass the PMA gate. The
+source/synthesis audit identifies repeated full-cache preload/writeback
+across eight shards (13.981 ms nominal fixed schedule at 150 MHz). Setup
+cost is moved, not removed; no publication match is established.
+
 **All-Little follow-up:** [four Little, zero Big](launch_diagnosis.md#all-little-follow-up-four-little-zero-big)
 processes the complete Amazon graph and reaches 0.941 GTEPS warm baseline
 (0.958 GTEPS with author enqueue order); all ten executions pass correctness.

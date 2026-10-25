@@ -1,0 +1,473 @@
+{
+  "schema_version": 1,
+  "publication_match": false,
+  "status": "G_STARTUP_AND_FIXED_CACHE_DIAGNOSED_NOT_PUBLICATION_MATCH",
+  "raw_report": {
+    "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/results.json",
+    "sha256": "1d0e109bb9acc6a2e630b8bf4497e1ff22fa37058f75c3a9200c1c14eede6eed",
+    "bytes": 4295
+  },
+  "raw_index": [
+    {
+      "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/baseline.result.txt",
+      "sha256": "774fce9a0e5eb8a450a3468ebbe18d2c76de37c75a102d83f7f3056d0f7e1035",
+      "bytes": 69
+    },
+    {
+      "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/baseline.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/baseline.stdout.txt",
+      "sha256": "611f39f1b19678cc95624ea0d32b47d2867a95d577e3c80b60636742c0f4b077",
+      "bytes": 72170
+    },
+    {
+      "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/premigrate.result.txt",
+      "sha256": "774fce9a0e5eb8a450a3468ebbe18d2c76de37c75a102d83f7f3056d0f7e1035",
+      "bytes": 69
+    },
+    {
+      "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/premigrate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/premigrate.stdout.txt",
+      "sha256": "34648565fcc0868369f9770ea05ae0fc56da87d38c968ba5254ba124aa86f52c",
+      "bytes": 72310
+    },
+    {
+      "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/results.json",
+      "sha256": "1d0e109bb9acc6a2e630b8bf4497e1ff22fa37058f75c3a9200c1c14eede6eed",
+      "bytes": 4295
+    }
+  ],
+  "host": {
+    "path": "/data/chuxiao/checks/sharded-k4-host-final-20261024/sssp/sharded_k4_sssp_native_host",
+    "sha256": "2681adc0c59cfae4bfb25a90bf93ab548a0b924ecb2dc5ce923533366b9dfc71",
+    "bytes": 177840
+  },
+  "xclbin": {
+    "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/route-slr-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+    "sha256": "babe48e3bf3cc87b6f06b3e3ccf696dadd4b9f8bfcf0c1629a67a115e4ba39be",
+    "bytes": 80015767
+  },
+  "analysis_source": {
+    "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/spine_cycle_sim/experiments/publication_board_probe/grasu_launch_analysis.py",
+    "sha256": "9636806617918e1fb1e5f6dc8be05056d30e27f3df76067e826033af95061923",
+    "bytes": 5154
+  },
+  "source_witnesses": [
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/kernels/grasu_complete/cache_bank.hpp",
+      "sha256": "cdeb74dbe831f8157f844d43552c572e74bd5c05b305c2542c499da82b4cf4c0",
+      "bytes": 362
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/kernels/grasu_complete/cache_pipeline.hpp",
+      "sha256": "d0e22039439b18a9454edcf994bd41ed4be8f4f246674c1b6347818a07963cde",
+      "bytes": 1988
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/kernels/grasu_complete/process_cache.cpp",
+      "sha256": "efdd278a7918c6f2d58af223fc41e279301743f4a127fec16299369fdd28dc2f",
+      "bytes": 1058
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/tools/sharded_k4_native_host.cpp",
+      "sha256": "11c4f39973b17e70f246b52f9f46022a97b168ffd684ce4a892260ce7461ee40",
+      "bytes": 54657
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-g-external-port-return-follow-v7/returned/packet/source/kernel_process_cache.cpp",
+      "sha256": "34928ccfd2889af8874bbdb59700b379d7b89a6eebf04d0ffdd08d5f9bf1cb72",
+      "bytes": 10216
+    },
+    {
+      "path": "/data/feiyang/delta-hls-paper/related_papers/2021_FPGA_GraSU.pdf",
+      "sha256": "f0604446fe12b9aaad9249b7064ccea47bdc455db4d2f75e9808398317ceff5c",
+      "bytes": 2456322
+    }
+  ],
+  "workload": {
+    "vertices": 515281,
+    "base_edges": 390847,
+    "successful_insertions_expected": 131072,
+    "original_ids_preserved": true,
+    "reciprocal_expansion": false,
+    "initial": {
+      "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+      "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+      "bytes": 6728335
+    },
+    "updates": {
+      "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/updates/directed/insert_u131072.slice",
+      "sha256": "c4f28835520200c9f75a1a0833d77b561e7a4096dec4e0e1828e3245a007bf5c",
+      "bytes": 2378092
+    },
+    "input": {
+      "path": "/data/chuxiao/checks/grasu-launch-20261025-v1/input.graph",
+      "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+      "bytes": 8324454
+    }
+  },
+  "clock_mhz": 150,
+  "rows": [
+    {
+      "cold_ms": 46.398211,
+      "warm_median_ms": 24.743867,
+      "repeat_ms": [
+        46.398211,
+        24.886051,
+        24.743867,
+        24.49889
+      ],
+      "final_result": {
+        "status": "PASS",
+        "algorithm": "weighted_sssp",
+        "update_ms": "24.498890",
+        "touched_segments": "44812",
+        "checked_words": "716992",
+        "pma_mismatches": "0",
+        "repeats": "4",
+        "measurement_window": "same_process_update_events",
+        "first_repeat": "cold_diagnostic",
+        "conversion_cost": "absent"
+      },
+      "correctness_scope": "last repeat checked; earlier repeats diagnostic only",
+      "mode": "baseline",
+      "final_timeline": {
+        "shard_count": 8,
+        "shard_span_sum_ms": 22.406337999999998,
+        "inter_shard_gap_sum_ms": 2.092552,
+        "median_within_shard_cu_start_spread_ms": 0.1113535,
+        "shards": [
+          {
+            "shard": "0",
+            "gap_from_previous_ms": "0.000000",
+            "union_ms": "5.198189",
+            "cache0_ms": "5.197389",
+            "cache1_ms": "5.174968",
+            "ddr0_ms": "4.101725",
+            "ddr1_ms": "4.090825",
+            "dispatch_ms": "4.080954",
+            "search0_ms": "4.037764",
+            "search1_ms": "4.024184",
+            "search2_ms": "4.013853",
+            "search3_ms": "4.010633"
+          },
+          {
+            "shard": "1",
+            "gap_from_previous_ms": "0.337580",
+            "union_ms": "2.710333",
+            "cache0_ms": "2.709593",
+            "cache1_ms": "2.689472",
+            "ddr0_ms": "1.599659",
+            "ddr1_ms": "1.584538",
+            "dispatch_ms": "1.570498",
+            "search0_ms": "1.529556",
+            "search1_ms": "1.514056",
+            "search2_ms": "1.500145",
+            "search3_ms": "1.511046"
+          },
+          {
+            "shard": "2",
+            "gap_from_previous_ms": "0.304489",
+            "union_ms": "2.067314",
+            "cache0_ms": "2.066514",
+            "cache1_ms": "2.049773",
+            "ddr0_ms": "0.959709",
+            "ddr1_ms": "0.952390",
+            "dispatch_ms": "0.937718",
+            "search0_ms": "0.915148",
+            "search1_ms": "0.905558",
+            "search2_ms": "0.895727",
+            "search3_ms": "0.892417"
+          },
+          {
+            "shard": "3",
+            "gap_from_previous_ms": "0.286908",
+            "union_ms": "2.101285",
+            "cache0_ms": "2.100575",
+            "cache1_ms": "2.083764",
+            "ddr0_ms": "1.000671",
+            "ddr1_ms": "0.985140",
+            "dispatch_ms": "0.972450",
+            "search0_ms": "0.930438",
+            "search1_ms": "0.921239",
+            "search2_ms": "0.902787",
+            "search3_ms": "0.888497"
+          },
+          {
+            "shard": "4",
+            "gap_from_previous_ms": "0.286889",
+            "union_ms": "2.355112",
+            "cache0_ms": "2.354402",
+            "cache1_ms": "2.338282",
+            "ddr0_ms": "1.248428",
+            "ddr1_ms": "1.232578",
+            "dispatch_ms": "1.218827",
+            "search0_ms": "1.193687",
+            "search1_ms": "1.177396",
+            "search2_ms": "1.163706",
+            "search3_ms": "1.150685"
+          },
+          {
+            "shard": "5",
+            "gap_from_previous_ms": "0.299459",
+            "union_ms": "2.446945",
+            "cache0_ms": "2.446105",
+            "cache1_ms": "2.429765",
+            "ddr0_ms": "1.353721",
+            "ddr1_ms": "1.344051",
+            "dispatch_ms": "1.335141",
+            "search0_ms": "1.292529",
+            "search1_ms": "1.281879",
+            "search2_ms": "1.266059",
+            "search3_ms": "1.257108"
+          },
+          {
+            "shard": "6",
+            "gap_from_previous_ms": "0.288138",
+            "union_ms": "2.945740",
+            "cache0_ms": "2.944810",
+            "cache1_ms": "2.929689",
+            "ddr0_ms": "1.854227",
+            "ddr1_ms": "1.844627",
+            "dispatch_ms": "1.835406",
+            "search0_ms": "1.795765",
+            "search1_ms": "1.786125",
+            "search2_ms": "1.775994",
+            "search3_ms": "1.766014"
+          },
+          {
+            "shard": "7",
+            "gap_from_previous_ms": "0.289089",
+            "union_ms": "2.581420",
+            "cache0_ms": "2.580710",
+            "cache1_ms": "2.565029",
+            "ddr0_ms": "1.484816",
+            "ddr1_ms": "1.470165",
+            "dispatch_ms": "1.457735",
+            "search0_ms": "1.412654",
+            "search1_ms": "1.396483",
+            "search2_ms": "1.382833",
+            "search3_ms": "1.369492"
+          }
+        ],
+        "interpretation": "Observed start staggering, not an attribution of all waiting to host or device."
+      },
+      "warm_mupdates_per_second": 5.297151007156642,
+      "unmatched_paper_rate_ratio": {
+        "reference_over_measured_rate": 36.01369863578797,
+        "measured_fraction_of_reference": 0.02776721186327327,
+        "publication_match": false,
+        "interpretation": "Unmatched configuration diagnostic, not a controlled reproduction error."
+      }
+    },
+    {
+      "cold_ms": 24.038835,
+      "warm_median_ms": 24.502419,
+      "repeat_ms": [
+        24.038835,
+        24.502419,
+        24.485139,
+        24.53315
+      ],
+      "final_result": {
+        "status": "PASS",
+        "algorithm": "weighted_sssp",
+        "update_ms": "24.533150",
+        "touched_segments": "44812",
+        "checked_words": "716992",
+        "pma_mismatches": "0",
+        "repeats": "4",
+        "measurement_window": "same_process_update_events",
+        "first_repeat": "cold_diagnostic",
+        "conversion_cost": "absent"
+      },
+      "correctness_scope": "last repeat checked; earlier repeats diagnostic only",
+      "mode": "premigrate",
+      "final_timeline": {
+        "shard_count": 8,
+        "shard_span_sum_ms": 22.424095,
+        "inter_shard_gap_sum_ms": 2.109055,
+        "median_within_shard_cu_start_spread_ms": 0.10992350000000001,
+        "shards": [
+          {
+            "shard": "0",
+            "gap_from_previous_ms": "0.000000",
+            "union_ms": "5.235570",
+            "cache0_ms": "5.234710",
+            "cache1_ms": "5.207509",
+            "ddr0_ms": "4.119007",
+            "ddr1_ms": "4.102656",
+            "dispatch_ms": "4.068855",
+            "search0_ms": "4.058444",
+            "search1_ms": "4.036114",
+            "search2_ms": "4.028723",
+            "search3_ms": "4.014143"
+          },
+          {
+            "shard": "1",
+            "gap_from_previous_ms": "0.363681",
+            "union_ms": "2.691553",
+            "cache0_ms": "2.690983",
+            "cache1_ms": "2.670292",
+            "ddr0_ms": "1.586479",
+            "ddr1_ms": "1.575958",
+            "dispatch_ms": "1.541197",
+            "search0_ms": "1.553627",
+            "search1_ms": "1.518486",
+            "search2_ms": "1.530207",
+            "search3_ms": "1.520006"
+          },
+          {
+            "shard": "2",
+            "gap_from_previous_ms": "0.302859",
+            "union_ms": "2.092844",
+            "cache0_ms": "2.092224",
+            "cache1_ms": "2.075574",
+            "ddr0_ms": "0.996000",
+            "ddr1_ms": "0.981180",
+            "dispatch_ms": "0.943199",
+            "search0_ms": "0.935649",
+            "search1_ms": "0.913178",
+            "search2_ms": "0.921768",
+            "search3_ms": "0.908297"
+          },
+          {
+            "shard": "3",
+            "gap_from_previous_ms": "0.289469",
+            "union_ms": "2.091584",
+            "cache0_ms": "2.090994",
+            "cache1_ms": "2.074904",
+            "ddr0_ms": "1.006531",
+            "ddr1_ms": "0.980070",
+            "dispatch_ms": "0.955449",
+            "search0_ms": "0.951830",
+            "search1_ms": "0.935058",
+            "search2_ms": "0.932839",
+            "search3_ms": "0.924609"
+          },
+          {
+            "shard": "4",
+            "gap_from_previous_ms": "0.287729",
+            "union_ms": "2.354982",
+            "cache0_ms": "2.354312",
+            "cache1_ms": "2.337822",
+            "ddr0_ms": "1.236518",
+            "ddr1_ms": "1.221778",
+            "dispatch_ms": "1.197976",
+            "search0_ms": "1.217997",
+            "search1_ms": "1.170156",
+            "search2_ms": "1.189686",
+            "search3_ms": "1.147806"
+          },
+          {
+            "shard": "5",
+            "gap_from_previous_ms": "0.288129",
+            "union_ms": "2.456965",
+            "cache0_ms": "2.456335",
+            "cache1_ms": "2.440145",
+            "ddr0_ms": "1.369611",
+            "ddr1_ms": "1.359371",
+            "dispatch_ms": "1.321741",
+            "search0_ms": "1.320330",
+            "search1_ms": "1.301520",
+            "search2_ms": "1.291060",
+            "search3_ms": "1.305759"
+          },
+          {
+            "shard": "6",
+            "gap_from_previous_ms": "0.291469",
+            "union_ms": "2.929999",
+            "cache0_ms": "2.929399",
+            "cache1_ms": "2.913029",
+            "ddr0_ms": "1.819485",
+            "ddr1_ms": "1.788935",
+            "dispatch_ms": "1.776114",
+            "search0_ms": "1.766654",
+            "search1_ms": "1.747114",
+            "search2_ms": "1.733223",
+            "search3_ms": "1.726533"
+          },
+          {
+            "shard": "7",
+            "gap_from_previous_ms": "0.285719",
+            "union_ms": "2.570598",
+            "cache0_ms": "2.569918",
+            "cache1_ms": "2.555448",
+            "ddr0_ms": "1.466564",
+            "ddr1_ms": "1.439654",
+            "dispatch_ms": "1.430784",
+            "search0_ms": "1.427183",
+            "search1_ms": "1.410063",
+            "search2_ms": "1.399783",
+            "search3_ms": "1.397462"
+          }
+        ],
+        "interpretation": "Observed start staggering, not an attribution of all waiting to host or device."
+      },
+      "warm_mupdates_per_second": 5.34934938464647,
+      "unmatched_paper_rate_ratio": {
+        "reference_over_measured_rate": 35.66228082756043,
+        "measured_fraction_of_reference": 0.028040831287133566,
+        "publication_match": false,
+        "interpretation": "Unmatched configuration diagnostic, not a controlled reproduction error."
+      },
+      "premigration_outside_update_window": {
+        "policy": "premigrate",
+        "buffers": "80",
+        "bytes": "169368496",
+        "wall_ms": "19.8918",
+        "event_ms": "19.8713",
+        "boundary": "initial_setup_before_updates"
+      }
+    }
+  ],
+  "boundary_correction": "explicit initial DMA excluded; baseline first use may contain implicit migration",
+  "fixed_cache": {
+    "evidence_kind": "source footprint and synthesis schedule, not isolated board measurement",
+    "cache_halves": 2,
+    "banks_per_half": 16,
+    "words_per_bank": 8192,
+    "bytes_per_word": 64,
+    "bytes_per_shard_load_and_store": 33554432,
+    "batch_bytes_eight_shards": 268435456,
+    "synthesis_loops": [
+      {
+        "report": {
+          "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/sssp/build/process_cache/process_cache/process_cache/process_cache/solution/syn/report/cached_process_Pipeline_preload_all_csynth.xml",
+          "sha256": "994d53865d3a14a67015e7b6c002b6bcf673fc8e42f0c257dd0e1c8320f835e4",
+          "bytes": 29134
+        },
+        "loop": "preload_all",
+        "best_case_cycles": 131075,
+        "achieved_ii": 16,
+        "trip_count": 8192
+      },
+      {
+        "report": {
+          "path": "/data/chuxiao/builds/gr-prefetch-blocking-axis-trif-20261024/sssp/build/process_cache/process_cache/process_cache/process_cache/solution/syn/report/cached_process_Pipeline_writeback_all_csynth.xml",
+          "sha256": "ac3c91b41a9835fbdfb2c4b23665e3e7fc9b5a96604b7f6006c21b020e34a3be",
+          "bytes": 25519
+        },
+        "loop": "writeback_all",
+        "best_case_cycles": 131075,
+        "achieved_ii": 16,
+        "trip_count": 8192
+      }
+    ],
+    "nominal_no_stall_floor_ms": 13.981333333333334,
+    "overlap": "two cache CUs overlap; sum sequential preload and writeback, not both CUs"
+  },
+  "limitations": [
+    "one process per mode; only final repeat has a PMA correctness check",
+    "premigration moves setup cost outside timer; it does not remove setup-inclusive cost",
+    "remaining update work, AXI stalls and backpressure not independently attributed",
+    "not the paper's identical temporal workload, RTL implementation, or platform"
+  ]
+}
