@@ -2,22 +2,26 @@
 
 ## Decision And Scope
 
-This is a **22-of-24 checkpoint, not the final matrix**. All eight SSSP and
-all eight CC comparisons pass; six ResPR comparisons pass. ResPR LJ08
-and R19 are not yet admitted. The remaining measurements, terminal evidence
-package, rendered figure review and final push are still required.
+The **final 24-of-24 FPGA matrix passes its correctness gates**: eight full
+graph workloads for each of SSSP, CC and ResPR. Every case has one excluded
+warmup and three formal paired runs. Terminal raw-log verification, the
+portable evidence archive, isolated reproduction and visual review pass.
+Use the [delivery README](fpga_results_v1/README.md),
+[figure preview](fpga_results_v1/figure/fpga_speedup.png),
+[full data](fpga_results_v1/summary.csv) and
+[review receipt](fpga_results_v1/review/README.md).
 
 The actual board results do **not** show a universal Spine win. SSSP favors
 Spine on eight of eight graphs. CC favors Spine on four and G+R on four.
-Of the six admitted ResPR cases, three favor Spine and three favor G+R.
-All six ResPR cases have zero propagation rounds on both implementations;
+ResPR also favors Spine on four and G+R on four.
+All eight ResPR cases have zero propagation rounds on both implementations;
 they measure update/correction/completion, not iterative PR propagation.
 
 ## Measured Speedups
 
 Values are `median G+R wall / median Spine wall`: above one favors Spine;
 below one favors G+R. No frequency normalization, fitted timing adjustment
-or outlier removal is applied. A dash means unfinished, not zero or timeout.
+or outlier removal is applied. There are no missing, projected or timeout rows.
 
 | Graph | SSSP | CC | ResPR |
 | --- | ---: | ---: | ---: |
@@ -27,13 +31,13 @@ or outlier removal is applied. A dash means unfinished, not zero or timeout.
 | SO | 41.697 | 7.308 | 4.482 |
 | PK | 75.332 | 3.407 | 2.154 |
 | LJ | 89.168 | 10.007 | 3.983 |
-| LJ08 | 90.575 | 9.207 | - |
-| R19 | 19.387 | 0.838 | - |
+| LJ08 | 90.575 | 9.207 | 3.529 |
+| R19 | 19.387 | 0.838 | 0.518 |
 
-The table is rounded for reading. Its authoritative checkpoint is
-`independent-pair-audit-v21/matrix-checkpoint.json` below, not a replacement
-CSV for an unfinished matrix. That snapshot contains all 24 declared rows,
-including the two unfinished rows.
+The table is rounded for reading. The final CSV retains exact wall medians,
+ratios, actual clocks and all formal propagation counts. Raw samples, matrix,
+plan and file-hash index are in the package's `raw_evidence.tar.gz`, under
+`evidence/`. Earlier partial checkpoints remain historical evidence.
 
 ## Comparison Contract
 
@@ -94,7 +98,7 @@ smoke is distinct from the subsequent paired matrix samples.
   Their difference is not pure host time, and this study does not calibrate
   the paper's stage-breakdown figure or replace any paper data.
 
-## Evidence And Remaining Delivery Gates
+## Evidence And Final Checks
 
 Machine-local evidence root:
 `/data/chuxiao/builds/grasu-cache-extent-20261025`.
@@ -104,21 +108,31 @@ Machine-local evidence root:
 | `source-zfs-v3/`, `hls-zfs-v3/` | Source-functional and exported-interface gates; not board timing |
 | `route-zfs-v2/{sssp,cc,respr}/` | Revised artifacts, actual clocks and route evidence |
 | `matrix-inputs-zfs-v3/plan.json` | Frozen 24-case workload, boundary, repetition and identity contract |
-| `matrix-zfs-v3/` | Actual paired raw logs, resource records, manifests and current matrix state |
-| `independent-pair-audit-v21/` | Independent reparse of 88 paired executions across 22 cases and 1554 unique pinned files |
-| `profile-checkpoint-21-v1.log` | Reparse of 63 formal G+R profiles and 42 wall-statistic records; not exclusive stage attribution |
+| `matrix-zfs-v3/` | Terminal `FPGA_MATRIX_PASS`, all 24 cases and 96 paired runs, resource records and raw logs |
+| `terminal-delivery-v1/evidence/` | Final reparse of all 96 paired runs, source/binary/input pins, correctness, medians, actual clocks and memory containment |
+| `terminal-delivery-v1/profile/` | All 72 formal G+R event profiles and 48 architecture/case wall-statistic records; not exclusive stage attribution |
 | `terminal-tool-preflight-v2/` | 37 delivery/plot/profile tests, including real font rendering; synthetic fixtures are not board results |
+| `final-roundtrip-review-v2/` | Independent extraction of all 615 archived records and isolated reproduction; byte-identical PNG/CSV and equivalent PDF, with embedded txtt |
 
 The [portable supporting package](implementation_evidence/README.md) includes
 127 hash-verified records (7.5 MiB), with 16 retained failed stage outcomes.
-It makes the implementation checks reviewable without copying bitstreams or
-build trees, but does not substitute for the final paired board package.
+It makes implementation checks reviewable without copying bitstreams or
+build trees. The separate [final FPGA package](fpga_results_v1/README.md)
+adds a 3.3-MiB board archive (615 hash-verified records), all measured data,
+the Python figure/profile code, PNG/PDF output and the review receipt.
 
-The terminal finalizer is waiting for the actual matrix. A final release
-still requires all 24 terminal decisions, raw-log revalidation of every
-admitted pair, a portable evidence package, inspection of the measured plot,
-updated machine-readable data, repository checks and a verified remote push.
-No queued job or successful packaging test substitutes for those gates.
+All 24 saved case resource records have zero `high`, `max`, `oom`,
+`oom_kill` and `oom_group_kill` events. Runs used finite 16/24/32-GiB hard
+caps, zero swap and a 24-GiB admission reserve. On this ZFS host, admission
+uses Linux `MemAvailable` plus bounded evictable ARC data, not `MemFree`.
+It neither adds all cached memory nor changes ZFS parameters.
+
+The initial PDF byte-equality check failed because of a randomized font
+subset name. That attempt is retained. The revised check allows only that
+name change, requires all other decompressed PDF bytes to agree, and also
+requires byte-identical 300-dpi raster output. No measurements or renderer
+code were altered. See the review receipt for commands and hashes.
 
 For commands, source ownership, memory accounting and retained failures, use
-the [detailed study guide](README.md).
+the [technical runbook](RUNBOOK.md). The [study index](README.md) is the short
+navigation entry point.

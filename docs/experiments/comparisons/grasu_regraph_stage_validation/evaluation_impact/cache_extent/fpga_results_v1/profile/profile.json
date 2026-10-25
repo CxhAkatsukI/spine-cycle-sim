@@ -1,0 +1,1615 @@
+{
+  "scope": "measured_GR_event_diagnostics_not_exclusive_stage_or_host_attribution",
+  "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+  "notes": [
+    "One warmup pair is excluded; retain samples 1, 2 and 3. Each median is computed separately.",
+    "G events include the GraSU pipeline; ResPR also includes device degree update. SSSP/CC completion-barrier events are reported separately and may overlap G events.",
+    "The total kernel event union counts overlapping kernel execution only once. Per-kernel adapter, gather, apply and HBM duration sums are not additive stage times.",
+    "Kernel-uncovered wall is computed per sample as resident wall minus total kernel event union. It includes DMA, final readback and launch/wait gaps; it is not pure host orchestration time.",
+    "Convergence readback is a host wall interval, not a kernel event; ResPR does not log it separately. Missing metrics remain absent, not zero. Final-state readback is included in wall.",
+    "Both architectures retain all three measured wall times, including slow samples. Wall variability uses population standard deviation divided by the mean; this coefficient is not a confidence interval or evidence of the cause of timing variation.",
+    "These diagnostics do not establish a causal before/after improvement, publication matching, or per-stage simulator timing calibration."
+  ],
+  "cases": [
+    {
+      "algorithm": "sssp",
+      "dataset": "AU",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            18.519382,
+            18.414589,
+            18.740389
+          ],
+          "median_ms": 18.519382,
+          "min_ms": 18.414589,
+          "max_ms": 18.740389,
+          "coefficient_of_variation": 0.0073174754411724705
+        },
+        "spine": {
+          "samples_ms": [
+            4.40229,
+            4.30279,
+            3.9514
+          ],
+          "median_ms": 4.30279,
+          "min_ms": 3.9514,
+          "max_ms": 4.40229,
+          "coefficient_of_variation": 0.045845189320760996
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/sssp-au/sample-1/gr/run.log",
+          "wall_ms": 18.519382,
+          "g_event_union_ms": 1.077082,
+          "kernel_event_union_ms": 17.909134,
+          "barrier_event_union_ms": 0.750152,
+          "convergence_readback_ms": 0.226987,
+          "kernel_uncovered_wall_ms": 0.6102479999999986
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/sssp-au/sample-2/gr/run.log",
+          "wall_ms": 18.414589,
+          "g_event_union_ms": 1.170615,
+          "kernel_event_union_ms": 17.982796,
+          "barrier_event_union_ms": 0.757663,
+          "convergence_readback_ms": 0.127733,
+          "kernel_uncovered_wall_ms": 0.431792999999999
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/sssp-au/sample-3/gr/run.log",
+          "wall_ms": 18.740389,
+          "g_event_union_ms": 1.376181,
+          "kernel_event_union_ms": 18.173362,
+          "barrier_event_union_ms": 0.878887,
+          "convergence_readback_ms": 0.187876,
+          "kernel_uncovered_wall_ms": 0.5670269999999995
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 18.519382,
+        "g_event_union_ms": 1.170615,
+        "barrier_event_union_ms": 0.757663,
+        "kernel_event_union_ms": 17.982796,
+        "convergence_readback_ms": 0.187876,
+        "kernel_uncovered_wall_ms": 0.5670269999999995
+      }
+    },
+    {
+      "algorithm": "sssp",
+      "dataset": "SU",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            27.725166,
+            27.680025,
+            27.683435
+          ],
+          "median_ms": 27.683435,
+          "min_ms": 27.680025,
+          "max_ms": 27.725166,
+          "coefficient_of_variation": 0.0007410110431396714
+        },
+        "spine": {
+          "samples_ms": [
+            4.32347,
+            4.33528,
+            4.38699
+          ],
+          "median_ms": 4.33528,
+          "min_ms": 4.32347,
+          "max_ms": 4.38699,
+          "coefficient_of_variation": 0.006343357684511403
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/sssp-su/sample-1/gr/run.log",
+          "wall_ms": 27.725166,
+          "g_event_union_ms": 1.649169,
+          "kernel_event_union_ms": 27.068807,
+          "barrier_event_union_ms": 1.256277,
+          "convergence_readback_ms": 0.150524,
+          "kernel_uncovered_wall_ms": 0.6563590000000019
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/sssp-su/sample-2/gr/run.log",
+          "wall_ms": 27.680025,
+          "g_event_union_ms": 1.728771,
+          "kernel_event_union_ms": 27.154279,
+          "barrier_event_union_ms": 1.291649,
+          "convergence_readback_ms": 0.190826,
+          "kernel_uncovered_wall_ms": 0.5257460000000016
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/sssp-su/sample-3/gr/run.log",
+          "wall_ms": 27.683435,
+          "g_event_union_ms": 1.66374,
+          "kernel_event_union_ms": 27.104028,
+          "barrier_event_union_ms": 1.209246,
+          "convergence_readback_ms": 0.200505,
+          "kernel_uncovered_wall_ms": 0.5794069999999998
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 27.683435,
+        "g_event_union_ms": 1.66374,
+        "barrier_event_union_ms": 1.256277,
+        "kernel_event_union_ms": 27.104028,
+        "convergence_readback_ms": 0.190826,
+        "kernel_uncovered_wall_ms": 0.5794069999999998
+      }
+    },
+    {
+      "algorithm": "sssp",
+      "dataset": "WK",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            27.322425,
+            27.827549,
+            27.48903
+          ],
+          "median_ms": 27.48903,
+          "min_ms": 27.322425,
+          "max_ms": 27.827549,
+          "coefficient_of_variation": 0.007629303814245968
+        },
+        "spine": {
+          "samples_ms": [
+            4.52501,
+            3.85799,
+            4.84209
+          ],
+          "median_ms": 4.52501,
+          "min_ms": 3.85799,
+          "max_ms": 4.84209,
+          "coefficient_of_variation": 0.09303602289050322
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/sssp-wk/sample-1/gr/run.log",
+          "wall_ms": 27.322425,
+          "g_event_union_ms": 0.876866,
+          "kernel_event_union_ms": 26.527061,
+          "barrier_event_union_ms": 0.367751,
+          "convergence_readback_ms": 0.062282,
+          "kernel_uncovered_wall_ms": 0.7953639999999993
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/sssp-wk/sample-2/gr/run.log",
+          "wall_ms": 27.827549,
+          "g_event_union_ms": 1.202186,
+          "kernel_event_union_ms": 26.964154,
+          "barrier_event_union_ms": 0.528236,
+          "convergence_readback_ms": 0.059202,
+          "kernel_uncovered_wall_ms": 0.8633950000000006
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/sssp-wk/sample-3/gr/run.log",
+          "wall_ms": 27.48903,
+          "g_event_union_ms": 0.827204,
+          "kernel_event_union_ms": 26.639644,
+          "barrier_event_union_ms": 0.475094,
+          "convergence_readback_ms": 0.059512,
+          "kernel_uncovered_wall_ms": 0.8493859999999991
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 27.48903,
+        "g_event_union_ms": 0.876866,
+        "barrier_event_union_ms": 0.475094,
+        "kernel_event_union_ms": 26.639644,
+        "convergence_readback_ms": 0.059512,
+        "kernel_uncovered_wall_ms": 0.8493859999999991
+      }
+    },
+    {
+      "algorithm": "sssp",
+      "dataset": "SO",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            751.9554,
+            743.825933,
+            763.954991
+          ],
+          "median_ms": 751.9554,
+          "min_ms": 743.825933,
+          "max_ms": 763.954991,
+          "coefficient_of_variation": 0.010976671167172745
+        },
+        "spine": {
+          "samples_ms": [
+            15.508,
+            18.0336,
+            73.8605
+          ],
+          "median_ms": 18.0336,
+          "min_ms": 15.508,
+          "max_ms": 73.8605,
+          "coefficient_of_variation": 0.7522782169055952
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/sssp-so/sample-1/gr/run.log",
+          "wall_ms": 751.9554,
+          "g_event_union_ms": 15.781628,
+          "kernel_event_union_ms": 727.77737,
+          "barrier_event_union_ms": 15.484259,
+          "convergence_readback_ms": 11.91483,
+          "kernel_uncovered_wall_ms": 24.178030000000035
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/sssp-so/sample-2/gr/run.log",
+          "wall_ms": 743.825933,
+          "g_event_union_ms": 11.755335,
+          "kernel_event_union_ms": 723.670933,
+          "barrier_event_union_ms": 11.27189,
+          "convergence_readback_ms": 7.992571,
+          "kernel_uncovered_wall_ms": 20.154999999999973
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/sssp-so/sample-3/gr/run.log",
+          "wall_ms": 763.954991,
+          "g_event_union_ms": 23.791989,
+          "kernel_event_union_ms": 735.79923,
+          "barrier_event_union_ms": 23.528602,
+          "convergence_readback_ms": 11.947801,
+          "kernel_uncovered_wall_ms": 28.155760999999984
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 751.9554,
+        "g_event_union_ms": 15.781628,
+        "barrier_event_union_ms": 15.484259,
+        "kernel_event_union_ms": 727.77737,
+        "convergence_readback_ms": 11.91483,
+        "kernel_uncovered_wall_ms": 24.178030000000035
+      }
+    },
+    {
+      "algorithm": "sssp",
+      "dataset": "PK",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            617.56259,
+            617.141686,
+            618.312945
+          ],
+          "median_ms": 617.56259,
+          "min_ms": 617.141686,
+          "max_ms": 618.312945,
+          "coefficient_of_variation": 0.0007842809390668395
+        },
+        "spine": {
+          "samples_ms": [
+            8.1495,
+            8.19789,
+            8.72169
+          ],
+          "median_ms": 8.19789,
+          "min_ms": 8.1495,
+          "max_ms": 8.72169,
+          "coefficient_of_variation": 0.031004120104875788
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/sssp-pk/sample-1/gr/run.log",
+          "wall_ms": 617.56259,
+          "g_event_union_ms": 15.35708,
+          "kernel_event_union_ms": 616.337281,
+          "barrier_event_union_ms": 13.094345,
+          "convergence_readback_ms": 0.246296,
+          "kernel_uncovered_wall_ms": 1.2253090000000384
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/sssp-pk/sample-2/gr/run.log",
+          "wall_ms": 617.141686,
+          "g_event_union_ms": 15.258602,
+          "kernel_event_union_ms": 616.025458,
+          "barrier_event_union_ms": 12.975525,
+          "convergence_readback_ms": 0.195415,
+          "kernel_uncovered_wall_ms": 1.116228000000092
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/sssp-pk/sample-3/gr/run.log",
+          "wall_ms": 618.312945,
+          "g_event_union_ms": 15.242728,
+          "kernel_event_union_ms": 617.03476,
+          "barrier_event_union_ms": 13.004938,
+          "convergence_readback_ms": 0.251906,
+          "kernel_uncovered_wall_ms": 1.2781850000000077
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 617.56259,
+        "g_event_union_ms": 15.258602,
+        "barrier_event_union_ms": 13.004938,
+        "kernel_event_union_ms": 616.337281,
+        "convergence_readback_ms": 0.246296,
+        "kernel_uncovered_wall_ms": 1.2253090000000384
+      }
+    },
+    {
+      "algorithm": "sssp",
+      "dataset": "LJ",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            2891.50993,
+            2892.872392,
+            2889.139468
+          ],
+          "median_ms": 2891.50993,
+          "min_ms": 2889.139468,
+          "max_ms": 2892.872392,
+          "coefficient_of_variation": 0.0005334749358830811
+        },
+        "spine": {
+          "samples_ms": [
+            31.037,
+            32.7241,
+            32.4276
+          ],
+          "median_ms": 32.4276,
+          "min_ms": 31.037,
+          "max_ms": 32.7241,
+          "coefficient_of_variation": 0.022937741312417253
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/sssp-lj/sample-1/gr/run.log",
+          "wall_ms": 2891.50993,
+          "g_event_union_ms": 18.213059,
+          "kernel_event_union_ms": 2889.343838,
+          "barrier_event_union_ms": 17.292344,
+          "convergence_readback_ms": 0.374672,
+          "kernel_uncovered_wall_ms": 2.16609200000039
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/sssp-lj/sample-2/gr/run.log",
+          "wall_ms": 2892.872392,
+          "g_event_union_ms": 15.870786,
+          "kernel_event_union_ms": 2890.202806,
+          "barrier_event_union_ms": 14.881908,
+          "convergence_readback_ms": 0.453663,
+          "kernel_uncovered_wall_ms": 2.669586000000436
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/sssp-lj/sample-3/gr/run.log",
+          "wall_ms": 2889.139468,
+          "g_event_union_ms": 16.144347,
+          "kernel_event_union_ms": 2886.870032,
+          "barrier_event_union_ms": 14.911802,
+          "convergence_readback_ms": 0.439252,
+          "kernel_uncovered_wall_ms": 2.2694360000000415
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 2891.50993,
+        "g_event_union_ms": 16.144347,
+        "barrier_event_union_ms": 14.911802,
+        "kernel_event_union_ms": 2889.343838,
+        "convergence_readback_ms": 0.439252,
+        "kernel_uncovered_wall_ms": 2.2694360000000415
+      }
+    },
+    {
+      "algorithm": "sssp",
+      "dataset": "LJ08",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            1851.968107,
+            1855.682326,
+            1848.811729
+          ],
+          "median_ms": 1851.968107,
+          "min_ms": 1848.811729,
+          "max_ms": 1855.682326,
+          "coefficient_of_variation": 0.0015160669532205823
+        },
+        "spine": {
+          "samples_ms": [
+            22.8283,
+            20.2391,
+            20.4468
+          ],
+          "median_ms": 20.4468,
+          "min_ms": 20.2391,
+          "max_ms": 22.8283,
+          "coefficient_of_variation": 0.055483794527049206
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/sssp-lj08/sample-1/gr/run.log",
+          "wall_ms": 1851.968107,
+          "g_event_union_ms": 12.690686,
+          "kernel_event_union_ms": 1848.95357,
+          "barrier_event_union_ms": 10.39838,
+          "convergence_readback_ms": 0.487554,
+          "kernel_uncovered_wall_ms": 3.0145370000000185
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/sssp-lj08/sample-2/gr/run.log",
+          "wall_ms": 1855.682326,
+          "g_event_union_ms": 12.613305,
+          "kernel_event_union_ms": 1853.133243,
+          "barrier_event_union_ms": 10.221275,
+          "convergence_readback_ms": 0.3524,
+          "kernel_uncovered_wall_ms": 2.5490830000001097
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/sssp-lj08/sample-3/gr/run.log",
+          "wall_ms": 1848.811729,
+          "g_event_union_ms": 12.351797,
+          "kernel_event_union_ms": 1846.278024,
+          "barrier_event_union_ms": 10.094442,
+          "convergence_readback_ms": 0.256507,
+          "kernel_uncovered_wall_ms": 2.5337050000000545
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 1851.968107,
+        "g_event_union_ms": 12.613305,
+        "barrier_event_union_ms": 10.221275,
+        "kernel_event_union_ms": 1848.95357,
+        "convergence_readback_ms": 0.3524,
+        "kernel_uncovered_wall_ms": 2.5490830000001097
+      }
+    },
+    {
+      "algorithm": "sssp",
+      "dataset": "R19",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            78.475284,
+            78.257868,
+            78.411659
+          ],
+          "median_ms": 78.411659,
+          "min_ms": 78.257868,
+          "max_ms": 78.475284,
+          "coefficient_of_variation": 0.001164412858686305
+        },
+        "spine": {
+          "samples_ms": [
+            4.07231,
+            3.89062,
+            4.04465
+          ],
+          "median_ms": 4.04465,
+          "min_ms": 3.89062,
+          "max_ms": 4.07231,
+          "coefficient_of_variation": 0.019970290036867618
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/sssp-r19/sample-1/gr/run.log",
+          "wall_ms": 78.475284,
+          "g_event_union_ms": 5.624992,
+          "kernel_event_union_ms": 77.900056,
+          "barrier_event_union_ms": 5.319873,
+          "convergence_readback_ms": 0.188836,
+          "kernel_uncovered_wall_ms": 0.5752279999999956
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/sssp-r19/sample-2/gr/run.log",
+          "wall_ms": 78.257868,
+          "g_event_union_ms": 5.572189,
+          "kernel_event_union_ms": 77.658009,
+          "barrier_event_union_ms": 5.180478,
+          "convergence_readback_ms": 0.202966,
+          "kernel_uncovered_wall_ms": 0.599858999999995
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/sssp-r19/sample-3/gr/run.log",
+          "wall_ms": 78.411659,
+          "g_event_union_ms": 5.689761,
+          "kernel_event_union_ms": 77.831871,
+          "barrier_event_union_ms": 5.357341,
+          "convergence_readback_ms": 0.156634,
+          "kernel_uncovered_wall_ms": 0.5797879999999935
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 78.411659,
+        "g_event_union_ms": 5.624992,
+        "barrier_event_union_ms": 5.319873,
+        "kernel_event_union_ms": 77.831871,
+        "convergence_readback_ms": 0.188836,
+        "kernel_uncovered_wall_ms": 0.5797879999999935
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "AU",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            11.920064,
+            11.694188,
+            11.873282
+          ],
+          "median_ms": 11.873282,
+          "min_ms": 11.694188,
+          "max_ms": 11.920064,
+          "coefficient_of_variation": 0.008229167093310459
+        },
+        "spine": {
+          "samples_ms": [
+            83.1385,
+            81.9327,
+            82.3447
+          ],
+          "median_ms": 82.3447,
+          "min_ms": 81.9327,
+          "max_ms": 83.1385,
+          "coefficient_of_variation": 0.006067805212894327
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/cc-au/sample-1/gr/run.log",
+          "wall_ms": 11.920064,
+          "g_event_union_ms": 1.301929,
+          "kernel_event_union_ms": 11.359647,
+          "barrier_event_union_ms": 0.122333,
+          "convergence_readback_ms": 0.055091,
+          "kernel_uncovered_wall_ms": 0.5604169999999993
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/cc-au/sample-2/gr/run.log",
+          "wall_ms": 11.694188,
+          "g_event_union_ms": 1.091932,
+          "kernel_event_union_ms": 11.166772,
+          "barrier_event_union_ms": 0.097792,
+          "convergence_readback_ms": 0.052252,
+          "kernel_uncovered_wall_ms": 0.5274160000000006
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/cc-au/sample-3/gr/run.log",
+          "wall_ms": 11.873282,
+          "g_event_union_ms": 1.134184,
+          "kernel_event_union_ms": 11.294995,
+          "barrier_event_union_ms": 0.243527,
+          "convergence_readback_ms": 0.070992,
+          "kernel_uncovered_wall_ms": 0.5782869999999996
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 11.873282,
+        "g_event_union_ms": 1.134184,
+        "barrier_event_union_ms": 0.122333,
+        "kernel_event_union_ms": 11.294995,
+        "convergence_readback_ms": 0.055091,
+        "kernel_uncovered_wall_ms": 0.5604169999999993
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "SU",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            15.193249,
+            15.154997,
+            15.143866
+          ],
+          "median_ms": 15.154997,
+          "min_ms": 15.143866,
+          "max_ms": 15.193249,
+          "coefficient_of_variation": 0.001394728731439449
+        },
+        "spine": {
+          "samples_ms": [
+            80.7693,
+            82.5792,
+            81.7356
+          ],
+          "median_ms": 81.7356,
+          "min_ms": 80.7693,
+          "max_ms": 82.5792,
+          "coefficient_of_variation": 0.009051436052578826
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/cc-su/sample-1/gr/run.log",
+          "wall_ms": 15.193249,
+          "g_event_union_ms": 1.330459,
+          "kernel_event_union_ms": 14.628422,
+          "barrier_event_union_ms": 0.115374,
+          "convergence_readback_ms": 0.052882,
+          "kernel_uncovered_wall_ms": 0.5648269999999993
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/cc-su/sample-2/gr/run.log",
+          "wall_ms": 15.154997,
+          "g_event_union_ms": 1.312559,
+          "kernel_event_union_ms": 14.629062,
+          "barrier_event_union_ms": 0.128194,
+          "convergence_readback_ms": 0.051262,
+          "kernel_uncovered_wall_ms": 0.5259350000000005
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/cc-su/sample-3/gr/run.log",
+          "wall_ms": 15.143866,
+          "g_event_union_ms": 1.322839,
+          "kernel_event_union_ms": 14.62104,
+          "barrier_event_union_ms": 0.097723,
+          "convergence_readback_ms": 0.043691,
+          "kernel_uncovered_wall_ms": 0.5228259999999985
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 15.154997,
+        "g_event_union_ms": 1.322839,
+        "barrier_event_union_ms": 0.115374,
+        "kernel_event_union_ms": 14.628422,
+        "convergence_readback_ms": 0.051262,
+        "kernel_uncovered_wall_ms": 0.5259350000000005
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "WK",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            75.355182,
+            75.703571,
+            75.224404
+          ],
+          "median_ms": 75.355182,
+          "min_ms": 75.224404,
+          "max_ms": 75.703571,
+          "coefficient_of_variation": 0.0026811318373400894
+        },
+        "spine": {
+          "samples_ms": [
+            133.85,
+            129.383,
+            132.312
+          ],
+          "median_ms": 132.312,
+          "min_ms": 129.383,
+          "max_ms": 133.85,
+          "coefficient_of_variation": 0.014053138269394232
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/cc-wk/sample-1/gr/run.log",
+          "wall_ms": 75.355182,
+          "g_event_union_ms": 2.236995,
+          "kernel_event_union_ms": 74.424774,
+          "barrier_event_union_ms": 0.152064,
+          "convergence_readback_ms": 0.231547,
+          "kernel_uncovered_wall_ms": 0.9304079999999999
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/cc-wk/sample-2/gr/run.log",
+          "wall_ms": 75.703571,
+          "g_event_union_ms": 2.351749,
+          "kernel_event_union_ms": 74.538326,
+          "barrier_event_union_ms": 0.190076,
+          "convergence_readback_ms": 0.240567,
+          "kernel_uncovered_wall_ms": 1.1652449999999988
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/cc-wk/sample-3/gr/run.log",
+          "wall_ms": 75.224404,
+          "g_event_union_ms": 2.214395,
+          "kernel_event_union_ms": 74.374909,
+          "barrier_event_union_ms": 0.149594,
+          "convergence_readback_ms": 0.178955,
+          "kernel_uncovered_wall_ms": 0.8494950000000046
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 75.355182,
+        "g_event_union_ms": 2.236995,
+        "barrier_event_union_ms": 0.152064,
+        "kernel_event_union_ms": 74.424774,
+        "convergence_readback_ms": 0.231547,
+        "kernel_uncovered_wall_ms": 0.9304079999999999
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "SO",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            823.797977,
+            823.006849,
+            823.085436
+          ],
+          "median_ms": 823.085436,
+          "min_ms": 823.006849,
+          "max_ms": 823.797977,
+          "coefficient_of_variation": 0.0004322467486343428
+        },
+        "spine": {
+          "samples_ms": [
+            112.281,
+            114.48,
+            112.63
+          ],
+          "median_ms": 112.63,
+          "min_ms": 112.281,
+          "max_ms": 114.48,
+          "coefficient_of_variation": 0.00852941309111736
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/cc-so/sample-1/gr/run.log",
+          "wall_ms": 823.797977,
+          "g_event_union_ms": 2.256786,
+          "kernel_event_union_ms": 820.640725,
+          "barrier_event_union_ms": 0.202476,
+          "convergence_readback_ms": 0.109703,
+          "kernel_uncovered_wall_ms": 3.1572519999999713
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/cc-so/sample-2/gr/run.log",
+          "wall_ms": 823.006849,
+          "g_event_union_ms": 2.194823,
+          "kernel_event_union_ms": 820.25001,
+          "barrier_event_union_ms": 0.125324,
+          "convergence_readback_ms": 0.190936,
+          "kernel_uncovered_wall_ms": 2.7568390000000136
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/cc-so/sample-3/gr/run.log",
+          "wall_ms": 823.085436,
+          "g_event_union_ms": 2.228865,
+          "kernel_event_union_ms": 820.374338,
+          "barrier_event_union_ms": 0.154385,
+          "convergence_readback_ms": 0.114313,
+          "kernel_uncovered_wall_ms": 2.7110979999999927
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 823.085436,
+        "g_event_union_ms": 2.228865,
+        "barrier_event_union_ms": 0.154385,
+        "kernel_event_union_ms": 820.374338,
+        "convergence_readback_ms": 0.114313,
+        "kernel_uncovered_wall_ms": 2.7568390000000136
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "PK",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            305.140115,
+            305.402429,
+            304.680658
+          ],
+          "median_ms": 305.140115,
+          "min_ms": 304.680658,
+          "max_ms": 305.402429,
+          "coefficient_of_variation": 0.0009778044838650063
+        },
+        "spine": {
+          "samples_ms": [
+            90.4531,
+            88.6957,
+            89.5507
+          ],
+          "median_ms": 89.5507,
+          "min_ms": 88.6957,
+          "max_ms": 90.4531,
+          "coefficient_of_variation": 0.008011282436584385
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/cc-pk/sample-1/gr/run.log",
+          "wall_ms": 305.140115,
+          "g_event_union_ms": 2.224945,
+          "kernel_event_union_ms": 303.518448,
+          "barrier_event_union_ms": 0.140375,
+          "convergence_readback_ms": 0.114023,
+          "kernel_uncovered_wall_ms": 1.6216670000000022
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/cc-pk/sample-2/gr/run.log",
+          "wall_ms": 305.402429,
+          "g_event_union_ms": 2.185433,
+          "kernel_event_union_ms": 303.753011,
+          "barrier_event_union_ms": 0.104593,
+          "convergence_readback_ms": 0.214196,
+          "kernel_uncovered_wall_ms": 1.6494179999999687
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/cc-pk/sample-3/gr/run.log",
+          "wall_ms": 304.680658,
+          "g_event_union_ms": 2.246035,
+          "kernel_event_union_ms": 302.944967,
+          "barrier_event_union_ms": 0.120453,
+          "convergence_readback_ms": 0.203886,
+          "kernel_uncovered_wall_ms": 1.7356909999999743
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 305.140115,
+        "g_event_union_ms": 2.224945,
+        "barrier_event_union_ms": 0.120453,
+        "kernel_event_union_ms": 303.518448,
+        "convergence_readback_ms": 0.203886,
+        "kernel_uncovered_wall_ms": 1.6494179999999687
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "LJ",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            959.928861,
+            962.534001,
+            960.585233
+          ],
+          "median_ms": 960.585233,
+          "min_ms": 959.928861,
+          "max_ms": 962.534001,
+          "coefficient_of_variation": 0.0011511867739275965
+        },
+        "spine": {
+          "samples_ms": [
+            96.4645,
+            93.8666,
+            95.9961
+          ],
+          "median_ms": 95.9961,
+          "min_ms": 93.8666,
+          "max_ms": 96.4645,
+          "coefficient_of_variation": 0.011845345530446806
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/cc-lj/sample-1/gr/run.log",
+          "wall_ms": 959.928861,
+          "g_event_union_ms": 2.173593,
+          "kernel_event_union_ms": 957.896571,
+          "barrier_event_union_ms": 0.119814,
+          "convergence_readback_ms": 0.141164,
+          "kernel_uncovered_wall_ms": 2.032289999999989
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/cc-lj/sample-2/gr/run.log",
+          "wall_ms": 962.534001,
+          "g_event_union_ms": 2.185704,
+          "kernel_event_union_ms": 959.766551,
+          "barrier_event_union_ms": 0.156634,
+          "convergence_readback_ms": 0.146784,
+          "kernel_uncovered_wall_ms": 2.76744999999994
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/cc-lj/sample-3/gr/run.log",
+          "wall_ms": 960.585233,
+          "g_event_union_ms": 2.187524,
+          "kernel_event_union_ms": 958.291216,
+          "barrier_event_union_ms": 0.135434,
+          "convergence_readback_ms": 0.108233,
+          "kernel_uncovered_wall_ms": 2.2940170000000535
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 960.585233,
+        "g_event_union_ms": 2.185704,
+        "barrier_event_union_ms": 0.135434,
+        "kernel_event_union_ms": 958.291216,
+        "convergence_readback_ms": 0.141164,
+        "kernel_uncovered_wall_ms": 2.2940170000000535
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "LJ08",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            923.044838,
+            921.26426,
+            923.433051
+          ],
+          "median_ms": 923.044838,
+          "min_ms": 921.26426,
+          "max_ms": 923.433051,
+          "coefficient_of_variation": 0.0010235099516813714
+        },
+        "spine": {
+          "samples_ms": [
+            100.254,
+            100.804,
+            99.7588
+          ],
+          "median_ms": 100.254,
+          "min_ms": 99.7588,
+          "max_ms": 100.804,
+          "coefficient_of_variation": 0.004257374219760848
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/cc-lj08/sample-1/gr/run.log",
+          "wall_ms": 923.044838,
+          "g_event_union_ms": 2.376489,
+          "kernel_event_union_ms": 920.601597,
+          "barrier_event_union_ms": 0.411422,
+          "convergence_readback_ms": 0.167095,
+          "kernel_uncovered_wall_ms": 2.4432410000000573
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/cc-lj08/sample-2/gr/run.log",
+          "wall_ms": 921.26426,
+          "g_event_union_ms": 1.852332,
+          "kernel_event_union_ms": 918.44781,
+          "barrier_event_union_ms": 0.193746,
+          "convergence_readback_ms": 0.114454,
+          "kernel_uncovered_wall_ms": 2.8164500000000317
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/cc-lj08/sample-3/gr/run.log",
+          "wall_ms": 923.433051,
+          "g_event_union_ms": 1.842483,
+          "kernel_event_union_ms": 920.475145,
+          "barrier_event_union_ms": 0.135994,
+          "convergence_readback_ms": 0.110374,
+          "kernel_uncovered_wall_ms": 2.95790599999998
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 923.044838,
+        "g_event_union_ms": 1.852332,
+        "barrier_event_union_ms": 0.193746,
+        "kernel_event_union_ms": 920.475145,
+        "convergence_readback_ms": 0.114454,
+        "kernel_uncovered_wall_ms": 2.8164500000000317
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "R19",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            91.592355,
+            91.35899,
+            91.719342
+          ],
+          "median_ms": 91.592355,
+          "min_ms": 91.35899,
+          "max_ms": 91.719342,
+          "coefficient_of_variation": 0.0016299648624545009
+        },
+        "spine": {
+          "samples_ms": [
+            115.815,
+            108.628,
+            109.287
+          ],
+          "median_ms": 109.287,
+          "min_ms": 108.628,
+          "max_ms": 115.815,
+          "coefficient_of_variation": 0.02915979087028822
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/cc-r19/sample-1/gr/run.log",
+          "wall_ms": 91.592355,
+          "g_event_union_ms": 2.231675,
+          "kernel_event_union_ms": 90.951757,
+          "barrier_event_union_ms": 0.105533,
+          "convergence_readback_ms": 0.204166,
+          "kernel_uncovered_wall_ms": 0.6405979999999971
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/cc-r19/sample-2/gr/run.log",
+          "wall_ms": 91.35899,
+          "g_event_union_ms": 2.186353,
+          "kernel_event_union_ms": 90.631469,
+          "barrier_event_union_ms": 0.128494,
+          "convergence_readback_ms": 0.252027,
+          "kernel_uncovered_wall_ms": 0.7275210000000101
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/cc-r19/sample-3/gr/run.log",
+          "wall_ms": 91.719342,
+          "g_event_union_ms": 2.199493,
+          "kernel_event_union_ms": 91.030452,
+          "barrier_event_union_ms": 0.153475,
+          "convergence_readback_ms": 0.273129,
+          "kernel_uncovered_wall_ms": 0.6888900000000007
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 91.592355,
+        "g_event_union_ms": 2.199493,
+        "barrier_event_union_ms": 0.128494,
+        "kernel_event_union_ms": 90.951757,
+        "convergence_readback_ms": 0.252027,
+        "kernel_uncovered_wall_ms": 0.6888900000000007
+      }
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "AU",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            20.841104,
+            21.479141,
+            21.40741
+          ],
+          "median_ms": 21.40741,
+          "min_ms": 20.841104,
+          "max_ms": 21.479141,
+          "coefficient_of_variation": 0.01343401992760812
+        },
+        "spine": {
+          "samples_ms": [
+            53.8355,
+            53.0491,
+            54.0927
+          ],
+          "median_ms": 53.8355,
+          "min_ms": 53.0491,
+          "max_ms": 54.0927,
+          "coefficient_of_variation": 0.008273184723376771
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/respr-au/sample-1/gr/run.log",
+          "wall_ms": 20.841104,
+          "g_event_union_ms": 3.085629,
+          "kernel_event_union_ms": 19.897336,
+          "kernel_uncovered_wall_ms": 0.9437680000000022
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/respr-au/sample-2/gr/run.log",
+          "wall_ms": 21.479141,
+          "g_event_union_ms": 3.409809,
+          "kernel_event_union_ms": 20.37727,
+          "kernel_uncovered_wall_ms": 1.1018709999999992
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/respr-au/sample-3/gr/run.log",
+          "wall_ms": 21.40741,
+          "g_event_union_ms": 3.322216,
+          "kernel_event_union_ms": 20.357059,
+          "kernel_uncovered_wall_ms": 1.0503509999999991
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 21.40741,
+        "g_event_union_ms": 3.322216,
+        "kernel_event_union_ms": 20.357059,
+        "kernel_uncovered_wall_ms": 1.0503509999999991
+      }
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "SU",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            27.251839,
+            27.242188,
+            27.135669
+          ],
+          "median_ms": 27.242188,
+          "min_ms": 27.135669,
+          "max_ms": 27.251839,
+          "coefficient_of_variation": 0.0019344419715572807
+        },
+        "spine": {
+          "samples_ms": [
+            52.6526,
+            53.0596,
+            51.7923
+          ],
+          "median_ms": 52.6526,
+          "min_ms": 51.7923,
+          "max_ms": 53.0596,
+          "coefficient_of_variation": 0.010062382100724358
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/respr-su/sample-1/gr/run.log",
+          "wall_ms": 27.251839,
+          "g_event_union_ms": 3.142421,
+          "kernel_event_union_ms": 26.130617,
+          "kernel_uncovered_wall_ms": 1.1212219999999995
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/respr-su/sample-2/gr/run.log",
+          "wall_ms": 27.242188,
+          "g_event_union_ms": 3.130331,
+          "kernel_event_union_ms": 26.129807,
+          "kernel_uncovered_wall_ms": 1.1123809999999992
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/respr-su/sample-3/gr/run.log",
+          "wall_ms": 27.135669,
+          "g_event_union_ms": 3.109019,
+          "kernel_event_union_ms": 25.950274,
+          "kernel_uncovered_wall_ms": 1.1853949999999998
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 27.242188,
+        "g_event_union_ms": 3.130331,
+        "kernel_event_union_ms": 26.129807,
+        "kernel_uncovered_wall_ms": 1.1212219999999995
+      }
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "WK",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            52.862293,
+            52.660617,
+            52.650738
+          ],
+          "median_ms": 52.660617,
+          "min_ms": 52.650738,
+          "max_ms": 52.862293,
+          "coefficient_of_variation": 0.0018489099773362522
+        },
+        "spine": {
+          "samples_ms": [
+            64.8915,
+            64.2815,
+            63.6689
+          ],
+          "median_ms": 64.2815,
+          "min_ms": 63.6689,
+          "max_ms": 64.8915,
+          "coefficient_of_variation": 0.007764776267015415
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/respr-wk/sample-1/gr/run.log",
+          "wall_ms": 52.862293,
+          "g_event_union_ms": 1.500283,
+          "kernel_event_union_ms": 51.116742,
+          "kernel_uncovered_wall_ms": 1.745550999999999
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/respr-wk/sample-2/gr/run.log",
+          "wall_ms": 52.660617,
+          "g_event_union_ms": 1.429321,
+          "kernel_event_union_ms": 51.055911,
+          "kernel_uncovered_wall_ms": 1.6047060000000002
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/respr-wk/sample-3/gr/run.log",
+          "wall_ms": 52.650738,
+          "g_event_union_ms": 1.438732,
+          "kernel_event_union_ms": 51.027392,
+          "kernel_uncovered_wall_ms": 1.623345999999998
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 52.660617,
+        "g_event_union_ms": 1.438732,
+        "kernel_event_union_ms": 51.055911,
+        "kernel_uncovered_wall_ms": 1.623345999999998
+      }
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "SO",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            867.1793,
+            872.318017,
+            866.263973
+          ],
+          "median_ms": 867.1793,
+          "min_ms": 866.263973,
+          "max_ms": 872.318017,
+          "coefficient_of_variation": 0.003067617000895989
+        },
+        "spine": {
+          "samples_ms": [
+            178.376,
+            193.487,
+            205.476
+          ],
+          "median_ms": 193.487,
+          "min_ms": 178.376,
+          "max_ms": 205.476,
+          "coefficient_of_variation": 0.05761592586961866
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/respr-so/sample-1/gr/run.log",
+          "wall_ms": 867.1793,
+          "g_event_union_ms": 11.959166,
+          "kernel_event_union_ms": 858.85389,
+          "kernel_uncovered_wall_ms": 8.325410000000034
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/respr-so/sample-2/gr/run.log",
+          "wall_ms": 872.318017,
+          "g_event_union_ms": 17.880897,
+          "kernel_event_union_ms": 864.505852,
+          "kernel_uncovered_wall_ms": 7.81216500000005
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/respr-so/sample-3/gr/run.log",
+          "wall_ms": 866.263973,
+          "g_event_union_ms": 12.113561,
+          "kernel_event_union_ms": 858.836449,
+          "kernel_uncovered_wall_ms": 7.4275239999999485
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 867.1793,
+        "g_event_union_ms": 12.113561,
+        "kernel_event_union_ms": 858.85389,
+        "kernel_uncovered_wall_ms": 7.81216500000005
+      }
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "PK",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            331.821451,
+            332.676472,
+            332.954484
+          ],
+          "median_ms": 332.676472,
+          "min_ms": 331.821451,
+          "max_ms": 332.954484,
+          "coefficient_of_variation": 0.0014501089449814697
+        },
+        "spine": {
+          "samples_ms": [
+            161.012,
+            154.473,
+            152.551
+          ],
+          "median_ms": 154.473,
+          "min_ms": 152.551,
+          "max_ms": 161.012,
+          "coefficient_of_variation": 0.02321332825654018
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/respr-pk/sample-1/gr/run.log",
+          "wall_ms": 331.821451,
+          "g_event_union_ms": 15.818628,
+          "kernel_event_union_ms": 329.440231,
+          "kernel_uncovered_wall_ms": 2.3812200000000416
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/respr-pk/sample-2/gr/run.log",
+          "wall_ms": 332.676472,
+          "g_event_union_ms": 16.311947,
+          "kernel_event_union_ms": 330.229785,
+          "kernel_uncovered_wall_ms": 2.446686999999997
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/respr-pk/sample-3/gr/run.log",
+          "wall_ms": 332.954484,
+          "g_event_union_ms": 16.38325,
+          "kernel_event_union_ms": 330.165449,
+          "kernel_uncovered_wall_ms": 2.7890349999999557
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 332.676472,
+        "g_event_union_ms": 16.311947,
+        "kernel_event_union_ms": 330.165449,
+        "kernel_uncovered_wall_ms": 2.446686999999997
+      }
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "LJ",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            1021.881255,
+            1020.8315,
+            1020.714826
+          ],
+          "median_ms": 1020.8315,
+          "min_ms": 1020.714826,
+          "max_ms": 1021.881255,
+          "coefficient_of_variation": 0.000513666561108729
+        },
+        "spine": {
+          "samples_ms": [
+            262.043,
+            256.138,
+            256.296
+          ],
+          "median_ms": 256.296,
+          "min_ms": 256.138,
+          "max_ms": 262.043,
+          "coefficient_of_variation": 0.010641349359882224
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/respr-lj/sample-1/gr/run.log",
+          "wall_ms": 1021.881255,
+          "g_event_union_ms": 17.144275,
+          "kernel_event_union_ms": 1015.068424,
+          "kernel_uncovered_wall_ms": 6.81283099999996
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/respr-lj/sample-2/gr/run.log",
+          "wall_ms": 1020.8315,
+          "g_event_union_ms": 16.857403,
+          "kernel_event_union_ms": 1014.528897,
+          "kernel_uncovered_wall_ms": 6.302602999999976
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/respr-lj/sample-3/gr/run.log",
+          "wall_ms": 1020.714826,
+          "g_event_union_ms": 17.14017,
+          "kernel_event_union_ms": 1014.774186,
+          "kernel_uncovered_wall_ms": 5.94064000000003
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 1020.8315,
+        "g_event_union_ms": 17.14017,
+        "kernel_event_union_ms": 1014.774186,
+        "kernel_uncovered_wall_ms": 6.302602999999976
+      }
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "LJ08",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            979.713843,
+            986.857482,
+            984.921509
+          ],
+          "median_ms": 984.921509,
+          "min_ms": 979.713843,
+          "max_ms": 986.857482,
+          "coefficient_of_variation": 0.0030661860755295052
+        },
+        "spine": {
+          "samples_ms": [
+            271.497,
+            279.133,
+            281.407
+          ],
+          "median_ms": 279.133,
+          "min_ms": 271.497,
+          "max_ms": 281.407,
+          "coefficient_of_variation": 0.015282549621413741
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/respr-lj08/sample-1/gr/run.log",
+          "wall_ms": 979.713843,
+          "g_event_union_ms": 13.305496,
+          "kernel_event_union_ms": 972.425116,
+          "kernel_uncovered_wall_ms": 7.288726999999994
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/respr-lj08/sample-2/gr/run.log",
+          "wall_ms": 986.857482,
+          "g_event_union_ms": 19.198768,
+          "kernel_event_union_ms": 978.11301,
+          "kernel_uncovered_wall_ms": 8.744471999999973
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/respr-lj08/sample-3/gr/run.log",
+          "wall_ms": 984.921509,
+          "g_event_union_ms": 13.320777,
+          "kernel_event_union_ms": 971.95122,
+          "kernel_uncovered_wall_ms": 12.97028899999998
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 984.921509,
+        "g_event_union_ms": 13.320777,
+        "kernel_event_union_ms": 972.425116,
+        "kernel_uncovered_wall_ms": 8.744471999999973
+      }
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "R19",
+      "status": "RESIDENT_PAIR_PASS",
+      "wall_statistics": {
+        "gr": {
+          "samples_ms": [
+            44.868496,
+            45.097405,
+            44.42742
+          ],
+          "median_ms": 44.868496,
+          "min_ms": 44.42742,
+          "max_ms": 45.097405,
+          "coefficient_of_variation": 0.006206875526284607
+        },
+        "spine": {
+          "samples_ms": [
+            84.9991,
+            89.1639,
+            86.63
+          ],
+          "median_ms": 86.63,
+          "min_ms": 84.9991,
+          "max_ms": 89.1639,
+          "coefficient_of_variation": 0.019711521086077988
+        }
+      },
+      "samples": [
+        {
+          "sample_index": 1,
+          "source": "cases/respr-r19/sample-1/gr/run.log",
+          "wall_ms": 44.868496,
+          "g_event_union_ms": 4.582691,
+          "kernel_event_union_ms": 43.933629,
+          "kernel_uncovered_wall_ms": 0.934866999999997
+        },
+        {
+          "sample_index": 2,
+          "source": "cases/respr-r19/sample-2/gr/run.log",
+          "wall_ms": 45.097405,
+          "g_event_union_ms": 4.770197,
+          "kernel_event_union_ms": 44.110597,
+          "kernel_uncovered_wall_ms": 0.9868080000000035
+        },
+        {
+          "sample_index": 3,
+          "source": "cases/respr-r19/sample-3/gr/run.log",
+          "wall_ms": 44.42742,
+          "g_event_union_ms": 4.550421,
+          "kernel_event_union_ms": 43.574455,
+          "kernel_uncovered_wall_ms": 0.8529649999999975
+        }
+      ],
+      "median_ms": {
+        "wall_ms": 44.868496,
+        "g_event_union_ms": 4.582691,
+        "kernel_event_union_ms": 43.933629,
+        "kernel_uncovered_wall_ms": 0.934866999999997
+      }
+    }
+  ],
+  "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/terminal-delivery-v1/evidence",
+  "source_sha256": {
+    "summary.csv": "36ad9dead93b51b5f9ea890307caec5d59f77c7571d020cbb32912c3226f2ad8",
+    "matrix.json": "c9ff0e465bf149af12ff117970e823714935162c41982298252481ed2c983c8c",
+    "plan.json": "dcfa6e48f3db23f7ab6c213207c8f4a733093a1d8dd082ab055cc19bf5e57a92",
+    "files.json": "1195805d0038a9b79348fa8f34156cf2c0ee3dc5868548d1c983cdfd714d4ea2"
+  },
+  "analyzer_sha256": "2414d13e2eedf880d655a049f07cae4b5e2e5d8b35a326fcf8da84f5568847c2"
+}

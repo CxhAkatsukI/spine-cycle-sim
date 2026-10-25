@@ -1,0 +1,17 @@
+{
+  "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+  "metric": "ratio_of_median_resident_FPGA_wall_times",
+  "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/terminal-delivery-v1/evidence",
+  "passed_cases": 24,
+  "missing": [],
+  "source_sha256": {
+    "summary.csv": "36ad9dead93b51b5f9ea890307caec5d59f77c7571d020cbb32912c3226f2ad8",
+    "matrix.json": "c9ff0e465bf149af12ff117970e823714935162c41982298252481ed2c983c8c",
+    "plan.json": "dcfa6e48f3db23f7ab6c213207c8f4a733093a1d8dd082ab055cc19bf5e57a92",
+    "files.json": "1195805d0038a9b79348fa8f34156cf2c0ee3dc5868548d1c983cdfd714d4ea2"
+  },
+  "renderer_sha256": "4583f2f1d89458d3747263c81a2cbb4f7b9f937346948669cde55580f6936341",
+  "font": "TX Typewriter (txtt)",
+  "style_reference": "figure7_10_handoff_v1/render_all.py",
+  "paper_modified": false
+}

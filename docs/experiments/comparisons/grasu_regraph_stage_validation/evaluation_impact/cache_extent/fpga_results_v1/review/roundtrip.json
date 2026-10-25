@@ -1,0 +1,70 @@
+{
+  "status": "AUTOMATED_ROUNDTRIP_PASS_VISUAL_REVIEW_PENDING",
+  "passed_cases": 24,
+  "paired_runs": 96,
+  "archive_members": 615,
+  "commands": [
+    {
+      "command": [
+        "/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python",
+        "-c",
+        "import sys; from pathlib import Path; from board_review import fpga_plot, fpga_profile; assert 'spine_cycle_sim' not in sys.modules; root=Path(sys.argv[1]); assert all(Path(m.__file__).is_relative_to(root) for m in (fpga_plot, fpga_profile))",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-sharded-k4-v3/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/cache_extent/fpga_results_v1/code"
+      ],
+      "cwd": "/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python",
+        "-m",
+        "board_review.fpga_plot",
+        "--delivery",
+        "/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2/unpacked/evidence",
+        "--output",
+        "/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2/figure"
+      ],
+      "cwd": "/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2",
+      "exit_code": 0,
+      "stdout": "{\"boundary\": \"resident_update_to_final_readback_wall_including_host_relaunch\", \"font\": \"TX Typewriter (txtt)\", \"metric\": \"ratio_of_median_resident_FPGA_wall_times\", \"missing\": [], \"paper_modified\": false, \"passed_cases\": 24, \"renderer_sha256\": \"4583f2f1d89458d3747263c81a2cbb4f7b9f937346948669cde55580f6936341\", \"source\": \"/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2/unpacked/evidence\", \"source_sha256\": {\"files.json\": \"1195805d0038a9b79348fa8f34156cf2c0ee3dc5868548d1c983cdfd714d4ea2\", \"matrix.json\": \"c9ff0e465bf149af12ff117970e823714935162c41982298252481ed2c983c8c\", \"plan.json\": \"dcfa6e48f3db23f7ab6c213207c8f4a733093a1d8dd082ab055cc19bf5e57a92\", \"summary.csv\": \"36ad9dead93b51b5f9ea890307caec5d59f77c7571d020cbb32912c3226f2ad8\"}, \"style_reference\": \"figure7_10_handoff_v1/render_all.py\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python",
+        "-m",
+        "board_review.fpga_profile",
+        "--delivery",
+        "/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2/unpacked/evidence",
+        "--output",
+        "/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2/profile"
+      ],
+      "cwd": "/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2",
+      "exit_code": 0,
+      "stdout": "{\"scope\": \"measured_GR_event_diagnostics_not_exclusive_stage_or_host_attribution\", \"cases\": 24, \"output\": \"/data/chuxiao/builds/grasu-cache-extent-20261025/final-roundtrip-review-v2/profile\"}\n",
+      "stderr": ""
+    }
+  ],
+  "isolated_import": true,
+  "byte_identical_artifacts": [
+    "figure/fpga_speedup.png",
+    "profile/profile_medians.csv",
+    "profile/wall_variability.csv",
+    "profile/README.md"
+  ],
+  "pdf_review": {
+    "equal_after_only_txtt_subset_tag_normalization": true,
+    "normalized_decompressed_sha256": "bb6d898a9ae6bd5ab5f54b77fd4503311d87bcc350e87c585721e0d53e93849c",
+    "raster_300dpi_byte_identical": true,
+    "raster_sha256": "6d7ce13f9ea80c370c004e0e0efbd0a17a043b7b7317dac618c9fa71ba9cebf2",
+    "original_sha256": "a7500be0b6cec2b098e88693400de04788828a261e4a3b89c6ae5b8aeb40d884",
+    "reproduced_sha256": "942ef75e23d7793fd57ceb744d8cb9ca63a59ed49cde019e04ad7a314fc7abe9"
+  },
+  "normalized_json_equal_except_source_path": true,
+  "pdf_fonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nBPYTOC+txtt                          Type 1            Custom           yes yes no      13  0\n",
+  "package_manifest_sha256": "3289624ccb9f4fb1883c283c321cc8820519de0ec3277d257c48c772b0512ea1",
+  "archive_sha256": "7d22db023747a0f25dc8b765dd443651e26d639fc1d8373538ecf1aaadaf24f8",
+  "reviewer_sha256": "0cfbcd91aec664c57ed346793e1d711c7d9beeda3175f7f85b38b3376ddda4f0"
+}
