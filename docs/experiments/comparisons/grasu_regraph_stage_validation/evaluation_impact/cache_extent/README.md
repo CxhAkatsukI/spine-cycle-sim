@@ -17,7 +17,7 @@ timing coefficient is introduced to remove it.
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | All three `route-zfs-v2` artifacts complete; ResPR metadata records DATA 149/HBM 432 MHz after automatic scaling, with an independent artifact audit |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | All eight SSSP pairs and CC AU/SU passed (10 of 24 total); CC WK running; SO has a large retained timing outlier |
+| New-kernel FPGA comparisons | All eight SSSP pairs and CC AU/SU/WK passed (11 of 24 total); CC SO running; SSSP SO has a large retained timing outlier |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -320,12 +320,13 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `spine-respr-zfs-v1/` | Compiler completed; original dependency-postprocessing failure retained |
 | `spine-respr-zfs-audit-v1/` | Independent exact-binary/source/provenance/clock audit; routed, not board-tested |
 | `spine-respr-au-smoke-v1/` | Independent AU board correctness of the audited binary; not a paired measurement |
-| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; all eight SSSP pairs and CC AU/SU passed; CC WK running |
+| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; all eight SSSP pairs and CC AU/SU/WK passed; CC SO running |
 | `independent-pair-audit-v1/` | Saved three-pair checkpoint, frozen plan and independent raw-log/hash/clock recheck; not a terminal matrix export |
 | `independent-pair-audit-v2/` | Saved four-pair checkpoint and independent recheck, retaining all measured samples and variability; not a terminal matrix export |
 | `independent-pair-audit-v3/` through `independent-pair-audit-v6/` | Saved five- through eight-pair SSSP checkpoints, with independent raw-log, pin and clock verification |
 | `independent-pair-audit-v7/` | Nine-pair checkpoint including CC AU, rechecked by the corrected input-record verifier; not a terminal matrix export |
 | `independent-pair-audit-v8/` | Ten-pair checkpoint including CC AU/SU, independently rechecked against the same frozen plan; not a terminal matrix export |
+| `independent-pair-audit-v9/` | Eleven-pair checkpoint including CC WK; additionally verifies saved memory containment, admission and zero OOM counters; not a terminal matrix export |
 | `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Superseded and stopped before any board pair; eight ResPR rows were blocked by the wrapper failure |
 | `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
 | `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
@@ -492,13 +493,15 @@ figure package has been exported.
 
 ### First CC Hardware Pairs
 
-CC AU and SU passed their warmups and three measured pairs with zero mismatches,
-one propagation round on each architecture, and DATA clocks of 150 MHz:
+CC AU, SU and WK passed their warmups and three measured pairs with zero
+mismatches and DATA clocks of 150 MHz. AU and SU need one propagation round
+on each architecture; WK needs two on each:
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine |
 | --- | ---: | ---: | ---: |
 | AU | 11.873282 | 82.344700 | 0.144190 |
 | SU | 15.154997 | 81.735600 | 0.185415 |
+| WK | 75.355182 | 132.312000 | 0.569526 |
 
 On AU, Spine is slower by approximately 6.94 times. Its measured samples are
 83.1385, 81.9327 and 82.3447 ms; G+R's are 11.920064, 11.694188 and
@@ -514,7 +517,14 @@ respectively. Both hosts report sixteen input records and one propagation
 round in every pair. This is a measured resident comparison, not a prediction
 of what a separately optimized CC host would achieve.
 
-The first measured Spine log reports 2.85992 ms dynamic device-event time
+On WK, Spine is approximately 1.76 times slower. Its measured samples are
+133.85, 129.383 and 132.312 ms; G+R's are 75.355182, 75.703571 and
+75.224404 ms. Their coefficients of variation are 1.405% and 0.268%,
+respectively. All four pairs report sixteen input records and two propagation
+rounds on both architectures. The 16-GiB group completed with zero memory
+events. The queue advanced to CC SO without replacing any measured sample.
+
+The first measured AU Spine log reports 2.85992 ms dynamic device-event time
 but 83.1385 ms resident wall time. The resident boundary deliberately keeps
 host work, launch/wait and readback. This discrepancy is not evidence of a
 pure kernel slowdown, nor enough to assign the complete difference to one
@@ -537,8 +547,24 @@ The subsequent `independent-pair-audit-v8/results.json` also verifies CC SU,
 covering ten cases and all forty paired samples including warmups. It checks
 1507 unique pinned files using the same verifier and frozen plan, in 18.985
 seconds with 29.2-MiB process RSS. Its 1-GiB hard/768-MiB high/zero-swap group
-has whole-group OOM containment and zero memory events. Fourteen declared
-CC/ResPR pairs remain unfinished; CC WK is running.
+has whole-group OOM containment and zero memory events. This was the
+ten-case checkpoint, before WK completed.
+
+The new `independent-pair-audit-v9/results.json` verifies all eleven completed
+cases and forty-four paired samples including warmups. Besides raw logs,
+medians, clocks and 1508 unique pinned files, it validates each case's saved
+hard/high limits, zero swap, whole-group OOM containment, admission and
+per-process budget/reserve policy, and zero post-run OOM counters. The audit
+took 15.412 seconds with 29.0-MiB process RSS under a 1-GiB hard/768-MiB high/
+zero-swap cap, with zero memory events. Its verifier is integration commit
+`bca49d0` (SHA-256
+`91d54436a94f8a1cf431031c1b25ba9217a9f168a7bfa056ce394165adc73138`).
+The matrix snapshot SHA-256 is
+`08f9c51b00337ab7f1b4194d9fbdd192db468beb36570a1decfed643b25305da`;
+the plan SHA-256 remains
+`dcfa6e48f3db23f7ab6c213207c8f4a733093a1d8dd082ab055cc19bf5e57a92`.
+Thirteen CC/ResPR pairs remain unfinished; CC SO is running. This audit is a
+read-only checkpoint, not a new board run or terminal delivery.
 
 ### Spine Artifact Audit, Not Recompilation
 
@@ -643,7 +669,8 @@ evidence.
 
 The integration repository's `validation/cache_extent/delivery.py` owns the
 final portable export. The original exporter is commit `7a52eba`; corrected
-input-record checking is commit `1aadfa7` on the independent
+input-record checking is commit `1aadfa7`, with saved memory verification
+added in `bca49d0`, on the independent
 `codex/cache-extent-delivery-review` branch. It refuses a running matrix and
 retains every one of the 24 terminal rows, including blocked or failed cases.
 Before admitting a speedup, it checks immutable source, host, bitstream and
@@ -651,15 +678,18 @@ graph hashes, reparses all four paired raw logs and recomputes the measured
 medians. The exported folder contains an overall README, a 24-row CSV with
 actual data frequencies, copied reports/manifests/logs and a file-hash index.
 Large bitstreams, graphs and compiler trees remain at the indexed original
-locations. Twenty-four cache-study, recovery, smoke and export tests pass in
+locations. Twenty-six cache-study, recovery, smoke and export tests pass in
 the corrected verifier worktree with the pinned production-board runtime
 on `PYTHONPATH`; four resident-log parser tests also pass. Running broader
 integration tests against simulator main instead fails imports for runtime
 modules that live on that production branch; this is not a passing test run.
-The export tests reject old kernel controls, changed logs/hashes and
-unfinished or duplicated matrices.
+The export tests reject old kernel controls, changed logs/hashes,
+unfinished or duplicated matrices, and missing or inconsistent memory/OOM
+evidence. Nonzero `high`/`max` pressure counters are preserved and do not
+alone count as an OOM. This checks saved records without requiring a
+finished case's cgroup to remain alive.
 This exporter has not yet packaged the running new-kernel board matrix.
-The ten passing cases above do not constitute the complete 24-case
+The eleven passing cases above do not constitute the complete 24-case
 delivery and are not exported by relabeling pending cases as terminal.
 
 The original exporter incorrectly required the raw `logical_updates` count
