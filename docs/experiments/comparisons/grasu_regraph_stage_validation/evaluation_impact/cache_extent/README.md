@@ -15,8 +15,8 @@ timing coefficient is introduced to remove it.
 | Three native G+R hosts | Built, backward-compatible argument selection |
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
-| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP running, CC/ResPR waiting for finite memory admission |
-| Sparse-apply Spine ResPR hardware | `spine-respr-zfs-v1` running with corrected memory accounting |
+| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP and ResPR running; CC waiting for finite memory admission |
+| Sparse-apply Spine ResPR hardware | Compiler succeeded; independent artifact audit passed; board correctness pending |
 | New-kernel FPGA comparisons | 0 of 24 pairs; pending hardware |
 | Production SST bounded-cache option and numerical calibration | Not promoted or rerun |
 
@@ -190,7 +190,7 @@ adds one self-loop to every zero-outdegree vertex. For example, the AU
 `projection=add_self_loop_to_each_zero_outdegree_vertex_v1` and 436001 added
 self-loops. Consequently this matrix must be described as sink-completed
 ResPR workloads, not unmodified directed datasets. Both systems receive the
-same frozen files; graph SHA-256 identities are in `matrix-inputs-zfs-v2/plan.json`.
+same frozen files; graph SHA-256 identities are in `matrix-inputs-zfs-v3/plan.json`.
 
 For a quick independent source-coverage check of each frozen file:
 
@@ -246,8 +246,10 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `source-zfs-v3/results.json` | Passing executable checks with corrected guard |
 | `hls-zfs-v3/results.json` | Both fresh passing cache exports; not routed timing |
 | `route-zfs-v2/{sssp,cc,respr}/` | New links with exact ABI reviews and bounded admission |
-| `spine-respr-zfs-v1/` | Running sparse-apply Spine ResPR build and provenance |
-| `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Current frozen 24-case plan and runner, waiting for the exact new artifacts |
+| `spine-respr-zfs-v1/` | Compiler completed; original dependency-postprocessing failure retained |
+| `spine-respr-zfs-audit-v1/` | Independent exact-binary/source/provenance/clock audit; routed, not board-tested |
+| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner, waiting for exact new artifacts |
+| `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Superseded and stopped before any board pair; eight ResPR rows were blocked by the wrapper failure |
 | `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
 | `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
 | `matrix-v1` through `matrix-v5` | Stopped/incomplete matrices; zero board pairs |
@@ -269,6 +271,31 @@ Historical complete G+R tree peaks were around
 41--45 GiB. Concurrent compilers are admitted only if that total budget fits.
 Board hosts have finite 16--32-GiB groups and share an exclusive board lock.
 Interrupted `v1` runs and their logs are retained, not relabeled as passes.
+
+### Spine Artifact Audit, Not Recompilation
+
+The new sparse-apply Spine ResPR compiler completed successfully and produced
+the expected three-kernel xclbin. Its wrapper then incorrectly treated the
+HLS `compile-route` phase as ordinary C++ compilation and attempted to read
+`respr.d`. The original report remains `FAILED_RETAINED`; the independent
+integration-owned `validation/cache_extent/spine_recovery.py` verifies the
+successful compiler step, unchanged source pins, sparse selector, provenance,
+terminal success marker, binary kernels and clocks into a fresh audit.
+Compiler failures, watchdog/OOM stops, changed inputs and failed binary
+inspection are not recoverable through this path. Four focused tests and
+the full 18-test cache/export/recovery suite pass. The real audit peaked at
+125.5 MiB in a 2-GiB/zero-swap group.
+
+Artifact SHA-256:
+`b6cb210342029a77233740e7aeffea354d19757ebb68431b0fc993bef59bd15b`.
+DATA is 150 MHz. The unscaled routed report has WNS -0.007 ns, TNS -0.014 ns
+and three setup-failing endpoints, with no hold failures. Vivado automatically
+reduced HBM from 450 to 448.6 MHz; xclbin metadata records 448 MHz. Do not call
+this timing closure at the requested HBM frequency. The fresh `v3` matrix
+uses this exact independently audited artifact and still requires board
+correctness and paired measurements. The old failed report and blocked
+matrix are not rewritten, no dummy dependency file was added, and no live
+G+R build source or runner hash was changed.
 
 ### Memory-Guard Correction
 
