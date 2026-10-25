@@ -556,3 +556,41 @@ All ten tests pass in 4.760 s in `plot-render-smoke-v2/`, with a 177.1-MiB
 service peak under a 2-GiB hard/1.5-GiB high/zero-swap group. Both previews
 were visually inspected for layout. No measurement, running-matrix status,
 source pin, historical figure or paper was changed by this rendering fix.
+
+### Read-Only Event Diagnostics
+
+The separate `evaluation_impact.fpga_profile` module consumes the same terminal,
+hash-indexed export. It does not edit or measure a running experiment:
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.fpga_profile \
+  --delivery /path/to/exported-fpga-results \
+  --output /path/to/fresh-event-diagnostics
+```
+
+`profile.json` preserves measured samples 1--3, their log paths and input hashes.
+`profile_medians.csv` keeps every declared case, including failures with blank
+metrics. The module separately reports GraSU event union, completion-barrier
+event union where logged, total kernel event union, convergence readback where
+logged, and resident wall time. ResPR's update event union includes the device
+degree update; SSSP/CC report completion-barrier events separately. No unlogged
+barrier or readback time is filled with zero.
+
+The diagnostic **kernel-uncovered wall** is computed per sample as wall minus
+total kernel event union, then summarized by its median. It includes DMA,
+final-state readback and scheduling/launch gaps, and is **not pure host time**.
+Medians of separate quantities need not add up. Individual adapter, gather,
+apply and HBM durations overlap and are not summed into an artificial R stage.
+These quantities neither identify a causal before/after improvement nor
+establish publication matching or simulator stage calibration.
+
+Eleven synthetic tests cover overlapping intervals, absent ResPR metrics,
+nonfinite/impossible intervals, excluded warmup, median-of-per-sample gaps,
+hash-indexed raw logs, changed walls, terminal-only admission, retained failures
+and non-overwriting output. They pass without FPGA/plotting dependencies. The
+running board matrix has not been exported as final event diagnostics.
+The analyzer also reparsed the nine existing measured SSSP logs for AU/SU/WK
+against their admitted per-sample walls: G event-union medians are 1.170615,
+1.663740 and 0.876866 ms, respectively; kernel-uncovered-wall medians are
+0.567027, 0.579407 and 0.849386 ms. This is only a three-case checkpoint, not
+CC/ResPR evidence or a terminal 24-case profiling export.
