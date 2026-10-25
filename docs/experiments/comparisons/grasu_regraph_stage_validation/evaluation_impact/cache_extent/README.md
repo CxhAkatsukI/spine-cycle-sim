@@ -96,8 +96,60 @@ four resident-log comparison tests. The HLS-side source/runner checkpoint
 is commit `9f6d1a6` in `grasu-regraph-integration`.
 
 No fresh SST-plugin timing or FPGA calibration was run for this opt-in
-simulator path. The default production plugin is unchanged. Core regression,
+simulator path. The frozen production plugin is unchanged. Core regression,
 HLS synthesis and future routed measurements are distinct evidence gates.
+
+### Sharded Metadata Routing
+
+The sharded runtime may place row metadata and binary-search heads in
+different HBM channels. Parallel search previously rejected that layout,
+even though its single metadata AXI master can route requests to either
+channel. It now sets the binary request's existing `target_channel`; row
+requests retain the master's default channel. This matches the HLS binding's
+shared `gmem_binary` bundle without adding a master, bandwidth, outstanding
+credits or a second metadata copy. The parallel configuration still has 18
+masters; the legacy configuration has 22.
+
+The AXI retry shortcut also now coalesces same-channel reservation stalls
+only when no unissued burst overrides that master's fixed channel. Otherwise
+it checks each eligible burst, so a blocked channel cannot hide work for
+another channel. Default fixed-channel behavior remains unchanged. Controls
+compare the same explicitly routed traffic with and without a fixed default,
+including both component registration orders, exact cycle/stall equality,
+per-channel read/write payloads and the one-beat-per-cycle physical budget.
+
+The new sharded oracle uses five 64-vertex destination partitions with
+1/31/33/1/0 PMA segments. Three touched partitions exercise odd/even half
+sizes and sixteen-bank rounding; populated and empty untouched partitions
+must remain intact. Both degree-disabled and degree-enabled runs check the
+final graph, zero outstanding requests, all 96 cache words transferred each
+way, and preservation of global degree state across shard transitions.
+Parallel-search tests separately cover shared/separate metadata channels,
+16/64 contexts, backpressure and registration-order equivalence.
+
+These are core routing and correctness checks, not permission to substitute
+new simulator predictions for the pending FPGA matrix. No live build's
+source or runner pin was changed by this simulator follow-up.
+
+The fresh Release build in `sim-sharded-v1/` passes all 31 CTest executables
+in 114.26 seconds (101.3-MiB service peak). `regression.xml` and
+`Testing/Temporary/LastTest.log` retain individual results. Both this build
+and the fresh SST library use the routing correction. The earlier compiler
+attempt exposed a GCC 15 warning in the new test's temporary-region lookup;
+the test now copies the returned region. No production lifetime bug was
+inferred from that diagnostic.
+
+The default SST plugin rebuild in `sst-sharded-v2/` also passes three online
+memory probes (`sst-sharded-smoke-v1/`) and the 1600-byte payload round trip
+(`sst-sharded-payload-v1/`, 95 cycles, 50 backend requests). These validate
+backend/AXI/DRAM request conservation and payloads, not GraSU stage timing or
+the opt-in bounded-cache mode. The plugin SHA-256 is
+`0d7c24e5c13b8670f52bb3a4859163d5c186ee6ce7819772971083d45e128fa9`.
+It uses the existing patched DRAMSim3 dependency
+`/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729`; the first attempt
+against an unpatched dependency failed on the required idle APIs. Both
+failed attempts remain in their systemd journals. No frozen production
+plugin, numerical calibration or figure data was replaced.
 
 ## Frozen Hardware Matrix
 
@@ -136,6 +188,8 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
 | `matrix-v1` through `matrix-v5` | Stopped/incomplete matrices; zero board pairs |
 | `sim-before/`, `sim-after/` | Separate Release component builds |
+| `sim-sharded-v1/` | Fresh shared-metadata routing build and passing 31-test regression |
+| `sst-sharded-v2/`, `sst-sharded-smoke-v1/`, `sst-sharded-payload-v1/` | Fresh default-plugin compatibility build and passing memory/payload probes; not a timing calibration |
 | `sim-extent-benchmark-v1.csv` | Original portable component diagnostic |
 | `host-control-au-v1/results.json` | OLD G+R kernel with the revised host |
 

@@ -21,11 +21,11 @@ std::vector<std::uint8_t> bytes(const std::vector<std::uint64_t>& words) {
 }
 
 std::uint64_t run(unsigned count, bool reverse, bool invalid_row = false,
-                  std::size_t contexts = 16) {
+                  std::size_t contexts = 16, bool split_channels = false) {
   Scheduler scheduler;
   const auto clock = scheduler.add_clock_mhz("G", 200);
-  MockMemoryBackend backend("memory", clock, {1, 64, 1, 4, 64, true});
-  const FixedAxiPortConfig cfg{.memory_channels = 1, .channel = 0,
+  MockMemoryBackend backend("memory", clock, {2, 64, 1, 4, 64, true});
+  const FixedAxiPortConfig cfg{.memory_channels = 2, .channel = 0,
       .initiator_id = 1, .data_width_bytes = 8, .request_fifo_depth = 2,
       .response_fifo_depth = 2, .max_pending_requests = 4,
       .max_outstanding_bursts = 4};
@@ -41,9 +41,12 @@ std::uint64_t run(unsigned count, bool reverse, bool invalid_row = false,
         encode_grasu_pma_edge(11 + (index % 4) * 10, 7));
   backend.initialize_payload(0, 0, bytes(input));
   backend.initialize_payload(0, 0x2000, bytes({invalid_row ? 0ULL : 64ULL}));
-  backend.initialize_payload(0, 0x4000, bytes(heads));
+  // Equal local addresses on separate channels detect a missing request route.
+  const auto binary_base = split_channels ? 0x2000 : 0x4000;
+  backend.initialize_payload(split_channels ? 1 : 0, binary_base, bytes(heads));
   auto search = make_parallel_search("search", clock, 1, count, 0,
-                                    0x2000, 0x4000, updates, metadata, output, contexts);
+      0x2000, binary_base, updates, metadata, output, contexts,
+      split_channels ? std::optional<std::size_t>(1) : std::nullopt);
   if (reverse) {
     scheduler.add_component(*search); scheduler.add_component(output);
     metadata.register_components(scheduler); updates.register_components(scheduler);
@@ -93,7 +96,7 @@ void reject_unsupported_configuration(unsigned kind) {
   if (kind == 0) config.pma_word_abi = GraSuPmaWordAbi::kNormalizedWeighted;
   if (kind == 1) {
     config.explicit_runtime_regions = true;
-    config.binary_channels[0] = 1;
+    config.binary_channels[0] = config.memory_channels;
   }
   const auto vertices = kind == 2 ? 131072U : 8U;
   const auto layout = GraSuPartitionedPmaLayout::build(vertices, 65536, {}, {});
@@ -101,7 +104,9 @@ void reject_unsupported_configuration(unsigned kind) {
   try {
     GraSuPmaUpdateSystem system(scheduler, clock, backend, layout, {}, config);
   } catch (const std::invalid_argument& error) {
-    rejected = std::string(error.what()).find("one full-word destination window") != std::string::npos;
+    const auto expected = kind == 1 ? "invalid GraSU native configuration" :
+                                      "one full-word destination window";
+    rejected = std::string(error.what()).find(expected) != std::string::npos;
   }
   require(rejected, "unsupported parallel-search composition accepted");
 }
@@ -139,9 +144,11 @@ void metadata_budget_configuration(unsigned credits, bool parallel, bool valid) 
 int main() {
   try {
     for (const auto contexts : {16U, 64U}) {
-      for (const auto count : {0U, 1U, 16U, 17U, 63U, 64U, 65U, 257U})
-        require(run(count, false, false, contexts) == run(count, true, false, contexts),
-                "registration order changed cycles");
+      for (const auto split : {false, true})
+        for (const auto count : {0U, 1U, 16U, 17U, 63U, 64U, 65U, 257U})
+          require(run(count, false, false, contexts, split) ==
+                      run(count, true, false, contexts, split),
+                  "registration order changed cycles");
       run(1, false, true, contexts);
     }
     bool rejected = false;

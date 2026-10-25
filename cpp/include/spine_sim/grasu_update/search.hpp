@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "spine_sim/fifo.hpp"
@@ -35,6 +36,7 @@ std::unique_ptr<Search> make_parallel_search(
     std::uint64_t update_base, std::uint64_t row_base,
     std::uint64_t binary_base, FixedAxiPort& updates,
     FixedAxiPort& metadata, Fifo<LocatedUpdate>& output,
-    std::size_t contexts = 16);
+    std::size_t contexts = 16,
+    std::optional<std::size_t> binary_channel = std::nullopt);
 
 }  // namespace spine::sim::grasu_update_detail

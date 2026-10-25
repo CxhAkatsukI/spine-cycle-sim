@@ -355,6 +355,7 @@ class AxiMaster final : public Component {
   std::deque<Burst> pending_address_;
   std::vector<Burst> active_bursts_;
   std::size_t active_issueable_bursts_{};
+  std::size_t active_routed_data_bursts_{};
   std::size_t active_stream_bursts_{};
   std::array<std::size_t, 2> active_direction_bursts_{};
   std::size_t active_write_data_bursts_{};

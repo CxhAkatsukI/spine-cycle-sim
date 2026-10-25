@@ -581,6 +581,7 @@ void AxiMaster::evaluate_data_channel(const CycleContext &context) {
         }
         ++inspected_without_issue;
         if (config_.fixed_channel.has_value() &&
+            active_routed_data_bursts_ == 0 &&
             backend_.reservation_intent_pending(config_.initiator_id,
                                                 header.channel)) {
           if (active_write_data_bursts_ == 0) {
@@ -915,6 +916,9 @@ void AxiMaster::commit_address_channel(const CycleContext &context) {
     active_bursts_.push_back(burst);
     ++active_direction_bursts_[burst.operation == MemoryOperation::kWrite];
     ++active_issueable_bursts_;
+    if (burst.target_channel && burst.target_channel != config_.fixed_channel) {
+      ++active_routed_data_bursts_;
+    }
     if (parents_.at(burst.parent_id).request.stream_read_beats) {
       ++active_stream_bursts_;
     }
@@ -950,6 +954,13 @@ void AxiMaster::commit_data_channel() {
         throw std::logic_error("AXI issueable burst count underflow");
       }
       --active_issueable_bursts_;
+      if (burst->target_channel &&
+          burst->target_channel != config_.fixed_channel) {
+        if (active_routed_data_bursts_ == 0) {
+          throw std::logic_error("AXI routed data burst count underflow");
+        }
+        --active_routed_data_bursts_;
+      }
       if (burst->operation == MemoryOperation::kWrite) {
         if (active_write_data_bursts_ == 0) {
           throw std::logic_error("AXI write-data burst count underflow");

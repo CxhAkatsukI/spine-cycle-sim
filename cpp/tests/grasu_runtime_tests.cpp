@@ -190,6 +190,107 @@ void test_bounded_cache_short_layout_preserves_state_and_traffic() {
   }
 }
 
+void test_bounded_cache_sharded_runtime_preserves_state_and_traffic() {
+  using namespace spine::sim;
+  constexpr unsigned kVertices = 5 * 64;
+  const std::array<unsigned, 5> rows{1, 31, 33, 1, 0};
+  std::vector<GraSuEdge> initial, updates, expected;
+  for (unsigned shard = 0; shard < rows.size(); ++shard) {
+    for (unsigned source = 0; source < rows[shard]; ++source) {
+      initial.push_back({.source = source, .destination = shard * 64 + 1,
+                         .weight = 3});
+    }
+  }
+  expected = initial;
+  for (unsigned shard = 0; shard < 3; ++shard) {
+    updates.push_back({.source = rows[shard] - 1,
+                       .destination = shard * 64 + 2, .weight = 5});
+    expected.push_back(updates.back());
+    updates.push_back({.source = 0, .destination = shard * 64 + 1,
+                       .weight = 3, .delete_op = true});
+    expected.erase(std::find_if(expected.begin(), expected.end(),
+        [&](const GraSuEdge &edge) {
+          return edge.source == 0 && edge.destination == shard * 64 + 1;
+        }));
+  }
+  for (const bool degree : {false, true}) {
+    auto layout = GraSuPartitionedPmaLayout::build(
+        kVertices, 64, initial, updates, GraSuPmaWordAbi::kWeightedFullWord);
+    for (unsigned shard = 0; shard < rows.size(); ++shard) {
+      require(layout.partitions.at(shard).segments.size() == rows[shard],
+              "sharded bounded-cache fixture changed its parity geometry");
+    }
+    Scheduler scheduler;
+    const auto clock = scheduler.add_clock_mhz("G", 150);
+    MockMemoryBackend backend("memory", clock, {32, 7, 1, 16, 64, true});
+    GraSuNativeConfig config;
+    config.pma_word_abi = GraSuPmaWordAbi::kWeightedFullWord;
+    config.compact_parallel_search = true;
+    config.compact_search_contexts = 64;
+    config.compact_cached_hot = true;
+    config.compact_cache_valid_extent = true;
+    config.maintain_out_degree = degree;
+    GraSuShardedPmaUpdateSystem system(
+        scheduler, clock, backend, layout, updates, config, 128ULL << 20);
+    bool separate_metadata = false;
+    for (unsigned shard = 0; shard < 3; ++shard) {
+      const auto row = find_grasu_regraph_runtime_region(
+          system.runtime_plan(), shard, "row");
+      const auto binary = find_grasu_regraph_runtime_region(
+          system.runtime_plan(), shard, "binary");
+      separate_metadata |= row.channel != binary.channel;
+    }
+    require(separate_metadata,
+            "sharded bounded-cache fixture did not exercise metadata routing");
+    system.register_components();
+    scheduler.add_component(backend);
+    for (unsigned cycle = 0;
+         cycle < 300000 && !system.done() && !system.failed(); ++cycle) {
+      scheduler.step();
+      (void)system.advance_if_complete();
+    }
+    require(system.done() && !system.failed(),
+            "sharded bounded-cache update failed: " + system.failure());
+    auto keys = [](const std::vector<GraSuEdge> &edges) {
+      std::vector<std::tuple<unsigned, unsigned, unsigned>> result;
+      for (const auto &edge : edges)
+        result.emplace_back(edge.source, edge.destination, edge.weight);
+      std::sort(result.begin(), result.end());
+      return result;
+    };
+    require(keys(system.live_edges()) == keys(expected),
+            "sharded bounded cache changed the logical graph");
+    const auto counters = system.counters();
+    // Only the three touched shards transfer cache words, including tail banks.
+    constexpr unsigned kTransferredWords = 16 + 32 + 48;
+    require(counters.destination_partitions_touched == 3 &&
+                counters.updates == updates.size() &&
+                counters.cache_updates == updates.size() &&
+                counters.ddr_updates == 0 &&
+                counters.pma_reads == kTransferredWords &&
+                counters.pma_writes == kTransferredWords &&
+                counters.pma_read_bytes == kTransferredWords * 64 &&
+                counters.pma_write_bytes == kTransferredWords * 64 &&
+                backend.outstanding() == 0,
+            "sharded bounded-cache update, padding or drain ledger is wrong");
+    if (degree) {
+      std::vector<unsigned> expected_degree(kVertices);
+      for (const auto &edge : expected) ++expected_degree.at(edge.source);
+      const auto payload = backend.inspect_payload(
+          config.degree_channel, config.degree_base, kVertices * 4);
+      for (unsigned source = 0; source < kVertices; ++source) {
+        unsigned actual = 0;
+        for (unsigned byte = 0; byte < 4; ++byte)
+          actual |= unsigned(payload.at(source * 4 + byte)) << (byte * 8);
+        require(actual == expected_degree[source],
+                "out-degree was reinitialized or lost between shards");
+      }
+    }
+    system.unregister_components();
+    scheduler.remove_component(backend);
+  }
+}
+
 } // namespace
 
 int main() {
@@ -201,6 +302,8 @@ int main() {
       {"sharded_k4_runtime_empty_shard",
        test_sharded_k4_runtime_plan_accepts_empty_destination_shard},
       {"bounded_cache_short_layout", test_bounded_cache_short_layout_preserves_state_and_traffic},
+      {"bounded_cache_sharded_runtime",
+       test_bounded_cache_sharded_runtime_preserves_state_and_traffic},
   };
   std::size_t failures = 0;
   for (const auto &[name, test] : tests) {

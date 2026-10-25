@@ -158,6 +158,88 @@ Result run(std::size_t bytes, std::size_t credit, bool independent, bool hold,
   return result;
 }
 
+std::pair<std::uint64_t, std::uint64_t> routed_requests(bool fixed,
+                                                      bool reverse) {
+  Scheduler scheduler;
+  const auto clock = scheduler.add_clock_mhz("core", 150);
+  MockMemoryBackend backend("memory", clock, {2, 7, 1, 2, 2, true});
+  Fifo<AxiRequest> requests("requests", clock, 16);
+  Fifo<AxiResponse> responses("responses", clock, 16);
+  AxiMaster master(
+      "physical", clock,
+      AxiConfig{.initiator_id = 1,
+                .data_width_bytes = 64,
+                .max_burst_beats = 16,
+                .channels = 2,
+                .channel_interleave_bytes = 64,
+                .max_pending_requests = 16,
+                .max_outstanding_bursts = 8,
+                .address_accepts_per_cycle = 1,
+                .beat_issues_per_cycle = 1,
+                .response_beats_per_cycle = 1,
+                .beat_trace_limit = 128,
+                .fixed_channel = fixed ? std::optional<std::size_t>(0)
+                                       : std::nullopt},
+      requests, responses, backend);
+  for (unsigned channel = 0; channel < 2; ++channel)
+    backend.fill_payload(channel, 0, 512, 0x30 + channel);
+  std::vector<Component *> components{&backend, &requests, &responses, &master};
+  if (reverse) std::reverse(components.begin(), components.end());
+  for (auto *component : components) scheduler.add_component(*component);
+  std::array<bool, 8> seen{};
+  unsigned completed = 0;
+  std::uint64_t end = 0;
+  for (unsigned cycle = 0; cycle < 2000; ++cycle) {
+    if (cycle < seen.size()) {
+      const bool write = cycle >= 4;
+      require(requests.try_push(AxiRequest{
+                  .transaction_id = cycle,
+                  .operation = write ? MemoryOperation::kWrite
+                                     : MemoryOperation::kRead,
+                  .address = write ? 4096ULL + (cycle / 2) * 512 : 0,
+                  .bytes = 512,
+                  .target_channel = cycle % 2,
+                  .write_data = write ? std::vector<std::uint8_t>(512, cycle)
+                                      : std::vector<std::uint8_t>{}}),
+              "routed enqueue failed");
+    }
+    AxiResponse response;
+    if (responses.try_pop(response)) {
+      const auto id = response.transaction_id;
+      require(response.success && id < seen.size() && !seen[id],
+              "routed response failed or duplicated");
+      if (id < 4)
+        require(response.read_data ==
+                    std::vector<std::uint8_t>(512, 0x30 + id % 2),
+                "routed read used the wrong channel");
+      seen[id] = true;
+      ++completed;
+    }
+    scheduler.step();
+    if (completed == seen.size() && master.idle() && !backend.outstanding()) {
+      end = cycle + 1;
+      break;
+    }
+  }
+  require(end != 0, "routed requests did not drain");
+  const auto &stats = master.stats();
+  require(stats.requests_accepted == 8 && stats.requests_completed == 8 &&
+              stats.beats_issued == 64 && stats.beats_completed == 64 &&
+              stats.read_bytes == 2048 && stats.write_bytes == 2048 &&
+              backend.traffic_stats_by_initiator().size() == 1,
+          "routed requests changed the physical budget or traffic ledger");
+  std::map<std::uint64_t, unsigned> issues;
+  for (const auto &beat : master.beat_trace())
+    require(++issues[beat.issue_cycle] == 1,
+            "routed requests doubled physical issue bandwidth");
+  for (unsigned id = 4; id < 8; ++id)
+    require(backend.inspect_payload(id % 2, 4096 + (id / 2) * 512, 512) ==
+                std::vector<std::uint8_t>(512, id),
+            "routed write used the wrong channel");
+  for (auto *component : components) scheduler.remove_component(*component);
+  return {end, stats.backend_submit_stalls};
+}
+
 void selection_checks() {
   using namespace spine::sim::detail;
   require(!valid_response_selection(std::vector<std::size_t>{}, 3),
@@ -201,6 +283,11 @@ void selection_checks() {
 int main() {
   try {
     selection_checks();
+    const auto routed = routed_requests(false, false);
+    for (bool fixed : {false, true})
+      for (bool reverse : {false, true})
+        require(routed_requests(fixed, reverse) == routed,
+                "fixed-channel stall coalescing changed routed timing");
     std::size_t cases = 0;
     for (auto bytes : {512U, 16384U})
       for (auto credit : {1U, 4U, 16U})

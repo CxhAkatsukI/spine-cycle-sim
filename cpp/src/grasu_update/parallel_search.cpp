@@ -35,12 +35,16 @@ public:
                  std::size_t count, std::uint64_t update_base,
                  std::uint64_t row_base, std::uint64_t binary_base,
                  FixedAxiPort& updates, FixedAxiPort& metadata,
-                 Fifo<LocatedUpdate>& output, std::size_t contexts)
+                 Fifo<LocatedUpdate>& output, std::size_t contexts,
+                 std::optional<std::size_t> binary_channel)
       : Search(std::move(name), clock), cu_(cu), count_(count),
         update_base_(update_base), row_base_(row_base), binary_base_(binary_base),
-        updates_(updates), metadata_(metadata), output_(output), contexts_(contexts) {
+        updates_(updates), metadata_(metadata), output_(output), contexts_(contexts),
+        binary_channel_(binary_channel) {
     if (cu >= 4 || (contexts != 16 && contexts != 64))
       throw std::invalid_argument("parallel search CU/context geometry out of range");
+    if (binary_channel_ && *binary_channel_ >= metadata_.master().config().channels)
+      throw std::invalid_argument("parallel search binary channel out of range");
     for (std::size_t lane = 0; lane < contexts_.size(); ++lane)
       contexts_[lane] = {.index = lane,
                         .phase = lane < count ? Phase::kUpdate : Phase::kDone};
@@ -73,7 +77,8 @@ public:
       const bool binary = context.phase == Phase::kBinary;
       const auto address = binary ? binary_base_ + std::uint64_t(context.mid) * 8
           : row_base_ + ((context.edge >> 32) & 0x7fffffffULL) * 8;
-      if (issue(metadata_, context, binary ? 2 : 1, address)) metadata_issue_ = lane;
+      if (issue(metadata_, context, binary ? 2 : 1, address,
+                binary ? binary_channel_ : std::nullopt)) metadata_issue_ = lane;
       break;
     }
     const auto lane = emitted_ % contexts_.size();
@@ -122,11 +127,12 @@ private:
     if (port.responses().try_pop(response)) staged = std::move(response);
   }
   static bool issue(FixedAxiPort& port, const Context& context,
-                    unsigned kind, std::uint64_t address) {
+                    unsigned kind, std::uint64_t address,
+                    std::optional<std::size_t> channel = std::nullopt) {
     return port.requests().try_push(AxiRequest{
         .transaction_id = (context.index << 2) | kind,
         .operation = MemoryOperation::kRead, .address = address, .bytes = 8,
-        .stream_read_beats = false, .write_data = {}});
+        .stream_read_beats = false, .target_channel = channel, .write_data = {}});
   }
   void consume(const AxiResponse& response, bool update_port) {
     const auto index = response.transaction_id >> 2;
@@ -162,6 +168,7 @@ private:
   FixedAxiPort& metadata_;
   Fifo<LocatedUpdate>& output_;
   std::vector<Context> contexts_;
+  std::optional<std::size_t> binary_channel_;
   std::optional<AxiResponse> update_response_, metadata_response_;
   std::optional<std::size_t> update_issue_, metadata_issue_, emitted_lane_;
   std::string failure_;
@@ -172,8 +179,9 @@ std::unique_ptr<Search> make_parallel_search(
     std::string name, ClockId clock, std::size_t cu, std::size_t count,
     std::uint64_t update_base, std::uint64_t row_base, std::uint64_t binary_base,
     FixedAxiPort& updates, FixedAxiPort& metadata, Fifo<LocatedUpdate>& output,
-    std::size_t contexts) {
+    std::size_t contexts, std::optional<std::size_t> binary_channel) {
   return std::make_unique<ParallelSearch>(std::move(name), clock, cu, count,
-      update_base, row_base, binary_base, updates, metadata, output, contexts);
+      update_base, row_base, binary_base, updates, metadata, output, contexts,
+      binary_channel);
 }
 }  // namespace spine::sim::grasu_update_detail

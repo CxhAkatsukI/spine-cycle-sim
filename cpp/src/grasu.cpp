@@ -1804,8 +1804,7 @@ private:
     }
     if (config_.compact_parallel_search &&
         (layout_.partitions.size() != 1 ||
-         config_.pma_word_abi != GraSuPmaWordAbi::kWeightedFullWord ||
-         (config_.explicit_runtime_regions && config_.row_channels != config_.binary_channels))) {
+         config_.pma_word_abi != GraSuPmaWordAbi::kWeightedFullWord)) {
       throw std::invalid_argument("parallel search requires one full-word destination window");
     }
     if (config_.memory_channels < 4 || config_.cache_segments_per_half == 0 ||
@@ -2076,7 +2075,10 @@ private:
             counts[index], config_.explicit_runtime_regions ? config_.update_bases[index] : config_.update_base,
             address_plan_.row_bases.at(0), address_plan_.binary_bases.at(0),
             *search_ports_[index].updates, *search_ports_[index].rows,
-            *search_outputs_[index], config_.compact_search_contexts);
+            *search_outputs_[index], config_.compact_search_contexts,
+            config_.explicit_runtime_regions
+                ? std::optional<std::size_t>(config_.binary_channels[index])
+                : std::nullopt);
         continue;
       }
       searches_[index] = std::make_unique<GraSuDirectSearch>(
