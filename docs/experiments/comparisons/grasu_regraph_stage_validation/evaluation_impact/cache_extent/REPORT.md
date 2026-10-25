@@ -109,6 +109,11 @@ Machine-local evidence root:
 | `profile-checkpoint-21-v1.log` | Reparse of 63 formal G+R profiles and 42 wall-statistic records; not exclusive stage attribution |
 | `terminal-tool-preflight-v2/` | 37 delivery/plot/profile tests, including real font rendering; synthetic fixtures are not board results |
 
+The [portable supporting package](implementation_evidence/README.md) includes
+127 hash-verified records (7.5 MiB), with 16 retained failed stage outcomes.
+It makes the implementation checks reviewable without copying bitstreams or
+build trees, but does not substitute for the final paired board package.
+
 The terminal finalizer is waiting for the actual matrix. A final release
 still requires all 24 terminal decisions, raw-log revalidation of every
 admitted pair, a portable evidence package, inspection of the measured plot,

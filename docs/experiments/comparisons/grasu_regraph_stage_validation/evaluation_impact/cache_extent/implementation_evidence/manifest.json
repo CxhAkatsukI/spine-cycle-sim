@@ -1,0 +1,940 @@
+{
+  "schema": "cache_extent_implementation_evidence_v1",
+  "status": "COPIED_AND_HASH_VERIFIED_NOT_TIMING_CALIBRATION",
+  "scope": "supporting_records_not_terminal_board_matrix_or_publication_match",
+  "root": "/data/chuxiao/builds/grasu-cache-extent-20261025",
+  "bytes": 7910692,
+  "file_count": 127,
+  "core_tests_passed": 31,
+  "large_artifacts": "External paths and hashes remain in original stage records; no bitstream or build tree is copied.",
+  "files": [
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-v1/results.json",
+      "path": "source-v1/results.json",
+      "bytes": 411688,
+      "sha256": "37a11967937f8f40f3fc86bacde7e6fdfb0a5b02d2656a09bed1128fe72810d1",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "CACHE_EXTENT_SOURCE_PASS"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v2/results.json",
+      "path": "source-zfs-v2/results.json",
+      "bytes": 167038,
+      "sha256": "8e6e5a729a4f9e19517ee232205658bada2112b063af6aead06692d286958909",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/results.json",
+      "path": "source-zfs-v3/results.json",
+      "bytes": 419298,
+      "sha256": "c0786891186a44a6e05c15b832aa22ccb03a7e53bef5ceed5c2996ed4f7a2915",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "CACHE_EXTENT_SOURCE_PASS"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-v1/results.json",
+      "path": "hls-v1/results.json",
+      "bytes": 354892,
+      "sha256": "2853753e6db1350762c32aab095e80ed103d90dbdddb9ff2204dfd6b14c4e99e",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "CACHE_EXTENT_EXPORT_PASS_NOT_ROUTED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/results.json",
+      "path": "hls-zfs-v3/results.json",
+      "bytes": 362647,
+      "sha256": "97f440637bbc8eccb7d70616c400d9f1c1745c8268ff3178893031ad2ed320f7",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "CACHE_EXTENT_EXPORT_PASS_NOT_ROUTED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-v1/sssp/results.json",
+      "path": "route-v1/sssp/results.json",
+      "bytes": 286478,
+      "sha256": "1c6ed34aad1b5b81c69567308ae782ea37e178179e390e7d1dbf74663efe210b",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-v1/cc/results.json",
+      "path": "route-v1/cc/results.json",
+      "bytes": 286418,
+      "sha256": "67b94a5df7ab96f869b7cce460586cd421a6cd4fdd8368d5a6779b8bb27e73e1",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-v1/respr/results.json",
+      "path": "route-v1/respr/results.json",
+      "bytes": 286766,
+      "sha256": "654acc07680dfd425eb040068667454702dee41de9815a4e9f7c4ca73ad4fcba",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-v2/sssp/results.json",
+      "path": "route-v2/sssp/results.json",
+      "bytes": 292134,
+      "sha256": "015a278125613892ff4f1fc0d639734b043655b1866f0f0e8f2db7324a254098",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-v2/cc/results.json",
+      "path": "route-v2/cc/results.json",
+      "bytes": 292613,
+      "sha256": "31faf485d599a0c434d98ce9b9d1d5443daaa11c0afdb7e98aaa76d7a0a0c200",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-v2/respr/results.json",
+      "path": "route-v2/respr/results.json",
+      "bytes": 295123,
+      "sha256": "5b316b82731c306adf8d23c0c0bea6ecf1852ba9f3755e93ebffdc4b19b3bdf9",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-v3/sssp/results.json",
+      "path": "route-v3/sssp/results.json",
+      "bytes": 286857,
+      "sha256": "f2be9dd0f5a903441a9b2f483d51277c208862113c481e51740557cf71640500",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-v4/respr/results.json",
+      "path": "route-v4/respr/results.json",
+      "bytes": 287145,
+      "sha256": "57e553eeaeff8242d6e59b9f62d1843f913192a30c5a93e81a95cafb8e228efe",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v1/sssp/results.json",
+      "path": "route-zfs-v1/sssp/results.json",
+      "bytes": 746,
+      "sha256": "4bcac8f729ed207dfb804cae584bb29947ee3eb8fe27897d833145f2d5dbe269",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v1/cc/results.json",
+      "path": "route-zfs-v1/cc/results.json",
+      "bytes": 742,
+      "sha256": "78d5a6b47af281427ddd02d2d647a85e068944dd3414366f6d3ebf8412d6d318",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v1/respr/results.json",
+      "path": "route-zfs-v1/respr/results.json",
+      "bytes": 748,
+      "sha256": "b1da27367de0914e5f4d729d670c433c96a02ba47902c7e1727fcad7f058efa4",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/results.json",
+      "path": "route-zfs-v2/sssp/results.json",
+      "bytes": 333448,
+      "sha256": "04609e96576caad6f24b4e467e47bc2f8ea14f167d25479fb55748dcc9241d29",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "ROUTED_NOT_BOARD_TESTED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/results.json",
+      "path": "route-zfs-v2/cc/results.json",
+      "bytes": 299763,
+      "sha256": "1b595a882c7508ec44d2fd33b5d2684f7183aa7645811c760aa59c5129f914cb",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "ROUTED_NOT_BOARD_TESTED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/results.json",
+      "path": "route-zfs-v2/respr/results.json",
+      "bytes": 299536,
+      "sha256": "dad7d1fb409d58dfb8ed86869d1ba4d451cbaa993a7f0dabb70c8bd89ae3f027",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "ROUTED_NOT_BOARD_TESTED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-au-smoke-v1/results.json",
+      "path": "spine-respr-au-smoke-v1/results.json",
+      "bytes": 3889,
+      "sha256": "92742215534bc24082088180e28eda5c9cd7f4d3966688cc85b9d680a8a8981e",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "SPINE_AU_RESPR_SMOKE_PASS"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-v1/results.json",
+      "path": "spine-respr-v1/results.json",
+      "bytes": 7021,
+      "sha256": "e78b1cb77d1718ef516a8e68a028070cdcfe3d38bffaaa27a84b8baa83ba6950",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-v2/results.json",
+      "path": "spine-respr-v2/results.json",
+      "bytes": 12461,
+      "sha256": "ad3f297f8fda837c7c260540a23ea485cbdf89b8c7e203c5f6b902d63ca88139",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-v3/results.json",
+      "path": "spine-respr-v3/results.json",
+      "bytes": 10435,
+      "sha256": "13ed38db7182197904c52de20aca796f79af76eae0cd0ae187f4f2bcc5afc8f8",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-audit-v1/results.json",
+      "path": "spine-respr-zfs-audit-v1/results.json",
+      "bytes": 16507,
+      "sha256": "86f6f2f856bbb70a531e04f4dc37800a5ccd0fe58e7ac4f7cb8f5bac8d89b966",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "ROUTED_NOT_BOARD_TESTED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-v1/results.json",
+      "path": "spine-respr-zfs-v1/results.json",
+      "bytes": 13452,
+      "sha256": "15478a41edafbe21a02098cee212fc5d5b9ccfefaa2431f32c9d9ef53660f5a8",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FAILED_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/matrix-v1/results.json",
+      "path": "matrix-v1/results.json",
+      "bytes": 16860,
+      "sha256": "a5c0ea592b176f87c2141d36199273abaf93e0ac0d44f434ce3500cba9409337",
+      "role": "superseded_observer_snapshot_not_current_matrix_status",
+      "recorded_status": "WAITING_FOR_REMAINING_HARDWARE"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/matrix-v2/results.json",
+      "path": "matrix-v2/results.json",
+      "bytes": 16908,
+      "sha256": "bd22d1da128bd7549db8a1260c5b8cbf92aec6b9d9df5dade0e46e602fc04d48",
+      "role": "superseded_observer_snapshot_not_current_matrix_status",
+      "recorded_status": "WAITING_FOR_REMAINING_HARDWARE"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/matrix-v3/results.json",
+      "path": "matrix-v3/results.json",
+      "bytes": 16908,
+      "sha256": "e4639d492023d141e0062b1aa80d39ee2eaa554219130053d0325efca2f63b01",
+      "role": "superseded_observer_snapshot_not_current_matrix_status",
+      "recorded_status": "WAITING_FOR_REMAINING_HARDWARE"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/matrix-v4/results.json",
+      "path": "matrix-v4/results.json",
+      "bytes": 16908,
+      "sha256": "0801bca875f6a78850a1efb70b754e71bbdd7edf100b86b4d1758309a6b93a50",
+      "role": "superseded_observer_snapshot_not_current_matrix_status",
+      "recorded_status": "WAITING_FOR_REMAINING_HARDWARE"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/matrix-v5/results.json",
+      "path": "matrix-v5/results.json",
+      "bytes": 17005,
+      "sha256": "91bc7a1ef3fa2b5cea0e6f04275ed84dea64957c9b46605cafdcdf911abe44be",
+      "role": "terminal_stage_record_including_failed_attempts",
+      "recorded_status": "FPGA_MATRIX_INCOMPLETE_RETAINED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-compile-0.progress.json",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-compile-0.progress.json",
+      "bytes": 318,
+      "sha256": "f487aecdcf09b90ca38f51e558767ebe666d19905dc64eada0fc70ee04a8ad98",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-compile-0.resources.json",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-compile-0.resources.json",
+      "bytes": 3205,
+      "sha256": "695a9d99077b4ea12346fac6da9e042614ce8475c213770c128d9a20d0e2f988",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-compile-0.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-compile-0.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-compile-0.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-compile-0.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-execute.progress.json",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-execute.progress.json",
+      "bytes": 303,
+      "sha256": "be867ab70d51017bf0be9c132f2139e1df13b0c8565148211dfecc824366accb",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-execute.resources.json",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-execute.resources.json",
+      "bytes": 1937,
+      "sha256": "b29c74630b1f9cc2dfab65b7f699999506ba429069a926e1a484bb18efe61f11",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-execute.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-execute.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-execute.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-execute.stdout.txt",
+      "bytes": 1851,
+      "sha256": "07ffaf117075464f128fb8eb9f27f26a4419a794458fcaba3f61bab024670a55",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-link.progress.json",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-link.progress.json",
+      "bytes": 297,
+      "sha256": "4c57f3cec9329e11bba7e3caef103b65a249f179a6f746889771f55d61d7a9c2",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-link.resources.json",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-link.resources.json",
+      "bytes": 2110,
+      "sha256": "7b9b37628ad80b82babc0bc60bf17d0c3068639622baac25e605941ab4623721",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-link.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-link.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-bounded-link.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-plain-bounded-link.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-compile-0.progress.json",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-compile-0.progress.json",
+      "bytes": 318,
+      "sha256": "bb9ef54a671c191f660432569788f237b6d9f71637e2279f0db55f64d651bcd9",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-compile-0.resources.json",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-compile-0.resources.json",
+      "bytes": 3169,
+      "sha256": "a6f649731ae76e44a21e08ad208d5cb01f00ef1429a12980ec8eb58758293c56",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-compile-0.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-compile-0.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-compile-0.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-compile-0.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-execute.progress.json",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-execute.progress.json",
+      "bytes": 299,
+      "sha256": "f318fb7bf71533e1adf0c0c81ea68054a80b583609d4c1bc91ab5b1ff1c75ecf",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-execute.resources.json",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-execute.resources.json",
+      "bytes": 1936,
+      "sha256": "03ac7b516ea47d467f9a14723faf9fb6d3e6953c5065024b427df16c21c6985c",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-execute.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-execute.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-execute.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-execute.stdout.txt",
+      "bytes": 414,
+      "sha256": "a81301db432d508e92faeb3680b2ce4ff283ecd38dbfa07fbef01f4d69cb5029",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-link.progress.json",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-link.progress.json",
+      "bytes": 296,
+      "sha256": "55dcedd94764e9be491aaf30978de25e5abb032592bcff41529dbab923dc2971",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-link.resources.json",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-link.resources.json",
+      "bytes": 2107,
+      "sha256": "03b46bc04ecb3625170d5740d6b579751028a34d65d88671c1661a6278ec73a0",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-link.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-link.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-plain-legacy-link.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-plain-legacy-link.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-compile-0.progress.json",
+      "path": "source-zfs-v3/raw/cache-token-bounded-compile-0.progress.json",
+      "bytes": 318,
+      "sha256": "b801855386a4a064d6d933648eacde1ae8ecf8b55fcbd352622938a23358f80d",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-compile-0.resources.json",
+      "path": "source-zfs-v3/raw/cache-token-bounded-compile-0.resources.json",
+      "bytes": 3245,
+      "sha256": "409462896a57501fc34eea8564e1cf40062862a87221963ec6609e2379be5ae7",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-compile-0.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-token-bounded-compile-0.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-compile-0.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-token-bounded-compile-0.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-execute.progress.json",
+      "path": "source-zfs-v3/raw/cache-token-bounded-execute.progress.json",
+      "bytes": 303,
+      "sha256": "660730fa20754813452f40ccf1eb66da682e9588499297fc681e863110ad5bdb",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-execute.resources.json",
+      "path": "source-zfs-v3/raw/cache-token-bounded-execute.resources.json",
+      "bytes": 1938,
+      "sha256": "5b810b2f256a0e91c57527c90cb58371633f501764f46c7ee57f2107b17929f5",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-execute.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-token-bounded-execute.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-execute.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-token-bounded-execute.stdout.txt",
+      "bytes": 1851,
+      "sha256": "10285821d6b5cef23c652b2ad0f710c7a1468f23a204e6e0e5c27b89b036bfaf",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-link.progress.json",
+      "path": "source-zfs-v3/raw/cache-token-bounded-link.progress.json",
+      "bytes": 297,
+      "sha256": "7764219dac047a79e4ca5a36efc748d7c5d3369e9818320d392f42862ad1e499",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-link.resources.json",
+      "path": "source-zfs-v3/raw/cache-token-bounded-link.resources.json",
+      "bytes": 2110,
+      "sha256": "834c2b0ce5de0c6abf752dd2befa87bfb600b36bc6aee693706dc07eef280020",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-link.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-token-bounded-link.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-bounded-link.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-token-bounded-link.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-compile-0.progress.json",
+      "path": "source-zfs-v3/raw/cache-token-legacy-compile-0.progress.json",
+      "bytes": 318,
+      "sha256": "776faa1f39906c536d6546e1afbb2761115764c3c0d1e096518a1bf19155db23",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-compile-0.resources.json",
+      "path": "source-zfs-v3/raw/cache-token-legacy-compile-0.resources.json",
+      "bytes": 3207,
+      "sha256": "b7991eb03973b66dee5dbae56d7dc492da7092688a37531ee03f3fd4ef450da4",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-compile-0.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-token-legacy-compile-0.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-compile-0.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-token-legacy-compile-0.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-execute.progress.json",
+      "path": "source-zfs-v3/raw/cache-token-legacy-execute.progress.json",
+      "bytes": 303,
+      "sha256": "06552388ac7859cd158e92cb28ccd377c5b3021d80a57373685849ae1c270e8a",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-execute.resources.json",
+      "path": "source-zfs-v3/raw/cache-token-legacy-execute.resources.json",
+      "bytes": 1936,
+      "sha256": "c9b3d38e3f9804106bd167a01327a122754828c77eaa85d67f1f905333f9d88b",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-execute.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-token-legacy-execute.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-execute.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-token-legacy-execute.stdout.txt",
+      "bytes": 414,
+      "sha256": "f405051fe512455af9a65d1e32ca941a9afcb9916443d456066eee1a261e1e91",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-link.progress.json",
+      "path": "source-zfs-v3/raw/cache-token-legacy-link.progress.json",
+      "bytes": 297,
+      "sha256": "6ef4146b03336abf4d5d1a19b8e10fb39191e1fb23abfdb2e36ce9f2d24d9f50",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-link.resources.json",
+      "path": "source-zfs-v3/raw/cache-token-legacy-link.resources.json",
+      "bytes": 2107,
+      "sha256": "f74d229d71d2b2cea8d0ec36d344c9ac0123dd8de018fadc4cef9e43dd384f9f",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-link.stderr.txt",
+      "path": "source-zfs-v3/raw/cache-token-legacy-link.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/source-zfs-v3/raw/cache-token-legacy-link.stdout.txt",
+      "path": "source-zfs-v3/raw/cache-token-legacy-link.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/raw/cache-plain-bounded-synthesis-export.progress.json",
+      "path": "hls-zfs-v3/raw/cache-plain-bounded-synthesis-export.progress.json",
+      "bytes": 398,
+      "sha256": "5a8eed453dde7b3c787623bda76c985b4b43c8ec90aa4b41be6e0c05afe07ed3",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/raw/cache-plain-bounded-synthesis-export.resources.json",
+      "path": "hls-zfs-v3/raw/cache-plain-bounded-synthesis-export.resources.json",
+      "bytes": 2327,
+      "sha256": "83e2d369151ecfecdfbbe97d56dee8d37fd686ed9a75bb267fb1b05148f553f8",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/raw/cache-plain-bounded-synthesis-export.stderr.txt",
+      "path": "hls-zfs-v3/raw/cache-plain-bounded-synthesis-export.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/raw/cache-plain-bounded-synthesis-export.stdout.txt",
+      "path": "hls-zfs-v3/raw/cache-plain-bounded-synthesis-export.stdout.txt",
+      "bytes": 109516,
+      "sha256": "af653881c70ef7e310d4c6d2d5d8b8839701191d8eb5df17d56cff7df97485ec",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/raw/cache-token-bounded-synthesis-export.progress.json",
+      "path": "hls-zfs-v3/raw/cache-token-bounded-synthesis-export.progress.json",
+      "bytes": 398,
+      "sha256": "c1706b1f6f9e44462e1c824140e88b2775fd94418a722a56e6dd9cc52f3eff43",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/raw/cache-token-bounded-synthesis-export.resources.json",
+      "path": "hls-zfs-v3/raw/cache-token-bounded-synthesis-export.resources.json",
+      "bytes": 2326,
+      "sha256": "faafb9b9bdf256051ef1968106d504bc22d9acb7583c05af2eb7e3b706f6aa92",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/raw/cache-token-bounded-synthesis-export.stderr.txt",
+      "path": "hls-zfs-v3/raw/cache-token-bounded-synthesis-export.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/raw/cache-token-bounded-synthesis-export.stdout.txt",
+      "path": "hls-zfs-v3/raw/cache-token-bounded-synthesis-export.stdout.txt",
+      "bytes": 110327,
+      "sha256": "4785cebef0de29f5be4033e76dd93e226e5bb339fbbf2422a811863597c80185",
+      "role": "source_or_hls_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/cache-plain-bounded/project/kernel.xml",
+      "path": "hls-zfs-v3/cache-plain-bounded/project/kernel.xml",
+      "bytes": 1709,
+      "sha256": "40b065683410f6eac4dc8ee54788faec9f8ff25aca181db0ba0dd48a5a78dc4d",
+      "role": "exported_interface_or_hls_synthesis_report"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/cache-plain-bounded/project/solution/syn/report/csynth.xml",
+      "path": "hls-zfs-v3/cache-plain-bounded/project/solution/syn/report/csynth.xml",
+      "bytes": 302432,
+      "sha256": "5291fd8ccdbf21b72eac078f3c4d1bbb139638652da5d1a4cabc030099404ca3",
+      "role": "exported_interface_or_hls_synthesis_report"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/cache-token-bounded/project/kernel.xml",
+      "path": "hls-zfs-v3/cache-token-bounded/project/kernel.xml",
+      "bytes": 2133,
+      "sha256": "68543976557acc68926902e59b4e08bff518f0e78775f990f2d029ef59f7324d",
+      "role": "exported_interface_or_hls_synthesis_report"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/hls-zfs-v3/cache-token-bounded/project/solution/syn/report/csynth.xml",
+      "path": "hls-zfs-v3/cache-token-bounded/project/solution/syn/report/csynth.xml",
+      "bytes": 306585,
+      "sha256": "e0b3224eb9fb325dc6e2eca22c42e2cbed972c20d10c65a3018beaf7e213a1db",
+      "role": "exported_interface_or_hls_synthesis_report"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/manifest.json",
+      "path": "route-zfs-v2/sssp/manifest.json",
+      "bytes": 294808,
+      "sha256": "56c713bba9a7ba43826c49ea7aeb05ef24c635dbb77ebce85967bfce54fe9c38",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/master-budget.json",
+      "path": "route-zfs-v2/sssp/master-budget.json",
+      "bytes": 1692,
+      "sha256": "00a0190c3c4524c84d3ab573be15db19d62e486f932a1bb0dd71aadcc2865dfa",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/link.cfg",
+      "path": "route-zfs-v2/sssp/link.cfg",
+      "bytes": 8966,
+      "sha256": "0bcfb4e70deb582833ab135f6e997e2973ffa65e5c14ba7f88a0684aee96982b",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin.info",
+      "path": "route-zfs-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin.info",
+      "bytes": 110161,
+      "sha256": "911d772899914905766d06808160ba32aa09c708228c3acf1b22800134764b31",
+      "role": "routed_artifact_metadata"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/raw/sssp-link-place-route.progress.json",
+      "path": "route-zfs-v2/sssp/raw/sssp-link-place-route.progress.json",
+      "bytes": 331,
+      "sha256": "f4dc9ae4ae592a9679a8e9471eb6d114f678d5c0ab97185cbc8604ca0a4c7749",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/raw/sssp-link-place-route.resources.json",
+      "path": "route-zfs-v2/sssp/raw/sssp-link-place-route.resources.json",
+      "bytes": 30812,
+      "sha256": "d600229a6cd696d8bb0f1e325c90deeeae60720edf7532c3ddf86e272e50e30c",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/raw/sssp-link-place-route.stderr.txt",
+      "path": "route-zfs-v2/sssp/raw/sssp-link-place-route.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/raw/sssp-link-place-route.stdout.txt",
+      "path": "route-zfs-v2/sssp/raw/sssp-link-place-route.stdout.txt",
+      "bytes": 56046,
+      "sha256": "5a1680830a55c169b028c9403a197540d13ac31e43f96267124a192319a49b73",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/manifest.json",
+      "path": "route-zfs-v2/cc/manifest.json",
+      "bytes": 294735,
+      "sha256": "1db0c240f386cd7ade5de6f6ec66df88dc589773049d852e057788790b24889d",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/master-budget.json",
+      "path": "route-zfs-v2/cc/master-budget.json",
+      "bytes": 1690,
+      "sha256": "fc0e73b6f1f9456c72f763a87b89da5ecd913c95a3c170686e29256089d473f8",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/link.cfg",
+      "path": "route-zfs-v2/cc/link.cfg",
+      "bytes": 8963,
+      "sha256": "41fbaf496a9c2e905efd1210299e854d495257854a68b5622a9058b1074d4e3d",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/grasu_regraph_connected_components_pma_native_sharded_k4.hw.xclbin.info",
+      "path": "route-zfs-v2/cc/grasu_regraph_connected_components_pma_native_sharded_k4.hw.xclbin.info",
+      "bytes": 110143,
+      "sha256": "30fdf9922d8551753e719b25986de25b727b23fa286af9168685f5cc4ca15234",
+      "role": "routed_artifact_metadata"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/raw/cc-link-place-route.progress.json",
+      "path": "route-zfs-v2/cc/raw/cc-link-place-route.progress.json",
+      "bytes": 386,
+      "sha256": "502a92bb432bf7d44741df519a55c1db103759f893cb237078793c87ca85eba8",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/raw/cc-link-place-route.resources.json",
+      "path": "route-zfs-v2/cc/raw/cc-link-place-route.resources.json",
+      "bytes": 5093,
+      "sha256": "98e6562373f467f09ed42cdafe2362e87e170753136d7763bf471e95e07c71df",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/raw/cc-link-place-route.stderr.txt",
+      "path": "route-zfs-v2/cc/raw/cc-link-place-route.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/cc/raw/cc-link-place-route.stdout.txt",
+      "path": "route-zfs-v2/cc/raw/cc-link-place-route.stdout.txt",
+      "bytes": 51187,
+      "sha256": "086928d4d05c12dfff5210fc4fdd7a9e9aa4ad704bc7b915028d4c8b90610206",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/manifest.json",
+      "path": "route-zfs-v2/respr/manifest.json",
+      "bytes": 294553,
+      "sha256": "1d67c83cceeb488a873f479a738af9c70eb4658f4c18bdd42b3052827074b553",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/master-budget.json",
+      "path": "route-zfs-v2/respr/master-budget.json",
+      "bytes": 1847,
+      "sha256": "c2dcda2789368642bd2d5935bb7cd1bf9dbb350d29b69a480a708ae17e6d2474",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/link.cfg",
+      "path": "route-zfs-v2/respr/link.cfg",
+      "bytes": 6923,
+      "sha256": "3b18e20343c3ea90e427f9b022e1a364dc9e9b563dfad5112c1bb7c3c03bfd8e",
+      "role": "routed_input_and_resource_contract"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/grasu_regraph_residual_pagerank.hw.xclbin.info",
+      "path": "route-zfs-v2/respr/grasu_regraph_residual_pagerank.hw.xclbin.info",
+      "bytes": 112211,
+      "sha256": "247ffaa6a3d4151f86ea447730edf226b75bf568acfefed8dfe487c619b6b7f5",
+      "role": "routed_artifact_metadata"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/raw/respr-link-place-route.progress.json",
+      "path": "route-zfs-v2/respr/raw/respr-link-place-route.progress.json",
+      "bytes": 386,
+      "sha256": "5a83eacd07790d307113ee554843587ae19a49bd49070956636eb8964a16b49f",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/raw/respr-link-place-route.resources.json",
+      "path": "route-zfs-v2/respr/raw/respr-link-place-route.resources.json",
+      "bytes": 4558,
+      "sha256": "766b0fc2f7c9c59864b69da81a25832c07d9721bd144d951e1f21c417ccf7baf",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/raw/respr-link-place-route.stderr.txt",
+      "path": "route-zfs-v2/respr/raw/respr-link-place-route.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/raw/respr-link-place-route.stdout.txt",
+      "path": "route-zfs-v2/respr/raw/respr-link-place-route.stdout.txt",
+      "bytes": 53991,
+      "sha256": "e1e3b98d0c742dc7996460e4c6aa8f0c65b8940b694d47b14ba8332ddc16cb68",
+      "role": "route_raw_log_and_resource_record"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/respr-artifact-audit-v1/results.json",
+      "path": "respr-artifact-audit-v1/results.json",
+      "bytes": 4748,
+      "sha256": "d050bab1712ea444c1f49b95c9189f0ae2275b1c74a72d94b14802982c57ca6c",
+      "role": "functional_regression_or_independent_artifact_audit",
+      "recorded_status": "ROUTED_ARTIFACT_AUDIT_PASS_NOT_BOARD_TESTED"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-audit-v1/clocks.json",
+      "path": "spine-respr-zfs-audit-v1/clocks.json",
+      "bytes": 515,
+      "sha256": "eca93b8a5a041bfec66bd21aa5463116794f1a833df5a83aeb73d4c715a5627a",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-audit-v1/embedded-metadata.xml",
+      "path": "spine-respr-zfs-audit-v1/embedded-metadata.xml",
+      "bytes": 315399,
+      "sha256": "8d70cc230e8925c424f56d22566aa65374fad58f751f670d269c70febc8a5c09",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/sim-sharded-v1/regression.xml",
+      "path": "sim-sharded-v1/regression.xml",
+      "bytes": 18956,
+      "sha256": "49356078d80d84e6b29ab6e7363b6c77333081ec76592ac1d57125e50a6cd256",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/sim-sharded-v1/Testing/Temporary/LastTest.log",
+      "path": "sim-sharded-v1/Testing/Temporary/LastTest.log",
+      "bytes": 90612,
+      "sha256": "9bee62f408ebf73055964db8c0a10d594484955852abf171eb8fb0a9295243d1",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/sim-sharded-v1/ctest.log",
+      "path": "sim-sharded-v1/ctest.log",
+      "bytes": 386,
+      "sha256": "feeb23c486c5b3892d14080a1187de71a61193bafa715281cccac1548d35f3d7",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/sim-sharded-v1/source-review.patch",
+      "path": "sim-sharded-v1/source-review.patch",
+      "bytes": 27672,
+      "sha256": "969baa64797e8eb87faad2aa580369b140e701e2fdb4153e6809ff9f6a9b5a44",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/sst-bounded-verification-v2/stderr.log",
+      "path": "sst-bounded-verification-v2/stderr.log",
+      "bytes": 869,
+      "sha256": "52189adab1ea0a9cf1dcc8752e114a10463785885fffb9b14b8e9136174f23f1",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/terminal-tool-preflight-v2/results.json",
+      "path": "terminal-tool-preflight-v2/results.json",
+      "bytes": 1347,
+      "sha256": "599ef760e35449a6a8a63db77e9c2fe69f62678a5ee832c0f0e189dcab19adc1",
+      "role": "functional_regression_or_independent_artifact_audit",
+      "recorded_status": null
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/terminal-tool-preflight-v2/delivery.log",
+      "path": "terminal-tool-preflight-v2/delivery.log",
+      "bytes": 1954,
+      "sha256": "3ce4872f4eecd1b676735e2a48cdbc96157333ab97edf744cb2aa13fb8948a27",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/terminal-tool-preflight-v2/plot.log",
+      "path": "terminal-tool-preflight-v2/plot.log",
+      "bytes": 1473,
+      "sha256": "22daf239e0acdb0a8b8586d45243f12bd3c609565a52316480bda237f83ac3d3",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/terminal-tool-preflight-v2/profile.log",
+      "path": "terminal-tool-preflight-v2/profile.log",
+      "bytes": 2773,
+      "sha256": "3bf7418223699fffe2a395d996a59f945f5a66486b5ce4419a436f6dc0930972",
+      "role": "functional_regression_or_independent_artifact_audit"
+    },
+    {
+      "source": "/data/chuxiao/builds/grasu-cache-extent-20261025/package-implementation-evidence.py",
+      "path": "package-implementation-evidence.py",
+      "bytes": 6717,
+      "sha256": "adf0d23b7326393b139d284a005b5dcfc5358f2156e87033f35dea6d995922e8",
+      "role": "supporting_record_copy_recipe_not_experiment_runner"
+    }
+  ],
+  "storage": {
+    "archive": "records.tar.gz",
+    "sha256": "20b9fcd427d6edabbfeaf2f1cb418b35e0e236eb1a06ac512b9ba269d5493132",
+    "bytes": 1044739,
+    "member_prefix": "records/",
+    "archive_metadata": "fixed_mtime_uid_gid_names_and_mode"
+  }
+}

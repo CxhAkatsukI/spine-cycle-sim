@@ -4,6 +4,10 @@ Start with the [short review summary](REPORT.md) for the current measured
 results, timing contract, limitations and remaining delivery gates. This
 guide retains the detailed source, command and investigation records.
 
+The [portable supporting records](implementation_evidence/README.md) contain
+hash-verified source, HLS, route and regression evidence, including failed
+attempts. They are separate from the still-pending terminal board package.
+
 ## What Is Being Delivered
 
 The requested follow-up is an actual SSSP/CC/ResPR G+R versus Spine FPGA
