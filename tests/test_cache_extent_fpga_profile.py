@@ -3,13 +3,20 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
+import statistics
 import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.evaluation_impact.fpga_plot import BOUNDARY, DATASETS, digest
 from spine_cycle_sim.experiments.evaluation_impact.fpga_profile import (
-    PREFIXES, SCOPE, inspect, package, sample_profile,
+    PREFIXES, SCOPE, inspect, package, sample_profile, wall_statistics,
 )
+
+
+def wall_summary(values):
+    return {"samples_ms": values, "median_ms": statistics.median(values),
+            "min_ms": min(values), "max_ms": max(values),
+            "coefficient_of_variation": statistics.pstdev(values) / statistics.mean(values)}
 
 
 def timing(algorithm, wall=2, union=1.5, g=1, barrier=1, readback=0.1):
@@ -24,6 +31,29 @@ def timing(algorithm, wall=2, union=1.5, g=1, barrier=1, readback=0.1):
 
 
 class FpgaProfileSampleTests(unittest.TestCase):
+    def test_wall_statistics_retain_slow_sample_and_use_population_deviation(self):
+        saved = wall_summary([3, 4, 40])
+        result = wall_statistics(saved, 4)
+        self.assertEqual(result, saved)
+        self.assertEqual(result["max_ms"], 40)
+        self.assertNotEqual(result["coefficient_of_variation"],
+                            statistics.stdev([3, 4, 40]) / statistics.mean([3, 4, 40]))
+        self.assertEqual(wall_statistics(wall_summary([4, 4, 4]), 4)
+                         ["coefficient_of_variation"], 0)
+
+    def test_wall_statistics_reject_invalid_or_missing_measurements(self):
+        for values in ([3, 4], [0, 4, 5], [-1, 4, 5], [3, 4, float("inf")],
+                       [3, 4, float("nan")]):
+            with self.subTest(values=values), self.assertRaises(ValueError):
+                wall_statistics({"samples_ms": values}, 4)
+
+    def test_wall_statistics_reject_changed_summary(self):
+        for key in ("median_ms", "min_ms", "max_ms", "coefficient_of_variation"):
+            saved = wall_summary([3, 4, 40])
+            saved[key] += 1
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "wall statistics"):
+                wall_statistics(saved, 4)
+
     def test_keeps_overlapping_intervals_separate(self):
         result = sample_profile("sssp", timing("sssp"), 2)
         self.assertEqual(result["kernel_uncovered_wall_ms"], 0.5)
@@ -74,8 +104,8 @@ class FpgaProfileDeliveryTests(unittest.TestCase):
                 cases.append({
                     "algorithm": algorithm, "dataset": dataset, "status": "RESIDENT_PAIR_PASS",
                     "summary": {"walls": {
-                        "gr": {"median_ms": 20, "samples_ms": [10, 20, 30]},
-                        "spine": {"median_ms": 4}}, "speedup_ratio_of_median_walls": 5},
+                        "gr": wall_summary([10, 20, 30]),
+                        "spine": wall_summary([3, 4, 40])}, "speedup_ratio_of_median_walls": 5},
                 })
                 for index, (wall, union) in enumerate(((999, 1), (10, 9), (20, 19), (30, 1))):
                     relative = f"cases/{algorithm}-{dataset.lower()}/sample-{index}/gr/run.log"
@@ -108,6 +138,7 @@ class FpgaProfileDeliveryTests(unittest.TestCase):
             self.assertEqual(row["median_ms"]["wall_ms"], 20)
             self.assertEqual(row["median_ms"]["kernel_event_union_ms"], 9)
             self.assertEqual(row["median_ms"]["kernel_uncovered_wall_ms"], 1)
+            self.assertEqual(row["wall_statistics"]["spine"], wall_summary([3, 4, 40]))
 
     def test_rejects_unindexed_or_changed_log(self):
         relative = self.indexed_logs.pop(1)
@@ -136,6 +167,29 @@ class FpgaProfileDeliveryTests(unittest.TestCase):
         row = inspect(self.root)["cases"][0]
         self.assertEqual(row, {"algorithm": "sssp", "dataset": "AU", "status": "FAILED_RETAINED"})
 
+    def test_checks_spine_samples_as_well_as_gr_samples(self):
+        self.matrix["cases"][0]["summary"]["walls"]["spine"]["samples_ms"] = [3, 4, 400]
+        self.save()
+        with self.assertRaisesRegex(ValueError, "wall statistics"):
+            inspect(self.root)
+
+    def test_packages_failure_as_two_blank_variability_rows(self):
+        self.matrix.update(status="FPGA_MATRIX_INCOMPLETE_RETAINED", passed_cases=23)
+        self.matrix["cases"][0]["status"] = "FAILED_RETAINED"
+        self.rows[0].update(status="FAILED_RETAINED", gr_ms="", spine_ms="", speedup_gr_over_spine="")
+        self.save()
+        output = self.root.parent / "diagnostics"
+        package(self.root, output)
+        with (output / "wall_variability.csv").open(newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        self.assertEqual(len(rows), 48)
+        self.assertEqual([row["architecture"] for row in rows[:2]], ["gr", "spine"])
+        for row in rows[:2]:
+            self.assertEqual(row["status"], "FAILED_RETAINED")
+            self.assertTrue(all(row[key] == "" for key in
+                               ("median_ms", "min_ms", "max_ms", "coefficient_of_variation",
+                                "sample_1_ms", "sample_2_ms", "sample_3_ms")))
+
     def test_rejects_running_matrix(self):
         self.matrix["status"] = "RUNNING_FPGA_MATRIX"
         self.save()
@@ -153,6 +207,17 @@ class FpgaProfileDeliveryTests(unittest.TestCase):
         self.assertEqual(len(rows), 24)
         respr = next(row for row in rows if row["algorithm"] == "respr")
         self.assertEqual(respr["barrier_event_union_ms"], "")
+        with (output / "wall_variability.csv").open(newline="") as stream:
+            variability = list(csv.DictReader(stream))
+        self.assertEqual(len(variability), 48)
+        spine = variability[1]
+        self.assertEqual(spine["architecture"], "spine")
+        self.assertEqual([float(spine[key]) for key in
+                          ("sample_1_ms", "sample_2_ms", "sample_3_ms")], [3, 4, 40])
+        self.assertEqual(float(spine["median_ms"]), 4)
+        self.assertEqual(float(spine["max_ms"]), 40)
+        self.assertEqual(float(spine["coefficient_of_variation"]),
+                         statistics.pstdev([3, 4, 40]) / statistics.mean([3, 4, 40]))
         self.assertEqual(before, {path: digest(path) for path in before})
         with self.assertRaisesRegex(ValueError, "fresh output"):
             package(self.root, output)

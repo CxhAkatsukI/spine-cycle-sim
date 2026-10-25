@@ -15,9 +15,9 @@ timing coefficient is introduced to remove it.
 | Three native G+R hosts | Built, backward-compatible argument selection |
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
-| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP and CC artifacts complete; ResPR auto-scaled to DATA 149.8/HBM 432.7 MHz in the tool log, final artifact/metadata pending |
+| Revised G+R SSSP, CC, ResPR hardware | All three `route-zfs-v2` artifacts complete; ResPR metadata records DATA 149/HBM 432 MHz after automatic scaling, with an independent artifact audit |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | 4 of 24 pairs passed: SSSP AU, SU, WK and SO; PK running; SO has a large retained timing outlier |
+| New-kernel FPGA comparisons | 5 of 24 pairs passed: SSSP AU, SU, WK, SO and PK; LJ running; SO has a large retained timing outlier |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -398,19 +398,31 @@ requested frequencies. ResPR's failures comprise 18 DATA-clock endpoints
 pulse-width failures. This is not closure at DATA 150/HBM 450 MHz. The
 subsequent `runme.log` and `_new_clk_freq` explicitly record automatic
 frequency scaling to DATA 149.8 MHz and HBM 432.7 MHz; these values are not
-inferred from slack. Bitstream writing is still running at this checkpoint.
-The final binary and its clock metadata must be independently inspected
-before reporting packaged clocks. Board measurements may use those actual
-frequencies with the limitation disclosed, but require the same independent
-correctness gates. Neither routed reports nor SSSP pairs establish
-CC/ResPR performance.
+inferred from slack. The link subsequently completed with compiler exit zero
+after 20923.456 seconds, peak process-tree RSS 37283328 KiB, no watchdog stop,
+no cleanup error and zero cgroup memory events. Its result is now
+`ROUTED_NOT_BOARD_TESTED`, not a requested-frequency closure claim.
+
+The completed binary is
+`route-zfs-v2/respr/grasu_regraph_residual_pagerank.hw.xclbin`, SHA-256
+`c112e790c3cfd81c05b4059f1dc34fcee23bc36a94a995ba1c0d6d49280058c0`.
+An independent `xclbinutil` extraction records integer DATA 149 MHz and
+HBM 432 MHz in `respr-artifact-clocks-v1.json`, SHA-256
+`505df723ea758f6de63b745a929ed822b82c1867eada6de31b43ae8e70914511`.
+`respr-artifact-audit-v1/results.json` separately rechecked the compiler's
+terminal records, all 1396 unique pinned files including the final binary,
+the unscaled timing report and clock dump. It passed under a 1-GiB
+hard/768-MiB high/zero-swap group with zero memory events. The artifact is
+ready for its AU board gate, not already board-correct. Measurements retain
+the packaged clocks without scaling wall times to 150 MHz. Neither routed
+reports nor SSSP pairs establish CC/ResPR performance.
 
 ### First Paired Hardware Results
 
-SSSP AU, SU, WK and SO have each passed one warmup and three measured pairs. The
+SSSP AU, SU, WK, SO and PK have each passed one warmup and three measured pairs. The
 following medians exclude the warmup and retain host relaunch and final
 readback. Both architectures start from the old converged distances, apply
-eight insertions and converge with zero mismatches. AU and SU take two
+eight insertions and converge with zero mismatches. AU, SU and PK take two
 hardware rounds on each architecture; WK and SO take one on each.
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine |
@@ -419,19 +431,20 @@ hardware rounds on each architecture; WK and SO take one on each.
 | SU | 27.683435 | 4.335280 | 6.385616 |
 | WK | 27.489030 | 4.525010 | 6.074910 |
 | SO | 751.955400 | 18.033600 | 41.697465 |
+| PK | 617.562590 | 8.197890 | 75.331895 |
 
-These four rows were independently rechecked through the delivery verifier:
+These five rows were independently rechecked through the delivery verifier:
 all four raw paired logs were reparsed, measured medians recomputed, and
 manifest/source/host/bitstream/input hashes and actual clock dumps checked.
 Both DATA clocks are 150 MHz. Evidence lives in
-`matrix-zfs-v3/sssp-{au,su,wk,so}/`, including `results.json`, `manifest.json`,
+`matrix-zfs-v3/sssp-{au,su,wk,so,pk}/`, including `results.json`, `manifest.json`,
 clock dumps and four `sample-*` directories. The saved independent recheck
-is `independent-pair-audit-v2/results.json`, alongside its exact matrix
-checkpoint and plan. It verified 1471 unique pinned files, exited zero in
-19.006 seconds and peaked at 28.9 MiB under a 1-GiB hard/768-MiB high/zero-swap
-group, with zero memory events. The additional file is the SO case's generated
-configuration. Its status explicitly excludes matrix completion; the earlier
-three-pair `v1` audit is retained.
+is `independent-pair-audit-v3/results.json`, alongside its exact matrix
+checkpoint and plan. It verified 1472 unique pinned files, exited zero in
+18.799 seconds and peaked at 29.2 MiB process RSS under a 1-GiB
+hard/768-MiB high/zero-swap group, with zero memory events. The additional
+files are SO and PK's generated configurations. Its status explicitly excludes
+matrix completion; the earlier three- and four-pair audits are retained.
 
 SO's three measured Spine walls are 15.5080, 18.0336 and 73.8605 ms, giving
 a coefficient of variation of 75.23%; G+R's is 1.10%. The slow Spine sample
@@ -442,15 +455,18 @@ measurements. The evidence does not identify the cause of the SO outlier;
 do not claim stable isolated latency or silently discard it. Any follow-up
 repetition needs a separate declared run, not replacement of this matrix.
 
-This is a four-case checkpoint, not a completed eight-graph result or proof
+This is a five-case checkpoint, not a completed eight-graph result or proof
 of an isolated cache-optimization speedup. It must not be mixed with the
-older full-cache control. The remaining 20 declared pairs are unfinished.
-SO completed under its 32-GiB hard cap with zero memory events, and the
-queue automatically advanced to PK. No live cap, pin, or admission threshold
+older full-cache control. The remaining 19 declared pairs are unfinished.
+PK's three measured walls are 617.562590, 617.141686 and 618.312945 ms for G+R,
+and 8.14950, 8.19789 and 8.72169 ms for Spine. Their coefficients of variation
+are 0.0784% and 3.10%, respectively. SO and PK completed under their 32- and
+24-GiB hard caps with zero memory events, and the queue automatically advanced
+to LJ. No live cap, pin, or admission threshold
 was changed to force admission.
-CC still requires its AU correctness gate; ResPR still requires a completed
-artifact and its AU correctness gate. No terminal figure package has been
-exported.
+CC and ResPR still require their AU correctness gates. All three revised
+G+R artifacts are now available to the queue. No terminal figure package
+has been exported.
 
 ### Spine Artifact Audit, Not Recompilation
 
@@ -564,7 +580,7 @@ Large bitstreams, graphs and compiler trees remain at the indexed original
 locations. Twelve cache-study/export tests pass, including rejection of old
 kernel controls, changed logs/hashes and unfinished or duplicated matrices.
 This exporter has not yet packaged the running new-kernel board matrix.
-The three passing SSSP cases above do not constitute the complete 24-case
+The five passing SSSP cases above do not constitute the complete 24-case
 delivery and are not exported by relabeling pending cases as terminal.
 
 ### Hardware Speedup Preview
@@ -634,6 +650,14 @@ logged, and resident wall time. ResPR's update event union includes the device
 degree update; SSSP/CC report completion-barrier events separately. No unlogged
 barrier or readback time is filled with zero.
 
+`wall_variability.csv` contains 48 rows: both architectures for each declared
+case. Each passing row retains all three measured wall times and recomputes
+the minimum, median, maximum and population coefficient of variation
+(`pstdev / mean`) against the admitted summary. The coefficient is a fraction,
+not a percentage or confidence interval. Failed rows retain blank measurements.
+This makes the retained SO outlier visible beside the speedup, without filtering
+samples or assigning a cause to their variation.
+
 The diagnostic **kernel-uncovered wall** is computed per sample as wall minus
 total kernel event union, then summarized by its median. It includes DMA,
 final-state readback and scheduling/launch gaps, and is **not pure host time**.
@@ -642,10 +666,14 @@ apply and HBM durations overlap and are not summed into an artificial R stage.
 These quantities neither identify a causal before/after improvement nor
 establish publication matching or simulator stage calibration.
 
-Eleven synthetic tests cover overlapping intervals, absent ResPR metrics,
+Sixteen synthetic tests cover overlapping intervals, absent ResPR metrics,
 nonfinite/impossible intervals, excluded warmup, median-of-per-sample gaps,
 hash-indexed raw logs, changed walls, terminal-only admission, retained failures
-and non-overwriting output. They pass without FPGA/plotting dependencies. The
+and non-overwriting output. They also check both architectures' variability,
+retention of a slow sample, population rather than sample standard deviation,
+rejection of changed summary statistics, and blank failed-case variability rows.
+They pass without FPGA/plotting dependencies. The recomputation also accepts
+the actual AU/SU/WK/SO/PK measured-wall summaries without changing those reports. The
 running board matrix has not been exported as final event diagnostics.
 The analyzer also reparsed the nine existing measured SSSP logs for AU/SU/WK
 against their admitted per-sample walls: G event-union medians are 1.170615,

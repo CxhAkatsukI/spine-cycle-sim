@@ -33,6 +33,9 @@ NOTES = [
     "It includes DMA, final readback and launch/wait gaps; it is not pure host orchestration time.",
     "Convergence readback is a host wall interval, not a kernel event; ResPR does not log it "
     "separately. Missing metrics remain absent, not zero. Final-state readback is included in wall.",
+    "Both architectures retain all three measured wall times, including slow samples. "
+    "Wall variability uses population standard deviation divided by the mean; this coefficient "
+    "is not a confidence interval or evidence of the cause of timing variation.",
     "These diagnostics do not establish a causal before/after improvement, publication matching, "
     "or per-stage simulator timing calibration.",
 ]
@@ -78,6 +81,21 @@ def sample_profile(algorithm: str, text: str, expected_wall_ms: float) -> dict:
     return result
 
 
+def wall_statistics(saved: dict, expected_median: float) -> dict:
+    values = saved["samples_ms"]
+    if len(values) != 3 or any(not math.isfinite(value) or value <= 0 for value in values):
+        raise ValueError("three positive finite measured wall samples required")
+    result = {"samples_ms": values, "median_ms": statistics.median(values),
+              "min_ms": min(values), "max_ms": max(values),
+              "coefficient_of_variation": statistics.pstdev(values) / statistics.mean(values)}
+    if result["median_ms"] != expected_median or any(
+        not math.isclose(saved[key], value, rel_tol=1e-12, abs_tol=1e-12)
+        for key, value in result.items() if key != "samples_ms"
+    ):
+        raise ValueError("wall statistics differ from admitted samples")
+    return result
+
+
 def inspect(directory: Path) -> dict:
     rows = load_delivery(directory)
     matrix = json.loads((directory / "matrix.json").read_text())
@@ -88,9 +106,12 @@ def inspect(directory: Path) -> dict:
         algorithm, dataset = row["algorithm"], row["dataset"]
         result = {"algorithm": algorithm, "dataset": dataset, "status": row["status"]}
         if row["status"] == "RESIDENT_PAIR_PASS":
-            walls = cases[algorithm, dataset]["summary"]["walls"]["gr"]["samples_ms"]
-            if len(walls) != 3 or statistics.median(walls) != float(row["gr_ms"]):
-                raise ValueError("three admitted measured wall samples required")
+            admitted = cases[algorithm, dataset]["summary"]["walls"]
+            result["wall_statistics"] = {
+                architecture: wall_statistics(admitted[architecture], float(row[architecture + "_ms"]))
+                for architecture in ("gr", "spine")
+            }
+            walls = result["wall_statistics"]["gr"]["samples_ms"]
             samples = []
             for index, wall in enumerate(walls, 1):
                 relative = f"cases/{algorithm}-{dataset.lower()}/sample-{index}/gr/run.log"
@@ -121,12 +142,33 @@ def package(directory: Path, output: Path) -> dict:
     for row in report["cases"]:
         writer.writerow({key: row[key] for key in ("algorithm", "dataset", "status")} |
                         row.get("median_ms", {}))
+    variability = io.StringIO()
+    statistics_fields = ("min_ms", "median_ms", "max_ms", "coefficient_of_variation")
+    variability_writer = csv.DictWriter(variability, fieldnames=(
+        "algorithm", "dataset", "status", "architecture", *statistics_fields,
+        "sample_1_ms", "sample_2_ms", "sample_3_ms",
+    ))
+    variability_writer.writeheader()
+    for row in report["cases"]:
+        for architecture in ("gr", "spine"):
+            values = row.get("wall_statistics", {}).get(architecture, {})
+            variability_writer.writerow(
+                {key: row[key] for key in ("algorithm", "dataset", "status")} |
+                {"architecture": architecture} |
+                {key: values[key] for key in statistics_fields if key in values} |
+                {f"sample_{index}_ms": value
+                 for index, value in enumerate(values.get("samples_ms", []), 1)}
+            )
     output.mkdir(parents=True, exist_ok=False)
     (output / "profile.json").write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
     (output / "profile_medians.csv").write_text(buffer.getvalue())
+    (output / "wall_variability.csv").write_text(variability.getvalue())
     (output / "README.md").write_text("# G+R FPGA Event Diagnostics\n\n" +
         "\n\n".join(NOTES) + "\n\n`profile.json` retains the three measured samples and input hashes; "
-        "`profile_medians.csv` retains all 24 declared cases, including failures.\n")
+        "`profile_medians.csv` retains all 24 declared cases, including failures. "
+        "`wall_variability.csv` retains both architectures for all 24 cases; failed-case "
+        "measurements remain blank, not zero. Its coefficient of variation is a fraction, "
+        "not a percentage.\n")
     return report
 
 
