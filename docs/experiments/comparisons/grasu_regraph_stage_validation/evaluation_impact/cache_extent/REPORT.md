@@ -2,15 +2,15 @@
 
 ## Decision And Scope
 
-This is a **21-of-24 checkpoint, not the final matrix**. All eight SSSP and
-all eight CC comparisons pass; five ResPR comparisons pass. ResPR LJ, LJ08
+This is a **22-of-24 checkpoint, not the final matrix**. All eight SSSP and
+all eight CC comparisons pass; six ResPR comparisons pass. ResPR LJ08
 and R19 are not yet admitted. The remaining measurements, terminal evidence
 package, rendered figure review and final push are still required.
 
 The actual board results do **not** show a universal Spine win. SSSP favors
 Spine on eight of eight graphs. CC favors Spine on four and G+R on four.
-Of the five admitted ResPR cases, two favor Spine and three favor G+R.
-All five ResPR cases have zero propagation rounds on both implementations;
+Of the six admitted ResPR cases, three favor Spine and three favor G+R.
+All six ResPR cases have zero propagation rounds on both implementations;
 they measure update/correction/completion, not iterative PR propagation.
 
 ## Measured Speedups
@@ -26,14 +26,14 @@ or outlier removal is applied. A dash means unfinished, not zero or timeout.
 | WK | 6.075 | 0.570 | 0.819 |
 | SO | 41.697 | 7.308 | 4.482 |
 | PK | 75.332 | 3.407 | 2.154 |
-| LJ | 89.168 | 10.007 | - |
+| LJ | 89.168 | 10.007 | 3.983 |
 | LJ08 | 90.575 | 9.207 | - |
 | R19 | 19.387 | 0.838 | - |
 
 The table is rounded for reading. Its authoritative checkpoint is
-`independent-pair-audit-v20/matrix-checkpoint.json` below, not a replacement
+`independent-pair-audit-v21/matrix-checkpoint.json` below, not a replacement
 CSV for an unfinished matrix. That snapshot contains all 24 declared rows,
-including the three unfinished rows.
+including the two unfinished rows.
 
 ## Comparison Contract
 
@@ -105,7 +105,7 @@ Machine-local evidence root:
 | `route-zfs-v2/{sssp,cc,respr}/` | Revised artifacts, actual clocks and route evidence |
 | `matrix-inputs-zfs-v3/plan.json` | Frozen 24-case workload, boundary, repetition and identity contract |
 | `matrix-zfs-v3/` | Actual paired raw logs, resource records, manifests and current matrix state |
-| `independent-pair-audit-v20/` | Independent reparse of 84 paired executions across 21 cases and 1553 unique pinned files |
+| `independent-pair-audit-v21/` | Independent reparse of 88 paired executions across 22 cases and 1554 unique pinned files |
 | `profile-checkpoint-21-v1.log` | Reparse of 63 formal G+R profiles and 42 wall-statistic records; not exclusive stage attribution |
 | `terminal-tool-preflight-v2/` | 37 delivery/plot/profile tests, including real font rendering; synthetic fixtures are not board results |
 

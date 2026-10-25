@@ -25,7 +25,7 @@ timing coefficient is introduced to remove it.
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | All three `route-zfs-v2` artifacts complete; ResPR metadata records DATA 149/HBM 432 MHz after automatic scaling, with an independent artifact audit |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | All eight SSSP pairs, all eight CC pairs and ResPR AU/SU/WK/SO/PK passed (21 of 24 total); ResPR LJ running; all five admitted ResPR cases have zero residual propagation rounds; SSSP SO has a large retained timing outlier |
+| New-kernel FPGA comparisons | All eight SSSP pairs, all eight CC pairs and ResPR AU/SU/WK/SO/PK/LJ passed (22 of 24 total); ResPR LJ08 running; all six admitted ResPR cases have zero residual propagation rounds; SSSP SO has a large retained timing outlier |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -589,7 +589,7 @@ experiment must be separate rather than replacing these samples.
 
 ### First ResPR Hardware Pairs
 
-ResPR AU, SU, WK, SO and PK passed one warmup and three measured pairs, with eight
+ResPR AU, SU, WK, SO, PK and LJ passed one warmup and three measured pairs, with eight
 directed insertion records and zero rank, degree or nonfinite mismatches:
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine | Propagation rounds, both |
@@ -599,9 +599,11 @@ directed insertion records and zero rank, degree or nonfinite mismatches:
 | WK | 52.660617 | 64.281500 | 0.819219 | 0 |
 | SO | 867.179300 | 193.487000 | 4.481848 | 0 |
 | PK | 332.676472 | 154.473000 | 2.153622 | 0 |
+| LJ | 1020.831500 | 256.296000 | 3.983018 | 0 |
 
 Spine is approximately 2.51 times slower on AU, 1.93 times slower on SU and
-1.22 times slower on WK, but 4.48 times faster on SO and 2.15 times faster on PK.
+1.22 times slower on WK, but 4.48 times faster on SO, 2.15 times faster on PK
+and 3.98 times faster on LJ.
 AU's measured samples are 20.841104, 21.479141 and 21.407410 ms for G+R,
 and 53.8355, 53.0491 and 54.0927 ms for Spine. Their coefficients of variation
 are 1.343% and 0.827%, respectively. SU's are 27.251839, 27.242188 and
@@ -618,6 +620,10 @@ PK's measured samples are 331.821451, 332.676472 and 332.954484 ms for G+R,
 and 161.012, 154.473 and 152.551 ms for Spine, with coefficients of variation
 of 0.145% and 2.321%, respectively. Its excluded warmup is
 332.124027/155.495 ms (G+R/Spine).
+LJ's measured samples are 1021.881255, 1020.831500 and 1020.714826 ms for G+R,
+and 262.043, 256.138 and 256.296 ms for Spine, with coefficients of variation
+of 0.051% and 1.064%, respectively. Its excluded warmup is
+1019.985418/259.591 ms (G+R/Spine).
 
 The fixed threshold is direct per-vertex `epsilon=1e-6`, not divided by the
 vertex count; damping remains 0.85. Both hardware paths and the CPU oracle
@@ -629,30 +635,30 @@ or host binary was changed to manufacture propagation or a Spine win.
 
 G+R's packaged DATA/HBM clocks are 149/432 MHz; Spine's are 150/448 MHz.
 Measured walls are not frequency-normalized. AU/SU/WK use 16-GiB hard/14-GiB
-high limits; SO uses 32-GiB hard/30-GiB high limits, and PK uses 24-GiB hard/
-22-GiB high limits. All five groups completed
+high limits; SO/LJ use 32-GiB hard/30-GiB high limits, and PK uses 24-GiB hard/
+22-GiB high limits. All six groups completed
 with zero swap, whole-group OOM containment and zero memory events. The
-remaining three ResPR datasets are a separate, unfinished gate; LJ is running.
+remaining two ResPR datasets are a separate, unfinished gate; LJ08 is running.
 
 ### Independent Paired-Result Audit
 
-`independent-pair-audit-v20/results.json` verifies all twenty-one completed
-cases and eighty-four paired samples including warmups. Besides raw logs,
-medians, clocks and 1553 unique pinned files, it validates each case's saved
+`independent-pair-audit-v21/results.json` verifies all twenty-two completed
+cases and eighty-eight paired samples including warmups. Besides raw logs,
+medians, clocks and 1554 unique pinned files, it validates each case's saved
 hard/high limits, zero swap, whole-group OOM containment, admission and
 per-process budget/reserve policy, and zero post-run OOM counters. The audit
-took 19.716 seconds with 29.0-MiB process RSS under a 1-GiB hard/768-MiB high/
+took 19.031 seconds with 29.0-MiB process RSS under a 1-GiB hard/768-MiB high/
 zero-swap cap, with zero memory events. Its propagation-aware verifier is
-integration revision `2a31e49` (SHA-256
+integration revision `515e80a` (SHA-256
 `d9139af14ec591d32ed5eb0524de066b2f7dc7686e8d8997a4f3f4ff463a5dad`).
 The matrix snapshot SHA-256 is
-`dd5216ee4647aad8a146afa9ad69d7d86b5b36dcf3fdd3ad14c60afe50c6ee09`;
+`03696f2aeecc87af052457af35151544aa73b6544c9af6f56601b08f3b95cf1f`;
 the plan SHA-256 remains
 `dcfa6e48f3db23f7ab6c213207c8f4a733093a1d8dd082ab055cc19bf5e57a92`.
-Three ResPR cases remain unfinished; ResPR LJ is running. This audit is a
+Two ResPR cases remain unfinished; ResPR LJ08 is running. This audit is a
 read-only checkpoint, not a new board run or terminal delivery.
-The earlier `independent-pair-audit-v7/` through `v19/` directories retain
-their nine- through twenty-case snapshots and exact verifier identities.
+The earlier `independent-pair-audit-v7/` through `v20/` directories retain
+their nine- through twenty-one-case snapshots and exact verifier identities.
 
 ### Spine Artifact Audit, Not Recompilation
 
