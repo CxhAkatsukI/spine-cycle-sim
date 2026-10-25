@@ -16,7 +16,7 @@ timing coefficient is introduced to remove it.
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | Queued under memory admission |
-| Sparse-apply Spine ResPR hardware | Compiling |
+| Sparse-apply Spine ResPR hardware | Fresh retry queued under memory admission |
 | New-kernel FPGA comparisons | 0 of 24 pairs; pending hardware |
 | Production SST bounded-cache option and numerical calibration | Not promoted or rerun |
 
@@ -128,10 +128,11 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | --- | --- |
 | `source-v1/results.json` | Frozen executable source checks |
 | `hls-v1/results.json` | Both HLS exports; no routed timing claim |
-| `route-v2/{sssp,cc,respr}/{manifest,results}.json` | New bounded-cache links and ABI review |
+| `route-v3/sssp/{manifest,results}.json` | Fresh bounded-cache SSSP retry and ABI review |
+| `route-v3/{cc,respr}` | Explicit links to unchanged `route-v2` builds |
 | `spine-respr-v3/` | Fresh sparse-apply Spine ResPR retry and build provenance |
-| `matrix-inputs-v4/plan.json` | Frozen graph, host, source, tool and binary identities |
-| `matrix-v3/{results.json,summary.csv}` | All 24 cases, including missing/failed rows |
+| `matrix-inputs-v5/plan.json` | Frozen graph, host, source, tool and binary identities |
+| `matrix-v4/{results.json,summary.csv}` | All 24 cases, including missing/failed rows |
 | `sim-before/`, `sim-after/` | Separate Release component builds |
 | `sim-extent-benchmark-v1.csv` | Original portable component diagnostic |
 | `host-control-au-v1/results.json` | OLD G+R kernel with the revised host |
@@ -155,9 +156,14 @@ minimum available memory was 24,889,225,216 bytes and its stop reason was
 `live_memory_reserve`, not a reported synthesis error. All failed-attempt
 artifacts remain intact. The fresh-build entry point requires a new provenance
 directory, so `spine-respr-v3` is a fresh, identically configured retry with
-the same 56-GiB cap and 24-GiB reserve. `matrix-v2` was interrupted before any
-board pair; `matrix-v3` uses `matrix-inputs-v4` to require the retry. G+R's
-three unchanged `route-v2` jobs remain queued under memory admission.
+the same 56-GiB cap and 24-GiB reserve. The later `route-v2/sssp` attempt
+also stopped at the live reserve (minimum 24,537,829,376 available bytes;
+process-tree peak 5,192,324 KiB). This was a watchdog stop, not a reported
+synthesis/routing error. Its evidence remains intact. `route-v3/sssp` is a
+fresh retry; `route-v3/{cc,respr}` link to the unchanged, live `route-v2`
+jobs rather than duplicating their builds or substituting old kernels.
+Both `matrix-v2` and `matrix-v3` were interrupted before any board pair.
+`matrix-v4` uses `matrix-inputs-v5` to require the current retries.
 
 No large bitstream or raw compiler log is checked into this repository.
 The integration guide owns runner commands; immutable manifests above retain
