@@ -129,9 +129,9 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `source-v1/results.json` | Frozen executable source checks |
 | `hls-v1/results.json` | Both HLS exports; no routed timing claim |
 | `route-v2/{sssp,cc,respr}/{manifest,results}.json` | New bounded-cache links and ABI review |
-| `spine-respr-v2/` | Fresh sparse-apply Spine ResPR source and build provenance |
-| `matrix-inputs-v3/plan.json` | Frozen graph, host, source, tool and binary identities |
-| `matrix-v2/{results.json,summary.csv}` | All 24 cases, including missing/failed rows |
+| `spine-respr-v3/` | Fresh sparse-apply Spine ResPR retry and build provenance |
+| `matrix-inputs-v4/plan.json` | Frozen graph, host, source, tool and binary identities |
+| `matrix-v3/{results.json,summary.csv}` | All 24 cases, including missing/failed rows |
 | `sim-before/`, `sim-after/` | Separate Release component builds |
 | `sim-extent-benchmark-v1.csv` | Original portable component diagnostic |
 | `host-control-au-v1/results.json` | OLD G+R kernel with the revised host |
@@ -143,10 +143,21 @@ result, or an isolated causal estimate of the host optimization.
 
 Compiler trees are capped at 56 GiB (52-GiB high watermark), zero swap and
 whole-group OOM termination. Admission keeps 24 GiB available and accounts
-for unused peer reservations. Historical complete G+R tree peaks were around
+for complete finite peer budgets in addition to the new build's budget.
+Historical complete G+R tree peaks were around
 41--45 GiB. Concurrent compilers are admitted only if that total budget fits.
 Board hosts have finite 16--32-GiB groups and share an exclusive board lock.
 Interrupted `v1` runs and their logs are retained, not relabeled as passes.
+
+The `spine-respr-v2` attempt completed its three HLS XOs, then the watchdog
+stopped Vivado synthesis at the live system-memory reserve. Its recorded
+minimum available memory was 24,889,225,216 bytes and its stop reason was
+`live_memory_reserve`, not a reported synthesis error. All failed-attempt
+artifacts remain intact. The fresh-build entry point requires a new provenance
+directory, so `spine-respr-v3` is a fresh, identically configured retry with
+the same 56-GiB cap and 24-GiB reserve. `matrix-v2` was interrupted before any
+board pair; `matrix-v3` uses `matrix-inputs-v4` to require the retry. G+R's
+three unchanged `route-v2` jobs remain queued under memory admission.
 
 No large bitstream or raw compiler log is checked into this repository.
 The integration guide owns runner commands; immutable manifests above retain
