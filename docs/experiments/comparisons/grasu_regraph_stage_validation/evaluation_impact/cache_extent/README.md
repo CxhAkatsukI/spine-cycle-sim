@@ -16,7 +16,7 @@ timing coefficient is introduced to remove it.
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP and ResPR running; CC waiting for finite memory admission |
-| Sparse-apply Spine ResPR hardware | Compiler succeeded; independent artifact audit passed; board correctness pending |
+| Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
 | New-kernel FPGA comparisons | 0 of 24 pairs; pending hardware |
 | Production SST bounded-cache option and numerical calibration | Not promoted or rerun |
 
@@ -248,6 +248,7 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `route-zfs-v2/{sssp,cc,respr}/` | New links with exact ABI reviews and bounded admission |
 | `spine-respr-zfs-v1/` | Compiler completed; original dependency-postprocessing failure retained |
 | `spine-respr-zfs-audit-v1/` | Independent exact-binary/source/provenance/clock audit; routed, not board-tested |
+| `spine-respr-au-smoke-v1/` | Independent AU board correctness of the audited binary; not a paired measurement |
 | `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner, waiting for exact new artifacts |
 | `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Superseded and stopped before any board pair; eight ResPR rows were blocked by the wrapper failure |
 | `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
@@ -296,6 +297,17 @@ uses this exact independently audited artifact and still requires board
 correctness and paired measurements. The old failed report and blocked
 matrix are not rewritten, no dummy dependency file was added, and no live
 G+R build source or runner hash was changed.
+
+The integration-owned `validation/cache_extent/spine_smoke.py` then ran the
+exact audited binary on the frozen AU input under the shared board lock and
+a 16-GiB/zero-swap memory group. `spine-respr-au-smoke-v1/results.json` is
+`SPINE_AU_RESPR_SMOKE_PASS`, with the original command, input/source hashes,
+raw log, actual clocks and no OOM events. Its checked resident wall time is
+52.6317 ms for eight insertions on 515281 vertices. Propagation iterations
+are zero, so it validates startup, correction and final state for this batch,
+not nonzero residual propagation, repeated timing or a G+R/Spine speedup.
+It does not replace any of the 24 formal pairs. The integration package's
+cache/export/recovery/smoke regression passes all 21 tests.
 
 ### Memory-Guard Correction
 
