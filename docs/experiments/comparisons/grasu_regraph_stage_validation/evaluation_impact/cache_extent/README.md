@@ -17,7 +17,7 @@ timing coefficient is introduced to remove it.
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | All three `route-zfs-v2` artifacts complete; ResPR metadata records DATA 149/HBM 432 MHz after automatic scaling, with an independent artifact audit |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | All eight SSSP pairs and CC AU/SU/WK/SO passed (12 of 24 total); CC PK running; SSSP SO has a large retained timing outlier |
+| New-kernel FPGA comparisons | All eight SSSP pairs and CC AU/SU/WK/SO/PK passed (13 of 24 total); CC LJ running; SSSP SO has a large retained timing outlier |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -320,7 +320,7 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `spine-respr-zfs-v1/` | Compiler completed; original dependency-postprocessing failure retained |
 | `spine-respr-zfs-audit-v1/` | Independent exact-binary/source/provenance/clock audit; routed, not board-tested |
 | `spine-respr-au-smoke-v1/` | Independent AU board correctness of the audited binary; not a paired measurement |
-| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; all eight SSSP pairs and CC AU/SU/WK passed; CC SO running |
+| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and live runner; completed measurements are listed in the paired-results sections below |
 | `independent-pair-audit-v1/` | Saved three-pair checkpoint, frozen plan and independent raw-log/hash/clock recheck; not a terminal matrix export |
 | `independent-pair-audit-v2/` | Saved four-pair checkpoint and independent recheck, retaining all measured samples and variability; not a terminal matrix export |
 | `independent-pair-audit-v3/` through `independent-pair-audit-v6/` | Saved five- through eight-pair SSSP checkpoints, with independent raw-log, pin and clock verification |
@@ -493,9 +493,9 @@ figure package has been exported.
 
 ### First CC Hardware Pairs
 
-CC AU, SU, WK and SO passed their warmups and three measured pairs with zero
-mismatches and DATA clocks of 150 MHz. AU, SU and SO need one propagation round
-on each architecture; WK needs two on each:
+CC AU, SU, WK, SO and PK passed their warmups and three measured pairs with
+zero mismatches and DATA clocks of 150 MHz. AU, SU, SO and PK need one
+propagation round on each architecture; WK needs two on each:
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine |
 | --- | ---: | ---: | ---: |
@@ -503,6 +503,7 @@ on each architecture; WK needs two on each:
 | SU | 15.154997 | 81.735600 | 0.185415 |
 | WK | 75.355182 | 132.312000 | 0.569526 |
 | SO | 823.085436 | 112.630000 | 7.307870 |
+| PK | 305.140115 | 89.550700 | 3.407457 |
 
 On AU, Spine is slower by approximately 6.94 times. Its measured samples are
 83.1385, 81.9327 and 82.3447 ms; G+R's are 11.920064, 11.694188 and
@@ -533,6 +534,13 @@ round on both architectures. The 32-GiB group completed with zero memory
 events, and the queue advanced to CC PK. These results do not establish an
 all-workload CC win: the three smaller cases above favor G+R.
 
+On PK, Spine is approximately 3.41 times faster. Its measured samples are
+90.4531, 88.6957 and 89.5507 ms; G+R's are 305.140115, 305.402429 and
+304.680658 ms. Their coefficients of variation are 0.801% and 0.0978%,
+respectively. All four pairs report sixteen input records and one propagation
+round on both architectures. The 24-GiB group completed with zero memory
+events, and the queue advanced to CC LJ without changing its frozen plan.
+
 The first measured AU Spine log reports 2.85992 ms dynamic device-event time
 but 83.1385 ms resident wall time. The resident boundary deliberately keeps
 host work, launch/wait and readback. This discrepancy is not evidence of a
@@ -542,23 +550,23 @@ SSSP-only `resident-scratch-v3/weighted_sssp.host` optimization. The matrix
 keeps those originally declared binaries unchanged; a later optimized-host
 experiment must be separate rather than replacing these samples.
 
-`independent-pair-audit-v10/results.json` verifies all twelve completed
-cases and forty-eight paired samples including warmups. Besides raw logs,
-medians, clocks and 1509 unique pinned files, it validates each case's saved
+`independent-pair-audit-v11/results.json` verifies all thirteen completed
+cases and fifty-two paired samples including warmups. Besides raw logs,
+medians, clocks and 1510 unique pinned files, it validates each case's saved
 hard/high limits, zero swap, whole-group OOM containment, admission and
 per-process budget/reserve policy, and zero post-run OOM counters. The audit
-took 18.996 seconds with 29.1-MiB process RSS under a 1-GiB hard/768-MiB high/
-zero-swap cap, with zero memory events. Its verifier is integration commit
-`bca49d0` (SHA-256
+took 18.987 seconds with 29.0-MiB process RSS under a 1-GiB hard/768-MiB high/
+zero-swap cap, with zero memory events. Its verifier is integration revision
+`0c08122`, unchanged from implementation commit `bca49d0` (SHA-256
 `91d54436a94f8a1cf431031c1b25ba9217a9f168a7bfa056ce394165adc73138`).
 The matrix snapshot SHA-256 is
-`6d0076ba0d65eb957ca30ff107b1bb26e0db5e445e70ef087b9897300997d03d`;
+`b85968f0f34fe63053d2f42b86a1170a139481e0c7e9f755774a6314b3dcb37c`;
 the plan SHA-256 remains
 `dcfa6e48f3db23f7ab6c213207c8f4a733093a1d8dd082ab055cc19bf5e57a92`.
-Twelve CC/ResPR pairs remain unfinished; CC PK is running. This audit is a
+Eleven CC/ResPR pairs remain unfinished; CC LJ is running. This audit is a
 read-only checkpoint, not a new board run or terminal delivery.
-The earlier `independent-pair-audit-v7/`, `v8/` and `v9/` directories retain
-their nine-, ten- and eleven-case snapshots and exact verifier identities.
+The earlier `independent-pair-audit-v7/` through `v10/` directories retain
+their nine- through twelve-case snapshots and exact verifier identities.
 
 ### Spine Artifact Audit, Not Recompilation
 
@@ -683,8 +691,8 @@ evidence. Nonzero `high`/`max` pressure counters are preserved and do not
 alone count as an OOM. This checks saved records without requiring a
 finished case's cgroup to remain alive.
 This exporter has not yet packaged the running new-kernel board matrix.
-The eleven passing cases above do not constitute the complete 24-case
-delivery and are not exported by relabeling pending cases as terminal.
+The passing cases above do not constitute the complete 24-case delivery
+and are not exported by relabeling pending cases as terminal.
 
 The original exporter incorrectly required the raw `logical_updates` count
 to equal eight, which would reject valid CC evidence with sixteen reciprocal
@@ -788,19 +796,42 @@ rejection of changed summary statistics, and blank failed-case variability rows.
 They pass without FPGA/plotting dependencies. The recomputation also accepts
 both architectures' actual AU/SU/WK/SO/PK/LJ/LJ08/R19 measured-wall summaries
 without changing those reports. The running board matrix has not been exported
-as final event diagnostics. The analyzer reparsed all 24 existing measured
-SSSP logs against their admitted per-sample walls:
+as final event diagnostics. The analyzer reparsed all 39 measured G+R logs
+from the eight SSSP and first five CC cases against their admitted per-sample
+walls, and rechecked both architectures' wall statistics:
 
-| Dataset | G event-union median (ms) | Kernel-uncovered-wall median (ms) |
-| --- | ---: | ---: |
-| AU | 1.170615 | 0.567027 |
-| SU | 1.663740 | 0.579407 |
-| WK | 0.876866 | 0.849386 |
-| SO | 15.781628 | 24.178030 |
-| PK | 15.258602 | 1.225309 |
-| LJ | 16.144347 | 2.269436 |
-| LJ08 | 12.613305 | 2.549083 |
-| R19 | 5.624992 | 0.579788 |
+| Algorithm | Dataset | G event-union median (ms) | Total kernel-event union median (ms) | Kernel-uncovered-wall median (ms) |
+| --- | --- | ---: | ---: | ---: |
+| SSSP | AU | 1.170615 | 17.982796 | 0.567027 |
+| SSSP | SU | 1.663740 | 27.104028 | 0.579407 |
+| SSSP | WK | 0.876866 | 26.639644 | 0.849386 |
+| SSSP | SO | 15.781628 | 727.777370 | 24.178030 |
+| SSSP | PK | 15.258602 | 616.337281 | 1.225309 |
+| SSSP | LJ | 16.144347 | 2889.343838 | 2.269436 |
+| SSSP | LJ08 | 12.613305 | 1848.953570 | 2.549083 |
+| SSSP | R19 | 5.624992 | 77.831871 | 0.579788 |
+| CC | AU | 1.134184 | 11.294995 | 0.560417 |
+| CC | SU | 1.322839 | 14.628422 | 0.525935 |
+| CC | WK | 2.236995 | 74.424774 | 0.930408 |
+| CC | SO | 2.228865 | 820.374338 | 2.756839 |
+| CC | PK | 2.224945 | 303.518448 | 1.649418 |
 
-This is only an eight-case SSSP diagnostic checkpoint, not CC/ResPR evidence,
-exclusive stage attribution or a terminal 24-case profiling export.
+For example, CC SO's G event union is approximately 2.23 ms, whereas its
+resident G+R wall median is 823.09 ms. This is not an isolated measurement
+of adapter/R overhead or proof of original-GraSU performance matching.
+Overlapping event unions and separately computed medians must not be added
+or subtracted to manufacture an exclusive stage attribution. This is a
+thirteen-case diagnostic checkpoint, not ResPR evidence or a terminal
+24-case profiling export.
+
+The final-delivery preflight also passes nine integration export tests, ten
+plot/parser tests including both optional LaTeX render checks, and sixteen
+event/variability tests. Complete outputs are retained under the live root in
+`final-preflight-v1/{delivery,plot,profile}-tests.log`, from the bounded
+`gr-cache-{delivery,figure,profile}-preflight-20261026-v2.service` runs.
+The earlier `v1` runs passed too, but their piped output was not retained in
+the service journals; the fresh runs preserve it explicitly. Synthetic render
+fixtures are under `final-preflight-v1/synthetic-plots-v2/`. Peak service
+memory in the fresh runs was 15.3, 135.4 and 16.8 MiB, respectively, each
+with a 1-GiB hard/768-MiB high/zero-swap limit. These 35 passing software
+checks are not additional board measurements.
