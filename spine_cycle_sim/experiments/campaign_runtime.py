@@ -16,6 +16,8 @@ import subprocess
 import time
 from typing import Any, Mapping, Sequence
 
+from spine_cycle_sim.experiments.host_memory import available_memory_bytes
+
 
 JOB_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 TERMINAL_STATUSES = {"pass", "fail", "stopped", "blocked"}
@@ -162,13 +164,6 @@ def campaign_jobs(manifest: Mapping[str, Any], manifest_path: Path) -> list[Camp
             )
         )
     return jobs
-
-
-def available_memory_bytes() -> int:
-    for line in Path("/proc/meminfo").read_text(encoding="ascii").splitlines():
-        if line.startswith("MemAvailable:"):
-            return int(line.split()[1]) * 1024
-    raise RuntimeError("/proc/meminfo lacks MemAvailable")
 
 
 def physical_cpu_ids() -> list[int]:
