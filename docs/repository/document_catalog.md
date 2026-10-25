@@ -185,6 +185,7 @@ Start with the [documentation index](../README.md) and its topic guides.
 
 - [dramsim3_exact_idle_advance_20260727.md](../implementation/runtime/dramsim3_exact_idle_advance_20260727.md)
 - [dramsim3_idle_clock_runtime_gap_20260727.md](../implementation/runtime/dramsim3_idle_clock_runtime_gap_20260727.md)
+- [host_memory_admission.md](../implementation/runtime/host_memory_admission.md)
 - [runtime_hotpath_profile_20260727.md](../implementation/runtime/runtime_hotpath_profile_20260727.md)
 - [runtime_rejected_paths_20260727.md](../implementation/runtime/runtime_rejected_paths_20260727.md)
 - [scheduler_dynamic_axi_sleep_20260727.md](../implementation/runtime/scheduler_dynamic_axi_sleep_20260727.md)

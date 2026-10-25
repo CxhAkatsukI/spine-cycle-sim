@@ -2,6 +2,8 @@
 
 ## Read First
 
+- [Host memory admission](host_memory_admission.md): Linux/ZFS accounting,
+  compiler hard limits, and the difference from btop's estimate.
 - [SST online-memory backend](sst_online_memory_backend_20260723.md):
   how finite-resource execution reaches the memory backend.
 - [Dynamic SSSP integration](sst_spine_dynamic_sssp_20260725.md),

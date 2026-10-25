@@ -11,6 +11,7 @@ import subprocess
 import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
+from spine_cycle_sim.experiments.host_memory import POLICY
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from .process_cleanup import ObservedProcesses
 
@@ -74,6 +75,7 @@ def run_link(command: list[str], cwd: Path, prefix: Path, *, timeout: int = 1440
                 atomic_write_json(prefix.with_suffix(".progress.json"), {
                     "pid": process.pid, "wall_seconds": elapsed, "tree_rss_kib": rss,
                     "peak_tree_rss_kib": peak, "available_bytes": current,
+                    "memory_accounting_policy": POLICY,
                     "owned_pids": pids, "stop_reason": reason})
                 if reason != "process_exit":
                     break
@@ -103,6 +105,7 @@ def run_link(command: list[str], cwd: Path, prefix: Path, *, timeout: int = 1440
                       "rss_scope": "sampled_simultaneous_tree_sum_shared_pages_counted_per_process",
                       "minimum_available_bytes": minimum_available,
                       "available_before_bytes": available,
+                      "memory_accounting_policy": POLICY,
                       "tree_memory_gib": tree_memory_gib, "reserve_gib": reserve_gib,
                       "per_process_address_space_gib": 64,
                       "host_affinity": sorted(os.sched_getaffinity(0)),

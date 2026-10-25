@@ -11,14 +11,7 @@ import subprocess
 import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
-
-
-def available_memory_bytes() -> int:
-    with Path("/proc/meminfo").open(encoding="ascii") as stream:
-        for line in stream:
-            if line.startswith("MemAvailable:"):
-                return int(line.split()[1]) * 1024
-    raise RuntimeError("MemAvailable missing; refuse an unbounded memory launch")
+from spine_cycle_sim.experiments.host_memory import POLICY, available_memory_bytes
 
 
 def _limits(memory_bytes: int, stack_bytes: int) -> None:
@@ -59,6 +52,7 @@ def run_bounded(command: list[str], cwd: Path, prefix: Path, *, timeout: int,
         "peak_rss_kib": usage.ru_maxrss, "memory_limit_gib": memory_gib,
         "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
         "reserve_gib": reserve_gib, "available_before_bytes": available,
+        "memory_accounting_policy": POLICY,
         "stdout": str(prefix.with_suffix(".stdout.txt")),
         "stderr": str(prefix.with_suffix(".stderr.txt")),
     }
