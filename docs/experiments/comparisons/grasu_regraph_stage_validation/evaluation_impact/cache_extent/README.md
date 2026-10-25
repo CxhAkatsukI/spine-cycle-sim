@@ -15,9 +15,9 @@ timing coefficient is introduced to remove it.
 | Three native G+R hosts | Built, backward-compatible argument selection |
 | Cached processor, cycle engine, short-layout G runtime regressions | Passed |
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
-| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP artifact complete; CC final timing passed, bitstream generation running; ResPR target-frequency setup failed, final artifact/clocks pending |
+| Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP and CC artifacts complete; ResPR target-frequency setup failed, final artifact/clocks pending |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | 3 of 24 pairs passed: SSSP AU, SU and WK; SO waiting for memory admission |
+| New-kernel FPGA comparisons | 3 of 24 pairs passed: SSSP AU, SU and WK; SO admitted and running its warmup pair |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -359,15 +359,14 @@ TNS zero and no setup-failing endpoints; hold WNS +0.009 ns, THS zero and
 no hold-failing endpoints. All user-specified timing constraints are met.
 Intermediate negative-slack messages do not supersede that final report.
 This is a routed-artifact gate, not board correctness or a measured speedup.
-The separate matrix uses this exact binary. CC and ResPR remain separate
-live links.
+The separate matrix uses this exact binary. The remaining algorithms have
+separate artifact and board gates below.
 
 ### CC And ResPR Routed Timing Checkpoint
 
 On 2026-10-26, both remaining links completed routing and DFX DRC with zero
-errors. CC also passed the pre-bitstream DRC and entered bitstream generation.
-Neither link had completed its xclbin at this checkpoint. Their final routed
-timing reports, before any automatic frequency scaling, contain:
+errors. Their final routed timing reports, before any automatic frequency
+scaling, contain:
 
 | Algorithm | Setup WNS (ns) | TNS (ns) | Setup-failing endpoints | Hold WNS (ns) | Hold-failing endpoints |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -380,6 +379,17 @@ The reports are under each algorithm's
 
 - CC: `84805f408b449ec360fe98f419f136165fe64ca7f615c5fdb0b0e3e0aff10d2e`.
 - ResPR: `1c54e388ca5b87a4e15f217c5455c9a8fe19ddfac653486d3ce63f718fbf2d47`.
+
+CC subsequently completed bitstream generation and xclbin packaging. Its
+`route-zfs-v2/cc/results.json` is `ROUTED_NOT_BOARD_TESTED`: compiler exit
+zero after 15252.401 seconds, peak process-tree RSS 31624972 KiB, no watchdog
+stop, no cleanup error and no cgroup memory events. The xclbin SHA-256 is
+`3861b17a64de1b796feec4c230c89fb2f811492bd596819e315655804471f3e0`.
+An independent `xclbinutil` extraction, `cc-artifact-clocks-v1.json` under
+the live root, confirms DATA 150 MHz and HBM 450 MHz; its SHA-256 is
+`3806667118e96bca9a259f8ab3599c33eb5ebe9a205312dec5ddd3a17f9ffac4`.
+The existing strict routed-timing checker also accepts this final CC report.
+This admits the artifact to testing, not a CC performance or correctness claim.
 
 The existing routed-timing checker accepts CC and rejects ResPR at the
 requested frequencies. ResPR's failures comprise 18 DATA-clock endpoints
@@ -418,10 +428,13 @@ high/zero-swap group. Its status explicitly excludes matrix completion.
 
 This is a three-case checkpoint, not a completed eight-graph result or proof
 of an isolated cache-optimization speedup. It must not be mixed with the
-older full-cache control. The remaining 21 declared pairs are unfinished;
-SO is waiting for memory admission, and CC/ResPR still require their new
-routed artifacts and AU correctness gates. No terminal figure package has
-been exported.
+older full-cache control. The remaining 21 declared pairs are unfinished.
+After the CC compiler exited and released its finite reservation, SO was
+automatically admitted with a 32-GiB hard cap and began its warmup pair;
+no live cap, pin, or admission threshold was changed to force that admission.
+CC still requires its AU correctness gate; ResPR still requires a completed
+artifact and its AU correctness gate. No terminal figure package has been
+exported.
 
 ### Spine Artifact Audit, Not Recompilation
 
