@@ -159,6 +159,70 @@ logical updates, and runs until the new result converges. Reciprocal physical
 CC updates are not counted as extra logical updates. ResPR uses the shared
 fixed threshold `1e-6`, not threshold divided by vertex count.
 
+### ResPR Input Preconditions
+
+The eight frozen ResPR inputs were independently streamed on 2026-10-25.
+The scan checked their declared record counts, ordered initial source IDs,
+complete source coverage, and eight positive insertion records. Every initial
+vertex has an outgoing edge; insertion cannot introduce a sink.
+
+| Dataset | Vertices | Initial edges | Initial zero-outdegree vertices | Insertions |
+| --- | ---: | ---: | ---: | ---: |
+| AU | 515281 | 826848 | 0 | 8 |
+| SU | 567316 | 1075035 | 0 | 8 |
+| WK | 1140149 | 2190639 | 0 | 8 |
+| SO | 6024271 | 28299669 | 0 | 8 |
+| PK | 1632803 | 44603928 | 0 | 8 |
+| LJ | 4847571 | 85703436 | 0 | 8 |
+| LJ08 | 5363260 | 99028616 | 0 | 8 |
+| R19 | 524288 | 15672181 | 0 | 8 |
+
+This matters because the G+R oracle supports dangling-mass redistribution,
+whereas the Spine resident propagation reference uses sink-free semantics.
+For these particular old and updated snapshots the dangling contribution is
+zero. This check does not establish equivalence on graphs containing sinks,
+nor replace the final-state correctness checks on the FPGA.
+
+These are the existing `residual_sink_free` snapshots, not newly transformed
+inputs and not necessarily reciprocal graphs. Their historical construction
+adds one self-loop to every zero-outdegree vertex. For example, the AU
+`materialization_manifest.json` records
+`projection=add_self_loop_to_each_zero_outdegree_vertex_v1` and 436001 added
+self-loops. Consequently this matrix must be described as sink-completed
+ResPR workloads, not unmodified directed datasets. Both systems receive the
+same frozen files; graph SHA-256 identities are in `matrix-inputs-zfs-v2/plan.json`.
+
+For a quick independent source-coverage check of each frozen file:
+
+```bash
+LC_ALL=C timeout 600 awk '
+FNR == 1 {
+    if (NR > 1 && (rows != n || records != e + u)) exit 1;
+    n = $1; e = $2; u = $3; rows = 0; records = 0; previous = -1;
+    if (NF != 3 || n < 1 || u != 8) exit 1;
+    next;
+}
+{
+    records++;
+    if (records <= e) {
+        source = $1 + 0;
+        if (source < 0 || source >= n || source < previous) exit 1;
+        if (source != previous) rows++;
+        previous = source;
+    } else if (NF != 4 || $4 != 1) exit 1;
+}
+END { if (rows != n || records != e + u) exit 1; }
+' /data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/{au,su,wk,so,pk,lj,lj08,r19}_residual_pagerank_insert_u8.graph
+```
+
+This constant-memory source-coverage check is not a complete graph parser or
+a PageRank numerical oracle. An earlier full-field diagnostic hit its
+180-second execution timeout without a result; the completed source-coverage
+scan above exited zero under a 600-second timeout. Neither run supplies
+performance numbers for the FPGA comparison.
+
+### Resident Timing And Repetitions
+
 The resident wall-time interval includes update processing, adapter/R
 propagation, host launch/wait, inter-round relaunch and final readback.
 Initial graph/PMA creation and residency, old-state loading, batch preparation
