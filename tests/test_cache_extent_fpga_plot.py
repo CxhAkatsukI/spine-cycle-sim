@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.evaluation_impact.fpga_plot import (
-    BOUNDARY, DATASETS, STYLES, digest, load_delivery,
+    BOUNDARY, DATASETS, STYLES, digest, load_delivery, render,
 )
 
 
@@ -102,6 +104,74 @@ class CacheExtentFpgaPlotTests(unittest.TestCase):
         self.save()
         with self.assertRaisesRegex(ValueError, "passing-case count"):
             load_delivery(self.root)
+
+    def check_render(self, *, missing=(), ticks=()):
+        """Retain optional synthetic previews separately from hardware evidence."""
+        from PIL import Image
+
+        retained = os.environ.get("SPINE_FPGA_PLOT_TEST_OUTPUT")
+        if retained:
+            self.root = Path(retained).resolve() / self._testMethodName / "synthetic_fixture"
+            self.root.mkdir(parents=True, exist_ok=False)
+        self.save()
+        output = self.root / "synthetic_preview"
+        provenance = render(self.root, output)
+        self.assertEqual(provenance["passed_cases"], 24 - len(missing))
+        self.assertEqual(provenance["missing"], list(missing))
+        self.assertEqual(provenance["font"], "TX Typewriter (txtt)")
+        self.assertFalse(provenance["paper_modified"])
+        self.assertEqual(json.loads((output / "provenance.json").read_text()), provenance)
+        font_report = subprocess.run(
+            ["pdffonts", str(output / "fpga_speedup.pdf")], check=True,
+            capture_output=True, text=True, timeout=30,
+        ).stdout
+        pdf_text = subprocess.run(
+            ["pdftotext", "-layout", str(output / "fpga_speedup.pdf"), "-"], check=True,
+            capture_output=True, text=True, timeout=30,
+        ).stdout
+        for tick in ticks:
+            self.assertIn(tick, pdf_text.split())
+        self.assertIn("+txtt", font_report)
+        self.assertTrue((output / "fpga_speedup.pdf").read_bytes().startswith(b"%PDF-"))
+        with Image.open(output / "fpga_speedup.png") as picture:
+            self.assertGreater(picture.width, 1200)
+            self.assertGreater(picture.height, 700)
+            self.assertAlmostEqual(picture.info["dpi"][0], 500, places=1)
+            colors = dict((color, count) for count, color in picture.convert("RGB").getcolors(
+                picture.width * picture.height
+            ))
+            for _, _, hexadecimal, _ in STYLES:
+                color = tuple(bytes.fromhex(hexadecimal.removeprefix("#")))
+                self.assertGreater(colors.get(color, 0), 100)
+        (self.root / "synthetic_test.json").write_text(json.dumps({
+            "scope": "synthetic_renderer_test_not_FPGA_performance_evidence",
+            "test": self._testMethodName, "font_report": font_report, "pdf_text": pdf_text,
+            "preview_sha256": {name: digest(output / name) for name in
+                               ("fpga_speedup.pdf", "fpga_speedup.png", "provenance.json")},
+        }, indent=2) + "\n")
+        with self.assertRaisesRegex(ValueError, "fresh output"):
+            render(self.root, output)
+
+    @unittest.skipUnless(os.environ.get("SPINE_FPGA_PLOT_RENDER_TEST") == "1",
+                         "optional matplotlib/LaTeX/Poppler render test")
+    def test_render_all_slowdowns(self):
+        self.check_render(ticks=("0.2", "0.5", "1"))
+
+    @unittest.skipUnless(os.environ.get("SPINE_FPGA_PLOT_RENDER_TEST") == "1",
+                         "optional matplotlib/LaTeX/Poppler render test")
+    def test_render_wide_range_and_failed_case(self):
+        for index, (row, case) in enumerate(zip(self.rows, self.matrix["cases"], strict=True)):
+            ratio = (0.01, 0.25, 1, 4, 1000)[index % 5]
+            row.update(gr_ms=str(4 * ratio), speedup_gr_over_spine=str(ratio))
+            case["summary"]["walls"]["gr"]["median_ms"] = 4 * ratio
+            case["summary"]["speedup_ratio_of_median_walls"] = ratio
+        self.matrix.update(status="FPGA_MATRIX_INCOMPLETE_RETAINED", passed_cases=23)
+        self.matrix["cases"][0]["status"] = "FAILED_RETAINED"
+        self.rows[0].update(status="FAILED_RETAINED", gr_ms="", spine_ms="",
+                            speedup_gr_over_spine="")
+        self.check_render(missing=({"algorithm": "respr", "dataset": "AU",
+                                   "status": "FAILED_RETAINED"},),
+                          ticks=("0.01", "0.1", "1", "10", "100", "1000"))
 
 
 if __name__ == "__main__":

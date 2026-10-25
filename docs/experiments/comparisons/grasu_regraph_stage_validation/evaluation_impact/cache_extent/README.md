@@ -531,5 +531,28 @@ with an `x`, not assigned zero, projected or copied from an older experiment.
 The parser checks delivery-file hashes, complete matrix coverage and each CSV
 median/ratio against the terminal report. Pending matrices and matrices with
 no measured pair are rejected. PNG, PDF and renderer/input provenance are
-written to a fresh directory. Unit fixtures only test validation; they are not
-board results or replacement figure data.
+written to a fresh directory. These fixtures are synthetic tests, not board
+results or replacement figure data.
+
+The eight parser tests run without plotting dependencies. Two additional,
+explicitly enabled rendering tests require the `plots` extra, Pillow, LaTeX
+`txfonts`, and Poppler's `pdffonts`/`pdftotext`. They exercise all-slowdown and
+wide-range/failure fixtures, check the embedded `txtt` font, expected numeric
+ticks, nonblank colored PNG output and provenance, and reject overwriting an
+existing preview. Retained fixture directories and `synthetic_test.json`
+explicitly identify this non-performance scope:
+
+```bash
+SPINE_FPGA_PLOT_RENDER_TEST=1 \
+SPINE_FPGA_PLOT_TEST_OUTPUT=/path/to/fresh-synthetic-tests \
+python3 -m unittest discover -s tests -p test_cache_extent_fpga_plot.py -v
+```
+
+The visual smoke revealed that the original five-tick log locator skipped
+decades and could label only one for a narrow range. The stronger numeric-tick
+regression retained both failures in `plot-render-tick-regression-v1/`; the
+renderer now retains every decade and uses 1/2/5 ticks for narrow ranges.
+All ten tests pass in 4.760 s in `plot-render-smoke-v2/`, with a 177.1-MiB
+service peak under a 2-GiB hard/1.5-GiB high/zero-swap group. Both previews
+were visually inspected for layout. No measurement, running-matrix status,
+source pin, historical figure or paper was changed by this rendering fix.

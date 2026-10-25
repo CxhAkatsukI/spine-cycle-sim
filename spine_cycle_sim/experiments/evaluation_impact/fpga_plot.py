@@ -119,7 +119,9 @@ def render(directory: Path, output: Path) -> dict:
     axis.set_ylim(low, high)
     axis.set_xlim(-0.5, 7.5)
     axis.set_axisbelow(True)
-    axis.yaxis.set_major_locator(LogLocator(base=10, numticks=5))
+    # Keep each decade visible; narrow ranges also need intermediate labels.
+    tick_multiples = (1, 2, 5) if high / low <= 30 else (1,)
+    axis.yaxis.set_major_locator(LogLocator(base=10, subs=tick_multiples, numticks=12))
     axis.yaxis.set_major_formatter(FuncFormatter(lambda value, _: format(value, "g")))
     axis.yaxis.set_minor_locator(NullLocator())
     axis.grid(axis="y", linestyle="--", linewidth=0.45, color="#CFD3D5")
