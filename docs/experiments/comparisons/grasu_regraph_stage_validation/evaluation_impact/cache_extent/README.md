@@ -17,7 +17,7 @@ timing coefficient is introduced to remove it.
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | All three `route-zfs-v2` artifacts complete; ResPR metadata records DATA 149/HBM 432 MHz after automatic scaling, with an independent artifact audit |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | All eight SSSP pairs and CC AU/SU/WK passed (11 of 24 total); CC SO running; SSSP SO has a large retained timing outlier |
+| New-kernel FPGA comparisons | All eight SSSP pairs and CC AU/SU/WK/SO passed (12 of 24 total); CC PK running; SSSP SO has a large retained timing outlier |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -493,8 +493,8 @@ figure package has been exported.
 
 ### First CC Hardware Pairs
 
-CC AU, SU and WK passed their warmups and three measured pairs with zero
-mismatches and DATA clocks of 150 MHz. AU and SU need one propagation round
+CC AU, SU, WK and SO passed their warmups and three measured pairs with zero
+mismatches and DATA clocks of 150 MHz. AU, SU and SO need one propagation round
 on each architecture; WK needs two on each:
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine |
@@ -502,6 +502,7 @@ on each architecture; WK needs two on each:
 | AU | 11.873282 | 82.344700 | 0.144190 |
 | SU | 15.154997 | 81.735600 | 0.185415 |
 | WK | 75.355182 | 132.312000 | 0.569526 |
+| SO | 823.085436 | 112.630000 | 7.307870 |
 
 On AU, Spine is slower by approximately 6.94 times. Its measured samples are
 83.1385, 81.9327 and 82.3447 ms; G+R's are 11.920064, 11.694188 and
@@ -524,6 +525,14 @@ respectively. All four pairs report sixteen input records and two propagation
 rounds on both architectures. The 16-GiB group completed with zero memory
 events. The queue advanced to CC SO without replacing any measured sample.
 
+On SO, Spine is approximately 7.31 times faster. Its measured samples are
+112.281, 114.48 and 112.63 ms; G+R's are 823.797977, 823.006849 and
+823.085436 ms. Their coefficients of variation are 0.853% and 0.0432%,
+respectively. All four pairs report sixteen input records and one propagation
+round on both architectures. The 32-GiB group completed with zero memory
+events, and the queue advanced to CC PK. These results do not establish an
+all-workload CC win: the three smaller cases above favor G+R.
+
 The first measured AU Spine log reports 2.85992 ms dynamic device-event time
 but 83.1385 ms resident wall time. The resident boundary deliberately keeps
 host work, launch/wait and readback. This discrepancy is not evidence of a
@@ -533,38 +542,23 @@ SSSP-only `resident-scratch-v3/weighted_sssp.host` optimization. The matrix
 keeps those originally declared binaries unchanged; a later optimized-host
 experiment must be separate rather than replacing these samples.
 
-`independent-pair-audit-v7/results.json` reparses all four pairs for each of
-the eight SSSP cases and CC AU. It checks 1506 unique pinned files, clock
-dumps, and recomputed medians against the frozen plan. The audit completed
-in 19.140 seconds with 29.2-MiB process RSS, a 1-GiB hard/768-MiB high/
-zero-swap cap, whole-group OOM containment and zero memory events. Its
-verifier is integration commit `1aadfa7` on the independent
-`codex/cache-extent-delivery-review` branch, SHA-256
-`5da6016ec453338532e5660de36065eb7d8193a53b4804477de23bb9fd289584`.
-The snapshot status explicitly excludes matrix completion.
-
-The subsequent `independent-pair-audit-v8/results.json` also verifies CC SU,
-covering ten cases and all forty paired samples including warmups. It checks
-1507 unique pinned files using the same verifier and frozen plan, in 18.985
-seconds with 29.2-MiB process RSS. Its 1-GiB hard/768-MiB high/zero-swap group
-has whole-group OOM containment and zero memory events. This was the
-ten-case checkpoint, before WK completed.
-
-The new `independent-pair-audit-v9/results.json` verifies all eleven completed
-cases and forty-four paired samples including warmups. Besides raw logs,
-medians, clocks and 1508 unique pinned files, it validates each case's saved
+`independent-pair-audit-v10/results.json` verifies all twelve completed
+cases and forty-eight paired samples including warmups. Besides raw logs,
+medians, clocks and 1509 unique pinned files, it validates each case's saved
 hard/high limits, zero swap, whole-group OOM containment, admission and
 per-process budget/reserve policy, and zero post-run OOM counters. The audit
-took 15.412 seconds with 29.0-MiB process RSS under a 1-GiB hard/768-MiB high/
+took 18.996 seconds with 29.1-MiB process RSS under a 1-GiB hard/768-MiB high/
 zero-swap cap, with zero memory events. Its verifier is integration commit
 `bca49d0` (SHA-256
 `91d54436a94f8a1cf431031c1b25ba9217a9f168a7bfa056ce394165adc73138`).
 The matrix snapshot SHA-256 is
-`08f9c51b00337ab7f1b4194d9fbdd192db468beb36570a1decfed643b25305da`;
+`6d0076ba0d65eb957ca30ff107b1bb26e0db5e445e70ef087b9897300997d03d`;
 the plan SHA-256 remains
 `dcfa6e48f3db23f7ab6c213207c8f4a733093a1d8dd082ab055cc19bf5e57a92`.
-Thirteen CC/ResPR pairs remain unfinished; CC SO is running. This audit is a
+Twelve CC/ResPR pairs remain unfinished; CC PK is running. This audit is a
 read-only checkpoint, not a new board run or terminal delivery.
+The earlier `independent-pair-audit-v7/`, `v8/` and `v9/` directories retain
+their nine-, ten- and eleven-case snapshots and exact verifier identities.
 
 ### Spine Artifact Audit, Not Recompilation
 
