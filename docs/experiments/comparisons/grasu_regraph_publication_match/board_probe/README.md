@@ -2,6 +2,12 @@
 
 ## Result
 
+**All-Little follow-up:** [four Little, zero Big](launch_diagnosis.md#all-little-follow-up-four-little-zero-big)
+processes the complete Amazon graph and reaches 0.941 GTEPS warm baseline
+(0.958 GTEPS with author enqueue order); all ten executions pass correctness.
+This is A4, not the paper's fourteen-Little configuration. It does not
+establish a publication match or isolate the effect of removing Big.
+
 **Latest parameter control:** [numD=1 versus numD=3](dense_partitions.md)
 uses the same 11L3B bitstream and identical logical input. Warm median throughput
 increases from 1.110 to 1.518 GTEPS; all 20 executions pass the guarded oracle.

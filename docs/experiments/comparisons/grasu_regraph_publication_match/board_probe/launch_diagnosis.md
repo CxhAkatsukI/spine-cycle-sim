@@ -43,6 +43,48 @@ initial 12-run R probe used independent processes and therefore repeatedly
 measured first executions. Its approximately 0.557-GTEPS result remains valid
 for that cold boundary, not for warmed throughput.
 
+## All-Little Follow-Up: Four Little, Zero Big
+
+A separate board run uses the existing original-source A4 bitstream, not
+the mixed bitstream with work omitted. All twelve destination partitions
+run on four Little lanes: 48 tasks, zero Big tasks, 735,324 logical vertices,
+5,158,388 logical edges and 5,165,928 physical edges including padding.
+The graph, author-initial binding and logical oracle match the mixed-path
+controls. This remains one resident static PR superstep, not convergence.
+The board is U55C `0000:c1:00.1` at 150 MHz, with affinity 124,125.
+
+| A4 launch mode | Samples | Device event envelope | Full resident host wall | Throughput |
+| --- | --- | --- | --- | --- |
+| Baseline, first execution | 1 | 9.977 ms | 12.774 ms | 0.517 GTEPS |
+| Baseline, warm | 3, median | 5.480 ms | 5.509 ms | 0.941 GTEPS |
+| Author enqueue order, warm | 3, median | 5.385 ms | 5.405 ms | 0.958 GTEPS |
+| New per-task handles, warm negative control | 3, median | 5.935 ms | 1235.114 ms | 0.869 GTEPS |
+
+Warm baseline repetitions are 5.545, 5.480 and 5.400 ms. Throughput uses
+logical edges divided by the complete, overlap-aware device event envelope;
+initial DMA and final verification readback are excluded. Author-order
+post-enqueue wait is separately recorded (5.262 ms median), not substituted
+for that envelope. All ten executions pass the independent oracle, all four
+output replicas, padding, guards and immutable-input checks.
+
+**Removing Big is functional, but this measurement does not reproduce the
+paper's all-Little result.** Four Little lanes are not fourteen. Nor does
+comparison with the separate 11L3B control isolate Big's effect: both lane
+count and task partitioning differ. No linear extrapolation to fourteen
+Little lanes or to another frequency is claimed. This run also contains
+no PMA adapter and does not measure the latest sharded K4 path.
+
+Raw evidence is
+`/data/chuxiao/checks/original-r-a4-big0-warm-20261024-v1/results.json`, SHA-256
+`930b727f4904dc913acacdc06e4cb797d2bfc8eac6822bfa09f042ce04e66bee`.
+It pins the manifest, compiled host, frozen helpers, runtime and bitstream
+(`b19b89545306460298c080550860e8836d8e5beb71cf161d0eacee2aec60436e`).
+Reproduce with the guarded command below, replacing `--manifest` with
+`/data/chuxiao/experiments/baseline_hardware_validation_20261015/a4-board-supervisor-v3/manifest.json`
+and choosing a fresh output directory and service unit. No new routing or
+device-source changes were needed. The service completed in 17.445 seconds
+with a 313.4 MiB reported peak under the same 8 GiB cap and memory reserve.
+
 ## What The Timeline Establishes
 
 1. **First-execution effects are material.** First-wave gather/scatter starts
