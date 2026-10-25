@@ -17,7 +17,7 @@ timing coefficient is introduced to remove it.
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | `route-zfs-v2`: SSSP routed with passing final timing; CC and ResPR links running |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | 0 of 24 pairs; first SSSP AU task started |
+| New-kernel FPGA comparisons | 2 of 24 pairs passed: SSSP AU and SU; WK running |
 | Production SST bounded-cache option and numerical calibration | Not promoted or rerun |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -249,7 +249,7 @@ Live root: `/data/chuxiao/builds/grasu-cache-extent-20261025`.
 | `spine-respr-zfs-v1/` | Compiler completed; original dependency-postprocessing failure retained |
 | `spine-respr-zfs-audit-v1/` | Independent exact-binary/source/provenance/clock audit; routed, not board-tested |
 | `spine-respr-au-smoke-v1/` | Independent AU board correctness of the audited binary; not a paired measurement |
-| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; SSSP artifact ready, first AU task started |
+| `matrix-inputs-zfs-v3/plan.json`, `matrix-zfs-v3/` | Current frozen 24-case plan and runner; SSSP AU and SU passed, WK running |
 | `matrix-inputs-zfs-v2/plan.json`, `matrix-zfs-v2/` | Superseded and stopped before any board pair; eight ResPR rows were blocked by the wrapper failure |
 | `route-v1` through `route-v4`, `route-zfs-v1` | Retained attempts; no completed new-kernel board result |
 | `matrix-inputs-v1` through `matrix-inputs-v6`, `matrix-inputs-zfs-v1` | Historical immutable plans, not completed results |
@@ -287,8 +287,34 @@ TNS zero and no setup-failing endpoints; hold WNS +0.009 ns, THS zero and
 no hold-failing endpoints. All user-specified timing constraints are met.
 Intermediate negative-slack messages do not supersede that final report.
 This is a routed-artifact gate, not board correctness or a measured speedup.
-The matrix created SSSP AU with this exact binary; no paired sample had
-passed at this checkpoint. CC and ResPR remain separate live links.
+The separate matrix uses this exact binary. CC and ResPR remain separate
+live links.
+
+### First Paired Hardware Results
+
+SSSP AU and SU have each passed one warmup and three measured pairs. The
+following medians exclude the warmup and retain host relaunch and final
+readback. Both architectures start from the old converged distances, apply
+eight insertions and converge in two hardware rounds with zero mismatches.
+
+| Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine |
+| --- | ---: | ---: | ---: |
+| AU | 18.519382 | 4.302790 | 4.304040 |
+| SU | 27.683435 | 4.335280 | 6.385616 |
+
+These two rows were independently rechecked through the delivery verifier:
+all four raw paired logs were reparsed, measured medians recomputed, and
+manifest/source/host/bitstream/input hashes and actual clock dumps checked.
+Both DATA clocks are 150 MHz. Evidence lives in
+`matrix-zfs-v3/sssp-{au,su}/`, including `results.json`, `manifest.json`,
+clock dumps and four `sample-*` directories. The recheck ran in a 2-GiB
+hard/1.5-GiB high/zero-swap scope and exited zero.
+
+This is a two-case checkpoint, not a completed eight-graph result or proof
+of an isolated cache-optimization speedup. It must not be mixed with the
+older full-cache control. The remaining 22 declared pairs are unfinished;
+WK is running, and CC/ResPR still require their new routed artifacts and AU
+correctness gates. No terminal figure package has been exported.
 
 ### Spine Artifact Audit, Not Recompilation
 
@@ -401,8 +427,9 @@ actual data frequencies, copied reports/manifests/logs and a file-hash index.
 Large bitstreams, graphs and compiler trees remain at the indexed original
 locations. Twelve cache-study/export tests pass, including rejection of old
 kernel controls, changed logs/hashes and unfinished or duplicated matrices.
-This exporter has not yet packaged the pending new-kernel board matrix;
-there is still no claim of completed FPGA results at this checkpoint.
+This exporter has not yet packaged the running new-kernel board matrix.
+The two passing SSSP cases above do not constitute the complete 24-case
+delivery and are not exported by relabeling pending cases as terminal.
 
 ### Hardware Speedup Preview
 
