@@ -17,7 +17,7 @@ timing coefficient is introduced to remove it.
 | Fresh Release core build and complete CTest suite | 31 of 31 passed |
 | Revised G+R SSSP, CC, ResPR hardware | All three `route-zfs-v2` artifacts complete; ResPR metadata records DATA 149/HBM 432 MHz after automatic scaling, with an independent artifact audit |
 | Sparse-apply Spine ResPR hardware | Compiler and artifact audit passed; independent AU board correctness passed, not a paired speedup |
-| New-kernel FPGA comparisons | 5 of 24 pairs passed: SSSP AU, SU, WK, SO and PK; LJ running; SO has a large retained timing outlier |
+| New-kernel FPGA comparisons | 6 of 24 pairs passed: SSSP AU, SU, WK, SO, PK and LJ; LJ08 running; SO has a large retained timing outlier |
 | Production SST bounded-cache option | Explicit, default-off wiring and five real-SST checks passed; not FPGA-cycle calibrated or promoted into frozen figures |
 
 Queued, exported and routed are separate gates. The live result files below
@@ -419,11 +419,12 @@ reports nor SSSP pairs establish CC/ResPR performance.
 
 ### First Paired Hardware Results
 
-SSSP AU, SU, WK, SO and PK have each passed one warmup and three measured pairs. The
-following medians exclude the warmup and retain host relaunch and final
+SSSP AU, SU, WK, SO, PK and LJ have each passed one warmup and three measured
+pairs. The following medians exclude the warmup and retain host relaunch and final
 readback. Both architectures start from the old converged distances, apply
 eight insertions and converge with zero mismatches. AU, SU and PK take two
-hardware rounds on each architecture; WK and SO take one on each.
+hardware rounds on each architecture; WK and SO take one on each, and LJ
+takes three on each.
 
 | Dataset | G+R median wall (ms) | Spine median wall (ms) | G+R / Spine |
 | --- | ---: | ---: | ---: |
@@ -432,19 +433,21 @@ hardware rounds on each architecture; WK and SO take one on each.
 | WK | 27.489030 | 4.525010 | 6.074910 |
 | SO | 751.955400 | 18.033600 | 41.697465 |
 | PK | 617.562590 | 8.197890 | 75.331895 |
+| LJ | 2891.509930 | 32.427600 | 89.168176 |
 
-These five rows were independently rechecked through the delivery verifier:
+These six rows were independently rechecked through the delivery verifier:
 all four raw paired logs were reparsed, measured medians recomputed, and
 manifest/source/host/bitstream/input hashes and actual clock dumps checked.
 Both DATA clocks are 150 MHz. Evidence lives in
-`matrix-zfs-v3/sssp-{au,su,wk,so,pk}/`, including `results.json`, `manifest.json`,
+`matrix-zfs-v3/sssp-{au,su,wk,so,pk,lj}/`, including `results.json`, `manifest.json`,
 clock dumps and four `sample-*` directories. The saved independent recheck
-is `independent-pair-audit-v3/results.json`, alongside its exact matrix
-checkpoint and plan. It verified 1472 unique pinned files, exited zero in
-18.799 seconds and peaked at 29.2 MiB process RSS under a 1-GiB
+is `independent-pair-audit-v4/results.json`, alongside its exact matrix
+checkpoint and plan. It verified 1473 unique pinned files, exited zero in
+18.737 seconds and peaked at 29.0 MiB process RSS under a 1-GiB
 hard/768-MiB high/zero-swap group, with zero memory events. The additional
-files are SO and PK's generated configurations. Its status explicitly excludes
-matrix completion; the earlier three- and four-pair audits are retained.
+files are SO, PK and LJ's generated configurations. Its status explicitly
+excludes matrix completion; the earlier three-, four- and five-pair audits
+are retained.
 
 SO's three measured Spine walls are 15.5080, 18.0336 and 73.8605 ms, giving
 a coefficient of variation of 75.23%; G+R's is 1.10%. The slow Spine sample
@@ -455,15 +458,18 @@ measurements. The evidence does not identify the cause of the SO outlier;
 do not claim stable isolated latency or silently discard it. Any follow-up
 repetition needs a separate declared run, not replacement of this matrix.
 
-This is a five-case checkpoint, not a completed eight-graph result or proof
+This is a six-case checkpoint, not a completed eight-graph result or proof
 of an isolated cache-optimization speedup. It must not be mixed with the
-older full-cache control. The remaining 19 declared pairs are unfinished.
+older full-cache control. The remaining 18 declared pairs are unfinished.
 PK's three measured walls are 617.562590, 617.141686 and 618.312945 ms for G+R,
 and 8.14950, 8.19789 and 8.72169 ms for Spine. Their coefficients of variation
 are 0.0784% and 3.10%, respectively. SO and PK completed under their 32- and
-24-GiB hard caps with zero memory events, and the queue automatically advanced
-to LJ. No live cap, pin, or admission threshold
-was changed to force admission.
+24-GiB hard caps with zero memory events.
+LJ's three measured walls are 2891.509930, 2892.872392 and 2889.139468 ms
+for G+R, and 31.0370, 32.7241 and 32.4276 ms for Spine. Their coefficients
+of variation are 0.0533% and 2.29%, respectively. LJ completed under its
+32-GiB hard cap with zero memory events; the queue automatically advanced
+to LJ08. No live cap, pin, or admission threshold was changed to force admission.
 CC and ResPR still require their AU correctness gates. All three revised
 G+R artifacts are now available to the queue. No terminal figure package
 has been exported.
@@ -580,7 +586,7 @@ Large bitstreams, graphs and compiler trees remain at the indexed original
 locations. Twelve cache-study/export tests pass, including rejection of old
 kernel controls, changed logs/hashes and unfinished or duplicated matrices.
 This exporter has not yet packaged the running new-kernel board matrix.
-The five passing SSSP cases above do not constitute the complete 24-case
+The six passing SSSP cases above do not constitute the complete 24-case
 delivery and are not exported by relabeling pending cases as terminal.
 
 ### Hardware Speedup Preview
