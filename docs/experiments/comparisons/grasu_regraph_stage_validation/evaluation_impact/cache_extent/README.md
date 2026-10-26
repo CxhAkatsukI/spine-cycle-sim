@@ -6,6 +6,11 @@ modify the paper, assume Spine wins, or claim original-publication matching.
 
 ## Reading Order
 
+The [Spine host follow-up](fpga_results_v2/README.md) is in progress. Its AU
+gate passes; do not treat that gate as the complete matrix. The v1 package
+below remains the last independently reviewed complete delivery until v2's
+terminal verification and review finish.
+
 | Question | Read |
 | --- | --- |
 | What are the measured results, boundaries and limitations? | [Review summary](REPORT.md) |
@@ -15,7 +20,7 @@ modify the paper, assume Spine wins, or claim original-publication matching.
 | What does the isolated cache prediction demonstrate? | [Component ledger](component_prediction.csv), interpreted in the runbook |
 | What is the accepted ReGraph publication-scale gap? | [Original-R board control](../../../grasu_regraph_publication_match/board_probe/dense_partitions.md) |
 
-The final matrix contains 24 passing cases and 96 paired runs, including
+The v1 matrix contains 24 passing cases and 96 paired runs, including
 warmups. Its portable archive, plot and diagnostics have passed independent
 reparsing and isolated reproduction. The review summary reports both wins
 and losses; correctness admission does not mean Spine wins every case.

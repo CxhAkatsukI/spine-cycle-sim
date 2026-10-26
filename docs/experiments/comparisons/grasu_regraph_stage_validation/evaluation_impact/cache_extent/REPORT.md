@@ -1,5 +1,19 @@
 # Revised FPGA Comparison: Review Summary
 
+## Host Follow-Up In Progress
+
+The [v2 host follow-up](fpga_results_v2/README.md) rebuilds Spine CC/ResPR
+from the already existing optimized source, while retaining the exact six
+bitstreams, workloads, thresholds and measured boundary. The independent AU
+gate favors Spine by 3.764x for CC and 2.817x for zero-round ResPR. The full
+24-case rerun and terminal review are not complete yet. Do not replace full
+matrix rows with those gate measurements.
+
+The results below are the completed, immutable **v1** campaign, which used
+older CC/ResPR hosts and the optimized SSSP host. They remain evidence of
+that configuration rather than the final performance of the optimized
+CC/ResPR runtime. No paper or frozen package is overwritten.
+
 ## Decision And Scope
 
 The **final 24-of-24 FPGA matrix passes its correctness gates**: eight full

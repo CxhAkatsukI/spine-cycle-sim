@@ -11,6 +11,54 @@ hash-verified source, HLS, route and regression evidence, including failed
 attempts. The separate [final board package](fpga_results_v1/README.md)
 contains all 24 cases, figure/code, raw logs and the final review receipt.
 
+## Spine Host-Only Follow-Up
+
+The [v2 follow-up](fpga_results_v2/README.md) reuses all six bitstreams and
+the frozen v1 workloads, clocks, thresholds and timing boundary. The v1
+matrix used the optimized SSSP executable but older CC/ResPR executables;
+v2 rebuilds those two hosts from the existing optimized source. No new FPGA
+compilation is required. The full matrix is running; v1 remains immutable.
+
+Source commit: `cb42376663c534f0bd0c25d271737ca34893135e` in the Spine
+repository. The change establishes residency for device-written scratch
+without uploading its undefined initial contents, and avoids clearing unused
+active-buffer tails or restoring unchanged static metadata. Counted device
+outputs still must be produced before consumption. Host correction, relaunch
+and final readback remain timed; this is not a new autonomous kernel path.
+
+The independently checked AU gate records CC 3.124300 versus 11.758630 ms
+(3.763605x) and ResPR 7.350940 versus 20.705205 ms (2.816674x), with values
+ordered Spine then G+R. Both ResPR implementations and their CPU oracle
+require zero propagation rounds. These gate values are not replacements for
+the separate full-matrix samples.
+
+The integration repository owns the small preparation and matrix drivers:
+`validation/cache_extent/host_followup.py` and `host_matrix.py`. The machine
+root is `/data/chuxiao/checks/spine-cc-respr-host-20261026`:
+
+| Path | Purpose |
+| --- | --- |
+| `regression-v1/` | Four algorithm specializations compile; off-board runtime checks for SSSP, CC and ResPR |
+| `default-hosts-v1/` | Clean-source CC/ResPR executables, default flags and build/hash receipts |
+| `au-inputs-v1/`, `au-matrix-v1/` | Derived AU contract and independent correctness/performance gate |
+| `full-inputs-v1/plan.json` | Complete derived plan; only CC/ResPR host paths change |
+| `full-matrix-v1/` | Retained optional-pin-size admission failure, before any board execution |
+| `full-matrix-v2/` | Fresh full run after the pin-schema fix |
+
+The schema correction accepts equal path/hash pins when only one carries
+optional size metadata; two supplied sizes must still agree. It neither
+changes a measured event nor discards an unsuccessful board sample. The
+runner checks all parent pins before and after the matrix, and the current
+graph plus every non-workload pin before each sample. This avoids repeatedly
+rehashing unrelated large graph files without weakening their final checks.
+
+Memory policy remains finite 16/24/32-GiB per-case groups, zero swap and a
+24-GiB admission reserve; build/export/review supervisors have separate caps.
+The final package must independently reparse all warmup and formal logs,
+verify the unchanged workload/clock/round-count contract, reproduce the
+unchanged plot and profile code in isolation, and retain old/new medians.
+None of these checks establishes new simulator cycle calibration.
+
 ## What Is Being Delivered
 
 The requested follow-up is an actual SSSP/CC/ResPR G+R versus Spine FPGA
