@@ -1,20 +1,89 @@
 # Revised FPGA Comparison: Review Summary
 
-## Host Follow-Up In Progress
+## Current V2 Decision
 
-The [v2 host follow-up](fpga_results_v2/README.md) rebuilds Spine CC/ResPR
-from the already existing optimized source, while retaining the exact six
-bitstreams, workloads, thresholds and measured boundary. The independent AU
-gate favors Spine by 3.764x for CC and 2.817x for zero-round ResPR. The full
-24-case rerun and terminal review are not complete yet. Do not replace full
-matrix rows with those gate measurements.
+The [v2 host follow-up](fpga_results_v2/README.md) is complete: all 24 cases
+and 96 paired runs pass correctness, provenance and memory checks. Raw-log
+reparsing, isolated reproduction and visual review pass. **Spine is faster
+on all eight measured graphs for each algorithm.** Use the
+[current preview](fpga_results_v2/figure/fpga_speedup.png),
+[exact data](fpga_results_v2/summary.csv),
+[old/new medians](fpga_results_v2/comparison.csv) and
+[review receipt](fpga_results_v2/review/README.md).
 
-The results below are the completed, immutable **v1** campaign, which used
-older CC/ResPR hosts and the optimized SSSP host. They remain evidence of
-that configuration rather than the final performance of the optimized
-CC/ResPR runtime. No paper or frozen package is overwritten.
+Values below are `median G+R wall / median Spine wall`, using three formal
+pairs after one excluded warmup. All samples remain; no timing fit or
+frequency normalization is applied.
 
-## Decision And Scope
+| Graph | SSSP | CC | ResPR |
+| --- | ---: | ---: | ---: |
+| AU | 4.355 | 3.868 | 3.083 |
+| SU | 6.252 | 5.391 | 3.465 |
+| WK | 7.099 | 9.991 | 4.069 |
+| SO | 45.991 | 32.647 | 5.589 |
+| PK | 74.174 | 57.562 | 3.327 |
+| LJ | 96.479 | 78.626 | 5.095 |
+| LJ08 | 91.021 | 76.674 | 4.494 |
+| R19 | 19.512 | 16.099 | 1.492 |
+
+Ranges are SSSP 4.36--96.48x, CC 3.87--78.63x and ResPR 1.49--5.59x.
+**All frozen ResPR cases require zero propagation rounds on both systems
+and their CPU oracles.** These are update/correction/completion speedups,
+not evidence for iterative PR propagation. Formal SSSP and CC round counts
+match between systems and are preserved in the CSV.
+
+### What Changed From V1
+
+The v1 campaign used the optimized Spine SSSP executable but older CC/ResPR
+hosts. V2 builds those two specializations from the already existing clean
+optimized source, commit `cb42376663c534f0bd0c25d271737ca34893135e`. It changes
+no HLS source or bitstream. Scratch residency avoids an implicit first-use
+upload of an unused 512-MiB host active-record buffer; the device writes
+consumed counted prefixes before use. The runtime also avoids clearing
+unused active-array tails and copying the full unchanged 44-MiB metadata.
+Host correction, active publication, consistency checks, relaunch and final
+readback remain in their original paths and timed window. This does not
+introduce a new autonomous kernel.
+
+The exact six bitstreams, workloads, batches, thresholds, clocks, formal
+propagation counts and resident boundary are unchanged. The boundary includes
+host launch/wait, inter-round relaunch and final readback, but excludes initial
+graph/PMA preparation, residency, old-state preload, batch preparation/upload
+and CPU oracles on both sides. It is not whole-startup latency.
+
+Spine CC AU changes from 82.3447 to 3.05053 ms, and WK from 132.312 to
+7.54539 ms; unchanged G+R CC medians vary by at most 1.3%. These independently
+collected campaigns are not a simultaneous controlled A/B test of every
+optimization. SSSP's executable is unchanged, so its measured variations
+are not attributed to code changes. All raw samples are retained.
+
+### Current Evidence And Limits
+
+The machine-local v2 root is
+`/data/chuxiao/checks/spine-cc-respr-host-20261026`. `full-matrix-v2/` is the
+terminal passing matrix. `full-matrix-v1/` retains a pre-board pin-schema
+admission failure; no board sample ran in that attempt. The portable archive
+contains 638 hash-verified files, including all paired logs, frozen plans,
+source/build receipts and the old/new contract comparison. The unchanged
+Python renderer and profile analyzer reproduce outside the checkouts.
+
+All 24 saved case memory-event records have zero `high`, `max`, `oom`,
+`oom_kill` and `oom_group_kill` events, under finite 16/24/32-GiB hard limits,
+zero swap and a 24-GiB admission reserve. The independent 2-GiB-capped
+reproduction peaked at 124.8 MiB. No paper or frozen figure is overwritten.
+
+This remains a resident FPGA comparison, not new simulator calibration or
+original-publication matching. ResPR's actual G+R DATA 149/HBM 432-MHz and
+Spine DATA 150/HBM 448-MHz clocks remain disclosed. Event unions do not
+isolate exclusive internal stages, and wall minus event union is not pure
+host time. The approximately 2.47x original-R publication-scale ratio remains
+a separate limitation. See the v2 README for the complete contract.
+
+## Historical V1 Decision And Scope
+
+Everything below this heading describes the immutable v1 campaign, not the
+current v2 performance. Its older CC/ResPR hosts produced the losses recorded
+below. The original data and conclusions are retained rather than rewritten.
 
 The **final 24-of-24 FPGA matrix passes its correctness gates**: eight full
 graph workloads for each of SSSP, CC and ResPR. Every case has one excluded
@@ -31,7 +100,7 @@ ResPR also favors Spine on four and G+R on four.
 All eight ResPR cases have zero propagation rounds on both implementations;
 they measure update/correction/completion, not iterative PR propagation.
 
-## Measured Speedups
+## Historical V1 Speedups
 
 Values are `median G+R wall / median Spine wall`: above one favors Spine;
 below one favors G+R. No frequency normalization, fitted timing adjustment
@@ -53,7 +122,7 @@ ratios, actual clocks and all formal propagation counts. Raw samples, matrix,
 plan and file-hash index are in the package's `raw_evidence.tar.gz`, under
 `evidence/`. Earlier partial checkpoints remain historical evidence.
 
-## Comparison Contract
+## V1 Comparison Contract
 
 - Both systems start from the same frozen old-graph converged state, apply
   the same batch and satisfy the same final correctness/convergence gate.
@@ -75,7 +144,7 @@ plan and file-hash index are in the package's `raw_evidence.tar.gz`, under
   The tiny SSSP source-active preparation is outside G+R's interval but inside
   Spine's device path. This asymmetry is disclosed, not corrected by subtraction.
 
-## What Was Fixed And Verified
+## V1 Implementation Checks
 
 The shared G+R host helper explicitly establishes initial input residency
 before updates. A final cache-extent argument then limits GraSU preload and
@@ -95,7 +164,7 @@ Spine ResPR's successful route was independently audited after a dependency
 postprocessing failure; that failed wrapper result was preserved. Its AU
 smoke is distinct from the subsequent paired matrix samples.
 
-## Important Limitations
+## V1 Limitations
 
 - CC losses are real measurements from the frozen current Spine CC host,
   not silently replaced by the separately optimized SSSP host. Aggregate
@@ -112,7 +181,7 @@ smoke is distinct from the subsequent paired matrix samples.
   Their difference is not pure host time, and this study does not calibrate
   the paper's stage-breakdown figure or replace any paper data.
 
-## Evidence And Final Checks
+## V1 Evidence And Checks
 
 Machine-local evidence root:
 `/data/chuxiao/builds/grasu-cache-extent-20261025`.

@@ -2,9 +2,39 @@
 
 ## Status
 
-The independent AU gate passes for CC and ResPR. The complete frozen
-24-case matrix is running; this directory is not yet a final delivery.
-Do not substitute the AU gate for the full-matrix measurements.
+Complete: all 24 cases and 96 paired runs, including excluded warmups, pass
+the terminal correctness, provenance and memory checks. Independent archive
+verification, isolated plot/profile reproduction and visual review also pass.
+The eight measured cases for each algorithm favor Spine. This is a resident
+FPGA comparison, not a new simulator calibration or a publication match.
+
+## Measured Results
+
+Values are `median G+R wall / median Spine wall`; above one favors Spine.
+Every row uses three formal paired runs. No sample is discarded and no ratio
+is fitted or frequency-normalized. There are no projected or timeout rows.
+
+| Graph | SSSP | CC | ResPR |
+| --- | ---: | ---: | ---: |
+| AU | 4.355 | 3.868 | 3.083 |
+| SU | 6.252 | 5.391 | 3.465 |
+| WK | 7.099 | 9.991 | 4.069 |
+| SO | 45.991 | 32.647 | 5.589 |
+| PK | 74.174 | 57.562 | 3.327 |
+| LJ | 96.479 | 78.626 | 5.095 |
+| LJ08 | 91.021 | 76.674 | 4.494 |
+| R19 | 19.512 | 16.099 | 1.492 |
+
+Ranges are 4.36--96.48x for SSSP, 3.87--78.63x for CC and 1.49--5.59x for
+ResPR. **All eight ResPR cases have zero propagation rounds on both sides
+and their CPU oracles.** Their ratios demonstrate update/correction/completion
+performance, not iterative PageRank propagation. SSSP has one to three rounds;
+CC has one or two, with matching formal counts on both implementations.
+
+See the [PNG preview](figure/fpga_speedup.png), [vector PDF](figure/fpga_speedup.pdf),
+[exact measurements](summary.csv), [old/new comparison](comparison.csv) and
+[independent review](review/README.md). The plot uses the existing Python
+renderer and TX Typewriter font; it is not inserted into the paper.
 
 ## What Changed
 
@@ -27,6 +57,12 @@ active publication, kernel relaunch, correctness-related consistency checks
 and full-state readback remain in their existing paths and measured window.
 The before/after matrix compares host versions collected at different times,
 not a simultaneous controlled A/B test of each individual optimization.
+
+For example, Spine CC's AU median changes from 82.3447 to 3.05053 ms, and
+WK from 132.312 to 7.54539 ms. The unchanged G+R CC medians vary by at most
+1.3% between campaigns. The measurements support the shared-host correction,
+but do not isolate the contribution of each optimization. SSSP uses the
+same executable as v1; its timing variation is not a code improvement.
 
 ## Fixed Comparison Contract
 
@@ -54,7 +90,7 @@ not a simultaneous controlled A/B test of each individual optimization.
 
 ## Package And Reproduction
 
-After terminal verification, the package contains:
+The reviewed package contains:
 
 | Path | Purpose |
 | --- | --- |
@@ -65,9 +101,30 @@ After terminal verification, the package contains:
 | `code/board_review/` | Unchanged plot/profile source snapshots |
 | `raw_evidence.tar.gz` | Raw logs, plans, hashes, regression/build receipts and packaging recipe |
 | `manifest.json` | Every archived/readable artifact's size and SHA-256 |
-| `review/` | Isolated reproduction command and review receipt |
+| `review/` | Isolated reproduction command, four PDF-review regression tests and review receipt |
 
-Extract into a fresh directory and reproduce without a board:
+The archive contains 638 hash-verified files (26,148,595 uncompressed bytes;
+3,432,034 compressed bytes), including every paired raw log. The final
+exporter reparses all warmup and formal logs and verifies source, binary,
+input, clock and memory records. The old/new contract check retains the
+same graph, batch, threshold, boundary, clocks and formal round counts.
+
+For the complete automated archive and reproduction check, use a fresh
+directory outside the package:
+
+```bash
+python3 -B /path/to/this-package/review/review-fpga-delivery-v2.py \
+  --package /path/to/this-package --output /path/to/fresh-review
+```
+
+This requires Python 3.12 or later, Matplotlib, NumPy, Pillow, LaTeX with
+`txfonts`, MuPDF (`mutool`) and Poppler (`pdffonts`). The recorded environment
+is `/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python`. The automatic
+receipt leaves visual inspection pending; [the review note](review/README.md)
+records the subsequently completed visual check without rewriting the receipt.
+
+To run the two bundled plotting/analysis modules manually without a board,
+first create a fresh extraction directory:
 
 ```bash
 tar -xzf /path/to/this-package/raw_evidence.tar.gz -C /path/to/fresh-review
@@ -89,10 +146,14 @@ Machine-local root: `/data/chuxiao/checks/spine-cc-respr-host-20261026`.
 or removed. The corrected deduplication validates identical path/hash pins
 with optional size metadata; it does not move a measured event.
 
-The finite per-case memory limits are 16/24/32 GiB, with zero swap and a
+All 24 saved case memory-event records have zero `high`, `max`, `oom`,
+`oom_kill` and `oom_group_kill` events. The finite per-case limits are
+16/24/32 GiB, with zero swap and a
 24-GiB admission reserve. Admission uses Linux `MemAvailable` plus bounded
 evictable ZFS ARC data, not `MemFree` or all cached memory. Supervisor and
 build/review jobs have separate finite limits.
+The isolated reproduction used a 2-GiB hard cap, 1.5-GiB high watermark and
+zero swap, peaking at 124.8 MiB according to systemd's service report.
 
 No paper or frozen simulator figure is edited. This package does not establish
 new simulator timing calibration or original-publication performance matching.

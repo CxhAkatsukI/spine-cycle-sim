@@ -2,9 +2,12 @@
 
 The current hardware follow-up is the [bounded GraSU cache and resident FPGA
 matrix](cache_extent/README.md). It separates the host residency fix, the
-source-grounded opt-in core model, fresh HLS/ABI exports and the pending
-24-case revised-kernel board comparison. Earlier controls below keep their
-original evidence boundaries.
+source-grounded opt-in core model, fresh HLS/ABI exports and the completed
+24-case revised-kernel board comparison. The reviewed
+[Spine host follow-up](cache_extent/fpga_results_v2/README.md) reuses the same
+bitstreams and favors Spine on all 24 cases; the eight ResPR cases measure
+zero-propagation update/correction/completion. Earlier controls below keep
+their original evidence boundaries and do not inherit a new timing calibration.
 
 ## Acceptance Order
 

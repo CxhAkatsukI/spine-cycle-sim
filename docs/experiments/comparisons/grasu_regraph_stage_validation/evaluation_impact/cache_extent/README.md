@@ -6,24 +6,27 @@ modify the paper, assume Spine wins, or claim original-publication matching.
 
 ## Reading Order
 
-The [Spine host follow-up](fpga_results_v2/README.md) is in progress. Its AU
-gate passes; do not treat that gate as the complete matrix. The v1 package
-below remains the last independently reviewed complete delivery until v2's
-terminal verification and review finish.
+The [Spine host follow-up](fpga_results_v2/README.md) is the current reviewed
+delivery: all 24 cases pass, and Spine is faster on all eight graphs for
+each algorithm. All eight ResPR cases have zero propagation rounds, so those
+ratios measure update/correction/completion, not iterative propagation.
+The older v1 package remains unchanged as historical evidence.
 
 | Question | Read |
 | --- | --- |
 | What are the measured results, boundaries and limitations? | [Review summary](REPORT.md) |
-| Where are the final 24-case data, figure, code and raw logs? | [FPGA delivery package](fpga_results_v1/README.md), [preview](fpga_results_v1/figure/fpga_speedup.png), [review receipt](fpga_results_v1/review/README.md) |
+| Where are the final 24-case data, figure, code and raw logs? | [Current FPGA package](fpga_results_v2/README.md), [preview](fpga_results_v2/figure/fpga_speedup.png), [review receipt](fpga_results_v2/review/README.md) |
+| What changed from the older Spine hosts? | [Exact old/new medians](fpga_results_v2/comparison.csv), [retained v1 package](fpga_results_v1/README.md) |
 | Where are the source, HLS, route and regression checks? | [Portable supporting evidence](implementation_evidence/README.md) |
 | What exactly changed, and how were experiments executed? | [Technical runbook](RUNBOOK.md) |
 | What does the isolated cache prediction demonstrate? | [Component ledger](component_prediction.csv), interpreted in the runbook |
 | What is the accepted ReGraph publication-scale gap? | [Original-R board control](../../../grasu_regraph_publication_match/board_probe/dense_partitions.md) |
 
-The v1 matrix contains 24 passing cases and 96 paired runs, including
+The v2 matrix contains 24 passing cases and 96 paired runs, including
 warmups. Its portable archive, plot and diagnostics have passed independent
-reparsing and isolated reproduction. The review summary reports both wins
-and losses; correctness admission does not mean Spine wins every case.
+reparsing, isolated reproduction and visual review. SSSP speedups are
+4.36--96.48x, CC 3.87--78.63x and zero-round ResPR 1.49--5.59x. These are
+measured ratios on the frozen resident comparison, not an assumed win gate.
 
 ## Evidence Boundaries
 
@@ -36,7 +39,8 @@ and losses; correctness admission does not mean Spine wins every case.
   new full-system timing calibration or replace frozen simulator figures.
 
 Raw machine-local evidence is under
-`/data/chuxiao/builds/grasu-cache-extent-20261025` on trifoliate. The portable
+`/data/chuxiao/checks/spine-cc-respr-host-20261026` for v2 and
+`/data/chuxiao/builds/grasu-cache-extent-20261025` for v1 on trifoliate. The portable
 supporting archive preserves its indexed records without copying large
 bitstreams, graphs or compiler build trees into Git.
 

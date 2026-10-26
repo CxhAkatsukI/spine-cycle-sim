@@ -8,7 +8,7 @@ historical snapshots, not substitutes for the current review summary.
 
 The [portable supporting records](implementation_evidence/README.md) contain
 hash-verified source, HLS, route and regression evidence, including failed
-attempts. The separate [final board package](fpga_results_v1/README.md)
+attempts. The separate [current board package](fpga_results_v2/README.md)
 contains all 24 cases, figure/code, raw logs and the final review receipt.
 
 ## Spine Host-Only Follow-Up
@@ -17,7 +17,15 @@ The [v2 follow-up](fpga_results_v2/README.md) reuses all six bitstreams and
 the frozen v1 workloads, clocks, thresholds and timing boundary. The v1
 matrix used the optimized SSSP executable but older CC/ResPR executables;
 v2 rebuilds those two hosts from the existing optimized source. No new FPGA
-compilation is required. The full matrix is running; v1 remains immutable.
+compilation is required. The full matrix and independent delivery review
+are complete; v1 remains immutable.
+
+All 24 cases and 96 paired runs pass. Measured G+R/Spine wall ratios favor
+Spine in every case: SSSP 4.36--96.48x, CC 3.87--78.63x, and ResPR
+1.49--5.59x. All eight ResPR cases have zero propagation rounds on both sides
+and their CPU oracles; the PR claim is update/correction/completion only.
+The current full table is in [the review summary](REPORT.md), not the
+independent AU gate below.
 
 Source commit: `cb42376663c534f0bd0c25d271737ca34893135e` in the Spine
 repository. The change establishes residency for device-written scratch
@@ -44,6 +52,9 @@ root is `/data/chuxiao/checks/spine-cc-respr-host-20261026`:
 | `full-inputs-v1/plan.json` | Complete derived plan; only CC/ResPR host paths change |
 | `full-matrix-v1/` | Retained optional-pin-size admission failure, before any board execution |
 | `full-matrix-v2/` | Fresh full run after the pin-schema fix |
+| `terminal-delivery-v1/` | Strict reparse of all 96 raw pairs, contract check, plot and event diagnostics |
+| `portable-delivery-v1/` | Archive with 638 files, source snapshots, PNG/PDF, full CSVs and old/new medians |
+| `roundtrip-v1/` | Independent isolated reproduction; byte-identical PNG/CSVs, equivalent PDF and embedded txtt |
 
 The schema correction accepts equal path/hash pins when only one carries
 optional size metadata; two supplied sizes must still agree. It neither
@@ -54,12 +65,30 @@ rehashing unrelated large graph files without weakening their final checks.
 
 Memory policy remains finite 16/24/32-GiB per-case groups, zero swap and a
 24-GiB admission reserve; build/export/review supervisors have separate caps.
-The final package must independently reparse all warmup and formal logs,
-verify the unchanged workload/clock/round-count contract, reproduce the
-unchanged plot and profile code in isolation, and retain old/new medians.
+The final package independently reparses all warmup and formal logs,
+verifies the unchanged workload/clock/round-count contract, reproduces the
+unchanged plot and profile code in isolation, and retains old/new medians.
 None of these checks establishes new simulator cycle calibration.
 
-## What Is Being Delivered
+All 24 saved case memory-event records show zero pressure-limit or OOM
+events. The isolated reviewer passed under a 2-GiB hard/1.5-GiB high/zero-swap
+group with a 124.8-MiB service peak. See the portable
+[review note and commands](fpga_results_v2/review/README.md).
+
+The source-pinned finalizer is `finalize-host-followup.py` under the machine
+root, SHA-256
+`242a52cff3ec8e82563df4a5330f308adc1b6215f86387700240c38b0a26b320`.
+It does not restart board work. It checks the terminal matrix and old/new
+contract, invokes the existing independent exporter and unchanged plot/profile
+modules, and archives raw records without copying large graph/binary files.
+The archive retains its script and original pre-review manifest status; the
+subsequent review receipt supplements that status without rewriting it.
+
+## Prior G+R Implementation Delivery
+
+The sections below retain the earlier v1 implementation, route and board
+checkpoints. Their local pending-work statements and the v1 SO outlier
+describe that campaign; they do not override the completed v2 follow-up.
 
 The requested follow-up is an actual SSSP/CC/ResPR G+R versus Spine FPGA
 comparison, not another predicted replacement for hardware data. The ReGraph

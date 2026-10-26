@@ -1,0 +1,17 @@
+{
+  "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+  "metric": "ratio_of_median_resident_FPGA_wall_times",
+  "source": "/data/chuxiao/checks/spine-cc-respr-host-20261026/terminal-delivery-v1/evidence",
+  "passed_cases": 24,
+  "missing": [],
+  "source_sha256": {
+    "summary.csv": "c20921bf163dc483466f781982742d6e435a66b39859242bafe353d44c187ce1",
+    "matrix.json": "d6567824e8676bdc1720137d87aa1edd7737d33ff7595c196383da932365e8a0",
+    "plan.json": "ec6ca14e3ee14de424db469f28158668d10f28ef0a0577a2f549450b097f599a",
+    "files.json": "31d47a8b7512827db7fb069b77cb065a039a2f24285a8b6ae369555fcc258be9"
+  },
+  "renderer_sha256": "4583f2f1d89458d3747263c81a2cbb4f7b9f937346948669cde55580f6936341",
+  "font": "TX Typewriter (txtt)",
+  "style_reference": "figure7_10_handoff_v1/render_all.py",
+  "paper_modified": false
+}

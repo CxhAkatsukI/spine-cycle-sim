@@ -1,0 +1,70 @@
+{
+  "status": "AUTOMATED_ROUNDTRIP_PASS_VISUAL_REVIEW_PENDING",
+  "passed_cases": 24,
+  "paired_runs": 96,
+  "archive_members": 638,
+  "commands": [
+    {
+      "command": [
+        "/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python",
+        "-c",
+        "import sys; from pathlib import Path; from board_review import fpga_plot, fpga_profile; assert 'spine_cycle_sim' not in sys.modules; root=Path(sys.argv[1]); assert all(Path(m.__file__).is_relative_to(root) for m in (fpga_plot, fpga_profile))",
+        "/data/chuxiao/checks/spine-cc-respr-host-20261026/portable-delivery-v1/code"
+      ],
+      "cwd": "/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python",
+        "-m",
+        "board_review.fpga_plot",
+        "--delivery",
+        "/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1/unpacked/evidence",
+        "--output",
+        "/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1/figure"
+      ],
+      "cwd": "/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1",
+      "exit_code": 0,
+      "stdout": "{\"boundary\": \"resident_update_to_final_readback_wall_including_host_relaunch\", \"font\": \"TX Typewriter (txtt)\", \"metric\": \"ratio_of_median_resident_FPGA_wall_times\", \"missing\": [], \"paper_modified\": false, \"passed_cases\": 24, \"renderer_sha256\": \"4583f2f1d89458d3747263c81a2cbb4f7b9f937346948669cde55580f6936341\", \"source\": \"/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1/unpacked/evidence\", \"source_sha256\": {\"files.json\": \"31d47a8b7512827db7fb069b77cb065a039a2f24285a8b6ae369555fcc258be9\", \"matrix.json\": \"d6567824e8676bdc1720137d87aa1edd7737d33ff7595c196383da932365e8a0\", \"plan.json\": \"ec6ca14e3ee14de424db469f28158668d10f28ef0a0577a2f549450b097f599a\", \"summary.csv\": \"c20921bf163dc483466f781982742d6e435a66b39859242bafe353d44c187ce1\"}, \"style_reference\": \"figure7_10_handoff_v1/render_all.py\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/data/tmp/chuxiao/spine-cycle-sim-eval-venv/bin/python",
+        "-m",
+        "board_review.fpga_profile",
+        "--delivery",
+        "/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1/unpacked/evidence",
+        "--output",
+        "/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1/profile"
+      ],
+      "cwd": "/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1",
+      "exit_code": 0,
+      "stdout": "{\"scope\": \"measured_GR_event_diagnostics_not_exclusive_stage_or_host_attribution\", \"cases\": 24, \"output\": \"/data/chuxiao/checks/spine-cc-respr-host-20261026/roundtrip-v1/profile\"}\n",
+      "stderr": ""
+    }
+  ],
+  "isolated_import": true,
+  "byte_identical_artifacts": [
+    "figure/fpga_speedup.png",
+    "profile/profile_medians.csv",
+    "profile/wall_variability.csv",
+    "profile/README.md"
+  ],
+  "pdf_review": {
+    "equal_after_only_txtt_subset_tag_normalization": true,
+    "normalized_decompressed_sha256": "c10d370093a97dd3cb8f03c5190f0881e63192e901a4e6951b60ff2d72979c62",
+    "raster_300dpi_byte_identical": true,
+    "raster_sha256": "1e45d1cce041e434d4cfafd647489bb7beca36d2298dadf468d3e18f005867e3",
+    "original_sha256": "c25717ecf258ed9a9bf93af30bdfb576eeb7ecc27535b944281e7623d9d948dc",
+    "reproduced_sha256": "5faa83f595b509e02995a486169295ca1faeb4d927deb68c4ff7ba04bab58b24"
+  },
+  "normalized_json_equal_except_source_path": true,
+  "pdf_fonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nBPZFVK+txtt                          Type 1            Custom           yes yes no      13  0\n",
+  "package_manifest_sha256": "44eed2ad05551775f41a96d911469e67d7c10fbe8ebeb1810ba24adb79f1da1c",
+  "archive_sha256": "242f29a3f67309c2b736ebf4dee14f4db3428260148de24e46b63f5d9204b4e9",
+  "reviewer_sha256": "0cfbcd91aec664c57ed346793e1d711c7d9beeda3175f7f85b38b3376ddda4f0"
+}
