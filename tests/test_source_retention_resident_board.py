@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    resident_admission as admission, resident_board as board, resident_results as results,
+    resident_admission as admission, resident_board as board, resident_results as results, respr_au_follow,
 )
 
 
@@ -77,6 +77,42 @@ class ResidentAdmissionTest(unittest.TestCase):
                 path.write_text(json.dumps({"status": status}))
             candidates.append(admission.Candidate(root / f"route{index}", r, g, self.host))
         return candidates
+
+
+class ResidentAUFollowTest(unittest.TestCase):
+    def setUp(self):
+        self.host = {"path": "/host", "sha256": "pinned"}
+        self.parent = dict(status="PAIRED_SCREEN_MEASURED", bdf=board.BDF, device=board.DEVICE,
+                           repetitions_per_arm=1, warmups=0, board_launch_attempted=True,
+                           selected_route="/route", pins={"gr_host": self.host},
+                           candidates={"/route": {"r_report": "/r", "g_report": "/g", "host": self.host}},
+                           cases=[dict(case={"dataset": dataset}, status="MEASURED",
+                                       attempts=[{"arm": "spine"}, {"arm": "gr"}],
+                                       pair={"positive_propagation_on_both": dataset == "Flickr"})
+                                  for dataset in board.CASES])
+
+    def test_reuses_exact_parent_candidate(self):
+        self.assertEqual(respr_au_follow.prior_case(self.parent),
+                         admission.Candidate(Path("/route"), Path("/r"), Path("/g"), self.host))
+
+    def test_rejects_parent_without_two_valid_single_pass_cases(self):
+        row = self.parent["cases"][1]
+        row["pair"]["positive_propagation_on_both"] = False
+        with self.assertRaises(admission.NotAdmitted):
+            respr_au_follow.prior_case(self.parent)
+        row["pair"]["positive_propagation_on_both"] = True
+        row["attempts"].append({"arm": "gr"})
+        with self.assertRaises(admission.NotAdmitted):
+            respr_au_follow.prior_case(self.parent)
+
+    def test_au_identity_requires_positive_propagation_and_distinct_scope(self):
+        with TemporaryDirectory() as directory:
+            graph = Path(directory) / "au.graph"
+            graph.write_text("156289 903774 16\n")
+            pin = {"sha256": board.AUX_CASES[board.AU_CASE][-1]}
+            self.assertTrue(board.frozen_case(board.AU_CASE, graph, pin)["requires_propagation"])
+            with self.assertRaises(ValueError):
+                board.frozen_case("R19", graph, pin)
 
 
 class ResidentResultTest(unittest.TestCase):

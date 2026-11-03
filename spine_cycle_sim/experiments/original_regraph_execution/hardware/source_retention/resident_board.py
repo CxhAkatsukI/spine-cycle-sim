@@ -19,10 +19,13 @@ CASES = {
     "R19": (524288, 15672181, 8, False, "0c984e8c9cfff56d81732451046c2c65701b79efcea968b22bb9c241011b088a"),
     "Flickr": (2552, 8192, 16, True, "b370b2ede9d09ff7ac410fd1f1e487057dffc6468146f11ab9373362ef0d3f8b"),
 }
+AU_CASE = "AU-bridge-u8"
+AUX_CASES = {AU_CASE: (156289, 903774, 16, True,
+                       "71a9bb2ae164209ca9a253211ebd0e10935bebb6644d76a21dc64e9848449c59")}
 
 
 def frozen_case(dataset, graph, graph_pin):
-    vertices, edges, updates, requires_propagation, sha = CASES[dataset]
+    vertices, edges, updates, requires_propagation, sha = (CASES | AUX_CASES)[dataset]
     with graph.open() as stream:
         dimensions = tuple(map(int, stream.readline().split()))
     if graph_pin["sha256"] != sha or dimensions != (vertices, edges, updates):

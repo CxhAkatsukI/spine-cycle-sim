@@ -228,6 +228,31 @@ stdout/stderr even if correctness or clock validation fails. The historical
 R19 logs replay at 44.669267 ms for G+R and 32.375100 ms for Spine. That
 replay tests the parser; it is not a measurement of the repaired image.
 
+### Additional AU Bridge Board Pair
+
+The AU slice follows the exact R19/Flickr service invocation. It requires
+both original pairs to pass correctness and Flickr to report device
+propagation on both arms. It independently replays G and R admission for
+the *same* G+R image, then uses the same pinned Spine host/image and the
+same board lease and eight-GiB cap. Neither original pair is repeated.
+The AU board pair itself must report positive propagation on both arms.
+A failed gate or zero-round result remains visible in its separate receipt.
+
+From the simulator checkout, in the same zero-swap eight-GiB containment:
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.respr_au_follow \
+  --unit "$parent_service" --invocation "$parent_invocation" \
+  --parent "$checks/resident-joint-board-v2/results.json" \
+  --graph "$checks/au-slice-u8-oracles.kz5m4cf1/au-slice-u8.graph" \
+  --output "$checks/resident-au-bridge-v1"
+```
+
+Enqueue while the declared parent service is live, using a new output
+directory. Offline replay below also accepts the separate AU receipt with
+the same strict G/R audit. This is an additional screen, not a replacement
+for the old AU row or a completed large-graph matrix.
+
 ## Offline Acceptance
 
 The joint run writes `resident-joint-board-v2/results.json`. Before using

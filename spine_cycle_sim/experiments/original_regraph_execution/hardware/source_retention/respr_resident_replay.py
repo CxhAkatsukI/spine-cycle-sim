@@ -98,8 +98,15 @@ def run(resident, strict_stage, output):
                          ("comparator", resident_results.COMPARATOR_SHA256)):
         if pins[name]["sha256"] != sha256:
             raise ValueError("frozen Spine host, image or comparator differs")
-    if [row["case"]["dataset"] for row in report["cases"]] != list(resident_board.CASES):
-        raise ValueError("both declared cases must be retained")
+    scope = report.get("scope")
+    if scope is None:
+        declared = list(resident_board.CASES)
+    elif scope == resident_board.AU_CASE and "parent" in pins:
+        declared = [resident_board.AU_CASE]
+    else:
+        raise ValueError("unknown resident screen scope")
+    if [row["case"]["dataset"] for row in report["cases"]] != declared:
+        raise ValueError("all declared cases must be retained")
     unchanged(pins.values())
     stage_inputs(stage, report)
     cases = []
@@ -111,8 +118,8 @@ def run(resident, strict_stage, output):
     unchanged(inputs)
     result = {"status": "AUDITED_SCREEN_NOT_FIGURE_EVIDENCE", "inputs": inputs, "cases": cases,
               "boundary": "uploaded resident batch through final readback; no graph bootstrap or batch upload",
-              "limitations": ["R19 does not establish common dangling-residual propagation",
-                              "Flickr uses per-arm correctness oracles, not direct array comparison",
+              "limitations": ["a correction-only row is not evidence of shared propagation",
+                              "board runs use per-arm correctness oracles, not direct array comparison",
                               "different Spine clocks, if any, describe deployed images only"]}
     save(output, result)
     return result
