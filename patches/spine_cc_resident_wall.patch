@@ -1,0 +1,54 @@
+diff --git a/tests/test_integration/host_cc_repair.cpp b/tests/test_integration/host_cc_repair.cpp
+--- a/tests/test_integration/host_cc_repair.cpp
++++ b/tests/test_integration/host_cc_repair.cpp
+@@ -12,8 +12,9 @@
+ static_assert(HOST_PARTITIONED_CSR_DST_PARTITIONS==16,"CC host requires 16 graph banks");
+ using Header=std::array<PartitionedActiveRecordWord,SPINE_CC_HEADER_WORDS>;
+ struct Round {uint64_t input,output,edges;};
+ struct Measurement {
+     double total_ms=0;std::map<std::string,double> phases;Header header{};std::vector<Round> rounds;
++    Clock::time_point batch_resident{};
+     uint64_t h(unsigned f) const {return header[f].word[0];}
+ };
+ class CcRuntime {
+@@ -161,14 +162,17 @@
+         for(auto [u,v,w,d]:records) packed.push_back({((uint64_t)w<<32)|(uint16_t)d,((uint64_t)u<<32)|v});
+         Measurement m;auto total=Clock::now(),start=total;
+         write(input_,0,packed.size()*sizeof(packed[0]),packed.data());m.phases["upload_ms"]=elapsed(start);
++        m.batch_resident=Clock::now();
+         start=Clock::now();run(full?SPINE_CC_PREPARE_FULL:SPINE_CC_PREPARE,records.size());m.phases["admission_discovery_ms"]=elapsed(start);
+         start=Clock::now();run(SPINE_CC_MAINT);m.phases["maintenance_ms"]=elapsed(start);
+         start=Clock::now();run(SPINE_CC_RESET);m.phases["reset_cleanup_ms"]=elapsed(start);
+         converge(m);m.total_ms=elapsed(total);return m;
+     }
+     std::vector<uint32_t> labels() {
+         std::vector<uint32_t> out(n_);transfer_.enqueueReadBuffer(state_,CL_TRUE,0,n_*4ULL,out.data());return out;
+     }
+-    void audit(const Graph &expected) {
+-        require(labels()==cc_host::labels(expected,n_),"raw minimum-ID labels mismatch");
++    void audit(const Graph &expected,const std::vector<uint32_t> *observed=nullptr) {
++        auto expected_labels=cc_host::labels(expected,n_);
++        require(observed ? *observed==expected_labels : labels()==expected_labels,
++                "raw minimum-ID labels mismatch");
+         auto descriptors=read_words(meta_,0,HOST_PARTITIONED_META_SLICE_WORDS);
+@@ -359,8 +364,19 @@
+                 Graph graph=initial;unsigned batch=0;
+                 for(const auto &records:w.batches) {
+                     Graph updated=cc_host::apply(graph,records);
++                    const auto start=Clock::now();
+                     auto measurement=device.update(records,full);
+-                    verify_work(graph,updated,records,w.n,full,measurement);device.audit(updated);
++                    const auto final_labels=device.labels();
++                    const auto end=Clock::now();
++                    verify_work(graph,updated,records,w.n,full,measurement);device.audit(updated,&final_labels);
++                    std::cout<<"CC_RESIDENT_WALL sample="<<sample<<" order="<<order
++                             <<" hot="<<hot<<" full="<<full<<" batch="<<batch
++                             <<" vertices="<<w.n<<" physical_records="<<records.size()
++                             <<std::setprecision(12)<<" host_pack_to_final_readback_ms="
++                             <<std::chrono::duration<double,std::milli>(end-start).count()
++                             <<" batch_resident_to_final_readback_ms="
++                             <<std::chrono::duration<double,std::milli>(end-measurement.batch_resident).count()
++                             <<std::endl;
+                     report("CC_UPDATE_PASS",measurement,sample,order,hot,full,batch++);graph.swap(updated);++count;
+                 }
+             }

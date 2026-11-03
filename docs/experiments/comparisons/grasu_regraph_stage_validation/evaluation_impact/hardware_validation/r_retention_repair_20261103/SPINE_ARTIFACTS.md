@@ -98,15 +98,51 @@ edge records and 16 signed records (eight reciprocal insertions) are unchanged.
 The native host passed `--layout-only` on this input in a bounded 2-GiB service
 (133.4 MiB peak); both cold and hot layouts fit. This check does not open a card.
 
-The single cold-layout, partial-repair board sample is queued as
+The first single cold-layout, partial-repair board sample was queued as
 `spine-cc-au-repair-check-20261104.service`, invocation
 `fd2c03bb1e2e44819d6b53f327e16e85`. Its evidence is
 `/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-au-board-v1/results.json`.
-It uses the same memory and device guards as the canonical run. It requires
-the exact input pins, one old-graph bootstrap, one 16-record update, final
-raw graph and labels, all round-work checks, and matching clock/UUID evidence.
-The logged update timer includes upload and orchestration through publication
-but not final label readback. Do not substitute it for Figure 7 wall time.
+It was withdrawn while waiting for memory, with the board lease held by the
+withdrawal command and no board stdout. The saved `WAITING_FOR_MEMORY_ADMISSION`
+receipt describes its last check, not a live service. No AU sample was spent.
+
+### One AU Sample With Resident Wall Timing
+
+The [`spine_cc_resident_wall.patch`](../../../../../../../patches/spine_cc_resident_wall.patch)
+only changes the native host, not the bitstream. It preserves the prior
+update-to-publication measurement and all graph, label and round-work oracles.
+It records two additional continuous wall times through the same final label
+readback: one starting before host packing, the other immediately after
+blocking batch upload. The timer includes launch/wait, control readbacks,
+propagation and publication. The offline CPU oracle, raw graph audit and
+old-graph bootstrap are outside both timers. The returned labels are also
+used for validation; the host does not transfer them twice.
+
+The module `source_retention.spine_cc_host` builds the overlay from the frozen
+image-source archive without changing that archive. Reproduction uses
+`python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.spine_cc_host --archive <frozen-source> --output <new-directory>`
+inside a 2-GiB zero-swap cgroup. The source archive root is
+`/data/feiyang/spine-hls-cc-builds/cc-seele-import-20261016-v2/reused-inputs/inputs/source`.
+The host ABI, source and binary receipt is local at
+`/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-resident-host-v1/manifest.json`.
+The host linked directly against the XRT OpenCL library (no CUDA ICD loader),
+built at 321 MiB peak with no memory events, and passed offline `--layout-only`
+on the exact AU input at 134 MiB peak. These are not device timings.
+
+`spine-cc-au-resident-wall-20261104.service`, invocation
+`3744d99a43cb4d6b9fa3101b740d3385`, replaces the withdrawn job. It will request
+the same 24-GiB/22-GiB zero-swap limits and 32-GiB reserve. Its output is
+`/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-au-board-v2/results.json`.
+The runner admits one old-graph bootstrap and one 16-record batch. It checks
+both timing windows, raw graph and labels, round work, and driver clock/UUID.
+This is a Spine-only measurement, not a new speedup or an R admission result.
+
+The existing sharded K4 CC host loads the batch and marks update-source active
+bits before starting its timer. Its old number is therefore not a host-pack
+comparison, and excludes baseline seed setup even if compared to Spine's
+batch-resident window. A final paired result must expose and match the timing
+boundary, or explicitly present an asymmetric, conservative bound. The old
+publication-only Spine value is not suitable for this purpose.
 
 The follow-up search of readable `/data/feiyang/spine*` and
 `/data/feiyang/dynamic-acts*` paths found newer emulation files and 133-byte Git

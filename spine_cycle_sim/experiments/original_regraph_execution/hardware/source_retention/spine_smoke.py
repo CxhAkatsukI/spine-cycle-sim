@@ -39,10 +39,31 @@ def validate(text, *, vertices=12, batches=11, physical_updates=None):
     return records
 
 
+def resident_wall(text, *, vertices, physical_updates):
+    rows = [line.split()[1:] for line in text.splitlines() if line.startswith("CC_RESIDENT_WALL ")]
+    if len(rows) != 1:
+        raise ValueError("one resident wall receipt required")
+    values = dict(item.split("=", 1) for item in rows[0])
+    expected = dict(sample="0", order="0", hot="0", full="0", batch="0",
+                    vertices=str(vertices), physical_records=str(physical_updates))
+    timers = ("host_pack_to_final_readback_ms", "batch_resident_to_final_readback_ms")
+    if (len(rows[0]) != len(values) or set(values) != set(expected).union(timers)
+            or any(values.get(key) != value for key, value in expected.items())):
+        raise ValueError("resident wall receipt does not match the frozen workload")
+    elapsed = {key: float(values[key]) for key in timers}
+    if not 0 < elapsed[timers[1]] <= elapsed[timers[0]] < math.inf:
+        raise ValueError("resident wall receipt has invalid timing windows")
+    return elapsed
+
+
 def run(args):
     wait = getattr(args, "admission_wait_seconds", 0)
     if type(wait) is not int or not 0 <= wait <= 21600:
         raise ValueError("admission wait must be bounded to six hours")
+    input_manifest = getattr(args, "input_manifest", None)
+    capture_wall = getattr(args, "resident_wall", False)
+    if capture_wall and input_manifest is None:
+        raise ValueError("resident wall requires the pinned single-batch input")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     group = containment.current()
@@ -52,7 +73,6 @@ def run(args):
     reservation = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
     pins = [identity(path) for path in (args.host, args.image,
                                       Path(str(args.image) + ".weighted-manifest"), Path(__file__))]
-    input_manifest = getattr(args, "input_manifest", None)
     workload = None
     if input_manifest is not None:
         pins.append(identity(input_manifest))
@@ -68,6 +88,8 @@ def run(args):
     if workload is not None:
         report.update(scope="frozen resident CC graph; one update batch; not a G+R comparison",
                       workload=workload, host_timer="batch upload through publication, excludes final label readback")
+    if capture_wall:
+        report["host_timer"] = "also records pack-start and batch-resident to one checked final label readback"
     save(output / "results.json", report)
     try:
         started = time.monotonic()
@@ -109,7 +131,11 @@ def run(args):
             report["stderr"] = identity(output / "spine_cc.stderr.txt")
             expected_work = {} if workload is None else dict(vertices=workload["vertices"], batches=1,
                                                              physical_updates=workload["updates"])
-            report["batches"] = validate(Path(report["stdout"]["path"]).read_text(), **expected_work)
+            stdout = Path(report["stdout"]["path"]).read_text()
+            report["batches"] = validate(stdout, **expected_work)
+            if capture_wall:
+                report["resident_wall_ms"] = resident_wall(stdout, vertices=workload["vertices"],
+                                                           physical_updates=workload["updates"])
             if any(identity(pin["path"]) != pin for pin in pins):
                 raise ValueError("CC image, host or runner changed during the smoke")
             board_memory.require_unthrottled((group / "memory.events").read_text())
@@ -131,5 +157,6 @@ if __name__ == "__main__":
     for name in ("host", "image", "output"):
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--input-manifest", type=Path)
+    parser.add_argument("--resident-wall", action="store_true")
     parser.add_argument("--admission-wait-seconds", type=int, default=0)
     run(parser.parse_args())

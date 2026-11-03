@@ -50,6 +50,16 @@ class SpineSmokeTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate(text.replace(old, new), **expected)
 
+    def test_resident_wall_requires_unique_receipt_and_nested_windows(self):
+        line = ("CC_RESIDENT_WALL sample=0 order=0 hot=0 full=0 batch=0 vertices=515281 physical_records=16 "
+                "host_pack_to_final_readback_ms=4 batch_resident_to_final_readback_ms=3")
+        parse = lambda text: spine_smoke.resident_wall(text, vertices=515281, physical_updates=16)
+        self.assertEqual(parse(line)["batch_resident_to_final_readback_ms"], 3)
+        for bad in ("", line + "\n" + line, line + " batch=0", line.replace("records=16", "records=8"),
+                    line.replace("ms=4", "ms=2"), line.replace("ms=3", "ms=nan"), line.replace("ms=4", "ms=inf")):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                parse(bad)
+
     def test_native_input_preserves_domain_order_direction_weight_and_diff(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
