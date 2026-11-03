@@ -9,7 +9,7 @@ the Figure 7 comparisons include the actual update and convergence path.
 | Figure | What the directory-span repair can affect | Evidence needed before reuse |
 | --- | --- | --- |
 | 7, SSSP/CC | All 16 timed G+R runs execute the adapter: SSSP has 1--3 supersteps, CC 1--2. | Retest on the admitted algorithm-specific images unless a matched, measured bound establishes the claimed advantage. |
-| 7, ResPR | All eight timed G+R runs execute one full correction pipeline, even with zero later propagation rounds. | Retest after R admission; explicitly keep these eight results separate from nonempty propagation. |
+| 7, ResPR | All eight timed G+R runs execute one full correction pipeline. Neither arm takes a later propagation round on these batches. | Retest after R admission; explicitly keep these eight results separate from nonempty propagation. |
 | 8 | No R execution in the update-only boundary. Its G configuration is nevertheless older than the cached/replicated hardware G. | Do not rerun because of R alone. To call it a comparison against current G, regenerate or demonstrate equivalence of the G device, host and transfer inputs. It remains one batch, not ten. |
 | 9 | It uses simulated G+R and Spine requests. Identical adapter outputs do not establish identical accepted requests, request order, or background HBM energy. | Verify the current implementation's request ledger against the intended simulator profile; rerun affected simulator pairs for a refreshed comparison. Preserve the modeled energy scope. |
 | 10/11 | Spine-only stage attribution and a fit to Spine simulator outputs; neither consumes R measurements. | Retain as predictions for the exact frozen Spine model. Re-execute/refit only if a relevant Spine model or workload changes. R admission does not calibrate them. |
@@ -54,9 +54,13 @@ the G XOs unchanged does not guarantee unchanged elapsed time on the board.
 
 The integrated [ResPR host](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/24519a6/tools/sharded_k4_pagerank_native_host.cpp#L699)
 uses round zero for correction and enqueues the adapter, gather and mux for
-every destination shard before checking the active count. The old hardware
-logs record `pipeline_executions=1 propagation_rounds=0` in all eight cases.
-This distinguishes no residual propagation from no use of R.
+every destination shard before checking the active count. The old G+R hardware
+logs record `pipeline_executions=1 propagation_rounds=0` in all eight cases;
+the corresponding Spine logs record `iterations=0` with host correction
+inside the resident timer. These are sparse update-and-correction results.
+They neither establish an advantage for nonempty propagation nor imply that
+R was idle. The separate [Flickr screen](RESIDENT_SCREEN.md) is for a batch
+with nonempty thresholded propagation.
 
 ## Reproduce From The Old Raw Logs
 
@@ -66,6 +70,7 @@ original matrix on trifoliate:
 ```bash
 matrix=/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix
 rg '^RESIDUAL_PR_PMA_NATIVE_SHARDED_RESULT ' "$matrix"/respr-*/sample-1/gr/run.log
+rg '^SPINE_RESIDENT_BENCHMARK_PASS ' "$matrix"/respr-*/sample-1/spine.stdout.txt
 jq -s -r 'map({case:(.config.graph|split("/")[-1]),summary})
   | group_by(.summary.algorithm)[] | min_by(.summary.speedup_gr_over_spine)
   | [.summary.algorithm,.case,.summary.gr_wall_ms,.summary.spine_wall_ms,

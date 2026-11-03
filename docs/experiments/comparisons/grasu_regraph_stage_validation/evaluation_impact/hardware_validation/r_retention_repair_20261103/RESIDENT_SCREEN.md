@@ -99,14 +99,35 @@ and initial active bit. The one-shot dumps are indexed under
 | `flickr-gr.tsv` | `cede1588aeef2b672d313874bbbbe411f774fb7c362359447fae4faa38cbc511` |
 
 Both probes used CPUs 124--125, a 2 GiB memory cap, zero swap and no
-board access. This per-vertex check covers Flickr only. A separate
-out-degree scan of the hash-verified R19 graph found zero sinks before
-and after its eight insertions across all 524,288 vertices; this was
-not a comparison of R19 ranks. For a graph
-with sinks, G+R's CPU reference redistributes dangling residual during
-propagation and this Spine reference does not. A shared correction
-threshold alone does not establish equivalent propagation on such a
-graph. Do not generalize the Flickr result to all eight graphs.
+board access. This per-vertex comparison covers Flickr only.
+
+### Frozen Eight-Graph Inputs
+
+A separate scan verified the graph hash in each October matrix
+`respr-<case>/manifest.json`, checked record counts, vertex bounds and
+insert-only operations, and counted zero-outdegree vertices before and
+after the batch. All eight exact inputs are sink-free at both points:
+
+| Case | Vertices | Old directed edges | Insert records | Old/new sinks |
+| --- | ---: | ---: | ---: | ---: |
+| AU | 515,281 | 826,848 | 8 | 0 / 0 |
+| SU | 567,316 | 1,075,035 | 8 | 0 / 0 |
+| WK | 1,140,149 | 2,190,639 | 8 | 0 / 0 |
+| SO | 6,024,271 | 28,299,669 | 8 | 0 / 0 |
+| PK | 1,632,803 | 44,603,928 | 8 | 0 / 0 |
+| LJ | 4,847,571 | 85,703,436 | 8 | 0 / 0 |
+| LJ08 | 5,363,260 | 99,028,616 | 8 | 0 / 0 |
+| R19 | 524,288 | 15,672,181 | 8 | 0 / 0 |
+
+The inputs are indexed under
+`/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/`.
+The command, input hashes and raw counts are in the trifoliate user journal
+under invocation `2fe79fd5aa454c9ba1ca430b1d6578b0` (380.8 MiB peak, 2 GiB
+cap, no swap, no board). The scan rules out dangling residual as a source
+of divergence for these exact fixtures, not differences in rank values,
+correction, convergence, or timing. On other graphs with sinks, G+R's CPU
+reference redistributes dangling residual during propagation and this Spine
+reference does not; sharing a correction threshold is not enough.
 
 ## Board Runner
 
