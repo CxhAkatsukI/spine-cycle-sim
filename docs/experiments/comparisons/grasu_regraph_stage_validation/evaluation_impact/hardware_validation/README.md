@@ -32,6 +32,13 @@ new-G metadata/handoff correctness or original-publication reproduction.
 
 ## Current Checkpoint
 
+The [public-source retention board study](source_performance_retention_20261103/README.md)
+now measures both actual stages separately: G passes the declared 15% overhead
+gate on four AU configurations, but current adapter/R is 3.69x and 12.77x
+slower than original A4 on its two supported common-superstep inputs. A third
+input is unsupported because it has duplicate edges. This negative result
+is not a successful publication match or proof of negligible adaptations.
+
 For the live registered candidate, start with the
 [current build, return and board bindings](complete_pipeline/production_routing/comparison_candidate/README.md).
 That guide identifies the exact SSSP, CC, ResPR and FullPR producers, the

@@ -1,0 +1,49 @@
+{
+  "scope": "same-platform source-port retention; G admitted, R fails performance gate",
+  "publication_match": false,
+  "production_source_review_is_bitstream_build_attestation": false,
+  "production_git": "dec40633c5802465680e39bd375ab0d86a4ab5aa",
+  "compiler": "g++ (Debian 15.2.0-14) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "repository_parent": "88486a483092cbca7654af89c559eb6c88ea8ab4",
+  "figure7_respr_binary_match": {
+    "sha256": "c112e790c3cfd81c05b4059f1dc34fcee23bc36a94a995ba1c0d6d49280058c0",
+    "verified_against_run_pin": true
+  },
+  "artifacts": {
+    "g_host": {
+      "path": "/data/chuxiao/checks/grasu-gap-control-20261026-host-v2",
+      "sha256": "472cb4ce7b7f494906bd1c022d01cecf33dabfb5e43cf98f111e31427d7a85b4",
+      "bytes": 146648
+    },
+    "g_reference": {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-g-external-port-return-follow-v7/returned/route/original_grasu.hw.xclbin",
+      "sha256": "89c682cea8520453abd9038f7b8026bdc27298ad768a05f069f91a69a691e6ed",
+      "bytes": 77595116
+    },
+    "g_current": {
+      "path": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+      "sha256": "ed674b033c738506bd8ac32da9ab2b51e3e70e8925113aed048f50eb35dbf11e",
+      "bytes": 80080123
+    },
+    "r_host": {
+      "path": "/data/chuxiao/checks/original-r-a4-big0-warm-20261024-v1/launch_control",
+      "sha256": "b2e7459b7023aaee473e579f663cf3d07063366db9282073a287a130a1ecbe7a",
+      "bytes": 113912
+    },
+    "r_candidate": {
+      "path": "/data/chuxiao/checks/source-retention-20261103-v1/r_candidate_v3",
+      "sha256": "59d2f73487ec4f0d983737540c729ff468eb3ba95962234d1868d7fa2a13e350",
+      "bytes": 152344
+    },
+    "r_reference": {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/a4-source-route-v2/build/original_r_a4.hw.xclbin",
+      "sha256": "b19b89545306460298c080550860e8836d8e5beb71cf161d0eacee2aec60436e",
+      "bytes": 56032800
+    },
+    "r_current": {
+      "path": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/grasu_regraph_residual_pagerank.hw.xclbin",
+      "sha256": "c112e790c3cfd81c05b4059f1dc34fcee23bc36a94a995ba1c0d6d49280058c0",
+      "bytes": 80514108
+    }
+  }
+}

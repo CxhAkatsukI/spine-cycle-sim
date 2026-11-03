@@ -1,5 +1,12 @@
 # Original ReGraph Hardware Controls
 
+The [latest common-superstep board comparison](../source_performance_retention_20261103/README.md)
+uses the actual routed adapter/K4 ResPR binary and original A4. Correctness
+passes on skewed-source and Amazon, but current time is 3.69x and 12.77x the
+A4 time; boundary-ring is unsupported. This closes that declared measurement,
+not its performance-retention gate. Earlier pending checkpoints below retain
+their original scope.
+
 The [actual adapter/K4 control](k4_control/README.md) tracks the separate
 production-layout semantic and eventual board comparison against original A4.
 It does not replace original 11+3 or A4 evidence below.

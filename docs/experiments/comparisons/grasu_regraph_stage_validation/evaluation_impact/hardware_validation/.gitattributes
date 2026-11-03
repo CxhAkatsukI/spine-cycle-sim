@@ -1,0 +1,4 @@
+# Preserve the exact bytes hashed in the source-retention delivery manifest.
+# csv.writer uses CRLF; xclbinutil stdout includes vendor-generated padding.
+source_performance_retention_20261103/data/*.csv -text whitespace=cr-at-eol
+source_performance_retention_20261103/evidence/*_xclbin_info.txt -text whitespace=-blank-at-eol

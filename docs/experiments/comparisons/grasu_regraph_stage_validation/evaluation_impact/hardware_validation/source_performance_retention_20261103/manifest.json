@@ -1,0 +1,90 @@
+{
+  "scope": "same-platform source-port retention; G admitted, R fails performance gate",
+  "files": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/README.md",
+      "sha256": "0d1d7138d49bf0e13c32a9b201696b7702febff044d2c2cb4bfa8afabde06282",
+      "bytes": 13125
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/data/artifacts.json",
+      "sha256": "d22ef390e78e838687ebef2b5f0eeb5f1cf357c5a8d2bc294331b866c4c7f9a4",
+      "bytes": 2489
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/data/comparison.csv",
+      "sha256": "3e8decefd76a084caeb9945bed66dd0a0e9fcdc24afd838848ccbe519567aeff",
+      "bytes": 853
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/data/repetitions.csv",
+      "sha256": "dc1ecfa50c7df614f37b98141db17341738defaa9cd4cf5b5bd029d619534162",
+      "bytes": 2248
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/data/summary.json",
+      "sha256": "be854e0d55356fc09cbe8fbdd7d7a94cf70f728fcd5b2147aa7afefb7b678518",
+      "bytes": 11711
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/execution_sources_v2.tar.gz",
+      "sha256": "2bf9c89ecf1497937bff277a71da8d748bba2b59fe547fee268c64f1687017fa",
+      "bytes": 118362
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/execution_sources_v3.tar.gz",
+      "sha256": "4fd29cc1bcbe00d8e1af82c4c8b8f3e9a537bb64eadb5a8fab7204bcd3b5a69d",
+      "bytes": 121592
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/g_current_xclbin_info.txt",
+      "sha256": "25de6907abe693a6833ac8264d86c2fc23b495c6e1f0ff9b5d84453ada7e8fe4",
+      "bytes": 110798
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/g_reference_xclbin_info.txt",
+      "sha256": "85426928ecfb71fac59f91bd0718b5cb2aaf09ea9154df3e999d06938aaf30ea",
+      "bytes": 38541
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/inputs.tar.gz",
+      "sha256": "60806395d50b4576cef9baf759100edf9f48530a1e54af97eed5f311e30ec83c",
+      "bytes": 41115292
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/production_source_review.tar.gz",
+      "sha256": "d8b4a4be42a256d649ea917ab1774af0c105a5ac7c342f012b08dc7f475de449",
+      "bytes": 65791
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/r_current_xclbin_info.txt",
+      "sha256": "6e30e412d52abfd22d47725f0d9021df2f493b23a29061d0d68b777fb40c1bed",
+      "bytes": 112836
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/r_reference_xclbin_info.txt",
+      "sha256": "99c50353e7745cd379f916e8dede51ae3dcc019c275f627192f4c8c89be052b2",
+      "bytes": 35903
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/raw_board.tar.gz",
+      "sha256": "88960252d5e386ae528fbdee3d1b1fd55c66d02ab760c8203714bcb4dd24b0e5",
+      "bytes": 44318286
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/reproduction_sources.tar.gz",
+      "sha256": "598b468821b4ec2388ad60faba64996c048f54b76f8eb0bb1a15e1685e2a2a19",
+      "bytes": 13715
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/figures/source_retention.pdf",
+      "sha256": "2b723b38bd23bc400aa056969d1ea88991b51433212aa305294619f22a9269e4",
+      "bytes": 22596
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/figures/source_retention.png",
+      "sha256": "5d9d5bbd3bb5947ee6d2301181cb6bbeff5ea2064ac2314231e3ff93c96dbae1",
+      "bytes": 72406
+    }
+  ]
+}
