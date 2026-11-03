@@ -19,7 +19,8 @@ or changes a simulator timing multiplier.
 
 | Module | Responsibility |
 | --- | --- |
-| `configuration.py` | Explicit 11+3 and A4 topology, fixed signed-PR macros, isolated compiler directories and exact per-topology ABI |
+| `configuration.py` | Explicit 11+3 and A4 topology, policy macros, isolated compiler directories and exact ABI |
+| `active_min.py` | Source-only A4 min-label CC and weighted SSSP overlays; pin each input and derived file and check the Apply bank |
 | `snapshot.py` | Clean pinned author revision, tracked-file snapshot, six permitted topology-generator outputs, separately pinned compatibility entries and unchanged identities |
 | `placement.py` | Optional A4 Apply-to-SLR0 physical control; preserve and pin both author and derived connectivity without changing algorithms, ports, clocks or timing constraints |
 | `apply_interface.tcl` | Explicit control-bundle binding for the author's otherwise implicit Apply `arg_reg`, without editing the author translation unit |
@@ -42,7 +43,7 @@ One separately pinned HLS pre-synthesis directive assigns Apply's implicit
 `arg_reg` to the same `control` AXI-Lite bundle as its other scalar arguments.
 This avoids the 2024.1 default `control_r` bundle conflict; it changes no
 arithmetic, loop, stream, data-memory port or scheduling directive.
-No device algorithm source is edited. `KERNEL_NUM=14` or `4` is explicit build bookkeeping;
+No device algorithm source is edited for the original PR build. `KERNEL_NUM=14` or `4` is explicit build bookkeeping;
 the original Makefile supplied an empty value and no device code uses it.
 The author mergers are free-running (`ap_ctrl_none`) with stream arguments
 only. Apply, wrapper and scatter/gather use `ap_ctrl_chain`; the guarded host
@@ -90,6 +91,21 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
 `AUTHOR_TOPOLOGY_SNAPSHOT_PASS_AWAITING_COMPILE_ABI_ROUTE_BOARD` means only
 that the author topology generator and unchanged-source checks passed.
 Actual compiled ABI, HLS, routing, correctness and timing remain later gates.
+
+For A4 only, add `--algorithm cc` or
+`--algorithm weighted_sssp --weighted-udf /path/to/pinned/integrated/sssp/l2.h`.
+The author generator selects `4 0 false true`: Apply reads and writes
+`vertex_prop` on the original HBM bank 30 rather than reading the PR
+`outdegree` divisor. Both use unsigned active-bit properties. CC changes
+only the UDF. Weighted SSSP also derives the two reviewed Little source edits
+for compact destination and weight decoding, without adding a data port or
+widening the 64-bit edge record. The selected UDF and any derived Little
+files are staged and pinned outside the clean author snapshot.
+
+These options are only accepted by source preflight. The production PR
+route/board supervisors still cannot authorize either active-min variant.
+Actual compiled XO gates, routed artifact checks and independent host oracle
+must pass before using any timings.
 
 ## Memory And Concurrency
 

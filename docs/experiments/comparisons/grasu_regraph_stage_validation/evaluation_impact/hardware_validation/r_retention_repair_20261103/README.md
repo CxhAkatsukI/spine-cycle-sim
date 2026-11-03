@@ -137,6 +137,13 @@ validated the archived Amazon author task/CSR edge multiset. The CC and
 weighted-SSSP author controls still need their own routed images with a
 writable Apply property buffer; the PR control image cannot be reused.
 
+The [A4 source preflight](../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/source_build/README.md)
+now generates separate CC and weighted-SSSP compile/link plans. Both preserve
+the four Little lanes and bind writable Apply state to HBM 30. All eight
+translation units passed host compiler syntax checks using the Vitis 2024.1
+headers. This is source-only evidence; no new XO, routed image, or timing
+measurement is admitted by the preflight.
+
 The full link has a 40-GiB hard limit, 36-GiB high watermark and a six-hour
 timeout. Each SSSP/CC component service has an 8-GiB limit and 7-GiB high
 watermark; these are component-only budgets based on the observed ResPR

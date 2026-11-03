@@ -10,7 +10,7 @@ import zipfile
 from spine_cycle_sim.experiments.original_regraph_execution.hardware import artifact
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import admission
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_build import (
-    configuration as config, execution, gates, preflight, snapshot, waiting, topology as topology_gate,
+    active_min, configuration as config, execution, gates, preflight, snapshot, waiting, topology as topology_gate,
 )
 from spine_cycle_sim.experiments.sharded_k4_stages.bitstream import SECTIONS
 
@@ -60,13 +60,13 @@ class A4SourceBuildTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 config.counts(topology)
 
-    def write_xo(self, path, name, topology):
+    def write_xo(self, path, name, topology, algorithm="pr"):
         document = ET.Element("root")
         kernel = ET.SubElement(document, "kernel", {"name": name,
             "hwControlProtocol": config.control_protocol(name, topology),
-            "compileOptions": " ".join(f"-D{k}={v}" for k, v in config.defines(topology).items())})
+            "compileOptions": " ".join(f"-D{k}={v}" for k, v in config.defines(topology, algorithm=algorithm).items())})
         args = ET.SubElement(kernel, "args")
-        for index, name in enumerate(config.argument_names(name, topology)):
+        for index, name in enumerate(config.argument_names(name, topology, algorithm=algorithm)):
             ET.SubElement(args, "arg", {"id": str(index), "name": name})
         with zipfile.ZipFile(path, "w") as archive:
             archive.writestr("export/kernel.xml", ET.tostring(document))
@@ -82,6 +82,44 @@ class A4SourceBuildTests(unittest.TestCase):
                 self.write_xo(path, name, "original_example")
                 with self.assertRaises(ValueError):
                     gates.inspect_xo(path, name, "a4")
+
+    def test_a4_active_min_apply_abi_cannot_be_mistaken_for_pr_or_other_policy(self):
+        name = "kernelApply"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "apply.xo"
+            for algorithm, edge_prop in (("cc", "0"), ("weighted_sssp", "1")):
+                self.write_xo(path, name, "a4", algorithm)
+                result = gates.inspect_xo(path, name, "a4", algorithm=algorithm)
+                self.assertEqual(result["arguments"][0]["name"], "vertex_prop")
+                self.assertEqual(result["defines"]["HAVE_EDGE_PROP"], edge_prop)
+                self.assertEqual(result["defines"]["HAVE_APPLY_OUTDEG"], "0")
+                for other in set(config.ALGORITHMS) - {algorithm}:
+                    with self.assertRaises(ValueError):
+                        gates.inspect_xo(path, name, "a4", algorithm=other)
+        self.assertNotEqual(config.binary_name("a4", algorithm="cc"), config.binary_name("a4"))
+        with self.assertRaises(ValueError):
+            config.defines("original_example", algorithm="cc")
+
+    def test_apply_bank_rejects_pr_mapping_and_moved_or_extra_active_ports(self):
+        with tempfile.TemporaryDirectory() as directory:
+            connectivity = Path(directory) / "connectivity.cfg"
+            valid = "sp=kernelApply_1.vertex_prop:HBM[30]\n"
+            connectivity.write_text(valid)
+            active_min.check_apply_bank(connectivity, "a4", "cc")
+            for wrong in (valid.replace("vertex_prop", "outdegree"),
+                          valid.replace("[30]", "[29]"), valid + valid):
+                connectivity.write_text(wrong)
+                with self.assertRaises(ValueError):
+                    active_min.check_apply_bank(connectivity, "a4", "cc")
+
+    def test_weighted_udf_is_explicit_and_disallowed_for_other_policies(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for algorithm, udf in (("weighted_sssp", None), ("cc", root / "sssp.h")):
+                with self.assertRaises(ValueError):
+                    preflight.run(root, root, root / "no-run", topology="a4", algorithm=algorithm,
+                                  weighted_udf=udf)
+                self.assertFalse((root / "no-run").exists())
 
     def topology(self):
         connections = [("kernelApply:kernelApply_1", 0, "HBM[30]")]
@@ -206,11 +244,13 @@ class A4SourceBuildTests(unittest.TestCase):
                     patch.object(preflight.snapshot, "prepare", return_value=prepared) as prepare, \
                     patch.object(preflight.snapshot, "prepare_entries", return_value=[]) as entries, \
                     patch.object(preflight.snapshot, "unchanged"), \
+                    patch.object(preflight.active_min, "check_apply_bank") as bank, \
                     patch.object(preflight.execution, "run") as compiler:
                 result = preflight.run(root, root / "author", output, topology="a4")
             containment.assert_called_once_with(group, memory_gib=2)
-            prepare.assert_called_once_with(root, root / "author", output, "a4")
-            entries.assert_called_once_with(output / "source", output, "a4")
+            prepare.assert_called_once_with(root, root / "author", output, "a4", algorithm="pr")
+            entries.assert_called_once_with(output / "source", output, "a4", little_entry=None)
+            bank.assert_called_once_with(output / "source/acc_template/connectivity.cfg", "a4", "pr")
             compiler.assert_not_called()
             self.assertEqual(len(result["commands_not_executed"]["compilations"]), 4)
             self.assertFalse(result["compiler_launched"])

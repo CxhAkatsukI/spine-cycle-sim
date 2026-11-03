@@ -13,8 +13,9 @@ from . import configuration as config
 from .topology import validate as validate_connections
 
 
-def inspect_xo(path: Path, name: str, topology: str = config.DEFAULT_TOPOLOGY) -> dict:
-    definitions_expected = config.defines(topology)
+def inspect_xo(path: Path, name: str, topology: str = config.DEFAULT_TOPOLOGY, *,
+               algorithm: str = "pr") -> dict:
+    definitions_expected = config.defines(topology, algorithm=algorithm)
     with zipfile.ZipFile(path) as archive:
         entries = [item for item in archive.namelist() if item.endswith("/kernel.xml")]
         # Big's replicated dataflow metadata exceeds 1 MiB with the pinned 2024.1 compiler.
@@ -26,7 +27,7 @@ def inspect_xo(path: Path, name: str, topology: str = config.DEFAULT_TOPOLOGY) -
             kernel.get("hwControlProtocol") != config.control_protocol(name, topology)):
         raise ValueError("author kernel name or task-control ABI differs")
     arguments = [dict(arg.attrib) for arg in kernel.findall("args/arg")]
-    if ([arg["name"] for arg in arguments] != config.argument_names(name, topology) or
+    if ([arg["name"] for arg in arguments] != config.argument_names(name, topology, algorithm=algorithm) or
             [int(arg["id"]) for arg in arguments] != list(range(len(arguments)))):
         raise ValueError("author kernel argument order differs from guarded host ABI")
     tokens = shlex.split(kernel.get("compileOptions", ""))
@@ -42,7 +43,7 @@ def inspect_xo(path: Path, name: str, topology: str = config.DEFAULT_TOPOLOGY) -
         if undefined in definitions_expected:
             raise ValueError("author macro undefinition is not admitted")
     if definitions != {key: str(value) for key, value in definitions_expected.items()}:
-        raise ValueError("XO configuration differs from fixed signed-PR author control")
+        raise ValueError("XO configuration differs from the selected author control")
     return {"xo": artifact.identity(path), "kernel": name, "arguments": arguments,
             "control": kernel.get("hwControlProtocol"), "defines": definitions,
             "ports": [dict(port.attrib) for port in kernel.findall("ports/port")]}

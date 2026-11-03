@@ -10,6 +10,7 @@ CLOCK_MHZ = 150
 PART = "xcu55c-fsvh2892-2L-e"
 DEFAULT_TOPOLOGY = "original_example"
 TOPOLOGIES = {DEFAULT_TOPOLOGY: (11, 3), "a4": (4, 0)}
+ALGORITHMS = ("pr", "cc", "weighted_sssp")
 POLICY = {"tree_memory_gib": 40, "reserve_gib": 24, "background_memory_gib": 8,
           "allow_bounded_builds": True}
 DEFINES = {"HAVE_EDGE_PROP": 0, "HAVE_UNSIGNED_PROP": 0, "HAVE_APPLY_OUTDEG": 1,
@@ -33,10 +34,22 @@ def counts(topology: str = DEFAULT_TOPOLOGY) -> tuple[int, int]:
     return TOPOLOGIES[topology]
 
 
-def defines(topology: str = DEFAULT_TOPOLOGY) -> dict:
+def validate_algorithm(topology: str, algorithm: str) -> None:
+    counts(topology)
+    if algorithm not in ALGORITHMS or (algorithm != "pr" and topology != "a4"):
+        raise ValueError("CC and weighted SSSP controls require the four-Little A4 topology")
+
+
+def defines(topology: str = DEFAULT_TOPOLOGY, *, algorithm: str = "pr") -> dict:
+    validate_algorithm(topology, algorithm)
     little, big = counts(topology)
-    return {**DEFINES, "KERNEL_NUM": little + big,
-            "LITTLE_KERNEL_NUM": little, "BIG_KERNEL_NUM": big}
+    result = {**DEFINES, "KERNEL_NUM": little + big,
+              "LITTLE_KERNEL_NUM": little, "BIG_KERNEL_NUM": big}
+    if algorithm != "pr":
+        result.update(HAVE_UNSIGNED_PROP=1, HAVE_APPLY_OUTDEG=0, HAVE_VERTEX_PROP=1)
+    if algorithm == "weighted_sssp":
+        result["HAVE_EDGE_PROP"] = 1
+    return result
 
 
 def kernels(topology: str = DEFAULT_TOPOLOGY) -> dict:
@@ -50,8 +63,10 @@ def kernels(topology: str = DEFAULT_TOPOLOGY) -> dict:
     return result
 
 
-def binary_name(topology: str = DEFAULT_TOPOLOGY) -> str:
-    counts(topology)
+def binary_name(topology: str = DEFAULT_TOPOLOGY, *, algorithm: str = "pr") -> str:
+    validate_algorithm(topology, algorithm)
+    if algorithm != "pr":
+        return f"original_r_a4_{algorithm}.hw.xclbin"
     return "original_r_11l3b.hw.xclbin" if topology == DEFAULT_TOPOLOGY else "original_r_a4.hw.xclbin"
 
 
@@ -68,40 +83,43 @@ def directories(output: Path, name: str) -> list[str]:
 
 
 def compile_command(source: Path, output: Path, kernel: str,
-                    topology: str = DEFAULT_TOPOLOGY) -> list[str]:
+                    topology: str = DEFAULT_TOPOLOGY, *, algorithm: str = "pr") -> list[str]:
     relative, _ = kernels(topology)[kernel]
-    includes = [source / name for name in ("acc_udfs/pr", ".", "acc_template",
-                                          "acc_template/common", "acc_udfs")]
+    udf = source / "acc_udfs/pr" if algorithm == "pr" else output / "algorithm/udf"
+    includes = [udf, source, source / "acc_template", source / "acc_template/common", source / "acc_udfs"]
     includes += [source / "acc_template" / Path(relative).parent,
                  Path("/data/yxx/tools/xilinx/Vitis_HLS/2024.1/include/etc")]
     directives = (["--hls.pre_tcl", str(output / "entries/apply_interface.tcl")]
                   if kernel == "kernelApply" else [])
     return [str(COMPILER), "--target", "hw", "--platform", str(PLATFORM), "--save-temps", "-O3",
             "--kernel_frequency", str(CLOCK_MHZ), "--compile", "--kernel", kernel,
-            "-D_GTHREAD_USE_COND_INIT_FUNC", *[f"-D{key}={value}" for key, value in defines(topology).items()],
+            "-D_GTHREAD_USE_COND_INIT_FUNC",
+            *[f"-D{key}={value}" for key, value in defines(topology, algorithm=algorithm).items()],
             *["-I" + str(path) for path in includes], *directives, *directories(output, "compile/" + kernel),
             "-o", str(output / "xo" / (kernel + ".hw.xo")),
             str(output / "entries" / (kernel + ".cpp"))]
 
 
 def link_command(source: Path, output: Path, topology: str = DEFAULT_TOPOLOGY, *,
-                 connectivity: Path | None = None) -> list[str]:
+                 connectivity: Path | None = None, algorithm: str = "pr") -> list[str]:
     return [str(COMPILER), "--target", "hw", "--platform", str(PLATFORM), "--save-temps", "-O3",
             "--link", "--kernel_frequency", str(CLOCK_MHZ),
             "--config", str(connectivity if connectivity is not None else source / "acc_template/connectivity.cfg"),
             "--xp", "prop:solution.kernel_compiler_margin=10%",
             "--vivado.synth.jobs", "2", "--vivado.impl.jobs", "2", *directories(output, "link"),
-            "-o", str(output / binary_name(topology)),
+            "-o", str(output / binary_name(topology, algorithm=algorithm)),
             *[str(output / "xo" / (kernel + ".hw.xo")) for kernel in kernels(topology)]]
 
 
-def argument_names(kernel: str, topology: str = DEFAULT_TOPOLOGY) -> list[str]:
+def argument_names(kernel: str, topology: str = DEFAULT_TOPOLOGY, *, algorithm: str = "pr") -> list[str]:
+    validate_algorithm(topology, algorithm)
     little_count, big_count = counts(topology)
     total = little_count + big_count
     if kernel not in kernels(topology):
         raise ValueError("unknown author kernel")
     if kernel == "kernelApply":
-        return ["outdegree", "num_dense_paritions", "num_sparse_paritions", "arg_reg",
+        return ["outdegree" if algorithm == "pr" else "vertex_prop",
+                "num_dense_paritions", "num_sparse_paritions", "arg_reg",
                 "l_merged_prop_stm", *(["b_merged_prop_stm"] if big_count else []), "prop_write_burst_stm"]
     if kernel == "kernelHBMWrapper":
         return [*[f"src_prop_{i}" for i in range(1, total + 1)], *[f"new_prop_{i}" for i in range(1, total + 1)],

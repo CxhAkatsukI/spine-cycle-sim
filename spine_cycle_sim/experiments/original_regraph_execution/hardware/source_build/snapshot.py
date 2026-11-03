@@ -28,13 +28,15 @@ def unchanged(pins: list[dict]) -> None:
         raise ValueError("frozen build source, tool, environment or artifact changed")
 
 
-def prepare_entries(source: Path, output: Path, topology: str = config.DEFAULT_TOPOLOGY) -> list[dict]:
+def prepare_entries(source: Path, output: Path, topology: str = config.DEFAULT_TOPOLOGY, *,
+                    little_entry: Path | None = None) -> list[dict]:
     """Supply the legacy unsigned-int alias without altering author source."""
     destination = output / "entries"
     destination.mkdir()
     pins = []
     for name, (relative, _) in config.kernels(topology).items():
-        author = source / "acc_template" / relative
+        author = (little_entry if name == "littleKernelScatterGather" and little_entry is not None
+                  else source / "acc_template" / relative)
         artifact.identity(author)
         if any(character in str(author) for character in ('"', "\\", "\n", "\r")):
             raise ValueError("author include path cannot be represented literally")
@@ -52,7 +54,9 @@ def prepare_entries(source: Path, output: Path, topology: str = config.DEFAULT_T
     return pins
 
 
-def prepare(root: Path, upstream: Path, output: Path, topology: str = config.DEFAULT_TOPOLOGY) -> dict:
+def prepare(root: Path, upstream: Path, output: Path, topology: str = config.DEFAULT_TOPOLOGY, *,
+            algorithm: str = "pr") -> dict:
+    config.validate_algorithm(topology, algorithm)
     little, big = config.counts(topology)
     pin_file = root / "docs/experiments/comparisons/grasu_regraph_stage_validation/source_pins.json"
     pin = read_pins(pin_file)["regraph"]
@@ -66,7 +70,8 @@ def prepare(root: Path, upstream: Path, output: Path, topology: str = config.DEF
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(upstream / name, target)
     # The author generator overwrites six known outputs; no C-simulation helper headers are added.
-    command = [str(config.GENERATOR_PYTHON), "autogen/autogen.py", str(little), str(big), "true", "false"]
+    switches = ("true", "false") if algorithm == "pr" else ("false", "true")
+    command = [str(config.GENERATOR_PYTHON), "autogen/autogen.py", str(little), str(big), *switches]
     execution = run_bounded(command, destination, output / "generator",
                             timeout=60, memory_gib=2, reserve_gib=32)
     if execution["exit_code"] or execution["timed_out"]:
