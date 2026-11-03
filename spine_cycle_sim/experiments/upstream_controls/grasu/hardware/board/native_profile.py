@@ -1,4 +1,4 @@
-"""Replay the native ResPR host's update-only correctness and CU timing."""
+"""Replay native update-only correctness and CU timing."""
 
 from decimal import Decimal
 
@@ -9,6 +9,9 @@ ROLES = {"cache0", "cache1", "ddr0", "ddr1", "degree", "dispatch",
          "search0", "search1", "search2", "search3"}
 ORACLE_FIELDS = ("status", "touched_segments", "checked_words", "pma_mismatches",
                  "degree_sources", "degree_mismatches")
+NATIVE_ALGORITHMS = {"residual_pagerank": (ALGORITHM + "_INPUT", ALGORITHM),
+                     "cc": ("CC_PMA_NATIVE_SHARDED_INPUT", "connected_components"),
+                     "weighted_sssp": ("WEIGHTED_PMA_NATIVE_SHARDED_INPUT", "weighted_sssp")}
 
 
 def fields(text):
@@ -38,7 +41,7 @@ def ns(row, key):
     return int(value)
 
 
-def event_profile(log, shards):
+def event_profile(log, shards, *, roles=ROLES):
     if "GRASU_SHARDED_UPDATE_DIAGNOSTIC_EVENTS" in log:
         raise ValueError("unexpected additional diagnostic launch")
     repeat = one(log, "GRASU_SHARDED_UPDATE_REPEAT")
@@ -47,13 +50,14 @@ def event_profile(log, shards):
     rows = records(log, EVENTS)
     phases = records(log, EVENTS + "_PHASE")
     if ([int(row["shard"]) for row in rows] != shards
-            or len(phases) != len(shards) * len(ROLES)):
+            or len(phases) != len(shards) * len(roles)):
         raise ValueError("missing, duplicate or out-of-order shard event envelope")
     elapsed = inter_shard = busy = 0
     for ordinal, row in enumerate(rows):
-        selected = {p["cu"]: p for p in phases if p["shard"] == row["shard"]}
-        if selected.keys() != ROLES:
-            raise ValueError("incomplete CU envelope, including device degree")
+        shard_phases = [p for p in phases if p["shard"] == row["shard"]]
+        selected = {p["cu"]: p for p in shard_phases}
+        if len(shard_phases) != len(roles) or selected.keys() != roles:
+            raise ValueError("incomplete or duplicated algorithm-specific CU envelope")
         intervals = []
         for cu, p in selected.items():
             start, end = ns(p, "start_offset_ms"), ns(p, "end_offset_ms")
@@ -78,7 +82,7 @@ def event_profile(log, shards):
             "inter_shard_gap_ns": inter_shard, "cu_events": len(phases)}
 
 
-def update_only_profile(log, result, *, bdf, reference):
+def update_only_profile(log, result, *, bdf, reference, algorithm="residual_pagerank"):
     settings = (
         ("GRASU_REGRAPH_DEVICE", "bdf", bdf),
         ("SHARDED_METADATA_POLICY", "replicas", "4"),
@@ -87,7 +91,9 @@ def update_only_profile(log, result, *, bdf, reference):
     )
     if any(one(log, tag)[key] != value for tag, key, value in settings):
         raise ValueError("wrong board, metadata layout, residency or repetitions")
-    config = one(log, ALGORITHM + "_INPUT")
+    degree = algorithm == "residual_pagerank"
+    input_tag, algorithm_name = NATIVE_ALGORITHMS[algorithm]
+    config = one(log, input_tag)
     workloads = (("vertices", "vertices"), ("destination_partitions", "shards"),
                  ("logical_updates", "updates"), ("physical_updates", "updates"),
                  ("pma_slots_total", "pma_slots"))
@@ -105,14 +111,21 @@ def update_only_profile(log, result, *, bdf, reference):
         raise ValueError("candidate shard layout differs from the declared workload")
     checked = fields(result)
     reported = one(log, "GRASU_SHARDED_UPDATE_ONLY_RESULT")
-    if (checked != {key: reported[key] for key in ORACLE_FIELDS}
-            or checked["status"] != "PASS" or reported["algorithm"] != ALGORITHM
+    if degree:
+        report_fields = dict(zip(ORACLE_FIELDS, ORACLE_FIELDS))
+    else:
+        report_fields = {"status": "status", "touched_segments": "touched_segments",
+                         "checked_words": "checked_words", "mismatches": "pma_mismatches"}
+    if (checked != {key: reported[field] for key, field in report_fields.items()}
+            or checked["status"] != "PASS"
+            or reported["algorithm"] != algorithm_name
             or reported["repeats"] != "1"
             or reported["measurement_window"] != "same_process_update_events"
-            or any(int(checked[key]) != 0 for key in ("pma_mismatches", "degree_mismatches"))
-            or any(int(checked[key]) <= 0 for key in ("touched_segments", "checked_words", "degree_sources"))):
-        raise ValueError("candidate PMA/degree validation failed or disagrees with stdout")
-    profile = event_profile(log, shards)
+            or int(reported["pma_mismatches"]) != 0
+            or any(int(checked[key]) <= 0 for key in ("touched_segments", "checked_words"))
+            or (degree and (int(checked["degree_mismatches"]) != 0 or int(checked["degree_sources"]) <= 0))):
+        raise ValueError("candidate update oracle failed or disagrees with stdout")
+    profile = event_profile(log, shards, roles=ROLES if degree else ROLES - {"degree"})
     if ns(reported, "update_ms") != profile["event_span_ns"]:
         raise ValueError("update-only total differs from the event envelope")
     return {**profile, "config": config, "layout": layout, "oracle": checked}

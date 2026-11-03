@@ -92,3 +92,31 @@ Use the frozen reference result, native host build directory, exact route,
 and completed R report in a fresh cgroup with at most 8 GiB and no swap.
 The candidate's board result remains pending. Unchanged G XOs do not
 guarantee unchanged routed clocks or timings.
+
+## CC And Weighted SSSP Single-Run Screens
+
+The two adapter-repair images have separate update-only screens on the
+same frozen AU 131K input. They reuse the measured public-source G arm on
+`0000:c1:00.1`, not the old four-repeat weighted-SSSP campaign. Each
+candidate waits for its exact completed route, then reserves its full
+8-GiB host budget with a 32-GiB live reserve and leases that same board.
+Its nine update CUs must match the declared roles on each of the eight
+shards, and its touched PMA output must pass the native oracle. The final
+completion barrier is awaited but is outside the measured event envelope.
+Equal driver-reported clocks and a raw elapsed ratio of at most 1.15 are
+both required. A candidate timeout or mismatched image, output or clock
+is not an admission. The independent R pairs use a different board;
+these G receipts do not by themselves qualify a convergence comparison.
+
+| Algorithm | Route | G result directory | G service invocation |
+| --- | --- | --- | --- |
+| CC | `route-cc-v2` | `g-cc-board-v1` | `052e810e8b9a42fbb7bc1bbacaea9d07` |
+| Weighted SSSP | `route-sssp-v2` | `g-sssp-board-v1` | `504f9ae8932b4107b47c393c4914fc9a` |
+
+Result directories are under
+`/data/chuxiao/checks/source-retention-repair-20261104/`. The entry point is
+`python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.active_min_candidate --help`.
+Both launchers are waiting for route completion at this checkpoint;
+neither has attempted to program the card. The exact archived reference
+log replays to 18,413,633 ns, and both algorithm hosts resolve the recorded
+public-control XRT library before any board request.
