@@ -356,6 +356,23 @@ request because its pin comparison expected a byte count absent from build
 manifests. The runner now checks the declared path/SHA-256 and, where present,
 byte count; it still rejects changed contents. The failed attempt is retained.
 
+### Matched Amazon CC Screen
+
+The public-source A4 and integrated sharded K4 CC routes are queued separately:
+`public-a4-cc-v1` and `route-cc-v2` under
+`/data/chuxiao/builds/gr-directory-spans-20261103/`. The paired screen at
+`/data/chuxiao/checks/source-retention-repair-20261104/cc-active-pair-v1/queue.json`
+records both exact build invocations and waits without holding a board lease.
+After both routes pass, it runs each arm once with the same Amazon active state
+and output oracle on the same card. A failed or replaced route is not admitted.
+
+The A4 host was relinked directly against the same XRT OpenCL library as the
+integrated host. The previous binary resolved a generic loader from the CUDA
+installation. Relinking preserved the full-Amazon offline oracle hashes for
+both CC and weighted SSSP. The paired runner checks the resolved library digest
+before queueing and again under the board lease. This is a preflight, not a
+measured R retention result.
+
 ## Remaining Gates
 
 Goal active: complete the route, check actual clocks and measure the new

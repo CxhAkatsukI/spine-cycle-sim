@@ -33,10 +33,14 @@ g++ -std=c++20 -O2 -Wall -Wextra -Wpedantic -Werror "$src/input_tests.cpp" -o "$
 "$OUT/input_tests" "$ARCHIVED_A4" "$OUT/fixture"
 g++ -std=c++20 -O2 -DNDEBUG -Wall -Wextra -Wpedantic -Werror \
   -isystem /opt/xilinx/xrt/include "$src/control.cpp" -L/opt/xilinx/xrt/lib \
-  -Wl,-rpath,/opt/xilinx/xrt/lib -lOpenCL -o "$OUT/control"
+  -Wl,-rpath,/opt/xilinx/xrt/lib -lxilinxopencl -o "$OUT/control"
 "$OUT/control" offline cc "$OUT/fixture" "$OUT/cc"
 "$OUT/control" offline weighted_sssp "$OUT/fixture" "$OUT/sssp"
 ```
+
+Link directly against the Xilinx OpenCL runtime for the paired board run.
+The generic `-lOpenCL` loader can resolve to a system or CUDA installation,
+which does not satisfy the paired runner's XRT identity check.
 
 The archived Amazon A4 task set passed the exact layout check (735,324
 vertices, 5,158,388 logical edges, 48 tasks). Both synthetic algorithm

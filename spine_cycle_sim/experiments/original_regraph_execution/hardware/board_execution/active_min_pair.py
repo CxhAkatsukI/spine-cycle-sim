@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution import runtime
 from spine_cycle_sim.experiments.sharded_k4_stages.board import require_idle_board
@@ -39,6 +40,24 @@ def xrt_identity(environment):
             if Path(pin["path"]).name.startswith(("libxrt", "libxilinxopencl", "xbutil"))}
 
 
+def paired_loader(reference, candidate):
+    libraries = []
+    for host in (reference, candidate):
+        process = subprocess.run(["ldd", str(host)], check=True, capture_output=True, text=True, timeout=15)
+        if process.stderr.strip():
+            raise ValueError("unexpected loader diagnostic before board admission")
+        libraries.append(xrt_identity({"pins": [artifact.identity(path)
+                                               for path in runtime.library_paths(process.stdout)]}))
+    if libraries[0] != libraries[1]:
+        raise ValueError("paired board hosts resolve different XRT libraries before board admission")
+    return libraries[0]
+
+
+def input_paths(args):
+    return (args.reference_host, args.candidate_host,
+            *(args.inputs / f"{name}.u32le" for name in active_min.INPUTS + active_min.STATE[args.algorithm]))
+
+
 def run(args):
     if (args.algorithm not in active_min.ALGORITHMS or type(args.device) is not int or args.device not in (0, 1)
             or not re.fullmatch(r"[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]", args.bdf)):
@@ -60,11 +79,11 @@ def run(args):
                or name == "XCL_DEVICE_INDEX" for name in os.environ):
             raise ValueError("inherited board or candidate runtime override is forbidden")
         image, pins = candidate_route(args.candidate_route, args.algorithm)
+        report["preflight_xrt_libraries"] = paired_loader(args.reference_host, args.candidate_host)
         checked = admission.review(args.reference_route, output / "reference_admission",
                                    topology="a4", algorithm=args.algorithm)
         pins += checked["pins"]
-        pins += [artifact.identity(item) for item in (args.reference_host, args.candidate_host,
-                 *(args.inputs / f"{name}.u32le" for name in active_min.INPUTS + active_min.STATE[args.algorithm]))]
+        pins += [artifact.identity(item) for item in input_paths(args)]
         offline, expected, oracle_result = active_min.read_offline(args.reference_host, args.algorithm,
                                                                    args.inputs, output)
         pins += [expected, oracle_result]
@@ -85,6 +104,9 @@ def run(args):
                 environment = runtime.capture(host, render, output / (arm + "_runtime"))
                 if environment["device"]["bdf"] != args.bdf:
                     raise ValueError("runtime does not match leased board")
+                observed = xrt_identity(environment)
+                if any(observed.get(path) != digest for path, digest in report["preflight_xrt_libraries"].items()):
+                    raise ValueError("XRT loader changed between preflight and board admission")
                 if arm == "candidate" and xrt_identity(environment) != xrt_identity(report["arms"]["reference"]["runtime"]):
                     raise ValueError("paired board hosts resolve different XRT tool or runtime libraries")
                 unchanged(pins)
@@ -117,17 +139,23 @@ def run(args):
     return report
 
 
-if __name__ == "__main__":
+def parse_arguments(argv=None, extend=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("reference-route", "candidate-route", "reference-host", "candidate-host", "inputs", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--algorithm", choices=active_min.ALGORITHMS, required=True)
     parser.add_argument("--device", type=int, choices=(0, 1), required=True)
     parser.add_argument("--bdf", required=True)
-    arguments = parser.parse_args()
+    if extend is not None:
+        extend(parser)
+    arguments = parser.parse_args(argv)
     for name, value in vars(arguments).items():
         if isinstance(value, Path):
             setattr(arguments, name, value.absolute())
-    outcome = run(arguments)
+    return arguments
+
+
+if __name__ == "__main__":
+    outcome = run(parse_arguments())
     print(outcome["status"], flush=True)
     raise SystemExit(0 if outcome["retention_gate_pass"] else 1)

@@ -257,3 +257,11 @@ not include DMA, G, or host time outside that interval. The gate requires
 matching driver clocks and a candidate span no greater than 115% of the
 reference. A failure is retained. A passing point covers only that fixture and
 algorithm; it does not establish G retention or full dynamic convergence.
+
+For pending hardware builds, use `active_min_follow` with the same arguments
+plus `--reference-unit`, `--reference-invocation`, `--candidate-unit`, and
+`--candidate-invocation`. Give its cgroup a lifetime that covers the bounded
+`--wait-seconds` (default 30 hours) and the board run. It checks both terminal
+build records before calling the same paired runner, retains `queue.json`,
+and does not reserve a board while waiting. Both hosts must resolve identical
+XRT libraries before any board access.

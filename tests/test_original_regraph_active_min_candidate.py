@@ -9,6 +9,7 @@ from unittest.mock import patch
 from spine_cycle_sim.experiments.original_regraph_execution.hardware import artifact
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import (
     active_min_candidate as candidate,
+    active_min_follow as follow,
     active_min_pair as pair,
 )
 
@@ -100,3 +101,19 @@ class ActiveMinCandidateTests(unittest.TestCase):
             source.write_text("changed source")
             with self.assertRaises(ValueError):
                 pair.candidate_route(route, "cc")
+
+    def test_route_disappearance_requires_observation_and_terminal_artifact(self):
+        invocation = "a" * 32
+        state = {"LoadState": "not-found", "InvocationID": ""}
+        with tempfile.TemporaryDirectory() as tmp:
+            route = Path(tmp)
+            with self.assertRaisesRegex(ValueError, "never observed"):
+                follow.ready("reference", route, state, invocation, False, "cc")
+            with self.assertRaisesRegex(ValueError, "artifact evidence"):
+                follow.ready("reference", route, state, invocation, True, "cc")
+            (route / "results.json").write_text(json.dumps({
+                "status": follow.configuration.routed_status("a4", algorithm="cc")}))
+            self.assertTrue(follow.ready("reference", route, state, invocation, True, "cc"))
+            with self.assertRaisesRegex(ValueError, "invocation changed"):
+                follow.ready("reference", route, {"LoadState": "loaded", "InvocationID": "b" * 32},
+                             invocation, True, "cc")
