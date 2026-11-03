@@ -289,6 +289,33 @@ both host-pack timers and successful per-arm oracles, and reports
 the input, image, clock and board pins separately. It does not accept
 the old G+R timer or the Spine-only smoke as a paired result.
 
+### Gated Full R19 CC Pair
+
+`source_retention.active_min_resident_follow --cc-wall-packet <packet.json>`
+binds the two wall hosts, the Spine repair image, and the split-input
+receipt to the original R19 workload. The packet fields are
+`spine_host`, `spine_binary`, `gr_host`, and `inputs` (the split receipt
+from `source_retention.spine_cc_input`). It verifies the raw input hash,
+the dimensions and both serialized input hashes before waiting.
+The frozen packet is at
+`/data/chuxiao/checks/source-retention-repair-20261104/cc-r19-wall-packet-v1.json`.
+
+Service `gr-retention-cc-resident-r19-wall-20261104.service` waits for the
+exact CC R and G stage jobs. A successful producer status alone does not
+admit the pair: the resident runner replays both raw gates and uses the
+same admitted G+R image and clock. It requests one sample per arm, no
+timed warmups or retries, on U55C `0000:c1:00.1`, with a 32-GiB cgroup
+cap, 30-GiB high watermark, zero swap, and a separate 32-GiB live reserve.
+The wall starts at batch packing after old-state bootstrap and stops at
+final label readback; the G+R pre-reserved layout and offline update
+mapping remain outside it.
+
+Queue and later raw pair receipts:
+`/data/chuxiao/checks/source-retention-repair-20261104/cc-r19-resident-wall-v1/`.
+At enqueue both producers were active and the board had not been requested.
+This is one conditional workload, not evidence that either gate passed
+or that a new Fig. 7 result exists.
+
 The follow-up search of readable `/data/feiyang/spine*` and
 `/data/feiyang/dynamic-acts*` paths found newer emulation files and 133-byte Git
 LFS pointers named `*.hw.xclbin`, not a newer local routed image in those

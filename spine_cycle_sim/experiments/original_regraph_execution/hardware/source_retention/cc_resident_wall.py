@@ -1,0 +1,61 @@
+"""Bind the matched wall-timing CC hosts to a frozen resident workload."""
+
+import json
+from pathlib import Path
+
+from . import cc_resident_results
+from .follow import unchanged
+from .runtime import identity, save
+
+
+BOUNDARY = "resident_old_graph_host_pack_to_final_readback"
+IMAGE = "4071c0f792530fb0b62e6fc4a404ce1c78087c866d2c7c6f44c9fc2d05e64c62"
+SPINE_HOST = "c7f81eeb24cbabc13e6a28366370417106af2a2063c457c970fe171900fe1153"
+GR_HOST = "b72c20fec3bc7130edf430ff0006963e3112dfa57ea31bc96e38246b303f7412"
+
+
+def configure(args, case, pins):
+    if args.algorithm != "cc":
+        raise ValueError("the matched wall host pair is CC-only")
+    packet = args.cc_wall_packet
+    pin = identity(packet)
+    paths = json.loads(packet.read_text())
+    expected = {"spine_host": SPINE_HOST, "spine_binary": IMAGE, "gr_host": GR_HOST}
+    if set(paths) != expected.keys() | {"inputs"}:
+        raise ValueError("unexpected CC wall packet members")
+    binaries = {name: identity(paths[name]) for name in expected}
+    if any(binaries[name]["sha256"] != sha for name, sha in expected.items()):
+        raise ValueError("expected the qualified CC image and wall host binaries")
+    inputs = identity(paths["inputs"])
+    split = json.loads(Path(inputs["path"]).read_text())
+    source = next((row for row in pins if row["path"] == case["graph"]), None)
+    if (source is None or split["source"] != source
+            or any(split[key] != case[key] for key in ("vertices", "edges", "updates"))):
+        raise ValueError("CC split input does not match the frozen workload")
+    new_pins = [pin, inputs, *binaries.values(), split["graph"], split["update"], identity(__file__),
+                identity(cc_resident_results.__file__)]
+    unchanged(new_pins)
+    return dict(case, **{name: row["path"] for name, row in binaries.items()},
+                graph_slice=split["graph"]["path"], update_slice=split["update"]["path"],
+                memory_gib=32, boundary=BOUNDARY), new_pins
+
+
+def commands(case, gate, output):
+    return {
+        "spine": [case["spine_host"], "--xclbin", case["spine_binary"], "--hot", "balanced",
+                  "--mode", "partial", "--samples", "1", "--slice", case["graph_slice"],
+                  "--update", case["update_slice"]],
+        "gr": [case["gr_host"], gate["image"]["path"], case["graph"], str(output / "gr-state.txt"),
+               str(case["source"]), "256"],
+    }
+
+
+def compare(case, arms, output, bdf):
+    logs = [arms[name]["stdout"] for name in ("gr", "spine")]
+    unchanged(logs)
+    gr, spine = (Path(pin["path"]).read_text() for pin in logs)
+    pair = cc_resident_results.analyze(case, gr, spine, bdf=bdf)
+    unchanged(logs)
+    result = output / "pair.json"
+    save(result, pair)
+    return pair, identity(result)

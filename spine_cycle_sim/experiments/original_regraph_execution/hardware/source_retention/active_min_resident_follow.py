@@ -76,6 +76,10 @@ def run(args):
                 raise ValueError(f"expected no terminal {stage} receipt at enqueue: {path}")
             row.update(state=state, observed=True)
         pins = [*runner_pins(), identity(__file__)]
+        if getattr(args, "cc_wall_packet", None) is not None:
+            case, case_pins = resident.frozen_case(args.previous, args.algorithm, args.dataset)
+            _, wall_pins = resident.cc_resident_wall.configure(args, case, case_pins)
+            pins += [identity(resident.__file__), *case_pins, *wall_pins]
         report["runner_pins"] = pins
         deadline = time.monotonic() + args.stage_wait_seconds
         while True:

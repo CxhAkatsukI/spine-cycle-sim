@@ -59,6 +59,39 @@ class ActiveMinResidentTest(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 resident.run(args)
 
+    def test_cc_wall_pins_match_the_frozen_input_and_admitted_image(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            wall = resident.cc_resident_wall
+            files = {name: root / name for name in ("spine_host", "spine_binary", "gr_host", "inputs")}
+            for name, path in files.items():
+                path.write_text(name)
+            source, graph_slice, update_slice = [root / name for name in ("raw", "old", "batch")]
+            for path in (source, graph_slice, update_slice):
+                path.write_text(path.name)
+            case = dict(graph=str(source), source=0, vertices=10, edges=20, updates=4)
+            source_pin = identity(source)
+            files["inputs"].write_text(json.dumps(dict(case, source=source_pin, graph=identity(graph_slice),
+                                                        update=identity(update_slice))))
+            packet = root / "packet.json"
+            packet.write_text(json.dumps({name: str(path) for name, path in files.items()}))
+            args = SimpleNamespace(algorithm="cc", cc_wall_packet=packet)
+            with patch.multiple(wall, IMAGE=identity(files["spine_binary"])["sha256"],
+                                SPINE_HOST=identity(files["spine_host"])["sha256"],
+                                GR_HOST=identity(files["gr_host"])["sha256"]):
+                configured, pins = wall.configure(args, case, [source_pin])
+                self.assertIn(identity(packet), pins)
+                self.assertEqual(configured["memory_gib"], 32)
+                commands = wall.commands(configured, {"image": {"path": "admitted"}}, root)
+                self.assertEqual(commands["gr"][:3], [str(files["gr_host"]), "admitted", str(source)])
+                self.assertEqual(commands["spine"][-8:], ["--mode", "partial", "--samples", "1",
+                                                          "--slice", str(graph_slice), "--update", str(update_slice)])
+                with self.assertRaisesRegex(ValueError, "frozen workload"):
+                    wall.configure(args, dict(case, updates=5), [source_pin])
+                update_slice.write_text("wrong update")
+                with self.assertRaisesRegex(ValueError, "changed"):
+                    wall.configure(args, case, [source_pin])
+
     def test_comparison_rejects_wrong_dimensions_and_changed_raw_logs(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)

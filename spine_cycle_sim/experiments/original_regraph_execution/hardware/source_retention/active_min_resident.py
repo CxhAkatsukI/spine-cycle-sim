@@ -10,7 +10,7 @@ import time
 
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import concurrent, containment
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
-from . import active_min_admission, clocks
+from . import active_min_admission, cc_resident_wall, clocks
 from .follow import unchanged
 from .resident_board import LEGACY_LOCK
 from .runtime import identity, lease, save
@@ -75,10 +75,13 @@ def idle(node):
     return users.returncode == 1 and not (users.stdout.strip() or users.stderr.strip())
 
 
-def arm(name, command, expected, output):
+def arm(name, command, expected, output, *, cc_wall=False):
     stdout, stderr = (output / f"{name}.{stream}.txt" for stream in ("stdout", "stderr"))
+    env = environment()
+    if cc_wall and name == "gr":
+        env["GRASU_SHARDED_RESIDENT_BATCH_WALL"] = "1"
     with stdout.open("x") as out, stderr.open("x") as err:
-        completed = subprocess.run(command, env=environment(), cwd=output, stdout=out, stderr=err, timeout=1800)
+        completed = subprocess.run(command, env=env, cwd=output, stdout=out, stderr=err, timeout=1800)
     if completed.returncode != 0:
         raise RuntimeError(f"{name} exit {completed.returncode}; see {stderr}")
     evidence = clocks.capture(BDF, expected, output, name)
@@ -116,17 +119,28 @@ def run(args):
     write()
     memory = None
     try:
+        cc_wall = getattr(args, "cc_wall_packet", None) is not None
         gate = active_min_admission.admit(args.algorithm, args.route, args.host, args.r_report,
                                            args.r_inputs, args.g_report, args.g_reference)
         stage_receipts = getattr(args, "stage_receipts", None)
         if stage_receipts is not None and any(gate[stage]["report"] != pin for stage, pin in stage_receipts.items()):
             raise ValueError("admission replay used a different producer receipt")
         case, pins = frozen_case(args.previous, args.algorithm, args.dataset)
-        comparator = identity(args.comparator)
-        if comparator["sha256"] != COMPARATOR_SHA256:
-            raise ValueError("unexpected resident log comparator")
+        if cc_wall:
+            case, added_pins = cc_resident_wall.configure(args, case, pins)
+            pins += added_pins
+            report.update(boundary=cc_resident_wall.BOUNDARY,
+                          gr_host_overlay="15717a5928929cafd39dbf5a3f7fc1aaf18d167a",
+                          gr_host_overlay_environment={"GRASU_SHARDED_RESIDENT_BATCH_WALL": "1"})
+            command_pair = cc_resident_wall.commands(case, gate, args.output)
+        else:
+            comparator = identity(args.comparator)
+            if comparator["sha256"] != COMPARATOR_SHA256:
+                raise ValueError("unexpected resident log comparator")
+            pins.append(comparator)
+            command_pair = commands(case, gate, args.output)
         pins += [gate["host"], gate["image"], gate["g"]["report"], gate["g"]["reference"], gate["r"]["report"],
-                 comparator, identity(__file__), identity(active_min_admission.__file__)]
+                 identity(__file__), identity(active_min_admission.__file__)]
         report.update(stage_gates=gate, case=case, pins=pins)
         budget = case["memory_gib"]
         group = containment.current()
@@ -139,7 +153,7 @@ def run(args):
             ("gr", gate["image"]["path"]), ("spine", case["spine_binary"]))}
         affinity = sorted(os.sched_getaffinity(0))[:4]
         os.sched_setaffinity(0, affinity)
-        report.update(status="WAITING_FOR_MEMORY", cpu_affinity=affinity, commands=commands(case, gate, args.output))
+        report.update(status="WAITING_FOR_MEMORY", cpu_affinity=affinity, commands=command_pair)
         write()
         deadline = time.monotonic() + args.wait_seconds
         while True:
@@ -169,7 +183,8 @@ def run(args):
                                 raise MemoryError("resident host memory reserve fell below policy")
                             report["attempts"].append(name)
                             write()
-                            report["arms"][name] = arm(name, report["commands"][name], expected[name], args.output)
+                            report["arms"][name] = arm(name, report["commands"][name], expected[name], args.output,
+                                                       cc_wall=cc_wall)
                             write()
                         break
             except BlockingIOError:
@@ -180,7 +195,9 @@ def run(args):
         if report["arms"]["gr"]["clock"]["driver_reported_mhz"] != gate["resident_mhz"]:
             raise ValueError("resident G+R clock differs from the exact-image G and R screens")
         report["arms"]["gr"]["state"] = identity(args.output / "gr-state.txt")
-        report["pair"], report["comparison_log"] = compare(case, report["arms"], args.comparator, args.output)
+        report["pair"], report["comparison_log"] = (
+            cc_resident_wall.compare(case, report["arms"], args.output, BDF) if cc_wall
+            else compare(case, report["arms"], args.comparator, args.output))
         report["status"] = "MEASURED_RESIDENT_PAIR"
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
@@ -199,8 +216,11 @@ def parse_arguments(argv=None, *, extend=None):
     parser.add_argument("--algorithm", required=True, choices=ALGORITHMS)
     parser.add_argument("--dataset", required=True, choices=DATASETS)
     for name in ("previous", "route", "host", "r-report", "r-inputs", "g-report", "g-reference",
-                 "comparator", "output"):
+                 "output"):
         parser.add_argument("--" + name, required=True, type=lambda value: Path(value).resolve())
+    comparison = parser.add_mutually_exclusive_group(required=True)
+    comparison.add_argument("--comparator", type=lambda value: Path(value).resolve())
+    comparison.add_argument("--cc-wall-packet", type=lambda value: Path(value).resolve())
     parser.add_argument("--wait-seconds", type=int, default=0)
     if extend is not None:
         extend(parser)
