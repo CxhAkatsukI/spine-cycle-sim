@@ -46,8 +46,11 @@ def wait_for_image(route, r_report, timeout):
     unchanged([routed["xclbin"], screen["analysis"], *json.loads((route / "manifest.json").read_text())["pins"]])
     board_report = r_report.parent / "board-once/results.json"
     board = json.loads(board_report.read_text())
-    if (board["bdf"] != BDF or board["device"] != DEVICE or board["pins"]["r_current"] != routed["xclbin"]):
+    board_image = board["pins"]["r_current"]
+    if (board["bdf"] != BDF or board["device"] != DEVICE
+            or any(board_image[key] != routed["xclbin"][key] for key in ("path", "sha256"))):
         raise ValueError("candidate image or board differs from the R screen")
+    unchanged([board_image])
     return image, screen["status"], [identity(r_report), identity(execution), identity(board_report),
                                      routed["xclbin"], screen["analysis"]]
 

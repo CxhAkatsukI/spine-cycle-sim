@@ -80,13 +80,15 @@ class ExactRouteTests(unittest.TestCase):
             image = route / "candidate.hw.xclbin"
             image.write_bytes(b"candidate")
             pin = board.identity(image)
+            route_pin = {key: pin[key] for key in ("path", "sha256")}
             execution = route / "execution/execution.json"
-            execution.write_text(json.dumps({"status": "LINK_PASS_AWAITING_TIMING_AND_BOARD", "xclbin": pin}))
+            execution.write_text(json.dumps({"status": "LINK_PASS_AWAITING_TIMING_AND_BOARD", "xclbin": route_pin}))
             analysis = root / "analysis.json"
             analysis.write_text("{}")
             (root / "board-once").mkdir()
-            (root / "board-once/results.json").write_text(json.dumps(
-                {"bdf": board.BDF, "device": board.DEVICE, "pins": {"r_current": pin}}))
+            board_report = root / "board-once/results.json"
+            evidence = {"bdf": board.BDF, "device": board.DEVICE, "pins": {"r_current": pin}}
+            board_report.write_text(json.dumps(evidence))
             report = root / "results.json"
             report.write_text(json.dumps({"status": "WAITING_FOR_EXACT_ROUTE"}))
             with self.assertRaises(TimeoutError):
@@ -95,9 +97,13 @@ class ExactRouteTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 board.wait_for_image(route, report, 0)
             report.write_text(json.dumps({"status": "R_PERFORMANCE_GATE_FAILED_RETAINED",
-                                          "pins": [pin, board.identity(execution)],
+                                          "pins": [route_pin, board.identity(execution)],
                                           "analysis": board.identity(analysis)}))
             self.assertEqual(board.wait_for_image(route, report, 0)[0], image)
+            board_report.write_text(json.dumps({**evidence, "pins": {"r_current": {**pin, "bytes": 0}}}))
+            with self.assertRaises(ValueError):
+                board.wait_for_image(route, report, 0)
+            board_report.write_text(json.dumps(evidence))
             image.write_bytes(b"another build")
             with self.assertRaises(ValueError):
                 board.wait_for_image(route, report, 0)

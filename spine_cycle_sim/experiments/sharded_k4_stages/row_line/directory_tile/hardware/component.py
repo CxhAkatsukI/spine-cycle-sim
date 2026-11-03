@@ -6,13 +6,14 @@ from pathlib import Path
 import shlex
 import subprocess
 import sys
+import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from .concurrent import Lease
-from .containment import current, other_builds, verify
+from .containment import GIB, current, other_builds, verify
 
 
 def environment(packet):
@@ -64,7 +65,9 @@ def unchanged(records):
         raise ValueError("pinned build input changed during compilation")
 
 
-def execute(output, argv, effective, records, *, kind, binary=None, timeout=7200):
+def execute(output, argv, effective, records, *, kind, binary=None, timeout=7200, admission_wait=0):
+    if type(admission_wait) is not int or not 0 <= admission_wait <= 21600:
+        raise ValueError("memory admission wait must be between zero and six hours")
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING", "kind": kind, "board_tested": False,
               "policy": {"tree_memory_gib": 40, "reserve_gib": 32,
@@ -73,16 +76,30 @@ def execute(output, argv, effective, records, *, kind, binary=None, timeout=7200
     lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
     try:
         report["containment"] = verify(group)
+        if kind == "COMPONENT":
+            budget, remainder = divmod(int(report["containment"]["limits"]["memory.max"]), GIB)
+            if not budget or remainder:
+                raise ValueError("component cgroup requires a whole-GiB hard limit")
+            report["policy"]["tree_memory_gib"] = budget
         records = records + runner_pins()
-        report["admission"] = lease.sample(available_memory_bytes(), other_builds(),
-                                            report["policy"], commit=True)
-        if not report["admission"]["admitted"]:
-            raise RuntimeError("complete finite compiler budget plus reserve does not fit")
+        deadline = time.monotonic() + admission_wait
+        while True:
+            report["admission"] = lease.sample(available_memory_bytes(), other_builds(),
+                                                report["policy"], commit=True)
+            if report["admission"]["admitted"]:
+                break
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise RuntimeError("complete finite compiler budget plus reserve does not fit")
+            report["status"] = "WAITING_FOR_COMPILER_MEMORY"
+            atomic_write_json(output / "execution.json", report)
+            time.sleep(min(15, remaining))
+        unchanged(records)
         atomic_write_json(output / "manifest.json", {"command": argv, "pins": records})
         report["status"] = "RUNNING_" + kind
         atomic_write_json(output / "execution.json", report)
         result = run_link(argv, output, output / "job", environment=effective,
-                          timeout=timeout, tree_memory_gib=40, reserve_gib=40)
+                          timeout=timeout, tree_memory_gib=report["policy"]["tree_memory_gib"], reserve_gib=40)
         report["resources"] = result
         unchanged(records)
         if (result["exit_code"] or result["stop_reason"] != "process_exit"

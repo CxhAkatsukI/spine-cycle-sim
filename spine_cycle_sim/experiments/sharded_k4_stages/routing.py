@@ -13,13 +13,17 @@ from .link_runtime import run_link
 
 
 def adapter_interface(xo: Path) -> tuple[dict, dict]:
+    return kernel_interface(xo, "pma_to_regraph_adapter")
+
+
+def kernel_interface(xo: Path, name: str) -> tuple[dict, dict]:
     with zipfile.ZipFile(xo) as archive:
-        names = [name for name in archive.namelist() if name.endswith("/kernel.xml")]
+        names = [member for member in archive.namelist() if member.endswith("/kernel.xml")]
         if len(names) != 1:
-            raise ValueError("one kernel XML required in adapter XO")
+            raise ValueError("one kernel XML required in XO")
         kernel = ET.fromstring(archive.read(names[0])).find("kernel")
-    if kernel is None or kernel.get("name") != "pma_to_regraph_adapter":
-        raise ValueError("adapter kernel required")
+    if kernel is None or kernel.get("name") != name:
+        raise ValueError(f"{name} kernel required")
     options = shlex.split(kernel.get("compileOptions", ""))
     defines = {}
     for index, option in enumerate(options):

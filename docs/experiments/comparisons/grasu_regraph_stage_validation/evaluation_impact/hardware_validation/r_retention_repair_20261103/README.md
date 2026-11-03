@@ -224,8 +224,18 @@ its compile commands and hashes are in
 The new scalar is argument 5; the old image uses that position for a
 stream, so the matching tail image is required. The test input, expected
 output, event boundaries and fixed-length reference are unchanged.
-The C simulation, gather synthesis and host compile are complete; the
-tail candidate has not been linked into a full image or board tested.
+The C simulation, gather synthesis and host compile are complete. The
+whole-board packet uses the separately pinned
+`/data/chuxiao/builds/gr-tail-publication-20261104/packet-v2/build/lksg_stream.hw.xo`
+(SHA-256 `54c31a68ed67ab2772d7fc4edd03e0d1d0eeba65a3262d306ecfa9fb31d69943`).
+Preflight checked the gather interface and compiler flags, the matching host
+pair, and that only adapter and gather change among the twelve XO files.
+The production link configuration is unchanged; the completed production IP
+cache is copied to the new link directory and pinned. The link service waits
+for full cgroup memory admission. The once-per-arm screen follows that exact
+service invocation and records its result under
+`/data/chuxiao/checks/source-retention-repair-20261104/tail-follow-v1/`.
+Neither preflight nor the component XO constitutes a board result.
 
 ### Timeout Recovery
 

@@ -1,4 +1,4 @@
-"""After one exact adapter route, screen R once without launching a full matrix."""
+"""After one exact R repair route, screen R once without launching a full matrix."""
 
 import argparse
 import json
@@ -9,6 +9,7 @@ import time
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import (
     route_finished, runner_pins, service_state,
 )
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.tail_publication import host_pair
 from . import analysis, checkpoint, study
 from .runtime import check_memory, identity, save
 
@@ -44,11 +45,28 @@ def control(before, route, output):
     return args, pins
 
 
+def matched_hosts(args, route_manifest, hosts):
+    manifest = hosts / "manifest.json"
+    build = json.loads(manifest.read_text())
+    if "tail_hosts" not in route_manifest:
+        if build.get("candidate_publication", "fixed") != "fixed":
+            raise ValueError("fixed-publication route requires a fixed host")
+        return []
+    if route_manifest["tail_hosts"] != {key: value for key, value in identity(manifest).items() if key != "bytes"}:
+        raise ValueError("tail route and paired host manifest do not match")
+    binaries = host_pair(manifest)
+    if binaries["reference"]["sha256"] != identity(args.r_host)["sha256"]:
+        raise ValueError("the original R control binary must be unchanged")
+    args.r_host = Path(binaries["reference"]["path"])
+    args.r_candidate = Path(binaries["candidate"]["path"])
+    return list(binaries.values())
+
+
 def run(before, route, g_results, hosts, production, output, *, unit, invocation,
         maximum_wait=21600, poll_seconds=30):
     if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit)
             or not re.fullmatch(r"[0-9a-f]{32}", invocation)
-            or type(maximum_wait) is not int or not 1 <= maximum_wait <= 21600
+            or type(maximum_wait) is not int or not 1 <= maximum_wait <= 43200
             or type(poll_seconds) is not int or not 1 <= poll_seconds <= 300):
         raise ValueError("exact route identity and bounded wait required")
     output.mkdir(parents=True, exist_ok=False)
@@ -61,7 +79,10 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
     try:
         check_memory()
         args, pins = control(before, route, output / "board-once")
-        pins += [identity(route / "manifest.json"), identity(g_results), identity(hosts / "manifest.json"),
+        route_file = route / "manifest.json"
+        route_manifest = json.loads(route_file.read_text())
+        pins += matched_hosts(args, route_manifest, hosts)
+        pins += [identity(route_file), identity(g_results), identity(hosts / "manifest.json"),
                  identity(Path(__file__)), *runner_pins()]
         report["pins"] = pins
         started = time.monotonic()
@@ -76,7 +97,7 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
             if route_finished(state, invocation):
                 break
             if report["waited_seconds"] >= maximum_wait:
-                raise TimeoutError("adapter route wait expired")
+                raise TimeoutError("R repair route wait expired")
             time.sleep(min(poll_seconds, maximum_wait - report["waited_seconds"]))
         execution = route / "execution/execution.json"
         routed = json.loads(execution.read_text())
@@ -84,8 +105,7 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
                 or Path(routed["xclbin"]["path"]) != args.r_current):
             raise ValueError("route exit lacks a matching completed hardware image")
         unchanged([routed["xclbin"]])
-        route_pins = json.loads((route / "manifest.json").read_text())["pins"]
-        unchanged(route_pins)
+        unchanged(route_manifest["pins"])
         pins += [identity(execution), routed["xclbin"]]
         report.update(status="SCREENING_R_ONCE", board_requested=True)
         write()
@@ -115,7 +135,8 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--unit", required=True)
     parser.add_argument("--invocation", required=True)
+    parser.add_argument("--maximum-wait", type=int, default=21600)
     args = parser.parse_args()
     print(run(*(getattr(args, name).resolve() for name in
                 ("before", "route", "g_results", "hosts", "production", "output")),
-              unit=args.unit, invocation=args.invocation)["status"], flush=True)
+              unit=args.unit, invocation=args.invocation, maximum_wait=args.maximum_wait)["status"], flush=True)

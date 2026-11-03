@@ -1,4 +1,4 @@
-"""Replace only the adapter in an existing production route after RTL gates."""
+"""Replace the adapter and optionally the gather in the frozen production route."""
 
 import argparse
 import json
@@ -8,6 +8,7 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.routing import adapter_interface, relocate_config
 from .component import environment, execute, unchanged
+from .tail_publication import gather_replacement
 
 
 def gated_sources(packet):
@@ -35,7 +36,7 @@ def gated_sources(packet):
     return candidate, records + list(sources[1].values())
 
 
-def prepare(production, packet, output):
+def prepare(production, packet, output, *, gather_component=None, tail_hosts=None, seed_production_cache=False):
     production, packet, output = map(Path.resolve, (production, packet, output))
     old_manifest = production / "manifest.json"
     old = json.loads(old_manifest.read_text())
@@ -57,6 +58,13 @@ def prepare(production, packet, output):
     config = Path(argv[argv.index("--config") + 1])
     if old_pins.get(str(config)) != identity(config):
         raise ValueError("production connectivity changed")
+    if (gather_component is None) != (tail_hosts is None):
+        raise ValueError("tail publication requires a matched gather and host pair")
+    if gather_component is not None:
+        original = next(p for p in xos if p.name == "lksg_stream.hw.xo")
+        gather, gather_pins = gather_replacement(original, gather_component, tail_hosts)
+        argv[argv.index(str(original))] = str(gather)
+        pins += gather_pins
     output.mkdir(parents=True, exist_ok=False)
     relocated = output / "link.cfg"
     relocated.write_text(relocate_config(config.read_text(), output))
@@ -69,33 +77,58 @@ def prepare(production, packet, output):
                 "packet": str(packet), "production": str(production), "clock_mhz": 150,
                 "change": "adapter only; same twelve-XO production design and connectivity",
                 "board_tested": False, "timeout_seconds": 21600}
+    if tail_hosts is not None:
+        manifest.update(change="adapter and gather only; same twelve-XO production design and connectivity",
+                        tail_hosts=identity(tail_hosts))
+    if seed_production_cache:
+        from .cached_retry import seed_cache
+
+        completed = production / "results.json"
+        result = json.loads(completed.read_text())
+        if result["status"] != "ROUTED_NOT_BOARD_TESTED" or result["steps"][-1]["exit_code"] != 0:
+            raise ValueError("completed production cache required")
+        seed = output / "ip-cache-seed.json"
+        atomic_write_json(seed, seed_cache(production / "ip_cache", output / "ip_cache"))
+        pins += [identity(completed), identity(seed)]
+        manifest["ip_cache_seed"] = identity(seed)
     atomic_write_json(output / "manifest.json", manifest)
     return manifest
 
 
-def run(output):
+def run(output, *, admission_wait=0):
     manifest_path = output / "manifest.json"
     manifest = json.loads(manifest_path.read_text())
     unchanged(manifest["pins"])
+    if "ip_cache_seed" in manifest:
+        from .cached_retry import validate_seed
+
+        validate_seed(output, json.loads((output / "ip-cache-seed.json").read_text()))
     effective = environment(Path(manifest["packet"]))
     temporary = output / "tmp"
     temporary.mkdir()
     effective.update({key: str(temporary) for key in ("TMPDIR", "TMP", "TEMP")})
     return execute(output / "execution", manifest["command"], effective,
                    manifest["pins"] + [identity(manifest_path), identity(Path(__file__))], kind="LINK",
-                   binary=output / "candidate.hw.xclbin", timeout=manifest["timeout_seconds"])
+                   binary=output / "candidate.hw.xclbin", timeout=manifest["timeout_seconds"],
+                   admission_wait=admission_wait)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--production", type=Path)
     parser.add_argument("--packet", type=Path)
+    parser.add_argument("--gather-component", type=Path)
+    parser.add_argument("--tail-hosts", type=Path)
+    parser.add_argument("--seed-production-cache", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--admission-wait", type=int, default=0)
     args = parser.parse_args()
     if args.execute:
-        print(run(args.output.resolve()))
+        print(run(args.output.resolve(), admission_wait=args.admission_wait))
     else:
         if args.production is None or args.packet is None:
             parser.error("preparation requires --production and --packet")
-        print(prepare(args.production, args.packet, args.output))
+        print(prepare(args.production, args.packet, args.output,
+                      gather_component=args.gather_component, tail_hosts=args.tail_hosts,
+                      seed_production_cache=args.seed_production_cache))
