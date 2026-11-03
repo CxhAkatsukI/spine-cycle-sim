@@ -127,14 +127,14 @@ checks=/data/chuxiao/checks/source-retention-repair-20261104
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.resident_board \
   --route /data/chuxiao/builds/gr-directory-spans-20261103/route-respr-v1 \
   --r-report "$checks/after-follow-v2/results.json" \
-  --g-report "$checks/g-candidate-board-v1/results.json" \
+  --g-report "$checks/g-candidate-board-v2/results.json" \
   --gr-host /data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/hosts/respr/sharded_k4_residual_pagerank_native_host \
   --spine-host /data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/thresholded_residual_pagerank.host \
   --spine-image /data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-v1/build/respr/xclbin/spine_partitioned_split_e2e.respr.hw.xclbin \
   --comparator /home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py \
   --r19 /data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_residual_pagerank_insert_u8.graph \
   --flickr "$checks/resident-preflight.QnpgS8/flickr.graph" \
-  --output "$checks/resident-board-v1" --wait-seconds 21600
+  --output "$checks/resident-board-reproduction" --wait-seconds 21600
 ```
 
 Use a fresh output directory. The report records the exact commands and
@@ -144,3 +144,24 @@ Any non-admitted gate leaves the board untouched; a started run preserves
 stdout/stderr even if correctness or clock validation fails. The historical
 R19 logs replay at 44.669267 ms for G+R and 32.375100 ms for Spine. That
 replay tests the parser; it is not a measurement of the repaired image.
+
+## Offline Acceptance
+
+The queued main run writes `resident-board-v2/results.json`. Before using
+its ratios, run the strict same-clock G/R replay in [G_SCOPE.md](G_SCOPE.md)
+and then replay the saved board screen without rerunning either arm:
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.respr_resident_replay \
+  --resident "$checks/resident-board-v2/results.json" \
+  --strict-stage "$checks/respr-directory-strict-audit.json" \
+  --output "$checks/respr-directory-resident-audit.json"
+```
+
+This binds the screen to the independently admitted image and host, checks
+the one-run commands and driver clocks, and recomputes the paired result
+from pinned logs without replacing any raw output. Both ResPR legacy timers
+start after batch upload and include algorithm-specific correction through
+final readback. They do not measure batch packing or initial graph setup.
+R19 remains a correction screen; Flickr must propagate on both arms to
+qualify as a propagating screen. Even a pass is not the full Fig. 7 matrix.
