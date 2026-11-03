@@ -425,8 +425,13 @@ vertices, respectively. Native outputs are retained in
 
 After the primary screens, use the same routed image pair per algorithm and
 run each arm once, with the same output, clock, and at-most-1.15 latency-ratio
-gates. Do not schedule competing pairs on the same board. This fixture has
-offline correctness evidence only; it is not a performance result.
+gates. The `active_min_follow` runner takes `--odd-fixture MANIFEST SHA256`,
+two `--after-pair UNIT INVOCATION JOURNAL` dependencies on the primary
+screens, and a bounded `--board-wait-seconds`. It preserves the primary
+receipts even when an R ratio fails, checks the frozen input hashes, and
+serializes board use. It releases its 8-GiB memory reservation when the card
+is busy and does not retry any measured arm. This fixture has offline
+correctness evidence only; it is not a performance result.
 
 ## Remaining Gates
 

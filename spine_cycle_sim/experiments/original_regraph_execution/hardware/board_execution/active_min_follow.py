@@ -14,6 +14,44 @@ from ..source_retention.runtime import check_memory, save
 from . import active_min_pair
 
 
+def exact_service(unit, invocation):
+    if not (re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit)
+            and re.fullmatch(r"[0-9a-f]{32}", invocation)):
+        raise ValueError("each dependency needs an exact service and invocation ID")
+
+
+def prior_finished(row):
+    state = service_state(row["unit"])
+    row["state"] = state
+    if state["LoadState"] == "loaded" and state["InvocationID"] == row["invocation"]:
+        row["observed"] = True
+        if state["MainPID"] != "0" or state["ActiveState"] not in ("inactive", "failed", "active"):
+            return False
+        if state["ActiveState"] == "active" and state["SubState"] != "exited":
+            return False
+    elif not (row["observed"] and state["LoadState"] == "not-found" and not state["InvocationID"]):
+        raise ValueError("earlier pair service was never observed or changed invocation")
+    receipt = Path(row["journal"])
+    result = json.loads(receipt.read_text())
+    if result["status"] not in ("PAIRED_ACTIVE_MIN_R_GATE_PASS", "PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED",
+                                "FAILED_RETAINED"):
+        raise ValueError("earlier pair exited without a terminal receipt")
+    row["receipt"] = artifact.identity(receipt)
+    return True
+
+
+def fixture_pin(args, input_pins):
+    receipt, digest = args.odd_fixture
+    pin = artifact.identity(Path(receipt))
+    fixture = json.loads(Path(pin["path"]).read_text())
+    expected = {(row["path"], row["sha256"]) for row in fixture["input_pins"]}
+    if (pin["sha256"] != digest or fixture["frontier"] != "odd-vertices"
+            or fixture["status"] != "ACTIVE_MIN_COMPONENT_INPUTS_OFFLINE_PASS"
+            or any((row["path"], row["sha256"]) not in expected for row in input_pins)):
+        raise ValueError("high-activity fixture or pair inputs differ from the frozen receipt")
+    return pin
+
+
 def ready(name, route, state, invocation, observed, algorithm):
     if state["LoadState"] == "loaded":
         finished = route_finished(state, invocation)
@@ -42,17 +80,26 @@ def run(args):
     try:
         check_memory()
         report["preflight_xrt_libraries"] = active_min_pair.paired_loader(args.reference_host, args.candidate_host)
-        pins = [artifact.identity(path) for path in (*active_min_pair.input_paths(args),
-                                                     args.candidate_route / "manifest.json")]
+        pins = [artifact.identity(path) for path in active_min_pair.input_paths(args)]
+        prior = getattr(args, "after_pair", [])
+        odd = getattr(args, "odd_fixture", None)
+        if odd:
+            if len(prior) != 2 or len({row[0] for row in prior}) != 2 or not args.board_wait_seconds:
+                raise ValueError("high-activity run requires both earlier pairs and bounded board admission")
+            pins.append(fixture_pin(args, pins[2:]))
+        pins.append(artifact.identity(args.candidate_route / "manifest.json"))
         pins += runner_pins()
         report["pins"] = pins
+        report["earlier_pairs"] = []
+        for unit, invocation, journal_path in prior:
+            exact_service(unit, invocation)
+            report["earlier_pairs"].append(dict(unit=unit, invocation=invocation,
+                                                 journal=str(Path(journal_path).absolute()), observed=False))
         for arm in ("reference", "candidate"):
             unit = getattr(args, arm + "_unit")
             invocation = getattr(args, arm + "_invocation")
             route = getattr(args, arm + "_route")
-            if not (re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit)
-                    and re.fullmatch(r"[0-9a-f]{32}", invocation)):
-                raise ValueError("each route needs an exact service and invocation ID")
+            exact_service(unit, invocation)
             report["routes"][arm] = {"unit": unit, "invocation": invocation, "route": str(route), "observed": False}
         deadline = time.monotonic() + args.wait_seconds
         while True:
@@ -62,14 +109,20 @@ def run(args):
                 row["state"] = state
                 row["observed"] |= state["LoadState"] == "loaded" and state["InvocationID"] == row["invocation"]
                 row["ready"] = ready(arm, Path(row["route"]), state, row["invocation"], row["observed"], args.algorithm)
+            for row in report["earlier_pairs"]:
+                if not row.get("receipt"):
+                    prior_finished(row)
+            routes_ready = all(row["ready"] for row in report["routes"].values())
+            if routes_ready and not all(row.get("receipt") for row in report["earlier_pairs"]):
+                report["status"] = "WAITING_FOR_EARLIER_PAIRS"
             save(journal, report)
-            if all(row["ready"] for row in report["routes"].values()):
+            if routes_ready and all(row.get("receipt") for row in report["earlier_pairs"]):
                 break
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise TimeoutError("both routes did not pass before the deadline")
+                raise TimeoutError("route or earlier pair prerequisites did not finish before the deadline")
             time.sleep(min(30, remaining))
-        snapshot.unchanged(pins)
+        snapshot.unchanged(pins + [row["receipt"] for row in report["earlier_pairs"]])
         report.update(status="REQUESTING_ONE_PAIRED_RUN", requested_pair=True)
         save(journal, report)
         args.output = args.output / "pair"
@@ -89,6 +142,9 @@ def wait_arguments(parser):
         parser.add_argument(f"--{arm}-unit", required=True)
         parser.add_argument(f"--{arm}-invocation", required=True)
     parser.add_argument("--wait-seconds", type=int, default=108000)
+    parser.add_argument("--board-wait-seconds", type=int, default=0)
+    parser.add_argument("--after-pair", action="append", nargs=3, default=[], metavar=("UNIT", "INVOCATION", "JOURNAL"))
+    parser.add_argument("--odd-fixture", nargs=2, metavar=("MANIFEST", "SHA256"))
 
 
 if __name__ == "__main__":

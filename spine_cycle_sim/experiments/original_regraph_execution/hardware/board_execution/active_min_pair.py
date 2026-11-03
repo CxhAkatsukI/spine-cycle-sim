@@ -13,7 +13,7 @@ from .. import artifact
 from ..source_build.snapshot import unchanged
 from ..source_retention import clocks
 from ..source_retention.runtime import check_memory, execute, lease, save
-from . import active_min, active_min_candidate, admission
+from . import active_min, active_min_candidate, admission, pair_resources
 
 
 def candidate_route(route, algorithm):
@@ -98,7 +98,15 @@ def run(args):
         }
         clock_pins = {"reference": checked["xclbin"], "candidate": image}
         images = {arm: clocks.image(pin["path"], output, arm) for arm, pin in clock_pins.items()}
-        with lease(args.device, args.bdf) as (render, fd):
+
+        def record(status, memory_state):
+            report.update(status=status, memory_admission=memory_state)
+            save(path, report)
+
+        wait = getattr(args, "board_wait_seconds", 0)
+        board = (pair_resources.admit(args.device, args.bdf, group, wait, record)
+                 if wait else lease(args.device, args.bdf))
+        with board as (render, fd):
             require_idle_board(render)
             for arm, host in (("reference", args.reference_host), ("candidate", args.candidate_host)):
                 environment = runtime.capture(host, render, output / (arm + "_runtime"))
