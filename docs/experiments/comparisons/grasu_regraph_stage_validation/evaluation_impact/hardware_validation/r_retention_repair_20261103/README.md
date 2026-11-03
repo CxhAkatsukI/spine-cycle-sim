@@ -115,16 +115,16 @@ The source packet was prepared from `dec40633` plus the now-committed repair;
 its `inputs.tsv` and each gate's `manifest.json` pin the actual file contents.
 No synthetic timing coefficient or predicted speedup is used as admission.
 
-The weighted-SSSP and CC packets under
-`/data/chuxiao/builds/gr-directory-spans-20261103/{sssp,cc}/` run separate
-algorithm-specific adapter builds and finite random-stall RTL checks. Each
-packet records admission, logs, source identities and outcomes in
-`evidence/`; a weighted result cannot qualify the destination-only image.
-The `algorithm_routes` module prepares the respective eleven-XO relink only
-after those gates, checking the production connectivity, compile-time adapter
-flags and kernel ABI against the frozen image. It replaces exactly one XO.
-The two component runs do not depend on the ResPR link, and do not establish
-either an FPGA timing or performance result.
+Weighted SSSP and CC each passed adapter synthesis and all eight finite
+random-stall RTL cases. The per-algorithm evidence directories are
+`/data/chuxiao/builds/gr-directory-spans-20261103/{sssp,cc}/evidence/`;
+neither run recorded a cgroup limit or OOM event. The ABI-checked eleven-XO
+relink manifests are `route-{sssp,cc}-v1/manifest.json` under that build root.
+They retain all ten other XOs and the frozen connectivity and have not been
+executed. The active ResPR link still has priority for full-link memory.
+These are component results only: the existing measured four-Little R
+control uses PageRank arithmetic and cannot admit the weighted-SSSP or CC
+resident R path.
 
 The full link has a 40-GiB hard limit, 36-GiB high watermark and a six-hour
 timeout. Each SSSP/CC component service has an 8-GiB limit and 7-GiB high
