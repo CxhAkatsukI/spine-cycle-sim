@@ -154,6 +154,20 @@ expectations, all published buffers, the resident image UUID and raw event
 timestamps. The CC and weighted SSSP offline fixtures pass through this
 runner; a new FPGA measurement still requires the corresponding routed image.
 
+The archived full Amazon graph (735,324 vertices; 5,158,388 logical edges;
+48 A4 tasks) now also has independently checked active-min component inputs.
+The CC and weighted SSSP oracles both report 10 improved vertices from the
+same single-source fixture. Input hashes, raw oracle output and the exact
+geometry are in
+`/data/chuxiao/checks/source-retention-repair-20261104/a4-active-amazon-v2/`.
+The preparation used a 2-GiB zero-swap cap and peaked at 255.3 MiB.
+The archived skewed-source capture publishes 65,536 of 65,537 logical
+vertices; its active-min rejection is retained under
+`/data/chuxiao/checks/source-retention-repair-20261104/a4-active-skewed-v1/`.
+That capture remains eligible for the separate historical PR control only.
+The active-min inputs use one synthetic resident superstep; a matched
+integrated candidate probe, routed images and FPGA timings are still needed.
+
 The full link has a 40-GiB hard limit, 36-GiB high watermark and a six-hour
 timeout. Each SSSP/CC component service has an 8-GiB limit and 7-GiB high
 watermark; these are component-only budgets based on the observed ResPR

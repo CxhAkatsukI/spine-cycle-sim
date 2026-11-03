@@ -204,3 +204,25 @@ retry. Each reference row must still be paired with an independently checked
 candidate row using the same edges, weights, input state, publication
 contract, card, and clock. The denominator is the raw resident elapsed
 span, not the sum of overlapping CU times.
+
+Prepare a shared resident component fixture from a frozen, fully published A4
+capture (the input directory containing `execution.u32le` and CSR captures):
+
+```sh
+systemd-run --user --wait --pipe --collect --working-directory="$PWD" \
+  -p MemoryMax=2G -p MemoryHigh=1792M -p MemorySwapMax=0 \
+  -p CPUQuota=100% -p OOMPolicy=kill -p RuntimeMaxSec=330 \
+  python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution.active_min_inputs \
+  --source "$FROZEN_CAPTURE" --host "$ACTIVE_MIN_HOST" --output "$FRESH_FIXTURE"
+```
+
+Use `$FRESH_FIXTURE/inputs` for the reference. The manifest pins the original
+CSR/task captures and derived files. It rejects duplicates or incomplete
+publication rather than rewriting the logical graph or padding the capture
+to fit. The first source with the most distinct non-self, nonzero targets is
+the only active vertex. CC uses vertex IDs as labels and sets the seed to zero;
+weighted SSSP uses zero for the seed and infinity elsewhere, with positive
+deterministic weights in both the CSR and original task layout. The XRT host
+in offline mode independently verifies the task edge multiset against the
+CSR and saves the expected output and its hash. These are declared synthetic
+active states on the frozen graphs, not old-converged dynamic-update results.
