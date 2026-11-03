@@ -229,6 +229,11 @@ which frozen results are exposed to the R repair, including the correction
 pass in all eight zero-propagation ResPR cases. Nothing in this checkpoint
 supersedes Figures 7--11.
 
+The [paired ResPR preflight](RESIDENT_SCREEN.md) freezes the first two
+post-admission inputs. It preserves the old matrix's narrowest ResPR win and
+adds an independently preflighted nonempty-propagation case. Neither is a
+new FPGA timing measurement.
+
 ## Checkpoint Verification
 
 The focused build, replacement, retention, clock-record, packaging, candidate
