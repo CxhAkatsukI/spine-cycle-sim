@@ -184,8 +184,8 @@ delivery remain open. Nothing in this checkpoint supersedes Figures 7--11.
 
 ## Checkpoint Verification
 
-The focused build, replacement, retention, clock-record, packaging and
-repository-organization suites pass 42 tests. The document-layout and catalog
+The focused build, replacement, retention, clock-record, packaging, candidate
+smoke and repository-organization suites pass 45 tests. The document-layout and catalog
 checks and `git diff --check` pass. These tests do not execute the FPGA and do
 not imply that the pending performance gate passes. No simulator numerical
 model or frozen figure package is changed by this repair checkpoint.
