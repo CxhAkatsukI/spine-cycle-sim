@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import Mock, patch
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
     resident_admission as admission, resident_board as board, resident_results as results,
@@ -46,6 +47,43 @@ class ResidentAdmissionTest(unittest.TestCase):
         self.g["comparison"]["current_over_reference"] = float("nan")
         with self.assertRaises(admission.NotAdmitted):
             self.validate()
+
+    def test_clock_replay_rejects_mismatched_reference(self):
+        clock = {"binary": self.host, "bdf": admission.BDF, "driver_reported_mhz": [145, 500, 450, 0]}
+        with patch.object(admission.clocks, "replay", return_value=clock):
+            with self.assertRaisesRegex(admission.NotAdmitted, "actual clocks"):
+                admission.matching_clock({"clock_evidence": {}}, self.host, [150, 500, 450, 0])
+            self.assertEqual(admission.matching_clock({"clock_evidence": {}}, self.host), clock)
+
+    def test_joint_selector_rejects_first_and_tries_second_without_extra_runs(self):
+        with TemporaryDirectory() as directory:
+            candidates = self.write_candidates(Path(directory))
+            record = Mock()
+            with (patch.object(admission, "check_memory"),
+                  patch.object(admission, "replay_gate", side_effect=[
+                      admission.NotAdmitted("mismatched clocks"), (Path("/selected"), {"r": "pass"})
+                  ]) as replay):
+                selected, image, gate = admission.wait_for_candidates(candidates, 0, record)
+            self.assertEqual((selected, image, gate), (candidates[1], Path("/selected"), {"r": "pass"}))
+            record.assert_any_call(candidates[0], {"rejected": "mismatched clocks"})
+            self.assertEqual(replay.call_count, 2)
+
+    def test_joint_selector_does_not_admit_second_success(self):
+        with TemporaryDirectory() as directory:
+            candidates = self.write_candidates(Path(directory))
+            with (patch.object(admission, "check_memory"),
+                  patch.object(admission, "replay_gate", return_value=(Path("/selected"), {})) as replay):
+                self.assertEqual(admission.wait_for_candidates(candidates, 0, Mock())[0], candidates[0])
+            replay.assert_called_once_with(candidates[0])
+
+    def write_candidates(self, root):
+        candidates = []
+        for index in (0, 1):
+            r, g = root / f"r{index}.json", root / f"g{index}.json"
+            for path, status in ((r, admission.R_PASS), (g, admission.G_PASS)):
+                path.write_text(json.dumps({"status": status}))
+            candidates.append(admission.Candidate(root / f"route{index}", r, g, self.host))
+        return candidates
 
 
 class ResidentResultTest(unittest.TestCase):

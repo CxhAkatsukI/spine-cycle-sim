@@ -1,14 +1,14 @@
 """Run the frozen R19/Flickr resident ResPR pair once per arm, after joint G/R admission."""
 
 import argparse
-import fcntl
 import os
 from pathlib import Path
 
+from ..board_execution import pair_resources
 from . import clocks, resident_admission, resident_results
 from .follow import unchanged
-from .resident_admission import BDF, DEVICE, NotAdmitted, native_host_sha256
-from .runtime import check_memory, execute, identity, lease, save
+from .resident_admission import BDF, DEVICE, Candidate, NotAdmitted, native_host_sha256
+from .runtime import check_memory, execute, identity, save
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidate_board import MAX_WAIT_SECONDS
 
 
@@ -84,11 +84,11 @@ def run(args):
 
     write()
     try:
-        paths = ("gr_host", "spine_host", "spine_image", "comparator", "r19", "flickr")
+        paths = ("spine_host", "spine_image", "comparator", "r19", "flickr")
         pins = {name: identity(getattr(args, name)) for name in paths}
         pins.update(runner=identity(__file__), admission=identity(resident_admission.__file__),
-                    analysis=identity(resident_results.__file__))
-        expected_hashes = {"gr_host": native_host_sha256(args.route), "spine_host": SPINE_HOST_SHA256,
+                    analysis=identity(resident_results.__file__), resource_policy=identity(pair_resources.__file__))
+        expected_hashes = {"spine_host": SPINE_HOST_SHA256,
                            "spine_image": SPINE_IMAGE_SHA256, "comparator": resident_results.COMPARATOR_SHA256}
         if any(pins[name]["sha256"] != digest for name, digest in expected_hashes.items()):
             raise ValueError("frozen host, Spine image or comparator changed")
@@ -96,27 +96,47 @@ def run(args):
             {"case": frozen_case(dataset, getattr(args, dataset.lower()), pins[dataset.lower()]),
              "status": "PREDECLARED", "attempts": [], "rows": {}} for dataset in CASES
         ]
-        report.update(status="WAITING_FOR_G_AND_R", pins=pins)
+        declarations = [(args.route, args.r_report, args.g_report, args.gr_host)]
+        if args.alternate:
+            declarations.append(tuple(path.resolve() for path in args.alternate))
+        candidates = [Candidate(route, r, g, identity(host)) for route, r, g, host in declarations]
+        if any(c.host_pin["sha256"] != native_host_sha256(c.route) for c in candidates):
+            raise ValueError("the declared G+R host does not match its route")
+        receipts = {str(c.route): {"r_report": str(c.r_path), "g_report": str(c.g_path),
+                                  "host": c.host_pin} for c in candidates}
+        report.update(status="WAITING_FOR_G_AND_R", pins=pins, candidates=receipts)
         write()
-        image, gate = resident_admission.wait_for_gate(args.route, args.r_report, args.g_report,
-                                                       pins["gr_host"], args.wait_seconds)
+
+        def candidate_status(candidate, state):
+            receipt = receipts[str(candidate.route)]
+            if any(receipt.get(key) != value for key, value in state.items()):
+                receipt.update(state)
+                write()
+
+        selected, image, gate = resident_admission.wait_for_candidates(
+            candidates, args.wait_seconds, candidate_status)
+        report["selected_route"] = str(selected.route)
+        pins["gr_host"] = selected.host_pin
+        args.gr_host = Path(selected.host_pin["path"])
         report["stage_gates"] = gate
         pinned = [*pins.values(), *gate["pins"]]
         unchanged(pinned)
         expected = {arm: clocks.image(path, args.output, arm)
                     for arm, path in (("gr", image), ("spine", args.spine_image))}
-        # Interlock with both the earlier paired matrix and the stage controls.
-        with LEGACY_LOCK.open("rb") as legacy:
-            fcntl.flock(legacy, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            with lease(DEVICE, BDF) as (node, fd):
-                report.update(status="RUNNING_PAIRED_SCREEN", board_launch_attempted=True)
-                write()
-                for evidence in report["cases"]:
-                    try:
-                        measure(args, evidence["case"], image, expected, gate, pinned, evidence, write, fd, node)
-                    except (ValueError, KeyError) as error:
-                        evidence.update(status="RETAINED_NOT_ADMITTED", error=repr(error))
-                        write()
+        def board_status(status, memory):
+            report.update(status=status, board_memory=memory)
+            write()
+
+        with pair_resources.admit(DEVICE, BDF, group, args.board_wait_seconds, board_status,
+                                  legacy_lock=LEGACY_LOCK) as (node, fd):
+            report.update(status="RUNNING_PAIRED_SCREEN", board_launch_attempted=True)
+            write()
+            for evidence in report["cases"]:
+                try:
+                    measure(args, evidence["case"], image, expected, gate, pinned, evidence, write, fd, node)
+                except (ValueError, KeyError) as error:
+                    evidence.update(status="RETAINED_NOT_ADMITTED", error=repr(error))
+                    write()
         unchanged(pinned)
         report["status"] = ("PAIRED_SCREEN_MEASURED" if all(row["status"] == "MEASURED" for row in report["cases"])
                             else "PAIRED_SCREEN_NEEDS_REVIEW")
@@ -138,6 +158,8 @@ if __name__ == "__main__":
                  "comparator", "r19", "flickr", "output"):
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--wait-seconds", type=int, default=0)
+    parser.add_argument("--board-wait-seconds", type=int, default=21600)
+    parser.add_argument("--alternate", type=Path, nargs=4, metavar=("ROUTE", "R_REPORT", "G_REPORT", "GR_HOST"))
     args = parser.parse_args()
     for name, value in vars(args).items():
         if isinstance(value, Path):

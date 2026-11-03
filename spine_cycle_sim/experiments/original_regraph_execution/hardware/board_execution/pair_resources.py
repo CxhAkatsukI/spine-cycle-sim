@@ -1,6 +1,7 @@
 """Bounded admission for queued one-shot R pairs, before either arm starts."""
 
 from contextlib import ExitStack, contextmanager
+import fcntl
 from pathlib import Path
 import subprocess
 import time
@@ -11,7 +12,7 @@ from ..source_retention.runtime import lease
 
 
 @contextmanager
-def admit(device, bdf, group, seconds, record):
+def admit(device, bdf, group, seconds, record, *, legacy_lock=None):
     if not 1 <= seconds <= 21600:
         raise ValueError("paired board admission must be bounded to six hours")
     limits = containment.verify(group, memory_gib=8)["limits"]
@@ -26,6 +27,9 @@ def admit(device, bdf, group, seconds, record):
             memory_state = memory.sample(available_memory_bytes(), containment.other_builds(), policy, commit=True)
             if memory.held:
                 try:
+                    if legacy_lock is not None:
+                        legacy = resources.enter_context(legacy_lock.open("rb"))
+                        fcntl.flock(legacy, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     node, fd = resources.enter_context(lease(device, bdf))
                 except BlockingIOError:
                     pass

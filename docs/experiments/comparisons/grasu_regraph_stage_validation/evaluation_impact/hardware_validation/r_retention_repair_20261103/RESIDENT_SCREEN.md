@@ -133,11 +133,23 @@ reference does not; sharing a correction threshold is not enough.
 
 This is a bounded two-case screen, not a figure replacement. It waits for
 both supported R controls and the AU G control to meet the 1.15 elapsed
-ratio on the **same ResPR image**. It replays their measured clocks and
-requires matching candidate-image clocks again in the paired run. It records
+ratio on the **same ResPR image**. Both tail-publication and cached-reader
+routes may enter the queue. It uses the first route whose exact artifact
+passes, retaining rejected route receipts without running a second Spine
+pair. When both receipts become available in the same poll, tail-publication
+is checked first; observed speed is not used to rank routes.
+
+Admission recomputes the G and R event envelopes from pinned raw logs and
+requires matching driver clocks against each public reference. It requires
+matching candidate-image clocks again in the paired run. It records
 both arms' driver frequencies and uses observed elapsed milliseconds without
 clock normalization. Each arm validates against its own CPU oracle; these
 hosts do not emit two arrays for direct cross-host final-rank comparison.
+
+Board admission shares the machine-wide resource reservation and both board
+locks with the existing one-shot controls. It reserves an 8 GiB cgroup with
+zero swap, protects the 32 GiB machine reserve, and has a six-hour board
+admission deadline before either arm can start.
 The report records both iteration counts, including any difference.
 
 In the simulator checkout, with an 8 GiB maximum, 7 GiB high watermark,
