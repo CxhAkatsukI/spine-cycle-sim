@@ -192,7 +192,10 @@ Do not start a replacement full matrix merely because the build passes.
 The [Spine artifact inventory](SPINE_ARTIFACTS.md) separates the images used
 in the October 26 matrix from later component-repair candidates. Their
 admission, paired convergence runs, impact bounds and final figure/data
-delivery remain open. Nothing in this checkpoint supersedes Figures 7--11.
+delivery remain open. The [figure dependency audit](FIGURE_IMPACT.md) identifies
+which frozen results are exposed to the R repair, including the correction
+pass in all eight zero-propagation ResPR cases. Nothing in this checkpoint
+supersedes Figures 7--11.
 
 ## Checkpoint Verification
 
