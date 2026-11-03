@@ -1,6 +1,6 @@
 # First Paired ResPR Screen
 
-Status: **Flickr CPU preflight passed on both arms; paired board runner
+Status: **Flickr CPU references agree per vertex; paired board runner
 prepared, no new FPGA speedup.**
 Run this screen only after the exact ResPR G+R image has passed the independent
 [G scope](G_SCOPE.md) and R retention screens. Do not use these two runs to
@@ -13,8 +13,9 @@ admit SSSP or CC images, replace the matrix, or claim a win outside these cases.
 
 One measured run per arm per case, no warmup runs. Use the same graph bytes,
 same old-graph warm start (128 rank sweeps), damping 0.85, per-vertex
-threshold 1e-6, and a 256 propagation-round limit. The Flickr fixture is
-sink-free so dangling redistribution cannot differ between arms. Both
+threshold 1e-6, and a 256 propagation-round limit. Both exact fixtures are
+sink-free before and after insertion, so dangling redistribution cannot
+differ between arms on these cases. Both
 hosts must finish with empty active work and pass final-state validation.
 Require positive *device-reported* propagation rounds on both Flickr arms;
 CPU preflight is not that check. Do not require bitwise agreement or infer
@@ -62,6 +63,50 @@ Both preflights used CPUs 124--125, a 2 GiB cgroup limit, zero swap, and a
 180-second timeout. Measured service peaks were 19.1 MiB for G+R, 478.8 MiB
 for compiling the Spine probe, and 2.5 MiB for running it. No card was
 programmed. None of these measurements is a benchmark.
+
+### Cross-Host Oracle Check
+
+On the exact Flickr input above, the Spine host at `cb42376663c5` and
+the G+R host at `24519a66d732` also agree on old/new degree and initial
+active membership at every vertex. Both have zero sinks and activate the
+same 133 vertices. Warm rank, correction residual, and final rank agree
+at the emitted round-trip float precision. Final residual differs by at
+most `2.28e-13` (`2.15e-11` summed absolute difference); G+R's CPU
+reference reports 12 propagation rounds. This does not assert equality
+of the FPGA results or of the hardware's execution schedules.
+
+For this check use the optional second argument of the Spine CPU probe
+to write its state TSV. Compile `resident_gr_cpu_probe.cpp` with the
+pinned G+R ResPR host flags (`-O2`, `--pipeline-mode sharded-k4`,
+`--prefetch-compact` and the ResPR algorithm define from the native
+host build script), replacing its main translation unit and adding
+`-I"$GR_ROOT/tools"`. Invoke both probes as `PROBE GRAPH OUTPUT.tsv`,
+then from the simulator checkout run:
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.resident_oracles \
+  flickr-spine.tsv flickr-gr.tsv 2552
+```
+
+The dumps are ordered by external vertex ID. Columns are old and new
+out-degree, warm rank, correction residual, final rank, final residual,
+and initial active bit. The one-shot dumps are indexed under
+`/data/chuxiao/checks/source-retention-repair-20261104/respr-oracles.ky4pDrLE/`:
+
+| Dump | SHA-256 |
+| --- | --- |
+| `flickr-spine.tsv` | `c1a576e7c64eb0d8a727a8cc437c4ffcf07dbc41d8d3f2afd49102942bfae0e5` |
+| `flickr-gr.tsv` | `cede1588aeef2b672d313874bbbbe411f774fb7c362359447fae4faa38cbc511` |
+
+Both probes used CPUs 124--125, a 2 GiB memory cap, zero swap and no
+board access. This per-vertex check covers Flickr only. A separate
+out-degree scan of the hash-verified R19 graph found zero sinks before
+and after its eight insertions across all 524,288 vertices; this was
+not a comparison of R19 ranks. For a graph
+with sinks, G+R's CPU reference redistributes dangling residual during
+propagation and this Spine reference does not. A shared correction
+threshold alone does not establish equivalent propagation on such a
+graph. Do not generalize the Flickr result to all eight graphs.
 
 ## Board Runner
 

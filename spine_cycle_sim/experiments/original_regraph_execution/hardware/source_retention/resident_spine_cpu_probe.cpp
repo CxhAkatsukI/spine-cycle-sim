@@ -1,5 +1,7 @@
 // Exercise the pinned Spine host's graph parser and CPU reference without programming a card.
 #include <functional>
+#include <fstream>
+#include <iomanip>
 #include <numeric>
 
 #define main spine_algorithm_smoke_main
@@ -9,7 +11,7 @@
 int main(int argc, char **argv) {
     static_assert(SPINE_ALGORITHM_KIND == kResidualPagerank,
                   "compile with the residual PageRank host configuration");
-    if (argc != 2) return 2;
+    if (argc != 2 && argc != 3) return 2;
     try {
         const auto input = load_dynamic_workload(argv[1]);
         const auto reference = prepare_resident_benchmark_reference(
@@ -23,6 +25,22 @@ int main(int argc, char **argv) {
             std::not_equal_to<uint32_t>{});
         require(seed.active.empty() == (changed == 0),
                 "unexpected relation between active seed and changed rank");
+        if (argc == 3) {
+            const size_t span = state_span(input.final_graph.num_vertices);
+            std::ofstream out(argv[2]);
+            out << std::setprecision(std::numeric_limits<float>::max_digits10);
+            for (size_t v = 0; v < vertices; ++v) {
+                out << input.baseline.adjacency[v].size() << '\t'
+                    << input.final_graph.adjacency[v].size() << '\t'
+                    << bits_float(reference.initial_state[v]) << '\t'
+                    << bits_float(seed.state[span + v]) << '\t'
+                    << bits_float(reference.expected_state[v]) << '\t'
+                    << bits_float(reference.expected_state[span + v]) << '\t'
+                    << (std::fabs(bits_float(seed.state[span + v])) > 1.0e-6f) << '\n';
+            }
+            out.close();
+            require(out.good(), "failed to write Spine oracle state");
+        }
         std::cout << "SPINE_RESPR_CPU_PREFLIGHT status=PASS"
                   << " vertices=" << vertices
                   << " logical_updates=" << input.logical_updates
