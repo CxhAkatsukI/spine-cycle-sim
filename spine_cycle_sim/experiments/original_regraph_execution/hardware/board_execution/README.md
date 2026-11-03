@@ -175,3 +175,32 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.board
 Run under finite memory/CPU limits as for other offline evidence checks. It
 does not rerun a model, execute FPGA work, change parameters, or compute an
 admitted calibration error. See the [measured audit and retained limitations](../../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/original_regraph/model_board_audit/README.md).
+## Active-min A4 Single Run
+
+For CC or weighted SSSP, use the separate active-min runner instead of the
+PR matrix. It rechecks the algorithm-specific fresh-source route, replays
+the XO ABI and implemented timing gates, obtains the offline CSR result,
+and runs one resident superstep under the exclusive PCI device lease.
+It retains raw event timestamps, all four output replicas, Apply state, and
+the resident UUID and driver clocks. This is the A4 reference arm only.
+It does not certify a candidate, old-to-new convergence, or G retention.
+
+Use the [active-min host and input format](../../../../../cpp/tests/original_regraph/hardware/active_min/README.md)
+and an admitted `cc` or `weighted_sssp` [source build](../source_build/README.md).
+From the repository root:
+
+```sh
+systemd-run --user --wait --pipe --collect --working-directory="$PWD" \
+  -p MemoryMax=8G -p MemoryHigh=7G -p MemorySwapMax=0 \
+  -p OOMPolicy=kill -p RuntimeMaxSec=900 \
+  python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution.active_min \
+  --route "$ROUTE" --host "$ACTIVE_MIN_HOST" --inputs "$A4_INPUT" \
+  --output "$FRESH_OUTPUT" --algorithm cc --device 1 --bdf 0000:c1:00.1
+```
+
+The result directory must be fresh. An unrouted or wrong-algorithm image
+cannot acquire the board lease; a failing board attempt is retained without
+retry. Each reference row must still be paired with an independently checked
+candidate row using the same edges, weights, input state, publication
+contract, card, and clock. The denominator is the raw resident elapsed
+span, not the sum of overlapping CU times.

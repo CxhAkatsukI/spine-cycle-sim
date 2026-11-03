@@ -43,5 +43,7 @@ vertices, 5,158,388 logical edges, 48 tasks). Both synthetic algorithm
 fixtures passed; a board invocation without a lease was rejected before
 programming. The legacy PR host produced byte-identical expected
 publication for archived Amazon. This is input/host readiness, not a
-timing or board result. The appropriate routed images and a supervisor
-that pins their source, ABI and clocks are still required.
+timing or board result. Use the
+[guarded single-run entry](../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/board_execution/README.md)
+with an algorithm-specific routed image to recheck its source, ABI and
+timing before programming, then capture the resident UUID and clocks.

@@ -118,11 +118,16 @@ class BoardAdmissionTests(unittest.TestCase):
             with self.subTest(topology=topology):
                 self.check_artifacts(topology, retained=True)
 
-    def check_artifacts(self, topology, retained=False):
+    def test_active_min_images_replay_only_under_the_matching_algorithm(self):
+        for algorithm in ("cc", "weighted_sssp"):
+            with self.subTest(algorithm=algorithm):
+                self.check_artifacts("a4", algorithm=algorithm)
+
+    def check_artifacts(self, topology, retained=False, *, algorithm="pr"):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             names = config.kernels(topology)
-            binary = root / config.binary_name(topology)
+            binary = root / config.binary_name(topology, algorithm=algorithm)
             utility, xo, hls, timing = [root / name for name in ("utility", "xo-file", "hls-file", "timing-file")]
             for path in (binary, utility, xo, hls, timing):
                 path.write_text(path.name)
@@ -131,7 +136,8 @@ class BoardAdmissionTests(unittest.TestCase):
             routed = {"timing": {"report": artifact.identity(timing)},
                       "topology": {"clock": [("DATA", "DATA_CLK", 150)],
                                    "connections": [("kernelApply:kernelApply_1", 0, "HBM[30]")]}}
-            report = {"status": config.routed_status(topology), "configuration": topology,
+            report = {"status": config.routed_status(topology, algorithm=algorithm),
+                      "configuration": topology, "algorithm": algorithm,
                       "errors": [], "board_programmed": False,
                       "hardware_timing_measured": False, "publication_match": False,
                       "pins": [artifact.identity(utility)], "xclbin": artifact.identity(binary), "analysis": routed,
@@ -146,6 +152,7 @@ class BoardAdmissionTests(unittest.TestCase):
             result_path.write_text(json.dumps(report))
             frozen_result = artifact.identity(result_path)
             options = {"review_retained_analysis_failure": True} if retained else {}
+            options["algorithm"] = algorithm
             with patch.object(admission.checkpoint_run, "UTILITY", utility), \
                     patch.object(admission.gates, "inspect_xo", side_effect=lambda path, name, **kwargs:
                         next(row["abi"] for row in records if row["abi"]["kernel"] == name)) as abi, \
@@ -158,7 +165,9 @@ class BoardAdmissionTests(unittest.TestCase):
                 self.assertEqual(abi.call_count, len(names))
                 self.assertEqual(synthesis.call_count, len(names))
                 self.assertTrue(all(call.kwargs["topology"] == topology for call in abi.call_args_list))
+                self.assertTrue(all(call.kwargs["algorithm"] == algorithm for call in abi.call_args_list))
                 self.assertEqual(final.call_args.kwargs["configuration"], topology)
+                self.assertEqual(final.call_args.kwargs["algorithm"], algorithm)
                 self.assertIn("SYSTEM_METADATA:RAW:", " ".join(extract.call_args.args[0]))
                 self.assertEqual(artifact.identity(result_path), frozen_result)
                 if retained:
@@ -166,8 +175,11 @@ class BoardAdmissionTests(unittest.TestCase):
                     self.assertFalse(checked["retained_analysis_failure"]["original_result_modified"])
                     self.assertEqual(json.loads(result_path.read_text())["status"], "FAILED_RETAINED")
                 with self.assertRaisesRegex(ValueError, "successful fresh-source route"):
-                    admission.review(root, root / "wrong", topology="a4" if topology == config.DEFAULT_TOPOLOGY
-                                     else config.DEFAULT_TOPOLOGY, **options)
+                    if algorithm == "pr":
+                        admission.review(root, root / "wrong", topology="a4" if topology == config.DEFAULT_TOPOLOGY
+                                         else config.DEFAULT_TOPOLOGY, **options)
+                    else:
+                        admission.review(root, root / "wrong", topology=topology)
                 if retained:
                     final.side_effect = ValueError("strict routed setup timing failed")
                     with self.assertRaisesRegex(ValueError, "strict routed setup timing failed"):
@@ -181,7 +193,7 @@ class BoardAdmissionTests(unittest.TestCase):
                 else:
                     final.return_value = {"changed": True}
                     with self.assertRaisesRegex(ValueError, "timing differs"):
-                        admission.review(root, root / "changed", topology=topology)
+                        admission.review(root, root / "changed", topology=topology, algorithm=algorithm)
             utility.write_text("drift")
             with self.assertRaisesRegex(ValueError, "artifact changed"):
                 admission.review(root, root / "drift", topology=topology, **options)

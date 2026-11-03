@@ -147,6 +147,12 @@ The guarded source-build runner now uses the same compile/link planner and
 records separate routed statuses for CC and weighted SSSP. Neither status can
 be admitted by the PR board gate. The public input audit is checked before
 compilation; it does not establish active-min board correctness.
+The separate
+[A4 active-min reference runner](../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/board_execution/README.md)
+checks the routed image and runs one superstep, retaining offline CSR
+expectations, all published buffers, the resident image UUID and raw event
+timestamps. The CC and weighted SSSP offline fixtures pass through this
+runner; a new FPGA measurement still requires the corresponding routed image.
 
 The full link has a 40-GiB hard limit, 36-GiB high watermark and a six-hour
 timeout. Each SSSP/CC component service has an 8-GiB limit and 7-GiB high
