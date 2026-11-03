@@ -143,6 +143,10 @@ the four Little lanes and bind writable Apply state to HBM 30. All eight
 translation units passed host compiler syntax checks using the Vitis 2024.1
 headers. This is source-only evidence; no new XO, routed image, or timing
 measurement is admitted by the preflight.
+The guarded source-build runner now uses the same compile/link planner and
+records separate routed statuses for CC and weighted SSSP. Neither status can
+be admitted by the PR board gate. The public input audit is checked before
+compilation; it does not establish active-min board correctness.
 
 The full link has a 40-GiB hard limit, 36-GiB high watermark and a six-hour
 timeout. Each SSSP/CC component service has an 8-GiB limit and 7-GiB high

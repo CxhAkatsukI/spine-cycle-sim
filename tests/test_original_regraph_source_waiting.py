@@ -9,20 +9,23 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_buil
 
 class SourceMemoryQueueTests(unittest.TestCase):
     def invoke(self, root, states, *, wait=30, sleep=None, build_error=None,
-               topology="original_example", placement="author"):
+               topology="original_example", placement="author", algorithm="pr",
+               weighted_udf=None):
         environment = root / "environment.json"
         if not environment.exists():
             environment.write_text('{"pins": []}')
         output = root / "queue"
 
         def build(*args, **kwargs):
-            self.assertEqual(kwargs, {"topology": topology, "placement": placement})
+            self.assertEqual(kwargs, {"topology": topology, "placement": placement,
+                                      "algorithm": algorithm, "weighted_udf": weighted_udf})
             if build_error:
                 raise build_error
             destination = args[-1]
             destination.mkdir()
-            (destination / "results.json").write_text('{"status": "ROUTED_AWAITING_BOARD"}')
-            return {"status": "ROUTED_AWAITING_BOARD"}
+            result = {"status": waiting.config.routed_status(topology, algorithm=algorithm)}
+            (destination / "results.json").write_text(json.dumps(result))
+            return result
 
         with patch.object(waiting, "current", return_value=root / "cgroup"), \
                 patch.object(waiting, "verify") as guard, \
@@ -36,9 +39,10 @@ class SourceMemoryQueueTests(unittest.TestCase):
                 patch.object(waiting.time, "sleep", side_effect=sleep) as sleeper:
             lease.return_value.sample.side_effect = states
             try:
-                result = waiting.run(root, root / "author", root / "audit", root / "control",
+                control = root / "control" if algorithm == "pr" else None
+                result = waiting.run(root, root / "author", root / "audit", control,
                                      environment, output, wait_seconds=wait, topology=topology,
-                                     placement=placement)
+                                     placement=placement, algorithm=algorithm, weighted_udf=weighted_udf)
             except (ValueError, TimeoutError, RuntimeError):
                 result = json.loads((output / "queue.json").read_text())
             return result, runner.call_count, lease.return_value.sample.call_args_list, sleeper.call_count
@@ -46,7 +50,7 @@ class SourceMemoryQueueTests(unittest.TestCase):
     def test_admits_immediately_even_when_another_fpga_tool_is_running(self):
         with tempfile.TemporaryDirectory() as directory:
             result, calls, samples, sleeps = self.invoke(Path(directory), [{"admitted": True}])
-            self.assertEqual(result["status"], "ROUTED_AWAITING_BOARD")
+            self.assertEqual(result["status"], waiting.config.routed_status())
             self.assertEqual((calls, sleeps, len(samples)), (1, 0, 1))
             self.assertFalse(samples[0].kwargs["commit"])
             self.assertFalse(result["board_programmed"])
@@ -70,6 +74,27 @@ class SourceMemoryQueueTests(unittest.TestCase):
                                               topology="a4", placement="apply_slr0")
             self.assertEqual((result["configuration"], result["placement"], calls),
                              ("a4", "apply_slr0", 1))
+
+    def test_active_min_queue_preserves_algorithm_and_pins_weighted_inputs(self):
+        for changed in (False, True):
+            with self.subTest(changed=changed), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                udf = root / "weighted_l2.h"
+                for path in waiting.active_min.input_files(root, "weighted_sssp", udf):
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text("pinned")
+                result, calls, _, _ = self.invoke(
+                    root, [{"admitted": False}, {"admitted": True}], topology="a4",
+                    placement="apply_slr0", algorithm="weighted_sssp", weighted_udf=udf,
+                    sleep=(lambda _: udf.write_text("changed")) if changed else None)
+                self.assertEqual(result["algorithm"], "weighted_sssp")
+                self.assertIn(str(udf), [pin["path"] for pin in result["pins"]])
+                if changed:
+                    self.assertEqual((result["status"], calls), ("FAILED_RETAINED", 0))
+                    self.assertIn("artifact changed", result["errors"][0])
+                else:
+                    status = waiting.config.routed_status("a4", algorithm="weighted_sssp")
+                    self.assertEqual((result["status"], calls), (status, 1))
 
     def test_unbounded_or_insufficient_peer_budget_never_starts_compiler(self):
         with tempfile.TemporaryDirectory() as directory:

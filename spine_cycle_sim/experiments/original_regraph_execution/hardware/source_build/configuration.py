@@ -70,9 +70,11 @@ def binary_name(topology: str = DEFAULT_TOPOLOGY, *, algorithm: str = "pr") -> s
     return "original_r_11l3b.hw.xclbin" if topology == DEFAULT_TOPOLOGY else "original_r_a4.hw.xclbin"
 
 
-def routed_status(topology: str = DEFAULT_TOPOLOGY) -> str:
-    counts(topology)
+def routed_status(topology: str = DEFAULT_TOPOLOGY, *, algorithm: str = "pr") -> str:
+    validate_algorithm(topology, algorithm)
     prefix = "ORIGINAL_R" if topology == DEFAULT_TOPOLOGY else "A4_R"
+    if algorithm != "pr":
+        prefix += "_" + algorithm.upper()
     return prefix + "_ROUTED_CLOCK_TOPOLOGY_TIMING_PASS_AWAITING_BOARD"
 
 

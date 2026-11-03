@@ -9,13 +9,15 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.containment import current, other_builds, verify
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from .. import artifact
-from . import configuration as config, execution, placement as physical, snapshot
+from . import active_min, configuration as config, execution, placement as physical, snapshot
 
 
-def run(root: Path, upstream: Path, audit: Path, control: Path,
+def run(root: Path, upstream: Path, audit: Path, control: Path | None,
         environment: Path, output: Path, *, wait_seconds: int,
-        topology: str = config.DEFAULT_TOPOLOGY, placement: str = physical.DEFAULT) -> dict:
+        topology: str = config.DEFAULT_TOPOLOGY, placement: str = physical.DEFAULT,
+        algorithm: str = "pr", weighted_udf: Path | None = None) -> dict:
     physical.validate(topology, placement)
+    active_min.validate_input(topology, algorithm, weighted_udf)
     little, big = config.counts(topology)
     if type(wait_seconds) is not int or not 1 <= wait_seconds <= 86400:
         raise ValueError("memory wait must be between one second and one day")
@@ -24,7 +26,8 @@ def run(root: Path, upstream: Path, audit: Path, control: Path,
               "wait_seconds": wait_seconds, "poll_seconds": 10, "pins": [],
               "build_output": str(output / "build"), "board_programmed": False,
               "hardware_timing_measured": False, "publication_match": False,
-              "configuration": topology, "little": little, "big": big, "placement": placement}
+              "configuration": topology, "little": little, "big": big, "placement": placement,
+              "algorithm": algorithm}
 
     def save():
         atomic_write_json(output / "queue.json", report)
@@ -34,8 +37,10 @@ def run(root: Path, upstream: Path, audit: Path, control: Path,
         group = current()
         verify(group, memory_gib=config.POLICY["tree_memory_gib"])
         captured = json.loads(environment.read_text())
-        report["pins"] = (execution.prerequisites(audit, control) + execution.runner_pins()
+        report["pins"] = (execution.prerequisites(audit, control, algorithm=algorithm) + execution.runner_pins()
                           + [artifact.identity(environment), *captured["pins"]])
+        report["pins"] += [artifact.identity(path)
+                           for path in active_min.input_files(root, algorithm, weighted_udf)]
         lease = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
         deadline = time.monotonic() + wait_seconds
         while True:
@@ -54,7 +59,8 @@ def run(root: Path, upstream: Path, audit: Path, control: Path,
         save()
         # The real runner acquires its atomic lease again; a race fails closed.
         built = execution.run(root, upstream, audit, control, environment, output / "build",
-                              topology=topology, placement=placement)
+                              topology=topology, placement=placement, algorithm=algorithm,
+                              weighted_udf=weighted_udf)
         snapshot.unchanged(report["pins"])
         report["status"] = built["status"]
         report["build_result"] = artifact.identity(output / "build/results.json")

@@ -64,8 +64,9 @@ def inspect_hls(directory: Path, name: str) -> dict:
             "resources": {item.tag: item.text for item in document.findall("AreaEstimates/Resources/*")}}
 
 
-def inspect_routed(metadata: Path, reports: Path, configuration: str = config.DEFAULT_TOPOLOGY) -> dict:
-    config.counts(configuration)
+def inspect_routed(metadata: Path, reports: Path, configuration: str = config.DEFAULT_TOPOLOGY, *,
+                   algorithm: str = "pr") -> dict:
+    config.validate_algorithm(configuration, algorithm)
     sections = {name: json.loads((metadata / (name + ".json")).read_text()) for name in SECTIONS.values()}
     topology = normalized_topology(sections)
     expected = sorted(f"{name}:{name}_{index}" for name, (_, count) in config.kernels(configuration).items()
@@ -85,5 +86,5 @@ def inspect_routed(metadata: Path, reports: Path, configuration: str = config.DE
         raise ValueError("one final implemented timing summary required")
     timing = parse_routed_timing(timing_files[0])
     return {"topology": topology, "timing": timing,
-            "status": config.routed_status(configuration),
+            "status": config.routed_status(configuration, algorithm=algorithm),
             "board_programmed": False, "hardware_timing_measured": False, "publication_match": False}

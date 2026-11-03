@@ -102,10 +102,13 @@ for compact destination and weight decoding, without adding a data port or
 widening the 64-bit edge record. The selected UDF and any derived Little
 files are staged and pinned outside the clean author snapshot.
 
-These options are only accepted by source preflight. The production PR
-route/board supervisors still cannot authorize either active-min variant.
-Actual compiled XO gates, routed artifact checks and independent host oracle
-must pass before using any timings.
+The guarded source-build CLI accepts the same options and generates commands
+with the same planner. Provide the independent author input `--audit` and
+captured `--environment`; omit `--control` for active-min because the guarded
+PR host record does not check CC or weighted SSSP. Each algorithm has a distinct
+routed status that the PR board gate rejects. Actual compiled XO gates,
+routed artifact checks and an independent active-min host oracle must pass
+before using any timings.
 
 ## Memory And Concurrency
 

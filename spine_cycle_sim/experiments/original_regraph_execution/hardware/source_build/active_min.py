@@ -14,26 +14,33 @@ def validate_input(topology: str, algorithm: str, weighted_udf: Path | None) -> 
         raise ValueError("a pinned weighted UDF is required only for weighted_sssp")
 
 
+def input_files(root: Path, algorithm: str, weighted_udf: Path | None) -> tuple[Path, ...]:
+    inputs = root / "cpp/tests/original_regraph/hardware"
+    if algorithm == "pr":
+        return ()
+    if algorithm == "cc":
+        return (inputs / "cc_min_label/l2.h",)
+    assert weighted_udf is not None
+    helper = inputs / "sssp_weighted"
+    return helper / "prepare.py", helper / "edge_word.hpp", weighted_udf
+
+
 def prepare(root: Path, source: Path, output: Path, *, topology: str, algorithm: str,
             weighted_udf: Path | None) -> dict:
     validate_input(topology, algorithm, weighted_udf)
     if algorithm == "pr":
         return {"algorithm": "pr", "pins": [], "little_entry": None}
 
-    inputs = root / "cpp/tests/original_regraph/hardware"
     destination = output / "algorithm"
     udf = destination / "udf/l2.h"
     udf.parent.mkdir(parents=True)
     little_entry = None
+    inputs = input_files(root, algorithm, weighted_udf)
+    pins = [artifact.identity(path) for path in inputs]
     if algorithm == "cc":
-        original = inputs / "cc_min_label/l2.h"
-        pins = [artifact.identity(original)]
-        shutil.copy2(original, udf)
+        shutil.copy2(inputs[0], udf)
     else:
-        helper = inputs / "sssp_weighted"
-        script = helper / "prepare.py"
-        assert weighted_udf is not None
-        pins = [artifact.identity(path) for path in (script, helper / "edge_word.hpp", weighted_udf)]
+        script, _, weighted_udf = inputs
         derivation = destination / "derivation"
         subprocess.run([str(config.GENERATOR_PYTHON), str(script), str(source),
                         str(weighted_udf), str(derivation)], check=True, timeout=30)

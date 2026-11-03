@@ -180,6 +180,12 @@ class A4SourceBuildTests(unittest.TestCase):
                 result = gates.inspect_routed(root, root, "a4")
                 self.assertEqual(result["status"], config.routed_status("a4"))
                 self.assertFalse(result["publication_match"])
+                for algorithm in ("cc", "weighted_sssp"):
+                    active = gates.inspect_routed(root, root, "a4", algorithm=algorithm)
+                    self.assertNotEqual(active["status"], result["status"])
+                    (root / "results.json").write_text(json.dumps(active))
+                    with self.assertRaisesRegex(ValueError, "fresh-source route required"):
+                        admission.review(root, root / "no-admission", topology="a4")
                 with self.assertRaises(ValueError):
                     gates.inspect_routed(root, root)
             for field in ("kernels", "connections"):

@@ -43,24 +43,12 @@ def run(root: Path, upstream: Path, output: Path, *, topology: str = config.DEFA
             artifact.identity(config.GENERATOR_PYTHON), artifact.identity(Path(sys.executable).resolve())]
         report["generator_python_version"] = subprocess.check_output(
             [str(config.GENERATOR_PYTHON), "--version"], text=True, timeout=10).strip()
-        prepared = snapshot.prepare(root, upstream, output, topology, algorithm=algorithm)
-        report["source_snapshot"] = prepared
-        source = Path(prepared["source"])
-        placed = physical.prepare(source, output, topology, placement)
-        report["physical_configuration"] = placed
-        overlay = active_min.prepare(root, source, output, topology=topology, algorithm=algorithm,
-                                     weighted_udf=weighted_udf)
-        report["algorithm_overlay"] = overlay
-        apply_config = Path(placed["config"])
-        active_min.check_apply_bank(apply_config, topology, algorithm)
-        little_entry = Path(overlay["little_entry"]) if overlay["little_entry"] else None
-        entries = snapshot.prepare_entries(source, output, topology, little_entry=little_entry)
-        report["pins"] += prepared["pins"] + placed["pins"] + overlay["pins"] + entries
-        report["commands_not_executed"] = {
-            "compilations": {name: config.compile_command(source, output, name, topology, algorithm=algorithm)
-                             for name in config.kernels(topology)},
-            "link": config.link_command(source, output, topology, connectivity=apply_config,
-                                        algorithm=algorithm)}
+        plan = execution.prepare_source(root, upstream, output, topology=topology, placement=placement,
+                                        algorithm=algorithm, weighted_udf=weighted_udf)
+        for key in ("source_snapshot", "physical_configuration", "algorithm_overlay"):
+            report[key] = plan[key]
+        report["pins"] += plan["pins"]
+        report["commands_not_executed"] = {key: plan[key] for key in ("compilations", "link")}
         snapshot.unchanged(report["pins"])
         report["status"] = "AUTHOR_TOPOLOGY_SNAPSHOT_PASS_AWAITING_COMPILE_ABI_ROUTE_BOARD"
     except BaseException as error:
