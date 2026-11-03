@@ -34,9 +34,10 @@ repair, but is not independent evidence of ResPR's G performance.
   on both arms. Check logical update/shard counts and report the physical
   PMA footprints and metadata layouts separately.
 - Run public-source G and the integrated ResPR update-only path once
-  each on the same leased U55C. Capture each loaded image UUID, actual
-  clock, host binary and affinity. The frozen public-source probe ran
-  four updates per invocation; do not rerun that binary as-is.
+  each on the same U55C, with an exclusive lease for each measurement.
+  Capture each loaded image UUID, actual clock, host binary and affinity.
+  The rebuilt public-source probe removes the original four-repeat loop
+  and redundant state restore; the PMA and event checks are unchanged.
 - Report first update CU start through last update CU end, including
   host gaps between shards. For ResPR, include the degree-update CU
   and in-window status transfers; report the final status check
@@ -49,6 +50,29 @@ repair, but is not independent evidence of ResPR's G performance.
   report this extra integrated work explicitly, without subtracting it
   from the measured elapsed ratio.
 
-This screen is pending. A result using the pre-repair ResPR bitstream
-would help diagnose G, but the final comparison needs the accepted routed
-image: unchanged XOs do not guarantee unchanged routed clocks or timings.
+### Measured Public-Source Arm
+
+The public-source arm completed once: **18.413633 ms** for 131,072 updates
+over eight shards. All 72 update-CU events and 33,554,688 PMA words
+(including guard/storage capacity) were checked. The driver reported
+`150/500/450/0 MHz` on `0000:c1:00.1` with image UUID
+`565fef9d-96ec-942d-44d0-178862832e4e`. Peak host cgroup memory was
+822 MiB, with no memory-limit or OOM events. This is one arm, not a pass
+of the integrated G gate.
+
+The [portable raw evidence](g-reference-once.tar.gz) contains the source
+snapshot, host build manifest and flags, command, input/image identities,
+raw event log, and driver clock record. It does not duplicate the frozen
+AU graph or the bitstream. Replay after extracting the archive with
+`profiled_runs(results["row"], extracted_root)` from
+`spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.analysis`.
+The one-shot host builder and leased runner are the `reference_once` and
+`reference_board` modules under
+`spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board`.
+Each accepts `--help`; the board runner requires a cgroup limit of at
+most 8 GiB with zero swap. Local uncompressed evidence:
+`/data/chuxiao/checks/source-retention-repair-20261104/g-reference-board-v1/`.
+
+The integrated ResPR arm remains pending. Its final comparison needs the
+accepted routed image: unchanged G XOs do not guarantee unchanged routed
+clocks or timings.

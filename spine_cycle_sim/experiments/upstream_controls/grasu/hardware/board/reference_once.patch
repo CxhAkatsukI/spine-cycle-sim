@@ -1,0 +1,14 @@
+--- grasu_gap_control.cpp
++++ grasu_gap_control.cpp
+@@ -80,9 +80,4 @@
+               << ",\"runtime_placement\":" << (runtime_placement ? "true" : "false") << "}\n";
+-    for (unsigned repeat = 0; repeat < 4; ++repeat) {
+-        for (std::size_t s = 0; s < buffers.size(); ++s)
+-            for (unsigned lane = 0; lane < 4; ++lane) {
+-                const auto& words = packed[s].pma_words[lane];
+-                checked(session.queue.enqueueWriteBuffer(buffers[s].pma[lane], CL_TRUE, 0,
+-                        words.size() * sizeof(std::uint32_t), words.data()), "restore initial PMA");
+-            }
++    {
++        constexpr unsigned repeat = 0;
+         std::vector<std::array<cl::Event, 9>> events(buffers.size());
