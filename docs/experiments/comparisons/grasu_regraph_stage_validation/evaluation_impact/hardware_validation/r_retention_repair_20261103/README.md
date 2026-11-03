@@ -144,6 +144,32 @@ The separately owned `directory_tile.hardware.component` and
 verify finite RTL/synthesis and ABI compatibility, and replace only the
 adapter. Their exact invocation is recorded in each execution manifest.
 
+The bounded continuation below waits for the exact route service invocation,
+checks the completed image and its source pins, then screens the same two
+supported controls once per arm. It captures driver clocks and writes a
+portable checkpoint under `after-follow-v2/delivery/`, even if the performance
+gate fails. It never starts the full evaluation matrix automatically.
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.follow \
+  --before /data/chuxiao/checks/source-retention-repair-20261104/before-once/results.json \
+  --route /data/chuxiao/builds/gr-directory-spans-20261103/route-respr-v1 \
+  --g-results /data/chuxiao/checks/source-retention-20261103-v1/campaign-v1/results.json \
+  --hosts /data/chuxiao/checks/source-retention-repair-20261104/hosts-pinned \
+  --production /home/chuxiao/grasu-regraph-sim-aligned \
+  --output /data/chuxiao/checks/source-retention-repair-20261104/after-follow-v2 \
+  --unit gr-directory-spans-route-20261104.service \
+  --invocation 84845edf6b294efb8f856df572d2a341
+```
+
+Run this continuation inside an 8-GiB maximum, 7-GiB high-watermark,
+zero-swap cgroup. Its wait is bounded to six hours; each host invocation is
+bounded to four minutes. A changed or failed route cannot request the board.
+The initial continuation attempt (`after-follow-v1`) stopped before any board
+request because its pin comparison expected a byte count absent from build
+manifests. The runner now checks the declared path/SHA-256 and, where present,
+byte count; it still rejects changed contents. The failed attempt is retained.
+
 ## Remaining Gates
 
 Goal active: complete the route, check actual clocks and measure the new
@@ -159,7 +185,7 @@ delivery remain open. Nothing in this checkpoint supersedes Figures 7--11.
 ## Checkpoint Verification
 
 The focused build, replacement, retention, clock-record, packaging and
-repository-organization suites pass 38 tests. The document-layout and catalog
+repository-organization suites pass 42 tests. The document-layout and catalog
 checks and `git diff --check` pass. These tests do not execute the FPGA and do
 not imply that the pending performance gate passes. No simulator numerical
 model or frozen figure package is changed by this repair checkpoint.
