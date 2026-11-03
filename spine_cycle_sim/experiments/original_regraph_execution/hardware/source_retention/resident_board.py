@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from ..board_execution import pair_resources
-from . import clocks, resident_admission, resident_results
+from . import clocks, resident_admission, resident_results, respr_retention_audit
 from .follow import unchanged
 from .resident_admission import BDF, DEVICE, Candidate, NotAdmitted, native_host_sha256
 from .runtime import check_memory, execute, identity, save
@@ -84,10 +84,11 @@ def run(args):
 
     write()
     try:
-        paths = ("spine_host", "spine_image", "comparator", "r19", "flickr")
+        paths = ("spine_host", "spine_image", "comparator", "r19", "flickr", "frozen_r_board")
         pins = {name: identity(getattr(args, name)) for name in paths}
         pins.update(runner=identity(__file__), admission=identity(resident_admission.__file__),
-                    analysis=identity(resident_results.__file__), resource_policy=identity(pair_resources.__file__))
+                    analysis=identity(resident_results.__file__), resource_policy=identity(pair_resources.__file__),
+                    stage_audit=identity(respr_retention_audit.__file__))
         expected_hashes = {"spine_host": SPINE_HOST_SHA256,
                            "spine_image": SPINE_IMAGE_SHA256, "comparator": resident_results.COMPARATOR_SHA256}
         if any(pins[name]["sha256"] != digest for name, digest in expected_hashes.items()):
@@ -114,7 +115,7 @@ def run(args):
                 write()
 
         selected, image, gate = resident_admission.wait_for_candidates(
-            candidates, args.wait_seconds, candidate_status)
+            candidates, pins["frozen_r_board"], args.wait_seconds, candidate_status)
         report["selected_route"] = str(selected.route)
         pins["gr_host"] = selected.host_pin
         args.gr_host = Path(selected.host_pin["path"])
@@ -155,7 +156,7 @@ def run(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("route", "r-report", "g-report", "gr-host", "spine-host", "spine-image",
-                 "comparator", "r19", "flickr", "output"):
+                 "comparator", "r19", "flickr", "output", "frozen-r-board"):
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--wait-seconds", type=int, default=0)
     parser.add_argument("--board-wait-seconds", type=int, default=21600)

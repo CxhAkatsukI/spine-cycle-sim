@@ -157,11 +157,16 @@ zero-swap cgroup and 32 GiB live reserve:
 
 ```bash
 checks=/data/chuxiao/checks/source-retention-repair-20261104
+tail=/data/chuxiao/builds/gr-tail-publication-20261104
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.resident_board \
-  --route /data/chuxiao/builds/gr-directory-spans-20261103/route-respr-v1 \
-  --r-report "$checks/after-follow-v2/results.json" \
-  --g-report "$checks/g-candidate-board-v2/results.json" \
-  --gr-host /data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/hosts/respr/sharded_k4_residual_pagerank_native_host \
+  --route "$tail/route-respr-v2" \
+  --r-report "$checks/tail-follow-v1/results.json" \
+  --g-report "$checks/g-tail-board-v1/results.json" \
+  --gr-host "$tail/native-host-v1/sharded_k4_residual_pagerank_native_host" \
+  --frozen-r-board "$checks/before-once/results.json" \
+  --alternate /data/chuxiao/builds/gr-directory-spans-20261103/route-respr-cached-v2 \
+    "$checks/after-cached-respr-v2/results.json" "$checks/after-cached-respr-v2/g/results.json" \
+    /data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/hosts/respr/sharded_k4_residual_pagerank_native_host \
   --spine-host /data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/thresholded_residual_pagerank.host \
   --spine-image /data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-v1/build/respr/xclbin/spine_partitioned_split_e2e.respr.hw.xclbin \
   --comparator /home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py \
@@ -180,13 +185,14 @@ replay tests the parser; it is not a measurement of the repaired image.
 
 ## Offline Acceptance
 
-The queued main run writes `resident-board-v2/results.json`. Before using
+The joint run writes `resident-joint-board-v2/results.json`. Before using
 its ratios, run the strict same-clock G/R replay in [G_SCOPE.md](G_SCOPE.md)
+with the inputs for the report's `selected_route`,
 and then replay the saved board screen without rerunning either arm:
 
 ```bash
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.respr_resident_replay \
-  --resident "$checks/resident-board-v2/results.json" \
+  --resident "$checks/resident-joint-board-v2/results.json" \
   --strict-stage "$checks/respr-directory-strict-audit.json" \
   --output "$checks/respr-directory-resident-audit.json"
 ```

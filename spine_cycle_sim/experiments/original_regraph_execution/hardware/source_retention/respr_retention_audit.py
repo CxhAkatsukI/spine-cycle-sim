@@ -9,13 +9,14 @@ from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidat
     native_host_sha256, wait_for_image,
 )
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.native_profile import update_only_profile
-from . import clocks, resident_admission
+from . import clocks
 from .analysis import profiled_runs, summarize
 from .follow import unchanged
 from .runtime import identity, save
 
 
 CASES = ("skewed_sources", "amazon")
+G_PASS = "G_GATE_PASS_FOR_AU_RES_PR_IMAGE"
 
 
 def r_controls(board, frozen):
@@ -115,7 +116,7 @@ def run(args):
         result["matched_candidate_clocks"] = all(row["driver_mhz"].get("current") == mhz for row in r.values())
         result["status"] = ("BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE"
                             if admitted and result["g"]["retention_gate_pass"] and result["matched_candidate_clocks"]
-                            and g["status"] == resident_admission.G_PASS else "BASELINE_STAGES_NOT_ADMITTED")
+                            and g["status"] == G_PASS else "BASELINE_STAGES_NOT_ADMITTED")
     unchanged(pins)
     save(args.output, result)
     return result
