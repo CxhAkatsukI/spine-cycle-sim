@@ -161,3 +161,48 @@ native host, `sssp-active-pair-v2/pair/results.json`, and
 explicitly `BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE`. A later comparison
 must still record its own bitstream, host, actual board clocks and
 old-state-to-updated-state correctness; this tool does not start that run.
+
+### Resident SSSP and CC on the admitted image
+
+`source_retention.active_min_resident` is the one-case board runner for the
+production Spine resident host interface. It replays the two stage gates
+itself and takes the G+R host and image only from that result. The October
+single-pass matrix supplies the graph/batch, source, memory limit, and
+compatible Spine host and image; its G+R artifacts and latencies are not
+reused. The case plan and executed manifest must agree and both must pin
+the graph and Spine artifacts. The runner requires a fresh output directory,
+uses the per-board and legacy locks on board 1, and runs one sample per arm
+with no timing warmups. It replays the G+R clock readback against the stage
+screens and checks both runs for updated-state correctness and a continuous
+resident wall through final readback, including inter-round host relaunch.
+
+For example, after the weighted SSSP stage gates succeed (replace `OUT`
+with a fresh absolute directory):
+
+```bash
+root=/data/chuxiao/checks/source-retention-repair-20261104
+systemd-run --user --unit=gr-retention-sssp-resident-au \
+  --property=MemoryMax=16G --property=MemoryHigh=14G \
+  --property=MemorySwapMax=0 --property=OOMPolicy=kill \
+  --property=KillMode=control-group --property=RuntimeMaxSec=8h \
+  --working-directory="$PWD" /usr/bin/python3 -m \
+  spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.active_min_resident \
+  --algorithm weighted_sssp --dataset AU \
+  --previous /data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix \
+  --route /data/chuxiao/builds/gr-directory-spans-20261103/route-sssp-v2 \
+  --host /data/chuxiao/checks/gr-active-min-candidate-20261104-v1/weighted_sssp/sharded_k4_sssp_native_host \
+  --r-report "$root/sssp-active-pair-v2/pair/results.json" \
+  --r-inputs "$root/a4-active-amazon-v2/inputs" \
+  --g-report "$root/g-sssp-board-v2/results.json" \
+  --g-reference "$root/g-reference-board-v1/results.json" \
+  --comparator /home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py \
+  --wait-seconds 21600 --output "$OUT"
+```
+
+Use the declared per-case `memory_gib` (16, 24, or 32) and a `MemoryHigh`
+at least 2 GiB below it. This runner does not substitute the newly found
+CC repair image: that image uses a separate host and reports both
+pre-upload and post-upload clocks for the batch. Its AU correctness and
+timing-window screening is a separate experiment, not a replacement row
+selected on the basis of timing. A failed or interrupted pair retains its
+attempts and logs; it does not automatically retry.
