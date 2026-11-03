@@ -144,6 +144,34 @@ batch-resident window. A final paired result must expose and match the timing
 boundary, or explicitly present an asymmetric, conservative bound. The old
 publication-only Spine value is not suitable for this purpose.
 
+### G+R Host For The Matching Wall Window
+
+The opt-in G+R host in [HLS commit `2bbc636`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/2bbc6361e879f5589b944271740ae08b98b162b0)
+adds `GRASU_SHARDED_RESIDENT_BATCH_WALL=1` for SSSP, CC and ResPR without
+changing kernel code. It times lane packing, update upload and migration,
+host active-seed construction and upload for SSSP/CC, and execution to
+convergence and final readback. ResPR retains the existing timed device
+correction. The old timer remains available but has a different start.
+
+The old G+R PMA is still built with knowledge of the batch: capacity
+reservation, vertex ordering and external-to-physical update mapping are
+before this window. The new timing record therefore says
+`layout=trace_aware physical_update_mapping=offline`. Do not describe it as
+latency from raw external-ID batch arrival, or use it to replace Figure 8.
+
+Reproduction: use the commit above and build with
+`scripts/build_weighted_pma_native_host.sh --pipeline-mode sharded-k4 --prefetch-compact --algorithm <algorithm> --out-dir <fresh-directory>`.
+The runtime-plan unit test verifies that deferring update packing preserves
+old graph bytes and reproduces identical update lanes. All four host
+variants compile; AU SSSP, AU CC and the Flickr ResPR slice pass CPU
+preflight with identical outputs in legacy and opt-in modes. FullPR and
+repeated-update runs reject the option. The build and preflight ran under
+a 2-GiB, zero-swap cap (peaks 319 MiB and 303 MiB). Logs and host hashes are
+under `/data/chuxiao/checks/source-retention-repair-20261104/gr-resident-wall-host-v2/`.
+The opt-in upload/seed path has not yet run on a board. The existing R
+retention, G retention and first ResPR screen jobs still use their frozen
+hosts; this host change does not replace or alter those controls.
+
 The follow-up search of readable `/data/feiyang/spine*` and
 `/data/feiyang/dynamic-acts*` paths found newer emulation files and 133-byte Git
 LFS pointers named `*.hw.xclbin`, not a newer local routed image in those
