@@ -37,7 +37,7 @@ class SpineSmokeTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate(text)
 
-    def test_failed_memory_admission_never_requests_the_board(self):
+    def check_memory_failure(self, *, wait=0, decisions=None, times=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             group = root / "group"
@@ -46,21 +46,53 @@ class SpineSmokeTest(unittest.TestCase):
                                 "memory.swap.max": "0", "memory.oom.group": "1", "memory.peak": "0",
                                 "memory.events": "high 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"}.items():
                 (group / name).write_text(value)
-            args = argparse.Namespace(output=root / "output", host=root / "host", image=root / "image")
+            args = argparse.Namespace(output=root / "output", host=root / "host", image=root / "image",
+                                      admission_wait_seconds=wait)
             with mock.patch.object(spine_smoke.containment, "current", return_value=group), \
                     mock.patch.object(spine_smoke.containment, "other_builds", return_value=[]), \
                     mock.patch.object(spine_smoke, "available_memory_bytes", return_value=100 * 2**30), \
-                    mock.patch.object(spine_smoke, "identity", return_value={"sha256": "a" * 64}), \
+                    mock.patch.object(spine_smoke, "identity", side_effect=lambda path: {
+                        "path": str(path), "sha256": "a" * 64}), \
                     mock.patch.object(spine_smoke, "Lease") as reservation, \
-                    mock.patch.object(spine_smoke, "lease") as board:
-                reservation.return_value.sample.return_value = {"admitted": False}
-                with self.assertRaises(MemoryError):
+                    mock.patch.object(spine_smoke, "lease") as board, \
+                    mock.patch.object(spine_smoke.time, "monotonic", side_effect=times or [0, 0]), \
+                    mock.patch.object(spine_smoke.time, "sleep") as sleep:
+                reservation.return_value.sample.side_effect = decisions or [{"admitted": False}]
+                if decisions and decisions[-1]["admitted"]:
+                    board.side_effect = RuntimeError("board test sentinel after admission")
+                with self.assertRaises((MemoryError, RuntimeError)):
                     spine_smoke.run(args)
-                board.assert_not_called()
+                if decisions and decisions[-1]["admitted"]:
+                    board.assert_called_once()
+                else:
+                    board.assert_not_called()
                 reservation.return_value.release.assert_called_once()
             report = json.loads((args.output / "results.json").read_text())
             self.assertEqual(report["status"], "FAILED_RETAINED")
             self.assertFalse(report["performance_admission"])
+            return report, sleep.call_args_list
+
+    def test_failed_memory_admission_never_requests_the_board(self):
+        report, sleeps = self.check_memory_failure()
+        self.assertEqual(report["admission_attempts"], 1)
+        self.assertEqual(sleeps, [])
+
+    def test_bounded_wait_rechecks_full_budget_before_board(self):
+        report, sleeps = self.check_memory_failure(wait=60, times=[0, 0, 30],
+                                                   decisions=[{"admitted": False}, {"admitted": True}])
+        self.assertEqual(report["admission_attempts"], 2)
+        self.assertEqual(sleeps, [mock.call(30)])
+
+    def test_expired_wait_never_requests_board(self):
+        report, sleeps = self.check_memory_failure(wait=10, times=[0, 0, 10],
+                                                   decisions=[{"admitted": False}, {"admitted": False}])
+        self.assertEqual(report["admission_attempts"], 2)
+        self.assertEqual(sleeps, [mock.call(10)])
+
+    def test_unbounded_wait_rejected_before_output_creation(self):
+        for value in (-1, 21601, 1.0, True):
+            with self.subTest(wait=value), self.assertRaises(ValueError):
+                spine_smoke.run(argparse.Namespace(admission_wait_seconds=value))
 
 
 if __name__ == "__main__":

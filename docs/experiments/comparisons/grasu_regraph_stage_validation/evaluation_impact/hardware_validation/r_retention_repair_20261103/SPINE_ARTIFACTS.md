@@ -63,3 +63,14 @@ bytes, with no throttling or OOM event. Available memory at that check was
 108,814,893,056 bytes; the rejection is not a claim that physical available
 memory was only a few GiB. The R route continues independently. The candidate
 therefore remains unqualified by this new runner, not a failed CC result.
+
+The third attempt uses the same 24/22-GiB policy, with bounded admission
+waiting instead of repeated manual launches. Service
+`spine-cc-candidate-smoke-v3-20261104.service`, invocation
+`b266c99b284549d2b89cc92906c8a159`, writes to
+`/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-candidate-once-v3/`.
+It rechecks unchanged image/host/runner pins and the complete peer budgets
+every thirty seconds for at most six hours. Waiting requests neither the
+board nor a compiler reservation. Admission triggers exactly one canonical
+sample, not a timing matrix; expiration retains the rejection without
+weakening the policy. Its result is pending, not an admitted replacement.

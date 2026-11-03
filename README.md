@@ -14,14 +14,15 @@ Contributors and coding agents must follow [the repository working rules](AGENTS
 | Understand the code and review a change | [C++ code map](cpp/README.md) |
 | Find architecture, implementation, and evidence records | [Documentation index](docs/README.md) |
 | Choose an experiment or analysis command | [Script guide](scripts/README.md) |
-| Reproduce the accepted figure handoff | [Figures 7--11 package](docs/evaluation_refresh_20260810/figure7_10_handoff_v1/README.md) |
-| Download the refreshed Figures 7--11 data, including a fresh stage/model campaign | [Data-only handoff](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_handoff_20261103/README.md) |
+| Reproduce the earlier frozen figure handoff; not current baseline-performance admission | [Figures 7--11 package](docs/evaluation_refresh_20260810/figure7_10_handoff_v1/README.md) |
+| Download the November 3 data checkpoint; baseline-performance repair remains open | [Data-only handoff](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_handoff_20261103/README.md) |
 | Understand the organization problems and cleanup order | [Repository structure audit](docs/repository/structure_audit_20261009.md) |
 | Audit original GraSU/ReGraph publication comparisons | [Publication-match study](docs/experiments/comparisons/grasu_regraph_publication_match/README.md) |
 | Review current isolated G / original R / matched A4 / adapter studies | [Stage-validation status and evidence](docs/experiments/comparisons/grasu_regraph_stage_validation/README.md) |
 | Read the stage-study conclusion and what remains unverified | [Delivery conclusions](docs/experiments/comparisons/grasu_regraph_stage_validation/CONCLUSIONS.md) |
 | Review the bounded PMA/K4 optimization toward original A4 | [Fixed one-round prediction study](docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/directory_tile/README.md) |
 | Validate current G/R before a new Spine comparison | [Baseline admission plan and bounded diagnostics](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/README.md) |
+| Check the active FPGA R repair and its actual comparison limits | [R retention repair](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/README.md) |
 
 ## Repository Boundaries
 

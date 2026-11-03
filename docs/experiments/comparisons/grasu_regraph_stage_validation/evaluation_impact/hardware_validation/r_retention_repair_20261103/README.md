@@ -27,6 +27,10 @@ packages. Simulator near-parity is not FPGA performance admission.
 
 ## Initial Source-Backed Findings
 
+Read the [comparison contract and resource differences](COMPARABILITY.md)
+before interpreting a timing ratio. Four Little frontends do not establish
+identical state-memory resources, arithmetic, or convergence semantics.
+
 The actual ResPR bitstream is
 `c112e790c3cfd81c05b4059f1dc34fcee23bc36a94a995ba1c0d6d49280058c0`.
 Its packaged source already contains the optimized prefetch/compact adapter;
@@ -109,6 +113,14 @@ The source packet was prepared from `dec40633` plus the now-committed repair;
 its `inputs.tsv` and each gate's `manifest.json` pin the actual file contents.
 No synthetic timing coefficient or predicted speedup is used as admission.
 
+The weighted-SSSP and CC generate-only packets are prepared under
+`/data/chuxiao/builds/gr-directory-spans-20261103/{sssp,cc}/`. They pin the
+committed repair and contain algorithm-specific adapter compile commands.
+They are not compiled or routed images, and the running ResPR route does not
+depend on them. Their eventual replacement must preserve each algorithm's
+eleven-XO topology; the twelve-XO PageRank replacement command is not
+applicable unchanged.
+
 Each compiler job has a 40-GiB hard limit, 36-GiB high watermark, zero swap,
 an atomic full-budget reservation, and a 40-GiB live-memory watchdog reserve.
 The full link has a six-hour timeout. The accepted admission and resource
@@ -185,7 +197,7 @@ delivery remain open. Nothing in this checkpoint supersedes Figures 7--11.
 ## Checkpoint Verification
 
 The focused build, replacement, retention, clock-record, packaging, candidate
-smoke and repository-organization suites pass 45 tests. The document-layout and catalog
+smoke and repository-organization suites pass 48 tests. The document-layout and catalog
 checks and `git diff --check` pass. These tests do not execute the FPGA and do
 not imply that the pending performance gate passes. No simulator numerical
 model or frozen figure package is changed by this repair checkpoint.

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import time
 
 from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import board_memory
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
@@ -37,6 +38,9 @@ def validate(text):
 
 
 def run(args):
+    wait = getattr(args, "admission_wait_seconds", 0)
+    if type(wait) is not int or not 0 <= wait <= 21600:
+        raise ValueError("admission wait must be bounded to six hours")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     group = containment.current()
@@ -51,10 +55,23 @@ def run(args):
               "errors": [], "device": 0, "bdf": "0000:82:00.1"}
     save(output / "results.json", report)
     try:
-        report["admission"] = reservation.sample(available_memory_bytes(), containment.other_builds(),
-                                                 declared, commit=True)
-        if not report["admission"]["admitted"]:
-            raise MemoryError("complete peer budgets plus the 24-GiB smoke and reserve do not fit")
+        started = time.monotonic()
+        report["admission_attempts"] = 0
+        while True:
+            if any(identity(pin["path"]) != pin for pin in pins):
+                raise ValueError("CC image, host or runner changed before memory admission")
+            board_memory.require_unthrottled((group / "memory.events").read_text())
+            report["admission"] = reservation.sample(available_memory_bytes(), containment.other_builds(),
+                                                     declared, commit=True)
+            report["admission_attempts"] += 1
+            report["admission_waited_seconds"] = time.monotonic() - started
+            report["status"] = "MEMORY_ADMITTED" if report["admission"]["admitted"] else "WAITING_FOR_MEMORY_ADMISSION"
+            save(output / "results.json", report)
+            if report["admission"]["admitted"]:
+                break
+            if report["admission_waited_seconds"] >= wait:
+                raise MemoryError("complete peer budgets plus the 24-GiB smoke and reserve do not fit")
+            time.sleep(min(30, wait - report["admission_waited_seconds"]))
         with lease(0, report["bdf"]) as (node, fd):
             if subprocess.run(["fuser", str(node)], capture_output=True, timeout=10).returncode != 1:
                 raise RuntimeError("Spine candidate board is not demonstrably idle")
@@ -93,4 +110,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("host", "image", "output"):
         parser.add_argument("--" + name, required=True, type=Path)
+    parser.add_argument("--admission-wait-seconds", type=int, default=0)
     run(parser.parse_args())
