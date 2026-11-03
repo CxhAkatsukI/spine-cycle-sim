@@ -330,9 +330,16 @@ admission wait plus the twelve-hour link and margin). Admission and the
 live-memory watchdog are unchanged. Cache entries are copied and hashed;
 Vivado still selects entries using its own fingerprints. A successful original
 attempt, an active build, a memory stop, or an unexplained failure does not
-qualify for this retry. Point the R screen to the retry's own invocation and
-start it after the retry enters its final six hours; the screen still admits
-at most one measurement per control arm.
+qualify for this retry.
+
+The `source_retention.cached_screen` companion watches the live retry
+invocation and its cgroup, then verifies the exact command, plan and image
+in the terminal route receipts. It runs R once per supported arm and tests
+G once on the same image against its independent resident control, even
+if a correctness-admitted R result misses the performance threshold. Its
+R and G reports are separate (`after-cached-respr-v2/results.json` and
+`after-cached-respr-v2/g/results.json` in the same check directory).
+No full-graph Spine campaign is authorized by this job alone.
 
 ### Board Screening
 
