@@ -258,3 +258,36 @@ Its R producer is `gr-retention-sssp-pair-v2-20261104.service` (invocation
 will save the board receipt under `pair/results.json` only if it requests
 the comparison. This is one preregistered screening case, not a Fig. 7 row
 or a claim about the eight-graph matrix until the actual result is reviewed.
+
+### Single-pass SSSP continuation
+
+`source_retention.sssp_matrix` queues SU, WK, SO, PK, LJ, LJ08, and R19
+in that order. It waits for the exact AU resident smoke and the high-activity
+odd-frontier R screen. Both must finish successfully, and the runner replays
+the same-image G and R receipts before dispatching any of the seven cases.
+The AU gate is correctness and timing-window validity, independent of which
+system wins. AU is not measured a second time.
+
+Use the command above with the module changed to `source_retention.sssp_matrix`,
+a fresh output directory, and these additional flags:
+
+```bash
+--au-unit gr-retention-sssp-resident-au-v2-20261104.service
+--au-invocation 748522d410f44532ab625d1b2e6509a2
+--au-output "$root/sssp-resident-au-v2"
+--odd-unit gr-retention-sssp-odd-pair-20261104.service
+--odd-invocation ed0e867a14f047e7baa9fec2b3b62ea9
+--odd-output "$root/sssp-odd-pair-v1"
+--odd-inputs "$root/a4-active-amazon-odd-v1/inputs"
+--odd-fixture "$root/a4-active-amazon-odd-v1/manifest.json" 81e9430421d52acf665a507f808a7f467f745818f491aa7dc1fc605ae95e9add
+--child-prefix gr-retention-sssp-matrix-20261104
+```
+
+Enqueue while both prerequisites are live. Give the coordinator a small
+zero-swap cgroup and allow the stage wait plus seven bounded case windows
+in its runtime limit. The coordinator itself does not acquire a board or
+compiler reservation. It dispatches one bounded child at a time, with
+16, 24, or 32 GiB per the frozen case. The matrix journal links the AU
+receipt and per-case receipts, including failures; it never retries a case.
+It does not certify CC or ResPR or substitute October latencies for new
+measurements.
