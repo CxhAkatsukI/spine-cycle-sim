@@ -4,6 +4,13 @@ Current priority is **simulator only**. FPGA compilation, routing and board
 tests are deferred, not prerequisites for the next prediction diagnostics.
 They remain necessary for any eventual new measured-hardware claim.
 
+For the consolidated author handoff, read the
+[Figures 7--11 data package](figure7_11_handoff_20261103/README.md).
+It indexes the October FPGA Figure 7 and simulator Figures 8--9 evidence,
+and supplies fresh Figure 10 stage executions and a fresh Figure 11 fit.
+These are explicitly different experiment versions and evidence tiers;
+the historical package and paper are unchanged.
+
 ## Acceptance Order
 
 1. **G versus original G:** identical prepared updates, initial PMA, physical

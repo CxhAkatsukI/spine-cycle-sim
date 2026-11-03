@@ -1,0 +1,4 @@
+algorithm,dataset,scope,samples,speedup_median,speedup_min,speedup_max,timing_window,evidence
+full_pagerank,AM,compact_one_partition,3,0.020505,0.018414,0.021445,setup_inclusive_dynamic_latency,routed_u55c_k4_shared
+full_pagerank,WG,compact_one_partition,3,0.045154,0.042651,0.053157,setup_inclusive_dynamic_latency,routed_u55c_k4_shared
+full_pagerank,FL,compact_one_partition,3,0.042624,0.04061,0.043016,setup_inclusive_dynamic_latency,routed_u55c_k4_shared

@@ -1,0 +1,323 @@
+{
+  "actual_data_clocks_mhz": {
+    "cc-au": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "cc-lj": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "cc-lj08": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "cc-pk": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "cc-r19": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "cc-so": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "cc-su": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "cc-wk": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "respr-au": {
+      "gr": [
+        "149"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "respr-lj": {
+      "gr": [
+        "149"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "respr-lj08": {
+      "gr": [
+        "149"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "respr-pk": {
+      "gr": [
+        "149"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "respr-r19": {
+      "gr": [
+        "149"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "respr-so": {
+      "gr": [
+        "149"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "respr-su": {
+      "gr": [
+        "149"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "respr-wk": {
+      "gr": [
+        "149"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "sssp-au": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "sssp-lj": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "sssp-lj08": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "sssp-pk": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "sssp-r19": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "sssp-so": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "sssp-su": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    },
+    "sssp-wk": {
+      "gr": [
+        "150"
+      ],
+      "spine": [
+        "150"
+      ]
+    }
+  },
+  "admission_interruptions": [
+    {
+      "algorithm": "cc",
+      "archive": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/admission-interruptions/cc-r19",
+      "dataset": "R19",
+      "reason": "stopped_before_any_board_sample",
+      "results": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-r19/results.json",
+      "status": "RUNNING"
+    }
+  ],
+  "aggregation": "none",
+  "board_failures": 0,
+  "cgroup_oom_or_max_events": 0,
+  "correctness_passed_pairs": 24,
+  "current_host_and_source_hashes_checked": true,
+  "host_executions": 48,
+  "minimum_available_gib": 150.53592348098755,
+  "original_graph_bitstream_and_spine_host_pins_retained": true,
+  "pairs_per_case": 1,
+  "peak_tree_rss_gib": 26.605270385742188,
+  "propagation_rounds": {
+    "cc-au": [
+      1,
+      1
+    ],
+    "cc-lj": [
+      1,
+      1
+    ],
+    "cc-lj08": [
+      1,
+      1
+    ],
+    "cc-pk": [
+      1,
+      1
+    ],
+    "cc-r19": [
+      2,
+      2
+    ],
+    "cc-so": [
+      1,
+      1
+    ],
+    "cc-su": [
+      1,
+      1
+    ],
+    "cc-wk": [
+      2,
+      2
+    ],
+    "respr-au": [
+      0,
+      0
+    ],
+    "respr-lj": [
+      0,
+      0
+    ],
+    "respr-lj08": [
+      0,
+      0
+    ],
+    "respr-pk": [
+      0,
+      0
+    ],
+    "respr-r19": [
+      0,
+      0
+    ],
+    "respr-so": [
+      0,
+      0
+    ],
+    "respr-su": [
+      0,
+      0
+    ],
+    "respr-wk": [
+      0,
+      0
+    ],
+    "sssp-au": [
+      2,
+      2
+    ],
+    "sssp-lj": [
+      3,
+      3
+    ],
+    "sssp-lj08": [
+      2,
+      2
+    ],
+    "sssp-pk": [
+      2,
+      2
+    ],
+    "sssp-r19": [
+      2,
+      2
+    ],
+    "sssp-so": [
+      1,
+      1
+    ],
+    "sssp-su": [
+      2,
+      2
+    ],
+    "sssp-wk": [
+      1,
+      1
+    ]
+  },
+  "raw_logs_reparsed": true,
+  "status": "PASS",
+  "superseded_runner_source_archives": [
+    "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/board-v1.py",
+    "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/single_pass-v1.py",
+    "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/single_pass-v2.py"
+  ],
+  "warmup_pairs": 0,
+  "watchdog_stops": 0
+}

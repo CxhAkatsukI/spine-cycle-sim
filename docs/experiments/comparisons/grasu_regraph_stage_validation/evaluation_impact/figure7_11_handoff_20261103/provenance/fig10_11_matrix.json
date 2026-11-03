@@ -1,0 +1,2065 @@
+{
+  "cases": [
+    {
+      "algorithm": "connected_components",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_connected_components.py",
+        "--architecture",
+        "spine",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_cc_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_connected_components_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_connected_components_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_au_connected_components_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--max-rounds",
+        "256",
+        "--no-build"
+      ],
+      "dataset_id": "au",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_au_connected_components_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_connected_components_insert_u8.update.slice",
+          "sha256": "322e79094cd28cca0d775b7fbea550c68e66f41c92fbd6751f8819b6dbe8ff00"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_connected_components_insert_u8.initial.slice",
+          "sha256": "f3b0fa66867b846f5453a630901d477946d40b562613ca9d7a8da7194faebf0d"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_au_connected_components_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_au_connected_components_u8",
+      "role": "trace_calibration"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_respr_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_residual_pagerank_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_residual_pagerank_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_au_thresholded_residual_pagerank_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "residual_pagerank",
+        "--pagerank-damping",
+        "0.85",
+        "--pagerank-epsilon",
+        "1e-6",
+        "--residual-contract",
+        "grasu_hardware_warm_dangling_linf",
+        "--residual-max-iterations",
+        "256"
+      ],
+      "dataset_id": "au",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_au_thresholded_residual_pagerank_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_residual_pagerank_insert_u8.update.slice",
+          "sha256": "7ab66117da3b1bbf1998fc297dd81d70cf975ba3f8d9287b75150a4e9abb86d4"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_residual_pagerank_insert_u8.initial.slice",
+          "sha256": "9637f0ede5436fb2b6bb4193a9dffcb04cf14faf51f297bb0e21cde52776d475"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_au_thresholded_residual_pagerank_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_au_thresholded_residual_pagerank_u8",
+      "role": "trace_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_weighted_sssp_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_weighted_sssp_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_au_weighted_sssp_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "dynamic_sssp",
+        "--source",
+        "11",
+        "--sssp-warm-start",
+        "--max-rounds",
+        "256"
+      ],
+      "dataset_id": "au",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_au_weighted_sssp_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_weighted_sssp_insert_u8.update.slice",
+          "sha256": "c752c1ca44f242a01a9ae5e6612cf958a256ba76e3022a2015ae5f6d025d1835"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/au_weighted_sssp_insert_u8.initial.slice",
+          "sha256": "d3a929b302c8721c1c7477bd356694bf6d1b5f0a8e5a71649a6d938e0d32a1da"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_au_weighted_sssp_u8",
+      "physical_records": 8,
+      "previous_execution_id": "current_fpga_v12_au_weighted_sssp_u8",
+      "role": "trace_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_delete_fallback_sssp",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "dynamic_sssp_delete",
+        "--source",
+        "0",
+        "--workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/dynamic_nonmonotonic_initial.slice",
+        "--update-workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/dynamic_delete_update.slice"
+      ],
+      "dataset_id": "synthetic_delete_fallback",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_current_fpga_v12_delete_fallback_sssp",
+      "inputs": {
+        "--update-workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/dynamic_delete_update.slice",
+          "sha256": "e8a80073d67211332959350d598edf3ab09d9f58d032edbabed9c4b0740c6f4d"
+        },
+        "--workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/dynamic_nonmonotonic_initial.slice",
+          "sha256": "fad6d7e5342e30d5f9a0813ed5cd41937070e3bff8c2e4dc1145d4e598bd41e5"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_delete_fallback_sssp",
+      "physical_records": 1,
+      "previous_execution_id": "current_fpga_v12_delete_fallback_sssp",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batch_size": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_respr_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u1",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "residual_pagerank",
+        "--workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "--update-workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_insert_u1.slice",
+        "--pagerank-damping",
+        "0.85",
+        "--pagerank-epsilon",
+        "1e-6",
+        "--residual-contract",
+        "deltahls_sink_free_linf_warm",
+        "--residual-max-iterations",
+        "256"
+      ],
+      "dataset_id": "flickr_pr_correction_u1",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_current_fpga_v12_flickr_respr_correction_u1",
+      "inputs": {
+        "--update-workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_insert_u1.slice",
+          "sha256": "a1ad1f285719ef60b8c06e265cc10e88bb31179cadd3b162576d3686e3119388"
+        },
+        "--workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+          "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u1",
+      "physical_records": 2,
+      "previous_execution_id": "current_fpga_v12_flickr_respr_correction_u1",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batch_size": 64,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_respr_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u64",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "residual_pagerank",
+        "--workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "--update-workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_insert_u64.slice",
+        "--pagerank-damping",
+        "0.85",
+        "--pagerank-epsilon",
+        "1e-6",
+        "--residual-contract",
+        "deltahls_sink_free_linf_warm",
+        "--residual-max-iterations",
+        "256"
+      ],
+      "dataset_id": "flickr_pr_correction_u64",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_current_fpga_v12_flickr_respr_correction_u64",
+      "inputs": {
+        "--update-workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_insert_u64.slice",
+          "sha256": "82ff3ee91f5ec8a6bd390f0d44dd2b3f0b36ce0f246649f93662d215dbf4c1d4"
+        },
+        "--workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+          "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u64",
+      "physical_records": 128,
+      "previous_execution_id": "current_fpga_v12_flickr_respr_correction_u64",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_respr_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u8",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "residual_pagerank",
+        "--workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+        "--update-workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_insert_u8.slice",
+        "--pagerank-damping",
+        "0.85",
+        "--pagerank-epsilon",
+        "1e-6",
+        "--residual-contract",
+        "deltahls_sink_free_linf_warm",
+        "--residual-max-iterations",
+        "256"
+      ],
+      "dataset_id": "flickr_pr_correction",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_flickr_respr_correction_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_insert_u8.slice",
+          "sha256": "7b463fcb6d1bd4e9e7e58f2d03a93faabf6b0d90845dca965927e7f57c1a9fbf"
+        },
+        "--workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/deltahls_real/real_soc_flickr_und_reciprocal_sinkfree.slice",
+          "sha256": "5e14bc0dafa2dcf5a02b66b715a4cd8c80a38ae71b7c388d9a764d128ff3cb2b"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_flickr_respr_correction_u8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "connected_components",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_connected_components.py",
+        "--architecture",
+        "spine",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_cc_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_connected_components_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_connected_components_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_r19_connected_components_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--max-rounds",
+        "256",
+        "--no-build"
+      ],
+      "dataset_id": "r19",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_r19_connected_components_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_connected_components_insert_u8.update.slice",
+          "sha256": "a0f897dbf794871e318be4aa5ba6099006800a21dc4fddd51f062194ca0d1b20"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_connected_components_insert_u8.initial.slice",
+          "sha256": "98ef64172d71f1a1e94b376232c2eb298a1b0ce54100335ae3347b6fa0b04952"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_r19_connected_components_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_r19_connected_components_u8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_respr_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_residual_pagerank_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_residual_pagerank_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_r19_thresholded_residual_pagerank_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "residual_pagerank",
+        "--pagerank-damping",
+        "0.85",
+        "--pagerank-epsilon",
+        "1e-6",
+        "--residual-contract",
+        "grasu_hardware_warm_dangling_linf",
+        "--residual-max-iterations",
+        "256"
+      ],
+      "dataset_id": "r19",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_r19_thresholded_residual_pagerank_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_residual_pagerank_insert_u8.update.slice",
+          "sha256": "436552da83e46b5bf80a2e591ed5d59aa1b32a2b0f588c38d175c2b1d0ad463e"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_residual_pagerank_insert_u8.initial.slice",
+          "sha256": "c11ef49b3a1dec61380a0bf7c544f122211bd270c7307fe286b9a9dbcd6acc95"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_r19_thresholded_residual_pagerank_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_r19_thresholded_residual_pagerank_u8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_weighted_sssp_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_weighted_sssp_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_r19_weighted_sssp_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "dynamic_sssp",
+        "--source",
+        "113",
+        "--sssp-warm-start",
+        "--max-rounds",
+        "256"
+      ],
+      "dataset_id": "r19",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_r19_weighted_sssp_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_weighted_sssp_insert_u8.update.slice",
+          "sha256": "ab91283d813b134dceb580fd7e19a9e5ba41dfdba75bb761f34f9a1c3c09a451"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/r19_weighted_sssp_insert_u8.initial.slice",
+          "sha256": "34def21b9edd6b6351f982692c9ce40346f076fa71abe48d6488430b5ec4d028"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_r19_weighted_sssp_u8",
+      "physical_records": 8,
+      "previous_execution_id": "current_fpga_v12_r19_weighted_sssp_u8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "connected_components",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_connected_components.py",
+        "--architecture",
+        "spine",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_cc_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_connected_components_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_connected_components_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_su_connected_components_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--max-rounds",
+        "256",
+        "--no-build"
+      ],
+      "dataset_id": "su",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_su_connected_components_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_connected_components_insert_u8.update.slice",
+          "sha256": "72050aaba23f73a2bfa9835979d778630c5efab6ceedd0b24cba3498c2623b9f"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_connected_components_insert_u8.initial.slice",
+          "sha256": "6206688f1cbe10986c01a18ac89ef3bdf9096bb3cf721cffc767a7bd299b1be3"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_su_connected_components_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_su_connected_components_u8",
+      "role": "trace_calibration"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_respr_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_residual_pagerank_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_residual_pagerank_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_su_thresholded_residual_pagerank_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "residual_pagerank",
+        "--pagerank-damping",
+        "0.85",
+        "--pagerank-epsilon",
+        "1e-6",
+        "--residual-contract",
+        "grasu_hardware_warm_dangling_linf",
+        "--residual-max-iterations",
+        "256"
+      ],
+      "dataset_id": "su",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_su_thresholded_residual_pagerank_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_residual_pagerank_insert_u8.update.slice",
+          "sha256": "6bff4d42cf0dd3b481ec7752e382dc658e53efc10e74d37cf534746e5ae0b506"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_residual_pagerank_insert_u8.initial.slice",
+          "sha256": "7aacd4f853ae9c3b61588c095c7091a1214c266ddaa90139829080d15f99abe0"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_su_thresholded_residual_pagerank_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_su_thresholded_residual_pagerank_u8",
+      "role": "trace_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_weighted_sssp_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_weighted_sssp_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_su_weighted_sssp_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "dynamic_sssp",
+        "--source",
+        "23",
+        "--sssp-warm-start",
+        "--max-rounds",
+        "256"
+      ],
+      "dataset_id": "su",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_su_weighted_sssp_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_weighted_sssp_insert_u8.update.slice",
+          "sha256": "4a20d0aebb2b8fa3e7598c9974c60f86b02b7009dcccfac05c7032ce548ce63d"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/su_weighted_sssp_insert_u8.initial.slice",
+          "sha256": "85742ef5a86dc59bd843947d5b6ef6f9e1a15b5ddbfe77b182007866b2a92774"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_su_weighted_sssp_u8",
+      "physical_records": 8,
+      "previous_execution_id": "current_fpga_v12_su_weighted_sssp_u8",
+      "role": "trace_calibration"
+    },
+    {
+      "algorithm": "connected_components",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_connected_components.py",
+        "--architecture",
+        "spine",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_cc_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_connected_components_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_connected_components_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_wk_connected_components_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--max-rounds",
+        "256",
+        "--no-build"
+      ],
+      "dataset_id": "wk",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_wk_connected_components_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_connected_components_insert_u8.update.slice",
+          "sha256": "42439d976d3c997b47e63b4b3348093f81957aa7d6695b87a160610cd91624d9"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_connected_components_insert_u8.initial.slice",
+          "sha256": "cfa5200e746937308d3a874c1d4c356900156f41da85f1c6571a704a9e1fd305"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_wk_connected_components_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_wk_connected_components_u8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "thresholded_residual_pagerank",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_respr_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_residual_pagerank_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_residual_pagerank_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_wk_thresholded_residual_pagerank_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "residual_pagerank",
+        "--pagerank-damping",
+        "0.85",
+        "--pagerank-epsilon",
+        "1e-6",
+        "--residual-contract",
+        "grasu_hardware_warm_dangling_linf",
+        "--residual-max-iterations",
+        "256"
+      ],
+      "dataset_id": "wk",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_wk_thresholded_residual_pagerank_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_residual_pagerank_insert_u8.update.slice",
+          "sha256": "e128fc01fabe9272d6fbc889046639d8a1574aa829ea40034c0ecf96ae26cc8e"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_residual_pagerank_insert_u8.initial.slice",
+          "sha256": "d240920aea46550a52f21d0be3f58e2ebd78a7716f93cfdaf2511e2e968637bc"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_wk_thresholded_residual_pagerank_u8",
+      "physical_records": 16,
+      "previous_execution_id": "current_fpga_v12_wk_thresholded_residual_pagerank_u8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_weighted_sssp_insert_u8.initial.slice",
+        "--update-workload",
+        "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_weighted_sssp_insert_u8.update.slice",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_wk_weighted_sssp_u8",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "dynamic_sssp",
+        "--source",
+        "0",
+        "--sssp-warm-start",
+        "--max-rounds",
+        "256"
+      ],
+      "dataset_id": "wk",
+      "dataset_kind": "real",
+      "execution_id": "fresh_20261103_current_fpga_v12_wk_weighted_sssp_u8",
+      "inputs": {
+        "--update-workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_weighted_sssp_insert_u8.update.slice",
+          "sha256": "9c51469541945cc8f75db761b12b7ee2e3fd1a12f35c09ff385ed467fadfe889"
+        },
+        "--workload": {
+          "path": "/data/tmp/chuxiao/evaluation_refresh_current_fpga_v12_20260812/workloads/wk_weighted_sssp_insert_u8.initial.slice",
+          "sha256": "5fc10d35c97ee4a29dd5b74b2c02c34da65ac112c8589702545839c89d439dec"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_current_fpga_v12_wk_weighted_sssp_u8",
+      "physical_records": 8,
+      "previous_execution_id": "current_fpga_v12_wk_weighted_sssp_u8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e1",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l1/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l1/history.slice",
+        "--carry-history-batch-edges",
+        "1",
+        "--expected-carry-target-level",
+        "1",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l1",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l1_e1",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l1/history.slice",
+          "sha256": "0174fe2dbb53219ef33fb18975936340e97c7c92e8a5513eb28ee5ee318f4628"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l1/update.slice",
+          "sha256": "b0197d37f6678415d8e8c70da1b736e09f4e89f9eaecddae3da31c6dffa46a23"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e1",
+      "physical_records": 1,
+      "previous_execution_id": "rq3_trace_carry_l1_e1",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 16,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e16",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l1/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l1/history.slice",
+        "--carry-history-batch-edges",
+        "16",
+        "--expected-carry-target-level",
+        "1",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l1",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l1_e16",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l1/history.slice",
+          "sha256": "f74fcad025b1464b8fa7c100359ad7e6e973f30d69859f98f7e0220f1d802a3a"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l1/update.slice",
+          "sha256": "123e4180db1c53aac4672bb01dc8b0642583467dc2e90239d3618f888ed2f8e0"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e16",
+      "physical_records": 16,
+      "previous_execution_id": "rq3_trace_carry_l1_e16",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 32,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e32",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l1/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l1/history.slice",
+        "--carry-history-batch-edges",
+        "32",
+        "--expected-carry-target-level",
+        "1",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l1",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l1_e32",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l1/history.slice",
+          "sha256": "db284f2c700138553ce3445be5906f56243d677d730d8164a25986c19d211f99"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l1/update.slice",
+          "sha256": "9949cd0607cc5a3a9d131329034e3bad66473909b5c1c06dd3d0abd88af96acb"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e32",
+      "physical_records": 32,
+      "previous_execution_id": "rq3_trace_carry_l1_e32",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 4,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e4",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l1/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l1/history.slice",
+        "--carry-history-batch-edges",
+        "4",
+        "--expected-carry-target-level",
+        "1",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l1",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l1_e4",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l1/history.slice",
+          "sha256": "9179dfa7321d8f922722426c5a005458fac0a9048ce23c4b184536bf16ca78de"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l1/update.slice",
+          "sha256": "dfe6d973cc0c4ad4c8a83dfd55d0841b3f25b06f14efe66c1c1ad597ef058140"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e4",
+      "physical_records": 4,
+      "previous_execution_id": "rq3_trace_carry_l1_e4",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e8",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l1/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l1/history.slice",
+        "--carry-history-batch-edges",
+        "8",
+        "--expected-carry-target-level",
+        "1",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l1",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l1_e8",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l1/history.slice",
+          "sha256": "af12e4d685db619a4130cc28c6aad952ef0fe985d634c4b53f6037687fcfd7ba"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l1/update.slice",
+          "sha256": "1b8b0922726bc5091a4982780ec33ea1c99bf9ee5f29be1897217972d3eaf5ed"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l1_e8",
+      "physical_records": 8,
+      "previous_execution_id": "rq3_trace_carry_l1_e8",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e1",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l2/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l2/history.slice",
+        "--carry-history-batch-edges",
+        "1",
+        "--expected-carry-target-level",
+        "2",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l2",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l2_e1",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l2/history.slice",
+          "sha256": "037a8bed95504ad015d8758bd803b07d9261af3bd752d8654ca9223baa88e715"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l2/update.slice",
+          "sha256": "8bebac1bee778f8a8982354b3e6ab1e2013d3155f2bc0381feecfd432a47eab4"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e1",
+      "physical_records": 1,
+      "previous_execution_id": "rq3_trace_carry_l2_e1",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 16,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e16",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l2/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l2/history.slice",
+        "--carry-history-batch-edges",
+        "16",
+        "--expected-carry-target-level",
+        "2",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l2",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l2_e16",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l2/history.slice",
+          "sha256": "78355a817f1b6302fc846d133612f70b4e198bc127b9ba5a67288ab797140e65"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l2/update.slice",
+          "sha256": "0b69438a71e3edaff403f593fe611e17abec26d1f6c1b3d76fbc280e42367f8c"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e16",
+      "physical_records": 16,
+      "previous_execution_id": "rq3_trace_carry_l2_e16",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 32,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e32",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l2/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l2/history.slice",
+        "--carry-history-batch-edges",
+        "32",
+        "--expected-carry-target-level",
+        "2",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l2",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l2_e32",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l2/history.slice",
+          "sha256": "bc6f36873ac0bd74a848f7fc8a5758d45575ba3ed6076ddfa58a44f9e3358612"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l2/update.slice",
+          "sha256": "3a88a0cc16e43fb657ae6dafe16cdb77cc499fa174203f918a680433f48400bd"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e32",
+      "physical_records": 32,
+      "previous_execution_id": "rq3_trace_carry_l2_e32",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 4,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e4",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l2/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l2/history.slice",
+        "--carry-history-batch-edges",
+        "4",
+        "--expected-carry-target-level",
+        "2",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l2",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l2_e4",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l2/history.slice",
+          "sha256": "b9353f0fa6f99de6d65c151a9856a61185a206be40b4ce9bf2088783c8f91a36"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l2/update.slice",
+          "sha256": "bf10c98262a052177bbeb0908dea1e6b7999bacb6623fd5af777c715d8396549"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e4",
+      "physical_records": 4,
+      "previous_execution_id": "rq3_trace_carry_l2_e4",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e8",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l2/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l2/history.slice",
+        "--carry-history-batch-edges",
+        "8",
+        "--expected-carry-target-level",
+        "2",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l2",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l2_e8",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l2/history.slice",
+          "sha256": "e2d5afbcbc8cb36c58654eac40f64f593a6e8c86a8994b022bb818b503fc9a5d"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l2/update.slice",
+          "sha256": "076f86a6bcf10f782df0a2c593c41056718bc3fd3e74d7b80af154feb024d80a"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l2_e8",
+      "physical_records": 8,
+      "previous_execution_id": "rq3_trace_carry_l2_e8",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e1",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l3/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l3/history.slice",
+        "--carry-history-batch-edges",
+        "1",
+        "--expected-carry-target-level",
+        "3",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l3",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l3_e1",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l3/history.slice",
+          "sha256": "ddea302b22f0a11fb0cc04d30cbcc63c09247bb1f3924fe131f94966373b7bed"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l3/update.slice",
+          "sha256": "74f0fd749ba795553feb8e353625d02a74aee6f4fcc48fd5918e10e1f795bceb"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e1",
+      "physical_records": 1,
+      "previous_execution_id": "rq3_trace_carry_l3_e1",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 16,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e16",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l3/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l3/history.slice",
+        "--carry-history-batch-edges",
+        "16",
+        "--expected-carry-target-level",
+        "3",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l3",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l3_e16",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l3/history.slice",
+          "sha256": "b0cad59f8d9f46b2027b25bfbd25153b0270635e7499c7138a9ffee29bf973a0"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l3/update.slice",
+          "sha256": "8e000ea96aadf9dc9defcf5192a1ea3074b4dae6513c17e82330fd143482be3a"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e16",
+      "physical_records": 16,
+      "previous_execution_id": "rq3_trace_carry_l3_e16",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 32,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e32",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l3/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l3/history.slice",
+        "--carry-history-batch-edges",
+        "32",
+        "--expected-carry-target-level",
+        "3",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l3",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l3_e32",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l3/history.slice",
+          "sha256": "976cd6dcc9c24b599d28733ab7b991a7db0a8a50afc9d71eb7cd8027072c6499"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l3/update.slice",
+          "sha256": "cc8e86dc841ced20789fc6b5c606fa4eb334ef84fc86397fda9731f99ccb75cb"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e32",
+      "physical_records": 32,
+      "previous_execution_id": "rq3_trace_carry_l3_e32",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 4,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e4",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l3/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l3/history.slice",
+        "--carry-history-batch-edges",
+        "4",
+        "--expected-carry-target-level",
+        "3",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l3",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l3_e4",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l3/history.slice",
+          "sha256": "85f9272760cd2c439e808b309f74f0e3a16379eb71f1d4229095eadd36792805"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l3/update.slice",
+          "sha256": "d39c9adb1b14ab487ab634186cfa34ed23873a6b614f27fdd8d56825c4ff4cce"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e4",
+      "physical_records": 4,
+      "previous_execution_id": "rq3_trace_carry_l3_e4",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e8",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l3/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l3/history.slice",
+        "--carry-history-batch-edges",
+        "8",
+        "--expected-carry-target-level",
+        "3",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l3",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l3_e8",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l3/history.slice",
+          "sha256": "fa2a9927a3fc5fbe2be3480b685db1a727ff5e2fe1359e10ad5c7397b4351427"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l3/update.slice",
+          "sha256": "0c55f9bf76a7e84a551c5c59a185c2dda123a009290b9b6ee7a4840b3d6c7b0b"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l3_e8",
+      "physical_records": 8,
+      "previous_execution_id": "rq3_trace_carry_l3_e8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e1",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l4/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l4/history.slice",
+        "--carry-history-batch-edges",
+        "1",
+        "--expected-carry-target-level",
+        "4",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l4",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l4_e1",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l4/history.slice",
+          "sha256": "f2427ebc96b00e552d023d57ac369f829cf25f8da0b245e605c1349579bec483"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l4/update.slice",
+          "sha256": "0878053ec8a77db78905b5f5076fdeb357c303542a6d1cfbf5ed9a5adf649c43"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e1",
+      "physical_records": 1,
+      "previous_execution_id": "rq3_trace_carry_l4_e1",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 16,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e16",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l4/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l4/history.slice",
+        "--carry-history-batch-edges",
+        "16",
+        "--expected-carry-target-level",
+        "4",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l4",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l4_e16",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l4/history.slice",
+          "sha256": "caf687c3eac99568f453a8a23589afc47b06f2cac2ecfb9a609caea40f538489"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l4/update.slice",
+          "sha256": "86aca6250e028a2d04ed80901d1b1dde99c71b59f5d85f77a874ccaa7e528912"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e16",
+      "physical_records": 16,
+      "previous_execution_id": "rq3_trace_carry_l4_e16",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 32,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e32",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l4/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l4/history.slice",
+        "--carry-history-batch-edges",
+        "32",
+        "--expected-carry-target-level",
+        "4",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l4",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l4_e32",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l4/history.slice",
+          "sha256": "54a937d0c035d823432896f974eaa9b8785157f4a0470314b9fd4cd06129365c"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l4/update.slice",
+          "sha256": "ad36df5744d17eec60543acad8e5fe294fa6f1ef18a4e5bec7e5ecf9bb0da00f"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e32",
+      "physical_records": 32,
+      "previous_execution_id": "rq3_trace_carry_l4_e32",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 4,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e4",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l4/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l4/history.slice",
+        "--carry-history-batch-edges",
+        "4",
+        "--expected-carry-target-level",
+        "4",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l4",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l4_e4",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l4/history.slice",
+          "sha256": "fa023b98a47bb410f962caeabba4658e95f84344dfe35fc3623970d1e802b29e"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l4/update.slice",
+          "sha256": "ed8de6826d16fab051d77f972053ed4b4038811657bd13104a419fc7c278aa5a"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e4",
+      "physical_records": 4,
+      "previous_execution_id": "rq3_trace_carry_l4_e4",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e8",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l4/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l4/history.slice",
+        "--carry-history-batch-edges",
+        "8",
+        "--expected-carry-target-level",
+        "4",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l4",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l4_e8",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l4/history.slice",
+          "sha256": "1775c706236a7f16a77bbfa0038f690a4d205f0f8f6c238a53ee9ef4027cd47a"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l4/update.slice",
+          "sha256": "d38ecefdebcc8d64ef8e53072a0bcb59f80a79ee0b1616ca236c11832a72e433"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l4_e8",
+      "physical_records": 8,
+      "previous_execution_id": "rq3_trace_carry_l4_e8",
+      "role": "synthetic_calibration"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e1",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l5/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l5/history.slice",
+        "--carry-history-batch-edges",
+        "1",
+        "--expected-carry-target-level",
+        "5",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l5",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l5_e1",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l5/history.slice",
+          "sha256": "a7d02ac47043c20e9c29554599588b5e2dbda3db449217911cb0461b4fd2e3b6"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e1/l5/update.slice",
+          "sha256": "5f0034a88dee03217cb1f73b3907fd14a18d8e6bc3e7a4c89d9620fb339237bb"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e1",
+      "physical_records": 1,
+      "previous_execution_id": "rq3_trace_carry_l5_e1",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 16,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e16",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l5/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l5/history.slice",
+        "--carry-history-batch-edges",
+        "16",
+        "--expected-carry-target-level",
+        "5",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l5",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l5_e16",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l5/history.slice",
+          "sha256": "0314ce2fb1154e22b3cdae5fd12df238491386b970372aae0b1ec61ae4f31d1c"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e16/l5/update.slice",
+          "sha256": "34710d27bf198a73bd0193beb7f8a894179350eee978171d33667b545beb789c"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e16",
+      "physical_records": 16,
+      "previous_execution_id": "rq3_trace_carry_l5_e16",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 32,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e32",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l5/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l5/history.slice",
+        "--carry-history-batch-edges",
+        "32",
+        "--expected-carry-target-level",
+        "5",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l5",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l5_e32",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l5/history.slice",
+          "sha256": "407b3b5e42d1898908826877c9c0bb916b4340fa342647712ecc446140354c05"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e32/l5/update.slice",
+          "sha256": "d2fc1c0d6b00d664bbc72fc688fccd01924a90c58d4abfe2f9159f5ce5c3d3a0"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e32",
+      "physical_records": 32,
+      "previous_execution_id": "rq3_trace_carry_l5_e32",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 4,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e4",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l5/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l5/history.slice",
+        "--carry-history-batch-edges",
+        "4",
+        "--expected-carry-target-level",
+        "5",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l5",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l5_e4",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l5/history.slice",
+          "sha256": "54696871c25dacfee714a035157c0b29d8446ab47cc27d351358a695c1a46478"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e4/l5/update.slice",
+          "sha256": "8f4ac77121906f9149937d2052f5ac2087b15288e1194a503e4abe009a6a6f43"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e4",
+      "physical_records": 4,
+      "previous_execution_id": "rq3_trace_carry_l5_e4",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 8,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "fixture",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e8",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "rq3_trace_carry",
+        "--workload",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l5/update.slice",
+        "--carry-history",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l5/history.slice",
+        "--carry-history-batch-edges",
+        "8",
+        "--expected-carry-target-level",
+        "5",
+        "--source",
+        "0"
+      ],
+      "dataset_id": "synthetic_trace_carry_l5",
+      "dataset_kind": "trace_holdout",
+      "execution_id": "fresh_20261103_rq3_trace_carry_l5_e8",
+      "inputs": {
+        "--carry-history": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l5/history.slice",
+          "sha256": "d5f93b4acd49a862eaf7f04ade21bad7ca387d1c743586a3d2def8ab85520a9e"
+        },
+        "--workload": {
+          "path": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/inputs/e8/l5/update.slice",
+          "sha256": "aa08798c63f40ff4b37426ad5dd6e36411b4010410c59460f9bae365a511ffc0"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_rq3_trace_carry_l5_e8",
+      "physical_records": 8,
+      "previous_execution_id": "rq3_trace_carry_l5_e8",
+      "role": "trace_holdout"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "batch_size": 2,
+      "command": [
+        "/usr/bin/python3",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/scripts/run_sst_spine_vertical.py",
+        "--validation-mode",
+        "generic",
+        "--profile",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/profiles/spine_owner_fifo_sssp_hls_v1.json",
+        "--lib-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103/plugin",
+        "--out-dir",
+        "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_zero_net_sssp",
+        "--max-cycles",
+        "2000000000",
+        "--no-build",
+        "--scenario",
+        "dynamic_sssp_delete",
+        "--source",
+        "0",
+        "--workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/connected_components_formal/cc_zero_net_base.slice",
+        "--update-workload",
+        "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/connected_components_formal/cc_zero_net_delete_then_reinsert_u2.slice"
+      ],
+      "dataset_id": "synthetic_sssp_zero_net",
+      "dataset_kind": "synthetic",
+      "execution_id": "fresh_20261103_zero_net_sssp",
+      "inputs": {
+        "--update-workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/connected_components_formal/cc_zero_net_delete_then_reinsert_u2.slice",
+          "sha256": "5e0001cd0b77771f3f65ce11e0149a433ec6a377f4850c3cc5e5333521dd449e"
+        },
+        "--workload": {
+          "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/tests/data/connected_components_formal/cc_zero_net_base.slice",
+          "sha256": "0773e0c88f1e018326d33d29059e76cd9ec3d66177e068f8dc7c233230690b58"
+        }
+      },
+      "out_dir": "/data/chuxiao/experiments/fig10_11_fresh_20261103_admitted/runs/fresh_20261103_zero_net_sssp",
+      "physical_records": 4,
+      "previous_execution_id": "zero_net_sssp",
+      "role": "excluded_fig10_only"
+    }
+  ],
+  "evidence_tier": "simulator_prediction_not_fpga_stage_calibration",
+  "fig10_bars": 11,
+  "fit_rows": 41,
+  "profile_override": {
+    "maintenance_architecture": "candidate10_one_pass"
+  },
+  "residual_apply_mode": "dense_default_sparse_candidate_not_wired_in_SST",
+  "schema": "figure10_11_fresh_v1",
+  "selection": [
+    [
+      "ZN",
+      "Syn",
+      "zero_net_sssp"
+    ],
+    [
+      "SI",
+      "AU",
+      "current_fpga_v12_au_weighted_sssp_u8"
+    ],
+    [
+      "SI",
+      "SU",
+      "current_fpga_v12_su_weighted_sssp_u8"
+    ],
+    [
+      "SI",
+      "WK",
+      "current_fpga_v12_wk_weighted_sssp_u8"
+    ],
+    [
+      "Carry",
+      "L1",
+      "rq3_trace_carry_l1_e8"
+    ],
+    [
+      "Carry",
+      "L3",
+      "rq3_trace_carry_l3_e8"
+    ],
+    [
+      "Carry",
+      "L5",
+      "rq3_trace_carry_l5_e8"
+    ],
+    [
+      "PR-corr",
+      "FL",
+      "current_fpga_v12_flickr_respr_correction_u8"
+    ],
+    [
+      "PR-corr",
+      "SU",
+      "current_fpga_v12_su_thresholded_residual_pagerank_u8"
+    ],
+    [
+      "PR-corr",
+      "WK",
+      "current_fpga_v12_wk_thresholded_residual_pagerank_u8"
+    ],
+    [
+      "Del",
+      "Syn",
+      "current_fpga_v12_delete_fallback_sssp"
+    ]
+  ],
+  "template": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/evaluation_refresh_20260810/figure7_10_handoff_v1/data/fig11_rq3_prediction_rows.csv",
+  "template_sha256": "2951888636771345841715c63c1ca1bab84ce003691eba61c92710ac9515591a"
+}
