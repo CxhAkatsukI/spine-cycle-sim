@@ -264,6 +264,31 @@ The opt-in upload/seed path has not yet run on a board. The existing R
 retention, G retention and first ResPR screen jobs still use their frozen
 hosts; this host change does not replace or alter those controls.
 
+For the active-Min CC and SSSP candidate, the same host-only change is
+applied to the exact fixture source in
+[commit `15717a5`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/15717a5928929cafd39dbf5a3f7fc1aaf18d167a).
+It preserves the fixture and update-only modes when the wall option is
+off, and makes no kernel or connectivity change. The binaries and CPU
+preflight are under
+`/data/chuxiao/checks/source-retention-repair-20261104/gr-active-min-wall-host-v1/`.
+
+| Host | SHA-256 |
+| --- | --- |
+| Weighted SSSP | `265bf7f190e2eff8be99fd63597d59f1a436ba71faa84fb22526c645d7888d3a` |
+| CC | `b72c20fec3bc7130edf430ff0006963e3112dfa57ea31bc96e38246b303f7412` |
+
+Both hosts preserve the full AU prepare-only output with the option off
+and on, and preserve the full Amazon source-retention preparation output
+and reference bytes with it off. This took 24 s and peaked at 1 GiB in a
+2-GiB zero-swap service. These are CPU checks, not validation of the
+board uploads or a substitute for the frozen R/G admission receipts.
+
+`cc_resident_results.py` checks a single resident CC log pair, requires
+both host-pack timers and successful per-arm oracles, and reports
+`G+R ms / Spine ms` even below one. It requires the caller to verify
+the input, image, clock and board pins separately. It does not accept
+the old G+R timer or the Spine-only smoke as a paired result.
+
 The follow-up search of readable `/data/feiyang/spine*` and
 `/data/feiyang/dynamic-acts*` paths found newer emulation files and 133-byte Git
 LFS pointers named `*.hw.xclbin`, not a newer local routed image in those
