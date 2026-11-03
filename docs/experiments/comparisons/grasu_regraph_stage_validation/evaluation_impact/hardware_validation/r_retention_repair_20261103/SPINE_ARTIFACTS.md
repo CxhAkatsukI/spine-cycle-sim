@@ -87,3 +87,28 @@ candidate uses a different host ABI and its reported convergence timer
 excludes the final audit/readback. A paired large-graph test must first
 match the workload and observable timing boundary; the fixture timings
 cannot be divided by any old G+R measurements.
+
+## Full AU CC Qualification
+
+The original October matrix AU input (`au_connected_components_insert_u8.graph`,
+SHA-256 `66eb4ba111ceec80ce9c6496cd04c34aa74cedfc813dc37dd55417d2a03dbc90`)
+was split with `source_retention.spine_cc_input` for the later repair host.
+This only changes serialization: the 515,281-vertex domain, 679,246 directed
+edge records and 16 signed records (eight reciprocal insertions) are unchanged.
+The native host passed `--layout-only` on this input in a bounded 2-GiB service
+(133.4 MiB peak); both cold and hot layouts fit. This check does not open a card.
+
+The single cold-layout, partial-repair board sample is queued as
+`spine-cc-au-repair-check-20261104.service`, invocation
+`fd2c03bb1e2e44819d6b53f327e16e85`. Its evidence is
+`/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-au-board-v1/results.json`.
+It uses the same memory and device guards as the canonical run. It requires
+the exact input pins, one old-graph bootstrap, one 16-record update, final
+raw graph and labels, all round-work checks, and matching clock/UUID evidence.
+The logged update timer includes upload and orchestration through publication
+but not final label readback. Do not substitute it for Figure 7 wall time.
+
+The follow-up search of readable `/data/feiyang/spine*` and
+`/data/feiyang/dynamic-acts*` paths found newer emulation files and 133-byte Git
+LFS pointers named `*.hw.xclbin`, not a newer local routed image in those
+paths. A pointer is not a loadable bitstream; its timestamp is not a build date.

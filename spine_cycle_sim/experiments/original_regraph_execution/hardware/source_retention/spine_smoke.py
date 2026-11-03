@@ -1,6 +1,7 @@
-"""Qualify the later CC repair image on its canonical fixture, not a speedup matrix."""
+"""Qualify the later CC repair image without admitting a speedup result."""
 
 import argparse
+import json
 import math
 import os
 from pathlib import Path
@@ -17,7 +18,7 @@ from . import clocks
 from .runtime import identity, lease, save
 
 
-def validate(text):
+def validate(text, *, vertices=12, batches=11, physical_updates=None):
     records = []
     for line in text.splitlines():
         if line.startswith("CC_UPDATE_PASS "):
@@ -25,15 +26,16 @@ def validate(text):
             if any(values.get(key) != "0" for key in ("sample", "order", "hot", "full")):
                 raise ValueError("expected one partial-repair sample in the cold layout")
             records.append(values)
-    if ([int(row["batch"]) for row in records] != list(range(11))
+    if ([int(row["batch"]) for row in records] != list(range(batches))
             or any(row.get("valid") != "1" or not math.isfinite(float(row["update_until_converged_ms"]))
                    or float(row["update_until_converged_ms"]) <= 0
+                   or (physical_updates is not None and row.get("physical_records") != str(physical_updates))
                    for row in records)
-            or text.splitlines().count("CC_REPAIR_PASS vertices=12 updates=11 "
+            or text.splitlines().count(f"CC_REPAIR_PASS vertices={vertices} updates={batches} "
                                       "all_raw_labels_checked=1 all_raw_graphs_checked=1 "
                                       "all_round_work_checked=1") != 1
             or len(re.findall(r"^CC_BOOTSTRAP_PASS ", text, re.MULTILINE)) != 1):
-        raise ValueError("canonical CC fixture did not complete every state/work oracle")
+        raise ValueError("CC workload did not complete every state/work oracle")
     return records
 
 
@@ -50,9 +52,22 @@ def run(args):
     reservation = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
     pins = [identity(path) for path in (args.host, args.image,
                                       Path(str(args.image) + ".weighted-manifest"), Path(__file__))]
+    input_manifest = getattr(args, "input_manifest", None)
+    workload = None
+    if input_manifest is not None:
+        pins.append(identity(input_manifest))
+        workload = json.loads(input_manifest.read_text())
+        for name in ("source", "graph", "update"):
+            pin = workload[name]
+            if identity(pin["path"]) != pin:
+                raise ValueError(f"CC workload {name} pin mismatch")
+            pins.append(pin)
     report = {"status": "PREPARING", "performance_admission": False, "pins": pins,
               "scope": "canonical 12-vertex CC fixture; one sample, 11 distinct batches; not a G+R comparison",
               "errors": [], "device": 0, "bdf": "0000:82:00.1"}
+    if workload is not None:
+        report.update(scope="frozen resident CC graph; one update batch; not a G+R comparison",
+                      workload=workload, host_timer="batch upload through publication, excludes final label readback")
     save(output / "results.json", report)
     try:
         started = time.monotonic()
@@ -78,6 +93,8 @@ def run(args):
             expected = clocks.image(args.image, output, "spine_cc")
             command = ["/usr/bin/taskset", "-c", "124,125", str(args.host), "--xclbin", str(args.image),
                        "--hot", "0", "--mode", "partial", "--samples", "1"]
+            if workload is not None:
+                command.extend(("--slice", workload["graph"]["path"], "--update", workload["update"]["path"]))
             environment = dict(os.environ, XILINX_XRT="/opt/xilinx/xrt", MALLOC_ARENA_MAX="2")
             # This native Spine host does not consume a lease fd; the parent holds it throughout.
             result = run_link(command, output, output / "spine_cc", timeout=240,
@@ -90,11 +107,14 @@ def run(args):
             clocks.replay(report["clock_evidence"])
             report["stdout"] = identity(output / "spine_cc.stdout.txt")
             report["stderr"] = identity(output / "spine_cc.stderr.txt")
-            report["batches"] = validate(Path(report["stdout"]["path"]).read_text())
+            expected_work = {} if workload is None else dict(vertices=workload["vertices"], batches=1,
+                                                             physical_updates=workload["updates"])
+            report["batches"] = validate(Path(report["stdout"]["path"]).read_text(), **expected_work)
             if any(identity(pin["path"]) != pin for pin in pins):
                 raise ValueError("CC image, host or runner changed during the smoke")
             board_memory.require_unthrottled((group / "memory.events").read_text())
-        report["status"] = "CANONICAL_CC_STATE_WORK_AND_CLOCK_PASS_NOT_PERFORMANCE_ADMISSION"
+        label = "CANONICAL" if workload is None else "RESIDENT"
+        report["status"] = f"{label}_CC_STATE_WORK_AND_CLOCK_PASS_NOT_PERFORMANCE_ADMISSION"
     except BaseException as error:
         report.update(status="FAILED_RETAINED")
         report["errors"].append(repr(error))
@@ -110,5 +130,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("host", "image", "output"):
         parser.add_argument("--" + name, required=True, type=Path)
+    parser.add_argument("--input-manifest", type=Path)
     parser.add_argument("--admission-wait-seconds", type=int, default=0)
     run(parser.parse_args())

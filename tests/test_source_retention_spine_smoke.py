@@ -7,7 +7,9 @@ import tempfile
 import unittest
 from unittest import mock
 
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import spine_smoke
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
+    spine_cc_input, spine_smoke,
+)
 
 validate = spine_smoke.validate
 
@@ -36,6 +38,39 @@ class SpineSmokeTest(unittest.TestCase):
                      fixture() + "\n" + lines[-1], fixture() + "\nCC_BOOTSTRAP_PASS valid=1"):
             with self.assertRaises(ValueError):
                 validate(text)
+
+    def test_resident_requires_exact_domain_batch_and_physical_work(self):
+        bootstrap, first, *_, final = fixture().splitlines()
+        text = "\n".join((bootstrap, first + " physical_records=16",
+                          final.replace("vertices=12 updates=11", "vertices=515281 updates=1")))
+        expected = dict(vertices=515281, batches=1, physical_updates=16)
+        self.assertEqual(len(validate(text, **expected)), 1)
+        for old, new in (("records=16", "records=8"), ("vertices=515281", "vertices=515280"),
+                         ("batch=0", "batch=1")):
+            with self.assertRaises(ValueError):
+                validate(text.replace(old, new), **expected)
+
+    def test_native_input_preserves_domain_order_direction_weight_and_diff(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "input.graph"
+            source.write_text("4 2 2\n2 1 3\n1 2 9\n2 1 3 -1\n1 2 9 -1\n")
+            result = spine_cc_input.prepare(source, root / "parts")
+            self.assertEqual((result["vertices"], result["edges"], result["updates"]), (4, 2, 2))
+            self.assertEqual(Path(result["graph"]["path"]).read_text(), "# vertices=4\n2 1 3 1\n1 2 9 1\n")
+            self.assertEqual(Path(result["update"]["path"]).read_text(), "# vertices=4\n2 1 3 -1\n1 2 9 -1\n")
+            self.assertEqual(result, json.loads((root / "parts" / "inputs.json").read_text()))
+
+    def test_native_input_rejects_truncated_or_trailing_input(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "input.graph"
+            for index, suffix in enumerate(("", "1 2 9 1\n1 2 9 1\n")):
+                source.write_text("4 1 1\n2 1 3\n" + suffix)
+                output = root / f"parts-{index}"
+                with self.assertRaises(ValueError):
+                    spine_cc_input.prepare(source, output)
+                self.assertFalse((output / "inputs.json").exists())
 
     def check_memory_failure(self, *, wait=0, decisions=None, times=None):
         with tempfile.TemporaryDirectory() as directory:
