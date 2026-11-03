@@ -7,8 +7,9 @@ from pathlib import Path
 
 from . import clocks, resident_admission, resident_results
 from .follow import unchanged
-from .resident_admission import BDF, DEVICE, HOST_SHA256, NotAdmitted
+from .resident_admission import BDF, DEVICE, NotAdmitted, native_host_sha256
 from .runtime import check_memory, execute, identity, lease, save
+from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidate_board import MAX_WAIT_SECONDS
 
 
 SPINE_HOST_SHA256 = "3499a6a717b79ecb9c7c9716499f6bb811ff2c01d029add3966e501e86015bb1"
@@ -70,8 +71,8 @@ def measure(args, case, image, expected, gate, pins, evidence, write, fd, node):
 
 
 def run(args):
-    if not 0 <= args.wait_seconds <= 21600:
-        raise ValueError("waiting is limited to six hours")
+    if not 0 <= args.wait_seconds <= MAX_WAIT_SECONDS:
+        raise ValueError("waiting is limited to twelve hours")
     group = check_memory()
     args.output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREDECLARED", "bdf": BDF, "device": DEVICE, "affinity": "124,125",
@@ -87,7 +88,7 @@ def run(args):
         pins = {name: identity(getattr(args, name)) for name in paths}
         pins.update(runner=identity(__file__), admission=identity(resident_admission.__file__),
                     analysis=identity(resident_results.__file__))
-        expected_hashes = {"gr_host": HOST_SHA256, "spine_host": SPINE_HOST_SHA256,
+        expected_hashes = {"gr_host": native_host_sha256(args.route), "spine_host": SPINE_HOST_SHA256,
                            "spine_image": SPINE_IMAGE_SHA256, "comparator": resident_results.COMPARATOR_SHA256}
         if any(pins[name]["sha256"] != digest for name, digest in expected_hashes.items()):
             raise ValueError("frozen host, Spine image or comparator changed")

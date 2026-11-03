@@ -33,6 +33,10 @@ class ResidentAdmissionTest(unittest.TestCase):
         with self.assertRaises(admission.NotAdmitted):
             self.validate()
 
+    def test_rejects_same_pass_with_wrong_native_host_profile(self):
+        with self.assertRaises(admission.NotAdmitted):
+            admission.validate_gates(self.summary, self.g, self.pins, self.host, host_sha256="wrong profile")
+
     def test_rejects_missing_or_duplicate_case(self):
         self.summary["pairs"][0]["case"] = "amazon"
         with self.assertRaises(admission.NotAdmitted):

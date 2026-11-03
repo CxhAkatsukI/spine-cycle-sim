@@ -237,6 +237,16 @@ service invocation and records its result under
 `/data/chuxiao/checks/source-retention-repair-20261104/tail-follow-v1/`.
 Neither preflight nor the component XO constitutes a board result.
 
+If both R controls pass, the matching native host checks G once on AU
+with the same public-source reference and device-update boundary. The
+production host is rejected for the tail route. The build manifest for
+this native host is
+`/data/chuxiao/builds/gr-tail-publication-20261104/native-host-v1/manifest.txt`.
+The dependent R19/Flickr Spine screen is admitted only after both G and R
+pass on this exact image, board, and actual clocks; it does not run a
+full matrix. The two board reports are `g-tail-board-v1/results.json`
+and `resident-tail-board-v1/results.json` under the same check directory.
+
 ### Timeout Recovery
 
 The preceding production ResPR link took 5 h 49 min even with a seeded

@@ -70,6 +70,19 @@ class NativeGProfileTests(unittest.TestCase):
 
 
 class ExactRouteTests(unittest.TestCase):
+    def test_native_host_profile_requires_intact_route_host_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest, hosts = root / "manifest.json", root / "tail-hosts.json"
+            manifest.write_text("{}")
+            self.assertEqual(board.native_host_sha256(root), board.HOST_SHA256)
+            hosts.write_text("{}")
+            manifest.write_text(json.dumps({"tail_hosts": board.identity(hosts)}))
+            self.assertEqual(board.native_host_sha256(root), board.TAIL_HOST_SHA256)
+            hosts.write_text("[]")
+            with self.assertRaises(ValueError):
+                board.native_host_sha256(root)
+
     @patch.object(board, "check_memory")
     def test_only_completed_screen_of_exact_image_is_accepted(self, _check_memory):
         with tempfile.TemporaryDirectory() as tmp:

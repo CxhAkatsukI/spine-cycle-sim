@@ -19,7 +19,18 @@ from .reference_board import BDF, DEVICE, IMAGE_SHA256, INPUT_SHA256
 
 HOST_NAME = "sharded_k4_residual_pagerank_native_host"
 HOST_SHA256 = "882acf641227f182985b2c9da4754be8a658f030d9e8371d5799afbcbf3f1ee8"
-R_FINISHED = {"SUPPORTED_R_GATE_PASS_AWAITING_SPINE", "R_PERFORMANCE_GATE_FAILED_RETAINED"}
+TAIL_HOST_SHA256 = "25e57511effb18aa2c35368915a46f5bc46e2fcd4fd69c667d7add535e405a68"
+R_PASS = "SUPPORTED_R_GATE_PASS_AWAITING_SPINE"
+R_FINISHED = {R_PASS, "R_PERFORMANCE_GATE_FAILED_RETAINED"}
+MAX_WAIT_SECONDS = 43200
+
+
+def native_host_sha256(route):
+    manifest = json.loads((route / "manifest.json").read_text())
+    if "tail_hosts" not in manifest:
+        return HOST_SHA256
+    unchanged([manifest["tail_hosts"]])
+    return TAIL_HOST_SHA256
 
 
 def wait_for_image(route, r_report, timeout):
@@ -56,8 +67,8 @@ def wait_for_image(route, r_report, timeout):
 
 
 def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
-    if not 0 <= wait_seconds <= 21600:
-        raise ValueError("waiting is limited to six hours")
+    if not 0 <= wait_seconds <= MAX_WAIT_SECONDS:
+        raise ValueError("waiting is limited to twelve hours")
     group = check_memory()
     output.mkdir(parents=True, exist_ok=False)
     result = output / "results.json"
@@ -77,11 +88,12 @@ def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
             "host_source_hashes": host_dir / "weighted_pma_native_host.sha256",
             "route_manifest": route / "manifest.json",
         }.items()}
+        host_sha256 = native_host_sha256(route)
         if (frozen["status"] != "REFERENCE_MEASURED_AWAITING_CANDIDATE"
                 or frozen["bdf"] != BDF or frozen["device"] != DEVICE or frozen["partition_vertices"] != 65536
                 or frozen["pins"]["image"]["sha256"] != IMAGE_SHA256
-                or pins["input"]["sha256"] != INPUT_SHA256 or pins["host"]["sha256"] != HOST_SHA256):
-            raise ValueError("the declared reference measurement, input and production host are required")
+                or pins["input"]["sha256"] != INPUT_SHA256 or pins["host"]["sha256"] != host_sha256):
+            raise ValueError("the declared reference measurement, input and route-matched host are required")
         ref_runs = profiled_runs(frozen["row"])
         config, = records(frozen["row"]["stdout"]["path"], "G_CONTROL_CONFIG ")
         if (config != frozen["config"] or (config["vertices"], config["updates"], config["shards"],
@@ -96,6 +108,9 @@ def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
         image, r_status, r_pins = wait_for_image(route, r_report, wait_seconds)
         unchanged(pins.values())
         report.update(r_status=r_status, r_pins=r_pins)
+        if host_sha256 == TAIL_HOST_SHA256 and r_status != R_PASS:
+            report["status"] = "NOT_ADMITTED_R_FAILED"
+            return report
         expected = clocks.image(image, output, "candidate")
         oracle = output / "native-oracle.txt"
         command = ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={DEVICE}",

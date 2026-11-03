@@ -5,7 +5,7 @@ import math
 import time
 
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidate_board import (
-    BDF, DEVICE, HOST_SHA256, wait_for_image,
+    BDF, DEVICE, HOST_SHA256, R_PASS, native_host_sha256, wait_for_image,
 )
 
 from . import clocks
@@ -13,7 +13,6 @@ from .follow import unchanged
 from .runtime import check_memory, identity
 
 
-R_PASS = "SUPPORTED_R_GATE_PASS_AWAITING_SPINE"
 G_PASS = "G_GATE_PASS_FOR_AU_RES_PR_IMAGE"
 
 
@@ -27,7 +26,7 @@ def passed(row):
             and 0 < ratio <= 1.15 and row["at_most_15_percent_slower"] is True)
 
 
-def validate_gates(r_summary, g_report, r_pins, host_pin):
+def validate_gates(r_summary, g_report, r_pins, host_pin, *, host_sha256=HOST_SHA256):
     pairs = [row for row in r_summary["pairs"] if row["stage"] == "R"]
     if (len(pairs) != 2 or {row["case"] for row in pairs} != {"skewed_sources", "amazon"}
             or not all(passed(row) and row["clock_evidence_recorded"] is True for row in pairs)):
@@ -35,7 +34,7 @@ def validate_gates(r_summary, g_report, r_pins, host_pin):
     if (g_report["status"] != G_PASS or g_report["r_status"] != R_PASS
             or g_report["r_pins"] != r_pins or g_report["bdf"] != BDF
             or g_report["device"] != DEVICE or g_report["repetitions"] != 1
-            or g_report["pins"]["host"] != host_pin or host_pin["sha256"] != HOST_SHA256
+            or g_report["pins"]["host"] != host_pin or host_pin["sha256"] != host_sha256
             or not passed(g_report["comparison"])):
         raise NotAdmitted("the exact R-screened ResPR image and host must also pass G")
     return pairs
@@ -62,7 +61,7 @@ def wait_for_gate(route, r_path, g_path, host_pin, wait_seconds):
     image, _, r_pins = wait_for_image(route, r_path, 0)
     board = json.loads((r_path.parent / "board-once/results.json").read_text())
     analysis = json.loads((r_path.parent / "analysis/summary.json").read_text())
-    r_pairs = validate_gates(analysis, g, r_pins, host_pin)
+    r_pairs = validate_gates(analysis, g, r_pins, host_pin, host_sha256=native_host_sha256(route))
     current = [row for row in board["rows"] if row["arm"] == "current" and "stdout" in row]
     if (len(current) != 2 or {row["case"] for row in current} != {"skewed_sources", "amazon"}
             or any(row["repetitions"] != 1 for row in current)):
