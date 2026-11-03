@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import active_min_resident as resident
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import active_min_resident_follow as follow
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import identity
 
 
@@ -79,3 +80,62 @@ class ActiveMinResidentTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "changed"):
                     resident.compare(case, arms, "comparator", output)
                 run.assert_not_called()
+
+
+class ResidentStageFollowerTest(unittest.TestCase):
+    INVOCATION = "a" * 32
+
+    def state(self, phase):
+        return {"LoadState": "not-found" if phase == "collected" else "loaded",
+                "InvocationID": "" if phase == "collected" else self.INVOCATION,
+                "ActiveState": {"running": "active", "collected": "inactive", "failed": "failed"}[phase],
+                "SubState": {"running": "running", "collected": "dead", "failed": "failed"}[phase],
+                "MainPID": "17" if phase == "running" else "0",
+                "Result": "exit-code" if phase == "failed" else "success",
+                "ExecMainStatus": "1" if phase == "failed" else "0"}
+
+    def test_receipts_from_observed_producers_request_exactly_one_pair(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            args = SimpleNamespace(output=root / "output", dataset="AU", algorithm="weighted_sssp",
+                                   stage_wait_seconds=60)
+            for stage in ("r", "g"):
+                setattr(args, stage + "_unit", stage + ".service")
+                setattr(args, stage + "_invocation", self.INVOCATION)
+                setattr(args, stage + "_report", root / (stage + ".json"))
+            args.g_report.write_text(json.dumps(dict(status="WAITING_FOR_ROUTE")))
+
+            def produce():
+                for stage, status in follow.STAGE_PASS.items():
+                    getattr(args, stage + "_report").write_text(
+                        json.dumps(dict(status=status, algorithm=args.algorithm)))
+
+            def resident_once(child):
+                self.assertEqual(child.stage_receipts, {"r": identity(args.r_report), "g": identity(args.g_report)})
+                child.output.mkdir()
+                result = dict(status="MEASURED_RESIDENT_PAIR")
+                (child.output / "results.json").write_text(json.dumps(result))
+                return result
+
+            with patch.object(follow, "service_state", side_effect=[self.state("running")] * 4 +
+                              [self.state("collected")] * 2), patch.object(follow, "runner_pins", return_value=[]), \
+                    patch.object(follow.time, "sleep", side_effect=lambda _: produce()), \
+                    patch.object(resident, "run", side_effect=resident_once) as board:
+                result = follow.run(args)
+                board.assert_called_once()
+            self.assertEqual(result["status"], "MEASURED_RESIDENT_PAIR")
+            self.assertTrue(result["requested_pair"])
+
+    def test_refuses_unseen_invocation_and_failed_stage_even_with_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "result.json"
+            path.write_text(json.dumps(dict(status=follow.STAGE_PASS["r"], algorithm="cc")))
+            row = dict(unit="r.service", invocation=self.INVOCATION, report_path=str(path), observed=False)
+            with self.assertRaisesRegex(ValueError, "lost its pinned invocation"):
+                follow.ready(row, self.state("collected"), follow.STAGE_PASS["r"], "cc")
+            with self.assertRaisesRegex(ValueError, "did not complete successfully"):
+                follow.ready(row, self.state("failed"), follow.STAGE_PASS["r"], "cc")
+            self.assertIn("failed_receipt", row)
+            path.write_text(json.dumps(dict(status="R_GATE_FAILED", algorithm="cc")))
+            with self.assertRaisesRegex(ValueError, "R_GATE_FAILED"):
+                follow.ready(row, self.state("collected"), follow.STAGE_PASS["r"], "cc")

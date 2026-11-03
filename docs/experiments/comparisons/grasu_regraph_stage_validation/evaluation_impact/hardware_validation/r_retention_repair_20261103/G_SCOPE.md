@@ -238,3 +238,23 @@ pre-upload and post-upload clocks for the batch. Its AU correctness and
 timing-window screening is a separate experiment, not a replacement row
 selected on the basis of timing. A failed or interrupted pair retains its
 attempts and logs; it does not automatically retry.
+
+To queue the same one-shot case before its screens finish, use
+`source_retention.active_min_resident_follow` instead, with
+`--r-unit` / `--r-invocation`, `--g-unit` / `--g-invocation`, and
+`--stage-wait-seconds`. Both exact invocations must be active when queued.
+Allow for the stage wait plus the resident wait in `RuntimeMaxSec`. While
+waiting for stage gates, the follower holds no board or memory reservation.
+It requires both terminal pass receipts and checks their hashes against
+the resident runner's raw replay before any board access.
+
+The AU SSSP follower on trifoliate uses unit
+`gr-retention-sssp-resident-au-v2-20261104.service` and writes
+`/data/chuxiao/checks/source-retention-repair-20261104/sssp-resident-au-v2/queue.json`.
+Its R producer is `gr-retention-sssp-pair-v2-20261104.service` (invocation
+`7c08c96c7dcc494bb5714fd590cd731a`); its G producer is
+`gr-retention-g-sssp-v2-20261104.service` (invocation
+`d0f3d6da16f04df09f56215921611b6a`). It uses the paths in the example and
+will save the board receipt under `pair/results.json` only if it requests
+the comparison. This is one preregistered screening case, not a Fig. 7 row
+or a claim about the eight-graph matrix until the actual result is reviewed.

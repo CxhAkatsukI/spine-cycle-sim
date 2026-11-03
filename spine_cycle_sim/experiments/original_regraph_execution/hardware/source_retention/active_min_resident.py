@@ -118,6 +118,9 @@ def run(args):
     try:
         gate = active_min_admission.admit(args.algorithm, args.route, args.host, args.r_report,
                                            args.r_inputs, args.g_report, args.g_reference)
+        stage_receipts = getattr(args, "stage_receipts", None)
+        if stage_receipts is not None and any(gate[stage]["report"] != pin for stage, pin in stage_receipts.items()):
+            raise ValueError("admission replay used a different producer receipt")
         case, pins = frozen_case(args.previous, args.algorithm, args.dataset)
         comparator = identity(args.comparator)
         if comparator["sha256"] != COMPARATOR_SHA256:
@@ -191,7 +194,7 @@ def run(args):
     return report
 
 
-def main():
+def parse_arguments(argv=None, *, extend=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--algorithm", required=True, choices=ALGORITHMS)
     parser.add_argument("--dataset", required=True, choices=DATASETS)
@@ -199,7 +202,13 @@ def main():
                  "comparator", "output"):
         parser.add_argument("--" + name, required=True, type=lambda value: Path(value).resolve())
     parser.add_argument("--wait-seconds", type=int, default=0)
-    print(run(parser.parse_args())["status"], flush=True)
+    if extend is not None:
+        extend(parser)
+    return parser.parse_args(argv)
+
+
+def main():
+    print(run(parse_arguments())["status"], flush=True)
 
 
 if __name__ == "__main__":
