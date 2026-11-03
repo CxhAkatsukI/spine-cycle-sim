@@ -163,6 +163,58 @@ The separately owned `directory_tile.hardware.component` and
 verify finite RTL/synthesis and ABI compatibility, and replace only the
 adapter. Their exact invocation is recorded in each execution manifest.
 
+### Adapter-Only Performance Floor
+
+The running replacement keeps the production gather and frontend mux. In
+the [matched board host](../../../../../../../cpp/tests/publication_sources/source_retention/device.hpp),
+the first gather must initialize, every destination shard emits 32,768
+two-destination packets, and mux task `s` waits for mux task `s-1`.
+The framed gather in the frozen HLS source clears 32,768 URAM rows before
+it can consume the first shard and publishes only after consuming the
+terminal input packet. The frontend mux has one 64-bit output stream and
+can forward at most one packet per cycle. The production
+`gather_csynth.rpt` reports 32,770 cycles for each of the initialize and
+read/clear loops; use 32,768 for a conservative bound.
+
+Counting **only the first reset and the serialized mux output** avoids
+double-counting the gather output or resets on other workers:
+
+| R control | Shards | Minimum cycles at a common clock | Floor at 150 MHz (ms) | Gate (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| Skewed sources, 65,537 vertices | 2 | 98,304 | 0.655360 | 0.530418 |
+| Full Amazon, 735,324 vertices | 12 | 425,984 | 2.839893 | 11.920249 |
+
+The gate is 1.15 times the corresponding one-run reference time in the
+repair-before table. At 150 MHz, the skewed-source floor alone is 1.421
+times the reference, even with zero adapter, scatter, apply and runtime
+overhead. Ignoring those costs, it would need at least 185.33 MHz at a common
+clock to meet that reference. With separate clocks use
+`32768/f_gather + shards*32768/f_mux` and recompute against the newly
+measured reference. The calculation rules out adapter-only parity at the
+declared clock and reference for the skewed control; it does not predict an
+Amazon pass or fail. The pending board screen still checks both clocks and
+both elapsed times.
+
+The [pre-repair raw events](before-once/evidence/raw_board.tar.gz) also show
+that adapter and gather completion are not interchangeable. On skewed shard
+1 the adapter event lasts 0.085 ms and gather ends 1.026 ms after it; on
+Amazon shard 7 gather ends 10.918 ms after the adapter. In those logs,
+ordinals `2+3*s`, `3+3*s`, and `4+3*s` are adapter, gather and mux for
+zero-based shard `s`. These are overlapping elapsed intervals with FIFO
+backpressure, not exclusive busy-cycle measurements.
+
+The next targeted source change to evaluate is tail publication, not a
+weaker workload or a warm-up outside the timed region. The skewed last
+shard has one valid vertex but emits a full shard. ResPR apply consumes
+16-vertex beats; an aligned tail could reduce the second shard to eight
+mux packets. Gather, its lane reduction, mux, and apply must agree on
+the new length. The separate shared Little merger already packs every
+eight packets into one beat without looking at shard boundaries; a
+beat-aligned tail needs no change to that interface. Preserve backing
+allocation for fixed source-block reads, and verify reset/reuse when a
+worker switches from a short shard back to a full one. This is a repair
+candidate, not a measured speedup.
+
 ### Timeout Recovery
 
 The preceding production ResPR link took 5 h 49 min even with a seeded
