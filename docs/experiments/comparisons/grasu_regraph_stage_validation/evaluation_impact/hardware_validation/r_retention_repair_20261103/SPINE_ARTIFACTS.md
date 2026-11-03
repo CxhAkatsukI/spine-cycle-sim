@@ -232,6 +232,20 @@ with the same 16-record margin. The run took 2 min 2 s and peaked at
 reservation and a 32-GiB live-memory floor. The admission record, result,
 and raw logs are in `spine-cc-r19-balanced-layout-v1/`.
 
+For SO, PK, LJ and LJ08, run the remaining host layout checks through
+`source_retention.spine_cc_layout` (under the same module prefix as
+`spine_cc_input`). Pass `--matrix <frozen-matrix> --datasets so pk lj lj08
+--wait-seconds 86400 --output <inputs>` in a 2-GiB zero-swap service. The
+runner streams the native host inputs and verifies the frozen matrix hashes.
+Run it again with the same matrix and dataset arguments, a fresh
+`--output <layouts>`, `--inputs <inputs>`, and `--host <balanced-host>`,
+in a 24-GiB zero-swap service. Both services require a finite
+`MemoryHigh`, `OOMPolicy=kill`, and a shared memory reservation that leaves
+32 GiB available beyond all admitted budgets. The layout service waits for
+the complete preparation receipt and then checks the four layouts one at a
+time. The current outputs are under
+`/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-large-{inputs,layout}-v1/`.
+
 The occupancy probe and offline host checks do not validate device carry,
 convergence, or board wall time. The board still needs to pass graph
 readback, label, and convergence checks before any timing is admitted.

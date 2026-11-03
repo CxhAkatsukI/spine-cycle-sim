@@ -8,7 +8,7 @@ import unittest
 from unittest import mock
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    spine_cc_input, spine_smoke,
+    spine_cc_input, spine_cc_layout, spine_smoke,
 )
 
 validate = spine_smoke.validate
@@ -81,6 +81,40 @@ class SpineSmokeTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     spine_cc_input.prepare(source, output)
                 self.assertFalse((output / "inputs.json").exists())
+
+    def test_frozen_cc_source_rejects_conflicting_hashes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "cc-so").mkdir()
+            manifest = root / "cc-so/manifest.json"
+            pin = dict(path="/frozen/so_connected_components_insert_u8.graph", sha256="a" * 64)
+            manifest.write_text(json.dumps({"pins": [pin, pin]}))
+            self.assertEqual(spine_cc_layout.frozen_source(root, "so"), (Path(pin["path"]), pin["sha256"]))
+            manifest.write_text(json.dumps({"pins": [pin, dict(pin, sha256="b" * 64)]}))
+            with self.assertRaises(ValueError):
+                spine_cc_layout.frozen_source(root, "so")
+
+    def test_balanced_layout_requires_unique_pass_and_exact_margin(self):
+        text = ("CC_BALANCED_PRELOAD hot_vertices=1 hot_edges=10 update_margin=16\n"
+                "CC_LAYOUT_PASS max_n=32 family_words=44 graph_aligned_bytes=64 workspace_aligned_bytes=128\n")
+        self.assertEqual(spine_cc_layout.layout_counts(text, 16)["hot_edges"], 10)
+        for bad in (text + text, text.splitlines()[0], text.replace("margin=16", "margin=8")):
+            with self.assertRaises(ValueError):
+                spine_cc_layout.layout_counts(bad, 16)
+
+    def test_layout_does_not_accept_a_partial_input_campaign(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            receipt = root / "results.json"
+            prepared = {"so": {"updates": 16}}
+            for status, error in (("RUNNING", TimeoutError), ("FAILED_RETAINED", RuntimeError)):
+                receipt.write_text(json.dumps({"status": status, "rows": prepared}))
+                with self.assertRaises(error):
+                    spine_cc_layout.wait_for_inputs(root, ["so"], 0)
+            receipt.write_text(json.dumps({"status": "INPUTS_PREPARED", "rows": prepared}))
+            self.assertEqual(spine_cc_layout.wait_for_inputs(root, ["so"], 0), prepared)
+            with self.assertRaises(ValueError):
+                spine_cc_layout.wait_for_inputs(root, ["so", "pk"], 0)
 
     def check_memory_failure(self, *, wait=0, decisions=None, times=None):
         with tempfile.TemporaryDirectory() as directory:
