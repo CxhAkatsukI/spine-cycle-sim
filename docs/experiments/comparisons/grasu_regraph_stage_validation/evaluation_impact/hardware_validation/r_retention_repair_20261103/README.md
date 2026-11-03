@@ -92,6 +92,11 @@ the observed frequencies and raw elapsed-time ratio: it does not silently
 replace driver readings with the requested 150 MHz or normalize time by a
 frequency factor. These queries are outside the measured event window.
 
+The [ordered publication diagnosis](R_PUBLICATION_WINDOWS.md) replays
+the archived once-per-arm timestamps. It localizes the old Amazon delay to
+specific shard windows and records which upstream images can serve as
+matched hardware controls.
+
 ## Implemented Repair
 
 HLS commit [`24519a6`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/24519a6)
