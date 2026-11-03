@@ -124,9 +124,10 @@ Weighted SSSP and CC each passed adapter synthesis and all eight finite
 random-stall RTL cases. The per-algorithm evidence directories are
 `/data/chuxiao/builds/gr-directory-spans-20261103/{sssp,cc}/evidence/`;
 neither run recorded a cgroup limit or OOM event. The ABI-checked eleven-XO
-relink manifests are `route-{sssp,cc}-v1/manifest.json` under that build root.
-They retain all ten other XOs and the frozen connectivity and have not been
-executed. The active ResPR link still has priority for full-link memory.
+relink manifests are `route-{sssp,cc}-v2/manifest.json` under that build root.
+They retain all ten other XOs and the frozen connectivity. Their guarded
+launchers are queued; the active ResPR link still has the full-link memory
+lease.
 These are component results only: the existing measured four-Little R
 control uses PageRank arithmetic and cannot admit the weighted-SSSP or CC
 resident R path.
@@ -356,15 +357,32 @@ request because its pin comparison expected a byte count absent from build
 manifests. The runner now checks the declared path/SHA-256 and, where present,
 byte count; it still rejects changed contents. The failed attempt is retained.
 
-### Matched Amazon CC Screen
+### Matched Amazon CC And Weighted SSSP Screens
 
-The public-source A4 and integrated sharded K4 CC routes are queued separately:
-`public-a4-cc-v1` and `route-cc-v2` under
-`/data/chuxiao/builds/gr-directory-spans-20261103/`. The paired screen at
-`/data/chuxiao/checks/source-retention-repair-20261104/cc-active-pair-v1/queue.json`
-records both exact build invocations and waits without holding a board lease.
-After both routes pass, it runs each arm once with the same Amazon active state
-and output oracle on the same card. A failed or replaced route is not admitted.
+| Algorithm | Public-source A4 build | Integrated K4 build | Board queue |
+| --- | --- | --- | --- |
+| CC | `public-a4-cc-v1` (`daebd3a0b01e4abdb77521e4637a7a2e`) | `route-cc-v2` (`7a7ef5ecb10c4d2ebcea983b3b8d2da3`) | `cc-active-pair-v1/queue.json` |
+| Weighted SSSP | `public-a4-sssp-v1` (`ddbeaa29a93341ef826f415a00406ef7`) | `route-sssp-v2` (`984d35fd03134d0bb02b5aaf30594ffd`) | `sssp-active-pair-v2/queue.json` |
+
+Build directories are under `/data/chuxiao/builds/gr-directory-spans-20261103/`;
+board queues are under `/data/chuxiao/checks/source-retention-repair-20261104/`.
+Each build uses the shared compiler-memory admission lock and a 40-GiB maximum,
+36-GiB high watermark, zero-swap cgroup. The initial integrated `v1` launchers
+were rejected before starting Vitis because their requested wait exceeded the
+replacement driver's six-hour limit. Their logs are retained; the `v2` launches
+use a six-hour wait. The initial SSSP pair did not request the board.
+
+Both public controls use four Little lanes and no Big lanes. Weighted SSSP
+uses the explicitly identified local weighted UDF at
+`/home/chuxiao/regraph/ReGraph/acc_udfs/sssp/l2.h`; it is a matched arithmetic
+control, not an unmodified publication workload. Each pair pins both build
+invocations and waits without holding a board lease. After successful routes,
+it runs each arm once from the same resident Amazon active state, checks both
+outputs against the same oracle, and compares elapsed R device event spans
+against the 1.15 ratio. The gate also requires equal driver-reported clocks.
+A failed or replaced route is not admitted.
+This is a single superstep, not a G timing measurement, an eight-graph matrix,
+or a convergence experiment.
 
 The A4 host was relinked directly against the same XRT OpenCL library as the
 integrated host. The previous binary resolved a generic loader from the CUDA
