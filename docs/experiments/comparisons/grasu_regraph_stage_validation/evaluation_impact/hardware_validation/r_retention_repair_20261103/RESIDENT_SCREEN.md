@@ -129,6 +129,51 @@ correction, convergence, or timing. On other graphs with sinks, G+R's CPU
 reference redistributes dangling residual during propagation and this Spine
 reference does not; sharing a correction threshold is not enough.
 
+### AU: Correction-Only Versus Propagation
+
+All eight October FPGA rows reported zero propagation rounds on both arms.
+Those runs reached the configured threshold, but timed correction and result
+publication without subsequent propagation. On the unchanged October AU
+input, the two CPU references independently reproduced an empty seed set
+and identical per-vertex states. This is not a correctness failure or
+evidence about the performance of propagation.
+
+For a larger propagation check than Flickr, the existing AU reciprocal
+`insert_bridge_u8` slice was screened once with the same CPU binaries,
+128 warm sweeps, damping 0.85 and per-vertex threshold `1e-6`. It is a
+different input, not a replacement for the October AU row:
+
+| Input | Vertices | Initial directed edges | Directed inserts | Seeds on each arm | G+R CPU rounds |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Frozen October AU | 515,281 | 826,848 | 8 | 0 | 0 |
+| AU reciprocal bridge slice | 156,289 | 903,774 | 16 | 12 | 1 |
+
+On both inputs the two CPU probes emitted byte-identical vertex-state TSVs.
+Both inputs were sink-free before and after the batch. The AU slice CPU run
+used 294 MiB peak (2 GiB cap, zero swap), and did not access a board. It is a
+candidate for an additional board propagation check, not an FPGA result.
+The scheduled R19/Flickr board screen remains unchanged.
+
+To reproduce the slice input, pass the following files from
+`tests/data/askubuntu_reciprocal_full/` to `resident_input`, in order:
+`askubuntu_reciprocal_full_e903774.slice` and
+`askubuntu_reciprocal_full_e903774_insert_bridge_u8.slice`. Then run the same
+two probes and `resident_oracles` as above with vertex count `156289`.
+For the October AU check, use the frozen AU graph as-is and vertex count
+`515281`. No graph conversion is needed for that input.
+
+| Evidence under `/data/chuxiao/checks/source-retention-repair-20261104/` | SHA-256 |
+| --- | --- |
+| `au-oracles.5fcctJxV/au-{spine,gr}.tsv` (each) | `df4a6646241db589effa407958523e26998866f2ed85f30051e734020a00c513` |
+| `au-slice-u8-oracles.kz5m4cf1/au-slice-u8.graph` | `71a9bb2ae164209ca9a253211ebd0e10935bebb6644d76a21dc64e9848449c59` |
+| `au-slice-u8-oracles.kz5m4cf1/{spine,gr}.tsv` (each) | `823db60824011af3fd2b3dde4ca277a2ed040f1d1845156895893b30686de258` |
+
+The AU raw probes and offline TSV check are retained in the user journal
+as `gr-retention-respr-au-oracle-20261104.service` and
+`gr-retention-respr-au-oracle-replay-20261104.service`; the latter compared
+the retained dumps after the former's comparison command ran outside the
+checkout. The slice run is `gr-retention-respr-au-slice-u8-oracle-v2-20261104.service`.
+
 ## Board Runner
 
 This is a bounded two-case screen, not a figure replacement. It waits for
