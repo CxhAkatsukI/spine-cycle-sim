@@ -100,3 +100,10 @@ reproduction of the public algorithm. A public-CC mask result can be
 reported separately as a source-retention control for that mask workload if
 both arms run it. Neither result substitutes for a resident old-to-new
 convergence comparison.
+
+The [minimum-label CC offline control](../../../../../../../cpp/tests/original_regraph/hardware/cc_min_label/README.md)
+checks this adaptation against the unchanged public UDF interface, the
+integrated UDF, and a separate connected-components oracle. No CC image or
+timing is produced. The public Little scatter consumes source properties and
+destination IDs, not edge weights, so weighted SSSP additionally needs an
+explicit weight-bearing input contract.

@@ -12,6 +12,7 @@ to one fixed-point PR superstep (`arg=0`). No board execution is admitted yet.
 | `device.hpp` | Explicit generated-A4 or 11-Little/3-Big kernel ABI, resident enqueue-to-completion window and all-replica checks |
 | `control.cpp` | Thin offline/board CLI and explicit observations |
 | `model_tests.cpp` | Fixed-point overflow, publication capacity, guards and overlapping-event tests without XRT |
+| [`cc_min_label/`](cc_min_label/README.md) | Separate offline minimum-label CC UDF check; does not use the PR board host |
 
 The host supports exactly two board geometries: generated A4 (4 Little,
 0 Big) and the reviewed example (11 Little, 3 Big). The Python board owner
