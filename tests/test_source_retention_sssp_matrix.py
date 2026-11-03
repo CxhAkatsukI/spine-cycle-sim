@@ -44,7 +44,7 @@ class SsspMatrixTest(unittest.TestCase):
 
     def test_odd_r_failure_never_requests_a_board_job(self):
         with patch.object(matrix, "admitted_odd", side_effect=ValueError("R over 15 percent")), \
-                patch.object(matrix.subprocess, "run") as launch:
+                patch.object(matrix.resident_matrix.subprocess, "run") as launch:
             with self.assertRaisesRegex(ValueError, "R over 15 percent"):
                 matrix.run(self.args)
             launch.assert_not_called()
@@ -72,7 +72,7 @@ class SsspMatrixTest(unittest.TestCase):
             return subprocess.CompletedProcess(command, int(failed))
 
         with patch.object(matrix, "admitted_odd", return_value=({}, [])), \
-                patch.object(matrix.subprocess, "run", side_effect=launch):
+                patch.object(matrix.resident_matrix.subprocess, "run", side_effect=launch):
             report = matrix.run(self.args)
         self.assertEqual(launched, ["SU", "WK", "SO", "PK", "LJ", "LJ08", "R19"])
         self.assertEqual(report["status"], "SSSP_MATRIX_WITH_FAILURES")

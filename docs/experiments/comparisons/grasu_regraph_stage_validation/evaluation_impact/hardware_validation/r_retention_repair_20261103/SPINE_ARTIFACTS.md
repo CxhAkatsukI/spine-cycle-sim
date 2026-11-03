@@ -330,6 +330,29 @@ At enqueue both producers were active and the board had not been requested.
 This is one conditional workload, not evidence that either gate passed
 or that a new Fig. 7 result exists.
 
+### Remaining Seven CC Pairs
+
+`source_retention.cc_matrix` binds the same balanced Spine image and
+resident-wall host overlay to the other seven frozen CC workloads. It
+requires independently passing G, ordinary A4 R and high-active/odd
+A4 R hardware screens on the exact candidate image and driver clock.
+The R19 pair is indexed separately and is never repeated by this queue.
+
+AU, SU and WK reuse their completed offline layout checks. SO, PK, LJ
+and LJ08 require matching terminal layout receipts from
+`spine-cc-large-layout-v1/`. A missing or failed layout is reported
+instead of triggering a smaller substitute. After admission the board
+children run sequentially, with one sample per arm, no warmup or retry,
+and the same 32-GiB cap, zero swap and 32-GiB live reserve as R19.
+
+Service `gr-retention-cc-matrix-20261104.service`, invocation
+`5ab92934aa0f444db875ed801d3c2322`, writes its stage and input pins, exact
+child commands, and per-case outcomes to
+`/data/chuxiao/checks/source-retention-repair-20261104/cc-singlepass-matrix-v1/matrix.json`.
+At enqueue, the three small layout records were verified and no board
+child was requested. This is not a new speedup or evidence of G/R
+retention.
+
 The follow-up search of readable `/data/feiyang/spine*` and
 `/data/feiyang/dynamic-acts*` paths found newer emulation files and 133-byte Git
 LFS pointers named `*.hw.xclbin`, not a newer local routed image in those
