@@ -1,6 +1,7 @@
 # First Paired ResPR Screen
 
-Status: **Flickr CPU preflight passed on both arms; no new FPGA speedup.**
+Status: **Flickr CPU preflight passed on both arms; paired board runner
+prepared, no new FPGA speedup.**
 Run this screen only after the exact ResPR G+R image has passed the independent
 [G scope](G_SCOPE.md) and R retention screens. Do not use these two runs to
 admit SSSP or CC images, replace the matrix, or claim a win outside these cases.
@@ -61,3 +62,40 @@ Both preflights used CPUs 124--125, a 2 GiB cgroup limit, zero swap, and a
 180-second timeout. Measured service peaks were 19.1 MiB for G+R, 478.8 MiB
 for compiling the Spine probe, and 2.5 MiB for running it. No card was
 programmed. None of these measurements is a benchmark.
+
+## Board Runner
+
+This is a bounded two-case screen, not a figure replacement. It waits for
+both supported R controls and the AU G control to meet the 1.15 elapsed
+ratio on the **same ResPR image**. It replays their measured clocks and
+requires matching candidate-image clocks again in the paired run. It records
+both arms' driver frequencies and uses observed elapsed milliseconds without
+clock normalization. Each arm validates against its own CPU oracle; these
+hosts do not emit two arrays for direct cross-host final-rank comparison.
+The report records both iteration counts, including any difference.
+
+In the simulator checkout, with an 8 GiB maximum, 7 GiB high watermark,
+zero-swap cgroup and 32 GiB live reserve:
+
+```bash
+checks=/data/chuxiao/checks/source-retention-repair-20261104
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.resident_board \
+  --route /data/chuxiao/builds/gr-directory-spans-20261103/route-respr-v1 \
+  --r-report "$checks/after-follow-v2/results.json" \
+  --g-report "$checks/g-candidate-board-v1/results.json" \
+  --gr-host /data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/hosts/respr/sharded_k4_residual_pagerank_native_host \
+  --spine-host /data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/thresholded_residual_pagerank.host \
+  --spine-image /data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-v1/build/respr/xclbin/spine_partitioned_split_e2e.respr.hw.xclbin \
+  --comparator /home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py \
+  --r19 /data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_residual_pagerank_insert_u8.graph \
+  --flickr "$checks/resident-preflight.QnpgS8/flickr.graph" \
+  --output "$checks/resident-board-v1" --wait-seconds 21600
+```
+
+Use a fresh output directory. The report records the exact commands and
+whether any board launch was attempted. There are no automatic retries.
+It holds both the original matrix lease and the PCI-addressed control lease.
+Any non-admitted gate leaves the board untouched; a started run preserves
+stdout/stderr even if correctness or clock validation fails. The historical
+R19 logs replay at 44.669267 ms for G+R and 32.375100 ms for Spine. That
+replay tests the parser; it is not a measurement of the repaired image.
