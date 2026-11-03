@@ -80,3 +80,23 @@ Resource evidence is the frozen original control's
 If the 1.15 gate fails, retain that failure and repair a demonstrated remaining
 bottleneck. Neither matching a total system time nor a simulator prediction
 can waive this hardware-performance gate.
+
+## Algorithm-Specific Reference Coverage
+
+The pristine public ReGraph revision
+[`3654568`](https://github.com/Xtra-Computing/ReGraph/tree/365456826cef495285383d939907f847e05ad74b/acc_udfs)
+provides PR, BFS and CC UDFs. The current A4 bitstream embeds PR.
+
+| Path | What can serve as a reference |
+| --- | --- |
+| PR gather/apply | The routed public A4 image and the bounded arithmetic contract above. It does not reproduce residual correction or convergence. |
+| CC minimum-label propagation | A separate matched-UDF A4 control. The public [CC UDF](https://github.com/Xtra-Computing/ReGraph/blob/365456826cef495285383d939907f847e05ad74b/acc_udfs/cc/l2.h) ORs masks and its [host](https://github.com/Xtra-Computing/ReGraph/blob/365456826cef495285383d939907f847e05ad74b/acc_udfs/cc/dataPrepare.cpp) initializes 32 bit seeds. The [integrated UDF](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/24519a6/include/regraph_cc/l2.h) selects the minimum active label. A timing ratio between these unmodified algorithms would not isolate the effect of integration. |
+| Weighted SSSP | A separate matched-UDF A4 control. The public checkout has no weighted-SSSP UDF; the [existing simulator control](../../../actual_sharded_k4/matched_a4/sssp_control/README.md) explicitly uses a pinned local extension. Its correctness and timing do not admit an FPGA image. |
+
+The matched-UDF controls should keep A4's compact edge input and four Little
+frontends while using the same arithmetic and active-state semantics as the
+integrated counterpart. They must be labeled A4 with a local UDF, not a
+reproduction of the public algorithm. A public-CC mask result can be
+reported separately as a source-retention control for that mask workload if
+both arms run it. Neither result substitutes for a resident old-to-new
+convergence comparison.

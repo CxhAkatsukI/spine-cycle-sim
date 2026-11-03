@@ -33,6 +33,25 @@ that the **improvement relative to the old G+R** is smaller than 27.52%.
 The two denominators differ. Do not sum the old per-CU adapter/gather/apply
 times to estimate a removable fraction: those events overlap across CUs.
 
+### Sensitivity To Removing All R Time
+
+In the 24 old runs, the logged G update event time alone exceeds the matched
+Spine wall time in two cases. For this counterfactual, freeze the measured
+G update duration and the measured Spine wall time; set every other G+R
+cost to zero, including R, host work and readback. This yields an optimistic
+G+R latency floor, not a prediction of the new image's G timings.
+
+| Algorithm | Dataset | Frozen G update ms | Frozen Spine wall ms | Floor / Spine |
+| --- | --- | ---: | ---: | ---: |
+| Weighted SSSP | PK | 15.825373 | 9.608190 | 1.65x |
+| Weighted SSSP | R19 | 5.548182 | 4.271750 | 1.30x |
+
+The other 22 runs remain undecided by this test, including every CC and
+ResPR row. For example, R19 ResPR has 4.524463 ms of G update events versus
+32.375100 ms of Spine wall time. None of these rows is admitted for the
+repaired image by this calculation. Relinking changes placement, and keeping
+the G XOs unchanged does not guarantee unchanged elapsed time on the board.
+
 The integrated [ResPR host](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/24519a6/tools/sharded_k4_pagerank_native_host.cpp#L699)
 uses round zero for correction and enqueues the adapter, gather and mux for
 every destination shard before checking the active count. The old hardware
@@ -53,6 +72,12 @@ jq -s -r 'map({case:(.config.graph|split("/")[-1]),summary})
      (100*(1-.summary.spine_wall_ms/.summary.gr_wall_ms))] | @tsv' \
   "$matrix"/{sssp,cc,respr}-*/results.json
 ```
+
+To reproduce the G-only floor, join each single-pass `results.json` to its
+`sample-1/gr/run.log`. Use `grasu_ms` from the weighted/CC timing line and
+`update_ms` from the ResPR timing line, divided by
+`summary.spine_wall_ms`. Keep only ratios above one. Do not include
+`barrier_ms` or sum individual CU event times: they can overlap.
 
 Revisit these decisions after the hardware controls complete. In particular,
 do not merge a corrected R control with the old matrix and label the result
