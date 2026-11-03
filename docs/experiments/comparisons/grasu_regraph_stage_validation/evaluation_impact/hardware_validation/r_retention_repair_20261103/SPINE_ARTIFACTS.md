@@ -113,6 +113,11 @@ edge records and 16 signed records (eight reciprocal insertions) are unchanged.
 The native host passed `--layout-only` on this input in a bounded 2-GiB service
 (133.4 MiB peak); both cold and hot layouts fit. This check does not open a card.
 
+The same matched host passed `--layout-only` on SU (567,316 vertices,
+1,061,248 edges) and WK (1,140,149 vertices, 2,032,558 edges), with 16 signed
+records each. The combined offline run peaked at 397.8 MiB. Its input pins
+and logs are in `spine-cc-layout-{su,wk}-v3/` under the same check directory.
+
 The first single cold-layout, partial-repair board sample was queued as
 `spine-cc-au-repair-check-20261104.service`, invocation
 `fd2c03bb1e2e44819d6b53f327e16e85`. Its evidence is
@@ -158,6 +163,53 @@ comparison, and excludes baseline seed setup even if compared to Spine's
 batch-resident window. A final paired result must expose and match the timing
 boundary, or explicitly present an asymmetric, conservative bound. The old
 publication-only Spine value is not suitable for this purpose.
+
+### Eight-Graph Preload Capacity
+
+The repair host's current `cc_host::raw_slices` loads every family into a
+single L1–L10 slot, leaving L0 available for the batch. L10 holds 8,388,608
+edges per family. The fixed hot fixture rule sends destinations divisible
+by three to the hot hash banks. That fixture rule is not a general
+capacity planner.
+
+The [offline occupancy probe](../../../../../../../cpp/tests/publication_sources/source_retention/spine_cc_occupancy.cpp)
+compiled against the frozen CC host's `host_split.hpp` with the image's
+compiler defines. It streamed the eight unchanged October graph files
+after their SHA-256 checks passed, and reported the maximum number of
+initial edges in a family:
+
+| Graph | Current cold | Current fixed hot | Degree-based cold max | Degree-based hot max |
+| --- | ---: | ---: | ---: | ---: |
+| AU | 679,246 | 453,822 | 679,246 | 0 |
+| SU | 1,061,248 | 691,054 | 1,061,248 | 0 |
+| WK | 2,032,558 | 1,340,902 | 2,032,558 | 0 |
+| SO | 23,803,759 | 15,882,674 | 8,388,584 | 1,310,143 |
+| PK | 40,961,529 | 27,310,178 | 8,388,571 | 2,082,668 |
+| LJ | 49,571,684 | 33,068,137 | 8,388,567 | 3,694,924 |
+| LJ08 | 30,848,074 | 20,550,423 | 8,388,555 | 3,659,053 |
+| R19 | 29,732,038 | 19,777,740 | 8,388,517 | 1,518,682 |
+
+The five largest workloads exceed the existing loader's slot limit even
+with its fixed hot rule. The alternative calls the already present
+`partitioned_classify_hot_cold_from_indegree` with the L10 capacity
+minus the 16 signed records as a conservative occupancy margin. It
+does not change the vertex IDs, edges, weights, or batch. All eight fit
+this initial occupancy check; the raw probe run took 53.2 s and peaked
+at 196.9 MiB in a 2-GiB zero-swap service, without opening a card.
+
+Raw TSV and checksum output: `/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-eight-occupancy-v3/{occupancy.tsv,checksums.txt}`.
+To reproduce, compile the probe from the matched host manifest's working
+directory with its `-I`, `-D`, `-L`, `-Wl,`, and `-l` flags, verify
+the CC graph SHA-256 pins from the October matrix configs, then pass the
+eight graph paths in table order.
+
+This establishes initial slot capacity only. The measured CC repair
+host does not yet use this degree-based assignment. It still needs the
+corresponding preload hot bitmap and directory, followed by graph, label,
+and convergence validation on the board before any timing is accepted.
+The probe does not check duplicate/reciprocal edges, carry behavior, or
+board wall time. This is not a replacement for the pending AU smoke or an
+authorization to substitute a compacted graph in the full matrix.
 
 ### G+R Host For The Matching Wall Window
 
