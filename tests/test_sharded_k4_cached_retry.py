@@ -68,11 +68,14 @@ class CachedRetryTest(unittest.TestCase):
                 self.assertEqual(json.loads((previous / "manifest.json").read_text())["timeout_seconds"], 21600)
                 with patch.object(retry.replacement, "run") as run:
                     retry.run(output)
-                    run.assert_called_once_with(output)
+                    run.assert_called_once_with(output, admission_wait=0)
+                    run.reset_mock()
+                    retry.run(output, admission_wait=21600)
+                    run.assert_called_once_with(output, admission_wait=21600)
                     copied.write_bytes(b"changed checkpoint")
                     with self.assertRaisesRegex(ValueError, "content changed"):
                         retry.run(output)
-                    run.assert_called_once_with(output)
+                    run.assert_called_once_with(output, admission_wait=21600)
 
     def test_live_service_and_failed_cleanup_never_prepare(self):
         for state, reason, cleanup in (

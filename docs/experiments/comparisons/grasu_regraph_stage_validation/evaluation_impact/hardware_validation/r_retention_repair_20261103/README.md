@@ -306,10 +306,13 @@ and `resident-tail-board-v1/results.json` under the same check directory.
 ### Timeout Recovery
 
 The preceding production ResPR link took 5 h 49 min even with a seeded
-IP cache. The active repair link still uses its original six-hour deadline.
-If it ends specifically with a logged watchdog timeout and verified worker
-cleanup, prepare a separate attempt with the same link command (except output
-paths) and a twelve-hour deadline:
+IP cache. The first repair link hit its six-hour watchdog in Vivado route
+phase 5.1 (global iteration 0). Its receipt reports `stop_reason=timeout`,
+`cleanup_snapshot_error=null`, and a sampled process-tree peak of
+33,792,992 KiB. The service stopped with no workers and no candidate image;
+the dependent board screen therefore took no sample. The timeout qualified
+for a separate attempt with the same link command (except output paths)
+and a twelve-hour deadline:
 
 ```bash
 python3 -m spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.cached_retry \
@@ -319,10 +322,12 @@ python3 -m spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile
   --invocation 84845edf6b294efb8f856df572d2a341
 ```
 
-Execute with the same module's `--output ... --execute` inside a fresh service
-with the same 40/36-GiB hard/high limits and zero swap, and a service runtime
-above twelve hours. Full memory admission and the live-memory watchdog remain
-unchanged. Cache entries are independently copied and hashed before execution;
+The new invocation is `gr-respr-cached-route-v2-20261104.service`
+(`6f1625b870d74ac0b187aca31dfb9b43`). It starts with
+`--output ... --execute --admission-wait 21600`, 40/36-GiB hard/high
+limits, zero swap, and a 19-hour service runtime (six hours of possible
+admission wait plus the twelve-hour link and margin). Admission and the
+live-memory watchdog are unchanged. Cache entries are copied and hashed;
 Vivado still selects entries using its own fingerprints. A successful original
 attempt, an active build, a memory stop, or an unexplained failure does not
 qualify for this retry. Point the R screen to the retry's own invocation and

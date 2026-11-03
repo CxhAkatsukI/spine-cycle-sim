@@ -1,0 +1,148 @@
+diff --git a/tests/test_integration/cc_workload.hpp b/tests/test_integration/cc_workload.hpp
+index c283802..7432b3e 100644
+--- a/tests/test_integration/cc_workload.hpp
++++ b/tests/test_integration/cc_workload.hpp
+@@ -128,11 +128,31 @@ struct RawSlice {
+         require(edges.size()<=layout.capacity&&row_count<=layout.capacity,"raw slice exceeds capacity");
+     }
+ };
+-inline std::vector<RawSlice> raw_slices(const Graph &graph,unsigned n,bool hot) {
++inline std::vector<uint64_t> fixed_hot_bitmap(unsigned n,bool hot) {
++    std::vector<uint64_t> bits((n+63ULL)/64);
++    if(hot) for(unsigned v=0;v<n;v+=3) partitioned_hot_bitmap_set_host(bits,v);
++    return bits;
++}
++inline PartitionedHotColdClassification balanced_layout(const Graph &graph,unsigned n,size_t updates) {
++    PartitionedHotColdClassifierConfig config;
++    config.num_vertices=n;
++    const auto capacity=partitioned_ratio2_level_partition_capacity(10);
++    require(updates&&updates<capacity,"balanced preload update margin");
++    config.family_edge_cap=capacity-updates;
++    std::vector<uint64_t> indegree(n);
++    for(const auto &edge:graph) ++indegree.at(edge.first.second);
++    return partitioned_classify_hot_cold_from_indegree(indegree,config);
++}
++inline unsigned destination_family(uint32_t dst,const std::vector<uint64_t> &bits) {
++    return partitioned_hot_bitmap_test_host(bits,dst)
++        ?16+partitioned_hot_shard_host(dst,16):partitioned_csr_dst_partition(dst);
++}
++inline std::vector<RawSlice> raw_slices(const Graph &graph,unsigned n,
++                                       const std::vector<uint64_t> &bits) {
+     std::vector<Record> families[32];
+     for(auto entry:graph) {
+         unsigned u=entry.first.first,v=entry.first.second;
+-        unsigned f=hot&&v%3==0?16+partitioned_hot_shard_host(v,16):partitioned_csr_dst_partition(v);
++        unsigned f=destination_family(v,bits);
+         families[f].emplace_back(u,v,entry.second,1);
+     }
+     std::vector<RawSlice> result;
+diff --git a/tests/test_integration/host_cc_repair.cpp b/tests/test_integration/host_cc_repair.cpp
+index b61403a..ad7166d 100644
+--- a/tests/test_integration/host_cc_repair.cpp
++++ b/tests/test_integration/host_cc_repair.cpp
+@@ -18,7 +18,8 @@ struct Measurement {
+     uint64_t h(unsigned f) const {return header[f].word[0];}
+ };
+ class CcRuntime {
+-    unsigned n_;bool hot_=false;SpineCcLayout l_;
++    unsigned n_;SpineCcLayout l_;
++    std::vector<uint64_t> hot_bits_;
+     cl::Context context_;cl::CommandQueue transfer_,execute_;cl::Program program_;
+     cl::Kernel reader_,compute_,lifecycle_;
+     std::array<cl::Buffer,16> graphs_;
+@@ -102,8 +103,8 @@ public:
+         lifecycle_.setArg(4,0);lifecycle_.setArg(5,0);lifecycle_.setArg(6,0);
+     }
+     uint64_t h(unsigned field) const {return header_[field].word[0];}
+-    Measurement reload(const Graph &graph,bool hot) {
+-        Measurement m;auto total=Clock::now();hot_=hot;
++    Measurement reload(const Graph &graph,const std::vector<uint64_t> &hot_bits,bool hot) {
++        Measurement m;auto total=Clock::now();hot_bits_=hot_bits;
+         // Same BOs are reused for every paired sample. Old graph payload is
+         // unreachable after all descriptors/epochs and directory state reset.
+         zero(meta_,0,HOST_PARTITIONED_META_L0_TOUCHED_SLOT_BASE*8ULL);
+@@ -118,13 +119,11 @@ public:
+         zero(workspace_,0,SPINE_CC_HEADER_WORDS*32ULL);
+         zero(input_,HOST_PARTITIONED_DIRTY_BITMAP_OFFSET*16ULL,((n_+127ULL)/128)*16);
+         zero(input_,HOST_PARTITIONED_DIRTY_LIST_OFFSET*16ULL,((n_+3ULL)/4)*16);
+-        std::vector<uint64_t> hot_bits((n_+63)/64,0);
+-        if(hot) for(unsigned v=0;v<n_;++v) if(v%3==0) hot_bits[v/64]|=1ULL<<(v%64);
+         write_words(meta_,HOST_PARTITIONED_META_HOT_BITMAP_BASE,hot_bits);
+         meta_word(HOST_PARTITIONED_META_HOT_ENABLED_WORD,partitioned_meta_control_host(hot));
+         meta_word(HOST_PARTITIONED_META_FAMILY_DIRECTORY_VALID_WORD,1);
+         std::vector<uint32_t> directory((n_+3)/4*4,0);
+-        auto slices=raw_slices(graph,n_,hot);
++        auto slices=raw_slices(graph,n_,hot_bits);
+         std::vector<uint64_t> epochs(HOST_PARTITIONED_EPOCH_SLICE_EPOCH_WORDS,0);
+         std::vector<uint64_t> list_counts(HOST_PARTITIONED_PAGE_LIST_COUNT_WORDS,0);
+         for(const auto &s:slices) {
+@@ -181,7 +180,7 @@ public:
+         auto hot_bits=read_words(meta_,HOST_PARTITIONED_META_HOT_BITMAP_BASE,(n_+63)/64);
+         auto directory=read_words(input_,HOST_PARTITIONED_FAMILY_DIRECTORY_OFFSET*2ULL,(n_+1)/2);
+         std::vector<uint32_t> expected_directory(n_,0);
+-        for(unsigned v=0;v<n_;++v) require(bool((hot_bits[v/64]>>(v%64))&1)==(hot_&&v%3==0),"raw hot bitmap mismatch");
++        require(hot_bits==hot_bits_,"raw hot bitmap mismatch");
+         std::map<std::tuple<unsigned,unsigned,unsigned>,int64_t> physical;
+         for(unsigned f=0;f<32;++f) for(unsigned lev=0;lev<11;++lev) {
+             unsigned index=f*11+lev;auto d=&descriptors[index*8];
+@@ -218,8 +217,7 @@ public:
+                     uint64_t previous=0;bool first=true;unsigned mask=0;
+                     for(unsigned i=begin;i<end;++i) {
+                         uint64_t e=edges[i];unsigned dst=e>>32,weight=(e>>16)&65535;int diff=(int16_t)e;
+-                        unsigned family=hot_&&dst%3==0?16+partitioned_hot_shard_host(dst,16):partitioned_csr_dst_partition(dst);
+-                        require(dst<n_&&family==f&&diff,"invalid raw record");
++                        require(dst<n_&&destination_family(dst,hot_bits_)==f&&diff,"invalid raw record");
+                         mask|=1U<<partitioned_csr_dst_partition(dst);
+                         uint64_t key=((uint64_t)dst<<16)|weight;require(first||previous<key,"unsorted raw full keys");first=false;previous=key;
+                         physical[{src,dst,weight}]+=diff;++scanned_edges;
+@@ -328,7 +326,8 @@ int main(int argc,char **argv) {
+             else if(arg=="--describe") describe=true;else if(arg=="--layout-only") layout_only=true;
+             else throw std::runtime_error("unknown option "+arg);
+         }
+-        require(hot_option=="both"||hot_option=="0"||hot_option=="1","invalid layout");
++        const bool balanced=hot_option=="balanced";
++        require(balanced||hot_option=="both"||hot_option=="0"||hot_option=="1","invalid layout");
+         require(mode=="both"||mode=="partial"||mode=="full","invalid mode");require(samples>0&&samples<=100,"sample bound");
+         Workload w=fixture();
+         if(!slice.empty()) {
+@@ -339,11 +338,22 @@ int main(int argc,char **argv) {
+         for(const auto &b:w.batches) {require(!b.empty()&&b.size()<=SPINE_CC_BATCH_CAPACITY,"batch bound");check=cc_host::apply(check,b);}
+         require(w.n&&w.n<=MAX_N,"vertex bound");
+         if(describe) {std::cout<<"vertices="<<w.n<<" edges="<<initial.size()<<" batches="<<w.batches.size()<<std::endl;return 0;}
++        PartitionedHotColdClassification classified;
++        if(balanced) {
++            require(w.batches.size()==1,"balanced preload requires exactly one batch");
++            classified=balanced_layout(initial,w.n,w.batches.front().size());
++            std::cout<<"CC_BALANCED_PRELOAD hot_vertices="<<classified.hot_vertex_count
++                <<" hot_edges="<<classified.hot_edges<<" update_margin="<<w.batches.front().size()<<std::endl;
++        }
+         if(layout_only) {
+             require(SPINE_REPAIR_SLOT_DIVISOR==1,"CC graph slot reduction");
+             require(((partitioned_fixed_all_levels_words_host()*16ULL+4095)&~4095ULL)<=SPINE_CC_BANK_BYTES,"graph bank bound");
+             require(((SpineCcLayout(MAX_N).words*32ULL+4095)&~4095ULL)<=SPINE_CC_BANK_BYTES,"workspace bound");
+-            for(bool hot:{false,true}) {auto raw=raw_slices(initial,w.n,hot);require(!raw.empty(),"layout fixture empty");}
++            if(balanced) {
++                require(!raw_slices(initial,w.n,classified.hot_bitmap_words).empty(),"balanced layout empty");
++            } else for(bool hot:{false,true}) {
++                require(!raw_slices(initial,w.n,fixed_hot_bitmap(w.n,hot)).empty(),"layout fixture empty");
++            }
+             std::cout<<"CC_LAYOUT_PASS max_n="<<MAX_N<<" family_words="<<partitioned_fixed_all_levels_words_host()
+                 <<" graph_aligned_bytes="<<((partitioned_fixed_all_levels_words_host()*16ULL+4095)&~4095ULL)
+                 <<" workspace_aligned_bytes="<<((SpineCcLayout(MAX_N).words*32ULL+4095)&~4095ULL)<<std::endl;return 0;
+@@ -354,11 +364,13 @@ int main(int argc,char **argv) {
+         auto setup=Clock::now();CcRuntime device(image,w.n);double setup_ms=elapsed(setup);
+         std::cout<<"CC_SETUP vertices="<<w.n<<" setup_ms="<<setup_ms<<" source_config_sha256="<<SPINE_WEIGHTED_BUILD_SHA256<<std::endl;
+         unsigned count=0;
+-        for(bool hot:{false,true}) {
+-            if(hot_option!="both"&&(hot_option=="1")!=hot) continue;
++        for(bool mode_hot:{false,true}) {
++            if(balanced?mode_hot:(hot_option!="both"&&(hot_option=="1")!=mode_hot)) continue;
++            const auto bits=balanced?classified.hot_bitmap_words:fixed_hot_bitmap(w.n,mode_hot);
++            const bool hot=balanced?!classified.empty_hot_set:mode_hot;
+             for(unsigned sample=0;sample<samples;++sample) for(unsigned order=0;order<(mode=="both"?2U:1U);++order) {
+                 bool full=mode=="full"||(mode=="both"&&((sample+order)%2==1));
+-                auto bootstrap=device.reload(initial,hot);device.audit(initial);
++                auto bootstrap=device.reload(initial,bits,hot);device.audit(initial);
+                 report("CC_BOOTSTRAP_PASS",bootstrap,sample,order,hot,full,0);
+                 Graph graph=initial;unsigned batch=0;
+                 for(const auto &records:w.batches) {

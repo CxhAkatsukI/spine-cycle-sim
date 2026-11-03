@@ -104,13 +104,13 @@ def prepare(previous, output, *, unit, invocation):
     return new
 
 
-def run(output):
+def run(output, *, admission_wait=0):
     manifest = json.loads((output / "manifest.json").read_text())
     if manifest["status"] != "CACHED_RETRY_PREPARED_NOT_ROUTED" or manifest["timeout_seconds"] != RETRY_SECONDS:
         raise ValueError("completed cache seed and bounded retry plan required")
     unchanged(manifest["pins"])
     validate_seed(output, json.loads((output / "ip-cache-seed.json").read_text()))
-    return replacement.run(output)
+    return replacement.run(output, admission_wait=admission_wait)
 
 
 if __name__ == "__main__":
@@ -120,9 +120,10 @@ if __name__ == "__main__":
     parser.add_argument("--unit")
     parser.add_argument("--invocation")
     parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--admission-wait", type=int, default=0)
     args = parser.parse_args()
     if args.execute:
-        print(run(args.output.resolve())["status"], flush=True)
+        print(run(args.output.resolve(), admission_wait=args.admission_wait)["status"], flush=True)
     else:
         if not all((args.previous, args.unit, args.invocation)):
             parser.error("preparation requires --previous, --unit and --invocation")

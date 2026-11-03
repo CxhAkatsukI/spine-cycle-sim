@@ -203,13 +203,38 @@ directory with its `-I`, `-D`, `-L`, `-Wl,`, and `-l` flags, verify
 the CC graph SHA-256 pins from the October matrix configs, then pass the
 eight graph paths in table order.
 
-This establishes initial slot capacity only. The measured CC repair
-host does not yet use this degree-based assignment. It still needs the
-corresponding preload hot bitmap and directory, followed by graph, label,
-and convergence validation on the board before any timing is accepted.
-The probe does not check duplicate/reciprocal edges, carry behavior, or
-board wall time. This is not a replacement for the pending AU smoke or an
-authorization to substitute a compacted graph in the full matrix.
+The opt-in CC repair host now uses this degree-based assignment. Build it
+with `source_retention.spine_cc_host --balanced-preload` in the documented
+2-GiB build service, and select it with `--hot balanced` for a single batch.
+The same bitmap drives the preload family assignment, the metadata upload,
+and the readback audit. Classification happens before the resident timer;
+the bitstream, graph IDs, and batch are unchanged. The original cold and
+fixed-hot modes remain available. The existing AU board smoke still uses
+its frozen host; no AU performance sample was repeated.
+
+The binary and build manifest are under
+`/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-balanced-host-v1/`.
+The binary SHA-256 is
+`c7f81eeb24cbabc13e6a28366370417106af2a2063c457c970fe171900fe1153`.
+On AU, SU, and WK, `--layout-only --hot balanced --slice ... --update ...`
+passed with a 16-record margin and an empty hot set, as expected. These
+three checks ran without a card in a 2-GiB zero-swap service and peaked
+at 397.8 MiB; their logs are under `spine-cc-balanced-layout-small.tTaoWI/`
+in the same check directory. The default fixture still passes in the
+old modes and rejects balanced mode because it has multiple batches.
+
+The same host also passed `--layout-only` on the full R19 CC workload
+(29,732,038 initial directed edges). The input manifest in
+`spine-cc-r19-inputs-v1/` matches the October matrix source SHA-256.
+It assigned 23,913 vertices and 21,343,521 initial edges to the hot set
+with the same 16-record margin. The run took 2 min 2 s and peaked at
+5.6 GiB in a 12-GiB zero-swap service, with a shared compiler-memory
+reservation and a 32-GiB live-memory floor. The admission record, result,
+and raw logs are in `spine-cc-r19-balanced-layout-v1/`.
+
+The occupancy probe and offline host checks do not validate device carry,
+convergence, or board wall time. The board still needs to pass graph
+readback, label, and convergence checks before any timing is admitted.
 
 ### G+R Host For The Matching Wall Window
 

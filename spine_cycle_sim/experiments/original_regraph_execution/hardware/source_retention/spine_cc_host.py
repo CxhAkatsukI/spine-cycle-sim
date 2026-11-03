@@ -1,4 +1,4 @@
-"""Build the frozen Spine CC repair host with resident wall-clock reporting."""
+"""Build the frozen Spine CC repair host with opt-in host overlays."""
 
 import argparse
 from pathlib import Path
@@ -16,11 +16,12 @@ INPUT_TUS = {
     "xcl2.cpp": "da8ca3fe01035c49bd25d9075a11ef6d31ff306d44355581ebdd70605f536365",
 }
 PATCH = Path(__file__).resolve().parents[5] / "patches/spine_cc_resident_wall.patch"
+BALANCED_PATCH = PATCH.with_name("spine_cc_balanced_preload.patch")
 XRT = Path("/opt/xilinx/xrt")
 XILINX = Path("/data/yxx/tools/xilinx")
 
 
-def build(archive, output):
+def build(archive, output, *, balanced_preload=False):
     group = check_memory()
     if int((group / "memory.max").read_text()) > 2 * 2**30:
         raise MemoryError("CC host build requires a cgroup with MemoryMax at most 2 GiB")
@@ -42,9 +43,12 @@ def build(archive, output):
                 if identity(file)["sha256"] != original["sha256"]:
                     raise ValueError(f"archived input changed while staging: {relative}")
                 inputs[str(relative)] = original
-    patch = output / PATCH.name
-    shutil.copyfile(PATCH, patch)
-    subprocess.run(["git", "apply", str(patch)], cwd=staged, check=True, timeout=10)
+    overlays = []
+    for original in (PATCH, BALANCED_PATCH) if balanced_preload else (PATCH,):
+        patch = output / original.name
+        shutil.copyfile(original, patch)
+        subprocess.run(["git", "apply", str(patch)], cwd=staged, check=True, timeout=10)
+        overlays.append(identity(patch))
     binary = output / "host_cc_repair_resident"
     command = [
         "/usr/bin/g++", "-std=c++17", "-O2", "-Wall", "-g0", "-I.", "-Istubs", "-I../../src",
@@ -58,9 +62,12 @@ def build(archive, output):
         "-lrt", "-pthread", "-lcrypto",
     ]
     manifest = {"status": "BUILDING", "image_abi": ABI, "inputs": inputs,
-                "overlay": identity(patch), "host_source": identity(staged / HOST_DIR / HOST),
+                "overlay": overlays[0], "host_source": identity(staged / HOST_DIR / HOST),
                 "compiler": identity(command[0]), "opencl": identity(XRT / "lib/libxilinxopencl.so"),
                 "cwd": str(staged / HOST_DIR), "argv": command}
+    if balanced_preload:
+        manifest.update(balanced_preload_overlay=overlays[1],
+                        workload_source=identity(staged / HOST_DIR / "cc_workload.hpp"))
     save(output / "manifest.json", manifest)
     try:
         with (output / "build.log").open("x") as log:
@@ -80,5 +87,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--balanced-preload", action="store_true")
     args = parser.parse_args()
-    build(args.archive, args.output)
+    build(args.archive, args.output, balanced_preload=args.balanced_preload)
