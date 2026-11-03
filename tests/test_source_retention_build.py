@@ -30,11 +30,11 @@ class SourceRetentionBuildTest(unittest.TestCase):
         Path(command[command.index("-o") + 1]).write_bytes(b"executable")
         return subprocess.CompletedProcess(command, 0)
 
-    def execute(self, args, run):
+    def execute(self, args, run, **options):
         with patch.object(build, "identity", side_effect=self.pin), \
                 patch.object(build.subprocess, "check_output", return_value="test compiler v1"), \
                 patch.object(build.subprocess, "run", side_effect=run):
-            return build.build(*args)
+            return build.build(*args, **options)
 
     def test_both_hosts_use_same_flags_and_preserve_commands(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -47,8 +47,20 @@ class SourceRetentionBuildTest(unittest.TestCase):
                 self.assertEqual(record["status"], "COMPILED")
                 self.assertIn("-O2", record["command"])
                 self.assertIn("-DNDEBUG", record["command"])
+                self.assertNotIn("-DSPINE_RETENTION_TAIL_PUBLICATION=1", record["command"])
+            self.assertEqual(report["candidate_publication"], "fixed")
             with self.assertRaises(FileExistsError):
                 self.execute(args[:4], self.compile)
+
+    def test_tail_publication_is_recorded_and_does_not_change_reference_flags(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.fixture(Path(directory))
+            report = self.execute(args[:4], self.compile, tail_publication=True)
+            self.assertEqual(report["candidate_publication"], "tail")
+            reference, candidate = report["builds"]
+            flag = "-DSPINE_RETENTION_TAIL_PUBLICATION=1"
+            self.assertNotIn(flag, reference["command"])
+            self.assertIn(flag, candidate["command"])
 
     def test_compiler_failure_preserves_attempt_and_error_logs(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -106,7 +106,11 @@ class SourceRetentionTest(unittest.TestCase):
     def test_candidate_matches_production_packet_width(self):
         root = Path(__file__).resolve().parents[1]
         source = (root / "cpp/tests/publication_sources/source_retention/device.hpp").read_text()
-        self.assertIn("mux.setArg(5, 65536u / 2)", source)
+        self.assertIn("#else\n            const unsigned packets = 65536u / 2;", source)
+        self.assertIn("const unsigned packets = ((dst_vertices + 15u) / 16u) * 8u;", source)
+        self.assertIn("gather[w].setArg(5, packets)", source)
+        self.assertIn("mux.setArg(5, packets)", source)
+        self.assertIn("const unsigned bursts = (vertices + 15u) / 16u;", source)
 
 
 if __name__ == "__main__":

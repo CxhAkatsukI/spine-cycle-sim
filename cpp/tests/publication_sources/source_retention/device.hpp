@@ -39,6 +39,9 @@ struct Device {
         for (unsigned w = 0; w < 4; ++w) {
             adapter[w] = session.kernel("pma_to_regraph_adapter:{pma_to_regraph_adapter_" + std::to_string(w + 1) + "}");
             gather[w] = session.kernel("lksg_stream:{lksg_stream_" + std::to_string(w + 1) + "}");
+#if defined(SPINE_RETENTION_TAIL_PUBLICATION)
+            checked(gather[w].setArg(5, 65536u / 2), "require tail-publication gather ABI");
+#endif
         }
         for (unsigned s = 0; s < input.packed.size(); ++s) {
             Shard shard;
@@ -64,7 +67,12 @@ struct Device {
     }
 
     void run(const Input& input, unsigned repeat) {
-        const unsigned vertices = input.reference.vertices, bursts = input.source.size() / 16;
+        const unsigned vertices = input.reference.vertices;
+#if defined(SPINE_RETENTION_TAIL_PUBLICATION)
+        const unsigned bursts = (vertices + 15u) / 16u;
+#else
+        const unsigned bursts = input.source.size() / 16;
+#endif
         const std::vector<float> zeros(input.source.size());
         checked(session.queue.enqueueWriteBuffer(rank, CL_TRUE, 0, zeros.size() * 4, zeros.data()), "restore rank");
         checked(session.queue.enqueueWriteBuffer(residual, CL_TRUE, 0, zeros.size() * 4, zeros.data()), "restore residual");
@@ -94,14 +102,21 @@ struct Device {
             checked(adapter[w].setArg(6, slots), "bind slots");
             checked(adapter[w].setArg(7, 131072u), "bind cache boundary");
             checked(adapter[w].setArg(8, s * 65536u), "bind destination base");
-            checked(adapter[w].setArg(9, unsigned(input.graph.shards[s].destination_vertices)), "bind destination count");
+            const auto dst_vertices = unsigned(input.graph.shards[s].destination_vertices);
+            checked(adapter[w].setArg(9, dst_vertices), "bind destination count");
             checked(gather[w].setArg(1, slots), "bind gather slots");
             checked(gather[w].setArg(2, 0u), "bind uncompressed groups");
             checked(gather[w].setArg(3, s * 65536u), "bind gather base");
             checked(gather[w].setArg(4, s < 4), "initialize each gather worker");
             checked(mux.setArg(4, w), "bind mux worker");
-            // Gather packets carry two destinations; source HBM bursts carry sixteen.
-            checked(mux.setArg(5, 65536u / 2), "bind mux packets");
+            // Gather packets carry two destinations; Apply beats carry sixteen.
+#if defined(SPINE_RETENTION_TAIL_PUBLICATION)
+            const unsigned packets = ((dst_vertices + 15u) / 16u) * 8u;
+            checked(gather[w].setArg(5, packets), "bind gather publication rows");
+#else
+            const unsigned packets = 65536u / 2;
+#endif
+            checked(mux.setArg(5, packets), "bind mux packets");
             std::vector<cl::Event> aw, gw, mw;
             if (s >= 4) { aw.push_back(events[2 + 3 * (s - 4)]); gw.push_back(events[3 + 3 * (s - 4)]); }
             if (s) mw.push_back(events[4 + 3 * (s - 1)]);

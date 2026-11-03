@@ -7,7 +7,7 @@ import subprocess
 from .runtime import identity, save
 
 
-def build(repository, integration, output, compiler):
+def build(repository, integration, output, compiler, *, tail_publication=False):
     output.mkdir(parents=True, exist_ok=False)
     cpp = repository / "cpp/tests"
     directories = [cpp / name for name in ("original_regraph/hardware",
@@ -22,7 +22,8 @@ def build(repository, integration, output, compiler):
     compiler = compiler.resolve()
     report = {"status": "BUILDING", "compiler": identity(compiler), "sources": sources,
               "compiler_version": subprocess.check_output([compiler, "--version"], text=True),
-              "library": identity(library), "builds": [], "board_tested": False}
+              "library": identity(library), "builds": [], "board_tested": False,
+              "candidate_publication": "tail" if tail_publication else "fixed"}
     save(output / "manifest.json", report)
     try:
         for arm, source in (("reference", cpp / "original_regraph/hardware/control.cpp"),
@@ -30,7 +31,8 @@ def build(repository, integration, output, compiler):
             binary = output / ("r_" + arm)
             includes = [] if arm == "reference" else ["-I" + str(p) for p in (
                 cpp / "original_regraph/hardware", cpp / "publication_sources/grasu_board", integration / "include")]
-            command = [str(compiler), *flags, *includes, str(source), "-o", str(binary),
+            profile = ["-DSPINE_RETENTION_TAIL_PUBLICATION=1"] if tail_publication and arm == "candidate" else []
+            command = [str(compiler), *flags, *profile, *includes, str(source), "-o", str(binary),
                        str(library), "-Wl,-rpath,/opt/xilinx/xrt/lib"]
             record = {"arm": arm, "command": command, "status": "COMPILING"}
             report["builds"].append(record)
@@ -56,5 +58,8 @@ if __name__ == "__main__":
     parser.add_argument("--integration", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--compiler", type=Path, default=Path("/usr/bin/x86_64-linux-gnu-g++-15"))
+    parser.add_argument("--tail-publication", action="store_true",
+                        help="require a matching tail-publication Gather image for the candidate")
     args = parser.parse_args()
-    print(build(args.repository.resolve(), args.integration.resolve(), args.output.resolve(), args.compiler)["status"])
+    print(build(args.repository.resolve(), args.integration.resolve(), args.output.resolve(),
+                args.compiler, tail_publication=args.tail_publication)["status"])

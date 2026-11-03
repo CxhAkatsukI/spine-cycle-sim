@@ -203,17 +203,29 @@ ordinals `2+3*s`, `3+3*s`, and `4+3*s` are adapter, gather and mux for
 zero-based shard `s`. These are overlapping elapsed intervals with FIFO
 backpressure, not exclusive busy-cycle measurements.
 
-The next targeted source change to evaluate is tail publication, not a
-weaker workload or a warm-up outside the timed region. The skewed last
-shard has one valid vertex but emits a full shard. ResPR apply consumes
-16-vertex beats; an aligned tail could reduce the second shard to eight
-mux packets. Gather, its lane reduction, mux, and apply must agree on
-the new length. The separate shared Little merger already packs every
-eight packets into one beat without looking at shard boundaries; a
-beat-aligned tail needs no change to that interface. Preserve backing
-allocation for fixed source-block reads, and verify reset/reuse when a
-worker switches from a short shard back to a full one. This is a repair
-candidate, not a measured speedup.
+### Tail Publication Candidate
+
+HLS commits [8df36e5](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/8df36e5)
+and [b8b08ff](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/b8b08ff)
+implement aligned tail publication for ResPR. The last skewed shard has
+one valid vertex: its mux count becomes eight packets, down from 32,768.
+The same floor then falls to 65,544 cycles (0.436960 ms at 150 MHz), which
+no longer rules out the 0.530418-ms gate. It leaves only 0.093458 ms above
+the floor for all additional costs; it is not a prediction that the gate
+passes. On full Amazon this change only shortens the final shard and
+cannot explain or remove the whole observed gap.
+
+The Vitis 2024.1 component XO is
+`/data/chuxiao/builds/gr-tail-publication-20261104/packet-v1/build/lksg_stream.hw.xo`
+(SHA-256 `909a51a7aef6d53d66caa3c97b4da0ed86f43c43a8498ef576793232dae9e6d6`).
+The matched host build uses `source_retention.build --tail-publication`;
+its compile commands and hashes are in
+`/data/chuxiao/checks/source-retention-repair-20261104/hosts-tail-v1/manifest.json`.
+The new scalar is argument 5; the old image uses that position for a
+stream, so the matching tail image is required. The test input, expected
+output, event boundaries and fixed-length reference are unchanged.
+The C simulation, gather synthesis and host compile are complete; the
+tail candidate has not been linked into a full image or board tested.
 
 ### Timeout Recovery
 
