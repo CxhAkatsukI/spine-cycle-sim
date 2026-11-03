@@ -165,8 +165,18 @@ The archived skewed-source capture publishes 65,536 of 65,537 logical
 vertices; its active-min rejection is retained under
 `/data/chuxiao/checks/source-retention-repair-20261104/a4-active-skewed-v1/`.
 That capture remains eligible for the separate historical PR control only.
-The active-min inputs use one synthetic resident superstep; a matched
-integrated candidate probe, routed images and FPGA timings are still needed.
+The active-min inputs use one synthetic resident superstep. The
+[integrated candidate host](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/57888d6/docs/sharded_k4_prefetch_compact/active_min_retention.md)
+now loads the same fixture through the production sharded PMA preparation
+path. Both full-Amazon policies independently match the A4 oracle byte for
+byte over all 786,432 aligned property words, and yield 10 improved vertices.
+The A4-only 16-word overrun guard is validated separately. The four existing
+native-host preprocessing checks also pass. The candidate outputs are in
+`/data/chuxiao/checks/gr-active-min-candidate-20261104-v1/`.
+
+The new host has not run on a board. Corresponding routed images and paired
+board admission are still needed; neither the offline agreement nor the
+older PR probe establishes CC or weighted-SSSP latency retention.
 
 The full link has a 40-GiB hard limit, 36-GiB high watermark and a six-hour
 timeout. Each SSSP/CC component service has an 8-GiB limit and 7-GiB high
