@@ -32,6 +32,12 @@ new-G metadata/handoff correctness or original-publication reproduction.
 
 ## Current Checkpoint
 
+The [R hardware-retention repair](r_retention_repair_20261103/README.md) owns
+the next acceptance sequence: repair the actual routed path, screen once per
+case against original A4 with a 15% overhead gate, then compare validated G+R
+with the latest admitted Spine artifacts and refresh affected figure data.
+The gate is open; the negative measurements below are not final evaluation.
+
 The [public-source retention board study](source_performance_retention_20261103/README.md)
 now measures both actual stages separately: G passes the declared 15% overhead
 gate on four AU configurations, but current adapter/R is 3.69x and 12.77x

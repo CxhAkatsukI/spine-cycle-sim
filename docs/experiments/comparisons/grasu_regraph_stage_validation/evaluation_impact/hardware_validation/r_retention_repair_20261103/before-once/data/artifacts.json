@@ -1,0 +1,154 @@
+{
+  "status": "REPAIR_CHECKPOINT_NOT_FINAL_EVALUATION",
+  "analysis_status": "PERFORMANCE_GATE_FAILED",
+  "publication_match": false,
+  "artifacts": {
+    "g_host": {
+      "path": "/data/chuxiao/checks/grasu-gap-control-20261026-host-v2",
+      "sha256": "472cb4ce7b7f494906bd1c022d01cecf33dabfb5e43cf98f111e31427d7a85b4",
+      "bytes": 146648
+    },
+    "g_input": {
+      "path": "/data/chuxiao/checks/grasu-cache-extent-ab-20261026-v1/bounded-cache-independent/input.graph",
+      "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+      "bytes": 8324454
+    },
+    "g_reference": {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-g-external-port-return-follow-v7/returned/route/original_grasu.hw.xclbin",
+      "sha256": "89c682cea8520453abd9038f7b8026bdc27298ad768a05f069f91a69a691e6ed",
+      "bytes": 77595116
+    },
+    "g_current": {
+      "path": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+      "sha256": "ed674b033c738506bd8ac32da9ab2b51e3e70e8925113aed048f50eb35dbf11e",
+      "bytes": 80080123
+    },
+    "r_host": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/hosts-pinned/r_reference",
+      "sha256": "0c310096586b13a5791f1253e0db19f14941abda739d5eecd7e142f1077f5a3c",
+      "bytes": 107920
+    },
+    "r_candidate": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/hosts-pinned/r_candidate",
+      "sha256": "71e79bd4df9e37ef380915487996ea58de226ec8f4d02f686c4a621ef90942a3",
+      "bytes": 152344
+    },
+    "r_reference": {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/a4-source-route-v2/build/original_r_a4.hw.xclbin",
+      "sha256": "b19b89545306460298c080550860e8836d8e5beb71cf161d0eacee2aec60436e",
+      "bytes": 56032800
+    },
+    "r_current": {
+      "path": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/grasu_regraph_residual_pagerank.hw.xclbin",
+      "sha256": "c112e790c3cfd81c05b4059f1dc34fcee23bc36a94a995ba1c0d6d49280058c0",
+      "bytes": 80514108
+    }
+  },
+  "inputs": {
+    "boundary_ring": [
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/csr_destinations.u32le",
+        "sha256": "6b07a8600029eac54f3d4f801011ab31ff4b00d5abc4055e63ebfdd00aebb4e7",
+        "bytes": 524548
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/csr_offsets.u32le",
+        "sha256": "25cdb4f6ec83af594faf55e6761b1abe2e22f6a2aa50e775202ffa923b37e8dc",
+        "bytes": 524296
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/degrees.u32le",
+        "sha256": "8266271e2b58e1370820e1d5c71b380e8d8ed48a8298fae0002f6d23ba679e2d",
+        "bytes": 786432
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/execution.u32le",
+        "sha256": "e59e8ae532aef2ab7635d1af930cc20a4dc87c1c23645e0fe461c4bb0016beb3",
+        "bytes": 416
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/initial.u32le",
+        "sha256": "713da263a02462123af106c8a3c1c4920e1a238f87c0d5dd9d2459859678ffd8",
+        "bytes": 786432
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/tasks.u32le",
+        "sha256": "eea75f09656fd08bbfe329586b3733cf3bc96481360872ef64c1b86cad5cd896",
+        "bytes": 1050688
+      }
+    ],
+    "skewed_sources": [
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/csr_destinations.u32le",
+        "sha256": "ef65bf4a55473a1b51ba8d772e26fdcea210e09408443ed104fbbee7c136d931",
+        "bytes": 32772
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/csr_offsets.u32le",
+        "sha256": "47d19baaa49aceee6bcab9ca624f97dc632af6b4a7e6c7113a75590856923c1b",
+        "bytes": 262152
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/degrees.u32le",
+        "sha256": "1e2f334279659b6cacfbb7cf3ac901502923edf0bd19692d17eb3bdcb7a26a2e",
+        "bytes": 524288
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/execution.u32le",
+        "sha256": "ac21cb1717fbc387fa4357d63261386d00acf5f99bb93a674c2a0b95ac9ef40a",
+        "bytes": 160
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/initial.u32le",
+        "sha256": "25a49d3cc1089a37c78da60ead5648ab98f8defdcf46d2efda48db19ac97febe",
+        "bytes": 524288
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/tasks.u32le",
+        "sha256": "23815b72fe33530aadf7f14c62005d37ad38a05a2deb0fa187864bcf679def60",
+        "bytes": 65792
+      }
+    ],
+    "amazon": [
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/csr_destinations.u32le",
+        "sha256": "de451517a647469d39c327d1ff0810135d234e4215b368b41d8cbff27f3472e2",
+        "bytes": 20633552
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/csr_offsets.u32le",
+        "sha256": "7b43e4689360107f0d284a627166c87676726676f90a986ecdb6df7aec7a095e",
+        "bytes": 2941300
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/degrees.u32le",
+        "sha256": "a8b0eca0b556775f627f046b281fa89beba31962ab43f16beba0c84f2bf54072",
+        "bytes": 3145728
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/execution.u32le",
+        "sha256": "1ef46ed89f74b441583e6a92cb1d910440f1b353b27625ed41c6b828232be424",
+        "bytes": 1568
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/initial.u32le",
+        "sha256": "1c5549ce390b024758fd6653a615a2898a24349b62d72085aa3d20d5cf4813ce",
+        "bytes": 3145728
+      },
+      {
+        "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/tasks.u32le",
+        "sha256": "a4758acf27c8eb82981e23bf5d283056d7600d8225aa78217baae1f25e18472c",
+        "bytes": 41327424
+      }
+    ]
+  },
+  "input_files_archived_here": false,
+  "input_archive_repository_relative": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/source_performance_retention_20261103/evidence/inputs.tar.gz",
+  "paired_host_build": {
+    "path": "/data/chuxiao/checks/source-retention-repair-20261104/hosts-pinned/manifest.json",
+    "sha256": "dc08937c85de3f7699f6c0e1220dfad5cc84cc13a483af746813327da05faa0c",
+    "bytes": 11965
+  },
+  "production_git": "24519a66d7328528a252b6326bcfffe848e4cd56",
+  "production_source_is_bitstream_attestation": false
+}

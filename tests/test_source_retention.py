@@ -29,6 +29,44 @@ class SourceRetentionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             summarize(a[:3], b)
 
+    def test_single_run_gate_does_not_select_or_average(self):
+        a = [{"repeat": 0, "event_span_ns": 100}]
+        self.assertTrue(summarize(a, [{"repeat": 0, "event_span_ns": 115}], repetitions=1)[
+            "at_most_15_percent_slower"])
+        self.assertFalse(summarize(a, [{"repeat": 0, "event_span_ns": 116}], repetitions=1)[
+            "at_most_15_percent_slower"])
+        with self.assertRaises(ValueError):
+            summarize(a * 2, a, repetitions=1)
+        with self.assertRaises(ValueError):
+            summarize(a, a, repetitions=2)
+
+    def test_single_reference_requires_pinned_successful_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            stdout, stderr, result = root / "out", root / "err", root / "result.json"
+            stdout.write_text("ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS\n")
+            stderr.write_text("")
+            result.write_text(json.dumps({"status": "ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS",
+                "iterations": 1, "topology": "a4", "binding": "csr_degree",
+                "hardware_timing_measured": True, "event_span_ns": 10,
+                "little": 4, "big": 0, "tasks": 1,
+                "enqueue_to_completion_ms": 0.5, "events": [
+                    {"role": role, "ordinal": 0, "lane": 0, "start_ns": 1, "end_ns": 11}
+                    for role in ("little", "apply", "hbm_wrapper")]}))
+            row = {"stage": "R", "arm": "reference", "repetitions": 1,
+                   "stdout": identity(stdout), "stderr": identity(stderr),
+                   "result_directory": str(root), "result_json": identity(result)}
+            self.assertEqual(profiled_runs(row)[0]["event_span_ns"], 10)
+            result.write_text(result.read_text() + "\n")
+            with self.assertRaises(ValueError):
+                profiled_runs(row)
+            incomplete = json.loads(result.read_text())
+            incomplete["events"].pop()
+            result.write_text(json.dumps(incomplete))
+            row["result_json"] = identity(result)
+            with self.assertRaises(ValueError):
+                profiled_runs(row)
+
     def test_duplicate_preflight_does_not_modify_input(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

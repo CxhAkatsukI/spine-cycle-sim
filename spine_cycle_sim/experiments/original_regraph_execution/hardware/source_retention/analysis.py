@@ -7,6 +7,7 @@ from pathlib import Path
 import statistics
 
 from .runtime import identity, save
+from .clocks import replay as clock_replay
 
 
 def records(path, prefix):
@@ -34,9 +35,34 @@ def verify_log(pin, root=None):
 def profiled_runs(row, raw_root=None):
     verify_log(row["stdout"], raw_root)
     verify_log(row["stderr"], raw_root)
+    if "clock_evidence" in row:
+        clock_replay(row["clock_evidence"], raw_root)
     log = relocated(row["stdout"]["path"], raw_root)
+    repetitions = row.get("repetitions", 4)
+    if repetitions not in (1, 4):
+        raise ValueError("only single screening or frozen four-run replay is supported")
     if row["stage"] == "R" and row["arm"] == "reference":
         root = relocated(row["result_directory"], raw_root)
+        if repetitions == 1:
+            verify_log(row["result_json"], raw_root)
+            timing = json.loads((root / "result.json").read_text())
+            events = timing["events"]
+            gathers = [e for e in events if e["role"] == "little"]
+            if ("ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS" not in Path(log).read_text().splitlines()
+                    or timing["status"] != "ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS"
+                    or timing["iterations"] != 1 or timing["topology"] != "a4"
+                    or timing["binding"] != "csr_degree"
+                    or timing["little"] != 4 or timing["big"] != 0
+                    or len(events) != timing["tasks"] + 2
+                    or len(gathers) != timing["tasks"]
+                    or {e["ordinal"] for e in gathers} != set(range(timing["tasks"]))
+                    or any(not 0 <= e["lane"] < 4 for e in gathers)
+                    or sorted(e["role"] for e in events if e["role"] != "little") != ["apply", "hbm_wrapper"]
+                    or not timing["hardware_timing_measured"]
+                    or envelope(events) != timing["event_span_ns"]):
+                raise ValueError("single-run original R failed correctness or timing contract")
+            return [{"repeat": 0, "event_span_ns": timing["event_span_ns"],
+                     "resident_wall_ms": timing["enqueue_to_completion_ms"]}]
         runs = []
         for repeat in range(4):
             mode = f"baseline_r{repeat}"
@@ -55,8 +81,8 @@ def profiled_runs(row, raw_root=None):
     config = configs[0]
     runs = records(log, "G_CONTROL_RESULT " if g else "RETENTION_RESULT ")
     events = records(log, "G_CONTROL_EVENT " if g else "RETENTION_EVENT ")
-    if [r["repeat"] for r in runs] != list(range(4)):
-        raise ValueError("cold plus exactly three warm results required")
+    if [r["repeat"] for r in runs] != list(range(repetitions)):
+        raise ValueError("result count differs from declared repetitions")
     for result in runs:
         selected = [e for e in events if e["repeat"] == result["repeat"]]
         expected = config["shards"] * 9 if g else config["shards"] * 3 + 2
@@ -73,7 +99,19 @@ def profiled_runs(row, raw_root=None):
     return runs
 
 
-def summarize(reference, current):
+def summarize(reference, current, *, repetitions=4):
+    if repetitions == 1:
+        if len(reference) != 1 or len(current) != 1 or reference[0]["repeat"] != 0 or current[0]["repeat"] != 0:
+            raise ValueError("exactly one measured run per arm required")
+        a, b = reference[0]["event_span_ns"] / 1e6, current[0]["event_span_ns"] / 1e6
+        if a <= 0 or b <= 0:
+            raise ValueError("positive single-run time required")
+        ratio = b / a
+        return {"reference_ms": a, "current_ms": b, "current_over_reference": ratio,
+                "slowdown_percent": (ratio - 1) * 100, "at_most_15_percent_slower": ratio <= 1.15,
+                "selection": "one measured resident run per arm; no warmup or averaging"}
+    if repetitions != 4:
+        raise ValueError("unsupported repetition contract")
     def warm(runs):
         return [r["event_span_ns"] / 1e6 for r in runs if r["repeat"] in (1, 2, 3)]
     a, b = warm(reference), warm(current)
@@ -101,18 +139,23 @@ def analyze(g_path, r_path, destination, raw_root=None):
             unsupported.append({"stage": stage, "case": name, **selected[0]})
             continue
         arms = {}
+        repetitions = {r.get("repetitions", 4) for r in selected}
+        if len(repetitions) != 1:
+            raise ValueError("both arms must have the same declared repetitions")
         for arm in ("reference", "current"):
             rows = [r for r in selected if r["arm"] == arm]
             if len(rows) != 1:
                 raise ValueError(f"missing or duplicated {stage}/{name}/{arm}")
             arms[arm] = profiled_runs(rows[0], raw_root)
             all_runs += [{"stage": stage, "case": name, "arm": arm, **run} for run in arms[arm]]
-        pairs.append({"stage": stage, "case": name, **summarize(arms["reference"], arms["current"])})
+        pairs.append({"stage": stage, "case": name,
+                      "clock_evidence_recorded": all("clock_evidence" in row for row in selected),
+                      **summarize(arms["reference"], arms["current"], repetitions=repetitions.pop())})
     report = {"status": "MATCHED_ROWS_PASS" if all(p["at_most_15_percent_slower"] for p in pairs)
               else "PERFORMANCE_GATE_FAILED", "publication_match": False,
               "coverage_complete": not unsupported, "pairs": pairs, "unsupported": unsupported,
               "runs": all_runs, "input_reports": [identity(p) for p in (g_path, r_path)],
-              "selection": "baseline only for original R; warm repeats 1,2,3; ratio of medians"}
+              "selection": "declared per row: one-run screening or frozen warm-repeat median; never fastest-mode selection"}
     save(destination / "summary.json", report)
     for name, values in (("comparison.csv", pairs), ("repetitions.csv", all_runs)):
         fields = list(dict.fromkeys(key for row in values for key in row))

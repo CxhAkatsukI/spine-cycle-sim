@@ -6,9 +6,13 @@ from pathlib import Path
 
 from .runtime import check_memory, execute, identity, lease, save
 from .preflight import duplicate_edges
+from . import clocks
 
 
 def run(args):
+    single = getattr(args, "r_single_run", False)
+    if single and args.stages != ["R"]:
+        raise ValueError("single-run screening is R-only; retain independent G evidence separately")
     output = args.output.resolve()
     output.mkdir(exist_ok=False)
     group = check_memory()
@@ -16,7 +20,8 @@ def run(args):
               "matrix": {"g_batches": [1024, 131072], "g_partition_vertices": [524288, 65536],
                          "r_inputs": ["boundary_ring", "skewed_sources", "amazon"],
                          "stages": args.stages,
-                         "repetitions": "cold then three restored warm runs per arm"},
+                         "repetitions": "one measured resident run per R arm" if single else
+                                        "cold then three restored warm runs per arm"},
               "boundary": "resident first-CU-start to last-CU-end; host gaps inside retained; initial DMA/restore/readback outside",
               "gate": "at most 15% slowdown per disclosed matched row; improvements allowed; no claim of publication reproduction",
               "bdf": args.bdf, "device": args.device, "affinity": "124,125",
@@ -32,6 +37,10 @@ def run(args):
     save(output / "results.json", report)
     try:
         with lease(args.device, args.bdf) as (node, fd):
+            images = {arm: clocks.image(getattr(args, "r_" + arm), output, "r_" + arm)
+                      for arm in ("reference", "current")} if "R" in args.stages else {}
+            report["r_image_metadata"] = images
+            save(output / "results.json", report)
             for batch in ((1024, 131072) if "G" in args.stages else ()):
                 selected = output / f"au_{batch}.graph"
                 with args.g_input.open() as source, selected.open("x") as target:
@@ -71,16 +80,26 @@ def run(args):
                     save(output / "results.json", report)
                     if arm == "reference":
                         destination = output / name
-                        command = [args.r_host, args.r_inputs / case, "a4", "csr_degree", destination,
-                                   args.r_reference, args.device]
+                        command = ([args.r_host, "board"] if single else [args.r_host]) + [
+                            args.r_inputs / case, "a4", "csr_degree", destination, args.r_reference, args.device]
                     else:
                         destination = None
                         command = [args.r_candidate, args.r_current, args.r_inputs / case, args.device]
+                        if single:
+                            command.append(1)
                     row = execute(command, output, name, fd, node, args.bdf)
+                    row["clock_evidence"] = clocks.capture(args.bdf, images[arm], output, name)
+                    if single:
+                        row["repetitions"] = 1
+                        if arm == "reference":
+                            row["result_json"] = identity(destination / "result.json")
                     report["rows"].append({"stage": "R", "case": case, "arm": arm,
                                            "result_directory": str(destination) if destination else None, **row})
                     save(output / "results.json", report)
                     print(name + " PASS", flush=True)
+            pins = list(report["pins"].values()) + [pin for group in report["input_pins"].values() for pin in group]
+            if any(identity(pin["path"]) != pin for pin in pins):
+                raise ValueError("execution host, image or frozen input changed during campaign")
         report["status"] = "BOARD_EXECUTION_PASS_PENDING_ANALYSIS"
     except BaseException as error:
         report.update(status="FAILED_RETAINED")
@@ -100,4 +119,6 @@ if __name__ == "__main__":
     parser.add_argument("--device", type=int, choices=(0, 1), default=1)
     parser.add_argument("--bdf", default="0000:c1:00.1")
     parser.add_argument("--stages", nargs="+", choices=("G", "R"), default=["G", "R"])
+    parser.add_argument("--r-single-run", action="store_true",
+                        help="use the single-run original_r_control host and RUNS=1 candidate; R-only")
     run(parser.parse_args())

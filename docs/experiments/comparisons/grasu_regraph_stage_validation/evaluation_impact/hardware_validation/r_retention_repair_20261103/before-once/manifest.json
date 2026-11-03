@@ -1,0 +1,35 @@
+{
+  "status": "REPAIR_CHECKPOINT_NOT_FINAL_EVALUATION",
+  "files": [
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/before-once/data/artifacts.json",
+      "sha256": "dd245e415b907784f391a541b8c0a8440ebfa20ef6bac9faab3ee5229ed8c2a4",
+      "bytes": 7914
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/before-once/data/comparison.csv",
+      "sha256": "81671216e1fa8a9b06d9293818e5998613b283fe794efaa7ad09d070141a6183",
+      "bytes": 923
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/before-once/data/repetitions.csv",
+      "sha256": "43e0e8cdcdcd8b25551439204e3fedfac00410e9f71148d7cfcda7e2891a251d",
+      "bytes": 1695
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/before-once/data/summary.json",
+      "sha256": "0f42287581b88a10b6b43461937f525e1e7e2b5cbbfa9331d44277f8af9e5c04",
+      "bytes": 9398
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/before-once/evidence/raw_board.tar.gz",
+      "sha256": "5928fb2fcfe8d03d415ece1c75a4f1feaa1757dff9c2405808d12f278350f153",
+      "bytes": 4033795
+    },
+    {
+      "path": "/home/chuxiao/spine-cycle-sim/spine-cycle-sim-fullgraph-evidence/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/before-once/evidence/reproduction_sources.tar.gz",
+      "sha256": "1e2e7ed81409c5f226677406c9a807e949dee46337f84f98438d7095aeec253e",
+      "bytes": 53727
+    }
+  ]
+}
