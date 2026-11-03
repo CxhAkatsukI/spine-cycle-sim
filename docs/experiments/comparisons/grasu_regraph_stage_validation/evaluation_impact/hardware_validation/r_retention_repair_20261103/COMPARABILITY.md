@@ -104,6 +104,7 @@ convergence comparison.
 The [minimum-label CC offline control](../../../../../../../cpp/tests/original_regraph/hardware/cc_min_label/README.md)
 checks this adaptation against the unchanged public UDF interface, the
 integrated UDF, and a separate connected-components oracle. No CC image or
-timing is produced. The public Little scatter consumes source properties and
-destination IDs, not edge weights, so weighted SSSP additionally needs an
-explicit weight-bearing input contract.
+timing is produced. The [weighted SSSP offline control](../../../../../../../cpp/tests/original_regraph/hardware/sssp_weighted/README.md)
+derives a compact-input Little frontend using the integrated weight and
+destination bit layout and the matched weighted UDF. Its scatter C-simulation
+and independent shortest-path check do not establish hardware performance.

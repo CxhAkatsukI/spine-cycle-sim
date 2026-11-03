@@ -13,6 +13,7 @@ to one fixed-point PR superstep (`arg=0`). No board execution is admitted yet.
 | `control.cpp` | Thin offline/board CLI and explicit observations |
 | `model_tests.cpp` | Fixed-point overflow, publication capacity, guards and overlapping-event tests without XRT |
 | [`cc_min_label/`](cc_min_label/README.md) | Separate offline minimum-label CC UDF check; does not use the PR board host |
+| [`sssp_weighted/`](sssp_weighted/README.md) | Pinned compact-edge weighted Little adaptation and offline scatter/Dijkstra check |
 
 The host supports exactly two board geometries: generated A4 (4 Little,
 0 Big) and the reviewed example (11 Little, 3 Big). The Python board owner
