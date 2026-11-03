@@ -147,7 +147,7 @@ def run(args):
         if profile["config"]["static_edges"] != "390847":
             raise ValueError("unexpected initial edge count")
         clock = clocks.replay(row["clock_evidence"])
-        if clock["binary"] != image:
+        if clock["binary"] != expected["binary"]:
             raise ValueError("clock record does not describe the exact repaired image")
         comparison = compare(ref_runs, profile, ref_clock, clock)
         require_unthrottled((group / "memory.events").read_text())

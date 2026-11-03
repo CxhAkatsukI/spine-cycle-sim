@@ -110,8 +110,8 @@ these G receipts do not by themselves qualify a convergence comparison.
 
 | Algorithm | Route | G result directory | G service invocation |
 | --- | --- | --- | --- |
-| CC | `route-cc-v2` | `g-cc-board-v1` | `052e810e8b9a42fbb7bc1bbacaea9d07` |
-| Weighted SSSP | `route-sssp-v2` | `g-sssp-board-v1` | `504f9ae8932b4107b47c393c4914fc9a` |
+| CC | `route-cc-v2` | `g-cc-board-v2` | `4d2e1d78c0b145859f228c968e04f77f` |
+| Weighted SSSP | `route-sssp-v2` | `g-sssp-board-v2` | `d0f3d6da16f04df09f56215921611b6a` |
 
 Result directories are under
 `/data/chuxiao/checks/source-retention-repair-20261104/`. The entry point is
@@ -120,3 +120,44 @@ Both launchers are waiting for route completion at this checkpoint;
 neither has attempted to program the card. The exact archived reference
 log replays to 18,413,633 ns, and both algorithm hosts resolve the recorded
 public-control XRT library before any board request.
+
+Both `v1` G queues were stopped while their exact routes were still waiting
+for compiler memory, before either had attempted a board launch. Their
+reports remain in `g-{cc,sssp}-board-v1/`. The `v2` launchers compare the
+clock record to the expected clock-image identity (which includes byte
+size), rather than directly to the path/SHA-only route pin. No route or R
+screen was restarted and no measurement was repeated.
+
+## Joint Admission For CC And Weighted SSSP
+
+Before using an image in a resident comparison, replay both stage receipts
+with `source_retention.active_min_admission`. The R receipt is the
+`pair/results.json` inside the corresponding R queue directory. The tool
+replays the A4 and K4 raw events and published state against the offline
+Amazon oracle, and replays the AU update envelope and PMA check. It verifies
+the exact candidate image and native host from both commands and confirms
+the same driver clocks across the two candidate observations, even though
+the stage pairs used different PCI devices. A status label or successful
+link cannot replace either measured stage ratio.
+
+For CC, from the simulator worktree:
+
+```bash
+root=/data/chuxiao/checks/source-retention-repair-20261104
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.active_min_admission \
+  --algorithm cc \
+  --route /data/chuxiao/builds/gr-directory-spans-20261103/route-cc-v2 \
+  --host /data/chuxiao/checks/gr-active-min-candidate-20261104-v1/connected_components/sharded_k4_cc_native_host \
+  --r-report "$root/cc-active-pair-v1/pair/results.json" \
+  --r-inputs "$root/a4-active-amazon-v2/inputs" \
+  --g-report "$root/g-cc-board-v2/results.json" \
+  --g-reference "$root/g-reference-board-v1/results.json" \
+  --output "$root/cc-stage-admission.json"
+```
+
+Use `--algorithm weighted_sssp`, `route-sssp-v2`, the pinned weighted
+native host, `sssp-active-pair-v2/pair/results.json`, and
+`g-sssp-board-v2/results.json` for weighted SSSP. A successful receipt is
+explicitly `BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE`. A later comparison
+must still record its own bitstream, host, actual board clocks and
+old-state-to-updated-state correctness; this tool does not start that run.
