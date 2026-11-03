@@ -9,17 +9,21 @@ struct Observation {
   std::vector<Event> events;
 };
 
+enum class ApplyBuffer { pr_divisor, active_property };
+
 struct Device {
   Session session;
   std::vector<cl::Kernel> lanes;
   cl::Kernel wrapper, apply_kernel;
   std::vector<cl::Buffer> sources, outputs, edges;
-  cl::Buffer divisor;
+  cl::Buffer apply_buffer;
+  ApplyBuffer apply_binding;
 
-  Device(const std::filesystem::path& xclbin, unsigned index, const Model& model) :
+  Device(const std::filesystem::path& xclbin, unsigned index, const Model& model,
+         ApplyBuffer binding = ApplyBuffer::pr_divisor) :
       session(xclbin, index, board_lanes(model)),
       wrapper(session.kernel("kernelHBMWrapper:{kernelHBMWrapper_1}")),
-      apply_kernel(session.kernel("kernelApply:{kernelApply_1}")) {
+      apply_kernel(session.kernel("kernelApply:{kernelApply_1}")), apply_binding(binding) {
     for (unsigned lane = 0; lane < model.little + model.big; ++lane) {
       const bool big = lane >= model.little;
       const auto name = big ? "bigKernelScatterGather" : "littleKernelScatterGather";
@@ -28,7 +32,10 @@ struct Device {
       sources.push_back(session.buffer(2 * lane + 1, model.source(), CL_MEM_READ_ONLY));
       outputs.push_back(session.buffer(2 * lane + 1, model.output(), CL_MEM_READ_WRITE));
     }
-    divisor = session.buffer(30, model.divisor(), CL_MEM_READ_ONLY);
+    if (apply_binding == ApplyBuffer::active_property)
+      apply_buffer = session.buffer(30, model.source(), CL_MEM_READ_WRITE);
+    else
+      apply_buffer = session.buffer(30, model.divisor(), CL_MEM_READ_ONLY);
     for (unsigned ordinal = 0; ordinal < model.tasks.size(); ++ordinal)
       edges.push_back(session.buffer(2 * model.tasks[ordinal].kernel, model.edges(ordinal), CL_MEM_READ_ONLY));
   }
@@ -44,10 +51,10 @@ struct Device {
     checked(wrapper.setArg(argument++, model.sparse), "bind wrapper sparse count");
     result.events.push_back({"hbm_wrapper", 0, 0, {}});
     checked(session.wrapper.enqueueTask(wrapper, nullptr, &result.events.back().event), "enqueue HBM wrapper");
-    checked(apply_kernel.setArg(0, divisor), "bind apply divisor");
+    checked(apply_kernel.setArg(0, apply_buffer), "bind apply HBM input");
     checked(apply_kernel.setArg(1, model.dense), "bind apply dense count");
     checked(apply_kernel.setArg(2, model.sparse), "bind apply sparse count");
-    checked(apply_kernel.setArg(3, 0u), "bind one-superstep PR argument");
+    checked(apply_kernel.setArg(3, 0u), "bind one-superstep apply argument");
     result.events.push_back({"apply", 0, 0, {}});
     checked(session.apply.enqueueTask(apply_kernel, nullptr, &result.events.back().event), "enqueue apply");
     for (unsigned ordinal = 0; ordinal < model.tasks.size(); ++ordinal) {
@@ -76,7 +83,13 @@ struct Device {
       model.verify(session.read(sources[lane], model.allocation + guard_words), model.source(),
                    "resident source or source guard changed");
     }
-    model.verify(session.read(divisor, model.allocation + guard_words), model.divisor(), "divisor or guard changed");
+    const auto applied = session.read(apply_buffer, model.allocation + guard_words);
+    if (apply_binding == ApplyBuffer::active_property) {
+      model.verify(applied, model.expected, "apply vertex property or guard differs");
+      wt::write_words(output / "apply_property.u32le", applied);
+    } else {
+      model.verify(applied, model.divisor(), "divisor or guard changed");
+    }
     for (unsigned ordinal = 0; ordinal < edges.size(); ++ordinal) {
       const auto target = model.edges(ordinal);
       model.verify(session.read(edges[ordinal], target.size()), target, "resident task edge or guard changed");

@@ -1,8 +1,8 @@
 # Original ReGraph Board-Control Host
 
 This optional XRT host is separate from the simulator core and SST plugin.
-It keeps the original device code unchanged and provides a reviewable path
-to one fixed-point PR superstep (`arg=0`). No board execution is admitted yet.
+The fixed-point PR control keeps the original device code unchanged and runs
+one superstep (`arg=0`). The active-min controls require separate bitstreams.
 
 | File | Responsibility |
 | --- | --- |
@@ -14,6 +14,7 @@ to one fixed-point PR superstep (`arg=0`). No board execution is admitted yet.
 | `model_tests.cpp` | Fixed-point overflow, publication capacity, guards and overlapping-event tests without XRT |
 | [`cc_min_label/`](cc_min_label/README.md) | Separate offline minimum-label CC UDF check; does not use the PR board host |
 | [`sssp_weighted/`](sssp_weighted/README.md) | Pinned compact-edge weighted Little adaptation and offline scatter/Dijkstra check |
+| [`active_min/`](active_min/README.md) | Separate CC and weighted-SSSP input/host controls with guarded old-state Apply |
 
 The host supports exactly two board geometries: generated A4 (4 Little,
 0 Big) and the reviewed example (11 Little, 3 Big). The Python board owner
