@@ -15,6 +15,8 @@ from spine_cycle_sim.experiments.upstream_controls.execution import available_me
 from .concurrent import Lease
 from .containment import GIB, current, other_builds, verify
 
+MAX_ADMISSION_WAIT_SECONDS = 24 * 3600
+
 
 def environment(packet):
     lines = (packet / "compile_commands.sh").read_text().splitlines()
@@ -66,10 +68,12 @@ def unchanged(records):
 
 
 def execute(output, argv, effective, records, *, kind, binary=None, timeout=7200, admission_wait=0):
-    if type(admission_wait) is not int or not 0 <= admission_wait <= 21600:
-        raise ValueError("memory admission wait must be between zero and six hours")
+    if type(admission_wait) is not int or not 0 <= admission_wait <= MAX_ADMISSION_WAIT_SECONDS:
+        raise ValueError("memory admission wait must be between zero and 24 hours")
     output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREPARING", "kind": kind, "board_tested": False,
+              "admission_wait_seconds": admission_wait, "tool_timeout_seconds": timeout,
+              "tool_launch_requested": False,
               "policy": {"tree_memory_gib": 40, "reserve_gib": 32,
                          "background_memory_gib": 8, "allow_bounded_builds": True}}
     group = current()
@@ -82,13 +86,16 @@ def execute(output, argv, effective, records, *, kind, binary=None, timeout=7200
                 raise ValueError("component cgroup requires a whole-GiB hard limit")
             report["policy"]["tree_memory_gib"] = budget
         records = records + runner_pins()
-        deadline = time.monotonic() + admission_wait
+        queued_at = time.monotonic()
+        deadline = queued_at + admission_wait
         while True:
             report["admission"] = lease.sample(available_memory_bytes(), other_builds(),
                                                 report["policy"], commit=True)
+            now = time.monotonic()
+            report["admission_waited_seconds"] = now - queued_at
             if report["admission"]["admitted"]:
                 break
-            remaining = deadline - time.monotonic()
+            remaining = deadline - now
             if remaining <= 0:
                 raise RuntimeError("complete finite compiler budget plus reserve does not fit")
             report["status"] = "WAITING_FOR_COMPILER_MEMORY"
@@ -96,7 +103,7 @@ def execute(output, argv, effective, records, *, kind, binary=None, timeout=7200
             time.sleep(min(15, remaining))
         unchanged(records)
         atomic_write_json(output / "manifest.json", {"command": argv, "pins": records})
-        report["status"] = "RUNNING_" + kind
+        report.update(status="RUNNING_" + kind, tool_launch_requested=True)
         atomic_write_json(output / "execution.json", report)
         result = run_link(argv, output, output / "job", environment=effective,
                           timeout=timeout, tree_memory_gib=report["policy"]["tree_memory_gib"], reserve_gib=40)

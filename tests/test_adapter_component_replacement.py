@@ -4,10 +4,11 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
-from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.component import command
+from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import component
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.replacement import prepare
 
 
@@ -100,12 +101,61 @@ class AdapterReplacementTest(unittest.TestCase):
             binary = packet / "build/k.hw.xo"
             script.write_text(f"v++ --target hw --link -o {binary}\n")
             with self.assertRaisesRegex(ValueError, "component compile"):
-                command(packet, "k")
+                component.command(packet, "k")
             binary.parent.mkdir()
             binary.touch()
             script.write_text(f"v++ --target hw --compile -o {binary}\n")
             with self.assertRaisesRegex(ValueError, "fresh component"):
-                command(packet, "k")
+                component.command(packet, "k")
+
+    def test_memory_queue_can_exceed_six_hours_without_changing_link_watchdog(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "memory.events").touch()
+            binary = root / "candidate.hw.xclbin"
+            binary.touch()
+            with (patch.object(component, "current", return_value=root),
+                  patch.object(component, "verify", return_value={}),
+                  patch.object(component, "Lease") as lease,
+                  patch.object(component, "available_memory_bytes", return_value=1),
+                  patch.object(component, "other_builds", return_value=[]),
+                  patch.object(component, "runner_pins", return_value=[]),
+                  patch.object(component.time, "monotonic", side_effect=[0, 25200, 25215]),
+                  patch.object(component.time, "sleep") as sleep,
+                  patch.object(component, "run_link", return_value={
+                      "exit_code": 0, "stop_reason": "process_exit", "cleanup_snapshot_error": None}) as link):
+                lease.return_value.sample.side_effect = [{"admitted": False}, {"admitted": True}]
+                result = component.execute(root / "run", ["v++"], {}, [], kind="LINK", binary=binary,
+                                           timeout=21600, admission_wait=86400)
+                sleep.assert_called_once_with(15)
+                self.assertEqual(link.call_args.kwargs["timeout"], 21600)
+                self.assertEqual(link.call_args.kwargs["tree_memory_gib"], 40)
+                lease.return_value.release.assert_called_once()
+            self.assertEqual(result["admission_waited_seconds"], 25215)
+            self.assertTrue(result["tool_launch_requested"])
+
+    def test_memory_queue_expiry_retains_no_launch_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "memory.events").touch()
+            output = root / "run"
+            with (patch.object(component, "current", return_value=root),
+                  patch.object(component, "verify", return_value={}),
+                  patch.object(component, "Lease") as lease,
+                  patch.object(component, "available_memory_bytes", return_value=1),
+                  patch.object(component, "other_builds", return_value=[]),
+                  patch.object(component, "runner_pins", return_value=[]),
+                  patch.object(component.time, "monotonic", side_effect=[0, 86400]),
+                  patch.object(component, "run_link") as link):
+                lease.return_value.sample.return_value = {"admitted": False}
+                with self.assertRaisesRegex(RuntimeError, "compiler budget"):
+                    component.execute(output, ["v++"], {}, [], kind="LINK",
+                                      timeout=21600, admission_wait=86400)
+                link.assert_not_called()
+                lease.return_value.release.assert_called_once()
+            result = json.loads((output / "execution.json").read_text())
+            self.assertEqual(result["status"], "FAILED_RETAINED")
+            self.assertFalse(result["tool_launch_requested"])
 
 
 if __name__ == "__main__":
