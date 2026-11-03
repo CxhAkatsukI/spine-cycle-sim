@@ -16,6 +16,21 @@ The corresponding host/source/configuration pins are in each
 `/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/{sssp,cc,respr}-au/manifest.json`.
 These are actual hardware images, not the newer generalized emulation files.
 
+### Later Weighted SSSP Images
+
+`xclbinutil --info` distinguishes two later routed images under
+`/data/feiyang/spine-hls-weighted-builds/` from the October matrix image:
+
+| Path under the build root | Exported kernel interface |
+| --- | --- |
+| `weighted-emulation-20261010-v2/integrated/hw/xclbin/spine_integration.hw.xclbin` | Scatter, sorter, convergence reader/reorder and maintenance kernels |
+| `weighted-emulation-20261010-v3/partitioned/hw/xclbin/spine_partmaint.hw.xclbin` | `spine_partmaint_kernel` only |
+
+Neither exports the matrix host's `spine_vertex_lifecycle_kernel`,
+`spine_partconv_compute_kernel`, or `spine_partconv_rdmaint_kernel`. They
+cannot replace the production SSSP image without a different host and a new
+qualification of the resident-update boundary.
+
 ## Later CC Repair Candidate
 
 - Image: `/data/feiyang/spine-hls-cc-builds/cc-seele-import-20261016-v2/remote-build/output/spine_partitioned_split_e2e.cc_repair.hw.xclbin`.
