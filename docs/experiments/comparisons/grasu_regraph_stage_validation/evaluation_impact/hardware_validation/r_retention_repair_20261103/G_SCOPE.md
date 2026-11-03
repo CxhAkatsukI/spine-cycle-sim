@@ -93,6 +93,38 @@ and completed R report in a fresh cgroup with at most 8 GiB and no swap.
 The candidate's board result remains pending. Unchanged G XOs do not
 guarantee unchanged routed clocks or timings.
 
+### Strict ResPR Stage Replay
+
+The queued ResPR runners preserve per-arm clock evidence, but their original
+status labels do not require equality between reference and candidate
+clocks. Before promoting any queued resident result, replay the raw stages
+with `source_retention.respr_retention_audit`. It checks both R cases against
+the frozen public A4 image, input hashes and superstep profile, recomputes
+the device event envelopes, and requires the same driver clocks within each
+R pair and within the independent AU G pair. The G PMA oracle and raw event
+envelope must replay on the exact R-screened image and resident host.
+The candidate clock must also agree across the two R cases and G. A
+successful receipt is stage evidence, not a convergence comparison.
+
+```bash
+root=/data/chuxiao/checks/source-retention-repair-20261104
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.respr_retention_audit \
+  --r-board "$root/after-follow-v2/board-once/results.json" \
+  --frozen-r-board "$root/before-once/results.json" \
+  --route /data/chuxiao/builds/gr-directory-spans-20261103/route-respr-v1 \
+  --r-report "$root/after-follow-v2/results.json" \
+  --g-report "$root/g-candidate-board-v2/results.json" \
+  --g-reference "$root/g-reference-board-v1/results.json" \
+  --host /data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/hosts/respr/sharded_k4_residual_pagerank_native_host \
+  --output "$root/respr-directory-strict-audit.json"
+```
+
+For R-only replay, omit `--route`, `--r-report`, `--g-report`,
+`--g-reference` and `--host`. The pre-repair replay returned
+`R_NOT_ADMITTED`: 1.361358 vs. 0.461233 ms on skewed sources, and
+70.254409 vs. 10.365434 ms on Amazon. Those legacy receipts also lack
+per-arm clocks. No new board sample is launched by this audit.
+
 ## CC And Weighted SSSP Single-Run Screens
 
 The two adapter-repair images have separate update-only screens on the
