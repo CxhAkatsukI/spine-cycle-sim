@@ -61,8 +61,7 @@ requesting the board** because competing compiler cgroups did not have the
 required finite, zero-swap peer-budget evidence. Its own peak was 17,731,584
 bytes, with no throttling or OOM event. Available memory at that check was
 108,814,893,056 bytes; the rejection is not a claim that physical available
-memory was only a few GiB. The R route continues independently. The candidate
-therefore remains unqualified by this new runner, not a failed CC result.
+memory was only a few GiB. The R route continued independently.
 
 The third attempt uses the same 24/22-GiB policy, with bounded admission
 waiting instead of repeated manual launches. Service
@@ -73,4 +72,18 @@ It rechecks unchanged image/host/runner pins and the complete peer budgets
 every thirty seconds for at most six hours. Waiting requests neither the
 board nor a compiler reservation. Admission triggers exactly one canonical
 sample, not a timing matrix; expiration retains the rejection without
-weakening the policy. Its result is pending, not an admitted replacement.
+weakening the policy.
+
+The third attempt **passed** on U55C device 0 (`0000:82:00.1`). The
+[raw evidence archive](spine-cc-candidate-once-v3.tar.gz) includes
+`results.json` and `spine_cc.stdout.txt`: eleven distinct 12-vertex update
+batches, each with checked graph, final labels, and propagation work. Its
+`spine_cc.clock.json` matches the resident UUID
+`ea373f8d-0b1a-633b-e27b-aaa7a3690c3a` and records a 150 MHz compute clock.
+Cgroup peak was 9,005,404,160 bytes (8.39 GiB); memory events were all zero.
+
+This is a correctness and clock check, not a Fig. 7 replacement. The
+candidate uses a different host ABI and its reported convergence timer
+excludes the final audit/readback. A paired large-graph test must first
+match the workload and observable timing boundary; the fixture timings
+cannot be divided by any old G+R measurements.
