@@ -73,6 +73,22 @@ Each accepts `--help`; the board runner requires a cgroup limit of at
 most 8 GiB with zero swap. Local uncompressed evidence:
 `/data/chuxiao/checks/source-retention-repair-20261104/g-reference-board-v1/`.
 
-The integrated ResPR arm remains pending. Its final comparison needs the
-accepted routed image: unchanged G XOs do not guarantee unchanged routed
-clocks or timings.
+### Candidate Readiness
+
+The pinned production ResPR host passes offline preparation on the same
+AU input (515,281 vertices, 390,847 initial edges, 131,072 logical and
+physical updates, eight shards, and 2,245,472 logical PMA slots). The
+candidate runner uses that host's `--update-only` path on the exact image
+from the completed R screen. It validates all ten CU events per shard and
+checks the elapsed window against the host's reported total. The raw logs
+also permit reporting busy time separately. A completed R performance
+failure still permits this independent G diagnostic; it cannot admit the
+combined baseline. The runner does not program the old image while
+waiting or run an untimed warmup.
+
+Reproduction entry point:
+`python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidate_board --help`.
+Use the frozen reference result, native host build directory, exact route,
+and completed R report in a fresh cgroup with at most 8 GiB and no swap.
+The candidate's board result remains pending. Unchanged G XOs do not
+guarantee unchanged routed clocks or timings.
