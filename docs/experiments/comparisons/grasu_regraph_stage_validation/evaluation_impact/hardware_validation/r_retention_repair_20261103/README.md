@@ -14,8 +14,10 @@ packages. Simulator near-parity is not FPGA performance admission.
    on every declared supported control. Record unsupported cases explicitly.
    The initial controls are skewed-source and full Amazon. The duplicate-edge
    boundary-ring input remains unsupported, not silently deduplicated.
-4. Retain independent G admission. The previous four AU G controls pass;
-   invalidate that admission if G's implementation or boundary changes.
+4. Verify G independently for the exact integrated image. The four earlier
+   AU controls cover the weighted-SSSP image only; see
+   [G evidence and pending checks](G_SCOPE.md) for the different CC and ResPR
+   update kernels. An R-only pass does not admit either of those G paths.
 5. Inventory Spine artifacts under `/data/feiyang`, verifying source, ABI,
    correctness and measured clocks rather than selecting by filename/mtime.
 6. Compare validated G+R and Spine from the same old-graph converged state,
@@ -78,7 +80,7 @@ outside both arms. Full correctness and timestamp-envelope replay pass.
 
 The earlier 3.69x/12.77x values use three warm repetitions. They remain in
 the earlier package, but must not be spliced into this single-run comparison
-or interpreted as evidence that a kernel became faster. Independent G rows
+or interpreted as evidence that a kernel became faster. The SSSP-only G rows
 are replayed from that frozen campaign, not remeasured or averaged again.
 
 The repair-before checkpoint did not capture per-run driver clocks. It is

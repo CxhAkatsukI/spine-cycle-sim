@@ -66,9 +66,9 @@ Resource evidence is the frozen original control's
 - Actual image UUID and driver clocks must accompany each new timing. Raw
   elapsed time is not silently normalized to the requested clock. Different
   measured frequencies remain visible in the evidence.
-- Independent G rows use the earlier frozen four-control campaign, whose
-  per-run driver clocks were not captured. Their state/timestamp checks and
-  recorded ratios remain evidence, not a newly clock-qualified G campaign.
+- Independent G rows use the earlier frozen weighted-SSSP four-control
+  campaign, whose per-run driver clocks were not captured. They do not
+  certify the CC or ResPR images; see [G scope](G_SCOPE.md).
 - Passing the repaired ResPR screen does not admit unbuilt SSSP/CC images.
   Algorithm-specific functional gates, routed images and convergence tests
   are still required before replacing their evaluation data.
