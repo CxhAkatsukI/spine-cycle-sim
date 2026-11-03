@@ -156,6 +156,34 @@ The separately owned `directory_tile.hardware.component` and
 verify finite RTL/synthesis and ABI compatibility, and replace only the
 adapter. Their exact invocation is recorded in each execution manifest.
 
+### Timeout Recovery
+
+The preceding production ResPR link took 5 h 49 min even with a seeded
+IP cache. The active repair link still uses its original six-hour deadline.
+If it ends specifically with a logged watchdog timeout and verified worker
+cleanup, prepare a separate attempt with the same link command (except output
+paths) and a twelve-hour deadline:
+
+```bash
+python3 -m spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.cached_retry \
+  --previous /data/chuxiao/builds/gr-directory-spans-20261103/route-respr-v1 \
+  --output /data/chuxiao/builds/gr-directory-spans-20261103/route-respr-cached-v2 \
+  --unit gr-directory-spans-route-20261104.service \
+  --invocation 84845edf6b294efb8f856df572d2a341
+```
+
+Execute with the same module's `--output ... --execute` inside a fresh service
+with the same 40/36-GiB hard/high limits and zero swap, and a service runtime
+above twelve hours. Full memory admission and the live-memory watchdog remain
+unchanged. Cache entries are independently copied and hashed before execution;
+Vivado still selects entries using its own fingerprints. A successful original
+attempt, an active build, a memory stop, or an unexplained failure does not
+qualify for this retry. Point the R screen to the retry's own invocation and
+start it after the retry enters its final six hours; the screen still admits
+at most one measurement per control arm.
+
+### Board Screening
+
 The bounded continuation below waits for the exact route service invocation,
 checks the completed image and its source pins, then screens the same two
 supported controls once per arm. It captures driver clocks and writes a
