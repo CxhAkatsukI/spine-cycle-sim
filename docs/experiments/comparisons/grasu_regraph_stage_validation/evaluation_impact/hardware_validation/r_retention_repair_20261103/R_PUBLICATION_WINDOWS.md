@@ -61,6 +61,14 @@ is **not** a matched A4 control. Its embedded link metadata has
 The old PR control and this SSSP image do not establish four-Little
 retention for weighted SSSP or for minimum-label CC.
 
+The frozen public A4 source packet contains `bfs`, `cc`, and `pr`
+UDFs, but no weighted-SSSP UDF. Its `acc_udfs/cc/l2.h` combines
+messages and old state with bitwise OR; the integrated minimum-label CC
+instead compares candidate labels. An algorithm-matched SSSP/CC control
+would keep the public four-Little topology and dataflow, with a declared
+algorithm-UDF adaptation and an independent exact-output oracle. Label
+it as a same-resource adaptation, not as an unchanged upstream image.
+
 ## Replay
 
 Set `evidence` to this document's directory and run from the simulator root:
