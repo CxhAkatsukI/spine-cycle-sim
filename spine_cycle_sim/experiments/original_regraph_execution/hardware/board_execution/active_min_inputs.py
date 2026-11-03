@@ -44,13 +44,14 @@ def read_geometry(directory):
     return vertices, edges, aligned, desc
 
 
-def csr_overlay(directory, vertices, edges):
+def csr_overlay(directory, vertices, edges, frontier):
     offsets = oracle.read_words(directory / "csr_offsets.u32le", vertices + 1)
     targets = oracle.read_words(directory / "csr_destinations.u32le", edges)
     if offsets[0] or offsets[-1] != edges:
         raise ValueError("invalid CSR endpoints")
     weights = array("I")
     seed, best, sssp_changes = None, 0, 0
+    reached = bytearray(vertices) if frontier == "odd-vertices" else None
     for source in range(vertices):
         begin, end = offsets[source], offsets[source + 1]
         if not begin <= end <= edges:
@@ -59,11 +60,20 @@ def csr_overlay(directory, vertices, edges):
         if len(row) != len(set(row)) or any(target >= vertices for target in row):
             raise ValueError("duplicate edge or invalid destination in CSR")
         weights.extend(weight(source, target) for target in row)
+        if reached is not None:
+            if source % 2:
+                for target in row:
+                    if target % 2 == 0:
+                        reached[target] = 1
+            continue
         improvements = sum(target not in (0, source) for target in row)
         if improvements > best:
             seed, best = source, improvements
             sssp_changes = sum(target != source for target in row)
-    if seed is None:
+    if reached is not None:
+        sssp_changes = sum(reached)
+        best = sssp_changes - reached[0]
+    if not best or not sssp_changes:
         raise ValueError("fixture would not exercise strict improvement in both policies")
     return seed, {"cc": best, "weighted_sssp": sssp_changes}, weights
 
@@ -95,10 +105,12 @@ def task_overlay(directory, vertices, edges, desc):
     return words
 
 
-def prepare(source, host, output):
+def prepare(source, host, output, *, frontier="single-source"):
+    if frontier not in ("single-source", "odd-vertices"):
+        raise ValueError("unknown active-min frontier")
     output.mkdir(parents=True, exist_ok=False)
     try:
-        report = _prepare(source, host, output)
+        report = _prepare(source, host, output, frontier)
     except Exception as error:
         save(output / "manifest.json", {"status": "FAILED_RETAINED", "error": repr(error),
                                        "hardware_timing_measured": False})
@@ -107,7 +119,7 @@ def prepare(source, host, output):
     return report
 
 
-def _prepare(source, host, output):
+def _prepare(source, host, output, frontier):
     names = tuple(f"{name}.u32le" for name in active_min.INPUTS)
     pins = [artifact.identity(host), *(artifact.identity(source / name) for name in names)]
     directory = output / "inputs"
@@ -118,12 +130,14 @@ def _prepare(source, host, output):
         if artifact.identity(copy)["sha256"] != pin["sha256"]:
             raise ValueError("copied author capture differs from source identity")
     vertices, edges, aligned, desc = read_geometry(directory)
-    seed, changes_by_algorithm, weights = csr_overlay(directory, vertices, edges)
+    seed, changes_by_algorithm, weights = csr_overlay(directory, vertices, edges, frontier)
     write_words(directory / "sssp_weights.u32le", weights)
     write_words(directory / "sssp_tasks.u32le", task_overlay(directory, vertices, edges, desc))
     cc = array("I", range(vertices)) + array("I", [0]) * (aligned - vertices)
     sssp = array("I", [INFINITY]) * vertices + array("I", [0]) * (aligned - vertices)
-    cc[seed] = sssp[seed] = ACTIVE
+    active_vertices = range(1, vertices, 2) if seed is None else (seed,)
+    for vertex in active_vertices:
+        cc[vertex] = sssp[vertex] = ACTIVE
     write_words(directory / "cc_initial.u32le", cc)
     write_words(directory / "sssp_initial.u32le", sssp)
     inputs = sorted(directory.glob("*.u32le"))
@@ -145,7 +159,8 @@ def _prepare(source, host, output):
                              "improved_vertices": changes}
     unchanged(pins + input_pins)
     return {"status": "ACTIVE_MIN_COMPONENT_INPUTS_OFFLINE_PASS", "source_pins": pins,
-            "input_pins": input_pins, "audits": audits, "seed": seed, "initial_active_vertices": 1,
+            "input_pins": input_pins, "audits": audits, "seed": seed, "frontier": frontier,
+            "initial_active_vertices": len(active_vertices),
             "weight_rule": "1 + ((31 * source + 17 * destination) & 15)",
             "scope": "synthetic resident active state on frozen graph; one superstep, not convergence",
             "hardware_timing_measured": False, "performance_retention_measured": False}
@@ -155,5 +170,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("source", "host", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--frontier", choices=("single-source", "odd-vertices"), default="single-source")
     args = parser.parse_args()
-    print(prepare(args.source.resolve(), args.host.absolute(), args.output.resolve())["status"], flush=True)
+    print(prepare(args.source.resolve(), args.host.absolute(), args.output.resolve(),
+                  frontier=args.frontier)["status"], flush=True)

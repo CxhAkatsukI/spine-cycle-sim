@@ -403,6 +403,31 @@ both CC and weighted SSSP. The paired runner checks the resolved library digest
 before queueing and again under the board lease. This is a preflight, not a
 measured R retention result.
 
+#### High-Activity Amazon Control
+
+The single-source fixture has only ten improved vertices. Before seeing any
+new FPGA timing, a second fixture was frozen on the same author A4 task
+layout and CSR. It starts all odd external vertex IDs active at value zero;
+inactive CC vertices start at their own labels, and inactive SSSP vertices at
+infinity. Graph layout, SSSP weight rule, publication extent, and one-superstep
+boundary stay fixed. It tests high activity, not convergence or another dataset.
+
+Generate it with `active_min_inputs --frontier odd-vertices`. The local
+receipt is `a4-active-amazon-odd-v1/manifest.json` under the board queue root
+above (SHA-256
+`81e9430421d52acf665a507f808a7f467f745818f491aa7dc1fc605ae95e9add`).
+It records 367,662 active sources on 735,324 vertices and 5,158,388 edges.
+The author control and native K4 offline replay agree bit-for-bit across all
+786,432 published words, including padding; the author output has an
+additional 16-word guard. CC and weighted SSSP improve 315,862 and 315,863
+vertices, respectively. Native outputs are retained in
+`a4-active-amazon-odd-v1/{cc,weighted_sssp}-native/expected.u32le`.
+
+After the primary screens, use the same routed image pair per algorithm and
+run each arm once, with the same output, clock, and at-most-1.15 latency-ratio
+gates. Do not schedule competing pairs on the same board. This fixture has
+offline correctness evidence only; it is not a performance result.
+
 ## Remaining Gates
 
 Goal active: complete the route, check actual clocks and measure the new

@@ -29,7 +29,7 @@ class ActiveMinFixtureTests(unittest.TestCase):
         path.unlink(missing_ok=True)
         fixtures.write_words(path, array("I", words))
 
-    def offline(self, host, algorithm, inputs, output):
+    def offline(self, host, algorithm, inputs, output, *, dense=False):
         self.assertEqual(host, self.host)
         self.assertEqual((inputs / "tasks.u32le").read_bytes(), (self.source / "tasks.u32le").read_bytes())
         task = oracle.read_words(inputs / "sssp_tasks.u32le", 16)
@@ -37,14 +37,15 @@ class ActiveMinFixtureTests(unittest.TestCase):
                                       *([1, fixtures.PADDING] * 5)])
         expected, initial = output / "expected", output / "result"
         active = fixtures.ACTIVE
+        last = active if dense else 3
         if algorithm == "cc":
-            self.assertEqual(list(oracle.read_words(inputs / "cc_initial.u32le", 65536)[:4]), [0, active, 2, 3])
-            words = [0, 0, active, active]
+            self.assertEqual(list(oracle.read_words(inputs / "cc_initial.u32le", 65536)[:4]), [0, active, 2, last])
+            words = [0, 0, active, 0 if dense else active]
         else:
             self.assertEqual(list(oracle.read_words(inputs / "sssp_weights.u32le", 3)), [16, 2, 3])
             self.assertEqual(list(oracle.read_words(inputs / "sssp_initial.u32le", 65536)[:4]),
-                             [fixtures.INFINITY, active, fixtures.INFINITY, fixtures.INFINITY])
-            words = [active | 16, 0, active | 2, active | 3]
+                             [fixtures.INFINITY, active, fixtures.INFINITY, active if dense else fixtures.INFINITY])
+            words = [active | 16, 0, active | 2, 0 if dense else active | 3]
         fixtures.write_words(expected, array("I", words + [0] * (65536 - 4) + list(fixtures.GUARD)))
         initial.touch()
         return {"vertices": 4, "logical_edges": 3, "tasks": 1}, artifact.identity(expected), artifact.identity(initial)
@@ -57,6 +58,18 @@ class ActiveMinFixtureTests(unittest.TestCase):
         self.assertEqual(report["audits"]["cc"]["improved_vertices"], 2)
         self.assertEqual(report["audits"]["weighted_sssp"]["improved_vertices"], 3)
         self.assertFalse(report["hardware_timing_measured"])
+
+    def test_odd_vertex_frontier_does_not_count_already_optimal_targets(self):
+        def offline(*args):
+            return self.offline(*args, dense=True)
+
+        with patch.object(fixtures.active_min, "read_offline", side_effect=offline):
+            report = fixtures.prepare(self.source, self.host, self.root / "dense", frontier="odd-vertices")
+        self.assertIsNone(report["seed"])
+        self.assertEqual(report["frontier"], "odd-vertices")
+        self.assertEqual(report["initial_active_vertices"], 2)
+        self.assertEqual(report["audits"]["cc"]["improved_vertices"], 1)
+        self.assertEqual(report["audits"]["weighted_sssp"]["improved_vertices"], 2)
 
     def test_rejects_duplicate_edges_and_incomplete_publication(self):
         self.write("csr_destinations", [0, 2, 2])
