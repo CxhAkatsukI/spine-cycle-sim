@@ -174,9 +174,12 @@ The A4-only 16-word overrun guard is validated separately. The four existing
 native-host preprocessing checks also pass. The candidate outputs are in
 `/data/chuxiao/checks/gr-active-min-candidate-20261104-v1/`.
 
-The new host has not run on a board. Corresponding routed images and paired
-board admission are still needed; neither the offline agreement nor the
-older PR probe establishes CC or weighted-SSSP latency retention.
+The new host has not run on a board. The [paired runner](../../../../../../../spine_cycle_sim/experiments/original_regraph_execution/hardware/board_execution/README.md#active-min-a4-and-sharded-k4-pair)
+is ready to run one reference and one candidate on a single leased U55C. It
+checks the published states and matching driver clocks and retains the raw
+kernel timestamps and the 1.15x acceptance result. Corresponding routed
+images and paired measurements are still needed; neither the offline agreement
+nor the older PR probe establishes CC or weighted-SSSP latency retention.
 
 The full link has a 40-GiB hard limit, 36-GiB high watermark and a six-hour
 timeout. Each SSSP/CC component service has an 8-GiB limit and 7-GiB high

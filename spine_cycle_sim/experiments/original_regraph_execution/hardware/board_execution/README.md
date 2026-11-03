@@ -226,3 +226,34 @@ deterministic weights in both the CSR and original task layout. The XRT host
 in offline mode independently verifies the task edge multiset against the
 CSR and saves the expected output and its hash. These are declared synthetic
 active states on the frozen graphs, not old-converged dynamic-update results.
+
+## Active-min A4 and Sharded-K4 Pair
+
+For a single R-only retention point, use the `active_min_pair` entry point
+instead of running the reference alone. It uses the same inputs and exact
+offline oracle for both arms. The candidate is the routed weighted or
+destination directory-span repair, with the integrated host's
+`--active-min-once` mode and no G work. Provide each algorithm's own route and
+Release host. This keeps the board lease across both arms and performs no
+automatic repeats.
+
+```sh
+systemd-run --user --wait --pipe --collect --working-directory="$PWD" \
+  -p MemoryMax=8G -p MemoryHigh=7G -p MemorySwapMax=0 \
+  -p OOMPolicy=kill -p RuntimeMaxSec=900 \
+  python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution.active_min_pair \
+  --reference-route "$A4_ROUTE" --reference-host "$ACTIVE_MIN_HOST" \
+  --candidate-route "$K4_ROUTE" --candidate-host "$K4_HOST" \
+  --inputs "$FRESH_FIXTURE/inputs" --output "$FRESH_PAIR" \
+  --algorithm cc --device 1 --bdf 0000:c1:00.1
+```
+
+The verifier checks published state against the oracle, not just exit status.
+`results.json` records the original timestamps and identities, both driver
+clock observations, and the candidate/reference elapsed span ratio. The span
+runs from the first profiled R kernel start to the last profiled completion.
+It includes gaps inside that interval without counting overlaps twice; it does
+not include DMA, G, or host time outside that interval. The gate requires
+matching driver clocks and a candidate span no greater than 115% of the
+reference. A failure is retained. A passing point covers only that fixture and
+algorithm; it does not establish G retention or full dynamic convergence.
