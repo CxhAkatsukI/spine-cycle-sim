@@ -17,12 +17,16 @@ from ..source_retention.runtime import check_memory, execute, lease, save
 from . import active_min, active_min_candidate, admission, pair_resources
 
 
+RETURN_ARGUMENTS = ("SHA256", "CAPSULE", "XPFM", "PREDECESSOR")
+ROUTE_MODES = {"cc": "destination", "weighted_sssp": "weighted"}
+
+
 def candidate_route(route, algorithm):
     paths = [route / name for name in ("manifest.json", "execution/manifest.json", "execution/execution.json")]
     pins = [artifact.identity(path) for path in paths]
     plan, executed, result = [json.loads(path.read_text()) for path in paths]
     image = artifact.identity(route / "candidate.hw.xclbin")
-    mode = {"cc": "destination", "weighted_sssp": "weighted"}[algorithm]
+    mode = ROUTE_MODES[algorithm]
     resources = result["resources"]
     if (plan["mode"] != mode or plan["clock_mhz"] != 150 or plan["board_tested"] is not False
             or result["status"] != "LINK_PASS_AWAITING_TIMING_AND_BOARD" or result["xclbin"] != image
@@ -32,6 +36,34 @@ def candidate_route(route, algorithm):
             or any(pin not in executed["pins"] for pin in [pins[0], *plan["pins"]])):
         raise ValueError("candidate needs the exact completed active-min adapter repair link")
     pins.extend([image, *executed["pins"]])
+    unchanged(pins)
+    return image, pins
+
+
+def returned_route(route, algorithm, parameters, output):
+    digest, capsule, platform, predecessor = parameters
+    image, pins = replacement_return.active_min(route, Path(capsule), Path(platform), digest,
+                                               Path(predecessor), output, mode=ROUTE_MODES[algorithm])
+    proof = artifact.identity(output / "summary.json")
+    return image, [*pins, proof], {"directory": str(route), "parameters": list(parameters), "proof": proof}
+
+
+def replay_returned_route(route, algorithm, record, evidence_directory):
+    if record["directory"] != str(route):
+        raise ValueError("returned route differs from the exact R board receipt")
+    digest, capsule, platform, predecessor = record["parameters"]
+    _, parent, pins = replacement_return.verify(route, Path(capsule), Path(platform), digest)
+    proof = artifact.identity(evidence_directory / "candidate_admission/summary.json")
+    image = artifact.identity(route / "route/candidate.hw.xclbin")
+    pins.append(artifact.identity(Path(predecessor)))
+    checked = json.loads(Path(proof["path"]).read_text())
+    timing = artifact.identity(route / "route/timing.rpt")
+    if (proof != record["proof"] or parent.get("mode") != ROUTE_MODES[algorithm]
+            or checked.get("status") != "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD"
+            or checked.get("candidate") != image or checked.get("pins") != pins
+            or checked["timing"]["report"] != timing):
+        raise ValueError("returned candidate link, mode or topology admission changed")
+    pins += [image, proof, timing]
     unchanged(pins)
     return image, pins
 
@@ -81,10 +113,8 @@ def run(args):
             raise ValueError("inherited board or candidate runtime override is forbidden")
         returned = getattr(args, "returned_candidate", None)
         if returned:
-            digest, capsule, platform, predecessor = returned
-            mode = {"cc": "destination", "weighted_sssp": "weighted"}[args.algorithm]
-            image, pins = replacement_return.active_min(args.candidate_route, Path(capsule), Path(platform),
-                digest, Path(predecessor), output / "candidate_admission", mode=mode)
+            image, pins, report["returned_candidate"] = returned_route(
+                args.candidate_route, args.algorithm, returned, output / "candidate_admission")
         else:
             image, pins = candidate_route(args.candidate_route, args.algorithm)
         report["preflight_xrt_libraries"] = paired_loader(args.reference_host, args.candidate_host)
@@ -170,7 +200,7 @@ def parse_arguments(argv=None, extend=None):
     parser.add_argument("--algorithm", choices=active_min.ALGORITHMS, required=True)
     parser.add_argument("--device", type=int, choices=(0, 1), required=True)
     parser.add_argument("--bdf", required=True)
-    parser.add_argument("--returned-candidate", nargs=4, metavar=("SHA256", "CAPSULE", "XPFM", "PREDECESSOR"),
+    parser.add_argument("--returned-candidate", nargs=4, metavar=RETURN_ARGUMENTS,
                         help="treat --candidate-route as a verified remote return instead of a local build")
     parser.add_argument("--returned-reference", nargs=2, metavar=("SHA256", "CAPSULE"),
                         help="treat --reference-route as a verified remote public A4 CC return")

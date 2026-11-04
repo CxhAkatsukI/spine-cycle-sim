@@ -11,6 +11,25 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execu
 
 
 class ActiveMinQueueTests(unittest.TestCase):
+    def test_public_cc_return_requires_verified_collector_pin(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            route = root / "returned"
+            route.mkdir()
+            image = route / active_min_follow.portable_return.BINARY
+            image.write_bytes(b"public cc")
+            transfer = root / "transfer.json"
+            invocation, digest = "1" * 32, "a" * 64
+            service = dict(LoadState="loaded", InvocationID=invocation, ActiveState="active",
+                           SubState="exited", MainPID="0", Result="success", ExecMainStatus="0")
+            transfer.write_text(json.dumps(dict(status=active_min_follow.portable_return.STATUS,
+                                                receipt_sha256=digest, pins=[artifact.identity(image)])))
+            self.assertEqual(active_min_follow.returned_ready("reference", route, digest, service, invocation, True),
+                             artifact.identity(transfer))
+            image.write_bytes(b"substituted public cc")
+            with self.assertRaisesRegex(ValueError, "verified collector receipt"):
+                active_min_follow.returned_ready("reference", route, digest, service, invocation, True)
+
     def test_dependency_requires_exact_invocation_and_terminal_receipt(self):
         with TemporaryDirectory() as tmp:
             receipt = Path(tmp) / "queue.json"

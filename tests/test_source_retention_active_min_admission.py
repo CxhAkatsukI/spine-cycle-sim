@@ -33,13 +33,13 @@ class ActiveMinJointAdmissionTests(unittest.TestCase):
 
     def test_joint_admission_requires_same_image_host_and_clocks(self):
         host = gate.identity(self.host)
-        stage_report = gate.identity(self.report("stage.json", {}))
-        decision = {"report": stage_report, "candidate_clock": {"driver_reported_mhz": [150, 500, 450, 0]}}
+        r_report = self.report("r.json", dict(status="PAIRED_ACTIVE_MIN_R_GATE_PASS", algorithm="cc"))
+        decision = {"report": gate.identity(r_report), "candidate_clock": {"driver_reported_mhz": [150, 500, 450, 0]}}
         with patch.dict(gate.g_control.HOST_SHA256, {"cc": host["sha256"]}), \
                 patch.object(gate.active_min_pair, "candidate_route", return_value=(gate.artifact.identity(self.image), [])), \
                 patch.object(gate, "replay_r", return_value=decision) as r, \
-                patch.object(gate, "replay_g", return_value={**decision, "reference": stage_report}) as g:
-            args = ("cc", self.root, self.host, self.root / "r.json", self.inputs,
+                patch.object(gate, "replay_g", return_value={**decision, "reference": gate.identity(r_report)}) as g:
+            args = ("cc", self.root, self.host, r_report, self.inputs,
                     self.root / "g.json", self.root / "public-g.json")
             admitted = gate.admit(*args)
             self.assertEqual(admitted["status"], "BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE")
@@ -51,6 +51,55 @@ class ActiveMinJointAdmissionTests(unittest.TestCase):
             self.host.write_text("different host")
             with self.assertRaisesRegex(ValueError, "exact CC/SSSP native host"):
                 gate.admit(*args)
+
+    def test_returned_route_replay_binds_exact_topology_proof(self):
+        pair = gate.active_min_pair
+        route = self.root / "returned"
+        (route / "route").mkdir(parents=True)
+        self.image = self.make("returned/route/candidate.hw.xclbin", "verified binary")
+        predecessor = self.make("predecessor", "original image")
+        timing = self.make("returned/route/timing.rpt", "routed timing")
+        capsule = self.make("capsule.json", "build inputs")
+        pins = [gate.artifact.identity(capsule)]
+        parameters = ["a" * 64, str(capsule.parent), "/platform", str(predecessor)]
+        (self.root / "candidate_admission").mkdir()
+        proof = self.report("candidate_admission/summary.json", {
+            "status": "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD",
+            "candidate": gate.artifact.identity(self.image),
+            "timing": {"report": gate.artifact.identity(timing)},
+            "pins": [*pins, gate.artifact.identity(predecessor)],
+        })
+        record = {"directory": str(route), "parameters": parameters, "proof": gate.artifact.identity(proof)}
+        with patch.object(pair.replacement_return, "verify",
+                          side_effect=lambda *_: ({}, {"mode": "destination"}, list(pins))):
+            image, replayed = pair.replay_returned_route(route, "cc", record, self.root)
+            self.assertEqual(image, gate.artifact.identity(self.image))
+            self.assertIn(record["proof"], replayed)
+            with self.assertRaisesRegex(ValueError, "exact R board receipt"):
+                pair.replay_returned_route(self.root, "cc", record, self.root)
+            with self.assertRaisesRegex(ValueError, "mode or topology"):
+                pair.replay_returned_route(route, "weighted_sssp", record, self.root)
+            proof.write_text(proof.read_text() + "\n")
+            with self.assertRaisesRegex(ValueError, "mode or topology"):
+                pair.replay_returned_route(route, "cc", record, self.root)
+
+    def test_g_remote_ready_requires_matching_collector_and_image(self):
+        route = self.root / "returned"
+        (route / "route").mkdir(parents=True)
+        image = self.make("returned/route/candidate.hw.xclbin", "verified binary")
+        service = dict(LoadState="loaded", InvocationID="b" * 32, ActiveState="active", SubState="exited",
+                       Result="success", MainPID="0", ExecMainStatus="0")
+        digest = "a" * 64
+        transfer = self.report("transfer.json", dict(status="REMOTE_REPLACEMENT_LINK_VERIFIED_NOT_BOARD_EVIDENCE",
+                                                    receipt_sha256=digest, candidate=gate.artifact.identity(image)))
+        ready = gate.g_control.active_min_follow.returned_ready
+        self.assertEqual(ready("candidate", route, digest, service, service["InvocationID"], True),
+                         gate.artifact.identity(transfer))
+        with self.assertRaisesRegex(ValueError, "invocation changed"):
+            ready("candidate", route, digest, service, "c" * 32, True)
+        image.write_text("different image")
+        with self.assertRaisesRegex(ValueError, "verified collector receipt"):
+            ready("candidate", route, digest, service, service["InvocationID"], True)
 
     def test_g_replay_rejects_image_mismatch_or_stale_raw_log(self):
         host, image = gate.identity(self.host), gate.identity(self.image)

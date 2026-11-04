@@ -99,18 +99,28 @@ def run(args):
         if libraries.get(ref_xrt["path"]) != ref_xrt["sha256"]:
             raise ValueError("G hosts must resolve the recorded public control XRT library")
         report["xrt_libraries"] = libraries
-        pins = [host, reference, graph, ref_host, identity(__file__),
-                identity(args.route / "manifest.json"), *runner_pins()]
+        pins = [host, reference, graph, ref_host, identity(__file__), *runner_pins()]
+        returned = getattr(args, "returned_candidate", None)
+        if not returned:
+            pins.append(identity(args.route / "manifest.json"))
         deadline, observed = time.monotonic() + args.wait_seconds, False
         while True:
             state = service_state(args.unit)
             observed |= state["LoadState"] == "loaded" and state["InvocationID"] == args.invocation
             report.update(status="WAITING_FOR_ROUTE", route_state=state, pins=pins)
             save(result, report)
-            if active_min_follow.ready("candidate", args.route, state, args.invocation, observed, args.algorithm):
+            if returned:
+                transfer = active_min_follow.returned_ready(
+                    "candidate", args.route, returned[0], state, args.invocation, observed)
+                if transfer:
+                    pins.append(transfer)
+                    image, route_pins, report["returned_candidate"] = active_min_pair.returned_route(
+                        args.route, args.algorithm, returned, args.output / "candidate_admission")
+                    break
+            elif active_min_follow.ready("candidate", args.route, state, args.invocation, observed, args.algorithm):
+                image, route_pins = active_min_pair.candidate_route(args.route, args.algorithm)
                 break
             poll_until(deadline)
-        image, route_pins = active_min_pair.candidate_route(args.route, args.algorithm)
         pins.extend(route_pins)
         unchanged(pins)
         expected = clocks.image(image["path"], args.output, "candidate")
@@ -174,6 +184,8 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--algorithm", choices=HOST_SHA256, required=True)
     parser.add_argument("--wait-seconds", type=int, default=108000)
+    parser.add_argument("--returned-candidate", nargs=4, metavar=active_min_pair.RETURN_ARGUMENTS,
+                        help="verify --route from the pinned local collector instead of a local build")
     result = run(parser.parse_args())
     print(result["status"], flush=True)
     raise SystemExit(0 if result["comparison"]["retention_gate_pass"] else 1)

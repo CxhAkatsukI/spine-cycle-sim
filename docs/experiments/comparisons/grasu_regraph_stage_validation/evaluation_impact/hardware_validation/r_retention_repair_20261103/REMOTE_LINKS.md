@@ -46,7 +46,32 @@ same U55C, and a resident device event-span ratio no greater than 1.15.
 The active-min probe is not a convergence result. The ResPR tail path has
 a different ABI; do not send it to that active-min runner.
 
+The waiting runner, `board_execution.active_min_follow`, also accepts the
+returned candidate and reference flags. For each returned arm, the
+`--*-unit` and `--*-invocation` identify the local collector, not the
+remote compile unit. It checks the completed collector receipt before
+requesting one board pair. Rebind a queued test to a returned image only
+before either arm has been requested, and keep the earlier queue receipt.
+
+The independent G runner,
+`spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.active_min_candidate`,
+accepts the same `--returned-candidate` arguments. Set `--route` to the
+returned directory and pin the local collector with `--unit` and
+`--invocation`. The SSSP and CC resident and matrix runners take that same
+`--route`, then replay the verified returned-image provenance from R and
+require the G receipt to refer to that exact image.
+
 No Figure 7--11 replacement or reuse decision is based on these link jobs.
+
+## Public A4 Weighted SSSP Control
+
+The local public-source A4 SSSP link and a separate offline admission
+passed at 150 MHz. The binary is
+`/data/chuxiao/builds/gr-directory-spans-20261103/public-a4-sssp-v1/build/original_r_a4_weighted_sssp.hw.xclbin`
+(SHA-256 `5185d9be6f0b889f8da107fb3a6d9b5d3d62d4affe4cfc6a1910833ddcfda3b4`).
+The offline receipt is `public-a4-sssp-offline-admission-v1/summary.json`
+under the local root. This control has not been timed in the new pair;
+the local pair is waiting for an admitted integrated candidate.
 
 ## Public A4 CC Control
 

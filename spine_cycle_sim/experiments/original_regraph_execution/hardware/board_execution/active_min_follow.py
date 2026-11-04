@@ -9,7 +9,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
     route_finished, runner_pins, service_state,
 )
 from .. import artifact
-from ..source_build import configuration, snapshot
+from ..source_build import configuration, portable_return, snapshot
 from ..source_retention.runtime import check_memory, save
 from . import active_min_pair
 
@@ -70,6 +70,27 @@ def ready(name, route, state, invocation, observed, algorithm):
     return True
 
 
+def returned_ready(name, route, digest, state, invocation, observed):
+    if state["LoadState"] == "loaded":
+        if not route_finished(state, invocation):
+            return None
+    elif not (observed and state["LoadState"] == "not-found" and not state["InvocationID"]):
+        raise ValueError("return service was never observed at its pinned invocation")
+    transfer = artifact.identity(route.parent / "transfer.json")
+    report = json.loads(Path(transfer["path"]).read_text())
+    if name == "candidate":
+        status = "REMOTE_REPLACEMENT_LINK_VERIFIED_NOT_BOARD_EVIDENCE"
+        image_matches = report.get("candidate") == artifact.identity(route / "route/candidate.hw.xclbin")
+    elif name == "reference":
+        status = portable_return.STATUS
+        image_matches = artifact.identity(route / portable_return.BINARY) in report.get("pins", [])
+    else:
+        raise ValueError(f"unexpected returned arm: {name}")
+    if report.get("status") != status or report.get("receipt_sha256") != digest or not image_matches:
+        raise ValueError("returned route does not match the verified collector receipt")
+    return transfer
+
+
 def run(args):
     if not 1 <= args.wait_seconds <= 111600:
         raise ValueError("route wait must be bounded to 31 hours")
@@ -87,7 +108,9 @@ def run(args):
             if len(prior) != 2 or len({row[0] for row in prior}) != 2 or not args.board_wait_seconds:
                 raise ValueError("high-activity run requires both earlier pairs and bounded board admission")
             pins.append(fixture_pin(args, pins[2:]))
-        pins.append(artifact.identity(args.candidate_route / "manifest.json"))
+        returned = {arm: getattr(args, "returned_" + arm, None) for arm in ("reference", "candidate")}
+        if not returned["candidate"]:
+            pins.append(artifact.identity(args.candidate_route / "manifest.json"))
         pins += runner_pins()
         report["pins"] = pins
         report["earlier_pairs"] = []
@@ -108,7 +131,13 @@ def run(args):
                 state = service_state(row["unit"])
                 row["state"] = state
                 row["observed"] |= state["LoadState"] == "loaded" and state["InvocationID"] == row["invocation"]
-                row["ready"] = ready(arm, Path(row["route"]), state, row["invocation"], row["observed"], args.algorithm)
+                route = Path(row["route"])
+                if returned[arm]:
+                    row["transfer"] = returned_ready(arm, route, returned[arm][0], state,
+                                                     row["invocation"], row["observed"])
+                    row["ready"] = row["transfer"] is not None
+                else:
+                    row["ready"] = ready(arm, route, state, row["invocation"], row["observed"], args.algorithm)
             for row in report["earlier_pairs"]:
                 if not row.get("receipt"):
                     prior_finished(row)
@@ -122,7 +151,8 @@ def run(args):
             if remaining <= 0:
                 raise TimeoutError("route or earlier pair prerequisites did not finish before the deadline")
             time.sleep(min(30, remaining))
-        snapshot.unchanged(pins + [row["receipt"] for row in report["earlier_pairs"]])
+        snapshot.unchanged(pins + [row["receipt"] for row in report["earlier_pairs"]]
+                           + [row["transfer"] for row in report["routes"].values() if row.get("transfer")])
         report.update(status="REQUESTING_ONE_PAIRED_RUN", requested_pair=True)
         save(journal, report)
         args.output = args.output / "pair"

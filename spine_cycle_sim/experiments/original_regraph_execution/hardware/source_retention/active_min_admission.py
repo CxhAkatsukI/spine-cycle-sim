@@ -99,9 +99,18 @@ def admit(algorithm, route, host_path, r_path, inputs, g_path, reference):
     host = identity(host_path)
     if host["sha256"] != g_control.HOST_SHA256[algorithm]:
         raise ValueError("expected the exact CC/SSSP native host used for the G/R screens")
-    route_image, pins = active_min_pair.candidate_route(route, algorithm)
+    r_receipt, r_pin = read_report(r_path, "PAIRED_ACTIVE_MIN_R_GATE_PASS", algorithm)
+    returned = r_receipt.get("returned_candidate")
+    if returned:
+        route_image, pins = active_min_pair.replay_returned_route(route, algorithm, returned, r_path.parent)
+        if returned["proof"] not in r_receipt["pins"]:
+            raise ValueError("returned route admission was not pinned before the R board runs")
+    else:
+        route_image, pins = active_min_pair.candidate_route(route, algorithm)
     image = identity(route_image["path"])
     r = replay_r(r_path, algorithm, inputs, host, image)
+    if r["report"] != r_pin:
+        raise ValueError("R board receipt changed during route admission")
     g = replay_g(g_path, reference, algorithm, host, image)
     frequency = r["candidate_clock"]["driver_reported_mhz"]
     if frequency != g["candidate_clock"]["driver_reported_mhz"]:
