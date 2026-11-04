@@ -1,0 +1,858 @@
+{
+  "status": "SNAPSHOT_NOT_FINAL_EVALUATION",
+  "inputs": {
+    "sssp_matrix": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/matrix.json",
+      "sha256": "63747950e8140f76f60d565268cbc639553e1d37575ff08b01d24764c71d3d1d",
+      "bytes": 91414
+    },
+    "cc_matrix": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-singlepass-matrix-physical-v1/matrix.json",
+      "sha256": "947963fa20af78b7b2e8f55277e92692670d3dff8651674f3963fb55e8c57464",
+      "bytes": 22976
+    },
+    "respr_matrix": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-matrix-v5/results.json",
+      "sha256": "6ee91cb99a8600f0c7ccd0899ce4ea0ec5280496b1c32fa6b84a0f66702bc6f0",
+      "bytes": 63460
+    },
+    "respr_screen": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/resident-joint-board-v7/results.json",
+      "sha256": "2d0c4419d036f53d4d31cc0cf1bddac8cacc3ba25b6e44bd142662814ae88134",
+      "bytes": 5374
+    }
+  },
+  "journal_status": {
+    "sssp_matrix": "RUNNING_SINGLE_PASS",
+    "cc_matrix": "WAITING_FOR_G_AND_BOTH_R_GATES",
+    "respr_matrix": "WAITING_FOR_RESPR_SCREEN",
+    "respr_screen": "WAITING_FOR_G_AND_R"
+  },
+  "journal_errors": {},
+  "rows": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "AU",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "spine_ms": 4.68704,
+      "gr_ms": 8.916244,
+      "gr_over_spine": 1.9023187342117842,
+      "winner": "Spine",
+      "gr_rounds": 2,
+      "spine_rounds": 2,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:c1:00.1",
+      "workload": {
+        "vertices": 515281,
+        "edges": 390847,
+        "updates": 8,
+        "source": 11,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+          "sha256": "c59f311efc83dc1c748b7e1121cca055c3b86aaca4e04c5d1de57e694022e734",
+          "bytes": 5946590
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3836685025708941,
+        "r_ratios": {
+          "amazon": 0.9460875726605182,
+          "amazon_odd": 0.9493038011196476
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/pair.json",
+        "sha256": "c5526683bb202c7ceb92a9ffb0e6b3d2e6e63f52f1305125c66908ab4d950f22",
+        "bytes": 397
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+          "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+          "bytes": 79845431
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/spine.clock.json",
+            "sha256": "e32604f94fa8455d751618e62a1967be853ea1d25514d14c9329221ab69a16b6",
+            "bytes": 820
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/gr.clock.json",
+            "sha256": "8cd6f69ade9f81f233fb47a53c74d5872d4671f32862bd2af858fbc85de3e811",
+            "bytes": 807
+          },
+          "expected": {
+            "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+              "bytes": 79845431
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/gr.xclbin-info.txt",
+              "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+              "bytes": 110616
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/spine.stdout.txt",
+            "sha256": "aa5556032564573666e92cf6cb3bc408a1a94f1f817ead45f38eea323f116f99",
+            "bytes": 3457
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/spine.stderr.txt",
+            "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/gr.stdout.txt",
+            "sha256": "120cea17907237927bca8edf4b6fb1cec56b5617280694b862e1c3e3de9c371e",
+            "bytes": 6179
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/au/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "SU",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "spine_ms": 4.22086,
+      "gr_ms": 11.156357,
+      "gr_over_spine": 2.643147841908995,
+      "winner": "Spine",
+      "gr_rounds": 2,
+      "spine_rounds": 2,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:c1:00.1",
+      "workload": {
+        "vertices": 567316,
+        "edges": 616118,
+        "updates": 8,
+        "source": 23,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_weighted_sssp_insert_u8.graph",
+          "sha256": "9e137a0a4f44163c04d18219577093b93b4426d182cf017ecce7aa1e2560b6a2",
+          "bytes": 9332631
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3836685025708941,
+        "r_ratios": {
+          "amazon": 0.9460875726605182,
+          "amazon_odd": 0.9493038011196476
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/pair.json",
+        "sha256": "1b9438daa4f72b0cec80f9e8db3c84b88b059208fcbab492402f25c070800b05",
+        "bytes": 397
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+          "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+          "bytes": 79845431
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/spine.clock.json",
+            "sha256": "4ea2b625a6d05b21e6303a43654612db9ca3888afe5cd32b85eb59fd00060789",
+            "bytes": 820
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/gr.clock.json",
+            "sha256": "b43c940028e898ea1bbd4fbcaba0001303af1a7ddaccc9f6dea4083b35b1dc35",
+            "bytes": 807
+          },
+          "expected": {
+            "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+              "bytes": 79845431
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/gr.xclbin-info.txt",
+              "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+              "bytes": 110616
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/spine.stdout.txt",
+            "sha256": "5efc6da9285c6a02eb403c62f2aa200d62864ba00416131a1cc8c607d8c3089c",
+            "bytes": 3458
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/spine.stderr.txt",
+            "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/gr.stdout.txt",
+            "sha256": "a6057854b14cf6e609fcbd12f4e81b008a74176779c0a204c0756bfb29078e64",
+            "bytes": 8463
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/su/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "WK",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "spine_ms": 5.11977,
+      "gr_ms": 15.308695,
+      "gr_over_spine": 2.990113813706475,
+      "winner": "Spine",
+      "gr_rounds": 1,
+      "spine_rounds": 1,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:c1:00.1",
+      "workload": {
+        "vertices": 1140149,
+        "edges": 1142352,
+        "updates": 8,
+        "source": 0,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+          "sha256": "e23457cd3dcb6c15c0a7c4379072ed12051f0230c3158e4e812807e1bc5bdcb7",
+          "bytes": 15546755
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3836685025708941,
+        "r_ratios": {
+          "amazon": 0.9460875726605182,
+          "amazon_odd": 0.9493038011196476
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/pair.json",
+        "sha256": "bcf5b377caeeb9b2da21b84651b7c24f84dc972b79551aa7eeeffa2ab0361d29",
+        "bytes": 398
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+          "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+          "bytes": 79845431
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/spine.clock.json",
+            "sha256": "7437e5a2782264f7561da6036153f8c1667616b9aed67e4b13b965ddedad72e0",
+            "bytes": 820
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/gr.clock.json",
+            "sha256": "b76cdf5cb38eeaae5b0ecfc9ba8b246ab11cac6f9dbe0f88481559eefdca9ca9",
+            "bytes": 807
+          },
+          "expected": {
+            "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+              "bytes": 79845431
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/gr.xclbin-info.txt",
+              "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+              "bytes": 110616
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/spine.stdout.txt",
+            "sha256": "6d9995ba2c47af9cc5de71a958c55f45165f88168480d00e97de46bed525a575",
+            "bytes": 2494
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/spine.stderr.txt",
+            "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/gr.stdout.txt",
+            "sha256": "f32ec06dbae6b350b65ef470ce30ea9dc1a0081bc31c35e16775422d9583e740",
+            "bytes": 6123
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-return-v2/wk/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "SO",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "REQUESTED"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "PK",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "spine_ms": 8.30613,
+      "gr_ms": 107.197065,
+      "gr_over_spine": 12.905777419809226,
+      "winner": "Spine",
+      "gr_rounds": 2,
+      "spine_rounds": 2,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:c1:00.1",
+      "workload": {
+        "vertices": 1632803,
+        "edges": 44603928,
+        "updates": 8,
+        "source": 64,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/pk_weighted_sssp_insert_u8.graph",
+          "sha256": "efddd1bebd16d8fd64b29f17783d2615d8a2513f3f9c541a1a1d353cb81bb2dd",
+          "bytes": 745656911
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3836685025708941,
+        "r_ratios": {
+          "amazon": 0.9460875726605182,
+          "amazon_odd": 0.9493038011196476
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/pair.json",
+        "sha256": "629e47d2d18ce03e453f059f5fecfc4c11ef115ab52b1bce7e13ee76ecd0b3b8",
+        "bytes": 400
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+          "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+          "bytes": 79845431
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/spine.clock.json",
+            "sha256": "c192dca69bacc7b7f32814706f0e06e9874cc069d03eee6e266ac0e4984b4b7c",
+            "bytes": 820
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/gr.clock.json",
+            "sha256": "29e9a75e7aa05c5345165ca82fa9cdc306421c99a1adf041d3e53f9f80670c64",
+            "bytes": 807
+          },
+          "expected": {
+            "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+              "bytes": 79845431
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/gr.xclbin-info.txt",
+              "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+              "bytes": 110616
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/spine.stdout.txt",
+            "sha256": "e02704818ab4d502064edb56701c9580dcd598da1d20edeb609489946bab3e30",
+            "bytes": 3461
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/spine.stderr.txt",
+            "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/gr.stdout.txt",
+            "sha256": "a97db4a4699faeb968cfc2921afdf2796a47e8aafe6f71c6197052b57e38e4cf",
+            "bytes": 17678
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/pk/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "LJ",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "LJ08",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "R19",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "spine_ms": 4.15744,
+      "gr_ms": 30.912728,
+      "gr_over_spine": 7.435519935344828,
+      "winner": "Spine",
+      "gr_rounds": 2,
+      "spine_rounds": 2,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:c1:00.1",
+      "workload": {
+        "vertices": 524288,
+        "edges": 15483485,
+        "updates": 8,
+        "source": 113,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_weighted_sssp_insert_u8.graph",
+          "sha256": "e61c9c21746e6f03d34f6904f5af4c17fc615054a3786ccf709ec205946dedc5",
+          "bytes": 254295196
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3836685025708941,
+        "r_ratios": {
+          "amazon": 0.9460875726605182,
+          "amazon_odd": 0.9493038011196476
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/pair.json",
+        "sha256": "3a361259f6d3126f616cf32fac388eb9f1d4192d9f9532484e465f175ff483fa",
+        "bytes": 397
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+          "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+          "bytes": 79845431
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/spine.clock.json",
+            "sha256": "9711885dff3dd5ab87cd98ccda1b12ac9627213588a71a5e900f1ee072906320",
+            "bytes": 821
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/gr.clock.json",
+            "sha256": "ed6d99c55f0f3a806fdc0a04550baf0f6be4d78f47aff342f147c3aae97b914a",
+            "bytes": 808
+          },
+          "expected": {
+            "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+              "bytes": 79845431
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/gr.xclbin-info.txt",
+              "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+              "bytes": 110616
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/spine.stdout.txt",
+            "sha256": "f5eb107b9053ed61844024fe700e03f53b6517b7bc679d02b634b002e4d04036",
+            "bytes": 3468
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/spine.stderr.txt",
+            "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/gr.stdout.txt",
+            "sha256": "77e5dd6839f14a778fa786eccb57831d880621e29caad3eb972fe9f5190f7485",
+            "bytes": 10763
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-singlepass-matrix-resume-v3/r19/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "AU",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "SU",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "WK",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "SO",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "PK",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "LJ",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "LJ08",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "R19",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "NOT_REQUESTED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "AU",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "PREDECLARED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "SU",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "PREDECLARED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "WK",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "PREDECLARED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "SO",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "PREDECLARED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "PK",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "PREDECLARED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "LJ",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "PREDECLARED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "LJ08",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "PREDECLARED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "R19",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "PREDECLARED"
+    }
+  ]
+}

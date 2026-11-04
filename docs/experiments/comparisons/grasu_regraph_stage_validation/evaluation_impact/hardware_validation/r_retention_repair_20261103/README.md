@@ -12,6 +12,8 @@ builds and their independent return checks; they are not new timings.
 The [weighted SSSP FPGA stage admission](SSSP_STAGE_ADMISSION.md) is
 available: G and both declared weighted R controls passed on the same
 returned image. The independent paired convergence matrix follows.
+The [resident SSSP follow-up](sssp-resident-followup/README.md) adds R19
+and PK, retaining the three original measured pairs without repeating them.
 
 The [first tail-repair board diagnostic](R_PUBLICATION_WINDOWS.md#tail-repair-derated-fpga-diagnostic)
 is now available. Full Amazon is within 1.2% of the public A4 in raw

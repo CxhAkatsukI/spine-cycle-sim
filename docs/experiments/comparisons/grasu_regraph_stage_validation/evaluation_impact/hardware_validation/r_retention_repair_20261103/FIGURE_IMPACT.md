@@ -10,7 +10,7 @@ it does not launch FPGA jobs or modify existing packages.
 run=/data/chuxiao/checks/source-retention-repair-20261104
 snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
-  --sssp-matrix "$run/sssp-singlepass-matrix-return-v2/matrix.json" \
+  --sssp-matrix "$run/sssp-singlepass-matrix-resume-v3/matrix.json" \
   --cc-matrix "$run/cc-singlepass-matrix-physical-v1/matrix.json" \
   --respr-matrix "$run/respr-matrix-v5/results.json" \
   --respr-screen "$run/resident-joint-board-v7/results.json" \

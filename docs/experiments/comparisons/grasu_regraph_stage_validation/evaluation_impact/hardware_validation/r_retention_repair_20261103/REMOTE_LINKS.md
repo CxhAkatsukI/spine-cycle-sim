@@ -158,6 +158,15 @@ no warmups, only after independent G and both R receipts pass and their
 raw evidence replays on the exact returned image. There is no separate
 AU run in this queue.
 
+The first matrix stopped after three pairs, while SO was waiting for
+memory and neither SO arm had started. The live continuation is
+`gr-retention-sssp-resume-v3-20261104.service` (invocation
+`0083214c0ab84090bf2f95692fce8642`), with journal
+`sssp-singlepass-matrix-resume-v3/matrix.json`. It imports the three
+completed pairs from the pinned predecessor journal and processes
+untouched workloads by memory requirement. Use this journal for new
+exports. See the [SSSP follow-up](sssp-resident-followup/README.md).
+
 The separate Figure 8 job waits for G alone because it does not run R.
 It is capped at 8 GiB with no cgroup swap, takes the same board lease
 used by the G control, and does not rerun the already measured Spine
