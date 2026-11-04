@@ -657,8 +657,10 @@ R producers and prior receipts are unchanged.
 | CC single-pass matrix after G and all three R passes | `cc-banked-matrix-v2/matrix.json` | `gr-retention-cc-banked-matrix-20261104-v2` |
 | ResPR Apply-off nominal R, skewed sources and Amazon | `retime-apply-off-r-v3/results.json` | `gr-retention-r-apply-off-20261104-v3` |
 | ResPR Apply-off nominal G, AU 131K | `retime-apply-off-g-v4/results.json` | `gr-retention-g-apply-off-20261104-v4` |
-| ResPR R19 and Flickr resident screen after G and R pass | `resident-joint-board-v11/results.json` | `gr-retention-resident-joint-v11-20261104` |
-| Remaining ResPR resident cases after both screens | `respr-matrix-v9/results.json` | `gr-retention-respr-matrix-v9-20261104` |
+| ResPR packed-validity nominal R, skewed sources and Amazon | `respr-lazy-clear-nominal-r-v1/results.json` | `gr-retention-r-lazy-clear-nominal-20261104-v1` |
+| ResPR packed-validity nominal G, AU 131K | `respr-lazy-clear-nominal-g-v1/results.json` | `gr-retention-g-lazy-clear-nominal-20261104-v1` |
+| ResPR R19 and Flickr resident screen after G and R pass on one exact image | `resident-joint-board-v12/results.json` | `gr-retention-resident-joint-v12-20261104` |
+| Remaining ResPR resident cases after both screens | `respr-matrix-v10/results.json` | `gr-retention-respr-matrix-v10-20261104` |
 
 The lower-clock diagnostic queues record in
 `derated-cc-banked-clear-v1/`, `derated-respr-tail-bursts-apply-off-v1/`
