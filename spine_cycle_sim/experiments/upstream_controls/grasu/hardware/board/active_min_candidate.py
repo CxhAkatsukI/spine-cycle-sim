@@ -76,7 +76,7 @@ def run(args):
     if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", args.unit)
             or not re.fullmatch(r"[0-9a-f]{32}", args.invocation) or not 1 <= args.wait_seconds <= 111600):
         raise ValueError("explicit route service, invocation and bounded wait required")
-    group = check_memory()
+    group = check_memory(require_live_reserve=False)
     limits = containment.verify(group, memory_gib=8)["limits"]
     if int(limits["memory.high"]) > 7 * 2**30:
         raise MemoryError("one-shot G screen requires memory.high at most 7 GiB")
