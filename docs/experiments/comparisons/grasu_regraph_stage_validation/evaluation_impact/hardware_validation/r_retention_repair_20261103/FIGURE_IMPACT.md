@@ -52,6 +52,40 @@ the Figure 7 comparisons include the actual update and convergence path.
 | 9 | It uses simulated G+R and Spine requests. Identical adapter outputs do not establish identical accepted requests, request order, or background HBM energy. The directory alone gives a conditional floor for the direction of the byte comparison. | See the byte floor below. Verify the current implementation's request ledger against the intended simulator profile for new byte ratios and rerun the DRAMSim3 trace for energy. |
 | 10/11 | Spine-only stage attribution and a fit to Spine simulator outputs; neither consumes R measurements. | Retain as predictions for the exact frozen Spine model. Re-execute/refit only if a relevant Spine model or workload changes. R admission does not calibrate them. |
 
+## Figures 10 And 11: Frozen Spine Replay Scope
+
+The frozen [`fig10_11_matrix.json`](../../figure7_11_handoff_20261103/provenance/fig10_11_matrix.json)
+records 42 commands: 38 call `run_sst_spine_vertical.py` and four call
+`run_sst_connected_components.py --architecture spine`. All use `--no-build`
+and the same pinned SST plugin directory. They instantiate
+`spine_cycle.OnlineMemoryProbe` through `sst/spine_vertical_slice.py`, not
+the separate routed ReGraph probe. The shared library can contain both
+implementations without the Spine commands exercising the R repair.
+
+Against `6df1481`, 445 of the 459 files listed in the frozen
+[`fig10_11_identity.json`](../../figure7_11_handoff_20261103/provenance/fig10_11_identity.json)
+match their SHA-256. The 14 differences are seven routed ReGraph
+input/admission sources and seven C++ test files. The recorded SST Spine
+component and runner sources match. This is a dependency check for the
+R repair, not a claim that a newly linked plugin is bit-identical or that
+a new Spine FPGA image implements the frozen timing model.
+
+From the repository root, verify the original package without rerunning
+its workloads:
+
+```bash
+python3 -m spine_cycle_sim.experiments.evaluation_impact.figure_refresh.realized_work.verify \
+  --package docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_handoff_20261103 \
+  --repository "$PWD"
+```
+
+The verifier passed for 11 normalized stage rows and 41 realized-work
+rows, including the archived evidence. This establishes package integrity.
+Use the plots only as Spine simulator predictions (including the frozen
+dense residual-apply mode); the fit compares predictions with simulated
+release cycles, not FPGA measurements. Neither the stage shares nor the
+fit should be described as newly calibrated against hardware.
+
 ## Figure 8: Exact Inputs For A Native G Check
 
 The independent G gate uses AU with 131,072 inserts and measures the
