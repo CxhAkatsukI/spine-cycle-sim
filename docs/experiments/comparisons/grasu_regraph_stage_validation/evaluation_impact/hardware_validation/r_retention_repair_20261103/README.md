@@ -5,14 +5,16 @@
 The 15% FPGA R gate is **not met across the declared controls**. Two Amazon
 weighted-SSSP controls passed on the earlier nominal image. At matched lower
 HBM clocks, the best AskUbuntu SSSP result is **16.93% slower** after the
-source-read burst change, reciprocal AskUbuntu CC is **18.18% slower**, and
-skewed-source ResPR is **58.05% slower**. These are independent,
-correctness-checked R results, not convergence comparisons against Spine.
+source-read burst change and reciprocal AskUbuntu CC is **18.18% slower**.
+The ResPR source-burst, unregistered-Apply variant finished and remains
+**57.99% slower** on skewed sources (both arms at 430 MHz HBM). These are
+independent, correctness-checked R results, not convergence comparisons
+against Spine.
 
-Four replacements are building: SSSP source-read burst physical retry,
-CC four-bank gather clear, ResPR Apply-off with source-read bursts, and ResPR
-packed-validity gather. Their pinned return and one-shot stage screens are
-queued. The independent CC G check is queued on the same banked-clear image.
+Three replacements are building: SSSP source-read burst physical retry,
+CC four-bank gather clear, and ResPR packed-validity gather. Their pinned
+return and one-shot stage screens are queued. The independent CC G check
+is queued on the same banked-clear image.
 The new ResPR resident screen waits for both exact-image G and R passes.
 Passive queues retain the finite zero-swap memory cap; timed runs still
 require a board lease and memory admission.
@@ -26,9 +28,9 @@ ResPR returned images use the qualified card at `0000:82:00.1` for the
 nominal screen, with measured 150/500/450/0 MHz required around each arm.
 If the vendor lowers only HBM, a separate diagnostic accepts a candidate
 only in the same physical clock bin as an existing correctness-checked A4
-record (430 MHz CC, 445 MHz ResPR). It replays the reference receipts and
-times only the new candidate. A lower-clock result does not admit the
-nominal resident matrix.
+record (430 MHz CC; 430 or 445 MHz ResPR). It replays the reference
+receipts and times only the new candidate. A lower-clock result does not
+admit the nominal resident matrix.
 
 See [Figure Impact](FIGURE_IMPACT.md) for the two frozen Fig. 7 rows with a
 measured R-only bound and why the remaining rows cannot inherit it. This
@@ -64,9 +66,9 @@ elapsed time; the skewed control is still 87.5% slower. The candidate's
 HBM was derated, so this is not same-clock baseline admission.
 
 The [same-clock board screens](LOWER_CLOCK_SCREEN.md#measured-pairs)
-then measured **58.05%** slowdown on ResPR skewed sources and **18.18%**
-on CC reciprocal AskUbuntu. Both pass correctness but fail the 15% R
-gate. These rows do not qualify the baseline for a Spine matrix.
+retain the per-image timings, actual clock vectors and gate decisions.
+Do not use the 445- and 430-MHz ResPR arms as a direct before/after
+measurement of a component change.
 
 1. Freeze the production source, bitstream, host, graph and numeric policy.
 2. Diagnose and repair the actual adapter/R implementation. Keep the original

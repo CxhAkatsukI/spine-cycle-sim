@@ -547,6 +547,15 @@ are unchanged. See `seele-inputs-v1/respr-tail-bursts-apply-off/capsule.json`
 | R19 and Flickr resident screen | `resident-joint-board-v8-final/results.json` | `gr-retention-resident-joint-v8-20261104-final.service` / `9dce5f9dcd2948d0a20534a5a627d2eb` |
 | Remaining seven large workloads | `respr-matrix-v6-final/results.json` | `gr-retention-respr-matrix-v6-20261104-final.service` / `c66d39d65fa540a7b9d830f41e9c5632` |
 
+The first return could not seal the unloaded route unit. A journal-aware
+collector recovered the same build without relinking in
+`seele-return-v2-respr-tail-bursts-apply-off/transfer.json`
+(`gr-retention-return-respr-apply-off-20261105-v2.service`, invocation
+`493038f3fd974836a59599669947f18d`). The vendor selected HBM 432.3 MHz,
+so the nominal resident jobs are not eligible for this bitstream.
+The [430-MHz matched pair](LOWER_CLOCK_SCREEN.md#respr-source-bursts-and-unregistered-apply)
+is complete and missed the 15% R gate.
+
 The remote link uses a 40 GiB hard cap, no swap, and the existing 128 GiB
 reserve policy. It started automatically after the V3 link completed:
 the pre-link receipt recorded 402.2 GiB available against 389.1 GiB
