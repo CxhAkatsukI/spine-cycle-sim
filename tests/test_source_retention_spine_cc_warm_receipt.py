@@ -200,6 +200,50 @@ def test_warm_non_au_runner_cannot_enter_board_without_additional_controls(tmp_p
     assert not (args.output / "spine.stdout.txt").exists()
 
 
+@pytest.mark.parametrize("missing, message", [
+    (None, "reached containment"),
+    ("g", "different producer receipt"),
+    ("amazon_odd", "amazon_odd R receipt differs"),
+    ("spine", "warm CC receipt differs"),
+    ("unexpected", "do not match the replayed stages"),
+])
+def test_warm_au_runner_replays_all_queued_receipts(tmp_path, monkeypatch, missing, message):
+    resident = queue.resident
+    names = ("g", "r", "amazon_odd", "au_slice", "spine", "graph")
+    paths = {name: tmp_path / f"{name}.json" for name in names}
+    for name, path in paths.items():
+        save(path, {"name": name})
+    pins = {name: identity(path) for name, path in paths.items()}
+    receipts = {name: pins[name] for name in names if name != "graph"}
+    if missing == "unexpected":
+        receipts[missing] = pins["graph"]
+    elif missing is not None:
+        del receipts[missing]
+    clock = {"bdf": warm.BDF, "driver_reported_mhz": [150, 500, 450, 0]}
+    gate = {"host": pins["g"], "image": pins["r"], "resident_mhz": clock["driver_reported_mhz"],
+            "g": {"candidate_clock": clock, "report": pins["g"], "reference": pins["g"]},
+            "r": {"report": pins["r"]}}
+    monkeypatch.setattr(admission, "admit", lambda *args: gate)
+    monkeypatch.setattr(admission, "pin_odd_queue", lambda *args: (pins["graph"], pins["r"], pins["amazon_odd"]))
+    monkeypatch.setattr(admission, "replay_r", lambda path, *args, **kwargs:
+                        {"report": identity(path), "candidate_clock": clock})
+    monkeypatch.setattr(resident, "frozen_case", lambda *args: ({"graph": str(paths["graph"])}, [pins["graph"]]))
+    monkeypatch.setattr(warm, "replay", lambda *args, **kwargs: ({"command": ["spine"]}, []))
+    monkeypatch.setattr(wall, "configure", lambda *args, **kwargs: ({"memory_gib": 32}, []))
+    monkeypatch.setattr(wall, "commands", lambda *args: {})
+
+    def containment_probe():
+        raise ValueError("reached containment")
+
+    monkeypatch.setattr(resident.containment, "current", containment_probe)
+    args = Namespace(algorithm="cc", dataset="AU", output=tmp_path / "run", previous=None, route=None,
+                     host=None, r_report=None, r_inputs=None, g_report=None, g_reference=None, wait_seconds=0,
+                     stage_receipts=receipts, cc_wall_packet=paths["graph"], cc_warm_au_receipt=paths["spine"],
+                     cc_warm_r_controls=(paths["amazon_odd"], tmp_path, paths["au_slice"], tmp_path))
+    with pytest.raises(ValueError, match=message):
+        resident.run(args)
+
+
 def test_odd_admission_uses_the_producers_identity_schema(tmp_path, monkeypatch):
     inputs = tmp_path / "inputs"
     inputs.mkdir()

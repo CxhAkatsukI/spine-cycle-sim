@@ -132,7 +132,8 @@ def run(args):
         device = active_min_admission.g_control.BOARDS[bdf]
         report["bdf"] = bdf
         stage_receipts = getattr(args, "stage_receipts", None)
-        if stage_receipts is not None and any(gate[stage]["report"] != pin for stage, pin in stage_receipts.items()):
+        if stage_receipts is not None and any(
+                stage_receipts.get(stage) != gate[stage]["report"] for stage in ("g", "r")):
             raise ValueError("admission replay used a different producer receipt")
         case, pins = frozen_case(args.previous, args.algorithm, args.dataset)
         retained = getattr(args, "cc_warm_au_receipt", None)
@@ -189,7 +190,7 @@ def run(args):
                 ("au_slice", identity(au_receipt), au_inputs, active_min_admission.AU_SLICE_GEOMETRY),
             )
         for label, receipt, inputs, geometry in controls:
-            if stage_receipts is not None and stage_receipts.get(label, receipt) != receipt:
+            if stage_receipts is not None and stage_receipts.get(label) != receipt:
                 raise ValueError(f"{label} R receipt differs from the exact producer")
             decision = active_min_admission.replay_r(Path(receipt["path"]), args.algorithm, inputs,
                                                      gate["host"], gate["image"], geometry=geometry)
@@ -198,6 +199,12 @@ def run(args):
                 raise ValueError(f"additional {label} R gate used different evidence or clocks")
             additional_r[label] = decision
             pins.append(receipt)
+        if stage_receipts is not None:
+            expected_stages = {"g", "r", *additional_r}
+            if retained is not None:
+                expected_stages.add("spine")
+            if set(stage_receipts) != expected_stages:
+                raise ValueError("queued producer receipts do not match the replayed stages")
         if additional_r:
             report["additional_r_gates"] = additional_r
         if warm_cc:
