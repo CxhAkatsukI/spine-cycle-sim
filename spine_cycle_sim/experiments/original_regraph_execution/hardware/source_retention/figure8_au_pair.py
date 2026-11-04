@@ -60,11 +60,12 @@ def timer(text, arm, case=None):
     return times
 
 
-def gr_command(host, image, graph, oracle, *, replicas=4):
+def gr_command(host, image, graph, oracle, *, replicas=4, board=(DEVICE, BDF)):
     if replicas not in (1, 4):
         raise ValueError("expected one or four metadata copies")
+    device, bdf = board
     return ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", "-u", "GRASU_RESIDENT_BATCH_WALL",
-            f"XCL_DEVICE_INDEX={DEVICE}", f"GRASU_REGRAPH_EXPECT_BDF={BDF}", "GRASU_UPDATE_REPEATS=1",
+            f"XCL_DEVICE_INDEX={device}", f"GRASU_REGRAPH_EXPECT_BDF={bdf}", "GRASU_UPDATE_REPEATS=1",
             "GRASU_SHARDED_PREMIGRATE_INPUTS=1", f"GRASU_SHARDED_METADATA_REPLICAS={replicas}",
             "GRASU_SHARDED_EVENT_TRACE=0", host, "--update-setup-once", image, graph, oracle]
 

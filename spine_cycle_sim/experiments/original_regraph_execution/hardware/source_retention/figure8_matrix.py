@@ -44,9 +44,9 @@ def ratio(timers):
     return timers["gr"]["setup_inclusive_ns"] / timers["spine"]["setup_inclusive_ns"]
 
 
-def same_clock(clock, expected):
+def same_clock(clock, expected, *, bdf=BDF):
     fields = ("bdf", "uuid", "binary", "driver_reported_mhz")
-    if any(clock[field] != expected[field] for field in fields) or clock["bdf"] != BDF:
+    if any(clock[field] != expected[field] for field in fields) or clock["bdf"] != bdf:
         raise ValueError("loaded image or clock differs from the admitted anchor")
 
 
@@ -54,9 +54,10 @@ def spine_args(host, image, graph):
     return [host, image, "--update-setup-once", "--dynamic-graph", graph]
 
 
-def spine_command(host, image, graph):
-    return ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={DEVICE}",
-            f"SPINE_EXPECT_BDF={BDF}", *spine_args(host, image, graph)]
+def spine_command(host, image, graph, *, board=(DEVICE, BDF)):
+    device, bdf = board
+    return ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={device}",
+            f"SPINE_EXPECT_BDF={bdf}", *spine_args(host, image, graph)]
 
 
 def reuse_capacity_spine(pin, manifest, anchor, case, host, reference):
@@ -151,9 +152,9 @@ def load_anchor(pin, case):
     return hosts, {"spine": spine_clock, "gr": gr_clock}, anchor["xrt_libraries"], timers, evidence
 
 
-def inspect(run, arm, case):
+def inspect(run, arm, case, *, bdf=BDF):
     raw = checked(run["stdout"]).read_text()
-    if arm == "spine" and au.record(raw, "SPINE_DEVICE") != {"bdf": BDF}:
+    if arm == "spine" and au.record(raw, "SPINE_DEVICE") != {"bdf": bdf}:
         raise ValueError("wrong Spine card")
     return au.timer(raw, arm, case)
 
@@ -166,7 +167,8 @@ def unthrottled(group):
 
 
 def measure(case, row, output, deadline, reservation, memory, hosts, reference, libraries, checkpoint,
-            *, replicas=4, arms=("spine", "gr")):
+            *, replicas=4, arms=("spine", "gr"), board=(DEVICE, BDF)):
+    device, bdf = board
     graph = checked(case["native_g_input"])
     paths = {arm: checked(pin) for arm, pin in hosts.items()}
     images = {arm: clocks.image(checked(reference[arm]["binary"]), output, arm) for arm in arms}
@@ -174,12 +176,13 @@ def measure(case, row, output, deadline, reservation, memory, hosts, reference, 
         raise ValueError("XRT library identity differs from the AU/512 pair")
     oracle = output / "gr-oracle.txt"
     commands = {
-        "spine": spine_command(paths["spine"], reference["spine"]["binary"]["path"], graph),
-        "gr": au.gr_command(paths["gr"], reference["gr"]["binary"]["path"], graph, oracle, replicas=replicas),
+        "spine": spine_command(paths["spine"], reference["spine"]["binary"]["path"], graph, board=board),
+        "gr": au.gr_command(paths["gr"], reference["gr"]["binary"]["path"], graph, oracle,
+                            replicas=replicas, board=board),
     }
     while True:
         try:
-            with lease(DEVICE, BDF) as (node, fd):
+            with lease(device, bdf) as (node, fd):
                 unthrottled(reservation.own)
                 admission = reservation.sample(available_memory_bytes(), containment.other_builds(), memory, commit=True)
                 row.update(status="WAITING_FOR_MEMORY", admission=admission)
@@ -189,11 +192,11 @@ def measure(case, row, output, deadline, reservation, memory, hosts, reference, 
                         row["attempts"].append(arm)
                         checkpoint()
                         arm_row = row["arms"].setdefault(arm, {})
-                        arm_row["run"] = execute(commands[arm], output, arm, fd, node, BDF,
+                        arm_row["run"] = execute(commands[arm], output, arm, fd, node, bdf,
                                                  memory_gib=memory["tree_memory_gib"])
-                        arm_row["clock_evidence"] = clocks.capture(BDF, images[arm], output, arm)
-                        same_clock(clocks.replay(arm_row["clock_evidence"]), reference[arm])
-                        arm_row["timer"] = inspect(arm_row["run"], arm, case)
+                        arm_row["clock_evidence"] = clocks.capture(bdf, images[arm], output, arm)
+                        same_clock(clocks.replay(arm_row["clock_evidence"]), reference[arm], bdf=bdf)
+                        arm_row["timer"] = inspect(arm_row["run"], arm, case, bdf=bdf)
                         if arm == "gr":
                             arm_row["pma_oracle"] = identity(oracle)
                             au.pma_oracle(arm_row["pma_oracle"])

@@ -8,7 +8,7 @@ from unittest.mock import Mock
 import pytest
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    figure8_matrix as matrix, figure8_spine_follow as follow,
+    figure8_matrix as matrix, figure8_qualified_pair as qualified, figure8_spine_follow as follow,
 )
 
 
@@ -93,13 +93,15 @@ def test_wait_rejects_wrong_or_failed_anchor_even_with_receipt(tmp_path, monkeyp
 
 @pytest.mark.parametrize("bad_oracle", [False, True])
 @pytest.mark.parametrize("capacity_retry", [False, True])
-def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, bad_oracle, capacity_retry):
+@pytest.mark.parametrize("board", [(matrix.DEVICE, matrix.BDF), (0, "0000:82:00.1")])
+def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, bad_oracle, capacity_retry, board):
     path = tmp_path / "file"
     path.write_text("pinned")
     pin = matrix.identity(path)
     case = {"native_g_input": pin}
     hosts = dict(spine=pin, gr=pin)
-    clock = dict(bdf=matrix.BDF, uuid="test", binary=pin, driver_reported_mhz=[150, 500, 450])
+    device, card = board
+    clock = dict(bdf=card, uuid="test", binary=pin, driver_reported_mhz=[150, 500, 450])
     clocks = dict(spine=clock, gr=clock)
     row = dict(attempts=[], arms={})
     if capacity_retry:
@@ -109,11 +111,12 @@ def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, 
     calls = []
 
     def execute(command, output, arm, fd, node, bdf, *, memory_gib):
-        assert bdf == matrix.BDF and memory_gib == 24
-        assert f"XCL_DEVICE_INDEX={matrix.DEVICE}" in command
+        assert bdf == card and memory_gib == 24
+        assert f"XCL_DEVICE_INDEX={device}" in command
         if arm == "spine":
-            assert f"SPINE_EXPECT_BDF={matrix.BDF}" in command
+            assert f"SPINE_EXPECT_BDF={card}" in command
         else:
+            assert f"GRASU_REGRAPH_EXPECT_BDF={card}" in command
             assert f"GRASU_SHARDED_METADATA_REPLICAS={replicas}" in command
         calls.append(arm)
         if arm == "gr":
@@ -130,9 +133,10 @@ def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, 
     monkeypatch.setattr(matrix.clocks, "capture", lambda *_: clock)
     monkeypatch.setattr(matrix.clocks, "replay", lambda evidence: evidence)
     monkeypatch.setattr(matrix, "execute", execute)
-    monkeypatch.setattr(matrix, "inspect", lambda _, arm, __: {"setup_inclusive_ns": 200 if arm == "gr" else 100})
+    monkeypatch.setattr(matrix, "inspect",
+                        lambda _, arm, __, *, bdf: {"setup_inclusive_ns": 200 if arm == "gr" else 100})
     args = (case, row, tmp_path, 0, reservation, {"tree_memory_gib": 24}, hosts, clocks, {}, lambda: None)
-    kwargs = dict(arms=arms, replicas=replicas)
+    kwargs = dict(arms=arms, replicas=replicas, board=board)
     if bad_oracle:
         with pytest.raises(ValueError, match="PMA readback"):
             matrix.measure(*args, **kwargs)
@@ -141,3 +145,50 @@ def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, 
         matrix.measure(*args, **kwargs)
         assert row["speedup_gr_over_spine"] == 2.0
     assert calls == row["attempts"] == list(arms)
+
+
+@pytest.mark.parametrize("passes", [False, True])
+def test_qualified_pair_waits_for_exact_g_and_uses_its_board_and_clocks(tmp_path, monkeypatch, passes):
+    graph = tmp_path / "graph"
+    graph.write_text("pinned graph")
+    pin = matrix.identity(graph)
+    group = tmp_path / "group"
+    group.mkdir()
+    (group / "memory.peak").write_text("1024\n")
+    (group / "memory.events").write_text("high 0\n")
+    out = tmp_path / "out"
+    args = SimpleNamespace(**dict.fromkeys(
+        ("manifest", "spine_host", "gr_host", "spine_image", "g_report", "g_reference"), graph),
+        **dict.fromkeys(("manifest_sha256", "spine_host_sha256", "gr_host_sha256", "spine_image_sha256"),
+                        pin["sha256"]),
+        output=out, g_unit="g.service", g_invocation="1" * 32, g_wait_seconds=30, board_wait_seconds=60)
+    monkeypatch.setattr(matrix, "exact_service", Mock())
+    monkeypatch.setattr(matrix, "load_cases", lambda *_: {matrix.ANCHOR: {"native_g_input": pin}})
+    monkeypatch.setattr(matrix, "service_state", lambda _: {})
+    ready = Mock(return_value=True) if passes else Mock(side_effect=ValueError("failed G gate"))
+    monkeypatch.setattr(qualified.follow, "ready", ready)
+    candidate = dict(bdf="0000:82:00.1", driver_reported_mhz=[150, 500, 450, 0], binary=pin)
+    monkeypatch.setattr(qualified, "qualified_g",
+                        lambda *_: (dict(candidate_clock=candidate, report=pin, reference=pin), pin))
+    monkeypatch.setattr(qualified.au, "memory_group", lambda: group)
+    monkeypatch.setattr(qualified.containment, "verify", lambda *_, **__: {"limits": {}})
+    monkeypatch.setattr(qualified, "Lease", Mock())
+    monkeypatch.setattr(qualified, "paired_loader", lambda *_: {})
+    monkeypatch.setattr(qualified.clocks, "image", lambda *_: {"uuid": "spine", "binary": pin})
+    measure = Mock()
+    monkeypatch.setattr(matrix, "measure", measure)
+    if not passes:
+        with pytest.raises(ValueError, match="failed G gate"):
+            qualified.run(args)
+        measure.assert_not_called()
+        report = json.loads((out / "results.json").read_text())
+        assert report["row"]["attempts"] == []
+        assert report["status"] == "FAILED_RETAINED"
+        return
+    result = qualified.run(args)
+    assert result["status"] == "MEASURED_QUALIFIED_AU512_SETUP_ONLY"
+    measure.assert_called_once()
+    assert measure.call_args.kwargs["board"] == (0, candidate["bdf"])
+    clocks = measure.call_args.args[7]
+    assert clocks["gr"] == candidate
+    assert clocks["spine"]["driver_reported_mhz"] == candidate["driver_reported_mhz"]

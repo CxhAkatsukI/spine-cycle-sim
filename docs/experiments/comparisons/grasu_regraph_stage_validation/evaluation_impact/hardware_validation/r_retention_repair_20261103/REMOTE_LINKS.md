@@ -184,6 +184,7 @@ check root:
 | SSSP G, AU 131K updates | `g-sssp-board-return-v3/results.json` | `gr-retention-g-sssp-return-v3-20261104.service` | `578f47850f484fccad9d1541ff41bd74` |
 | SSSP resident Spine vs G+R, eight graphs | `sssp-singlepass-matrix-return-v2/matrix.json` | `gr-retention-sssp-matrix-return-v2-20261104.service` | `21d209eca39c4d54bd13e064ca269a19` |
 | Native Figure 8 AU/512 setup pair | `fig8-au512-pair-return-v2/results.json` | `gr-retention-fig8-au512-return-v2-20261104.service` | `760a261547944e3bb7f13132bfa6d4ce` |
+| Repaired G Figure 8 AU/512 same-card setup pair | `fig8-au512-card0-physopt-v1/results.json` | `gr-retention-fig8-au512-card0-20261105-v1.service` | `036f5385002248e5985692b78bc67cf8` |
 | Native Figure 8 seven-case export | `fig8-native-matrix-return-v1/results.json` | `gr-retention-fig8-native-matrix-return-20261104.service` | `df85bec545d043d8b5fc827612d2841f` |
 
 The matrix uses `--include-au` to request all eight datasets once, with

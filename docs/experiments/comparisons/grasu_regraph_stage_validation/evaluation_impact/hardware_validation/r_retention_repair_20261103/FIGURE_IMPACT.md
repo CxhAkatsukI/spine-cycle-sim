@@ -471,6 +471,28 @@ includes the input and host digests, clocks, breakdowns and correctness
 records. Its SHA-256 is
 `e70ece19a42f6f255093c44d76835841b2c6e73ea311ac874ed339813a358103`.
 
+### Repaired G: Same-Card AU/512 Check
+
+The six rows above used card 1. The returning weighted-SSSP physical-
+optimization image is screened on card 0. Because the setup window
+includes host-to-device transfer, the new pair must not divide the
+card-0 G time by the archived card-1 Spine time.
+
+The [queued check](REMOTE_LINKS.md#current-one-shot-board-queues) replays
+the exact image's independent G gate, then uses the same card and
+requires the same driver-reported clock vector for both arms. It uses
+the pinned AU/512 input, the four-copy native G setup policy, and the
+same direct-metadata Spine host and image as the latest checkpoint.
+There is one measured invocation per arm and no warmup. It requires the
+Spine edge check, the G PMA readback, and an 8-GiB no-swap cgroup with
+32 GiB of live host reserve. A rejected gate, clock mismatch, or
+validation failure yields no speedup.
+
+This checks whether the measured AU/512 setup result survives the image
+change. It does not run R or reconstitute the historical ten-batch
+series. It is pending; the six card-1 rows are not replacement data for
+the repaired image.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.
