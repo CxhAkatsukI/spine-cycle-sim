@@ -24,6 +24,7 @@ from .runtime import check_memory, execute, identity, lease, save
 
 
 ANCHOR = ("AU", 512)
+CAPACITY_CASE = ("SO", 512)
 AFFINITY = ["/usr/bin/taskset", "-c", "124,125"]
 
 
@@ -51,6 +52,33 @@ def same_clock(clock, expected):
 
 def spine_args(host, image, graph):
     return [host, image, "--update-setup-once", "--dynamic-graph", graph]
+
+
+def spine_command(host, image, graph):
+    return ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={DEVICE}",
+            f"SPINE_EXPECT_BDF={BDF}", *spine_args(host, image, graph)]
+
+
+def reuse_capacity_spine(pin, manifest, anchor, case, host, reference):
+    prior = json.loads(checked(pin).read_text())
+    if (prior["status"] != "PARTIAL_OR_FAILED_RETAINED" or prior["manifest"] != manifest
+            or prior["anchor"] != anchor or prior["boundary"] != au.BOUNDARY
+            or prior["requested_runs_per_arm"] != 1 or prior["warmups"] != 0):
+        raise ValueError("capacity retry requires the exact terminal one-shot predecessor")
+    previous, = [row for row in prior["cases"] if (row["dataset"], row["updates"]) == CAPACITY_CASE]
+    if (previous["input"] != case["native_g_input"] or previous["status"] != "FAILED_RETAINED"
+            or previous["attempts"] != ["spine", "gr"] or previous["arms"]["gr"] != {}):
+        raise ValueError("capacity retry requires an untimed G failure and one measured Spine arm")
+    failed_log = identity(Path(pin["path"]).parent / "SO_u512/gr.stderr.txt")
+    if checked(failed_log).read_text().strip() != "ERROR: replicated metadata exceeds lane-aware HBM capacity":
+        raise ValueError("the four-copy failure is not the expected HBM capacity error")
+    spine = previous["arms"]["spine"]
+    command = AFFINITY + spine_command(host["path"], reference["binary"]["path"], case["native_g_input"]["path"])
+    checked(spine["run"]["stderr"])
+    same_clock(clocks.replay(spine["clock_evidence"]), reference)
+    if spine["run"]["command"] != command or inspect(spine["run"], "spine", case) != spine["timer"]:
+        raise ValueError("predecessor Spine command or timer differs from the raw evidence")
+    return spine, failed_log
 
 
 def wait_anchor(path, unit, invocation, wait_seconds, checkpoint):
@@ -132,18 +160,17 @@ def unthrottled(group):
         raise MemoryError(str(error)) from error
 
 
-def measure(case, row, output, deadline, reservation, memory, hosts, reference, libraries, checkpoint):
+def measure(case, row, output, deadline, reservation, memory, hosts, reference, libraries, checkpoint,
+            *, replicas=4, arms=("spine", "gr")):
     graph = checked(case["native_g_input"])
     paths = {arm: checked(pin) for arm, pin in hosts.items()}
-    images = {arm: clocks.image(checked(ref["binary"]), output, arm) for arm, ref in reference.items()}
+    images = {arm: clocks.image(checked(reference[arm]["binary"]), output, arm) for arm in arms}
     if paired_loader(paths["spine"], paths["gr"]) != libraries:
         raise ValueError("XRT library identity differs from the AU/512 pair")
     oracle = output / "gr-oracle.txt"
     commands = {
-        "spine": ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={DEVICE}",
-                  f"SPINE_EXPECT_BDF={BDF}",
-                  *spine_args(paths["spine"], reference["spine"]["binary"]["path"], graph)],
-        "gr": au.gr_command(paths["gr"], reference["gr"]["binary"]["path"], graph, oracle),
+        "spine": spine_command(paths["spine"], reference["spine"]["binary"]["path"], graph),
+        "gr": au.gr_command(paths["gr"], reference["gr"]["binary"]["path"], graph, oracle, replicas=replicas),
     }
     while True:
         try:
@@ -152,12 +179,12 @@ def measure(case, row, output, deadline, reservation, memory, hosts, reference, 
                 admission = reservation.sample(available_memory_bytes(), containment.other_builds(), memory, commit=True)
                 row.update(status="WAITING_FOR_MEMORY", admission=admission)
                 if admission["admitted"]:
-                    for arm, command in commands.items():
+                    for arm in arms:
                         row.update(status=f"RUNNING_{arm.upper()}")
                         row["attempts"].append(arm)
                         checkpoint()
                         arm_row = row["arms"].setdefault(arm, {})
-                        arm_row["run"] = execute(command, output, arm, fd, node, BDF,
+                        arm_row["run"] = execute(commands[arm], output, arm, fd, node, BDF,
                                                  memory_gib=memory["tree_memory_gib"])
                         arm_row["clock_evidence"] = clocks.capture(BDF, images[arm], output, arm)
                         same_clock(clocks.replay(arm_row["clock_evidence"]), reference[arm])
@@ -184,6 +211,9 @@ def run(args):
         raise ValueError("wait_seconds must be between 1 and 3600 per case")
     manifest = identity(args.manifest)
     cases = load_cases(manifest, args.manifest_sha256)
+    retry = args.retry_so_single_directory
+    if retry and args.wait_for_anchor:
+        raise ValueError("a capacity retry requires an existing anchor")
     memory = board_memory.policy(args.memory_gib)
     group = check_memory(args.memory_gib, require_live_reserve=False)
     board_memory.validate(containment.verify(group, memory_gib=args.memory_gib)["limits"], memory)
@@ -211,7 +241,7 @@ def run(args):
         checked(manifest)
         report.update(status="RUNNING", anchor=anchor)
         checkpoint()
-        for key, case in cases.items():
+        for key, case in ([(CAPACITY_CASE, cases[CAPACITY_CASE])] if retry else cases.items()):
             row = dict(dataset=key[0], updates=key[1], input=case["native_g_input"], attempts=[], arms={})
             rows.append(row)
             if key == ANCHOR:
@@ -222,8 +252,22 @@ def run(args):
             output = args.output / f"{key[0]}_u{key[1]}"
             output.mkdir()
             try:
+                if retry:
+                    path, digest = retry
+                    predecessor = identity(path)
+                    if predecessor["sha256"] != digest:
+                        raise ValueError("capacity retry predecessor digest mismatch")
+                    spine, failed_log = reuse_capacity_spine(
+                        predecessor, manifest, anchor, case, hosts["spine"], reference["spine"])
+                    report["capacity_retry"] = dict(predecessor=predecessor, failure=failed_log,
+                                                    gr_directory_copies=1, gr_source_gate_same_policy=False)
+                    row["arms"]["spine"] = spine
+                    checkpoint()
                 measure(case, row, output, time.monotonic() + args.wait_seconds, reservation,
-                        memory, hosts, reference, libraries, checkpoint)
+                        memory, hosts, reference, libraries, checkpoint, replicas=1 if retry else 4,
+                        arms=("gr",) if retry else ("spine", "gr"))
+                if retry:
+                    row["status"] = "MEASURED_CAPACITY_DIAGNOSTIC_ONLY"
             except (MemoryError, TimeoutError) as error:
                 row.update(status="STOPPED_RETAINED", error=repr(error))
                 raise
@@ -232,8 +276,12 @@ def run(args):
             finally:
                 reservation.release()
                 checkpoint()
-        report["status"] = ("MEASURED_ALL_SEVEN_SETUP_PAIRS" if all("speedup_gr_over_spine" in row for row in rows)
-                            else "PARTIAL_OR_FAILED_RETAINED")
+        if retry:
+            report["status"] = rows[0]["status"]
+        else:
+            report["status"] = ("MEASURED_ALL_SEVEN_SETUP_PAIRS"
+                                if all("speedup_gr_over_spine" in row for row in rows)
+                                else "PARTIAL_OR_FAILED_RETAINED")
     except BaseException as error:
         report.update(status="STOPPED_RETAINED", error=repr(error))
         raise
@@ -250,10 +298,12 @@ def main():
         parser.add_argument("--" + name, required=True, type=lambda value: Path(value).resolve())
     parser.add_argument("--manifest-sha256", required=True)
     parser.add_argument("--wait-for-anchor", nargs=2, metavar=("UNIT", "INVOCATION"))
+    parser.add_argument("--retry-so-single-directory", nargs=2, metavar=("PREDECESSOR", "SHA256"))
     parser.add_argument("--anchor-wait-seconds", type=int, default=111600)
     parser.add_argument("--wait-seconds", type=int, default=300)
     parser.add_argument("--memory-gib", type=int, choices=board_memory.HIGH_GIB, default=24)
-    if run(parser.parse_args())["status"] != "MEASURED_ALL_SEVEN_SETUP_PAIRS":
+    if run(parser.parse_args())["status"] not in (
+            "MEASURED_ALL_SEVEN_SETUP_PAIRS", "MEASURED_CAPACITY_DIAGNOSTIC_ONLY"):
         raise SystemExit(1)
 
 

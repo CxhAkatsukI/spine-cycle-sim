@@ -247,9 +247,24 @@ tail -n 512 "$graph" | awk '
     }'
 ```
 
-A shared or compact directory could change this bound, but would be a
-different G host policy. A replacement needs a fresh independent G
-retention check and SO PMA readback before it enters the paired data.
+A one-copy shared directory **did** fit. With the same host, graph and
+bitstream, the offline preparation reported 6,240,301,056 allocated
+bytes across 23 graph channels, with a maximum of 327,008,256 bytes in
+any one channel. The offline run did not program a card.
+
+The follow-up used one timed G run, no warmup, and replayed the existing
+correct Spine measurement without running it again. PMA readback passed
+with zero mismatches across 7,856 words from 491 touched segments. The
+setup-inclusive totals were **67.237386044 s for G** and **6.031149426 s
+for Spine** (11.15x in favor of Spine). G spent 64.145107256 s in host
+layout, 3.039428828 s uploading, and 0.052849960 s in update wall time.
+The timed G cgroup peaked at 19,302,576,128 bytes with no throttling or
+OOM events. This is a **capacity diagnostic only**: it does not fill the
+four-copy matrix, reproduce the ten-batch figure, or validate the
+one-copy policy against the public G stage. The
+[receipt](so512-single-directory-diagnostic.json) and
+[raw logs](so512-single-directory-raw.tar.gz) preserve both arms and the
+original four-copy capacity error.
 
 ### Offline Spine Layout Check
 

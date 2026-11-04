@@ -67,7 +67,8 @@ def test_wait_rejects_wrong_or_failed_anchor_even_with_receipt(tmp_path, monkeyp
 
 
 @pytest.mark.parametrize("bad_oracle", [False, True])
-def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, bad_oracle):
+@pytest.mark.parametrize("capacity_retry", [False, True])
+def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, bad_oracle, capacity_retry):
     path = tmp_path / "file"
     path.write_text("pinned")
     pin = matrix.identity(path)
@@ -76,6 +77,10 @@ def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, 
     clock = dict(bdf=matrix.BDF, uuid="test", binary=pin, driver_reported_mhz=[150, 500, 450])
     clocks = dict(spine=clock, gr=clock)
     row = dict(attempts=[], arms={})
+    if capacity_retry:
+        row["arms"]["spine"] = {"timer": {"setup_inclusive_ns": 100}}
+    arms = ("gr",) if capacity_retry else ("spine", "gr")
+    replicas = 1 if capacity_retry else 4
     calls = []
 
     def execute(command, output, arm, fd, node, bdf, *, memory_gib):
@@ -83,6 +88,8 @@ def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, 
         assert f"XCL_DEVICE_INDEX={matrix.DEVICE}" in command
         if arm == "spine":
             assert f"SPINE_EXPECT_BDF={matrix.BDF}" in command
+        else:
+            assert f"GRASU_SHARDED_METADATA_REPLICAS={replicas}" in command
         calls.append(arm)
         if arm == "gr":
             (output / "gr-oracle.txt").write_text(
@@ -100,11 +107,12 @@ def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, 
     monkeypatch.setattr(matrix, "execute", execute)
     monkeypatch.setattr(matrix, "inspect", lambda _, arm, __: {"setup_inclusive_ns": 200 if arm == "gr" else 100})
     args = (case, row, tmp_path, 0, reservation, {"tree_memory_gib": 24}, hosts, clocks, {}, lambda: None)
+    kwargs = dict(arms=arms, replicas=replicas)
     if bad_oracle:
         with pytest.raises(ValueError, match="PMA readback"):
-            matrix.measure(*args)
+            matrix.measure(*args, **kwargs)
         assert "speedup_gr_over_spine" not in row
     else:
-        matrix.measure(*args)
+        matrix.measure(*args, **kwargs)
         assert row["speedup_gr_over_spine"] == 2.0
-    assert calls == row["attempts"] == ["spine", "gr"]
+    assert calls == row["attempts"] == list(arms)
