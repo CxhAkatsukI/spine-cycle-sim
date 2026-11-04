@@ -8,14 +8,19 @@ it does not launch FPGA jobs or modify existing packages.
 
 ```bash
 run=/data/chuxiao/checks/source-retention-repair-20261104
+snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
   --sssp-matrix "$run/sssp-singlepass-matrix-return-v2/matrix.json" \
-  --cc-matrix "$run/cc-singlepass-matrix-return-v4/matrix.json" \
-  --respr-matrix "$run/respr-matrix-v2/results.json" \
-  --respr-screen "$run/resident-joint-board-v3/results.json" \
-  --output "$run/figure7-receipt-snapshot.json" \
-  --csv "$run/figure7-receipt-snapshot.csv"
+  --cc-matrix "$run/cc-singlepass-matrix-physical-v1/matrix.json" \
+  --respr-matrix "$run/respr-matrix-v5/results.json" \
+  --respr-screen "$run/resident-joint-board-v7/results.json" \
+  --output "$snapshot.json" \
+  --csv "$snapshot.csv"
 ```
+
+These journals are the current campaign inputs listed in
+[remote builds and board queues](REMOTE_LINKS.md#november-4-physical-retries).
+Do not substitute a superseded queue when a current result is pending.
 
 The current SSSP and CC matrices include AU and R19 respectively. The
 legacy `--sssp-au` and `--cc-r19` arguments are only for matrices that
