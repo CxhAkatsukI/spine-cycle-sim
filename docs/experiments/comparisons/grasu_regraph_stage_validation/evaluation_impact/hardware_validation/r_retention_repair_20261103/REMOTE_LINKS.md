@@ -232,6 +232,13 @@ timing check is unchanged. The two waiting R pair queues and their matrix
 supervisor were superseded before requesting any timed run; the G-only
 queue was not restarted.
 
+The v2 locked routed report has WNS +0.001 ns, WHS +0.003 ns, and zero
+setup, hold and pulse-width violations at the constrained clocks, including
+450 MHz HBM. The report SHA-256 is
+`911516d10f7f611bcfc72682d21bec9b388770ccef65671b7849d4162978c2ce`.
+This is routed timing evidence. The board queue still requires a verified
+bitstream return and the same-clock paired hardware results.
+
 The original local integrated CC build expired while waiting for its
 memory reservation; it did not start Vivado or request a board run. Its
 logs remain at `route-cc-v2/execution/` under the local build root
