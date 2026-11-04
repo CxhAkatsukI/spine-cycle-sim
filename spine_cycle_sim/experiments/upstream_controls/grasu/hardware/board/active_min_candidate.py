@@ -100,7 +100,8 @@ def run(args):
             raise ValueError("G hosts must resolve the recorded public control XRT library")
         report["xrt_libraries"] = libraries
         pins = [host, reference, graph, ref_host, identity(__file__), *runner_pins()]
-        returned = getattr(args, "returned_candidate", None)
+        returned = active_min_follow.return_parameters(getattr(args, "returned_candidate", None),
+                                                       getattr(args, "pending_return_candidate", None), pins)
         if not returned:
             pins.append(identity(args.route / "manifest.json"))
         deadline, observed = time.monotonic() + args.wait_seconds, False
@@ -115,7 +116,8 @@ def run(args):
                 if transfer:
                     pins.append(transfer)
                     image, route_pins, report["returned_candidate"] = active_min_pair.returned_route(
-                        args.route, args.algorithm, returned, args.output / "candidate_admission")
+                        args.route, args.algorithm, active_min_follow.seal_parameters(returned, transfer),
+                        args.output / "candidate_admission")
                     break
             elif active_min_follow.ready("candidate", args.route, state, args.invocation, observed, args.algorithm):
                 image, route_pins = active_min_pair.candidate_route(args.route, args.algorithm)
@@ -186,6 +188,7 @@ if __name__ == "__main__":
     parser.add_argument("--wait-seconds", type=int, default=108000)
     parser.add_argument("--returned-candidate", nargs=4, metavar=active_min_pair.RETURN_ARGUMENTS,
                         help="verify --route from the pinned local collector instead of a local build")
+    parser.add_argument("--pending-return-candidate", nargs=3, metavar=("CAPSULE", "XPFM", "PREDECESSOR"))
     result = run(parser.parse_args())
     print(result["status"], flush=True)
     raise SystemExit(0 if result["comparison"]["retention_gate_pass"] else 1)

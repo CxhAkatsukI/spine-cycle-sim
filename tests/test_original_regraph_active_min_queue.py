@@ -11,6 +11,30 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execu
 
 
 class ActiveMinQueueTests(unittest.TestCase):
+    def test_pending_return_binds_digest_only_after_exact_collector_succeeds(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            route = root / "returned"
+            image = route / "route/candidate.hw.xclbin"
+            image.parent.mkdir(parents=True)
+            image.write_bytes(b"candidate")
+            receipt = route / "receipt.json"
+            receipt.write_text("{}")
+            digest = artifact.identity(receipt)["sha256"]
+            transfer = root / "transfer.json"
+            transfer.write_text(json.dumps(dict(status="REMOTE_REPLACEMENT_LINK_VERIFIED_NOT_BOARD_EVIDENCE",
+                                                receipt_sha256=digest, candidate=artifact.identity(image))))
+            invocation = "1" * 32
+            service = dict(LoadState="loaded", InvocationID=invocation, ActiveState="active",
+                           SubState="running", MainPID="17", Result="success", ExecMainStatus="0")
+            self.assertIsNone(active_min_follow.returned_ready("candidate", route, None, service, invocation, True))
+            service.update(SubState="exited", MainPID="0")
+            verified = active_min_follow.returned_ready("candidate", route, None, service, invocation, True)
+            self.assertEqual(active_min_follow.seal_parameters([None, "capsule"], verified), [digest, "capsule"])
+            receipt.write_text('{"wrong":true}')
+            with self.assertRaisesRegex(ValueError, "verified collector receipt"):
+                active_min_follow.returned_ready("candidate", route, None, service, invocation, True)
+
     def test_public_cc_return_requires_verified_collector_pin(self):
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

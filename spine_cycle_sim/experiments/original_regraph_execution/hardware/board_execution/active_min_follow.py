@@ -86,9 +86,28 @@ def returned_ready(name, route, digest, state, invocation, observed):
         image_matches = artifact.identity(route / portable_return.BINARY) in report.get("pins", [])
     else:
         raise ValueError(f"unexpected returned arm: {name}")
+    if digest is None:
+        digest = artifact.identity(route / "receipt.json")["sha256"]
     if report.get("status") != status or report.get("receipt_sha256") != digest or not image_matches:
         raise ValueError("returned route does not match the verified collector receipt")
     return transfer
+
+
+def return_parameters(explicit, pending, pins):
+    if explicit and pending:
+        raise ValueError("choose either a presealed or a pending return for each arm")
+    if not pending:
+        return explicit
+    capsule, *others = [Path(value).resolve(strict=True) for value in pending]
+    pins.extend(artifact.identity(path) for path in (capsule / "capsule.json", *others))
+    return [None, str(capsule), *map(str, others)]
+
+
+def seal_parameters(parameters, transfer):
+    if parameters[0] is not None:
+        return parameters
+    snapshot.unchanged([transfer])
+    return [json.loads(Path(transfer["path"]).read_text())["receipt_sha256"], *parameters[1:]]
 
 
 def run(args):
@@ -108,7 +127,9 @@ def run(args):
             if len(prior) != 2 or len({row[0] for row in prior}) != 2 or not args.board_wait_seconds:
                 raise ValueError("high-activity run requires both earlier pairs and bounded board admission")
             pins.append(fixture_pin(args, pins[2:]))
-        returned = {arm: getattr(args, "returned_" + arm, None) for arm in ("reference", "candidate")}
+        returned = {arm: return_parameters(getattr(args, "returned_" + arm, None),
+                                           getattr(args, "pending_return_" + arm, None), pins)
+                    for arm in ("reference", "candidate")}
         if not returned["candidate"]:
             pins.append(artifact.identity(args.candidate_route / "manifest.json"))
         pins += runner_pins()
@@ -153,6 +174,9 @@ def run(args):
             time.sleep(min(30, remaining))
         snapshot.unchanged(pins + [row["receipt"] for row in report["earlier_pairs"]]
                            + [row["transfer"] for row in report["routes"].values() if row.get("transfer")])
+        for arm, parameters in returned.items():
+            if parameters:
+                setattr(args, "returned_" + arm, seal_parameters(parameters, report["routes"][arm]["transfer"]))
         report.update(status="REQUESTING_ONE_PAIRED_RUN", requested_pair=True)
         save(journal, report)
         args.output = args.output / "pair"
@@ -175,6 +199,8 @@ def wait_arguments(parser):
     parser.add_argument("--board-wait-seconds", type=int, default=0)
     parser.add_argument("--after-pair", action="append", nargs=3, default=[], metavar=("UNIT", "INVOCATION", "JOURNAL"))
     parser.add_argument("--odd-fixture", nargs=2, metavar=("MANIFEST", "SHA256"))
+    parser.add_argument("--pending-return-candidate", nargs=3, metavar=("CAPSULE", "XPFM", "PREDECESSOR"))
+    parser.add_argument("--pending-return-reference", nargs=1, metavar="CAPSULE")
 
 
 if __name__ == "__main__":

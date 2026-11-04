@@ -94,10 +94,19 @@ adds a separate `--update-setup-once` mode for the sharded SSSP/CC host.
 It emits layout/packing, initial/batch upload, and update-through-barrier
 wall times, and checks PMA contents after the timed window. CPU preflight
 checked the one-batch and board-lease guards and preserved the AU 512
-prepare-only output. This is build and preflight evidence only. Do not
-combine it with the older Spine maintenance-only timer: the Spine side
-must also include graph construction and upload before a hardware panel
-can be populated.
+prepare-only output. This is build and preflight evidence only.
+
+The [Spine native host](https://github.com/jayfeather9/spine-dynamic-graph/commit/fb1ed35)
+now times graph layout, buffer setup and upload, batch packing and upload,
+and the maintenance launch through completion. One AU 512 insertion run on
+U55C (`0000:c1:00.1`, 150 MHz data clock) recorded 2.008968934 s for that
+sum, including 0.459553 ms for maintenance launch through completion. The
+device readback exactly matched all 391,359 expected weighted edges outside
+the timer. The raw receipt on trifoliate is
+`/data/chuxiao/checks/source-retention-repair-20261104/fig8-spine-au512-board-v1/results.json`.
+This qualifies the Spine timer and checker, not a speedup: the matched G
+board run is pending. Do not mix either native arm with the older
+maintenance-only or modeled-setup results.
 
 ## Figure 7: The Smallest Observed Margins
 
