@@ -47,3 +47,28 @@ The active-min probe is not a convergence result. The ResPR tail path has
 a different ABI; do not send it to that active-min runner.
 
 No Figure 7--11 replacement or reuse decision is based on these link jobs.
+
+## Public A4 CC Control
+
+The local public A4 CC unit was still waiting for enough memory. A parallel
+source build on seele uses the clean author-generated four-Little/zero-Big
+topology and the same local min-label CC adaptation, Apply interface
+directive, HBM mapping, and 150 MHz request. This is a public-source
+resource control, not a reconstruction of the published 11+3 experiment.
+
+- Unit: `gr-retention-seele-public-a4-cc-20261104-v1.service`
+- Invocation: `1d70096721da4453ae0798d5dcd18873`
+- Local source preflight: `a4-cc-preflight-seele-v2/results.json`
+- Remote source capsule: `a4-cc-v2/seele-a4-cc-source-v2/`
+- Capsule SHA-256: `ed75fe94cddebc5fcbed3ec6d4ba5c895f43c58c06ad1122468a20e65579982a`
+- Build output: `builds/public-a4-cc-v1/results.json`
+
+`source_build.portable_inputs` pins the source snapshot, compiler command,
+and full U55C platform closure before transfer. It also compares the
+Vitis, Vivado, and Vitis HLS launchers and `ap_int.h` byte for byte across
+hosts. `source_build.portable_execution` regenerates only the absolute
+paths in the existing wrappers and commands, uses the 40/36 GiB
+containment with the 128 GiB reserve, and inspects each XO's ABI and HLS
+report before linking. A completed link is still pending local binary
+metadata, timing and source replay before any board test. Retain both
+build logs, but measure only one admitted public image per fixture.
