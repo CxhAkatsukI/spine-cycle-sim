@@ -513,3 +513,27 @@ relaxed. The resident v8 and matrix v6 queues replace v7 and v5
 before either attempted a board run. The resident runner accepts only
 one candidate, after replaying its independently measured same-clock G
 and R receipts. These are queued tests, not new hardware timings.
+
+## Common Lower HBM Clock Fallback
+
+This is a possible separate screen, not an admission change or a measured
+result. On trifoliate the loaded XRT driver is 2.18.179
+(`3ade2e671e5ab463400813fc2846c57edf82bb10`). In its installed source,
+`driver/xocl/userpf/xocl_drv.c` handles the four-slot reclock request and
+rejects live clients; `driver/xocl/subdev/icap.c` validates the request
+against the loaded image and runs memory calibration. The third slot is the
+system clock. The same file's `clock_freqs_show` reads clock counters for a
+loaded image, whereas `clock_freqs_max` gives image limits. The two U55Cs
+read back 150/500/450/0 MHz during the read-only check. No frequency was
+changed. The clock-wizard driver selects a supported frequency step, so the
+requested or packaged MHz is not enough to establish equality.
+
+If a returned candidate is safely derated, first verify all timing domains
+at its proposed operating point, then qualify any reclock on an exclusively
+leased board without live clients. Both arms must use the same verified
+board, full counter vector, inputs, output checks and measurement boundary;
+record counters around the timed work and check that a host image reload
+does not restore the original clocks. Preserve both original image hashes.
+Label any admitted result with the actual lower profile, keep it separate
+from the 150/500/450 MHz gate, and do not substitute a timing-report estimate
+or a candidate-only clock correction for a matched run.
