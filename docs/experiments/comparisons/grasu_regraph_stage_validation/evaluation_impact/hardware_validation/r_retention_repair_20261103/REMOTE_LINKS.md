@@ -432,6 +432,13 @@ The remote link completed with exit code 0. The terminal
 The resulting `candidate.hw.xclbin` SHA-256 is
 `2b2192568f34321cd6ed16f7ab0761c34ab7f0945d003b4fa9181fa346d2b920`.
 This identifies the failed-timing artifact, not a board-qualified image.
+The local collector verified the transfer in
+`seele-return-v3-respr-tail-source-bursts/transfer.json`. The returned
+clock metadata reports `DATA_CLK = 146 MHz` and `hbm_aclk = 448 MHz`,
+not loaded-board measurements. The R runner rejected the image before
+requesting either board arm; see `tail-bursts-follow-v3/results.json`
+and its `returned-admission/candidate/clock.json`. No R ratio was measured
+for this build.
 
 ## ResPR Apply Input Retime
 
