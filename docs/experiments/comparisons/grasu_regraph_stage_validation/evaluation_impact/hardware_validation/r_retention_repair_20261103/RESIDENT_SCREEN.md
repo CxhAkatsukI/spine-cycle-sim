@@ -1,6 +1,6 @@
 # First Paired ResPR Screen
 
-Status: **Flickr CPU references agree per vertex; paired board runner
+Status: **R19 and Flickr CPU references agree per vertex; paired board runner
 prepared, no new FPGA speedup.**
 Run this screen only after the exact ResPR G+R image has passed the independent
 [G scope](G_SCOPE.md) and R retention screens. Do not use these two runs to
@@ -213,6 +213,26 @@ as `gr-retention-respr-au-oracle-20261104.service` and
 `gr-retention-respr-au-oracle-replay-20261104.service`; the latter compared
 the retained dumps after the former's comparison command ran outside the
 checkout. The slice run is `gr-retention-respr-au-slice-u8-oracle-v2-20261104.service`.
+
+### Full R19: Cross-Host Oracle Check
+
+The same two CPU probes ran on the frozen full R19 graph without conversion
+(524,288 vertices, 15,672,181 initial directed edges, eight inserts).
+`resident_oracles` reported zero degree and active-set mismatches. Warm
+rank, correction, final rank, and final residual were identical at every
+vertex. Both arms had zero old and new sinks and zero correction seeds.
+R19 is therefore a correction/publication screen under these settings;
+Flickr and the AU slice are still needed to test propagation. This check
+does not establish matching FPGA behavior or elapsed time.
+
+The exact graph and probe hashes are in `inputs.sha256` under
+`/data/chuxiao/checks/source-retention-repair-20261104/respr-r19-oracle.IUzhBk/`.
+The two raw TSVs both hash to
+`937c11d59a7b920b1c6952d338247a9b69ce1a81db1a0dc034a9e680f4ef5d84`.
+The JSON comparison hashes to
+`ae7a3976aeb0f0363da6bb5681cfc4b366a24ff2a035723c601003968e2be259`.
+The CPU-only service invocation `30ecb6f8bb3d4b3983acbdd76e0a279c` used
+CPUs 124--125 and peaked at 2.2 GiB (4 GiB cap, zero swap).
 
 ## Board Runner
 
