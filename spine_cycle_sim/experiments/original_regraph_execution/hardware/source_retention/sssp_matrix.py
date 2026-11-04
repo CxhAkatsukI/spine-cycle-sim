@@ -8,7 +8,7 @@ import time
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import (
     route_finished, runner_pins, service_state,
 )
-from . import active_min_admission, active_min_resident as resident, resident_matrix
+from . import active_min_admission, active_min_resident as resident, resident_matrix, sssp_continuation
 from . import active_min_resident_follow as follow
 from .follow import unchanged
 from .resident_matrix import INPUTS as GATE_INPUTS, MEASURED, admitted_odd, child_command, run_child
@@ -56,6 +56,9 @@ def run(args):
     if (args.algorithm, args.dataset, args.cc_wall_packet) != (ALGORITHM, "AU", None):
         raise ValueError("expected the AU weighted-SSSP matrix template")
     include_au = getattr(args, "include_au", False)
+    source = getattr(args, "continue_from", None)
+    if source and not include_au:
+        raise ValueError("continuation requires the complete SSSP matrix")
     if include_au and (args.au_unit or args.au_invocation or args.au_output):
         raise ValueError("choose the complete matrix or a separate AU screen")
     if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,75}", args.child_prefix)
@@ -69,8 +72,6 @@ def run(args):
                   repetitions_per_arm=1, warmups=0)
     save(journal, report)
     try:
-        prerequisites = resident_matrix.stage_jobs(args) if include_au else legacy_jobs(args)
-        report["prerequisites"] = prerequisites
         pins = [*runner_pins(), identity(__file__), identity(resident_matrix.__file__)]
         if include_au:
             pins.append(identity(follow.__file__))
@@ -78,6 +79,16 @@ def run(args):
         for ds, row in rows.items():
             case, case_pins = resident.frozen_case(args.previous, ALGORITHM, ds)
             row.update(case=case, pins=case_pins)
+        if source:
+            previous, pending, old_pins, stopped = sssp_continuation.load(source, rows)
+            pins += old_pins
+            prerequisites = previous["prerequisites"]
+            report["continuation"] = dict(journal=old_pins[0], stopped_services=stopped,
+                                          pending_order=pending)
+        else:
+            previous, pending = None, list(rows)
+            prerequisites = resident_matrix.stage_jobs(args) if include_au else legacy_jobs(args)
+        report["prerequisites"] = prerequisites
         save(journal, report)
         deadline = time.monotonic() + args.au_wait_seconds
         while True:
@@ -109,8 +120,13 @@ def run(args):
             report["au_result"] = au_pins[1]
         pins += odd_pins
         pins += [gate["r"]["report"], gate["g"]["report"], gate["g"]["reference"], gate["host"], gate["image"]]
+        if previous is not None:
+            if (previous["baseline"], previous["odd_r"]) != (gate, odd):
+                raise ValueError("continuation must use the same exact baseline stage admissions")
+            sssp_continuation.claim(source, args.output)
         report.update(status="RUNNING_SINGLE_PASS", baseline=gate, odd_r=odd)
-        for ds, row in rows.items():
+        for ds in pending:
+            row = rows[ds]
             unchanged([*pins, *row["pins"]])
             output = args.output / ds.lower()
             command = child_command(args, ds, row["case"]["memory_gib"], output)
@@ -131,6 +147,8 @@ def run(args):
 
 def arguments(parser):
     parser.add_argument("--include-au", action="store_true", help="run all eight once after exact G and both R gates")
+    parser.add_argument("--continue-from", nargs=3, metavar=("JOURNAL", "SHA256", "STOPPED_SERVICE"),
+                        help="keep prior attempts and queue unattempted cases from smallest memory budget")
     for stage in ("au", "g", "r"):
         parser.add_argument(f"--{stage}-unit", default="")
         parser.add_argument(f"--{stage}-invocation", default="")
