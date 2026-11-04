@@ -100,7 +100,8 @@ check root:
 | SSSP R, odd-vertex Amazon frontier | `sssp-odd-pair-return-v2/queue.json` | `gr-retention-sssp-odd-pair-return-v2-20261104.service` | `8a228fd591384ce2bc35caca8df8145d` |
 | SSSP G, AU 131K updates | `g-sssp-board-return-v3/results.json` | `gr-retention-g-sssp-return-v3-20261104.service` | `578f47850f484fccad9d1541ff41bd74` |
 | SSSP resident Spine vs G+R, eight graphs | `sssp-singlepass-matrix-return-v2/matrix.json` | `gr-retention-sssp-matrix-return-v2-20261104.service` | `21d209eca39c4d54bd13e064ca269a19` |
-| Native Figure 8 AU/512 setup pair | `fig8-au512-pair-return-v1/results.json` | `gr-retention-fig8-au512-return-v1-20261104.service` | `81cbc8a6fa6f49a598f83115114fa42f` |
+| Native Figure 8 AU/512 setup pair | `fig8-au512-pair-return-v2/results.json` | `gr-retention-fig8-au512-return-v2-20261104.service` | `760a261547944e3bb7f13132bfa6d4ce` |
+| Native Figure 8 seven-case export | `fig8-native-matrix-return-v1/results.json` | `gr-retention-fig8-native-matrix-return-20261104.service` | `df85bec545d043d8b5fc827612d2841f` |
 
 The matrix uses `--include-au` to request all eight datasets once, with
 no warmups, only after independent G and both R receipts pass and their
@@ -109,8 +110,10 @@ AU run in this queue.
 
 The separate Figure 8 job waits for G alone because it does not run R.
 It is capped at 8 GiB with no cgroup swap, takes the same board lease
-used by the G control, and does not replay the already measured Spine
-arm. See [the Figure 8 timing boundary](FIGURE_IMPACT.md#figure-8-exact-inputs-for-a-native-g-check).
+used by the G control, and does not rerun the already measured Spine
+arm. The seven-case export reuses the admitted AU/512 pair and requests
+the six remaining cases once. See
+[the Figure 8 timing boundary](FIGURE_IMPACT.md#figure-8-exact-inputs-for-a-native-g-check).
 
 ## Public A4 CC Control
 
