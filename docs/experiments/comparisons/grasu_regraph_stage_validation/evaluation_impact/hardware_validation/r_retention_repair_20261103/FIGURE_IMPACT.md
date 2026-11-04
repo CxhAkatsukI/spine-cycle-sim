@@ -186,6 +186,22 @@ fit should be described as newly calibrated against hardware.
 
 ## Figure 8: Exact Inputs For A Native G Check
 
+This section checks the **November 3 one-batch handoff**, not the earlier
+[persistent-update campaign](../../../../../../evidence/persistent_update_campaign_20260731/README.md).
+That campaign kept the updated graph between batches. Its cross-dataset
+panel used 4,096 inserts split into ten batches on each of AU, SU, WK, SO,
+and PK. Its AU batch-size sweep instead split 131,072 inserts into 10, 100,
+or 1,000 batches. GraSU used the full trace once for PMA reservation;
+Spine saw batches in arrival order. The archived setup-inclusive numbers
+combine host preprocessing with simulated device cycles and modeled
+transfer and launch, not measured XRT wall time.
+
+To reproduce that panel on current hardware, initialize each graph once,
+replay the archived ordered trace in its original batches, and verify the
+final graph outside the timer. The single-batch hardware evidence below
+does not exercise that schedule. The native G repeat option restores PMA
+between repetitions, so it cannot substitute for a resident sequence.
+
 The independent G gate uses AU with 131,072 inserts and measures the
 device update event span. It cannot stand in for Figure 8: the latter uses
 AU at 64, 512, and 4,096 updates and SU/WK/SO/PK at 512, and includes
