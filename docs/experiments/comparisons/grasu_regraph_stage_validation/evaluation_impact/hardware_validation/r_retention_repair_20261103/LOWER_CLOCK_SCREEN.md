@@ -54,6 +54,35 @@ window (0.898 vs 1.096 ms); this is not the predeclared device R gate.
 Neither paired failure is due to a different clock vector, and neither
 admits a resident Spine comparison or validates earlier figure data.
 
+## Four-Way Gather Clear
+
+An [opt-in HLS variant](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/ed7a5ed)
+interleaves the existing gather URAM by row and clears four rows per
+iteration. It does not omit the initial clear, change the output stream
+or skip work for one of the timed arms. Native tests with the switch
+both off and on pass the SSSP, CC and PageRank suites, including partial
+bank groups, a growing prefix, a shrinking prefix and reuse.
+
+Standalone ResPR gather builds used Vitis 2024.1, the U55C target and
+the same 150-MHz kernel flags, with only the banked-clear define varied.
+
+| Gather C-synthesis | Original | Four-way clear |
+| --- | ---: | ---: |
+| Full-clear loop iterations | 32,768 | 8,192 |
+| Clear / scatter / publish initiation intervals | 1 / 3 / 1 | 1 / 3 / 1 |
+| URAM / BRAM18 / DSP | 64 / 128 / 38 | 64 / 128 / 38 |
+| Estimated LUT / FF | 37,263 / 17,308 | 43,130 / 19,643 |
+| Estimated clock period | 4.658 ns | 4.658 ns |
+
+The clear-loop iteration difference is 24,576 cycles, or about 164 us
+at 150 MHz before pipeline startup effects. This is a local estimate for
+one full clear, not an end-to-end saving: several workers can overlap,
+and subsequent frames need not clear the full array. The measured ResPR
+pair must save about 220 us to pass; CC must save about 70 us. This variant
+is not a stand-alone ResPR fix, and its CC effect has not been measured.
+It is not yet linked or board-tested. See the
+[native and synthesis evidence](banked-gather-csynth.tar.gz).
+
 ## Receipts
 
 Paths below are relative to
