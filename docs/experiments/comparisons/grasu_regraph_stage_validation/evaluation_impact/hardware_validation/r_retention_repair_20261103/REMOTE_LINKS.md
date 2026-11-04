@@ -965,7 +965,40 @@ the 11 XOs; the source-read burst wrapper, connectivity, platform and
 The verified capsule is `seele-inputs-v1/sssp-source-bursts-banked` locally
 and `inputs/sssp-source-bursts-banked` on Seele. Its manifest SHA-256 is
 `43c2f74abc1e0d3b306cf3c1833f74092b043969763eec4b5b7fcd1364ad717f`.
-The existing runner verified the full capsule on Seele. It has not been
-linked or tested on the board. Keep it in reserve while the physical-only
-retry runs; use it if that retry cannot produce an image that passes the
-same R gate.
+The physical-only retry passed timing but did not pass the AU R screen.
+The fallback is now running; the queued AU probe reuses the frozen public
+A4 reference and requests one measurement of the candidate.
+
+### Weighted SSSP Tail Publication
+
+The AU903K fixture's final destination shard has 25,217 valid vertices.
+HLS commit [`15bffb3`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/15bffb3)
+transmits 12,616 instead of 32,768 two-vertex rows for that shard and
+regenerates neutral padding in the merger's 512-bit output. Apply still
+receives its full extent. The ideal serial packing savings at 150 MHz
+are 117.55 us before backpressure and scheduling, below the 140.85 us
+needed on AU. Neither passing nor failing the gate can be inferred
+from that estimate.
+
+The four-frame C simulation compared all 262,144 output words. The
+connected adapter/Gather and CC and ResPR regression cases also passed.
+Vitis 2024.1 synthesized both XOs; the merger pack and pad loops report
+II=1. `source_retention.weighted_tail_link` validates the Gather register
+change and unchanged merger interface, and pins the matching host.
+Exactly two of 11 XO hashes differ from the physical-only source-burst
+capsule. The timing policy, connectivity and other nine XOs are unchanged.
+Capsule SHA-256:
+`818fda24b2cb38388b0d5ca4f2f393ce62663ba8c71f54f572229b8f0916b454`.
+
+| Variant | Step | Service (without `.service`) | Invocation |
+| --- | --- | --- | --- |
+| Banked clear | Seele link | `gr-retention-seele-sssp-banked-source-bursts-20261105-v1` | `f8ed86f215434219b4b073cf0572733c` |
+| Banked clear | Local return | `gr-retention-return-sssp-banked-source-bursts-20261105-v1` | `51987ede45274f8c93037ebc560e0d4e` |
+| Banked clear | AU903K | `gr-retention-sssp-banked-bursts-au903k-20261105-v1` | `3543d907a94242888592b8ddb0e47796` |
+| Tail | Seele link | `gr-retention-seele-sssp-weighted-tail-20261105-v1` | `33148e5408474edab475633da10cd60e` |
+| Tail | Local return | `gr-retention-return-sssp-weighted-tail-20261105-v1` | `3796c09d79e345d6b4db280bf819dd0d` |
+| Tail | AU903K | `gr-retention-sssp-weighted-tail-au903k-20261105-v1` | `4f01cd15fff74c22b52af6389753877f` |
+
+The local AU queue receipts are `sssp-banked-bursts-au903k-v1/queue.json`
+and `sssp-weighted-tail-au903k-v1/queue.json`. Neither route, board gate,
+or downstream figure is considered passed at submission.
