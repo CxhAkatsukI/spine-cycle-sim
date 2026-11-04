@@ -168,9 +168,9 @@ invocation `1a0f5b4f0f15481d894a24a042d2113c`; its peak was 186.5 MiB.
 
 The [paired board evidence](lower-clock-pairs.tar.gz) includes the two
 ResPR and CC pair receipts, timestamp and clock records, and raw timed-host
-logs. The [SSSP board evidence](sssp-lower-clock-au903k.tar.gz) separately
-includes the recovered pair and the original public arm, output
-vectors, clock records, and raw timed-host logs (no bitstreams).
+logs. The [SSSP stage admission record](SSSP_STAGE_ADMISSION.md#matched-445-mhz-hbm-diagnostic)
+links the canonical [SSSP board evidence](sssp-au903k-burst-hbm445-screen.tar.gz)
+for the recovered pair and original public arm.
 The recovered receipt SHA-256 is
 `eaf43e0e826240f9833f48a5e72758384835d5f2be84773a1e8928ad67b7a2e3`.
 The ResPR pair receipt SHA-256 is
