@@ -171,13 +171,13 @@ def arguments(argv=None):
                         required=True)
     parser.add_argument("--host", type=Path)
     parser.add_argument("--inputs", type=Path)
-    parser.add_argument("--memory-gib", type=int, choices=(2, 24),
+    parser.add_argument("--memory-gib", type=int, choices=(2, 12, 24),
                         help="must match the service cap; defaults to 2 for preparation and 24 for layout")
     parser.add_argument("--wait-seconds", type=int, default=0)
     args = parser.parse_args(argv)
     if bool(args.host) != bool(args.inputs) or len(set(args.datasets)) != len(args.datasets):
         parser.error("provide host and prepared inputs together, and unique datasets")
-    if args.host is None and args.memory_gib == 24:
+    if args.host is None and args.memory_gib not in (None, 2):
         parser.error("input preparation requires a 2-GiB cap")
     if not 0 <= args.wait_seconds <= 86400:
         parser.error("wait must be between zero and 86400 seconds")

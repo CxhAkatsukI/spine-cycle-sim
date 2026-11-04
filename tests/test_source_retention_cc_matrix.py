@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import cc_matrix
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import cc_matrix, spine_cc_layout
 
 
 class CcMatrixTest(unittest.TestCase):
@@ -30,6 +30,13 @@ class CcMatrixTest(unittest.TestCase):
             raise ValueError("large host layout did not complete")
         row.update(case={"memory_gib": 32}, pins=[])
         return args.output / (ds + ".json")
+
+    def test_r19_intermediate_memory_cap_is_layout_only(self):
+        common = ["--matrix", "matrix", "--output", "output", "--datasets", "r19", "--memory-gib", "12"]
+        args = spine_cc_layout.arguments([*common, "--host", "host", "--inputs", "inputs"])
+        self.assertEqual(args.memory_gib, 12)
+        with self.assertRaises(SystemExit):
+            spine_cc_layout.arguments(common)
 
     def test_failed_odd_gate_prevents_board_launch(self):
         with patch.object(cc_matrix, "stage_jobs", return_value=self.jobs), \

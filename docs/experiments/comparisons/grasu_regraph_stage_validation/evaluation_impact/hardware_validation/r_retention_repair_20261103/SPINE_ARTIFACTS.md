@@ -289,6 +289,13 @@ then add `--host <balanced-warm-host> --inputs <preparation-output> --memory-gib
 for the layout check, with matching systemd memory limits. Neither
 receipt substitutes for the older matrix's pinned host or a board result.
 
+For R19, the structured warm-host preflight uses the same frozen R19
+source, a 2-GiB cap for input preparation, and a 12-GiB cap for layout with
+the same 32-GiB host reserve. The journals are
+`spine-cc-warm-balanced-r19-inputs-v1/results.json` and
+`spine-cc-warm-balanced-r19-layout-v1/results.json`. The separate 24-GiB
+large-layout campaign does not need to finish before this preflight.
+
 For a new non-AU measurement, the single-pair runner
 `source_retention.active_min_resident` accepts the warm image and balanced
 host through `--cc-wall-packet`, the matching offline receipt through
