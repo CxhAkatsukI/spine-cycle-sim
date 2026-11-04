@@ -77,8 +77,34 @@ passed at 150 MHz. The binary is
 `/data/chuxiao/builds/gr-directory-spans-20261103/public-a4-sssp-v1/build/original_r_a4_weighted_sssp.hw.xclbin`
 (SHA-256 `5185d9be6f0b889f8da107fb3a6d9b5d3d62d4affe4cfc6a1910833ddcfda3b4`).
 The offline receipt is `public-a4-sssp-offline-admission-v1/summary.json`
-under the local root. This control has not been timed in the new pair;
-the local pair is waiting for an admitted integrated candidate.
+under the local root. This control has not been timed in the new pair.
+The local A4 link unit has already exited; the replacement queues use
+`--completed-reference 7d7aa3de8d8c1c76eac386e4b28520a662e0b02d61d56cb114dd8959445ffc74`
+to pin its exact successful `build/results.json`. The board runner still
+replays full local A4 source, topology, timing, and binary admission.
+
+The integrated local SSSP attempt was interrupted only while still
+waiting for its 80-GiB memory admission, with no Vivado process or
+execution manifest. Its terminal receipt is
+`/data/chuxiao/builds/gr-directory-spans-20261103/route-sssp-v2/execution/execution.json`.
+The original `sssp-active-pair-v2`, `sssp-odd-pair-v1`,
+`g-sssp-board-v2`, `sssp-resident-au-v2`, and
+`sssp-singlepass-matrix-v1` receipts remain in the check root: no board arm
+was requested and no matrix child ran. The new queue is bound to the
+exact seele SSSP return above. Receipts below are relative to the local
+check root:
+
+| Test | Receipt | Local service | Invocation |
+| --- | --- | --- | --- |
+| SSSP R, sparse Amazon frontier | `sssp-active-pair-return-v3/queue.json` | `gr-retention-sssp-pair-return-v3-20261104.service` | `de763d51116042d1995d8d1948046019` |
+| SSSP R, odd-vertex Amazon frontier | `sssp-odd-pair-return-v2/queue.json` | `gr-retention-sssp-odd-pair-return-v2-20261104.service` | `8a228fd591384ce2bc35caca8df8145d` |
+| SSSP G, AU 131K updates | `g-sssp-board-return-v3/results.json` | `gr-retention-g-sssp-return-v3-20261104.service` | `578f47850f484fccad9d1541ff41bd74` |
+| SSSP resident Spine vs G+R, eight graphs | `sssp-singlepass-matrix-return-v2/matrix.json` | `gr-retention-sssp-matrix-return-v2-20261104.service` | `21d209eca39c4d54bd13e064ca269a19` |
+
+The matrix uses `--include-au` to request all eight datasets once, with
+no warmups, only after independent G and both R receipts pass and their
+raw evidence replays on the exact returned image. There is no separate
+AU run in this queue.
 
 ## Public A4 CC Control
 
