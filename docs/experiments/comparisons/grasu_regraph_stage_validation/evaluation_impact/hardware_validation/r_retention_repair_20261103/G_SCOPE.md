@@ -370,6 +370,35 @@ same U55C at the matched clocks. The cached-degree image has **not**
 passed either gate yet, and the packed-validity image's failed gates
 remain in the record.
 
+#### Offline AU degree-cache coverage
+
+Replaying the exact AU 131,072-update graph through the pinned native host
+reader and PMA layout gives a source-prefix hint of 24,897 vertices after
+remapping. Six of eight destination shards meet the kernel's per-shard
+cache rule (at least 16 updates and at least one update per four prefix
+vertices, rounded up). Each of those shards can load and write back 1,557
+64-byte lines. Their 128,686 packets fit in the cached prefix; the other two
+shards send 2,386 packets through the uncached path. That is **98.18%
+eligible packets** for this input. It measures neither HBM stalls nor
+elapsed time, and a batch below 16 physical updates cannot use the cache.
+The board gate remains at 1.15 times the measured public G window
+(21.124267 ms).
+
+The [coverage replay](respr-degree-prefix-au-coverage.tar.gz) contains the
+source, raw counts and checked host hash manifest. It reuses the frozen
+`au_131072.graph` (SHA-256
+`33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033`)
+and does not open a board. From the extracted directory, point `src` at
+the pinned HLS checkout and `graph` at the frozen input:
+
+```bash
+g++ -O2 -DNDEBUG -std=c++20 -DGRASU_REGRAPH_SHARDED_K4_HOST \
+  -DGRASU_MAX_CACHE_SEGMENT=131072 -I"$src/include" -I"$src/tools" \
+  -I/opt/xilinx/xrt/include degree_prefix_coverage.cpp -L/opt/xilinx/xrt/lib \
+  -Wl,-rpath,/opt/xilinx/xrt/lib -lxilinxopencl -o coverage
+(ulimit -v 3145728; diff -u coverage.txt <(./coverage "$graph"))
+```
+
 The follow-up uses these exact R/G receipts and the route-matched host.
 It runs R19 and the propagation-required Flickr control once per arm
 only if both stages pass; only then can the seven remaining ResPR
