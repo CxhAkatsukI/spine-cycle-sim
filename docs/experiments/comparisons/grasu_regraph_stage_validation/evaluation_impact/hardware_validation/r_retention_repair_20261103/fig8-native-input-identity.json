@@ -1,0 +1,241 @@
+{
+  "schema": "figure8-native-input-identity-v1",
+  "arm_table": {
+    "path": "/data/chuxiao/worktrees/spine-cycle-sim-fig8-native/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_handoff_20261103/data/fig8_arms.csv",
+    "sha256": "eb0caae642b510d49fb04c1f556ec04545f737fdebd035ea9dcec0e19bbdbd81",
+    "bytes": 4888
+  },
+  "cases": [
+    {
+      "dataset": "AU",
+      "updates": 64,
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "frozen_source": 15811,
+      "frozen_report_sha256": "320c7102890efc8e504ecae9e220e8d01bda4d9a225d2ee3aa1cdde2b93daaa0",
+      "spine_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_AU_u64_spine/config.json",
+        "sha256": "3bdbb4d6e6d9c3b26599965d4b0c1ea7d090ffd343fdf9a318bb4b1cb2764f79",
+        "bytes": 534
+      },
+      "gr_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_AU_u64_gr/config.json",
+        "sha256": "fc2ddc0ef64fbc006ad29828b58c0f754e793c7a5ca3ddd06233028063ab874c",
+        "bytes": 528
+      },
+      "graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "batch": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/updates/directed/insert_u64.slice",
+        "sha256": "ec5dbaa3a1d8a49f9e70ff247634226a685c9c39a8d376d379d954fadd4e6618",
+        "bytes": 1074
+      },
+      "native_g_input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u64.graph",
+        "sha256": "13bfe11fbebc49295c3094ce82d3a35523538962e9f727ac21c3bedbeef1a0d8",
+        "bytes": 5947436
+      }
+    },
+    {
+      "dataset": "AU",
+      "updates": 512,
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "frozen_source": 15811,
+      "frozen_report_sha256": "320c7102890efc8e504ecae9e220e8d01bda4d9a225d2ee3aa1cdde2b93daaa0",
+      "spine_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_AU_u512_spine/config.json",
+        "sha256": "6e8f515c7544e4507bdbe22cf26adc08a78d16e360c3be3ebaca80272651f210",
+        "bytes": 536
+      },
+      "gr_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_AU_u512_gr/config.json",
+        "sha256": "a2e1769fd20248d438203603101447bbf9e5400d4a5494249060baedce54fad2",
+        "bytes": 530
+      },
+      "graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "batch": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/updates/directed/insert_u512.slice",
+        "sha256": "88d9090d37621d1299d510683a2f87bbd3b4395c0ddc3e083537fc923c74b26b",
+        "bytes": 8162
+      },
+      "native_g_input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u512.graph",
+        "sha256": "092a84ab17b564cab854875e544f420635fe63cca5056e10c3842be912501e70",
+        "bytes": 5954524
+      }
+    },
+    {
+      "dataset": "AU",
+      "updates": 4096,
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "frozen_source": 15811,
+      "frozen_report_sha256": "320c7102890efc8e504ecae9e220e8d01bda4d9a225d2ee3aa1cdde2b93daaa0",
+      "spine_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_AU_u4096_spine/config.json",
+        "sha256": "4ece313be6281a31a3f2538fba30ddcf685864e72a810d41f4043f6774caf48c",
+        "bytes": 538
+      },
+      "gr_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_AU_u4096_gr/config.json",
+        "sha256": "ab77302cb5c54d7907e8011a554e1ca084a925f4dc8b099b3de0dc0b5cd3d7e7",
+        "bytes": 532
+      },
+      "graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "batch": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/updates/directed/insert_u4096.slice",
+        "sha256": "f661dda832eb7e973f1a3a6ac61c6e8cad1a65da8df93bed0eef877ec026eda7",
+        "bytes": 68600
+      },
+      "native_g_input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u4096.graph",
+        "sha256": "e8f1cf761783b96361c19e4a137414309fc5ed19753859cc1adf2e33aaf53e39",
+        "bytes": 6014962
+      }
+    },
+    {
+      "dataset": "SU",
+      "updates": 512,
+      "vertices": 567316,
+      "initial_edges": 616118,
+      "frozen_source": 48078,
+      "frozen_report_sha256": "320c7102890efc8e504ecae9e220e8d01bda4d9a225d2ee3aa1cdde2b93daaa0",
+      "spine_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_SU_u512_spine/config.json",
+        "sha256": "6901f9a5ce8d3c33a3c32174e83a2198f26fc55433379e7da51eec5aead47a1e",
+        "bytes": 536
+      },
+      "gr_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_SU_u512_gr/config.json",
+        "sha256": "743dfd2406c1a65de2a53aa9ac899498c8465b8a44b8994a37af0d5f43f2107c",
+        "bytes": 530
+      },
+      "graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/graphs/directed_weighted.slice",
+        "sha256": "3afdd3088221d987dbbb0ac9ead992acc82b684cfab28ef235262e63b410ea4d",
+        "bytes": 10564917
+      },
+      "batch": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/updates/directed/insert_u512.slice",
+        "sha256": "60b74348d0b64db512c93d1fdc6e4339d5a0b845641583bf71bb4f28d2114760",
+        "bytes": 8078
+      },
+      "native_g_input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/SU_u512.graph",
+        "sha256": "1dbc818dbb8dbc2424961a44248e8e1f9082ef99d7dc2728fd160aa348ba1492",
+        "bytes": 9340480
+      }
+    },
+    {
+      "dataset": "WK",
+      "updates": 512,
+      "vertices": 1140149,
+      "initial_edges": 1142352,
+      "frozen_source": 5931,
+      "frozen_report_sha256": "320c7102890efc8e504ecae9e220e8d01bda4d9a225d2ee3aa1cdde2b93daaa0",
+      "spine_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_WK_u512_spine/config.json",
+        "sha256": "fff82705215f24068220a2821a81b0fd47ab9b63d088d184c71e01fd5c106563",
+        "bytes": 547
+      },
+      "gr_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v9/fig8_WK_u512_gr/config.json",
+        "sha256": "94d0c4d26c41180ac475eb9c02e2679a2a0a75fb0bb9e5f42b2f0745e7ad0c1e",
+        "bytes": 541
+      },
+      "graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/graphs/directed_weighted.slice",
+        "sha256": "90447ad9404c417f80a4192d88e1b38b360a80246a16e0257ba2bb6a7e66aef2",
+        "bytes": 17831515
+      },
+      "batch": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/updates/directed/insert_u512.slice",
+        "sha256": "b99e04487166395074e47fccca3ed1c16c171f638aab1a2986a3cfd99d4416cf",
+        "bytes": 7760
+      },
+      "native_g_input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/WK_u512.graph",
+        "sha256": "91987253f04c84d31a84c58ea9ac8372cdb69f79848c121d5421233c9faf72ae",
+        "bytes": 15554280
+      }
+    },
+    {
+      "dataset": "SO",
+      "updates": 512,
+      "vertices": 6024271,
+      "initial_edges": 23724166,
+      "frozen_source": 22656,
+      "frozen_report_sha256": "807442f006f853d741a2425eb12c95e57cd743163ce4cb73cca3137ecd83e8e2",
+      "spine_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v10/fig8_SO_u512_spine/config.json",
+        "sha256": "3ae8115651c18bfac75d007178e56c2f8efe4b2a42ff340655cf136721978464",
+        "bytes": 545
+      },
+      "gr_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v10/fig8_SO_u512_gr/config.json",
+        "sha256": "ebf41d914e6c6beabbc2afc5a16ca53fdfe615a3591852717410d65a75fe1690",
+        "bytes": 539
+      },
+      "graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_stackoverflow/graphs/directed_weighted.slice",
+        "sha256": "8068d6382766d1421537d0e00b2bf9fc87d9d9fdffd4c3fa5a217bf7cde0340f",
+        "bytes": 458755313
+      },
+      "batch": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_stackoverflow/updates/directed/insert_u512.slice",
+        "sha256": "c4bcc5737fa0af4d32b42656b51cae6d6612df4ed3c541d0d15b87f23aaa6565",
+        "bytes": 8983
+      },
+      "native_g_input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/SO_u512.graph",
+        "sha256": "23893ee451ab5fad390aac1c60c19539c88e0530ebd8fe267e79022cd9f46b23",
+        "bytes": 411315678
+      }
+    },
+    {
+      "dataset": "PK",
+      "updates": 512,
+      "vertices": 1632803,
+      "initial_edges": 44603928,
+      "frozen_source": 5934,
+      "frozen_report_sha256": "807442f006f853d741a2425eb12c95e57cd743163ce4cb73cca3137ecd83e8e2",
+      "spine_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v10/fig8_PK_u512_spine/config.json",
+        "sha256": "88977988f4ae29716b97f2fcfdcb44b76b5e48215985b225557dee7652f96fb7",
+        "bytes": 530
+      },
+      "gr_config": {
+        "path": "/data/chuxiao/experiments/figure89_refresh_20261023/attempt-v10/fig8_PK_u512_gr/config.json",
+        "sha256": "2c68085c7c633908c7c2fcf2bd15df6d28b12b3f01d05b48047cbc74ea37ad84",
+        "bytes": 524
+      },
+      "graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/soc_pokec/graphs/directed_weighted.slice",
+        "sha256": "aa712bc484a68f587cacfa385da75ae0908ef71f3e05243b89d5cb84620671f8",
+        "bytes": 834864801
+      },
+      "batch": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/soc_pokec/updates/directed/insert_u512.slice",
+        "sha256": "041d6c51ee439d4a423b710919e9c40acc6e803d9d43df49e7440000fbf9df0c",
+        "bytes": 8969
+      },
+      "native_g_input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/PK_u512.graph",
+        "sha256": "d888c6aa533c1f5f0d7389f839bde89a81ec98e87a3e3956e36270cab9eadb99",
+        "bytes": 745665642
+      }
+    }
+  ]
+}

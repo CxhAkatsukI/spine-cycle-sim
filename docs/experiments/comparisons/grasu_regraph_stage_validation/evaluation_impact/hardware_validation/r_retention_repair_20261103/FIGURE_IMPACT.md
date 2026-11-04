@@ -61,7 +61,20 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
 ```
 
 The converter keeps IDs, weights, record order and operation; it does not
-remap vertices or sample edges. All seven historical cases converted. On AU
+remap vertices or sample edges. After converting the seven cases, verify
+the native files against both original arms before measuring:
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure8_manifest \
+  /path/to/figure7_11_handoff_20261103/data/fig8_arms.csv \
+  /path/to/native-graphs /path/to/native-graphs/identity.json
+```
+
+The command checks that both arms used the same source inputs, reproduces
+the expected native content from the original slices, and records content
+identities for all seven pairs. It does not allocate a board or time a host.
+All seven historical cases passed; see the
+[input identity receipt](fig8-native-input-identity.json). On AU
 512 the current candidate host's CPU preflight accepted 390,847 old edges,
 512 physical inserts and eight shards. The native AU 512 file has SHA-256
 `092a84ab17b564cab854875e544f420635fe63cca5056e10c3842be912501e70`.
