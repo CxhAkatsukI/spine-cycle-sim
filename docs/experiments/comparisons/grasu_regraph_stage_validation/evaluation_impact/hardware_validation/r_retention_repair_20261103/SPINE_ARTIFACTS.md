@@ -220,8 +220,8 @@ checks directory (SHA-256
 Its offline check on the frozen AU input passed (`CC_LAYOUT_PASS`,
 274,796,544 workspace bytes; 133.4 MiB service peak).
 
-The local service `spine-cc-warm-au-return-and-board-20261105-v2.service`
-(invocation `f4c8f198565343a9969d9fb02381c596`) waits for that exact route
+The local service `spine-cc-warm-au-return-and-board-20261105-v3.service`
+(invocation `9e71adb97e2e4d18992e5472acde32fe`) waits for that exact route
 invocation, verifies the image manifest and final timing/bus-skew reports,
 and then calls the same `source_retention.spine_smoke --resident-wall`
 runner as the old arm. It requests one batch with the same input manifest
@@ -231,6 +231,12 @@ zero swap with the runner's 32-GiB reserve. Local return evidence goes to
 `spine-cc-warm-au-board-v1/results.json`. At queue time the route was still
 building. The result will diagnose the Spine repair only; it does not
 compare Spine against a retention-qualified G+R.
+
+The v2 local service was stopped before transfer or board submission:
+systemd expanded the embedded shell variables before Bash could use
+them. The replacement disables service-side expansion and retains
+the same route invocation, output locations, and validation checks.
+The remote build was not restarted.
 
 If that AU arm succeeds, `source_retention.active_min_resident` can replay it
 via `--cc-warm-au-receipt <results.json>` without another timed Spine launch.
