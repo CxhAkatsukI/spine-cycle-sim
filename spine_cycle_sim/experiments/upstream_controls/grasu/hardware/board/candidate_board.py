@@ -37,7 +37,7 @@ def native_host_sha256(route):
 def wait_for_image(route, r_report, timeout):
     deadline = time.monotonic() + timeout
     while True:
-        check_memory()
+        check_memory(require_live_reserve=False)
         screen = json.loads(r_report.read_text())
         if screen["status"] in R_FINISHED:
             break
@@ -79,7 +79,7 @@ def wait_for_image(route, r_report, timeout):
 def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
     if not 0 <= wait_seconds <= MAX_WAIT_SECONDS:
         raise ValueError("waiting is limited to twelve hours")
-    group = check_memory()
+    group = check_memory(require_live_reserve=False)
     output.mkdir(parents=True, exist_ok=False)
     result = output / "results.json"
     report = {"status": "PREDECLARED", "board_launch_attempted": False, "repetitions": 1,
@@ -133,6 +133,8 @@ def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
             save(result, report)
 
         returned = json.loads(r_report.read_text()).get("returned_admission") in r_pins
+        if not returned:
+            check_memory()
         board = (pair_resources.admit(DEVICE, BDF, group, 21600, admission_state)
                  if returned else lease(DEVICE, BDF))
         with board as (node, fd):

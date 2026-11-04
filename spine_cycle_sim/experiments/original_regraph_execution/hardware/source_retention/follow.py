@@ -78,7 +78,7 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
     write = lambda: save(output / "results.json", report)
     write()
     try:
-        check_memory()
+        check_memory(require_live_reserve=False)
         args, pins = control(before, route, output / "board-once")
         predecessor = args.r_predecessor
         route_file = route / "manifest.json"
@@ -89,7 +89,7 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
         report["pins"] = pins
         started = time.monotonic()
         while True:
-            check_memory()
+            check_memory(require_live_reserve=False)
             unchanged(pins)
             state = service_state(unit)
             if not report["states"] or report["states"][-1] != state:

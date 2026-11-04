@@ -76,7 +76,7 @@ def measure(args, case, image, expected, gate, pins, evidence, write, fd, node, 
 def run(args):
     if not 0 <= args.wait_seconds <= MAX_WAIT_SECONDS:
         raise ValueError("waiting is limited to twelve hours")
-    group = check_memory()
+    group = check_memory(require_live_reserve=False)
     args.output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREDECLARED", "bdf": BDF, "device": DEVICE, "affinity": "124,125",
               "repetitions_per_arm": 1, "warmups": 0, "full_evaluation_started": False,

@@ -52,7 +52,7 @@ class ResidentAdmissionTest(unittest.TestCase):
         with TemporaryDirectory() as directory:
             candidates = self.write_candidates(Path(directory))
             record = Mock()
-            with (patch.object(admission, "check_memory"),
+            with (patch.object(admission, "check_memory") as memory,
                   patch.object(admission, "replay_gate", side_effect=[
                       admission.NotAdmitted("mismatched clocks"), (Path("/selected"), {"r": "pass"})
                   ]) as replay):
@@ -60,6 +60,7 @@ class ResidentAdmissionTest(unittest.TestCase):
             self.assertEqual((selected, image, gate), (candidates[1], Path("/selected"), {"r": "pass"}))
             record.assert_any_call(candidates[0], {"rejected": "mismatched clocks"})
             self.assertEqual(replay.call_count, 2)
+            memory.assert_called_once_with(require_live_reserve=False)
 
     def test_joint_selector_does_not_admit_second_success(self):
         with TemporaryDirectory() as directory:

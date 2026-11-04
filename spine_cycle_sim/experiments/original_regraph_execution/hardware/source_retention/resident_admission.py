@@ -57,7 +57,7 @@ def wait_for_candidates(candidates, frozen_r, wait_seconds, record):
         raise ValueError("declare one to three distinct candidate routes")
     deadline = time.monotonic() + wait_seconds
     while pending:
-        check_memory()
+        check_memory(require_live_reserve=False)
         for candidate in tuple(pending):
             try:
                 states = [json.loads(path.read_text())["status"] if path.is_file() else "WAITING_FOR_RECEIPT"

@@ -16,7 +16,8 @@ def run(args):
         raise ValueError("single-run screening is R-only; retain independent G evidence separately")
     output = args.output.resolve()
     output.mkdir(exist_ok=False)
-    group = check_memory()
+    wait = getattr(args, "board_wait_seconds", 0)
+    group = check_memory(require_live_reserve=not wait)
     report = {"status": "PREDECLARED", "publication_match": False, "rows": [], "errors": [],
               "matrix": {"g_batches": [1024, 131072], "g_partition_vertices": [524288, 65536],
                          "r_inputs": ["boundary_ring", "skewed_sources", "amazon"],
@@ -42,7 +43,6 @@ def run(args):
         save(output / "results.json", report)
 
     try:
-        wait = getattr(args, "board_wait_seconds", 0)
         board = (pair_resources.admit(args.device, args.bdf, group, wait, admission_state)
                  if wait else lease(args.device, args.bdf))
         with board as (node, fd):
