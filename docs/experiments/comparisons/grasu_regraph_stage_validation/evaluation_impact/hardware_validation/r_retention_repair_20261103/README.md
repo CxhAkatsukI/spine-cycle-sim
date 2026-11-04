@@ -32,9 +32,10 @@ record (430 MHz CC; 430 or 445 MHz ResPR). It replays the reference
 receipts and times only the new candidate. A lower-clock result does not
 admit the nominal resident matrix.
 
-See [Figure Impact](FIGURE_IMPACT.md) for the two frozen Fig. 7 rows with a
-measured R-only bound and why the remaining rows cannot inherit it. This
-checkpoint is not a replacement Fig. 7--11 package.
+See [Figure Impact](FIGURE_IMPACT.md) for the frozen Fig. 7 audit. Two wins
+survive even a zero-cost R; nine survive an ideal full K4 scan with
+unchanged G and Spine. The other 15 remain undetermined. This checkpoint
+is not a replacement Fig. 7--11 package.
 
 ## Acceptance Order
 

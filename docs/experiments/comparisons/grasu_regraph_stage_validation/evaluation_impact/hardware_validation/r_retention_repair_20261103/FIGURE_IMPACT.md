@@ -107,7 +107,7 @@ the Figure 7 comparisons include the actual update and convergence path.
 | 9 | It uses simulated G+R and Spine requests. Identical adapter outputs do not establish identical accepted requests, request order, or background HBM energy. The directory alone gives a conditional floor for the direction of the byte comparison. | See the byte floor below. Verify the current implementation's request ledger against the intended simulator profile for new byte ratios and rerun the DRAMSim3 trace for energy. |
 | 10/11 | Spine-only stage attribution and a fit to Spine simulator outputs; neither consumes R measurements. | Retain as predictions for the exact frozen Spine model. Re-execute/refit only if a relevant Spine model or workload changes. R admission does not calibrate them. |
 
-### Frozen Figure 7: Zero-Cost R Bound
+### Frozen Figure 7: R-Only Bounds
 
 An offline audit checked all 24 November 3 handoff rows against the original
 one-shot FPGA pair receipts and both raw host logs. The pinned G+R source
@@ -133,13 +133,38 @@ A faster or overlapping G path, a different clock or a different Spine
 implementation would require a new comparison. These are the frozen runs,
 not the separate newer PK and R19 pairs above.
 
+**One complete K4 scan.** A stronger conditional bound applies if the
+replacement must still stream every live edge at least once after G, through
+at most four single-beat AXI streams clocked at no more than 150 MHz. The
+[K4 launch](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/bbb08cb/tools/sharded_k4_native_host.cpp#L880-L952)
+assigns each destination shard to one of four adapters. The
+[adapter packet publisher](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/bbb08cb/kernels/pma_to_regraph_adapter/cross_row_pipeline.hpp#L97-L144)
+emits eight slots per 512-bit beat, one edge per slot. The audit credits
+perfect load balance, perfect throughput, no padding, no further rounds,
+and no downstream or host cost. It adds only
+`ceil(final_edges / 32) / 150000` ms to the observed G span. With those
+assumptions, **nine of 24** winners cannot flip:
+
+| Algorithm | Winners protected by one full K4 scan and unchanged G/Spine | Still undetermined |
+| --- | --- | --- |
+| SSSP | SO, PK, LJ, LJ08, R19 | AU, SU, WK |
+| CC | PK, LJ, LJ08, R19 | AU, SU, WK, SO |
+| ResPR | None | All eight |
+
+This protects the direction, not the old bar heights, and does not show R
+is within 15% of public A4. It does not cover a faster or overlapping G,
+different Spine timing, or an R design that skips edges, uses more lanes,
+or runs the streams above 150 MHz. The other 15 rows still need a new
+measurement or stronger evidence. No frozen row is relabeled as a new run.
+
 Replay from the simulator root using the [raw archive](fig7-frozen-r-only-bound-raw.tar.gz)
 (`6e0fda2381b273010b1a3f6281ad0082e1c5966356938bbca10594c143f8def1`).
 It contains the original 24 JSON receipts and 48 stdout logs, not FPGA
 images or graph inputs. The CSV includes hashes of each receipt and raw log and
 `remaining_budget_to_tie_ms = Spine wall - G event span`. For a positive
 budget, the new R time **plus all other cost not in the G span** must fit
-within it for G+R to tie or win. No FPGA job is launched.
+within it for G+R to tie or win. The K4 columns report the additional
+conditional scan floor separately. No FPGA job is launched.
 
 ```bash
 handoff=docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_handoff_20261103
