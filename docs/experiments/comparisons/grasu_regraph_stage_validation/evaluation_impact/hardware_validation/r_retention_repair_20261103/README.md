@@ -3,18 +3,24 @@
 ## Latest Checkpoint
 
 The 15% FPGA R gate is **not met across the declared controls**. Two Amazon
-weighted-SSSP controls pass, but the AskUbuntu SSSP control is 19.55% slower.
-At matched lower HBM clocks, reciprocal AskUbuntu CC is 18.18% slower and
-skewed-source ResPR is 58.05% slower. These are independent, correctness-checked
-R results, not a convergence comparison against Spine.
+weighted-SSSP controls passed on the earlier nominal image. At matched lower
+HBM clocks, the best AskUbuntu SSSP result is **16.93% slower** after the
+source-read burst change, reciprocal AskUbuntu CC is **18.18% slower**, and
+skewed-source ResPR is **58.05% slower**. These are independent,
+correctness-checked R results, not convergence comparisons against Spine.
 
-Four replacements are in physical implementation: SSSP source-read bursts,
+Four replacements are building: SSSP source-read burst physical retry,
 CC four-bank gather clear, ResPR Apply-off with source-read bursts, and ResPR
 packed-validity gather. Their pinned return and one-shot stage screens are
 queued. The independent CC G check is queued on the same banked-clear image.
 The new ResPR resident screen waits for both exact-image G and R passes.
 Passive queues retain the finite zero-swap memory cap; timed runs still
 require a board lease and memory admission.
+
+The [Spine CC warm-insert repair](SPINE_ARTIFACTS.md#sparse-warm-insertion-repair)
+targets the old image's full affected-component discovery on a pure
+insertion. It passed C-model tests and is building; it has no measured
+speedup yet.
 
 ResPR returned images use the qualified card at `0000:82:00.1` for the
 nominal screen, with measured 150/500/450/0 MHz required around each arm.
@@ -48,9 +54,9 @@ on that image, not as a matrix against a cross-topology-validated baseline.
 The [resident SSSP follow-up](sssp-resident-followup/README.md) adds R19
 PK and SO, retaining the three original measured pairs without repeating them.
 The [source-read burst retry](SSSP_STAGE_ADMISSION.md#source-property-read-burst-repair)
-has synthesis evidence and an exact-image board queue; its first resident
-pair is gated on G plus all three R controls. No new board result is
-available for that retry at this checkpoint.
+has synthesis evidence, a [445-MHz HBM board diagnostic](SSSP_STAGE_ADMISSION.md#matched-445-mhz-hbm-diagnostic)
+and an exact-image nominal board queue. Its first resident pair is gated
+on G plus all three R controls.
 
 The [first tail-repair board diagnostic](R_PUBLICATION_WINDOWS.md#tail-repair-derated-fpga-diagnostic)
 is now available. Full Amazon is within 1.2% of the public A4 in raw

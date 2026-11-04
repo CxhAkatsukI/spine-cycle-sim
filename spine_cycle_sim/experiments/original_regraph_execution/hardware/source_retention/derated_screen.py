@@ -114,6 +114,15 @@ def recover_sssp_reference(args, reference, report, route):
     loaders = active_min_pair.paired_loader(reference_host["path"], candidate_host["path"])
     if loaders != reference["preflight_xrt_libraries"]:
         raise ValueError("SSSP XRT loader differs from the measured reference")
+    if args.replacement_sssp_host:
+        path, digest = args.replacement_sssp_host
+        replacement = runtime.identity(Path(path))
+        if replacement["sha256"] != digest or digest == candidate_host["sha256"]:
+            raise ValueError("replacement requires a pinned, distinct host build")
+        if active_min_pair.paired_loader(reference_host["path"], replacement["path"]) != loaders:
+            raise ValueError("replacement host must use the same XRT loader")
+        report["superseded_candidate_host"] = candidate_host
+        candidate_host = replacement
     offline, oracle, _ = active_min.read_offline(reference_host["path"], args.algorithm, fixture, args.output)
     row = reference["arms"]["reference"]
     if row["execution"]["command"][-7:] != [reference_host["path"], "board", args.algorithm, str(fixture),
@@ -174,6 +183,8 @@ def run(args):
     if (args.algorithm not in PROFILES or (args.device, args.bdf) != (0, "0000:82:00.1")
             or not 1 <= args.wait_seconds <= 111600 or not 1 <= args.board_wait_seconds <= 21600):
         raise ValueError("expected a declared fixture, leased device and bounded wait")
+    if args.replacement_sssp_host and args.algorithm != "weighted_sssp":
+        raise ValueError("replacement host is only supported for the pinned SSSP fixture")
     args.output.mkdir(parents=True, exist_ok=False)
     case, args.hbm_mhz = PROFILES[args.algorithm]
     report = dict(status="PREPARING", stage="R", algorithm=args.algorithm, case=case,
@@ -237,8 +248,11 @@ def run(args):
             measured = analysis.profiled_runs(dict(stage="R", arm="current", repetitions=1,
                                                    clock_evidence=after, **report["run"]))
             comparison = analysis.summarize(control, measured, repetitions=1)
+            equal_clocks = control_clock["driver_reported_mhz"] == clocks.replay(after)["driver_reported_mhz"]
+            comparison.update(equal_driver_reported_clocks=equal_clocks,
+                              retention_gate_pass=equal_clocks and comparison["at_most_15_percent_slower"])
         report.update(candidate_observation=measured, comparison=comparison,
-                      status=("DERATED_R_ROW_PASS_NOT_MATRIX_ADMISSION" if comparison["at_most_15_percent_slower"]
+                      status=("DERATED_R_ROW_PASS_NOT_MATRIX_ADMISSION" if comparison["retention_gate_pass"]
                               else "DERATED_R_ROW_GATE_FAILED_RETAINED"))
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
@@ -256,6 +270,7 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--algorithm", choices=PROFILES, required=True)
     parser.add_argument("--sssp-hosts", type=Path, nargs=2, metavar=("PUBLIC", "INTEGRATED"))
+    parser.add_argument("--replacement-sssp-host", nargs=2, metavar=("HOST", "SHA256"))
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--bdf", default="0000:82:00.1")
     parser.add_argument("--wait-seconds", type=int, default=43200)

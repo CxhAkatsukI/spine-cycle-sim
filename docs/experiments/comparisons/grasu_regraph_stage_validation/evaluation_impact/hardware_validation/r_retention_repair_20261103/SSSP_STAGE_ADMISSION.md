@@ -104,8 +104,43 @@ The three R retests reuse their respective public A4 receipts after replay
 of input, clock and correctness evidence. Only the changed candidate is
 measured, once per fixture. A separate G run checks the exact same returned
 image. The first resident comparison (full AskUbuntu) cannot start unless
-all three R fixtures and G pass. No source-burst R or resident result is
-reported until the corresponding board receipt exists.
+all three R fixtures and G pass.
+
+### Matched 445-MHz HBM Diagnostic
+
+The first source-burst image returned at a lower HBM clock than requested.
+The public A4 reference and both integrated observations below were timed
+on the same U55C (BDF `0000:82:00.1`) with identical driver-reported
+150/500/445/0-MHz clocks. All used the same resident AU 903,774-edge weighted
+SSSP superstep. Timing is from the first participating CU start to the last
+CU completion; it excludes G, host preparation and convergence after the
+superstep. The A4 arm ran once; the second integrated host reuses that
+frozen receipt. Both candidate runs returned the same logical state as A4
+and matched the independent oracle on all reported replicas.
+
+| Arm | Elapsed (ms) | Overhead vs A4 | R gate |
+| --- | ---: | ---: | --- |
+| Public A4 | 2.147288 | reference | - |
+| Source-read bursts | 2.510750 | 16.93% | Fail |
+| Same image, first-wave host arguments prebound | 2.610934 | 21.59% | Fail |
+
+The 15% threshold is 2.469381 ms. Prebinding moved the last adapter start
+about 8 us closer to the first CU start but did not shorten the measured
+device span. The new host recorded 2.720117 ms from argument binding to
+queue completion, with no equivalent old host wall timer. This diagnostic
+[host change](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/67ce64d)
+is not promoted. These one-shot observations do not attribute the remaining
+gap to a specific CU, admit the image at nominal clocks, or substitute for
+independent G validation.
+
+The [raw diagnostic archive](sssp-au903k-burst-hbm445-screen.tar.gz) retains
+the frozen A4 receipt, candidate receipts, event logs, clock records and
+oracle/output bytes. The external fixture, host executables and xclbins
+are pinned by the receipts rather than duplicated. The candidate receipt
+SHA-256 values are
+`eaf43e0e826240f9833f48a5e72758384835d5f2be84773a1e8928ad67b7a2e3`
+and `68d08f1846780361504b0fb5de17bd50e89f0743810edd2fbf5b6fe3d0e5aac9`,
+in table order.
 
 ## Evidence
 

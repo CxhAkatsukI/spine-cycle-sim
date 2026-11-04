@@ -175,6 +175,32 @@ batch-resident window. A final paired result must expose and match the timing
 boundary, or explicitly present an asymmetric, conservative bound. The old
 publication-only Spine value is not suitable for this purpose.
 
+### Sparse Warm Insertion Repair
+
+The old-image AU run above returned the exact state with no changed labels,
+but took **7,886.354174 ms** from resident batch to final readback.
+Admission/discovery consumed **7,116.419373 ms**, scanning 131,340 rows
+and 669,796 edges; relaxation took **8.578485 ms**. The discovered rows
+and edges are traversal counts, not the whole input graph size.
+The [old-image raw receipt](spine-cc-au-resident-wall-v2.tar.gz) records
+the one board sample and its timing boundary.
+
+The [sparse CC repair](https://github.com/jayfeather9/spine-dynamic-graph/commit/c274abf)
+starts pure insertions from the unique changed-edge endpoints of the old
+converged state and lets decreases propagate through the existing worklist.
+A separate bitmap preserves the exact count of distinct changed vertices.
+Mixed and deletion batches retain the existing discovery/reset path. The
+standalone and static-engine C-model tests pass, including cross-component
+merges, repeated insertions, and deletion regression. This is functional
+evidence, not an FPGA latency measurement.
+
+The 150-MHz paper-geometry build is running on seele as
+`spine-cc-warm-insert-route-20261104-v1.service` (invocation
+`79463b9047ac4062810a42e50befc9aa`), with source and logs under
+`/data/chuxiao/spine-cc-warm-insert-20261104-v1`, a 40-GiB hard cap and no
+swap. The image and host must be admitted together before measuring the
+same resident AU batch once. It is not used in existing figure data.
+
 ### Eight-Graph Preload Capacity
 
 The repair host's current `cc_host::raw_slices` loads every family into a
