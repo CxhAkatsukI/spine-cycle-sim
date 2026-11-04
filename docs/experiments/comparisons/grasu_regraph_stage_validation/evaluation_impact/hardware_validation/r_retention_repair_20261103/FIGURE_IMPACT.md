@@ -43,7 +43,30 @@ at host pack; SSSP and ResPR start at a resident batch. ResPR rows report
 whether both arms performed propagation. Do not pool these scopes or
 interpret a correction-only result as propagation evidence.
 
-The dependency audit below inspects the [frozen November 3 handoff](../../figure7_11_handoff_20261103/README.md),
+## Figure 7: R-Only Bound On Two New SSSP Pairs
+
+In the pinned [G+R host](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/57888d605a19eee2b429a9d6e91d119a1348c9ab/tools/sharded_k4_native_host.cpp),
+the timed GraSU update loop completes before launching ReGraph. Its reported
+`grasu_ms` is the first update CU start to the last update CU completion,
+including gaps between update launches, entirely inside the resident wall
+timer. Do not add `barrier_ms` to it: those event windows can overlap.
+
+| Dataset | Measured G event span (ms) | Complete Spine wall time (ms) |
+| --- | ---: | ---: |
+| R19 | 6.121 | 4.157 |
+| PK | 16.497 | 8.306 |
+
+Thus, even setting post-update R time to zero cannot reverse these two
+measured comparisons if G's measured path, clock and sequential execution
+are unchanged. This is a bound on the new pairs only, not a general
+15% result, a bound on a redesigned G path, or validation of the
+November 3 handoff. The other three measured SSSP rows do not satisfy
+this sufficient condition. The raw `gr.stdout.txt` and pair receipts are
+in the [follow-up checkpoint](sssp-resident-followup/README.md).
+
+## November 3 Handoff Dependencies
+
+This audit inspects the [frozen November 3 handoff](../../figure7_11_handoff_20261103/README.md),
 not new measurements or an admission decision. A ratio from the two R controls
 cannot be applied as a correction factor to other graphs, algorithms, or
 total resident latency. The controls measure a single gather/apply execution;
