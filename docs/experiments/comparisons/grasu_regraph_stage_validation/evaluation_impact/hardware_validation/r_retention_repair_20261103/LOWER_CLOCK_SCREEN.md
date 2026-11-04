@@ -209,6 +209,33 @@ respectively. These are overlapping command timestamps, not standalone
 stage service times. The paired board result cannot identify how much
 of the remaining gap is clear, scatter, backpressure, or dispatch.
 
+**Full-shard publication bandwidth.** This input has 65,537 vertices.
+The [tail-publication host](../../../../../../../cpp/tests/publication_sources/source_retention/device.hpp)
+rounds each shard to whole 16-vertex Apply beats and emits eight
+two-vertex gather packets per beat. Shard 0 therefore emits 32,768
+packets; shard 1 emits eight. In the framed HLS, gather consumes the
+terminal update before starting the dense publication loop, and the
+ordered mux sends at most one 64-bit packet per compute cycle. Even
+without stalls, shard 0 publication takes about 218.45 us at 150 MHz.
+With that interface unchanged, its terminal update must reach gather by
+roughly 381.09 us after the first CU starts to meet the gate, even
+allowing zero time for the remaining drain. That is a bandwidth budget,
+not an inferred terminal timestamp; the adapter CU end at 493.954 us
+does not measure terminal arrival.
+
+Shard 1 gather is finished by 384.871 us, but its ordered mux command
+does not start until 724.411 us and still spans 40.731 us for eight
+packets. This window cannot be explained by packet count alone. It
+includes waits in the streaming and command paths; there is no
+ready/valid trace to divide them. The packed-validity retry retains the
+same publication width. For its one-shot screen, first compare total
+elapsed time against the gate and then check whether the full shard
+ends earlier and whether the short mux and final write tail persist.
+If the gate still fails, these are separate optimization targets:
+earlier terminal delivery or wider full-shard publication, and tracing
+the downstream waits. Do not subtract the ideal clear savings from the
+board elapsed time as if all of those cycles were exposed.
+
 Extract [the raw pair](respr-apply-off-430-raw.tar.gz) into `$raw` and run
 from the simulator root. This replays both clock vectors and correctness
 and timing records before calculating the candidate's windows:
