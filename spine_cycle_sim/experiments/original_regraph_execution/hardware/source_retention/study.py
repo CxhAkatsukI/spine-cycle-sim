@@ -131,6 +131,7 @@ def run(args):
         report["memory_peak_bytes"] = int((group / "memory.peak").read_text())
         report["memory_events_final"] = (group / "memory.events").read_text()
         save(output / "results.json", report)
+    return report
 
 
 if __name__ == "__main__":

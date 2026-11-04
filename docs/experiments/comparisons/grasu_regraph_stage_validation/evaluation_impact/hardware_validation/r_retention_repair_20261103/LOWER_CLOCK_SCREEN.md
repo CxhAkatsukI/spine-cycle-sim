@@ -275,6 +275,30 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
     --results "$raw/derated-respr-tail-bursts-apply-off-430-v1/results.json"
 ```
 
+## Nominal Packed-Validity Board Screen
+
+The packed-validity image (`72992e58...dc556`) returned from route and
+ran on U55C `0000:82:00.1`. Both arms used the driver-reported clock
+vector `150/500/450/0 MHz` before and after each run. There was one
+resident R run per arm. All four timed runs passed their correctness
+checks. The interval is the resident device event window, excluding
+graph setup and G; it is not the end-to-end host interval.
+
+| Fixture | Public A4 | Current R | Change in time | 15% gate |
+| --- | ---: | ---: | ---: | --- |
+| Skewed sources | 531.815 us | 615.458 us | +15.73% | Fail (3.871 us over) |
+| Amazon | 10.532629 ms | 10.088276 ms | -4.22% | Pass |
+| Boundary ring | No timing | No timing | N/A | 64 duplicate edges outside the supported domain |
+
+The top-level runner hit a report-return bug after saving the timed
+receipts and analysis. The offline audit reread the original records
+and returned `R_NOT_ADMITTED`: the skewed fixture exceeds the gate
+regardless of that bug. The independent G and resident Spine follow-ups
+did not run on this image. The result does not admit the frozen figures.
+The [board bundle](respr-packed-nominal-board.tar.gz) preserves the raw
+logs, timestamp and clock records, comparison and offline replay; large
+oracle buffers are omitted.
+
 ## Receipts
 
 Paths below are relative to

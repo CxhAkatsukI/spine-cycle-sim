@@ -1,11 +1,15 @@
 """Fail closed on altered logs, incomplete repetitions and changed CSR graphs."""
 
 from array import array
+from contextlib import nullcontext
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import study
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.analysis import (
     envelope, profiled_runs, summarize,
 )
@@ -14,6 +18,26 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_rete
 
 
 class SourceRetentionTest(unittest.TestCase):
+    def test_board_study_returns_its_completed_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            data = root / "input"
+            data.touch()
+            for name in ("memory.max", "memory.high", "memory.swap.max", "memory.events", "memory.peak"):
+                (root / name).write_text("0")
+            names = ("g_host", "g_input", "g_reference", "g_current", "r_host", "r_candidate",
+                     "r_reference", "r_current")
+            args = SimpleNamespace(**dict.fromkeys(names, data), stages=["R"], r_single_run=True,
+                                   device=0, bdf="0000:82:00.1", r_inputs=root, output=root / "run")
+            with patch.object(study, "check_memory", return_value=root), \
+                    patch.object(study, "lease", return_value=nullcontext((0, 1))), \
+                    patch.object(study.clocks, "image", return_value={}), \
+                    patch.object(study, "duplicate_edges", return_value=1):
+                report = study.run(args)
+            self.assertEqual(report, json.loads((args.output / "results.json").read_text()))
+            self.assertEqual(report["status"], "BOARD_EXECUTION_PASS_PENDING_ANALYSIS")
+            self.assertEqual(len(report["rows"]), 3)
+
     def test_envelope_keeps_gap_and_does_not_sum_overlaps(self):
         self.assertEqual(envelope([{"start_ns": 10, "end_ns": 20}, {"start_ns": 15, "end_ns": 25},
                                    {"start_ns": 40, "end_ns": 45}]), 35)
