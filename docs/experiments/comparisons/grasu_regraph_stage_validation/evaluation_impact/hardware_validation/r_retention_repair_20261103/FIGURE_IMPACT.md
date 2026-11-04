@@ -13,8 +13,8 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
   --sssp-au "$run/sssp-resident-au-v2/queue.json" \
   --cc-matrix "$run/cc-singlepass-matrix-v1/matrix.json" \
   --cc-r19 "$run/cc-r19-resident-wall-v1/queue.json" \
-  --respr-matrix "$run/respr-matrix-v1/results.json" \
-  --respr-screen "$run/resident-joint-board-v2/results.json" \
+  --respr-matrix "$run/respr-matrix-v2/results.json" \
+  --respr-screen "$run/resident-joint-board-v3/results.json" \
   --output "$run/figure7-receipt-snapshot.json"
 ```
 

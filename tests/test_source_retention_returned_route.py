@@ -63,6 +63,27 @@ class ReturnedRouteTest(unittest.TestCase):
         self.assertEqual(returned_route.comparable_topology({"clock": [("DATA", "DATA_CLK", 149)]}),
                          returned_route.comparable_topology({"clock": [("DATA", "DATA_CLK", 150)]}))
 
+    def test_preserves_pins_from_queued_local_route_g_checker(self):
+        image = self.plan / "candidate.hw.xclbin"
+        image.write_bytes(b"local image")
+        image_pin = identity(image)
+        execution = self.plan / "execution/execution.json"
+        execution.parent.mkdir()
+        save(execution, {"status": "LINK_PASS_AWAITING_TIMING_AND_BOARD", "xclbin": image_pin})
+        analysis = self.root / "analysis.json"
+        save(analysis, {})
+        raw = self.root / "board-once/results.json"
+        raw.parent.mkdir()
+        save(raw, {"device": candidate_board.DEVICE, "bdf": candidate_board.BDF,
+                   "pins": {"r_current": image_pin}})
+        screen = self.root / "results.json"
+        save(screen, {"status": candidate_board.R_PASS, "analysis": identity(analysis),
+                      "pins": [image_pin, identity(execution)]})
+        with patch.object(candidate_board, "check_memory"):
+            self.assertEqual(candidate_board.wait_for_image(self.plan, screen, 0),
+                             (image, candidate_board.R_PASS, [identity(screen), identity(execution),
+                                                              identity(raw), image_pin, identity(analysis)]))
+
     def test_g_requires_same_admission_and_raw_board_image(self):
         image, image_pin, proof = self.admit()
         self.assertEqual(image, self.image)

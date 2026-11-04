@@ -156,16 +156,17 @@ From the simulator checkout, queue while the parent invocation is live:
 
 ```bash
 checks=/data/chuxiao/checks/source-retention-repair-20261104
-systemd-run --user --unit=gr-retention-respr-matrix-20261104 \
+parent_service=gr-retention-resident-joint-v3-20261104.service
+parent_invocation=$(systemctl --user show "$parent_service" -p InvocationID --value)
+systemd-run --user --unit=gr-retention-respr-matrix-v2-20261104 \
   --working-directory="$PWD" -p MemoryMax=1G -p MemoryHigh=768M \
   -p MemorySwapMax=0 -p OOMPolicy=kill -p RuntimeMaxSec=78h \
   python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.respr_matrix \
-    --unit gr-retention-resident-joint-v2-20261104.service \
-    --invocation dec1761166074fbd9ad6c512b128f32a \
-    --parent "$checks/resident-joint-board-v2/results.json" \
+    --unit "$parent_service" --invocation "$parent_invocation" \
+    --parent "$checks/resident-joint-board-v3/results.json" \
     --previous /data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix \
-    --child-prefix gr-retention-respr-matrix-child-20261104 \
-    --output "$checks/respr-matrix-v1"
+    --child-prefix gr-retention-respr-matrix-v2-child-20261104 \
+    --output "$checks/respr-matrix-v2"
 ```
 
 ### AU: Correction-Only Versus Propagation
@@ -282,9 +283,9 @@ From the simulator checkout, in the same zero-swap eight-GiB containment:
 ```bash
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.respr_au_follow \
   --unit "$parent_service" --invocation "$parent_invocation" \
-  --parent "$checks/resident-joint-board-v2/results.json" \
+  --parent "$checks/resident-joint-board-v3/results.json" \
   --graph "$checks/au-slice-u8-oracles.kz5m4cf1/au-slice-u8.graph" \
-  --output "$checks/resident-au-bridge-v1"
+  --output "$checks/resident-au-bridge-v2"
 ```
 
 Enqueue while the declared parent service is live, using a new output
@@ -294,14 +295,18 @@ for the old AU row or a completed large-graph matrix.
 
 ## Offline Acceptance
 
-The joint run writes `resident-joint-board-v2/results.json`. Before using
+The joint run writes `resident-joint-board-v3/results.json`. It waits for
+the returned tail route's `tail-follow-seele-v1` and `g-tail-seele-v1`
+receipts or the separately screened cached route. The previous joint,
+AU bridge, and matrix journals were retained with no board attempts.
+Before using
 its ratios, run the strict same-clock G/R replay in [G_SCOPE.md](G_SCOPE.md)
 with the inputs for the report's `selected_route`,
 and then replay the saved board screen without rerunning either arm:
 
 ```bash
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.respr_resident_replay \
-  --resident "$checks/resident-joint-board-v2/results.json" \
+  --resident "$checks/resident-joint-board-v3/results.json" \
   --strict-stage "$checks/respr-directory-strict-audit.json" \
   --output "$checks/respr-directory-resident-audit.json"
 ```

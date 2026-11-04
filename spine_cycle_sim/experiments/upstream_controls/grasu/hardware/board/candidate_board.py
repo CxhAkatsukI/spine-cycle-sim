@@ -69,6 +69,10 @@ def wait_for_image(route, r_report, timeout):
             or any(board_image[key] != image_pin[key] for key in ("path", "sha256"))):
         raise ValueError("candidate image or board differs from the R screen")
     unchanged([board_image])
+    if not proof:
+        # Keep the receipt order used by already queued local-route G checks.
+        return image, screen["status"], [identity(r_report), route_pins[0], identity(board_report),
+                                         image_pin, screen["analysis"]]
     return image, screen["status"], [identity(r_report), identity(board_report), screen["analysis"], *route_pins]
 
 
