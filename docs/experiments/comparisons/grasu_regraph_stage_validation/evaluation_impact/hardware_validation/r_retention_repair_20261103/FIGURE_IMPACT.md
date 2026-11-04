@@ -179,10 +179,14 @@ case. It preserves missing or invalid results without a ratio and records
 setup speedups separately from device maintenance. Do not mix native arms
 with the older maintenance-only or modeled-setup results.
 
-The 24 GiB continuation is queued as
-`gr-retention-fig8-native-matrix-return-20261104.service`, invocation
-`df85bec545d043d8b5fc827612d2841f`; see
-`fig8-native-matrix-return-v1/results.json` under the check root.
+The first continuation stopped before Spine timing because the child was
+not given the device index. The corrected 24 GiB continuation
+(`gr-retention-fig8-native-matrix-return-20261104-v2.service`, invocation
+`266a90fb8ace4bf6ae5faa25229fa52b`) retained six valid pairs including
+the reused AU/512 anchor. The SO/512 G arm failed before measurement
+because replicated metadata did not fit the lane-aware HBM placement.
+See the [paired board checkpoint](paired-board-checkpoint/README.md) for
+the data and raw logs. The service's recorded peak was 13,110,181,888 bytes.
 
 ### Offline Spine Layout Check
 

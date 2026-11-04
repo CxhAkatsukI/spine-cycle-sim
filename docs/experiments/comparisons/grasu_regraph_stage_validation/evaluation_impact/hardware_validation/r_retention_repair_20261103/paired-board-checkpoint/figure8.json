@@ -1,0 +1,995 @@
+{
+  "status": "PARTIAL_OR_FAILED_RETAINED",
+  "manifest": {
+    "path": "/data/chuxiao/worktrees/spine-cycle-sim-fig9-retention/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/fig8-native-input-identity.json",
+    "sha256": "520b7bc64eb16cd7e8f4cee50179aa8ba8ca71b27771111b0a4e303187d82012",
+    "bytes": 10960
+  },
+  "runner": {
+    "path": "/data/chuxiao/worktrees/spine-retention-notes-20261104/spine_cycle_sim/experiments/original_regraph_execution/hardware/source_retention/figure8_matrix.py",
+    "sha256": "a1f0f806337317bc1c495692577220811b87d1a49b9eb907a503de1f7d1ea6b6",
+    "bytes": 12644
+  },
+  "boundary": "native layout/packing, initial and batch upload, update through completion; excludes input parsing, programming and validation readback",
+  "requested_runs_per_arm": 1,
+  "warmups": 0,
+  "memory": {
+    "tree_memory_gib": 24,
+    "reserve_gib": 32,
+    "allow_bounded_builds": true
+  },
+  "cases": [
+    {
+      "dataset": "AU",
+      "updates": 64,
+      "input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u64.graph",
+        "sha256": "13bfe11fbebc49295c3094ce82d3a35523538962e9f727ac21c3bedbeef1a0d8",
+        "bytes": 5947436
+      },
+      "attempts": [
+        "spine",
+        "gr"
+      ],
+      "arms": {
+        "spine": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "XCL_DEVICE_INDEX=1",
+              "SPINE_EXPECT_BDF=0000:c1:00.1",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-spine-host-v2/weighted_sssp.host",
+              "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "--update-setup-once",
+              "--dynamic-graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u64.graph"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/spine.stdout.txt",
+              "sha256": "fe9ec17c72f49bb847747e63360508dc510d702bd4b6faa27b9f9b37955fd27e",
+              "bytes": 471
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/spine.stderr.txt",
+              "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+              "bytes": 25
+            },
+            "maximum_child_rss_kib_so_far": 2276660
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/spine.clock.json",
+              "sha256": "6086518968696be77638cab088f7b458ef2f97d18f13e152413491d0ccc4289b",
+              "bytes": 820
+            },
+            "expected": {
+              "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+              "binary": {
+                "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+                "bytes": 58375377
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/spine.xclbin-info.txt",
+                "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+                "bytes": 30574
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 1033509622,
+            "bootstrap_ns": 893373308,
+            "batch_ns": 83562,
+            "update_wall_ns": 227336,
+            "setup_inclusive_ns": 1927193828
+          }
+        },
+        "gr": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "-u",
+              "GRASU_RESIDENT_BATCH_WALL",
+              "XCL_DEVICE_INDEX=1",
+              "GRASU_REGRAPH_EXPECT_BDF=0000:c1:00.1",
+              "GRASU_UPDATE_REPEATS=1",
+              "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+              "GRASU_SHARDED_METADATA_REPLICAS=4",
+              "GRASU_SHARDED_EVENT_TRACE=0",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-g-host-v3/weighted_sssp/sharded_k4_sssp_native_host",
+              "--update-setup-once",
+              "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u64.graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/gr-oracle.txt"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/gr.stdout.txt",
+              "sha256": "1c60154609385884b56d0cc03c1765d9c2a731cdc48b9f7b3ae151b6c8b1ac55",
+              "bytes": 2358
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/gr.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "bytes": 0
+            },
+            "maximum_child_rss_kib_so_far": 2276660
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/gr.clock.json",
+              "sha256": "606adc71b7b32aa6da0d90fdc0dec2d4300daf9c62eb18ec4c4641cd8da166d3",
+              "bytes": 807
+            },
+            "expected": {
+              "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+              "binary": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+                "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+                "bytes": 79845431
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/gr.xclbin-info.txt",
+                "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+                "bytes": 110616
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 587554218,
+            "upload_ns": 222977539,
+            "update_wall_ns": 7924483,
+            "setup_inclusive_ns": 818456240
+          },
+          "pma_oracle": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u64/gr-oracle.txt",
+            "sha256": "8431eb6cd5592fab5a4a4985eee27f7932b33d874d25e3836bee557f5143fa09",
+            "bytes": 63
+          }
+        }
+      },
+      "status": "MEASURED_SETUP_ONLY",
+      "admission": {
+        "admitted": true,
+        "available_bytes": 62765817856,
+        "required_bytes": 60129542144,
+        "reservations": [],
+        "cgroup": {
+          "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/gr-retention-fig8-native-matrix-return-20261104-v2.service",
+          "limits": {
+            "memory.max": "25769803776",
+            "memory.high": "23622320128",
+            "memory.swap.max": "0",
+            "memory.oom.group": "1"
+          }
+        },
+        "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+        "host_swap_disabled_verified": false
+      },
+      "speedup_gr_over_spine": 0.4246880765747243
+    },
+    {
+      "dataset": "AU",
+      "updates": 512,
+      "input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u512.graph",
+        "sha256": "092a84ab17b564cab854875e544f420635fe63cca5056e10c3842be912501e70",
+        "bytes": 5954524
+      },
+      "attempts": [],
+      "arms": {},
+      "status": "REUSED_MEASURED_ANCHOR",
+      "timers": {
+        "spine": {
+          "layout_ns": 1109984933,
+          "bootstrap_ns": 898451986,
+          "batch_ns": 72462,
+          "update_wall_ns": 459553,
+          "setup_inclusive_ns": 2008968934
+        },
+        "gr": {
+          "layout_ns": 628536120,
+          "upload_ns": 343912413,
+          "update_wall_ns": 3108209,
+          "setup_inclusive_ns": 975556742
+        }
+      },
+      "speedup_gr_over_spine": 0.4856007106379675
+    },
+    {
+      "dataset": "AU",
+      "updates": 4096,
+      "input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u4096.graph",
+        "sha256": "e8f1cf761783b96361c19e4a137414309fc5ed19753859cc1adf2e33aaf53e39",
+        "bytes": 6014962
+      },
+      "attempts": [
+        "spine",
+        "gr"
+      ],
+      "arms": {
+        "spine": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "XCL_DEVICE_INDEX=1",
+              "SPINE_EXPECT_BDF=0000:c1:00.1",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-spine-host-v2/weighted_sssp.host",
+              "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "--update-setup-once",
+              "--dynamic-graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u4096.graph"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/spine.stdout.txt",
+              "sha256": "163b103ae111fc543b5d6563c13690be31afcdc712a07f7246cdece7fe5a9f11",
+              "bytes": 479
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/spine.stderr.txt",
+              "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+              "bytes": 25
+            },
+            "maximum_child_rss_kib_so_far": 2276696
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/spine.clock.json",
+              "sha256": "57a59501a834f1b1bd4f7b3bc919d3302509749441665d5e8a89fcddfcabad82",
+              "bytes": 822
+            },
+            "expected": {
+              "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+              "binary": {
+                "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+                "bytes": 58375377
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/spine.xclbin-info.txt",
+                "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+                "bytes": 30574
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 1054873009,
+            "bootstrap_ns": 891811852,
+            "batch_ns": 147034,
+            "update_wall_ns": 2388565,
+            "setup_inclusive_ns": 1949220460
+          }
+        },
+        "gr": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "-u",
+              "GRASU_RESIDENT_BATCH_WALL",
+              "XCL_DEVICE_INDEX=1",
+              "GRASU_REGRAPH_EXPECT_BDF=0000:c1:00.1",
+              "GRASU_UPDATE_REPEATS=1",
+              "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+              "GRASU_SHARDED_METADATA_REPLICAS=4",
+              "GRASU_SHARDED_EVENT_TRACE=0",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-g-host-v3/weighted_sssp/sharded_k4_sssp_native_host",
+              "--update-setup-once",
+              "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/AU_u4096.graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/gr-oracle.txt"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/gr.stdout.txt",
+              "sha256": "550ad03210af2e587e43d0cdea5c42f98afaaf1f6cce3edc39c64da2d23b306e",
+              "bytes": 2825
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/gr.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "bytes": 0
+            },
+            "maximum_child_rss_kib_so_far": 2276696
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/gr.clock.json",
+              "sha256": "b01b89662e74e3ca9786586b00e937afdabed582a527bee52a80c4f859679e81",
+              "bytes": 809
+            },
+            "expected": {
+              "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+              "binary": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+                "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+                "bytes": 79845431
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/gr.xclbin-info.txt",
+                "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+                "bytes": 110616
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 572918344,
+            "upload_ns": 194790387,
+            "update_wall_ns": 3199587,
+            "setup_inclusive_ns": 770908318
+          },
+          "pma_oracle": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/AU_u4096/gr-oracle.txt",
+            "sha256": "8f51892a8abadd34a0bb3180015fa33619d93367573974b5a335622f97e1050f",
+            "bytes": 67
+          }
+        }
+      },
+      "status": "MEASURED_SETUP_ONLY",
+      "admission": {
+        "admitted": true,
+        "available_bytes": 63522459648,
+        "required_bytes": 60129542144,
+        "reservations": [],
+        "cgroup": {
+          "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/gr-retention-fig8-native-matrix-return-20261104-v2.service",
+          "limits": {
+            "memory.max": "25769803776",
+            "memory.high": "23622320128",
+            "memory.swap.max": "0",
+            "memory.oom.group": "1"
+          }
+        },
+        "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+        "host_swap_disabled_verified": false
+      },
+      "speedup_gr_over_spine": 0.39549570395952033
+    },
+    {
+      "dataset": "SU",
+      "updates": 512,
+      "input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/SU_u512.graph",
+        "sha256": "1dbc818dbb8dbc2424961a44248e8e1f9082ef99d7dc2728fd160aa348ba1492",
+        "bytes": 9340480
+      },
+      "attempts": [
+        "spine",
+        "gr"
+      ],
+      "arms": {
+        "spine": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "XCL_DEVICE_INDEX=1",
+              "SPINE_EXPECT_BDF=0000:c1:00.1",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-spine-host-v2/weighted_sssp.host",
+              "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "--update-setup-once",
+              "--dynamic-graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/SU_u512.graph"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/spine.stdout.txt",
+              "sha256": "a79ee0739359527599e306da7e9561bb457de3843f782cbab86f65fcc04a3709",
+              "bytes": 474
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/spine.stderr.txt",
+              "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+              "bytes": 25
+            },
+            "maximum_child_rss_kib_so_far": 2289676
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/spine.clock.json",
+              "sha256": "754eaff1fef7ecf7ed981568acb7ef9744983220e4031a945667ccf1317d5980",
+              "bytes": 821
+            },
+            "expected": {
+              "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+              "binary": {
+                "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+                "bytes": 58375377
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/spine.xclbin-info.txt",
+                "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+                "bytes": 30574
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 761124885,
+            "bootstrap_ns": 912613985,
+            "batch_ns": 97393,
+            "update_wall_ns": 427782,
+            "setup_inclusive_ns": 1674264045
+          }
+        },
+        "gr": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "-u",
+              "GRASU_RESIDENT_BATCH_WALL",
+              "XCL_DEVICE_INDEX=1",
+              "GRASU_REGRAPH_EXPECT_BDF=0000:c1:00.1",
+              "GRASU_UPDATE_REPEATS=1",
+              "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+              "GRASU_SHARDED_METADATA_REPLICAS=4",
+              "GRASU_SHARDED_EVENT_TRACE=0",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-g-host-v3/weighted_sssp/sharded_k4_sssp_native_host",
+              "--update-setup-once",
+              "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/SU_u512.graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/gr-oracle.txt"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/gr.stdout.txt",
+              "sha256": "031b55e6c43529a1cc4dd4f8abd7e3655e1042d16068221b032d7be32df99e7c",
+              "bytes": 2780
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/gr.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "bytes": 0
+            },
+            "maximum_child_rss_kib_so_far": 2289676
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/gr.clock.json",
+              "sha256": "0bf7642b6dddf5a11d7a65275ae74eff943352ccf3805979a77bc96922b7404d",
+              "bytes": 808
+            },
+            "expected": {
+              "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+              "binary": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+                "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+                "bytes": 79845431
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/gr.xclbin-info.txt",
+                "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+                "bytes": 110616
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 795759922,
+            "upload_ns": 192942611,
+            "update_wall_ns": 3660240,
+            "setup_inclusive_ns": 992362773
+          },
+          "pma_oracle": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SU_u512/gr-oracle.txt",
+            "sha256": "b791a80fd2c51455e3c5fd758b1460e1de72b79b56357d1ff7d6d1ee2867474f",
+            "bytes": 65
+          }
+        }
+      },
+      "status": "MEASURED_SETUP_ONLY",
+      "admission": {
+        "admitted": true,
+        "available_bytes": 62031159296,
+        "required_bytes": 60129542144,
+        "reservations": [],
+        "cgroup": {
+          "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/gr-retention-fig8-native-matrix-return-20261104-v2.service",
+          "limits": {
+            "memory.max": "25769803776",
+            "memory.high": "23622320128",
+            "memory.swap.max": "0",
+            "memory.oom.group": "1"
+          }
+        },
+        "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+        "host_swap_disabled_verified": false
+      },
+      "speedup_gr_over_spine": 0.5927158120390742
+    },
+    {
+      "dataset": "WK",
+      "updates": 512,
+      "input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/WK_u512.graph",
+        "sha256": "91987253f04c84d31a84c58ea9ac8372cdb69f79848c121d5421233c9faf72ae",
+        "bytes": 15554280
+      },
+      "attempts": [
+        "spine",
+        "gr"
+      ],
+      "arms": {
+        "spine": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "XCL_DEVICE_INDEX=1",
+              "SPINE_EXPECT_BDF=0000:c1:00.1",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-spine-host-v2/weighted_sssp.host",
+              "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "--update-setup-once",
+              "--dynamic-graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/WK_u512.graph"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/spine.stdout.txt",
+              "sha256": "e60825920d34a87977da89ccbb7309bb8ec78baa4d2fdb7d0b557946f1d404ad",
+              "bytes": 477
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/spine.stderr.txt",
+              "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+              "bytes": 25
+            },
+            "maximum_child_rss_kib_so_far": 2304820
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/spine.clock.json",
+              "sha256": "d87e13324b3e5f96fc91f961b2e620639c61de3f9297ffbaf8ccfb1aae07317d",
+              "bytes": 821
+            },
+            "expected": {
+              "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+              "binary": {
+                "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+                "bytes": 58375377
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/spine.xclbin-info.txt",
+                "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+                "bytes": 30574
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 896086097,
+            "bootstrap_ns": 916332816,
+            "batch_ns": 73332,
+            "update_wall_ns": 377430,
+            "setup_inclusive_ns": 1812869675
+          }
+        },
+        "gr": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "-u",
+              "GRASU_RESIDENT_BATCH_WALL",
+              "XCL_DEVICE_INDEX=1",
+              "GRASU_REGRAPH_EXPECT_BDF=0000:c1:00.1",
+              "GRASU_UPDATE_REPEATS=1",
+              "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+              "GRASU_SHARDED_METADATA_REPLICAS=4",
+              "GRASU_SHARDED_EVENT_TRACE=0",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-g-host-v3/weighted_sssp/sharded_k4_sssp_native_host",
+              "--update-setup-once",
+              "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/WK_u512.graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/gr-oracle.txt"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/gr.stdout.txt",
+              "sha256": "094088e6d8bf7caa2a2cf9965cd0dac4c7670a0bff7bac356186588b00308154",
+              "bytes": 2380
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/gr.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "bytes": 0
+            },
+            "maximum_child_rss_kib_so_far": 2304820
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/gr.clock.json",
+              "sha256": "88d206097c57f3f658aeedaddcf9d2b3d1a09c5db333121af8f6f65cd882bb69",
+              "bytes": 808
+            },
+            "expected": {
+              "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+              "binary": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+                "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+                "bytes": 79845431
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/gr.xclbin-info.txt",
+                "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+                "bytes": 110616
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 1465328055,
+            "upload_ns": 404815876,
+            "update_wall_ns": 2736175,
+            "setup_inclusive_ns": 1872880106
+          },
+          "pma_oracle": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/WK_u512/gr-oracle.txt",
+            "sha256": "9e71b2a023ace9f703d2dc9e8316fc4ff393ee3a5dca4898c53bbf1d0259c038",
+            "bytes": 63
+          }
+        }
+      },
+      "status": "MEASURED_SETUP_ONLY",
+      "admission": {
+        "admitted": true,
+        "available_bytes": 63667732480,
+        "required_bytes": 60129542144,
+        "reservations": [],
+        "cgroup": {
+          "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/gr-retention-fig8-native-matrix-return-20261104-v2.service",
+          "limits": {
+            "memory.max": "25769803776",
+            "memory.high": "23622320128",
+            "memory.swap.max": "0",
+            "memory.oom.group": "1"
+          }
+        },
+        "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+        "host_swap_disabled_verified": false
+      },
+      "speedup_gr_over_spine": 1.0331024517799383
+    },
+    {
+      "dataset": "SO",
+      "updates": 512,
+      "input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/SO_u512.graph",
+        "sha256": "23893ee451ab5fad390aac1c60c19539c88e0530ebd8fe267e79022cd9f46b23",
+        "bytes": 411315678
+      },
+      "attempts": [
+        "spine",
+        "gr"
+      ],
+      "arms": {
+        "spine": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "XCL_DEVICE_INDEX=1",
+              "SPINE_EXPECT_BDF=0000:c1:00.1",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-spine-host-v2/weighted_sssp.host",
+              "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "--update-setup-once",
+              "--dynamic-graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/SO_u512.graph"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SO_u512/spine.stdout.txt",
+              "sha256": "02fcb74c601391614efb6c1b1deb31628b197ed2844e6311b4647de023e5e9e8",
+              "bytes": 478
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SO_u512/spine.stderr.txt",
+              "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+              "bytes": 25
+            },
+            "maximum_child_rss_kib_so_far": 3602284
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SO_u512/spine.clock.json",
+              "sha256": "6a0c4f84d53c9d17e2491a8f2c276cff0495e6c911d656ab3fe2a7c8565c8541",
+              "bytes": 821
+            },
+            "expected": {
+              "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+              "binary": {
+                "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+                "bytes": 58375377
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SO_u512/spine.xclbin-info.txt",
+                "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+                "bytes": 30574
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 5038130565,
+            "bootstrap_ns": 992086546,
+            "batch_ns": 166255,
+            "update_wall_ns": 766060,
+            "setup_inclusive_ns": 6031149426
+          }
+        },
+        "gr": {}
+      },
+      "status": "FAILED_RETAINED",
+      "admission": {
+        "admitted": true,
+        "available_bytes": 63779418112,
+        "required_bytes": 60129542144,
+        "reservations": [],
+        "cgroup": {
+          "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/gr-retention-fig8-native-matrix-return-20261104-v2.service",
+          "limits": {
+            "memory.max": "25769803776",
+            "memory.high": "23622320128",
+            "memory.swap.max": "0",
+            "memory.oom.group": "1"
+          }
+        },
+        "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+        "host_swap_disabled_verified": false
+      },
+      "error": "RuntimeError('gr failed (1): /data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/SO_u512/gr.stderr.txt')"
+    },
+    {
+      "dataset": "PK",
+      "updates": 512,
+      "input": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/PK_u512.graph",
+        "sha256": "d888c6aa533c1f5f0d7389f839bde89a81ec98e87a3e3956e36270cab9eadb99",
+        "bytes": 745665642
+      },
+      "attempts": [
+        "spine",
+        "gr"
+      ],
+      "arms": {
+        "spine": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "XCL_DEVICE_INDEX=1",
+              "SPINE_EXPECT_BDF=0000:c1:00.1",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-spine-host-v2/weighted_sssp.host",
+              "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "--update-setup-once",
+              "--dynamic-graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/PK_u512.graph"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/spine.stdout.txt",
+              "sha256": "c8fe118ec2bc030f355666e75467d36ff12a8701480127e952fe5fe50745db8f",
+              "bytes": 482
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/spine.stderr.txt",
+              "sha256": "99df343ef6e8d0e6ed4d80057a46e7f8218513566057031acf7c4c2fc11d680c",
+              "bytes": 25
+            },
+            "maximum_child_rss_kib_so_far": 12762204
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/spine.clock.json",
+              "sha256": "04f99dfdd858276caff734f24dc4b06ae143fab8c09ec78e4c01b2c5d60b2182",
+              "bytes": 821
+            },
+            "expected": {
+              "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+              "binary": {
+                "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+                "bytes": 58375377
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/spine.xclbin-info.txt",
+                "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+                "bytes": 30574
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 15787003257,
+            "bootstrap_ns": 2975236009,
+            "batch_ns": 89713,
+            "update_wall_ns": 1122781,
+            "setup_inclusive_ns": 18763451760
+          }
+        },
+        "gr": {
+          "run": {
+            "command": [
+              "/usr/bin/taskset",
+              "-c",
+              "124,125",
+              "/usr/bin/env",
+              "-u",
+              "XCL_EMULATION_MODE",
+              "-u",
+              "GRASU_RESIDENT_BATCH_WALL",
+              "XCL_DEVICE_INDEX=1",
+              "GRASU_REGRAPH_EXPECT_BDF=0000:c1:00.1",
+              "GRASU_UPDATE_REPEATS=1",
+              "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+              "GRASU_SHARDED_METADATA_REPLICAS=4",
+              "GRASU_SHARDED_EVENT_TRACE=0",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-g-host-v3/weighted_sssp/sharded_k4_sssp_native_host",
+              "--update-setup-once",
+              "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-inputs.oznBlp/PK_u512.graph",
+              "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/gr-oracle.txt"
+            ],
+            "stdout": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/gr.stdout.txt",
+              "sha256": "3751fce6657f766843467d3faa257e5adc74dc62295e2088a37f52419f57bfd5",
+              "bytes": 6252
+            },
+            "stderr": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/gr.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "bytes": 0
+            },
+            "maximum_child_rss_kib_so_far": 12762204
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/gr.clock.json",
+              "sha256": "dcee9f2a77c7554bb9794be6709c15380c0b9ab4de799ef3438588a0bcf246a9",
+              "bytes": 808
+            },
+            "expected": {
+              "uuid": "9ba73157-1ecd-2f3d-de89-4e5c02a2c656",
+              "binary": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp/returned/route/candidate.hw.xclbin",
+                "sha256": "1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25",
+                "bytes": 79845431
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/gr.xclbin-info.txt",
+                "sha256": "545381d865a820c0880ed160458f9c3069990d1369159688dbaaab6e6a9b4ed9",
+                "bytes": 110616
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "timer": {
+            "layout_ns": 35744752075,
+            "upload_ns": 1586309345,
+            "update_wall_ns": 49799198,
+            "setup_inclusive_ns": 37380860618
+          },
+          "pma_oracle": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-native-matrix-return-v2/PK_u512/gr-oracle.txt",
+            "sha256": "1f12088cf800f95dde713ae551b6d37dcd7fc270e1ecf33f192778f4b7819ae0",
+            "bytes": 65
+          }
+        }
+      },
+      "status": "MEASURED_SETUP_ONLY",
+      "admission": {
+        "admitted": true,
+        "available_bytes": 64342040576,
+        "required_bytes": 60129542144,
+        "reservations": [],
+        "cgroup": {
+          "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/gr-retention-fig8-native-matrix-return-20261104-v2.service",
+          "limits": {
+            "memory.max": "25769803776",
+            "memory.high": "23622320128",
+            "memory.swap.max": "0",
+            "memory.oom.group": "1"
+          }
+        },
+        "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+        "host_swap_disabled_verified": false
+      },
+      "speedup_gr_over_spine": 1.9922166292285657
+    }
+  ],
+  "anchor": {
+    "path": "/data/chuxiao/checks/source-retention-repair-20261104/fig8-au512-pair-return-v2/results.json",
+    "sha256": "324247bee5f0e14a14cef3a6ae010943fdc62fe87d83940aba89dd5ac5b578a0",
+    "bytes": 11932
+  },
+  "memory_peak_bytes": 13110181888,
+  "memory_events_final": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"
+}
