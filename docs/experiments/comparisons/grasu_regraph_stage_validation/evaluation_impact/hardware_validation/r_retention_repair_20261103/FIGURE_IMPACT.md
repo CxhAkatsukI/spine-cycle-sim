@@ -719,6 +719,24 @@ The frozen ResPR source is
 Use the AU reproduction command above with the corresponding algorithm and
 dataset lists; omit `--gr-drain-directory` only for the WK/SSSP off control.
 
+### Source-Property Burst Scope
+
+The Figure 9 routed simulator already requests one 16 KiB block of source
+state at a time. Its AXI model splits each aligned block into sixteen
+16-beat bursts. The source-service test checks the burst count, issued and
+completed beats, and exact payload under finite backpressure. This is the
+burst shape now synthesized by the
+[SSSP source-property retry](SSSP_STAGE_ADMISSION.md#source-property-read-burst-repair).
+The earlier SSSP wrapper instead issued single-beat reads for the same
+block. Do not add a second block/burst speedup to the simulator to account
+for the HLS repair.
+
+These facts cover the request shape, not which blocks each complete
+execution reads, their issue times, or channel and controller occupancy.
+Equal bytes are not evidence of equal DRAMSim3 energy. The directory
+diagnostic stays a simulator prediction; actual clocks, scheduling, and
+G+R performance retention must be checked separately on the returned image.
+
 ## Figure 7: The Smallest Observed Margins
 
 Holding the old Spine wall time fixed, the break-even reduction of the old

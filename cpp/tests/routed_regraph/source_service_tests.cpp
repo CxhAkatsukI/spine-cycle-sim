@@ -161,11 +161,17 @@ Result run(std::size_t depth, std::size_t capacity, bool pressure, bool reverse)
           result.counters.terminators == std::array<std::uint64_t, 2>{4, 4} &&
           result.counters.memory_parents == 12 && result.counters.memory_completions == 12 &&
           result.counters.max_pending <= capacity, "source block/line/parent conservation failed");
-  require(memory.master().stats().requests_accepted == 12 + 64 &&
-          memory.master().stats().requests_completed == 12 + 64 &&
+  const auto &axi = memory.master().stats();
+  require(axi.requests_accepted == 12 + 64 &&
+          axi.requests_completed == 12 + 64 &&
           backend.traffic_stats().reads.bytes == 12 * kRoutedSourceBytes &&
           backend.traffic_stats().writes.bytes == 64 * 64 && backend.outstanding() == 0 &&
           backend.traffic_stats_by_initiator().size() == 1, "source/writeback traffic conservation failed");
+  // The aligned source blocks split into 16 physical bursts; writes are one beat each.
+  require(axi.bursts_accepted == 12 * 16 + 64 &&
+          axi.beats_issued == 12 * kRoutedSourceLines + 64 &&
+          axi.beats_completed == axi.beats_issued,
+          "source block AXI burst shape differs from the synthesized reader");
   for (std::size_t write = 0; write < 32; ++write)
     require(backend.inspect_payload(0, 0x800000 + write * 64, 64) ==
             std::vector<std::uint8_t>(64, static_cast<std::uint8_t>(write)), "writeback payload differs");
