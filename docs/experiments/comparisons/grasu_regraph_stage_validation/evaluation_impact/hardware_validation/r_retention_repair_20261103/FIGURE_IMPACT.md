@@ -374,6 +374,33 @@ max or OOM events. The [five additional board records](paired-board-checkpoint/f
 have SHA-256
 `f7ef8ac946e6a7aeda2a427560611ff378b4c1c869d65fed95d0983e73524bc9`.
 
+### Latest Spine Host: Direct Metadata Ownership
+
+[Host revision `475edca`](https://github.com/jayfeather9/spine-dynamic-graph/commit/475edca)
+serializes metadata into a page-aligned vector and passes its ownership
+to the runtime. The off-board test passed byte and alignment checks.
+AU/4096 bootstrap host time fell from 386.444 to 267.299 ms in the two
+single runs; the previous revision's 76.901 ms deficit became a
+31.112 ms lead. This comparison does not estimate timing variation.
+
+| Input | Updates | Frozen G (ms) | Latest Spine (ms) | G / Spine |
+| --- | ---: | ---: | ---: | ---: |
+| AU | 64 | 818.456 | 748.727 | 1.093x |
+| AU | 512 | 975.557 | 739.572 | 1.319x |
+| AU | 4,096 | 770.908 | 739.797 | 1.042x |
+| SU | 512 | 992.363 | 789.324 | 1.257x |
+| WK | 512 | 1,872.880 | 908.332 | 2.062x |
+| PK | 512 | 37,380.861 | 15,584.863 | 2.399x |
+
+All six rows use the same new Spine host, the same images and clocks as
+their frozen pairs, and one new Spine run each. All graph oracles passed.
+There were no memory high, max or OOM events; peak was 9,166,168,064 bytes.
+This is the latest native setup-inclusive SSSP checkpoint. It does not
+admit SO/512 or the CC/ResPR baseline. The [raw board archive](paired-board-checkpoint/fig8-spine-dma-matrix-v8.tar.gz)
+includes the input and host digests, clocks, breakdowns and correctness
+records. Its SHA-256 is
+`e70ece19a42f6f255093c44d76835841b2c6e73ea311ac874ed339813a358103`.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.
