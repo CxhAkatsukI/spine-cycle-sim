@@ -898,6 +898,26 @@ Equal bytes are not evidence of equal DRAMSim3 energy. The directory
 diagnostic stays a simulator prediction; actual clocks, scheduling, and
 G+R performance retention must be checked separately on the returned image.
 
+### ResPR Degree Update Scope
+
+The three ResPR G+R inputs in the [November 3 Fig. 9 arm ledger](../../figure7_11_handoff_20261103/data/fig9_arms.csv)
+(AU, SU, WK) each have eight physical update records. The
+[new degree kernel](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/a518092ad2f593cc59db01aec167275fbf92b863/kernels/grasu_degree_update/grasu_degree_update.cpp)
+requires at least 16 physical records before loading or storing any cached
+prefix, regardless of the source IDs or the prefix hint. Thus none of these
+three Fig. 9 inputs benefits from prefix caching. This does not apply to
+the 131,072-update G screen.
+
+The uncached degree read-modify-write still changes: the old kernel
+addresses one 32-bit degree, while the new kernel addresses its containing
+512-bit line. For eight successful degree updates, the source-level
+degree-array payload is 64 B in the old implementation and 1,024 B in the
+new one, excluding unchanged status words. These are requested data widths,
+not measured HBM bytes or commands. Do not subtract a prefix-cache saving
+from the Fig. 9 diagnostic, or treat the payload difference as an exact
+DRAMSim3 energy correction. The one-shard directory byte floor above
+does not depend on the degree-update path.
+
 ## Figure 7: The Smallest Observed Margins
 
 Holding the old Spine wall time fixed, the break-even reduction of the old
