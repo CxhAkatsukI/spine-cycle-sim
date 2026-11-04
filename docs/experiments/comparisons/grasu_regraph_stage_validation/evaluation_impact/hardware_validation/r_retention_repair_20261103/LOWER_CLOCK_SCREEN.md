@@ -236,6 +236,35 @@ earlier terminal delivery or wider full-shard publication, and tracing
 the downstream waits. Do not subtract the ideal clear savings from the
 board elapsed time as if all of those cycles were exposed.
 
+**Apply state traffic.** This is independent of gather clear. The
+unregistered Apply C-synthesis report lists burst inference failures for
+both reads and writes on `rank_state` (`gmem0`) and `residual_state`
+(`gmem1`): the loop interleaves loads and stores to each array. It infers
+a read burst for `out_degree` (`gmem2`). The generated `apply_bursts`
+pipeline in both the 430-MHz candidate's Apply XO and the packed-validity
+link's Apply XO requests one 512-bit beat at a time on both state ports.
+This is the HLS request length in beats, not the external AXI LEN field.
+For this fixture, the two shards contain 4,097 state beats in total, so
+the loop issues 16,388 single-beat read or write requests across the two
+state ports. This count does not establish concurrency, backpressure,
+or how many microseconds an explicit state burst could recover.
+
+To check the exact link inputs, run the following from the local
+retention check root. The expected Apply XO hashes are `41ad927c...` for
+the 430-MHz candidate and `fe830e62...` for the packed-validity link;
+the XOs are not byte-identical, but both show the same state request
+lengths. The unregistered build's `solution/syn/report/csynth.rpt` is
+under the [component build](REMOTE_LINKS.md#respr-apply-input-retime).
+
+```bash
+for name in respr-tail-bursts-apply-off respr-tail-lazy-clear; do
+    xo="seele-inputs-v1/$name/inputs/regraph_pagerank_apply.hw.xo"
+    sha256sum "$xo"
+    unzip -p "$xo" '*/regraph_pagerank_apply_regraph_pagerank_apply_Pipeline_apply_bursts.v' |
+        rg 'assign m_axi_gmem[01]_(ARLEN|AWLEN)'
+done
+```
+
 Extract [the raw pair](respr-apply-off-430-raw.tar.gz) into `$raw` and run
 from the simulator root. This replays both clock vectors and correctness
 and timing records before calculating the candidate's windows:
