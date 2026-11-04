@@ -14,24 +14,33 @@ SPINE_HOST = "c7f81eeb24cbabc13e6a28366370417106af2a2063c457c970fe171900fe1153"
 GR_HOST = "b72c20fec3bc7130edf430ff0006963e3112dfa57ea31bc96e38246b303f7412"
 
 
-def configure(args, case, pins):
+def configure(args, case, pins, *, retained_spine=None):
     if args.algorithm != "cc":
         raise ValueError("the matched wall host pair is CC-only")
     packet = args.cc_wall_packet
     pin = identity(packet)
     paths = json.loads(packet.read_text())
     expected = {"spine_host": SPINE_HOST, "spine_binary": IMAGE, "gr_host": GR_HOST}
+    if retained_spine is not None:
+        expected.update(spine_host=identity(retained_spine["command"][3])["sha256"],
+                        spine_binary=retained_spine["clock"]["binary"]["sha256"])
     if set(paths) != expected.keys() | {"inputs"}:
         raise ValueError("unexpected CC wall packet members")
     binaries = {name: identity(paths[name]) for name in expected}
     if any(binaries[name]["sha256"] != sha for name, sha in expected.items()):
         raise ValueError("expected the qualified CC image and wall host binaries")
+    if retained_spine is not None and (binaries["spine_host"]["path"] != retained_spine["command"][3]
+                                       or binaries["spine_binary"] != retained_spine["clock"]["binary"]):
+        raise ValueError("wall packet uses a different host or image than the retained Spine arm")
     inputs = identity(paths["inputs"])
     split = json.loads(Path(inputs["path"]).read_text())
     source = next((row for row in pins if row["path"] == case["graph"]), None)
     if (source is None or split["source"] != source
             or any(split[key] != case[key] for key in ("vertices", "edges", "updates"))):
         raise ValueError("CC split input does not match the frozen workload")
+    if retained_spine is not None and retained_spine["command"][-4:] != [
+            "--slice", split["graph"]["path"], "--update", split["update"]["path"]]:
+        raise ValueError("wall packet does not match the retained Spine inputs")
     new_pins = [pin, inputs, *binaries.values(), split["graph"], split["update"], identity(__file__),
                 identity(cc_resident_results.__file__)]
     unchanged(new_pins)

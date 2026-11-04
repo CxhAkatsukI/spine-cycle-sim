@@ -6,7 +6,7 @@ import json
 import math
 from pathlib import Path
 
-from . import active_min_resident, cc_resident_wall, clocks, resident_matrix
+from . import active_min_resident, cc_resident_wall, clocks, resident_matrix, spine_cc_warm_receipt
 from .runtime import identity, save
 
 
@@ -132,10 +132,21 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
         attempts = child["attempts"]
         if (child["algorithm"], child["dataset"], child["boundary"]) != (algorithm, dataset, boundary):
             raise ValueError("resident pair identity differs from the matrix")
-    if set(arms) != {"spine", "gr"} or attempts != ["spine", "gr"]:
+    retained = child.get("retained_spine")
+    expected_attempts = ["spine", "gr"] if retained is None else ["gr"]
+    if set(arms) != {"spine", "gr"} or attempts != expected_attempts:
         raise ValueError("expected exactly one Spine run and one G+R run")
     stage = summarize_gates(algorithm, gates, extra)
     workload = pinned_workload(row["case"], child["pins"])
+    if retained is not None:
+        if ((algorithm, dataset) != ("cc", "AU") or retained not in child["pins"]
+                or set(child["additional_r_gates"]) != {"amazon_odd", "au_slice"}
+                or child["additional_r_gates"]["amazon_odd"] != extra):
+            raise ValueError("retained Spine CC arm has no matching cross-topology baseline admission")
+        original, _ = spine_cc_warm_receipt.replay(
+            retained, workload["graph"], bdf=child["bdf"], affinity=child["cpu_affinity"])
+        if original != arms["spine"]:
+            raise ValueError("retained Spine arm differs from the original board sample")
     evidence = {arm: {stream: arm_row[stream] for stream in ("stdout", "stderr")}
                 for arm, arm_row in arms.items()}
     for files in evidence.values():
@@ -175,6 +186,7 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
         raise ValueError("wall times and speedup must be finite and positive")
     if not math.isclose(gr / spine, published, rel_tol=1e-12):
         raise ValueError("published speedup differs from the measured wall times")
+    retained_record = {} if retained is None else {"retained_spine": retained}
     return dict(spine_ms=spine, gr_ms=gr, gr_over_spine=gr / spine,
                 winner="Spine" if spine < gr else "G+R" if gr < spine else "tie",
                 gr_rounds=rounds[0], spine_rounds=rounds[1],
@@ -182,7 +194,8 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
                 clocks_mhz=mhz, same_driver_clocks=mhz["spine"] == mhz["gr"],
                 bdf=child["bdf"], workload=workload, stage_ratios=stage, comparison=pair_pin,
                 images={arm: record["binary"] for arm, record in observed.items()},
-                clocks={arm: entry["clock_evidence"] for arm, entry in arms.items()}, raw=evidence)
+                clocks={arm: entry["clock_evidence"] for arm, entry in arms.items()}, raw=evidence,
+                **retained_record)
 
 
 def respr_case(rows, dataset):
@@ -274,6 +287,10 @@ def export(paths):
                         image = matrix["image"] if algorithm == "respr" else gates["image"]
                         row_data = measured(algorithm, dataset, child, row, gates, matrix.get("odd_r"), image)
                         if algorithm == "cc":
+                            if child.get("retained_spine"):
+                                if (not matrix.get("stages", {}).get("au_slice")
+                                        or child["additional_r_gates"]["au_slice"] != matrix.get("au_slice_r")):
+                                    raise ValueError("matrix AU topology evidence differs from the retained CC pair")
                             record_cc_topology(row_data, matrix, gates)
                         elif algorithm == "weighted_sssp":
                             record_sssp_topology(row_data, matrix, special, gates)

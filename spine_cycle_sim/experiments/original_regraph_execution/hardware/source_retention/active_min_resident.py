@@ -10,7 +10,7 @@ import time
 
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import concurrent, containment
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
-from . import active_min_admission, cc_resident_wall, clocks
+from . import active_min_admission, cc_resident_wall, clocks, spine_cc_warm_receipt
 from .follow import unchanged
 from .resident_board import LEGACY_LOCK
 from .runtime import identity, lease, save
@@ -25,6 +25,7 @@ FROZEN_ALGORITHMS = {
     "respr": ("respr", "residual_pagerank"),
 }
 COMPARATOR_SHA256 = "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f"
+ODD_FIXTURE_SHA256 = "81e9430421d52acf665a507f808a7f467f745818f491aa7dc1fc605ae95e9add"
 BOUNDARY = "resident_update_to_final_readback_wall_including_host_relaunch"
 
 
@@ -135,13 +136,27 @@ def run(args):
         if stage_receipts is not None and any(gate[stage]["report"] != pin for stage, pin in stage_receipts.items()):
             raise ValueError("admission replay used a different producer receipt")
         case, pins = frozen_case(args.previous, args.algorithm, args.dataset)
+        retained = getattr(args, "cc_warm_au_receipt", None)
+        retained_spine = None
+        if retained is not None:
+            if not cc_wall or (args.algorithm, args.dataset) != ("cc", "AU"):
+                raise ValueError("the warm CC arm is reusable only for the AU wall comparison")
+            retained_pin = identity(retained)
+            frozen = next(pin for pin in pins if pin["path"] == case["graph"])
+            retained_spine, retained_pins = spine_cc_warm_receipt.replay(
+                retained_pin, frozen, bdf=bdf, affinity=spine_cc_warm_receipt.AFFINITY)
+            pins += [*retained_pins, identity(spine_cc_warm_receipt.__file__)]
+            report.update(retained_spine=retained_pin)
+            report["arms"]["spine"] = retained_spine
         if cc_wall:
-            case, added_pins = cc_resident_wall.configure(args, case, pins)
+            case, added_pins = cc_resident_wall.configure(args, case, pins, retained_spine=retained_spine)
             pins += added_pins
             report.update(boundary=cc_resident_wall.BOUNDARY,
                           gr_host_overlay="15717a5928929cafd39dbf5a3f7fc1aaf18d167a",
                           gr_host_overlay_environment={"GRASU_SHARDED_RESIDENT_BATCH_WALL": "1"})
             command_pair = cc_resident_wall.commands(case, gate, args.output)
+            if retained_spine is not None:
+                command_pair["spine"] = retained_spine["command"]
         else:
             comparator = identity(args.comparator)
             if comparator["sha256"] != COMPARATOR_SHA256:
@@ -151,7 +166,26 @@ def run(args):
         pins += [gate["host"], gate["image"], gate["g"]["report"], gate["g"]["reference"], gate["r"]["report"],
                  identity(__file__), identity(active_min_admission.__file__)]
         additional_r = {}
-        for label, receipt, inputs, geometry in getattr(args, "additional_r", ()):
+        controls = getattr(args, "additional_r", ())
+        warm_controls = getattr(args, "cc_warm_r_controls", None)
+        if warm_controls is not None:
+            if retained_spine is None or controls:
+                raise ValueError("warm CC R controls require a retained AU arm and no other controls")
+            odd_receipt, odd_inputs, au_receipt, au_inputs = warm_controls
+            fixture = identity(odd_inputs.parent / "manifest.json")
+            if fixture["sha256"] != ODD_FIXTURE_SHA256:
+                raise ValueError("not the predeclared odd-frontier Amazon fixture")
+            queue_pin = identity(odd_receipt.parent.parent / "queue.json")
+            queue = json.loads(Path(queue_pin["path"]).read_text())
+            if (queue["status"] != "PAIRED_ACTIVE_MIN_R_GATE_PASS" or not queue["retention_gate_pass"]
+                    or fixture not in queue["pins"] or queue["result"] != identity(odd_receipt)):
+                raise ValueError("odd-frontier R queue did not admit this hardware receipt")
+            pins += [fixture, queue_pin]
+            controls = (
+                ("amazon_odd", identity(odd_receipt), odd_inputs, active_min_admission.AMAZON_GEOMETRY),
+                ("au_slice", identity(au_receipt), au_inputs, active_min_admission.AU_SLICE_GEOMETRY),
+            )
+        for label, receipt, inputs, geometry in controls:
             decision = active_min_admission.replay_r(Path(receipt["path"]), args.algorithm, inputs,
                                                      gate["host"], gate["image"], geometry=geometry)
             if (decision["report"] != receipt or
@@ -161,6 +195,11 @@ def run(args):
             pins.append(receipt)
         if additional_r:
             report["additional_r_gates"] = additional_r
+        if retained_spine is not None:
+            if warm_controls is None or set(additional_r) != {"amazon_odd", "au_slice"}:
+                raise ValueError("the warm CC pair needs both the odd Amazon and AU topology R gates")
+            if len({row["report"]["sha256"] for row in (gate["r"], *additional_r.values())}) != 3:
+                raise ValueError("the warm CC pair needs three distinct R stage receipts")
         report.update(stage_gates=gate, case=case, pins=pins)
         budget = case["memory_gib"]
         group = containment.current()
@@ -169,9 +208,14 @@ def run(args):
             raise ValueError("reserve the frozen board host budget with a 2-GiB high-watermark margin")
         memory = concurrent.Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
         policy = {"tree_memory_gib": budget, "reserve_gib": 32, "allow_bounded_builds": True}
-        expected = {name: clocks.image(path, args.output, name) for name, path in (
-            ("gr", gate["image"]["path"]), ("spine", case["spine_binary"]))}
-        affinity = sorted(os.sched_getaffinity(0))[:4]
+        images = {"gr": gate["image"]["path"]}
+        if retained_spine is None:
+            images["spine"] = case["spine_binary"]
+        expected = {name: clocks.image(path, args.output, name) for name, path in images.items()}
+        affinity = (list(spine_cc_warm_receipt.AFFINITY) if retained_spine is not None
+                    else sorted(os.sched_getaffinity(0))[:4])
+        if not set(affinity).issubset(os.sched_getaffinity(0)):
+            raise ValueError("resident host cannot use the retained CPU affinity")
         os.sched_setaffinity(0, affinity)
         report.update(status="WAITING_FOR_MEMORY", cpu_affinity=affinity, commands=command_pair)
         write()
@@ -196,6 +240,8 @@ def run(args):
                             raise BlockingIOError("card has other users")
                         report["status"] = "RUNNING"
                         for name in ("spine", "gr"):
+                            if name == "spine" and retained_spine is not None:
+                                continue
                             unchanged(pins)
                             if not idle(node):
                                 raise RuntimeError("card acquired by another user between arms")
@@ -241,6 +287,9 @@ def parse_arguments(argv=None, *, extend=None):
     comparison = parser.add_mutually_exclusive_group(required=True)
     comparison.add_argument("--comparator", type=lambda value: Path(value).resolve())
     comparison.add_argument("--cc-wall-packet", type=lambda value: Path(value).resolve())
+    parser.add_argument("--cc-warm-au-receipt", type=lambda value: Path(value).resolve())
+    parser.add_argument("--cc-warm-r-controls", nargs=4, type=lambda value: Path(value).resolve(),
+                        metavar=("ODD_RECEIPT", "ODD_INPUTS", "AU_RECEIPT", "AU_INPUTS"))
     parser.add_argument("--wait-seconds", type=int, default=0)
     if extend is not None:
         extend(parser)

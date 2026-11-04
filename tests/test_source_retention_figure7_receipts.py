@@ -97,6 +97,24 @@ class Figure7ReceiptsTest(unittest.TestCase):
         (rejected,) = [r for r in result["rows"] if r["status"] == "RECEIPT_REJECTED"]
         self.assertNotIn("gr_over_spine", rejected)
 
+    def test_cc_au_retains_spine_receipt_without_fabricating_a_second_launch(self):
+        child, gates, odd = self.pair("cc", "AU")
+        pin = self.receipt("retained-spine", {})
+        child.update(attempts=["gr"], retained_spine=pin, cpu_affinity=[124, 125],
+                     additional_r_gates={"amazon_odd": odd, "au_slice": {}})
+        child["pins"].append(pin)
+        with patch.object(figure.spine_cc_warm_receipt, "replay", return_value=(child["arms"]["spine"], [])):
+            result = figure.measured("cc", "AU", child, child, gates, odd, gates["image"])
+            self.assertEqual(result["retained_spine"], pin)
+            self.assertEqual(result["winner"], "G+R")
+            child["attempts"].insert(0, "spine")
+            with self.assertRaisesRegex(ValueError, "exactly one Spine run"):
+                figure.measured("cc", "AU", child, child, gates, odd, gates["image"])
+            child["attempts"] = ["gr"]
+            child["additional_r_gates"].pop("au_slice")
+            with self.assertRaisesRegex(ValueError, "cross-topology baseline"):
+                figure.measured("cc", "AU", child, child, gates, odd, gates["image"])
+
     def test_board_observed_spine_must_match_the_predeclared_image(self):
         child, gates, odd = self.pair("weighted_sssp", "AU")
         child["pins"][0]["sha256"] = "different-spine"

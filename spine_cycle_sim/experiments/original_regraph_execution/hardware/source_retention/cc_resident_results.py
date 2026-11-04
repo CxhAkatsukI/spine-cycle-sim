@@ -41,6 +41,18 @@ def analyze(workload, gr_stdout, spine_stdout, *, bdf):
                            physical_update_mapping="offline"), "expected matching G+R wall scope")
     gr_ms = _wall(gr_wall, "pack_upload_and_host_seed_ms", "pack_to_final_readback_ms")
 
+    spine_ms, spine_rounds, hot = validate_spine(workload, spine)
+    speedup = gr_ms / spine_ms
+    if not math.isfinite(speedup) or speedup <= 0:
+        raise ValueError("invalid paired speedup")
+    return {"boundary": "resident_old_graph_host_pack_to_final_readback",
+            "gr_ms": gr_ms, "spine_ms": spine_ms, "gr_over_spine": speedup,
+            "gr_supersteps": gr_steps, "spine_rounds": spine_rounds,
+            "spine_hot_layout": hot, "gr_layout": "trace_aware", "gr_physical_update_mapping": "offline"}
+
+
+def validate_spine(workload, spine):
+    vertices, updates = workload["vertices"], workload["updates"]
     spine_wall = single(spine, "CC_RESIDENT_WALL")
     hot = spine_wall.get("hot")
     if hot not in ("0", "1"):
@@ -62,11 +74,4 @@ def analyze(workload, gr_stdout, spine_stdout, *, bdf):
         raise ValueError("invalid Spine CC propagation-round count")
     spine_ms = _wall(spine_wall, "batch_resident_to_final_readback_ms",
                      "host_pack_to_final_readback_ms")
-    speedup = gr_ms / spine_ms
-    if not math.isfinite(speedup) or speedup <= 0:
-        raise ValueError("invalid paired speedup")
-    return {"boundary": "resident_old_graph_host_pack_to_final_readback",
-            "gr_ms": gr_ms, "spine_ms": spine_ms, "gr_over_spine": speedup,
-            "gr_supersteps": gr_steps, "spine_rounds": spine_rounds,
-            "spine_hot_layout": hot == "1",
-            "gr_layout": "trace_aware", "gr_physical_update_mapping": "offline"}
+    return spine_ms, spine_rounds, hot == "1"

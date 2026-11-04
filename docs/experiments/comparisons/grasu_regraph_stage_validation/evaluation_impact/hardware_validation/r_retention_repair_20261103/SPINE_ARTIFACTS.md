@@ -198,10 +198,13 @@ The 150-MHz paper-geometry build is running on seele as
 `spine-cc-warm-insert-route-20261104-v1.service` (invocation
 `79463b9047ac4062810a42e50befc9aa`), with source and logs under
 `/data/chuxiao/spine-cc-warm-insert-20261104-v1`. Its initial 40-GiB hard
-cap was raised in place to 48 GiB (44 GiB high, still no swap) after
-observing soft-limit reclaim, no OOM, and about 330 GiB available on
-Seele. The invocation is unchanged. The image and host must be admitted together before measuring the
-same resident AU batch once. It is not used in existing figure data.
+cap was raised in place first to 48 GiB (44 GiB high) and then to 56 GiB
+(52 GiB high, still no swap). At the second adjustment block-level synthesis
+had completed 143 of 227 jobs, the route was using about 45 GiB anonymous
+memory, and the host had about 321 GiB available with zero hard-limit or OOM
+events for this route. The invocation is unchanged. The image and host must
+be admitted together before measuring the same resident AU batch once. It
+is not used in existing figure data.
 
 The [native CC timing host](https://github.com/jayfeather9/spine-dynamic-graph/commit/79e7747)
 adds the two old-arm wall windows: pack start or batch residency through
@@ -223,6 +226,19 @@ zero swap with the runner's 32-GiB reserve. Local return evidence goes to
 `spine-cc-warm-au-board-v1/results.json`. At queue time the route was still
 building. The result will diagnose the Spine repair only; it does not
 compare Spine against a retention-qualified G+R.
+
+If that AU arm succeeds, `source_retention.active_min_resident` can replay it
+via `--cc-warm-au-receipt <results.json>` without another timed Spine launch.
+Supply the CC wall packet with the exact warm image and host paths, the same
+frozen split manifest, and the matched G+R wall host. Supply the distinct odd
+Amazon and AU slice R receipts and input directories via
+`--cc-warm-r-controls <odd-results> <odd-inputs> <au-results> <au-inputs>`,
+in addition to the regular same-image Amazon R and G receipts. The runner
+requires the same PCI card and CPU affinity as the retained arm. It records
+one new G+R attempt, rechecks the retained raw Spine oracle and timing,
+and compares the two pack-to-final-readback windows. It does not relabel
+the cold-layout AU arm as a balanced-layout measurement or admit a pair
+without all independent stage checks.
 
 The [balanced warm CC host](https://github.com/jayfeather9/spine-dynamic-graph/commit/5c825f6)
 adds the degree-balanced preload to the new native timing host. The
