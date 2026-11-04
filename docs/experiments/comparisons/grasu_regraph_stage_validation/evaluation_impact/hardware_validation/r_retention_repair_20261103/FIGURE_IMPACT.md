@@ -43,6 +43,39 @@ the Figure 7 comparisons include the actual update and convergence path.
 | 9 | It uses simulated G+R and Spine requests. Identical adapter outputs do not establish identical accepted requests, request order, or background HBM energy. | Verify the current implementation's request ledger against the intended simulator profile; rerun affected simulator pairs for a refreshed comparison. Preserve the modeled energy scope. |
 | 10/11 | Spine-only stage attribution and a fit to Spine simulator outputs; neither consumes R measurements. | Retain as predictions for the exact frozen Spine model. Re-execute/refit only if a relevant Spine model or workload changes. R admission does not calibrate them. |
 
+## Figure 8: Exact Inputs For A Native G Check
+
+The independent G gate uses AU with 131,072 inserts and measures the
+device update event span. It cannot stand in for Figure 8: the latter uses
+AU at 64, 512, and 4,096 updates and SU/WK/SO/PK at 512, and includes
+preparation and upload. Its frozen arm table records the row counts and the
+case directory; `config.json` in that directory names the two raw slices.
+For example, prepare the exact AU 512-update row from the simulator checkout:
+
+```bash
+input=/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure8_inputs \
+  "$input/graphs/directed_weighted.slice" \
+  "$input/updates/directed/insert_u512.slice" \
+  /tmp/au_fig8_u512.graph --vertices 515281 --edges 390847 --batch-size 512
+```
+
+The converter keeps IDs, weights, record order and operation; it does not
+remap vertices or sample edges. All seven historical cases converted. On AU
+512 the current candidate host's CPU preflight accepted 390,847 old edges,
+512 physical inserts and eight shards. The native AU 512 file has SHA-256
+`092a84ab17b564cab854875e544f420635fe63cca5056e10c3842be912501e70`.
+Conversion is offline input preparation, not a timed operation. A native
+`--update-only` board run can validate
+the actual G update and report its device events, but cannot on its own
+replace the setup-inclusive panel. The frozen panel uses a different
+host/layout implementation and modeled upload, while the current native
+host's `--prepare-only` command also runs convergence oracles that do not
+belong in an update-only setup timer. For a measured replacement, time
+layout construction, batch preparation, initial/batch upload, and update
+through completion on both arms under the same exclusions. Keep the
+device-only evidence separately labeled.
+
 ## Figure 7: The Smallest Observed Margins
 
 Holding the old Spine wall time fixed, the break-even reduction of the old
