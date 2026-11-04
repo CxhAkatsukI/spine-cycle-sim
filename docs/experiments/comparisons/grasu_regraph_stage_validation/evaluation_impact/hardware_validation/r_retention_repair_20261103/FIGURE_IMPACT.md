@@ -92,6 +92,49 @@ the Figure 7 comparisons include the actual update and convergence path.
 | 9 | It uses simulated G+R and Spine requests. Identical adapter outputs do not establish identical accepted requests, request order, or background HBM energy. The directory alone gives a conditional floor for the direction of the byte comparison. | See the byte floor below. Verify the current implementation's request ledger against the intended simulator profile for new byte ratios and rerun the DRAMSim3 trace for energy. |
 | 10/11 | Spine-only stage attribution and a fit to Spine simulator outputs; neither consumes R measurements. | Retain as predictions for the exact frozen Spine model. Re-execute/refit only if a relevant Spine model or workload changes. R admission does not calibrate them. |
 
+### Frozen Figure 7: Zero-Cost R Bound
+
+An offline audit checked all 24 November 3 handoff rows against the original
+one-shot FPGA pair receipts and both raw host logs. The pinned G+R source
+matches [`bbb08cb`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/bbb08cb).
+Its [SSSP/CC host](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/bbb08cb/tools/sharded_k4_native_host.cpp#L776-L850)
+and [ResPR host](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/bbb08cb/tools/sharded_k4_pagerank_native_host.cpp#L528-L570)
+finish the timed G update CUs before launching the first R traversal.
+Keep the measured G event span and give every other G+R cost, including
+all of R, zero time. This bounds what an R-only acceleration can change
+if G's measured execution and the Spine arm remain fixed. The host's
+`setup_inclusive_ms` is the timed resident window here: initial graph and
+property upload finish before the timer starts.
+
+| Frozen case | G event span (ms) | Complete Spine wall (ms) | Minimum G+R / Spine |
+| --- | ---: | ---: | ---: |
+| SSSP / PK | 15.825373 | 9.60819 | 1.647x |
+| SSSP / R19 | 5.548182 | 4.27175 | 1.299x |
+
+Only these two rows satisfy the bound. The other 22 are **undetermined**,
+not losses: their G event span alone is below Spine's complete wall time.
+This neither preserves the old bar heights nor establishes 15% R parity.
+A faster or overlapping G path, a different clock or a different Spine
+implementation would require a new comparison. These are the frozen runs,
+not the separate newer PK and R19 pairs above.
+
+Replay from the simulator root using the [raw archive](fig7-frozen-r-only-bound-raw.tar.gz)
+(`6e0fda2381b273010b1a3f6281ad0082e1c5966356938bbca10594c143f8def1`).
+It contains the original 24 JSON receipts and 48 stdout logs, not FPGA
+images or graph inputs. The CSV includes hashes of each receipt and raw log and
+`remaining_budget_to_tie_ms = Spine wall - G event span`. For a positive
+budget, the new R time **plus all other cost not in the G span** must fit
+within it for G+R to tie or win. No FPGA job is launched.
+
+```bash
+handoff=docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_handoff_20261103
+archive=docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/fig7-frozen-r-only-bound-raw.tar.gz
+matrix=$(mktemp -d)
+tar -xzf "$archive" -C "$matrix"
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_r_only_bound \
+  "$handoff/data/fig7_fpga_speedup.csv" "$matrix"
+```
+
 ## Figures 10 And 11: Frozen Spine Replay Scope
 
 The frozen [`fig10_11_matrix.json`](../../figure7_11_handoff_20261103/provenance/fig10_11_matrix.json)
