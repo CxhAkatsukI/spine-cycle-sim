@@ -7,7 +7,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.ha
     replacement_capsule as relocation, replacement_return,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    banked_clear_link,
+    banked_clear_link, cc_source_wrapper_link,
 )
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 
@@ -108,6 +108,56 @@ def test_banked_clear_changes_only_the_fixed_frame_gather(tmp_path, profile, mod
         write_xo(new_xo, "unrelated change", flags=f"{banked} -DGRASU_EXTRA=1")
         with pytest.raises(ValueError, match="only the SSSP banked clear compile flag"):
             derive(tmp_path / "rejected-flag")
+
+
+def test_cc_source_wrapper_preserves_banked_gather_and_connectivity(tmp_path):
+    manifest, platform = source(tmp_path)
+    parent = json.loads(manifest.read_text())
+    gather = identity(tmp_path / "xos/lksg_stream.hw.xo")
+    old_placeholder = tmp_path / "xos/kernel0.hw.xo"
+    old_xo = old_placeholder.with_name(cc_source_wrapper_link.XO_NAME)
+    new_xo = tmp_path / "new" / old_xo.name
+    new_xo.parent.mkdir()
+
+    def write_xo(path, rtl, offset):
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("kernelHBMWrapper/kernel.xml",
+                             '<root><kernel name="kernelHBMWrapper" hwControlProtocol="ap_ctrl_chain"'
+                             ' compileOptions="-DHAVE_VERTEX_PROP=1"><ports><port name="m_axi_gmem1"/>'
+                             f'</ports><args><arg name="source_prop" offset="{offset}"/></args>'
+                             '</kernel></root>')
+            archive.writestr("rtl", rtl)
+
+    write_xo(old_xo, "scalar", "0x20")
+    write_xo(new_xo, "bursts", "0x20")
+    parent.update(mode="destination", change="banked fixed-frame gather only",
+                  gather_replacement={"after": gather})
+    parent["command"][parent["command"].index(str(old_placeholder))] = str(old_xo)
+    parent["pins"] = [identity(old_xo) if pin == identity(old_placeholder) else pin
+                      for pin in parent["pins"]]
+    manifest.write_text(json.dumps(parent))
+    execution = tmp_path / "execution.json"
+
+    def derive(output):
+        execution.write_text(json.dumps({"status": "COMPONENT_XO_PASS_NOT_ROUTED",
+                                         "board_tested": False, "xo": identity(new_xo)}))
+        return cc_source_wrapper_link.derive(
+            manifest, execution, output, parent_sha256=identity(manifest)["sha256"],
+            execution_sha256=identity(execution)["sha256"])
+
+    output = tmp_path / "derived"
+    derived = derive(output)
+    expected = list(parent["command"])
+    expected[expected.index(str(old_xo))] = str(new_xo)
+    expected[expected.index("-o") + 1] = str(output / "candidate.hw.xclbin")
+    assert derived["command"] == expected
+    assert derived["gather_replacement"]["after"] == gather
+    capsule = tmp_path / "capsule"
+    relocation.prepare(output, capsule)
+    relocation.verify(capsule, platform)
+    write_xo(new_xo, "bursts", "0x28")
+    with pytest.raises(ValueError, match="identical ABI and defines"):
+        derive(tmp_path / "rejected")
 
 
 def test_lazy_respr_preserves_tail_abi_and_pinned_cache(tmp_path):

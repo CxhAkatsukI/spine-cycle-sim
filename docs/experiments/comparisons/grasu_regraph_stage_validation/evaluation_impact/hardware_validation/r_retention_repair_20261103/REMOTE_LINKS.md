@@ -813,7 +813,7 @@ nominal-clock public arm; it requests only the new candidate arm.
 | Resident Spine vs G+R, full AU | `gr-retention-sssp-physopt-resident-au-20261104-v1` | `a3f33e24d34c4d74b9e7368270fd9b94` | `sssp-physopt-resident-au-v1/queue.json` |
 | Remaining seven resident SSSP pairs | `gr-retention-sssp-physopt-matrix-20261104-v1` | `7454bcf4996c46b981e1077dd042c9eb` | `sssp-physopt-matrix-v1/matrix.json` |
 
-The nominal queues use immutable runner `318e98d`, the same card lease,
+These initial nominal queues used immutable runner `318e98d`, the same card lease,
 fixture inputs, public references and memory bounds as the existing
 nominal queues. Resident AU waits for all three R cases and independent G
 to pass on this exact image. The matrix imports that AU result and runs
@@ -821,6 +821,91 @@ each remaining workload once, without warmups or averaging.
 
 These are build and queue receipts. They do not establish an R pass or
 support replacing any figure until the corresponding board results pass.
+
+### Corrected Nominal Return and Board Queues
+
+The initial SSSP and ResPR collectors were superseded so the board queues
+replay the final post-route physical optimization timing report, rather
+than a report from an earlier implementation step. This changes the
+return verification, not the route or the hardware implementation. The
+first replacement SSSP G and Fig. 8 units also lacked the required
+`OOMPolicy=kill`; the preflight stopped them before any timed arm. Keep
+those receipts separate from the rearmed queues below.
+
+| Build | Corrected local collector (omit `.service`) | Invocation | Transfer journal |
+| --- | --- | --- | --- |
+| SSSP source burst physical retry | `gr-retention-return-sssp-source-physopt-20261105-final` | `dbb64c39783546cfb04ddc8a0b78f498` | `seele-return-v1-sssp-source-bursts-physopt-final/transfer.json` |
+| ResPR lazy-clear gather | `gr-retention-return-respr-lazy-clear-20261105-final` | `61d6d2fb36dc4b7794185a951de20ec0` | `seele-return-v1-respr-lazy-clear-final/transfer.json` |
+
+The board queues use runner `88260882`, exact collector invocations, the
+same frozen inputs, and `OOMPolicy=kill` with bounded memory and no swap.
+The table gives the journal under the local check root. To recover the
+unit name, add `gr-retention-` before and `-20261105-sealed.service` after
+the suffix. The derated test is diagnostic only.
+
+| Step | Unit suffix | Journal |
+| --- | --- | --- |
+| SSSP R, AU903K | `sssp-burst-au903k-physopt` | `sssp-burst-au903k-physopt-sealed/queue.json` |
+| SSSP R, sparse Amazon | `sssp-physopt-amazon` | `sssp-physopt-amazon-sealed/queue.json` |
+| SSSP R, odd Amazon | `sssp-physopt-amazon-odd` | `sssp-physopt-amazon-odd-sealed/queue.json` |
+| SSSP G, AU 131K | `g-sssp-physopt` | `g-sssp-physopt-sealed/results.json` |
+| SSSP resident AU | `sssp-physopt-resident-au` | `sssp-physopt-resident-au-sealed/queue.json` |
+| SSSP remaining resident cases | `sssp-physopt-matrix` | `sssp-physopt-matrix-sealed/matrix.json` |
+| Fig. 8 AU/512 setup pair | `fig8-au512-card0` | `fig8-au512-card0-physopt-sealed/results.json` |
+| ResPR R, nominal skew control | `r-lazy-clear-nominal` | `respr-lazy-clear-nominal-r-sealed/results.json` |
+| ResPR G, nominal AU 131K | `g-lazy-clear-nominal` | `respr-lazy-clear-nominal-g-sealed/results.json` |
+| ResPR R, lower-clock diagnostic | `derated-respr-lazy-clear` | `derated-respr-tail-lazy-clear-sealed/results.json` |
+| ResPR resident AU | `resident-joint-v12` | `resident-joint-board-v12-sealed/results.json` |
+| ResPR remaining resident cases | `respr-matrix-v10` | `respr-matrix-v10-sealed/results.json` |
+
+### CC Source-Property Burst Component
+
+The banked-clear CC route kept its original `kernelHBMWrapper`. The
+next isolated change is the same unconditional source-block load
+already synthesized for weighted SSSP and ResPR (integration
+[`9ceb5c5`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/9ceb5c5)).
+It is compiled with the original CC macros, including
+`HAVE_VERTEX_PROP=1`, from the generated `cc-source-wrapper-bursts-packet-v1/`
+packet. The component unit `gr-retention-cc-source-bursts-wrapper-20261105-v1`
+(invocation `6005672644974232bb9e9bec1592b709`) has an 8 GiB hard limit,
+a 7 GiB soft threshold, and no swap. Its journal is
+`cc-source-wrapper-bursts-csynth-v1/execution.json`.
+The component build alone does not establish timing or performance.
+The board screen still needs to recover 0.127375 ms on AU903K; the
+public control is frozen and can be replayed without remeasuring it.
+
+The component build passed, producing wrapper XO SHA-256
+`b734be6392e5e9f8234b989eb2a70c4b3e77d4787e65b952f924d610345cef3b`.
+Both generated reader RTLs use a 256-beat logical request; the two
+AXI master ports retain the 16-beat burst limit and 16 outstanding
+reads. `source_retention.cc_source_wrapper_link` checked the kernel ABI
+and compile macros against the original CC wrapper. The exported
+`seele-inputs-v1/cc-banked-source-bursts` capsule retains the banked
+gather, the other nine XOs, and the same connectivity. Its manifest
+SHA-256 is `135b44b070b2394046dbae1359d2aaad588dad572f50e555663473271996acd8`.
+The Seele attempt is `builds/cc-banked-source-bursts-v1`.
+
+| Step | Unit (without `.service`) | Invocation |
+| --- | --- | --- |
+| Seele route | `gr-retention-seele-cc-banked-source-bursts-20261105-v1` | `5f2dede89be541ac8e4a4c3f2c959583` |
+| Local sealed return | `gr-retention-return-cc-source-bursts-20261105-v1` | `2806e5bb925f49628d5e43e70ed5ef69` |
+| AU903K nominal-clock R | `gr-retention-cc-source-bursts-au903k-20261105-v1` | `3fbf611c729c4129b106b032d9ff217f` |
+
+The AU queue records `cc-banked-source-bursts-au903k-pair-v1/queue.json`.
+It pins the already measured public AU reference receipt
+(`4450913816a1a85437cb2b57f85ada20966fd31b6856b8822d34268eedeec4a8`)
+and requests one candidate run only after nominal-clock admission.
+
+### Archived Spine Images on Feiyang
+
+The `tiny-active.final172` and `tiny-active.scaled175` U55C images
+under `/data/feiyang/spine-dynamic-graph-generalized-engine/openspec/changes/tiny-active-convergence-fast-path/artifacts/hw/`
+are genuine hardware artifacts. The adjacent `validation.md` and
+direct-hardware run manifests date these images to July 9, 2026. Their
+October archive timestamps do not make them newer builds than the
+October routed Spine inputs. Their sparse-convergence tests are not
+the matched resident experiment in this campaign, and neither image
+was substituted into a pair.
 
 ### Weighted SSSP Banked-Clear Fallback
 

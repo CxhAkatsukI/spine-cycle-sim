@@ -28,8 +28,20 @@ def environment(packet):
 def command(packet, kernel):
     lines = (packet / "compile_commands.sh").read_text().splitlines()
     commands = [shlex.split(line) for line in lines if line.startswith("v++ ")]
+    output_names = {kernel + ".hw.xo"}
+    manifest = packet / "manifest.env"
+    if manifest.is_file():
+        platforms = [line.removeprefix("PLATFORM=") for line in manifest.read_text().splitlines()
+                     if line.startswith("PLATFORM=")]
+        if len(platforms) > 1:
+            raise ValueError("invalid generated platform")
+        if platforms:
+            platform = platforms[0]
+            if not platform or not all(c.isascii() and (c.isalnum() or c in "_-") for c in platform):
+                raise ValueError("invalid generated platform")
+            output_names.add(f"{kernel}.hw.{platform}.xo")
     selected = [argv for argv in commands if
-                Path(argv[argv.index("-o") + 1]).name == kernel + ".hw.xo"]
+                Path(argv[argv.index("-o") + 1]).name in output_names]
     if len(selected) != 1:
         raise ValueError("exactly one generated component command required")
     argv = selected[0]

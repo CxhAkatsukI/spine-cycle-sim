@@ -140,6 +140,23 @@ class AdapterReplacementTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "fresh component"):
                 component.command(packet, "k")
 
+    def test_component_accepts_only_the_generated_platform_suffix(self):
+        with tempfile.TemporaryDirectory() as directory:
+            packet = Path(directory)
+            script = packet / "compile_commands.sh"
+            (packet / "manifest.env").write_text("PLATFORM=xilinx_u55c\n")
+            binary = packet / "build/kernelHBMWrapper.hw.xilinx_u55c.xo"
+            line = f"v++ --target hw --compile -o {binary}\n"
+            script.write_text(line.replace("xilinx_u55c", "other"))
+            with self.assertRaisesRegex(ValueError, "exactly one generated component"):
+                component.command(packet, "kernelHBMWrapper")
+            script.write_text(line)
+            with patch.object(component, "environment", return_value={}):
+                self.assertEqual(component.command(packet, "kernelHBMWrapper")[1], binary)
+            script.write_text(line + line.replace(".hw.xilinx_u55c.xo", ".hw.xo"))
+            with self.assertRaisesRegex(ValueError, "exactly one generated component"):
+                component.command(packet, "kernelHBMWrapper")
+
     def test_memory_queue_can_exceed_six_hours_without_changing_link_watchdog(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
