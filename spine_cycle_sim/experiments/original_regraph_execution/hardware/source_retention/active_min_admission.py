@@ -7,7 +7,7 @@ from pathlib import Path
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board import active_min_candidate as g_control
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.native_profile import update_only_profile
 from .. import artifact
-from ..board_execution import active_min, active_min_candidate as r_candidate, active_min_pair
+from ..board_execution import active_min, active_min_candidate as r_candidate, active_min_follow, active_min_pair
 from . import clocks
 from .follow import unchanged
 from .runtime import identity, save
@@ -16,6 +16,7 @@ from .runtime import identity, save
 R_BDF = "0000:82:00.1"
 AMAZON_GEOMETRY = (735324, 5158388, 48)
 AU_SLICE_GEOMETRY = (156289, 903774, 12)
+ODD_FIXTURE_SHA256 = "81e9430421d52acf665a507f808a7f467f745818f491aa7dc1fc605ae95e9add"
 
 
 def checked(pin):
@@ -31,6 +32,21 @@ def read_report(path, status, algorithm):
     if (report.get("status"), report.get("algorithm")) != (status, algorithm):
         raise ValueError(f"{algorithm} hardware stage not admitted: {path} ({report.get('status')})")
     return report, pin
+
+
+def pin_odd_queue(receipt, inputs):
+    fixture_path = inputs.parent / "manifest.json"
+    queue_path = receipt.parent.parent / "queue.json"
+    pins = [identity(path) for path in (fixture_path, queue_path, receipt)]
+    fixture = active_min_follow.fixture_pin(
+        argparse.Namespace(odd_fixture=(fixture_path, ODD_FIXTURE_SHA256)), [])
+    queue = json.loads(queue_path.read_text())
+    if ((queue.get("status"), queue.get("result"), queue.get("retention_gate_pass"))
+            != ("PAIRED_ACTIVE_MIN_R_GATE_PASS", artifact.identity(receipt), True)
+            or fixture not in queue["pins"]):
+        raise ValueError("odd-frontier R queue did not admit this hardware receipt")
+    unchanged(pins)
+    return pins
 
 
 def replay_r(path, algorithm, inputs, host, image, *, geometry=AMAZON_GEOMETRY):

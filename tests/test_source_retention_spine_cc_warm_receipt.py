@@ -3,7 +3,7 @@
 import pytest
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    spine_cc_warm_receipt as warm,
+    active_min_admission as admission, spine_cc_warm_receipt as warm,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import identity, save
 
@@ -107,3 +107,24 @@ def test_rejects_invalid_old_state(screen):
     receipt["stdout"] = identity(path)
     with pytest.raises(ValueError, match="bootstrap was not validated"):
         replay(screen)
+
+
+def test_odd_admission_uses_the_producers_identity_schema(tmp_path, monkeypatch):
+    inputs = tmp_path / "inputs"
+    inputs.mkdir()
+    fixture = tmp_path / "manifest.json"
+    save(fixture, dict(frontier="odd-vertices", status="ACTIVE_MIN_COMPONENT_INPUTS_OFFLINE_PASS", input_pins=[]))
+    monkeypatch.setattr(admission, "ODD_FIXTURE_SHA256", identity(fixture)["sha256"])
+    pair = tmp_path / "pair"
+    pair.mkdir()
+    receipt = pair / "results.json"
+    save(receipt, {})
+    queue = tmp_path / "queue.json"
+    producer = dict(status="PAIRED_ACTIVE_MIN_R_GATE_PASS", retention_gate_pass=True,
+                    pins=[admission.artifact.identity(fixture)], result=admission.artifact.identity(receipt))
+    save(queue, producer)
+    assert admission.pin_odd_queue(receipt, inputs) == [identity(path) for path in (fixture, queue, receipt)]
+    producer["result"]["path"] = str(tmp_path / "other.json")
+    save(queue, producer)
+    with pytest.raises(ValueError, match="did not admit this hardware receipt"):
+        admission.pin_odd_queue(receipt, inputs)

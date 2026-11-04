@@ -25,7 +25,6 @@ FROZEN_ALGORITHMS = {
     "respr": ("respr", "residual_pagerank"),
 }
 COMPARATOR_SHA256 = "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f"
-ODD_FIXTURE_SHA256 = "81e9430421d52acf665a507f808a7f467f745818f491aa7dc1fc605ae95e9add"
 BOUNDARY = "resident_update_to_final_readback_wall_including_host_relaunch"
 
 
@@ -172,17 +171,10 @@ def run(args):
             if retained_spine is None or controls:
                 raise ValueError("warm CC R controls require a retained AU arm and no other controls")
             odd_receipt, odd_inputs, au_receipt, au_inputs = warm_controls
-            fixture = identity(odd_inputs.parent / "manifest.json")
-            if fixture["sha256"] != ODD_FIXTURE_SHA256:
-                raise ValueError("not the predeclared odd-frontier Amazon fixture")
-            queue_pin = identity(odd_receipt.parent.parent / "queue.json")
-            queue = json.loads(Path(queue_pin["path"]).read_text())
-            if (queue["status"] != "PAIRED_ACTIVE_MIN_R_GATE_PASS" or not queue["retention_gate_pass"]
-                    or fixture not in queue["pins"] or queue["result"] != identity(odd_receipt)):
-                raise ValueError("odd-frontier R queue did not admit this hardware receipt")
-            pins += [fixture, queue_pin]
+            fixture, queue, odd_pin = active_min_admission.pin_odd_queue(odd_receipt, odd_inputs)
+            pins += [fixture, queue]
             controls = (
-                ("amazon_odd", identity(odd_receipt), odd_inputs, active_min_admission.AMAZON_GEOMETRY),
+                ("amazon_odd", odd_pin, odd_inputs, active_min_admission.AMAZON_GEOMETRY),
                 ("au_slice", identity(au_receipt), au_inputs, active_min_admission.AU_SLICE_GEOMETRY),
             )
         for label, receipt, inputs, geometry in controls:
