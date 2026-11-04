@@ -96,6 +96,31 @@ class ActiveMinQueueTests(unittest.TestCase):
                 self.assertTrue(active_min_follow.prior_finished(row))
             self.assertEqual(row["receipt"], artifact.identity(receipt))
 
+    def test_passing_dependency_pins_result_and_candidate_image(self):
+        with TemporaryDirectory() as tmp:
+            journal, result, image = (Path(tmp) / name for name in ("queue.json", "result.json", "candidate.xclbin"))
+            image.write_bytes(b"candidate")
+            pin = artifact.identity(image)
+            board = "0000:82:00.1"
+            success = "PAIRED_ACTIVE_MIN_R_GATE_PASS"
+            payload = dict(status=success, retention_gate_pass=True, algorithm="cc",
+                           bdf=board, requested_runs_per_arm=1,
+                           arms={"candidate": {"clock_evidence": {"expected": {"binary": pin}}}})
+            result.write_text(json.dumps(payload))
+            result_pin = artifact.identity(result)
+            journal.write_text(json.dumps(dict(status=success, retention_gate_pass=True, result=result_pin)))
+            row = {"receipt": artifact.identity(journal)}
+            self.assertEqual(active_min_follow.passing_prior(row, "cc", board, pin), result_pin)
+            with self.assertRaisesRegex(ValueError, "different candidate image"):
+                active_min_follow.passing_prior(row, "cc", board, dict(pin, sha256="1" * 64))
+            result.write_text(json.dumps(dict(payload, retention_gate_pass=False)))
+            with self.assertRaises(ValueError):
+                active_min_follow.passing_prior(row, "cc", board, pin)
+            journal.write_text(json.dumps(dict(status="PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED",
+                                               retention_gate_pass=False)))
+            with self.assertRaisesRegex(ValueError, "no follow-up arm requested"):
+                active_min_follow.passing_prior({"receipt": artifact.identity(journal)}, "cc", board, pin)
+
     def test_dense_fixture_rejects_substituted_input(self):
         with TemporaryDirectory() as tmp:
             receipt, data = (Path(tmp) / name for name in ("fixture.json", "input"))

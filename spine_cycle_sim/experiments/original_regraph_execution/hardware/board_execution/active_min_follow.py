@@ -40,6 +40,25 @@ def prior_finished(row):
     return True
 
 
+def passing_prior(row, algorithm, bdf, image):
+    journal = json.loads(Path(row["receipt"]["path"]).read_text())
+    if (journal["status"] != "PAIRED_ACTIVE_MIN_R_GATE_PASS"
+            or journal.get("retention_gate_pass") is not True):
+        raise ValueError("earlier pair did not pass the R gate; no follow-up arm requested")
+    result = journal["result"]
+    snapshot.unchanged([row["receipt"], result])
+    measured = json.loads(Path(result["path"]).read_text())
+    if (measured["status"] != journal["status"] or measured["retention_gate_pass"] is not True
+            or (measured["algorithm"], measured["bdf"], measured["requested_runs_per_arm"])
+            != (algorithm, bdf, 1)):
+        raise ValueError("earlier pair result does not match the passing queue")
+    clock = measured["arms"]["candidate"]["clock_evidence"]["expected"]
+    if any(clock["binary"][key] != image[key] for key in ("path", "sha256")):
+        raise ValueError("earlier R gate passed on a different candidate image")
+    snapshot.unchanged([result])
+    return result
+
+
 def fixture_pin(args, input_pins):
     receipt, digest = args.odd_fixture
     pin = artifact.identity(Path(receipt))
@@ -159,6 +178,9 @@ def run(args):
         retained = getattr(args, "retained_reference", None)
         if retained:
             pins.append(retained_pair_pin(retained))
+        require_pass = getattr(args, "require_earlier_pass", False)
+        if require_pass and (not prior or not returned["candidate"] or lower):
+            raise ValueError("passing prerequisites require earlier pairs and a nominal returned candidate")
         pins += runner_pins()
         report["pins"] = pins
         report["earlier_pairs"] = []
@@ -208,6 +230,10 @@ def run(args):
             time.sleep(min(30, remaining))
         snapshot.unchanged(pins + [row["receipt"] for row in report["earlier_pairs"]]
                            + [row["transfer"] for row in report["routes"].values() if row.get("transfer")])
+        if require_pass:
+            image = artifact.identity(args.candidate_route / "route/candidate.hw.xclbin")
+            for row in report["earlier_pairs"]:
+                row["passing_result"] = passing_prior(row, args.algorithm, args.bdf, image)
         for arm, parameters in returned.items():
             if parameters:
                 setattr(args, "returned_" + arm, seal_parameters(parameters, report["routes"][arm]["transfer"]))
@@ -234,6 +260,8 @@ def wait_arguments(parser):
     parser.add_argument("--wait-seconds", type=int, default=108000)
     parser.add_argument("--board-wait-seconds", type=int, default=0)
     parser.add_argument("--after-pair", action="append", nargs=3, default=[], metavar=("UNIT", "INVOCATION", "JOURNAL"))
+    parser.add_argument("--require-earlier-pass", action="store_true",
+                        help="request an arm only after all earlier pairs pass on the same returned image")
     parser.add_argument("--odd-fixture", nargs=2, metavar=("MANIFEST", "SHA256"))
     parser.add_argument("--pending-return-candidate", nargs=3, metavar=("CAPSULE", "XPFM", "PREDECESSOR"))
     parser.add_argument("--pending-return-reference", nargs=1, metavar="CAPSULE")
