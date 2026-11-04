@@ -525,12 +525,24 @@ and R receipts. These are queued tests, not new hardware timings.
 
 ## Common Lower HBM Clock Fallback
 
+The ResPR tail physical retry's final locked post-physopt report on
+2026-11-04 has setup WNS/TNS of `-0.004/-0.006 ns` (two endpoints, both
+on `hbm_aclk`), hold WHS/THS of `+0.006/0.000 ns` (zero violations),
+and kernel DATA setup WNS of `+0.145 ns`. The report is
+`builds/respr-tail-physical-v1/link/link/vivado/vpl/prj/prj.runs/impl_1/hw_bb_locked_timing_summary_postroute_physopted.rpt`,
+SHA-256 `4cfbffd109af1eb173206c596ac78ab25db52fb7cd4ed2ecc9d361d8838cc630`.
+It does not clear the nominal 450 MHz HBM timing check. Packaging was
+still in progress at the check; there is no new board result from this
+attempt. The separate Apply retime link is still running.
+
 This is a possible separate screen, not an admission change or a measured
 result. On trifoliate the loaded XRT driver is 2.18.179
 (`3ade2e671e5ab463400813fc2846c57edf82bb10`). In its installed source,
 `driver/xocl/userpf/xocl_drv.c` handles the four-slot reclock request and
-rejects live clients; `driver/xocl/subdev/icap.c` validates the request
-against the loaded image and runs memory calibration. The third slot is the
+rejects live clients; `driver/xocl/subdev/icap.c` validates each nonzero
+request against the loaded image's minimum and maximum and runs memory
+calibration. The user-side interface is `DRM_IOCTL_XOCL_RECLOCK`, not a
+writable clock sysfs file. The third slot is the
 system clock. The same file's `clock_freqs_show` reads clock counters for a
 loaded image, whereas `clock_freqs_max` gives image limits. The two U55Cs
 read back 150/500/450/0 MHz during the read-only check. No frequency was
