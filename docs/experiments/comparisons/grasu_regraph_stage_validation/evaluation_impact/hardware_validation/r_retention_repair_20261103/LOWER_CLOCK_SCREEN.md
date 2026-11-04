@@ -111,6 +111,32 @@ invocation `c5ab58c82ec34538a232348f7e6ecce3`, peak 306.1 MiB).
 The [raw replay evidence](respr-prebound-dispatch.tar.gz) preserves the
 new timed log, the compiler manifest and the before/after clocks.
 
+## ResPR Packed Validity Clear
+
+The [opt-in gather change](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/1f63511)
+clears packed validity in BRAM instead of clearing the full accumulator
+array in URAM. Invalid entries read as zero, including when published.
+Recent writes forward both the accumulated row and its shared validity
+word so consecutive updates to different rows cannot erase each other's
+bits. The publication format and row count remain unchanged.
+
+Ten native checks passed, including bitmap-word collisions, repeated
+destinations and an empty frame after a populated one. Vitis C synthesis
+retained clear/scatter/publish II of 1/3/1 and estimated 4.658 ns; it
+reported 64 URAM, 144 BRAM18, 38 DSP, 44,214 LUT and 20,957 FF for
+the full gather kernel. The baseline used 128 BRAM18, 37,263 LUT and
+17,308 FF. C synthesis does not certify placed-and-routed timing or RTL
+behavior under stalls.
+
+At maximum shard size the initial clear loop has 512 iterations instead
+of 32,768, a local difference of 215 us at 150 MHz. This is slightly
+below the approximately 220 us that the measured skewed-sources pair
+would need to save. It is not a predicted end-to-end gain: clear can
+overlap other components, and the bitmap also clears on warm frames.
+Do not infer that the change passes the hardware gate. See the
+[synthesis evidence](lazy-gather-csynth.tar.gz) and the
+[single-component route](REMOTE_LINKS.md#respr-packed-validity-gather).
+
 ## Receipts
 
 Paths below are relative to

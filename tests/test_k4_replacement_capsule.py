@@ -99,6 +99,58 @@ def test_banked_clear_changes_only_the_fixed_frame_gather(tmp_path):
         derive(tmp_path / "rejected")
 
 
+def test_lazy_respr_preserves_tail_abi_and_pinned_cache(tmp_path):
+    manifest, platform = source(tmp_path)
+    original = json.loads(manifest.read_text())
+    old_xo = tmp_path / "xos/lksg_stream.hw.xo"
+    new_xo = tmp_path / "lazy/lksg_stream.hw.xo"
+    new_xo.parent.mkdir()
+    tail = "-DGRASU_REGRAPH_TAIL_PUBLICATION=1"
+    lazy = "-DGRASU_REGRAPH_LAZY_GATHER_CLEAR=1"
+
+    def write_xo(path, flags):
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("lksg_stream/kernel.xml",
+                             '<root><kernel name="lksg_stream" vlnv="v" hwControlProtocol="ap_ctrl_chain"'
+                             f' compileOptions="{flags}"><ports><port name="control"/></ports>'
+                             '<args><arg name="publication_rows" id="5" offset="0x30"/></args>'
+                             '</kernel></root>')
+
+    write_xo(old_xo, tail)
+    write_xo(new_xo, f"{tail} {lazy}")
+    extra = old_xo.with_name("prefetch.hw.xo")
+    extra.write_text("prefetch")
+    cache = manifest.parent / "ip_cache"
+    cache.mkdir()
+    checkpoint = cache / "reuse.dcp"
+    checkpoint.write_text("checkpoint")
+    seed = manifest.with_name("ip-cache-seed.json")
+    seed.write_text(json.dumps({"files": [
+        {"relative": checkpoint.name, "sha256": identity(checkpoint)["sha256"]}]}))
+    original.pop("mode")
+    original["ip_cache_seed"] = identity(seed)
+    original["command"].append(str(extra))
+    original["pins"] = [identity(old_xo) if pin["path"] == str(old_xo) else pin
+                        for pin in original["pins"]] + [identity(extra), identity(seed)]
+    manifest.write_text(json.dumps(original))
+
+    def derive(output):
+        return banked_clear_link.derive(manifest, new_xo, output, profile=banked_clear_link.RESPR,
+                                        parent_sha256=identity(manifest)["sha256"],
+                                        gather_sha256=identity(new_xo)["sha256"])
+
+    output = tmp_path / "derived"
+    result = derive(output)
+    assert result["gather_replacement"]["after"] == identity(new_xo)
+    assert str(extra) in result["command"]
+    assert not (output / "ip_cache" / checkpoint.name).samefile(checkpoint)
+    packet = relocation.prepare(output, tmp_path / "capsule")
+    assert packet["cache_files"] == {checkpoint.name: identity(checkpoint)["sha256"]}
+    write_xo(new_xo, f"{tail} {lazy} -DGRASU_EXTRA=1")
+    with pytest.raises(ValueError, match="only the ResPR packed validity compile flag"):
+        derive(tmp_path / "rejected")
+
+
 def test_physical_strategy_is_pinned_to_a_separate_replacement_capsule(tmp_path, monkeypatch):
     manifest, platform = source(tmp_path)
     original = relocation.prepare(manifest.parent, tmp_path / "original")

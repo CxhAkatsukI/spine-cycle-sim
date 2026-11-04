@@ -605,3 +605,32 @@ tool-selected frequencies, not measured board clocks. The original
 See [lower-clock board evidence](LOWER_CLOCK_SCREEN.md) for the failed
 runtime-reclock attempt, the offline package check, and the first public
 445-MHz board arm. It is not a completed retention comparison.
+
+## ResPR Packed Validity Gather
+
+This physical build changes only the gather XO relative to the ResPR
+tail-publication physical attempt. The connectivity configuration, all
+11 other XOs, GCC shim, cache inventory and aggressive-route profile
+match that attempt. The derive command is
+`source_retention.banked_clear_link --profile respr-lazy`; it checks the
+parent and gather hashes, complete port and control argument layout,
+unchanged compile definitions apart from the packed-clear flag, and
+byte-identical cache files. The XO has SHA-256
+`33987a738eccbe4c83711888bdf587060d31437d83c8d82de55266708106cdb6`.
+
+Under the local retention check root, the plan is
+`respr-tail-lazy-clear-link-v1/manifest.json` and the local capsule is
+`seele-inputs-v1/respr-tail-lazy-clear`, SHA-256
+`3e4ac285a4d7d96f87533244ff20f1153cfb0c7f4900fd3f954ca62bd59b753c`.
+Seele passed toolchain preflight with the same 36/40-GiB high/hard
+limits, zero swap and 128-GiB peer-aware reserve.
+
+| Job | Receipt / output | Unit / invocation |
+| --- | --- | --- |
+| Seele link | `builds/respr-tail-lazy-clear-v1` | `gr-retention-seele-respr-lazy-clear-20261104-v1.service` / `eae47b5d115c4ca18ad81da684201bfa` |
+| Local return | `seele-return-v1-respr-lazy-clear/transfer.json` | `gr-retention-return-respr-lazy-clear-20261104-v1.service` / `82eec33daefc4825b51943af38f01388` |
+
+The route and collector are not performance evidence. An eventual
+measurement must use the same physical card and observed clock vector
+as the public arm, and must replay the exact skewed-sources fixture and
+output oracle. No result from this variant was used for Figures 7–11.
