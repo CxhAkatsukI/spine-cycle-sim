@@ -1,6 +1,6 @@
 # Replacement Links on Seele
 
-November 4, 2026: the table records four independently launched hardware
+November 4, 2026: the table records independently submitted hardware
 links. A link receipt is not a U55C timing or correctness result. The two
 first launch attempts ended when their login session closed; their logs are
 retained but the table lists only the re-launched or persistent invocations.
@@ -16,6 +16,7 @@ inputs are under `inputs/<case>` and route attempts are under `builds/`.
 | CC | `cc-v2` | `cc-20261104-v2` | `f48048524d464a52bbb29a7d5e915dd5` |
 | ResPR, directory spans | `respr` | `respr-20261104-v1` | `10993eafdc354a6fb94254c72aecad24` |
 | ResPR, tail publication | `respr-tail` | `respr-tail-20261104-v1` | `33c5cc4e09c3423c900c9a80c9dfae49` |
+| ResPR, tail publication and source-read bursts | `respr-tail-source-bursts-v2` | `respr-tail-bursts-20261104-v2` | `393500a5963249a1a9d7bcebdcfeb934` |
 
 The route units are `gr-retention-seele-<suffix>.service`. Monitor
 `builds/<attempt>/execution.json` and `route.progress.json` on seele. Each
@@ -69,6 +70,46 @@ returned directory and pin the local collector with `--unit` and
 require the G receipt to refer to that exact image.
 
 No Figure 7--11 replacement or reuse decision is based on these link jobs.
+
+## ResPR Source-Property Read Repair
+
+The original `kernelHBMWrapper` selected the source pointer and response
+FIFO inside its contiguous beat loop. Both old reader RTLs issued one beat
+per logical request. HLS commit
+[`9ceb5c5`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/9ceb5c5)
+selects each pointer/FIFO pair outside the loop. Its Vitis HLS 2024.1
+report and generated reader RTL show 256-beat logical requests, split by
+the unchanged 16-beat AXI burst limit. Both 512-bit ports retain 16
+outstanding read requests. The C++ wrapper functional test passed. This
+is evidence of request coalescing, not a measured speedup or a passed R
+screen. The synthesis report is under
+`/data/chuxiao/builds/regraph-source-read-bursts-20261104/build/kernelHBMWrapper/`
+at `kernelHBMWrapper/kernelHBMWrapper/kernelHBMWrapper/solution/syn/report/csynth.rpt`.
+
+The packet builder's `--source-wrapper` checks the replacement's complete
+kernel interface and compile macros against the production XO. Compared
+with the tail-publication capsule, 11 of the 12 XO hashes and the link
+connectivity match; only `kernelHBMWrapper.hw.xo` changed (old SHA-256
+`ebfcac0509a5179039c35c2482553b904ef591dd1ee81469c182e58865bfb315`, new
+`9ad78ca5b5e2259401423308aae2b6c56a33638083ac25a86b0176b648f3ffd9`).
+The HBM 23/24 mappings and the existing ResPR host stay fixed. The capsule
+SHA-256 is `d40f4e7e9ebe69b2398a412d4632ee6fa44c51f261b5de1726bb3fcb103c3847`.
+The first remote launch failed containment before starting a link; v2
+passed the cgroup check and entered memory admission with the existing
+128 GiB reserve. Failed launch logs are retained.
+
+| Queue | Receipt under local check root | Local service suffix | Invocation |
+| --- | --- | --- | --- |
+| Route return | `seele-return-v2-respr-tail-source-bursts/transfer.json` | `return-respr-tail-bursts-20261104-v3` | `3c1e947cc3ee4643b6e560a46cc4fa78` |
+| R, one candidate run per frozen A4 reference case | `tail-bursts-follow-v2/results.json` | `r-tail-bursts-20261104-v3` | `c5faa4f8979d4aee97c86ad8b55f7f95` |
+| Independent G on the exact R-screened image | `g-tail-bursts-v2/results.json` | `g-tail-bursts-20261104-v3` | `d35ffd4d98884e90b748092516c737c7` |
+| ResPR resident R19/Flickr, first jointly admitted tail variant | `resident-joint-board-v4/results.json` | `resident-joint-v4-20261104` | `5799fd756d414e5eb38bc60ff3c2209c` |
+
+The last queue replaced v3 before any board launch, dropping the rejected
+cached candidate and keeping both the original and burst tail variants.
+It runs one matched comparison per fixture, after both G and R gates
+pass on the same image. It is a two-fixture screen, not the eight-graph
+ResPR result.
 
 ## Public A4 Weighted SSSP Control
 

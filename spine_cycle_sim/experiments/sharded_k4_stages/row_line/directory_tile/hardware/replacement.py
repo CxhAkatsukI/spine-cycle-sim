@@ -1,4 +1,4 @@
-"""Replace the adapter and optionally the gather in the frozen production route."""
+"""Replace ABI-checked components in the frozen production PageRank route."""
 
 import argparse
 import json
@@ -6,7 +6,9 @@ from pathlib import Path
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
-from spine_cycle_sim.experiments.sharded_k4_stages.routing import adapter_interface, relocate_config
+from spine_cycle_sim.experiments.sharded_k4_stages.routing import (
+    adapter_interface, kernel_interface, relocate_config,
+)
 from .component import environment, execute, unchanged
 from .tail_publication import gather_replacement
 
@@ -36,7 +38,8 @@ def gated_sources(packet):
     return candidate, records + list(sources[1].values())
 
 
-def prepare(production, packet, output, *, gather_component=None, tail_hosts=None, seed_production_cache=False):
+def prepare(production, packet, output, *, gather_component=None, tail_hosts=None,
+            source_wrapper=None, seed_production_cache=False):
     production, packet, output = map(Path.resolve, (production, packet, output))
     old_manifest = production / "manifest.json"
     old = json.loads(old_manifest.read_text())
@@ -60,11 +63,23 @@ def prepare(production, packet, output, *, gather_component=None, tail_hosts=Non
         raise ValueError("production connectivity changed")
     if (gather_component is None) != (tail_hosts is None):
         raise ValueError("tail publication requires a matched gather and host pair")
+    changed = ["adapter"]
     if gather_component is not None:
         original = next(p for p in xos if p.name == "lksg_stream.hw.xo")
         gather, gather_pins = gather_replacement(original, gather_component, tail_hosts)
         argv[argv.index(str(original))] = str(gather)
         pins += gather_pins
+        changed.append("gather")
+    if source_wrapper is not None:
+        wrapper = "kernelHBMWrapper"
+        original, = [p for p in xos if p.name == wrapper + ".hw.xo"]
+        source_wrapper = source_wrapper.resolve()
+        if (source_wrapper.name != original.name
+                or kernel_interface(source_wrapper, wrapper) != kernel_interface(original, wrapper)):
+            raise ValueError("replacement changes the source wrapper ABI or compile-time semantics")
+        argv[argv.index(str(original))] = str(source_wrapper)
+        pins.append(identity(source_wrapper))
+        changed.append("source wrapper")
     output.mkdir(parents=True, exist_ok=False)
     relocated = output / "link.cfg"
     relocated.write_text(relocate_config(config.read_text(), output))
@@ -75,11 +90,10 @@ def prepare(production, packet, output, *, gather_component=None, tail_hosts=Non
     pins += [identity(p) for p in [old_manifest, config, relocated, candidate, *xos]]
     manifest = {"status": "PREPARED_NOT_ROUTED", "command": argv, "pins": pins,
                 "packet": str(packet), "production": str(production), "clock_mhz": 150,
-                "change": "adapter only; same twelve-XO production design and connectivity",
+                "change": " and ".join(changed) + " only; same twelve-XO production design and connectivity",
                 "board_tested": False, "timeout_seconds": 21600}
     if tail_hosts is not None:
-        manifest.update(change="adapter and gather only; same twelve-XO production design and connectivity",
-                        tail_hosts=identity(tail_hosts))
+        manifest["tail_hosts"] = identity(tail_hosts)
     if seed_production_cache:
         from .cached_retry import seed_cache
 
@@ -119,6 +133,7 @@ if __name__ == "__main__":
     parser.add_argument("--packet", type=Path)
     parser.add_argument("--gather-component", type=Path)
     parser.add_argument("--tail-hosts", type=Path)
+    parser.add_argument("--source-wrapper", type=Path)
     parser.add_argument("--seed-production-cache", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--execute", action="store_true")
@@ -131,4 +146,5 @@ if __name__ == "__main__":
             parser.error("preparation requires --production and --packet")
         print(prepare(args.production, args.packet, args.output,
                       gather_component=args.gather_component, tail_hosts=args.tail_hosts,
+                      source_wrapper=args.source_wrapper,
                       seed_production_cache=args.seed_production_cache))

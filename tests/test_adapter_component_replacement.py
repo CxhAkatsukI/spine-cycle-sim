@@ -23,13 +23,16 @@ class AdapterReplacementTest(unittest.TestCase):
         production.mkdir()
         (packet / "build").mkdir(parents=True)
         adapter = "pma_to_regraph_adapter.hw.xo"
-        paths = [production / adapter] + [production / f"other_{i}.hw.xo" for i in range(11)]
+        wrapper = "kernelHBMWrapper.hw.xo"
+        paths = [production / adapter, production / wrapper] + [
+            production / f"other_{i}.hw.xo" for i in range(10)]
         candidate = packet / "build" / adapter
         for path in (paths[0], candidate):
             with zipfile.ZipFile(path, "w") as archive:
                 archive.writestr("kernel/kernel.xml", '<root><kernel name="pma_to_regraph_adapter" '
                                  'compileOptions="-DGRASU_REGRAPH_PREFETCH_COMPACT=1"/></root>')
-        for path in paths[1:]:
+        self.wrapper(paths[1])
+        for path in paths[2:]:
             path.write_bytes(b"unchanged")
         config = production / "link.cfg"
         config.write_text("".join(f"{key}={production / key}\n" for key in (
@@ -46,6 +49,35 @@ class AdapterReplacementTest(unittest.TestCase):
             save(gate / "execution.json", {"status": status, "xo": identity(candidate)})
             save(gate / "manifest.json", {"pins": [identity(source)]})
         return production, packet, root / "route"
+
+    @staticmethod
+    def wrapper(path, compile_value=4, rtl=b"original"):
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("kernel/kernel.xml", '<root><kernel name="kernelHBMWrapper" '
+                             f'compileOptions="-DLITTLE_KERNEL_NUM={compile_value}"/></root>')
+            archive.writestr("kernel/wrapper.v", rtl)
+
+    def test_source_wrapper_replacement_is_pinned_without_touching_other_xos(self):
+        with tempfile.TemporaryDirectory() as directory:
+            production, packet, output = self.fixture(Path(directory))
+            wrapper = packet / "build/kernelHBMWrapper.hw.xo"
+            self.wrapper(wrapper, rtl=b"new")
+            result = prepare(production, packet, output, source_wrapper=wrapper)
+            before = json.loads((production / "manifest.json").read_text())["command"]
+            old_xos = [a for a in before if a.endswith(".xo")]
+            new_xos = [a for a in result["command"] if a.endswith(".xo")]
+            self.assertEqual(new_xos[1], str(wrapper))
+            self.assertEqual(new_xos[2:], old_xos[2:])
+            self.assertIn(identity(wrapper), result["pins"])
+
+    def test_source_wrapper_compile_option_change_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            production, packet, output = self.fixture(Path(directory))
+            wrapper = packet / "build/kernelHBMWrapper.hw.xo"
+            self.wrapper(wrapper, compile_value=2)
+            with self.assertRaisesRegex(ValueError, "source wrapper ABI or compile-time"):
+                prepare(production, packet, output, source_wrapper=wrapper)
+            self.assertFalse(output.exists())
 
     def test_replaces_only_one_xo_and_retains_repeated_connectivity(self):
         with tempfile.TemporaryDirectory() as directory:
