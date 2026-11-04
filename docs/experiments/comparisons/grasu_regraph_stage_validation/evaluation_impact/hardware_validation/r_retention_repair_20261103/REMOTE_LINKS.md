@@ -663,6 +663,8 @@ Prior receipts remain unchanged.
 | CC nominal R, high-activity Amazon | `cc-banked-amazon-odd-pair-v1/queue.json` | `gr-retention-cc-banked-amazon-odd-20261104-v1` |
 | CC nominal G, AU 131K | `g-cc-board-banked-v2/results.json` | `gr-retention-g-cc-banked-20261104-v2` |
 | CC old-image matrix, stopped before all eight requests | `cc-banked-matrix-v2/matrix.json` | `gr-retention-cc-banked-matrix-20261104-v2` |
+| Warm CC AU pair after G and all three R gates | `cc-warm-au-resident-v1/queue.json` | `gr-retention-cc-warm-au-resident-20261105-v1` |
+| Warm CC matrix, reusing AU and requesting at most one new pair per remaining dataset | `cc-warm-balanced-matrix-v1/matrix.json` | `gr-retention-cc-warm-balanced-matrix-20261105-v1` |
 | ResPR Apply-off nominal R, skewed sources and Amazon | `retime-apply-off-r-v3/results.json` | `gr-retention-r-apply-off-20261104-v3` |
 | ResPR Apply-off nominal G, AU 131K | `retime-apply-off-g-v4/results.json` | `gr-retention-g-apply-off-20261104-v4` |
 | ResPR packed-validity nominal R, skewed sources and Amazon | `respr-lazy-clear-nominal-r-v1/results.json` | `gr-retention-r-lazy-clear-nominal-20261104-v1` |
@@ -673,7 +675,13 @@ Prior receipts remain unchanged.
 The stopped CC queue pinned the October 16 Spine image. It must not be
 restarted as the new-image matrix. The standalone
 [new Spine AU smoke](SPINE_ARTIFACTS.md#sparse-warm-insertion-repair)
-and the independent CC G/R producers remain separate. The ResPR resident
+and the independent CC G/R producers remain separate. The warm matrix uses
+`cc_warm_matrix`, pins the live AU pair queue, and cannot request the other
+seven pairs before replaying the AU pair and its baseline admission. The
+`--layout` arguments bind each new case to its offline receipt and split input
+manifest; the new balanced host is pinned separately from the retained AU
+host. R19 passed offline with the 12 GiB limit and a 5.68 GiB peak without
+opening the card. An offline layout pass is not a board measurement. The ResPR resident
 screen pins Apply-off and the packed-validity variant as separate
 candidates (`resident_board --alternate`). Either must supply its own
 nominal G and both nominal R controls on one image; the matrix takes its

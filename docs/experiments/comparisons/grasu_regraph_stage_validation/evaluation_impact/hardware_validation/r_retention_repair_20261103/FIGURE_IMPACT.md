@@ -2,8 +2,8 @@
 
 ## Figure 7 Receipt Export
 
-From the simulator repository, use the current SSSP and ResPR journals
-and the stopped CC journal to produce a new evidence snapshot.
+From the simulator repository, use the current SSSP, CC, and ResPR journals
+to produce a new evidence snapshot.
 Run this offline; it does not launch FPGA jobs or modify existing packages.
 
 ```bash
@@ -12,7 +12,7 @@ snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
   --sssp-matrix "$run/sssp-physopt-matrix-v1/matrix.json" \
   --sssp-au "$run/sssp-physopt-resident-au-v1/queue.json" \
-  --cc-matrix "$run/cc-banked-matrix-v2/matrix.json" \
+  --cc-matrix "$run/cc-warm-balanced-matrix-v1/matrix.json" \
   --respr-matrix "$run/respr-matrix-v10/results.json" \
   --respr-screen "$run/resident-joint-board-v12/results.json" \
   --output "$snapshot.json" \
@@ -23,15 +23,16 @@ See [remote builds and board queues](REMOTE_LINKS.md#current-one-shot-board-queu
 for the pending candidates. The stopped CC matrix records eight
 `NOT_REQUESTED` rows; its last-written waiting status does not mean it
 will launch. It pinned the old Spine CC image, and the new AU smoke is
-not a Spine versus G+R pair. Replace the CC input only with a matrix
-that binds the admitted Spine and G+R images. Do not substitute the
+not a Spine versus G+R pair. The new CC matrix first reuses the exact
+admitted AU pair, then measures each remaining dataset once using the same
+routed Spine image and pinned G and R admission. Do not substitute the
 superseded SSSP burst queues. The old `sssp-singlepass-matrix-resume-v5/matrix.json`
 journal is for diagnostics. Its `RUNNING_SINGLE_PASS` and LJ's `REQUESTED`
 are last-written statuses before shutdown. LJ made no board attempt;
 LJ08 was not requested. The six measured rows document the old image only:
 it missed the AskUbuntu R retention gate.
 
-The current SSSP uses a separate AU screen and the stopped CC matrix includes R19.
+The current SSSP uses a separate AU screen; the new CC matrix includes R19.
 `--sssp-au` and `--cc-r19` are used only when the corresponding matrix
 does not already contain that case. The export rejects duplicate sources.
 The export has eight rows each for SSSP, CC, and ResPR. FullPR is outside
