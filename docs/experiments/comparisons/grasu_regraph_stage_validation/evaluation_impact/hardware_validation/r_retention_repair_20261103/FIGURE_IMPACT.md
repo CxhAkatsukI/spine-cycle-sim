@@ -13,8 +13,8 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
   --sssp-matrix "$run/sssp-burst-matrix-v1/matrix.json" \
   --sssp-au "$run/sssp-burst-resident-au-v1/queue.json" \
   --cc-matrix "$run/cc-singlepass-matrix-physical-v3/matrix.json" \
-  --respr-matrix "$run/respr-matrix-v5/results.json" \
-  --respr-screen "$run/resident-joint-board-v7/results.json" \
+  --respr-matrix "$run/respr-matrix-v6/results.json" \
+  --respr-screen "$run/resident-joint-board-v8/results.json" \
   --output "$snapshot.json" \
   --csv "$snapshot.csv"
 ```
