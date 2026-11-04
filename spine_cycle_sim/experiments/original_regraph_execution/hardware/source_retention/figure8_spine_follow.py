@@ -100,16 +100,20 @@ def run(args):
         raise ValueError("predecessor identity or wait bound is invalid")
     key = args.dataset, args.updates
     prior = json.loads(checked(predecessor).read_text())
+    same_card = prior["status"] == "MEASURED_QUALIFIED_AU512_SETUP_ONLY"
     case, old, hosts, reference, libraries = replay_prior(prior, key)
     new_host = identity(args.spine_host)
-    if ((prior["status"] == "MEASURED_QUALIFIED_AU512_SETUP_ONLY" or args.spine_host_sha256)
-            and new_host["sha256"] != args.spine_host_sha256):
+    if (same_card or args.spine_host_sha256) and new_host["sha256"] != args.spine_host_sha256:
         raise ValueError("changed Spine host must match the pinned SHA-256")
     if new_host["sha256"] == hosts["spine"]["sha256"]:
         raise ValueError("Spine executable did not change; refusing to rerun")
-    memory = board_memory.policy()
-    group = check_memory(memory["tree_memory_gib"], require_live_reserve=False)
-    board_memory.validate(containment.verify(group)["limits"], memory)
+    if same_card:
+        memory, group = au.MEMORY, au.memory_group()
+        containment.verify(group, memory_gib=memory["tree_memory_gib"])
+    else:
+        memory = board_memory.policy()
+        group = check_memory(memory["tree_memory_gib"], require_live_reserve=False)
+        board_memory.validate(containment.verify(group)["limits"], memory)
     reservation = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
     args.output.mkdir(parents=True, exist_ok=False)
     row = dict(dataset=key[0], updates=key[1], input=old["input"], attempts=[],

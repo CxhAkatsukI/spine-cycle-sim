@@ -20,6 +20,12 @@ provenance. Resident convergence queues require the new exact-image
 stage gates. Each new arm is measured once, under a board lease and
 memory admission with no swap.
 
+The [same-card AU/512 setup replay](FIGURE_IMPACT.md#two-bank-spine-host-replay)
+measured **701.928 ms** for the revised Spine host versus **848.316 ms**
+for the independently qualified G path (**1.21x** Spine speedup). It
+reuses the measured G arm and is a single update-only workload, not an
+R gate or a replacement for Figure 8.
+
 The [Spine CC warm-insert repair](SPINE_ARTIFACTS.md#sparse-warm-insertion-repair)
 passed the one-shot full AU correctness check. Its resident window fell
 from **7,886.354 ms** to **17.516 ms**. This compares two Spine images on

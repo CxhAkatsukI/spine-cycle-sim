@@ -584,6 +584,41 @@ failed AU R gate does not invalidate this G-only observation. It covers
 one batch and one graph, not the historical ten-batch series or a
 replacement for the full figure.
 
+### Two-Bank Spine Host Replay
+
+The [revised Spine host](https://github.com/jayfeather9/spine-dynamic-graph/commit/1146514)
+serializes disjoint banks with two workers and publishes metadata in the
+original order after both finish. An offline AU/512 check compared the
+complete serial and parallel bank images and metadata word for word and
+validated 390,847 input edges. It measured 251.177 ms versus 162.604 ms
+for serialization alone; this is an offline correctness and timing
+check, not a board measurement.
+
+On card `0000:82:00.1` at the same reported 150/500/450/0 MHz, the
+follow-up measured only the new Spine host once, with no warmup. It
+kept the bitstream, graph, ordered 512 updates and setup-inclusive
+boundary unchanged. The previous G arm was rechecked from its independent
+gate, clock, command, timing, and PMA oracle receipts. The new Spine run
+passed readback of all 391,359 resulting edges.
+
+| AU/512 phase | Prior Spine (ms) | Two-bank Spine (ms) | Native G, reused (ms) |
+| --- | ---: | ---: | ---: |
+| Graph layout | 367.016920 | 280.804643 | 628.191193 |
+| Bootstrap including upload / G upload | 526.167051 | 420.416092 | 216.831695 |
+| Batch packing and update / G update | 0.646698 | 0.706860 | 3.292853 |
+| **Total setup-inclusive** | **893.830669** | **701.927595** | **848.315741** |
+
+The new measured speedup is **1.2086x**. The total Spine wall time fell
+by **21.47%**. Migration also took less time in this single observation
+(134.626 ms versus 262.366 ms); the bank serialization change does not
+by itself explain that migration difference. This is one update-only
+point and provides no evidence for R or for ten-batch throughput.
+
+The [raw archive](fig8-au512-two-bank-same-card-raw.tar.gz) contains both
+same-card receipts and logs, clocks, the unchanged G PMA oracle and
+Spine build/test evidence. SHA-256:
+`5103f04d8584bfd2a2fd21011572a601ae04096ebf3bbd6946e6da737dfea017`.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.
