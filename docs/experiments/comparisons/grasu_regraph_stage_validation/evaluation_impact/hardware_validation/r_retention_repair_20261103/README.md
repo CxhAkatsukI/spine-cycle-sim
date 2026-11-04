@@ -1,5 +1,25 @@
 # R Hardware Retention Repair
 
+## Latest Checkpoint
+
+The 15% FPGA R gate is **not met across the declared controls**. Two Amazon
+weighted-SSSP controls pass, but the AskUbuntu SSSP control is 19.55% slower.
+At matched lower HBM clocks, reciprocal AskUbuntu CC is 18.18% slower and
+skewed-source ResPR is 58.05% slower. These are independent, correctness-checked
+R results, not a convergence comparison against Spine.
+
+Four replacements are in physical implementation: SSSP source-read bursts,
+CC four-bank gather clear, ResPR Apply-off with source-read bursts, and ResPR
+packed-validity gather. Their pinned return and one-shot stage screens are
+queued. The independent CC G check is queued on the same banked-clear image.
+The new ResPR resident screen waits for both exact-image G and R passes.
+Passive queues retain the finite zero-swap memory cap; timed runs still
+require a board lease and memory admission.
+
+See [Figure Impact](FIGURE_IMPACT.md) for the two frozen Fig. 7 rows with a
+measured R-only bound and why the remaining rows cannot inherit it. This
+checkpoint is not a replacement Fig. 7--11 package.
+
 ## Acceptance Order
 
 This study continues the failed [source-retention control](../source_performance_retention_20261103/README.md).
