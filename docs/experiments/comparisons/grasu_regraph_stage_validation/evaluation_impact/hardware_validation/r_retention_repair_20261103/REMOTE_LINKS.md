@@ -426,6 +426,13 @@ has fanout 516; routing accounts for 6.457 ns of the 6.683 ns data delay.
 The two HBM failures are separate inter-SLR shell paths. A generated
 bitstream alone cannot clear the registered same-clock stage gates.
 
+The remote link completed with exit code 0. The terminal
+`builds/respr-tail-source-bursts-v3/execution.json` records
+`LINK_PASS_AWAITING_TIMING_AND_BOARD` and `FPGA_timing_admitted: false`.
+The resulting `candidate.hw.xclbin` SHA-256 is
+`2b2192568f34321cd6ed16f7ab0761c34ab7f0945d003b4fa9181fa346d2b920`.
+This identifies the failed-timing artifact, not a board-qualified image.
+
 ## ResPR Apply Input Retime
 
 Integration commit `27385ff` tried reverse-only registration. Vitis
@@ -463,7 +470,10 @@ are unchanged. See `seele-inputs-v1/respr-tail-bursts-apply-off/capsule.json`
 | Remaining seven large workloads | `respr-matrix-v6/results.json` | `gr-retention-respr-matrix-v6-20261104.service` / `99ef84fee7e34a7485e5aaa52fccae2f` |
 
 The remote link uses a 40 GiB hard cap, no swap, and the existing 128 GiB
-reserve policy. The resident v8 and matrix v6 queues replace v7 and v5
+reserve policy. It started automatically after the V3 link completed:
+the pre-link receipt recorded 402.2 GiB available against 389.1 GiB
+required, including live peer reservations. No memory limits were
+relaxed. The resident v8 and matrix v6 queues replace v7 and v5
 before either attempted a board run. The resident runner accepts only
 one candidate, after replaying its independently measured same-clock G
 and R receipts. These are queued tests, not new hardware timings.
