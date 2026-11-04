@@ -700,6 +700,17 @@ nominal-clock public arm; it requests only the new candidate arm.
 | Physical-only nominal retry on seele | `gr-retention-seele-sssp-source-physopt-20261104-v1` | `e774c29f080d4c7b9320b76fc7575a16` | Remote `execution.json` under the attempt |
 | Nominal retry return | `gr-retention-return-sssp-source-physopt-20261104-v1` | `b1bf1cb252d942b6bc3d55618fd94fcb` | `seele-return-v1-sssp-source-bursts-physopt/transfer.json` |
 | Nominal AU903K | `gr-retention-sssp-burst-au903k-physopt-20261104-v1` | `3948487da84f4b62ad5bb9e69b732230` | `sssp-burst-au903k-physopt-v1/queue.json` |
+| Nominal R, sparse Amazon | `gr-retention-sssp-physopt-amazon-20261104-v1` | `2eef7fb4575343db956d287939d71659` | `sssp-physopt-amazon-v1/queue.json` |
+| Nominal R, odd-vertex Amazon | `gr-retention-sssp-physopt-amazon-odd-20261104-v1` | `b1f2de53914c4919b252e39eaf5c2338` | `sssp-physopt-amazon-odd-v1/queue.json` |
+| Nominal G, AU 131K | `gr-retention-g-sssp-physopt-20261104-v1` | `3df787ea4187452c8805db7316ce487f` | `g-sssp-physopt-v1/results.json` |
+| Resident Spine vs G+R, full AU | `gr-retention-sssp-physopt-resident-au-20261104-v1` | `a3f33e24d34c4d74b9e7368270fd9b94` | `sssp-physopt-resident-au-v1/queue.json` |
+| Remaining seven resident SSSP pairs | `gr-retention-sssp-physopt-matrix-20261104-v1` | `7454bcf4996c46b981e1077dd042c9eb` | `sssp-physopt-matrix-v1/matrix.json` |
+
+The nominal queues use immutable runner `318e98d`, the same card lease,
+fixture inputs, public references and memory bounds as the existing
+nominal queues. Resident AU waits for all three R cases and independent G
+to pass on this exact image. The matrix imports that AU result and runs
+each remaining workload once, without warmups or averaging.
 
 These are build and queue receipts. They do not establish an R pass or
 support replacing any figure until the corresponding board results pass.
