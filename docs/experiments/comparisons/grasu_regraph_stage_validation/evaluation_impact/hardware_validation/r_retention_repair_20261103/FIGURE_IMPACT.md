@@ -110,10 +110,22 @@ The matching AU 512 G run is queued by
 the returned SSSP image, reuses the checked Spine run, and runs G once
 on the same card and primary clock. It records a ratio only after G's
 PMA readback and the disjoint setup and update timers validate. Its
-receipt is `fig8-au512-pair-return-v1/results.json` under the same check
-root. This is one native setup comparison, not the full seven-case figure.
-Do not mix either native arm with the older
-maintenance-only or modeled-setup results.
+receipt is `fig8-au512-pair-return-v2/results.json` under the same check
+root. The first waiting task (`v1`) was retired before any G board launch
+after a missing algorithm argument was identified in the gate replay.
+
+After AU/512 is measured and its raw receipts replay, run
+`source_retention.figure8_matrix` with `--manifest` pointing to
+[`fig8-native-input-identity.json`](fig8-native-input-identity.json),
+`--manifest-sha256 520b7bc64eb16cd7e8f4cee50179aa8ba8ca71b27771111b0a4e303187d82012`,
+`--anchor` pointing to the v2 result, and `--output` pointing to a new directory.
+Use a dedicated cgroup (`MemoryMax=24G`, `MemoryHigh=22G`, `MemorySwapMax=0`,
+`OOMPolicy=kill`), or `--memory-gib 40` with 40/36 GiB caps if the workload
+requires it. The runner also checks live memory reserve and board availability.
+It reuses AU/512 and makes at most one attempt per arm for each remaining
+case. It preserves missing or invalid results without a ratio and records
+setup speedups separately from device maintenance. Do not mix native arms
+with the older maintenance-only or modeled-setup results.
 
 ## Figure 9: One-Shard Directory Byte Floor
 

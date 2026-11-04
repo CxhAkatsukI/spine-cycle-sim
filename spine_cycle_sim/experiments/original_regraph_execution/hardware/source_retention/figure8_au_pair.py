@@ -23,6 +23,8 @@ from .runtime import check_memory, execute, identity, lease, save
 ALGORITHM = "weighted_sssp"
 AU_SHA = "092a84ab17b564cab854875e544f420635fe63cca5056e10c3842be912501e70"
 COMMON = dict(status="PASS", vertices="515281", initial_edges="390847", logical_updates="512", repeats="1")
+BOUNDARY = ("native layout/packing, initial and batch upload, update through completion; "
+            "excludes input parsing, programming and validation readback")
 
 
 def record(text, prefix):
@@ -34,9 +36,14 @@ def record(text, prefix):
     return row
 
 
-def timer(text, arm):
+def timer(text, arm, case=None):
+    common = COMMON if case is None else dict(
+        status="PASS", vertices=str(case["vertices"]), initial_edges=str(case["initial_edges"]),
+        logical_updates=str(case["updates"]), repeats="1",
+    )
     if arm == "spine":
-        prefix, extra = "SPINE_UPDATE_SETUP_ONCE", dict(checked_edges="391359")
+        edges = int(common["initial_edges"]) + int(common["logical_updates"])
+        prefix, extra = "SPINE_UPDATE_SETUP_ONCE", dict(checked_edges=str(edges))
         fields = ("layout_ns", "bootstrap_ns", "batch_ns", "update_wall_ns")
     elif arm == "gr":
         prefix, extra = "GRASU_SHARDED_UPDATE_SETUP_ONCE", dict(trace_aware_pma="1", pma_mismatches="0")
@@ -44,13 +51,35 @@ def timer(text, arm):
     else:
         raise ValueError(f"unknown timer arm: {arm}")
     row = record(text, prefix)
-    expected = {**COMMON, **extra}
+    expected = {**common, **extra}
     if any(row.get(k) != v for k, v in expected.items()):
-        raise ValueError(f"{arm} did not validate the exact one-shot AU/512 batch")
+        raise ValueError(f"{arm} did not validate the exact one-shot batch")
     times = {key: int(row[key]) for key in (*fields, "setup_inclusive_ns")}
     if any(value <= 0 for value in times.values()) or times["setup_inclusive_ns"] != sum(times[key] for key in fields):
         raise ValueError(f"inconsistent {arm} setup timer")
     return times
+
+
+def gr_command(host, image, graph, oracle):
+    return ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", "-u", "GRASU_RESIDENT_BATCH_WALL",
+            f"XCL_DEVICE_INDEX={DEVICE}", f"GRASU_REGRAPH_EXPECT_BDF={BDF}", "GRASU_UPDATE_REPEATS=1",
+            "GRASU_SHARDED_PREMIGRATE_INPUTS=1", "GRASU_SHARDED_METADATA_REPLICAS=4",
+            "GRASU_SHARDED_EVENT_TRACE=0", host, "--update-setup-once", image, graph, oracle]
+
+
+def pma_oracle(pin):
+    check = record("PMA " + checked(pin).read_text(), "PMA")
+    if (check.get("status") != "PASS" or check.get("mismatches") != "0"
+            or any(int(check[key]) <= 0 for key in ("touched_segments", "checked_words"))):
+        raise ValueError("G PMA readback did not validate")
+
+
+def memory_group():
+    group = check_memory(require_live_reserve=False)
+    high = (group / "memory.high").read_text().strip()
+    if high == "max" or not 0 < int(high) <= 7 * 2**30:
+        raise MemoryError("native Figure 8 requires memory.high at most 7 GiB")
+    return group
 
 
 def run(args):
@@ -58,17 +87,14 @@ def run(args):
             or not re.fullmatch(r"[0-9a-f]{32}", args.g_invocation)
             or not 1 <= args.wait_seconds <= 111600):
         raise ValueError("exact G producer and bounded wait required")
-    group = check_memory(require_live_reserve=False)
-    if int((group / "memory.high").read_text()) > 7 * 2**30:
-        raise MemoryError("AU/512 requires memory.high at most 7 GiB")
+    group = memory_group()
     reservation = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
     args.output.mkdir(parents=True, exist_ok=False)
     result = args.output / "results.json"
     stage = dict(unit=args.g_unit, invocation=args.g_invocation, observed=False, report_path=str(args.g_report))
     report = dict(status="WAITING_FOR_G_GATE", stage=stage, board_launch_attempted=False,
                   bdf=BDF, requested_runs_per_arm=1, warmups=0, dataset="AU", updates=512,
-                  boundary="native layout/packing, initial and batch upload, update through completion; "
-                           "excludes input parsing, programming and validation readback")
+                  boundary=BOUNDARY)
     save(result, report)
     try:
         spine_pin, host = identity(args.spine), identity(args.g_host)
@@ -91,7 +117,7 @@ def run(args):
         g = json.loads(checked(stage["receipt"]).read_text())
         g_host = next(pin for pin in g["pins"] if pin["path"] == g["row"]["command"][-5])
         image = clocks.replay(g["row"]["clock_evidence"])["binary"]
-        gate = replay_g(args.g_report, args.g_reference, g_host, image)
+        gate = replay_g(args.g_report, args.g_reference, ALGORITHM, g_host, image)
         if gate["report"] != stage["receipt"]:
             raise ValueError("independent G report changed during replay")
         if gate["candidate_clock"]["driver_reported_mhz"][0] != spine_clock["driver_reported_mhz"][0]:
@@ -101,11 +127,7 @@ def run(args):
         report.update(pins=pins, baseline_g=gate, xrt_libraries=libraries, spine_ns=spine_ns)
         expected = clocks.image(checked(image), args.output, "gr")
         oracle = args.output / "gr-oracle.txt"
-        command = ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", "-u", "GRASU_RESIDENT_BATCH_WALL",
-                   f"XCL_DEVICE_INDEX={DEVICE}", f"GRASU_REGRAPH_EXPECT_BDF={BDF}", "GRASU_UPDATE_REPEATS=1",
-                   "GRASU_SHARDED_PREMIGRATE_INPUTS=1", "GRASU_SHARDED_METADATA_REPLICAS=4",
-                   "GRASU_SHARDED_EVENT_TRACE=0", args.g_host, "--update-setup-once", image["path"],
-                   gr_input, oracle]
+        command = gr_command(args.g_host, image["path"], gr_input, oracle)
         while True:
             report["status"] = "WAITING_FOR_BOARD"
             try:
@@ -133,10 +155,7 @@ def run(args):
                 BDF, image, gate["candidate_clock"]["driver_reported_mhz"]):
             raise ValueError("G loaded image or clock differs from independent G gate")
         report["gr_oracle"] = identity(oracle)
-        check = record("PMA " + checked(report["gr_oracle"]).read_text(), "PMA")
-        if (check.get("status") != "PASS" or check.get("mismatches") != "0"
-                or any(int(check[key]) <= 0 for key in ("touched_segments", "checked_words"))):
-            raise ValueError("G PMA readback did not validate")
+        pma_oracle(report["gr_oracle"])
         gr_ns = timer(checked(report["gr"]["stdout"]).read_text(), "gr")
         require_unthrottled((group / "memory.events").read_text())
         for pin in pins:
