@@ -1016,6 +1016,7 @@ stopped while waiting for the return, with no board request.
 | Banked clear | High-activity Amazon R | `gr-retention-sssp-amazon-odd-20261105-banked-v3` | `51de3ebf70bc4739bc0d65f7a60db783` |
 | Banked clear | Independent AU G | `gr-retention-sssp-g-20261105-banked-v3` | `1bcdca44ca414066bd7487faa76f8b1d` |
 | Banked clear | Full AU resident pair | `gr-retention-sssp-resident-au-20261105-banked-v4` | `2a30dca329454e5a862b2771badf6601` |
+| Banked clear | Remaining seven resident pairs | `gr-retention-sssp-resident-matrix-banked-20261105-v1` | `fb15c1ff0430436b8c6504b7551048ec` |
 | Tail | Sparse Amazon R | `gr-retention-sssp-amazon-20261105-tail-abi-v3` | `5a4c8ff87a1349e39277eb6f6e97d9f1` |
 | Tail | High-activity Amazon R | `gr-retention-sssp-amazon-odd-20261105-tail-abi-v3` | `2eda0ab6be2040438b47d7163862fa10` |
 | Tail | Independent AU G | `gr-retention-sssp-g-20261105-tail-abi-v3` | `99f2c3225dc740a5a29dd193cc4ac29f` |
@@ -1024,8 +1025,21 @@ stopped while waiting for the return, with no board request.
 The sparse Amazon board request requires a passing AU R receipt;
 the high-activity Amazon request requires the sparse Amazon pass.
 The resident AU pair requires the same image to pass all three R
-checks and the separate G check. No repeat or eight-dataset SSSP
-matrix is queued for these two variants before their AU comparison.
+checks and the separate G check. The banked-clear continuation uses
+`source_retention.sssp_matrix --require-au-topology`. It pins the seven
+remaining graph/batch inputs and Spine artifacts before waiting for the
+exact banked AU and high-activity Amazon jobs. The journal is
+`sssp-resident-matrix-banked-v1/matrix.json`. It replays the independent G
+and all three R admissions before submitting the first pair. It does
+not request a second AU run, or continue if the AU comparison fails
+correctness. Losing speedups remain in the output. The tail variant has
+no parallel seven-case matrix.
+
+Each requested pair runs once, sequentially by memory budget, under
+the existing board lease and 16--32 GiB zero-swap case limits. The frozen
+SSSP campaign used `0000:c1:00.1`; the banked baseline's qualified G
+reference uses `0000:82:00.1`. The continuation does not reuse an old
+Spine timing from a different card as the candidate's same-card control.
 
 The resident runner now checks primary G/R receipts separately from the
 two auxiliary R receipts and the retained Spine CC arm. The previous
