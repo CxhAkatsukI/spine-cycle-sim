@@ -558,3 +558,17 @@ does not restore the original clocks. Preserve both original image hashes.
 Label any admitted result with the actual lower profile, keep it separate
 from the 150/500/450 MHz gate, and do not substitute a timing-report estimate
 or a candidate-only clock correction for a matched run.
+
+The subsequent CC final locked post-physopt report is
+`builds/cc-physical-v1/link/link/vivado/vpl/prj/prj.runs/impl_1/hw_bb_locked_timing_summary_postroute_physopted.rpt`,
+SHA-256 `92fa5b77913ffd751bbbce02bf7c75649c496bd58bc4713d50f2cc70adf3e789`.
+Setup WNS/TNS is `-0.077/-3.838 ns` (109 endpoints, intra-`hbm_aclk`);
+hold WHS is `+0.009 ns`, with no hold violations. Both bitstream writers
+started. Their Vitis logs selected HBM `434.9 MHz` (CC) and `449.2 MHz`
+(ResPR) and retained the requested DATA and KERNEL clocks. These are
+tool-selected frequencies, not measured board clocks. The original
+450-MHz gate remains unchanged.
+
+See [lower-clock board evidence](LOWER_CLOCK_SCREEN.md) for the failed
+runtime-reclock attempt, the offline package check, and the first public
+445-MHz board arm. It is not a completed retention comparison.
