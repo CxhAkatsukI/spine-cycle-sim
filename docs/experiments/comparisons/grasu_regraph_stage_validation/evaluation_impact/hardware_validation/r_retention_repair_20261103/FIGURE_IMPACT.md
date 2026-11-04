@@ -297,6 +297,32 @@ setup window. See the [raw board archive](paired-board-checkpoint/fig8-au64-spin
 with SHA-256
 `9be926d749cd3416599128f5c5391d57aafa31e4e039ce97a5f5d9244211e91f`.
 
+The next Spine host revision (`e6e26fc`) builds the directory and sets
+its publication flag directly in the aligned metadata buffer used by
+XRT, removing the extra staging copy. The host and off-board driver
+test built under a 6 GiB cap (1.2 GiB peak), and the driver test passed.
+The FPGA image, input, clocks, oracle, and timing window were unchanged;
+only the changed Spine arm ran, once. It passed the check of all 390,911
+weighted edges.
+
+| Metric | Aligned graph banks (ms) | Aligned metadata too (ms) |
+| --- | ---: | ---: |
+| Graph layout | 472.019 | 472.817 |
+| Bootstrap host | 438.593 | 341.344 |
+| Bootstrap migration | 94.765 | 92.132 |
+| Bootstrap lifecycle | 4.681 | 4.662 |
+| Batch preparation | 0.057 | 0.061 |
+| Update wall | 0.235 | 0.240 |
+| Setup-inclusive total | 1010.350 | 911.256 |
+
+The frozen G measurement was 818.456 ms, still 1.11x faster in this
+one-shot window. The 99.094 ms decrease is an observation from two
+single runs, not an estimate of run-to-run variation. Peak cgroup memory
+was 1,710,845,952 bytes with zero high, max, or OOM events. The
+[raw board archive](paired-board-checkpoint/fig8-au64-spine-meta-v6.tar.gz)
+has SHA-256
+`05e2a0caa7fd3d417eb240c26e3e028dd353aa98caa46921fe90d1a194e9715b`.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.
