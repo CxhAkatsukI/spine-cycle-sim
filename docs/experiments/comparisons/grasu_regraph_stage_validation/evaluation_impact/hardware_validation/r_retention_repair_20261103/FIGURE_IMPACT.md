@@ -41,7 +41,10 @@ matched clocks. The export indexes existing correctness/stage admission; it does
 the correctness oracles or establish results for figures 8--11. CC starts
 at host pack; SSSP and ResPR start at a resident batch. ResPR rows report
 whether both arms performed propagation. Do not pool these scopes or
-interpret a correction-only result as propagation evidence.
+interpret a correction-only result as propagation evidence. The two Amazon
+R receipts referenced by the SSSP matrix do not supersede the later
+[AskUbuntu topology control](SSSP_STAGE_ADMISSION.md#askubuntu-topology-control),
+which missed the 15% gate on the same candidate image.
 
 ## Figure 7: R-Only Bound On Two New SSSP Pairs
 
@@ -67,7 +70,7 @@ in the [follow-up checkpoint](sssp-resident-followup/README.md).
 ## November 3 Handoff Dependencies
 
 This audit inspects the [frozen November 3 handoff](../../figure7_11_handoff_20261103/README.md),
-not new measurements or an admission decision. A ratio from the two R controls
+not new measurements or an admission decision. A ratio from any of the R controls
 cannot be applied as a correction factor to other graphs, algorithms, or
 total resident latency. The controls measure a single gather/apply execution;
 the Figure 7 comparisons include the actual update and convergence path.

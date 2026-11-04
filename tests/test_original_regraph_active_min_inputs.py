@@ -6,7 +6,21 @@ import unittest
 from unittest.mock import patch
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware import artifact, oracle
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import active_min_capture
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import active_min_inputs as fixtures
+
+
+class ActiveMinCaptureTests(unittest.TestCase):
+    def test_export_preserves_directed_topology_and_rejects_changed_extent(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source, output = root / "input.slice", root / "graph.edges"
+            source.write_text("# vertices=3\n1 2 9 1\n2 0 5 1\n", encoding="ascii")
+            active_min_capture.export_edges(source, output)
+            self.assertEqual(output.read_text(), "1 2\n2 0\n")
+            source.write_text("# vertices=4\n1 2 9 1\n2 0 5 1\n", encoding="ascii")
+            with self.assertRaisesRegex(ValueError, "vertex extent"):
+                active_min_capture.export_edges(source, root / "invalid.edges")
 
 
 class ActiveMinFixtureTests(unittest.TestCase):

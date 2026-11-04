@@ -9,9 +9,11 @@ packages. Simulator near-parity is not FPGA performance admission.
 The [seele replacement links](REMOTE_LINKS.md) record the four active
 builds and their independent return checks; they are not new timings.
 
-The [weighted SSSP FPGA stage admission](SSSP_STAGE_ADMISSION.md) is
-available: G and both declared weighted R controls passed on the same
-returned image. The independent paired convergence matrix follows.
+The [weighted SSSP FPGA stage screen](SSSP_STAGE_ADMISSION.md) passed
+independent G and both Amazon R controls on the same returned image.
+The same image missed the 15% R gate on the AskUbuntu topology control
+(19.55% slower). Treat the paired convergence timings as observations
+on that image, not as a matrix against a cross-topology-validated baseline.
 The [resident SSSP follow-up](sssp-resident-followup/README.md) adds R19
 and PK, retaining the three original measured pairs without repeating them.
 

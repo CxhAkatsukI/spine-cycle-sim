@@ -1,17 +1,19 @@
 # Weighted SSSP FPGA Stage Admission
 
-The returned sharded K4 image passed the independent update (G) gate and both
-weighted gather/apply (R) gates. Each row contains one measured run per arm,
-without warmup or averaging.
+The returned sharded K4 image passed the independent update (G) screen and
+both Amazon weighted gather/apply (R) screens. It missed the 15% R gate on
+the AskUbuntu topology control. Each row contains one measured run per arm,
+without averaging.
 
 | Stage and input | Public-source control (ms) | Integrated image (ms) | Integrated/control |
 | --- | ---: | ---: | ---: |
 | G: AskUbuntu, 131,072 updates | 18.413633 | 7.064731 | 0.38367 |
 | R: Amazon, sparse weighted frontier | 10.404206 | 9.843290 | 0.94609 |
 | R: Amazon, alternate weighted frontier | 10.591011 | 10.054087 | 0.94930 |
+| R: AskUbuntu reciprocal slice, one active source | 2.189131 | 2.617133 | 1.19551 (fails) |
 
 Both arms of each row used the same U55C and driver-reported clocks
-`[150, 500, 450, 0]` MHz. G used `0000:c1:00.1`; both R rows used
+`[150, 500, 450, 0]` MHz. G used `0000:c1:00.1`; all R rows used
 `0000:82:00.1`. Time runs from the first participating CU start through the
 last CU completion, including internal gaps. Setup/staging before that span
 and final oracle readback are excluded. G's native oracle checked 716,992
@@ -21,7 +23,7 @@ control also checked its full PMA state.
 The R reference is the public-source four-Little A4 implementation with the
 weighted active-min algorithm and matching publication semantics. It is not
 an unmodified ReGraph paper run or proof of identical physical resources.
-Both R rows use the same Amazon graph (735,324 vertices, 5,158,388 logical
+The two Amazon rows use the same graph (735,324 vertices, 5,158,388 logical
 edges) with different matched weighted state and edge inputs. They produced
 10 and 315,863 active outputs, respectively. They are separate workload
 controls, not repeats or independent graph topologies. The R gate measures
@@ -30,10 +32,39 @@ and apply output matched the reference oracle after omitting the A4 guard
 line (16 extra words); both reference and candidate retain their full
 separate output dumps.
 
-The integrated bitstream SHA-256 used for all three rows is
+The integrated bitstream SHA-256 used for all four rows is
 `1bb1532fd7b1bcb182ed9093e6640f6ab0fa6ae27707dcc509a7cc3881b61c25`.
 The public R control SHA-256 is
 `5185d9be6f0b889f8da107fb3a6d9b5d3d62d4affe4cfc6a1910833ddcfda3b4`.
+
+## AskUbuntu Topology Control
+
+Both arms use the same fixed-ID reciprocal slice, 156,289 vertices and
+903,774 logical edges, and the same deterministic positive weights and
+one-source initial state. The fixed-ID compact layout has twelve A4 tasks
+over three destination partitions. The independent oracle reports 5,264
+improved vertices, and both FPGA outputs pass. This is an R-only
+superstep on a real-topology slice with synthetic weights, not the
+full AU resident update and convergence workload.
+
+The integrated span is 428.002 us longer and needs a reduction of at least
+99.633 us to meet the gate at this reference time. The last of the three
+adapter events ends about 0.807 ms before the last participating CU
+completes. The three serialized mux events are separated by less than
+1 us each. The timings rule out a large gap between host mux submissions
+as the explanation; they do not separate input wait, gather tail and
+publication service within overlapping CU events. The candidate schedules
+one frontend per destination partition, leaving the fourth idle in this
+case; the A4 control subdivides each partition into four tasks.
+
+The [raw AskUbuntu archive](sssp-au903k-r-pair.tar.gz) preserves the
+failed performance receipt, correctness outputs, kernel event logs,
+clock records, and offline layout and fixture manifests. The checked-in
+source topology is `tests/data/askubuntu_reciprocal_full/askubuntu_reciprocal_full_e903774.slice`.
+The `hardware.board_execution.active_min_capture` module in the
+original ReGraph experiment generates the fixed-ID weighted input using
+the A4 probe built from
+`cpp/tests/evaluation_impact/warm_comparison/fixed_id_layout.cpp`.
 
 ## Evidence
 
@@ -56,7 +87,7 @@ for output in pair/candidate/*.u32le; do
 done
 ```
 
-The exact same G/R image is now eligible for the weighted-SSSP paired
-old-converged-to-new-converged matrix. This stage admission does not validate
-the CC or ResPR images, establish an end-to-end speedup, or supersede the
-existing figure data.
+The paired weighted-SSSP convergence measurements on this image remain
+valid as version-pinned observations. The new topology control prevents
+claiming representative cross-topology R retention for that image.
+It neither validates CC or ResPR nor supersedes the existing figure data.
