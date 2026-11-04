@@ -188,6 +188,46 @@ because replicated metadata did not fit the lane-aware HBM placement.
 See the [paired board checkpoint](paired-board-checkpoint/README.md) for
 the data and raw logs. The service's recorded peak was 13,110,181,888 bytes.
 
+### SO/512 Metadata Capacity
+
+The board log fails in the host placement planner, before a timed G update.
+The pinned SO native file has 6,024,271 vertices and 512 insertions in 86 of
+its 92 destination shards. The existing layout allocates a dense
+`(vertices + 1) * 8`-byte row directory per copy, rounded up to 4 KiB
+(48,197,632 bytes here). It duplicates the row and binary-search tables
+for all four search lanes on each updated shard.
+
+Even if the planner dropped every copy for an idle lane, 86, 75, 66 and
+58 updated shards still have work on lanes 0 through 3, respectively.
+These 285 active copies alone need 13,736,325,120 bytes (12.79 GiB).
+The full graph placement has only 23 * 512 MiB = 11.5 GiB, before
+allocating the PMA, binary tables or directories for untouched shards.
+Reordering the allocation or skipping idle lanes cannot fix this case
+while retaining dense per-active-lane row copies. It is a capacity
+result for this policy, not a measured update slowdown or a constraint
+on the separate eight-insert Fig. 7 workload.
+
+To reproduce the active-copy count from the pinned SO input, pass its
+native graph path as `$graph`. The input identity and the offline G
+probe establish that each frozen insertion is one physical insertion.
+The host assigns the physical updates within each destination shard
+round-robin to four lanes.
+
+```bash
+tail -n 512 "$graph" | awk '
+    { n[int($2 / 65536)]++ }
+    END {
+        for (shard in n)
+            for (lane = 0; lane < 4; lane++)
+                active[lane] += (n[shard] > lane)
+        for (lane = 0; lane < 4; lane++) print lane, active[lane]
+    }'
+```
+
+A shared or compact directory could change this bound, but would be a
+different G host policy. A replacement needs a fresh independent G
+retention check and SO PMA readback before it enters the paired data.
+
 ### Offline Spine Layout Check
 
 The source probe
