@@ -1,14 +1,41 @@
+import json
+from pathlib import Path
+import tarfile
+import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.shard_layout import (
     slot_counts,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.shard_windows import (
-    publication_windows,
+    publication_windows, replay_derated_respr,
 )
 
 
 class PublicationWindowsTest(unittest.TestCase):
+    def test_replays_archived_430_mhz_pair_without_a_board(self):
+        archive = (Path(__file__).resolve().parents[1] / "docs/experiments/comparisons"
+                   / "grasu_regraph_stage_validation/evaluation_impact/hardware_validation"
+                   / "r_retention_repair_20261103/respr-apply-off-430-raw.tar.gz")
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            with tarfile.open(archive) as packed:
+                packed.extractall(root, filter="data")
+            receipt = root / "derated-respr-tail-bursts-apply-off-430-v1/results.json"
+            result = replay_derated_respr(receipt, root)
+            self.assertEqual(result["driver_reported_mhz"], [150, 500, 430, 0])
+            self.assertFalse(result["gate_pass"])
+            self.assertEqual(result["excess_over_gate_ns"], 224118.75)
+            self.assertEqual(result["after_last_adapter_ns"], 329700)
+            self.assertEqual(result["budget_after_last_adapter_ns"], 105581.25)
+            self.assertEqual(result["candidate_milestones_from_first_start_ns"]["last_gather_end_ns"], 723441)
+
+            tampered = json.loads(receipt.read_text())
+            tampered["comparison"]["current_ms"] = 0.6
+            receipt.write_text(json.dumps(tampered))
+            with self.assertRaisesRegex(ValueError, "saved comparison differs"):
+                replay_derated_respr(receipt, root)
+
     def test_layout_remaps_nonempty_sources_and_keeps_leading_guard(self):
         self.assertEqual(slot_counts([0, 0, 1, 1, 2], [0, 1], 2), ([1, 1], [32, 16]))
         self.assertEqual(slot_counts([0, 0, 0], [], 1), ([0, 0], [16, 16]))

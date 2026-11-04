@@ -27,9 +27,32 @@ def relocated(path, root):
 
 
 def verify_log(pin, root=None):
-    actual = identity(relocated(pin["path"], root))
+    path = relocated(pin["path"], root)
+    actual = identity(path)
     if any(actual[key] != pin[key] for key in ("bytes", "sha256")):
         raise ValueError("raw log identity changed")
+    return path
+
+
+def public_r_run(log, timing_path):
+    timing = json.loads(timing_path.read_text())
+    events = timing["events"]
+    gathers = [e for e in events if e["role"] == "little"]
+    if ("ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS" not in log.read_text().splitlines()
+            or timing["status"] != "ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS"
+            or timing["iterations"] != 1 or timing["topology"] != "a4"
+            or timing["binding"] != "csr_degree"
+            or timing["little"] != 4 or timing["big"] != 0
+            or len(events) != timing["tasks"] + 2
+            or len(gathers) != timing["tasks"]
+            or {e["ordinal"] for e in gathers} != set(range(timing["tasks"]))
+            or any(not 0 <= e["lane"] < 4 for e in gathers)
+            or sorted(e["role"] for e in events if e["role"] != "little") != ["apply", "hbm_wrapper"]
+            or not timing["hardware_timing_measured"]
+            or envelope(events) != timing["event_span_ns"]):
+        raise ValueError("single-run original R failed correctness or timing contract")
+    return {"repeat": 0, "event_span_ns": timing["event_span_ns"],
+            "resident_wall_ms": timing["enqueue_to_completion_ms"]}
 
 
 def profiled_runs(row, raw_root=None):
@@ -44,25 +67,10 @@ def profiled_runs(row, raw_root=None):
     if row["stage"] == "R" and row["arm"] == "reference":
         root = relocated(row["result_directory"], raw_root)
         if repetitions == 1:
-            verify_log(row["result_json"], raw_root)
-            timing = json.loads((root / "result.json").read_text())
-            events = timing["events"]
-            gathers = [e for e in events if e["role"] == "little"]
-            if ("ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS" not in Path(log).read_text().splitlines()
-                    or timing["status"] != "ORIGINAL_R_GUARDED_BOARD_CONTROL_PASS"
-                    or timing["iterations"] != 1 or timing["topology"] != "a4"
-                    or timing["binding"] != "csr_degree"
-                    or timing["little"] != 4 or timing["big"] != 0
-                    or len(events) != timing["tasks"] + 2
-                    or len(gathers) != timing["tasks"]
-                    or {e["ordinal"] for e in gathers} != set(range(timing["tasks"]))
-                    or any(not 0 <= e["lane"] < 4 for e in gathers)
-                    or sorted(e["role"] for e in events if e["role"] != "little") != ["apply", "hbm_wrapper"]
-                    or not timing["hardware_timing_measured"]
-                    or envelope(events) != timing["event_span_ns"]):
-                raise ValueError("single-run original R failed correctness or timing contract")
-            return [{"repeat": 0, "event_span_ns": timing["event_span_ns"],
-                     "resident_wall_ms": timing["enqueue_to_completion_ms"]}]
+            timing = verify_log(row["result_json"], raw_root)
+            if timing != root / "result.json":
+                raise ValueError("public result identity differs from its declared directory")
+            return [public_r_run(log, timing)]
         runs = []
         for repeat in range(4):
             mode = f"baseline_r{repeat}"

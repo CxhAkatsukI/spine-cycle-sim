@@ -189,13 +189,35 @@ the full gather kernel. The baseline used 128 BRAM18, 37,263 LUT and
 behavior under stalls.
 
 At maximum shard size the initial clear loop has 512 iterations instead
-of 32,768, a local difference of 215 us at 150 MHz. This is slightly
-below the approximately 220 us that the measured skewed-sources pair
-would need to save. It is not a predicted end-to-end gain: clear can
-overlap other components, and the bitmap also clears on warm frames.
-Do not infer that the change passes the hardware gate. See the
+of 32,768, a local difference of 215 us at 150 MHz. That is smaller than
+the 224 us gap to the gate in the 430-MHz skewed-sources pair. These are
+different builds, and the local difference is not a predicted end-to-end
+gain: clear can overlap other components, and the bitmap also clears on
+warm frames. Do not infer that the change passes the hardware gate. See the
 [synthesis evidence](lazy-gather-csynth.tar.gz) and the
 [single-component route](REMOTE_LINKS.md#respr-packed-validity-gather).
+
+### Replay the Remaining 430-MHz Gap
+
+The public A4 sample sets a 599.535-us target at the 1.15 gate. The
+source-burst/Apply-off candidate takes 823.654 us and finishes its last
+adapter at 493.954 us relative to the first kernel start. With that adapter
+endpoint unchanged, the rest of the envelope would have a budget of
+105.581 us; the observed remainder is 329.700 us. The last gather, mux,
+Apply and HBM commands finish at 723.441, 765.142, 795.973 and 823.654 us,
+respectively. These are overlapping command timestamps, not standalone
+stage service times. The paired board result cannot identify how much
+of the remaining gap is clear, scatter, backpressure, or dispatch.
+
+Extract [the raw pair](respr-apply-off-430-raw.tar.gz) into `$raw` and run
+from the simulator root. This replays both clock vectors and correctness
+and timing records before calculating the candidate's windows:
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.shard_windows \
+    --derated-respr --raw-root "$raw" \
+    --results "$raw/derated-respr-tail-bursts-apply-off-430-v1/results.json"
+```
 
 ## Receipts
 
