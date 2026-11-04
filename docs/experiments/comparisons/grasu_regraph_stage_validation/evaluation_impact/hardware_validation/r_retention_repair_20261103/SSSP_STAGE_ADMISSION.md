@@ -66,6 +66,22 @@ original ReGraph experiment generates the fixed-ID weighted input using
 the A4 probe built from
 `cpp/tests/evaluation_impact/warm_comparison/fixed_id_layout.cpp`.
 
+### Host Launch Order Control
+
+The [frontend-first host variant](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/70d3b01)
+submits the leading adapter and gather before the shared HBM and apply CUs.
+It uses the same routed image and same first-start to last-completion
+boundary, which now starts at the adapter. The frozen A4 receipt is replayed
+by hash, input identity, raw clock evidence and full output oracle. Only
+the changed candidate ran on the board.
+
+The variant measured **2.610194 ms**, a 6.939 us difference from the first
+candidate and still **19.23% slower** than A4. Both executions passed the
+same exact-output check. This launch-order change does not resolve the
+performance gate; it is not selected for the convergence campaign. The
+[raw follow-up archive](sssp-au903k-r-frontend-first.tar.gz) includes the
+changed-host digest, event logs, outputs and the reference replay receipt.
+
 ## Evidence
 
 [Raw evidence archive](sssp-stage-admission.tar.gz) preserves both R queue

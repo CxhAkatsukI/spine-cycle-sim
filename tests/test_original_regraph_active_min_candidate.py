@@ -77,6 +77,45 @@ class ActiveMinCandidateTests(unittest.TestCase):
             record = json.loads((args.output / "results.json").read_text())
             self.assertEqual((record["status"], record["attempts"]), ("FAILED_RETAINED", []))
 
+    def test_retained_reference_requires_exact_receipt_fixture_image_and_oracle(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            args = argparse.Namespace(algorithm="weighted_sssp", bdf="0000:82:00.1", inputs=root,
+                                      reference_host=root / "ref", candidate_host=root / "candidate")
+            inputs = pair.input_paths(args)
+            for path in inputs:
+                path.write_bytes(b"original")
+            receipt = root / "results.json"
+            analysis = {"event_span_ns": 100, "output_pins": []}
+            row = {"analysis": analysis, "clock_evidence": {}}
+            receipt.write_text(json.dumps({
+                "algorithm": args.algorithm, "bdf": args.bdf, "requested_runs_per_arm": 1,
+                "attempts": ["reference", "candidate"], "boundary": pair.active_min.BOUNDARY,
+                "status": "PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED",
+                "pins": [artifact.identity(path) for path in inputs],
+                "arms": {"reference": row},
+            }))
+            pin = artifact.identity(receipt)
+            image = {"path": "/ref.xclbin", "sha256": "image"}
+            clock = {"binary": {**image, "bytes": 41}, "bdf": args.bdf}
+            with patch.object(pair.clocks, "replay", return_value=clock), \
+                    patch.object(pair.active_min, "inspect", return_value=analysis) as inspect:
+                replay = lambda digest: pair.retained_reference(receipt, digest, args, image, {}, {})
+                args.candidate_host.write_bytes(b"new host")
+                self.assertEqual(replay(pin["sha256"]), (row, pin))
+                with self.assertRaisesRegex(ValueError, "digest"):
+                    replay("different")
+                clock["binary"]["sha256"] = "different"
+                with self.assertRaisesRegex(ValueError, "image"):
+                    replay(pin["sha256"])
+                clock["binary"]["sha256"] = image["sha256"]
+                inspect.return_value = {}
+                with self.assertRaisesRegex(ValueError, "analysis"):
+                    replay(pin["sha256"])
+                inputs[-1].write_bytes(b"changed")
+                with self.assertRaisesRegex(ValueError, "fixture"):
+                    replay(pin["sha256"])
+
     def test_candidate_route_replays_terminal_link_and_pins(self):
         with tempfile.TemporaryDirectory() as tmp:
             route = Path(tmp)

@@ -91,6 +91,33 @@ def input_paths(args):
             *(args.inputs / f"{name}.u32le" for name in active_min.INPUTS + active_min.STATE[args.algorithm]))
 
 
+def retained_reference(receipt, digest, args, image, offline, expected):
+    pin = artifact.identity(receipt)
+    if pin["sha256"] != digest:
+        raise ValueError("retained reference pair digest differs")
+    previous = json.loads(receipt.read_text())
+    if (previous["status"] not in ("PAIRED_ACTIVE_MIN_R_GATE_PASS", "PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED")
+            or previous["attempts"] != ["reference", "candidate"]
+            or previous["requested_runs_per_arm"] != 1
+            or previous["boundary"] != active_min.BOUNDARY
+            or (previous["algorithm"], previous["bdf"]) != (args.algorithm, args.bdf)):
+        raise ValueError("retained reference needs a complete original single-pass pair")
+    reference_host, _, *fixtures = input_paths(args)
+    fixed_inputs = [artifact.identity(item) for item in (reference_host, *fixtures)]
+    if any(item not in previous["pins"] for item in fixed_inputs):
+        raise ValueError("retained reference host or fixture differs")
+    row = previous["arms"]["reference"]
+    clock = clocks.replay(row["clock_evidence"])
+    if (any(clock["binary"].get(key) != image[key] for key in ("path", "sha256"))
+            or clock["bdf"] != args.bdf):
+        raise ValueError("retained reference image or device differs")
+    analysis = active_min.inspect(receipt.parent / "reference", offline, expected, args.inputs, args.bdf)
+    if analysis != row["analysis"]:
+        raise ValueError("retained reference raw analysis differs")
+    unchanged([pin, *analysis["output_pins"]])
+    return row, pin
+
+
 def run(args):
     if (args.algorithm not in active_min.ALGORITHMS or type(args.device) is not int or args.device not in (0, 1)
             or not re.fullmatch(r"[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]", args.bdf)):
@@ -142,7 +169,17 @@ def run(args):
                           args.candidate_host, "--active-min-once", image["path"], args.inputs,
                           expected["path"], output / "candidate"],
         }
+        retained = getattr(args, "retained_reference", None)
+        arms_to_run = ("reference", "candidate")
         clock_pins = {"reference": checked["xclbin"], "candidate": image}
+        if retained:
+            receipt, digest = retained
+            row, pin = retained_reference(Path(receipt).absolute(), digest, args, checked["xclbin"], offline, expected)
+            report["arms"]["reference"] = row
+            report["retained_reference_pair"] = pin
+            pins.extend([pin, *row["analysis"]["output_pins"]])
+            arms_to_run = ("candidate",)
+            del clock_pins["reference"]
         images = {arm: clocks.image(pin["path"], output, arm) for arm, pin in clock_pins.items()}
 
         def record(status, memory_state):
@@ -154,7 +191,8 @@ def run(args):
                  if wait else lease(args.device, args.bdf))
         with board as (render, fd):
             require_idle_board(render)
-            for arm, host in (("reference", args.reference_host), ("candidate", args.candidate_host)):
+            for arm in arms_to_run:
+                host = args.reference_host if arm == "reference" else args.candidate_host
                 environment = runtime.capture(host, render, output / (arm + "_runtime"))
                 if environment["device"]["bdf"] != args.bdf:
                     raise ValueError("runtime does not match leased board")
@@ -204,6 +242,8 @@ def parse_arguments(argv=None, extend=None):
                         help="treat --candidate-route as a verified remote return instead of a local build")
     parser.add_argument("--returned-reference", nargs=2, metavar=("SHA256", "CAPSULE"),
                         help="treat --reference-route as a verified remote public A4 CC return")
+    parser.add_argument("--retained-reference", nargs=2, metavar=("PAIR_RESULTS", "SHA256"),
+                        help="replay the verified reference from a frozen pair; run only the changed candidate")
     if extend is not None:
         extend(parser)
     arguments = parser.parse_args(argv)
