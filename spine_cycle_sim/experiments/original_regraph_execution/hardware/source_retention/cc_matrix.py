@@ -50,29 +50,24 @@ def admit_topology(args, job, gate):
 def layout_packet(args, ds, small, campaign, template, row):
     if ds in SMALL:
         inputs, stdout = small[ds]
-        expected = []
     else:
         if ds.lower() not in campaign["rows"]:
             raise ValueError("large host layout did not complete")
-        expected = campaign["rows"][ds.lower()]
         inputs = args.large_inputs / ds.lower() / "inputs.json"
-        stdout = args.large_layout / ds.lower() / "layout.stdout.txt"
     packet = args.output / f"{ds.lower()}.packet.json"
     save(packet, dict(template, inputs=str(inputs)))
     case, frozen = resident.frozen_case(args.previous, "cc", ds)
     configured, pins = cc_resident_wall.configure(argparse.Namespace(algorithm="cc", cc_wall_packet=packet),
                                                   case, frozen)
-    log = identity(stdout)
-    counts = spine_cc_layout.layout_counts(stdout.read_text(), case["updates"])
-    if expected:
-        command = [configured["spine_host"], "--layout-only", "--hot", "balanced", "--slice",
-                   configured["graph_slice"], "--update", configured["update_slice"]]
-        run = expected["execution"]
-        if (expected["input"] != load(inputs) or expected["counts"] != counts or
-                (run["command"], run["exit_code"], run["stop_reason"], run["cleanup_snapshot_error"])
-                != (command, 0, "process_exit", None)):
-            raise ValueError("large layout receipt does not match the balanced host and frozen inputs")
-    row.update(case=configured, layout=counts, pins=[*frozen, *pins, log])
+    if ds in SMALL:
+        counts = spine_cc_layout.layout_counts(stdout.read_text(), case["updates"])
+        layout_pins = [identity(stdout)]
+    else:
+        source = next(pin for pin in frozen if pin["path"] == case["graph"])
+        counts, layout_pins = spine_cc_layout.replay(args.large_layout / "results.json", ds,
+                                                     host=identity(configured["spine_host"]),
+                                                     inputs=inputs, frozen=source)
+    row.update(case=configured, layout=counts, pins=[*frozen, *pins, *layout_pins])
     return packet
 
 

@@ -289,6 +289,17 @@ then add `--host <balanced-warm-host> --inputs <preparation-output> --memory-gib
 for the layout check, with matching systemd memory limits. Neither
 receipt substitutes for the older matrix's pinned host or a board result.
 
+For a new non-AU measurement, the single-pair runner
+`source_retention.active_min_resident` accepts the warm image and balanced
+host through `--cc-wall-packet`, the matching offline receipt through
+`--cc-warm-layout`, and the two extra R controls through
+`--cc-warm-r-controls`. It rechecks the pinned route invocation, timing
+and bus skew, replays the exact layout command and inputs, and requires
+the same G and three distinct R controls as the AU warm queue. Both arms
+then run once on the qualified card, under the same resident wall
+boundary. This option does not reuse the AU timing or restart the old
+matrix.
+
 For SO, PK, LJ and LJ08 the
 offline campaign is `spine-cc-warm-balanced-large-layout-20261105-v1.service`
 (invocation `8f1dc3e65e124de6af7675fa138bdac5`) with its journal at

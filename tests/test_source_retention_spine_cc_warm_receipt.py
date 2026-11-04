@@ -5,7 +5,8 @@ from argparse import Namespace
 import pytest
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    active_min_admission as admission, active_min_resident_follow as queue, spine_cc_warm_receipt as warm,
+    active_min_admission as admission, active_min_resident_follow as queue, cc_resident_wall as wall,
+    spine_cc_layout as layout, spine_cc_warm_receipt as warm,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import identity, save
 
@@ -109,6 +110,71 @@ def test_rejects_invalid_old_state(screen):
     receipt["stdout"] = identity(path)
     with pytest.raises(ValueError, match="bootstrap was not validated"):
         replay(screen)
+
+
+@pytest.mark.parametrize("fault", [None, "host", "route", "workload", "command", "counts"])
+def test_warm_non_au_packet_requires_exact_route_host_and_layout(screen, monkeypatch, fault):
+    root, receipt, source = screen
+    image, _, host = receipt["pins"][:3]
+    monkeypatch.setattr(warm, "BALANCED_HOST_SHA256", host["sha256"])
+    monkeypatch.setattr(wall, "GR_HOST", host["sha256"])
+    inputs = receipt["workload"]
+    out = root / "su"
+    out.mkdir()
+    log = ("CC_BALANCED_PRELOAD hot_vertices=0 hot_edges=0 update_margin=16\n"
+           "CC_LAYOUT_PASS max_n=32 family_words=44 graph_aligned_bytes=64 workspace_aligned_bytes=128\n")
+    (out / "layout.stdout.txt").write_text(log)
+    command = [host["path"], "--layout-only", "--hot", "balanced", "--slice", inputs["graph"]["path"],
+               "--update", inputs["update"]["path"]]
+    run = dict(command=command, cwd=str(out), exit_code=0, stop_reason="process_exit",
+               cleanup_snapshot_error=None, cleanup_signaled_pids=[])
+    report = dict(status="LAYOUT_PASS_OFFLINE", performance_admission=False, host=host,
+                  rows={"su": dict(input=inputs.copy(), counts=layout.layout_counts(log, 16), execution=run)})
+    if fault == "host":
+        report["host"] = image
+    elif fault == "route":
+        (root / warm.TIMING).write_text("timing failed\n")
+    elif fault == "workload":
+        report["rows"]["su"]["input"]["update"] = image
+    elif fault == "command":
+        run["command"][2:4] = ["--hot", "0"]
+    elif fault == "counts":
+        (out / "layout.stdout.txt").write_text(log.replace("max_n=32", "max_n=31"))
+    layout_path, packet = root / "layout.json", root / "packet.json"
+    save(out / "layout.resources.json", run)
+    save(layout_path, report)
+    save(packet, dict(spine_host=host["path"], spine_binary=image["path"], gr_host=host["path"],
+                      inputs=str(root / "inputs.json")))
+    args = Namespace(algorithm="cc", cc_wall_packet=packet, cc_warm_layout=layout_path)
+    case = dict(dataset="SU", graph=source["path"], vertices=515281, edges=679246, updates=16)
+    if fault:
+        with pytest.raises(ValueError):
+            wall.configure(args, case, [source])
+    else:
+        configured, pins = wall.configure(args, case, [source])
+        assert configured["spine_binary"] == image["path"]
+        assert identity(layout_path) in pins
+        assert identity(root / warm.TIMING) in pins
+        assert "--samples" in wall.commands(configured | {"source": 0}, {"image": image}, out)["spine"]
+
+
+def test_warm_non_au_runner_cannot_enter_board_without_additional_controls(tmp_path, monkeypatch):
+    resident = queue.resident
+    receipt = tmp_path / "layout.json"
+    save(receipt, {})
+    pin = identity(receipt)
+    gate = {"host": pin, "image": pin, "g": {"candidate_clock": {"bdf": warm.BDF},
+                                           "report": pin, "reference": pin}, "r": {"report": pin}}
+    monkeypatch.setattr(admission, "admit", lambda *args: gate)
+    monkeypatch.setattr(resident, "frozen_case", lambda *args: ({}, []))
+    monkeypatch.setattr(wall, "configure", lambda *args, **kwargs: ({}, [pin]))
+    monkeypatch.setattr(wall, "commands", lambda *args: {})
+    args = Namespace(algorithm="cc", dataset="SU", output=tmp_path / "run", previous=None, route=None,
+                     host=None, r_report=None, r_inputs=None, g_report=None, g_reference=None, wait_seconds=0,
+                     cc_wall_packet=receipt, cc_warm_layout=receipt)
+    with pytest.raises(ValueError, match="both the odd Amazon and AU topology R gates"):
+        resident.run(args)
+    assert not (args.output / "spine.stdout.txt").exists()
 
 
 def test_odd_admission_uses_the_producers_identity_schema(tmp_path, monkeypatch):

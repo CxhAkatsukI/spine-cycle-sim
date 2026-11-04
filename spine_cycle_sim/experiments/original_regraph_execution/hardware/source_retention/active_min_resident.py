@@ -136,6 +136,10 @@ def run(args):
             raise ValueError("admission replay used a different producer receipt")
         case, pins = frozen_case(args.previous, args.algorithm, args.dataset)
         retained = getattr(args, "cc_warm_au_receipt", None)
+        warm_layout = getattr(args, "cc_warm_layout", None)
+        warm_cc = retained is not None or warm_layout is not None
+        if warm_cc and (not cc_wall or args.algorithm != "cc" or bdf != spine_cc_warm_receipt.BDF):
+            raise ValueError("the warm CC hosts require the matched wall scope and the qualified card")
         retained_spine = None
         if retained is not None:
             if not cc_wall or (args.algorithm, args.dataset) != ("cc", "AU"):
@@ -152,6 +156,10 @@ def run(args):
         if cc_wall:
             case, added_pins = cc_resident_wall.configure(args, case, pins, retained_spine=retained_spine)
             pins += added_pins
+            if warm_layout is not None:
+                report["warm_layout"] = identity(warm_layout)
+                if report["warm_layout"] not in added_pins:
+                    raise ValueError("warm layout receipt changed after admission")
             report.update(boundary=cc_resident_wall.BOUNDARY,
                           gr_host_overlay="15717a5928929cafd39dbf5a3f7fc1aaf18d167a",
                           gr_host_overlay_environment={"GRASU_SHARDED_RESIDENT_BATCH_WALL": "1"})
@@ -170,8 +178,8 @@ def run(args):
         controls = getattr(args, "additional_r", ())
         warm_controls = getattr(args, "cc_warm_r_controls", None)
         if warm_controls is not None:
-            if retained_spine is None or controls:
-                raise ValueError("warm CC R controls require a retained AU arm and no other controls")
+            if not warm_cc or controls:
+                raise ValueError("warm CC R controls require a warm CC host and no other controls")
             odd_receipt, odd_inputs, au_receipt, au_inputs = warm_controls
             fixture, queue, odd_pin = active_min_admission.pin_odd_queue(odd_receipt, odd_inputs)
             pins += [fixture, queue]
@@ -191,7 +199,7 @@ def run(args):
             pins.append(receipt)
         if additional_r:
             report["additional_r_gates"] = additional_r
-        if retained_spine is not None:
+        if warm_cc:
             if warm_controls is None or set(additional_r) != {"amazon_odd", "au_slice"}:
                 raise ValueError("the warm CC pair needs both the odd Amazon and AU topology R gates")
             if len({row["report"]["sha256"] for row in (gate["r"], *additional_r.values())}) != 3:
@@ -208,7 +216,7 @@ def run(args):
         if retained_spine is None:
             images["spine"] = case["spine_binary"]
         expected = {name: clocks.image(path, args.output, name) for name, path in images.items()}
-        affinity = (list(spine_cc_warm_receipt.AFFINITY) if retained_spine is not None
+        affinity = (list(spine_cc_warm_receipt.AFFINITY) if warm_cc
                     else sorted(os.sched_getaffinity(0))[:4])
         if not set(affinity).issubset(os.sched_getaffinity(0)):
             raise ValueError("resident host cannot use the retained CPU affinity")
@@ -283,7 +291,9 @@ def parse_arguments(argv=None, *, extend=None):
     comparison = parser.add_mutually_exclusive_group(required=True)
     comparison.add_argument("--comparator", type=lambda value: Path(value).resolve())
     comparison.add_argument("--cc-wall-packet", type=lambda value: Path(value).resolve())
-    parser.add_argument("--cc-warm-au-receipt", type=lambda value: Path(value).resolve())
+    warm = parser.add_mutually_exclusive_group()
+    warm.add_argument("--cc-warm-au-receipt", type=lambda value: Path(value).resolve())
+    warm.add_argument("--cc-warm-layout", type=lambda value: Path(value).resolve())
     parser.add_argument("--cc-warm-r-controls", nargs=4, type=lambda value: Path(value).resolve(),
                         metavar=("ODD_RECEIPT", "ODD_INPUTS", "AU_RECEIPT", "AU_INPUTS"))
     parser.add_argument("--wait-seconds", type=int, default=0)

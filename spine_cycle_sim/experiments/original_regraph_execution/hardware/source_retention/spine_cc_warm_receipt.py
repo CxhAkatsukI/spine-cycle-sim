@@ -12,6 +12,7 @@ from .runtime import identity
 
 ABI = "85808e123f78044eee0905e0f87f19b41b338562f84d10fb200aac43249e5a3f"
 HOST_SHA256 = "3f967b7ef10c0ce9bd44ac0ade280e464d7918d1e35a1242b9e690356f61ea10"
+BALANCED_HOST_SHA256 = "aa265331a1e292dd8e2bd91d961bd9b3fdb2a1471aa29ba8983410313a223582"
 RUNNER_SHA256 = "174fdc4e61ed911b517d303ead7e3ab499d083617611cd4907e72b885602fc80"
 INPUTS_SHA256 = "87120570af93f6e659a3ebec45207db475ba83d5c7c194d37c80b104f744ae2e"
 ROUTE_INVOCATION = "79463b9047ac4062810a42e50befc9aa"
@@ -19,7 +20,7 @@ BDF, AFFINITY = "0000:82:00.1", (124, 125)
 TIMING = "impl_1_hw_bb_locked_timing_summary_postroute_physopted.rpt"
 
 
-def _route_pins(binary):
+def route_pins(binary):
     image = Path(binary["path"])
     paths = [image.with_suffix(image.suffix + ".weighted-manifest"), image.parent / "remote-systemd.txt",
              image.parent / TIMING, image.parent / "bus_skew_routed.rpt"]
@@ -65,8 +66,8 @@ def replay(receipt, frozen_source, *, bdf, affinity):
     evidence = data["clock_evidence"]
     clock = clocks.replay(evidence)
     binary = clock["binary"]
-    route_pins = _route_pins(binary)
-    if clock["bdf"] != bdf or binary not in pins or route_pins[0] not in pins:
+    route_evidence = route_pins(binary)
+    if clock["bdf"] != bdf or binary not in pins or route_evidence[0] not in pins:
         raise ValueError("measured image or card differs from the warm CC route")
     command = ["/usr/bin/taskset", "-c", "124,125", hosts[0]["path"], "--xclbin", binary["path"],
                "--hot", "0", "--mode", "partial", "--samples", "1", "--slice", workload["graph"]["path"],
@@ -77,7 +78,7 @@ def replay(receipt, frozen_source, *, bdf, affinity):
         raise ValueError("expected one successful cold-layout warm-state sample")
     board_memory.require_unthrottled(data["memory_events"])
     stdout, stderr = data["stdout"], data["stderr"]
-    all_pins = [receipt, *pins, *route_pins[1:], stdout, stderr]
+    all_pins = [receipt, *pins, *route_evidence[1:], stdout, stderr]
     unchanged([stdout, stderr])
     log = Path(stdout["path"]).read_text()
     cc_resident_results.validate_spine(workload, log.splitlines())

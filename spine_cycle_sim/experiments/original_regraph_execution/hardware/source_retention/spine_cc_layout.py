@@ -13,6 +13,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 
 from . import spine_cc_input
+from .follow import unchanged
 from .runtime import identity, save
 
 
@@ -49,6 +50,37 @@ def layout(host, data, output, memory):
         raise RuntimeError("CC layout check failed; raw logs retained")
     return {"counts": layout_counts((output / "layout.stdout.txt").read_text(), data["updates"]),
             "execution": run}
+
+
+def replay(receipt, dataset, *, host, inputs, frozen):
+    """Verify a completed offline layout against exact host and workload pins."""
+    journal = identity(receipt)
+    report = json.loads(Path(journal["path"]).read_text())
+    if (report["status"], report["performance_admission"], report["host"]) != (
+            "LAYOUT_PASS_OFFLINE", False, host):
+        raise ValueError("expected a completed layout for the exact host")
+    case = dataset.lower()
+    if case not in report["rows"]:
+        raise ValueError("layout receipt did not cover the requested dataset")
+    row = report["rows"][case]
+    manifest = identity(inputs)
+    data = json.loads(Path(manifest["path"]).read_text())
+    if data != row["input"] or data["source"] != frozen:
+        raise ValueError("layout receipt did not use the frozen workload and split inputs")
+    root = Path(journal["path"]).parent / case
+    stdout = identity(root / "layout.stdout.txt")
+    resources = identity(root / "layout.resources.json")
+    run = json.loads(Path(resources["path"]).read_text())
+    command = [host["path"], "--layout-only", "--hot", "balanced", "--slice", data["graph"]["path"],
+               "--update", data["update"]["path"]]
+    counts = layout_counts(Path(stdout["path"]).read_text(), data["updates"])
+    if (run != row["execution"] or (run["command"], run["cwd"], run["exit_code"], run["stop_reason"],
+            run["cleanup_snapshot_error"], run["cleanup_signaled_pids"]) != (
+                command, str(root), 0, "process_exit", None, []) or counts != row["counts"]):
+        raise ValueError("offline layout command or result does not replay")
+    pins = [journal, manifest, host, frozen, data["graph"], data["update"], stdout, resources]
+    unchanged(pins)
+    return counts, pins
 
 
 def wait_for_inputs(inputs, datasets, deadline):

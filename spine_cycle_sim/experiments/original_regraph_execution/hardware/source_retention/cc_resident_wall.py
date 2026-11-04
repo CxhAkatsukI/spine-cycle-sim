@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from . import cc_resident_results
+from . import cc_resident_results, spine_cc_layout, spine_cc_warm_receipt
 from .follow import unchanged
 from .runtime import identity, save
 
@@ -20,14 +20,19 @@ def configure(args, case, pins, *, retained_spine=None):
     packet = args.cc_wall_packet
     pin = identity(packet)
     paths = json.loads(packet.read_text())
+    layout = getattr(args, "cc_warm_layout", None)
+    if layout is not None and (retained_spine is not None or case["dataset"] == "AU"):
+        raise ValueError("warm layout is for new non-AU measurements, not the retained AU arm")
     expected = {"spine_host": SPINE_HOST, "spine_binary": IMAGE, "gr_host": GR_HOST}
     if retained_spine is not None:
         expected.update(spine_host=identity(retained_spine["command"][3])["sha256"],
                         spine_binary=retained_spine["clock"]["binary"]["sha256"])
+    elif layout is not None:
+        expected.update(spine_host=spine_cc_warm_receipt.BALANCED_HOST_SHA256, spine_binary=None)
     if set(paths) != expected.keys() | {"inputs"}:
         raise ValueError("unexpected CC wall packet members")
     binaries = {name: identity(paths[name]) for name in expected}
-    if any(binaries[name]["sha256"] != sha for name, sha in expected.items()):
+    if any(binaries[name]["sha256"] != sha for name, sha in expected.items() if sha is not None):
         raise ValueError("expected the qualified CC image and wall host binaries")
     if retained_spine is not None and (binaries["spine_host"]["path"] != retained_spine["command"][3]
                                        or binaries["spine_binary"] != retained_spine["clock"]["binary"]):
@@ -43,6 +48,12 @@ def configure(args, case, pins, *, retained_spine=None):
         raise ValueError("wall packet does not match the retained Spine inputs")
     new_pins = [pin, inputs, *binaries.values(), split["graph"], split["update"], identity(__file__),
                 identity(cc_resident_results.__file__)]
+    if layout is not None:
+        route_pins = spine_cc_warm_receipt.route_pins(binaries["spine_binary"])
+        _, layout_pins = spine_cc_layout.replay(layout, case["dataset"], host=binaries["spine_host"],
+                                                inputs=inputs["path"], frozen=source)
+        new_pins += [*route_pins, *layout_pins, identity(spine_cc_layout.__file__),
+                     identity(spine_cc_warm_receipt.__file__)]
     unchanged(new_pins)
     return dict(case, **{name: row["path"] for name, row in binaries.items()},
                 graph_slice=split["graph"]["path"], update_slice=split["update"]["path"],
