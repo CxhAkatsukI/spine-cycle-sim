@@ -51,6 +51,17 @@ The more recent readable generalized build trees contained `sw_emu` and
 `hw_emu` images, not a later admitted routed three-algorithm set. They must
 not silently replace FPGA measurements.
 
+The generalized-engine checkout also contains October-dated
+`tiny-active.final172.hw.xclbin` and `tiny-active.scaled175.hw.xclbin`
+entries under `openspec/changes/tiny-active-convergence-fast-path/artifacts/hw/`.
+Both files are 133-byte Git LFS pointers; the adjacent `validation.md`
+identifies their underlying hardware builds as July 9, not October builds.
+On seele, the newest readable CC repair image found under
+`/data/feiyang/spine-seele-cc-builds/` is
+`cc-hw-20261016-v2/output/spine_partitioned_split_e2e.cc_repair.hw.xclbin`.
+Its SHA-256 is the same `4071c0f7...e64c62` as the local candidate above,
+so it is another copy, not a new revision.
+
 ## Current Candidate Check
 
 The native host is
