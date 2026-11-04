@@ -103,13 +103,17 @@ passed the cgroup check and entered memory admission with the existing
 | Route return | `seele-return-v2-respr-tail-source-bursts/transfer.json` | `return-respr-tail-bursts-20261104-v3` | `3c1e947cc3ee4643b6e560a46cc4fa78` |
 | R, one candidate run per frozen A4 reference case | `tail-bursts-follow-v2/results.json` | `r-tail-bursts-20261104-v3` | `c5faa4f8979d4aee97c86ad8b55f7f95` |
 | Independent G on the exact R-screened image | `g-tail-bursts-v2/results.json` | `g-tail-bursts-20261104-v3` | `d35ffd4d98884e90b748092516c737c7` |
-| ResPR resident R19/Flickr, first jointly admitted tail variant | `resident-joint-board-v4/results.json` | `resident-joint-v4-20261104` | `5799fd756d414e5eb38bc60ff3c2209c` |
+| ResPR resident R19/Flickr, first jointly admitted tail variant | `resident-joint-board-v5/results.json` | `resident-joint-v5-20261104` | `6605064cdc3144948cd155cee3b06963` |
+| ResPR resident, seven remaining matrix graphs | `respr-matrix-v3/results.json` | `respr-matrix-v3-20261104` | `4598e1f22b5446dabd4749f2470f9e0d` |
 
-The last queue replaced v3 before any board launch, dropping the rejected
-cached candidate and keeping both the original and burst tail variants.
-It runs one matched comparison per fixture, after both G and R gates
-pass on the same image. It is a two-fixture screen, not the eight-graph
-ResPR result.
+The resident queue superseded v3 before any board launch, dropping the
+rejected cached candidate and keeping both the original and burst tail
+variants. Its first restart failed the board runner's cgroup size check
+before either arm ran; v5 uses the required 8 GiB cap. It runs one matched
+comparison per fixture after both G and R gates pass on the same image.
+The matrix then replays those gates and uses the selected image for the
+seven remaining graphs. It does not repeat R19 or count Flickr among the
+eight graphs.
 
 ## Public A4 Weighted SSSP Control
 
