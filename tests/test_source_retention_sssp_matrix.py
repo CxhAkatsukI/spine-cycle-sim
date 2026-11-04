@@ -17,7 +17,7 @@ class SsspMatrixTest(unittest.TestCase):
         self.args = SimpleNamespace(
             **{key: self.root / key for key in matrix.INPUTS},
             output=self.root / "output", algorithm=matrix.ALGORITHM, dataset="AU",
-            cc_wall_packet=None, au_unit="au.service", au_invocation="a" * 32,
+            cc_wall_packet=None, au_unit="au.service", au_invocation="a" * 32, au_output=self.root / "au",
             odd_unit="odd.service", odd_invocation="b" * 32, child_prefix="sssp-test",
             wait_seconds=0, au_wait_seconds=1,
         )
@@ -51,6 +51,33 @@ class SsspMatrixTest(unittest.TestCase):
         journal = json.loads((self.args.output / "matrix.json").read_text())
         self.assertEqual(journal["status"], "FAILED_RETAINED")
         self.assertEqual({row["status"] for row in journal["cases"].values()}, {"NOT_REQUESTED"})
+
+    def test_complete_matrix_requires_exact_three_producer_receipts(self):
+        self.args.include_au = True
+        self.args.au_unit = self.args.au_invocation = self.args.au_output = None
+        odd = {"report": self.pins[-1]}
+        jobs = {key: dict(unit=f"{key}.service", receipt=row["report"]) for key, row in
+                (("g", self.gate["g"]), ("r", self.gate["r"]), ("odd", odd))}
+        with patch.object(matrix.resident_matrix, "stage_jobs", return_value=jobs), \
+                patch.object(matrix.follow, "ready", return_value=True) as ready, \
+                patch.object(matrix, "admitted_au") as legacy, \
+                patch.object(matrix, "admitted_odd", return_value=(odd, [])), \
+                patch.object(matrix, "run_child", return_value={"status": matrix.MEASURED}) as launch:
+            report = matrix.run(self.args)
+        legacy.assert_not_called()
+        self.assertEqual(ready.call_count, 3)
+        self.assertEqual(list(report["cases"]), list(matrix.resident.DATASETS))
+        self.assertEqual([call.args[3] for call in launch.call_args_list], list(matrix.resident.DATASETS))
+        self.assertEqual(report["status"], "MEASURED_SSSP_MATRIX")
+
+        self.args.output = self.root / "mismatch"
+        jobs["g"]["receipt"] = odd["report"]
+        with patch.object(matrix.resident_matrix, "stage_jobs", return_value=jobs), \
+                patch.object(matrix, "admitted_odd", return_value=(odd, [])), \
+                patch.object(matrix, "run_child") as launch:
+            with self.assertRaisesRegex(ValueError, "exact producer receipts"):
+                matrix.run(self.args)
+        launch.assert_not_called()
 
     def test_one_job_per_dataset_and_no_retry_on_failure(self):
         launched = []

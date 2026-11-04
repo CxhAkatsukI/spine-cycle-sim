@@ -70,6 +70,16 @@ def ready(name, route, state, invocation, observed, algorithm):
     return True
 
 
+def completed_reference(route, digest, algorithm):
+    pin = artifact.identity(route / "results.json")
+    receipt = json.loads(Path(pin["path"]).read_text())
+    snapshot.unchanged([pin])
+    if (pin["sha256"], receipt.get("status")) != (
+            digest, configuration.routed_status("a4", algorithm=algorithm)):
+        raise ValueError("completed reference digest or routed status does not match")
+    return pin
+
+
 def returned_ready(name, route, digest, state, invocation, observed):
     if state["LoadState"] == "loaded":
         if not route_finished(state, invocation):
@@ -124,14 +134,17 @@ def run(args):
         prior = getattr(args, "after_pair", [])
         odd = getattr(args, "odd_fixture", None)
         if odd:
-            if len(prior) != 2 or len({row[0] for row in prior}) != 2 or not args.board_wait_seconds:
-                raise ValueError("high-activity run requires both earlier pairs and bounded board admission")
+            if not 1 <= len(prior) <= 2 or len({row[0] for row in prior}) != len(prior) or not args.board_wait_seconds:
+                raise ValueError("high-activity run requires distinct earlier pairs and bounded board admission")
             pins.append(fixture_pin(args, pins[2:]))
         returned = {arm: return_parameters(getattr(args, "returned_" + arm, None),
                                            getattr(args, "pending_return_" + arm, None), pins)
                     for arm in ("reference", "candidate")}
         if not returned["candidate"]:
             pins.append(artifact.identity(args.candidate_route / "manifest.json"))
+        completed = getattr(args, "completed_reference", None)
+        if completed and (returned["reference"] or args.reference_unit or args.reference_invocation):
+            raise ValueError("choose a completed reference or an exact reference service")
         pins += runner_pins()
         report["pins"] = pins
         report["earlier_pairs"] = []
@@ -143,12 +156,19 @@ def run(args):
             unit = getattr(args, arm + "_unit")
             invocation = getattr(args, arm + "_invocation")
             route = getattr(args, arm + "_route")
+            if arm == "reference" and completed:
+                pin = completed_reference(route, completed, args.algorithm)
+                pins.append(pin)
+                report["routes"][arm] = dict(route=str(route), completed_receipt=pin, ready=True)
+                continue
             exact_service(unit, invocation)
             report["routes"][arm] = {"unit": unit, "invocation": invocation, "route": str(route), "observed": False}
         deadline = time.monotonic() + args.wait_seconds
         while True:
             report["status"] = "WAITING_FOR_BOTH_ROUTES"
             for arm, row in report["routes"].items():
+                if "completed_receipt" in row:
+                    continue
                 state = service_state(row["unit"])
                 row["state"] = state
                 row["observed"] |= state["LoadState"] == "loaded" and state["InvocationID"] == row["invocation"]
@@ -193,8 +213,9 @@ def run(args):
 
 def wait_arguments(parser):
     for arm in ("reference", "candidate"):
-        parser.add_argument(f"--{arm}-unit", required=True)
-        parser.add_argument(f"--{arm}-invocation", required=True)
+        parser.add_argument(f"--{arm}-unit", default="", required=arm == "candidate")
+        parser.add_argument(f"--{arm}-invocation", default="", required=arm == "candidate")
+    parser.add_argument("--completed-reference", metavar="RESULTS_SHA256")
     parser.add_argument("--wait-seconds", type=int, default=108000)
     parser.add_argument("--board-wait-seconds", type=int, default=0)
     parser.add_argument("--after-pair", action="append", nargs=3, default=[], metavar=("UNIT", "INVOCATION", "JOURNAL"))

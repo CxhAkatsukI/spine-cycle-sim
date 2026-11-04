@@ -11,6 +11,18 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execu
 
 
 class ActiveMinQueueTests(unittest.TestCase):
+    def test_completed_reference_binds_the_approved_local_receipt(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "results.json"
+            status = active_min_follow.configuration.routed_status("a4", algorithm="weighted_sssp")
+            receipt.write_text(json.dumps(dict(status=status)))
+            pin = artifact.identity(receipt)
+            self.assertEqual(active_min_follow.completed_reference(root, pin["sha256"], "weighted_sssp"), pin)
+            for digest, algorithm in (("a" * 64, "weighted_sssp"), (pin["sha256"], "cc")):
+                with self.subTest(algorithm=algorithm), self.assertRaisesRegex(ValueError, "completed reference"):
+                    active_min_follow.completed_reference(root, digest, algorithm)
+
     def test_pending_return_binds_digest_only_after_exact_collector_succeeds(self):
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

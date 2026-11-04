@@ -1,4 +1,4 @@
-"""Queue seven single-pass resident SSSP FPGA pairs after the exact AU screen."""
+"""Queue single-pass resident SSSP FPGA pairs after exact hardware gates."""
 
 import json
 from pathlib import Path
@@ -9,6 +9,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
     route_finished, runner_pins, service_state,
 )
 from . import active_min_admission, active_min_resident as resident, resident_matrix
+from . import active_min_resident_follow as follow
 from .follow import unchanged
 from .resident_matrix import INPUTS as GATE_INPUTS, MEASURED, admitted_odd, child_command, run_child
 from .runtime import identity, save
@@ -36,30 +37,43 @@ def admitted_au(args, gate):
     return pins
 
 
-def run(args):
-    if (args.algorithm, args.dataset, args.cc_wall_packet) != (ALGORITHM, "AU", None):
-        raise ValueError("the matrix follows the AU weighted-SSSP screen only")
+def legacy_jobs(args):
     prerequisites = {
         "au": {"unit": args.au_unit, "invocation": args.au_invocation},
         "odd_r": {"unit": args.odd_unit, "invocation": args.odd_invocation},
     }
-    if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,75}", args.child_prefix)
-            or not 1 <= args.au_wait_seconds <= 144000 or not 0 <= args.wait_seconds <= 21600
-            or any(not (re.fullmatch(r"[0-9a-f]{32}", row["invocation"]) and
-                        re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", row["unit"]))
-                   for row in prerequisites.values())):
+    if not args.au_output or any(not (re.fullmatch(r"[0-9a-f]{32}", row["invocation"]) and
+            re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", row["unit"]))
+            for row in prerequisites.values()):
         raise ValueError("exact AU and odd-frontier R invocations and bounded waits required")
+    for row in prerequisites.values():
+        if route_finished(service_state(row["unit"]), row["invocation"]):
+            raise ValueError("enqueue while both pinned screens are active")
+    return prerequisites
+
+
+def run(args):
+    if (args.algorithm, args.dataset, args.cc_wall_packet) != (ALGORITHM, "AU", None):
+        raise ValueError("expected the AU weighted-SSSP matrix template")
+    include_au = getattr(args, "include_au", False)
+    if include_au and (args.au_unit or args.au_invocation or args.au_output):
+        raise ValueError("choose the complete matrix or a separate AU screen")
+    if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,75}", args.child_prefix)
+            or not 1 <= args.au_wait_seconds <= 144000 or not 0 <= args.wait_seconds <= 21600):
+        raise ValueError("expected a valid service prefix and bounded waits")
     args.output.mkdir(parents=True, exist_ok=False)
     journal = args.output / "matrix.json"
-    rows = {ds: {"status": "NOT_REQUESTED"} for ds in resident.DATASETS if ds != "AU"}
-    report = dict(status="WAITING_FOR_AU_AND_ODD_R", cases=rows, prerequisites=prerequisites,
+    rows = {ds: {"status": "NOT_REQUESTED"} for ds in resident.DATASETS if include_au or ds != "AU"}
+    waiting = "WAITING_FOR_G_AND_BOTH_R_GATES" if include_au else "WAITING_FOR_AU_AND_ODD_R"
+    report = dict(status=waiting, cases=rows,
                   repetitions_per_arm=1, warmups=0)
     save(journal, report)
     try:
-        for row in prerequisites.values():
-            if route_finished(service_state(row["unit"]), row["invocation"]):
-                raise ValueError("enqueue while both pinned screens are active")
+        prerequisites = resident_matrix.stage_jobs(args) if include_au else legacy_jobs(args)
+        report["prerequisites"] = prerequisites
         pins = [*runner_pins(), identity(__file__), identity(resident_matrix.__file__)]
+        if include_au:
+            pins.append(identity(follow.__file__))
         report["runner_pins"] = pins
         for ds, row in rows.items():
             case, case_pins = resident.frozen_case(args.previous, ALGORITHM, ds)
@@ -67,26 +81,35 @@ def run(args):
         save(journal, report)
         deadline = time.monotonic() + args.au_wait_seconds
         while True:
-            for row in prerequisites.values():
+            for key, row in prerequisites.items():
                 if not row.get("ready"):
                     state = service_state(row["unit"])
-                    collected = state["LoadState"] == "not-found" and not state["InvocationID"]
-                    row.update(state=state, ready=collected or route_finished(state, row["invocation"]))
+                    if include_au:
+                        row["ready"] = follow.ready(row, state, follow.STAGE_PASS["r" if key == "odd" else key],
+                                                   ALGORITHM)
+                    else:
+                        collected = state["LoadState"] == "not-found" and not state["InvocationID"]
+                        row.update(state=state, ready=collected or route_finished(state, row["invocation"]))
             save(journal, report)
             if all(row["ready"] for row in prerequisites.values()):
                 break
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise TimeoutError("AU and odd-frontier R did not both finish before deadline")
+                raise TimeoutError("SSSP matrix prerequisites did not finish before deadline")
             time.sleep(min(30, remaining))
         unchanged(pins)
         gate = active_min_admission.admit(ALGORITHM, args.route, args.host, args.r_report,
                                           args.r_inputs, args.g_report, args.g_reference)
-        au_pins = admitted_au(args, gate)
         odd, odd_pins = admitted_odd(args, gate)
-        pins += au_pins + odd_pins
+        if include_au:
+            resident_matrix.check_stage_receipts(prerequisites, gate, odd)
+        else:
+            au_pins = admitted_au(args, gate)
+            pins += au_pins
+            report["au_result"] = au_pins[1]
+        pins += odd_pins
         pins += [gate["r"]["report"], gate["g"]["report"], gate["g"]["reference"], gate["host"], gate["image"]]
-        report.update(status="RUNNING_SINGLE_PASS", baseline=gate, au_result=au_pins[1], odd_r=odd)
+        report.update(status="RUNNING_SINGLE_PASS", baseline=gate, odd_r=odd)
         for ds, row in rows.items():
             unchanged([*pins, *row["pins"]])
             output = args.output / ds.lower()
@@ -107,9 +130,11 @@ def run(args):
 
 
 def arguments(parser):
-    parser.add_argument("--au-unit", required=True)
-    parser.add_argument("--au-invocation", required=True)
-    parser.add_argument("--au-output", type=lambda value: Path(value).resolve(), required=True)
+    parser.add_argument("--include-au", action="store_true", help="run all eight once after exact G and both R gates")
+    for stage in ("au", "g", "r"):
+        parser.add_argument(f"--{stage}-unit", default="")
+        parser.add_argument(f"--{stage}-invocation", default="")
+    parser.add_argument("--au-output", type=lambda value: Path(value).resolve())
     parser.add_argument("--au-wait-seconds", type=int, default=140400)
     parser.add_argument("--odd-unit", required=True)
     parser.add_argument("--odd-invocation", required=True)

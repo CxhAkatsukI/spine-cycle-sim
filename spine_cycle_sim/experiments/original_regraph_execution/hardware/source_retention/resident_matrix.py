@@ -2,18 +2,45 @@
 
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
+from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import (
+    route_finished, service_state,
+)
 from .. import artifact
 from ..board_execution import active_min_follow
-from . import active_min_admission, active_min_resident as resident
+from . import active_min_admission, active_min_resident as resident, active_min_resident_follow as follow
 from .follow import unchanged
 from .runtime import identity
 
 
 MEASURED = "MEASURED_RESIDENT_PAIR"
 INPUTS = ("previous", "route", "host", "r_report", "r_inputs", "g_report", "g_reference")
+
+
+def stage_jobs(args):
+    reports = dict(g=args.g_report, r=args.r_report, odd=args.odd_output / "pair/results.json")
+    jobs = {}
+    for key, path in reports.items():
+        unit, invocation = getattr(args, key + "_unit"), getattr(args, key + "_invocation")
+        if not (re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit)
+                and re.fullmatch(r"[0-9a-f]{32}", invocation)):
+            raise ValueError("expected exact hardware gate service and invocation")
+        state = service_state(unit)
+        if (state["LoadState"] != "loaded" or state["InvocationID"] != invocation
+                or route_finished(state, invocation) or (path.is_file() and
+                    json.loads(path.read_text()).get("status") not in follow.PENDING.get(key, ()))):
+            raise ValueError(f"enqueue while {key} producer is live and its receipt is nonterminal")
+        jobs[key] = dict(unit=unit, invocation=invocation, report_path=str(path), observed=True, state=state)
+    return jobs
+
+
+def check_stage_receipts(jobs, gate, odd):
+    if any(row["report"] != jobs[key]["receipt"] for key, row in
+           (("r", gate["r"]), ("g", gate["g"]), ("odd", odd))):
+        raise ValueError("the raw gate replay did not use the exact producer receipts")
 
 
 def admitted_odd(args, gate):

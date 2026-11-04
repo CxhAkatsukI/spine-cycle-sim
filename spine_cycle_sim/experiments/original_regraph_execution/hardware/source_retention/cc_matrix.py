@@ -7,11 +7,12 @@ import re
 import time
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import (
-    route_finished, runner_pins, service_state,
+    runner_pins, service_state,
 )
 from . import active_min_admission, active_min_resident as resident, active_min_resident_follow as follow
 from . import cc_resident_wall, resident_matrix, spine_cc_layout
 from .follow import unchanged
+from .resident_matrix import stage_jobs
 from .runtime import identity, save
 
 
@@ -68,23 +69,6 @@ def wait_for_layout(args, deadline):
         time.sleep(min(30, remaining))
 
 
-def stage_jobs(args):
-    reports = dict(g=args.g_report, r=args.r_report, odd=args.odd_output / "pair/results.json")
-    jobs = {}
-    for key, path in reports.items():
-        unit, invocation = getattr(args, key + "_unit"), getattr(args, key + "_invocation")
-        if not (re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit)
-                and re.fullmatch(r"[0-9a-f]{32}", invocation)):
-            raise ValueError("expected exact hardware gate service and invocation")
-        state = service_state(unit)
-        if (state["LoadState"] != "loaded" or state["InvocationID"] != invocation
-                or route_finished(state, invocation) or (path.is_file() and
-                    load(path).get("status") not in follow.PENDING.get(key, ()))):
-            raise ValueError(f"enqueue while {key} producer is live and its receipt is nonterminal")
-        jobs[key] = dict(unit=unit, invocation=invocation, report_path=str(path), observed=True, state=state)
-    return jobs
-
-
 def run(args):
     small = {ds: (Path(inputs).resolve(), Path(log).resolve()) for ds, inputs, log in args.small}
     if (args.algorithm, args.dataset) != ("cc", "R19") or args.cc_wall_packet is None or (
@@ -134,9 +118,7 @@ def run(args):
         gate = active_min_admission.admit("cc", args.route, args.host, args.r_report,
                                           args.r_inputs, args.g_report, args.g_reference)
         odd, odd_pins = resident_matrix.admitted_odd(args, gate)
-        if any(row["report"] != jobs[key]["receipt"] for key, row in
-               (("r", gate["r"]), ("g", gate["g"]), ("odd", odd))):
-            raise ValueError("the raw gate replay did not use the exact producer receipts")
+        resident_matrix.check_stage_receipts(jobs, gate, odd)
         pins.extend([*odd_pins, gate["host"], gate["image"], gate["g"]["reference"]])
         report.update(status="RUNNING_SINGLE_PASS", baseline=gate, odd_r=odd)
         campaign = None
