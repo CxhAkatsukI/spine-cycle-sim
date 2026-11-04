@@ -14,7 +14,7 @@ inputs are under `inputs/<case>` and route attempts are under `builds/`.
 | --- | --- | --- | --- |
 | SSSP | `sssp-v2` | `sssp-20261104-v2` | `fdbc4adab9744df19243e2f47dc53ce2` |
 | CC | `cc-v2` | `cc-20261104-v2` | `f48048524d464a52bbb29a7d5e915dd5` |
-| ResPR, directory spans | `respr` | `respr-20261104-v1` | `10993eafdc354a6fb94254c72aecad24` |
+| ResPR, directory spans (stopped before board admission) | `respr` | `respr-20261104-v1` | `10993eafdc354a6fb94254c72aecad24` |
 | ResPR, tail publication | `respr-tail` | `respr-tail-20261104-v1` | `33c5cc4e09c3423c900c9a80c9dfae49` |
 | ResPR, tail publication and source-read bursts | `respr-tail-source-bursts-v2` | `respr-tail-bursts-20261104-v2` | `393500a5963249a1a9d7bcebdcfeb934` |
 
@@ -96,7 +96,12 @@ The HBM 23/24 mappings and the existing ResPR host stay fixed. The capsule
 SHA-256 is `d40f4e7e9ebe69b2398a412d4632ee6fa44c51f261b5de1726bb3fcb103c3847`.
 The first remote launch failed containment before starting a link; v2
 passed the cgroup check and entered memory admission with the existing
-128 GiB reserve. Failed launch logs are retained.
+128 GiB reserve. To free a build reservation, the directory-span-only
+ResPR link was stopped before producing an admitted image. Its fixed
+publication floor on the skewed fixture (0.655360 ms at 150 MHz) already
+exceeds the 0.530418 ms gate. The tail variant removes that particular
+lower-bound failure; it still needs a board measurement. Both build logs
+are retained.
 
 | Queue | Receipt under local check root | Local service suffix | Invocation |
 | --- | --- | --- | --- |
