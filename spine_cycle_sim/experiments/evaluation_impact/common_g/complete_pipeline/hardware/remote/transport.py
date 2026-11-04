@@ -34,11 +34,14 @@ class Remote:
     @property
     def ssh(self):
         return ["ssh", "-p", str(self.port), "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
-                "-o", "ServerAliveInterval=10", "-o", "ServerAliveCountMax=3"]
+                "-o", "ServerAliveInterval=10", "-o", "ServerAliveCountMax=3",
+                "-o", "StrictHostKeyChecking=yes"]
 
     def command(self, argv, *, timeout):
         result = subprocess.run([*self.ssh, self.target, shlex.join(map(str, argv))],
                                 capture_output=True, text=True, timeout=timeout)
+        if result.returncode == 255:
+            raise ConnectionError(f"SSH connection failed: {result.stderr[-4000:]}")
         if result.returncode:
             raise RuntimeError(f"remote command failed ({result.returncode}): {result.stderr[-4000:]}")
         return result.stdout
@@ -52,14 +55,16 @@ class Remote:
             raise ValueError("incomplete remote service identity")
         return dict(rows)
 
-    def seal(self):
+    def seal(self, *, replacement_platform=None):
         # This is a separate bounded sealer, never an edit of the live route runner.
         result = self.command(["systemd-run", "--user", "--wait", "--pipe", "--quiet", "--collect",
             "--property=MemoryMax=4G", "--property=MemoryHigh=3G", "--property=MemorySwapMax=0",
             "--property=OOMPolicy=kill", "--property=RuntimeMaxSec=1800", "env",
             "PYTHONPATH=" + str(self.runner), "python3", "-m", MODULE, "seal",
             "--capsule", self.capsule, "--attempt", self.attempt, "--output", self.returned,
-            "--unit", self.unit, "--invocation", self.invocation], timeout=1860).strip()
+            "--unit", self.unit, "--invocation", self.invocation,
+            *(["--replacement-platform", replacement_platform] if replacement_platform else [])],
+            timeout=1860).strip()
         if not re.fullmatch(r"[0-9a-f]{64}", result):
             raise ValueError("remote sealer did not return one receipt digest")
         return result

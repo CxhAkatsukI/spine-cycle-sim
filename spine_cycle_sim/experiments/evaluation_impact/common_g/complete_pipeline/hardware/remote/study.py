@@ -19,8 +19,14 @@ from ....search_pipeline.synthesis import unchanged
 from . import capsule, environment, timing
 
 
-def run(root, output, xilinx, platform, compatibility, *, timing_profile=None, memory_profile=None):
-    packet, parent = capsule.verify(root)
+def run(root, output, xilinx, platform, compatibility, *, timing_profile=None, memory_profile=None,
+        candidate=False):
+    if candidate:
+        from . import replacement_capsule
+
+        packet, parent = replacement_capsule.verify(root, platform)
+    else:
+        packet, parent = capsule.verify(root)
     policy = memory_profiles.select(packet["policy"], memory_profile)
     memory_profiles.host(policy)
     output.mkdir(parents=True, exist_ok=False)
@@ -38,6 +44,9 @@ def run(root, output, xilinx, platform, compatibility, *, timing_profile=None, m
             raise ValueError("at least 160 GiB free build disk required")
         for member in ("tmp", "user-data"):
             (output / member).mkdir()
+        if candidate and packet["cache_files"]:
+            shutil.copytree(root / "cache", output / "ip_cache")
+            replacement_capsule.check_cache(output / "ip_cache", packet["cache_files"])
         effective, contract = environment.capture(root, output, xilinx, platform, compatibility)
         atomic_write_json(output / "environment.json", contract)
         (output / "link.cfg").write_text(timing.configure(capsule.configuration(

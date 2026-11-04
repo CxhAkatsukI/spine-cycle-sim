@@ -22,6 +22,7 @@ for name in ("capsule", "attempt", "output"):
     seal.add_argument("--" + name, type=Path, required=True)
 for name in ("unit", "invocation"):
     seal.add_argument("--" + name, required=True)
+seal.add_argument("--replacement-platform", type=Path)
 admit = commands.add_parser("admit")
 for name in ("returned", "parent", "original", "output"):
     admit.add_argument("--" + name, type=Path, required=True)
@@ -55,7 +56,9 @@ elif args.command == "execute":
         timing_profile=args.timing_profile, memory_profile=args.memory_profile)["status"], flush=True)
 elif args.command == "seal":
     result = delivery.seal(args.capsule.resolve(), args.attempt.resolve(), args.output.resolve(),
-                           unit=args.unit, invocation=args.invocation)
+                           unit=args.unit, invocation=args.invocation,
+                           replacement_platform=(args.replacement_platform.resolve()
+                                                 if args.replacement_platform else None))
     print(result["sha256"], flush=True)
 elif args.command == "admit":
     print(admission.review(args.returned.resolve(), args.original.resolve(), args.output.resolve(),

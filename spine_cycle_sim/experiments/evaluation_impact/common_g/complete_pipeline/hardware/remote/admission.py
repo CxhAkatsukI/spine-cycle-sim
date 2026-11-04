@@ -17,6 +17,30 @@ def review(returned, original, output, *, parent_directory, receipt_sha256):
     if identity(parent_directory / "manifest.json") != packet["parent"]:
         raise ValueError("returned link is not the requested local production packet")
     production.candidate(parent)
+    manifest, pins = verify_link(returned, receipt, packet, parent)
+    pins.append(identity(original))
+    unchanged(pins)
+    output.mkdir(parents=True, exist_ok=False)
+    candidate = returned / "route/candidate.hw.xclbin"
+    old = bitstream.normalized_topology(bitstream._dump(original, output / "original"))
+    new = bitstream.normalized_topology(bitstream._dump(candidate, output / "candidate"))
+    expected_cus = {f"{name}:{name}_{index + 1}" for name, count in COUNTS.items() for index in range(count)}
+    if old != new or ("DATA", "DATA_CLK", 150) not in new["clock"] or \
+            {name for name, _ in new["kernels"]} != expected_cus:
+        raise ValueError("returned clock, CU budget or connectivity differs")
+    timing = bitstream.parse_routed_timing(returned / "route/timing.rpt")
+    unchanged(pins)
+    result = {"status": "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD", "original": identity(original),
+              "candidate": identity(candidate), "clock_topology_connectivity_equal": True,
+              "timing": timing, "timing_profile": manifest.get("timing_profile"),
+              "topology": new, "pins": pins, "remote_receipt": identity(returned / "receipt.json"),
+              "candidate_owner": parent["candidate_owner"], "link_status": delivery.PASS,
+              "claim": "remote_link_provenance_and_local_strict_timing_not_board_performance"}
+    atomic_write_json(output / "summary.json", result)
+    return result
+
+
+def verify_link(returned, receipt, packet, parent):
     route = returned / "route"
     manifest = json.loads((route / "manifest.json").read_text())
     execution = json.loads((route / "execution.json").read_text())
@@ -57,25 +81,10 @@ def review(returned, original, output, *, parent_directory, receipt_sha256):
             manifest.get("clock_mhz") != 150 or \
             receipt.get("checked_remote_pin_count") != len(manifest["pins"]):
         raise ValueError("returned configuration or verified input coverage differs")
-    pins = [identity(returned / "receipt.json"), identity(original), *parent["pins"], packet["parent"],
+    if "platform" in packet and pins_by_path.get(platforms[0]) != packet["platform"]["files"][packet["platform"]["name"]]:
+        raise ValueError("returned platform does not match the frozen platform")
+    pins = [identity(returned / "receipt.json"), *parent["pins"], packet["parent"],
             *[identity(returned / row["member"]) for row in receipt["files"]],
             *[identity(path) for path in sorted(Path(__file__).parent.glob("*.py"))]]
     unchanged(pins)
-    output.mkdir(parents=True, exist_ok=False)
-    candidate = route / "candidate.hw.xclbin"
-    old = bitstream.normalized_topology(bitstream._dump(original, output / "original"))
-    new = bitstream.normalized_topology(bitstream._dump(candidate, output / "candidate"))
-    expected_cus = {f"{name}:{name}_{index + 1}" for name, count in COUNTS.items() for index in range(count)}
-    if old != new or ("DATA", "DATA_CLK", 150) not in new["clock"] or \
-            {name for name, _ in new["kernels"]} != expected_cus:
-        raise ValueError("returned clock, CU budget or connectivity differs")
-    timing = bitstream.parse_routed_timing(route / "timing.rpt")
-    unchanged(pins)
-    result = {"status": "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD", "original": identity(original),
-              "candidate": identity(candidate), "clock_topology_connectivity_equal": True,
-              "timing": timing, "timing_profile": manifest.get("timing_profile"),
-              "topology": new, "pins": pins, "remote_receipt": identity(returned / "receipt.json"),
-              "candidate_owner": parent["candidate_owner"], "link_status": delivery.PASS,
-              "claim": "remote_link_provenance_and_local_strict_timing_not_board_performance"}
-    atomic_write_json(output / "summary.json", result)
-    return result
+    return manifest, pins

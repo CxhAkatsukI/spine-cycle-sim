@@ -11,9 +11,10 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from ....continuous_board.execution.supervisor import route_finished, service_state
 from ....search_pipeline.synthesis import unchanged
-from . import capsule
+from . import capsule, replacement_capsule
 
 SCHEMA = "remote-production-return-v1"
+REPLACEMENT_SCHEMA = "remote-k4-replacement-return-v1"
 PASS = "LINK_PASS_AWAITING_TIMING_AND_BOARD"
 LABELS = ("vitis_version", "vivado_version", "gcc_version", "gxx_version", "thread_compile", "thread_execute")
 ROUTE_FILES = ("manifest.json", "execution.json", "environment.json", "link.cfg", "preflight/results.json",
@@ -51,14 +52,20 @@ def completed(execution, manifest, preflight):
         raise ValueError("terminal remote cgroup evidence missing or OOM observed")
 
 
-def seal(root, attempt, output, *, unit, invocation):
+def verify_capsule(root, replacement_platform):
+    if replacement_platform is None:
+        return capsule.verify(root)
+    return replacement_capsule.verify(root, replacement_platform)
+
+
+def seal(root, attempt, output, *, unit, invocation, replacement_platform=None):
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit) or \
             not re.fullmatch(r"[0-9a-f]{32}", invocation):
         raise ValueError("exact remote service and invocation required")
     state = service_state(unit)
     if not route_finished(state, invocation):
         raise ValueError("route service is still running; no return package")
-    packet, parent = capsule.verify(root)
+    packet, _ = verify_capsule(root, replacement_platform)
     execution = json.loads((attempt / "execution.json").read_text())
     manifest = json.loads((attempt / "manifest.json").read_text())
     preflight = json.loads((attempt / "preflight/results.json").read_text())
@@ -95,7 +102,8 @@ def seal(root, attempt, output, *, unit, invocation):
     unchanged(pins)
     if service_state(unit) != state:
         raise ValueError("remote invocation changed during sealing")
-    receipt = {"schema": SCHEMA, "status": "SEALED_LINK_NOT_TIMING_OR_BOARD_ADMISSION",
+    receipt = {"schema": SCHEMA if replacement_platform is None else REPLACEMENT_SCHEMA,
+               "status": "SEALED_LINK_NOT_TIMING_OR_BOARD_ADMISSION",
                "host": socket.gethostname(), "unit": unit, "invocation": invocation, "service": state,
                "remote_capsule": str(root), "remote_attempt": str(attempt), "files": files,
                "checked_remote_pin_count": len(manifest["pins"]), "parent": packet["parent"],
@@ -104,12 +112,13 @@ def seal(root, attempt, output, *, unit, invocation):
     return identity(output / "receipt.json")
 
 
-def verify(output, digest):
+def verify(output, digest, *, replacement_platform=None):
     receipt_path = output / "receipt.json"
     if not re.fullmatch("[0-9a-f]{64}", digest) or sha256_file(receipt_path) != digest:
         raise ValueError("receipt differs from the digest obtained over trusted transport")
     receipt = json.loads(receipt_path.read_text())
-    if receipt.get("schema") != SCHEMA or receipt.get("status") != "SEALED_LINK_NOT_TIMING_OR_BOARD_ADMISSION" or \
+    schema = SCHEMA if replacement_platform is None else REPLACEMENT_SCHEMA
+    if receipt.get("schema") != schema or receipt.get("status") != "SEALED_LINK_NOT_TIMING_OR_BOARD_ADMISSION" or \
             any(receipt.get(flag) is not False for flag in capsule.FLAGS) or \
             not route_finished(receipt["service"], receipt["invocation"]):
         raise ValueError("terminal remote return receipt required")
@@ -122,7 +131,7 @@ def verify(output, digest):
         seen.add(member)
         if sha256_file(output / member) != row["sha256"] or row["source"]["sha256"] != row["sha256"]:
             raise ValueError("returned artifact changed: " + str(member))
-    packet, parent = capsule.verify(output / "capsule")
+    packet, parent = verify_capsule(output / "capsule", replacement_platform)
     expected = {"capsule/capsule.json", *["capsule/" + row["member"] for row in packet["files"]],
                 *["route/" + member for member in (*ROUTE_FILES, "timing.rpt")]}
     if {str(member) for member in seen} != expected or receipt.get("parent") != packet["parent"]:

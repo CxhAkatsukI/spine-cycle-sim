@@ -6,6 +6,9 @@ This study continues the failed [source-retention control](../source_performance
 It does not promote that control, change the paper, or overwrite frozen figure
 packages. Simulator near-parity is not FPGA performance admission.
 
+The [seele replacement links](REMOTE_LINKS.md) record the four active
+builds and their independent return checks; they are not new timings.
+
 1. Freeze the production source, bitstream, host, graph and numeric policy.
 2. Diagnose and repair the actual adapter/R implementation. Keep the original
    A4 reference and the pre-repair measurements. Screen each new matched case

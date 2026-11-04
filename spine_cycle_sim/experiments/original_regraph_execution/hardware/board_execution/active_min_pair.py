@@ -8,6 +8,7 @@ import re
 import subprocess
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution import runtime
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import replacement_return
 from spine_cycle_sim.experiments.sharded_k4_stages.board import require_idle_board
 from .. import artifact
 from ..source_build.snapshot import unchanged
@@ -78,7 +79,14 @@ def run(args):
         if any(name.startswith(("ORIGINAL_R_", "GRASU_", "GRASU_REGRAPH_"))
                or name == "XCL_DEVICE_INDEX" for name in os.environ):
             raise ValueError("inherited board or candidate runtime override is forbidden")
-        image, pins = candidate_route(args.candidate_route, args.algorithm)
+        returned = getattr(args, "returned_candidate", None)
+        if returned:
+            digest, capsule, platform, predecessor = returned
+            mode = {"cc": "destination", "weighted_sssp": "weighted"}[args.algorithm]
+            image, pins = replacement_return.active_min(args.candidate_route, Path(capsule), Path(platform),
+                digest, Path(predecessor), output / "candidate_admission", mode=mode)
+        else:
+            image, pins = candidate_route(args.candidate_route, args.algorithm)
         report["preflight_xrt_libraries"] = paired_loader(args.reference_host, args.candidate_host)
         checked = admission.review(args.reference_route, output / "reference_admission",
                                    topology="a4", algorithm=args.algorithm)
@@ -154,6 +162,8 @@ def parse_arguments(argv=None, extend=None):
     parser.add_argument("--algorithm", choices=active_min.ALGORITHMS, required=True)
     parser.add_argument("--device", type=int, choices=(0, 1), required=True)
     parser.add_argument("--bdf", required=True)
+    parser.add_argument("--returned-candidate", nargs=4, metavar=("SHA256", "CAPSULE", "XPFM", "PREDECESSOR"),
+                        help="treat --candidate-route as a verified remote return instead of a local build")
     if extend is not None:
         extend(parser)
     arguments = parser.parse_args(argv)
