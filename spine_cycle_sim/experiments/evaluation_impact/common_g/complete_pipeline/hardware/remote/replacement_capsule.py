@@ -156,7 +156,7 @@ def main():
     for name in ("capsule", "output", "xilinx", "platform", "compatibility"):
         execute.add_argument("--" + name, required=True, type=Path)
     execute.add_argument("--capsule-sha256", required=True)
-    execute.add_argument("--memory-profile", choices=(memory_profiles.SEELE,))
+    execute.add_argument("--memory-profile", choices=memory_profiles.OBSERVED_PROFILES)
     args = parser.parse_args()
     if args.command == "prepare":
         print(prepare(args.parent.resolve(), args.output.resolve())["parent"]["sha256"])

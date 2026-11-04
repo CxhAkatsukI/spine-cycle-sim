@@ -25,12 +25,14 @@ class ObservedLease(concurrent.Lease):
             if host is None:
                 raise ValueError("observed lease requires the named high-memory profile")
             guard = verify(self.own)
+            profile = policy[memory_profiles.KEY]
             peers = concurrent.merge(admission.reservations(active, self.own,
-                proc=self.proc, root=self.root), self.peers())
+                proc=self.proc, root=self.root,
+                allow_finite_peer_swap=profile == memory_profiles.SEELE_PHYSICAL), self.peers())
             admitted = eligible(available, peers, policy)
             result = {"admitted": admitted, "available_bytes": available,
                 "required_bytes": required_bytes(policy, peers), "reservations": peers,
-                "cgroup": guard, "policy": memory_profiles.SEELE, "observed_peer_host": host}
+                "cgroup": guard, "policy": profile, "observed_peer_host": host}
             if commit and admitted:
                 amount = int(guard["limits"]["memory.max"])
                 if amount != policy["tree_memory_gib"] * GIB:

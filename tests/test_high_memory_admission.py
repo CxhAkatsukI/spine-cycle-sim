@@ -36,6 +36,53 @@ class HighMemoryAdmissionTests(unittest.TestCase):
             with self.subTest(row=row):
                 self.assertFalse(high_memory.eligible(499 * 1024**3, [row], self.policy))
 
+    def test_physical_profile_counts_shared_finite_cap_with_swap_once(self):
+        gib = 1024**3
+        policy = memory_profiles.select(capsule.POLICY, memory_profiles.SEELE_PHYSICAL)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "cgroup"
+            proc = Path(directory) / "proc"
+            group = root / "foreign"
+            group.mkdir(parents=True)
+            (group / "memory.max").write_text(str(64 * gib))
+            swap = group / "memory.swap.max"
+            swap.write_text(str(64 * gib))
+            for pid in (42, 43):
+                (proc / str(pid)).mkdir(parents=True)
+                (proc / str(pid) / "cgroup").write_text("0::/foreign\n")
+            active = ["42 vivado", "43 v++"]
+            args = {"proc": proc, "root": root}
+            self.assertFalse(any(r["bounded"] for r in admission.reservations(
+                active, root / "own", **args)))
+            peers = admission.reservations(active, root / "own", allow_finite_peer_swap=True, **args)
+            self.assertEqual(peers, [{"bounded": True, "cgroup": str(group),
+                                      "memory_max_bytes": 64 * gib, "pids": [42, 43]}])
+            self.assertFalse(high_memory.eligible(240 * gib - 1, peers, policy))
+            self.assertTrue(high_memory.eligible(240 * gib, peers, policy))
+            self.assertFalse(high_memory.eligible(499 * gib, [self.unbounded], policy))
+            for invalid in ("max", "-1", "unknown"):
+                swap.write_text(invalid)
+                rejected = admission.reservations(active, root / "own", allow_finite_peer_swap=True, **args)
+                self.assertFalse(high_memory.eligible(499 * gib, rejected, policy))
+
+    def test_physical_profile_return_checks_reservation_and_owned_swap(self):
+        gib = 1024**3
+        profile = memory_profiles.SEELE_PHYSICAL
+        policy = memory_profiles.select(capsule.POLICY, profile)
+        manifest = {"policy": policy, "memory_profile": profile}
+        guard = {"admitted": True, "policy": profile, "available_bytes": 216 * gib,
+                 "required_bytes": 216 * gib, "reservations": [self.bounded],
+                 "observed_peer_host": {"host": "seele", "total_memory_bytes": 499 * gib,
+                                        "foreign_jobs_bounded": True},
+                 "cgroup": {"limits": {"memory.swap.max": "0"}}}
+        execution = {"host": "seele", **manifest, "route": {"tree_memory_gib": 40,
+                     "reserve_gib": 128, "minimum_available_bytes": 200 * gib}}
+        self.assertEqual(delivery.resource_policy({**execution, "admission": guard}, manifest), policy)
+        for change in ({"available_bytes": 216 * gib - 1}, {"required_bytes": 176 * gib},
+                       {"reservations": [self.unbounded]}, {"cgroup": {}}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                delivery.resource_policy({**execution, "admission": {**guard, **change}}, manifest)
+
     def test_profile_cannot_reduce_limits_reserve_or_background(self):
         for key, value in (("tree_memory_gib", 80), ("reserve_gib", 127),
                            ("background_memory_gib", 0), (memory_profiles.KEY, "anything")):

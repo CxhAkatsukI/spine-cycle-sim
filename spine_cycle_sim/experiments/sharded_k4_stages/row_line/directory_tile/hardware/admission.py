@@ -6,7 +6,8 @@ from .containment import GIB
 
 
 def budget(pid: int, *, proc: Path = Path("/proc"),
-           root: Path = Path("/sys/fs/cgroup"), host_swap_disabled: bool = False) -> tuple[Path, int]:
+           root: Path = Path("/sys/fs/cgroup"), host_swap_disabled: bool = False,
+           allow_finite_peer_swap: bool = False) -> tuple[Path, int]:
     if host_swap_disabled:
         fields = dict(line.split(":", 1) for line in (proc / "meminfo").read_text().splitlines())
         if fields.get("SwapTotal", "").split() != ["0", "kB"]:
@@ -21,9 +22,13 @@ def budget(pid: int, *, proc: Path = Path("/proc"),
         limit = (directory / "memory.max").read_text().strip()
         if limit != "max":
             amount = int(limit)
-            if amount <= 0 or (not host_swap_disabled and
-                    (directory / "memory.swap.max").read_text().strip() != "0"):
-                raise ValueError("positive finite compiler limit and zero swap required")
+            if amount <= 0:
+                raise ValueError("positive finite compiler limit required")
+            if not host_swap_disabled:
+                swap = (directory / "memory.swap.max").read_text().strip()
+                if swap != "0" and not (allow_finite_peer_swap and swap.isascii() and swap.isdecimal()):
+                    raise ValueError("finite compiler swap limit required" if allow_finite_peer_swap
+                                     else "positive finite compiler limit and zero swap required")
             # Shared bounded ancestors cover their descendants only once.
             selected = directory, amount
         directory = directory.parent
@@ -33,13 +38,15 @@ def budget(pid: int, *, proc: Path = Path("/proc"),
 
 
 def reservations(builds: list, own: Path, *, proc: Path = Path("/proc"),
-                 root: Path = Path("/sys/fs/cgroup"), host_swap_disabled: bool = False) -> list:
+                 root: Path = Path("/sys/fs/cgroup"), host_swap_disabled: bool = False,
+                 allow_finite_peer_swap: bool = False) -> list:
     groups = {}
     rejected = []
     for row in builds:
         pid = int(row.split()[0])
         try:
-            directory, amount = budget(pid, proc=proc, root=root, host_swap_disabled=host_swap_disabled)
+            directory, amount = budget(pid, proc=proc, root=root, host_swap_disabled=host_swap_disabled,
+                                       allow_finite_peer_swap=allow_finite_peer_swap)
             if directory == own or directory.is_relative_to(own):
                 continue
             key = str(directory)
