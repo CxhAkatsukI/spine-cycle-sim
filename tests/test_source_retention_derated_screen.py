@@ -27,6 +27,16 @@ hbm_aclk -0.004 -0.006 2 100 0.006 0 0 100 0.001 0 0 50
 
 
 class DeratedScreenTest(unittest.TestCase):
+    def test_430_mhz_respr_requires_the_declared_diagnostic_bin(self):
+        self.assertEqual(derated_screen.screen_profile("respr", None), ("skewed_sources", 445))
+        self.assertEqual(derated_screen.screen_profile("respr", 430), ("skewed_sources", 430))
+        with self.assertRaisesRegex(ValueError, "no declared reference fixture"):
+            derated_screen.screen_profile("weighted_sssp", 430)
+        self.assertEqual(derated_route.compatible_profile(
+            topology(450), topology(432), notice(frequency="432.3"), 430), "432.3")
+        self.assertIsNone(derated_route.compatible_profile(
+            topology(450), topology(432), notice(frequency="432.3"), 445))
+
     def test_nominal_and_other_derating_bins_never_launch(self):
         for new, log in ((topology(450), ""), (topology(440), notice(frequency="440.1"))):
             self.assertIsNone(derated_route.compatible_profile(topology(432, 149), new, log, 445))

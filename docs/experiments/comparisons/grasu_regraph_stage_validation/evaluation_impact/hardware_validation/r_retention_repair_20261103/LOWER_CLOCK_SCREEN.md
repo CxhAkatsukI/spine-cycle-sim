@@ -36,6 +36,7 @@ outside the reported first-device-start to last-device-end boundary.
 | --- | --- | ---: | ---: | ---: | --- |
 | Weighted SSSP, reciprocal AskUbuntu, 903,774 edges | 150/500/445/0 | 2.147288 ms | 2.510750 ms | 16.93% | Fail |
 | ResPR, skewed sources, `csr_degree` | 150/500/445/0 | 0.510895 ms | 0.807462 ms | 58.05% | Fail |
+| ResPR, skewed sources, source bursts and unregistered Apply | 150/500/430/0 | 0.521335 ms | 0.823654 ms | 57.99% | Fail |
 | CC, reciprocal AskUbuntu, 903,774 edges | 150/500/430/0 | 2.201941 ms | 2.602202 ms | 18.18% | Fail |
 
 The SSSP candidate is the first source-burst route. The measured event
@@ -62,6 +63,30 @@ The skewed ResPR candidate has a shorter host enqueue-to-completion
 window (0.898 vs 1.096 ms); this is not the predeclared device R gate.
 None of these paired failures is due to a different clock vector, and
 none admits a resident Spine comparison or validates earlier figure data.
+
+### ResPR Source Bursts and Unregistered Apply
+
+The replacement link packaged HBM at 432.3 MHz after missing nominal
+setup timing (WNS -0.091 ns). Both images actually ran at 430 MHz HBM
+on the same U55C, with the same 150-MHz compute clock, skewed fixture
+(65,537 vertices and 8,193 edges), and degree binding. Each arm ran once
+and passed its output oracle. The public A4 control checks every
+published replica and its guard words; this is not reproduction of a
+number from the ReGraph publication.
+
+The integrated path misses the 15% cutoff by 224.12 us. Shard 0 gather
+ends 229.49 us after its adapter, and its mux window overlaps 498.48 us
+of the 823.65-us elapsed time. The intervals include concurrent work and
+stalls. The two candidate images ran at different clock profiles, so this
+is not an isolated measurement of the Apply change. The candidate's
+resident host window is shorter than A4's (0.927 vs 1.179 ms), but that
+window does not replace the predeclared device retention test.
+
+The [one-run receipts, clocks and event logs](respr-apply-off-430-raw.tar.gz)
+contain the candidate result with SHA-256
+`b906ae64e0d9224ec6b8317f4a7099124ac096f0ba1036d9287c86707e8c45d4`.
+The candidate's independent G and resident Spine gates are not admitted
+by this measurement.
 
 ## Four-Way Gather Clear
 

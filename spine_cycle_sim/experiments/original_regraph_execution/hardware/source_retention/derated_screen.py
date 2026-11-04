@@ -15,6 +15,15 @@ from .follow import unchanged
 PROFILES = {"cc": ("au903k", 430), "respr": ("skewed_sources", 445), "weighted_sssp": ("au903k", 445)}
 
 
+def screen_profile(algorithm, hbm_mhz):
+    case, default = PROFILES[algorithm]
+    if hbm_mhz is None or hbm_mhz == default:
+        return case, default
+    if (algorithm, hbm_mhz) != ("respr", 430):
+        raise ValueError("no declared reference fixture for the requested HBM diagnostic bin")
+    return case, hbm_mhz
+
+
 def read_pin(pin):
     unchanged([pin])
     return json.loads(Path(pin["path"]).read_text())
@@ -185,8 +194,8 @@ def run(args):
         raise ValueError("expected a declared fixture, leased device and bounded wait")
     if args.replacement_sssp_host and args.algorithm != "weighted_sssp":
         raise ValueError("replacement host is only supported for the pinned SSSP fixture")
+    case, args.hbm_mhz = screen_profile(args.algorithm, args.hbm_mhz)
     args.output.mkdir(parents=True, exist_ok=False)
-    case, args.hbm_mhz = PROFILES[args.algorithm]
     report = dict(status="PREPARING", stage="R", algorithm=args.algorithm, case=case,
                   device=args.device, bdf=args.bdf, hbm_mhz=args.hbm_mhz, repetitions=1,
                   candidate_launch_attempted=False, reference_replayed=True,
@@ -269,6 +278,8 @@ if __name__ == "__main__":
     for name in ("reference-sha", "unit", "invocation"):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--algorithm", choices=PROFILES, required=True)
+    parser.add_argument("--hbm-mhz", type=int, choices=(430, 445),
+                        help="diagnostic bin; the frozen reference must use this exact clock")
     parser.add_argument("--sssp-hosts", type=Path, nargs=2, metavar=("PUBLIC", "INTEGRATED"))
     parser.add_argument("--replacement-sssp-host", nargs=2, metavar=("HOST", "SHA256"))
     parser.add_argument("--device", type=int, default=0)
