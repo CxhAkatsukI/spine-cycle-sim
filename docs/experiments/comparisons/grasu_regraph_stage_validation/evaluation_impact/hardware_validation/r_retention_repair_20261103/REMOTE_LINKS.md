@@ -158,14 +158,25 @@ no warmups, only after independent G and both R receipts pass and their
 raw evidence replays on the exact returned image. There is no separate
 AU run in this queue.
 
-The first matrix stopped after three pairs, while SO was waiting for
-memory and neither SO arm had started. The live continuation is
-`gr-retention-sssp-resume-v3-20261104.service` (invocation
-`0083214c0ab84090bf2f95692fce8642`), with journal
-`sssp-singlepass-matrix-resume-v3/matrix.json`. It imports the three
-completed pairs from the pinned predecessor journal and processes
-untouched workloads by memory requirement. Use this journal for new
-exports. See the [SSSP follow-up](sssp-resident-followup/README.md).
+The first matrix stopped after three pairs. Continuation `resume-v3`
+measured PK and R19, then stopped with no SO board attempts while SO was
+waiting for 64 GiB of available memory. Use
+`sssp-singlepass-matrix-resume-v5/matrix.json` for new exports (service
+`gr-retention-sssp-resume-v5-20261104.service`, invocation
+`82928f3473f04c6196a20f4ad42896f5`). It imports all five completed pairs
+from the pinned journal and does not remeasure them. The `resume-v4`
+attempt failed before requesting a board arm: replay in a different
+checkout changed absolute paths in the route-audit pins even though the
+file hashes matched. The live continuation uses the original checkout
+path and retains the original route evidence.
+
+Only SO uses a 24 GiB hard limit and 22 GiB high watermark; the 32 GiB
+host reserve and no-swap cgroup are unchanged. The matching historical
+SO receipt pins both peak tree RSS samples (18.96 GiB for G+R and 4.53
+GiB for Spine); these are planning evidence, not a cgroup peak bound.
+The runner rejects a measured SO pair if the new cgroup reports a high,
+max, or OOM event. LJ and LJ08 retain 32 GiB hard limits. See the
+[SSSP follow-up](sssp-resident-followup/README.md) for the archived pairs.
 
 The separate Figure 8 job waits for G alone because it does not run R.
 It is capped at 8 GiB with no cgroup swap, takes the same board lease
@@ -321,15 +332,17 @@ running Vivado. Independent R and G board receipts are required for the
 exact returned image before it can enter a resident matrix.
 
 The original CC and ResPR tail board dependencies were withdrawn before
-requesting their runs. The public A4 CC collector is unchanged. The live
-replacement dependencies use the following local receipts:
+requesting their runs. The public A4 CC control returned in
+`seele-return-v4-public-a4-cc/transfer.json` and passed offline admission
+at all declared clocks. This verifies the build, not a measured CC R
+time. The live dependencies use the following local receipts:
 
 | Test | Local receipt | Service invocation |
 | --- | --- | --- |
-| CC R, sparse Amazon frontier | `cc-active-pair-physical-v1/queue.json` | `fe0d8a58f6974cbea4f65d6696b7bf0a` |
-| CC R, odd-vertex Amazon frontier | `cc-odd-pair-physical-v1/queue.json` | `ff82acfcddac459fba016ad98d8f1964` |
+| CC R, sparse Amazon frontier | `cc-active-pair-physical-v2/queue.json` | `78608da3edae4a5c8ff2c91dfe38969b` |
+| CC R, odd-vertex Amazon frontier | `cc-odd-pair-physical-v2/queue.json` | `678f290059d447269b1907fc3fd0f959` |
 | CC G, AU 131K updates | `g-cc-board-physical-v1/results.json` | `6de5ad246c514a7f8ad50c62cc315b78` |
-| CC resident matrix | `cc-singlepass-matrix-physical-v1/matrix.json` | `edbf01af6e9e4841bb50817ad8c28627` |
+| CC resident matrix | `cc-singlepass-matrix-physical-v2/matrix.json` | `1d7f3bca27d94897b13cd34b76568940` |
 | ResPR tail physical R | `tail-follow-physical-v3/results.json` | `50d1ecd2c3f74cd686d21c5640eeaf01` |
 | ResPR tail physical G | `g-tail-physical-v3/results.json` | `70ddaa3c60e042bf80cd831aa9f7274a` |
 | ResPR R19 and Flickr resident screen | `resident-joint-board-v7/results.json` | `6fb1f02cea23421f9ffb902041a925b8` |

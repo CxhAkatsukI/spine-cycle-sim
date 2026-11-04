@@ -10,8 +10,8 @@ it does not launch FPGA jobs or modify existing packages.
 run=/data/chuxiao/checks/source-retention-repair-20261104
 snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
-  --sssp-matrix "$run/sssp-singlepass-matrix-resume-v3/matrix.json" \
-  --cc-matrix "$run/cc-singlepass-matrix-physical-v1/matrix.json" \
+  --sssp-matrix "$run/sssp-singlepass-matrix-resume-v5/matrix.json" \
+  --cc-matrix "$run/cc-singlepass-matrix-physical-v2/matrix.json" \
   --respr-matrix "$run/respr-matrix-v5/results.json" \
   --respr-screen "$run/resident-joint-board-v7/results.json" \
   --output "$snapshot.json" \
@@ -60,7 +60,7 @@ Thus, even setting post-update R time to zero cannot reverse these two
 measured comparisons if G's measured path, clock and sequential execution
 are unchanged. This is a bound on the new pairs only, not a general
 15% result, a bound on a redesigned G path, or validation of the
-November 3 handoff. The other three measured SSSP rows do not satisfy
+November 3 handoff. The other four measured SSSP rows do not satisfy
 this sufficient condition. The raw `gr.stdout.txt` and pair receipts are
 in the [follow-up checkpoint](sssp-resident-followup/README.md).
 
