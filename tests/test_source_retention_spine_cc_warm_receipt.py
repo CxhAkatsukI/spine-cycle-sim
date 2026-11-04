@@ -1,9 +1,11 @@
 """The retained AU arm must replay from the exact one-shot FPGA evidence."""
 
+from argparse import Namespace
+
 import pytest
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    active_min_admission as admission, spine_cc_warm_receipt as warm,
+    active_min_admission as admission, active_min_resident_follow as queue, spine_cc_warm_receipt as warm,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import identity, save
 
@@ -128,3 +130,56 @@ def test_odd_admission_uses_the_producers_identity_schema(tmp_path, monkeypatch)
     save(queue, producer)
     with pytest.raises(ValueError, match="did not admit this hardware receipt"):
         admission.pin_odd_queue(receipt, inputs)
+
+
+@pytest.mark.parametrize("topology_pass", [True, False])
+def test_queue_requires_all_five_exact_producers(tmp_path, monkeypatch, topology_pass):
+    paths = {stage: tmp_path / f"{stage}.json" for stage in ("g", "r", "odd", "au", "spine")}
+    invocations = {stage: f"{i:032x}" for i, stage in enumerate(paths, 1)}
+    checks = {stage: 0 for stage in paths}
+
+    def state(unit):
+        stage = unit.removesuffix(".service")
+        checks[stage] += 1
+        finished = checks[stage] > 1
+        if finished:
+            status = queue.WARM_PASS if stage == "spine" else queue.STAGE_PASS.get(stage, queue.STAGE_PASS["r"])
+            if stage == "au" and not topology_pass:
+                status = "PAIRED_ACTIVE_MIN_R_GATE_FAIL"
+            save(paths[stage], dict(status=status, algorithm=None if stage == "spine" else "cc"))
+        return dict(LoadState="loaded", InvocationID=invocations[stage], finished=finished)
+
+    packet = tmp_path / "packet.json"
+    save(packet, dict(spine_host=str(packet), gr_host=str(packet), inputs=str(packet)))
+    output = tmp_path / "queued"
+    args = Namespace(algorithm="cc", dataset="AU", previous=tmp_path, output=output, stage_wait_seconds=5,
+                     cc_wall_packet=packet, cc_warm_unit="spine.service", cc_warm_invocation=invocations["spine"],
+                     cc_warm_au_receipt=paths["spine"],
+                     g_unit="g.service", g_invocation=invocations["g"], g_report=paths["g"],
+                     r_unit="r.service", r_invocation=invocations["r"], r_report=paths["r"],
+                     amazon_odd_r=("odd.service", invocations["odd"], paths["odd"], tmp_path),
+                     au_slice_r=("au.service", invocations["au"], paths["au"], tmp_path))
+    monkeypatch.setattr(queue, "service_state", state)
+    monkeypatch.setattr(queue, "route_finished", lambda state, invocation: state["finished"])
+    monkeypatch.setattr(queue, "runner_pins", lambda: [])
+    monkeypatch.setattr(queue.resident, "frozen_case", lambda *args: ({}, []))
+    calls = []
+
+    def run_once(child):
+        calls.append(child)
+        child.output.mkdir()
+        result = dict(status="MEASURED_RESIDENT_PAIR")
+        save(child.output / "results.json", result)
+        return result
+
+    monkeypatch.setattr(queue.resident, "run", run_once)
+    if topology_pass:
+        assert queue.run(args)["status"] == "MEASURED_RESIDENT_PAIR"
+        (child,) = calls
+        assert child.additional_r == ()
+        assert child.cc_warm_r_controls == [paths["odd"], tmp_path, paths["au"], tmp_path]
+        assert set(child.stage_receipts) == {"g", "r", "amazon_odd", "au_slice", "spine"}
+    else:
+        with pytest.raises(ValueError, match="au.service did not pass"):
+            queue.run(args)
+        assert calls == []

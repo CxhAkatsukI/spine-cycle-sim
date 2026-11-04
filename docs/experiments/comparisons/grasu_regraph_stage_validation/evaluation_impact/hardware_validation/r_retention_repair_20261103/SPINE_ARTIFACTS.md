@@ -206,6 +206,11 @@ events for this route. The invocation is unchanged. The image and host must
 be admitted together before measuring the same resident AU batch once. It
 is not used in existing figure data.
 
+The synthesis later reached about 53 GiB anonymous memory with renewed
+soft-limit reclaim. With about 315 GiB available and still no hard-limit
+or OOM events, only that same invocation was adjusted to 64 GiB hard / 60
+GiB high, with no swap.
+
 The [native CC timing host](https://github.com/jayfeather9/spine-dynamic-graph/commit/79e7747)
 adds the two old-arm wall windows: pack start or batch residency through
 the same final label readback. It does not change the kernel. The hardware
@@ -239,6 +244,18 @@ one new G+R attempt, rechecks the retained raw Spine oracle and timing,
 and compares the two pack-to-final-readback windows. It does not relabel
 the cold-layout AU arm as a balanced-layout measurement or admit a pair
 without all independent stage checks.
+
+`source_retention.active_min_resident_follow` can wait for that exact
+Spine board invocation using `--cc-warm-unit`, `--cc-warm-invocation`, and
+`--cc-warm-au-receipt`, together with the four existing G/R producers.
+It will request only the AU comparison, and only after all five producer
+receipts have passed. The wall packet pins the inputs and hosts at enqueue;
+the as-yet-unbuilt Spine image is verified from the retained board receipt.
+The live queue is `gr-retention-cc-warm-au-resident-20261105-v1.service`
+(invocation `7cdc88008f7b4c6ea80f964823cfa9b7`), with the journal and
+eventual child under `cc-warm-au-resident-v1/` in the local checks directory.
+It was enqueued with all five exact invocations observed and no timed
+resident pair requested. The older CC matrix remains stopped.
 
 The [balanced warm CC host](https://github.com/jayfeather9/spine-dynamic-graph/commit/5c825f6)
 adds the degree-balanced preload to the new native timing host. The

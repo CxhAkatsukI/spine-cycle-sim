@@ -141,6 +141,8 @@ def run(args):
             if not cc_wall or (args.algorithm, args.dataset) != ("cc", "AU"):
                 raise ValueError("the warm CC arm is reusable only for the AU wall comparison")
             retained_pin = identity(retained)
+            if stage_receipts is not None and stage_receipts.get("spine") != retained_pin:
+                raise ValueError("warm CC receipt differs from the exact producer")
             frozen = next(pin for pin in pins if pin["path"] == case["graph"])
             retained_spine, retained_pins = spine_cc_warm_receipt.replay(
                 retained_pin, frozen, bdf=bdf, affinity=spine_cc_warm_receipt.AFFINITY)
@@ -178,6 +180,8 @@ def run(args):
                 ("au_slice", identity(au_receipt), au_inputs, active_min_admission.AU_SLICE_GEOMETRY),
             )
         for label, receipt, inputs, geometry in controls:
+            if stage_receipts is not None and stage_receipts.get(label, receipt) != receipt:
+                raise ValueError(f"{label} R receipt differs from the exact producer")
             decision = active_min_admission.replay_r(Path(receipt["path"]), args.algorithm, inputs,
                                                      gate["host"], gate["image"], geometry=geometry)
             if (decision["report"] != receipt or
