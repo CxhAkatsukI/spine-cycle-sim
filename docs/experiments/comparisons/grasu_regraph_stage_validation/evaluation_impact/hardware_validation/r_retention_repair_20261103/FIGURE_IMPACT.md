@@ -10,7 +10,7 @@ it does not launch FPGA jobs or modify existing packages.
 run=/data/chuxiao/checks/source-retention-repair-20261104
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
   --sssp-matrix "$run/sssp-singlepass-matrix-return-v2/matrix.json" \
-  --cc-matrix "$run/cc-singlepass-matrix-return-v3/matrix.json" \
+  --cc-matrix "$run/cc-singlepass-matrix-return-v4/matrix.json" \
   --respr-matrix "$run/respr-matrix-v2/results.json" \
   --respr-screen "$run/resident-joint-board-v3/results.json" \
   --output "$run/figure7-receipt-snapshot.json"
@@ -254,6 +254,54 @@ at `91c85cbe`. To reproduce with a fresh output directory, run the
 module with `--datasets AU --algorithms SSSP --gr-drain-directory`, a configured
 Release core, an allowed CPU, and the fresh profile (6 GiB hard, 5 GiB high,
 zero swap, group OOM kill and 24 GiB host reserve).
+
+### Nine-Case Directory Impact
+
+All nine pairs ran once per arm and passed the state oracle and ledger
+checks. The old, final and expected state hashes match the respective
+frozen arm in all nine cases. ResPR uses the frozen fixed `1e-6` threshold,
+not the historical vertex-normalized threshold. Ratios below are G+R /
+Spine; energy is the same DRAMSim3 HBM estimate, including background and
+refresh.
+
+| Algorithm | Dataset | Frozen bytes ratio | Directory diagnostic | Frozen energy ratio | Directory diagnostic |
+| --- | --- | ---: | ---: | ---: | ---: |
+| SSSP | AU | 5,130.00 | 5,130.00 | 21.34 | 21.34 |
+| SSSP | SU | 6,916.25 | 6,916.25 | 28.14 | 28.14 |
+| SSSP | WK | 1,265.31 | 5,922.99 | 18.78 | 45.33 |
+| CC | AU | 1,695.61 | 1,695.61 | 9.79 | 9.79 |
+| CC | SU | 3,587.30 | 3,587.30 | 13.71 | 13.71 |
+| CC | WK | 1,854.29 | 7,065.34 | 19.98 | 53.01 |
+| ResPR | AU | 7,375.10 | 7,375.10 | 105.44 | 105.44 |
+| ResPR | SU | 9,830.78 | 9,830.78 | 143.29 | 143.29 |
+| ResPR | WK | 9,349.88 | 12,278.17 | 142.99 | 200.84 |
+
+On WK/SSSP, turning off the switch at the same commit reproduced the
+frozen bytes and energy ratios exactly. Turning it back on changed G+R
+accepted bytes from 42,402,972 to 198,491,164 (2,565,342 directory beats
+after the correction); Spine stayed at 33,512 bytes. This isolates the
+switch effect for WK/SSSP. The table compares snapshots for the other
+rows. The directory correction does not reverse the traffic or modeled
+energy conclusion, but the three old WK bar heights should not be reused
+for the dense-directory model. It does not admit the current FPGA baseline
+or certify its exact traffic. Every row remains `PREDICTION_ONLY` with
+`baseline_admitted=false`.
+
+Additional raw receipts are under the same trifoliate check root. They pin
+simulator commit `95fb905`, the build inputs, memory configuration and the
+graph and batch identities:
+
+| Receipt | SHA-256 |
+| --- | --- |
+| `fig9-directory-sssp-remaining-v1/results.json` | `a9910cfa451a47bff6da2536f7a805bcb9a2acf1913004d42d83b5ded4e70f23` |
+| `fig9-directory-cc-remaining-v1/results.json` | `133c0dca01a331cbe16df098d264a122f679b0de442ce767f626a821cbdc00bd` |
+| `fig9-directory-respr-remaining-v1/results.json` | `6386dbf87d601f3ab44edf72b015be3bd76197a9277a83c3482d531cd39f0186` |
+| `fig9-directory-wk-sssp-off-v1/results.json` | `0e0b1f21671b37f0437cedbc60835db504b15209f6f3f4496601c1646892a63c` |
+
+The frozen ResPR source is
+`/data/chuxiao/experiments/respr_fixed_epsilon_20261023/matrix/results.json`.
+Use the AU reproduction command above with the corresponding algorithm and
+dataset lists; omit `--gr-drain-directory` only for the WK/SSSP off control.
 
 ## Figure 7: The Smallest Observed Margins
 

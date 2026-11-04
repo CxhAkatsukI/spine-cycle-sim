@@ -151,6 +151,28 @@ point `--reference-route` at its `returned/` directory and pass
 runner re-extracts the local binary metadata and rechecks the kernel
 ABI, target part, HBM mapping and 150 MHz timing before board admission.
 
+**v1 failed the final routed timing check.** The returned xclbin's DATA
+clock is 150 MHz, but the 450 MHz `hbm_aclk` domain has WNS -0.081 ns,
+TNS -2.333 ns and 72 failing endpoints in the final locked summary. The
+worst path is an AXI address payload register crossing an SLR within the
+HBM shell, with no logic levels and 1.647 ns of routing delay. The
+offline checker rejected it; the collector's success means transfer
+integrity only. No board run was requested for this image.
+
+- v1 return receipt SHA-256: `85b45682a0a6bd7384f0bd4437356b35b7983adf0bf97cdac24d5c07ae19ff39`
+- v1 final timing report SHA-256: `cd49d1d91397d994c8b9bfe6f82040661d9ead415b0b0dfdb4edc3d9089e2c78`
+- v2 unit: `gr-retention-seele-public-a4-cc-20261104-v2.service` (invocation `6bf1fc1f8eda49e4a98e2a6e2a1151b8`)
+- v2 build output: `builds/public-a4-cc-v2/results.json`
+- v2 runner: `a4-cc-runner-509001b`, archive SHA-256 `f18b7fee6a1a6aab536a926db5cf2d8a7506458b45c7301f4de16565f6683305`
+- v2 local return: `seele-return-v2-public-a4-cc/transfer.json`, unit `gr-retention-return-public-a4-cc-20261104-v2.service` (invocation `2ae52cb7a9d24e1aa73bfc70cf12d277`)
+
+v2 uses the same capsule and the pinned `aggressive-route-v1` physical
+implementation properties. It preserves the author placement constraints,
+HBM mapping, both clock targets and compile commands. The strict final
+timing check is unchanged. The two waiting R pair queues and their matrix
+supervisor were superseded before requesting any timed run; the G-only
+queue was not restarted.
+
 The original local integrated CC build expired while waiting for its
 memory reservation; it did not start Vivado or request a board run. Its
 logs remain at `route-cc-v2/execution/` under the local build root
@@ -160,10 +182,10 @@ receipts under the local check root are:
 
 | Test | Receipt | Local service | Invocation |
 | --- | --- | --- | --- |
-| CC R, sparse Amazon frontier | `cc-active-pair-return-v2/queue.json` | `gr-retention-cc-pair-return-v2-20261104.service` | `feed29d8b19341a78436e548c60a784a` |
-| CC R, odd-vertex Amazon frontier | `cc-odd-pair-return-v2/queue.json` | `gr-retention-cc-odd-pair-return-v2-20261104.service` | `2d4e7efc690242e38c5c2643fd5b09cb` |
+| CC R, sparse Amazon frontier | `cc-active-pair-return-v3/queue.json` | `gr-retention-cc-pair-return-v3-20261104.service` | `694632798c1b497d97bbd33f1a5f4b94` |
+| CC R, odd-vertex Amazon frontier | `cc-odd-pair-return-v3/queue.json` | `gr-retention-cc-odd-pair-return-v3-20261104.service` | `d167bfb9221a4f3d9d6dd25d763e9d56` |
 | CC G, AU 131K updates | `g-cc-board-return-v2/results.json` | `gr-retention-g-cc-return-v2-20261104.service` | `dfb233abc1ec408f941603989abd3de7` |
-| CC resident Spine vs G+R, eight graphs | `cc-singlepass-matrix-return-v3/matrix.json` | `gr-retention-cc-matrix-return-v3-20261104.service` | `366426ea8b8342b39b1db91e452b8903` |
+| CC resident Spine vs G+R, eight graphs | `cc-singlepass-matrix-return-v4/matrix.json` | `gr-retention-cc-matrix-return-v4-20261104.service` | `304dca3cc9f64c7b89c2dfd16bde8fbe` |
 
 The matrix waits for both R checks and the independent G check. It will
 use the exact image admitted by those three receipts and requests each
