@@ -1049,3 +1049,30 @@ AU and matrix v5 queues were stopped while still waiting, with no board
 request. The replacement queues retain the same stage producer invocations
 and memory limits. SSSP journals are `sssp-resident-au-banked-v4/queue.json`
 and `sssp-resident-au-tail-abi-v4/queue.json`.
+
+### Current CC Layout Fallback on Seele
+
+The current CC matrix pins `spine-cc-warm-compatible-host-v3/host_cc_repair`
+(`e417f60c9fd5303b86271486efda0faa9553bb371ef6ffba37418fadede09a78`),
+not the older host in the first Seele layout attempt. The local producer
+was waiting for a 56 GiB admission (24 GiB cap and 32 GiB live reserve).
+The fallback uses runner `5d483a43`, the exact frozen split input manifests,
+and existing content-matched Seele split files, which the runner checks
+against their digests. It was admitted under a 22 GiB soft threshold,
+24 GiB hard limit, no swap, and the same full peer-budget accounting.
+It runs `--layout-only` on SO, PK, LJ, and LJ08; no FPGA is opened.
+
+| Step | Unit (omit `.service`) | Invocation |
+| --- | --- | --- |
+| Seele compatible-host layout | `spine-cc-warm-compatible-layout-seele-20261105-v3` | `4943c875377f4f269ffb130c8be8bfbd` |
+| Trifoliate import | `spine-cc-compatible-layout-seele-import-20261105-v4` | `efe4d246fb1c4d8a880235bb6f4d1e48` |
+
+The importer checks the terminal service result, exact host and all four
+input manifests, raw layout logs, resource receipts, and no OOM kill. It
+promotes the result to `spine-cc-warm-compatible-layout-large-v3/` only if
+the original local journal has no measured layout rows and the local job
+is still waiting or has failed. The original journal is kept separately.
+If the local job has started processing the inputs, the importer leaves
+it in place. The board matrix replays the layout evidence and still
+requires the separate G and R gates and warm AU pair before requesting
+any remaining FPGA run.

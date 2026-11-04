@@ -10,8 +10,8 @@ Run this offline; it does not launch FPGA jobs or modify existing packages.
 run=/data/chuxiao/checks/source-retention-repair-20261104
 snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
-  --sssp-matrix "$run/sssp-physopt-matrix-sealed/matrix.json" \
-  --sssp-au "$run/sssp-physopt-resident-au-sealed/queue.json" \
+  --sssp-matrix "$run/sssp-resident-matrix-banked-v1/matrix.json" \
+  --sssp-au "$run/sssp-resident-au-banked-v4/queue.json" \
   --cc-matrix "$run/cc-warm-balanced-matrix-source-bursts-v6/matrix.json" \
   --respr-matrix "$run/respr-degree-prefix-matrix-v1/results.json" \
   --respr-screen "$run/respr-degree-prefix-resident-v1/results.json" \
@@ -20,7 +20,10 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
 ```
 
 See [remote builds and board queues](REMOTE_LINKS.md#current-one-shot-board-queues)
-for the pending candidates. The stopped CC matrix records eight
+for the pending candidates. The command above selects the banked source-burst
+SSSP candidate; its matrix and AU screen must come from the same image. The
+weighted-tail candidate has a separate AU queue and cannot be mixed into this
+snapshot. The stopped CC matrix records eight
 `NOT_REQUESTED` rows; its last-written waiting status does not mean it
 will launch. It pinned the old Spine CC image, and the new AU smoke is
 not a Spine versus G+R pair. After its independent stage gates, the new
