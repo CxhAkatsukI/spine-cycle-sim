@@ -29,3 +29,11 @@ The Python runner freezes all C++ sources, runner sources, core libraries,
 compiler, memory configuration, input identities and complete output states.
 Its verifier rejects incomplete pairs and mixed model identities. It does not
 infer CC/PR original-ReGraph performance parity from a passing SSSP control.
+
+The opt-in `--gr-drain-directory` control completes every physical compact
+shard's dense row directory, even when the last edge segment is already
+emitted. Its G+R ledger separates extent, directory and slot beats and
+checks the exact number of 64-byte directory lines. This matches the revised
+adapter's dense-directory traffic rule on nonempty physical extents, not its
+row-span scheduler, G metadata policy, or hardware cycle count. The historical
+policy and default are unchanged.

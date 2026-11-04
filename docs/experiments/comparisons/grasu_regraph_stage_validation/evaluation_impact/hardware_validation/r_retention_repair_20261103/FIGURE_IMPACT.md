@@ -202,6 +202,56 @@ awk -F, 'NR>1 && $6=="spine" {
 }' data/fig9_arms.csv
 ```
 
+### Dense Directory Simulator Diagnostic
+
+The frozen finite compact reader can stop issuing directory requests after
+consuming its last live PMA segment. The span-reader HLS consumes the whole
+directory for a nonempty physical extent. The optional simulator switch
+`--gr-drain-directory` keeps requesting and consuming directory tiles through
+the end of the vertex domain. It retains the existing DRAMSim3 backend and
+does not change the G or Spine model. It matches this HLS byte rule when the
+same nonzero physical extents are presented. It does not reproduce the HLS
+descriptor FIFO schedule or change the simulator's synthetic nonzero extent
+for an empty logical shard. Leave the switch off to replay the frozen model.
+
+With 2,051 vertices and the last live source at vertex 0, the throttled core
+test sees 256 -> 514 directory beats with one tile and 512 -> 514 with two
+tiles. The 514 beats are two invocations of `ceil(2051 / 8)` 64-byte reads.
+All additional beats are directory reads; edge packets, slot reads and the
+SSSP oracle result are unchanged, including under reversed registration.
+
+One bounded AU weighted-SSSP run used the original eight inserts and compared
+each simulator arm once. Both matched the independent expected state bit for
+bit. G+R logged 16 extent beats and 1,030,576 directory beats
+(`16 * ceil(515281 / 8)`), or 65,956,864 directory bytes, plus 242,258 slot
+beats. These are diagnostics, not FPGA traffic counters or revised bars.
+
+| AU weighted SSSP, simulator | Frozen run | Dense-directory diagnostic |
+| --- | ---: | ---: |
+| G+R accepted bytes | 131,533,104 | 131,533,104 |
+| Spine accepted bytes | 25,640 | 25,640 |
+| G+R / Spine accepted bytes | 5,130.00x | 5,130.00x |
+| G+R / Spine DRAMSim3 HBM energy | 21.344389x | 21.344385x |
+
+The two runs used different source snapshots. The tiny energy difference is
+not isolated to the switch; the identical accepted totals and full-directory
+ledger show that the frozen byte total for this one row was not changed by
+charging the directory tail in the diagnostic. This is not an equivalence
+test of the nine rows or the new native G+R image. `baseline_admitted` stays
+false; use a matched current traffic model before replacing the panel.
+
+On trifoliate the raw receipt is
+`/data/chuxiao/checks/source-retention-repair-20261104/fig9-directory-au-sssp-v2/results.json`
+(SHA-256 `c20287c200d8b14832b552fa443b9a88c55f461e992ea895f5eda5392ee67f3a`).
+Its adjacent `sources.tar.gz` pins the diagnostic source snapshot based on
+`bf6ae13` with the switch applied. The frozen AU row is in
+`/data/chuxiao/experiments/figure9_multialgorithm_20261023/matrix-v5/results.json`
+at `91c85cbe`. To reproduce with a fresh output directory, run the
+`spine_cycle_sim.experiments.evaluation_impact.figure_refresh.multialgorithm.study`
+module with `--datasets AU --algorithms SSSP --gr-drain-directory`, a configured
+Release core, an allowed CPU, and the fresh profile (6 GiB hard, 5 GiB high,
+zero swap, group OOM kill and 24 GiB host reserve).
+
 ## Figure 7: The Smallest Observed Margins
 
 Holding the old Spine wall time fixed, the break-even reduction of the old

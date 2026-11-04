@@ -4,7 +4,7 @@ namespace spine::sim::detail::prefetch_compact {
 inline void Reader::prepare_join(const CycleContext& context) {
   next_source_ = source_;
   skipped_ = 0;
-  if (!extent_ || consumed_ == total_) return;
+  if (!extent_ || directory_finished()) return;
   const auto tile_end = directory_.end();
   if (source_ == tile_end) {
     advance_tile_ = directory_.fully_issued() && outstanding_directory() == 0;

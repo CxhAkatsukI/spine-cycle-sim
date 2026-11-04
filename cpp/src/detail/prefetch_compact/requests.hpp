@@ -31,7 +31,7 @@ inline void Reader::prepare_request(const CycleContext& context, std::size_t por
       } else if (odd_memory_ && ((which == 2) != (port == 1))) continue;
       if (which == 0) {
         const auto read = directory_.next();
-        if (consumed_ == total_ || !read) continue;
+        if (directory_finished() || !read) continue;
         request = {Kind::kDirectory, next_id_, partition_.row_base + read->base * 8 + read->first * 64,
             context.domain_cycle + delay_, read->first, read->count};
         request.directory_base = read->base;

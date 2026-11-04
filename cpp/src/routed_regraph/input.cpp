@@ -11,6 +11,7 @@ RoutedPmaInput::RoutedPmaInput(std::string name, ClockId clock,
       pipeline_capacity_(config.input_path == RoutedInputPath::kDualPrefetchElasticExperimental ||
                          config.input_path == RoutedInputPath::kTriplePrefetchElasticExperimental ? 3 : 2),
       directory_tiles_(config.experimental_directory_tiles),
+      drain_directory_(config.experimental_drain_directory),
       bank_lines_(config.experimental_prefetch_bank_lines),
       refill_(config.experimental_full_burst_refill ? prefetch_compact::RefillPolicy::kFullBurst :
                                                     prefetch_compact::RefillPolicy::kAvailableSpace),
@@ -38,7 +39,7 @@ void RoutedPmaInput::start_partition(ReGraphPmaPartition partition) {
   completed_ = counters();
   reader_ = std::make_unique<prefetch_compact::Reader>(clock_id(), memory_, segments_, partition,
       read_delay_, odd_memory_, refill_, pipeline_capacity_,
-      directory_memory_, directory_tiles_, bank_lines_);
+      directory_memory_, directory_tiles_, bank_lines_, drain_directory_);
   compactor_ = std::make_unique<prefetch_compact::Compactor>(clock_id(), segments_, output_,
                                                          partition.destination_vertices, pipeline_capacity_);
 }

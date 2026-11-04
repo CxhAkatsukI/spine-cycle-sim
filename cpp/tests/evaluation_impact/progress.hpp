@@ -2,11 +2,23 @@
 
 #include <fstream>
 #include <filesystem>
+#include <iostream>
+#include <stdexcept>
 
 #include "spine_sim/routed_regraph.hpp"
 #include "wait_observations.hpp"
 
 namespace evaluation_impact {
+inline void write_dense_directory(const spine::sim::RoutedReGraphCounters& counters,
+                                  std::size_t vertices) {
+  if (counters.row_reads != counters.extent_reads * ((vertices + 7) / 8))
+    throw std::logic_error("dense directory byte ledger mismatch");
+  std::cout << "DENSE_DIRECTORY {\"vertices\":" << vertices
+            << ",\"extent_beats\":" << counters.extent_reads
+            << ",\"directory_beats\":" << counters.row_reads
+            << ",\"slot_beats\":" << counters.segment_reads << "}" << std::endl;
+}
+
 // Serialize existing completion records only after the scheduler is drained.
 inline void write_progress(const spine::sim::RoutedReGraphSystem& system,
                            const std::filesystem::path& directory) {

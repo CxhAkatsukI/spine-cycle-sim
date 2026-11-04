@@ -30,7 +30,8 @@ def residual_threshold(value):
 
 
 def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_only=False,
-        residual_epsilon=1e-6, case_set="figure9", spine_residual_apply="dense"):
+        residual_epsilon=1e-6, case_set="figure9", spine_residual_apply="dense",
+        gr_drain_directory=False):
     if cpu not in os.sched_getaffinity(0) or timeout <= 0:
         raise ValueError("allowed CPU and positive timeout required")
     epsilon = residual_threshold(residual_epsilon)
@@ -66,6 +67,7 @@ def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_
         model=dict(clock_mhz=150, memory="Direct DRAMSim3, all 32 channels, 512 MiB/channel, 32 outstanding/channel",
             g="finite natural-geometry/shared-metadata G; original-G performance not admitted",
             r="prefetch_gather_reuse, algorithm-specific finite apply and timed PR preparation",
+            gr_drain_directory=gr_drain_directory,
             spine="Candidate10OnePass; device-active and owner closure",
             spine_residual_apply=spine_residual_apply,
             apply_evidence="simulator-only dirty-bitmap candidate, not routed HLS" if spine_residual_apply != "dense" else "unchanged dense Apply control",
@@ -96,12 +98,19 @@ def run(output, core, cpu, timeout, datasets, algorithms, memory_profile, smoke_
             root=case.get("root", 0), residual_epsilon=epsilon,
             spine_residual_apply=spine_residual_apply,
             dram_config=str(dram_config), maximum=150000000)
+        if gr_drain_directory and arm == "gr":
+            params["gr_drain_directory"] = "true"
         atomic_write_json(directory / "config.json", params)
         print("START " + name, flush=True)
         step = execute(["env", "LD_LIBRARY_PATH=" + str(DRAM), "taskset", "-c", str(cpu), str(SST),
             "--no-env-config", "--add-lib-path=" + str(output / "build"),
             str(Path(__file__).with_name("sst_config.py")), "--", str(directory / "config.json")], name, timeout)
         row = analysis.device(step)
+        if gr_drain_directory and arm == "gr":
+            ledger = analysis.records(step, "DENSE_DIRECTORY ")
+            if len(ledger) != 1:
+                raise ValueError("one complete dense directory ledger required")
+            row["dense_directory"] = ledger[0]
         row.update(energy_pj=analysis.energy(directory), energy_details=analysis.energy_details(directory),
                    evidence=str(directory), final_state=pin(directory / "final.u32le"),
                    state_hashes={name: pin(directory / (name + ".u32le"))["sha256"]
@@ -178,7 +187,9 @@ if __name__ == "__main__":
     parser.add_argument("--residual-epsilon", type=residual_threshold, default=1e-6,
                         help="Fixed per-vertex ResPR threshold; historical setting is 1e-6 (no division by V)")
     parser.add_argument("--spine-residual-apply", choices=("dense", "dirty-bitmap"), default="dense")
+    parser.add_argument("--gr-drain-directory", action="store_true",
+                        help="Read the complete dense directory per G+R shard; not a native timing profile")
     args = parser.parse_args()
     print(json.dumps(dict(status=run(args.output.resolve(), args.core.resolve(), args.cpu, args.timeout,
         args.datasets, args.algorithms, args.memory_profile, args.smoke_only, args.residual_epsilon,
-        args.case_set, args.spine_residual_apply)["status"])))
+        args.case_set, args.spine_residual_apply, args.gr_drain_directory)["status"])))

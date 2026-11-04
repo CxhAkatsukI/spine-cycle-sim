@@ -49,10 +49,12 @@ public:
          ReGraphPmaPartition partition, std::uint64_t read_delay = 71,
          FixedAxiPort* odd_memory = nullptr, RefillPolicy refill = RefillPolicy::kAvailableSpace,
          std::size_t pipeline_capacity = 2, FixedAxiPort* directory_memory = nullptr,
-         std::size_t directory_tiles = 1, std::size_t bank_lines = 256)
+         std::size_t directory_tiles = 1, std::size_t bank_lines = 256,
+         bool drain_directory = false)
       : Component("prefetch-reader", clock), memory_(memory), odd_memory_(odd_memory), output_(output),
         partition_(partition), delay_(read_delay), refill_(refill), pipeline_capacity_(pipeline_capacity),
         directory_memory_(directory_memory), directory_(partition.vertices, directory_tiles),
+        drain_directory_(drain_directory),
         banks_(make_banks(bank_lines)) {
     check(pipeline_capacity_ == 2 || pipeline_capacity_ == 3, "unsupported finite segment pipeline");
     check(partition.vertices && partition.slots && partition.slots % 16 == 0 &&
@@ -68,7 +70,8 @@ public:
   void evaluate(const CycleContext& context) override;
   void commit(const CycleContext& context) override;
   [[nodiscard]] bool done() const noexcept {
-    return extent_ && consumed_ == total_ && pending_.empty() && pipeline_.empty();
+    return extent_ && consumed_ == total_ && directory_finished() &&
+        pending_.empty() && pipeline_.empty();
   }
   [[nodiscard]] const ReaderStats& stats() const noexcept { return stats_; }
 
@@ -94,6 +97,9 @@ private:
   void accept_beat(const AxiReadBeatResponse& beat, std::uint64_t cycle);
   std::size_t outstanding_directory() const;
   std::size_t outstanding(std::size_t port) const;
+  bool directory_finished() const noexcept {
+    return drain_directory_ ? source_ == partition_.vertices : consumed_ == total_;
+  }
   std::size_t port_count() const { return directory_memory_ ? 3 : odd_memory_ ? 2 : 1; }
   FixedAxiPort& memory(std::size_t port) {
     return port == 2 ? *directory_memory_ : port ? *odd_memory_ : memory_;
@@ -110,6 +116,7 @@ private:
   bool extent_{};
   std::size_t total_{}, consumed_{}, source_{}, segment_{};
   DirectoryTiles directory_;
+  const bool drain_directory_;
   std::array<std::vector<Line>, 2> banks_;
   std::array<std::size_t, 2> issued_{}, released_{};
   std::map<std::uint64_t, Request> pending_;

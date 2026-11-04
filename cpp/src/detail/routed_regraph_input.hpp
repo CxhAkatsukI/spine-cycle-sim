@@ -25,6 +25,7 @@ private:
   const std::uint64_t read_delay_;
   const std::size_t pipeline_capacity_;
   const std::size_t directory_tiles_;
+  const bool drain_directory_;
   const std::size_t bank_lines_;
   const prefetch_compact::RefillPolicy refill_;
   Fifo<prefetch_compact::Segment> segments_;

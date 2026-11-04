@@ -64,6 +64,8 @@ struct RoutedReGraphConfig {
   RoutedInputPath input_path{RoutedInputPath::kPhysicalSlots};
   // Default one; two finite tiles explicitly enable directory read lookahead.
   std::size_t experimental_directory_tiles{1};
+  // Match a directory producer that drains through the last source row.
+  bool experimental_drain_directory{};
   // Reserve a complete <=16-beat PMA parent before issuing, with unchanged rings.
   bool experimental_full_burst_refill{};
   // Per-parity reserved 64-byte lines; only explicit compact-input controls may enlarge them.

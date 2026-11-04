@@ -53,7 +53,7 @@ void check_observation(const RoutedReGraphObservation& a, const RoutedReGraphObs
 }
 
 Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled,
-               const std::string& arm) {
+               const std::string& arm, bool drain_directory = false) {
   const auto inf = GraphAlgorithmPolicy::kSsspInfinity;
   std::vector<GraSuEdge> edges{{0, 1, 2, false}};
   if (vertices > 8192) {
@@ -94,6 +94,7 @@ Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled,
                                               throttled ? 2U : 32U, true});
   scheduler.add_component(backend);
   auto config = evaluation_impact::k4_configuration(evaluation_impact::control(arm));
+  config.experimental_drain_directory = drain_directory;
   config.compute.cache_segments_per_half = 1;
   if (throttled) {
     config.adapter_stream_depth = config.gather_stream_depth = config.mux_stream_depth = 1;
@@ -129,6 +130,9 @@ Result execute(std::size_t vertices, bool empty, bool reverse, bool throttled,
         "compact physical request, beat, dummy or byte conservation failed");
   check(system.invocations().size() == expected.size() * ((vertices + 65535) / 65536) * 2,
         "compact invocation/restart ledger differs");
+  if (drain_directory)
+    check(c.row_reads == c.extent_reads * ((vertices + 7) / 8),
+          "dense directory must read every source line once per physical shard invocation");
   const auto observation = system.observation();
   check(observation.backend.apply_read_stalls <= c.end_cycle - c.start_cycle,
         "sampled Apply read-window waits exceed execution cycles");
@@ -193,11 +197,29 @@ void framing() {
   catch (const std::logic_error&) { rejected = true; }
   check(rejected, "terminal bridge accepted a missing TLAST at its bound");
 }
+
+void directory_tail() {
+  // Last live source is zero. Force more than two tiles and a partial final line.
+  for (const auto* arm : {"prefetch_compact", "prefetch_gather_reuse"}) {
+    const auto legacy = execute(2051, false, false, true, arm);
+    const auto dense = execute(2051, false, false, true, arm, true);
+    const auto reverse = execute(2051, false, true, true, arm, true);
+    check(dense == reverse, "full directory drain depends on registration order");
+    const auto& a = legacy.counters;
+    const auto& b = dense.counters;
+    check(b.row_reads > a.row_reads && b.axi_beats - a.axi_beats == b.row_reads - a.row_reads &&
+          b.extent_reads == a.extent_reads && b.live_edges == a.live_edges &&
+          b.segment_reads == a.segment_reads && b.packets == a.packets,
+          "directory drain changed edge work or failed to charge the missing tail");
+    std::cout << arm << " directory lines old=" << a.row_reads << " full=" << b.row_reads << '\n';
+  }
+}
 }  // namespace
 
 int main() {
   try {
     framing();
+    directory_tail();
     for (const auto& arm : {"prefetch_compact", "prefetch_source", "prefetch_dual_elastic",
                            "prefetch_triple_elastic", "prefetch_triple_split_apply",
                            "prefetch_directory_lookahead", "prefetch_ready_bursts",

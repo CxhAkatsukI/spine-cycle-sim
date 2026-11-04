@@ -49,6 +49,8 @@ void RoutedReGraphSystem::Impl::admit() {
     throw std::invalid_argument("PMA ring capacity requires 256/512 lines and an explicit compact input");
   if (config.experimental_full_burst_refill && !compact)
     throw std::invalid_argument("full-burst refill requires the explicit finite prefetch input");
+  if (config.experimental_drain_directory && !compact)
+    throw std::invalid_argument("directory drain requires the explicit finite prefetch input");
   if ((config.experimental_directory_tiles != 1 && config.experimental_directory_tiles != 2) ||
       (config.experimental_directory_tiles == 2 &&
        config.input_path != RoutedInputPath::kTriplePrefetchElasticExperimental))

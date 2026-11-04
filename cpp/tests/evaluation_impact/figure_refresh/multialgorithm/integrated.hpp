@@ -7,10 +7,11 @@
 
 namespace figure_refresh::multi {
 inline void integrated(const Input& input, const std::filesystem::path& output, Scheduler& scheduler,
-                       ClockId clock, MemoryBackend& backend, std::uint64_t maximum) {
+                       ClockId clock, MemoryBackend& backend, std::uint64_t maximum, bool drain_directory) {
   scheduler.add_component(backend);
   const auto resident = wc::resident_g(input.graph, scheduler, clock, backend, maximum);
   auto config = wc::ei::k4_configuration(wc::ei::control("prefetch_gather_reuse"));
+  config.experimental_drain_directory = drain_directory;
   config.algorithm = input.algorithm;
   config.reuse_resident_pma = true;
   config.compute.cache_segments_per_half = 131072;
@@ -48,6 +49,7 @@ inline void integrated(const Input& input, const std::filesystem::path& output, 
   require(r.source_state(0, r.rounds().size() & 1U) == r.source_state(1, r.rounds().size() & 1U),
           "R final source replicas differ");
   const auto rc = r.counters();
+  if (drain_directory) wc::ei::write_dense_directory(rc, resident.layout.vertices);
   const auto rt = subtract_memory_traffic(backend.traffic_stats(), resident.traffic);
   const auto read_beats = rc.extent_reads + rc.row_reads + rc.segment_reads + rc.source_lines +
       rc.apply_reads + rc.degree_reads + rc.prepare_state_reads + rc.prepare_degree_reads;

@@ -10,7 +10,7 @@
 namespace warm_comparison {
 inline void integrated_with_backend(const Input& input, const std::filesystem::path& output,
     Scheduler& scheduler, ClockId clock, MemoryBackend& backend, bool reverse,
-    std::uint64_t maximum, bool update_only = false) {
+    std::uint64_t maximum, bool update_only = false, bool drain_directory = false) {
   const auto external_components = scheduler.component_count();
   scheduler.add_component(backend);
   const auto resident = resident_g(input, scheduler, clock, backend, maximum);
@@ -26,6 +26,7 @@ inline void integrated_with_backend(const Input& input, const std::filesystem::p
   }
   const auto& graph = resident.graph;
   auto config = ei::k4_configuration(ei::control("prefetch_gather_reuse"));
+  config.experimental_drain_directory = drain_directory;
   config.reuse_resident_pma = true;
   config.compute.cache_segments_per_half = 131072;
   config.compute.runtime_physical_updates_per_shard = resident.physical_counts;
@@ -50,6 +51,7 @@ inline void integrated_with_backend(const Input& input, const std::filesystem::p
     require(r.source_state(copy, r.rounds().size() & 1U) == r.encoded_state(), "R final replica mismatch");
   require(handoff_test::graph_bytes(backend, layout, plan) == graph, "R modified resident PMA");
   const auto rc = r.counters();
+  if (drain_directory) ei::write_dense_directory(rc, layout.vertices);
   const auto rt = subtract_memory_traffic(backend.traffic_stats(), gt);
   require(rc.start_cycle >= gc.end_cycle && rc.axi_requests == rc.axi_completions &&
       rc.axi_beats == rc.axi_completed_beats && backend.outstanding() == 0 &&

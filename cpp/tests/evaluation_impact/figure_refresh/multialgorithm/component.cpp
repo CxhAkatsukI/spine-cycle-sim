@@ -35,9 +35,11 @@ class Refresh final : public SST::Component {
       const auto maximum = params_.find<std::uint64_t>("maximum", 150000000);
       const auto graph = params_.find<std::string>("graph", "");
       const auto updates = params_.find<std::string>("updates", "");
+      const bool drain_directory = params_.find<bool>("gr_drain_directory", false);
+      require(!drain_directory || arm == "gr", "dense directory is only a G+R control");
       if (algorithm == "SSSP") {
         sssp(graph, updates, params_.find<std::uint32_t>("root", 0), output, arm,
-             scheduler, clock, backend, maximum);
+             scheduler, clock, backend, maximum, drain_directory);
       } else {
         const auto input = load(graph, updates, algorithm, params_.find<float>("residual_epsilon", 1e-6f));
         wc::ei::wt::write_words(std::filesystem::path(output) / "old_state.u32le", input.graph.after.initial.primary);
@@ -45,7 +47,7 @@ class Refresh final : public SST::Component {
         if (input.algorithm.kind == GraphAlgorithmKind::kResidualPageRank)
           for (double value : input.expected_rank) expected.push_back(GraphAlgorithmPolicy::float_to_word(value));
         wc::ei::wt::write_words(std::filesystem::path(output) / "expected.u32le", expected);
-        if (arm == "gr") integrated(input, output, scheduler, clock, backend, maximum);
+        if (arm == "gr") integrated(input, output, scheduler, clock, backend, maximum, drain_directory);
         else {
           const auto apply = params_.find<std::string>("spine_residual_apply", "dense");
           require(apply == "dense" || apply == "dirty-bitmap", "invalid residual Apply mode");
@@ -69,6 +71,7 @@ class Refresh final : public SST::Component {
       {"root", "SSSP source vertex", "0"},
       {"residual_epsilon", "Fixed per-vertex residual activation/stop threshold (not divided by V)", "1e-6"},
       {"spine_residual_apply", "dense control or dirty-bitmap simulator candidate", "dense"},
+      {"gr_drain_directory", "Experimental G+R dense directory byte ledger", "false"},
       {"output", "Fresh output directory", ""}, {"dram_config", "DRAMSim3 configuration", ""},
       {"maximum", "Finite cycle budget", "150000000"})
  private:
