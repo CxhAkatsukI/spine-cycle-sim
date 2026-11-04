@@ -12,7 +12,7 @@ from . import analysis, clocks, derated_route, matched_hbm, runtime
 from .follow import unchanged
 
 
-PROFILES = {"cc": ("au903k", 430), "respr": ("skewed_sources", 445)}
+PROFILES = {"cc": ("au903k", 430), "respr": ("skewed_sources", 445), "weighted_sssp": ("au903k", 445)}
 
 
 def read_pin(pin):
@@ -86,6 +86,57 @@ def reference_observation(args, reference, report, parent):
     return fixture, measured, observed, context
 
 
+def recover_sssp_reference(args, reference, report, route):
+    """Recover an already measured control only after the known pre-kernel path collision."""
+    root = args.reference.parent
+    stdout, stderr = root / "candidate.stdout.txt", root / "candidate.stderr.txt"
+    if (reference["status"] != "FAILED_RETAINED" or reference["requested_runs_per_arm"] != 1
+            or (reference["algorithm"], reference["bdf"], reference["target"], reference["boundary"])
+            != (args.algorithm, args.bdf, args.hbm_mhz, active_min.BOUNDARY)
+            or reference["attempts"] != ["reference", "candidate"]
+            or reference["derated_route"] != json.loads(json.dumps(route))
+            or reference["error"] != f"RuntimeError('candidate failed (1): {stderr}')"
+            or stdout.read_bytes()
+            or stderr.read_text().strip() != "ERROR: fresh active-min output directory required"
+            or "execution" in reference["arms"]["candidate"] or "analysis" in reference["arms"]["candidate"]):
+        raise ValueError("expected the exact unmeasured SSSP candidate directory collision")
+    pins = reference["pins"]
+    unchanged(pins)
+    if not args.sssp_hosts:
+        raise ValueError("exact public and integrated SSSP hosts required")
+    reference_host, candidate_host = [runtime.identity(host) for host in args.sssp_hosts]
+    if any({key: pin[key] for key in ("path", "sha256")} not in pins for pin in (reference_host, candidate_host)):
+        raise ValueError("SSSP recovery hosts differ from the initial attempt")
+    input_pins = [pin for pin in pins if Path(pin["path"]).name in
+                  {f"{name}.u32le" for name in active_min.INPUTS + active_min.STATE[args.algorithm]}
+                  and Path(pin["path"]).parent.name == "inputs"]
+    fixture = fixture_directory(input_pins, active_min.INPUTS + active_min.STATE[args.algorithm])
+    loaders = active_min_pair.paired_loader(reference_host["path"], candidate_host["path"])
+    if loaders != reference["preflight_xrt_libraries"]:
+        raise ValueError("SSSP XRT loader differs from the measured reference")
+    offline, oracle, _ = active_min.read_offline(reference_host["path"], args.algorithm, fixture, args.output)
+    row = reference["arms"]["reference"]
+    if row["execution"]["command"][-7:] != [reference_host["path"], "board", args.algorithm, str(fixture),
+                                             str(root / "reference"),
+                                             row["clock_evidence"]["expected"]["binary"]["path"], str(args.device)]:
+        raise ValueError("public SSSP control command differs")
+    measured = active_min.inspect(root / "reference", offline, oracle, fixture, args.bdf)
+    if measured != row["analysis"]:
+        raise ValueError("SSSP public output replay differs")
+    observed = clocks.replay(row["clock_evidence"])
+    matched_hbm.validate_after(row["prepared"], row["clock_evidence"], args.hbm_mhz)
+    package = reference["reference_package"]
+    packed = read_pin(package)
+    if (package not in pins or observed["binary"] != packed["derived"]["binary"]
+            or observed["bdf"] != args.bdf or packed["status"] != "OFFLINE_VERIFIED_NOT_BOARD_QUALIFIED"
+            or packed["requested_hbm_mhz"] != args.hbm_mhz):
+        raise ValueError("SSSP public same-clock image differs")
+    report.update(input_pins=input_pins, reference_clock=row["clock_evidence"],
+                  reference_observation=measured, candidate_host=candidate_host,
+                  recovery_pins=[*pins, *measured["output_pins"], runtime.identity(stdout), runtime.identity(stderr)])
+    return fixture, measured, observed, (offline, oracle)
+
+
 def wait_for_return(args, report, save):
     active_min_follow.exact_service(args.unit, args.invocation)
     observed = False
@@ -134,11 +185,16 @@ def run(args):
         if not route["vendor_hbm_mhz"]:
             report["status"] = "NO_COMPATIBLE_DERATING_NO_BOARD_RUN"
             return report
-        fixture, control, control_clock, context = reference_observation(args, read_pin(reference), report, parent)
+        recorded = read_pin(reference)
+        if args.algorithm == "weighted_sssp":
+            fixture, control, control_clock, context = recover_sssp_reference(args, recorded, report, route)
+            pins += report["recovery_pins"]
+        else:
+            fixture, control, control_clock, context = reference_observation(args, recorded, report, parent)
         binary = Path(route["image"]["path"])
         host = report["candidate_host"]["path"]
         expected = clocks.image(binary, args.output, "candidate")
-        if args.algorithm == "cc":
+        if args.algorithm != "respr":
             offline, oracle = context
             command = ["/usr/bin/env", "XCL_DEVICE_INDEX=0", f"GRASU_REGRAPH_EXPECT_BDF={args.bdf}",
                        host, "--active-min-once", binary, fixture, oracle["path"], args.output / "result"]
@@ -158,7 +214,7 @@ def run(args):
             report["run"] = runtime.execute(command, args.output, "candidate", fd, node, args.bdf)
             after = report["clock_after"] = clocks.capture(args.bdf, expected, args.output, "candidate.after")
             matched_hbm.validate_after(report["prepared"], after, args.hbm_mhz)
-        if args.algorithm == "cc":
+        if args.algorithm != "respr":
             measured = active_min_candidate.inspect(args.output / "candidate.stdout.txt", args.output / "result",
                                                      offline, oracle, fixture)
             comparison = active_min_candidate.compare(control, measured, control_clock, clocks.replay(after))
@@ -184,6 +240,7 @@ if __name__ == "__main__":
     for name in ("reference-sha", "unit", "invocation"):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--algorithm", choices=PROFILES, required=True)
+    parser.add_argument("--sssp-hosts", type=Path, nargs=2, metavar=("PUBLIC", "INTEGRATED"))
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--bdf", default="0000:82:00.1")
     parser.add_argument("--wait-seconds", type=int, default=43200)

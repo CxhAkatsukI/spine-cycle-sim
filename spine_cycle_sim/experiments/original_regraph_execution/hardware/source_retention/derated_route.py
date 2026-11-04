@@ -75,7 +75,7 @@ def admit(args, output, transfer):
         raise ValueError("candidate did not replace the expected production image and algorithm")
     log = args.returned / "route/route.stdout.txt"
     old = bitstream.normalized_topology(bitstream._dump(args.predecessor, output / "predecessor"))
-    new = bitstream.normalized_topology(bitstream._dump(image, output / "candidate"))
+    new = bitstream.normalized_topology(bitstream._dump(image, output / "candidate_topology"))
     if args.algorithm == "respr":
         old = returned_route.tail_predecessor(old)
     achievable = compatible_profile(old, new, log.read_text(), args.hbm_mhz)

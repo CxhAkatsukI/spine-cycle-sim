@@ -1,5 +1,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -56,6 +57,21 @@ class DeratedScreenTest(unittest.TestCase):
                              [{"path": str(root / "tasks.u32le")}] * 2):
                     with self.subTest(pins=pins), self.assertRaises(ValueError):
                         derated_screen.fixture_directory(pins, ("tasks",))
+
+    def test_sssp_recovery_rejects_an_executed_candidate(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            stderr = root / "candidate.stderr.txt"
+            stderr.write_text("ERROR: fresh active-min output directory required\n")
+            (root / "candidate.stdout.txt").write_text("a measured event\n")
+            args = SimpleNamespace(reference=root / "results.json", algorithm="weighted_sssp",
+                                   bdf="0000:82:00.1", hbm_mhz=445)
+            previous = dict(status="FAILED_RETAINED", requested_runs_per_arm=1, algorithm=args.algorithm,
+                            bdf=args.bdf, target=445, boundary=derated_screen.active_min.BOUNDARY,
+                            attempts=["reference", "candidate"], derated_route={},
+                            error=f"RuntimeError('candidate failed (1): {stderr}')", arms={"candidate": {}})
+            with self.assertRaisesRegex(ValueError, "unmeasured SSSP candidate"):
+                derated_screen.recover_sssp_reference(args, previous, {}, {})
 
 
 if __name__ == "__main__":
