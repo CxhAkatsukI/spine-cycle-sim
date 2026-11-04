@@ -2,31 +2,27 @@
 
 ## Latest Checkpoint
 
-The 15% FPGA R gate is **not met across the declared controls**. Two Amazon
-weighted-SSSP controls passed on the earlier nominal image. At matched lower
-HBM clocks, the best AskUbuntu SSSP result is **16.93% slower** after the
-source-read burst change and reciprocal AskUbuntu CC is **18.18% slower**.
-The ResPR source-burst, unregistered-Apply variant finished and remains
-**57.99% slower** on skewed sources (both arms at 430 MHz HBM). These are
-independent, correctness-checked R results, not convergence comparisons
-against Spine.
+No current image has passed both G and all declared R hardware controls
+for its algorithm. These are the latest relevant measured checkpoints;
+numbers are elapsed-time changes from each matched public control.
 
-The new CC four-bank gather-clear image passed two matched R screens
-(Amazon **+0.66%** elapsed; high-activity Amazon **-6.82%**)
-and independently passed G on AU 131K (**-61.65%**). It failed the
-reciprocal AU 903K R screen (**+20.92%**, above the 15% limit).
-No resident CC pair was measured on this image. See the
-[board receipts](REMOTE_LINKS.md#cc-banked-clear-board-checkpoint).
-The SSSP source-read burst physical retry and ResPR packed-validity
-gather still have separate build and one-shot board queues.
-The new ResPR resident screen waits for both exact-image G and R passes.
-Passive queues retain the finite zero-swap memory cap; timed runs still
-require a board lease and memory admission.
+| Algorithm | R-only FPGA screen | Independent G and next image |
+| --- | --- | --- |
+| Weighted SSSP | Both Amazon controls passed on an earlier nominal image, but AU missed at **+19.55%** nominal and **+16.93%** on the source-burst variant at matched 445 MHz HBM. | Earlier exact-image G passed. The nominal source-burst retry needs its own G and R screens. |
+| CC | Four-bank image: Amazon **+0.66%**, high-activity Amazon **-6.82%**, AU **+20.92%**. | The four-bank image passed G (**-61.65%** on AU 131K). Its source-burst replacement needs separate G and R screens. |
+| ResPR | Packed-validity image: Amazon **-4.22%**, skewed-source **+15.73%**, a miss of **3.871 us** at nominal clocks. | G on that image took **133.500 ms** against **18.369 ms**. The degree-prefix replacement addresses this G path and needs separate G and R screens. |
+
+See the [CC board receipts](REMOTE_LINKS.md#cc-banked-clear-board-checkpoint),
+[same-clock R screens](LOWER_CLOCK_SCREEN.md#measured-pairs),
+and [independent G receipts](G_SCOPE.md) for input, host and bitstream
+provenance. Resident convergence queues require the new exact-image
+stage gates. Each new arm is measured once, under a board lease and
+memory admission with no swap.
 
 The [Spine CC warm-insert repair](SPINE_ARTIFACTS.md#sparse-warm-insertion-repair)
-targets the old image's full affected-component discovery on a pure
-insertion. It passed C-model tests and is building; it has no measured
-speedup yet.
+passed the one-shot full AU correctness check. Its resident window fell
+from **7,886.354 ms** to **17.516 ms**. This compares two Spine images on
+the same workload; no G+R arm has been timed against this Spine image yet.
 
 ResPR returned images use the qualified card at `0000:82:00.1` for the
 nominal screen, with measured 150/500/450/0 MHz required around each arm.
