@@ -41,7 +41,7 @@ the Figure 7 comparisons include the actual update and convergence path.
 | 7, SSSP/CC | All 16 timed G+R runs execute the adapter: SSSP has 1--3 supersteps, CC 1--2. | Retest on the admitted algorithm-specific images unless a matched, measured bound establishes the claimed advantage. |
 | 7, ResPR | All eight timed G+R runs execute one full correction pipeline. Neither arm takes a later propagation round on these batches. | Retest after R admission; explicitly keep these eight results separate from nonempty propagation. |
 | 8 | No R execution in the update-only boundary. Its G configuration is nevertheless older than the cached/replicated hardware G. | Do not rerun because of R alone. To call it a comparison against current G, regenerate or demonstrate equivalence of the G device, host and transfer inputs. It remains one batch, not ten. |
-| 9 | It uses simulated G+R and Spine requests. Identical adapter outputs do not establish identical accepted requests, request order, or background HBM energy. | Verify the current implementation's request ledger against the intended simulator profile; rerun affected simulator pairs for a refreshed comparison. Preserve the modeled energy scope. |
+| 9 | It uses simulated G+R and Spine requests. Identical adapter outputs do not establish identical accepted requests, request order, or background HBM energy. The directory alone gives a conditional floor for the direction of the byte comparison. | See the byte floor below. Verify the current implementation's request ledger against the intended simulator profile for new byte ratios and rerun the DRAMSim3 trace for energy. |
 | 10/11 | Spine-only stage attribution and a fit to Spine simulator outputs; neither consumes R measurements. | Retain as predictions for the exact frozen Spine model. Re-execute/refit only if a relevant Spine model or workload changes. R admission does not calibrate them. |
 
 ## Figure 8: Exact Inputs For A Native G Check
@@ -114,6 +114,51 @@ receipt is `fig8-au512-pair-return-v1/results.json` under the same check
 root. This is one native setup comparison, not the full seven-case figure.
 Do not mix either native arm with the older
 maintenance-only or modeled-setup results.
+
+## Figure 9: One-Shard Directory Byte Floor
+
+For the same nine inputs, keep the frozen Spine read/write ledger fixed and
+substitute the directory-span G+R design. If a resident run completes at
+least one traversal with the same vertex domain, the revised adapter reads
+at least `64 * ceil(V / 8)` HBM bytes: the directory of just one nonempty
+shard. The [native SSSP/CC host](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/24519a6/tools/sharded_k4_native_host.cpp#L883-L907)
+and [ResPR host](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/24519a6/tools/sharded_k4_pagerank_native_host.cpp#L749-L773)
+pass the full vertex count to each shard. The
+[directory reader](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/24519a6/kernels/pma_prefetch_compact/readers.hpp#L15-L48)
+reads all `ceil(V / 8)` 512-bit words for a nonempty extent. Its empty-extent
+early return cannot apply to every shard of these nonempty graphs. The
+[span join](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/24519a6/kernels/pma_prefetch_compact/join.hpp#L43-L78)
+does not remove those directory reads. ResPR round-zero correction counts
+as a traversal even when no later propagation round is needed.
+
+| Algorithm | Dataset | One G+R shard directory, B | Frozen Spine total, B | G+R / Spine floor |
+| --- | --- | ---: | ---: | ---: |
+| Weighted SSSP | AU | 4,122,304 | 25,640 | 160.78x |
+| Weighted SSSP | SU | 4,538,560 | 23,780 | 190.86x |
+| Weighted SSSP | WK | 9,121,216 | 33,512 | 272.18x |
+| CC | AU | 4,122,304 | 43,552 | 94.65x |
+| CC | SU | 4,538,560 | 25,752 | 176.24x |
+| CC | WK | 9,121,216 | 59,564 | 153.13x |
+| ResPR | AU | 4,122,304 | 14,672 | 280.96x |
+| ResPR | SU | 4,538,560 | 12,996 | 349.23x |
+| ResPR | WK | 9,121,216 | 24,580 | 371.08x |
+
+This counts no other G+R reads, writes, shards or rounds. It establishes the
+direction of Fig. 9(a) for this adapter change with the frozen denominator;
+it is neither a measured FPGA traffic counter nor a replacement bar height.
+It does not cover a change to the Spine ledger, an adapter that avoids the
+dense row directory, or an execution with no R traversal. It gives no
+corresponding ratio for Fig. 9(b): command order, activation, and background
+energy can all change independently of this byte floor.
+
+To reproduce, from the November 3 handoff directory:
+
+```bash
+awk -F, 'NR>1 && $6=="spine" {
+  gr=int(($7+7)/8)*64; spine=$12+$13;
+  printf "%s %s %d %d %.2f\n", $2,$1,gr,spine,gr/spine
+}' data/fig9_arms.csv
+```
 
 ## Figure 7: The Smallest Observed Margins
 
