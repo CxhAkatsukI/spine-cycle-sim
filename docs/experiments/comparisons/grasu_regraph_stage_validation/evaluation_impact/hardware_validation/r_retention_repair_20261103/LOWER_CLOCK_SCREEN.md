@@ -94,6 +94,32 @@ checks; its physical link and one-shot measurement are queued. See the
 [CC route handoff](REMOTE_LINKS.md#cc-four-bank-gather-clear) and the
 [native and synthesis evidence](banked-gather-csynth.tar.gz).
 
+### Weighted SSSP Component Check
+
+The fixed-frame weighted gather was also built in both modes with Vitis
+2024.1 for the U55C at 150 MHz. Both XOs match the pending SSSP route
+input's kernel interface and compile definitions, apart from the new
+banked-clear switch. The two component builds use the same source revision
+(`1f63511`), not a relink of the existing SSSP image.
+
+| Gather C-synthesis | Original | Four-way clear |
+| --- | ---: | ---: |
+| Full-clear loop iterations | 32,768 | 8,192 |
+| Clear / scatter / publish initiation intervals | 1 / 1 / 1 | 1 / 1 / 1 |
+| URAM / BRAM18 / DSP | 64 / 128 / 0 | 64 / 128 / 0 |
+| Estimated LUT / FF | 36,536 / 11,804 | 42,544 / 14,474 |
+| Estimated clock period | 5.860 ns | 5.860 ns |
+
+The same 164-us reduction in local full-clear work is larger than the
+41.37-us SSSP gap to the gate, but may overlap adapter work; the extra
+LUTs and FFs also need placed-and-routed checks. This is a component
+candidate, not an admitted route or measured speedup.
+The [synthesis reports and logs](sssp-banked-gather-csynth.tar.gz) are
+from `sssp-fixed-gather-clear-csynth-v2`, invocation
+`65a5993a00994d9ea2805df18c827d0a` (peak 1.8 GiB). The banked XO
+SHA-256 is
+`d244e50c168def1bf0888822743c3166e09d7d28c1fbdcd2b9a8e0fed55c5faf`.
+
 ## Host Dispatch Control
 
 On the same ResPR image, card, 445 MHz HBM profile and skewed-sources
