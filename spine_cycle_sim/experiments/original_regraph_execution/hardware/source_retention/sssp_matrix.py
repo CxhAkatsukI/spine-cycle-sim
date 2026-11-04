@@ -57,6 +57,7 @@ def run(args):
         raise ValueError("expected the AU weighted-SSSP matrix template")
     include_au = getattr(args, "include_au", False)
     source = getattr(args, "continue_from", None)
+    so_receipt = getattr(args, "so_memory_receipt", None)
     if source and not include_au:
         raise ValueError("continuation requires the complete SSSP matrix")
     if include_au and (args.au_unit or args.au_invocation or args.au_output):
@@ -123,13 +124,25 @@ def run(args):
         if previous is not None:
             if (previous["baseline"], previous["odd_r"]) != (gate, odd):
                 raise ValueError("continuation must use the same exact baseline stage admissions")
+        if so_receipt:
+            if not source or "SO" not in pending:
+                raise ValueError("use the SO profile only when resuming an unattempted SO case")
+            profile = resident.so_memory_profile(rows["SO"]["case"], *so_receipt)
+            report["so_memory_profile"] = profile
+            pins.append(profile["receipt"])
+            pending.sort(key=lambda ds: profile["memory_gib"] if ds == "SO" else rows[ds]["case"]["memory_gib"])
+        if previous is not None:
             sssp_continuation.claim(source, args.output)
         report.update(status="RUNNING_SINGLE_PASS", baseline=gate, odd_r=odd)
         for ds in pending:
             row = rows[ds]
             unchanged([*pins, *row["pins"]])
             output = args.output / ds.lower()
-            command = child_command(args, ds, row["case"]["memory_gib"], output)
+            use_profile = ds == "SO" and so_receipt
+            budget = resident.SO_MEMORY_GIB if use_profile else row["case"]["memory_gib"]
+            command = child_command(args, ds, budget, output)
+            if use_profile:
+                command.extend(["--so-memory-receipt", *so_receipt])
             row.update(status="REQUESTED", command=command)
             save(journal, report)
             row.update(run_child(command, args.output / f"{ds.lower()}.service.log", output, ds, gate,

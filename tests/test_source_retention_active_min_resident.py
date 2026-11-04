@@ -11,6 +11,31 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_rete
 
 
 class ActiveMinResidentTest(unittest.TestCase):
+    def test_so_memory_profile_only_accepts_the_pinned_matching_unthrottled_pair(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "prior.json"
+            case = dict(dataset="SO", logical="weighted_sssp", memory_gib=32, source=0, graph="graph",
+                        spine_host="host", spine_binary="image")
+            receipt = dict(status="RESIDENT_PAIR_PASS", boundary=resident.BOUNDARY, config=case,
+                           memory_events_after="high 0\nmax 0\noom 0\noom_kill 0\n",
+                           samples=[dict(warmup=False, resources={"spine": {"peak_tree_rss_kib": 4 * 2**20},
+                                                                  "gr": {"peak_tree_rss_kib": 19 * 2**20}})])
+            path.write_text(json.dumps(receipt))
+            pin = identity(path)
+            profile = resident.so_memory_profile(case, path, pin["sha256"])
+            self.assertEqual(profile["memory_gib"], 24)
+            self.assertEqual(profile["receipt"], pin)
+            with self.assertRaisesRegex(ValueError, "pinned"):
+                resident.so_memory_profile(dict(case, source=1), path, pin["sha256"])
+            receipt["samples"][0]["resources"]["gr"]["peak_tree_rss_kib"] = 21 * 2**20
+            path.write_text(json.dumps(receipt))
+            with self.assertRaisesRegex(ValueError, "pinned"):
+                resident.so_memory_profile(case, path, pin["sha256"])
+            with self.assertRaisesRegex(ValueError, "4 GiB"):
+                resident.so_memory_profile(case, path, identity(path)["sha256"])
+            with self.assertRaisesRegex(MemoryError, "throttled"):
+                resident.require_unthrottled("high 1\nmax 0\noom 0\noom_kill 0\n")
+
     def test_freezes_old_batch_but_not_old_baseline(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -26,6 +26,7 @@ FROZEN_ALGORITHMS = {
 }
 COMPARATOR_SHA256 = "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f"
 BOUNDARY = "resident_update_to_final_readback_wall_including_host_relaunch"
+SO_MEMORY_GIB = 24
 
 
 def frozen_case(previous, algorithm, dataset):
@@ -54,6 +55,31 @@ def frozen_case(previous, algorithm, dataset):
     if case["memory_gib"] not in (16, 24, 32):
         raise ValueError("expected frozen per-case memory budget")
     return dict(case, vertices=vertices, edges=edges, updates=updates), pins
+
+
+def so_memory_profile(case, path, digest):
+    pin = identity(path)
+    prior = json.loads(Path(pin["path"]).read_text())
+    unchanged([pin])
+    if (pin["sha256"] != digest or (case["logical"], case["dataset"], case["memory_gib"]) != (
+            "weighted_sssp", "SO", 32) or prior["status"] != "RESIDENT_PAIR_PASS"
+            or prior["boundary"] != BOUNDARY
+            or any(prior["config"][key] != case[key] for key in (
+                "logical", "dataset", "memory_gib", "graph", "source", "spine_host", "spine_binary"))):
+        raise ValueError("SO memory profile requires a pinned, successful run of the frozen input")
+    sample, = prior["samples"]
+    peaks = {name: row["peak_tree_rss_kib"] for name, row in sample["resources"].items()}
+    if (sample["warmup"] or peaks.keys() != {"spine", "gr"}
+            or any(not 0 < peak <= (SO_MEMORY_GIB - 4) * 2**20 for peak in peaks.values())):
+        raise ValueError("SO memory profile requires 4 GiB above each observed peak process-tree RSS")
+    require_unthrottled(prior["memory_events_after"])
+    return {"receipt": pin, "observed_peak_tree_rss_kib": peaks, "memory_gib": SO_MEMORY_GIB}
+
+
+def require_unthrottled(event_log):
+    events = dict(line.split() for line in event_log.splitlines())
+    if any(int(events[key]) != 0 for key in ("high", "max", "oom", "oom_kill")):
+        raise MemoryError("board pair hit the cgroup memory limit or was throttled")
 
 
 def commands(case, gate, output):
@@ -149,6 +175,12 @@ def run(args):
                  identity(__file__), identity(active_min_admission.__file__)]
         report.update(stage_gates=gate, case=case, pins=pins)
         budget = case["memory_gib"]
+        so_receipt = getattr(args, "so_memory_receipt", None)
+        if so_receipt:
+            profile = so_memory_profile(case, *so_receipt)
+            budget = profile["memory_gib"]
+            report["memory_profile"] = profile
+            pins.append(profile["receipt"])
         group = containment.current()
         limits = containment.verify(group, memory_gib=budget)["limits"]
         if int(limits["memory.max"]) != budget * 2**30 or int(limits["memory.high"]) > (budget - 2) * 2**30:
@@ -192,6 +224,8 @@ def run(args):
                             report["arms"][name] = arm(name, report["commands"][name], expected[name], args.output,
                                                        cc_wall=cc_wall)
                             write()
+                            if so_receipt:
+                                require_unthrottled((group / "memory.events").read_text())
                         break
             except BlockingIOError:
                 if report["attempts"] or time.monotonic() >= deadline:
@@ -204,6 +238,8 @@ def run(args):
         report["pair"], report["comparison_log"] = (
             cc_resident_wall.compare(case, report["arms"], args.output, BDF) if cc_wall
             else compare(case, report["arms"], args.comparator, args.output))
+        if so_receipt:
+            require_unthrottled((group / "memory.events").read_text())
         report["status"] = "MEASURED_RESIDENT_PAIR"
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
@@ -228,6 +264,8 @@ def parse_arguments(argv=None, *, extend=None):
     comparison.add_argument("--comparator", type=lambda value: Path(value).resolve())
     comparison.add_argument("--cc-wall-packet", type=lambda value: Path(value).resolve())
     parser.add_argument("--wait-seconds", type=int, default=0)
+    parser.add_argument("--so-memory-receipt", nargs=2, metavar=("RECEIPT", "SHA256"),
+                        help="use the 24 GiB profile only for an unthrottled matching SO SSSP run")
     if extend is not None:
         extend(parser)
     return parser.parse_args(argv)
