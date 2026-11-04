@@ -15,7 +15,11 @@ The same image missed the 15% R gate on the AskUbuntu topology control
 (19.55% slower). Treat the paired convergence timings as observations
 on that image, not as a matrix against a cross-topology-validated baseline.
 The [resident SSSP follow-up](sssp-resident-followup/README.md) adds R19
-and PK, retaining the three original measured pairs without repeating them.
+PK and SO, retaining the three original measured pairs without repeating them.
+The [source-read burst retry](SSSP_STAGE_ADMISSION.md#source-property-read-burst-repair)
+has synthesis evidence and an exact-image board queue; its first resident
+pair is gated on G plus all three R controls. No new board result is
+available for that retry at this checkpoint.
 
 The [first tail-repair board diagnostic](R_PUBLICATION_WINDOWS.md#tail-repair-derated-fpga-diagnostic)
 is now available. Full Amazon is within 1.2% of the public A4 in raw

@@ -2,8 +2,11 @@
 
 This single-pass FPGA checkpoint adds R19, PK and SO to the
 [first three measured SSSP pairs](../paired-board-checkpoint/README.md).
-The exact G+R image passed the [independent G and weighted R gates](../SSSP_STAGE_ADMISSION.md).
-That admission does not extend to CC or ResPR.
+The exact G+R image passed independent G and both Amazon R controls.
+It later failed the [AskUbuntu topology control](../SSSP_STAGE_ADMISSION.md#askubuntu-topology-control)
+by exceeding the 15% overhead limit. These resident pairs remain
+measurements of that image, not evidence against a baseline that passed
+all R controls. They do not admit CC or ResPR.
 
 | Dataset | Spine (ms) | G+R (ms) | G+R / Spine |
 | --- | ---: | ---: | ---: |

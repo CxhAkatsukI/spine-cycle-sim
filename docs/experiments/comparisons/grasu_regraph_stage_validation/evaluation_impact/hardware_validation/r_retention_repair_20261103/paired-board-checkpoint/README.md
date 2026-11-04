@@ -1,8 +1,10 @@
 # Paired FPGA Checkpoint (2026-11-04)
 
 Intermediate evidence, not a replacement for the Fig. 7-11 handoff. The
-[independent stage check](../SSSP_STAGE_ADMISSION.md) admits the weighted SSSP
-G and R image on its two matched R workloads. It does not admit CC or ResPR.
+[independent stage check](../SSSP_STAGE_ADMISSION.md) passed weighted SSSP G
+and the two matched Amazon R controls. The same image subsequently failed
+the AskUbuntu R control. This is an image-specific checkpoint, not evidence
+against a baseline that passed all R controls; it does not admit CC or ResPR.
 The three Fig. 7 pairs and six Fig. 8 pairs below are single measurements;
 there are no averages, projections, or substituted results.
 
