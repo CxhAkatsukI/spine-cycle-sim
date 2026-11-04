@@ -12,9 +12,9 @@ snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
   --sssp-matrix "$run/sssp-physopt-matrix-sealed/matrix.json" \
   --sssp-au "$run/sssp-physopt-resident-au-sealed/queue.json" \
-  --cc-matrix "$run/cc-warm-balanced-matrix-source-bursts-v1/matrix.json" \
-  --respr-matrix "$run/respr-matrix-v10-sealed/results.json" \
-  --respr-screen "$run/resident-joint-board-v12-sealed/results.json" \
+  --cc-matrix "$run/cc-warm-balanced-matrix-source-bursts-v5/matrix.json" \
+  --respr-matrix "$run/respr-degree-prefix-matrix-v1/results.json" \
+  --respr-screen "$run/respr-degree-prefix-resident-v1/results.json" \
   --output "$snapshot.json" \
   --csv "$snapshot.csv"
 ```
@@ -23,9 +23,12 @@ See [remote builds and board queues](REMOTE_LINKS.md#current-one-shot-board-queu
 for the pending candidates. The stopped CC matrix records eight
 `NOT_REQUESTED` rows; its last-written waiting status does not mean it
 will launch. It pinned the old Spine CC image, and the new AU smoke is
-not a Spine versus G+R pair. The new CC matrix first reuses the exact
-admitted AU pair, then measures each remaining dataset once using the same
-routed Spine image and pinned G and R admission. Do not substitute the
+not a Spine versus G+R pair. After its independent stage gates, the new
+CC queue reuses that Spine arm and measures only G+R on AU. The matrix
+imports the admitted pair, then measures each remaining dataset once
+using the same routed Spine image and pinned G and R admission. The
+ResPR matrix waits for the exact degree-prefix image to pass G and R,
+and for the R19 and Flickr board screen to pass. Do not substitute the
 superseded SSSP burst queues. The old `sssp-singlepass-matrix-resume-v5/matrix.json`
 journal is for diagnostics. Its `RUNNING_SINGLE_PASS` and LJ's `REQUESTED`
 are last-written statuses before shutdown. LJ made no board attempt;

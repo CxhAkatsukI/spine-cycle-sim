@@ -300,6 +300,17 @@ The [board bundle](respr-packed-nominal-board.tar.gz) preserves the raw
 logs, timestamp and clock records, comparison and offline replay; large
 oracle buffers are omitted.
 
+In the nominal skewed-source trace, measured from the first CU start,
+the last adapter, gather, mux, HBM and Apply commands end at 316.639,
+551.496, 599.057, 615.068 and 615.458 us. Shard 1's gather has finished
+at 345.190 us, but its ordered mux takes 46.601 us for only eight
+packets, after shard 0's mux ends. This is a command interval with
+possible waits, not 46.601 us of packet-transfer work. The clocks and
+event boundaries do not identify the individual causes of those waits.
+To replay these endpoints, use `source_retention.shard_windows --case
+skewed_sources` on the bundle's `board-once/results.json` with
+`--raw-root` set to its parent `respr-lazy-clear-nominal-r-sealed` directory.
+
 ## Receipts
 
 Paths below are relative to

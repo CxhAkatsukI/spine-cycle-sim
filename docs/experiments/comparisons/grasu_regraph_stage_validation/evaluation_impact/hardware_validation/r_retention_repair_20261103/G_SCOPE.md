@@ -369,3 +369,13 @@ pinned public reference samples. Each candidate arm runs once on the
 same U55C at the matched clocks. The cached-degree image has **not**
 passed either gate yet, and the packed-validity image's failed gates
 remain in the record.
+
+The follow-up uses these exact R/G receipts and the route-matched host.
+It runs R19 and the propagation-required Flickr control once per arm
+only if both stages pass; only then can the seven remaining ResPR
+workloads run. The earlier packed-validity resident queue never launched.
+
+| Step | Unit (without `.service`) | Invocation | Journal under the check root |
+| --- | --- | --- | --- |
+| Resident ResPR screen | `gr-retention-respr-degree-prefix-resident-20261105-v1` | `3bb73a295ac64e429cce592d5cf15325` | `respr-degree-prefix-resident-v1/results.json` |
+| Remaining resident ResPR pairs | `gr-retention-respr-degree-prefix-matrix-20261105-v1` | `003c78e07bfc447cb40f6e36999b319a` | `respr-degree-prefix-matrix-v1/results.json` |

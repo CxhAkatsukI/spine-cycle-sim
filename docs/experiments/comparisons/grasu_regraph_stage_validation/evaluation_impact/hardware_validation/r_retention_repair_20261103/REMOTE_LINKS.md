@@ -929,6 +929,17 @@ require passing offline Spine layouts for the exact fixture. Each
 admitted case gets one timed run per arm under the board and memory
 guards; a failed upstream stage does not launch a matrix.
 
+The two resident rows above are superseded. The current AU queue
+replays the completed Spine warm-insertion result and requests only
+the G+R arm after the exact G and all three R gates pass. The current
+matrix imports this AU pair and uses the same image and host for the
+remaining seven Spine arms.
+
+| Step | Unit (without `.service`) | Invocation | Journal |
+| --- | --- | --- | --- |
+| Resident CC, full AU | `gr-retention-cc-source-bursts-au-resident-20261105-v5` | `6847ffcf59dd470db89016329b525d0e` | `cc-warm-au-source-bursts-resident-v5/queue.json` |
+| Remaining resident CC cases | `gr-retention-cc-warm-balanced-matrix-source-bursts-20261105-v5` | `9986c6e8853d4735b0888ccda250d8f0` | `cc-warm-balanced-matrix-source-bursts-v5/matrix.json` |
+
 ### Archived Spine Images on Feiyang
 
 The `tiny-active.final172` and `tiny-active.scaled175` U55C images
