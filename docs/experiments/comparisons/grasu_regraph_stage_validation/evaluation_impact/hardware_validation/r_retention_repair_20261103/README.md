@@ -8,11 +8,12 @@ numbers are elapsed-time changes from each matched public control.
 
 | Algorithm | R-only FPGA screen | Independent G and next image |
 | --- | --- | --- |
-| Weighted SSSP | Both Amazon controls passed on an earlier nominal image, but AU missed at **+19.55%** nominal and **+16.93%** on the source-burst variant at matched 445 MHz HBM. | Earlier exact-image G passed. The nominal source-burst retry needs its own G and R screens. |
+| Weighted SSSP | Latest nominal source-burst image: Amazon **-5.54%**, high-activity Amazon **-6.18%**, AU **+21.43%**. | G on this exact image passed (**-60.27%** on AU 131K); the failed AU R gate prevented resident tests. |
 | CC | Four-bank image: Amazon **+0.66%**, high-activity Amazon **-6.82%**, AU **+20.92%**. | The four-bank image passed G (**-61.65%** on AU 131K). Its source-burst replacement needs separate G and R screens. |
 | ResPR | Packed-validity image: Amazon **-4.22%**, skewed-source **+15.73%**, a miss of **3.871 us** at nominal clocks. | G on that image took **133.500 ms** against **18.369 ms**. The degree-prefix replacement addresses this G path and needs separate G and R screens. |
 
-See the [CC board receipts](REMOTE_LINKS.md#cc-banked-clear-board-checkpoint),
+See the [nominal SSSP board receipts](SSSP_STAGE_ADMISSION.md#nominal-source-burst-board-screen),
+[CC board receipts](REMOTE_LINKS.md#cc-banked-clear-board-checkpoint),
 [same-clock R screens](LOWER_CLOCK_SCREEN.md#measured-pairs),
 and [independent G receipts](G_SCOPE.md) for input, host and bitstream
 provenance. Resident convergence queues require the new exact-image

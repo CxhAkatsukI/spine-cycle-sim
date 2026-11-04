@@ -106,6 +106,44 @@ measured, once per fixture. A separate G run checks the exact same returned
 image. The first resident comparison (full AskUbuntu) cannot start unless
 all three R fixtures and G pass.
 
+### Nominal Source-Burst Board Screen
+
+The physical-optimization link produced image SHA-256
+`32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886`.
+The candidate and the frozen public weighted A4 references used the same
+U55C (`0000:82:00.1`) with driver clocks 150/500/450/0 MHz. Each row
+uses one correctness-checked observation per arm, with the earlier
+reference reused. The boundary is the device event span from first
+command start to last completion for one round on resident inputs.
+
+| R fixture | Public A4 (ns) | Adapter + R (ns) | Elapsed change | 15% gate |
+| --- | ---: | ---: | ---: | --- |
+| AskUbuntu 903,774 edges | 2,189,131 | 2,658,355 | +21.43% | Fail |
+| Amazon | 10,404,206 | 9,827,686 | -5.54% | Pass |
+| Amazon, higher activity | 10,591,011 | 9,936,380 | -6.18% | Pass |
+
+The same image independently passed G on AU 131K: **7.298286 ms**
+versus **18.368928 ms** for the public control. All 716,992 checked PMA
+words matched. The failed AU R screen prevented the resident AU and
+eight-graph SSSP comparisons from starting with this image.
+
+The AU run needs about **141 us** less elapsed time to pass. The final
+adapter completed **811 us** before the last device event. The two gaps
+between ordered mux commands were **0.610 us** and **0.440 us**;
+the second and third mux commands themselves lasted **264 us** and
+**271 us**. These are overlapping command spans that include waiting
+and backpressure, not exclusive mux, gather, or apply times. The gaps
+alone cannot explain the miss. Each integrated destination shard is
+assigned to one frontend; A4 splits each of the three destination
+ranges across four Little lanes. The existing screen measures the
+combined difference and does not isolate the effect of that schedule.
+
+[Raw evidence](sssp-source-bursts-nominal-board.tar.gz) contains the
+three paired R receipts and FPGA event logs, the G receipts, the
+[AU/512 setup result](FIGURE_IMPACT.md#repaired-g-same-card-au512-check),
+and the rejected resident queue records. Archive SHA-256:
+`4fd2f515c34cb5e2017790dfe578c1991d871714178848cb01e6f55cdbe5ea81`.
+
 ### Matched 445-MHz HBM Diagnostic
 
 The first source-burst image returned at a lower HBM clock than requested.

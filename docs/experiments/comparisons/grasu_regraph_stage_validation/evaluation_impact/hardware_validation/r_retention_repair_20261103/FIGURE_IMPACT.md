@@ -545,7 +545,7 @@ single runs; the previous revision's 76.901 ms deficit became a
 All six rows use the same new Spine host, the same images and clocks as
 their frozen pairs, and one new Spine run each. All graph oracles passed.
 There were no memory high, max or OOM events; peak was 9,166,168,064 bytes.
-This is the latest native setup-inclusive SSSP checkpoint. It does not
+This is the preceding six-row native setup-inclusive SSSP checkpoint. It does not
 admit SO/512 or the CC/ResPR baseline. The [raw board archive](paired-board-checkpoint/fig8-spine-dma-matrix-v8.tar.gz)
 includes the input and host digests, clocks, breakdowns and correctness
 records. Its SHA-256 is
@@ -558,7 +558,7 @@ optimization image is screened on card 0. Because the setup window
 includes host-to-device transfer, the new pair must not divide the
 card-0 G time by the archived card-1 Spine time.
 
-The [queued check](REMOTE_LINKS.md#current-one-shot-board-queues) replays
+The [one-shot check](SSSP_STAGE_ADMISSION.md#nominal-source-burst-board-screen) replayed
 the exact image's independent G gate, then uses the same card and
 requires the same driver-reported clock vector for both arms. It uses
 the pinned AU/512 input, the four-copy native G setup policy, and the
@@ -568,10 +568,21 @@ Spine edge check, the G PMA readback, and an 8-GiB no-swap cgroup with
 32 GiB of live host reserve. A rejected gate, clock mismatch, or
 validation failure yields no speedup.
 
-This checks whether the measured AU/512 setup result survives the image
-change. It does not run R or reconstitute the historical ten-batch
-series. It is pending; the six card-1 rows are not replacement data for
-the repaired image.
+Both correctness checks passed. These are the one-shot host-wall
+measurements with the repaired image and the same physical card:
+
+| AU/512 phase | Spine (ms) | Native G (ms) |
+| --- | ---: | ---: |
+| Graph layout | 367.016920 | 628.191193 |
+| Bootstrap including upload / G upload | 526.167051 | 216.831695 |
+| Batch packing and update / G update | 0.646698 | 3.292853 |
+| **Total setup-inclusive** | **893.830669** | **848.315741** |
+
+Spine takes **5.37% longer** including setup. Its shorter update alone
+does not reverse the reported result. This run does not invoke R, so the
+failed AU R gate does not invalidate this G-only observation. It covers
+one batch and one graph, not the historical ten-batch series or a
+replacement for the full figure.
 
 ### SO/512 Metadata Capacity
 
