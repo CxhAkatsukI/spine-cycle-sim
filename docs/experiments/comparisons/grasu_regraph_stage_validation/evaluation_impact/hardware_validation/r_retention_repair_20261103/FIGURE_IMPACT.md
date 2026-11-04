@@ -89,6 +89,16 @@ layout construction, batch preparation, initial/batch upload, and update
 through completion on both arms under the same exclusions. Keep the
 device-only evidence separately labeled.
 
+The [candidate native G host](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/81cbe8f)
+adds a separate `--update-setup-once` mode for the sharded SSSP/CC host.
+It emits layout/packing, initial/batch upload, and update-through-barrier
+wall times, and checks PMA contents after the timed window. CPU preflight
+checked the one-batch and board-lease guards and preserved the AU 512
+prepare-only output. This is build and preflight evidence only. Do not
+combine it with the older Spine maintenance-only timer: the Spine side
+must also include graph construction and upload before a hardware panel
+can be populated.
+
 ## Figure 7: The Smallest Observed Margins
 
 Holding the old Spine wall time fixed, the break-even reduction of the old
