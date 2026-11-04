@@ -12,7 +12,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
 )
 from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.board_memory import require_unthrottled
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import active_min_follow, active_min_pair
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import clocks
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import clocks, matched_hbm
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.analysis import (
     profiled_runs, records, summarize,
 )
@@ -24,7 +24,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
 from .native_profile import update_only_profile
-from .reference_board import BDF, DEVICE, IMAGE_SHA256, INPUT_SHA256
+from .reference_board import BDF, DEVICE, BOARDS, QUALIFIED_BDF, IMAGE_SHA256, INPUT_SHA256
 
 
 HOST_SHA256 = {
@@ -43,21 +43,24 @@ def reference_arm(path):
     host_build = json.loads(Path(build["path"]).read_text())
     measured_config, = records(row["stdout"]["path"], "G_CONTROL_CONFIG ")
     clock = clocks.replay(row["clock_evidence"])
+    bdf = frozen["bdf"]
     if (frozen["status"] != "REFERENCE_MEASURED_AWAITING_CANDIDATE"
-            or (frozen["device"], frozen["bdf"], frozen["partition_vertices"], frozen["repetitions"])
-            != (DEVICE, BDF, 65536, 1)
+            or bdf not in BOARDS or (frozen["device"], frozen["partition_vertices"], frozen["repetitions"])
+            != (BOARDS[bdf], 65536, 1)
             or graph["sha256"] != INPUT_SHA256 or image["sha256"] != IMAGE_SHA256
             or host_build["binary"] != host or host_build["repetitions"] != 1
             or config != measured_config
-            or clock["bdf"] != BDF or clock["binary"] != image
+            or clock["bdf"] != bdf or clock["binary"] != image
             or tuple(config[key] for key in ("vertices", "updates", "shards", "pma_slots", "metadata_replicas"))
             != (515281, 131072, 8, 2245472, 4)):
         raise ValueError("expected the frozen one-shot public G reference on AU 131K")
+    if bdf == QUALIFIED_BDF:
+        matched_hbm.validate_after(frozen["clock_preparation"], row["clock_evidence"], 450, nominal=True)
     return graph, config, clock, profiled_runs(row), host, host_build["xrt_library"]
 
 
 def compare(ref_runs, profile, ref_clock, clock):
-    if clock["bdf"] != BDF or ref_clock["bdf"] != BDF:
+    if clock["bdf"] not in BOARDS or clock["bdf"] != ref_clock["bdf"]:
         raise ValueError("both G arms must use the same PCI device")
     comparison = summarize(ref_runs, [profile], repetitions=1)
     equal = clock["driver_reported_mhz"] == ref_clock["driver_reported_mhz"]
@@ -84,7 +87,7 @@ def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     result = args.output / "results.json"
     report = {"status": "PREPARING", "algorithm": args.algorithm, "repetitions": 1,
-              "bdf": BDF, "device": DEVICE, "board_launch_attempted": False,
+              "board_launch_attempted": False,
               "route_unit": args.unit, "route_invocation": args.invocation,
               "boundary": "first update CU start through last update CU end, including inter-shard gaps; "
                           "final barrier, input residency and readback outside the event span"}
@@ -95,6 +98,9 @@ def run(args):
             raise ValueError("expected the exact preflighted algorithm host")
         reference = identity(args.reference)
         graph, config, ref_clock, ref_runs, ref_host, ref_xrt = reference_arm(args.reference)
+        bdf = ref_clock["bdf"]
+        device = BOARDS[bdf]
+        report.update(bdf=bdf, device=device)
         libraries = active_min_pair.paired_loader(ref_host["path"], args.host)
         if libraries.get(ref_xrt["path"]) != ref_xrt["sha256"]:
             raise ValueError("G hosts must resolve the recorded public control XRT library")
@@ -127,14 +133,14 @@ def run(args):
         unchanged(pins)
         expected = clocks.image(image["path"], args.output, "candidate")
         oracle = args.output / "native-oracle.txt"
-        argv = ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={DEVICE}",
-                f"GRASU_REGRAPH_EXPECT_BDF={BDF}", "GRASU_UPDATE_REPEATS=1",
+        argv = ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={device}",
+                f"GRASU_REGRAPH_EXPECT_BDF={bdf}", "GRASU_UPDATE_REPEATS=1",
                 "GRASU_SHARDED_PREMIGRATE_INPUTS=1", "GRASU_SHARDED_METADATA_REPLICAS=4",
                 "GRASU_SHARDED_EVENT_TRACE=0", args.host, "--update-only", image["path"], graph["path"], oracle]
         while True:
             with ExitStack() as stack:
                 try:
-                    node, fd = stack.enter_context(lease(DEVICE, BDF))
+                    node, fd = stack.enter_context(lease(device, bdf))
                 except BlockingIOError:
                     report["status"] = "WAITING_FOR_BOARD"
                 else:
@@ -145,17 +151,23 @@ def run(args):
                         unchanged(pins)
                         if active_min_pair.paired_loader(ref_host["path"], args.host) != libraries:
                             raise ValueError("G XRT library set changed before board execution")
+                        if bdf == QUALIFIED_BDF:
+                            report["clock_preparation"] = matched_hbm.prepare(
+                                image["path"], expected, 450, args.output, "candidate", fd, node, bdf, nominal=True)
                         report.update(status="RUNNING_CANDIDATE", board_launch_attempted=True, image=image)
                         save(result, report)
-                        row = execute(argv, args.output, "candidate", fd, node, BDF)
+                        row = execute(argv, args.output, "candidate", fd, node, bdf)
                         report["row"] = row
-                        row["clock_evidence"] = clocks.capture(BDF, expected, args.output, "candidate")
+                        row["clock_evidence"] = clocks.capture(bdf, expected, args.output, "candidate")
+                        if bdf == QUALIFIED_BDF:
+                            matched_hbm.validate_after(report["clock_preparation"], row["clock_evidence"],
+                                                       450, nominal=True)
                         break
             save(result, report)
             poll_until(deadline)
         row["oracle"] = identity(oracle)
         profile = update_only_profile(Path(row["stdout"]["path"]).read_text(), oracle.read_text(),
-                                      bdf=BDF, reference=config, algorithm=args.algorithm)
+                                      bdf=bdf, reference=config, algorithm=args.algorithm)
         if profile["config"]["static_edges"] != "390847":
             raise ValueError("unexpected initial edge count")
         clock = clocks.replay(row["clock_evidence"])

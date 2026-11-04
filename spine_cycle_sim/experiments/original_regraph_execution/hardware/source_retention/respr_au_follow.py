@@ -17,9 +17,10 @@ from .runtime import check_memory, identity, save
 
 
 def prior_case(prior):
+    device, bdf = board.board_for(prior.get("stage_gates", {}))
     if (prior["status"], prior["bdf"], prior["device"], prior["repetitions_per_arm"],
             prior["warmups"], prior["board_launch_attempted"]) != (
-                "PAIRED_SCREEN_MEASURED", board.BDF, board.DEVICE, 1, 0, True):
+                "PAIRED_SCREEN_MEASURED", bdf, device, 1, 0, True):
         raise NotAdmitted("the pinned R19/Flickr screen did not complete successfully")
     if [row["case"]["dataset"] for row in prior["cases"]] != list(board.CASES):
         raise NotAdmitted("the parent must retain both original screen cases")
@@ -81,6 +82,8 @@ def run(args):
         image, gate = replay_gate(candidate, pins["frozen_r_board"])
         if prior["stage_gates"] != gate:
             raise NotAdmitted("the original independent G/R admission does not replay")
+        device, bdf = board.board_for(gate)
+        report.update(bdf=bdf, device=device)
         pinned = [*sources, *pins.values(), *gate["pins"], identity(image)]
         unchanged(pinned)
         for name in ("spine_host", "spine_image", "comparator", "gr_host"):
@@ -93,7 +96,7 @@ def run(args):
             report.update(status=status, board_memory=memory)
             write()
 
-        with pair_resources.admit(board.DEVICE, board.BDF, group, args.board_wait_seconds, record,
+        with pair_resources.admit(device, bdf, group, args.board_wait_seconds, record,
                                   legacy_lock=board.LEGACY_LOCK) as (node, fd):
             report.update(status="RUNNING_PAIRED_SCREEN", board_launch_attempted=True)
             write()

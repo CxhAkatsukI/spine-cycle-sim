@@ -90,7 +90,8 @@ def replay_g(path, reference_path, algorithm, host, image):
     report, pin = read_report(path, "G_GATE_PASS_FOR_ACTIVE_MIN_IMAGE", algorithm)
     reference = identity(reference_path)
     graph, config, ref_clock, ref_runs, _, _ = g_control.reference_arm(reference_path)
-    if (report["bdf"] != g_control.BDF or report["device"] != g_control.DEVICE
+    bdf = ref_clock["bdf"]
+    if (report["bdf"] != bdf or report["device"] != g_control.BOARDS[bdf]
             or report["repetitions"] != 1 or report["board_launch_attempted"] is not True
             or report["image"] != artifact.identity(Path(image["path"]))
             or any(item not in report["pins"] for item in (host, reference, graph))):
@@ -101,8 +102,11 @@ def replay_g(path, reference_path, algorithm, host, image):
     if row["command"][-5:] != [host["path"], "--update-only", image["path"], graph["path"], row["oracle"]["path"]]:
         raise ValueError("G candidate command differs from the final host, image or frozen batch")
     profile = update_only_profile(checked(row["stdout"]).read_text(), checked(row["oracle"]).read_text(),
-                                  bdf=g_control.BDF, reference=config, algorithm=algorithm)
+                                  bdf=bdf, reference=config, algorithm=algorithm)
     clock = clocks.replay(row["clock_evidence"])
+    if bdf == g_control.QUALIFIED_BDF:
+        g_control.matched_hbm.validate_after(report["clock_preparation"], row["clock_evidence"],
+                                             450, nominal=True)
     decision = g_control.compare(ref_runs, profile, ref_clock, clock)
     if (clock["binary"] != image or profile != report["profile"] or decision != report["comparison"]
             or not decision["retention_gate_pass"] or profile["config"]["static_edges"] != "390847"):

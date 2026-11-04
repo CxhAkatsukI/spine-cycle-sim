@@ -115,12 +115,17 @@ class ActiveMinJointAdmissionTests(unittest.TestCase):
                       device=gate.g_control.DEVICE, repetitions=1, board_launch_attempted=True,
                       image=gate.artifact.identity(self.image), pins=[host, gate.identity(reference), graph],
                       profile=profile, comparison=comparison, row=row)
-        with patch.object(gate.g_control, "reference_arm", return_value=(graph, {}, {}, [], {}, {})), \
+        with patch.object(gate.g_control, "reference_arm",
+                          return_value=(graph, {}, {"bdf": gate.g_control.BDF}, [], {}, {})) as reference_arm, \
                 patch.object(gate, "update_only_profile", return_value=profile), \
                 patch.object(gate.g_control, "compare", return_value=comparison), \
                 patch.object(gate.clocks, "replay", return_value={"binary": image}) as replay:
             path = self.report("g.json", report)
             self.assertEqual(gate.replay_g(path, reference, "cc", host, image)["comparison"], comparison)
+            reference_arm.return_value = (graph, {}, {"bdf": gate.g_control.QUALIFIED_BDF}, [], {}, {})
+            with self.assertRaisesRegex(ValueError, "expected one independent G run"):
+                gate.replay_g(path, reference, "cc", host, image)
+            reference_arm.return_value = (graph, {}, {"bdf": gate.g_control.BDF}, [], {}, {})
             replay.return_value = {"binary": {**image, "sha256": "bad"}}
             with self.assertRaisesRegex(ValueError, "raw event/PMA"):
                 gate.replay_g(path, reference, "cc", host, image)

@@ -7,7 +7,7 @@ from pathlib import Path
 from ..board_execution import pair_resources
 from . import clocks, resident_admission, resident_results, respr_retention_audit
 from .follow import unchanged
-from .resident_admission import BDF, DEVICE, Candidate, NotAdmitted, native_host_sha256
+from .resident_admission import BDF, DEVICE, BOARDS, Candidate, NotAdmitted, native_host_sha256
 from .runtime import check_memory, execute, identity, save
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidate_board import MAX_WAIT_SECONDS
 
@@ -34,17 +34,24 @@ def frozen_case(dataset, graph, graph_pin):
                 vertices=vertices, edges=edges, updates=updates, requires_propagation=requires_propagation)
 
 
-def commands(args, image, case, output):
+def board_for(gate):
+    bdf, device = gate.get("bdf", BDF), gate.get("device", DEVICE)
+    if bdf not in BOARDS or BOARDS[bdf] != device:
+        raise NotAdmitted("invalid board in independent G/R gate")
+    return device, bdf
+
+
+def commands(args, image, case, output, *, bdf=BDF, device=DEVICE):
     # Avoid inheriting mode toggles from an interactive shell.
     env = ["/usr/bin/env"]
     for key in sorted(os.environ):
         if key.startswith(("GRASU_", "SPINE_", "XCL_")) or key == "LD_PRELOAD":
             env += ["-u", key]
-    env += [f"XCL_DEVICE_INDEX={DEVICE}", "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu"]
+    env += [f"XCL_DEVICE_INDEX={device}", "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu"]
     return {
-        "spine": [*env, f"SPINE_EXPECT_BDF={BDF}", args.spine_host, args.spine_image,
+        "spine": [*env, f"SPINE_EXPECT_BDF={bdf}", args.spine_host, args.spine_image,
                   "--dynamic-graph", case["graph"], "--source", str(case["source"]), "--resident-benchmark"],
-        "gr": [*env, f"GRASU_REGRAPH_EXPECT_BDF={BDF}", "GRASU_UPDATE_REPEATS=1",
+        "gr": [*env, f"GRASU_REGRAPH_EXPECT_BDF={bdf}", "GRASU_UPDATE_REPEATS=1",
                "GRASU_SHARDED_PREMIGRATE_INPUTS=1", "GRASU_SHARDED_METADATA_REPLICAS=4",
                "GRASU_SHARDED_EVENT_TRACE=0", args.gr_host, image, case["graph"], output / "gr-ranks.txt"],
     }
@@ -53,20 +60,21 @@ def commands(args, image, case, output):
 def measure(args, case, image, expected, gate, pins, evidence, write, fd, node, *, memory_gib=8, timeout=240):
     output = args.output / case["dataset"]
     output.mkdir()
-    argv = commands(args, image, case, output)
+    device, bdf = board_for(gate)
+    argv = commands(args, image, case, output, bdf=bdf, device=device)
     rows = evidence["rows"]
     for arm in ("spine", "gr"):
         unchanged(pins)
         evidence["attempts"].append({"arm": arm, "argv": list(map(str, argv[arm]))})
         write()
-        rows[arm] = execute(argv[arm], output, arm, fd, node, BDF, memory_gib=memory_gib, timeout=timeout)
-        rows[arm]["clock_evidence"] = clocks.capture(BDF, expected[arm], output, arm)
+        rows[arm] = execute(argv[arm], output, arm, fd, node, bdf, memory_gib=memory_gib, timeout=timeout)
+        rows[arm]["clock_evidence"] = clocks.capture(bdf, expected[arm], output, arm)
         rows[arm]["clock"] = clocks.replay(rows[arm]["clock_evidence"])
         write()
     if rows["gr"]["clock"]["driver_reported_mhz"] != gate["resident_mhz"]:
         raise NotAdmitted("paired G+R clocks differ from its independent stage gates")
     rows["gr"]["ranks"] = identity(output / "gr-ranks.txt")
-    evidence["pair"] = resident_results.analyze(case, rows, args.comparator, output, BDF)
+    evidence["pair"] = resident_results.analyze(case, rows, args.comparator, output, bdf)
     evidence["comparison_log"] = identity(output / "pair.json")
     evidence["status"] = ("MEASURED" if evidence["pair"]["meets_propagation_screen"]
                           else "RETAINED_WITHOUT_REQUIRED_PROPAGATION")
@@ -119,6 +127,8 @@ def run(args):
 
         selected, image, gate = resident_admission.wait_for_candidates(
             candidates, pins["frozen_r_board"], args.wait_seconds, candidate_status)
+        device, bdf = board_for(gate)
+        report.update(bdf=bdf, device=device)
         report["selected_route"] = str(selected.route)
         pins["gr_host"] = selected.host_pin
         args.gr_host = Path(selected.host_pin["path"])
@@ -131,7 +141,7 @@ def run(args):
             report.update(status=status, board_memory=memory)
             write()
 
-        with pair_resources.admit(DEVICE, BDF, group, args.board_wait_seconds, board_status,
+        with pair_resources.admit(device, bdf, group, args.board_wait_seconds, board_status,
                                   legacy_lock=LEGACY_LOCK) as (node, fd):
             report.update(status="RUNNING_PAIRED_SCREEN", board_launch_attempted=True)
             write()

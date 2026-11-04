@@ -87,8 +87,9 @@ def run(resident, strict_stage, output):
         raise FileExistsError(output)
     inputs = [identity(resident), identity(strict_stage)]
     report, stage = (json.loads(Path(pin["path"]).read_text()) for pin in inputs)
+    device, bdf = resident_board.board_for(report.get("stage_gates", {}))
     if (report["status"] not in ("PAIRED_SCREEN_MEASURED", "PAIRED_SCREEN_NEEDS_REVIEW")
-            or (report["bdf"], report["device"]) != (resident_board.BDF, resident_board.DEVICE)
+            or (report["bdf"], report["device"]) != (bdf, device)
             or report["repetitions_per_arm"] != 1 or report["warmups"] != 0
             or report["board_launch_attempted"] is not True
             or report["full_evaluation_started"] is not False):

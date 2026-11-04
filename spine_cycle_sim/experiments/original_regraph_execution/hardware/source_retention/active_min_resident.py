@@ -66,12 +66,12 @@ def commands(case, gate, output):
     }
 
 
-def environment():
+def environment(*, bdf=BDF, device=DEVICE):
     env = {k: v for k, v in os.environ.items()
            if not k.startswith(("GRASU_", "SPINE_", "XCL_", "LD_"))}
-    return dict(env, XILINX_XRT="/opt/xilinx/xrt", XCL_DEVICE_INDEX=str(DEVICE),
+    return dict(env, XILINX_XRT="/opt/xilinx/xrt", XCL_DEVICE_INDEX=str(device),
                 LD_LIBRARY_PATH="/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu", MALLOC_ARENA_MAX="2",
-                SPINE_EXPECT_BDF=BDF, GRASU_REGRAPH_EXPECT_BDF=BDF,
+                SPINE_EXPECT_BDF=bdf, GRASU_REGRAPH_EXPECT_BDF=bdf,
                 GRASU_UPDATE_REPEATS="1", GRASU_SHARDED_PREMIGRATE_INPUTS="1",
                 GRASU_SHARDED_METADATA_REPLICAS="4", GRASU_SHARDED_EVENT_TRACE="0")
 
@@ -81,18 +81,18 @@ def idle(node):
     return users.returncode == 1 and not (users.stdout.strip() or users.stderr.strip())
 
 
-def arm(name, command, expected, output, *, cc_wall=False):
+def arm(name, command, expected, output, *, cc_wall=False, bdf=BDF, device=DEVICE):
     stdout, stderr = (output / f"{name}.{stream}.txt" for stream in ("stdout", "stderr"))
-    env = environment()
+    env = environment(bdf=bdf, device=device)
     if cc_wall and name == "gr":
         env["GRASU_SHARDED_RESIDENT_BATCH_WALL"] = "1"
     with stdout.open("x") as out, stderr.open("x") as err:
         completed = subprocess.run(command, env=env, cwd=output, stdout=out, stderr=err, timeout=1800)
     if completed.returncode != 0:
         raise RuntimeError(f"{name} exit {completed.returncode}; see {stderr}")
-    evidence = clocks.capture(BDF, expected, output, name)
+    evidence = clocks.capture(bdf, expected, output, name)
     observed = clocks.replay(evidence)
-    if observed["bdf"] != BDF or observed["binary"] != expected["binary"]:
+    if observed["bdf"] != bdf or observed["binary"] != expected["binary"]:
         raise ValueError("measured board or image differs from the preflight")
     return dict(command=command, stdout=identity(stdout), stderr=identity(stderr),
                 clock_evidence=evidence, clock=observed)
@@ -128,6 +128,9 @@ def run(args):
         cc_wall = getattr(args, "cc_wall_packet", None) is not None
         gate = active_min_admission.admit(args.algorithm, args.route, args.host, args.r_report,
                                            args.r_inputs, args.g_report, args.g_reference)
+        bdf = gate["g"]["candidate_clock"]["bdf"]
+        device = active_min_admission.g_control.BOARDS[bdf]
+        report["bdf"] = bdf
         stage_receipts = getattr(args, "stage_receipts", None)
         if stage_receipts is not None and any(gate[stage]["report"] != pin for stage, pin in stage_receipts.items()):
             raise ValueError("admission replay used a different producer receipt")
@@ -188,7 +191,7 @@ def run(args):
             try:
                 with LEGACY_LOCK.open("rb") as legacy:
                     fcntl.flock(legacy, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    with lease(DEVICE, BDF) as (node, _):
+                    with lease(device, bdf) as (node, _):
                         if not idle(node):
                             raise BlockingIOError("card has other users")
                         report["status"] = "RUNNING"
@@ -201,7 +204,7 @@ def run(args):
                             report["attempts"].append(name)
                             write()
                             report["arms"][name] = arm(name, report["commands"][name], expected[name], args.output,
-                                                       cc_wall=cc_wall)
+                                                       cc_wall=cc_wall, bdf=bdf, device=device)
                             write()
                         break
             except BlockingIOError:
@@ -213,7 +216,7 @@ def run(args):
             raise ValueError("resident G+R clock differs from the exact-image G and R screens")
         report["arms"]["gr"]["state"] = identity(args.output / "gr-state.txt")
         report["pair"], report["comparison_log"] = (
-            cc_resident_wall.compare(case, report["arms"], args.output, BDF) if cc_wall
+            cc_resident_wall.compare(case, report["arms"], args.output, bdf) if cc_wall
             else compare(case, report["arms"], args.comparator, args.output))
         report["status"] = "MEASURED_RESIDENT_PAIR"
     except BaseException as error:

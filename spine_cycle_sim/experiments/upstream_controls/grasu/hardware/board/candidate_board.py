@@ -6,16 +6,16 @@ from pathlib import Path
 import time
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import pair_resources
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import clocks, returned_route
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.analysis import (
-    profiled_runs, records, summarize,
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
+    clocks, matched_hbm, returned_route,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.follow import unchanged
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import (
     check_memory, execute, identity, lease, save,
 )
 from .native_profile import update_only_profile
-from .reference_board import BDF, DEVICE, IMAGE_SHA256, INPUT_SHA256
+from .active_min_candidate import compare, reference_arm
+from .reference_board import BDF, DEVICE, BOARDS, QUALIFIED_BDF
 
 
 HOST_NAME = "sharded_k4_residual_pagerank_native_host"
@@ -34,7 +34,7 @@ def native_host_sha256(route):
     return TAIL_HOST_SHA256
 
 
-def wait_for_image(route, r_report, timeout):
+def wait_for_image(route, r_report, timeout, *, bdf=BDF):
     deadline = time.monotonic() + timeout
     while True:
         check_memory(require_live_reserve=False)
@@ -65,7 +65,7 @@ def wait_for_image(route, r_report, timeout):
     board_report = r_report.parent / "board-once/results.json"
     board = json.loads(board_report.read_text())
     board_image = board["pins"]["r_current"]
-    if (board["bdf"] != BDF or board["device"] != DEVICE
+    if (board["bdf"] != bdf or board["device"] != BOARDS[bdf]
             or any(board_image[key] != image_pin[key] for key in ("path", "sha256"))):
         raise ValueError("candidate image or board differs from the R screen")
     unchanged([board_image])
@@ -83,14 +83,17 @@ def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
     output.mkdir(parents=True, exist_ok=False)
     result = output / "results.json"
     report = {"status": "PREDECLARED", "board_launch_attempted": False, "repetitions": 1,
-              "bdf": BDF, "device": DEVICE, "affinity": "124,125", "partition_vertices": 65536,
+              "affinity": "124,125", "partition_vertices": 65536,
               "boundary": "first update CU start through last update CU end; includes inter-shard gaps "
                           "and device degree CU; initial residency and final status/readback excluded",
               "publication_match": False}
     save(result, report)
     try:
-        frozen = json.loads(reference.read_text())
-        graph = Path(frozen["pins"]["input"]["path"])
+        ref_graph, config, ref_clock, ref_runs, _, _ = reference_arm(reference)
+        bdf = ref_clock["bdf"]
+        device = BOARDS[bdf]
+        report.update(bdf=bdf, device=device)
+        graph = Path(ref_graph["path"])
         binary = host_dir / HOST_NAME
         pins = {key: identity(path) for key, path in {
             "input": graph, "host": binary, "reference": reference, "runner": Path(__file__),
@@ -99,32 +102,17 @@ def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
             "route_manifest": route / "manifest.json",
         }.items()}
         host_sha256 = native_host_sha256(route)
-        if (frozen["status"] != "REFERENCE_MEASURED_AWAITING_CANDIDATE"
-                or frozen["bdf"] != BDF or frozen["device"] != DEVICE or frozen["partition_vertices"] != 65536
-                or frozen["pins"]["image"]["sha256"] != IMAGE_SHA256
-                or pins["input"]["sha256"] != INPUT_SHA256 or pins["host"]["sha256"] != host_sha256):
+        if pins["input"] != ref_graph or pins["host"]["sha256"] != host_sha256:
             raise ValueError("the declared reference measurement, input and route-matched host are required")
-        ref_runs = profiled_runs(frozen["row"])
-        config, = records(frozen["row"]["stdout"]["path"], "G_CONTROL_CONFIG ")
-        if (config != frozen["config"] or (config["vertices"], config["updates"], config["shards"],
-                                            config["pma_slots"], config["metadata_replicas"])
-                != (515281, 131072, 8, 2245472, 4)):
-            raise ValueError("unexpected reference input dimensions")
-        ref_clock = clocks.replay(frozen["row"]["clock_evidence"])
-        if ref_clock["bdf"] != BDF or ref_clock["binary"] != frozen["pins"]["image"]:
-            raise ValueError("wrong reference image or board clock evidence")
         report.update(status="WAITING_FOR_R_SCREEN", pins=pins, reference_clock=ref_clock)
         save(result, report)
-        image, r_status, r_pins = wait_for_image(route, r_report, wait_seconds)
+        image, r_status, r_pins = wait_for_image(route, r_report, wait_seconds, bdf=bdf)
         unchanged(pins.values())
         report.update(r_status=r_status, r_pins=r_pins)
-        if host_sha256 == TAIL_HOST_SHA256 and r_status != R_PASS:
-            report["status"] = "NOT_ADMITTED_R_FAILED"
-            return report
         expected = clocks.image(image, output, "candidate")
         oracle = output / "native-oracle.txt"
-        command = ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={DEVICE}",
-                   f"GRASU_REGRAPH_EXPECT_BDF={BDF}", "GRASU_UPDATE_REPEATS=1",
+        command = ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={device}",
+                   f"GRASU_REGRAPH_EXPECT_BDF={bdf}", "GRASU_UPDATE_REPEATS=1",
                    "GRASU_SHARDED_PREMIGRATE_INPUTS=1", "GRASU_SHARDED_METADATA_REPLICAS=4",
                    "GRASU_SHARDED_EVENT_TRACE=0",
                    binary, "--update-only", image, graph, oracle]
@@ -135,25 +123,32 @@ def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
         returned = json.loads(r_report.read_text()).get("returned_admission") in r_pins
         if not returned:
             check_memory()
-        board = (pair_resources.admit(DEVICE, BDF, group, 21600, admission_state)
-                 if returned else lease(DEVICE, BDF))
+        board = (pair_resources.admit(device, bdf, group, 21600, admission_state)
+                 if returned or bdf == QUALIFIED_BDF else lease(device, bdf))
         with board as (node, fd):
+            if bdf == QUALIFIED_BDF:
+                report["clock_preparation"] = matched_hbm.prepare(
+                    image, expected, 450, output, "candidate", fd, node, bdf, nominal=True)
             report.update(status="RUNNING_CANDIDATE", board_launch_attempted=True,
                           command=list(map(str, command)))
             save(result, report)
-            row = execute(command, output, "candidate", fd, node, BDF)
+            row = execute(command, output, "candidate", fd, node, bdf)
             report["row"] = row
-            row["clock_evidence"] = clocks.capture(BDF, expected, output, "candidate")
+            row["clock_evidence"] = clocks.capture(bdf, expected, output, "candidate")
+            if bdf == QUALIFIED_BDF:
+                matched_hbm.validate_after(report["clock_preparation"], row["clock_evidence"],
+                                           450, nominal=True)
         row["oracle"] = identity(oracle)
         profile = update_only_profile(Path(row["stdout"]["path"]).read_text(), oracle.read_text(),
-                                      bdf=BDF, reference=config)
+                                      bdf=bdf, reference=config)
         if int(profile["config"]["static_edges"]) != 390847:
             raise ValueError("unexpected candidate initial edge count")
-        comparison = summarize(ref_runs, [profile], repetitions=1)
+        clock = clocks.replay(row["clock_evidence"])
+        comparison = compare(ref_runs, profile, ref_clock, clock)
         unchanged([*pins.values(), *r_pins])
-        report.update(status="G_GATE_PASS_FOR_AU_RES_PR_IMAGE" if comparison["at_most_15_percent_slower"]
+        report.update(status="G_GATE_PASS_FOR_AU_RES_PR_IMAGE" if comparison["retention_gate_pass"]
                       else "G_PERFORMANCE_GATE_FAILED_RETAINED", profile=profile, comparison=comparison,
-                      candidate_clock=clocks.replay(row["clock_evidence"]))
+                      candidate_clock=clock)
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
         raise

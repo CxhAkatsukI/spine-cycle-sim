@@ -4,7 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import clocks
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import pair_resources
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import clocks, matched_hbm
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.analysis import profiled_runs, records
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import (
     check_memory, execute, identity, lease, save,
@@ -15,10 +16,14 @@ IMAGE_SHA256 = "89c682cea8520453abd9038f7b8026bdc27298ad768a05f069f91a69a691e6ed
 INPUT_SHA256 = "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033"
 BDF = "0000:c1:00.1"
 DEVICE = 1
+QUALIFIED_BDF = "0000:82:00.1"
+BOARDS = {BDF: DEVICE, QUALIFIED_BDF: 0}
 
 
-def run(host_manifest, image, graph, output):
-    group = check_memory()
+def run(host_manifest, image, graph, output, *, bdf=BDF):
+    device = BOARDS[bdf]
+    qualified = bdf == QUALIFIED_BDF
+    group = check_memory(require_live_reserve=not qualified)
     host_build = json.loads(host_manifest.read_text())
     binary = Path(host_build["binary"]["path"])
     if (host_build["status"] != "HOST_BUILD_PASS_NOT_BOARD"
@@ -32,20 +37,32 @@ def run(host_manifest, image, graph, output):
         raise ValueError("unexpected public-source G image or AU update batch")
     output.mkdir(parents=True, exist_ok=False)
     result = output / "results.json"
-    report = {"status": "PREDECLARED", "bdf": BDF, "device": DEVICE, "pins": pins,
+    report = {"status": "PREDECLARED", "bdf": bdf, "device": device, "pins": pins,
               "board_launch_attempted": False, "repetitions": 1, "partition_vertices": 65536,
               "boundary": "first update CU start through last update CU end; initial residency/readback excluded"}
     save(result, report)
     try:
         expected = clocks.image(image, output, "reference")
-        with lease(DEVICE, BDF) as (node, fd):
+        def admission_state(status, memory):
+            report.update(status=status, admission=memory)
+            save(result, report)
+
+        board = (pair_resources.admit(device, bdf, group, 21600, admission_state)
+                 if qualified else lease(device, bdf))
+        with board as (node, fd):
+            if qualified:
+                report["clock_preparation"] = matched_hbm.prepare(
+                    image, expected, 450, output, "reference", fd, node, bdf, nominal=True)
             report.update(status="RUNNING_REFERENCE", board_launch_attempted=True)
             save(result, report)
-            row = execute([binary, image, graph, 65536, 0, 1, DEVICE, 0],
-                          output, "reference", fd, node, BDF)
+            row = execute([binary, image, graph, 65536, 0, 1, device, 0],
+                          output, "reference", fd, node, bdf)
             row.update(stage="G", arm="reference", repetitions=1,
-                       clock_evidence=clocks.capture(BDF, expected, output, "reference"))
-        report["row"] = row
+                       clock_evidence=clocks.capture(bdf, expected, output, "reference"))
+            report["row"] = row
+            if qualified:
+                matched_hbm.validate_after(report["clock_preparation"], row["clock_evidence"], 450,
+                                           nominal=True)
         config, = records(row["stdout"]["path"], "G_CONTROL_CONFIG ")
         if (config["vertices"], config["updates"], config["shards"], config["metadata_replicas"]) != (
                 515281, 131072, 8, 4):
@@ -68,5 +85,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("host-manifest", "image", "graph", "output"):
         parser.add_argument("--" + name, required=True, type=Path)
+    parser.add_argument("--board", choices=BOARDS, default=BDF)
     args = parser.parse_args()
-    print(run(*(path.resolve() for path in vars(args).values()))["status"])
+    print(run(args.host_manifest.resolve(), args.image.resolve(), args.graph.resolve(),
+              args.output.resolve(), bdf=args.board)["status"])

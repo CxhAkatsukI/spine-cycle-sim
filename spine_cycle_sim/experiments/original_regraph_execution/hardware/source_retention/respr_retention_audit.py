@@ -21,7 +21,7 @@ G_PASS = "G_GATE_PASS_FOR_AU_RES_PR_IMAGE"
 
 def r_controls(board, frozen):
     if (board["status"] != "BOARD_EXECUTION_PASS_PENDING_ANALYSIS"
-            or (board["bdf"], board["device"]) != (g_control.BDF, g_control.DEVICE)
+            or g_control.BOARDS.get(board["bdf"]) != board["device"]
             or board["matrix"]["stages"] != ["R"]
             or board["r_profile"] != frozen["r_profile"]
             or board["input_pins"] != frozen["input_pins"]
@@ -68,18 +68,21 @@ def r_controls(board, frozen):
 def g_gate(report, reference_path, image, host):
     graph, config, ref_clock, ref_runs, _, _ = g_control.reference_arm(reference_path)
     row = report["row"]
+    bdf = ref_clock["bdf"]
     unchanged([*report["pins"].values(), row["stdout"], row["stderr"], row["oracle"]])
     if (report["pins"]["host"] != host or report["pins"]["reference"] != identity(reference_path)
             or report["pins"]["input"] != graph or report["repetitions"] != 1
             or report["board_launch_attempted"] is not True
-            or (report["bdf"], report["device"]) != (g_control.BDF, g_control.DEVICE)
+            or (report["bdf"], report["device"]) != (bdf, g_control.BOARDS[bdf])
             or row["command"][-5:] != [host["path"], "--update-only", image["path"], graph["path"],
                                        row["oracle"]["path"]]):
         raise ValueError("G candidate command is not the exact image, host and frozen AU batch")
     profile = update_only_profile(Path(row["stdout"]["path"]).read_text(),
                                   Path(row["oracle"]["path"]).read_text(),
-                                  bdf=g_control.BDF, reference=config)
+                                  bdf=bdf, reference=config)
     clock = clocks.replay(row["clock_evidence"])
+    if bdf == g_control.QUALIFIED_BDF:
+        g_control.matched_hbm.validate_after(report["clock_preparation"], row["clock_evidence"], 450, nominal=True)
     if clock["binary"] != image or profile != report["profile"] or profile["config"]["static_edges"] != "390847":
         raise ValueError("G clock or PMA oracle replay does not match the candidate")
     decision = g_control.compare(ref_runs, profile, ref_clock, clock)
@@ -102,13 +105,13 @@ def run(args):
     result = {"status": "R_ADMITTED_G_NOT_REPLAYED" if admitted else "R_NOT_ADMITTED",
               "inputs": pins, "image": board["pins"]["r_current"], "r": r}
     if all(fields):
-        image, _, stage_pins = wait_for_image(args.route, args.r_report, 0)
+        image, _, stage_pins = wait_for_image(args.route, args.r_report, 0, bdf=board["bdf"])
         image, host = identity(image), identity(args.host)
         if image != result["image"] or pins[0] not in stage_pins or host["sha256"] != native_host_sha256(args.route):
             raise ValueError("audited R receipt is not the exact route screen consumed by G")
         g_pin = identity(args.g_report)
         g = json.loads(args.g_report.read_text())
-        if g["r_pins"] != stage_pins:
+        if g["r_pins"] != stage_pins or g["bdf"] != board["bdf"]:
             raise ValueError("G did not screen the audited R route")
         pins.extend([*stage_pins, g_pin, identity(args.g_reference), host])
         result["g"] = g_gate(g, args.g_reference, image, host)

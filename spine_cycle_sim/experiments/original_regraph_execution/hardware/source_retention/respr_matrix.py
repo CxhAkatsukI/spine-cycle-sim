@@ -73,6 +73,8 @@ def child(args):
         case, budget = declared["case"], declared["memory_gib"]
         group = check_memory(budget, require_live_reserve=False)
         pins, image, gate = admit_parent(args.parent, args.parent_sha256)
+        device, bdf = board.board_for(gate)
+        report.update(bdf=bdf, device=device)
         graph = next(pin for pin in declared["inputs"] if pin["path"] == case["graph"])
         pins[args.dataset.lower()] = graph
         for name in (*SPINE_PINS, "gr_host"):
@@ -88,7 +90,7 @@ def child(args):
             report.update(status=status, board_memory=memory)
             write()
 
-        with pair_resources.admit(board.DEVICE, board.BDF, group, args.board_wait_seconds, record,
+        with pair_resources.admit(device, bdf, group, args.board_wait_seconds, record,
                                   legacy_lock=board.LEGACY_LOCK, memory_gib=budget) as (node, fd):
             report.update(status="RUNNING", board_launch_attempted=True)
             write()

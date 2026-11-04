@@ -7,7 +7,7 @@ from pathlib import Path
 import time
 
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidate_board import (
-    BDF, DEVICE, HOST_SHA256, R_PASS, native_host_sha256, wait_for_image,
+    BDF, DEVICE, BOARDS, HOST_SHA256, R_PASS, native_host_sha256, wait_for_image,
 )
 from .follow import unchanged
 from . import respr_retention_audit
@@ -37,14 +37,14 @@ def passed(row):
             and 0 < ratio <= 1.15 and row["at_most_15_percent_slower"] is True)
 
 
-def validate_gates(r_summary, g_report, r_pins, host_pin, *, host_sha256=HOST_SHA256):
+def validate_gates(r_summary, g_report, r_pins, host_pin, *, host_sha256=HOST_SHA256, bdf=BDF):
     pairs = [row for row in r_summary["pairs"] if row["stage"] == "R"]
     if (len(pairs) != 2 or {row["case"] for row in pairs} != {"skewed_sources", "amazon"}
             or not all(passed(row) and row["clock_evidence_recorded"] is True for row in pairs)):
         raise NotAdmitted("both declared R controls must pass the raw elapsed-time gate")
     if (g_report["status"] != G_PASS or g_report["r_status"] != R_PASS
-            or g_report["r_pins"] != r_pins or g_report["bdf"] != BDF
-            or g_report["device"] != DEVICE or g_report["repetitions"] != 1
+            or g_report["r_pins"] != r_pins or g_report["bdf"] != bdf
+            or g_report["device"] != BOARDS[bdf] or g_report["repetitions"] != 1
             or g_report["pins"]["host"] != host_pin or host_pin["sha256"] != host_sha256
             or not passed(g_report["comparison"])):
         raise NotAdmitted("the exact R-screened ResPR image and host must also pass G")
@@ -83,10 +83,11 @@ def replay_gate(candidate, frozen_r):
     route, r_path, g_path, host_pin = candidate.route, candidate.r_path, candidate.g_path, candidate.host_pin
     g_pin = identity(g_path)
     g = json.loads(g_path.read_text())
-    image, _, r_pins = wait_for_image(route, r_path, 0)
     board = json.loads((r_path.parent / "board-once/results.json").read_text())
+    bdf = board["bdf"]
+    image, _, r_pins = wait_for_image(route, r_path, 0, bdf=bdf)
     analysis = json.loads((r_path.parent / "analysis/summary.json").read_text())
-    r_pairs = validate_gates(analysis, g, r_pins, host_pin, host_sha256=native_host_sha256(route))
+    r_pairs = validate_gates(analysis, g, r_pins, host_pin, host_sha256=native_host_sha256(route), bdf=bdf)
     g_reference = g["pins"]["reference"]
     g_control = respr_retention_audit.g_gate(g, Path(g_reference["path"]), identity(image), host_pin)
     r_control = respr_retention_audit.r_controls(board, json.loads(Path(frozen_r["path"]).read_text()))
@@ -101,5 +102,7 @@ def replay_gate(candidate, frozen_r):
             raise NotAdmitted("R summary differs from the raw one-shot replay")
     pins = [*r_pins, g_pin, g_reference, frozen_r]
     unchanged(pins)
-    return image, {"pins": pins, "r_controls": r_control, "g_control": g_control,
-                   "resident_mhz": resident_mhz}
+    gate = {"pins": pins, "r_controls": r_control, "g_control": g_control, "resident_mhz": resident_mhz}
+    if bdf != BDF:
+        gate.update(bdf=bdf, device=BOARDS[bdf])
+    return image, gate
