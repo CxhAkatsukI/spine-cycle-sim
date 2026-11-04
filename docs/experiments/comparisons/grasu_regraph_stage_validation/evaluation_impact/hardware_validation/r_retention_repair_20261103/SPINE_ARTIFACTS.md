@@ -222,6 +222,28 @@ zero swap with the runner's 32-GiB reserve. Local return evidence goes to
 building. The result will diagnose the Spine repair only; it does not
 compare Spine against a retention-qualified G+R.
 
+The [balanced warm CC host](https://github.com/jayfeather9/spine-dynamic-graph/commit/5c825f6)
+adds the degree-balanced preload to the new native timing host. The
+layout and device audit use the same hot bitmap. Comparing the complete
+fingerprinted file set against the route's `79e7747` checkout found only
+`host_cc_repair.cpp` and `cc_workload.hpp` changed. The host-only build
+therefore embeds the verified route identity `85808e123f78044eee0905e0f87f19b41b338562f84d10fb200aac43249e5a3f`
+via the host make target's `WEIGHTED_BUILD_SHA256` override; the route
+and its original image manifest are unchanged. The build command is
+recorded in local service `spine-cc-warm-balanced-host-build-20261105-v3.service`.
+The resulting binary is `spine-cc-warm-balanced-host-v2/host_cc_repair`
+(SHA-256 `aa265331a1e292dd8e2bd91d961bd9b3fdb2a1471aa29ba8983410313a223582`).
+
+The AU and R19 frozen-input offline preflights both passed: AU has no
+hot vertices; R19 has 23,913 hot vertices and 21,343,521 hot edges. Both
+reserve a 16-record update margin. The two checks ran sequentially with
+a 10-GiB hard cap and peaked at 5.6 GiB. For SO, PK, LJ and LJ08 the
+offline campaign is `spine-cc-warm-balanced-large-layout-20261105-v1.service`
+(invocation `8f1dc3e65e124de6af7675fa138bdac5`) with its journal at
+`spine-cc-warm-balanced-large-layout-v1/results.json`; it starts only
+with enough memory to honor its 24-GiB limit and 32-GiB host reserve.
+These checks do not use an FPGA or provide latency measurements.
+
 ### Eight-Graph Preload Capacity
 
 The repair host's current `cc_host::raw_slices` loads every family into a
