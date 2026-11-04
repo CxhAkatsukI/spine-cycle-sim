@@ -670,3 +670,36 @@ return is HBM-only vendor-derated and the measured physical clock
 matches that arm. No runtime reclock or nominal-matrix admission is
 allowed. The unchanged SSSP R producer paths are in the
 [source-read burst retry](#weighted-sssp-source-read-burst-retry) above.
+
+### SSSP Source-Burst Clock Follow-Up
+
+The first source-burst route reached timing closure on the compute clock,
+but missed the 450 MHz HBM target (WNS -0.014 ns, TNS -0.062 ns). Vivado
+reported HBM scaling to 447.2 MHz; this log does not establish the clock
+the board will actually report. The 445 MHz queue below runs only if the
+packaged image and live board qualify at that exact common clock. It
+repackages only the clock metadata of the pinned public A4 image, verifies
+the remaining sections, and times one AU903K arm per image on card 0.
+It checks outputs against the oracle and records the 1.15 ratio gate
+separately; it does not admit the nominal-clock matrix.
+
+The independent nominal retry changes only placement/routing strategy
+and post-route physical optimization. It preserves the XOs, connectivity,
+and requested clocks. The local capsule is
+`seele-inputs-v1/sssp-source-bursts-physopt/capsule.json`, SHA-256
+`bf9968844a3cbaa7a314d02f07a30dbb8154689cba609e82d18edaa51646d339`.
+The remote attempt is `builds/sssp-source-bursts-physopt-v1`, with the
+same 36/40 GiB cgroup limits, no swap, and 128 GiB live reserve. The
+nominal AU queue requires a qualified route and reuses the pinned
+nominal-clock public arm; it requests only the new candidate arm.
+
+| Step | Unit (omit `.service`) | Invocation | Journal under local check root |
+| --- | --- | --- | --- |
+| Source-burst return | `gr-retention-return-sssp-source-bursts-20261104-v1` | `6b8f97bbd1a344478b0e3bdf96d10928` | `seele-return-v1-sssp-source-bursts/transfer.json` |
+| Same-clock 445 MHz AU903K | `gr-retention-sssp-burst-au903k-445-20261104-v1` | `6f206c7080dd4c2b8dd35e5ed241b8e2` | `sssp-burst-au903k-445-v1/queue.json` |
+| Physical-only nominal retry on seele | `gr-retention-seele-sssp-source-physopt-20261104-v1` | `e774c29f080d4c7b9320b76fc7575a16` | Remote `execution.json` under the attempt |
+| Nominal retry return | `gr-retention-return-sssp-source-physopt-20261104-v1` | `b1bf1cb252d942b6bc3d55618fd94fcb` | `seele-return-v1-sssp-source-bursts-physopt/transfer.json` |
+| Nominal AU903K | `gr-retention-sssp-burst-au903k-physopt-20261104-v1` | `3948487da84f4b62ad5bb9e69b732230` | `sssp-burst-au903k-physopt-v1/queue.json` |
+
+These are build and queue receipts. They do not establish an R pass or
+support replacing any figure until the corresponding board results pass.
