@@ -9,9 +9,8 @@ import socket
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha256_file
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
-from ....continuous_board.execution.supervisor import route_finished, service_state
 from ....search_pipeline.synthesis import unchanged
-from . import capsule, replacement_capsule
+from . import capsule, replacement_capsule, terminal_link
 
 SCHEMA = "remote-production-return-v1"
 REPLACEMENT_SCHEMA = "remote-k4-replacement-return-v1"
@@ -62,9 +61,7 @@ def seal(root, attempt, output, *, unit, invocation, replacement_platform=None):
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit) or \
             not re.fullmatch(r"[0-9a-f]{32}", invocation):
         raise ValueError("exact remote service and invocation required")
-    state = service_state(unit)
-    if not route_finished(state, invocation):
-        raise ValueError("route service is still running; no return package")
+    state = terminal_link.capture(unit, invocation, attempt)
     packet, _ = verify_capsule(root, replacement_platform)
     execution = json.loads((attempt / "execution.json").read_text())
     manifest = json.loads((attempt / "manifest.json").read_text())
@@ -100,7 +97,7 @@ def seal(root, attempt, output, *, unit, invocation, replacement_platform=None):
         copy(attempt / member, "route/" + member)
     copy(reports[0], "route/timing.rpt")
     unchanged(pins)
-    if service_state(unit) != state:
+    if terminal_link.capture(unit, invocation, attempt) != state:
         raise ValueError("remote invocation changed during sealing")
     receipt = {"schema": SCHEMA if replacement_platform is None else REPLACEMENT_SCHEMA,
                "status": "SEALED_LINK_NOT_TIMING_OR_BOARD_ADMISSION",
@@ -120,7 +117,8 @@ def verify(output, digest, *, replacement_platform=None):
     schema = SCHEMA if replacement_platform is None else REPLACEMENT_SCHEMA
     if receipt.get("schema") != schema or receipt.get("status") != "SEALED_LINK_NOT_TIMING_OR_BOARD_ADMISSION" or \
             any(receipt.get(flag) is not False for flag in capsule.FLAGS) or \
-            not route_finished(receipt["service"], receipt["invocation"]):
+            not terminal_link.terminal(receipt["service"], receipt["unit"], receipt["invocation"],
+                                       receipt["remote_attempt"]):
         raise ValueError("terminal remote return receipt required")
     seen = set()
     for row in receipt["files"]:

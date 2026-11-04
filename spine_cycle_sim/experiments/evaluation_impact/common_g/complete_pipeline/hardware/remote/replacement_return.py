@@ -10,7 +10,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages import bitstream
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from ....continuous_board.execution.supervisor import route_finished
 from ....search_pipeline.synthesis import unchanged
-from . import admission, delivery
+from . import admission, delivery, terminal_link
 from .transport import Remote
 
 
@@ -44,7 +44,7 @@ def collect(remote, remote_platform, local_capsule, local_platform, output, *, w
                     report["transport_error"] = repr(error)
                 else:
                     report.pop("transport_error", None)
-                    if route_finished(report["service"], remote.invocation):
+                    if terminal_link.unloaded(report["service"]) or route_finished(report["service"], remote.invocation):
                         break
                 atomic_write_json(summary, report)
                 remaining = deadline - time.monotonic()

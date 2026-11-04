@@ -239,6 +239,28 @@ setup, hold and pulse-width violations at the constrained clocks, including
 This is routed timing evidence. The board queue still requires a verified
 bitstream return and the same-clock paired hardware results.
 
+The v2 collector missed the exact unit's exit because seele unloaded its
+successful transient service before the poll. Recovery used the exact
+manager start and teardown records plus the pinned build's successful
+command, resource and artifact records; no build was repeated.
+`seele-return-v4-public-a4-cc/transfer.json` records the recovered return
+(receipt SHA-256 `9fe3e145a6622adbfadcec25ea42bb772fb2a103f8ec0a6f7ea1a7c7ef36a103`).
+Independent local offline review passed ABI, topology, clock and routed
+timing checks for xclbin SHA-256
+`d8ccf7dfb051801dd052047a3d18f91a3beb351649a637bd07aada775acb15a0`.
+This is not a board-performance result.
+
+The rearmed CC queues are `cc-active-pair-physical-v2/queue.json`
+(invocation `78608da3edae4a5c8ff2c91dfe38969b`),
+`cc-odd-pair-physical-v2/queue.json`
+(`678f290059d447269b1907fc3fd0f959`), and
+`cc-singlepass-matrix-physical-v2/matrix.json`
+(`1d7f3bca27d94897b13cd34b76568940`). The superseded queues
+did not request a timed pair. The existing integrated CC and ResPR
+collectors keep their exact remote invocations; a separate
+`After=`-only unit retains those service records without starting,
+stopping or changing the builds.
+
 The original local integrated CC build expired while waiting for its
 memory reservation; it did not start Vivado or request a board run. Its
 logs remain at `route-cc-v2/execution/` under the local build root

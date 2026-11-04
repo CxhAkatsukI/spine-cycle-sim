@@ -9,10 +9,12 @@ import subprocess
 import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
-from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import capsule, delivery
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import (
+    capsule, delivery, terminal_link,
+)
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote.replacement_capsule import inventory
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote.transport import Remote
-from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import route_finished, service_state
+from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import route_finished
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from .. import artifact
 from . import configuration, portable_execution, portable_inputs, snapshot
@@ -64,9 +66,9 @@ def completed(result, manifest, preflight):
 
 
 def seal(remote_capsule, attempt, output, unit, invocation, digest):
-    state = service_state(unit)
-    if socket.gethostname() != "seele" or not route_finished(state, invocation):
+    if socket.gethostname() != "seele":
         raise ValueError("terminal seele invocation required")
+    state = terminal_link.capture(unit, invocation, attempt)
     result, manifest, preflight = [record(attempt, name) for name in (
         "results.json", "manifest.json", "preflight/results.json")]
     completed(result, manifest, preflight)
@@ -88,7 +90,7 @@ def seal(remote_capsule, attempt, output, unit, invocation, digest):
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
     if (inventory(output) != {name: pin["sha256"] for name, pin in pins.items()}
-            or service_state(unit) != state):
+            or terminal_link.capture(unit, invocation, attempt) != state):
         raise ValueError("remote service or output changed during seal")
     snapshot.unchanged([*pins.values(), *result["pins"]])
     atomic_write_json(output / "receipt.json", {"schema": SCHEMA, "files": pins, "capsule": capsule_pin,
@@ -105,7 +107,7 @@ def verify(root, digest, local_capsule):
     del observed["receipt.json"]
     files = receipt["files"]
     if (pin["sha256"] != digest or receipt["schema"] != SCHEMA
-            or not route_finished(receipt["service"], receipt["invocation"])
+            or not terminal_link.terminal(receipt["service"], receipt["unit"], receipt["invocation"], attempt)
             or set(files) != members(result, attempt) | {"timing/impl_1_hw_bb_locked_timing_summary_routed.rpt"}
             or observed != {name: file["sha256"] for name, file in files.items()}
             or any(path.is_symlink() for path in root.rglob("*"))):
@@ -148,7 +150,7 @@ def collect(remote, local_capsule, output, wait_seconds):
                 report["transport_error"] = repr(error)
             else:
                 report.pop("transport_error", None)
-                if route_finished(report["service"], remote.invocation):
+                if terminal_link.unloaded(report["service"]) or route_finished(report["service"], remote.invocation):
                     break
             atomic_write_json(path, report)
             remaining = deadline - time.monotonic()
