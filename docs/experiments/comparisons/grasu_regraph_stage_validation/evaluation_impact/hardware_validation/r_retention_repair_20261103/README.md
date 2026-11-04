@@ -9,6 +9,11 @@ packages. Simulator near-parity is not FPGA performance admission.
 The [seele replacement links](REMOTE_LINKS.md) record the four active
 builds and their independent return checks; they are not new timings.
 
+The [first tail-repair board diagnostic](R_PUBLICATION_WINDOWS.md#tail-repair-derated-fpga-diagnostic)
+is now available. Full Amazon is within 1.2% of the public A4 in raw
+elapsed time; the skewed control is still 87.5% slower. The candidate's
+HBM was derated, so this is not same-clock baseline admission.
+
 1. Freeze the production source, bitstream, host, graph and numeric policy.
 2. Diagnose and repair the actual adapter/R implementation. Keep the original
    A4 reference and the pre-repair measurements. Screen each new matched case

@@ -1,7 +1,7 @@
 # R Ordered Publication Windows
 
-This is a diagnosis of the **repair-before FPGA run**, not an admission
-result for either new image. The board event envelope was 70.254409 ms for
+The first section diagnoses the **repair-before FPGA run**. The board event
+envelope was 70.254409 ms for
 the integrated Amazon path and 10.365434 ms for public-source A4. At the
 predeclared 1.15 gate the candidate must reach 11.920249 ms or less.
 
@@ -48,6 +48,38 @@ replay these windows before choosing the next change. If long windows
 survive the directory repair, measure the worker's PMA segment counts
 and first-packet/last-packet progress before attributing the gap to the
 adapter, gather or shared property service.
+
+## Tail Repair: Derated FPGA Diagnostic
+
+The first ResPR tail-repair image passed correctness on both supported
+controls. The reference and candidate ran once each on the same U55C, using
+the same first-CU-start to last-CU-end boundary as above. Driver-reported
+compute clocks were both 150 MHz, but HBM was 450 MHz on the public A4 and
+440 MHz on the candidate (441.6 MHz in the link report). No clock scaling
+was applied to these results.
+
+| Control | Public A4 | Integrated tail repair | Integrated / A4 |
+| --- | ---: | ---: | ---: |
+| Full Amazon | 10.339166 ms | 10.215603 ms | 0.988x |
+| Skewed sources | 0.432862 ms | 0.811403 ms | 1.875x |
+
+The same Amazon mux windows for shards 0, 4 and 8 now sum to 7.445 ms,
+down from 64.970 ms before the repair. This localizes where the reduction
+appears in the event trace, not which hardware operation caused it.
+On skewed sources, gather 0 finishes 212 us after adapter 0 and the whole
+run finishes another 104 us later. These are timestamps of overlapping
+kernels, not per-stage service counters.
+
+**Admission remains open.** Amazon is numerically inside the 1.15 gate,
+but this was not a same-clock comparison. Skewed sources also misses the
+numeric gate by 0.314 ms. The duplicate-edge boundary ring remains
+unsupported. No resident matrix row or figure is admitted by these results.
+
+The [receipt and raw timestamp/clock records](derated-diagnostic.tar.gz)
+include `diagnostic.json`, `board/results.json`, the per-arm logs, and both
+public A4 `result.json` files. To replay the candidate event windows, extract
+the archive and pass `--results "$raw/board/results.json" --raw-root "$raw"`
+to the command below, for both `--case amazon` and `--case skewed_sources`.
 
 ## Hardware Control Coverage
 
