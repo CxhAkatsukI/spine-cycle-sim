@@ -73,9 +73,11 @@ def record_topology(out, stage, job, gates, algorithm):
 
 def record_cc_topology(out, matrix, gates):
     job = matrix.get("stages", {}).get("au_slice")
-    if job is not None:
-        record_topology(out, matrix["au_slice_r"], job, gates, "cc")
-        out["cc_topology_stage"] = out["au_topology_stage"]
+    if job is None:
+        out["r_validation_scope"] = "amazon_only_diagnostic"
+        return
+    record_topology(out, matrix["au_slice_r"], job, gates, "cc")
+    out["cc_topology_stage"] = out["au_topology_stage"]
 
 
 def record_sssp_topology(out, matrix, special, gates):
@@ -159,6 +161,15 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
     else:
         gr, spine, published = (pair[key] for key in ("gr_wall_ms", "spine_wall_ms", "speedup_gr_over_spine"))
         rounds = (pair["gr_rounds"], pair["spine_rounds"])
+    if algorithm == "respr":
+        if not all(type(value) is int and value >= 0 for value in rounds):
+            raise ValueError("ResPR propagation rounds must be nonnegative integers")
+        propagated = min(rounds) > 0
+        requires_propagation = row["case"].get("requires_propagation")
+        if (requires_propagation is not (dataset == "Flickr")
+                or pair["positive_propagation_on_both"] is not propagated
+                or (requires_propagation and not propagated)):
+            raise ValueError("ResPR propagation does not match the declared workload")
     if not all(type(value) in (int, float) and math.isfinite(value) and value > 0
                for value in (gr, spine, published)):
         raise ValueError("wall times and speedup must be finite and positive")
@@ -174,14 +185,38 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
                 clocks={arm: entry["clock_evidence"] for arm, entry in arms.items()}, raw=evidence)
 
 
+def respr_case(rows, dataset):
+    entries = [row for row in rows if row["case"]["dataset"] == dataset]
+    if len(entries) > 1:
+        raise ValueError(f"duplicate ResPR row: {dataset}")
+    return entries[0] if entries else {}
+
+
+def respr_propagation_screen(matrix, screen, screen_pin):
+    out = dict(algorithm="respr", dataset="Flickr", boundary=BOUNDARIES["respr"])
+    try:
+        row = respr_case(screen.get("cases", []), "Flickr")
+        out["status"] = row.get("status", "NOT_RECORDED")
+        if out["status"] != "MEASURED":
+            if row.get("error"):
+                out["error"] = row["error"]
+        elif not matrix.get("stage_gates"):
+            out["status"] = "WAITING_FOR_MATCHED_MATRIX_ADMISSION"
+        elif matrix.get("parent") != screen_pin:
+            raise ValueError("matrix did not pin this ResPR propagation screen")
+        else:
+            out.update(measured("respr", "Flickr", screen, row, matrix["stage_gates"], None, matrix["image"]))
+            out["status"] = MEASURED
+    except (KeyError, ValueError, OSError, TypeError) as error:
+        out.update(status="RECEIPT_REJECTED", error=str(error))
+    return out
+
+
 def candidate(algorithm, dataset, matrix, special):
     gates = matrix.get("stage_gates" if algorithm == "respr" else "baseline")
     if special is not None and dataset == SPECIAL[algorithm]:
         if algorithm == "respr":
-            rows = [row for row in special.get("cases", []) if row["case"]["dataset"] == dataset]
-            if len(rows) > 1:
-                raise ValueError("duplicate R19 ResPR screen row")
-            row = rows[0] if rows else {}
+            row = respr_case(special.get("cases", []), dataset)
             return row, special, gates, row.get("status") == "MEASURED"
         if special.get("status") != MEASURED:
             return special, None, gates, False
@@ -194,10 +229,7 @@ def candidate(algorithm, dataset, matrix, special):
         return child, child, gates, True
     rows = matrix.get("cases", {})
     if algorithm == "respr":
-        entries = [row for row in rows if row["case"]["dataset"] == dataset]
-        if len(entries) > 1:
-            raise ValueError(f"duplicate ResPR matrix row: {dataset}")
-        entry = entries[0] if entries else {}
+        entry = respr_case(rows, dataset)
     else:
         entry = rows.get(dataset, {})
     if entry.get("status") != MEASURED:
@@ -216,6 +248,8 @@ def export(paths):
               "journal_status": {name: data["status"] for name, data in snapshots.items()},
               "journal_errors": {name: data["error"] for name, data in snapshots.items() if data.get("error")},
               "rows": []}
+    result["respr_propagation_screen"] = respr_propagation_screen(
+        snapshots["respr_matrix"], snapshots["respr_screen"], pins["respr_screen"])
     for algorithm, (matrix_role, screen_role) in JOURNALS.items():
         matrix, special = snapshots[matrix_role], snapshots.get(screen_role)
         if algorithm != "respr":
@@ -235,6 +269,8 @@ def export(paths):
                             raise ValueError("resident child did not pass")
                         if algorithm == "respr" and dataset != "R19" and child["status"] != MEASURED:
                             raise ValueError("resident ResPR child did not pass")
+                        if algorithm == "respr" and dataset == "R19" and matrix.get("parent") != pins["respr_screen"]:
+                            raise ValueError("matrix did not pin this ResPR R19 screen")
                         image = matrix["image"] if algorithm == "respr" else gates["image"]
                         row_data = measured(algorithm, dataset, child, row, gates, matrix.get("odd_r"), image)
                         if algorithm == "cc":

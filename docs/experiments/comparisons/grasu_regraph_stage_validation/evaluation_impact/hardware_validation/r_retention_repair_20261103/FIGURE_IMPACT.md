@@ -45,8 +45,13 @@ clocks, with no frequency rescaling. Independent R retention requires
 matched clocks. The export indexes existing correctness/stage admission; it does not rerun
 the correctness oracles or establish results for figures 8--11. CC starts
 at host pack; SSSP and ResPR start at a resident batch. ResPR rows report
-whether both arms performed propagation. Do not pool these scopes or
-interpret a correction-only result as propagation evidence. The two Amazon
+whether both arms performed propagation. The separate JSON field
+`respr_propagation_screen` records the compact Flickr control, outside the
+24 figure rows. It accepts a speedup only if both arms propagated and the
+large-graph matrix pinned that exact screen, G/R admission and image.
+Pending or failed screens retain their status without a speedup. Do not
+pool these scopes or interpret a correction-only result as propagation
+evidence. The two Amazon
 R receipts referenced by the SSSP matrix do not supersede the later
 [AskUbuntu topology control](SSSP_STAGE_ADMISSION.md#askubuntu-topology-control),
 which missed the 15% gate on the same older candidate image. The current

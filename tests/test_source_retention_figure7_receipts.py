@@ -49,7 +49,8 @@ class Figure7ReceiptsTest(unittest.TestCase):
         gr = {"binary": {"sha256": "gr"}, "driver_reported_mhz": [150], "bdf": "bdf"}
         spine = {"binary": {"path": "/spine.xclbin", "sha256": "spine"},
                  "driver_reported_mhz": [145], "bdf": "bdf"}
-        arms = {arm: dict(stdout=self.receipt(arm + "-out", {}), stderr=self.receipt(arm + "-err", {}),
+        arms = {arm: dict(stdout=self.receipt(f"{algorithm}-{dataset}-{arm}-out", {}),
+                          stderr=self.receipt(f"{algorithm}-{dataset}-{arm}-err", {}),
                           clock=clock, clock_evidence=clock)
                 for arm, clock in (("spine", spine), ("gr", gr))}
         b = figure.BOUNDARIES[algorithm]
@@ -89,6 +90,7 @@ class Figure7ReceiptsTest(unittest.TestCase):
         (row,) = [r for r in result["rows"] if r["status"] == figure.MEASURED]
         self.assertEqual((row["winner"], row["gr_over_spine"], row["boundary"]),
                          ("G+R", 0.5, figure.cc_resident_wall.BOUNDARY))
+        self.assertEqual(row["r_validation_scope"], "amazon_only_diagnostic")
         self.assertIs(row["same_driver_clocks"], False)
         save(Path(child["arms"]["gr"]["stdout"]["path"]), {"changed": True})
         result = figure.export(self.paths)
@@ -158,25 +160,66 @@ class Figure7ReceiptsTest(unittest.TestCase):
         self.assertEqual(result["journal_errors"], {"sssp_matrix": "odd gate"})
         self.assertEqual(result["rows"][0]["status"], "NOT_REQUESTED")
 
-    def test_respr_correction_only_is_labeled_and_requires_both_r_gates(self):
-        child, _, _ = self.pair("respr", "R19")
+    def respr_screen(self, dataset, rounds, status="MEASURED"):
+        child, _, _ = self.pair("respr", dataset)
         decision = {"retention_gate_pass": True, "current_over_reference": 1.15}
         gates = dict(g_control=decision, r_controls={key: decision for key in ("amazon", "skewed_sources")},
                      resident_mhz=[150])
-        row = dict(status="MEASURED", case=dict(child["case"], algorithm="residual_pagerank"),
+        pair = dict(child["pair"], gr_rounds=rounds[0], spine_rounds=rounds[1])
+        requires_propagation = dataset == "Flickr"
+        row = dict(status=status, case=dict(child["case"], algorithm="residual_pagerank",
+                                           requires_propagation=requires_propagation),
                    rows=child["arms"], attempts=[{"arm": arm} for arm in ("spine", "gr")],
-                   pair=dict(child["pair"], meets_propagation_screen=True, positive_propagation_on_both=False),
-                   comparison_log=child["comparison_log"])
-        save(self.paths["respr_screen"], dict(status="PAIRED_SCREEN_MEASURED", cases=[row], bdf="bdf",
-                                             repetitions_per_arm=1, warmups=0, stage_gates=gates,
-                                             pins={"spine_image": child["pins"][0], "r19": child["pins"][1]}))
+                   pair=dict(pair, meets_propagation_screen=not requires_propagation or min(rounds) > 0,
+                             positive_propagation_on_both=min(rounds) > 0),
+                   comparison_log=self.receipt(f"respr-{dataset}-comparator", pair))
+        screen = dict(status="PAIRED_SCREEN_MEASURED", cases=[row], bdf="bdf", repetitions_per_arm=1,
+                      warmups=0, stage_gates=gates,
+                      pins={"spine_image": child["pins"][0], dataset.lower(): child["pins"][1]})
         image = child["arms"]["gr"]["clock"]["binary"]
-        save(self.paths["respr_matrix"], dict(status="MEASURED", cases=[], stage_gates=gates, image=image))
+        self.save_respr_screen(screen, image)
+        return screen, image
+
+    def save_respr_screen(self, screen, image):
+        save(self.paths["respr_screen"], screen)
+        save(self.paths["respr_matrix"], dict(status="MEASURED", cases=[], stage_gates=screen["stage_gates"],
+                                            image=image, parent=identity(self.paths["respr_screen"])))
+
+    def test_respr_correction_only_is_labeled_and_requires_both_r_gates(self):
+        screen, _ = self.respr_screen("R19", (0, 0))
         result = figure.export(self.paths)["rows"][-1]
         self.assertEqual(result["status"], figure.MEASURED)
         self.assertIs(result["respr_propagated_on_both"], False)
+        gates = screen["stage_gates"]
         with self.assertRaises(ValueError):
-            figure.summarize_gates("respr", dict(gates, r_controls={"amazon": decision}), None)
+            figure.summarize_gates("respr", dict(gates, r_controls={"amazon": gates["g_control"]}), None)
+
+    def test_respr_flickr_propagation_is_pinned_and_outside_figure_rows(self):
+        screen, image = self.respr_screen("Flickr", (1, 2))
+        result = figure.export(self.paths)
+        self.assertEqual(len(result["rows"]), 24)
+        self.assertNotIn("Flickr", {row["dataset"] for row in result["rows"]})
+        propagation = result["respr_propagation_screen"]
+        self.assertEqual((propagation["status"], propagation["winner"], propagation["gr_rounds"],
+                          propagation["spine_rounds"]), (figure.MEASURED, "G+R", 1, 2))
+        save(self.paths["respr_screen"], dict(screen, note="replaced"))
+        propagation = figure.export(self.paths)["respr_propagation_screen"]
+        self.assertEqual(propagation["status"], "RECEIPT_REJECTED")
+        self.assertNotIn("gr_over_spine", propagation)
+
+    def test_respr_flickr_without_propagation_cannot_publish_speedup(self):
+        status = "RETAINED_WITHOUT_REQUIRED_PROPAGATION"
+        screen, image = self.respr_screen("Flickr", (0, 2), status)
+        propagation = figure.export(self.paths)["respr_propagation_screen"]
+        self.assertEqual(propagation["status"], status)
+        self.assertNotIn("gr_over_spine", propagation)
+        row = screen["cases"][0]
+        row.update(status="MEASURED", pair=dict(row["pair"], positive_propagation_on_both=True,
+                                                meets_propagation_screen=True))
+        self.save_respr_screen(screen, image)
+        propagation = figure.export(self.paths)["respr_propagation_screen"]
+        self.assertEqual(propagation["status"], "RECEIPT_REJECTED")
+        self.assertNotIn("gr_over_spine", propagation)
 
     def test_csv_keeps_unmeasured_cases_blank_and_pins_measured_workload(self):
         child, gates, odd = self.pair("cc", "SU")

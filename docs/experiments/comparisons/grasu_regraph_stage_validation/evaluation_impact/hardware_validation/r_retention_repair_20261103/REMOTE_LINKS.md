@@ -349,6 +349,9 @@ time. The live dependencies use the following local receipts:
 | CC resident matrix | `cc-singlepass-matrix-physical-v3/matrix.json` | `ddb0eb18ef224353a725b845540e095e` |
 | ResPR tail physical R | `tail-follow-physical-v3/results.json` | `50d1ecd2c3f74cd686d21c5640eeaf01` |
 | ResPR tail physical G | `g-tail-physical-v3/results.json` | `70ddaa3c60e042bf80cd831aa9f7274a` |
+| ResPR tail plus source-read bursts, return (`return-respr-tail-bursts-20261104-v4`) | `seele-return-v3-respr-tail-source-bursts/transfer.json` | `b3d3b9cd19184d78872934329751d3f1` |
+| ResPR tail plus source-read bursts, R (`r-tail-bursts-20261104-v4`) | `tail-bursts-follow-v3/results.json` | `43674784b88a4e6b858c5ec56325e5e2` |
+| ResPR tail plus source-read bursts, G (`g-tail-bursts-20261104-v4`) | `g-tail-bursts-v3/results.json` | `1d6896d70f644d5c931891e46ab743d6` |
 | ResPR R19 and Flickr resident screen | `resident-joint-board-v7/results.json` | `6fb1f02cea23421f9ffb902041a925b8` |
 | ResPR remaining seven large workloads | `respr-matrix-v5/results.json` | `6d2b2669487e43ec970d080e8e8cd392` |
 
@@ -364,8 +367,9 @@ dataset still `NOT_REQUESTED`; none of the G or R producers were restarted.
 The ResPR resident screen accepts only a candidate with both same-image
 stage receipts, and may use either the tail physical retry or the
 source-burst repair. The SSSP R pair's `--completed-reference` pins a
-finished public A4 *build*, not a previously measured reference time.
-Each SSSP fixture still requires one measured execution per arm.
+finished public A4 *build*, not a previously measured reference time. The
+three SSSP source-burst R queues below also use `--retained-reference` to
+replay the matching measured A4 arm; only the replacement arm runs again.
 
 ## Weighted SSSP Source-Read Burst Retry
 
