@@ -7,7 +7,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import figure8_matrix as matrix
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
+    figure8_matrix as matrix, figure8_spine_follow as follow,
+)
 
 
 def test_manifest_requires_all_seven_once(tmp_path, monkeypatch):
@@ -30,6 +32,29 @@ def test_anchor_cannot_start_before_a_valid_pair(tmp_path):
     anchor.write_text('{"status": "WAITING_FOR_G_GATE"}')
     with pytest.raises(ValueError, match="has not been admitted"):
         matrix.load_anchor(matrix.identity(anchor), {})
+
+
+@pytest.mark.parametrize("changed_speedup", [False, True])
+def test_spine_follow_reuses_only_a_matching_verified_anchor(tmp_path, monkeypatch, changed_speedup):
+    path = tmp_path / "graph"
+    path.write_text("graph")
+    pin = matrix.identity(path)
+    case = {"native_g_input": pin}
+    timers = {"spine": {"setup_inclusive_ns": 100}, "gr": {"setup_inclusive_ns": 200}}
+    evidence = {arm: {"timer": timer} for arm, timer in timers.items()}
+    dataset, updates = matrix.ANCHOR
+    old = dict(dataset=dataset, updates=updates, input=pin, attempts=[], arms={},
+               status="REUSED_MEASURED_ANCHOR", timers=timers,
+               speedup_gr_over_spine=1.0 if changed_speedup else 2.0)
+    prior = dict(boundary=matrix.au.BOUNDARY, requested_runs_per_arm=1, warmups=0,
+                 manifest=pin, anchor=pin, cases=[old])
+    monkeypatch.setattr(matrix, "load_cases", lambda *_: {matrix.ANCHOR: case})
+    monkeypatch.setattr(matrix, "load_anchor", lambda *_: ({}, {}, {}, timers, evidence))
+    if changed_speedup:
+        with pytest.raises(ValueError, match="independently replayed AU/512"):
+            follow.replay_prior(prior, matrix.ANCHOR)
+    else:
+        assert follow.replay_prior(prior, matrix.ANCHOR)[1]["arms"] == evidence
 
 
 def anchor_state(**changes):

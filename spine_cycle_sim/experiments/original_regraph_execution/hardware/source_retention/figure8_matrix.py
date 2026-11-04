@@ -143,7 +143,12 @@ def load_anchor(pin, case):
     if (any(timers[arm] != anchor[f"{arm}_ns"] for arm in timers)
             or ratio(timers) != anchor["speedup_gr_over_spine"]):
         raise ValueError("AU/512 timers or speedup differ from raw logs")
-    return hosts, {"spine": spine_clock, "gr": gr_clock}, anchor["xrt_libraries"], timers
+    evidence = {"spine": dict(run=spine["run"], timer=timers["spine"],
+                              clock_evidence=spine["clock_evidence"]),
+                "gr": dict(run=anchor["gr"], timer=timers["gr"],
+                           clock_evidence=anchor["gr_clock_evidence"],
+                           pma_oracle=anchor["gr_oracle"])}
+    return hosts, {"spine": spine_clock, "gr": gr_clock}, anchor["xrt_libraries"], timers, evidence
 
 
 def inspect(run, arm, case):
@@ -237,7 +242,7 @@ def run(args):
             anchor = wait_anchor(args.anchor, unit, invocation, args.anchor_wait_seconds, checkpoint_anchor)
         else:
             anchor = identity(args.anchor)
-        hosts, reference, libraries, anchor_timers = load_anchor(anchor, cases[ANCHOR])
+        hosts, reference, libraries, anchor_timers, _ = load_anchor(anchor, cases[ANCHOR])
         checked(manifest)
         report.update(status="RUNNING", anchor=anchor)
         checkpoint()

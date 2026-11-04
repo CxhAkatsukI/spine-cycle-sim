@@ -20,11 +20,19 @@ def replay_prior(prior, key):
     manifest = prior["manifest"]
     cases = matrix.load_cases(manifest, manifest["sha256"])
     case = cases[key]
-    hosts, reference, libraries, _ = matrix.load_anchor(prior["anchor"], cases[matrix.ANCHOR])
+    hosts, reference, libraries, anchor_timers, anchor_arms = matrix.load_anchor(
+        prior["anchor"], cases[matrix.ANCHOR])
     old, = [row for row in prior["cases"] if (row["dataset"], row["updates"]) == key]
     graph = checked(case["native_g_input"])
-    if (old["status"] != "MEASURED_SETUP_ONLY" or old["input"] != case["native_g_input"]
-            or old["attempts"] != ["spine", "gr"]):
+    if old["input"] != case["native_g_input"]:
+        raise ValueError("case input differs from the pinned manifest")
+    if key == matrix.ANCHOR:
+        if (old["status"] != "REUSED_MEASURED_ANCHOR" or old["attempts"] or old["arms"]
+                or old["timers"] != anchor_timers
+                or old["speedup_gr_over_spine"] != matrix.ratio(anchor_timers)):
+            raise ValueError("case differs from the independently replayed AU/512 pair")
+        return case, {**old, "arms": anchor_arms}, hosts, reference, libraries
+    if old["status"] != "MEASURED_SETUP_ONLY" or old["attempts"] != ["spine", "gr"]:
         raise ValueError("case lacks an admitted one-shot pair")
     arms = old["arms"]
     oracle = arms["gr"]["pma_oracle"]

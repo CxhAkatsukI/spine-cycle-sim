@@ -349,6 +349,31 @@ throughput panel or evidence for other datasets. Peak cgroup memory was
 has SHA-256
 `08fe266388fb313ac2f728a527a7dcf28ddfbdaea5937bc109fc49c3350d21e3`.
 
+The same Spine binary was screened once on each remaining row with an
+admitted four-copy G measurement. The continuation reused each frozen G
+arm after checking its input, clocks, timings and PMA oracle; AU/512 uses
+the separately verified anchor. All six Spine readbacks passed. Neither
+side was repeated to estimate measurement variation.
+
+| Input | Updates | G (ms) | Spine (ms) | G / Spine |
+| --- | ---: | ---: | ---: | ---: |
+| AU | 64 | 818.456 | 796.494 | 1.028x |
+| AU | 512 | 975.557 | 780.264 | 1.250x |
+| AU | 4,096 | 770.908 | 847.809 | 0.909x |
+| SU | 512 | 992.363 | 876.150 | 1.133x |
+| WK | 512 | 1,872.880 | 965.586 | 1.940x |
+| PK | 512 | 37,380.861 | 15,702.802 | 2.381x |
+
+G still leads AU/4096 by 76.901 ms: only 2.411 ms of Spine's
+847.809 ms was the update call. SO/512 is not in this table because
+the four-copy G configuration has no paired timing. This is a check
+of the exact native one-batch SSSP inputs, not a replacement for all
+Figure 8 data or a new R retention result. Peak cgroup memory across
+the added runs was 9,175,027,712 bytes (PK); all runs reported zero high,
+max or OOM events. The [five additional board records](paired-board-checkpoint/fig8-spine-cold-matrix-v7.tar.gz)
+have SHA-256
+`f7ef8ac946e6a7aeda2a427560611ff378b4c1c869d65fed95d0983e73524bc9`.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.
