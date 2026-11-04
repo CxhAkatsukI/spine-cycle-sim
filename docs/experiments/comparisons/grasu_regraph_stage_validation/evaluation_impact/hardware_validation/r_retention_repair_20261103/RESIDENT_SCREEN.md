@@ -64,6 +64,26 @@ Both preflights used CPUs 124--125, a 2 GiB cgroup limit, zero swap, and a
 for compiling the Spine probe, and 2.5 MiB for running it. No card was
 programmed. None of these measurements is a benchmark.
 
+### Degree-Prefix Candidate Host Preflight
+
+The exact host pinned by the new resident queue
+(`c367213917824a4d4427a23c562bab0a4619cd7ecd2602bef503e6a0a192b2fe`)
+also passed `--prepare-only` on both frozen inputs:
+
+| Input | Vertices | Initial edges | Directed inserts | CPU propagation rounds |
+| --- | ---: | ---: | ---: | ---: |
+| Flickr | 2,552 | 8,192 | 16 | 12 |
+| R19 | 524,288 | 15,672,181 | 8 | 0 |
+
+R19 exercises the large correction-only case, not the nonempty propagation
+gate. Both runs verified the queued input SHA-256 and host SHA-256 before
+execution and used four metadata replicas. They were run sequentially with
+zero swap, CPUs 124--125, and cgroup caps of 2 GiB (Flickr) and 12 GiB (R19).
+Observed service peaks were 18.8 MiB and about 2.1 GiB. The
+[raw preflight](respr-degree-prefix-resident-preflight.tar.gz) includes the
+input and host pins and both command outputs. The exact route, G and R
+latencies, and FPGA output are not tested by this preflight.
+
 ### Cross-Host Oracle Check
 
 On the exact Flickr input above, the Spine host at `cb42376663c5` and
