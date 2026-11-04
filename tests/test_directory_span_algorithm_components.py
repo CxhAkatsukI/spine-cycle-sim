@@ -77,6 +77,28 @@ class DirectorySpanAlgorithmsTest(unittest.TestCase):
                     components.stage(stage, ["fake-tool"], {}, [])
             self.assertEqual(json.loads((stage / "execution.json").read_text())["status"], "FAILED_RETAINED")
 
+    def test_source_wrapper_changes_only_one_xo_relative_to_adapter_relink(self):
+        with tempfile.TemporaryDirectory() as directory:
+            adapter_fixture = fixture.AdapterReplacementTest()
+            production, packet, output = adapter_fixture.fixture(Path(directory))
+            self.gates(packet, "weighted_sssp")
+            manifest = production / "manifest.json"
+            content = json.loads(manifest.read_text())
+            content["command"].pop()
+            fixture.save(manifest, content)
+            before = routes.prepare(production, packet, output)
+            name = "kernelHBMWrapper.hw.xo"
+            wrapper = packet / "build" / name
+            adapter_fixture.wrapper(wrapper, rtl=b"burst reader")
+            after = routes.prepare(production, packet, output.with_name("burst"), source_wrapper=wrapper)
+            self.assertEqual([arg for arg in before["command"] if arg.endswith(".xo") and Path(arg).name != name],
+                             [arg for arg in after["command"] if arg.endswith(".xo") and Path(arg).name != name])
+            self.assertIn(str(wrapper), after["command"])
+            self.assertIn(identity(wrapper), after["pins"])
+            adapter_fixture.wrapper(wrapper, compile_value=2)
+            with self.assertRaisesRegex(ValueError, "source wrapper ABI or compile-time"):
+                routes.prepare(production, packet, output.with_name("mismatch"), source_wrapper=wrapper)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -14,6 +14,8 @@ from .runtime import identity, save
 
 
 R_BDF = "0000:82:00.1"
+AMAZON_GEOMETRY = (735324, 5158388, 48)
+AU_SLICE_GEOMETRY = (156289, 903774, 12)
 
 
 def checked(pin):
@@ -31,10 +33,12 @@ def read_report(path, status, algorithm):
     return report, pin
 
 
-def replay_r(path, algorithm, inputs, host, image):
+def replay_r(path, algorithm, inputs, host, image, *, geometry=AMAZON_GEOMETRY):
     report, pin = read_report(path, "PAIRED_ACTIVE_MIN_R_GATE_PASS", algorithm)
+    retained = report.get("retained_reference_pair")
+    attempts = ["candidate"] if retained else ["reference", "candidate"]
     if (report["bdf"] != R_BDF or report["boundary"] != active_min.BOUNDARY
-            or report["requested_runs_per_arm"] != 1 or report["attempts"] != ["reference", "candidate"]
+            or report["requested_runs_per_arm"] != 1 or report["attempts"] != attempts
             or report["convergence_measured"] is not False or report["retention_gate_pass"] is not True
             or set(report["arms"]) != {"reference", "candidate"}):
         raise ValueError("expected one same-card R superstep per arm, not a convergence measurement")
@@ -47,8 +51,8 @@ def replay_r(path, algorithm, inputs, host, image):
     if (any(item not in report["pins"] for item in pins) or
             offline.get("status") != "A4_ACTIVE_MIN_OFFLINE_PASS_NOT_FPGA" or
             (offline.get("algorithm"), offline.get("vertices"), offline.get("logical_edges"), offline.get("tasks"))
-            != (algorithm, 735324, 5158388, 48)):
-        raise ValueError("R fixture, oracle, candidate host or bitstream does not match the pinned Amazon run")
+            != (algorithm, *geometry)):
+        raise ValueError("R fixture, oracle, candidate host or bitstream does not match the pinned run")
     unchanged(report["pins"])
     ref, current = (report["arms"][arm] for arm in ("reference", "candidate"))
     for row in (ref, current):
@@ -61,7 +65,18 @@ def replay_r(path, algorithm, inputs, host, image):
     checked(ref_clock["binary"])
     if (current_clock["binary"] != image or ref_clock["bdf"] != R_BDF or current_clock["bdf"] != R_BDF):
         raise ValueError("R clock evidence does not bind the repaired image on the leased card")
-    observed_ref = active_min.inspect(directory / "reference", offline, expected, inputs, R_BDF)
+    if retained:
+        receipt = checked(retained)
+        reference_host = Path(ref["execution"]["command"][-7])
+        args = argparse.Namespace(reference_host=reference_host, candidate_host=Path(host["path"]),
+                                  algorithm=algorithm, inputs=inputs, bdf=R_BDF)
+        original, original_pin = active_min_pair.retained_reference(
+            receipt, retained["sha256"], args, ref_clock["binary"], offline, expected)
+        if original != ref or original_pin not in report["pins"]:
+            raise ValueError("retained R arm differs from the pinned original")
+        observed_ref = original["analysis"]
+    else:
+        observed_ref = active_min.inspect(directory / "reference", offline, expected, inputs, R_BDF)
     observed_current = r_candidate.inspect(checked(current["execution"]["stdout"]), directory / "candidate",
                                           offline, expected, inputs)
     decision = r_candidate.compare(observed_ref, observed_current, ref_clock, current_clock)

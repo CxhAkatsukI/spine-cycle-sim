@@ -80,6 +80,14 @@ def completed_reference(route, digest, algorithm):
     return pin
 
 
+def retained_pair_pin(retained):
+    path, digest = retained
+    pin = artifact.identity(Path(path))
+    if pin["sha256"] != digest:
+        raise ValueError("retained reference pair digest differs")
+    return pin
+
+
 def returned_ready(name, route, digest, state, invocation, observed):
     if state["LoadState"] == "loaded":
         if not route_finished(state, invocation):
@@ -145,6 +153,9 @@ def run(args):
         completed = getattr(args, "completed_reference", None)
         if completed and (returned["reference"] or args.reference_unit or args.reference_invocation):
             raise ValueError("choose a completed reference or an exact reference service")
+        retained = getattr(args, "retained_reference", None)
+        if retained:
+            pins.append(retained_pair_pin(retained))
         pins += runner_pins()
         report["pins"] = pins
         report["earlier_pairs"] = []
@@ -197,7 +208,8 @@ def run(args):
         for arm, parameters in returned.items():
             if parameters:
                 setattr(args, "returned_" + arm, seal_parameters(parameters, report["routes"][arm]["transfer"]))
-        report.update(status="REQUESTING_ONE_PAIRED_RUN", requested_pair=True)
+        report.update(status=("REQUESTING_ONE_CANDIDATE_RUN" if retained else "REQUESTING_ONE_PAIRED_RUN"),
+                      requested_pair=True, requested_arms=["candidate"] if retained else ["reference", "candidate"])
         save(journal, report)
         args.output = args.output / "pair"
         measured = active_min_pair.run(args)

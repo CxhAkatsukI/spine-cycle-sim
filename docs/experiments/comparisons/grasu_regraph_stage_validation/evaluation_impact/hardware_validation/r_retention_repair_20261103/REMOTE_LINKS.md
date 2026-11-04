@@ -353,3 +353,30 @@ stage receipts, and may use either the tail physical retry or the
 source-burst repair. The SSSP R pair's `--completed-reference` pins a
 finished public A4 *build*, not a previously measured reference time.
 Each SSSP fixture still requires one measured execution per arm.
+
+## Weighted SSSP Source-Read Burst Retry
+
+The [SSSP wrapper change](SSSP_STAGE_ADMISSION.md#source-property-read-burst-repair)
+was synthesized on trifoliate and linked on seele using `runner-4bb9b44`,
+the same clock targets, and the peer-aware 128 GiB reserve profile above.
+The capsule is `inputs/sssp-source-bursts`, SHA-256
+`e9f3a2b81af405e39a0189a1df698389ac23d1f36056548b8ba4a0fd8c23826c`.
+The raw synthesis build is at
+`/data/chuxiao/builds/regraph-sssp-source-read-bursts-20261104` on trifoliate.
+
+| Dependency | Attempt or receipt | Service invocation |
+| --- | --- | --- |
+| Remote link | `builds/sssp-source-bursts-v1` | `gr-retention-seele-sssp-source-bursts-20261104-v1.service` / `f2dcd397414c4b05b98c52a2db2f3d8c` |
+| Local return | `seele-return-v1-sssp-source-bursts/transfer.json` | `gr-retention-return-sssp-source-bursts-20261104-v1.service` / `6b8f97bbd1a344478b0e3bdf96d10928` |
+| R, AskUbuntu reciprocal slice | `sssp-burst-au903k-v1/queue.json` | `6fddebcfafd549919d50e897a81208f9` |
+| R, Amazon sparse frontier | `sssp-burst-amazon-v1/queue.json` | `43bc95a6b221436eafb3c4f47c418529` |
+| R, Amazon alternate frontier | `sssp-burst-amazon-odd-v1/queue.json` | `f8d6e9df120f4bd197f4b408f92a574e` |
+| G, AskUbuntu 131K updates | `g-sssp-board-burst-v1/results.json` | `118509bc150542bca87c4f46d26904c1` |
+| Resident full AskUbuntu | `sssp-burst-resident-au-v1/queue.json` | `db661128be3c41deb2dbc7d0b9834ac3` |
+
+Local receipts are relative to
+`/data/chuxiao/checks/source-retention-repair-20261104`. The resident runner
+checks the exact R and G producer invocations and replays all four receipts
+against the same returned image before taking the board locks. Its request
+is one resident pair, not a whole-matrix run. A failed admission does not
+launch that pair.

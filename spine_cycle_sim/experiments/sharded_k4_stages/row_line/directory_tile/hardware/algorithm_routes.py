@@ -1,4 +1,4 @@
-"""Prepare an adapter-only relink of the eleven-XO SSSP or CC image."""
+"""Prepare an ABI-checked relink of the eleven-XO SSSP or CC image."""
 
 import argparse
 import json
@@ -6,7 +6,9 @@ from pathlib import Path
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
-from spine_cycle_sim.experiments.sharded_k4_stages.routing import adapter_interface, relocate_config
+from spine_cycle_sim.experiments.sharded_k4_stages.routing import (
+    adapter_interface, kernel_interface, relocate_config,
+)
 from . import component
 from .algorithm_components import mode_for
 
@@ -44,7 +46,7 @@ def gate_sources(packet):
     return xo, mode, [*map(identity, paths), *dependencies[1].values()]
 
 
-def prepare(production, packet, output):
+def prepare(production, packet, output, *, source_wrapper=None):
     production, packet, output = map(Path.resolve, (production, packet, output))
     old_manifest = production / "manifest.json"
     old = json.loads(old_manifest.read_text())
@@ -64,6 +66,17 @@ def prepare(production, packet, output):
     candidate, mode, pins = gate_sources(packet)
     if adapter_interface(candidate) != adapter_interface(adapters[0]):
         raise ValueError("replacement changes adapter ABI or compile-time semantics")
+    changed = "adapter"
+    if source_wrapper is not None:
+        kernel = "kernelHBMWrapper"
+        original, = [xo for xo in xos if xo.name.startswith(kernel + ".hw.")]
+        source_wrapper = source_wrapper.resolve()
+        if (source_wrapper.name != original.name
+                or kernel_interface(source_wrapper, kernel) != kernel_interface(original, kernel)):
+            raise ValueError("replacement changes source wrapper ABI or compile-time semantics")
+        pins.append(identity(source_wrapper))
+        argv[argv.index(str(original))] = str(source_wrapper)
+        changed += " and source wrapper"
     output.mkdir(parents=True, exist_ok=False)
     relocated = output / "link.cfg"
     relocated.write_text(relocate_config(config.read_text(), output))
@@ -75,7 +88,7 @@ def prepare(production, packet, output):
     manifest = {"status": "PREPARED_NOT_ROUTED", "command": argv, "pins": pins,
                 "packet": str(packet), "production": str(production), "mode": mode,
                 "clock_mhz": 150, "board_tested": False, "timeout_seconds": 21600,
-                "change": "adapter only; same eleven-XO production design and connectivity"}
+                "change": changed + " only; same eleven-XO production design and connectivity"}
     atomic_write_json(output / "manifest.json", manifest)
     return manifest
 
@@ -84,5 +97,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for argument in ("production", "packet", "output"):
         parser.add_argument("--" + argument, required=True, type=Path)
+    parser.add_argument("--source-wrapper", type=Path)
     args = parser.parse_args()
-    print(prepare(args.production, args.packet, args.output)["status"])
+    print(prepare(args.production, args.packet, args.output,
+                  source_wrapper=args.source_wrapper)["status"])

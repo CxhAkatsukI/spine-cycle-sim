@@ -156,3 +156,17 @@ class ActiveMinJointAdmissionTests(unittest.TestCase):
             observed.return_value = {"event_span_ns": 116}
             with self.assertRaisesRegex(ValueError, "15 percent"):
                 gate.replay_r(*args)
+            observed.return_value = current["analysis"]
+            original = gate.identity(self.report("original-pair.json", {}))
+            retained = json.loads(path.read_text())
+            ref["execution"]["command"] = [str(self.host), "board", "cc", str(self.inputs),
+                                           "original/reference", str(self.image), "0"]
+            retained.update(attempts=["candidate"], retained_reference_pair=original,
+                            pins=[*pins, original], arms={"reference": ref, "candidate": current})
+            self.report(path.name, retained)
+            with patch.object(gate.active_min_pair, "retained_reference", return_value=(ref, original)) as replay:
+                self.assertEqual(gate.replay_r(*args)["comparison"], comparison)
+                self.assertEqual(replay.call_args.args[2].reference_host, self.host)
+                replay.return_value = ({**ref, "analysis": {}}, original)
+                with self.assertRaisesRegex(ValueError, "retained R arm differs"):
+                    gate.replay_r(*args)

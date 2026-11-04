@@ -147,6 +147,17 @@ def run(args):
             command_pair = commands(case, gate, args.output)
         pins += [gate["host"], gate["image"], gate["g"]["report"], gate["g"]["reference"], gate["r"]["report"],
                  identity(__file__), identity(active_min_admission.__file__)]
+        additional_r = {}
+        for label, receipt, inputs, geometry in getattr(args, "additional_r", ()):
+            decision = active_min_admission.replay_r(Path(receipt["path"]), args.algorithm, inputs,
+                                                     gate["host"], gate["image"], geometry=geometry)
+            if (decision["report"] != receipt or
+                    decision["candidate_clock"]["driver_reported_mhz"] != gate["resident_mhz"]):
+                raise ValueError(f"additional {label} R gate used different evidence or clocks")
+            additional_r[label] = decision
+            pins.append(receipt)
+        if additional_r:
+            report["additional_r_gates"] = additional_r
         report.update(stage_gates=gate, case=case, pins=pins)
         budget = case["memory_gib"]
         group = containment.current()

@@ -11,6 +11,16 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execu
 
 
 class ActiveMinQueueTests(unittest.TestCase):
+    def test_retained_pair_is_pinned_before_waiting_for_the_candidate(self):
+        with TemporaryDirectory() as tmp:
+            receipt = Path(tmp) / "results.json"
+            receipt.write_text("{}")
+            pin = artifact.identity(receipt)
+            self.assertEqual(active_min_follow.retained_pair_pin((str(receipt), pin["sha256"])), pin)
+            receipt.write_text('{"changed":true}')
+            with self.assertRaisesRegex(ValueError, "retained reference pair digest"):
+                active_min_follow.retained_pair_pin((str(receipt), pin["sha256"]))
+
     def test_completed_reference_binds_the_approved_local_receipt(self):
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

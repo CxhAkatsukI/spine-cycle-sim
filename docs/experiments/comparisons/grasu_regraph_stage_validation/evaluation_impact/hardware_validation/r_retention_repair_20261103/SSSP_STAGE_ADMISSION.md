@@ -82,6 +82,31 @@ performance gate; it is not selected for the convergence campaign. The
 [raw follow-up archive](sssp-au903k-r-frontend-first.tar.gz) includes the
 changed-host digest, event logs, outputs and the reference replay receipt.
 
+### Source-Property Read Burst Repair
+
+The previous weighted wrapper's synthesized `emit_source_block` issued
+single-beat AXI read requests on both source-property ports. The
+[wrapper repair](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/9ceb5c5)
+selects the input pointer and output FIFO before the pipelined block loop.
+In the rebuilt XO the two read ports request 256 logical beats per block;
+the generated AXI adapter caps physical bursts at 16 beats and retains
+16 outstanding reads. This is a synthesis observation, not a board timing
+result or a claim that the source reads explain the entire AskUbuntu gap.
+
+Only the source-property wrapper XO changes from the directory-span
+SSSP link inputs; the adapter, gather, apply, GraSU, connectivity and clocks
+are unchanged. The replacement XO SHA-256 is
+`e6955520e720eef0d2f14a49440177fa9cc77783e8d9cedc7674193ef9934cbf`.
+The [remote build record](REMOTE_LINKS.md#weighted-sssp-source-read-burst-retry)
+identifies the link and its board-test dependencies.
+
+The three R retests reuse their respective public A4 receipts after replay
+of input, clock and correctness evidence. Only the changed candidate is
+measured, once per fixture. A separate G run checks the exact same returned
+image. The first resident comparison (full AskUbuntu) cannot start unless
+all three R fixtures and G pass. No source-burst R or resident result is
+reported until the corresponding board receipt exists.
+
 ## Evidence
 
 [Raw evidence archive](sssp-stage-admission.tar.gz) preserves both R queue
