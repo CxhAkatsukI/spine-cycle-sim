@@ -896,6 +896,18 @@ It pins the already measured public AU reference receipt
 (`4450913816a1a85437cb2b57f85ada20966fd31b6856b8822d34268eedeec4a8`)
 and requests one candidate run only after nominal-clock admission.
 
+Two conditional Amazon queues use immutable runner `0d4a143b`. The
+sparse case requires a passing AU receipt; the high-activity case
+requires both AU and sparse Amazon to pass. Both check the retained
+result digest, device, algorithm, and exact candidate image. A failed
+prerequisite stops the queue before it requests a timed arm. The public
+A4 result for each fixture is reused from its original raw receipt.
+
+| Step | Unit (without `.service`) | Invocation | Journal |
+| --- | --- | --- | --- |
+| Sparse Amazon nominal-clock R | `gr-retention-cc-source-bursts-amazon-20261105-v1` | `6adf4499f50e441492928574605e7c02` | `cc-banked-source-bursts-amazon-pair-v1/queue.json` |
+| High-activity Amazon nominal-clock R | `gr-retention-cc-source-bursts-amazon-odd-20261105-v1` | `fb5ff5d27944475f8e9724330c52a372` | `cc-banked-source-bursts-amazon-odd-pair-v1/queue.json` |
+
 ### Archived Spine Images on Feiyang
 
 The `tiny-active.final172` and `tiny-active.scaled175` U55C images
