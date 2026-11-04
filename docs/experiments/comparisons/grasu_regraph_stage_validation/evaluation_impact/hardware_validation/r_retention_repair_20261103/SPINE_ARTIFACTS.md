@@ -201,6 +201,27 @@ The 150-MHz paper-geometry build is running on seele as
 swap. The image and host must be admitted together before measuring the
 same resident AU batch once. It is not used in existing figure data.
 
+The [native CC timing host](https://github.com/jayfeather9/spine-dynamic-graph/commit/79e7747)
+adds the two old-arm wall windows: pack start or batch residency through
+the same final label readback. It does not change the kernel. The hardware
+host binary is `spine-cc-warm-host-v1/host_cc_repair` under the campaign
+checks directory (SHA-256
+`3f967b7ef10c0ce9bd44ac0ade280e464d7918d1e35a1242b9e690356f61ea10`).
+Its offline check on the frozen AU input passed (`CC_LAYOUT_PASS`,
+274,796,544 workspace bytes; 133.4 MiB service peak).
+
+The local service `spine-cc-warm-au-return-and-board-20261105-v2.service`
+(invocation `f4c8f198565343a9969d9fb02381c596`) waits for that exact route
+invocation, verifies the image manifest and final timing/bus-skew reports,
+and then calls the same `source_retention.spine_smoke --resident-wall`
+runner as the old arm. It requests one batch with the same input manifest
+and U55C lease, no timed warmup or retry, at 24 GiB hard / 22 GiB high /
+zero swap with the runner's 32-GiB reserve. Local return evidence goes to
+`spine-cc-warm-insert-return-v1/`; the board receipt goes to
+`spine-cc-warm-au-board-v1/results.json`. At queue time the route was still
+building. The result will diagnose the Spine repair only; it does not
+compare Spine against a retention-qualified G+R.
+
 ### Eight-Graph Preload Capacity
 
 The repair host's current `cc_host::raw_slices` loads every family into a
