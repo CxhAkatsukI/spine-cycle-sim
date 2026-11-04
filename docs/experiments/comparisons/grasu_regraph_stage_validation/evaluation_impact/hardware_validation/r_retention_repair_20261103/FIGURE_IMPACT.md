@@ -1,5 +1,34 @@
 # Figure Dependency Audit
 
+## Figure 7 Receipt Export
+
+From the simulator repository, use the live campaign's six journals to
+produce a new, immutable-by-convention evidence snapshot. Run this offline;
+it does not launch FPGA jobs or modify existing packages.
+
+```bash
+run=/data/chuxiao/checks/source-retention-repair-20261104
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
+  --sssp-matrix "$run/sssp-singlepass-matrix-v1/matrix.json" \
+  --sssp-au "$run/sssp-resident-au-v2/queue.json" \
+  --cc-matrix "$run/cc-singlepass-matrix-v1/matrix.json" \
+  --cc-r19 "$run/cc-r19-resident-wall-v1/queue.json" \
+  --respr-matrix "$run/respr-matrix-v1/results.json" \
+  --respr-screen "$run/resident-joint-board-v2/results.json" \
+  --output "$run/figure7-receipt-snapshot.json"
+```
+
+The export has eight rows each for SSSP, CC, and ResPR. FullPR is outside
+this campaign. No ratios are emitted for pending or failed rows. If a live
+journal changes during export, rerun rather than mixing snapshots. Admitted
+rows reference the original logs, verified clock
+receipts, image identities, wall-time comparison, and independent G and R
+ratios. It indexes existing correctness/stage admission; it does not rerun
+the correctness oracles or establish results for figures 8--11. CC starts
+at host pack; SSSP and ResPR start at a resident batch. ResPR rows report
+whether both arms performed propagation. Do not pool these scopes or
+interpret a correction-only result as propagation evidence.
+
 This is a replay of the [frozen November 3 handoff](../../figure7_11_handoff_20261103/README.md),
 not new measurements or an admission decision. A ratio from the two R controls
 cannot be applied as a correction factor to other graphs, algorithms, or
