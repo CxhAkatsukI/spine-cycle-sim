@@ -140,7 +140,8 @@ def measure(case, row, output, deadline, reservation, memory, hosts, reference, 
         raise ValueError("XRT library identity differs from the AU/512 pair")
     oracle = output / "gr-oracle.txt"
     commands = {
-        "spine": ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"SPINE_EXPECT_BDF={BDF}",
+        "spine": ["/usr/bin/env", "-u", "XCL_EMULATION_MODE", f"XCL_DEVICE_INDEX={DEVICE}",
+                  f"SPINE_EXPECT_BDF={BDF}",
                   *spine_args(paths["spine"], reference["spine"]["binary"]["path"], graph)],
         "gr": au.gr_command(paths["gr"], reference["gr"]["binary"]["path"], graph, oracle),
     }

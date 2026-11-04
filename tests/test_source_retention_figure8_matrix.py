@@ -80,6 +80,9 @@ def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, 
 
     def execute(command, output, arm, fd, node, bdf, *, memory_gib):
         assert bdf == matrix.BDF and memory_gib == 24
+        assert f"XCL_DEVICE_INDEX={matrix.DEVICE}" in command
+        if arm == "spine":
+            assert f"SPINE_EXPECT_BDF={matrix.BDF}" in command
         calls.append(arm)
         if arm == "gr":
             (output / "gr-oracle.txt").write_text(
