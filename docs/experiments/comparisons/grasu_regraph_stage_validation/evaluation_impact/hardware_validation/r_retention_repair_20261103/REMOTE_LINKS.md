@@ -1067,12 +1067,14 @@ It runs `--layout-only` on SO, PK, LJ, and LJ08; no FPGA is opened.
 | Seele compatible-host layout | `spine-cc-warm-compatible-layout-seele-20261105-v3` | `4943c875377f4f269ffb130c8be8bfbd` |
 | Trifoliate import | `spine-cc-compatible-layout-seele-import-20261105-v4` | `efe4d246fb1c4d8a880235bb6f4d1e48` |
 
-The importer checks the terminal service result, exact host and all four
-input manifests, raw layout logs, resource receipts, and no OOM kill. It
-promotes the result to `spine-cc-warm-compatible-layout-large-v3/` only if
-the original local journal has no measured layout rows and the local job
-is still waiting or has failed. The original journal is kept separately.
-If the local job has started processing the inputs, the importer leaves
-it in place. The board matrix replays the layout evidence and still
-requires the separate G and R gates and warm AU pair before requesting
-any remaining FPGA run.
+The Seele producer exited successfully. The transient importer did not
+connect (its SSH destination expanded to an empty string) and was stopped.
+The receipt was imported explicitly after verifying the terminal invocation,
+exact host digest, all four input manifests, raw layout logs and resource
+receipts. The local producer was stopped only while its journal had no
+layout rows, and that journal was preserved. The canonical
+`spine-cc-warm-compatible-layout-large-v3/results.json` has SHA-256
+`40264be51819af6b7c8588346ce5808b461e0afa60f135fbac56aa1a19c905c4`.
+See the [offline layout evidence](SPINE_ARTIFACTS.md#eight-frozen-cc-inputs).
+The board matrix still requires the separate G and R gates and warm AU pair
+before requesting the remaining FPGA runs.

@@ -561,3 +561,28 @@ screens pass. `gr-retention-cc-warm-balanced-matrix-source-bursts-20261105-v5.se
 waits for that pair and the same host's offline layouts, then requests
 the remaining datasets once per arm. Neither queue admits a speedup
 before completing its gates.
+
+### Eight Frozen CC Inputs
+
+The current v6 CC queue uses the compatible host
+`spine-cc-warm-compatible-host-v3/host_cc_repair`. The same resident
+configuration check used by that queue verified the frozen graph, batch,
+serialized inputs, host and Spine route evidence for all eight datasets.
+The retained AU board arm also passed the raw receipt replay. The four
+large balanced preloads passed on Seele, without opening a card:
+
+| Dataset | Vertices | Initial physical edges | Physical update records | Hot vertices | Hot edges |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| SO | 6,024,271 | 41,008,044 | 16 | 43,385 | 19,693,290 |
+| PK | 1,632,803 | 44,603,928 | 16 | 460,434 | 32,996,202 |
+| LJ | 4,847,571 | 85,702,474 | 16 | 746,346 | 58,305,644 |
+| LJ08 | 5,363,260 | 99,028,542 | 16 | 491,332 | 57,668,658 |
+
+Each layout reported 524,881,920 graph bytes and 274,796,544 workspace bytes
+for the corresponding per-buffer allocations. The layout service peaked
+at 18.88 GiB (22 GiB high, 24 GiB hard, zero swap), with no memory-high,
+hard-limit or OOM events. The [raw layout archive](spine-cc-warm-compatible-layout-raw.tar.gz)
+contains the four input manifests, layout logs and resource receipts, plus
+the original local waiting journal. This verifies host-side layout fit
+and input identity; it does not verify a card allocation, execution,
+performance or G+R retention on any new pair.
