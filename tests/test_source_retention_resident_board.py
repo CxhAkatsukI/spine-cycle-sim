@@ -69,9 +69,21 @@ class ResidentAdmissionTest(unittest.TestCase):
                 self.assertEqual(admission.wait_for_candidates(candidates, {}, 0, Mock())[0], candidates[0])
             replay.assert_called_once_with(candidates[0], {})
 
-    def write_candidates(self, root):
+    def test_joint_selector_reaches_third_only_after_rejecting_earlier_candidates(self):
+        with TemporaryDirectory() as directory:
+            candidates = self.write_candidates(Path(directory), count=3)
+            candidates[0].r_path.write_text(json.dumps({"status": "FAILED_RETAINED"}))
+            record = Mock()
+            with (patch.object(admission, "check_memory"),
+                  patch.object(admission, "replay_gate", side_effect=[
+                      admission.NotAdmitted("mismatched clocks"), (Path("/selected"), {})
+                  ]) as replay):
+                self.assertEqual(admission.wait_for_candidates(candidates, {}, 0, record)[0], candidates[2])
+            self.assertEqual([call.args[0] for call in replay.call_args_list], candidates[1:])
+
+    def write_candidates(self, root, *, count=2):
         candidates = []
-        for index in (0, 1):
+        for index in range(count):
             r, g = root / f"r{index}.json", root / f"g{index}.json"
             for path, status in ((r, admission.R_PASS), (g, admission.G_PASS)):
                 path.write_text(json.dumps({"status": status}))

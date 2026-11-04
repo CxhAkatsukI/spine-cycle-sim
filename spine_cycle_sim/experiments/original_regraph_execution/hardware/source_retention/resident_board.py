@@ -101,8 +101,8 @@ def run(args):
              "status": "PREDECLARED", "attempts": [], "rows": {}} for dataset in CASES
         ]
         declarations = [(args.route, args.r_report, args.g_report, args.gr_host)]
-        if args.alternate:
-            declarations.append(tuple(path.resolve() for path in args.alternate))
+        declarations.extend(tuple(path.resolve() for path in alternate)
+                            for alternate in args.alternate)
         candidates = [Candidate(route, r, g, identity(host)) for route, r, g, host in declarations]
         if any(c.host_pin["sha256"] != native_host_sha256(c.route) for c in candidates):
             raise ValueError("the declared G+R host does not match its route")
@@ -163,7 +163,8 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--wait-seconds", type=int, default=0)
     parser.add_argument("--board-wait-seconds", type=int, default=21600)
-    parser.add_argument("--alternate", type=Path, nargs=4, metavar=("ROUTE", "R_REPORT", "G_REPORT", "GR_HOST"))
+    parser.add_argument("--alternate", type=Path, nargs=4, action="append", default=[],
+                        metavar=("ROUTE", "R_REPORT", "G_REPORT", "GR_HOST"))
     args = parser.parse_args()
     for name, value in vars(args).items():
         if isinstance(value, Path):

@@ -405,3 +405,65 @@ checks the exact R and G producer invocations and replays all four receipts
 against the same returned image before taking the board locks. Its request
 is one resident pair, not a whole-matrix run. A failed admission does not
 launch that pair.
+
+## ResPR Source-Burst Timing Failure
+
+The source-burst V3 retry finished routing with zero post-route DFX DRC
+errors, but the final locked report does not meet setup timing. The raw
+report is at `builds/respr-tail-source-bursts-v3/link/link/vivado/vpl/prj/prj.runs/impl_1/hw_bb_locked_timing_summary_routed.rpt`
+on seele. Its SHA-256 is
+`cb441e06920fb00e390f4a60ba78bb6abc037148578901fa976b426994e43663`.
+
+| Clock | Setup WNS | Setup TNS | Failing endpoints |
+| --- | ---: | ---: | ---: |
+| Kernel data, 150 MHz | -0.169 ns | -18.960 ns | 485 |
+| HBM AXI, 450 MHz | -0.007 ns | -0.010 ns | 2 |
+
+There are no hold or pulse-width violations. The worst data path is
+inside the ResPR Apply `merged_prop` AXI-stream input register slice,
+from `FSM_sequential_state_reg[0]` to a `data_p1_reg` bit. The control net
+has fanout 516; routing accounts for 6.457 ns of the 6.683 ns data delay.
+The two HBM failures are separate inter-SLR shell paths. A generated
+bitstream alone cannot clear the registered same-clock stage gates.
+
+## ResPR Apply Input Retime
+
+Integration commit `27385ff` tried reverse-only registration. Vitis
+2024.1 reported HLS 207-5563, emitted the same `regslice_both` on
+`merged_prop`, and left the critical-path structure in place. Do not
+route this variant. Its build is retained on trifoliate at
+`/data/chuxiao/builds/regraph-respr-apply-reverse-20261104`.
+
+Integration commit `d89b155` disables registration only on the ResPR
+Apply input. Vitis emitted a direct connection to `apply_bursts`, with
+no input register slice, while the output slice remains registered.
+The main `apply_bursts` loop still has II=1. The exported XO ports,
+arguments, control protocol, and algorithm-mode definitions match the
+old XO. The registered merger and depth-16 link FIFO are unchanged.
+The native residual Apply policy test passed with the opt-in macro
+enabled; this does not cover RTL backpressure or routed timing.
+
+The build is at `/data/chuxiao/builds/regraph-respr-apply-unregistered-20261104`
+on trifoliate (`gr-retention-respr-apply-unregistered-20261104-v1.service`,
+invocation `eeae5d6a9f3844018f7b7c7ef9ac8f95`, 1.4 GiB peak).
+The Apply XO SHA-256 is
+`41ad927ccffa959afc22e7de4d6f85384c3afac1393aed779c31b8206a82a82d`.
+The sealed link replaces only that XO from the V3 source-burst build;
+the other 11 XOs, link config, platform, IP cache and requested clocks
+are unchanged. See `seele-inputs-v1/respr-tail-bursts-apply-off/capsule.json`
+(SHA-256 `4c700e4a1eea2cc2ae524f67e7667ee35d9a49eab43a3d97040d4760eec38c96`).
+
+| Step | Receipt or attempt | Unit invocation |
+| --- | --- | --- |
+| Remote link | `builds/respr-tail-bursts-apply-off-v1` | `gr-retention-seele-respr-apply-off-20261104-v1.service` / `7ceab78a8185464a9e8fb5d337982476` |
+| Return | `seele-return-v1-respr-tail-bursts-apply-off/transfer.json` | `gr-retention-return-respr-apply-off-20261104-v1.service` / `16aaa944d6c64436938b014a9d7c530b` |
+| R stage | `retime-apply-off-r-v1/results.json` | `gr-retention-r-apply-off-20261104-v1.service` / `93aabeabc515482c8aed55af5c1c3024` |
+| G stage | `retime-apply-off-g-v1/results.json` | `gr-retention-g-apply-off-20261104-v1.service` / `03919598d2774240a29e66b5986b2e2c` |
+| R19 and Flickr resident screen | `resident-joint-board-v8/results.json` | `gr-retention-resident-joint-v8-20261104.service` / `7f4783a7a21b496a98fb7bcded9e16ee` |
+| Remaining seven large workloads | `respr-matrix-v6/results.json` | `gr-retention-respr-matrix-v6-20261104.service` / `99ef84fee7e34a7485e5aaa52fccae2f` |
+
+The remote link uses a 40 GiB hard cap, no swap, and the existing 128 GiB
+reserve policy. The resident v8 and matrix v6 queues replace v7 and v5
+before either attempted a board run. The resident runner accepts only
+one candidate, after replaying its independently measured same-clock G
+and R receipts. These are queued tests, not new hardware timings.

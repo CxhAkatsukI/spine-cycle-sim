@@ -6,8 +6,11 @@ This study continues the failed [source-retention control](../source_performance
 It does not promote that control, change the paper, or overwrite frozen figure
 packages. Simulator near-parity is not FPGA performance admission.
 
-The [seele replacement links](REMOTE_LINKS.md) record the four active
-builds and their independent return checks; they are not new timings.
+The [seele replacement links](REMOTE_LINKS.md) record the routed attempts
+and their independent return checks; they are not new timings. The
+[ResPR Apply retime](REMOTE_LINKS.md#respr-apply-input-retime) removes the
+observed critical-path structure in generated RTL. Integrated timing and
+stage-retention measurements are still pending.
 
 The [weighted SSSP FPGA stage screen](SSSP_STAGE_ADMISSION.md) passed
 independent G and both Amazon R controls on the same returned image.

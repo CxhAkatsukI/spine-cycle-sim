@@ -53,8 +53,8 @@ def validate_gates(r_summary, g_report, r_pins, host_pin, *, host_sha256=HOST_SH
 
 def wait_for_candidates(candidates, frozen_r, wait_seconds, record):
     pending = list(candidates)
-    if not 1 <= len(pending) <= 2 or len(set(c.route for c in pending)) != len(pending):
-        raise ValueError("declare one or two distinct candidate routes")
+    if not 1 <= len(pending) <= 3 or len(set(c.route for c in pending)) != len(pending):
+        raise ValueError("declare one to three distinct candidate routes")
     deadline = time.monotonic() + wait_seconds
     while pending:
         check_memory()
