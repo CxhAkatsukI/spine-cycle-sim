@@ -33,14 +33,20 @@ def admitted_odd(args, gate):
     return odd, pins
 
 
+def child_service(prefix, dataset, budget, module):
+    return [
+        "systemd-run", "--user", "--wait", "--collect",
+        f"--unit={prefix}-{dataset.lower()}", f"--working-directory={Path.cwd()}",
+        f"--property=MemoryMax={budget}G", f"--property=MemoryHigh={budget - 2}G",
+        "--property=MemorySwapMax=0", "--property=OOMPolicy=kill", "--property=KillMode=control-group",
+        "--property=RuntimeMaxSec=8h", sys.executable, "-m", module,
+    ]
+
+
 def child_command(args, dataset, budget, output, *, packet=None):
     comparison = ("--cc-wall-packet", packet) if packet is not None else ("--comparator", args.comparator)
     return [
-        "systemd-run", "--user", "--wait", "--collect",
-        f"--unit={args.child_prefix}-{dataset.lower()}", f"--working-directory={Path.cwd()}",
-        f"--property=MemoryMax={budget}G", f"--property=MemoryHigh={budget - 2}G",
-        "--property=MemorySwapMax=0", "--property=OOMPolicy=kill", "--property=KillMode=control-group",
-        "--property=RuntimeMaxSec=8h", sys.executable, "-m", resident.__spec__.name,
+        *child_service(args.child_prefix, dataset, budget, resident.__spec__.name),
         "--algorithm", args.algorithm, "--dataset", dataset, "--output", str(output),
         "--wait-seconds", str(args.wait_seconds), comparison[0], str(comparison[1]),
         *(part for key in INPUTS for part in ("--" + key.replace("_", "-"), str(getattr(args, key)))),

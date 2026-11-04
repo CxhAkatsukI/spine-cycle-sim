@@ -19,18 +19,24 @@ from .runtime import identity, lease, save
 DEVICE, BDF = 1, "0000:c1:00.1"
 DATASETS = ("AU", "SU", "WK", "SO", "PK", "LJ", "LJ08", "R19")
 ALGORITHMS = {"cc": "connected_components", "weighted_sssp": "weighted_sssp"}
+FROZEN_ALGORITHMS = {
+    "cc": ("cc", ALGORITHMS["cc"]),
+    "weighted_sssp": ("sssp", ALGORITHMS["weighted_sssp"]),
+    "respr": ("respr", "residual_pagerank"),
+}
 COMPARATOR_SHA256 = "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f"
 BOUNDARY = "resident_update_to_final_readback_wall_including_host_relaunch"
 
 
 def frozen_case(previous, algorithm, dataset):
-    key = ("cc" if algorithm == "cc" else "sssp") + "-" + dataset.lower()
+    prefix, logical = FROZEN_ALGORITHMS[algorithm]
+    key = prefix + "-" + dataset.lower()
     config_path, manifest_path = previous / f"{key}.json", previous / key / "manifest.json"
     pins = [identity(config_path), identity(manifest_path)]
     config, manifest = (json.loads(Path(pin["path"]).read_text()) for pin in pins)
     fields = ("dataset", "logical", "source", "graph", "spine_host", "spine_binary", "memory_gib")
     if (manifest["boundary"] != BOUNDARY or any(config[k] != manifest["config"][k] for k in fields)
-            or (config["logical"], config["dataset"]) != (ALGORITHMS[algorithm], dataset)):
+            or (config["logical"], config["dataset"]) != (logical, dataset)):
         raise ValueError("frozen case and prior execution disagree")
     case = {k: config[k] for k in fields}
     for name in ("graph", "spine_host", "spine_binary"):

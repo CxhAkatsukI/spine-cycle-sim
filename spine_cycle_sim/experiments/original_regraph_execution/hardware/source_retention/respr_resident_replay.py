@@ -21,10 +21,11 @@ def stage_inputs(stage, report):
     unchanged([*stage["inputs"], stage["image"]])
 
 
-def replay_case(record, report, stage):
+def replay_case(record, report, stage, *, case=None):
     pins = report["pins"]
     graph = pins[record["case"]["dataset"].lower()]
-    case = resident_board.frozen_case(record["case"]["dataset"], Path(graph["path"]), graph)
+    if case is None:
+        case = resident_board.frozen_case(record["case"]["dataset"], Path(graph["path"]), graph)
     if record["case"] != case or set(record["rows"]) != {"spine", "gr"}:
         raise ValueError("one completed pair on the frozen case is required")
     rows = record["rows"]
@@ -73,7 +74,7 @@ def replay_case(record, report, stage):
     propagated = pair["positive_propagation_on_both"]
     if case["requires_propagation"] and not propagated:
         scope = "RETAINED_WITHOUT_REQUIRED_PROPAGATION"
-    elif not case["requires_propagation"]:
+    elif not propagated:
         scope = "CORRECTION_SCREEN_ONLY_NOT_SHARED_PROPAGATION_EVIDENCE"
     else:
         scope = "PROPAGATING_RESIDENT_SCREEN_PER_ARM_ORACLES"

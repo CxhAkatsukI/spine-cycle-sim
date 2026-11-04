@@ -12,14 +12,17 @@ from ..source_retention.runtime import lease
 
 
 @contextmanager
-def admit(device, bdf, group, seconds, record, *, legacy_lock=None):
+def admit(device, bdf, group, seconds, record, *, legacy_lock=None, memory_gib=8):
     if not 1 <= seconds <= 21600:
         raise ValueError("paired board admission must be bounded to six hours")
-    limits = containment.verify(group, memory_gib=8)["limits"]
-    if int(limits["memory.max"]) != 8 * 2**30:
-        raise ValueError("queued R pair requires an exact 8-GiB reservation")
+    if memory_gib not in (8, 16, 24, 32):
+        raise ValueError("unknown paired board memory budget")
+    limits = containment.verify(group, memory_gib=memory_gib)["limits"]
+    if (int(limits["memory.max"]) != memory_gib * 2**30
+            or memory_gib > 8 and int(limits["memory.high"]) > (memory_gib - 2) * 2**30):
+        raise ValueError("paired board cgroup differs from the reserved memory budget")
     memory = concurrent.Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
-    policy = {"tree_memory_gib": 8, "reserve_gib": 32, "allow_bounded_builds": True}
+    policy = {"tree_memory_gib": memory_gib, "reserve_gib": 32, "allow_bounded_builds": True}
     deadline = time.monotonic() + seconds
     while True:
         with ExitStack() as resources:

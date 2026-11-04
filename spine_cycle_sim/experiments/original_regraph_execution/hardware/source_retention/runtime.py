@@ -23,17 +23,17 @@ def save(path, value):
     temporary.replace(path)
 
 
-def check_memory():
+def check_memory(memory_gib=8, *, require_live_reserve=True):
     available = next(int(line.split()[1]) * 1024 for line in Path("/proc/meminfo").read_text().splitlines()
                      if line.startswith("MemAvailable:"))
-    if available < 32 * 2**30:
+    if require_live_reserve and available < 32 * 2**30:
         raise MemoryError("32-GiB live reserve required")
     group = next(line.split(":", 2)[2] for line in Path("/proc/self/cgroup").read_text().splitlines()
                  if line.startswith("0::"))
     root = Path("/sys/fs/cgroup") / group.lstrip("/")
     maximum = (root / "memory.max").read_text().strip()
-    if maximum == "max" or not 0 < int(maximum) <= 8 * 2**30:
-        raise MemoryError("run the campaign in a cgroup with MemoryMax at most 8 GiB")
+    if maximum == "max" or not 0 < int(maximum) <= memory_gib * 2**30:
+        raise MemoryError(f"run the campaign in a cgroup with MemoryMax at most {memory_gib} GiB")
     if (root / "memory.swap.max").read_text().strip() != "0":
         raise MemoryError("zero cgroup swap required")
     return root
@@ -53,8 +53,8 @@ def lease(index, bdf):
         os.close(fd)
 
 
-def execute(command, output, name, fd, node, bdf):
-    check_memory()
+def execute(command, output, name, fd, node, bdf, *, memory_gib=8, timeout=240):
+    check_memory(memory_gib)
     if subprocess.run(["fuser", str(node)], capture_output=True).returncode != 1:
         raise RuntimeError("board is not demonstrably idle")
     env = dict(os.environ, ORIGINAL_G_LEASE_FD=str(fd), ORIGINAL_G_EXPECT_BDF=bdf,
@@ -64,7 +64,7 @@ def execute(command, output, name, fd, node, bdf):
     log, error = output / f"{name}.stdout.txt", output / f"{name}.stderr.txt"
     with log.open("x") as stdout, error.open("x") as stderr:
         completed = subprocess.run(command, env=env, pass_fds=(fd,), cwd=output,
-                                   stdout=stdout, stderr=stderr, timeout=240)
+                                   stdout=stdout, stderr=stderr, timeout=timeout)
     if completed.returncode:
         raise RuntimeError(f"{name} failed ({completed.returncode}): {error}")
     return {"command": command, "stdout": identity(log), "stderr": identity(error),

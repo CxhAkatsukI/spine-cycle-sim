@@ -129,6 +129,45 @@ correction, convergence, or timing. On other graphs with sinks, G+R's CPU
 reference redistributes dangling residual during propagation and this Spine
 reference does not; sharing a correction threshold is not enough.
 
+### Remaining Seven Board Pairs
+
+The matrix continuation uses the exact October AU, SU, WK, SO, PK, LJ and
+LJ08 inputs. It does not repeat R19, Flickr, or the AU propagation slice.
+It waits for the pinned R19/Flickr invocation and replays the raw
+same-clock public A4 R controls and isolated G control against the selected
+image before starting any child. This qualifies the selected baseline for
+those controls, not for arbitrary native ResPR workloads.
+
+Each case has one run per arm, zero timing warmups, and no automatic retry.
+The window starts with the uploaded batch on resident state and ends at
+final readback, including host orchestration but excluding initial graph
+and batch upload. The graph, hardware, and comparator pins are checked;
+each arm must pass its own correctness oracle. Propagation rounds and
+elapsed milliseconds are kept for both arms. Correction-only cases remain
+separate from cases with propagation on both arms.
+
+The coordinator runs with a 1 GiB cap and does not open the board. Children
+run serially with their frozen 16, 24, or 32 GiB cap, a 2 GiB high-watermark
+margin, zero swap, shared FPGA locks, and a 32 GiB machine reserve. Each
+arm has a 30-minute runtime limit after admission. Failed children and
+their logs remain in the journal; this is not a figure-data release.
+
+From the simulator checkout, queue while the parent invocation is live:
+
+```bash
+checks=/data/chuxiao/checks/source-retention-repair-20261104
+systemd-run --user --unit=gr-retention-respr-matrix-20261104 \
+  --working-directory="$PWD" -p MemoryMax=1G -p MemoryHigh=768M \
+  -p MemorySwapMax=0 -p OOMPolicy=kill -p RuntimeMaxSec=78h \
+  python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.respr_matrix \
+    --unit gr-retention-resident-joint-v2-20261104.service \
+    --invocation dec1761166074fbd9ad6c512b128f32a \
+    --parent "$checks/resident-joint-board-v2/results.json" \
+    --previous /data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix \
+    --child-prefix gr-retention-respr-matrix-child-20261104 \
+    --output "$checks/respr-matrix-v1"
+```
+
 ### AU: Correction-Only Versus Propagation
 
 All eight October FPGA rows reported zero propagation rounds on both arms.

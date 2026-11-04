@@ -50,7 +50,7 @@ def commands(args, image, case, output):
     }
 
 
-def measure(args, case, image, expected, gate, pins, evidence, write, fd, node):
+def measure(args, case, image, expected, gate, pins, evidence, write, fd, node, *, memory_gib=8, timeout=240):
     output = args.output / case["dataset"]
     output.mkdir()
     argv = commands(args, image, case, output)
@@ -59,7 +59,7 @@ def measure(args, case, image, expected, gate, pins, evidence, write, fd, node):
         unchanged(pins)
         evidence["attempts"].append({"arm": arm, "argv": list(map(str, argv[arm]))})
         write()
-        rows[arm] = execute(argv[arm], output, arm, fd, node, BDF)
+        rows[arm] = execute(argv[arm], output, arm, fd, node, BDF, memory_gib=memory_gib, timeout=timeout)
         rows[arm]["clock_evidence"] = clocks.capture(BDF, expected[arm], output, arm)
         rows[arm]["clock"] = clocks.replay(rows[arm]["clock_evidence"])
         write()
