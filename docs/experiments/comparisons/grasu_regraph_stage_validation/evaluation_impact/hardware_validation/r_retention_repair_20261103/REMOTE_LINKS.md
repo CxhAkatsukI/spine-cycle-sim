@@ -908,6 +908,20 @@ A4 result for each fixture is reused from its original raw receipt.
 | Sparse Amazon nominal-clock R | `gr-retention-cc-source-bursts-amazon-20261105-v1` | `6adf4499f50e441492928574605e7c02` | `cc-banked-source-bursts-amazon-pair-v1/queue.json` |
 | High-activity Amazon nominal-clock R | `gr-retention-cc-source-bursts-amazon-odd-20261105-v1` | `fb5ff5d27944475f8e9724330c52a372` | `cc-banked-source-bursts-amazon-odd-pair-v1/queue.json` |
 
+The independent AU/131K G screen and full AU resident queue use
+runner `88260882`. G reuses the frozen public-source G receipt and
+requests one candidate run on the returned CC image. The resident
+queue requires G and all three R receipts for that image, plus the
+warm Spine AU correctness receipt from
+`spine-cc-warm-au-return-and-board-20261105-v3.service`
+(invocation `9e71adb97e2e4d18992e5472acde32fe`). It requests one
+resident comparison only if all five prerequisites pass.
+
+| Step | Unit (without `.service`) | Invocation | Journal |
+| --- | --- | --- | --- |
+| Independent G, AU/131K | `gr-retention-g-cc-source-bursts-20261105-v1` | `865046f3145e4ac5906e1876b33e84fc` | `g-cc-board-source-bursts-v1/results.json` |
+| Resident CC, full AU | `gr-retention-cc-source-bursts-au-resident-20261105-v1` | `ca01b11afdf2494294674924382327fc` | `cc-warm-au-source-bursts-resident-v1/queue.json` |
+
 ### Archived Spine Images on Feiyang
 
 The `tiny-active.final172` and `tiny-active.scaled175` U55C images
