@@ -142,6 +142,64 @@ SHA-256 values are
 and `68d08f1846780361504b0fb5de17bd50e89f0743810edd2fbf5b6fe3d0e5aac9`,
 in table order.
 
+### Where the 445-MHz Difference Appears
+
+The frozen CSR has no empty source rows, so the candidate's no-update
+reordering preserves the A4 vertex IDs. Replaying the candidate PMA
+allocation reproduces all 3,787,088 slots in the native host receipt. The
+destination ranges below therefore contain the same logical edges in both
+arms. Times are relative to each arm's first device event.
+
+| Destination range (shard) | Logical edges | Candidate PMA slots | Candidate mux window (ms) | Last A4 Little end (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| 0 | 590,974 | 2,279,184 | 0.173 to 1.967 | 1.124 |
+| 1 | 272,970 | 1,304,480 | 1.968 to 2.224 | 1.778 |
+| 2 | 39,830 | 203,424 | 2.224 to 2.481 | 2.119 |
+
+Shard 0 contains 65.4% of the edges and 60.2% of the slots, and occupies
+71.4% of the entire candidate device span in its mux window alone. The
+three mux windows have only 1.340 us of gaps between them. A4 runs four
+Little tasks per destination range; the candidate starts one adapter and
+gather per range, leaves the fourth frontend unused, and drains the
+ranges in order. The first adapter finishes at 1.774 ms, about 193 us
+before the first mux finishes. The second and third adapters finish
+before their mux windows begin.
+
+This identifies the first shard as the largest exposed window and rules
+out gaps between mux submissions as the main cause. The mux and Little
+endpoints are not the same operation. A CU window can include stalls
+from other CUs; the numbers do not isolate PMA/HBM waits, gather work,
+or shared publication backpressure. In particular, dividing 3,787,088
+PMA slots by A4's 904,184 physical edge records is not a traffic ratio:
+the layouts have different record sizes and side traffic.
+
+If the nominal source-burst retry still misses, a follow-up should
+instrument progress on both sides of the first gather: adapter output
+accepted versus stalled, gather output accepted versus stalled, and
+mux input empty versus downstream blocked. An idle fourth frontend does
+not by itself justify splitting a destination range. Such a design
+would also need to merge partial updates before apply and preserve the
+PMA update mapping. This diagnosis does not admit a new image or
+estimate a speedup from repartitioning.
+
+To reproduce the layout from the existing fixture, without running
+either arm again, run from the simulator root:
+
+```bash
+python3 -c '
+from pathlib import Path
+import sys
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.shard_layout import replay_layout
+print(replay_layout(Path(sys.argv[1]), dict(
+    vertices=156289, shards=3, edges=903774, pma_slots=3787088)))
+' /data/chuxiao/checks/source-retention-repair-20261104/a4-active-au903k-v1/fixture/inputs
+```
+
+The raw candidate `candidate.stdout.txt` and A4 `reference/result.json`
+in the diagnostic archive contain the event times. The A4 descriptor
+in the same pinned fixture assigns four Little events to each range
+in ordinal order.
+
 ## Evidence
 
 [Raw evidence archive](sssp-stage-admission.tar.gz) preserves both R queue
