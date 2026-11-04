@@ -24,6 +24,29 @@ def load(path):
     return json.loads(path.read_text())
 
 
+def topology_job(values, jobs):
+    unit, invocation, receipt, inputs = values
+    if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit)
+            or not re.fullmatch(r"[0-9a-f]{32}", invocation)
+            or unit in {job["unit"] for job in jobs.values()}):
+        raise ValueError("the CC topology screen needs a distinct pinned producer")
+    state = service_state(unit)
+    if (state["LoadState"], state["InvocationID"], state["SubState"]) != ("loaded", invocation, "running"):
+        raise ValueError("enqueue while the pinned CC topology screen is running")
+    return dict(unit=unit, invocation=invocation, report_path=str(Path(receipt).absolute()),
+                inputs=str(Path(inputs).resolve(strict=True)), observed=True, state=state)
+
+
+def admit_topology(args, job, gate):
+    result = active_min_admission.replay_r(
+        Path(job["report_path"]), args.algorithm, Path(job["inputs"]),
+        gate["host"], gate["image"], geometry=active_min_admission.AU_SLICE_GEOMETRY)
+    if (result["report"], result["candidate_clock"]["driver_reported_mhz"]) != (
+            job["receipt"], gate["resident_mhz"]):
+        raise ValueError("the CC topology screen did not use the admitted image, clock and producer receipt")
+    return result
+
+
 def layout_packet(args, ds, small, campaign, template, row):
     if ds in SMALL:
         inputs, stdout = small[ds]
@@ -80,15 +103,19 @@ def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     journal = args.output / "matrix.json"
     include_r19 = getattr(args, "include_r19", False)
+    topology = getattr(args, "au_slice_r", None)
     datasets = (*SMALL, *LARGE, "R19") if include_r19 else (*SMALL, *LARGE)
     rows = {ds: {"status": "NOT_REQUESTED"} for ds in datasets}
-    report = dict(status="WAITING_FOR_G_AND_BOTH_R_GATES", cases=rows,
+    report = dict(status=("WAITING_FOR_G_AND_CROSS_TOPOLOGY_R_GATES" if topology
+                          else "WAITING_FOR_G_AND_BOTH_R_GATES"), cases=rows,
                   repetitions_per_arm=1, warmups=0)
     if not include_r19:
         report["r19_not_repeated"] = str(args.r19_output)
     save(journal, report)
     try:
         jobs = stage_jobs(args)
+        if topology:
+            jobs["au_slice"] = topology_job(topology, jobs)
         report["stages"] = jobs
         pins = [*runner_pins(), *(identity(module.__file__) for module in
                  (resident, resident_matrix, cc_resident_wall, spine_cc_layout, follow)),
@@ -105,13 +132,13 @@ def run(args):
             for key, job in jobs.items():
                 if not job.get("ready"):
                     job["ready"] = follow.ready(job, service_state(job["unit"]),
-                                                follow.STAGE_PASS["r" if key == "odd" else key], "cc")
+                                                follow.STAGE_PASS.get(key, follow.STAGE_PASS["r"]), "cc")
             save(journal, report)
             if all(job["ready"] for job in jobs.values()):
                 break
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise TimeoutError("G and both R gates did not pass before deadline")
+                raise TimeoutError("G and required R gates did not pass before deadline")
             time.sleep(min(30, remaining))
         pins.extend(job["receipt"] for job in jobs.values())
         unchanged(pins)
@@ -119,6 +146,8 @@ def run(args):
                                           args.r_inputs, args.g_report, args.g_reference)
         odd, odd_pins = resident_matrix.admitted_odd(args, gate)
         resident_matrix.check_stage_receipts(jobs, gate, odd)
+        if topology:
+            report["au_slice_r"] = admit_topology(args, jobs["au_slice"], gate)
         pins.extend([*odd_pins, gate["host"], gate["image"], gate["g"]["reference"]])
         report.update(status="RUNNING_SINGLE_PASS", baseline=gate, odd_r=odd)
         campaign = None

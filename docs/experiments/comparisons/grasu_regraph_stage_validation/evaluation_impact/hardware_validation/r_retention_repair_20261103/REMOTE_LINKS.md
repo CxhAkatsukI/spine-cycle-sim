@@ -341,12 +341,22 @@ time. The live dependencies use the following local receipts:
 | --- | --- | --- |
 | CC R, sparse Amazon frontier | `cc-active-pair-physical-v2/queue.json` | `78608da3edae4a5c8ff2c91dfe38969b` |
 | CC R, odd-vertex Amazon frontier | `cc-odd-pair-physical-v2/queue.json` | `678f290059d447269b1907fc3fd0f959` |
+| CC R, AskUbuntu reciprocal topology | `cc-au903k-pair-physical-v1/queue.json` | `5077405be85f4d67be1760574eeeff1e` |
 | CC G, AU 131K updates | `g-cc-board-physical-v1/results.json` | `6de5ad246c514a7f8ad50c62cc315b78` |
-| CC resident matrix | `cc-singlepass-matrix-physical-v2/matrix.json` | `1d7f3bca27d94897b13cd34b76568940` |
+| CC resident matrix | `cc-singlepass-matrix-physical-v3/matrix.json` | `ddb0eb18ef224353a725b845540e095e` |
 | ResPR tail physical R | `tail-follow-physical-v3/results.json` | `50d1ecd2c3f74cd686d21c5640eeaf01` |
 | ResPR tail physical G | `g-tail-physical-v3/results.json` | `70ddaa3c60e042bf80cd831aa9f7274a` |
 | ResPR R19 and Flickr resident screen | `resident-joint-board-v7/results.json` | `6fb1f02cea23421f9ffb902041a925b8` |
 | ResPR remaining seven large workloads | `respr-matrix-v5/results.json` | `6d2b2669487e43ec970d080e8e8cd392` |
+
+The CC topology control uses the fixed-ID AskUbuntu slice from the SSSP
+study (156,289 vertices, 903,774 edges, 12 A4 tasks) with the fixture's CC
+state. It runs after the two Amazon controls, once per arm, using the same
+reference and candidate bitstreams as those controls. The v3 matrix waits
+for this receipt as well as the existing G and two R receipts; it checks
+the AU raw events and outputs against the exact image and driver clocks
+before requesting convergence tests. The v2 matrix was retired with every
+dataset still `NOT_REQUESTED`; none of the G or R producers were restarted.
 
 The ResPR resident screen accepts only a candidate with both same-image
 stage receipts, and may use either the tail physical retry or the

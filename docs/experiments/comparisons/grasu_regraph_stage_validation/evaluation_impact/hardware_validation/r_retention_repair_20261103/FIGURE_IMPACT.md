@@ -11,7 +11,7 @@ run=/data/chuxiao/checks/source-retention-repair-20261104
 snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
   --sssp-matrix "$run/sssp-singlepass-matrix-resume-v5/matrix.json" \
-  --cc-matrix "$run/cc-singlepass-matrix-physical-v2/matrix.json" \
+  --cc-matrix "$run/cc-singlepass-matrix-physical-v3/matrix.json" \
   --respr-matrix "$run/respr-matrix-v5/results.json" \
   --respr-screen "$run/resident-joint-board-v7/results.json" \
   --output "$snapshot.json" \
@@ -44,7 +44,9 @@ whether both arms performed propagation. Do not pool these scopes or
 interpret a correction-only result as propagation evidence. The two Amazon
 R receipts referenced by the SSSP matrix do not supersede the later
 [AskUbuntu topology control](SSSP_STAGE_ADMISSION.md#askubuntu-topology-control),
-which missed the 15% gate on the same candidate image.
+which missed the 15% gate on the same candidate image. The current CC
+matrix additionally requires a passing AskUbuntu topology control and
+exports its receipt and ratio alongside the two Amazon R controls.
 
 ## Figure 7: R-Only Bound On Two New SSSP Pairs
 

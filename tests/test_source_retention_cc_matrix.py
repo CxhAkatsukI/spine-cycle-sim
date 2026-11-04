@@ -41,6 +41,35 @@ class CcMatrixTest(unittest.TestCase):
                 cc_matrix.run(self.args)
             child.assert_not_called()
 
+    def test_failed_topology_gate_prevents_board_launch(self):
+        self.args.au_slice_r = ["cc-topology.service", "a" * 32, "pair.json", "inputs"]
+        topology = dict(unit="cc-topology.service", ready=False)
+        with patch.object(cc_matrix, "stage_jobs", return_value=self.jobs), \
+                patch.object(cc_matrix, "topology_job", return_value=topology), \
+                patch.object(cc_matrix, "service_state"), \
+                patch.object(cc_matrix.follow, "ready", side_effect=ValueError("AU R over 15%")), \
+                patch.object(cc_matrix, "layout_packet", side_effect=self.prepare), \
+                patch.object(cc_matrix.resident_matrix, "run_child") as child:
+            with self.assertRaisesRegex(ValueError, "AU R over 15%"):
+                cc_matrix.run(self.args)
+            child.assert_not_called()
+        report = json.loads((self.args.output / "matrix.json").read_text())
+        self.assertEqual(report["status"], "FAILED_RETAINED")
+        self.assertTrue(all(row["status"] == "NOT_REQUESTED" for row in report["cases"].values()))
+
+    def test_topology_replay_pins_geometry_image_clock_and_receipt(self):
+        pin = self.gate["host"]
+        gate = dict(self.gate, resident_mhz=[150, 500, 450, 0])
+        job = dict(report_path=pin["path"], inputs=pin["path"], receipt=pin)
+        good = dict(report=pin, candidate_clock={"driver_reported_mhz": gate["resident_mhz"]})
+        with patch.object(cc_matrix.active_min_admission, "replay_r", return_value=good) as replay:
+            self.assertEqual(cc_matrix.admit_topology(self.args, job, gate), good)
+            replay.assert_called_once_with(Path(pin["path"]), "cc", Path(pin["path"]),
+                                           pin, pin, geometry=(156289, 903774, 12))
+            good["candidate_clock"] = {"driver_reported_mhz": [150, 500, 423, 0]}
+            with self.assertRaisesRegex(ValueError, "image, clock and producer receipt"):
+                cc_matrix.admit_topology(self.args, job, gate)
+
     def test_keeps_partial_layout_failures_and_never_repeats_r19(self):
         pin = self.gate["host"]
         with patch.object(cc_matrix, "stage_jobs", return_value=self.jobs), \

@@ -59,6 +59,22 @@ def summarize_gates(algorithm, gates, extra):
                          "amazon_odd": ratio(extra["comparison"], "candidate_over_reference")}}
 
 
+def record_cc_topology(out, matrix, gates):
+    job = matrix.get("stages", {}).get("au_slice")
+    if job is None:
+        return
+    stage = matrix["au_slice_r"]
+    pin = stage["report"]
+    raw = load(pin)
+    clock = stage["candidate_clock"]
+    if (job["receipt"] != pin or not job["ready"] or raw["algorithm"] != "cc"
+            or raw["comparison"] != stage["comparison"] or clock["binary"] != gates["image"]
+            or clock["driver_reported_mhz"] != gates["resident_mhz"]):
+        raise ValueError("CC topology receipt does not match the resident admission")
+    out["stage_ratios"]["r_ratios"]["au_slice"] = ratio(stage["comparison"], "candidate_over_reference")
+    out["cc_topology_stage"] = pin
+
+
 def pinned_spine_image(algorithm, child):
     if algorithm == "respr":
         return child["pins"]["spine_image"]
@@ -205,7 +221,10 @@ def export(paths):
                         if algorithm == "respr" and dataset != "R19" and child["status"] != MEASURED:
                             raise ValueError("resident ResPR child did not pass")
                         image = matrix["image"] if algorithm == "respr" else gates["image"]
-                        out.update(measured(algorithm, dataset, child, row, gates, matrix.get("odd_r"), image))
+                        row_data = measured(algorithm, dataset, child, row, gates, matrix.get("odd_r"), image)
+                        if algorithm == "cc":
+                            record_cc_topology(row_data, matrix, gates)
+                        out.update(row_data)
                         out["status"] = MEASURED
                 elif row.get("error"):
                     out["error"] = row["error"]
@@ -247,7 +266,8 @@ def main():
     save(args.output, result)
     if args.csv is not None:
         write_csv(args.csv, result["rows"])
-    print(f"{sum(row['status'] == MEASURED for row in result['rows'])}/{len(result['rows'])} admitted pairs")
+    print(f"{sum(row['status'] == MEASURED for row in result['rows'])}/{len(result['rows'])} "
+          "receipt-verified pairs; not final evaluation")
 
 
 if __name__ == "__main__":
