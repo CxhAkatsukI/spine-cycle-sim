@@ -160,6 +160,29 @@ zero swap, 9.1 GiB peak). Its output is
 `b23fdc79a99071aec67ed389dbe8c7741e9c71faac47a8fa1c4f79c830fab37a`.
 This does not check update execution, device allocation or timing.
 
+### Offline G Layout Check
+
+The [G layout probe](../../../../../../../cpp/tests/publication_sources/source_retention/gr_update_setup_layout.cpp)
+uses the parser, sharded PMA builder, replicated metadata plan and buffer
+packer from the pinned [G host at `81cbe8f`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/81cbe8f).
+Compile it with the native SSSP host's flags (`--pipeline-mode sharded-k4
+--prefetch-compact` in `scripts/build_weighted_pma_native_host.sh`), adding
+the host checkout's `tools/` include path and substituting the probe for the
+host source. Run the resulting probe once per native graph. It does not
+program a device or execute updates.
+
+All six continuation inputs matched the frozen manifest hashes, vertex and
+old-edge counts, and logical update counts. Each logical insertion mapped
+to one physical insertion. SO used the largest planned allocation (5.81
+GiB of graph buffers, with the busiest channel at 312 of 512 MiB); PK had
+the most edges (44,603,928, across 25 shards). The sequential CPU-only run
+peaked at 11.8 GiB (20 GiB cap, 18 GiB high, zero swap). The raw `layout.log`
+is in `fig8-g-layout.EKkfFdtw/` under the same check root, SHA-256
+`25d893a7edc5926f0b5245f9357550f800ba4e48ee7a28757d53cc556b66e416`,
+service invocation `54bd5ce654ea49b2a4b7e69d8ba5f828`. These checks do not
+bound the full board host's peak after XRT buffer allocation and readback;
+keep the live board memory guard and require the final PMA readback check.
+
 ## Figure 9: One-Shard Directory Byte Floor
 
 For the same nine inputs, keep the frozen Spine read/write ledger fixed and
