@@ -25,6 +25,9 @@ def run(root, output, xilinx, platform, compatibility, *, timing_profile=None, m
         from . import replacement_capsule
 
         packet, parent = replacement_capsule.verify(root, platform)
+        if timing_profile is not None:
+            raise ValueError("replacement timing profile must come from the sealed capsule")
+        timing_profile = packet.get("timing_profile")
     else:
         packet, parent = capsule.verify(root)
     policy = memory_profiles.select(packet["policy"], memory_profile)

@@ -19,8 +19,8 @@ def verify(returned, local_capsule, platform, receipt_sha256):
     if sha256_file(returned / "capsule/capsule.json") != sha256_file(local_capsule / "capsule.json"):
         raise ValueError("returned relocation differs from the locally exported capsule")
     manifest, pins = admission.verify_link(returned, receipt, packet, parent)
-    if manifest.get("timing_profile") is not None:
-        raise ValueError("unexpected timing strategy for the replacement link")
+    if manifest.get("timing_profile") != packet.get("timing_profile"):
+        raise ValueError("returned timing strategy differs from the pinned replacement capsule")
     pins.append(identity(local_capsule / "capsule.json"))
     unchanged(pins)
     return receipt, parent, pins

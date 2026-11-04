@@ -10,7 +10,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import (
     cached_retry, component, memory_profiles,
 )
-from . import capsule
+from . import capsule, timing
 
 SCHEMA = "k4-replacement-link-relocation-v1"
 
@@ -53,7 +53,7 @@ def platform_pin(platform):
     return {"name": platform.name, "files": inventory(platform.parent)}
 
 
-def prepare(previous, output):
+def prepare(previous, output, *, timing_profile=None):
     parent_path = previous / "manifest.json"
     parent_id = identity(parent_path)
     parent = json.loads(parent_path.read_text())
@@ -78,6 +78,7 @@ def prepare(previous, output):
     for arg, member in replacements.items():
         copy(Path(arg), member, expected=pins[str(Path(arg).resolve())])
     config = Path(parent["command"][parent["command"].index("--config") + 1])
+    timing.configure(config.read_text(), timing_profile)
     copy(config, "parent/link.cfg", expected=pins[str(config.resolve())])
     platform, = [Path(line.removeprefix("platform=")) for line in config.read_text().splitlines()
                  if line.startswith("platform=")]
@@ -98,6 +99,8 @@ def prepare(previous, output):
               "platform": platform_pin(platform), "xo_replacements": replacements,
               "cache_files": cache, "policy": capsule.POLICY,
               "timeout_seconds": 43200, **dict.fromkeys(capsule.FLAGS, False)}
+    if timing_profile is not None:
+        packet["timing_profile"] = timing_profile
     atomic_write_json(output / "capsule.json", packet)
     verify(output, platform)
     return packet
@@ -119,6 +122,7 @@ def verify(root, platform):
             raise ValueError("unsafe or modified capsule member: " + member)
         files[member] = row["source"]
     parent = json.loads((root / "parent/manifest.json").read_text())
+    timing.configure((root / "parent/link.cfg").read_text(), packet.get("timing_profile"))
     replacements = layout(parent)
     config = parent["command"][parent["command"].index("--config") + 1]
     expected_members = {"parent/manifest.json", "parent/link.cfg", "gcc_compat/bits/gthr-default.h",
@@ -152,6 +156,7 @@ def main():
     export = commands.add_parser("prepare")
     export.add_argument("--parent", required=True, type=Path)
     export.add_argument("--output", required=True, type=Path)
+    export.add_argument("--timing-profile", choices=(timing.PROFILE,))
     execute = commands.add_parser("execute")
     for name in ("capsule", "output", "xilinx", "platform", "compatibility"):
         execute.add_argument("--" + name, required=True, type=Path)
@@ -159,7 +164,8 @@ def main():
     execute.add_argument("--memory-profile", choices=memory_profiles.OBSERVED_PROFILES)
     args = parser.parse_args()
     if args.command == "prepare":
-        print(prepare(args.parent.resolve(), args.output.resolve())["parent"]["sha256"])
+        print(prepare(args.parent.resolve(), args.output.resolve(),
+                      timing_profile=args.timing_profile)["parent"]["sha256"])
     else:
         from . import study
 

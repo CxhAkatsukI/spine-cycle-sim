@@ -50,6 +50,27 @@ def test_modified_xo_is_rejected(tmp_path):
         relocation.verify(output, platform)
 
 
+def test_physical_strategy_is_pinned_to_a_separate_replacement_capsule(tmp_path, monkeypatch):
+    manifest, platform = source(tmp_path)
+    original = relocation.prepare(manifest.parent, tmp_path / "original")
+    returned = tmp_path / "returned"
+    local = tmp_path / "physical"
+    profile = relocation.timing.PROFILE
+    packet = relocation.prepare(manifest.parent, local, timing_profile=profile)
+    relocation.prepare(manifest.parent, returned / "capsule", timing_profile=profile)
+    assert relocation.verify(local, platform)[0] == packet
+    assert packet == {**original, "timing_profile": profile}
+    monkeypatch.setattr(replacement_return.delivery, "verify",
+                        lambda *_args, **_kwargs: ({}, packet, {}))
+    monkeypatch.setattr(replacement_return.admission, "verify_link",
+                        lambda *_args: ({}, []))
+    with pytest.raises(ValueError, match="pinned replacement capsule"):
+        replacement_return.verify(returned, local, platform, "digest")
+    monkeypatch.setattr(replacement_return.admission, "verify_link",
+                        lambda *_args: ({"timing_profile": profile}, []))
+    replacement_return.verify(returned, local, platform, "digest")
+
+
 def test_board_result_cannot_be_exported_as_source_input(tmp_path):
     manifest, _ = source(tmp_path)
     parent = json.loads(manifest.read_text())
