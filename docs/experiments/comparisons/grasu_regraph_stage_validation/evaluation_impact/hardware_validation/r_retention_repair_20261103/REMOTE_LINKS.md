@@ -326,6 +326,35 @@ collector binds one exact remote invocation and replays its capsule,
 command and output digests locally. Collector success alone is not
 approval to program a card.
 
+### Locked Timing Of The Physical Retries
+
+The completed route reports show setup violations confined to the 450 MHz
+`hbm_aclk` domain. Neither result is evidence of board performance.
+At this checkpoint packaging and collection were still in progress.
+
+| Retry | WNS (ns) | TNS (ns) | Failing setup endpoints | Worst generated HMSS input |
+| --- | ---: | ---: | ---: | --- |
+| CC | -0.132 | -5.861 | 116 | `path_23/slice0_23` <- `hmss_0/S00_AXI` <- platform `axi_vip_data/M_AXI` |
+| ResPR tail | -0.004 | -0.006 | 2 | `path_25/slice24_25` <- `S24_AXI` and `path_26/slice25_26` <- `S25_AXI` (Apply `gmem0` and `gmem1`) |
+
+To trace these connections, use the `path_N` instantiation in the top
+module of the generated HMSS `bd_0/synth/bd_*.v`, follow its input net
+assignment back to the top AXI port, then match the port in `interface_nets`
+in the generated `prj/prj.srcs/my_rm/bd/ulp/ulp.bd`. The path number is
+**not** the AXI port number: CC `path_23` is not the CC Apply port
+`S23_AXI`. The critical CC path is a platform cross-SLR response link
+(`laguna_m_payload_i_reg` to `laguna_s_payload_d_reg`), not an Apply
+compute path. ResPR's two failures are also cross-SLR response links;
+they are distinct from the Apply stream/FSM path in the source-burst v3
+route. This trace identifies the paths, not the full set of CC violations
+or a guaranteed timing fix.
+
+The locked reports are `link/link/vivado/vpl/prj/prj.runs/impl_1/hw_bb_locked_timing_summary_routed.rpt`
+under the respective build directories. SHA-256:
+
+- CC: `07ba6482743482ae5fbd1c1b0092024ea5ee229e482eb8a8e6cf0ba01784477d`
+- ResPR tail: `95adc8a42b0d4af2d8e93b4eb27c024a481b81a995ff821f5023d60c74b43eea`
+
 These three routes use the seele-only `seele-reserve-128g-peer-physical-v2`
 admission profile. It counts a peer's finite physical cgroup cap once,
 even when multiple peer tool processes share that cap. Owned builds
