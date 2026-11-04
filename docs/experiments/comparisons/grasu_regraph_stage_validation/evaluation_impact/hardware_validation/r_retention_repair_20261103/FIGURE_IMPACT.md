@@ -119,6 +119,11 @@ After AU/512 is measured and its raw receipts replay, run
 [`fig8-native-input-identity.json`](fig8-native-input-identity.json),
 `--manifest-sha256 520b7bc64eb16cd7e8f4cee50179aa8ba8ca71b27771111b0a4e303187d82012`,
 `--anchor` pointing to the v2 result, and `--output` pointing to a new directory.
+For an unattended continuation, add `--wait-for-anchor UNIT INVOCATION`
+and optionally `--anchor-wait-seconds`. The waiting process does not acquire
+a board lease or reserve experiment memory. If the predecessor fails, changes
+invocation, or does not produce a valid pair receipt, no continuation sample
+starts.
 Use a dedicated cgroup (`MemoryMax=24G`, `MemoryHigh=22G`, `MemorySwapMax=0`,
 `OOMPolicy=kill`), or `--memory-gib 40` with 40/36 GiB caps if the workload
 requires it. The runner also checks live memory reserve and board availability.
@@ -126,6 +131,31 @@ It reuses AU/512 and makes at most one attempt per arm for each remaining
 case. It preserves missing or invalid results without a ratio and records
 setup speedups separately from device maintenance. Do not mix native arms
 with the older maintenance-only or modeled-setup results.
+
+The 24 GiB continuation is queued as
+`gr-retention-fig8-native-matrix-return-20261104.service`, invocation
+`df85bec545d043d8b5fc827612d2841f`; see
+`fig8-native-matrix-return-v1/results.json` under the check root.
+
+### Offline Spine Layout Check
+
+The source probe
+[`spine_update_setup_layout.cpp`](../../../../../../../cpp/tests/publication_sources/source_retention/spine_update_setup_layout.cpp)
+invokes the weighted host's input parser and initial layout builders from
+`fb1ed352c9378e7870093050b7a89859bf7b23f7` without constructing an XRT
+runtime. To build it, use the pinned host compile command from
+`fig8-spine-host-v2/weighted_sssp.compile.log` under the check root. Replace
+the main source path with the probe path and write to a new executable.
+Run the probe with the native input paths from the manifest.
+
+The six unmeasured cases passed an exact comparison of the serialized
+initial image against the old weighted edges: AU/64 and AU/4096 had 390,847
+each, SU 616,118, WK 1,142,352, SO 23,724,166, and PK 44,603,928. They ran
+sequentially in one CPU-only service (12 GiB hard limit, 10 GiB high,
+zero swap, 9.1 GiB peak). Its output is
+`fig8-spine-layout-preflight-v1/layout.log` under the check root, SHA-256
+`b23fdc79a99071aec67ed389dbe8c7741e9c71faac47a8fa1c4f79c830fab37a`.
+This does not check update execution, device allocation or timing.
 
 ## Figure 9: One-Shard Directory Byte Floor
 

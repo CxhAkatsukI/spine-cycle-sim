@@ -32,6 +32,40 @@ def test_anchor_cannot_start_before_a_valid_pair(tmp_path):
         matrix.load_anchor(matrix.identity(anchor), {})
 
 
+def anchor_state(**changes):
+    return dict({"LoadState": "loaded", "InvocationID": "1" * 32, "MainPID": "100",
+                 "Result": "success", "ExecMainStatus": "0", "ActiveState": "active",
+                 "SubState": "running"}, **changes)
+
+
+def test_wait_for_exact_anchor_to_exit_before_reading_receipt(tmp_path, monkeypatch):
+    path = tmp_path / "anchor.json"
+    states = iter((anchor_state(), anchor_state(LoadState="not-found", InvocationID="")))
+    monkeypatch.setattr(matrix, "service_state", lambda _: next(states))
+    observed = []
+
+    def finish(seconds):
+        assert 0 < seconds <= 30 and len(observed) == 1
+        path.write_text('{"status":"MEASURED_AU512_SETUP_ONLY"}')
+
+    monkeypatch.setattr(matrix.time, "sleep", finish)
+    assert matrix.wait_anchor(path, "au.service", "1" * 32, 60, observed.append) == matrix.identity(path)
+    assert [state["LoadState"] for state in observed] == ["loaded", "not-found"]
+
+
+@pytest.mark.parametrize("state", [
+    anchor_state(InvocationID="2" * 32),
+    anchor_state(ActiveState="failed", SubState="failed", Result="exit-code", MainPID="0"),
+    anchor_state(LoadState="not-found", InvocationID=""),
+])
+def test_wait_rejects_wrong_or_failed_anchor_even_with_receipt(tmp_path, monkeypatch, state):
+    path = tmp_path / "anchor.json"
+    path.write_text('{"status":"MEASURED_AU512_SETUP_ONLY"}')
+    monkeypatch.setattr(matrix, "service_state", lambda _: state)
+    with pytest.raises(ValueError, match="service disappeared|terminated unsuccessfully"):
+        matrix.wait_anchor(path, "au.service", "1" * 32, 60, lambda _: None)
+
+
 @pytest.mark.parametrize("bad_oracle", [False, True])
 def test_one_attempt_per_arm_and_no_ratio_without_oracle(tmp_path, monkeypatch, bad_oracle):
     path = tmp_path / "file"

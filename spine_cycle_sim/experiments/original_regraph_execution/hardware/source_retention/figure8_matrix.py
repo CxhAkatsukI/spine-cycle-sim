@@ -5,6 +5,9 @@ import json
 from pathlib import Path
 import time
 
+from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import (
+    route_finished, service_state,
+)
 from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import board_memory
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import containment
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
@@ -13,6 +16,7 @@ from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.active_m
     BDF, DEVICE, poll_until,
 )
 from ..board_execution.active_min_pair import paired_loader
+from ..board_execution.active_min_follow import exact_service
 from . import clocks, figure8_au_pair as au
 from .active_min_admission import checked, replay_g
 from .figure8_manifest import CASES
@@ -47,6 +51,27 @@ def same_clock(clock, expected):
 
 def spine_args(host, image, graph):
     return [host, image, "--update-setup-once", "--dynamic-graph", graph]
+
+
+def wait_anchor(path, unit, invocation, wait_seconds, checkpoint):
+    exact_service(unit, invocation)
+    if not 1 <= wait_seconds <= 111600:
+        raise ValueError("anchor wait must be bounded to 31 hours")
+    observed = False
+    deadline = time.monotonic() + wait_seconds
+    while True:
+        state = service_state(unit)
+        checkpoint(state)
+        if state["LoadState"] == "not-found" and not state["InvocationID"] and observed:
+            break  # A successful transient unit can disappear before the next poll.
+        if route_finished(state, invocation):
+            break
+        observed = True
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("AU/512 admission wait expired before any board run")
+        time.sleep(min(30, remaining))
+    return identity(path)
 
 
 def load_anchor(pin, case):
@@ -156,22 +181,35 @@ def measure(case, row, output, deadline, reservation, memory, hosts, reference, 
 def run(args):
     if not 1 <= args.wait_seconds <= 3600:
         raise ValueError("wait_seconds must be between 1 and 3600 per case")
-    manifest, anchor = identity(args.manifest), identity(args.anchor)
+    manifest = identity(args.manifest)
     cases = load_cases(manifest, args.manifest_sha256)
-    hosts, reference, libraries, anchor_timers = load_anchor(anchor, cases[ANCHOR])
     memory = board_memory.policy(args.memory_gib)
     group = check_memory(args.memory_gib, require_live_reserve=False)
     board_memory.validate(containment.verify(group, memory_gib=args.memory_gib)["limits"], memory)
     reservation = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
     args.output.mkdir(parents=True, exist_ok=False)
     rows = []
-    report = dict(status="RUNNING", anchor=anchor, manifest=manifest, runner=identity(__file__),
+    report = dict(status="PREPARING", manifest=manifest, runner=identity(__file__),
                   boundary=au.BOUNDARY, requested_runs_per_arm=1, warmups=0, memory=memory, cases=rows)
 
     def checkpoint():
         save(args.output / "results.json", report)
 
+    def checkpoint_anchor(state):
+        report.update(status="WAITING_FOR_AU512", anchor_service_state=state)
+        checkpoint()
+
     try:
+        if args.wait_for_anchor:
+            unit, invocation = args.wait_for_anchor
+            report["anchor_dependency"] = dict(unit=unit, invocation=invocation, path=str(args.anchor))
+            anchor = wait_anchor(args.anchor, unit, invocation, args.anchor_wait_seconds, checkpoint_anchor)
+        else:
+            anchor = identity(args.anchor)
+        hosts, reference, libraries, anchor_timers = load_anchor(anchor, cases[ANCHOR])
+        checked(manifest)
+        report.update(status="RUNNING", anchor=anchor)
+        checkpoint()
         for key, case in cases.items():
             row = dict(dataset=key[0], updates=key[1], input=case["native_g_input"], attempts=[], arms={})
             rows.append(row)
@@ -210,6 +248,8 @@ def main():
     for name in ("manifest", "anchor", "output"):
         parser.add_argument("--" + name, required=True, type=lambda value: Path(value).resolve())
     parser.add_argument("--manifest-sha256", required=True)
+    parser.add_argument("--wait-for-anchor", nargs=2, metavar=("UNIT", "INVOCATION"))
+    parser.add_argument("--anchor-wait-seconds", type=int, default=111600)
     parser.add_argument("--wait-seconds", type=int, default=300)
     parser.add_argument("--memory-gib", type=int, choices=board_memory.HIGH_GIB, default=24)
     if run(parser.parse_args())["status"] != "MEASURED_ALL_SEVEN_SETUP_PAIRS":
