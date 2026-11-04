@@ -54,6 +54,16 @@ def summarize_gates(algorithm, gates, extra):
                          "amazon_odd": ratio(extra["comparison"], "candidate_over_reference")}}
 
 
+def pinned_spine_image(algorithm, child):
+    if algorithm == "respr":
+        return child["pins"]["spine_image"]
+    path = child["case"]["spine_binary"]
+    pins = [pin for pin in child["pins"] if pin["path"] == path]
+    if not pins or any(pin != pins[0] for pin in pins):
+        raise ValueError("no unambiguous Spine image pinned before the resident board pair")
+    return pins[0]
+
+
 def measured(algorithm, dataset, child, row, gates, extra, image):
     if (child["repetitions_per_arm"], child["warmups"]) != (1, 0):
         raise ValueError("one measured run and no warmups per arm required")
@@ -85,6 +95,8 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
             or {record["bdf"] for record in observed.values()} != {child["bdf"]}
             or observed["gr"]["binary"] != image):
         raise ValueError("measured G+R image, clock or board differs from admission")
+    if observed["spine"]["binary"] != pinned_spine_image(algorithm, child):
+        raise ValueError("measured Spine image differs from its predeclared pin")
     pair_pin = row["comparison_log"]
     recorded = load(pair_pin)
     pair = row["pair"]
@@ -105,7 +117,8 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
                 winner="Spine" if spine < gr else "G+R" if gr < spine else "tie",
                 gr_rounds=rounds[0], spine_rounds=rounds[1],
                 respr_propagated_on_both=(pair["positive_propagation_on_both"] if algorithm == "respr" else None),
-                clocks_mhz=mhz, bdf=child["bdf"], stage_ratios=stage, comparison=pair_pin,
+                clocks_mhz=mhz, same_driver_clocks=mhz["spine"] == mhz["gr"],
+                bdf=child["bdf"], stage_ratios=stage, comparison=pair_pin,
                 images={arm: record["binary"] for arm, record in observed.items()},
                 clocks={arm: entry["clock_evidence"] for arm, entry in arms.items()}, raw=evidence)
 

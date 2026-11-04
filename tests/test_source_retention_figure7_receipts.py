@@ -30,7 +30,8 @@ class Figure7ReceiptsTest(unittest.TestCase):
 
     def pair(self, algorithm, dataset):
         gr = {"binary": {"sha256": "gr"}, "driver_reported_mhz": [150], "bdf": "bdf"}
-        spine = {"binary": {"sha256": "spine"}, "driver_reported_mhz": [145], "bdf": "bdf"}
+        spine = {"binary": {"path": "/spine.xclbin", "sha256": "spine"},
+                 "driver_reported_mhz": [145], "bdf": "bdf"}
         arms = {arm: dict(stdout=self.receipt(arm + "-out", {}), stderr=self.receipt(arm + "-err", {}),
                           clock=clock, clock_evidence=clock)
                 for arm, clock in (("spine", spine), ("gr", gr))}
@@ -46,7 +47,8 @@ class Figure7ReceiptsTest(unittest.TestCase):
                      g={"comparison": g}, r=r, resident_mhz=[150], image=gr["binary"])
         child = dict(status=figure.MEASURED, bdf="bdf", dataset=dataset, algorithm=algorithm, boundary=b,
                      repetitions_per_arm=1, warmups=0, stage_gates=gates, attempts=["spine", "gr"],
-                     arms=arms, case={"dataset": dataset}, pair=pair,
+                     arms=arms, case={"dataset": dataset, "spine_binary": spine["binary"]["path"]},
+                     pins=[spine["binary"]], pair=pair,
                      comparison_log=self.receipt(f"{algorithm}-{dataset}-pair", pair))
         return child, gates, r
 
@@ -67,10 +69,23 @@ class Figure7ReceiptsTest(unittest.TestCase):
         (row,) = [r for r in result["rows"] if r["status"] == figure.MEASURED]
         self.assertEqual((row["winner"], row["gr_over_spine"], row["boundary"]),
                          ("G+R", 0.5, figure.cc_resident_wall.BOUNDARY))
+        self.assertIs(row["same_driver_clocks"], False)
         save(Path(child["arms"]["gr"]["stdout"]["path"]), {"changed": True})
         result = figure.export(self.paths)
         (rejected,) = [r for r in result["rows"] if r["status"] == "RECEIPT_REJECTED"]
         self.assertNotIn("gr_over_spine", rejected)
+
+    def test_board_observed_spine_must_match_the_predeclared_image(self):
+        child, gates, odd = self.pair("weighted_sssp", "AU")
+        child["pins"] = [{"path": child["case"]["spine_binary"], "sha256": "different-spine"}]
+        pin = self.receipt("child", child)
+        save(self.paths["sssp_au"], dict(status=figure.MEASURED, requested_pair=True, result=pin))
+        save(self.paths["sssp_matrix"], dict(status="MEASURED", cases={}, baseline=gates,
+                                            odd_r=odd, au_result=pin))
+        row = figure.export(self.paths)["rows"][0]
+        self.assertEqual(row["status"], "RECEIPT_REJECTED")
+        self.assertIn("measured Spine image", row["error"])
+        self.assertNotIn("gr_over_spine", row)
 
     def test_sssp_au_requires_matrix_to_pin_screen(self):
         child, gates, odd = self.pair("weighted_sssp", "AU")
@@ -112,7 +127,8 @@ class Figure7ReceiptsTest(unittest.TestCase):
                    pair=dict(child["pair"], meets_propagation_screen=True, positive_propagation_on_both=False),
                    comparison_log=child["comparison_log"])
         save(self.paths["respr_screen"], dict(status="PAIRED_SCREEN_MEASURED", cases=[row], bdf="bdf",
-                                             repetitions_per_arm=1, warmups=0, stage_gates=gates))
+                                             repetitions_per_arm=1, warmups=0, stage_gates=gates,
+                                             pins={"spine_image": child["pins"][0]}))
         image = child["arms"]["gr"]["clock"]["binary"]
         save(self.paths["respr_matrix"], dict(status="MEASURED", cases=[], stage_gates=gates, image=image))
         result = figure.export(self.paths)["rows"][-1]

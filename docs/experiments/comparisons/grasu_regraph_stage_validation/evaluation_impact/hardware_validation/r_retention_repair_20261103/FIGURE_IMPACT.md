@@ -22,15 +22,18 @@ do not already contain those cases. The export rejects duplicate sources.
 The export has eight rows each for SSSP, CC, and ResPR. FullPR is outside
 this campaign. No ratios are emitted for pending or failed rows. If a live
 journal changes during export, rerun rather than mixing snapshots. Admitted
-rows reference the original logs, verified clock
-receipts, image identities, wall-time comparison, and independent G and R
-ratios. It indexes existing correctness/stage admission; it does not rerun
+rows reference the original logs, verified clock receipts, the predeclared
+images for both arms, wall-time comparison, and independent G and R ratios.
+The `same_driver_clocks` field states whether the arms reported the same
+clock configuration; Figure 7 uses measured wall time at those native
+clocks, with no frequency rescaling. Independent R retention requires
+matched clocks. The export indexes existing correctness/stage admission; it does not rerun
 the correctness oracles or establish results for figures 8--11. CC starts
 at host pack; SSSP and ResPR start at a resident batch. ResPR rows report
 whether both arms performed propagation. Do not pool these scopes or
 interpret a correction-only result as propagation evidence.
 
-This is a replay of the [frozen November 3 handoff](../../figure7_11_handoff_20261103/README.md),
+The dependency audit below inspects the [frozen November 3 handoff](../../figure7_11_handoff_20261103/README.md),
 not new measurements or an admission decision. A ratio from the two R controls
 cannot be applied as a correction factor to other graphs, algorithms, or
 total resident latency. The controls measure a single gather/apply execution;
