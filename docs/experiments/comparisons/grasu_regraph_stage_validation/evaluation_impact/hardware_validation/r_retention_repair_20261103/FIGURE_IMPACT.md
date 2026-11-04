@@ -12,9 +12,9 @@ snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
   --sssp-matrix "$run/sssp-burst-matrix-v1/matrix.json" \
   --sssp-au "$run/sssp-burst-resident-au-v1/queue.json" \
-  --cc-matrix "$run/cc-singlepass-matrix-physical-v3/matrix.json" \
-  --respr-matrix "$run/respr-matrix-v6/results.json" \
-  --respr-screen "$run/resident-joint-board-v8/results.json" \
+  --cc-matrix "$run/cc-singlepass-matrix-physical-v3-final/matrix.json" \
+  --respr-matrix "$run/respr-matrix-v6-final/results.json" \
+  --respr-screen "$run/resident-joint-board-v8-final/results.json" \
   --output "$snapshot.json" \
   --csv "$snapshot.csv"
 ```

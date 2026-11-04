@@ -314,8 +314,8 @@ All output paths below are relative to the roots given above.
 
 | Integrated route | Remote attempt | Remote unit / invocation | Local transfer receipt |
 | --- | --- | --- | --- |
-| CC physical retry | `builds/cc-physical-v1` | `gr-retention-seele-cc-physical-20261104-v1.service` / `e26118b89c4044eeb48d1e73bda48332` | `seele-return-v2-cc-physical/transfer.json` |
-| ResPR tail physical retry | `builds/respr-tail-physical-v1` | `gr-retention-seele-respr-tail-physical-20261104-v1.service` / `6a78aa373be04a30b91ad8779768bb00` | `seele-return-v2-respr-tail-physical/transfer.json` |
+| CC physical retry | `builds/cc-physical-v1` | `gr-retention-seele-cc-physical-20261104-v1.service` / `e26118b89c4044eeb48d1e73bda48332` | `seele-return-v2-cc-physical-final/transfer.json` |
+| ResPR tail physical retry | `builds/respr-tail-physical-v1` | `gr-retention-seele-respr-tail-physical-20261104-v1.service` / `6a78aa373be04a30b91ad8779768bb00` | `seele-return-v2-respr-tail-physical-final/transfer.json` |
 | ResPR tail plus source-read bursts | `builds/respr-tail-source-bursts-v3` | `gr-retention-seele-respr-tail-bursts-20261104-v3.service` / `614fad744d0d4cb79c04efd9b5395082` | `seele-return-v3-respr-tail-source-bursts/transfer.json` |
 
 The physical retry capsule digests are `e7b429e5333434c8cf85909daa7295f1fdddccfb3e8c4b196ae0465d559af7e6`
@@ -323,8 +323,9 @@ The physical retry capsule digests are `e7b429e5333434c8cf85909daa7295f1fdddccfb
 (ResPR tail). They use `runner-4bb9b44`; the source-burst route uses
 `runner-9a62fd3` and retains the existing burst capsule digest. Each
 collector binds one exact remote invocation and replays its capsule,
-command and output digests locally. Collector success alone is not
-approval to program a card.
+command and output digests locally. The two physical retries use the
+separate `return-45fbfbb` collector; the live build runners and their pins
+were not modified. Collector success alone is not approval to program a card.
 
 ### Locked Timing Of The Physical Retries
 
@@ -367,20 +368,25 @@ running Vivado. Independent R and G board receipts are required for the
 exact returned image before it can enter a resident matrix.
 
 The original CC and ResPR tail board dependencies were withdrawn before
-requesting their runs. The public A4 CC control returned in
-`seele-return-v4-public-a4-cc/transfer.json` and passed offline admission
-at all declared clocks. This verifies the build, not a measured CC R
-time. The live dependencies use the following local receipts:
+requesting their runs. The public A4 CC control was resealed in
+`seele-return-v4-public-a4-cc-final/transfer.json` using the exact same
+bitstream (SHA-256 `d8ccf7dfb051801dd052047a3d18f91a3beb351649a637bd07aada775acb15a0`).
+The final post-route report (SHA-256
+`052abb60836dcfa621ce7d21421b2c5f3835e6de6b6c21e4e00ab15a9665ea9b`)
+confirms WNS +0.001 ns, WHS +0.003 ns and zero failing endpoints. This
+verifies the build, not a measured CC R time. Waiting board consumers
+were rearmed against the corrected returns before programming either
+image. The live dependencies use the following local receipts:
 
 | Test | Local receipt | Service invocation |
 | --- | --- | --- |
-| CC R, sparse Amazon frontier | `cc-active-pair-physical-v2/queue.json` | `78608da3edae4a5c8ff2c91dfe38969b` |
-| CC R, odd-vertex Amazon frontier | `cc-odd-pair-physical-v2/queue.json` | `678f290059d447269b1907fc3fd0f959` |
-| CC R, AskUbuntu reciprocal topology | `cc-au903k-pair-physical-v1/queue.json` | `5077405be85f4d67be1760574eeeff1e` |
-| CC G, AU 131K updates | `g-cc-board-physical-v1/results.json` | `6de5ad246c514a7f8ad50c62cc315b78` |
-| CC resident matrix | `cc-singlepass-matrix-physical-v3/matrix.json` | `ddb0eb18ef224353a725b845540e095e` |
-| ResPR tail physical R | `tail-follow-physical-v3/results.json` | `50d1ecd2c3f74cd686d21c5640eeaf01` |
-| ResPR tail physical G | `g-tail-physical-v3/results.json` | `70ddaa3c60e042bf80cd831aa9f7274a` |
+| CC R, sparse Amazon frontier | `cc-active-pair-physical-v2-final/queue.json` | `f27d4c5c47854ceca2247f8d7278ce76` |
+| CC R, odd-vertex Amazon frontier | `cc-odd-pair-physical-v2-final/queue.json` | `283132c15f214bceb6a6b7d883a0e962` |
+| CC R, AskUbuntu reciprocal topology | `cc-au903k-pair-physical-v1-final/queue.json` | `9fdf8184e3134d8ea17e4ce917ad52d4` |
+| CC G, AU 131K updates | `g-cc-board-physical-v1-final/results.json` | `87ec8652bbdc411a8d692e2872471903` |
+| CC resident matrix | `cc-singlepass-matrix-physical-v3-final/matrix.json` | `e72d018e6af44be69f63d6a40bef10df` |
+| ResPR tail physical R | `tail-follow-physical-v3-final/results.json` | `f8b13a752f314edbab10b7b114555ec4` |
+| ResPR tail physical G | `g-tail-physical-v3-final/results.json` | `ff1fbea46a8d46a2a60060dd13491615` |
 | ResPR tail plus source-read bursts, return (`return-respr-tail-bursts-20261104-v4`) | `seele-return-v3-respr-tail-source-bursts/transfer.json` | `b3d3b9cd19184d78872934329751d3f1` |
 | ResPR tail plus source-read bursts, R (`r-tail-bursts-20261104-v4`) | `tail-bursts-follow-v3/results.json` | `43674784b88a4e6b858c5ec56325e5e2` |
 | ResPR tail plus source-read bursts, G (`g-tail-bursts-20261104-v4`) | `g-tail-bursts-v3/results.json` | `1d6896d70f644d5c931891e46ab743d6` |
@@ -505,8 +511,8 @@ are unchanged. See `seele-inputs-v1/respr-tail-bursts-apply-off/capsule.json`
 | Return | `seele-return-v1-respr-tail-bursts-apply-off/transfer.json` | `gr-retention-return-respr-apply-off-20261104-v1.service` / `16aaa944d6c64436938b014a9d7c530b` |
 | R stage | `retime-apply-off-r-v1/results.json` | `gr-retention-r-apply-off-20261104-v1.service` / `93aabeabc515482c8aed55af5c1c3024` |
 | G stage | `retime-apply-off-g-v1/results.json` | `gr-retention-g-apply-off-20261104-v1.service` / `03919598d2774240a29e66b5986b2e2c` |
-| R19 and Flickr resident screen | `resident-joint-board-v8/results.json` | `gr-retention-resident-joint-v8-20261104.service` / `7f4783a7a21b496a98fb7bcded9e16ee` |
-| Remaining seven large workloads | `respr-matrix-v6/results.json` | `gr-retention-respr-matrix-v6-20261104.service` / `99ef84fee7e34a7485e5aaa52fccae2f` |
+| R19 and Flickr resident screen | `resident-joint-board-v8-final/results.json` | `gr-retention-resident-joint-v8-20261104-final.service` / `9dce5f9dcd2948d0a20534a5a627d2eb` |
+| Remaining seven large workloads | `respr-matrix-v6-final/results.json` | `gr-retention-respr-matrix-v6-20261104-final.service` / `c66d39d65fa540a7b9d830f41e9c5632` |
 
 The remote link uses a 40 GiB hard cap, no swap, and the existing 128 GiB
 reserve policy. It started automatically after the V3 link completed:
