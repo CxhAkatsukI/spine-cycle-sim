@@ -16,6 +16,19 @@ int main(int argc, char **argv) {
         const auto input = load_dynamic_workload(argv[1]);
         const auto reference = prepare_resident_benchmark_reference(
             input.baseline, input.final_graph, 0, 256);
+        {
+            const auto old_seed = resident_pagerank_seed(reference.initial_state, input.baseline);
+            const size_t old_span = state_span(input.baseline.num_vertices);
+            float old_max_residual = 0.0F;
+            for (int vertex = 0; vertex < input.baseline.num_vertices; ++vertex) {
+                const float value = bits_float(old_seed.state[old_span + vertex]);
+                require(std::isfinite(value), "nonfinite old-graph residual");
+                old_max_residual = std::max(old_max_residual, std::fabs(value));
+            }
+            std::cout << "SPINE_RESPR_WARM_CHECK active=" << old_seed.active.size()
+                      << " max_abs_residual=" << old_max_residual << '\n';
+            require(old_seed.active.empty(), "Spine CPU warm rank did not converge on the old graph");
+        }
         const auto seed = resident_pagerank_seed(reference.initial_state,
                                                   input.final_graph);
         const auto vertices = static_cast<size_t>(input.final_graph.num_vertices);

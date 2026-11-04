@@ -13,6 +13,18 @@ int main(int argc, char **argv) {
         const auto new_edges = build_final_external_edges(input);
         const auto warm = run_full_pagerank_oracle(
             input.node_size, old_edges, 128, kPageRankDamping);
+        {
+            const auto warm_check = run_residual_pagerank_oracle(
+                input.node_size, old_edges, warm.rank, 0, kPageRankDamping, kPageRankEpsilon);
+            float old_max_residual = 0.0F;
+            for (float value : warm_check.residual) {
+                if (!std::isfinite(value)) fail("nonfinite old-graph residual");
+                old_max_residual = std::max(old_max_residual, std::abs(value));
+            }
+            std::cout << "GR_RESPR_WARM_CHECK active=" << warm_check.correction_active_vertices
+                      << " max_abs_residual=" << old_max_residual << '\n';
+            if (!warm_check.converged) fail("G+R CPU warm rank did not converge on the old graph");
+        }
         // Zero rounds returns the unconsumed correction without changing the warm rank.
         const auto seed = run_residual_pagerank_oracle(
             input.node_size, new_edges, warm.rank, 0, kPageRankDamping, kPageRankEpsilon);

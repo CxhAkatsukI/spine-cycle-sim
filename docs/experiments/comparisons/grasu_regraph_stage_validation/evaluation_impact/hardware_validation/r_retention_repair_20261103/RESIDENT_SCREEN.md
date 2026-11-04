@@ -234,6 +234,30 @@ The JSON comparison hashes to
 The CPU-only service invocation `30ecb6f8bb3d4b3983acbdd76e0a279c` used
 CPUs 124--125 and peaked at 2.2 GiB (4 GiB cap, zero swap).
 
+### Verify Old-Graph Convergence
+
+The two CPU probes now check the state **before** the update. Starting
+from the hosts' rank after 128 warm sweeps, each recomputes the residual
+on the old graph without propagating. A nonfinite residual or a vertex
+above the existing `1e-6` absolute threshold fails the probe. No warm
+sweeps, damping, threshold, or post-update work were changed.
+
+| Input | Old active vertices (each host) | Old maximum absolute residual (each host) | Post-update seeds (each host) | G+R CPU propagation rounds |
+| --- | ---: | ---: | ---: | ---: |
+| Flickr slice | 0 | `1.35042e-08` | 133 | 12 |
+| AU reciprocal bridge slice | 0 | `5.16884e-08` | 12 | 1 |
+| Frozen full R19 | 0 | `0` | 0 | 0 |
+
+Rebuild and run the same pinned CPU probes as in the cross-host check
+above. Their `*_RESPR_WARM_CHECK` lines report the old-graph values.
+The probe binaries, `inputs.sha256`, per-arm logs, state dumps, and
+comparison JSONs are under
+`/data/chuxiao/checks/source-retention-repair-20261104/respr-warm-check.BVJOTmr7/`.
+The CPU-only service `gr-retention-respr-warm-check-20261104-v3` used
+CPUs 124--125, peaked at 2.2 GiB (5 GiB cap, zero swap), and made no
+board calls. This verifies the old warm state on these three exact
+inputs, not the other seven full graphs or the FPGA timing.
+
 ## Board Runner
 
 This is a bounded two-case screen, not a figure replacement. It waits for
