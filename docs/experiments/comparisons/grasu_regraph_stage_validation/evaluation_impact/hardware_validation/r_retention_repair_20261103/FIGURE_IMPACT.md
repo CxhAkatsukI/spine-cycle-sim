@@ -10,11 +10,11 @@ Run this offline; it does not launch FPGA jobs or modify existing packages.
 run=/data/chuxiao/checks/source-retention-repair-20261104
 snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
-  --sssp-matrix "$run/sssp-physopt-matrix-v1/matrix.json" \
-  --sssp-au "$run/sssp-physopt-resident-au-v1/queue.json" \
-  --cc-matrix "$run/cc-warm-balanced-matrix-v1/matrix.json" \
-  --respr-matrix "$run/respr-matrix-v10/results.json" \
-  --respr-screen "$run/resident-joint-board-v12/results.json" \
+  --sssp-matrix "$run/sssp-physopt-matrix-sealed/matrix.json" \
+  --sssp-au "$run/sssp-physopt-resident-au-sealed/queue.json" \
+  --cc-matrix "$run/cc-warm-balanced-matrix-source-bursts-v1/matrix.json" \
+  --respr-matrix "$run/respr-matrix-v10-sealed/results.json" \
+  --respr-screen "$run/resident-joint-board-v12-sealed/results.json" \
   --output "$snapshot.json" \
   --csv "$snapshot.csv"
 ```

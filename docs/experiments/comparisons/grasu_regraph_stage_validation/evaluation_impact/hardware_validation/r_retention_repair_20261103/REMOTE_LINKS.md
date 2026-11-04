@@ -921,6 +921,13 @@ resident comparison only if all five prerequisites pass.
 | --- | --- | --- | --- |
 | Independent G, AU/131K | `gr-retention-g-cc-source-bursts-20261105-v1` | `865046f3145e4ac5906e1876b33e84fc` | `g-cc-board-source-bursts-v1/results.json` |
 | Resident CC, full AU | `gr-retention-cc-source-bursts-au-resident-20261105-v1` | `ca01b11afdf2494294674924382327fc` | `cc-warm-au-source-bursts-resident-v1/queue.json` |
+| Remaining resident CC cases | `gr-retention-cc-warm-balanced-matrix-source-bursts-20261105-v1` | `fbf03ed4efc347aba71014dce99613e4` | `cc-warm-balanced-matrix-source-bursts-v1/matrix.json` |
+
+The matrix waits for the exact full AU resident result, replays its
+admission and reuses the AU timing. The remaining seven cases also
+require passing offline Spine layouts for the exact fixture. Each
+admitted case gets one timed run per arm under the board and memory
+guards; a failed upstream stage does not launch a matrix.
 
 ### Archived Spine Images on Feiyang
 
