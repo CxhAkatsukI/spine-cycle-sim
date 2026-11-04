@@ -287,6 +287,23 @@ for the dense-directory model. It does not admit the current FPGA baseline
 or certify its exact traffic. Every row remains `PREDICTION_ONLY` with
 `baseline_admitted=false`.
 
+The [diagnostic CSV](fig9-directory-diagnostic.csv) contains the absolute
+accepted bytes and DRAMSim3 energy of both arms, the unrounded ratios,
+and the graph, update and receipt hashes for all nine rows. It is a
+diagnostic export, separate from the figure handoff. To regenerate it
+on trifoliate without rerunning the simulator:
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure9_directory_receipts \
+  --frozen /data/chuxiao/experiments \
+  --directory /data/chuxiao/checks/source-retention-repair-20261104 \
+  --output /tmp/fig9-directory-diagnostic.csv
+```
+
+The export checks the archived receipts against their pinned hashes and
+rejects changed inputs, different state hashes, duplicate or missing
+cases, failed ledgers, and ratios inconsistent with the per-arm totals.
+
 Additional raw receipts are under the same trifoliate check root. They pin
 simulator commit `95fb905`, the build inputs, memory configuration and the
 graph and batch identities:
