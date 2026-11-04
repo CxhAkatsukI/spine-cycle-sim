@@ -4,6 +4,10 @@ import argparse
 import json
 from pathlib import Path
 
+from .. import artifact
+from ..board_execution import active_min_candidate
+from ..board_execution.active_min import BOUNDARY as ACTIVE_MIN_BOUNDARY
+from ..board_execution.analysis import event_window
 from . import clocks
 from .analysis import profiled_runs, public_r_run, records, relocated, summarize, verify_log
 from .shard_layout import replay_layout
@@ -38,7 +42,7 @@ def publication_windows(config, events, span_ns):
         "apply_end_ns": by_ordinal[1]["end_ns"] - origin,
     }
     return {
-        "event_span_ns": span_ns, "pma_slots": config["pma_slots"],
+        "event_span_ns": span_ns, "pma_slots": config.get("pma_slots"),
         "logical_edges": config["edges"], "windows": windows,
         "candidate_milestones_from_first_start_ns": milestones,
         "mux_span_by_worker_ns": worker_ns,
@@ -111,17 +115,105 @@ def replay(results, case, raw_root=None, csr=None):
     return candidate_windows(row["stdout"], span, raw_root, csr)
 
 
+def replay_active_min(results, raw_root=None):
+    """Diagnose the time budget in a correctness-checked active-min board pair."""
+    report = json.loads(results.read_text())
+    reference, candidate = (report["arms"][name] for name in ("reference", "candidate"))
+    control_ns = reference["analysis"]["event_span_ns"]
+    observed, roots, logs = [], [], []
+    for arm in (reference, candidate):
+        stdout = arm["execution"]["stdout"]
+        # A reused A4 arm may live in a different campaign directory in the archive.
+        arm_root = raw_root / Path(stdout["path"]).parents[1].name if raw_root is not None else None
+        roots.append(arm_root)
+        logs.append(verify_log(stdout, arm_root).read_text().splitlines())
+        observed.append(clocks.replay(arm["clock_evidence"], arm_root))
+    result_lines = [line for line in logs[1] if line.startswith("ACTIVE_MIN_CANDIDATE_BOARD_RESULT")]
+    if len(result_lines) != 1 or not (result := active_min_candidate.RESULT.fullmatch(result_lines[0])):
+        raise ValueError("one correctness-checked active-min run required")
+    logical, vertices, edges, shards, active = result.groups()
+    shards = int(shards)
+    if (shards <= 0 or active_min_candidate.ALGORITHM[report["algorithm"]] != logical or
+            int(active) != candidate["analysis"]["active_outputs"] or
+            report["requested_runs_per_arm"] != 1 or report["convergence_measured"] is not False or
+            report["boundary"] != ACTIVE_MIN_BOUNDARY or
+            report["attempts"] not in (["candidate"], ["reference", "candidate"]) or
+            any(clock["bdf"] != report["bdf"] for clock in observed)):
+        raise ValueError("saved active-min geometry or run scope differs")
+    reference_pins = [pin for pin in reference["analysis"]["output_pins"]
+                      if Path(pin["path"]).name == "result.json"]
+    if len(reference_pins) != 1 or "A4_ACTIVE_MIN_BOARD_PASS" not in logs[0]:
+        raise ValueError("missing public A4 result")
+    pin = reference_pins[0]
+    original_path = relocated(pin["path"], roots[0] / "pair" if roots[0] else None)
+    if artifact.identity(original_path)["sha256"] != pin["sha256"]:
+        raise ValueError("active-min reference analysis hash mismatch")
+    original = json.loads(original_path.read_text())
+    if (original["status"] != "A4_ACTIVE_MIN_BOARD_PASS" or original["hardware_timing_measured"] is not True
+            or (original["algorithm"], original["bdf"], original["topology"], original["iterations"],
+                original["vertices"], original["logical_edges"]) !=
+               (report["algorithm"], report["bdf"], "a4", 1, int(vertices), int(edges))
+            or event_window(original["events"]) != (reference["analysis"]["event_union_ns"], control_ns)
+            or (original["event_union_ns"], original["event_span_ns"]) !=
+               (reference["analysis"]["event_union_ns"], control_ns)):
+        raise ValueError("public A4 geometry or event window differs")
+    required = [(role, 0, -1, -1) for role in ("hbm", "apply")] + [
+        (role, 0, shard, shard % 4) for shard in range(shards)
+        for role in ("adapter", "gather", "mux")
+    ]
+    events, labels = [], []
+    for line in logs[1]:
+        if line.startswith("SHARDED_DEVICE_EVENT"):
+            if not (match := active_min_candidate.EVENT.fullmatch(line)):
+                raise ValueError("malformed candidate event")
+            role, *values = match.groups()
+            step, shard, worker, *times = map(int, values)
+            labels.append((role, step, shard, worker))
+            events.append(dict(zip(("queued_ns", "submitted_ns", "start_ns", "end_ns"), times),
+                               ordinal=len(events)))
+    if labels != required or len(events) != candidate["analysis"]["kernel_events"]:
+        raise ValueError("missing, unexpected or repeated candidate kernel event")
+    union, span = event_window(events)
+    decision = active_min_candidate.compare(reference["analysis"], candidate["analysis"], *observed)
+    passed = decision["retention_gate_pass"]
+    status = "PAIRED_ACTIVE_MIN_R_GATE_PASS" if passed else "PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED"
+    if ((union, span) != (candidate["analysis"]["event_union_ns"], candidate["analysis"]["event_span_ns"])
+            or decision != report["comparison"] or not decision["equal_driver_reported_clocks"]
+            or report["retention_gate_pass"] is not passed or report["status"] != status):
+        raise ValueError("saved comparison differs from matched active-min observations")
+
+    windows = publication_windows({"shards": shards, "edges": int(edges)}, events, span)
+    mux = windows["windows"]
+    gaps = sum(b["mux_start_ns"] - a["mux_end_ns"] for a, b in zip(mux, mux[1:]))
+    suffix = span - mux[-1]["mux_end_ns"]
+    target = control_ns * 115 // 100
+    return {
+        "algorithm": report["algorithm"], "reference_event_span_ns": control_ns,
+        "candidate_event_span_ns": span, "gate_target_ns": target,
+        "minimum_reduction_to_pass_ns": max(0, span - target),
+        "driver_reported_mhz": observed[0]["driver_reported_mhz"],
+        "mux_span_by_shard_ns": [row["mux_span_ns"] for row in mux],
+        "inter_mux_gap_ns": gaps, "after_final_mux_ns": suffix,
+        "still_over_gate_without_inter_mux_gaps_and_suffix_ns": max(0, span - gaps - suffix - target),
+    }
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--results", type=Path, required=True)
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--case")
     mode.add_argument("--derated-respr", action="store_true", help="replay the archived same-clock skewed-sources pair")
+    mode.add_argument("--active-min", action="store_true", help="replay one same-clock SSSP/CC active-min pair")
     parser.add_argument("--raw-root", type=Path)
     parser.add_argument("--csr", type=Path, help="also replay the frozen resident CSR layout")
     args = parser.parse_args()
-    if args.derated_respr and args.csr:
+    if not args.case and args.csr:
         parser.error("--csr requires --case")
-    result = (replay_derated_respr(args.results, args.raw_root) if args.derated_respr
-              else replay(args.results, args.case, args.raw_root, args.csr))
+    if args.active_min:
+        result = replay_active_min(args.results, args.raw_root)
+    elif args.derated_respr:
+        result = replay_derated_respr(args.results, args.raw_root)
+    else:
+        result = replay(args.results, args.case, args.raw_root, args.csr)
     print(json.dumps(result, indent=2))

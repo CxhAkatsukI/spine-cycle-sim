@@ -8,11 +8,41 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_rete
     slot_counts,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.shard_windows import (
-    publication_windows, replay_derated_respr,
+    publication_windows, replay_active_min, replay_derated_respr,
 )
 
 
 class PublicationWindowsTest(unittest.TestCase):
+    def test_active_min_archives_show_host_gaps_and_final_suffix_are_insufficient(self):
+        evidence = (Path(__file__).resolve().parents[1] / "docs/experiments/comparisons"
+                    / "grasu_regraph_stage_validation/evaluation_impact/hardware_validation"
+                    / "r_retention_repair_20261103")
+        cases = (
+            ("sssp-source-bursts-nominal-board", "sssp-burst-au903k-physopt-sealed",
+             "weighted_sssp", 140855, 1050, 47942, 91863),
+            ("cc-banked-stage-board-raw", "cc-banked-au903k-pair-final",
+             "cc", 127375, 1031, 71432, 54912),
+        )
+        for archive, pair, algorithm, deficit, gaps, suffix, remaining in cases:
+            with self.subTest(algorithm=algorithm), tempfile.TemporaryDirectory() as scratch:
+                root = Path(scratch)
+                with tarfile.open(evidence / f"{archive}.tar.gz") as packed:
+                    packed.extractall(root, filter="data")
+                receipt = root / pair / "pair/results.json"
+                replay = replay_active_min(receipt, root)
+                self.assertEqual(replay["algorithm"], algorithm)
+                self.assertEqual(replay["driver_reported_mhz"], [150, 500, 450, 0])
+                self.assertEqual(replay["minimum_reduction_to_pass_ns"], deficit)
+                self.assertEqual(replay["inter_mux_gap_ns"], gaps)
+                self.assertEqual(replay["after_final_mux_ns"], suffix)
+                self.assertEqual(replay["still_over_gate_without_inter_mux_gaps_and_suffix_ns"], remaining)
+
+                tampered = json.loads(receipt.read_text())
+                tampered["arms"]["candidate"]["analysis"]["event_span_ns"] -= 100
+                receipt.write_text(json.dumps(tampered))
+                with self.assertRaisesRegex(ValueError, "saved comparison differs"):
+                    replay_active_min(receipt, root)
+
     def test_replays_archived_430_mhz_pair_without_a_board(self):
         archive = (Path(__file__).resolve().parents[1] / "docs/experiments/comparisons"
                    / "grasu_regraph_stage_validation/evaluation_impact/hardware_validation"

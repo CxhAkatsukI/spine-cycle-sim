@@ -20,6 +20,11 @@ provenance. Resident convergence queues require the new exact-image
 stage gates. Each new arm is measured once, under a board lease and
 memory admission with no swap.
 
+The [AU timing-budget replay](SSSP_STAGE_ADMISSION.md#au-timing-budget-across-sssp-and-cc)
+shows that eliminating the gaps between mux commands and the suffix
+after the final mux would still leave SSSP and CC over their R gate
+by 91.863 us and 54.912 us, respectively. No board run was repeated.
+
 The [same-card AU/512 setup replay](FIGURE_IMPACT.md#two-bank-spine-host-replay)
 measured **701.928 ms** for the revised Spine host versus **848.316 ms**
 for the independently qualified G path (**1.21x** Spine speedup). It

@@ -144,6 +144,41 @@ three paired R receipts and FPGA event logs, the G receipts, the
 and the rejected resident queue records. Archive SHA-256:
 `4fd2f515c34cb5e2017790dfe578c1991d871714178848cb01e6f55cdbe5ea81`.
 
+### AU Timing Budget Across SSSP and CC
+
+The nominal SSSP receipt and the
+[four-bank CC receipt](REMOTE_LINKS.md#cc-banked-clear-board-checkpoint)
+use the same AU topology and 150/500/450/0-MHz clocks. Each is compared
+with its own public A4 algorithm control. The replay hashes both raw
+timing records and clock evidence, reconstructs the event windows,
+and applies the 15% limit in integer nanoseconds.
+
+| AU 903K candidate | Reduction needed to pass (us) | Between mux commands (us) | After final mux (us) | Still needed if both were removed (us) |
+| --- | ---: | ---: | ---: | ---: |
+| SSSP source-read bursts | 140.855 | 1.050 | 47.942 | 91.863 |
+| CC banked clear | 127.375 | 1.031 | 71.432 | 54.912 |
+
+This is a budget calculation that holds the rest of the trace fixed,
+not a speedup prediction. Eliminating only those gaps and the final
+suffix cannot pass either AU control. The pending banked-clear and
+shorter-publication repairs target work that can overlap the mux
+windows. The event records do not distinguish useful work from
+backpressure inside those windows, nor establish which repair will pass.
+
+For an offline replay, extract the corresponding raw archive and run
+the following from the simulator root. The SSSP archive also includes
+the older reference campaign directory, which is needed for replay.
+
+```bash
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.shard_windows \
+  --active-min --raw-root "$raw" \
+  --results "$raw/sssp-burst-au903k-physopt-sealed/pair/results.json"
+```
+
+For the CC archive use `cc-banked-au903k-pair-final/pair/results.json`.
+The replay launches no hardware. It does not admit the baseline or
+change any figure data.
+
 ### Matched 445-MHz HBM Diagnostic
 
 The first source-burst image returned at a lower HBM clock than requested.
