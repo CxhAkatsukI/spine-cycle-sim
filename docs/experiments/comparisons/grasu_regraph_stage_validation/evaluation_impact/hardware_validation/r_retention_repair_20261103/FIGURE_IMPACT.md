@@ -211,6 +211,32 @@ because replicated metadata did not fit the lane-aware HBM placement.
 See the [paired board checkpoint](paired-board-checkpoint/README.md) for
 the data and raw logs. The service's recorded peak was 13,110,181,888 bytes.
 
+### AU/64 Spine Host Revision
+
+Spine [host revision `e4054b8`](https://github.com/jayfeather9/spine-dynamic-graph/commit/e4054b8)
+reserves graph serialization storage once per bank, transfers ownership of
+the cold image, and skips the unused host frontier allocation in update-only
+mode. The xclbin, device buffer extent, timer, workload, and exact graph
+readback check are unchanged. Off-board AU/64 and SU/512 checks matched
+the old graph and metadata fingerprints and checked all initial edges.
+
+| AU/64, setup-inclusive | Old Spine | Revised Spine | Frozen G |
+|---|---:|---:|---:|
+| Host graph layout (ms) | 1,033.510 | 461.018 | 587.554 |
+| Initialization/upload (ms) | 893.373 | 913.697 | 222.978 |
+| Total (ms) | 1,927.194 | 1,375.165 | 818.456 |
+
+This was one new Spine timing on the same U55C and image/clocks, with the
+previously checked four-copy G sample reused. All 390,911 final weighted
+edges matched; there was no memory throttling or OOM. Spine setup latency
+dropped by 28.6%, but G remains 1.68x faster on this case. The remaining
+Spine cost is in initialization/upload; the revision does not establish
+a ten-batch speedup or change the resident-convergence Figure 7 results.
+The [new raw archive](paired-board-checkpoint/fig8-au64-spine-host-revision.tar.gz)
+contains the one-shot receipt, stdout/stderr, clocks, image metadata, and
+both off-board fingerprints. The [original paired checkpoint](paired-board-checkpoint/README.md)
+retains the old Spine and G logs.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.

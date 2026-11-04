@@ -53,6 +53,10 @@ hashes, clocks, oracles, and the failed case. The
 [runner and input manifest](../FIGURE_IMPACT.md#figure-8-exact-inputs-for-a-native-g-check)
 describe reproduction.
 
+A [separate AU/64 host revision check](../FIGURE_IMPACT.md#au64-spine-host-revision)
+reuses the same G arm and measures one changed Spine executable. It does
+not overwrite the original pair above.
+
 ## Raw Evidence
 
 The [archive](raw-board.tar.gz) contains the paired logs, captured states,
