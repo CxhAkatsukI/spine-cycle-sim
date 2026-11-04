@@ -127,13 +127,16 @@ def test_terminal_public_cc_return_replays_and_detects_tampering(frozen, tmp_pat
         if not (attempt / name).exists():
             write(attempt, name, "log")
     write(attempt, "link/reports/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt", "timing")
+    if profile:
+        write(attempt, "link/reports/imp/" + portable.timing.PHYSOPT_REPORT, "postroute timing")
     monkeypatch.setattr(returned.socket, "gethostname", lambda: "seele")
-    monkeypatch.setattr(returned, "service_state", lambda _: state("active"))
-    with pytest.raises(ValueError, match="terminal seele"):
+    monkeypatch.setattr(returned.terminal_link, "service_state", lambda _: state("active"))
+    with pytest.raises(ValueError, match="still running"):
         returned.seal(root, attempt, output, "cc.service", INVOCATION, capsule["sha256"])
-    monkeypatch.setattr(returned, "service_state", lambda _: state())
+    monkeypatch.setattr(returned.terminal_link, "service_state", lambda _: state())
     digest = returned.seal(root, attempt, output, "cc.service", INVOCATION, capsule["sha256"])
     assert returned.verify(output, digest, root)[1] == result
+    assert (output / returned.TIMING_MEMBER).read_text() == ("postroute timing" if profile else "timing")
     write(output, returned.BINARY, "changed")
     with pytest.raises(ValueError, match="receipt or payload"):
         returned.verify(output, digest, root)

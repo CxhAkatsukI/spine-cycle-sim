@@ -10,7 +10,7 @@ import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import (
-    capsule, delivery, terminal_link,
+    capsule, delivery, terminal_link, timing,
 )
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote.replacement_capsule import inventory
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote.transport import Remote
@@ -24,6 +24,8 @@ MODULE = "spine_cycle_sim.experiments.original_regraph_execution.hardware.source
 BINARY = configuration.binary_name("a4", algorithm="cc")
 NAMES = tuple(configuration.kernels("a4"))
 STATUS = "REMOTE_A4_CC_RETURN_VERIFIED_NOT_BOARD_EVIDENCE"
+# Stable member name for the offline board inspector. The source pin identifies the implementation stage.
+TIMING_MEMBER = "timing/" + timing.ROUTED_REPORT
 
 
 def record(directory, name):
@@ -78,11 +80,8 @@ def seal(remote_capsule, attempt, output, unit, invocation, digest):
             or result["xclbin"] != artifact.identity(attempt / BINARY)):
         raise ValueError("terminal build pins differ from requested source or output")
     snapshot.unchanged(result["pins"])
-    reports = list((attempt / "link/reports").glob("**/impl_1_hw_bb_locked_timing_summary_routed.rpt"))
-    if len(reports) != 1:
-        raise ValueError("one routed timing report required")
     files = {name: attempt / name for name in members(result, attempt)}
-    files["timing/impl_1_hw_bb_locked_timing_summary_routed.rpt"] = reports[0]
+    files[TIMING_MEMBER] = timing.final_report(attempt / "link/reports", manifest.get("timing_profile"))
     output.mkdir(parents=True, exist_ok=False)
     pins = {name: artifact.identity(source) for name, source in files.items()}
     for name, source in files.items():
@@ -108,13 +107,14 @@ def verify(root, digest, local_capsule):
     files = receipt["files"]
     if (pin["sha256"] != digest or receipt["schema"] != SCHEMA
             or not terminal_link.terminal(receipt["service"], receipt["unit"], receipt["invocation"], attempt)
-            or set(files) != members(result, attempt) | {"timing/impl_1_hw_bb_locked_timing_summary_routed.rpt"}
+            or set(files) != members(result, attempt) | {TIMING_MEMBER}
             or observed != {name: file["sha256"] for name, file in files.items()}
             or any(path.is_symlink() for path in root.rglob("*"))):
         raise ValueError("returned public A4 CC receipt or payload differs")
     local = artifact.identity(local_capsule / "capsule.json")
     portable_inputs.verify(local_capsule, configuration.PLATFORM, configuration.COMPILER.parents[3], local["sha256"])
     manifest = record(root, "manifest.json")
+    timing.check_report_source(files[TIMING_MEMBER], attempt / "link/reports", manifest.get("timing_profile"))
     preflight = record(root, "preflight/results.json")
     completed(result, manifest, preflight)
     if (local["sha256"] != receipt["capsule"]["sha256"] or result["capsule"] != receipt["capsule"]

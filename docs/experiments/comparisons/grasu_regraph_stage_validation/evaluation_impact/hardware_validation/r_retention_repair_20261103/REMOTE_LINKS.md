@@ -328,9 +328,12 @@ approval to program a card.
 
 ### Locked Timing Of The Physical Retries
 
-The completed route reports show setup violations confined to the 450 MHz
-`hbm_aclk` domain. Neither result is evidence of board performance.
-At this checkpoint packaging and collection were still in progress.
+The initial route reports show setup violations confined to the 450 MHz
+`hbm_aclk` domain. They precede the optional post-route physical optimizer,
+which runs before bitstream write; neither report establishes final image
+timing or board performance. For this profile the return must pin
+`impl_1_hw_bb_locked_timing_summary_postroute_physopted.rpt`. It must not
+fall back to the first routed report if the final export is missing.
 
 | Retry | WNS (ns) | TNS (ns) | Failing setup endpoints | Worst generated HMSS input |
 | --- | ---: | ---: | ---: | --- |
@@ -349,7 +352,7 @@ they are distinct from the Apply stream/FSM path in the source-burst v3
 route. This trace identifies the paths, not the full set of CC violations
 or a guaranteed timing fix.
 
-The locked reports are `link/link/vivado/vpl/prj/prj.runs/impl_1/hw_bb_locked_timing_summary_routed.rpt`
+The initial locked reports are `link/link/vivado/vpl/prj/prj.runs/impl_1/hw_bb_locked_timing_summary_routed.rpt`
 under the respective build directories. SHA-256:
 
 - CC: `07ba6482743482ae5fbd1c1b0092024ea5ee229e482eb8a8e6cf0ba01784477d`

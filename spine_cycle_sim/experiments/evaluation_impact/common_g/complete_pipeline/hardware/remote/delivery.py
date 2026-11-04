@@ -10,7 +10,7 @@ from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json, sha2
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from ....search_pipeline.synthesis import unchanged
-from . import capsule, replacement_capsule, terminal_link
+from . import capsule, replacement_capsule, terminal_link, timing
 
 SCHEMA = "remote-production-return-v1"
 REPLACEMENT_SCHEMA = "remote-k4-replacement-return-v1"
@@ -76,9 +76,7 @@ def seal(root, attempt, output, *, unit, invocation, replacement_platform=None):
         raise ValueError("remote terminal identities differ from the frozen production capsule")
     pins = [*manifest["pins"], *expected.values(), identity(attempt / "preflight/results.json")]
     unchanged(pins)
-    reports = list((attempt / "reports").glob("**/impl_1_hw_bb_locked_timing_summary_routed.rpt"))
-    if len(reports) != 1:
-        raise ValueError("one final routed timing report required")
+    report = timing.final_report(attempt / "reports", manifest.get("timing_profile"))
     output.mkdir(parents=True, exist_ok=False)
     files = []
 
@@ -95,7 +93,7 @@ def seal(root, attempt, output, *, unit, invocation, replacement_platform=None):
         copy(root / member, "capsule/" + member)
     for member in ROUTE_FILES:
         copy(attempt / member, "route/" + member)
-    copy(reports[0], "route/timing.rpt")
+    copy(report, "route/timing.rpt")
     unchanged(pins)
     if terminal_link.capture(unit, invocation, attempt) != state:
         raise ValueError("remote invocation changed during sealing")
@@ -134,4 +132,7 @@ def verify(output, digest, *, replacement_platform=None):
                 *["route/" + member for member in (*ROUTE_FILES, "timing.rpt")]}
     if {str(member) for member in seen} != expected or receipt.get("parent") != packet["parent"]:
         raise ValueError("return package scope differs from production capsule")
+    manifest = json.loads((output / "route/manifest.json").read_text())
+    timing.check_report_source(next(row["source"] for row in receipt["files"] if row["member"] == "route/timing.rpt"),
+                               Path(receipt["remote_attempt"]) / "reports", manifest.get("timing_profile"))
     return receipt, packet, parent

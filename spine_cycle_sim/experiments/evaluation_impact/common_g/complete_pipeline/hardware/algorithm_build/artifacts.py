@@ -11,6 +11,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import memory_profiles
 from ....continuous_board.execution.supervisor import route_finished, service_state
 from ....search_pipeline.synthesis import unchanged
+from ..remote import timing
 from ..remote.delivery import LABELS, ROUTE_FILES
 from . import inputs, memory, routing
 
@@ -86,12 +87,10 @@ def seal(compilation, route, output, *, unit, invocation):
     checked = json.loads((route / "placement-review.json").read_text())
     if checked.get("status") != routing.PASS:
         raise ValueError("successful fresh export and storage screen required")
-    reports = list((route / "reports").glob("**/impl_1_hw_bb_locked_timing_summary_routed.rpt"))
-    if len(reports) != 1:
-        raise ValueError("one final routed timing report required")
+    report = timing.final_report(route / "reports", manifest.get("timing_profile"))
     output.mkdir(parents=True, exist_ok=False)
     sources = {**{"route/" + name: route / name for name in ROUTE_FILES},
-               "route/timing.rpt": reports[0],
+               "route/timing.rpt": report,
                "route/placement-review.json": route / "placement-review.json",
                "route/original-review/results.json": route / "original-review/results.json",
                "compile/manifest.json": compilation / "manifest.json",
@@ -138,4 +137,7 @@ def verify(root, digest):
         seen.add(str(member))
     if seen != set(MEMBERS):
         raise ValueError("incomplete or extra algorithm return members")
+    manifest = json.loads((root / "route/manifest.json").read_text())
+    timing.check_report_source(next(row["source"] for row in receipt["files"] if row["member"] == "route/timing.rpt"),
+                               Path(receipt["remote_route"]) / "reports", manifest.get("timing_profile"))
     return receipt

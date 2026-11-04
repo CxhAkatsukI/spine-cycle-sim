@@ -39,6 +39,8 @@ def returned_fixture(root, *, timing_profile=None):
     report.write_text("WNS(ns) TNS(ns) TNS_FAILING TNS_TOTAL WHS(ns) THS(ns) THS_FAILING THS_TOTAL WPWS(ns) TPWS(ns) TPWS_FAILING TPWS_TOTAL\n"
                       "-------\n0.003 0 0 100 0.009 0 0 100 0.000 0 0 100\n"
                       "All user specified timing constraints are met.\n")
+    if timing_profile == timing.PROFILE:
+        report.with_name(timing.PHYSOPT_REPORT).write_text(report.read_text().replace("0.003", "0.007"))
     resources = {"exit_code": 0, "stop_reason": "process_exit", "cleanup_snapshot_error": None}
     write(route / "route.resources.json", resources)
     for label in delivery.LABELS:
@@ -72,7 +74,7 @@ class RemoteReturnTests(unittest.TestCase):
     def fixture(self, root, *, timing_profile=None):
         parent, relocated, route, exports = returned_fixture(root, timing_profile=timing_profile)
         output = root / "returned"
-        with patch.object(delivery, "service_state", return_value=state()):
+        with patch.object(delivery.terminal_link, "service_state", return_value=state()):
             receipt = delivery.seal(relocated, route, output, unit="remote.service", invocation=INVOCATION)
         return parent, relocated, route, exports, output, receipt["sha256"]
 
@@ -93,7 +95,7 @@ class RemoteReturnTests(unittest.TestCase):
             with self.subTest(service=service), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 _, relocated, route, _ = returned_fixture(root)
-                with patch.object(delivery, "service_state", return_value=service), self.assertRaises(ValueError):
+                with patch.object(delivery.terminal_link, "service_state", return_value=service), self.assertRaises(ValueError):
                     delivery.seal(relocated, route, root / "returned", unit="remote.service", invocation=INVOCATION)
                 self.assertFalse((root / "returned").exists())
 
@@ -178,7 +180,7 @@ class RemoteReturnTests(unittest.TestCase):
                     write(route / "route.resources.json", execution["route"])
                 write(route / "execution.json", execution)
                 returned = root / "returned"
-                with patch.object(delivery, "service_state", return_value=state()):
+                with patch.object(delivery.terminal_link, "service_state", return_value=state()):
                     digest = delivery.seal(relocated, route, returned, unit="remote.service", invocation=INVOCATION)["sha256"]
                 original = root / "original.xclbin"
                 original.write_text("original")
@@ -200,6 +202,7 @@ class RemoteReturnTests(unittest.TestCase):
                     patch.object(admission.bitstream, "normalized_topology", return_value=topology):
                 result = admission.review(returned, original, root / "admission", parent_directory=parent, receipt_sha256=digest)
                 self.assertEqual(result["timing_profile"], timing.PROFILE)
+                self.assertEqual(result["timing"]["wns_ns"], 0.007)
                 with patch.object(admission.bitstream, "parse_routed_timing", side_effect=ValueError("negative HBM WNS")), \
                         self.assertRaisesRegex(ValueError, "negative HBM"):
                     admission.review(returned, original, root / "negative-hbm", parent_directory=parent, receipt_sha256=digest)
@@ -207,6 +210,30 @@ class RemoteReturnTests(unittest.TestCase):
                 with patch.object(admission.bitstream, "normalized_topology", side_effect=[topology, different]), \
                         self.assertRaisesRegex(ValueError, "clock"):
                     admission.review(returned, original, root / "changed-clock", parent_directory=parent, receipt_sha256=digest)
+
+    def test_physical_retry_refuses_missing_ambiguous_or_old_stage_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, relocated, route, _, returned, _ = self.fixture(root, timing_profile=timing.PROFILE)
+            receipt_path = returned / "receipt.json"
+            receipt = json.loads(receipt_path.read_text())
+            source = next(row["source"] for row in receipt["files"] if row["member"] == "route/timing.rpt")
+            final = Path(source["path"])
+            source["path"] = str(final.with_name(timing.ROUTED_REPORT))
+            write(receipt_path, receipt)
+            with self.assertRaisesRegex(ValueError, "implementation stage"):
+                delivery.verify(returned, identity(receipt_path)["sha256"])
+            backup = final.read_text()
+            final.unlink()
+            with patch.object(delivery.terminal_link, "service_state", return_value=state()):
+                with self.assertRaisesRegex(ValueError, timing.PHYSOPT_REPORT):
+                    delivery.seal(relocated, route, root / "missing", unit="remote.service", invocation=INVOCATION)
+                final.write_text(backup)
+                extra = route / "reports/extra" / final.name
+                extra.parent.mkdir()
+                extra.write_text(backup)
+                with self.assertRaisesRegex(ValueError, timing.PHYSOPT_REPORT):
+                    delivery.seal(relocated, route, root / "ambiguous", unit="remote.service", invocation=INVOCATION)
 
     def test_unrecorded_physical_retry_is_rejected_even_when_resealed(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -219,7 +246,7 @@ class RemoteReturnTests(unittest.TestCase):
             execution["manifest"] = identity(route / "manifest.json")
             write(route / "execution.json", execution)
             returned = root / "returned"
-            with patch.object(delivery, "service_state", return_value=state()):
+            with patch.object(delivery.terminal_link, "service_state", return_value=state()):
                 digest = delivery.seal(relocated, route, returned, unit="remote.service", invocation=INVOCATION)["sha256"]
             original = root / "original.xclbin"
             original.write_text("original")
