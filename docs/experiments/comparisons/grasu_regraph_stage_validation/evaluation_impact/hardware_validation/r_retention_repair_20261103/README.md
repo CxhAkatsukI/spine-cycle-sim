@@ -16,6 +16,14 @@ The new ResPR resident screen waits for both exact-image G and R passes.
 Passive queues retain the finite zero-swap memory cap; timed runs still
 require a board lease and memory admission.
 
+ResPR returned images use the qualified card at `0000:82:00.1` for the
+nominal screen, with measured 150/500/450/0 MHz required around each arm.
+If the vendor lowers only HBM, a separate diagnostic accepts a candidate
+only in the same physical clock bin as an existing correctness-checked A4
+record (430 MHz CC, 445 MHz ResPR). It replays the reference receipts and
+times only the new candidate. A lower-clock result does not admit the
+nominal resident matrix.
+
 See [Figure Impact](FIGURE_IMPACT.md) for the two frozen Fig. 7 rows with a
 measured R-only bound and why the remaining rows cannot inherit it. This
 checkpoint is not a replacement Fig. 7--11 package.

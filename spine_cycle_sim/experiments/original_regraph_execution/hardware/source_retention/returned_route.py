@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import re
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import replacement_return
 from spine_cycle_sim.experiments.sharded_k4_stages import bitstream
@@ -10,6 +11,16 @@ from .runtime import identity, save
 
 
 STATUS = "RETURNED_RESPR_ROUTE_ADMITTED_NOT_BOARD_EVIDENCE"
+
+
+def tail_predecessor(topology):
+    # publication_rows is a scalar at argument 5. It adds no physical connection.
+    connections = []
+    for instance, argument, region in topology.get("connections", []):
+        if 5 <= argument <= 7 and re.fullmatch(r"lksg_stream:lksg_stream_[1-4]", instance):
+            argument += 1
+        connections.append((instance, argument, region))
+    return {**topology, "connections": sorted(connections)}
 
 
 def comparable_topology(topology):
@@ -41,7 +52,13 @@ def admit(route, returned, capsule, platform, predecessor, output):
     output.mkdir()
     old = bitstream.normalized_topology(bitstream._dump(predecessor, output / "predecessor"))
     new = bitstream.normalized_topology(bitstream._dump(candidate, output / "candidate"))
-    if comparable_topology(old) != comparable_topology(new):
+    hbm = ("SYSTEM", "hbm_aclk")
+    if [mhz for kind, name, mhz in new["clock"] if (kind, name) == hbm] != [450]:
+        raise ValueError("returned route requires a nominal 450-MHz HBM clock")
+    # The original image is an ABI/connectivity anchor, not the timed public control.
+    nominal_old = {**old, "clock": [(kind, name, 450 if (kind, name) == hbm else mhz)
+                                     for kind, name, mhz in old["clock"]]}
+    if comparable_topology(tail_predecessor(nominal_old)) != comparable_topology(new):
         raise ValueError("returned candidate changes the clock, CU budget or connectivity")
     timing = bitstream.parse_routed_timing(returned / "route/timing.rpt")
     evidence = {"status": STATUS, "plan": plan, "image": image, "transfer": transfer_pin,

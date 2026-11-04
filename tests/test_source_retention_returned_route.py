@@ -40,7 +40,8 @@ class ReturnedRouteTest(unittest.TestCase):
                           return_value=({}, self.parent, [self.plan_pin])), \
                 patch.object(returned_route.bitstream, "_dump", return_value={}), \
                 patch.object(returned_route.bitstream, "normalized_topology",
-                             return_value={"clock": [("DATA", "DATA_CLK", clock)]}), \
+                             return_value={"clock": [("DATA", "DATA_CLK", clock), ("SYSTEM", "hbm_aclk", 450)],
+                                           "connections": []}), \
                 patch.object(returned_route.bitstream, "parse_routed_timing",
                              return_value={"report": identity(self.timing)}):
             return returned_route.admit(self.plan, self.returned, self.capsule, self.root / "platform.xpfm",
@@ -62,6 +63,13 @@ class ReturnedRouteTest(unittest.TestCase):
     def test_integer_metadata_may_truncate_the_nominal_clock(self):
         self.assertEqual(returned_route.comparable_topology({"clock": [("DATA", "DATA_CLK", 149)]}),
                          returned_route.comparable_topology({"clock": [("DATA", "DATA_CLK", 150)]}))
+
+    def test_only_tail_gather_args_shift(self):
+        self.assertEqual(returned_route.tail_predecessor({"connections": [
+            ("lksg_stream:lksg_stream_4", 4, "a"), ("lksg_stream:lksg_stream_4", 5, "b"),
+            ("lksg_stream:lksg_stream_4", 7, "c"), ("adapter:adapter_1", 5, "d"),
+        ]})["connections"], [("adapter:adapter_1", 5, "d"), ("lksg_stream:lksg_stream_4", 4, "a"),
+                             ("lksg_stream:lksg_stream_4", 6, "b"), ("lksg_stream:lksg_stream_4", 8, "c")])
 
     def test_preserves_pins_from_queued_local_route_g_checker(self):
         image = self.plan / "candidate.hw.xclbin"

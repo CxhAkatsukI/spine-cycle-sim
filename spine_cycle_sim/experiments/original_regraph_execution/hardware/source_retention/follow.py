@@ -10,7 +10,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
     route_finished, runner_pins, service_state,
 )
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.tail_publication import host_pair
-from . import analysis, checkpoint, returned_route, study
+from . import analysis, checkpoint, clocks, returned_route, study
 from .runtime import check_memory, identity, save
 
 
@@ -64,7 +64,7 @@ def matched_hosts(args, route_manifest, hosts):
 
 
 def run(before, route, g_results, hosts, production, output, *, unit, invocation,
-        maximum_wait=21600, poll_seconds=30, returned_candidate=None):
+        maximum_wait=21600, poll_seconds=30, returned_candidate=None, board=None):
     if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit)
             or not re.fullmatch(r"[0-9a-f]{32}", invocation)
             or type(maximum_wait) is not int or not 1 <= maximum_wait <= 43200
@@ -80,6 +80,11 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
     try:
         check_memory(require_live_reserve=False)
         args, pins = control(before, route, output / "board-once")
+        if board is not None:
+            if not returned_candidate or board != (0, "0000:82:00.1"):
+                raise ValueError("board override requires the qualified card and a verified return")
+            args.device, args.bdf = board
+        report.update(device=args.device, bdf=args.bdf)
         predecessor = args.r_predecessor
         route_file = route / "manifest.json"
         route_manifest = json.loads(route_file.read_text())
@@ -108,6 +113,7 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
             pins += [image, proof]
             report["returned_admission"] = proof
             args.board_wait_seconds = 21600
+            args.strict_nominal_clocks = True
         else:
             execution = route / "execution/execution.json"
             routed = json.loads(execution.read_text())
@@ -119,12 +125,19 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
         unchanged(route_manifest["pins"])
         report.update(status="SCREENING_R_ONCE", board_requested=True)
         write()
-        study.run(args)
+        measured = study.run(args)
         analysis.analyze(g_results, args.output / "results.json", output / "analysis")
         summary = json.loads((output / "analysis/summary.json").read_text())
         r_rows = [row for row in summary["pairs"] if row["stage"] == "R"]
         passed = len(r_rows) == 2 and all(row["at_most_15_percent_slower"] and row["clock_evidence_recorded"]
                                          for row in r_rows)
+        if returned_candidate:
+            observed = [clocks.replay(row["clock_evidence"]) for row in measured["rows"] if "stdout" in row]
+            matched = len(observed) == 4 and all(row["bdf"] == args.bdf
+                                                 and row["driver_reported_mhz"] == [150, 500, 450, 0]
+                                                 for row in observed)
+            report["all_four_arms_at_nominal_clocks"] = matched
+            passed &= matched
         checkpoint.checkpoint(args.output, output / "analysis", hosts, production, output / "delivery")
         unchanged(pins)
         report.update(status="SUPPORTED_R_GATE_PASS_AWAITING_SPINE" if passed else "R_PERFORMANCE_GATE_FAILED_RETAINED",
@@ -147,9 +160,11 @@ if __name__ == "__main__":
     parser.add_argument("--invocation", required=True)
     parser.add_argument("--maximum-wait", type=int, default=21600)
     parser.add_argument("--returned-candidate", type=Path, nargs=3, metavar=("RETURNED", "CAPSULE", "XPFM"))
+    parser.add_argument("--board", action="store_true", help="use qualified U55C at 0000:82:00.1")
     args = parser.parse_args()
     print(run(*(getattr(args, name).resolve() for name in
                 ("before", "route", "g_results", "hosts", "production", "output")),
               unit=args.unit, invocation=args.invocation, maximum_wait=args.maximum_wait,
-              returned_candidate=[p.resolve() for p in args.returned_candidate] if args.returned_candidate else None
+              returned_candidate=[p.resolve() for p in args.returned_candidate] if args.returned_candidate else None,
+              board=(0, "0000:82:00.1") if args.board else None
               )["status"], flush=True)

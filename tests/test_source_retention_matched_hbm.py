@@ -31,6 +31,17 @@ class MatchedHbmTest(unittest.TestCase):
                 matched_hbm.prepare(*self.args)
         execute.assert_called_once()
 
+    def test_nominal_uses_full_hardware_clock_profile(self):
+        args = (*self.args[:2], 450, *self.args[3:])
+        with (patch.object(matched_hbm, "execute"),
+              patch.object(matched_hbm.clocks, "capture", return_value="readback"),
+              patch.object(matched_hbm.clocks, "replay") as replay):
+            replay.return_value = {"driver_reported_mhz": [150, 500, 450, 0]}
+            matched_hbm.prepare(*args, nominal=True)
+            replay.return_value = {"driver_reported_mhz": [149, 500, 450, 0]}
+            with self.assertRaisesRegex(ValueError, "nominal clock profile"):
+                matched_hbm.prepare(*args, nominal=True)
+
     def test_after_rejects_host_reload_to_nominal_or_changed_board(self):
         before = {"bdf": self.args[-1], "uuid": "image", "binary": "sha",
                   "driver_reported_mhz": [150, 500, 440, 0]}
