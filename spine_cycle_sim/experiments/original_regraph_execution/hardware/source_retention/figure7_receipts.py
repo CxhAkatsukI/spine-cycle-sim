@@ -1,6 +1,7 @@
 """Export a Figure 7 evidence snapshot from the single-pass FPGA journals."""
 
 import argparse
+import csv
 import json
 import math
 from pathlib import Path
@@ -19,6 +20,10 @@ JOURNALS = {"weighted_sssp": ("sssp_matrix", "sssp_au"),
             "cc": ("cc_matrix", "cc_r19"), "respr": ("respr_matrix", "respr_screen")}
 ROLES = tuple(role for roles in JOURNALS.values() for role in roles)
 OPTIONAL_SCREENS = {"sssp_au", "cc_r19"}
+CSV_FIELDS = ("algorithm", "dataset", "status", "boundary", "graph_sha256", "vertices", "edges",
+              "updates", "source", "spine_ms", "gr_ms", "gr_over_spine", "winner", "gr_rounds",
+              "spine_rounds", "respr_propagated_on_both", "same_driver_clocks", "comparison_sha256",
+              "error")
 
 
 def checked(pin):
@@ -64,6 +69,20 @@ def pinned_spine_image(algorithm, child):
     return pins[0]
 
 
+def pinned_workload(case, pins):
+    records = pins.values() if isinstance(pins, dict) else pins
+    matches = [pin for pin in records if pin["path"] == case["graph"]]
+    if not matches or any(pin != matches[0] for pin in matches):
+        raise ValueError("no unambiguous graph and batch pinned before the resident board pair")
+    with checked(matches[0]).open() as graph:
+        dimensions = tuple(map(int, graph.readline().split()))
+    workload = {key: case[key] for key in ("vertices", "edges", "updates", "source")}
+    if (dimensions != tuple(workload[key] for key in ("vertices", "edges", "updates"))
+            or not 0 <= workload["source"] < workload["vertices"]):
+        raise ValueError("paired workload dimensions or source differ from the pinned input")
+    return dict(workload, graph=matches[0])
+
+
 def measured(algorithm, dataset, child, row, gates, extra, image):
     if (child["repetitions_per_arm"], child["warmups"]) != (1, 0):
         raise ValueError("one measured run and no warmups per arm required")
@@ -83,6 +102,7 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
     if set(arms) != {"spine", "gr"} or attempts != ["spine", "gr"]:
         raise ValueError("expected exactly one Spine run and one G+R run")
     stage = summarize_gates(algorithm, gates, extra)
+    workload = pinned_workload(row["case"], child["pins"])
     evidence = {arm: {stream: arm_row[stream] for stream in ("stdout", "stderr")}
                 for arm, arm_row in arms.items()}
     for files in evidence.values():
@@ -118,7 +138,7 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
                 gr_rounds=rounds[0], spine_rounds=rounds[1],
                 respr_propagated_on_both=(pair["positive_propagation_on_both"] if algorithm == "respr" else None),
                 clocks_mhz=mhz, same_driver_clocks=mhz["spine"] == mhz["gr"],
-                bdf=child["bdf"], stage_ratios=stage, comparison=pair_pin,
+                bdf=child["bdf"], workload=workload, stage_ratios=stage, comparison=pair_pin,
                 images={arm: record["binary"] for arm, record in observed.items()},
                 clocks={arm: entry["clock_evidence"] for arm, entry in arms.items()}, raw=evidence)
 
@@ -197,15 +217,36 @@ def export(paths):
     return result
 
 
+def write_csv(path, rows):
+    with path.open("x", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=CSV_FIELDS, lineterminator="\n")
+        writer.writeheader()
+        for row in rows:
+            record = {field: row[field] for field in CSV_FIELDS if field in row}
+            if row["status"] == MEASURED:
+                workload = row["workload"]
+                record.update({key: workload[key] for key in ("vertices", "edges", "updates", "source")},
+                              graph_sha256=workload["graph"]["sha256"],
+                              comparison_sha256=row["comparison"]["sha256"])
+            writer.writerow(record)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for role in (*ROLES, "output"):
         parser.add_argument("--" + role.replace("_", "-"), type=Path, required=role not in OPTIONAL_SCREENS)
+    parser.add_argument("--csv", type=Path, help="optional flat data table with all declared rows")
     args = parser.parse_args()
-    if args.output.exists():
-        raise FileExistsError(args.output)
+    outputs = [args.output] + ([args.csv] if args.csv is not None else [])
+    if len({path.resolve() for path in outputs}) != len(outputs):
+        parser.error("the JSON and CSV must be different files")
+    for path in outputs:
+        if path.exists():
+            raise FileExistsError(path)
     result = export({key: getattr(args, key) for key in ROLES if getattr(args, key) is not None})
     save(args.output, result)
+    if args.csv is not None:
+        write_csv(args.csv, result["rows"])
     print(f"{sum(row['status'] == MEASURED for row in result['rows'])}/{len(result['rows'])} admitted pairs")
 
 

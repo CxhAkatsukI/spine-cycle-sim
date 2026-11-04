@@ -1,5 +1,6 @@
 """Check that the Figure 7 index cannot turn incomplete receipts into speedups."""
 
+import csv
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -45,10 +46,13 @@ class Figure7ReceiptsTest(unittest.TestCase):
                         gr_rounds=0, spine_rounds=0)
         gates = dict(status="BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE", algorithm=algorithm,
                      g={"comparison": g}, r=r, resident_mhz=[150], image=gr["binary"])
+        graph = self.root / f"{algorithm}-{dataset}.graph"
+        graph.write_text("2 1 1\n0 1 1\n1 0 1\n")
+        case = dict(dataset=dataset, spine_binary=spine["binary"]["path"], graph=str(graph),
+                    vertices=2, edges=1, updates=1, source=0)
         child = dict(status=figure.MEASURED, bdf="bdf", dataset=dataset, algorithm=algorithm, boundary=b,
                      repetitions_per_arm=1, warmups=0, stage_gates=gates, attempts=["spine", "gr"],
-                     arms=arms, case={"dataset": dataset, "spine_binary": spine["binary"]["path"]},
-                     pins=[spine["binary"]], pair=pair,
+                     arms=arms, case=case, pins=[dict(spine["binary"]), identity(graph)], pair=pair,
                      comparison_log=self.receipt(f"{algorithm}-{dataset}-pair", pair))
         return child, gates, r
 
@@ -77,7 +81,7 @@ class Figure7ReceiptsTest(unittest.TestCase):
 
     def test_board_observed_spine_must_match_the_predeclared_image(self):
         child, gates, odd = self.pair("weighted_sssp", "AU")
-        child["pins"] = [{"path": child["case"]["spine_binary"], "sha256": "different-spine"}]
+        child["pins"][0]["sha256"] = "different-spine"
         pin = self.receipt("child", child)
         save(self.paths["sssp_au"], dict(status=figure.MEASURED, requested_pair=True, result=pin))
         save(self.paths["sssp_matrix"], dict(status="MEASURED", cases={}, baseline=gates,
@@ -122,13 +126,13 @@ class Figure7ReceiptsTest(unittest.TestCase):
         decision = {"retention_gate_pass": True, "current_over_reference": 1.15}
         gates = dict(g_control=decision, r_controls={key: decision for key in ("amazon", "skewed_sources")},
                      resident_mhz=[150])
-        row = dict(status="MEASURED", case={"dataset": "R19", "algorithm": "residual_pagerank"},
+        row = dict(status="MEASURED", case=dict(child["case"], algorithm="residual_pagerank"),
                    rows=child["arms"], attempts=[{"arm": arm} for arm in ("spine", "gr")],
                    pair=dict(child["pair"], meets_propagation_screen=True, positive_propagation_on_both=False),
                    comparison_log=child["comparison_log"])
         save(self.paths["respr_screen"], dict(status="PAIRED_SCREEN_MEASURED", cases=[row], bdf="bdf",
                                              repetitions_per_arm=1, warmups=0, stage_gates=gates,
-                                             pins={"spine_image": child["pins"][0]}))
+                                             pins={"spine_image": child["pins"][0], "r19": child["pins"][1]}))
         image = child["arms"]["gr"]["clock"]["binary"]
         save(self.paths["respr_matrix"], dict(status="MEASURED", cases=[], stage_gates=gates, image=image))
         result = figure.export(self.paths)["rows"][-1]
@@ -136,6 +140,29 @@ class Figure7ReceiptsTest(unittest.TestCase):
         self.assertIs(result["respr_propagated_on_both"], False)
         with self.assertRaises(ValueError):
             figure.summarize_gates("respr", dict(gates, r_controls={"amazon": decision}), None)
+
+    def test_csv_keeps_unmeasured_cases_blank_and_pins_measured_workload(self):
+        child, gates, odd = self.pair("cc", "SU")
+        pin = self.receipt("cc-su-child", child)
+        save(self.paths["cc_matrix"], dict(status="MATRIX_NEEDS_REVIEW", baseline=gates, odd_r=odd, cases={
+            "SU": {"status": figure.MEASURED, "result": pin},
+            "WK": {"status": "FAILED_RETAINED", "error": "timeout"},
+        }))
+        result = figure.export(self.paths)
+        output = self.root / "figure7.csv"
+        figure.write_csv(output, result["rows"])
+        with output.open(newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        self.assertEqual(len(rows), 24)
+        measured = next(row for row in rows if row["status"] == figure.MEASURED)
+        self.assertEqual((measured["winner"], measured["graph_sha256"], measured["comparison_sha256"]),
+                         ("G+R", child["pins"][1]["sha256"], child["comparison_log"]["sha256"]))
+        failed = next(row for row in rows if row["status"] == "FAILED_RETAINED")
+        self.assertEqual((failed["error"], failed["gr_over_spine"]), ("timeout", ""))
+        Path(child["case"]["graph"]).write_text("2 1 1\n0 1 1\n1 0 2\n")
+        changed = next(row for row in figure.export(self.paths)["rows"] if row["status"] == "RECEIPT_REJECTED")
+        self.assertNotIn("gr_over_spine", changed)
+        self.assertIn("raw log changed", changed["error"])
 
 
 if __name__ == "__main__":

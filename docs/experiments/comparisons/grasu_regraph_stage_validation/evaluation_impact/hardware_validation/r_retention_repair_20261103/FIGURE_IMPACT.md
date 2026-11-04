@@ -13,17 +13,22 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
   --cc-matrix "$run/cc-singlepass-matrix-return-v4/matrix.json" \
   --respr-matrix "$run/respr-matrix-v2/results.json" \
   --respr-screen "$run/resident-joint-board-v3/results.json" \
-  --output "$run/figure7-receipt-snapshot.json"
+  --output "$run/figure7-receipt-snapshot.json" \
+  --csv "$run/figure7-receipt-snapshot.csv"
 ```
 
 The current SSSP and CC matrices include AU and R19 respectively. The
 legacy `--sssp-au` and `--cc-r19` arguments are only for matrices that
 do not already contain those cases. The export rejects duplicate sources.
 The export has eight rows each for SSSP, CC, and ResPR. FullPR is outside
-this campaign. No ratios are emitted for pending or failed rows. If a live
-journal changes during export, rerun rather than mixing snapshots. Admitted
-rows reference the original logs, verified clock receipts, the predeclared
-images for both arms, wall-time comparison, and independent G and R ratios.
+this campaign. The optional CSV keeps all 24 statuses and leaves timings
+and ratios blank for pending or failed rows. It does not replace the old
+handoff CSV. If a live journal changes during export, rerun rather than
+mixing snapshots. Admitted rows bind the original graph file (including
+its ordered batch), vertex/edge/update counts, and source ID to the raw
+comparison. The JSON carries the full evidence links: original logs,
+verified clock receipts, the predeclared images for both arms, wall-time
+comparison, and independent G and R ratios.
 The `same_driver_clocks` field states whether the arms reported the same
 clock configuration; Figure 7 uses measured wall time at those native
 clocks, with no frequency rescaling. Independent R retention requires
