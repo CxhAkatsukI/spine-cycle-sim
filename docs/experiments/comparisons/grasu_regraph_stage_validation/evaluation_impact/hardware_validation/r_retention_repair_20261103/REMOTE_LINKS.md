@@ -720,3 +720,22 @@ each remaining workload once, without warmups or averaging.
 
 These are build and queue receipts. They do not establish an R pass or
 support replacing any figure until the corresponding board results pass.
+
+### Weighted SSSP Banked-Clear Fallback
+
+The component build in [the lower-clock screen](LOWER_CLOCK_SCREEN.md#weighted-sssp-component-check)
+is available as a separate link input. The `sssp-banked` profile in
+`source_retention.banked_clear_link` checks that the parent is a weighted
+fixed-frame link and that the replacement has the same gather ABI and
+compile definitions, apart from the banked-clear switch. Comparing the
+two portable inputs confirmed that only `lksg_stream.hw.xo` changed among
+the 11 XOs; the source-read burst wrapper, connectivity, platform and
+`aggressive-route-v1` profile are unchanged.
+
+The verified capsule is `seele-inputs-v1/sssp-source-bursts-banked` locally
+and `inputs/sssp-source-bursts-banked` on Seele. Its manifest SHA-256 is
+`43c2f74abc1e0d3b306cf3c1833f74092b043969763eec4b5b7fcd1364ad717f`.
+The existing runner verified the full capsule on Seele. It has not been
+linked or tested on the board. Keep it in reserve while the physical-only
+retry runs; use it if that retry cannot produce an image that passes the
+same R gate.

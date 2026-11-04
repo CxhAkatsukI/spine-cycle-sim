@@ -54,32 +54,39 @@ def test_modified_xo_is_rejected(tmp_path):
         relocation.verify(output, platform)
 
 
-def test_banked_clear_changes_only_the_fixed_frame_gather(tmp_path):
+@pytest.mark.parametrize(("profile", "mode"), [
+    (banked_clear_link.CC, "destination"),
+    (banked_clear_link.SSSP, "weighted"),
+])
+def test_banked_clear_changes_only_the_fixed_frame_gather(tmp_path, profile, mode):
     manifest, platform = source(tmp_path)
     original = json.loads(manifest.read_text())
     old_xo = tmp_path / "xos/lksg_stream.hw.xo"
     new_xo = tmp_path / "banked/lksg_stream.hw.xo"
     new_xo.parent.mkdir()
 
-    def write_xo(path, rtl, *, offset="0x28"):
+    def write_xo(path, rtl, *, offset="0x28", flags=""):
         with zipfile.ZipFile(path, "w") as archive:
             archive.writestr("lksg_stream/kernel.xml",
-                             '<root><kernel name="lksg_stream" vlnv="v" hwControlProtocol="ap_ctrl_chain">'
+                             '<root><kernel name="lksg_stream" vlnv="v" hwControlProtocol="ap_ctrl_chain"'
+                             f' compileOptions="{flags}">'
                              '<ports><port name="control"/></ports>'
                              f'<args><arg name="reset_tmp_prop" offset="{offset}"/></args>'
                              '</kernel></root>')
             archive.writestr("rtl", rtl)
 
-    write_xo(old_xo, "original")
-    write_xo(new_xo, "banked")
-    original["mode"] = "destination"
+    common = "-DGRASU_REGRAPH_PREFETCH_COMPACT=1"
+    banked = f"{common} -D{banked_clear_link.BANKED_CLEAR}=1"
+    write_xo(old_xo, "original", flags=common)
+    write_xo(new_xo, "banked", flags=banked)
+    original["mode"] = mode
     original["pins"] = [identity(old_xo) if row["path"] == str(old_xo) else row
                         for row in original["pins"]]
     manifest.write_text(json.dumps(original))
     old_manifest = identity(manifest)
 
     def derive(output):
-        return banked_clear_link.derive(manifest, new_xo, output,
+        return banked_clear_link.derive(manifest, new_xo, output, profile=profile,
                                         parent_sha256=old_manifest["sha256"],
                                         gather_sha256=identity(new_xo)["sha256"])
 
@@ -97,6 +104,10 @@ def test_banked_clear_changes_only_the_fixed_frame_gather(tmp_path):
     write_xo(new_xo, "incompatible", offset="0x2c")
     with pytest.raises(ValueError, match="ABI-compatible"):
         derive(tmp_path / "rejected")
+    if profile == banked_clear_link.SSSP:
+        write_xo(new_xo, "unrelated change", flags=f"{banked} -DGRASU_EXTRA=1")
+        with pytest.raises(ValueError, match="only the SSSP banked clear compile flag"):
+            derive(tmp_path / "rejected-flag")
 
 
 def test_lazy_respr_preserves_tail_abi_and_pinned_cache(tmp_path):

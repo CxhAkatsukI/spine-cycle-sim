@@ -19,8 +19,11 @@ from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardw
 
 XO_NAME = "lksg_stream.hw.xo"
 CC = "cc-banked"
+SSSP = "sssp-banked"
 RESPR = "respr-lazy"
+BANKED_CLEAR = "GRASU_REGRAPH_BANKED_GATHER_CLEAR"
 LAZY_CLEAR = "GRASU_REGRAPH_LAZY_GATHER_CLEAR"
+PROFILES = {CC: "destination", SSSP: "weighted", RESPR: None}
 
 
 def gather_abi(path, *, tail):
@@ -47,8 +50,7 @@ def derive(parent_path, gather_xo, output, *, parent_sha256, gather_sha256, prof
     parent = json.loads(parent_path.read_text())
     seed = parent.get("ip_cache_seed")
     tail = profile == RESPR
-    if (profile not in (CC, RESPR)
-            or parent.get("mode") != (None if tail else "destination")
+    if (profile not in PROFILES or parent.get("mode") != PROFILES[profile]
             or bool(seed) != tail):
         raise ValueError("expected the frozen parent for the selected gather profile")
     xos = replacement_capsule.layout(parent)
@@ -58,6 +60,12 @@ def derive(parent_path, gather_xo, output, *, parent_sha256, gather_sha256, prof
     if (old_pin not in parent["pins"] or old_pin["sha256"] == new_pin["sha256"]
             or gather_abi(old_xo, tail=tail) != gather_abi(gather_xo, tail=tail)):
         raise ValueError("expected a distinct, ABI-compatible gather")
+    if profile == SSSP:
+        _, old_flags = kernel_interface(old_xo, "lksg_stream")
+        _, new_flags = kernel_interface(gather_xo, "lksg_stream")
+        if (old_flags.get(BANKED_CLEAR, "0") != "0"
+                or new_flags != {**old_flags, BANKED_CLEAR: "1"}):
+            raise ValueError("expected only the SSSP banked clear compile flag to change")
     if tail:
         _, old_flags = kernel_interface(old_xo, "lksg_stream")
         _, new_flags = kernel_interface(gather_xo, "lksg_stream")
@@ -89,7 +97,7 @@ def main():
         parser.add_argument("--" + name, required=True, type=Path)
     for name in ("parent-sha256", "gather-sha256"):
         parser.add_argument("--" + name, required=True)
-    parser.add_argument("--profile", choices=(CC, RESPR), default=CC)
+    parser.add_argument("--profile", choices=PROFILES, default=CC)
     args = parser.parse_args()
     derive(args.parent, args.gather, args.output, parent_sha256=args.parent_sha256,
            gather_sha256=args.gather_sha256, profile=args.profile)
