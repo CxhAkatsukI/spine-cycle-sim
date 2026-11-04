@@ -9,7 +9,7 @@ from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidat
     native_host_sha256, wait_for_image,
 )
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.native_profile import update_only_profile
-from . import clocks
+from . import clocks, matched_hbm, returned_route
 from .analysis import profiled_runs, summarize
 from .follow import unchanged
 from .runtime import identity, save
@@ -63,6 +63,42 @@ def r_controls(board, frozen):
         result[case] = dict(timing, driver_mhz=driver_mhz, equal_driver_reported_clocks=matched,
                             retention_gate_pass=matched and timing["at_most_15_percent_slower"])
     return result
+
+
+def recover_failed_r_screen(route, screen_path, board_path, frozen_path):
+    """Allow independent G after the known post-measurement R report error."""
+    if board_path != screen_path.parent / "board-once/results.json":
+        raise ValueError("expected the completed board receipt from this R screen")
+    screen, board, frozen = (json.loads(path.read_text())
+                             for path in (screen_path, board_path, frozen_path))
+    if (screen["status"] != "FAILED_RETAINED" or screen["board_requested"] is not True
+            or screen["errors"] != ['TypeError("\'NoneType\' object is not subscriptable")']
+            or (screen["device"], screen["bdf"]) != (board["device"], board["bdf"])
+            or screen["returned_admission"] not in screen["pins"]):
+        raise ValueError("not the known returned-route R report error")
+    unchanged(screen["pins"])
+    _, image, pins = returned_route.replay(route, screen, screen["returned_admission"])
+    unchanged(pins)
+    if any(board["pins"]["r_current"][key] != value for key, value in image.items()):
+        raise ValueError("board receipt was not measured with the returned image")
+    for row in board["rows"]:
+        if "stdout" in row:
+            matched_hbm.validate_after(row["clock_preparation"], row["clock_evidence"],
+                                       450, nominal=True)
+    r = r_controls(board, frozen)
+    if all(row["retention_gate_pass"] for row in r.values()):
+        raise ValueError("this recovery may retain an R failure, not admit the route")
+    analysis = screen_path.parent / "analysis/summary.json"
+    pairs = {row["case"]: row for row in json.loads(analysis.read_text())["pairs"]
+             if row["stage"] == "R"}
+    if pairs.keys() != r.keys() or any(
+            pairs[case][field] != r[case][field] for case in r
+            for field in ("reference_ms", "current_ms", "at_most_15_percent_slower")):
+        raise ValueError("original analysis and raw board replay disagree")
+    return {**screen, "status": "R_PERFORMANCE_GATE_FAILED_RETAINED",
+            "supported_r_gate_pass": False, "analysis": identity(analysis),
+            "replayed_from": [identity(path) for path in (screen_path, board_path, frozen_path)],
+            "replayed_r": r}
 
 
 def g_gate(report, reference_path, image, host):
@@ -131,7 +167,18 @@ def main():
         parser.add_argument("--" + name, required=True, type=lambda value: Path(value).resolve())
     for name in ("route", "r-report", "g-report", "g-reference", "host"):
         parser.add_argument("--" + name, type=lambda value: Path(value).resolve())
-    print(run(parser.parse_args())["status"], flush=True)
+    parser.add_argument("--recover-failed-screen", action="store_true")
+    args = parser.parse_args()
+    if args.recover_failed_screen:
+        if (not args.route or not args.r_report or args.output.exists()
+                or args.output.parent != args.r_report.parent
+                or any((args.g_report, args.g_reference, args.host))):
+            parser.error("recovery requires the route, failed R report and a new sibling output")
+        report = recover_failed_r_screen(args.route, args.r_report, args.r_board, args.frozen_r_board)
+        save(args.output, report)
+    else:
+        report = run(args)
+    print(report["status"], flush=True)
 
 
 if __name__ == "__main__":

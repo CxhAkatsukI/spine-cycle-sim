@@ -1,5 +1,7 @@
 import copy
+import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
@@ -56,6 +58,38 @@ class ResPRRetentionAuditTests(unittest.TestCase):
         self.board["rows"][-1]["command"][2] = "/different-input"
         with self.assertRaisesRegex(ValueError, "R command"):
             audit.r_controls(self.board, self.frozen)
+
+    def test_recovery_retains_failure_and_checks_clocks(self):
+        self.ratio = 116
+        for row in self.board["rows"]:
+            row.update(stdout={}, clock_preparation={})
+        proof = {"path": "/proof"}
+        image = self.board["pins"]["r_current"]
+        screen = dict(status="FAILED_RETAINED", board_requested=True,
+                      errors=['TypeError("\'NoneType\' object is not subscriptable")'],
+                      bdf=self.bdf, device=self.device, returned_admission=proof, pins=[proof])
+        rows = [dict(row, stage="R", case=case)
+                for case, row in audit.r_controls(self.board, self.frozen).items()]
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            screen_path = root / "results.json"
+            board_path = root / "board-once/results.json"
+            frozen_path = root / "frozen.json"
+            analysis = root / "analysis/summary.json"
+            for path, record in ((screen_path, screen), (board_path, self.board),
+                                 (frozen_path, self.frozen), (analysis, {"pairs": rows})):
+                path.parent.mkdir(exist_ok=True)
+                path.write_text(json.dumps(record))
+            with patch.object(audit.returned_route, "replay", return_value=(Path("/current"), image, [proof])), \
+                    patch.object(audit.matched_hbm, "validate_after") as clock:
+                args = (root / "route", screen_path, board_path, frozen_path)
+                recovered = audit.recover_failed_r_screen(*args)
+                self.assertEqual(recovered["status"], "R_PERFORMANCE_GATE_FAILED_RETAINED")
+                self.assertFalse(recovered["supported_r_gate_pass"])
+                self.assertEqual(clock.call_count, 4)
+                self.ratio = 110
+                with self.assertRaisesRegex(ValueError, "not admit"):
+                    audit.recover_failed_r_screen(*args)
 
     def test_g_reports_actual_clock_mismatch_even_when_times_pass(self):
         image, host = {"path": "/current"}, {"path": "/g-host"}

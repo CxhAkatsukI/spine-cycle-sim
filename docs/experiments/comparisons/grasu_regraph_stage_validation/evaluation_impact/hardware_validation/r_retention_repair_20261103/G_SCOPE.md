@@ -108,8 +108,35 @@ Reproduction entry point:
 `python3 -m spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.candidate_board --help`.
 Use the frozen reference result, native host build directory, exact route,
 and completed R report in a fresh cgroup with at most 8 GiB and no swap.
-The candidate's board result remains pending. Unchanged G XOs do not
-guarantee unchanged routed clocks or timings.
+Unchanged G XOs do not guarantee unchanged routed clocks or timings.
+
+### Packed-Validity ResPR Result
+
+The packed-validity ResPR image from the [nominal R screen](LOWER_CLOCK_SCREEN.md)
+was measured once against the frozen card 0 public control. Both used
+`0000:82:00.1` and read back `150/500/450/0 MHz` before and after.
+The public PMA oracle and the integrated PMA and degree oracles passed.
+
+| AU, 131,072 updates | Elapsed update window | Relative to public G |
+| --- | ---: | ---: |
+| Public-source GraSU | 18.368928 ms | 1.00x |
+| Packed-validity ResPR image | 133.499578 ms | 7.27x |
+
+The integrated image spends 131.506600 ms inside the union of CU event
+intervals and 1.992978 ms in inter-shard gaps. Thus the observed gap cannot
+be explained by inter-shard host relaunch alone. The integrated path also
+maintains out-degrees, unlike the public update kernel. The source issues
+an HBM read-modify-write per degree delta and dispatch can block on the
+degree stream. Overlapping CU events cannot isolate this cost; there is
+no no-degree ablation for this image.
+
+The runner recovered the preserved failed R receipt after a reporting
+error without reprogramming the card or repeating an R sample. The
+[raw G evidence and joint replay](respr-packed-nominal-g-board.tar.gz)
+retain the one sample from each arm and both clock records. The joint
+replay returned `BASELINE_STAGES_NOT_ADMITTED`: G exceeded the elapsed
+limit and the skewed R fixture exceeded it independently. No resident
+Spine comparison was run on this image.
 
 ### Strict ResPR Stage Replay
 

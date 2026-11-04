@@ -293,8 +293,9 @@ graph setup and G; it is not the end-to-end host interval.
 The top-level runner hit a report-return bug after saving the timed
 receipts and analysis. The offline audit reread the original records
 and returned `R_NOT_ADMITTED`: the skewed fixture exceeds the gate
-regardless of that bug. The independent G and resident Spine follow-ups
-did not run on this image. The result does not admit the frozen figures.
+regardless of that bug. The subsequent [independent G screen](G_SCOPE.md#packed-validity-respr-result)
+also failed; no resident Spine comparison ran on this image.
+The result does not admit the frozen figures.
 The [board bundle](respr-packed-nominal-board.tar.gz) preserves the raw
 logs, timestamp and clock records, comparison and offline replay; large
 oracle buffers are omitted.
