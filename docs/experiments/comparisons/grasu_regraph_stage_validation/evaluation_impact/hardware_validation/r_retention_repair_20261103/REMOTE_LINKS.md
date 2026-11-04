@@ -252,6 +252,10 @@ timing result, not a measurement of R or a Spine speedup.
 The initial integrated CC and ResPR tail reports showed violations in the
 450 MHz `hbm_aclk` domain (CC WNS -0.105 ns, 205 failing setup endpoints;
 ResPR WNS -0.042 ns, 15 endpoints). These are not DATA-clock shortfalls.
+The initial bitstream jobs reported automatic HBM derating to 429.7 MHz
+(CC) and 441.6 MHz (ResPR tail), which does not meet this control's
+same-clock acceptance requirement. The initial link artifacts and logs
+remain archived separately from the retry.
 The retries use `aggressive-route-v1` without changing the XOs, HBM
 mapping or clock targets. The final locked timing check still applies.
 All output paths below are relative to the roots given above.
@@ -277,3 +281,24 @@ remain capped at 40 GiB (36 GiB high watermark) with no swap, and the
 128 GiB host reserve remains in force. A queued unit is not necessarily
 running Vivado. Independent R and G board receipts are required for the
 exact returned image before it can enter a resident matrix.
+
+The original CC and ResPR tail board dependencies were withdrawn before
+requesting their runs. The public A4 CC collector is unchanged. The live
+replacement dependencies use the following local receipts:
+
+| Test | Local receipt | Service invocation |
+| --- | --- | --- |
+| CC R, sparse Amazon frontier | `cc-active-pair-physical-v1/queue.json` | `fe0d8a58f6974cbea4f65d6696b7bf0a` |
+| CC R, odd-vertex Amazon frontier | `cc-odd-pair-physical-v1/queue.json` | `ff82acfcddac459fba016ad98d8f1964` |
+| CC G, AU 131K updates | `g-cc-board-physical-v1/results.json` | `6de5ad246c514a7f8ad50c62cc315b78` |
+| CC resident matrix | `cc-singlepass-matrix-physical-v1/matrix.json` | `edbf01af6e9e4841bb50817ad8c28627` |
+| ResPR tail physical R | `tail-follow-physical-v3/results.json` | `50d1ecd2c3f74cd686d21c5640eeaf01` |
+| ResPR tail physical G | `g-tail-physical-v3/results.json` | `70ddaa3c60e042bf80cd831aa9f7274a` |
+| ResPR R19 and Flickr resident screen | `resident-joint-board-v7/results.json` | `6fb1f02cea23421f9ffb902041a925b8` |
+| ResPR remaining seven large workloads | `respr-matrix-v5/results.json` | `6d2b2669487e43ec970d080e8e8cd392` |
+
+The ResPR resident screen accepts only a candidate with both same-image
+stage receipts, and may use either the tail physical retry or the
+source-burst repair. The SSSP R pair's `--completed-reference` pins a
+finished public A4 *build*, not a previously measured reference time.
+Each SSSP fixture still requires one measured execution per arm.
