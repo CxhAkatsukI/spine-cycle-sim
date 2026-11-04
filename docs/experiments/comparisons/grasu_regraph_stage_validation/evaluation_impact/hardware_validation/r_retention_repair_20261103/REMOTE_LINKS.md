@@ -72,3 +72,14 @@ containment with the 128 GiB reserve, and inspects each XO's ABI and HLS
 report before linking. A completed link is still pending local binary
 metadata, timing and source replay before any board test. Retain both
 build logs, but measure only one admitted public image per fixture.
+
+`gr-retention-return-public-a4-cc-20261104-v1.service` (invocation
+`961b075fb0dd492ea5b8113ea765a4ad`) waits for the public CC build and
+writes its progress to `seele-return-v1-public-a4-cc/transfer.json`.
+The return includes the XOs, HLS reports, binary, final timing report
+and raw build logs. The collector verifies source and file identities
+but never programs a board. To use the return as the public CC arm,
+point `--reference-route` at its `returned/` directory and pass
+`--returned-reference SHA256 CAPSULE` to `active_min_pair`. That
+runner re-extracts the local binary metadata and rechecks the kernel
+ABI, target part, HBM mapping and 150 MHz timing before board admission.

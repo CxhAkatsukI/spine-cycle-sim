@@ -88,8 +88,16 @@ def run(args):
         else:
             image, pins = candidate_route(args.candidate_route, args.algorithm)
         report["preflight_xrt_libraries"] = paired_loader(args.reference_host, args.candidate_host)
-        checked = admission.review(args.reference_route, output / "reference_admission",
-                                   topology="a4", algorithm=args.algorithm)
+        returned_reference = getattr(args, "returned_reference", None)
+        if returned_reference:
+            if args.algorithm != "cc":
+                raise ValueError("returned public A4 reference is CC only")
+            digest, capsule = returned_reference
+            checked = admission.review_returned_cc(args.reference_route, Path(capsule), digest,
+                                                   output / "reference_admission")
+        else:
+            checked = admission.review(args.reference_route, output / "reference_admission",
+                                       topology="a4", algorithm=args.algorithm)
         pins += checked["pins"]
         pins += [artifact.identity(item) for item in input_paths(args)]
         offline, expected, oracle_result = active_min.read_offline(args.reference_host, args.algorithm,
@@ -164,6 +172,8 @@ def parse_arguments(argv=None, extend=None):
     parser.add_argument("--bdf", required=True)
     parser.add_argument("--returned-candidate", nargs=4, metavar=("SHA256", "CAPSULE", "XPFM", "PREDECESSOR"),
                         help="treat --candidate-route as a verified remote return instead of a local build")
+    parser.add_argument("--returned-reference", nargs=2, metavar=("SHA256", "CAPSULE"),
+                        help="treat --reference-route as a verified remote public A4 CC return")
     if extend is not None:
         extend(parser)
     arguments = parser.parse_args(argv)

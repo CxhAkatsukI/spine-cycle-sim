@@ -7,8 +7,9 @@ import pytest
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware import artifact
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_build import (
-    configuration, portable_inputs as portable,
+    configuration, portable_inputs as portable, portable_return as returned,
 )
+from test_grasu_continuous_supervisor import INVOCATION, state
 
 
 def write(root, name, text):
@@ -74,3 +75,45 @@ def test_remote_command_keeps_cu_configuration_and_fixed_clock(tmp_path):
         assert "-DLITTLE_KERNEL_NUM=4" in command
         assert "-DBIG_KERNEL_NUM=0" in command
         assert "-I" + str(compiler.parents[3] / "Vitis_HLS/2024.1/include/etc") in command
+
+
+def test_terminal_public_cc_return_replays_and_detects_tampering(frozen, tmp_path, monkeypatch):
+    prior, platform, _, shim = frozen
+    root, attempt, output = [tmp_path / name for name in ("portable", "build", "returned")]
+    portable.prepare(prior, root, shim)
+    capsule = artifact.identity(root / "capsule.json")
+    policy = returned.memory_profiles.select(returned.capsule.POLICY, returned.memory_profiles.SEELE)
+    resources = dict(exit_code=0, stop_reason="process_exit", cleanup_snapshot_error=None,
+                     tree_memory_gib=40, reserve_gib=128, minimum_available_bytes=129 * 2**30)
+    manifest = write(attempt, "manifest.json", json.dumps(dict(configuration="a4", algorithm="cc", clock_mhz=150,
+        commands=portable.commands(root / "source", attempt, configuration.COMPILER, platform))))
+    image = write(attempt, returned.BINARY, "unprogrammed test fixture")
+    write(attempt, "environment.json", json.dumps({"tools": {"v++": {"invocation": str(configuration.COMPILER)}}}))
+    write(attempt, "preflight/results.json", json.dumps(dict(status="PREFLIGHT_PASS_NOT_ROUTED",
+        commands=[dict(label=label, **resources) for label in returned.delivery.LABELS])))
+    xos = [{"abi": {"kernel": name, "xo": artifact.identity(write(attempt, f"xo/{name}.hw.xo", name))},
+            "hls": {"report": artifact.identity(write(attempt, f"compile/{name}/syn/{name}_csynth.xml", name))}}
+           for name in returned.NAMES]
+    result = dict(status=returned.portable_execution.STATUS, errors=[], host="seele", board_programmed=False,
+                  policy=policy, memory_profile=returned.memory_profiles.SEELE, xos=xos,
+                  admission={"admitted": True, "policy": returned.memory_profiles.SEELE,
+                             "observed_peer_host": {"host": "seele", "total_memory_bytes": 502 * 2**30}},
+                  steps=[dict(id=name, **resources) for name in
+                         [*("compile_" + name for name in returned.NAMES), "route"]],
+                  capsule=capsule, manifest=artifact.identity(manifest), xclbin=artifact.identity(image),
+                  pins=[capsule], memory_events_after="oom 0\noom_kill 0\noom_group_kill 0\n")
+    write(attempt, "results.json", json.dumps(result))
+    for name in returned.members(result, attempt):
+        if not (attempt / name).exists():
+            write(attempt, name, "log")
+    write(attempt, "link/reports/imp/impl_1_hw_bb_locked_timing_summary_routed.rpt", "timing")
+    monkeypatch.setattr(returned.socket, "gethostname", lambda: "seele")
+    monkeypatch.setattr(returned, "service_state", lambda _: state("active"))
+    with pytest.raises(ValueError, match="terminal seele"):
+        returned.seal(root, attempt, output, "cc.service", INVOCATION, capsule["sha256"])
+    monkeypatch.setattr(returned, "service_state", lambda _: state())
+    digest = returned.seal(root, attempt, output, "cc.service", INVOCATION, capsule["sha256"])
+    assert returned.verify(output, digest, root)[1] == result
+    write(output, returned.BINARY, "changed")
+    with pytest.raises(ValueError, match="receipt or payload"):
+        returned.verify(output, digest, root)

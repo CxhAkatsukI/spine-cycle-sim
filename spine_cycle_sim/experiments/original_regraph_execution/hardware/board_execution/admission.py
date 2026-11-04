@@ -5,7 +5,7 @@ from pathlib import Path
 
 from spine_cycle_sim.experiments.upstream_controls.execution import run_bounded
 from .. import artifact, checkpoint_run
-from ..source_build import configuration as config, gates, snapshot
+from ..source_build import configuration as config, gates, portable_return, snapshot
 from .preparation import unique
 
 STATUS = "ORIGINAL_R_ROUTED_CLOCK_TOPOLOGY_TIMING_PASS_AWAITING_BOARD"
@@ -76,3 +76,29 @@ def review(route, output, *, topology=config.DEFAULT_TOPOLOGY, review_retained_a
             "status": result["status"], "errors": result["errors"], "original_result_modified": False,
             "scope": "independent full ABI/topology/clock/timing review, not a new implementation"}
     return checked
+
+
+def review_returned_cc(route, capsule, digest, output):
+    _, result, pins = portable_return.verify(route, digest, capsule)
+    for name, recorded in zip(portable_return.NAMES, result["xos"]):
+        local = {
+            "abi": gates.inspect_xo(route / "xo" / (name + ".hw.xo"), name, topology="a4", algorithm="cc"),
+            "hls": gates.inspect_hls(route / "compile" / name, name),
+        }
+        for field, key in (("abi", "xo"), ("hls", "report")):
+            local[field][key] = {**local[field][key], "path": recorded[field][key]["path"]}
+        if local != recorded:
+            raise ValueError("returned public A4 CC ABI or HLS report differs")
+    binary = artifact.identity(route / portable_return.BINARY)
+    metadata = output / "metadata"
+    metadata.mkdir(parents=True, exist_ok=False)
+    utility = artifact.identity(checkpoint_run.UTILITY)
+    extraction = run_bounded(artifact.dump_command(Path(binary["path"]), metadata, checkpoint_run.UTILITY),
+        output, output / "extract", timeout=120, memory_gib=2, reserve_gib=32)
+    if extraction["exit_code"] or extraction["timed_out"]:
+        raise ValueError("returned public A4 CC metadata extraction failed")
+    inspected = gates.inspect_routed(metadata, route / "timing", configuration="a4", algorithm="cc")
+    pins += [utility, *[artifact.identity(path) for path in sorted(metadata.glob("*.json"))]]
+    snapshot.unchanged(pins)
+    return {"status": config.routed_status("a4", algorithm="cc"), "configuration": "a4",
+            "xclbin": binary, "analysis": inspected, "extraction": extraction, "pins": unique(pins)}
