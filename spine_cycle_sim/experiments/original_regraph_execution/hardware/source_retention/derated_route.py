@@ -68,8 +68,10 @@ def admit(args, output, transfer):
         raise ValueError("completed collector and exact routed image required")
     _, parent, pins = replacement_return.verify(args.returned, args.capsule, args.platform,
                                                 receipt["receipt_sha256"])
-    if (parent["production"] != str(args.predecessor.parent)
-            or not (parent.get("mode") == "destination" if args.algorithm == "cc" else "tail_hosts" in parent)):
+    modes = {"cc": "destination", "weighted_sssp": "weighted"}
+    matches = ("tail_hosts" in parent if args.algorithm == "respr"
+               else args.algorithm in modes and parent.get("mode") == modes[args.algorithm])
+    if parent["production"] != str(args.predecessor.parent) or not matches:
         raise ValueError("candidate did not replace the expected production image and algorithm")
     log = args.returned / "route/route.stdout.txt"
     old = bitstream.normalized_topology(bitstream._dump(args.predecessor, output / "predecessor"))

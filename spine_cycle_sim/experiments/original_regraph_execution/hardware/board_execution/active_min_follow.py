@@ -139,6 +139,9 @@ def run(args):
         check_memory()
         report["preflight_xrt_libraries"] = active_min_pair.paired_loader(args.reference_host, args.candidate_host)
         pins = [artifact.identity(path) for path in active_min_pair.input_paths(args)]
+        lower = active_min_pair.lower_clock_options(args)
+        if lower:
+            pins.append(artifact.identity(lower[1]))
         prior = getattr(args, "after_pair", [])
         odd = getattr(args, "odd_fixture", None)
         if odd:

@@ -77,6 +77,53 @@ class ActiveMinCandidateTests(unittest.TestCase):
             record = json.loads((args.output / "results.json").read_text())
             self.assertEqual((record["status"], record["attempts"]), ("FAILED_RETAINED", []))
 
+    def test_lower_clock_sssp_never_reuses_nominal_or_leases_incompatible_route(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            verifier = root / "verify"
+            verifier.touch()
+            args = argparse.Namespace(output=root / "output", algorithm="weighted_sssp", bdf="0000:82:00.1",
+                                      device=0, reference_host=root / "ref", candidate_host=root / "candidate",
+                                      derated_hbm=("445", str(verifier)), board_wait_seconds=30,
+                                      returned_candidate=("digest", "capsule", "platform", "predecessor"),
+                                      retained_reference=("nominal", "digest"))
+            with self.assertRaisesRegex(ValueError, "fresh public control"):
+                pair.lower_clock_options(args)
+            args.retained_reference = None
+            (root / "memory.high").write_text(str(7 * 2**30))
+            with patch.object(pair, "check_memory", return_value=root), patch.dict(pair.os.environ, {}, clear=True), \
+                    patch.object(pair.runtime, "require_clean_environment"), \
+                    patch.object(pair, "derated_candidate", return_value=({"vendor_hbm_mhz": None}, [])), \
+                    patch.object(pair.pair_resources, "admit") as board:
+                result = pair.run(args)
+            board.assert_not_called()
+            self.assertEqual(result["status"], "NO_COMPATIBLE_DERATING_NO_BOARD_RUN")
+            self.assertEqual(result["attempts"], [])
+            self.assertFalse(result["matrix_admitted"])
+
+    def test_repackage_reference_checks_runtime_identity_without_requiring_size_in_board_pin(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reference, verifier = root / "reference.xclbin", root / "verify"
+            reference.write_text("reference")
+            verifier.write_text("verifier")
+
+            def pack(source, tool, target, output):
+                output.mkdir()
+                binary = output / "control.xclbin"
+                binary.write_text("clock-only copy")
+                identity = pair.clocks.identity
+                (output / "package.json").write_text(json.dumps(dict(
+                    status="OFFLINE_VERIFIED_NOT_BOARD_QUALIFIED", requested_hbm_mhz=target,
+                    original={"binary": identity(source)}, derived={"binary": identity(binary)},
+                    verifier=identity(tool))))
+
+            with patch.object(pair.repackage_hbm, "run", side_effect=pack):
+                output = root / "output"
+                image, receipt, checked = pair.repackage_reference(artifact.identity(reference), 445, verifier, output)
+                self.assertEqual((image, receipt, checked), tuple(map(
+                    artifact.identity, (output / "control.xclbin", output / "package.json", verifier))))
+
     def test_retained_reference_requires_exact_receipt_fixture_image_and_oracle(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

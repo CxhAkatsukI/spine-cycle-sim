@@ -6,13 +6,15 @@ import os
 from pathlib import Path
 import re
 import subprocess
+from types import SimpleNamespace
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution import runtime
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import replacement_return
 from spine_cycle_sim.experiments.sharded_k4_stages.board import require_idle_board
 from .. import artifact
 from ..source_build.snapshot import unchanged
-from ..source_retention import clocks
+from ..source_retention import clocks, derated_route, matched_hbm, repackage_hbm
+from ..source_retention.follow import unchanged as verify_return_pins
 from ..source_retention.runtime import check_memory, execute, lease, save
 from . import active_min, active_min_candidate, admission, pair_resources
 
@@ -46,6 +48,50 @@ def returned_route(route, algorithm, parameters, output):
                                                Path(predecessor), output, mode=ROUTE_MODES[algorithm])
     proof = artifact.identity(output / "summary.json")
     return image, [*pins, proof], {"directory": str(route), "parameters": list(parameters), "proof": proof}
+
+
+def lower_clock_options(args):
+    options = getattr(args, "derated_hbm", None)
+    if options is None:
+        return None
+    if (args.algorithm != "weighted_sssp" or (args.device, args.bdf) != (0, "0000:82:00.1")
+            or not 1 <= getattr(args, "board_wait_seconds", 0) <= 21600
+            or getattr(args, "retained_reference", None) or getattr(args, "returned_reference", None)
+            or not (getattr(args, "returned_candidate", None) or getattr(args, "pending_return_candidate", None))):
+        raise ValueError("lower-clock SSSP requires a returned candidate, fresh public control and bounded card 0 lease")
+    target, verifier = options
+    target = int(target)
+    matched_hbm.validate_profile([150, 500, target, 0], target)
+    return target, Path(verifier).resolve(strict=True)
+
+
+def derated_candidate(args, output, target):
+    digest, capsule, platform, predecessor = args.returned_candidate
+    transfer = artifact.identity(args.candidate_route.parent / "transfer.json")
+    if json.loads(Path(transfer["path"]).read_text())["receipt_sha256"] != digest:
+        raise ValueError("sealed remote return digest differs from the collector")
+    inputs = SimpleNamespace(returned=args.candidate_route, capsule=Path(capsule), platform=Path(platform),
+                             predecessor=Path(predecessor), algorithm=args.algorithm, hbm_mhz=target)
+    _, route = derated_route.admit(inputs, output, transfer)
+    pins = [transfer, *route["source_pins"], route["image"], route["link_log"],
+            route["nominal_timing_report"], route["predecessor"]]
+    verify_return_pins(pins)
+    return route, [{key: pin[key] for key in ("path", "sha256")} for pin in pins]
+
+
+def repackage_reference(reference, target, verifier, output):
+    verifier_pin = artifact.identity(verifier)
+    repackage_hbm.run(reference["path"], verifier, target, output)
+    receipt = artifact.identity(output / "package.json")
+    packed = json.loads(Path(receipt["path"]).read_text())
+    binary = artifact.identity(output / "control.xclbin")
+    observations = (packed["original"]["binary"], packed["derived"]["binary"], packed["verifier"])
+    if (packed["status"] != "OFFLINE_VERIFIED_NOT_BOARD_QUALIFIED"
+            or any(any(observed.get(key) != value for key, value in pin.items())
+                   for observed, pin in zip(observations, (reference, binary, verifier_pin)))
+            or packed["requested_hbm_mhz"] != target):
+        raise ValueError("clock-only public control receipt differs")
+    return binary, receipt, verifier_pin
 
 
 def replay_returned_route(route, algorithm, record, evidence_directory):
@@ -130,6 +176,7 @@ def run(args):
               "attempts": [], "arms": {}, "retention_gate_pass": False, "convergence_measured": False}
     save(path, report)
     try:
+        lower = lower_clock_options(args)
         group = check_memory()
         if int((group / "memory.high").read_text()) > 7 * 2**30:
             raise MemoryError("paired active-min board run requires memory.high at most 7 GiB")
@@ -139,7 +186,16 @@ def run(args):
                or name == "XCL_DEVICE_INDEX" for name in os.environ):
             raise ValueError("inherited board or candidate runtime override is forbidden")
         returned = getattr(args, "returned_candidate", None)
-        if returned:
+        if lower:
+            target, verifier = lower
+            report.update(target=target, matrix_admitted=False)
+            route, pins = derated_candidate(args, output, target)
+            report["derated_route"] = route
+            if not route["vendor_hbm_mhz"]:
+                report["status"] = "NO_COMPATIBLE_DERATING_NO_BOARD_RUN"
+                return report
+            image = route["image"]
+        elif returned:
             image, pins, report["returned_candidate"] = returned_route(
                 args.candidate_route, args.algorithm, returned, output / "candidate_admission")
         else:
@@ -156,6 +212,12 @@ def run(args):
             checked = admission.review(args.reference_route, output / "reference_admission",
                                        topology="a4", algorithm=args.algorithm)
         pins += checked["pins"]
+        reference_image = checked["xclbin"]
+        if lower:
+            reference_image, receipt, verifier_pin = repackage_reference(
+                reference_image, target, verifier, output / "reference_repackage")
+            report["reference_package"] = receipt
+            pins += [reference_image, receipt, verifier_pin]
         pins += [artifact.identity(item) for item in input_paths(args)]
         offline, expected, oracle_result = active_min.read_offline(args.reference_host, args.algorithm,
                                                                    args.inputs, output)
@@ -164,14 +226,14 @@ def run(args):
         unchanged(pins)
         commands = {
             "reference": [args.reference_host, "board", args.algorithm, args.inputs, output / "reference",
-                          checked["xclbin"]["path"], args.device],
+                          reference_image["path"], args.device],
             "candidate": ["/usr/bin/env", f"XCL_DEVICE_INDEX={args.device}", f"GRASU_REGRAPH_EXPECT_BDF={args.bdf}",
                           args.candidate_host, "--active-min-once", image["path"], args.inputs,
                           expected["path"], output / "candidate"],
         }
         retained = getattr(args, "retained_reference", None)
         arms_to_run = ("reference", "candidate")
-        clock_pins = {"reference": checked["xclbin"], "candidate": image}
+        clock_pins = {"reference": reference_image, "candidate": image}
         if retained:
             receipt, digest = retained
             row, pin = retained_reference(Path(receipt).absolute(), digest, args, checked["xclbin"], offline, expected)
@@ -202,12 +264,17 @@ def run(args):
                 if arm == "candidate" and xrt_identity(environment) != xrt_identity(report["arms"]["reference"]["runtime"]):
                     raise ValueError("paired board hosts resolve different XRT tool or runtime libraries")
                 unchanged(pins)
-                report["attempts"].append(arm)
-                save(path, report)
                 row = {"runtime": environment}
                 report["arms"][arm] = row
+                if lower:
+                    row["prepared"] = matched_hbm.prepare(clock_pins[arm]["path"], images[arm], target,
+                                                          output, arm, fd, render, args.bdf)
+                report["attempts"].append(arm)
+                save(path, report)
                 row["execution"] = execute(commands[arm], output, arm, fd, render, args.bdf)
                 row["clock_evidence"] = clocks.capture(args.bdf, images[arm], output, arm)
+                if lower:
+                    matched_hbm.validate_after(row["prepared"], row["clock_evidence"], target)
                 if arm == "reference":
                     row["analysis"] = active_min.inspect(output / arm, offline, expected, args.inputs, args.bdf)
                 else:
@@ -220,9 +287,10 @@ def run(args):
         comparison = active_min_candidate.compare(reference["analysis"], candidate["analysis"],
                                                   clocks.replay(reference["clock_evidence"]),
                                                   clocks.replay(candidate["clock_evidence"]))
-        report.update(comparison=comparison, retention_gate_pass=comparison["retention_gate_pass"],
-                      status=("PAIRED_ACTIVE_MIN_R_GATE_PASS" if comparison["retention_gate_pass"]
-                              else "PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED"))
+        passed = comparison["retention_gate_pass"]
+        status = (("PAIRED_LOWER_CLOCK_ROW_PASS" if passed else "PAIRED_LOWER_CLOCK_ROW_GATE_FAILED") if lower
+                  else ("PAIRED_ACTIVE_MIN_R_GATE_PASS" if passed else "PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED"))
+        report.update(comparison=comparison, retention_gate_pass=passed, status=status)
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
         raise
@@ -244,6 +312,8 @@ def parse_arguments(argv=None, extend=None):
                         help="treat --reference-route as a verified remote public A4 CC return")
     parser.add_argument("--retained-reference", nargs=2, metavar=("PAIR_RESULTS", "SHA256"),
                         help="replay the verified reference from a frozen pair; run only the changed candidate")
+    parser.add_argument("--derated-hbm", nargs=2, metavar=("MHZ", "VERIFIER"),
+                        help="SSSP diagnostic only: require vendor HBM derating and clock-only public control")
     if extend is not None:
         extend(parser)
     arguments = parser.parse_args(argv)
