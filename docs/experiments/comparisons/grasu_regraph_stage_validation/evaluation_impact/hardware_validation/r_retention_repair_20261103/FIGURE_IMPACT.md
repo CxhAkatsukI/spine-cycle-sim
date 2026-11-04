@@ -105,8 +105,14 @@ sum, including 0.459553 ms for maintenance launch through completion. The
 device readback exactly matched all 391,359 expected weighted edges outside
 the timer. The raw receipt on trifoliate is
 `/data/chuxiao/checks/source-retention-repair-20261104/fig8-spine-au512-board-v1/results.json`.
-This qualifies the Spine timer and checker, not a speedup: the matched G
-board run is pending. Do not mix either native arm with the older
+The matching AU 512 G run is queued by
+`source_retention.figure8_au_pair`. It replays the independent G gate on
+the returned SSSP image, reuses the checked Spine run, and runs G once
+on the same card and primary clock. It records a ratio only after G's
+PMA readback and the disjoint setup and update timers validate. Its
+receipt is `fig8-au512-pair-return-v1/results.json` under the same check
+root. This is one native setup comparison, not the full seven-case figure.
+Do not mix either native arm with the older
 maintenance-only or modeled-setup results.
 
 ## Figure 7: The Smallest Observed Margins
