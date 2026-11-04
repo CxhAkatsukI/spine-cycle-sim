@@ -272,7 +272,24 @@ The resulting binary is `spine-cc-warm-balanced-host-v2/host_cc_repair`
 The AU and R19 frozen-input offline preflights both passed: AU has no
 hot vertices; R19 has 23,913 hot vertices and 21,343,521 hot edges. Both
 reserve a 16-record update margin. The two checks ran sequentially with
-a 10-GiB hard cap and peaked at 5.6 GiB. For SO, PK, LJ and LJ08 the
+a 10-GiB hard cap and peaked at 5.6 GiB. The same balanced warm host also
+passed the offline check for the frozen SU (567,316 vertices, 1,061,248
+edges) and WK (1,140,149 vertices, 2,032,558 edges) inputs. Both used
+zero hot vertices and a 16-record update margin. The two checks ran
+sequentially under a 2-GiB hard cap and 32-GiB host reserve; the service
+peaked at 416 MiB with no memory events.
+
+The SU/WK input and layout receipts are
+`spine-cc-warm-balanced-small-inputs-v1/results.json` and
+`spine-cc-warm-balanced-small-layout-v1/results.json` under the local
+checks directory. They pin the frozen sources, the split inputs, the
+new host and the exact layout commands. To reproduce, use
+`source_retention.spine_cc_layout --datasets su wk` for input preparation,
+then add `--host <balanced-warm-host> --inputs <preparation-output> --memory-gib 2`
+for the layout check, with matching systemd memory limits. Neither
+receipt substitutes for the older matrix's pinned host or a board result.
+
+For SO, PK, LJ and LJ08 the
 offline campaign is `spine-cc-warm-balanced-large-layout-20261105-v1.service`
 (invocation `8f1dc3e65e124de6af7675fa138bdac5`) with its journal at
 `spine-cc-warm-balanced-large-layout-v1/results.json`; it starts only

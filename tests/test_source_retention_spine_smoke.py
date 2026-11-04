@@ -116,6 +116,14 @@ class SpineSmokeTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 spine_cc_layout.wait_for_inputs(root, ["so", "pk"], 0)
 
+    def test_layout_can_request_small_cap_but_preparation_cannot_raise_it(self):
+        argv = ["--matrix", "matrix", "--output", "output", "--datasets", "su", "wk"]
+        self.assertIsNone(spine_cc_layout.arguments(argv).memory_gib)
+        host = ["--host", "host", "--inputs", "prepared"]
+        self.assertEqual(spine_cc_layout.arguments(argv + host + ["--memory-gib", "2"]).memory_gib, 2)
+        with self.assertRaises(SystemExit):
+            spine_cc_layout.arguments(argv + ["--memory-gib", "24"])
+
     def check_memory_failure(self, *, wait=0, decisions=None, times=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

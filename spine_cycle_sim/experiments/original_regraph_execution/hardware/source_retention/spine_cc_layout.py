@@ -71,13 +71,13 @@ def wait_for_inputs(inputs, datasets, deadline):
 def campaign(args):
     args.output.mkdir(parents=True, exist_ok=False)
     group = containment.current()
-    memory = 2 if args.host is None else 24
+    memory = args.memory_gib or (2 if args.host is None else 24)
     guard = containment.verify(group, memory)
     if int(guard["limits"]["memory.max"]) != memory * containment.GIB:
         raise ValueError("service memory.max must equal the offline budget")
     host = identity(args.host) if args.host else None
     report = {"status": "WAITING_FOR_INPUTS" if host else "WAITING_FOR_MEMORY",
-              "performance_admission": False, "host": host, "rows": {}}
+              "performance_admission": False, "host": host, "memory_budget_gib": memory, "rows": {}}
     report_path = args.output / "results.json"
     save(report_path, report)
     reservation = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
@@ -131,7 +131,7 @@ def campaign(args):
         save(report_path, report)
 
 
-if __name__ == "__main__":
+def arguments(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("matrix", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
@@ -139,10 +139,18 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument("--host", type=Path)
     parser.add_argument("--inputs", type=Path)
+    parser.add_argument("--memory-gib", type=int, choices=(2, 24),
+                        help="must match the service cap; defaults to 2 for preparation and 24 for layout")
     parser.add_argument("--wait-seconds", type=int, default=0)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if bool(args.host) != bool(args.inputs) or len(set(args.datasets)) != len(args.datasets):
         parser.error("provide host and prepared inputs together, and unique datasets")
+    if args.host is None and args.memory_gib == 24:
+        parser.error("input preparation requires a 2-GiB cap")
     if not 0 <= args.wait_seconds <= 86400:
         parser.error("wait must be between zero and 86400 seconds")
-    campaign(args)
+    return args
+
+
+if __name__ == "__main__":
+    campaign(arguments())
