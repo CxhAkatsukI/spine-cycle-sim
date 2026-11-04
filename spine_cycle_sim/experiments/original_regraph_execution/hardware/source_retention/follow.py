@@ -10,7 +10,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
     route_finished, runner_pins, service_state,
 )
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.tail_publication import host_pair
-from . import analysis, checkpoint, study
+from . import analysis, checkpoint, returned_route, study
 from .runtime import check_memory, identity, save
 
 
@@ -41,6 +41,7 @@ def control(before, route, output):
     args = argparse.Namespace(**{key: Path(pin["path"]) for key, pin in report["pins"].items()},
                               r_inputs=roots.pop(), output=output, device=report["device"],
                               bdf=report["bdf"], stages=["R"], r_single_run=True)
+    args.r_predecessor = args.r_current
     args.r_current = route / "candidate.hw.xclbin"
     return args, pins
 
@@ -63,7 +64,7 @@ def matched_hosts(args, route_manifest, hosts):
 
 
 def run(before, route, g_results, hosts, production, output, *, unit, invocation,
-        maximum_wait=21600, poll_seconds=30):
+        maximum_wait=21600, poll_seconds=30, returned_candidate=None):
     if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", unit)
             or not re.fullmatch(r"[0-9a-f]{32}", invocation)
             or type(maximum_wait) is not int or not 1 <= maximum_wait <= 43200
@@ -79,6 +80,7 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
     try:
         check_memory()
         args, pins = control(before, route, output / "board-once")
+        predecessor = args.r_predecessor
         route_file = route / "manifest.json"
         route_manifest = json.loads(route_file.read_text())
         pins += matched_hosts(args, route_manifest, hosts)
@@ -99,14 +101,22 @@ def run(before, route, g_results, hosts, production, output, *, unit, invocation
             if report["waited_seconds"] >= maximum_wait:
                 raise TimeoutError("R repair route wait expired")
             time.sleep(min(poll_seconds, maximum_wait - report["waited_seconds"]))
-        execution = route / "execution/execution.json"
-        routed = json.loads(execution.read_text())
-        if (routed["status"] != "LINK_PASS_AWAITING_TIMING_AND_BOARD"
-                or Path(routed["xclbin"]["path"]) != args.r_current):
-            raise ValueError("route exit lacks a matching completed hardware image")
-        unchanged([routed["xclbin"]])
+        if returned_candidate:
+            returned, capsule, platform = returned_candidate
+            args.r_current, image, proof = returned_route.admit(
+                route, returned, capsule, platform, predecessor, output / "returned-admission")
+            pins += [image, proof]
+            report["returned_admission"] = proof
+            args.board_wait_seconds = 21600
+        else:
+            execution = route / "execution/execution.json"
+            routed = json.loads(execution.read_text())
+            if (routed["status"] != "LINK_PASS_AWAITING_TIMING_AND_BOARD"
+                    or Path(routed["xclbin"]["path"]) != args.r_current):
+                raise ValueError("route exit lacks a matching completed hardware image")
+            pins += [identity(execution), routed["xclbin"]]
+        unchanged(pins)
         unchanged(route_manifest["pins"])
-        pins += [identity(execution), routed["xclbin"]]
         report.update(status="SCREENING_R_ONCE", board_requested=True)
         write()
         study.run(args)
@@ -136,7 +146,10 @@ if __name__ == "__main__":
     parser.add_argument("--unit", required=True)
     parser.add_argument("--invocation", required=True)
     parser.add_argument("--maximum-wait", type=int, default=21600)
+    parser.add_argument("--returned-candidate", type=Path, nargs=3, metavar=("RETURNED", "CAPSULE", "XPFM"))
     args = parser.parse_args()
     print(run(*(getattr(args, name).resolve() for name in
                 ("before", "route", "g_results", "hosts", "production", "output")),
-              unit=args.unit, invocation=args.invocation, maximum_wait=args.maximum_wait)["status"], flush=True)
+              unit=args.unit, invocation=args.invocation, maximum_wait=args.maximum_wait,
+              returned_candidate=[p.resolve() for p in args.returned_candidate] if args.returned_candidate else None
+              )["status"], flush=True)

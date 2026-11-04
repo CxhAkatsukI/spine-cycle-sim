@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 import time
 
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import clocks
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import pair_resources
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import clocks, returned_route
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.analysis import (
     profiled_runs, records, summarize,
 )
@@ -46,24 +47,29 @@ def wait_for_image(route, r_report, timeout):
         if remaining <= 0:
             raise TimeoutError("bounded wait for the R screen expired")
         time.sleep(min(30, remaining))
-    execution = route / "execution/execution.json"
-    routed = json.loads(execution.read_text())
-    image = route / "candidate.hw.xclbin"
-    if (routed["status"] != "LINK_PASS_AWAITING_TIMING_AND_BOARD"
-            or routed["xclbin"]["path"] != str(image)
-            or routed["xclbin"] not in screen["pins"]
-            or identity(execution) not in screen["pins"]):
-        raise ValueError("R did not screen this exact completed route")
-    unchanged([routed["xclbin"], screen["analysis"], *json.loads((route / "manifest.json").read_text())["pins"]])
+    if proof := screen.get("returned_admission"):
+        unchanged([proof])
+        if proof not in screen["pins"]:
+            raise ValueError("returned route admission was not pinned by the R screen")
+        image, image_pin, route_pins = returned_route.replay(route, screen, proof)
+    else:
+        execution = route / "execution/execution.json"
+        routed = json.loads(execution.read_text())
+        image = route / "candidate.hw.xclbin"
+        image_pin = routed["xclbin"]
+        route_pins = [identity(execution), image_pin]
+        if (routed["status"] != "LINK_PASS_AWAITING_TIMING_AND_BOARD"
+                or image_pin["path"] != str(image) or any(pin not in screen["pins"] for pin in route_pins)):
+            raise ValueError("R did not screen this exact completed route")
+    unchanged([*route_pins, screen["analysis"], *json.loads((route / "manifest.json").read_text())["pins"]])
     board_report = r_report.parent / "board-once/results.json"
     board = json.loads(board_report.read_text())
     board_image = board["pins"]["r_current"]
     if (board["bdf"] != BDF or board["device"] != DEVICE
-            or any(board_image[key] != routed["xclbin"][key] for key in ("path", "sha256"))):
+            or any(board_image[key] != image_pin[key] for key in ("path", "sha256"))):
         raise ValueError("candidate image or board differs from the R screen")
     unchanged([board_image])
-    return image, screen["status"], [identity(r_report), identity(execution), identity(board_report),
-                                     routed["xclbin"], screen["analysis"]]
+    return image, screen["status"], [identity(r_report), identity(board_report), screen["analysis"], *route_pins]
 
 
 def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
@@ -118,7 +124,14 @@ def run(reference, host_dir, route, r_report, output, *, wait_seconds=0):
                    "GRASU_SHARDED_PREMIGRATE_INPUTS=1", "GRASU_SHARDED_METADATA_REPLICAS=4",
                    "GRASU_SHARDED_EVENT_TRACE=0",
                    binary, "--update-only", image, graph, oracle]
-        with lease(DEVICE, BDF) as (node, fd):
+        def admission_state(status, memory):
+            report.update(status=status, admission_memory=memory)
+            save(result, report)
+
+        returned = json.loads(r_report.read_text()).get("returned_admission") in r_pins
+        board = (pair_resources.admit(DEVICE, BDF, group, 21600, admission_state)
+                 if returned else lease(DEVICE, BDF))
+        with board as (node, fd):
             report.update(status="RUNNING_CANDIDATE", board_launch_attempted=True,
                           command=list(map(str, command)))
             save(result, report)

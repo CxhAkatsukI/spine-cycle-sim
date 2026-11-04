@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from ..board_execution import pair_resources
 from .runtime import check_memory, execute, identity, lease, save
 from .preflight import duplicate_edges
 from . import clocks
@@ -35,8 +36,16 @@ def run(args):
                             "threshold": 0, "old_rank": 0, "old_residual": 0, "rounds": 1,
                             "candidate": "existing routed ResPR correction mode; residual equals gather sum"}}
     save(output / "results.json", report)
+
+    def admission_state(status, memory):
+        report.update(status=status, admission_memory=memory)
+        save(output / "results.json", report)
+
     try:
-        with lease(args.device, args.bdf) as (node, fd):
+        wait = getattr(args, "board_wait_seconds", 0)
+        board = (pair_resources.admit(args.device, args.bdf, group, wait, admission_state)
+                 if wait else lease(args.device, args.bdf))
+        with board as (node, fd):
             images = {arm: clocks.image(getattr(args, "r_" + arm), output, "r_" + arm)
                       for arm in ("reference", "current")} if "R" in args.stages else {}
             report["r_image_metadata"] = images

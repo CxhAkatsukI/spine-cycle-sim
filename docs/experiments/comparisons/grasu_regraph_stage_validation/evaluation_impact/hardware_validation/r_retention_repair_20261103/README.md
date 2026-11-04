@@ -306,6 +306,17 @@ pass on this exact image, board, and actual clocks; it does not run a
 full matrix. The two board reports are `g-tail-board-v1/results.json`
 and `resident-tail-board-v1/results.json` under the same check directory.
 
+The local tail link stopped at memory admission without starting a board
+measurement. A separate, sealed return of the same plan can be consumed by
+`source_retention.follow --returned-candidate RETURNED CAPSULE XPFM`.
+The follower verifies the completed collector, local plan, source pins, routed
+timing and nominal 150-MHz topology before requesting the two one-shot R pairs.
+The unchanged local plan remains the input to the native G runner; it checks
+the returned admission against the raw R report's exact loaded image. An
+accepted link is not a performance result. The remote-route R and G outputs
+are kept separately from the local attempt under `tail-follow-seele-v1/`
+and `g-tail-seele-v1/`.
+
 ### Timeout Recovery
 
 The preceding production ResPR link took 5 h 49 min even with a seeded
