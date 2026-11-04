@@ -57,6 +57,49 @@ def test_spine_follow_reuses_only_a_matching_verified_anchor(tmp_path, monkeypat
         assert follow.replay_prior(prior, matrix.ANCHOR)[1]["arms"] == evidence
 
 
+@pytest.mark.parametrize("mutation", [None, "bdf", "timer", "ratio", "gate"])
+def test_spine_follow_same_card_replays_qualified_pair(tmp_path, monkeypatch, mutation):
+    path = tmp_path / "pinned"
+    path.write_text("evidence")
+    pin = matrix.identity(path)
+    case = {"native_g_input": pin}
+    hosts = dict(spine=pin, gr=pin)
+    bdf = "0000:82:00.1"
+    board = (0, bdf)
+    clock = dict(bdf=bdf, uuid="id", binary=pin, driver_reported_mhz=[150, 500, 450, 0])
+    gate = dict(reference=pin, candidate_clock=clock)
+    commands = {
+        "spine": matrix.spine_command(path, path, path, board=board),
+        "gr": matrix.au.gr_command(path, path, path, path, board=board),
+    }
+    arms = {arm: dict(run=dict(command=matrix.AFFINITY + list(map(str, cmd)), stderr=pin),
+                      timer=dict(setup_inclusive_ns=100), clock_evidence=dict(clock))
+            for arm, cmd in commands.items()}
+    arms["gr"]["pma_oracle"] = pin
+    dataset, updates = matrix.ANCHOR
+    row = dict(dataset=dataset, updates=updates, input=pin, status="MEASURED_SETUP_ONLY",
+               attempts=["spine", "gr"], arms=arms, speedup_gr_over_spine=1.0)
+    prior = dict(row=row, hosts=hosts, bdf=bdf, spine_image=pin, stage={},
+                 baseline_g=gate, xrt_libraries={})
+    monkeypatch.setattr(follow.clocks, "replay", lambda value: value)
+    monkeypatch.setattr(follow.qualified, "qualified_g", lambda *_: (gate, pin))
+    monkeypatch.setattr(follow.au, "pma_oracle", lambda _: None)
+    monkeypatch.setattr(matrix, "inspect", lambda *_, **__: dict(setup_inclusive_ns=100))
+    if mutation == "bdf":
+        arms["spine"]["clock_evidence"]["bdf"] = matrix.BDF
+    elif mutation == "timer":
+        arms["gr"]["timer"]["setup_inclusive_ns"] += 1
+    elif mutation == "ratio":
+        row["speedup_gr_over_spine"] = 0.5
+    elif mutation == "gate":
+        prior["baseline_g"] = {**gate, "reference": {**pin, "sha256": "different"}}
+    if mutation is None:
+        assert follow.replay_qualified(prior, matrix.ANCHOR, case)[1:3] == (row, hosts)
+    else:
+        with pytest.raises(ValueError, match="same-card"):
+            follow.replay_qualified(prior, matrix.ANCHOR, case)
+
+
 def anchor_state(**changes):
     return dict({"LoadState": "loaded", "InvocationID": "1" * 32, "MainPID": "100",
                  "Result": "success", "ExecMainStatus": "0", "ActiveState": "active",

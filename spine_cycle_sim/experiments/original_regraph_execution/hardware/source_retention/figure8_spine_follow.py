@@ -8,7 +8,8 @@ import time
 from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import board_memory
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import containment
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
-from . import clocks, figure8_au_pair as au, figure8_matrix as matrix
+from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.active_min_candidate import BOARDS
+from . import clocks, figure8_au_pair as au, figure8_matrix as matrix, figure8_qualified_pair as qualified
 from .active_min_admission import checked
 from .runtime import check_memory, identity, save
 
@@ -20,6 +21,8 @@ def replay_prior(prior, key):
     manifest = prior["manifest"]
     cases = matrix.load_cases(manifest, manifest["sha256"])
     case = cases[key]
+    if prior.get("status") == "MEASURED_QUALIFIED_AU512_SETUP_ONLY":
+        return replay_qualified(prior, key, case)
     hosts, reference, libraries, anchor_timers, anchor_arms = matrix.load_anchor(
         prior["anchor"], cases[matrix.ANCHOR])
     old, = [row for row in prior["cases"] if (row["dataset"], row["updates"]) == key]
@@ -51,13 +54,57 @@ def replay_prior(prior, key):
     return case, old, hosts, reference, libraries
 
 
+def replay_qualified(prior, key, case):
+    old, hosts, bdf = prior["row"], prior["hosts"], prior["bdf"]
+    if (key != matrix.ANCHOR or bdf not in BOARDS or
+            (old["dataset"], old["updates"]) != key or old["input"] != case["native_g_input"] or
+            old["status"] != "MEASURED_SETUP_ONLY" or old["attempts"] != ["spine", "gr"] or
+            set(old["arms"]) != {"spine", "gr"}):
+        raise ValueError("expected the exact same-card AU/512 one-shot pair")
+
+    board = BOARDS[bdf], bdf
+    graph = checked(old["input"])
+    for pin in (*hosts.values(), prior["spine_image"]):
+        checked(pin)
+    arms = old["arms"]
+    reference = {arm: clocks.replay(value["clock_evidence"]) for arm, value in arms.items()}
+    gate, _ = qualified.qualified_g(prior["stage"], Path(prior["baseline_g"]["reference"]["path"]))
+    if gate != prior["baseline_g"] or prior["spine_image"] != reference["spine"]["binary"]:
+        raise ValueError("same-card baseline or Spine image provenance mismatch")
+    matrix.same_clock(reference["gr"], gate["candidate_clock"], bdf=bdf)
+    if (reference["spine"]["bdf"] != bdf or
+            reference["spine"]["driver_reported_mhz"] != reference["gr"]["driver_reported_mhz"]):
+        raise ValueError("same-card replay must retain the measured clocks")
+    oracle = arms["gr"]["pma_oracle"]
+    au.pma_oracle(oracle)
+    commands = {
+        "spine": matrix.spine_command(hosts["spine"]["path"], prior["spine_image"]["path"],
+                                       graph, board=board),
+        "gr": au.gr_command(hosts["gr"]["path"], reference["gr"]["binary"]["path"], graph,
+                            oracle["path"], board=board),
+    }
+    for arm, value in arms.items():
+        run = value["run"]
+        checked(run["stderr"])
+        if (run["command"] != matrix.AFFINITY + list(map(str, commands[arm])) or
+                value["timer"] != matrix.inspect(run, arm, case, bdf=bdf)):
+            raise ValueError(f"same-card {arm} command or timer differs from raw evidence")
+    if old["speedup_gr_over_spine"] != matrix.ratio({arm: value["timer"] for arm, value in arms.items()}):
+        raise ValueError("same-card speedup differs from raw evidence")
+    return case, old, hosts, reference, prior["xrt_libraries"]
+
+
 def run(args):
     predecessor = identity(args.prior)
     if predecessor["sha256"] != args.prior_sha256 or not 1 <= args.wait_seconds <= 3600:
         raise ValueError("predecessor identity or wait bound is invalid")
     key = args.dataset, args.updates
-    case, old, hosts, reference, libraries = replay_prior(json.loads(checked(predecessor).read_text()), key)
+    prior = json.loads(checked(predecessor).read_text())
+    case, old, hosts, reference, libraries = replay_prior(prior, key)
     new_host = identity(args.spine_host)
+    if ((prior["status"] == "MEASURED_QUALIFIED_AU512_SETUP_ONLY" or args.spine_host_sha256)
+            and new_host["sha256"] != args.spine_host_sha256):
+        raise ValueError("changed Spine host must match the pinned SHA-256")
     if new_host["sha256"] == hosts["spine"]["sha256"]:
         raise ValueError("Spine executable did not change; refusing to rerun")
     memory = board_memory.policy()
@@ -69,7 +116,9 @@ def run(args):
                arms={"gr": old["arms"]["gr"]})
     report = dict(row=row, predecessor=predecessor, previous_spine_host=hosts["spine"],
                   spine_host=new_host, previous_spine=old["arms"]["spine"],
-                  boundary=au.BOUNDARY, runner=identity(__file__), memory=memory)
+                  boundary=au.BOUNDARY, runner=identity(__file__), memory=memory,
+                  requested_runs_per_arm=1, warmups=0)
+    bdf = reference["spine"]["bdf"]
 
     def checkpoint():
         save(args.output / "results.json", report)
@@ -77,7 +126,7 @@ def run(args):
     try:
         matrix.measure(case, row, args.output, time.monotonic() + args.wait_seconds, reservation,
                        memory, {**hosts, "spine": new_host}, reference, libraries, checkpoint,
-                       arms=("spine",))
+                       arms=("spine",), board=(BOARDS[bdf], bdf))
         checked(new_host)
         row["status"] = "MEASURED_HOST_REVISION_SETUP_ONLY"
     except BaseException as error:
@@ -96,6 +145,7 @@ if __name__ == "__main__":
     for option in ("prior", "output", "spine-host"):
         parser.add_argument("--" + option, required=True, type=lambda path: Path(path).resolve())
     parser.add_argument("--prior-sha256", required=True)
+    parser.add_argument("--spine-host-sha256")
     parser.add_argument("--dataset", required=True)
     parser.add_argument("--updates", required=True, type=int)
     parser.add_argument("--wait-seconds", type=int, default=300)
