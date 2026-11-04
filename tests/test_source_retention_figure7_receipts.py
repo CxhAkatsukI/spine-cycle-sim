@@ -117,6 +117,27 @@ class Figure7ReceiptsTest(unittest.TestCase):
         self.assertEqual(row["status"], "RECEIPT_REJECTED")
         self.assertNotIn("gr_over_spine", row)
 
+    def test_sssp_cross_topology_evidence_is_exported_for_the_au_screen(self):
+        child, gates, odd = self.pair("weighted_sssp", "AU")
+        comparison = {"retention_gate_pass": True, "candidate_over_reference": 1.1}
+        au_r = self.receipt("au-r", {"algorithm": "weighted_sssp", "comparison": comparison})
+        stage = dict(report=au_r, comparison=comparison, candidate_clock=child["arms"]["gr"]["clock"])
+        child["additional_r_gates"] = {"au_slice": stage}
+        pin = self.receipt("child", child)
+        save(self.paths["sssp_au"], dict(status=figure.MEASURED, requested_pair=True, result=pin,
+                                        stages={"au_slice": {"ready": True, "receipt": au_r}}))
+        matrix = dict(status="MEASURED", cases={}, baseline=gates, odd_r=odd, au_result=pin,
+                      require_au_topology=True, au_slice_r=stage)
+        save(self.paths["sssp_matrix"], matrix)
+        row = figure.export(self.paths)["rows"][0]
+        self.assertEqual(row["r_validation_scope"], "amazon_and_askubuntu")
+        self.assertEqual(row["au_topology_stage"], au_r)
+        self.assertEqual(row["stage_ratios"]["r_ratios"]["au_slice"], 1.1)
+        save(self.paths["sssp_matrix"], dict(matrix, au_slice_r=dict(stage, report=pin)))
+        row = figure.export(self.paths)["rows"][0]
+        self.assertEqual(row["status"], "RECEIPT_REJECTED")
+        self.assertNotIn("gr_over_spine", row)
+
     def test_complete_matrices_replace_separate_au_and_r19_screens(self):
         paths = {key: path for key, path in self.paths.items() if key not in figure.OPTIONAL_SCREENS}
         for role, algorithm, dataset in (("sssp_matrix", "weighted_sssp", "AU"), ("cc_matrix", "cc", "R19")):

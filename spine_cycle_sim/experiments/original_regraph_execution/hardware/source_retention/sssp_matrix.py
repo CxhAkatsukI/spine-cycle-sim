@@ -8,6 +8,8 @@ import time
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import (
     route_finished, runner_pins, service_state,
 )
+from .. import artifact
+from ..board_execution import active_min, active_min_follow
 from . import active_min_admission, active_min_resident as resident, resident_matrix, sssp_continuation
 from . import active_min_resident_follow as follow
 from .follow import unchanged
@@ -37,6 +39,36 @@ def admitted_au(args, gate):
     return pins
 
 
+def admitted_au_topology(args, au_pins, gate):
+    queue, pair = (json.loads(Path(pin["path"]).read_text()) for pin in au_pins)
+    unchanged(au_pins)
+    stages, decisions = queue["stages"], pair["additional_r_gates"]
+    if set(stages) != {"g", "r", *follow.ADDITIONAL_R} or set(decisions) != set(follow.ADDITIONAL_R):
+        raise ValueError("AU resident screen must bind both additional R controls")
+    odd_job = stages["amazon_odd"]
+    if (odd_job["unit"], odd_job["invocation"], Path(odd_job["report_path"]), Path(odd_job["inputs"])) != (
+            args.odd_unit, args.odd_invocation, args.odd_output / "pair/results.json", args.odd_inputs):
+        raise ValueError("AU resident screen did not use the declared odd-frontier R producer")
+    input_pins = [artifact.identity(args.odd_inputs / f"{name}.u32le")
+                  for name in active_min.INPUTS + active_min.STATE[ALGORITHM]]
+    fixture = active_min_follow.fixture_pin(args, input_pins)
+    if any(not stages[key]["ready"] or stages[key]["receipt"] != decision["report"]
+           for key, decision in (("g", gate["g"]), ("r", gate["r"]))):
+        raise ValueError("AU resident screen used different G or Amazon R receipts")
+    pins = [fixture, *input_pins]
+    for label, geometry in follow.ADDITIONAL_R.items():
+        job = stages[label]
+        decision = active_min_admission.replay_r(
+            Path(job["report_path"]), ALGORITHM, Path(job["inputs"]), gate["host"], gate["image"],
+            geometry=geometry)
+        if (not job["ready"] or decisions[label] != decision or decision["report"] != job["receipt"]
+                or decision["candidate_clock"]["driver_reported_mhz"] != gate["resident_mhz"]):
+            raise ValueError(f"{label} replay differs from the exact resident screen")
+        pins.append(decision["report"])
+    unchanged([*au_pins, *pins])
+    return decisions["amazon_odd"], decisions["au_slice"], pins
+
+
 def legacy_jobs(args):
     prerequisites = {
         "au": {"unit": args.au_unit, "invocation": args.au_invocation},
@@ -57,8 +89,11 @@ def run(args):
         raise ValueError("expected the AU weighted-SSSP matrix template")
     include_au = getattr(args, "include_au", False)
     source = getattr(args, "continue_from", None)
+    require_topology = getattr(args, "require_au_topology", False)
     if source and not include_au:
         raise ValueError("continuation requires the complete SSSP matrix")
+    if require_topology and include_au:
+        raise ValueError("cross-topology admission requires the separate AU resident screen")
     if include_au and (args.au_unit or args.au_invocation or args.au_output):
         raise ValueError("choose the complete matrix or a separate AU screen")
     if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,75}", args.child_prefix)
@@ -68,7 +103,9 @@ def run(args):
     journal = args.output / "matrix.json"
     rows = {ds: {"status": "NOT_REQUESTED"} for ds in resident.DATASETS if include_au or ds != "AU"}
     waiting = "WAITING_FOR_G_AND_BOTH_R_GATES" if include_au else "WAITING_FOR_AU_AND_ODD_R"
-    report = dict(status=waiting, cases=rows,
+    if require_topology:
+        waiting = "WAITING_FOR_CROSS_TOPOLOGY_AU_AND_ODD_R"
+    report = dict(status=waiting, cases=rows, require_au_topology=require_topology,
                   repetitions_per_arm=1, warmups=0)
     save(journal, report)
     try:
@@ -87,6 +124,8 @@ def run(args):
                                           pending_order=pending)
         else:
             previous, pending = None, list(rows)
+            if require_topology:
+                pending.sort(key=lambda ds: rows[ds]["case"]["memory_gib"])
             prerequisites = resident_matrix.stage_jobs(args) if include_au else legacy_jobs(args)
         report["prerequisites"] = prerequisites
         save(journal, report)
@@ -111,13 +150,17 @@ def run(args):
         unchanged(pins)
         gate = active_min_admission.admit(ALGORITHM, args.route, args.host, args.r_report,
                                           args.r_inputs, args.g_report, args.g_reference)
-        odd, odd_pins = admitted_odd(args, gate)
+        if not require_topology:
+            odd, odd_pins = admitted_odd(args, gate)
         if include_au:
             resident_matrix.check_stage_receipts(prerequisites, gate, odd)
         else:
             au_pins = admitted_au(args, gate)
             pins += au_pins
             report["au_result"] = au_pins[1]
+            if require_topology:
+                odd, topology, odd_pins = admitted_au_topology(args, au_pins, gate)
+                report["au_slice_r"] = topology
         pins += odd_pins
         pins += [gate["r"]["report"], gate["g"]["report"], gate["g"]["reference"], gate["host"], gate["image"]]
         if previous is not None:
@@ -149,6 +192,8 @@ def arguments(parser):
     parser.add_argument("--include-au", action="store_true", help="run all eight once after exact G and both R gates")
     parser.add_argument("--continue-from", nargs=3, metavar=("JOURNAL", "SHA256", "STOPPED_SERVICE"),
                         help="keep prior attempts and queue unattempted cases from smallest memory budget")
+    parser.add_argument("--require-au-topology", action="store_true",
+                        help="replay the separate AU screen's exact cross-topology admission")
     for stage in ("au", "g", "r"):
         parser.add_argument(f"--{stage}-unit", default="")
         parser.add_argument(f"--{stage}-invocation", default="")

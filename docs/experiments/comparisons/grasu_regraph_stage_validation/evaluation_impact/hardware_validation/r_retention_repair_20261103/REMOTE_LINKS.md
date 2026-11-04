@@ -386,6 +386,14 @@ The raw synthesis build is at
 | R, Amazon alternate frontier | `sssp-burst-amazon-odd-v1/queue.json` | `f8d6e9df120f4bd197f4b408f92a574e` |
 | G, AskUbuntu 131K updates | `g-sssp-board-burst-v1/results.json` | `118509bc150542bca87c4f46d26904c1` |
 | Resident full AskUbuntu | `sssp-burst-resident-au-v1/queue.json` | `db661128be3c41deb2dbc7d0b9834ac3` |
+| Remaining seven resident SSSP pairs | `sssp-burst-matrix-v1/matrix.json` | `bf36d9e4ead342a08cc7fc063d2dcd0c` |
+
+The remaining-seven service is `gr-retention-sssp-burst-matrix-20261104-v1.service`.
+It waits for the full AskUbuntu pair, replays its independent G and three R
+admissions on the exact candidate host, bitstream and clock, and never
+reruns AU. Its children retain per-case memory caps and one measured run
+per arm, in ascending memory-budget order. No child is requested if the
+AU result or any required admission is missing or fails.
 
 Local receipts are relative to
 `/data/chuxiao/checks/source-retention-repair-20261104`. The resident runner

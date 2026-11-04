@@ -106,6 +106,55 @@ class SsspMatrixTest(unittest.TestCase):
         self.assertEqual(report["cases"]["WK"]["attempts"], ["spine"])
         self.assertEqual(report["cases"]["R19"]["status"], matrix.MEASURED)
 
+    def test_cross_topology_screen_gates_remaining_cases_without_rerunning_au(self):
+        self.args.require_au_topology = True
+        odd = {"report": self.pins[-1]}
+        topology = {"report": self.pins[-2]}
+        with patch.object(matrix, "admitted_au_topology", side_effect=ValueError("topology failed")), \
+                patch.object(matrix, "run_child") as launch:
+            with self.assertRaisesRegex(ValueError, "topology failed"):
+                matrix.run(self.args)
+            launch.assert_not_called()
+        self.args.output = self.root / "cross-topology"
+        with patch.object(matrix, "admitted_au_topology", return_value=(odd, topology, [])) as replay, \
+                patch.object(matrix, "run_child", return_value={"status": matrix.MEASURED}) as launch:
+            report = matrix.run(self.args)
+        replay.assert_called_once_with(self.args, self.pins[-2:], self.gate)
+        self.assertEqual(report["au_slice_r"], topology)
+        self.assertEqual(report["au_result"], self.pins[-1])
+        self.assertEqual([call.args[3] for call in launch.call_args_list],
+                         [ds for ds in matrix.resident.DATASETS if ds != "AU"])
+
+    def test_cross_topology_replay_rejects_a_different_au_image(self):
+        self.args.odd_output, self.args.odd_inputs = self.root / "odd", self.root
+        for name in matrix.active_min.INPUTS + matrix.active_min.STATE[matrix.ALGORITHM]:
+            (self.root / f"{name}.u32le").write_text(name)
+        odd_path = self.args.odd_output / "pair/results.json"
+        odd_path.parent.mkdir(parents=True)
+        odd_path.write_text("odd")
+        odd = {"report": matrix.identity(odd_path), "candidate_clock": {"driver_reported_mhz": 150}}
+        pin = self.pins[1]
+        topology = {"report": pin, "candidate_clock": {"driver_reported_mhz": 150}}
+        queue_path, pair_path = (self.root / name for name in ("au_queue", "au_result"))
+        stages = {key: dict(ready=True, receipt=decision["report"]) for key, decision in
+                  (("g", self.gate["g"]), ("r", self.gate["r"]), ("amazon_odd", odd))}
+        stages["amazon_odd"].update(unit=self.args.odd_unit, invocation=self.args.odd_invocation,
+                                    report_path=str(odd_path), inputs=str(self.args.odd_inputs))
+        stages["au_slice"] = dict(ready=True, receipt=pin, inputs=str(self.root), report_path=pin["path"])
+        matrix.save(queue_path, {"stages": stages})
+        matrix.save(pair_path, {"additional_r_gates": {"amazon_odd": odd, "au_slice": topology}})
+        pins = [matrix.identity(path) for path in (queue_path, pair_path)]
+        with patch.object(matrix.active_min_follow, "fixture_pin", return_value=self.pins[0]):
+            with patch.object(matrix.active_min_admission, "replay_r", side_effect=[odd, topology]) as replay:
+                self.assertEqual(matrix.admitted_au_topology(self.args, pins, self.gate)[:2], (odd, topology))
+            replay.assert_called_with(Path(pin["path"]), matrix.ALGORITHM, self.root,
+                                      self.gate["host"], self.gate["image"],
+                                      geometry=matrix.active_min_admission.AU_SLICE_GEOMETRY)
+            with patch.object(matrix.active_min_admission, "replay_r",
+                              side_effect=[odd, dict(topology, report=self.pins[2])]):
+                with self.assertRaisesRegex(ValueError, "au_slice replay differs"):
+                    matrix.admitted_au_topology(self.args, pins, self.gate)
+
     def test_continue_stopped_journal_preserves_attempts_and_prioritizes_memory(self):
         original = self.root / "previous-matrix"
         (original / "so").mkdir(parents=True)

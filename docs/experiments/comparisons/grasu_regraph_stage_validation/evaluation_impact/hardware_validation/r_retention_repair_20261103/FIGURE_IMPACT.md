@@ -2,15 +2,16 @@
 
 ## Figure 7 Receipt Export
 
-From the simulator repository, use the frozen SSSP diagnostic journal
-and the current CC and ResPR journals to produce a new evidence snapshot.
+From the simulator repository, use the current SSSP, CC and ResPR journals
+to produce a new evidence snapshot.
 Run this offline; it does not launch FPGA jobs or modify existing packages.
 
 ```bash
 run=/data/chuxiao/checks/source-retention-repair-20261104
 snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
-  --sssp-matrix "$run/sssp-singlepass-matrix-resume-v5/matrix.json" \
+  --sssp-matrix "$run/sssp-burst-matrix-v1/matrix.json" \
+  --sssp-au "$run/sssp-burst-resident-au-v1/queue.json" \
   --cc-matrix "$run/cc-singlepass-matrix-physical-v3/matrix.json" \
   --respr-matrix "$run/respr-matrix-v5/results.json" \
   --respr-screen "$run/resident-joint-board-v7/results.json" \
@@ -20,15 +21,15 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
 
 See [remote builds and board queues](REMOTE_LINKS.md#november-4-physical-retries)
 for the pending candidates. Do not substitute a superseded queue when a
-current result is pending. The old SSSP journal's `RUNNING_SINGLE_PASS`
-and LJ's `REQUESTED` are the last recorded statuses before the queue was
-stopped. LJ made no board attempt; LJ08 was not requested. The six measured
-rows document the old image only. Do not use them as final Figure 7 data:
-the same image missed the AskUbuntu R retention gate.
+current result is pending. The old `sssp-singlepass-matrix-resume-v5/matrix.json`
+journal is for diagnostics. Its `RUNNING_SINGLE_PASS` and LJ's `REQUESTED`
+are last-written statuses before shutdown. LJ made no board attempt;
+LJ08 was not requested. The six measured rows document the old image only:
+it missed the AskUbuntu R retention gate.
 
-The exported SSSP and CC journals include AU and R19 respectively. The
-legacy `--sssp-au` and `--cc-r19` arguments are only for matrices that
-do not already contain those cases. The export rejects duplicate sources.
+The current SSSP uses a separate AU screen and the CC matrix includes R19.
+`--sssp-au` and `--cc-r19` are used only when the corresponding matrix
+does not already contain that case. The export rejects duplicate sources.
 The export has eight rows each for SSSP, CC, and ResPR. FullPR is outside
 this campaign. The optional CSV keeps all 24 statuses and leaves timings
 and ratios blank for pending or failed rows. It does not replace the old
@@ -48,9 +49,11 @@ whether both arms performed propagation. Do not pool these scopes or
 interpret a correction-only result as propagation evidence. The two Amazon
 R receipts referenced by the SSSP matrix do not supersede the later
 [AskUbuntu topology control](SSSP_STAGE_ADMISSION.md#askubuntu-topology-control),
-which missed the 15% gate on the same candidate image. The current CC
-matrix additionally requires a passing AskUbuntu topology control and
-exports its receipt and ratio alongside the two Amazon R controls.
+which missed the 15% gate on the same older candidate image. The current
+CC and SSSP matrices require a passing AskUbuntu topology control on the
+image used for the resident measurements. The export includes its receipt
+and ratio alongside the two Amazon controls; older measured SSSP rows
+without cross-topology admission are labeled `amazon_only_diagnostic`.
 
 ## Figure 7: R-Only Bound On Two New SSSP Pairs
 

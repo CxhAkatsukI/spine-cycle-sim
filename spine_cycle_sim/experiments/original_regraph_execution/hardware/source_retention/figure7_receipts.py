@@ -20,7 +20,7 @@ JOURNALS = {"weighted_sssp": ("sssp_matrix", "sssp_au"),
             "cc": ("cc_matrix", "cc_r19"), "respr": ("respr_matrix", "respr_screen")}
 ROLES = tuple(role for roles in JOURNALS.values() for role in roles)
 OPTIONAL_SCREENS = {"sssp_au", "cc_r19"}
-CSV_FIELDS = ("algorithm", "dataset", "status", "boundary", "graph_sha256", "vertices", "edges",
+CSV_FIELDS = ("algorithm", "dataset", "status", "r_validation_scope", "boundary", "graph_sha256", "vertices", "edges",
               "updates", "source", "spine_ms", "gr_ms", "gr_over_spine", "winner", "gr_rounds",
               "spine_rounds", "respr_propagated_on_both", "same_driver_clocks", "comparison_sha256",
               "error")
@@ -59,20 +59,35 @@ def summarize_gates(algorithm, gates, extra):
                          "amazon_odd": ratio(extra["comparison"], "candidate_over_reference")}}
 
 
-def record_cc_topology(out, matrix, gates):
-    job = matrix.get("stages", {}).get("au_slice")
-    if job is None:
-        return
-    stage = matrix["au_slice_r"]
+def record_topology(out, stage, job, gates, algorithm):
     pin = stage["report"]
     raw = load(pin)
     clock = stage["candidate_clock"]
-    if (job["receipt"] != pin or not job["ready"] or raw["algorithm"] != "cc"
+    if (job["receipt"] != pin or not job["ready"] or raw["algorithm"] != algorithm
             or raw["comparison"] != stage["comparison"] or clock["binary"] != gates["image"]
             or clock["driver_reported_mhz"] != gates["resident_mhz"]):
-        raise ValueError("CC topology receipt does not match the resident admission")
+        raise ValueError("AU topology receipt does not match the resident admission")
     out["stage_ratios"]["r_ratios"]["au_slice"] = ratio(stage["comparison"], "candidate_over_reference")
-    out["cc_topology_stage"] = pin
+    out.update(au_topology_stage=pin, r_validation_scope="amazon_and_askubuntu")
+
+
+def record_cc_topology(out, matrix, gates):
+    job = matrix.get("stages", {}).get("au_slice")
+    if job is not None:
+        record_topology(out, matrix["au_slice_r"], job, gates, "cc")
+        out["cc_topology_stage"] = out["au_topology_stage"]
+
+
+def record_sssp_topology(out, matrix, special, gates):
+    if not matrix.get("require_au_topology"):
+        out["r_validation_scope"] = "amazon_only_diagnostic"
+        return
+    child = load(special["result"])
+    stage = matrix["au_slice_r"]
+    if (special["result"] != matrix["au_result"] or child["additional_r_gates"]["au_slice"] != stage
+            or child["stage_gates"] != gates):
+        raise ValueError("SSSP topology evidence differs from the admitted AU resident pair")
+    record_topology(out, stage, special["stages"]["au_slice"], gates, "weighted_sssp")
 
 
 def pinned_spine_image(algorithm, child):
@@ -224,6 +239,8 @@ def export(paths):
                         row_data = measured(algorithm, dataset, child, row, gates, matrix.get("odd_r"), image)
                         if algorithm == "cc":
                             record_cc_topology(row_data, matrix, gates)
+                        elif algorithm == "weighted_sssp":
+                            record_sssp_topology(row_data, matrix, special, gates)
                         out.update(row_data)
                         out["status"] = MEASURED
                 elif row.get("error"):
