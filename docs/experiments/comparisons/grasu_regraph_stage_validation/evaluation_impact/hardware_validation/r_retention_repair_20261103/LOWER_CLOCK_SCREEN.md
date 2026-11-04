@@ -80,7 +80,9 @@ one full clear, not an end-to-end saving: several workers can overlap,
 and subsequent frames need not clear the full array. The measured ResPR
 pair must save about 220 us to pass; CC must save about 70 us. This variant
 is not a stand-alone ResPR fix, and its CC effect has not been measured.
-It is not yet linked or board-tested. See the
+The CC fixed-publication variant has passed C-synthesis and interface
+checks; its physical link and one-shot measurement are queued. See the
+[CC route handoff](REMOTE_LINKS.md#cc-four-bank-gather-clear) and the
 [native and synthesis evidence](banked-gather-csynth.tar.gz).
 
 ## Receipts

@@ -71,6 +71,39 @@ require the G receipt to refer to that exact image.
 
 No Figure 7--11 replacement or reuse decision is based on these link jobs.
 
+## CC Four-Bank Gather Clear
+
+Only the CC gather XO changes relative to the uncached destination
+route. The replacement is built with the same CC defines and fixed
+framed publication, plus the four-bank clear switch from HLS commit
+[`ed7a5ed`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/ed7a5ed).
+Vitis HLS reports II=1 for the clear, scatter and publication loops.
+This is not a routed clock or board speedup. Local build evidence is in
+`cc-banked-gather-csynth-v1/` under the check root. The old and new XO
+SHA-256 hashes, respectively, are:
+
+- `eac15bdd06f8c2b63e6ac156358368cdc661255e5503dc90fa019932baeb92e4`
+- `7667be5a597a25303a00b6628dd1858257086eeb679dfe81aeeb752addd8aac5`
+
+`source_retention.banked_clear_link` verifies the exact kernel ports,
+argument IDs, offsets, widths, and control protocol, then preserves the
+ten other XOs and the physical configuration. The portable capsule is
+`seele-inputs-v1/cc-banked-clear`, SHA-256
+`ede5c5d1892d6bc67d767e51745cef0b126b893bbdfc9eac0540422954ff55c8`.
+The remote attempt `builds/cc-banked-clear-v1` uses the same 36/40 GiB
+cgroup limits and 128 GiB system reserve as the other links.
+
+| Step | Service (without `.service`) | Invocation |
+| --- | --- | --- |
+| Seele link | `gr-retention-seele-cc-banked-clear-20261104-v1` | `ef9884eee85645c68d6ea68ad0e25e82` |
+| Local return | `gr-retention-return-cc-banked-clear-20261104-v1` | `80cf820e9d3d4451a347544d4bac723b` |
+| CC AU903K nominal-clock pair | `gr-retention-cc-banked-au903k-20261104-v1` | `e08a5d5b2827403bb973bb791674b422` |
+
+The pair receipt is `cc-banked-au903k-pair-v1/queue.json`. It uses
+the same fixture and oracle as the earlier 430-MHz screen, with one
+measurement per arm. It rejects a derated route before timing either
+arm; the retained 430-MHz reference is not a nominal-clock control.
+
 ## ResPR Source-Property Read Repair
 
 The original `kernelHBMWrapper` selected the source pointer and response

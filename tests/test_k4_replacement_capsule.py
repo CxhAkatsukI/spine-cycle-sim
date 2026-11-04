@@ -1,9 +1,13 @@
 import json
+import zipfile
 
 import pytest
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import (
     replacement_capsule as relocation, replacement_return,
+)
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
+    banked_clear_link,
 )
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 
@@ -20,7 +24,7 @@ def source(tmp_path):
     config = put("parent/link.cfg", f"platform={platform}\n[connectivity]\n")
     shim = put("packet/gcc_compat/bits/gthr-default.h", "shim")
     xos = [put(f"xos/{name}.hw.xo", name)
-           for name in ["pma_to_regraph_adapter", *[f"kernel{i}" for i in range(10)]]]
+           for name in ["pma_to_regraph_adapter", "lksg_stream", *[f"kernel{i}" for i in range(9)]]]
     argv = ["v++", "--link", "--target", "hw", "--kernel_frequency", "150", "--config", str(config),
             "-o", str(tmp_path / "parent/candidate.hw.xclbin"), *map(str, xos),
             "--vivado.synth.jobs", "2", "--vivado.impl.jobs", "2"]
@@ -48,6 +52,51 @@ def test_modified_xo_is_rejected(tmp_path):
     (output / "inputs/kernel0.hw.xo").write_text("substitution")
     with pytest.raises(ValueError, match="modified capsule member"):
         relocation.verify(output, platform)
+
+
+def test_banked_clear_changes_only_the_fixed_frame_gather(tmp_path):
+    manifest, platform = source(tmp_path)
+    original = json.loads(manifest.read_text())
+    old_xo = tmp_path / "xos/lksg_stream.hw.xo"
+    new_xo = tmp_path / "banked/lksg_stream.hw.xo"
+    new_xo.parent.mkdir()
+
+    def write_xo(path, rtl, *, offset="0x28"):
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("lksg_stream/kernel.xml",
+                             '<root><kernel name="lksg_stream" vlnv="v" hwControlProtocol="ap_ctrl_chain">'
+                             '<ports><port name="control"/></ports>'
+                             f'<args><arg name="reset_tmp_prop" offset="{offset}"/></args>'
+                             '</kernel></root>')
+            archive.writestr("rtl", rtl)
+
+    write_xo(old_xo, "original")
+    write_xo(new_xo, "banked")
+    original["mode"] = "destination"
+    original["pins"] = [identity(old_xo) if row["path"] == str(old_xo) else row
+                        for row in original["pins"]]
+    manifest.write_text(json.dumps(original))
+    old_manifest = identity(manifest)
+
+    def derive(output):
+        return banked_clear_link.derive(manifest, new_xo, output,
+                                        parent_sha256=old_manifest["sha256"],
+                                        gather_sha256=identity(new_xo)["sha256"])
+
+    output = tmp_path / "derived"
+    derived = derive(output)
+    assert derived["gather_replacement"] == {"parent": old_manifest, "before": identity(old_xo),
+                                             "after": identity(new_xo)}
+    expected = [str(new_xo) if arg == str(old_xo) else arg for arg in original["command"]]
+    expected[expected.index("-o") + 1] = str(output / "candidate.hw.xclbin")
+    assert derived["command"] == expected
+    assert identity(manifest) == old_manifest
+    capsule = tmp_path / "capsule"
+    relocation.prepare(output, capsule)
+    relocation.verify(capsule, platform)
+    write_xo(new_xo, "incompatible", offset="0x2c")
+    with pytest.raises(ValueError, match="ABI-compatible"):
+        derive(tmp_path / "rejected")
 
 
 def test_physical_strategy_is_pinned_to_a_separate_replacement_capsule(tmp_path, monkeypatch):
