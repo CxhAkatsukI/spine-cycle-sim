@@ -238,6 +238,27 @@ in the diagnostic archive contain the event times. The A4 descriptor
 in the same pinned fixture assigns four Little events to each range
 in ordinal order.
 
+## Resident SSSP Timing Boundary
+
+The downstream SSSP AU pairs use the frozen resident hosts and the
+`compare_resident_fpga_logs.py` comparator. This is not the Fig. 8
+setup-inclusive boundary. In the K4 host, the legacy log key
+`setup_inclusive_ms` measures from after update-buffer writes and initial
+state migration through final result readback. In the Spine resident
+benchmark, `prepare_updates` packs and uploads the batch before the timer;
+the timer starts before `apply_prepared_updates` and ends at readback after
+convergence. Both include the host waits and relaunches inside their
+measured windows. Initial graph layout, old-state preparation, batch
+packing/upload, and final oracle validation are outside these windows.
+
+There is still a first-frontier preparation difference. K4 sets the
+initial active bits from the update sources before migrating initial
+state. Spine builds the update-source list after its timer starts.
+Treat the pending resident pairs as implementation timings with a
+prepared batch, with this specific G+R cost excluded, not as a symmetric
+wall measurement from an unprocessed host batch. Do not combine their
+ratio with the CC wall variant or Fig. 8 without labeling the boundary.
+
 ## Evidence
 
 [Raw evidence archive](sssp-stage-admission.tar.gz) preserves both R queue
