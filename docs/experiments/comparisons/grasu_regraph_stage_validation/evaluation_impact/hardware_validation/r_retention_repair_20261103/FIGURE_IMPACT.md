@@ -12,14 +12,14 @@ snapshot="$run/figure7-receipt-snapshot-$(date -u +%Y%m%dT%H%M%SZ)"
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
   --sssp-matrix "$run/sssp-burst-matrix-v1/matrix.json" \
   --sssp-au "$run/sssp-burst-resident-au-v1/queue.json" \
-  --cc-matrix "$run/cc-singlepass-matrix-physical-v3-final/matrix.json" \
-  --respr-matrix "$run/respr-matrix-v6-final/results.json" \
-  --respr-screen "$run/resident-joint-board-v8-final/results.json" \
+  --cc-matrix "$run/cc-banked-matrix-v1/matrix.json" \
+  --respr-matrix "$run/respr-matrix-v8/results.json" \
+  --respr-screen "$run/resident-joint-board-v10/results.json" \
   --output "$snapshot.json" \
   --csv "$snapshot.csv"
 ```
 
-See [remote builds and board queues](REMOTE_LINKS.md#november-4-physical-retries)
+See [remote builds and board queues](REMOTE_LINKS.md#current-one-shot-board-queues)
 for the pending candidates. Do not substitute a superseded queue when a
 current result is pending. The old `sssp-singlepass-matrix-resume-v5/matrix.json`
 journal is for diagnostics. Its `RUNNING_SINGLE_PASS` and LJ's `REQUESTED`
