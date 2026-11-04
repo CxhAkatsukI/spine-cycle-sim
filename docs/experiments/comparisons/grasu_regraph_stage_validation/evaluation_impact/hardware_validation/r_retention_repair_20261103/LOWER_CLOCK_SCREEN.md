@@ -34,10 +34,19 @@ outside the reported first-device-start to last-device-end boundary.
 
 | Control | Actual clock vector (MHz) | Public A4 | Integrated candidate | Slowdown | 15% gate |
 | --- | --- | ---: | ---: | ---: | --- |
+| Weighted SSSP, reciprocal AskUbuntu, 903,774 edges | 150/500/445/0 | 2.147288 ms | 2.510750 ms | 16.93% | Fail |
 | ResPR, skewed sources, `csr_degree` | 150/500/445/0 | 0.510895 ms | 0.807462 ms | 58.05% | Fail |
 | CC, reciprocal AskUbuntu, 903,774 edges | 150/500/430/0 | 2.201941 ms | 2.602202 ms | 18.18% | Fail |
 
-The integrated candidates are the exact returned physical retries; the
+The SSSP candidate is the first source-burst route. The measured event
+span exceeds the 15% limit by 41.37 us. The initial pair recorded the
+public arm, but the candidate host rejected its pre-existing output
+directory before timing. The recovery replays the original public
+arm and measures only the candidate in a fresh directory. Both arms'
+outputs pass their respective offline reference checks. This is one
+correctness-checked superstep, not convergence or a resident speedup.
+
+The ResPR and CC candidates are the exact returned physical retries; the
 ResPR and CC packaged HBM clocks are 449 and 434 MHz, respectively.
 The table uses the common **observed** frequency, not the packaged
 frequency or a rescaling of measured times. The CC A4 reference uses
@@ -51,8 +60,8 @@ and 81.2 us before the overall pipeline ends. The CC shard-0 mux spans
 intervals can include stalls and are not exclusive stage service times.
 The skewed ResPR candidate has a shorter host enqueue-to-completion
 window (0.898 vs 1.096 ms); this is not the predeclared device R gate.
-Neither paired failure is due to a different clock vector, and neither
-admits a resident Spine comparison or validates earlier figure data.
+None of these paired failures is due to a different clock vector, and
+none admits a resident Spine comparison or validates earlier figure data.
 
 ## Four-Way Gather Clear
 
@@ -145,6 +154,7 @@ Paths below are relative to
 | Item | Receipt | Status |
 | --- | --- | --- |
 | Runtime-reclock check | `hbm-control-qualification-440-v2/results.json` | Failed, no algorithm run |
+| SSSP same-clock AskUbuntu pair | `sssp-burst-au903k-445-recover-v4/results.json` | Correctness pass; performance gate fail |
 | ResPR public 445-MHz package | `hbm-respr-a4-445-repackage-v1/package.json` | Ten non-clock sections byte-identical |
 | ResPR public 445-MHz skewed-sources run | `hbm-respr-a4-445-skew-board-v1/results.json` | Passed, reference arm only |
 | ResPR same-clock skewed pair | `hbm-respr-tail-445-skew-pair-v1/results.json` | Correctness pass; performance gate fail |
@@ -157,7 +167,12 @@ The service was `gr-retention-hbm-respr-a4-445-20261104-v1.service`,
 invocation `1a0f5b4f0f15481d894a24a042d2113c`; its peak was 186.5 MiB.
 
 The [paired board evidence](lower-clock-pairs.tar.gz) includes the two
-pair receipts, timestamp and clock records, and raw timed-host logs.
+ResPR and CC pair receipts, timestamp and clock records, and raw timed-host
+logs. The [SSSP board evidence](sssp-lower-clock-au903k.tar.gz) separately
+includes the recovered pair and the original public arm, output
+vectors, clock records, and raw timed-host logs (no bitstreams).
+The recovered receipt SHA-256 is
+`eaf43e0e826240f9833f48a5e72758384835d5f2be84773a1e8928ad67b7a2e3`.
 The ResPR pair receipt SHA-256 is
 `d468d6860497354c661ffab679fbdf7dbe241a78d9f15ac3c94d2db13bbb64e2`
 (service `gr-retention-hbm-respr-tail-445-20261104-v1.service`,
