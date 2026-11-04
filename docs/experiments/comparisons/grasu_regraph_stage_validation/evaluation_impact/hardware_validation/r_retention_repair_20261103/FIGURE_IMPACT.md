@@ -323,6 +323,32 @@ was 1,710,845,952 bytes with zero high, max, or OOM events. The
 has SHA-256
 `05e2a0caa7fd3d417eb240c26e3e028dd353aa98caa46921fe90d1a194e9715b`.
 
+The [next host revision `aa0af47`](https://github.com/jayfeather9/spine-dynamic-graph/commit/aa0af47)
+reuses the cold directory instead of allocating a second directory and
+copying slice records, epochs and page lists into it. The cold graph image
+and all metadata words passed a byte comparison; the host driver and the
+full partitioned CSR model tests also passed. The board rerun changed only
+the Spine host binary and checked all 390,911 final weighted edges.
+
+| Metric | Aligned metadata (ms) | Reused cold directory (ms) |
+| --- | ---: | ---: |
+| Graph layout | 472.817 | 366.647 |
+| Bootstrap host | 341.344 | 341.682 |
+| Bootstrap migration | 92.132 | 83.260 |
+| Bootstrap lifecycle | 4.662 | 4.623 |
+| Batch preparation | 0.061 | 0.061 |
+| Update wall | 0.240 | 0.221 |
+| Setup-inclusive total | 911.256 | 796.494 |
+
+The unchanged G arm took 818.456 ms. Spine was 1.028x faster on this
+single AU/64 pair, a 21.963 ms lead with no estimate of run-to-run
+variation. This is a one-batch, setup-inclusive check, not the resident
+throughput panel or evidence for other datasets. Peak cgroup memory was
+1,711,144,960 bytes with no high, max or OOM events. The
+[raw board archive](paired-board-checkpoint/fig8-au64-spine-cold-v7.tar.gz)
+has SHA-256
+`08fe266388fb313ac2f728a527a7dcf28ddfbdaea5937bc109fc49c3350d21e3`.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.
