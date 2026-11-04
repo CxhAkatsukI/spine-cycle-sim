@@ -94,7 +94,7 @@ def recover_sssp_reference(args, reference, report, route):
             or (reference["algorithm"], reference["bdf"], reference["target"], reference["boundary"])
             != (args.algorithm, args.bdf, args.hbm_mhz, active_min.BOUNDARY)
             or reference["attempts"] != ["reference", "candidate"]
-            or reference["derated_route"] != json.loads(json.dumps(route))
+            or not same_return(reference["derated_route"], route)
             or reference["error"] != f"RuntimeError('candidate failed (1): {stderr}')"
             or stdout.read_bytes()
             or stderr.read_text().strip() != "ERROR: fresh active-min output directory required"
@@ -135,6 +135,21 @@ def recover_sssp_reference(args, reference, report, route):
                   reference_observation=measured, candidate_host=candidate_host,
                   recovery_pins=[*pins, *measured["output_pins"], runtime.identity(stdout), runtime.identity(stderr)])
     return fixture, measured, observed, (offline, oracle)
+
+
+def same_return(previous, current):
+    def portable_route(route):
+        sources = []
+        prefix = "/spine_cycle_sim/experiments/evaluation_impact/common_g/complete_pipeline/hardware/remote/"
+        for pin in route["source_pins"]:
+            path = pin["path"]
+            if prefix in path:
+                path = prefix + path.rsplit(prefix, 1)[1]
+            sources.append({**pin, "path": path})
+        return json.loads(json.dumps({**route, "source_pins": sources}))
+
+    unchanged(previous["source_pins"])
+    return portable_route(previous) == portable_route(current)
 
 
 def wait_for_return(args, report, save):

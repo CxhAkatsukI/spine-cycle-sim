@@ -68,10 +68,10 @@ class DeratedScreenTest(unittest.TestCase):
                                    bdf="0000:82:00.1", hbm_mhz=445)
             previous = dict(status="FAILED_RETAINED", requested_runs_per_arm=1, algorithm=args.algorithm,
                             bdf=args.bdf, target=445, boundary=derated_screen.active_min.BOUNDARY,
-                            attempts=["reference", "candidate"], derated_route={},
+                            attempts=["reference", "candidate"], derated_route={"source_pins": []},
                             error=f"RuntimeError('candidate failed (1): {stderr}')", arms={"candidate": {}})
             with self.assertRaisesRegex(ValueError, "unmeasured SSSP candidate"):
-                derated_screen.recover_sssp_reference(args, previous, {}, {})
+                derated_screen.recover_sssp_reference(args, previous, {}, {"source_pins": []})
 
 
 if __name__ == "__main__":
