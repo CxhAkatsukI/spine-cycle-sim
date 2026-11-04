@@ -8,7 +8,7 @@ from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board import a
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board.native_profile import update_only_profile
 from .. import artifact
 from ..board_execution import active_min, active_min_candidate as r_candidate, active_min_follow, active_min_pair
-from . import clocks
+from . import clocks, weighted_tail_link
 from .follow import unchanged
 from .runtime import identity, save
 
@@ -102,7 +102,7 @@ def replay_r(path, algorithm, inputs, host, image, *, geometry=AMAZON_GEOMETRY):
     return {"report": pin, "comparison": decision, "candidate_clock": current_clock}
 
 
-def replay_g(path, reference_path, algorithm, host, image):
+def replay_g(path, reference_path, algorithm, host, image, *, extra_pins=()):
     report, pin = read_report(path, "G_GATE_PASS_FOR_ACTIVE_MIN_IMAGE", algorithm)
     reference = identity(reference_path)
     graph, config, ref_clock, ref_runs, _, _ = g_control.reference_arm(reference_path)
@@ -110,7 +110,7 @@ def replay_g(path, reference_path, algorithm, host, image):
     if (report["bdf"] != bdf or report["device"] != g_control.BOARDS[bdf]
             or report["repetitions"] != 1 or report["board_launch_attempted"] is not True
             or report["image"] != artifact.identity(Path(image["path"]))
-            or any(item not in report["pins"] for item in (host, reference, graph))):
+            or any(item not in report["pins"] for item in (host, reference, graph, *extra_pins))):
         raise ValueError("expected one independent G run on the exact repaired image and host")
     unchanged(report["pins"])
     row = report["row"]
@@ -132,13 +132,15 @@ def replay_g(path, reference_path, algorithm, host, image):
 
 def admit(algorithm, route, host_path, r_path, inputs, g_path, reference):
     host = identity(host_path)
-    if host["sha256"] != g_control.HOST_SHA256[algorithm]:
-        raise ValueError("expected the exact CC/SSSP native host used for the G/R screens")
     r_receipt, r_pin = read_report(r_path, "PAIRED_ACTIVE_MIN_R_GATE_PASS", algorithm)
     returned = r_receipt.get("returned_candidate")
+    tail_host_pins = weighted_tail_link.check_bound_host(
+        returned["parameters"][1] if returned else None, host_path, algorithm)
+    if not tail_host_pins and host["sha256"] != g_control.HOST_SHA256[algorithm]:
+        raise ValueError("expected the exact CC/SSSP native host used for the G/R screens")
     if returned:
         route_image, pins = active_min_pair.replay_returned_route(route, algorithm, returned, r_path.parent)
-        if returned["proof"] not in r_receipt["pins"]:
+        if any(pin not in r_receipt["pins"] for pin in [returned["proof"], *tail_host_pins]):
             raise ValueError("returned route admission was not pinned before the R board runs")
     else:
         route_image, pins = active_min_pair.candidate_route(route, algorithm)
@@ -146,11 +148,11 @@ def admit(algorithm, route, host_path, r_path, inputs, g_path, reference):
     r = replay_r(r_path, algorithm, inputs, host, image)
     if r["report"] != r_pin:
         raise ValueError("R board receipt changed during route admission")
-    g = replay_g(g_path, reference, algorithm, host, image)
+    g = replay_g(g_path, reference, algorithm, host, image, extra_pins=tail_host_pins)
     frequency = r["candidate_clock"]["driver_reported_mhz"]
     if frequency != g["candidate_clock"]["driver_reported_mhz"]:
         raise ValueError("the screened candidate clocks differ between G and R")
-    unchanged([*pins, host, r["report"], g["report"], g["reference"]])
+    unchanged([*pins, *tail_host_pins, host, r["report"], g["report"], g["reference"]])
     return {"status": "BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE", "algorithm": algorithm,
             "image": image, "host": host, "resident_mhz": frequency, "r": r, "g": g}
 

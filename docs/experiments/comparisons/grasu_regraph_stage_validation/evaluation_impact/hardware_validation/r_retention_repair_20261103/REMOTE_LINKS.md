@@ -997,8 +997,32 @@ Capsule SHA-256:
 | Banked clear | AU903K | `gr-retention-sssp-banked-bursts-au903k-20261105-v1` | `3543d907a94242888592b8ddb0e47796` |
 | Tail | Seele link | `gr-retention-seele-sssp-weighted-tail-20261105-v1` | `33148e5408474edab475633da10cd60e` |
 | Tail | Local return | `gr-retention-return-sssp-weighted-tail-20261105-v1` | `3796c09d79e345d6b4db280bf819dd0d` |
-| Tail | AU903K | `gr-retention-sssp-weighted-tail-au903k-20261105-v1` | `4f01cd15fff74c22b52af6389753877f` |
+| Tail | AU903K | `gr-retention-sssp-weighted-tail-au903k-20261105-abi-v3` | `e0025bd1ed0347bdb4da505aaa39fcc6` |
 
 The local AU queue receipts are `sssp-banked-bursts-au903k-v1/queue.json`
-and `sssp-weighted-tail-au903k-v1/queue.json`. Neither route, board gate,
+and `sssp-weighted-tail-au903k-abi-v3/queue.json`. Neither route, board gate,
 or downstream figure is considered passed at submission.
+
+The tail admission checks the four Gather CUs' AXIS argument IDs 5--7
+moving to 6--8, then compares every point-to-point stream by its two
+endpoints. The physical HBM map, CU set and clock still have to match
+the predecessor exactly. The G, R and resident runners require the
+same host that the tail capsule pins. Earlier tail queues were
+stopped while waiting for the return, with no board request.
+
+| Variant | Step | Service (without `.service`) | Invocation |
+| --- | --- | --- | --- |
+| Banked clear | Sparse Amazon R | `gr-retention-sssp-amazon-20261105-banked-v3` | `5276aa69a41541708aac54242959a966` |
+| Banked clear | High-activity Amazon R | `gr-retention-sssp-amazon-odd-20261105-banked-v3` | `51de3ebf70bc4739bc0d65f7a60db783` |
+| Banked clear | Independent AU G | `gr-retention-sssp-g-20261105-banked-v3` | `1bcdca44ca414066bd7487faa76f8b1d` |
+| Banked clear | Full AU resident pair | `gr-retention-sssp-resident-au-20261105-banked-v3` | `cf64461822a5400d9661a72d10ba5a83` |
+| Tail | Sparse Amazon R | `gr-retention-sssp-amazon-20261105-tail-abi-v3` | `5a4c8ff87a1349e39277eb6f6e97d9f1` |
+| Tail | High-activity Amazon R | `gr-retention-sssp-amazon-odd-20261105-tail-abi-v3` | `2eda0ab6be2040438b47d7163862fa10` |
+| Tail | Independent AU G | `gr-retention-sssp-g-20261105-tail-abi-v3` | `99f2c3225dc740a5a29dd193cc4ac29f` |
+| Tail | Full AU resident pair | `gr-retention-sssp-resident-au-20261105-tail-abi-v3` | `289ee721eb32421a8f8aa03df4ae13c8` |
+
+The sparse Amazon board request requires a passing AU R receipt;
+the high-activity Amazon request requires the sparse Amazon pass.
+The resident AU pair requires the same image to pass all three R
+checks and the separate G check. No repeat or eight-dataset SSSP
+matrix is queued for these two variants before their AU comparison.

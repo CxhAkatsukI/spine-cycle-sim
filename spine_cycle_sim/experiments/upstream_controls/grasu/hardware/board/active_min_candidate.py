@@ -12,7 +12,9 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
 )
 from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.board_memory import require_unthrottled
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import active_min_follow, active_min_pair
-from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import clocks, matched_hbm
+from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
+    clocks, matched_hbm, weighted_tail_link,
+)
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.analysis import (
     profiled_runs, records, summarize,
 )
@@ -94,8 +96,6 @@ def run(args):
     save(result, report)
     try:
         host = identity(args.host)
-        if host["sha256"] != HOST_SHA256[args.algorithm]:
-            raise ValueError("expected the exact preflighted algorithm host")
         reference = identity(args.reference)
         graph, config, ref_clock, ref_runs, ref_host, ref_xrt = reference_arm(args.reference)
         bdf = ref_clock["bdf"]
@@ -108,6 +108,11 @@ def run(args):
         pins = [host, reference, graph, ref_host, identity(__file__), *runner_pins()]
         returned = active_min_follow.return_parameters(getattr(args, "returned_candidate", None),
                                                        getattr(args, "pending_return_candidate", None), pins)
+        tail_host_pins = weighted_tail_link.check_bound_host(
+            returned[1] if returned else None, args.host, args.algorithm)
+        if not tail_host_pins and host["sha256"] != HOST_SHA256[args.algorithm]:
+            raise ValueError("expected the exact preflighted algorithm host")
+        pins.extend(tail_host_pins)
         if not returned:
             pins.append(identity(args.route / "manifest.json"))
         deadline, observed = time.monotonic() + args.wait_seconds, False

@@ -56,6 +56,21 @@ def host_pins(host):
     return pins
 
 
+def check_bound_host(capsule, host, algorithm):
+    if capsule is None:
+        return []
+    manifest = identity(Path(capsule) / "parent/manifest.json")
+    parent = json.loads(Path(manifest["path"]).read_text())
+    if "weighted_tail" not in parent:
+        return []
+    pins = host_pins(Path(host))
+    if algorithm != "weighted_sssp" or pins != parent["weighted_tail"]["host"]:
+        raise ValueError("board host differs from the exact weighted tail capsule")
+    result = [manifest, *pins.values()]
+    component.unchanged(result)
+    return result
+
+
 def derive(parent_path, gather, merger, host, output, *, expected):
     parent_pin = identity(parent_path)
     replacements = {GATHER: identity(gather), MERGER: identity(merger)}

@@ -10,7 +10,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages import bitstream
 from spine_cycle_sim.experiments.sharded_k4_stages.execution import identity
 from ....continuous_board.execution.supervisor import route_finished
 from ....search_pipeline.synthesis import unchanged
-from . import admission, delivery, terminal_link
+from . import admission, delivery, tail_topology, terminal_link
 from .transport import Remote
 
 
@@ -80,13 +80,24 @@ def active_min(returned, local_capsule, platform, receipt_sha256, predecessor, o
     output.mkdir(parents=True, exist_ok=False)
     original = bitstream.normalized_topology(bitstream._dump(predecessor, output / "predecessor"))
     topology = bitstream.normalized_topology(bitstream._dump(candidate, output / "candidate"))
-    if original != topology or ("DATA", "DATA_CLK", 150) not in topology["clock"]:
+    profile = None
+    if "weighted_tail" in parent:
+        if mode != "weighted":
+            raise ValueError("tail publication is supported only for the weighted link")
+        tail_topology.verify(original, topology)
+        profile = tail_topology.PROFILE
+    elif original != topology:
         raise ValueError("replacement changes the loaded clock, CU budget or connectivity")
+    if ("DATA", "DATA_CLK", 150) not in topology["clock"]:
+        raise ValueError("replacement lacks the nominal 150 MHz data clock")
     timing = bitstream.parse_routed_timing(returned / "route/timing.rpt")
     unchanged(pins)
     image = identity(candidate)
-    atomic_write_json(output / "summary.json", {"status": "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD",
-                      "timing": timing, "candidate": image, "pins": pins})
+    report = {"status": "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD",
+              "timing": timing, "candidate": image, "pins": pins}
+    if profile:
+        report["topology_profile"] = profile
+    atomic_write_json(output / "summary.json", report)
     return image, pins
 
 

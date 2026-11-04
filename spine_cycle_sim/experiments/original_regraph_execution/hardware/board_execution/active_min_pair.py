@@ -9,11 +9,13 @@ import subprocess
 from types import SimpleNamespace
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution import runtime
-from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import replacement_return
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import (
+    replacement_return, tail_topology,
+)
 from spine_cycle_sim.experiments.sharded_k4_stages.board import require_idle_board
 from .. import artifact
 from ..source_build.snapshot import unchanged
-from ..source_retention import clocks, derated_route, matched_hbm, repackage_hbm
+from ..source_retention import clocks, derated_route, matched_hbm, repackage_hbm, weighted_tail_link
 from ..source_retention.follow import unchanged as verify_return_pins
 from ..source_retention.runtime import check_memory, execute, lease, save
 from . import active_min, active_min_candidate, admission, pair_resources
@@ -104,8 +106,10 @@ def replay_returned_route(route, algorithm, record, evidence_directory):
     pins.append(artifact.identity(Path(predecessor)))
     checked = json.loads(Path(proof["path"]).read_text())
     timing = artifact.identity(route / "route/timing.rpt")
+    topology_profile = tail_topology.PROFILE if "weighted_tail" in parent else None
     if (proof != record["proof"] or parent.get("mode") != ROUTE_MODES[algorithm]
             or checked.get("status") != "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD"
+            or checked.get("topology_profile") != topology_profile
             or checked.get("candidate") != image or checked.get("pins") != pins
             or checked["timing"]["report"] != timing):
         raise ValueError("returned candidate link, mode or topology admission changed")
@@ -186,7 +190,11 @@ def run(args):
                or name == "XCL_DEVICE_INDEX" for name in os.environ):
             raise ValueError("inherited board or candidate runtime override is forbidden")
         returned = getattr(args, "returned_candidate", None)
+        tail_host_pins = weighted_tail_link.check_bound_host(
+            returned[1] if returned else None, args.candidate_host, args.algorithm)
         if lower:
+            if tail_host_pins:
+                raise ValueError("weighted tail requires the nominal clock profile")
             target, verifier = lower
             report.update(target=target, matrix_admitted=False)
             route, pins = derated_candidate(args, output, target)
@@ -198,6 +206,7 @@ def run(args):
         elif returned:
             image, pins, report["returned_candidate"] = returned_route(
                 args.candidate_route, args.algorithm, returned, output / "candidate_admission")
+            pins.extend(tail_host_pins)
         else:
             image, pins = candidate_route(args.candidate_route, args.algorithm)
         report["preflight_xrt_libraries"] = paired_loader(args.reference_host, args.candidate_host)
