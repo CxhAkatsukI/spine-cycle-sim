@@ -526,3 +526,38 @@ this finding excludes the documented HOT12 image, not every possible private
 build. The previously verified image remains the old-arm control; see
 [current board queues](REMOTE_LINKS.md#current-one-shot-board-queues)
 for the stopped old-image matrix and the separate warm-insertion check.
+
+### Routed warm-insertion CC: one measured AU arm
+
+The isolated warm-insertion route closed timing and bus skew. The measured
+xclbin SHA-256 is `bb08b045dfdf1b86224662a95e98b09eed2b6a64f449a5832702e5e9b56bda8b`
+(build identity `aa26b2530e38ec1ff43084ceb12ddda8a3e556fef0db848bb593d27c1f61e9b0`).
+The route uses Spine HLS `c274abf` (skip old-component discovery for pure
+insertions). The compatible host was compiled after comparing the full
+device/build input inventory. Only two host-side files differ:
+`cc_workload.hpp` and `host_cc_repair.cpp` (wall timer and optional balanced
+preload, host tree `5c825f6`). The xclbin and manifest were not rewritten.
+The measured command selects the cold physical layout with `--hot 0`,
+while preloading converged old CC labels.
+
+| AU CC boundary, ms | Previous Spine | Warm-insertion Spine |
+| --- | ---: | ---: |
+| Host pack to checked final readback | 7886.498448 | 17.680961 |
+| Batch resident to checked final readback | 7886.354174 | 17.516216 |
+
+Both samples use the same graph and batch (515,281 vertices, 679,246
+initial physical edges, 16 physical update records). The new sample passed
+the raw graph, label and round-work checks on U55C `0000:82:00.1` at
+reported clocks `150/500/450/0 MHz`. Peak cgroup memory was 8.53 GiB,
+without memory-high, max or OOM events. See [new raw board and route
+evidence](spine-cc-au-warm-insertion-board.tar.gz) and the [previous
+sample](spine-cc-au-resident-wall-v2.tar.gz). The local image is at
+`/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-insert-return-v1/spine_partitioned_split_e2e.cc_repair.hw.xclbin`.
+
+This is a Spine before/after check, **not a qualified G+R comparison**.
+`gr-retention-cc-source-bursts-au-resident-20261105-v5.service` reuses the
+exact Spine sample; it requests only the G+R arm once all exact CC stage
+screens pass. `gr-retention-cc-warm-balanced-matrix-source-bursts-20261105-v5.service`
+waits for that pair and the same host's offline layouts, then requests
+the remaining datasets once per arm. Neither queue admits a speedup
+before completing its gates.

@@ -19,12 +19,14 @@ def screen(tmp_path, monkeypatch):
         return identity(path)
 
     binary = pin("warm.xclbin", "binary")
+    monkeypatch.setattr(warm, "IMAGE_SHA256", binary["sha256"])
     manifest = pin("warm.xclbin.weighted-manifest", f"build_sha256 {warm.ABI}\ntarget hw\n"
                    f"image_sha256 {binary['sha256']}\n")
     pin("remote-systemd.txt", f"InvocationID={warm.ROUTE_INVOCATION}\nSubState=exited\n"
         "Result=success\nExecMainStatus=0\n")
     pin(warm.TIMING, "All user specified timing constraints are met.\n")
-    pin("bus_skew_routed.rpt", " Slow 0.133 0.130 0.003\n2. Bus Skew Report Per Constraint\n")
+    pin("bus_skew_routed.rpt", "Table of Contents\n2. Bus Skew Report Per Constraint\n"
+        " Slow 0.133 0.130 0.003\n2. Bus Skew Report Per Constraint\n")
     source, graph, update, host = (pin(name, name) for name in ("source", "graph", "update", "host"))
     workload = dict(source=source, graph=graph, update=update, vertices=515281, edges=679246, updates=16)
     save(tmp_path / "inputs.json", workload)
@@ -49,7 +51,7 @@ def screen(tmp_path, monkeypatch):
     receipt = dict(status="RESIDENT_CC_STATE_WORK_AND_CLOCK_PASS_NOT_PERFORMANCE_ADMISSION",
                    performance_admission=False, errors=[], bdf=warm.BDF, device=0, workload=workload,
                    pins=[binary, manifest, host, inputs, source, graph, update, runner], clock_evidence={},
-                   execution=dict(command=cmd, host_affinity=list(warm.AFFINITY), exit_code=0,
+                   execution=dict(command=cmd, host_affinity=list(range(128)), exit_code=0,
                                   stop_reason="process_exit", cleanup_snapshot_error=None, cleanup_signaled_pids=[]),
                    memory_events="low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
                    stdout=stdout, stderr=stderr,
@@ -84,6 +86,27 @@ def test_rejects_multiple_samples(screen):
     cmd = receipt["execution"]["command"]
     cmd[cmd.index("--samples") + 1] = "2"
     with pytest.raises(ValueError, match="one successful"):
+        replay(screen)
+
+
+def test_rejects_missing_taskset_cpu(screen):
+    _, receipt, _ = screen
+    receipt["execution"]["host_affinity"].remove(warm.AFFINITY[-1])
+    with pytest.raises(ValueError, match="one successful"):
+        replay(screen)
+
+
+def test_rejects_same_manifest_build_with_different_image(screen):
+    root, receipt, _ = screen
+    binary, manifest = receipt["pins"][:2]
+    path = root / "warm.xclbin"
+    path.write_text("different binary")
+    new_binary = identity(path)
+    path = root / "warm.xclbin.weighted-manifest"
+    path.write_text(path.read_text().replace(binary["sha256"], new_binary["sha256"]))
+    binary.update(new_binary)
+    manifest.update(identity(path))
+    with pytest.raises(ValueError, match="not the warm CC hardware image"):
         replay(screen)
 
 
@@ -199,7 +222,8 @@ def test_odd_admission_uses_the_producers_identity_schema(tmp_path, monkeypatch)
 
 
 @pytest.mark.parametrize("topology_pass", [True, False])
-def test_queue_requires_all_five_exact_producers(tmp_path, monkeypatch, topology_pass):
+@pytest.mark.parametrize("completed_spine", [False, True])
+def test_queue_requires_all_five_exact_producers(tmp_path, monkeypatch, topology_pass, completed_spine):
     paths = {stage: tmp_path / f"{stage}.json" for stage in ("g", "r", "odd", "au", "spine")}
     invocations = {stage: f"{i:032x}" for i, stage in enumerate(paths, 1)}
     checks = {stage: 0 for stage in paths}
@@ -207,7 +231,7 @@ def test_queue_requires_all_five_exact_producers(tmp_path, monkeypatch, topology
     def state(unit):
         stage = unit.removesuffix(".service")
         checks[stage] += 1
-        finished = checks[stage] > 1
+        finished = checks[stage] > 1 or (stage == "spine" and completed_spine)
         if finished:
             status = queue.WARM_PASS if stage == "spine" else queue.STAGE_PASS.get(stage, queue.STAGE_PASS["r"])
             if stage == "au" and not topology_pass:

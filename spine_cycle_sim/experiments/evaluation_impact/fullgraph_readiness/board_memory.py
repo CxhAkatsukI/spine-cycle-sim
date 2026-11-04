@@ -1,12 +1,12 @@
 """Finite host budgets and throttle-free timing admission for resident matrices."""
 
 GIB = 1024**3
-HIGH_GIB = {24: 22, 40: 36}
+HIGH_GIB = {16: 14, 24: 22, 40: 36}
 
 
 def policy(memory_gib=24):
     if type(memory_gib) is not int or memory_gib not in HIGH_GIB:
-        raise ValueError("explicit 24- or 40-GiB resident board budget required")
+        raise ValueError("explicit 16-, 24-, or 40-GiB resident board budget required")
     return {"tree_memory_gib": memory_gib, "reserve_gib": 32, "allow_bounded_builds": True}
 
 

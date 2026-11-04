@@ -7,7 +7,7 @@ import time
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.board_execution import pair_resources
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    clocks, matched_hbm, returned_route,
+    clocks, degree_prefix_link, matched_hbm, returned_route,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.follow import unchanged
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import (
@@ -18,7 +18,7 @@ from .active_min_candidate import compare, reference_arm
 from .reference_board import BDF, DEVICE, BOARDS, QUALIFIED_BDF
 
 
-HOST_NAME = "sharded_k4_residual_pagerank_native_host"
+HOST_NAME = degree_prefix_link.HOST_NAME
 HOST_SHA256 = "882acf641227f182985b2c9da4754be8a658f030d9e8371d5799afbcbf3f1ee8"
 TAIL_HOST_SHA256 = "25e57511effb18aa2c35368915a46f5bc46e2fcd4fd69c667d7add535e405a68"
 R_PASS = "SUPPORTED_R_GATE_PASS_AWAITING_SPINE"
@@ -28,6 +28,13 @@ MAX_WAIT_SECONDS = 43200
 
 def native_host_sha256(route):
     manifest = json.loads((route / "manifest.json").read_text())
+    if prefix := manifest.get("degree_prefix"):
+        if (Path(prefix["host"]["path"]).name != HOST_NAME
+                or any(pin not in manifest["pins"] for pin in prefix.values())
+                or manifest["command"].count(prefix["after"]["path"]) != 1):
+            raise ValueError("expected degree replacement and route-matched native host pins")
+        unchanged(prefix.values())
+        return prefix["host"]["sha256"]
     if "tail_hosts" not in manifest:
         return HOST_SHA256
     unchanged([manifest["tail_hosts"]])

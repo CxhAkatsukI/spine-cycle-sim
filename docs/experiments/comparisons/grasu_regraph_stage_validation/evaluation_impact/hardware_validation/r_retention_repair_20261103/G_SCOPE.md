@@ -336,3 +336,36 @@ compiler reservation. It dispatches one bounded child at a time, with
 receipt and per-case receipts, including failures; it never retries a case.
 It does not certify CC or ResPR or substitute October latencies for new
 measurements.
+### ResPR repair: bounded ordered degree cache (routing)
+
+The packed-validity image's AU 131,072-update run spent 131.507 ms with
+update CUs busy and 1.993 ms in inter-shard gaps. Reducing launches alone
+cannot close the measured 133.500 ms versus 18.369 ms gap. The ordered
+degree path currently performs an HBM read-modify-write for each packet;
+because the dispatcher waits on the degree stream, this can stall other
+update stages as well. That is the mechanism under test, not a measured
+attribution of the full gap to a single CU.
+
+[HLS `a518092`](https://github.com/CxhAkatsukI/grasu-regraph-integration/commit/a518092)
+adds a cache for a touched prefix of at most 32,768 source vertices. It
+burst-loads and writes back the aligned prefix on the existing degree
+master, applies packets in order, and retains the ordered HBM path on a
+prefix miss. It does not change the degree stream, remove degree work,
+or replace any R component. Standalone C simulation passed the protocol
+checks. HLS reports II=3 for the cached loop and II=1 for each burst loop;
+neither is an FPGA throughput result.
+
+The sealed route replaces only `grasu_degree_update.hw.xo` (SHA-256
+`92771126e215f66a822c2e8f986f1c2c3485135a19d428273aaa081069210298`)
+and uses the route-matched host from `gr-degree-prefix-20261105/native-host-v1`.
+See [capsule and synthesis evidence](respr-degree-prefix-build-inputs.tar.gz).
+The exact route is `gr-retention-seele-respr-degree-prefix-20261105-v1.service`
+(`e729407e59d04eb682de652ca894b25a`). It is capped at 40 GiB with zero swap
+and a 128-GiB remote reserve. Local receipts will be
+`respr-degree-prefix-r-nominal-v1/results.json` (Amazon and skewed-source)
+and `respr-degree-prefix-g-nominal-v1/results.json` (AU), under
+`/data/chuxiao/checks/source-retention-repair-20261104/`. Both reuse the
+pinned public reference samples. Each candidate arm runs once on the
+same U55C at the matched clocks. The cached-degree image has **not**
+passed either gate yet, and the packed-validity image's failed gates
+remain in the record.

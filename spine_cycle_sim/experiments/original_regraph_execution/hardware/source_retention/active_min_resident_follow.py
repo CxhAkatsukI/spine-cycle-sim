@@ -94,9 +94,14 @@ def run(args):
         for stage, row in stages.items():
             state = service_state(row["unit"])
             path = Path(row["report_path"])
-            if (state["LoadState"] != "loaded" or state["InvocationID"] != row["invocation"]
-                    or route_finished(state, row["invocation"])):
+            if state["LoadState"] != "loaded" or state["InvocationID"] != row["invocation"]:
                 raise ValueError(f"must enqueue while the pinned {stage} producer is active")
+            if route_finished(state, row["invocation"]):
+                if stage != "spine":
+                    raise ValueError(f"must enqueue while the pinned {stage} producer is active")
+                # Reuse the completed single-arm run; the resident runner replays its raw evidence.
+                row["ready"] = ready(row, state, WARM_PASS, None)
+                continue
             pending = WARM_PENDING if stage == "spine" else PENDING.get(stage, set())
             if path.is_file() and json.loads(path.read_text()).get("status") not in pending:
                 raise ValueError(f"expected no terminal {stage} receipt at enqueue: {path}")

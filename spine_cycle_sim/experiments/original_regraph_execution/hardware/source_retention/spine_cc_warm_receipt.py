@@ -10,10 +10,11 @@ from .follow import unchanged
 from .runtime import identity
 
 
-ABI = "85808e123f78044eee0905e0f87f19b41b338562f84d10fb200aac43249e5a3f"
-HOST_SHA256 = "3f967b7ef10c0ce9bd44ac0ade280e464d7918d1e35a1242b9e690356f61ea10"
-BALANCED_HOST_SHA256 = "aa265331a1e292dd8e2bd91d961bd9b3fdb2a1471aa29ba8983410313a223582"
-RUNNER_SHA256 = "174fdc4e61ed911b517d303ead7e3ab499d083617611cd4907e72b885602fc80"
+ABI = "aa26b2530e38ec1ff43084ceb12ddda8a3e556fef0db848bb593d27c1f61e9b0"
+IMAGE_SHA256 = "bb08b045dfdf1b86224662a95e98b09eed2b6a64f449a5832702e5e9b56bda8b"
+HOST_SHA256 = "e417f60c9fd5303b86271486efda0faa9553bb371ef6ffba37418fadede09a78"
+BALANCED_HOST_SHA256 = HOST_SHA256
+RUNNER_SHA256 = "2a7f1fe45bbe576227addabffb469050effde9e0f096b8d4029036bb1d381f5a"
 INPUTS_SHA256 = "87120570af93f6e659a3ebec45207db475ba83d5c7c194d37c80b104f744ae2e"
 ROUTE_INVOCATION = "79463b9047ac4062810a42e50befc9aa"
 BDF, AFFINITY = "0000:82:00.1", (124, 125)
@@ -26,14 +27,16 @@ def route_pins(binary):
              image.parent / TIMING, image.parent / "bus_skew_routed.rpt"]
     pins = [identity(path) for path in paths]
     manifest, route, timing, skew = (path.read_text() for path in paths)
-    if not {f"build_sha256 {ABI}", f"image_sha256 {binary['sha256']}", "target hw"} <= set(manifest.splitlines()):
+    if (binary["sha256"] != IMAGE_SHA256
+            or not {f"build_sha256 {ABI}", f"image_sha256 {IMAGE_SHA256}", "target hw"} <= set(manifest.splitlines())):
         raise ValueError("not the warm CC hardware image")
     if not {f"InvocationID={ROUTE_INVOCATION}", "SubState=exited", "Result=success",
             "ExecMainStatus=0"} <= set(route.splitlines()):
         raise ValueError("not the successful pinned warm CC route")
     if "All user specified timing constraints are met." not in timing:
         raise ValueError("warm CC image did not close timing")
-    summary = skew.split("2. Bus Skew Report Per Constraint", 1)[0]
+    # Vivado repeats the section title in the table of contents.
+    summary = skew.rsplit("\n2. Bus Skew Report Per Constraint", 1)[0]
     slacks = re.findall(r"^\s*(?:Slow|Fast)(?:\s+[-.\d]+){2}\s+([-.\d]+)\s*$", summary, re.MULTILINE)
     if not slacks or min(map(float, slacks)) < 0:
         raise ValueError("warm CC image did not close bus skew")
@@ -72,9 +75,11 @@ def replay(receipt, frozen_source, *, bdf, affinity):
     command = ["/usr/bin/taskset", "-c", "124,125", hosts[0]["path"], "--xclbin", binary["path"],
                "--hot", "0", "--mode", "partial", "--samples", "1", "--slice", workload["graph"]["path"],
                "--update", workload["update"]["path"]]
-    if ((execution["command"], execution["host_affinity"], execution["exit_code"], execution["stop_reason"],
+    # The monitor records its own mask; taskset applies the narrower mask to the board host.
+    if (not set(AFFINITY).issubset(execution["host_affinity"])
+            or (execution["command"], execution["exit_code"], execution["stop_reason"],
          execution["cleanup_snapshot_error"], execution["cleanup_signaled_pids"])
-            != (command, list(AFFINITY), 0, "process_exit", None, [])):
+            != (command, 0, "process_exit", None, [])):
         raise ValueError("expected one successful cold-layout warm-state sample")
     board_memory.require_unthrottled(data["memory_events"])
     stdout, stderr = data["stdout"], data["stderr"]

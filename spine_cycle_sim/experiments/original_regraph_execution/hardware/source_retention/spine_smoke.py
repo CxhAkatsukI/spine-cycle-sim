@@ -67,7 +67,7 @@ def run(args):
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     group = containment.current()
-    declared = board_memory.policy(24)
+    declared = board_memory.policy(getattr(args, "memory_gib", 24))
     board_memory.validate(containment.verify(group)["limits"], declared)
     board_memory.require_unthrottled((group / "memory.events").read_text())
     reservation = Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
@@ -84,7 +84,7 @@ def run(args):
             pins.append(pin)
     report = {"status": "PREPARING", "performance_admission": False, "pins": pins,
               "scope": "canonical 12-vertex CC fixture; one sample, 11 distinct batches; not a G+R comparison",
-              "errors": [], "device": 0, "bdf": "0000:82:00.1"}
+              "errors": [], "device": 0, "bdf": "0000:82:00.1", "memory_policy": declared}
     if workload is not None:
         report.update(scope="frozen resident CC graph; one update batch; not a G+R comparison",
                       workload=workload, host_timer="batch upload through publication, excludes final label readback")
@@ -107,7 +107,7 @@ def run(args):
             if report["admission"]["admitted"]:
                 break
             if report["admission_waited_seconds"] >= wait:
-                raise MemoryError("complete peer budgets plus the 24-GiB smoke and reserve do not fit")
+                raise MemoryError("complete peer budgets plus the smoke and reserve do not fit")
             time.sleep(min(30, wait - report["admission_waited_seconds"]))
         with lease(0, report["bdf"]) as (node, fd):
             if subprocess.run(["fuser", str(node)], capture_output=True, timeout=10).returncode != 1:
@@ -120,7 +120,8 @@ def run(args):
             environment = dict(os.environ, XILINX_XRT="/opt/xilinx/xrt", MALLOC_ARENA_MAX="2")
             # This native Spine host does not consume a lease fd; the parent holds it throughout.
             result = run_link(command, output, output / "spine_cc", timeout=240,
-                              tree_memory_gib=24, reserve_gib=32, environment=environment)
+                              tree_memory_gib=declared["tree_memory_gib"],
+                              reserve_gib=declared["reserve_gib"], environment=environment)
             report["execution"] = result
             if (result["exit_code"] or result["stop_reason"] != "process_exit"
                     or result["cleanup_snapshot_error"]):
@@ -158,5 +159,6 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--input-manifest", type=Path)
     parser.add_argument("--resident-wall", action="store_true")
+    parser.add_argument("--memory-gib", type=int, choices=(16, 24), default=24)
     parser.add_argument("--admission-wait-seconds", type=int, default=0)
     run(parser.parse_args())
