@@ -154,8 +154,44 @@ assumptions, **nine of 24** winners cannot flip:
 This protects the direction, not the old bar heights, and does not show R
 is within 15% of public A4. It does not cover a faster or overlapping G,
 different Spine timing, or an R design that skips edges, uses more lanes,
-or runs the streams above 150 MHz. The other 15 rows still need a new
-measurement or stronger evidence. No frozen row is relabeled as a new run.
+or runs the streams above 150 MHz. The other 15 rows are not resolved by
+this bound. No frozen row is relabeled as a new run.
+
+**One complete scan with the current span reader.** The
+[compact adapter](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/67ce64d/kernels/pma_prefetch_compact/top.cpp#L11-L27)
+uses one 512-bit directory port per frontend. The
+[reader](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/67ce64d/kernels/pma_prefetch_compact/readers.hpp#L15-L49)
+probes the last row for the physical extent, then consumes
+`ceil(V / 8)` directory beats, at most one per kernel cycle. The
+[PMA builder](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/67ce64d/include/weighted_pma_graph.hpp#L500-L527)
+reserves at least one physical segment per shard, even if there are no
+live edges in that shard. The
+[SSSP/CC scheduler](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/67ce64d/tools/sharded_k4_native_host.cpp#L981-L1009)
+and [ResPR scheduler](https://github.com/CxhAkatsukI/grasu-regraph-integration/blob/67ce64d/tools/sharded_k4_pagerank_native_host.cpp#L749-L812)
+serialize each frontend's successive adapter invocations. With `P`
+shards, at least one frontend therefore performs
+`ceil(P / 4) * (1 + ceil(V / 8))` directory beat reads in one traversal.
+The audit checks `P = ceil(V / 65536)` against both raw graph and result
+records, then adds the **maximum**, not the sum, of the live-edge and
+directory floors to the measured G span: the two paths can overlap.
+
+In addition to the nine cases above, this condition preserves these three
+directions:
+
+| Frozen case | G plus compact scan floor (ms) | Complete Spine wall (ms) |
+| --- | ---: | ---: |
+| SSSP / WK | 5.531 | 4.899 |
+| CC / SU | 2.780 | 2.647 |
+| CC / SO | 117.733 | 24.544 |
+
+That gives **12 protected directions**, with **12 undetermined**, including
+all eight ResPR rows. This is specific to a post-G traversal at up to
+150 MHz with this directory ABI and scheduling, and unchanged observed G
+and Spine times. A redesign that skips directory entries or shards,
+preloads the directories before G completes, or shares a directory across
+successive shards is not covered. The 12 directions are not new timings,
+do not preserve the old bar heights and do not satisfy the 15% public A4
+retention gate.
 
 Replay from the simulator root using the [raw archive](fig7-frozen-r-only-bound-raw.tar.gz)
 (`6e0fda2381b273010b1a3f6281ad0082e1c5966356938bbca10594c143f8def1`).
@@ -163,8 +199,8 @@ It contains the original 24 JSON receipts and 48 stdout logs, not FPGA
 images or graph inputs. The CSV includes hashes of each receipt and raw log and
 `remaining_budget_to_tie_ms = Spine wall - G event span`. For a positive
 budget, the new R time **plus all other cost not in the G span** must fit
-within it for G+R to tie or win. The K4 columns report the additional
-conditional scan floor separately. No FPGA job is launched.
+within it for G+R to tie or win. The K4 and compact columns report the
+conditional scan floors separately. No FPGA job is launched.
 
 ```bash
 handoff=docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_handoff_20261103

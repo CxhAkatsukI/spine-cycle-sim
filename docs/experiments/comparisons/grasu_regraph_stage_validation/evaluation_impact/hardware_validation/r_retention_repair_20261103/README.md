@@ -34,8 +34,9 @@ admit the nominal resident matrix.
 
 See [Figure Impact](FIGURE_IMPACT.md) for the frozen Fig. 7 audit. Two wins
 survive even a zero-cost R; nine survive an ideal full K4 scan with
-unchanged G and Spine. The other 15 remain undetermined. This checkpoint
-is not a replacement Fig. 7--11 package.
+unchanged G and Spine. Keeping the current span reader's required
+directory traversal preserves 12 directions; 12 remain undetermined.
+This checkpoint is not a replacement Fig. 7--11 package.
 
 ## Acceptance Order
 

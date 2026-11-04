@@ -1,4 +1,4 @@
-"""Audit frozen Fig. 7 winners against two post-update lower bounds."""
+"""Audit frozen Fig. 7 winners against post-update lower bounds."""
 
 import argparse
 import csv
@@ -23,6 +23,8 @@ HOST_SOURCES = {
 }
 K4_FRONTENDS = 4
 EDGES_PER_BEAT = 8
+ROWS_PER_DIRECTORY_BEAT = 8
+PARTITION_VERTICES = 65536
 K4_CLOCK_CEILING_MHZ = 150
 EXECUTIONS_KEY = {
     "weighted_sssp": "executed_supersteps",
@@ -32,7 +34,9 @@ EXECUTIONS_KEY = {
 FIELDS = ("algorithm", "dataset", "gr_wall_ms", "spine_wall_ms", "g_span_ms",
           "remaining_budget_to_tie_ms", "survives_zero_post_update_cost",
           "final_edges", "k4_one_scan_floor_ms", "g_plus_k4_one_scan_floor_ms",
-          "survives_one_k4_full_scan",
+          "survives_one_k4_full_scan", "destination_partitions",
+          "compact_directory_one_scan_floor_ms", "g_plus_compact_one_scan_floor_ms",
+          "survives_one_compact_full_scan",
           "receipt_sha256", "gr_log_sha256", "spine_log_sha256")
 
 
@@ -41,6 +45,10 @@ def fields(log, tag):
     if len(lines) != 1:
         raise ValueError(f"expected one {tag} line, found {len(lines)}")
     return dict(field.split("=", 1) for field in lines[0].split()[1:])
+
+
+def ceil_div(count, width):
+    return (count + width - 1) // width
 
 
 def audit_row(row, run):
@@ -73,11 +81,16 @@ def audit_row(row, run):
     spine = fields(spine_log.read_text(), "SPINE_RESIDENT_BENCHMARK_PASS")
     g_span = Decimal(gr[g_key])
     final_edges = int(result["final_edges"])
+    vertices = int(result["vertices"])
+    partitions = int(result["destination_partitions"])
     executions = int(result[EXECUTIONS_KEY[algorithm]])
     if (result["status"] != "PASS" or result["resident_state"] != "old_graph_converged"
             or result["hardware_converged"] != "1" or result["oracle_converged"] != "1"
             or int(result["k4_frontends"]) != K4_FRONTENDS or executions < 1
             or final_edges <= 0 or final_edges != int(graph_input["final_edges"])
+            or vertices <= 0 or vertices != int(graph_input["vertices"])
+            or not 1 <= partitions <= 255 or partitions != ceil_div(vertices, PARTITION_VERTICES)
+            or partitions != int(graph_input["destination_partitions"])
             or repeat["repeats"] != "1" or spine["boundary"] != BOUNDARY
             or spine["case"] != config["graph"] + ":final"
             or any(int(result[key]) != summary[key] or int(spine[key]) != summary[key]
@@ -89,17 +102,27 @@ def audit_row(row, run):
 
     # Keep only one post-G scan of live edges. No padding or additional rounds.
     edges_per_cycle = K4_FRONTENDS * EDGES_PER_BEAT
-    cycles = (final_edges + edges_per_cycle - 1) // edges_per_cycle
-    scan_floor = Decimal(cycles) / (K4_CLOCK_CEILING_MHZ * 1000)
+    cycles_per_ms = K4_CLOCK_CEILING_MHZ * 1000
+    scan_floor = Decimal(ceil_div(final_edges, edges_per_cycle)) / cycles_per_ms
     total_floor = g_span + scan_floor
     if total_floor > gr_wall:
         raise ValueError(f"frozen wall time is below the K4 scan floor for {algorithm}/{dataset}")
+
+    # The span reader probes the extent, then rereads the entire directory.
+    # At least one frontend must serve ceil(partitions / 4) shards serially.
+    directory_beats = 1 + ceil_div(vertices, ROWS_PER_DIRECTORY_BEAT)
+    directory_cycles = ceil_div(partitions, K4_FRONTENDS) * directory_beats
+    directory_floor = Decimal(directory_cycles) / cycles_per_ms
+    compact_floor = g_span + max(scan_floor, directory_floor)
     return dict(algorithm=algorithm, dataset=dataset, gr_wall_ms=gr_wall, spine_wall_ms=spine_wall,
                 g_span_ms=g_span, remaining_budget_to_tie_ms=spine_wall - g_span,
                 survives_zero_post_update_cost=g_span > spine_wall,
                 final_edges=final_edges, k4_one_scan_floor_ms=scan_floor,
                 g_plus_k4_one_scan_floor_ms=total_floor,
                 survives_one_k4_full_scan=total_floor > spine_wall,
+                destination_partitions=partitions, compact_directory_one_scan_floor_ms=directory_floor,
+                g_plus_compact_one_scan_floor_ms=compact_floor,
+                survives_one_compact_full_scan=compact_floor > spine_wall,
                 receipt_sha256=identity(receipt_path)["sha256"], gr_log_sha256=identity(gr_log)["sha256"],
                 spine_log_sha256=identity(spine_log)["sha256"])
 

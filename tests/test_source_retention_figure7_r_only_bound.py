@@ -23,11 +23,11 @@ def pair(tmp_path):
     (case / "results.json").write_text(json.dumps(receipt))
     (sample / "gr.stdout.txt").write_text(
         "GRASU_SHARDED_UPDATE_REPEAT_CONFIG repeats=1\n"
-        "WEIGHTED_PMA_NATIVE_SHARDED_INPUT final_edges=17\n"
+        "WEIGHTED_PMA_NATIVE_SHARDED_INPUT final_edges=17 vertices=3 destination_partitions=1\n"
         "WEIGHTED_PMA_NATIVE_SHARDED_TIMING grasu_ms=6.5 barrier_ms=7 setup_inclusive_ms=12.5\n"
         "WEIGHTED_PMA_NATIVE_SHARDED_RESULT status=PASS resident_state=old_graph_converged "
         "hardware_converged=1 oracle_converged=1 vertices=3 logical_updates=1 physical_updates=1 "
-        "k4_frontends=4 executed_supersteps=2 final_edges=17\n"
+        "k4_frontends=4 executed_supersteps=2 final_edges=17 destination_partitions=1\n"
     )
     (sample / "spine.stdout.txt").write_text(
         f"SPINE_RESIDENT_BENCHMARK_PASS boundary={audit.BOUNDARY} case={graph}:final "
@@ -60,11 +60,33 @@ def test_full_scan_floor_does_not_count_padding_or_extra_rounds(pair):
     assert result["g_plus_k4_one_scan_floor_ms"] == Decimal("4.5") + expected
     assert result["survives_zero_post_update_cost"] is False
     assert result["survives_one_k4_full_scan"] is True
+    assert result["g_plus_compact_one_scan_floor_ms"] == result["g_plus_k4_one_scan_floor_ms"]
+
+
+def test_compact_directory_counts_each_serial_shard_but_overlaps_scan(pair):
+    row, run, sample = pair
+    gr_log = sample / "gr.stdout.txt"
+    gr_log.write_text(gr_log.read_text().replace("vertices=3", "vertices=589825")
+                      .replace("destination_partitions=1", "destination_partitions=10")
+                      .replace("grasu_ms=6.5", "grasu_ms=4.5"))
+    spine_log = sample / "spine.stdout.txt"
+    spine_log.write_text(spine_log.read_text().replace("vertices=3", "vertices=589825"))
+    receipt_path = sample.parent / "results.json"
+    receipt = json.loads(receipt_path.read_text())
+    receipt["summary"]["vertices"] = 589825
+    receipt_path.write_text(json.dumps(receipt))
+    result = audit.audit_row(row, run)
+    directory_ms = Decimal(3 * (1 + 73729)) / 150000
+    assert result["compact_directory_one_scan_floor_ms"] == directory_ms
+    assert result["g_plus_compact_one_scan_floor_ms"] == Decimal("4.5") + directory_ms
+    assert result["survives_one_k4_full_scan"] is False
+    assert result["survives_one_compact_full_scan"] is True
 
 
 @pytest.mark.parametrize("old,new", [("k4_frontends=4", "k4_frontends=5"),
                                     ("executed_supersteps=2", "executed_supersteps=0"),
-                                    ("INPUT final_edges=17", "INPUT final_edges=99")])
+                                    ("INPUT final_edges=17", "INPUT final_edges=99"),
+                                    ("destination_partitions=1", "destination_partitions=2")])
 def test_rejects_mismatched_scan_contract(pair, old, new):
     row, run, sample = pair
     gr_log = sample / "gr.stdout.txt"
