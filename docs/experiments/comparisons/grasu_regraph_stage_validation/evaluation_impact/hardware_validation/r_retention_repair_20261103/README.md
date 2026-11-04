@@ -11,10 +11,14 @@ The ResPR source-burst, unregistered-Apply variant finished and remains
 independent, correctness-checked R results, not convergence comparisons
 against Spine.
 
-Three replacements are building: SSSP source-read burst physical retry,
-CC four-bank gather clear, and ResPR packed-validity gather. Their pinned
-return and one-shot stage screens are queued. The independent CC G check
-is queued on the same banked-clear image.
+The new CC four-bank gather-clear image passed two matched R screens
+(Amazon **+0.66%** elapsed; high-activity Amazon **-6.82%**)
+and independently passed G on AU 131K (**-61.65%**). It failed the
+reciprocal AU 903K R screen (**+20.92%**, above the 15% limit).
+No resident CC pair was measured on this image. See the
+[board receipts](REMOTE_LINKS.md#cc-banked-clear-board-checkpoint).
+The SSSP source-read burst physical retry and ResPR packed-validity
+gather still have separate build and one-shot board queues.
 The new ResPR resident screen waits for both exact-image G and R passes.
 Passive queues retain the finite zero-swap memory cap; timed runs still
 require a board lease and memory admission.

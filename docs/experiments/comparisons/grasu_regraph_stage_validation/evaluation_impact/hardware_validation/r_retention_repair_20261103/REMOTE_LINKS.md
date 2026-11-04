@@ -660,12 +660,13 @@ Prior receipts remain unchanged.
 | SSSP nominal G, AU 131K | `g-sssp-physopt-v1/results.json` | `gr-retention-g-sssp-physopt-20261104-v1` |
 | SSSP resident full AU after G and all three R passes | `sssp-physopt-resident-au-v1/queue.json` | `gr-retention-sssp-physopt-resident-au-20261104-v1` |
 | Remaining seven resident SSSP pairs | `sssp-physopt-matrix-v1/matrix.json` | `gr-retention-sssp-physopt-matrix-20261104-v1` |
-| CC nominal R, Amazon | `cc-banked-amazon-pair-v1/queue.json` | `gr-retention-cc-banked-amazon-20261104-v1` |
-| CC nominal R, high-activity Amazon | `cc-banked-amazon-odd-pair-v1/queue.json` | `gr-retention-cc-banked-amazon-odd-20261104-v1` |
-| CC nominal G, AU 131K | `g-cc-board-banked-v2/results.json` | `gr-retention-g-cc-banked-20261104-v2` |
+| CC nominal R, Amazon | `cc-banked-amazon-pair-final/queue.json` | `gr-retention-cc-banked-amazon-20261105-final` |
+| CC nominal R, high-activity Amazon | `cc-banked-amazon-odd-pair-final/queue.json` | `gr-retention-cc-banked-amazon-odd-20261105-final` |
+| CC nominal R, reciprocal AU 903K | `cc-banked-au903k-pair-final/queue.json` | `gr-retention-cc-banked-au903k-20261105-final` |
+| CC nominal G, AU 131K | `g-cc-board-banked-final/results.json` | `gr-retention-g-cc-banked-20261105-final` |
 | CC old-image matrix, stopped before all eight requests | `cc-banked-matrix-v2/matrix.json` | `gr-retention-cc-banked-matrix-20261104-v2` |
-| Warm CC AU pair after G and all three R gates | `cc-warm-au-resident-v1/queue.json` | `gr-retention-cc-warm-au-resident-20261105-v1` |
-| Warm CC matrix, reusing AU and requesting at most one new pair per remaining dataset | `cc-warm-balanced-matrix-v1/matrix.json` | `gr-retention-cc-warm-balanced-matrix-20261105-v1` |
+| Warm CC AU pair after G and all three R gates | `cc-warm-au-resident-final/queue.json` | `gr-retention-cc-warm-au-resident-20261105-final` |
+| Warm CC matrix, reusing AU and requesting at most one new pair per remaining dataset | `cc-warm-balanced-matrix-final/matrix.json` | `gr-retention-cc-warm-balanced-matrix-20261105-final` |
 | ResPR Apply-off nominal R, skewed sources and Amazon | `retime-apply-off-r-v3/results.json` | `gr-retention-r-apply-off-20261104-v3` |
 | ResPR Apply-off nominal G, AU 131K | `retime-apply-off-g-v4/results.json` | `gr-retention-g-apply-off-20261104-v4` |
 | ResPR packed-validity nominal R, skewed sources and Amazon | `respr-lazy-clear-nominal-r-v1/results.json` | `gr-retention-r-lazy-clear-nominal-20261104-v1` |
@@ -688,6 +689,59 @@ candidates (`resident_board --alternate`). Either must supply its own
 nominal G and both nominal R controls on one image; the matrix takes its
 image from the passing screen. The lower-clock diagnostics cannot supply
 those nominal gates.
+
+### CC Banked-Clear Board Checkpoint
+
+The first CC return packaged the routed timing report even though the
+configured physical retry enables a further post-route optimization.
+The board-side verification rejected that return; none of those queues
+ran a measured arm. The corrected collector
+`gr-retention-return-cc-banked-clear-20261105-final.service` (invocation
+`3284f0d34eb940b6bb02597ab549ca7f`) resealed the **same build and image**
+with its final post-route optimized timing report. The image digest
+remained `852cdcba83a379d896df0102f57e823e8585794af57219fcc579bd4d2e4edc1f`.
+The corrected transfer receipt SHA-256 is
+`2bdea5647810a6fd56484b595b5d98d0d18e1c1c4dc8fb374866618fe9a5c066`;
+the report has zero failing setup and hold endpoints. The old failures
+and their output directories are retained.
+
+The stage screen below uses one measured sample per arm on
+`0000:82:00.1` at the same driver-reported 150/500/450 MHz clocks.
+R is one resident active-min superstep through device publication; G
+is the update-CU event envelope, including gaps between shards. The
+independent public controls, oracle checks and exact candidate-image
+pins are in the receipts above.
+
+| Control | Public source (ms) | Integrated (ms) | Elapsed change | Gate |
+| --- | ---: | ---: | ---: | --- |
+| G, AU 131K | 18.368928 | 7.044811 | -61.65% | Pass |
+| R, Amazon | 10.067298 | 10.133419 | +0.66% | Pass |
+| R, high-activity Amazon | 10.542570 | 9.823770 | -6.82% | Pass |
+| R, reciprocal AU 903K | 2.150389 | 2.600322 | +20.92% | Fail |
+
+The G and Amazon R pair replayed independently as
+`BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE` in
+`cc-banked-amazon-plus-g-audit-20261105.json`. This partial stage replay
+does not replace the reciprocal AU gate or the matched Spine measurement.
+The resident AU and matrix queues stopped at the stage gate without
+launching a board pair.
+
+The [raw board archive](cc-banked-stage-board-raw.tar.gz) contains the
+stage reports, device event logs, checked output dumps where emitted,
+return timing report and the stopped resident queue receipts. SHA-256:
+`87377d43367ab6f9befbc0767afcc1ecf76985e98b8c1645f5a1abd07cf018e9`.
+The route image and frozen graph input buffers remain at the paths
+pinned in those reports; they are not duplicated in the archive.
+
+The reciprocal AU run needs to recover at least 0.127375 ms from
+the integrated device event envelope to meet the 15% limit on this
+control. Its three destination shards use three of the four K4 frontends,
+versus 12 tasks scheduled across all four public A4 lanes. The integrated
+mux invocations serialized in shard order: the first ran 1.779 ms, the
+second 0.259 ms and the third 0.270 ms, with sub-microsecond gaps.
+The last adapter had already completed about 1.484 ms before its mux
+started. These are overlapping CU events, not a decomposition of the
+elapsed difference or proof that the first adapter is the only bottleneck.
 
 ### Large CC Layout Preflight on Seele
 
