@@ -29,6 +29,11 @@ is now available. Full Amazon is within 1.2% of the public A4 in raw
 elapsed time; the skewed control is still 87.5% slower. The candidate's
 HBM was derated, so this is not same-clock baseline admission.
 
+The [same-clock board screens](LOWER_CLOCK_SCREEN.md#measured-pairs)
+then measured **58.05%** slowdown on ResPR skewed sources and **18.18%**
+on CC reciprocal AskUbuntu. Both pass correctness but fail the 15% R
+gate. These rows do not qualify the baseline for a Spine matrix.
+
 1. Freeze the production source, bitstream, host, graph and numeric policy.
 2. Diagnose and repair the actual adapter/R implementation. Keep the original
    A4 reference and the pre-repair measurements. Screen each new matched case

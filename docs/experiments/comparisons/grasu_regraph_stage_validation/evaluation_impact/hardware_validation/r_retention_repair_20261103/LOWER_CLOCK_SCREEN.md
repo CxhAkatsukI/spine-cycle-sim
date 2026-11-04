@@ -24,14 +24,35 @@ UUID; the original is untouched. The candidate must use the vendor's
 own packaged clock, not a locally modified candidate. The public package
 does not establish the candidate's safe or actual operating frequency.
 
-The first public arm was a single skewed-sources residual-PageRank
-superstep with the original four-Little A4 host and the frozen
-`csr_degree` fixture. The guard and output checks passed on
-`0000:82:00.1`. The observed clock vector was `150/500/445/0 MHz` both
-after programming and after the timed host (which reopens the image).
-The device event span was **510,895 ns**. Programming and the clock
-reads are outside the timed window. This is one reference arm only;
-there is no measured candidate speed ratio at this clock yet.
+## Measured Pairs
+
+Both arms used the same U55C (`0000:82:00.1`) and passed their output
+checks. Each arm ran one resident superstep. The full clock vector was
+read after programming and again after the timed host, which can reopen
+the image. Programming, state initialization and output readback are
+outside the reported first-device-start to last-device-end boundary.
+
+| Control | Actual clock vector (MHz) | Public A4 | Integrated candidate | Slowdown | 15% gate |
+| --- | --- | ---: | ---: | ---: | --- |
+| ResPR, skewed sources, `csr_degree` | 150/500/445/0 | 0.510895 ms | 0.807462 ms | 58.05% | Fail |
+| CC, reciprocal AskUbuntu, 903,774 edges | 150/500/430/0 | 2.201941 ms | 2.602202 ms | 18.18% | Fail |
+
+The integrated candidates are the exact returned physical retries; the
+ResPR and CC packaged HBM clocks are 449 and 434 MHz, respectively.
+The table uses the common **observed** frequency, not the packaged
+frequency or a rescaling of measured times. The CC A4 reference uses
+the public four-Little design with the explicit minimum-label UDF
+adaptation, not the upstream OR-based CC UDF. Its output and the
+candidate output agree with the independent offline CSR oracle.
+
+In the ResPR trace, shard 0 gather finishes 211.9 us after its adapter
+and 81.2 us before the overall pipeline ends. The CC shard-0 mux spans
+1.826 ms; the other two span 0.267 and 0.257 ms. These overlapping
+intervals can include stalls and are not exclusive stage service times.
+The skewed ResPR candidate has a shorter host enqueue-to-completion
+window (0.898 vs 1.096 ms); this is not the predeclared device R gate.
+Neither paired failure is due to a different clock vector, and neither
+admits a resident Spine comparison or validates earlier figure data.
 
 ## Receipts
 
@@ -43,12 +64,28 @@ Paths below are relative to
 | Runtime-reclock check | `hbm-control-qualification-440-v2/results.json` | Failed, no algorithm run |
 | ResPR public 445-MHz package | `hbm-respr-a4-445-repackage-v1/package.json` | Ten non-clock sections byte-identical |
 | ResPR public 445-MHz skewed-sources run | `hbm-respr-a4-445-skew-board-v1/results.json` | Passed, reference arm only |
-| CC public 430-MHz package | `hbm-cc-a4-430-repackage-v1/package.json` | Verified offline, not yet measured |
+| ResPR same-clock skewed pair | `hbm-respr-tail-445-skew-pair-v1/results.json` | Correctness pass; performance gate fail |
+| CC public 430-MHz package | `hbm-cc-a4-430-repackage-v1/package.json` | Verified offline; used in the paired run |
+| CC same-clock AskUbuntu pair | `hbm-cc-physical-430-au903k-pair-v2/results.json` | Correctness pass; performance gate fail |
 
-The ResPR board receipt SHA-256 is
+The ResPR reference-only receipt SHA-256 is
 `f97471f56f75dc7e1c1c3f1234203ab0d66d5df1ba1ba84d3bbd6173b8e45d00`.
 The service was `gr-retention-hbm-respr-a4-445-20261104-v1.service`,
 invocation `1a0f5b4f0f15481d894a24a042d2113c`; its peak was 186.5 MiB.
+
+The [paired board evidence](lower-clock-pairs.tar.gz) includes the two
+pair receipts, timestamp and clock records, and raw timed-host logs.
+The ResPR pair receipt SHA-256 is
+`d468d6860497354c661ffab679fbdf7dbe241a78d9f15ac3c94d2db13bbb64e2`
+(service `gr-retention-hbm-respr-tail-445-20261104-v1.service`,
+invocation `4b74f7fc939449ffa92ceaf1dd223be7`).
+The CC pair receipt SHA-256 is
+`017356b34620d2bb6d64b09b0614c68c2677ebab1ee00c8dae5bd6a5d73d9cfe`
+(service `gr-retention-hbm-cc-physical-430-au903k-20261104-v2.service`,
+invocation `3cb465f108c945c7ba4cf9b377af92dd`, peak 491.9 MiB).
+CC setup v1 stopped in preflight because it compared a two-field fixture
+pin to a three-field fingerprint. No image was programmed and no timed
+arm ran in v1.
 
 The offline entry point is `source_retention.repackage_hbm`, with native
 verifier source `cpp/tests/publication_sources/source_retention/verify_clock_repackage.cpp`.
