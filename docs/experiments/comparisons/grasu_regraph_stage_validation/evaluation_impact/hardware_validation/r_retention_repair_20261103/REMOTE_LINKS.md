@@ -689,6 +689,32 @@ nominal G and both nominal R controls on one image; the matrix takes its
 image from the passing screen. The lower-clock diagnostics cannot supply
 those nominal gates.
 
+### Large CC Layout Preflight on Seele
+
+The local offline producer `spine-cc-warm-balanced-large-layout-20261105-v1`
+was waiting for memory without completed rows. The parallel Seele
+producer uses the same warm CC host binary (SHA-256
+`aa265331a1e292dd8e2bd91d961bd9b3fdb2a1471aa29ba8983410313a223582`),
+runner from `54477d5`, and frozen split inputs for SO, PK, LJ, and LJ08.
+It checks the exact inputs and passes `--layout-only`, without opening a
+card. It has a 22 GiB soft threshold, 24 GiB hard limit, and no swap.
+The layout runner requires a 32 GiB live reserve in addition to the
+finite peer budgets; the staged copy does not relax that check.
+
+| Step | Unit (omit `.service`) | Invocation |
+| --- | --- | --- |
+| Seele offline layout | `spine-cc-warm-balanced-layout-seele-20261105-v2` | `aa01c15542a2478597e92110be503626` |
+| Trifoliate import | `spine-cc-layout-seele-import-20261105-v1` | `745e6bfd67b64ffda9de966ea98d2f2f` |
+
+The import requires a successful producer exit, four complete receipts,
+matching inputs and host digest, and the raw layout logs. It stages the
+copy before publishing to `spine-cc-warm-balanced-large-layout-v1/` under
+the local check root. It leaves any local rows untouched; if the local
+producer is superseded while still waiting, its journal is retained in
+the sibling directory ending in `-trif-wait-retained`. The board matrix
+still validates each layout before running the corresponding case.
+These receipts verify layout capacity only and contain no FPGA timing.
+
 The lower-clock diagnostic queues record in
 `derated-cc-banked-clear-v1/`, `derated-respr-tail-bursts-apply-off-v1/`
 and `derated-respr-tail-lazy-clear-v1/`. They replay a frozen,
