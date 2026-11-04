@@ -237,6 +237,37 @@ contains the one-shot receipt, stdout/stderr, clocks, image metadata, and
 both off-board fingerprints. The [original paired checkpoint](paired-board-checkpoint/README.md)
 retains the old Spine and G logs.
 
+The [next host revision `67e8df1`](https://github.com/jayfeather9/spine-dynamic-graph/commit/67e8df1)
+populates the existing device directory image directly instead of creating
+and copying a second dense directory on the host. The new path is limited
+to the one-shot update benchmark. The off-board directory test matched
+the old directory word for word across cold/hot rows, levels, lanes, and
+pages, and the resident benchmark driver test passed separately.
+
+| AU/64, single measured Spine run | Time (ms) |
+|---|---:|
+| Host graph layout | 462.552 |
+| Bootstrap host buffer and metadata preparation | 633.207 |
+| Bootstrap XRT migration | 214.871 |
+| Bootstrap lifecycle call | 4.738 |
+| Batch preparation | 0.177 |
+| Update call | 0.311 |
+| Total | 1,315.856 |
+
+The bootstrap subphases sum to 852.816 ms. The same U55C, xclbin, clocks,
+CPU affinity, input and timer were used; the frozen G arm was not repeated.
+All 390,911 final weighted edges matched. The board run peaked at
+2,290,442,240 bytes with zero memory high, max, or OOM events. Relative to
+the first host revision, the observed total dropped by 59.309 ms (4.3%);
+the frozen 818.456 ms G result is still 1.61x faster. These are individual
+runs, not an estimate of repeat-to-repeat variation. The remaining gap is
+497.400 ms and is not a kernel-update gap. This check does not replace the
+ten-batch Figure 8 data or the resident Figure 7 results.
+The [raw revision archive](paired-board-checkpoint/fig8-au64-spine-bootstrap-v4.tar.gz)
+contains the timing breakdown, device and input receipts, and directory test
+log. Its SHA-256 is
+`f0a50534397b003a4e06c70e38ccad1d4ac8765bcff28f8cf29cb3decf3a253e`.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.
