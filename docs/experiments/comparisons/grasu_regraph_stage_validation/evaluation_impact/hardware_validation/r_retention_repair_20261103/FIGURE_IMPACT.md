@@ -63,6 +63,11 @@ CC and SSSP matrices require a passing AskUbuntu topology control on the
 image used for the resident measurements. The export includes its receipt
 and ratio alongside the two Amazon controls; older measured SSSP rows
 without cross-topology admission are labeled `amazon_only_diagnostic`.
+For a new balanced-layout Spine CC pair, the export also rechecks the exact
+preflight packet, completed offline layout, routed Spine image, CPU affinity,
+and both raw board wall logs. The odd-Amazon and AskUbuntu R controls in the
+matrix must be the ones used to admit that pair. Layout checks alone never
+create a timing row.
 
 ## Figure 7: R-Only Bound On Two New SSSP Pairs
 

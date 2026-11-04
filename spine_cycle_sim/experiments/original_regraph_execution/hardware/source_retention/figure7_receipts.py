@@ -71,8 +71,12 @@ def record_topology(out, stage, job, gates, algorithm):
     out.update(au_topology_stage=pin, r_validation_scope="amazon_and_askubuntu")
 
 
-def record_cc_topology(out, matrix, gates):
+def record_cc_topology(out, matrix, gates, child=None):
     job = matrix.get("stages", {}).get("au_slice")
+    if child is not None and ("retained_spine" in child or "warm_layout" in child):
+        expected = {"amazon_odd": matrix.get("odd_r"), "au_slice": matrix.get("au_slice_r")}
+        if job is None or child["additional_r_gates"] != expected:
+            raise ValueError("matrix R controls differ from the warm CC pair admission")
     if job is None:
         out["r_validation_scope"] = "amazon_only_diagnostic"
         return
@@ -166,6 +170,11 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
     pair = row["pair"]
     if any(pair[key] != value for key, value in recorded.items()) or pair["boundary"] != boundary:
         raise ValueError("saved comparison differs from its pinned receipt")
+    warm_record = {}
+    if "warm_layout" in child:
+        if algorithm != "cc" or retained is not None:
+            raise ValueError("unexpected new warm CC layout receipt")
+        warm_record = cc_resident_wall.replay_warm_pair(child, workload["graph"], observed, recorded)
     if algorithm == "cc":
         gr, spine, published = (pair[key] for key in ("gr_ms", "spine_ms", "gr_over_spine"))
         rounds = (pair["gr_supersteps"], pair["spine_rounds"])
@@ -195,7 +204,7 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
                 bdf=child["bdf"], workload=workload, stage_ratios=stage, comparison=pair_pin,
                 images={arm: record["binary"] for arm, record in observed.items()},
                 clocks={arm: entry["clock_evidence"] for arm, entry in arms.items()}, raw=evidence,
-                **retained_record)
+                **retained_record, **warm_record)
 
 
 def respr_case(rows, dataset):
@@ -287,11 +296,7 @@ def export(paths):
                         image = matrix["image"] if algorithm == "respr" else gates["image"]
                         row_data = measured(algorithm, dataset, child, row, gates, matrix.get("odd_r"), image)
                         if algorithm == "cc":
-                            if child.get("retained_spine"):
-                                if (not matrix.get("stages", {}).get("au_slice")
-                                        or child["additional_r_gates"]["au_slice"] != matrix.get("au_slice_r")):
-                                    raise ValueError("matrix AU topology evidence differs from the retained CC pair")
-                            record_cc_topology(row_data, matrix, gates)
+                            record_cc_topology(row_data, matrix, gates, child)
                         elif algorithm == "weighted_sssp":
                             record_sssp_topology(row_data, matrix, special, gates)
                         out.update(row_data)

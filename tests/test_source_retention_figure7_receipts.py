@@ -115,6 +115,62 @@ class Figure7ReceiptsTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "cross-topology baseline"):
                 figure.measured("cc", "AU", child, child, gates, odd, gates["image"])
 
+    def test_warm_cc_export_replays_layout_route_and_raw_wall_results(self):
+        child, gates, odd = self.pair("cc", "SU")
+        wall = figure.cc_resident_wall
+        warm = figure.spine_cc_warm_receipt
+        case, arms = child["case"], child["arms"]
+        child.update(bdf=warm.BDF, cpu_affinity=list(warm.AFFINITY))
+        gates["image"]["path"] = "/gr.xclbin"
+        for arm in arms.values():
+            arm["clock"]["bdf"] = warm.BDF
+        for key in ("spine_host", "gr_host", "graph_slice", "update_slice"):
+            case[key] = self.receipt(key, {})["path"]
+        inputs = self.receipt("inputs", {key: {"path": case[key + "_slice"]} for key in ("graph", "update")})
+        layout, route = self.receipt("layout", {}), self.receipt("route", {})
+        packet = self.receipt("packet", dict(inputs=inputs["path"], **{
+            key: case[key] for key in ("spine_binary", "spine_host", "gr_host")}))
+        child["pins"] += [inputs, layout, route, packet, identity(case["spine_host"])]
+        child.update(warm_layout=layout, wall_packet=packet, commands=wall.commands(case, gates, self.root))
+        for name, command in child["commands"].items():
+            arms[name]["command"] = command
+        comparison = {"retention_gate_pass": True, "candidate_over_reference": 1.1}
+        au_r = self.receipt("au-cc-r", {"algorithm": "cc", "comparison": comparison})
+        au = dict(report=au_r, comparison=comparison, candidate_clock=arms["gr"]["clock"])
+        child["additional_r_gates"] = {"amazon_odd": odd, "au_slice": au}
+        matrix = dict(status="MEASURED", baseline=gates, odd_r=odd, au_slice_r=au, stages={
+            "au_slice": {"ready": True, "receipt": au_r}}, cases={"R19": {"status": "NOT_REQUESTED"}})
+        paths = dict(self.paths)
+        paths.pop("cc_r19")
+
+        def row():
+            matrix["cases"]["SU"] = {"status": figure.MEASURED, "result": self.receipt("warm-child", child)}
+            save(paths["cc_matrix"], matrix)
+            return next(row for row in figure.export(paths)["rows"]
+                        if (row["algorithm"], row["dataset"]) == ("cc", "SU"))
+
+        with (patch.object(warm, "BALANCED_HOST_SHA256", identity(case["spine_host"])["sha256"]),
+              patch.object(wall, "GR_HOST", identity(case["gr_host"])["sha256"]),
+              patch.object(warm, "route_pins", return_value=[route]),
+              patch.object(wall.spine_cc_layout, "replay", return_value=({}, [layout, inputs])) as replay,
+              patch.object(wall.cc_resident_results, "analyze", return_value=child["pair"]) as analyze):
+            result = row()
+            self.assertEqual((result["status"], result["warm_layout"], result["winner"]),
+                             (figure.MEASURED, layout, "G+R"))
+            replay.assert_called_once_with(layout["path"], "SU", host=identity(case["spine_host"]),
+                                           inputs=inputs["path"], frozen=identity(case["graph"]))
+            analyze.assert_called_once()
+            analyze.return_value = dict(child["pair"], spine_ms=11)
+            self.assertIn("raw logs", row()["error"])
+            analyze.return_value = child["pair"]
+            child["pins"].remove(route)
+            self.assertIn("pre-measurement pins", row()["error"])
+            child["pins"].append(route)
+            child["additional_r_gates"]["au_slice"] = dict(au, report=route)
+            rejected = row()
+            self.assertIn("matrix R controls", rejected["error"])
+            self.assertNotIn("gr_over_spine", rejected)
+
     def test_board_observed_spine_must_match_the_predeclared_image(self):
         child, gates, odd = self.pair("weighted_sssp", "AU")
         child["pins"][0]["sha256"] = "different-spine"

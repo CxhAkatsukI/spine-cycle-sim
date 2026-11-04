@@ -70,6 +70,42 @@ def commands(case, gate, output):
     }
 
 
+def replay_warm_pair(child, source, observed, recorded):
+    """Recheck the warm layout and wall samples when indexing a finished pair."""
+    case, arms, pins = (child[key] for key in ("case", "arms", "pins"))
+    if (child["bdf"], tuple(child["cpu_affinity"])) != (
+            spine_cc_warm_receipt.BDF, spine_cc_warm_receipt.AFFINITY) or case["dataset"] == "AU":
+        raise ValueError("warm CC pair did not use its qualified board, affinity and dataset")
+    packet, layout = child["wall_packet"], child["warm_layout"]
+    unchanged([packet, layout])
+    inputs = json.loads(Path(packet["path"]).read_text())
+    image, host = observed["spine"]["binary"], identity(case["spine_host"])
+    if (inputs["spine_binary"], inputs["spine_host"], inputs["gr_host"]) != (
+            image["path"], host["path"], case["gr_host"]) or (
+                host["sha256"] != spine_cc_warm_receipt.BALANCED_HOST_SHA256
+                or identity(case["gr_host"])["sha256"] != GR_HOST):
+        raise ValueError("warm CC pair did not use the pinned wall hosts and Spine image")
+    split = json.loads(Path(inputs["inputs"]).read_text())
+    if [case["graph_slice"], case["update_slice"]] != [split[key]["path"] for key in ("graph", "update")]:
+        raise ValueError("warm CC pair did not use the checked split inputs")
+    route_pins = spine_cc_warm_receipt.route_pins(image)
+    _, layout_pins = spine_cc_layout.replay(layout["path"], case["dataset"], host=host,
+                                            inputs=inputs["inputs"], frozen=source)
+    if any(pin not in pins for pin in [packet, *route_pins, *layout_pins]):
+        raise ValueError("warm CC layout or route differs from the pre-measurement pins")
+    output = Path(child["comparison_log"]["path"]).parent
+    expected = commands(case, child["stage_gates"], output)
+    if child["commands"] != expected or any(arms[name]["command"] != cmd for name, cmd in expected.items()):
+        raise ValueError("warm CC arm commands differ from the frozen packet")
+    logs = [arms[name]["stdout"] for name in ("gr", "spine")]
+    unchanged(logs)
+    if cc_resident_results.analyze(case, *(Path(pin["path"]).read_text() for pin in logs),
+                                   bdf=child["bdf"]) != recorded:
+        raise ValueError("warm CC wall times or oracle results differ from the raw logs")
+    unchanged([packet, *route_pins, *layout_pins, *logs])
+    return {"warm_layout": layout, "wall_packet": packet, "spine_route": route_pins}
+
+
 def compare(case, arms, output, bdf):
     logs = [arms[name]["stdout"] for name in ("gr", "spine")]
     unchanged(logs)

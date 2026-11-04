@@ -158,8 +158,9 @@ def run(args):
             pins += added_pins
             if warm_layout is not None:
                 report["warm_layout"] = identity(warm_layout)
-                if report["warm_layout"] not in added_pins:
-                    raise ValueError("warm layout receipt changed after admission")
+                report["wall_packet"] = identity(args.cc_wall_packet)
+                if any(report[key] not in added_pins for key in ("warm_layout", "wall_packet")):
+                    raise ValueError("warm layout or wall packet changed after admission")
             report.update(boundary=cc_resident_wall.BOUNDARY,
                           gr_host_overlay="15717a5928929cafd39dbf5a3f7fc1aaf18d167a",
                           gr_host_overlay_environment={"GRASU_SHARDED_RESIDENT_BATCH_WALL": "1"})
