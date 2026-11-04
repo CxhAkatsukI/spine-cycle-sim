@@ -937,8 +937,8 @@ remaining seven Spine arms.
 
 | Step | Unit (without `.service`) | Invocation | Journal |
 | --- | --- | --- | --- |
-| Resident CC, full AU | `gr-retention-cc-source-bursts-au-resident-20261105-v5` | `6847ffcf59dd470db89016329b525d0e` | `cc-warm-au-source-bursts-resident-v5/queue.json` |
-| Remaining resident CC cases | `gr-retention-cc-warm-balanced-matrix-source-bursts-20261105-v5` | `9986c6e8853d4735b0888ccda250d8f0` | `cc-warm-balanced-matrix-source-bursts-v5/matrix.json` |
+| Resident CC, full AU | `gr-retention-cc-source-bursts-au-resident-20261105-v6` | `3bcc90c0abb64c89b3d9055230a04943` | `cc-warm-au-source-bursts-resident-v6/queue.json` |
+| Remaining resident CC cases | `gr-retention-cc-warm-balanced-matrix-source-bursts-20261105-v6` | `018d0fdbc2314c7698eac74a58ecac74` | `cc-warm-balanced-matrix-source-bursts-v6/matrix.json` |
 
 ### Archived Spine Images on Feiyang
 
@@ -1015,14 +1015,23 @@ stopped while waiting for the return, with no board request.
 | Banked clear | Sparse Amazon R | `gr-retention-sssp-amazon-20261105-banked-v3` | `5276aa69a41541708aac54242959a966` |
 | Banked clear | High-activity Amazon R | `gr-retention-sssp-amazon-odd-20261105-banked-v3` | `51de3ebf70bc4739bc0d65f7a60db783` |
 | Banked clear | Independent AU G | `gr-retention-sssp-g-20261105-banked-v3` | `1bcdca44ca414066bd7487faa76f8b1d` |
-| Banked clear | Full AU resident pair | `gr-retention-sssp-resident-au-20261105-banked-v3` | `cf64461822a5400d9661a72d10ba5a83` |
+| Banked clear | Full AU resident pair | `gr-retention-sssp-resident-au-20261105-banked-v4` | `2a30dca329454e5a862b2771badf6601` |
 | Tail | Sparse Amazon R | `gr-retention-sssp-amazon-20261105-tail-abi-v3` | `5a4c8ff87a1349e39277eb6f6e97d9f1` |
 | Tail | High-activity Amazon R | `gr-retention-sssp-amazon-odd-20261105-tail-abi-v3` | `2eda0ab6be2040438b47d7163862fa10` |
 | Tail | Independent AU G | `gr-retention-sssp-g-20261105-tail-abi-v3` | `99f2c3225dc740a5a29dd193cc4ac29f` |
-| Tail | Full AU resident pair | `gr-retention-sssp-resident-au-20261105-tail-abi-v3` | `289ee721eb32421a8f8aa03df4ae13c8` |
+| Tail | Full AU resident pair | `gr-retention-sssp-resident-au-20261105-tail-abi-v4` | `f0ec1cec06b74510ad0d26188958461d` |
 
 The sparse Amazon board request requires a passing AU R receipt;
 the high-activity Amazon request requires the sparse Amazon pass.
 The resident AU pair requires the same image to pass all three R
 checks and the separate G check. No repeat or eight-dataset SSSP
 matrix is queued for these two variants before their AU comparison.
+
+The resident runner now checks primary G/R receipts separately from the
+two auxiliary R receipts and the retained Spine CC arm. The previous
+runner would index the primary gate with the auxiliary receipt names
+and fail before reaching the board. The two SSSP AU v3 queues and the CC
+AU and matrix v5 queues were stopped while still waiting, with no board
+request. The replacement queues retain the same stage producer invocations
+and memory limits. SSSP journals are `sssp-resident-au-banked-v4/queue.json`
+and `sssp-resident-au-tail-abi-v4/queue.json`.
