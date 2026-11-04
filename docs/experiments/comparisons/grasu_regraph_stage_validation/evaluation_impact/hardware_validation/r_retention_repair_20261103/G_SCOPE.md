@@ -73,6 +73,24 @@ Each accepts `--help`; the board runner requires a cgroup limit of at
 most 8 GiB with zero swap. Local uncompressed evidence:
 `/data/chuxiao/checks/source-retention-repair-20261104/g-reference-board-v1/`.
 
+### Qualified Card 0 Public Reference
+
+The public AU 131,072-update control was run once on the same U55C used
+by the current R queues, `0000:82:00.1`. The update event span was
+18.368928 ms; the full PMA oracle passed. Physical clocks read back
+150/500/450 MHz before and after the arm. The older card 1 receipt below
+remains historical and is not the denominator for the new queues.
+
+- Receipt: `/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json`
+- SHA-256: `c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f`
+- Producer: `gr-retention-g-reference-card0-20261104-v1.service`,
+  invocation `9f1f0c8fb1fc4fd19d94298f961d0ac6`
+
+This establishes the denominator only. Each candidate still has to pass
+the full PMA oracle and the latency limit on the exact image used by its
+R control. A failed R performance screen does not turn an independent G
+measurement into a joint admission.
+
 ### Candidate Readiness
 
 The pinned production ResPR host passes offline preparation on the same

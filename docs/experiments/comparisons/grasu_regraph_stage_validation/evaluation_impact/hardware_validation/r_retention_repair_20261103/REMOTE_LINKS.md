@@ -640,19 +640,25 @@ output oracle. No result from this variant was used for Figures 7–11.
 All local paths below are under
 `/data/chuxiao/checks/source-retention-repair-20261104`. The runners use
 the exact collector invocation and the exclusive lease for
-`0000:82:00.1`. They preserve all previous receipts; the superseded
-ResPR queues were stopped while waiting, before any board request.
+`0000:82:00.1`. G now uses the
+[card 0 public control](G_SCOPE.md#qualified-card-0-public-reference).
+The replacement G and resident runners are pinned to `90845aa`; their
+predecessors were stopped while waiting, before any board request. All
+R producers and prior receipts are unchanged.
 
 | Test | Journal | Unit (omit `.service`) |
 | --- | --- | --- |
+| SSSP nominal G, AU 131K | `g-sssp-board-burst-v2/results.json` | `gr-retention-g-sssp-burst-20261104-v2` |
+| SSSP resident full AU after G and all three R passes | `sssp-burst-resident-au-v2/queue.json` | `gr-retention-sssp-burst-resident-au-20261104-v2` |
+| Remaining seven resident SSSP pairs | `sssp-burst-matrix-v2/matrix.json` | `gr-retention-sssp-burst-matrix-20261104-v2` |
 | CC nominal R, Amazon | `cc-banked-amazon-pair-v1/queue.json` | `gr-retention-cc-banked-amazon-20261104-v1` |
 | CC nominal R, high-activity Amazon | `cc-banked-amazon-odd-pair-v1/queue.json` | `gr-retention-cc-banked-amazon-odd-20261104-v1` |
-| CC nominal G, AU 131K | `g-cc-board-banked-v1/results.json` | `gr-retention-g-cc-banked-20261104-v1` |
-| CC single-pass matrix after G and all three R passes | `cc-banked-matrix-v1/matrix.json` | `gr-retention-cc-banked-matrix-20261104-v1` |
+| CC nominal G, AU 131K | `g-cc-board-banked-v2/results.json` | `gr-retention-g-cc-banked-20261104-v2` |
+| CC single-pass matrix after G and all three R passes | `cc-banked-matrix-v2/matrix.json` | `gr-retention-cc-banked-matrix-20261104-v2` |
 | ResPR Apply-off nominal R, skewed sources and Amazon | `retime-apply-off-r-v3/results.json` | `gr-retention-r-apply-off-20261104-v3` |
-| ResPR Apply-off nominal G, AU 131K | `retime-apply-off-g-v3/results.json` | `gr-retention-g-apply-off-20261104-v3` |
-| ResPR R19 and Flickr resident screen after G and R pass | `resident-joint-board-v10/results.json` | `gr-retention-resident-joint-v10-20261104` |
-| Remaining ResPR resident cases after both screens | `respr-matrix-v8/results.json` | `gr-retention-respr-matrix-v8-20261104` |
+| ResPR Apply-off nominal G, AU 131K | `retime-apply-off-g-v4/results.json` | `gr-retention-g-apply-off-20261104-v4` |
+| ResPR R19 and Flickr resident screen after G and R pass | `resident-joint-board-v11/results.json` | `gr-retention-resident-joint-v11-20261104` |
+| Remaining ResPR resident cases after both screens | `respr-matrix-v9/results.json` | `gr-retention-respr-matrix-v9-20261104` |
 
 The lower-clock diagnostic queues record in
 `derated-cc-banked-clear-v1/`, `derated-respr-tail-bursts-apply-off-v1/`
@@ -660,5 +666,5 @@ and `derated-respr-tail-lazy-clear-v1/`. They replay a frozen,
 correctness-checked public arm, then run only the new candidate if the
 return is HBM-only vendor-derated and the measured physical clock
 matches that arm. No runtime reclock or nominal-matrix admission is
-allowed. The SSSP paths are in the
+allowed. The unchanged SSSP R producer paths are in the
 [source-read burst retry](#weighted-sssp-source-read-burst-retry) above.
