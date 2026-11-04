@@ -122,7 +122,8 @@ def verify(root, digest, local_capsule):
     environment = record(root, "environment.json")
     compiler = Path(environment["tools"]["v++"]["invocation"])
     platform = Path(manifest["commands"]["link"][manifest["commands"]["link"].index("--platform") + 1])
-    if manifest["commands"] != portable_inputs.commands(source, attempt, compiler, platform):
+    if manifest["commands"] != portable_inputs.commands(
+            source, attempt, compiler, platform, timing_profile=manifest.get("timing_profile")):
         raise ValueError("remote public A4 CC command changed")
     for row in result["xos"]:
         for evidence in (row["abi"]["xo"], row["hls"]["report"]):

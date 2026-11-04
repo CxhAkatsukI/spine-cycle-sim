@@ -8,7 +8,9 @@ import socket
 import time
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
-from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import capsule, environment
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import (
+    capsule, environment, timing,
+)
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment import probe
 from spine_cycle_sim.experiments.sharded_k4_stages.empty_segment.route_environment.contract import require_unchanged
 from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
@@ -21,7 +23,7 @@ from . import configuration, execution, gates, portable_inputs as inputs, snapsh
 STATUS = "REMOTE_A4_CC_LINK_PASS_AWAITING_LOCAL_REVIEW"
 
 
-def run(root, output, xilinx, platform, compatibility, digest):
+def run(root, output, xilinx, platform, compatibility, digest, *, timing_profile=None):
     packet = inputs.verify(root, platform, xilinx, digest)
     policy = memory_profiles.select(capsule.POLICY, memory_profiles.SEELE)
     memory_profiles.host(policy)
@@ -58,13 +60,14 @@ def run(root, output, xilinx, platform, compatibility, digest):
         effective, contract = environment.capture(root, output, xilinx, platform, compatibility)
         atomic_write_json(output / "environment.json", contract)
         compiler = Path(contract["tools"]["v++"]["invocation"])
-        commands = inputs.commands(root / "source", output, compiler, platform)
+        commands = inputs.commands(root / "source", output, compiler, platform, timing_profile=timing_profile)
         pins = [report["capsule"], *[artifact.identity(root / name) for name in packet["files"]],
                 *[artifact.identity(xilinx / name) for name in inputs.VENDOR_FILES], *contract["pins"],
                 *entries, artifact.identity(output / udf), artifact.identity(output / "environment.json"),
                 *execution.runner_pins()]
         atomic_write_json(output / "manifest.json", {"pins": pins, "commands": commands, "clock_mhz": 150,
-                          "algorithm": inputs.ALGORITHM, "configuration": inputs.TOPOLOGY})
+                          "algorithm": inputs.ALGORITHM, "configuration": inputs.TOPOLOGY,
+                          "timing_profile": timing_profile})
         report["manifest"] = artifact.identity(output / "manifest.json")
         pins.append(report["manifest"])
         deadline = time.monotonic() + 86400
@@ -123,9 +126,10 @@ def main():
     for name in ("root", "output", "xilinx", "platform", "compatibility"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--digest", required=True)
+    parser.add_argument("--timing-profile", choices=(timing.PROFILE,))
     args = parser.parse_args()
     run(args.root.resolve(), args.output.resolve(), args.xilinx.resolve(), args.platform.resolve(),
-        args.compatibility.resolve(), args.digest)
+        args.compatibility.resolve(), args.digest, timing_profile=args.timing_profile)
 
 
 if __name__ == "__main__":

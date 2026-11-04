@@ -77,7 +77,23 @@ def test_remote_command_keeps_cu_configuration_and_fixed_clock(tmp_path):
         assert "-I" + str(compiler.parents[3] / "Vitis_HLS/2024.1/include/etc") in command
 
 
-def test_terminal_public_cc_return_replays_and_detects_tampering(frozen, tmp_path, monkeypatch):
+def test_retry_only_adds_reviewed_implementation_properties(tmp_path):
+    args = (tmp_path / "source", tmp_path / "build", configuration.COMPILER, configuration.PLATFORM)
+    original = portable.commands(*args)
+    retry = portable.commands(*args, timing_profile=portable.timing.PROFILE)
+    assert retry["compilations"] == original["compilations"]
+    link = retry["link"]
+    start = link.index("--vivado.prop")
+    stop = link.index("--vivado.synth.jobs")
+    assert link[start:stop:2] == ["--vivado.prop"] * len(portable.timing.PROPERTIES)
+    assert tuple(link[start + 1:stop:2]) == portable.timing.PROPERTIES
+    assert link[:start] + link[stop:] == original["link"]
+    with pytest.raises(ValueError, match="unknown physical timing profile"):
+        portable.commands(*args, timing_profile="unreviewed")
+
+
+@pytest.mark.parametrize("profile", [None, portable.timing.PROFILE])
+def test_terminal_public_cc_return_replays_and_detects_tampering(frozen, tmp_path, monkeypatch, profile):
     prior, platform, _, shim = frozen
     root, attempt, output = [tmp_path / name for name in ("portable", "build", "returned")]
     portable.prepare(prior, root, shim)
@@ -85,8 +101,12 @@ def test_terminal_public_cc_return_replays_and_detects_tampering(frozen, tmp_pat
     policy = returned.memory_profiles.select(returned.capsule.POLICY, returned.memory_profiles.SEELE)
     resources = dict(exit_code=0, stop_reason="process_exit", cleanup_snapshot_error=None,
                      tree_memory_gib=40, reserve_gib=128, minimum_available_bytes=129 * 2**30)
-    manifest = write(attempt, "manifest.json", json.dumps(dict(configuration="a4", algorithm="cc", clock_mhz=150,
-        commands=portable.commands(root / "source", attempt, configuration.COMPILER, platform))))
+    plan = dict(configuration="a4", algorithm="cc", clock_mhz=150,
+                commands=portable.commands(root / "source", attempt, configuration.COMPILER, platform,
+                                           timing_profile=profile))
+    if profile is not None:
+        plan["timing_profile"] = profile
+    manifest = write(attempt, "manifest.json", json.dumps(plan))
     image = write(attempt, returned.BINARY, "unprogrammed test fixture")
     write(attempt, "environment.json", json.dumps({"tools": {"v++": {"invocation": str(configuration.COMPILER)}}}))
     write(attempt, "preflight/results.json", json.dumps(dict(status="PREFLIGHT_PASS_NOT_ROUTED",

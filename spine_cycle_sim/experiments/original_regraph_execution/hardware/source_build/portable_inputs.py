@@ -6,6 +6,7 @@ import shutil
 
 from spine_cycle_sim.experiments.campaign_runtime import atomic_write_json
 from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import replacement_capsule
+from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.hardware.remote import timing
 from .. import artifact
 from . import active_min, configuration as config, snapshot
 
@@ -88,7 +89,7 @@ def verify(root, platform, xilinx, digest):
     return packet
 
 
-def commands(source, output, compiler, platform):
+def commands(source, output, compiler, platform, *, timing_profile=None):
     def relocate(argv):
         argv = list(argv)
         argv[0] = str(compiler)
@@ -98,6 +99,12 @@ def commands(source, output, compiler, platform):
             argv[argv.index(include)] = "-I" + str(compiler.parents[3] / "Vitis_HLS/2024.1/include/etc")
         return argv
 
+    link = relocate(config.link_command(source, output, TOPOLOGY, algorithm=ALGORITHM))
+    if timing_profile is not None:
+        if timing_profile != timing.PROFILE:
+            raise ValueError("unknown physical timing profile")
+        index = link.index("--vivado.synth.jobs")
+        link[index:index] = [arg for prop in timing.PROPERTIES for arg in ("--vivado.prop", prop)]
     return {"compilations": {name: relocate(config.compile_command(source, output, name,
                 TOPOLOGY, algorithm=ALGORITHM)) for name in config.kernels(TOPOLOGY)},
-            "link": relocate(config.link_command(source, output, TOPOLOGY, algorithm=ALGORITHM))}
+            "link": link}
