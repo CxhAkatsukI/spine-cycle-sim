@@ -368,3 +368,14 @@ The follow-up search of readable `/data/feiyang/spine*` and
 `/data/feiyang/dynamic-acts*` paths found newer emulation files and 133-byte Git
 LFS pointers named `*.hw.xclbin`, not a newer local routed image in those
 paths. A pointer is not a loadable bitstream; its timestamp is not a build date.
+
+The November 4 HOT12 link on Seele is also not a board image. The project
+record at `/data/feiyang/spine-dynamic-graph-generalized-engine/openspec/changes/generalize-incremental-compute-engine-hls/execution-status.md`
+on trifoliate identifies the 469,682,090-byte output as `hw_emu` and
+explicitly reports no FPGA card use. The adjacent
+`seele-rootless-hot12-link-plan.md` records image SHA-256
+`41aa16009b9318890e49b3243721de10a6400d6aaa54df43a4d443aaa8148b92`.
+The original HOT12 emulation hit a bootstrap epoch audit before applying any
+updates. The private remote build directory was not independently inventoried;
+this finding excludes the documented HOT12 image, not every possible private
+build. Keep the previously verified board image for the matched board tests.
