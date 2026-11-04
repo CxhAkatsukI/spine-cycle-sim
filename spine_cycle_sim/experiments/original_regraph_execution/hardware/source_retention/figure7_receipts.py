@@ -18,6 +18,7 @@ SPECIAL = {"weighted_sssp": "AU", "cc": "R19", "respr": "R19"}
 JOURNALS = {"weighted_sssp": ("sssp_matrix", "sssp_au"),
             "cc": ("cc_matrix", "cc_r19"), "respr": ("respr_matrix", "respr_screen")}
 ROLES = tuple(role for roles in JOURNALS.values() for role in roles)
+OPTIONAL_SCREENS = {"sssp_au", "cc_r19"}
 
 
 def checked(pin):
@@ -111,7 +112,7 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
 
 def candidate(algorithm, dataset, matrix, special):
     gates = matrix.get("stage_gates" if algorithm == "respr" else "baseline")
-    if dataset == SPECIAL[algorithm]:
+    if special is not None and dataset == SPECIAL[algorithm]:
         if algorithm == "respr":
             rows = [row for row in special.get("cases", []) if row["case"]["dataset"] == dataset]
             if len(rows) > 1:
@@ -142,12 +143,21 @@ def candidate(algorithm, dataset, matrix, special):
 
 
 def export(paths):
+    required = set(ROLES) - OPTIONAL_SCREENS
+    if not required <= paths.keys() <= set(ROLES):
+        raise ValueError("supply the three matrices and the ResPR screen, with optional legacy AU/R19 screens")
     pins = {name: identity(path) for name, path in paths.items()}
     snapshots = {name: load(pin) for name, pin in pins.items()}
     result = {"status": "SNAPSHOT_NOT_FINAL_EVALUATION", "inputs": pins,
-              "journal_status": {name: data["status"] for name, data in snapshots.items()}, "rows": []}
-    for algorithm, roles in JOURNALS.items():
-        matrix, special = (snapshots[key] for key in roles)
+              "journal_status": {name: data["status"] for name, data in snapshots.items()},
+              "journal_errors": {name: data["error"] for name, data in snapshots.items() if data.get("error")},
+              "rows": []}
+    for algorithm, (matrix_role, screen_role) in JOURNALS.items():
+        matrix, special = snapshots[matrix_role], snapshots.get(screen_role)
+        if algorithm != "respr":
+            in_matrix = SPECIAL[algorithm] in matrix.get("cases", {})
+            if in_matrix == (special is not None):
+                raise ValueError(f"{algorithm} {SPECIAL[algorithm]} must have exactly one journal source")
         for dataset in DATASETS:
             out = dict(algorithm=algorithm, dataset=dataset, boundary=BOUNDARIES[algorithm])
             try:
@@ -177,11 +187,11 @@ def export(paths):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for role in (*ROLES, "output"):
-        parser.add_argument("--" + role.replace("_", "-"), type=Path, required=True)
+        parser.add_argument("--" + role.replace("_", "-"), type=Path, required=role not in OPTIONAL_SCREENS)
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
-    result = export({key: getattr(args, key) for key in ROLES})
+    result = export({key: getattr(args, key) for key in ROLES if getattr(args, key) is not None})
     save(args.output, result)
     print(f"{sum(row['status'] == MEASURED for row in result['rows'])}/{len(result['rows'])} admitted pairs")
 

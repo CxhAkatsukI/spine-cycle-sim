@@ -2,22 +2,23 @@
 
 ## Figure 7 Receipt Export
 
-From the simulator repository, use the live campaign's six journals to
+From the simulator repository, use the live campaign's four journals to
 produce a new, immutable-by-convention evidence snapshot. Run this offline;
 it does not launch FPGA jobs or modify existing packages.
 
 ```bash
 run=/data/chuxiao/checks/source-retention-repair-20261104
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.figure7_receipts \
-  --sssp-matrix "$run/sssp-singlepass-matrix-v1/matrix.json" \
-  --sssp-au "$run/sssp-resident-au-v2/queue.json" \
-  --cc-matrix "$run/cc-singlepass-matrix-v1/matrix.json" \
-  --cc-r19 "$run/cc-r19-resident-wall-v1/queue.json" \
+  --sssp-matrix "$run/sssp-singlepass-matrix-return-v2/matrix.json" \
+  --cc-matrix "$run/cc-singlepass-matrix-return-v3/matrix.json" \
   --respr-matrix "$run/respr-matrix-v2/results.json" \
   --respr-screen "$run/resident-joint-board-v3/results.json" \
   --output "$run/figure7-receipt-snapshot.json"
 ```
 
+The current SSSP and CC matrices include AU and R19 respectively. The
+legacy `--sssp-au` and `--cc-r19` arguments are only for matrices that
+do not already contain those cases. The export rejects duplicate sources.
 The export has eight rows each for SSSP, CC, and ResPR. FullPR is outside
 this campaign. No ratios are emitted for pending or failed rows. If a live
 journal changes during export, rerun rather than mixing snapshots. Admitted

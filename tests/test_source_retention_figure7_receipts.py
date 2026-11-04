@@ -46,7 +46,8 @@ class Figure7ReceiptsTest(unittest.TestCase):
                      g={"comparison": g}, r=r, resident_mhz=[150], image=gr["binary"])
         child = dict(status=figure.MEASURED, bdf="bdf", dataset=dataset, algorithm=algorithm, boundary=b,
                      repetitions_per_arm=1, warmups=0, stage_gates=gates, attempts=["spine", "gr"],
-                     arms=arms, case={"dataset": dataset}, pair=pair, comparison_log=self.receipt("pair", pair))
+                     arms=arms, case={"dataset": dataset}, pair=pair,
+                     comparison_log=self.receipt(f"{algorithm}-{dataset}-pair", pair))
         return child, gates, r
 
     def test_waiting_failures_and_all_rows_retained(self):
@@ -80,6 +81,26 @@ class Figure7ReceiptsTest(unittest.TestCase):
         row = figure.export(self.paths)["rows"][0]
         self.assertEqual(row["status"], "RECEIPT_REJECTED")
         self.assertNotIn("gr_over_spine", row)
+
+    def test_complete_matrices_replace_separate_au_and_r19_screens(self):
+        paths = {key: path for key, path in self.paths.items() if key not in figure.OPTIONAL_SCREENS}
+        for role, algorithm, dataset in (("sssp_matrix", "weighted_sssp", "AU"), ("cc_matrix", "cc", "R19")):
+            child, gates, odd = self.pair(algorithm, dataset)
+            save(paths[role], dict(status="MEASURED", baseline=gates, odd_r=odd, cases={
+                dataset: {"status": figure.MEASURED, "result": self.receipt(f"{role}-child", child)},
+            }))
+        result = figure.export(paths)
+        self.assertEqual(len(result["rows"]), 24)
+        self.assertEqual([(row["algorithm"], row["dataset"]) for row in result["rows"]
+                          if row["status"] == figure.MEASURED], [("weighted_sssp", "AU"), ("cc", "R19")])
+        with self.assertRaisesRegex(ValueError, "exactly one journal source"):
+            figure.export(self.paths)
+        save(paths["sssp_matrix"], {"status": "FAILED_RETAINED", "error": "odd gate", "cases": {
+            "AU": {"status": "NOT_REQUESTED"},
+        }})
+        result = figure.export(paths)
+        self.assertEqual(result["journal_errors"], {"sssp_matrix": "odd gate"})
+        self.assertEqual(result["rows"][0]["status"], "NOT_REQUESTED")
 
     def test_respr_correction_only_is_labeled_and_requires_both_r_gates(self):
         child, _, _ = self.pair("respr", "R19")
