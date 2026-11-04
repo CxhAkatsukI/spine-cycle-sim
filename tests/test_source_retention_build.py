@@ -49,6 +49,7 @@ class SourceRetentionBuildTest(unittest.TestCase):
                 self.assertIn("-DNDEBUG", record["command"])
                 self.assertNotIn("-DSPINE_RETENTION_TAIL_PUBLICATION=1", record["command"])
             self.assertEqual(report["candidate_publication"], "fixed")
+            self.assertEqual(report["candidate_dispatch"], "interleaved")
             with self.assertRaises(FileExistsError):
                 self.execute(args[:4], self.compile)
 
@@ -59,6 +60,16 @@ class SourceRetentionBuildTest(unittest.TestCase):
             self.assertEqual(report["candidate_publication"], "tail")
             reference, candidate = report["builds"]
             flag = "-DSPINE_RETENTION_TAIL_PUBLICATION=1"
+            self.assertNotIn(flag, reference["command"])
+            self.assertIn(flag, candidate["command"])
+
+    def test_prebound_dispatch_is_opt_in_for_candidate_only(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.fixture(Path(directory))
+            report = self.execute(args[:4], self.compile, tail_publication=True, prebound_dispatch=True)
+            self.assertEqual(report["candidate_dispatch"], "prebound")
+            reference, candidate = report["builds"]
+            flag = "-DSPINE_RETENTION_PREBOUND_DISPATCH=1"
             self.assertNotIn(flag, reference["command"])
             self.assertIn(flag, candidate["command"])
 

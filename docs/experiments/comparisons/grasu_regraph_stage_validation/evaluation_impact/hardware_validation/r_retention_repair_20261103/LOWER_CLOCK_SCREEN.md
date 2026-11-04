@@ -85,6 +85,32 @@ checks; its physical link and one-shot measurement are queued. See the
 [CC route handoff](REMOTE_LINKS.md#cc-four-bank-gather-clear) and the
 [native and synthesis evidence](banked-gather-csynth.tar.gz).
 
+## Host Dispatch Control
+
+On the same ResPR image, card, 445 MHz HBM profile and skewed-sources
+fixture, a separately compiled probe binds all shard arguments before
+the first enqueue. The original event envelope is unchanged; resident
+wall time still includes argument binding. The existing A4 result was
+reused and the changed candidate host ran once, passing its oracle.
+
+| ResPR skewed-sources | Event span (ms) | Resident wall (ms) |
+| --- | ---: | ---: |
+| Public A4 reference | 0.510895 | 1.095811 |
+| K4, original dispatch | 0.807462 | 0.897555 |
+| Same K4, prebound dispatch | 0.791752 | 0.933416 |
+
+The changed host was still 54.97% slower in the event envelope and
+made the candidate's resident wall time worse. Do not adopt it or
+qualify the image on this result. The code is opt-in via
+`source_retention.build --prebound-dispatch`; run and replay via
+`source_retention.dispatch_probe`. The local receipt is
+`hbm-respr-tail-445-prebound-skew-v1/results.json`, SHA-256
+`ef206853a514a49f3b8c718047e4e2a91b823a053bc4c128ece8150afeba51d8`
+(service `gr-retention-respr-prebound-445-20261104-v1.service`,
+invocation `c5ab58c82ec34538a232348f7e6ecce3`, peak 306.1 MiB).
+The [raw replay evidence](respr-prebound-dispatch.tar.gz) preserves the
+new timed log, the compiler manifest and the before/after clocks.
+
 ## Receipts
 
 Paths below are relative to

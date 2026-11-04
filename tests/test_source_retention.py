@@ -108,8 +108,8 @@ class SourceRetentionTest(unittest.TestCase):
         source = (root / "cpp/tests/publication_sources/source_retention/device.hpp").read_text()
         self.assertIn("#else\n            const unsigned packets = 65536u / 2;", source)
         self.assertIn("const unsigned packets = ((dst_vertices + 15u) / 16u) * 8u;", source)
-        self.assertIn("gather[w].setArg(5, packets)", source)
-        self.assertIn("mux.setArg(5, packets)", source)
+        self.assertIn('g.setArg(5, packets), "bind gather publication rows"', source)
+        self.assertIn('m.setArg(5, packets), "bind mux packets"', source)
         self.assertIn("const unsigned bursts = (vertices + 15u) / 16u;", source)
 
 

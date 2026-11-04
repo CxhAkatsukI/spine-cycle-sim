@@ -14,6 +14,9 @@ struct Device {
     cl::Kernel mux, apply, hbm;
     struct Shard { std::array<cl::Buffer, 4> pma; cl::Buffer rows; };
     std::vector<Shard> shards;
+#if defined(SPINE_RETENTION_PREBOUND_DISPATCH)
+    std::vector<cl::Kernel> shard_adapters, shard_gathers, shard_muxes;
+#endif
     cl::Buffer degree, rank, residual, stats;
     std::array<cl::Buffer, 2> source, output;
 
@@ -64,6 +67,14 @@ struct Device {
         for (const auto& value : {degree, rank, residual, stats}) resident.push_back(value);
         checked(session.queue.enqueueMigrateMemObjects(resident, 0), "candidate residency");
         checked(session.queue.finish(), "candidate residency finish");
+#if defined(SPINE_RETENTION_PREBOUND_DISPATCH)
+        for (unsigned s = 0; s < shards.size(); ++s) {
+            const auto instance = std::to_string(s % 4 + 1);
+            shard_adapters.push_back(session.kernel("pma_to_regraph_adapter:{pma_to_regraph_adapter_" + instance + "}"));
+            shard_gathers.push_back(session.kernel("lksg_stream:{lksg_stream_" + instance + "}"));
+            shard_muxes.push_back(session.kernel("regraph_frontend_mux:{regraph_frontend_mux_1}"));
+        }
+#endif
     }
 
     void run(const Input& input, unsigned repeat) {
@@ -91,38 +102,53 @@ struct Device {
         checked(apply.setArg(arg++, 0.0F), "bind zero base");
         checked(apply.setArg(arg++, 0.0F), "bind zero dangling");
         checked(apply.setArg(arg++, true), "bind correction identity with zero rank");
-        checked(session.queue.enqueueTask(hbm, nullptr, &events[0]), "launch HBM");
-        checked(session.queue.enqueueTask(apply, nullptr, &events[1]), "launch apply");
-        for (unsigned s = 0; s < shards.size(); ++s) {
-            const auto w = s % 4;
-            for (unsigned lane = 0; lane < 4; ++lane) checked(adapter[w].setArg(lane, shards[s].pma[lane]), "bind PMA");
-            checked(adapter[w].setArg(4, shards[s].rows), "bind rows");
-            checked(adapter[w].setArg(5, vertices), "bind source count");
+        auto bind_shard = [&](unsigned s, cl::Kernel& a, cl::Kernel& g, cl::Kernel& m) {
+            for (unsigned lane = 0; lane < 4; ++lane) checked(a.setArg(lane, shards[s].pma[lane]), "bind PMA");
+            checked(a.setArg(4, shards[s].rows), "bind rows");
+            checked(a.setArg(5, vertices), "bind source count");
             const auto slots = unsigned(input.plan.shards[s].pma_slot_count);
-            checked(adapter[w].setArg(6, slots), "bind slots");
-            checked(adapter[w].setArg(7, 131072u), "bind cache boundary");
-            checked(adapter[w].setArg(8, s * 65536u), "bind destination base");
+            checked(a.setArg(6, slots), "bind slots");
+            checked(a.setArg(7, 131072u), "bind cache boundary");
+            checked(a.setArg(8, s * 65536u), "bind destination base");
             const auto dst_vertices = unsigned(input.graph.shards[s].destination_vertices);
-            checked(adapter[w].setArg(9, dst_vertices), "bind destination count");
-            checked(gather[w].setArg(1, slots), "bind gather slots");
-            checked(gather[w].setArg(2, 0u), "bind uncompressed groups");
-            checked(gather[w].setArg(3, s * 65536u), "bind gather base");
-            checked(gather[w].setArg(4, s < 4), "initialize each gather worker");
-            checked(mux.setArg(4, w), "bind mux worker");
+            checked(a.setArg(9, dst_vertices), "bind destination count");
+            checked(g.setArg(1, slots), "bind gather slots");
+            checked(g.setArg(2, 0u), "bind uncompressed groups");
+            checked(g.setArg(3, s * 65536u), "bind gather base");
+            checked(g.setArg(4, s < 4), "initialize each gather worker");
+            checked(m.setArg(4, s % 4), "bind mux worker");
             // Gather packets carry two destinations; Apply beats carry sixteen.
 #if defined(SPINE_RETENTION_TAIL_PUBLICATION)
             const unsigned packets = ((dst_vertices + 15u) / 16u) * 8u;
-            checked(gather[w].setArg(5, packets), "bind gather publication rows");
+            checked(g.setArg(5, packets), "bind gather publication rows");
 #else
             const unsigned packets = 65536u / 2;
 #endif
-            checked(mux.setArg(5, packets), "bind mux packets");
+            checked(m.setArg(5, packets), "bind mux packets");
+        };
+        auto launch_shard = [&](unsigned s, cl::Kernel& a, cl::Kernel& g, cl::Kernel& m) {
             std::vector<cl::Event> aw, gw, mw;
             if (s >= 4) { aw.push_back(events[2 + 3 * (s - 4)]); gw.push_back(events[3 + 3 * (s - 4)]); }
             if (s) mw.push_back(events[4 + 3 * (s - 1)]);
-            checked(session.queue.enqueueTask(adapter[w], aw.empty() ? nullptr : &aw, &events[2 + 3 * s]), "launch adapter");
-            checked(session.queue.enqueueTask(gather[w], gw.empty() ? nullptr : &gw, &events[3 + 3 * s]), "launch gather");
-            checked(session.queue.enqueueTask(mux, mw.empty() ? nullptr : &mw, &events[4 + 3 * s]), "launch mux");
+            checked(session.queue.enqueueTask(a, aw.empty() ? nullptr : &aw, &events[2 + 3 * s]), "launch adapter");
+            checked(session.queue.enqueueTask(g, gw.empty() ? nullptr : &gw, &events[3 + 3 * s]), "launch gather");
+            checked(session.queue.enqueueTask(m, mw.empty() ? nullptr : &mw, &events[4 + 3 * s]), "launch mux");
+        };
+#if defined(SPINE_RETENTION_PREBOUND_DISPATCH)
+        // Keep argument binding inside resident wall time, but out of the dispatch loop.
+        for (unsigned s = 0; s < shards.size(); ++s)
+            bind_shard(s, shard_adapters[s], shard_gathers[s], shard_muxes[s]);
+#endif
+        checked(session.queue.enqueueTask(hbm, nullptr, &events[0]), "launch HBM");
+        checked(session.queue.enqueueTask(apply, nullptr, &events[1]), "launch apply");
+        for (unsigned s = 0; s < shards.size(); ++s) {
+#if defined(SPINE_RETENTION_PREBOUND_DISPATCH)
+            launch_shard(s, shard_adapters[s], shard_gathers[s], shard_muxes[s]);
+#else
+            const auto w = s % 4;
+            bind_shard(s, adapter[w], gather[w], mux);
+            launch_shard(s, adapter[w], gather[w], mux);
+#endif
         }
         checked(session.queue.finish(), "finish candidate pipeline");
         const double wall = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - begin).count();
