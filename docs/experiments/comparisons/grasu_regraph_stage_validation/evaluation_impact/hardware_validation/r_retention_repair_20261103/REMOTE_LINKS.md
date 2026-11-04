@@ -241,3 +241,39 @@ The matrix waits for both R checks and the independent G check. It will
 use the exact image admitted by those three receipts and requests each
 workload once, including R19 (`--include-r19`). These are queue
 identities, not completed performance measurements.
+
+## November 4 Physical Retries
+
+The integrated SSSP locked routed report had WNS +0.002 ns and zero
+setup, hold, and pulse-width violations. Bitstream generation and local
+return verification were still pending at this snapshot. This is a
+timing result, not a measurement of R or a Spine speedup.
+
+The initial integrated CC and ResPR tail reports showed violations in the
+450 MHz `hbm_aclk` domain (CC WNS -0.105 ns, 205 failing setup endpoints;
+ResPR WNS -0.042 ns, 15 endpoints). These are not DATA-clock shortfalls.
+The retries use `aggressive-route-v1` without changing the XOs, HBM
+mapping or clock targets. The final locked timing check still applies.
+All output paths below are relative to the roots given above.
+
+| Integrated route | Remote attempt | Remote unit / invocation | Local transfer receipt |
+| --- | --- | --- | --- |
+| CC physical retry | `builds/cc-physical-v1` | `gr-retention-seele-cc-physical-20261104-v1.service` / `e26118b89c4044eeb48d1e73bda48332` | `seele-return-v2-cc-physical/transfer.json` |
+| ResPR tail physical retry | `builds/respr-tail-physical-v1` | `gr-retention-seele-respr-tail-physical-20261104-v1.service` / `6a78aa373be04a30b91ad8779768bb00` | `seele-return-v2-respr-tail-physical/transfer.json` |
+| ResPR tail plus source-read bursts | `builds/respr-tail-source-bursts-v3` | `gr-retention-seele-respr-tail-bursts-20261104-v3.service` / `614fad744d0d4cb79c04efd9b5395082` | `seele-return-v3-respr-tail-source-bursts/transfer.json` |
+
+The physical retry capsule digests are `e7b429e5333434c8cf85909daa7295f1fdddccfb3e8c4b196ae0465d559af7e6`
+(CC) and `29f487aa5f16500266fcd976fd85425144c0c3dec160b054c2d8707bf625f606`
+(ResPR tail). They use `runner-4bb9b44`; the source-burst route uses
+`runner-9a62fd3` and retains the existing burst capsule digest. Each
+collector binds one exact remote invocation and replays its capsule,
+command and output digests locally. Collector success alone is not
+approval to program a card.
+
+These three routes use the seele-only `seele-reserve-128g-peer-physical-v2`
+admission profile. It counts a peer's finite physical cgroup cap once,
+even when multiple peer tool processes share that cap. Owned builds
+remain capped at 40 GiB (36 GiB high watermark) with no swap, and the
+128 GiB host reserve remains in force. A queued unit is not necessarily
+running Vivado. Independent R and G board receipts are required for the
+exact returned image before it can enter a resident matrix.
