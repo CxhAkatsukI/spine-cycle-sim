@@ -60,6 +60,24 @@ class CcMatrixTest(unittest.TestCase):
         self.assertEqual(result["cases"]["PK"]["status"], "LAYOUT_NOT_ADMITTED")
         self.assertEqual(json.loads((self.args.output / "matrix.json").read_text()), result)
 
+    def test_includes_r19_once_using_original_packet(self):
+        self.args.include_r19 = True
+        pin = self.gate["host"]
+        with patch.object(cc_matrix, "stage_jobs", return_value=self.jobs), \
+                patch.object(cc_matrix, "layout_packet", side_effect=self.prepare), \
+                patch.object(cc_matrix, "wait_for_layout",
+                             return_value=({"rows": {ds.lower(): {} for ds in cc_matrix.LARGE}}, pin)), \
+                patch.object(cc_matrix.resident, "frozen_case", return_value=({}, [])), \
+                patch.object(cc_matrix.cc_resident_wall, "configure", return_value=({"memory_gib": 32}, [])), \
+                patch.object(cc_matrix.active_min_admission, "admit", return_value=self.gate), \
+                patch.object(cc_matrix.resident_matrix, "admitted_odd", return_value=({"report": pin}, [])), \
+                patch.object(cc_matrix.resident_matrix, "run_child",
+                             return_value={"status": cc_matrix.resident_matrix.MEASURED}) as child:
+            result = cc_matrix.run(self.args)
+        self.assertEqual([call.args[3] for call in child.call_args_list], [*cc_matrix.SMALL, *cc_matrix.LARGE, "R19"])
+        self.assertIn(str(self.args.cc_wall_packet), child.call_args.args[0])
+        self.assertNotIn("r19_not_repeated", result)
+
 
 if __name__ == "__main__":
     unittest.main()

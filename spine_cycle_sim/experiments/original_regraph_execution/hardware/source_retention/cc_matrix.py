@@ -95,9 +95,13 @@ def run(args):
         raise ValueError("expected a valid service prefix and bounded waits")
     args.output.mkdir(parents=True, exist_ok=False)
     journal = args.output / "matrix.json"
-    rows = {ds: {"status": "NOT_REQUESTED"} for ds in (*SMALL, *LARGE)}
+    include_r19 = getattr(args, "include_r19", False)
+    datasets = (*SMALL, *LARGE, "R19") if include_r19 else (*SMALL, *LARGE)
+    rows = {ds: {"status": "NOT_REQUESTED"} for ds in datasets}
     report = dict(status="WAITING_FOR_G_AND_BOTH_R_GATES", cases=rows,
-                  r19_not_repeated=str(args.r19_output), repetitions_per_arm=1, warmups=0)
+                  repetitions_per_arm=1, warmups=0)
+    if not include_r19:
+        report["r19_not_repeated"] = str(args.r19_output)
     save(journal, report)
     try:
         jobs = stage_jobs(args)
@@ -107,6 +111,11 @@ def run(args):
                 identity(__file__), identity(args.cc_wall_packet)]
         template = load(args.cc_wall_packet)
         packets = {ds: layout_packet(args, ds, small, None, template, rows[ds]) for ds in SMALL}
+        if include_r19:
+            case, frozen = resident.frozen_case(args.previous, "cc", "R19")
+            configured, packet_pins = cc_resident_wall.configure(args, case, frozen)
+            rows["R19"].update(case=configured, pins=[*frozen, *packet_pins])
+            packets["R19"] = args.cc_wall_packet
         deadline = time.monotonic() + args.stage_wait_seconds
         while True:
             for key, job in jobs.items():
@@ -170,8 +179,11 @@ def run(args):
 def arguments(parser):
     follow.arguments(parser)
     parser.add_argument("--small", nargs=3, action="append", required=True, metavar=("DATASET", "INPUTS", "STDOUT"))
-    for name in ("odd-output", "odd-inputs", "large-inputs", "large-layout", "r19-output"):
+    for name in ("odd-output", "odd-inputs", "large-inputs", "large-layout"):
         parser.add_argument("--" + name, type=lambda value: Path(value).resolve(), required=True)
+    r19 = parser.add_mutually_exclusive_group(required=True)
+    r19.add_argument("--r19-output", type=lambda value: Path(value).resolve(), help="record a separate R19 queue")
+    r19.add_argument("--include-r19", action="store_true", help="run R19 once in this matrix using the template packet")
     parser.add_argument("--odd-unit", required=True)
     parser.add_argument("--odd-invocation", required=True)
     parser.add_argument("--odd-fixture", nargs=2, required=True, metavar=("MANIFEST", "SHA256"))
