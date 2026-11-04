@@ -2,9 +2,9 @@
 
 ## Figure 7 Receipt Export
 
-From the simulator repository, use the live campaign's four journals to
-produce a new, immutable-by-convention evidence snapshot. Run this offline;
-it does not launch FPGA jobs or modify existing packages.
+From the simulator repository, use the frozen SSSP diagnostic journal
+and the current CC and ResPR journals to produce a new evidence snapshot.
+Run this offline; it does not launch FPGA jobs or modify existing packages.
 
 ```bash
 run=/data/chuxiao/checks/source-retention-repair-20261104
@@ -18,11 +18,15 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
   --csv "$snapshot.csv"
 ```
 
-These journals are the current campaign inputs listed in
-[remote builds and board queues](REMOTE_LINKS.md#november-4-physical-retries).
-Do not substitute a superseded queue when a current result is pending.
+See [remote builds and board queues](REMOTE_LINKS.md#november-4-physical-retries)
+for the pending candidates. Do not substitute a superseded queue when a
+current result is pending. The old SSSP journal's `RUNNING_SINGLE_PASS`
+and LJ's `REQUESTED` are the last recorded statuses before the queue was
+stopped. LJ made no board attempt; LJ08 was not requested. The six measured
+rows document the old image only. Do not use them as final Figure 7 data:
+the same image missed the AskUbuntu R retention gate.
 
-The current SSSP and CC matrices include AU and R19 respectively. The
+The exported SSSP and CC journals include AU and R19 respectively. The
 legacy `--sssp-au` and `--cc-r19` arguments are only for matrices that
 do not already contain those cases. The export rejects duplicate sources.
 The export has eight rows each for SSSP, CC, and ResPR. FullPR is outside

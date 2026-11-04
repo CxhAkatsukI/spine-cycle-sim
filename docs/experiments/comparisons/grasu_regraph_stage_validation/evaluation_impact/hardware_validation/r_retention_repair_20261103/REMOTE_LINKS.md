@@ -161,13 +161,13 @@ AU run in this queue.
 The first matrix stopped after three pairs. Continuation `resume-v3`
 measured PK and R19, then stopped with no SO board attempts while SO was
 waiting for 64 GiB of available memory. Use
-`sssp-singlepass-matrix-resume-v5/matrix.json` for new exports (service
+`sssp-singlepass-matrix-resume-v5/matrix.json` for diagnostic exports (service
 `gr-retention-sssp-resume-v5-20261104.service`, invocation
 `82928f3473f04c6196a20f4ad42896f5`). It imports all five completed pairs
 from the pinned journal and does not remeasure them. The `resume-v4`
 attempt failed before requesting a board arm: replay in a different
 checkout changed absolute paths in the route-audit pins even though the
-file hashes matched. The live continuation uses the original checkout
+file hashes matched. The v5 continuation used the original checkout
 path and retains the original route evidence.
 
 Only SO uses a 24 GiB hard limit and 22 GiB high watermark; the 32 GiB
@@ -175,8 +175,11 @@ host reserve and no-swap cgroup are unchanged. The matching historical
 SO receipt pins both peak tree RSS samples (18.96 GiB for G+R and 4.53
 GiB for Spine); these are planning evidence, not a cgroup peak bound.
 The runner rejects a measured SO pair if the new cgroup reports a high,
-max, or OOM event. LJ and LJ08 retain 32 GiB hard limits. See the
-[SSSP follow-up](sssp-resident-followup/README.md) for the archived pairs.
+max, or OOM event. The v5 queue was stopped after six measured pairs
+because its image failed the AskUbuntu R gate. LJ was waiting for memory
+with no board attempts; LJ08 was never requested. The queue journals
+were left unchanged. See the [SSSP follow-up](sssp-resident-followup/README.md)
+for the archived pairs and the source-burst repair below for the new image.
 
 The separate Figure 8 job waits for G alone because it does not run R.
 It is capped at 8 GiB with no cgroup swap, takes the same board lease
