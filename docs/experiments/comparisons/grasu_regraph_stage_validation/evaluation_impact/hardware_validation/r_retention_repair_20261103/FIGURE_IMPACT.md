@@ -261,12 +261,41 @@ All 390,911 final weighted edges matched. The board run peaked at
 the first host revision, the observed total dropped by 59.309 ms (4.3%);
 the frozen 818.456 ms G result is still 1.61x faster. These are individual
 runs, not an estimate of repeat-to-repeat variation. The remaining gap is
-497.400 ms and is not a kernel-update gap. This check does not replace the
-ten-batch Figure 8 data or the resident Figure 7 results.
+497.400 ms and is not a kernel-update gap. The November 3 Figure 8 handoff
+also used one batch, but modeled upload and launch and timed different
+host layouts. This check does not replace that panel or establish a
+resident ten-batch result.
 The [raw revision archive](paired-board-checkpoint/fig8-au64-spine-bootstrap-v4.tar.gz)
 contains the timing breakdown, device and input receipts, and directory test
 log. Its SHA-256 is
 `f0a50534397b003a4e06c70e38ccad1d4ac8765bcff28f8cf29cb3decf3a253e`.
+
+The [aligned graph host revision `e1ddff2`](https://github.com/jayfeather9/spine-dynamic-graph/commit/e1ddff2)
+serializes each graph bank directly into page-aligned host memory and
+transfers ownership to the XRT runtime instead of copying it again.
+The off-board driver test checked exact graph bytes, metadata, and alignment;
+the resident benchmark still uses its existing graph staging path.
+The one new AU/64 measurement used the same graph, card, clocks, image,
+CPU affinity and timing boundary, and reused the same checked G arm.
+
+| AU/64, single measured Spine run | Time (ms) |
+|---|---:|
+| Host graph layout | 472.019 |
+| Bootstrap host buffer and metadata preparation | 438.593 |
+| Bootstrap XRT migration | 94.765 |
+| Bootstrap lifecycle call | 4.681 |
+| Batch preparation | 0.057 |
+| Update call | 0.235 |
+| Total | 1,010.350 |
+
+All 390,911 weighted edges passed the final readback. Peak process-group
+memory was 1,870,712,832 bytes with no high, max, or OOM events. The
+observed total decreased by 305.506 ms versus the preceding host run
+(23.2%); the time change cannot all be assigned to the removed copy from
+one sample. G still took 818.456 ms and was 1.23x faster in this one-shot
+setup window. See the [raw board archive](paired-board-checkpoint/fig8-au64-spine-aligned-v5.tar.gz)
+with SHA-256
+`9be926d749cd3416599128f5c5391d57aafa31e4e039ce97a5f5d9244211e91f`.
 
 ### SO/512 Metadata Capacity
 
