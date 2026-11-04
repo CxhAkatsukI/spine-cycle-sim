@@ -663,7 +663,7 @@ Prior receipts remain unchanged.
 
 The stopped CC queue pinned the October 16 Spine image. It must not be
 restarted as the new-image matrix. The standalone
-[new Spine AU smoke](SPINE_ARTIFACTS.md#sparse-warm-insertion-cc-repair)
+[new Spine AU smoke](SPINE_ARTIFACTS.md#sparse-warm-insertion-repair)
 and the independent CC G/R producers remain separate. The ResPR
 resident queues pin Apply-off; the packed-validity variant has G/R stage
 queues only, and its results cannot be mixed into the Apply-off matrix.

@@ -197,8 +197,10 @@ evidence, not an FPGA latency measurement.
 The 150-MHz paper-geometry build is running on seele as
 `spine-cc-warm-insert-route-20261104-v1.service` (invocation
 `79463b9047ac4062810a42e50befc9aa`), with source and logs under
-`/data/chuxiao/spine-cc-warm-insert-20261104-v1`, a 40-GiB hard cap and no
-swap. The image and host must be admitted together before measuring the
+`/data/chuxiao/spine-cc-warm-insert-20261104-v1`. Its initial 40-GiB hard
+cap was raised in place to 48 GiB (44 GiB high, still no swap) after
+observing soft-limit reclaim, no OOM, and about 330 GiB available on
+Seele. The invocation is unchanged. The image and host must be admitted together before measuring the
 same resident AU batch once. It is not used in existing figure data.
 
 The [native CC timing host](https://github.com/jayfeather9/spine-dynamic-graph/commit/79e7747)
@@ -410,7 +412,7 @@ At enqueue both producers were active and the board had not been requested.
 This is one conditional workload, not evidence that either gate passed
 or that a new Fig. 7 result exists.
 
-### Remaining Seven CC Pairs
+### Earlier Remaining-Seven CC Queue
 
 `source_retention.cc_matrix` binds the same balanced Spine image and
 resident-wall host overlay to the other seven frozen CC workloads. It
@@ -447,4 +449,6 @@ explicitly reports no FPGA card use. The adjacent
 The original HOT12 emulation hit a bootstrap epoch audit before applying any
 updates. The private remote build directory was not independently inventoried;
 this finding excludes the documented HOT12 image, not every possible private
-build. Keep the previously verified board image for the matched board tests.
+build. The previously verified image remains the old-arm control; see
+[current board queues](REMOTE_LINKS.md#current-one-shot-board-queues)
+for the stopped old-image matrix and the separate warm-insertion check.
