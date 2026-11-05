@@ -104,7 +104,8 @@ def test_resume_journal_requires_exact_launch(journal):
         cc_au_collect.retired(journal, UNIT, INVOCATION, ROOT, resume=(Path('/data/chuxiao/resume-v'), script))
 
 
-def test_collect_resumed_build_keeps_original_and_resume_evidence(tmp_path):
+@pytest.mark.parametrize('profile', ['104g-v1', '192g-v1'])
+def test_collect_resumed_build_keeps_original_and_resume_evidence(tmp_path, profile):
     resume = Path('/data/chuxiao/resume-v1/execution.json')
     original = Path('/data/chuxiao/archive/original-build.log')
     name = 'spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin'
@@ -119,10 +120,11 @@ def test_collect_resumed_build_keeps_original_and_resume_evidence(tmp_path):
         content = files[Path(path).name].encode()
         return dict(path=path, sha256=sha256(content).hexdigest(), bytes=len(content))
     record = dict(status='BUILD_COMPLETED_NOT_BOARD_ADMITTED', returncode=0,
-                  policy=dict(tree_memory_gib=104, high_memory_gib=100, reserve_gib=128,
-                              background_memory_gib=8, allow_bounded_builds=True),
+                  policy=cc_au_collect.build_resume.MEMORY_PROFILES[profile],
                   script=pin('/data/chuxiao/resume.sh'), build_log=pin(str(resume.parent / 'build.log')),
                   supervisor=pin('/data/chuxiao/source/build_resume.py'))
+    if profile != '104g-v1':
+        record['memory_profile'] = profile
     files['execution.json'] = json.dumps(record)
     def content(path):
         return files.get(path.name, 'sample\n')
@@ -136,11 +138,15 @@ def test_collect_resumed_build_keeps_original_and_resume_evidence(tmp_path):
         for path in paths:
             (output / path.name).write_text(content(path))
     result = cc_au_collect.collect(command, transfer, ROOT, tmp_path / 'route', ABI,
-        image_name=name, resume=resume, original_log=original)
+        image_name=name, resume=resume, original_log=original, resume_memory_profile=profile)
     assert Path(result['build']['path']).name == original.name
     assert Path(result['resume_log']['path']).name == 'build.log'
     assert result['resume_script']['sha256'] == record['script']['sha256']
+    other_profile = '192g-v1' if profile == '104g-v1' else '104g-v1'
+    with pytest.raises(ValueError, match='successful guarded execution'):
+        cc_au_collect.collect(command, transfer, ROOT, tmp_path / 'wrong-profile', ABI,
+            image_name=name, resume=resume, original_log=original, resume_memory_profile=other_profile)
     files['resume.sh'] += '# changed after execution\n'
     with pytest.raises(ValueError, match='completed execution'):
         cc_au_collect.collect(command, transfer, ROOT, tmp_path / 'tampered', ABI,
-            image_name=name, resume=resume, original_log=original)
+            image_name=name, resume=resume, original_log=original, resume_memory_profile=profile)

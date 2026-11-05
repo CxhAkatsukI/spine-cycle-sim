@@ -19,18 +19,20 @@ from .runtime import identity, save
 
 POLICY = dict(tree_memory_gib=104, high_memory_gib=100, reserve_gib=128,
               background_memory_gib=8, allow_bounded_builds=True)
+MEMORY_PROFILES = {"104g-v1": POLICY, "192g-v1": dict(
+    POLICY, tree_memory_gib=192, high_memory_gib=184)}
 
 
-def properties():
-    return [f"MemoryMax={POLICY['tree_memory_gib']}G",
-            f"MemoryHigh={POLICY['high_memory_gib']}G", "MemorySwapMax=0",
+def properties(policy=POLICY):
+    return [f"MemoryMax={policy['tree_memory_gib']}G",
+            f"MemoryHigh={policy['high_memory_gib']}G", "MemorySwapMax=0",
             "OOMPolicy=kill", "KillMode=control-group", "RuntimeMaxSec=25h"]
 
 
-def verify(group):
+def verify(group, policy=POLICY):
     expected = dict(zip(("memory.max", "memory.high", "memory.swap.max", "memory.oom.group"),
-                        map(str, (POLICY['tree_memory_gib'] * GIB,
-                                  POLICY['high_memory_gib'] * GIB, 0, 1))))
+                        map(str, (policy['tree_memory_gib'] * GIB,
+                                  policy['high_memory_gib'] * GIB, 0, 1))))
     actual = {name: (group / name).read_text().strip() for name in expected}
     if actual != expected:
         raise MemoryError(f"CC resume containment differs: {actual!r}")
@@ -58,11 +60,14 @@ def stop(child):
 def run(args):
     if not 1 <= args.timeout_seconds <= 86400:
         raise ValueError('resume deadline must be between one second and 24 hours')
+    profile = getattr(args, 'memory_profile', '104g-v1')
+    policy = MEMORY_PROFILES[profile]
     group = current()
-    verify(group)
+    verify(group, policy)
     args.output.mkdir(parents=True, exist_ok=False)
-    report = dict(status='ADMITTING', policy=POLICY, script=identity(args.script),
-                  supervisor=identity(__file__), cgroup=str(group), properties=properties())
+    report = dict(status='ADMITTING', policy=policy, memory_profile=profile,
+                  script=identity(args.script), supervisor=identity(__file__),
+                  cgroup=str(group), properties=properties(policy))
     lease = Lease(Path.home() / '.cache/spine-cycle-sim/compiler-reservations', group)
     child = None
 
@@ -74,14 +79,14 @@ def run(args):
     try:
         # Reserve the full tree before any compiler can be spawned.
         with lease.locked():
-            verify(group)
+            verify(group, policy)
             peers = merge(admission.reservations(other_builds(), group), lease.peers())
             amount = available()
             report['admission'] = dict(available_bytes=amount, reservations=peers,
-                                      required_bytes=admission.required_bytes(POLICY, peers))
-            if not admission.eligible(amount, peers, POLICY):
+                                      required_bytes=admission.required_bytes(policy, peers))
+            if not admission.eligible(amount, peers, policy):
                 raise MemoryError('full compiler budgets plus 128-GiB reserve do not fit')
-            save(lease.path, dict(cgroup=str(group), memory_max_bytes=104 * GIB,
+            save(lease.path, dict(cgroup=str(group), memory_max_bytes=policy['tree_memory_gib'] * GIB,
                                  bounded=True, pid=os.getpid(), start_time=start_time(os.getpid())))
             lease.held = True
         with (args.output / 'build.log').open('x') as log:
@@ -89,12 +94,12 @@ def run(args):
                                      stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             report.update(status='BUILDING', child_pid=child.pid)
             while child.poll() is None:
-                verify(group)
+                verify(group, policy)
                 amount = available()
                 report.update(available_bytes=amount, elapsed_seconds=time.monotonic() - started,
                               memory_current_bytes=int((group / 'memory.current').read_text()))
                 save(args.output / 'execution.json', report)
-                if amount < POLICY['reserve_gib'] * GIB:
+                if amount < policy['reserve_gib'] * GIB:
                     raise MemoryError('128-GiB live reserve breached')
                 if report['elapsed_seconds'] >= args.timeout_seconds:
                     raise TimeoutError('CC resume deadline expired')
@@ -123,9 +128,10 @@ def main():
     parser.add_argument('--script', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--timeout-seconds', type=int, default=86400)
+    parser.add_argument('--memory-profile', choices=MEMORY_PROFILES, default='104g-v1')
     args = parser.parse_args()
     if args.print_properties:
-        print('\n'.join(properties()))
+        print('\n'.join(properties(MEMORY_PROFILES[args.memory_profile])))
     elif args.script is None or args.output is None:
         parser.error('--script and --output are required for execution')
     else:

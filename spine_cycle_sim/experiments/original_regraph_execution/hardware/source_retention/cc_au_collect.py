@@ -15,7 +15,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.ha
     unloaded,
 )
 
-from . import cc_au_revision as revision
+from . import build_resume, cc_au_revision as revision
 from .runtime import check_memory, identity, save
 
 
@@ -61,13 +61,13 @@ def select_files(command, root, *, image_name=IMAGE, build_log=None):
 
 
 def collect(command, transfer, root, output, expected_abi, *, image_name=IMAGE, resume=None,
-            original_log=None):
+            original_log=None, resume_memory_profile='104g-v1'):
     paths = select_files(command, root, image_name=image_name, build_log=original_log)
     if resume is not None:
         record = json.loads(command(["cat", "--", resume]))
         if (record.get("status") != "BUILD_COMPLETED_NOT_BOARD_ADMITTED" or record.get("returncode") != 0
-                or record.get("policy") != dict(tree_memory_gib=104, high_memory_gib=100,
-                    reserve_gib=128, background_memory_gib=8, allow_bounded_builds=True)
+                or record.get("memory_profile", '104g-v1') != resume_memory_profile
+                or record.get("policy") != build_resume.MEMORY_PROFILES[resume_memory_profile]
                 or original_log is None):
             raise ValueError("resume must have its own successful guarded execution and original log")
         paths.update(resume_execution=resume, resume_script=Path(record["script"]["path"]),
@@ -180,7 +180,8 @@ def run(args):
         report["status"] = "COLLECTING_ROUTE"
         checkpoint()
         candidate = collect(command, transfer, args.root, args.output / "route", args.abi,
-                            image_name=getattr(args, 'image_name', IMAGE), resume=resume, original_log=original_log)
+                            image_name=getattr(args, 'image_name', IMAGE), resume=resume, original_log=original_log,
+                            resume_memory_profile=getattr(args, 'resume_memory_profile', '104g-v1'))
         spec = args.output / "candidate.json"
         save(spec, candidate)
         prepared = revision.preflight(anchor, identity(spec))
@@ -214,6 +215,7 @@ def main():
     parser.add_argument('--image-name', default=IMAGE)
     parser.add_argument('--resume', type=Path)
     parser.add_argument('--original-log', type=Path)
+    parser.add_argument('--resume-memory-profile', choices=build_resume.MEMORY_PROFILES, default='104g-v1')
     run(parser.parse_args())
 
 

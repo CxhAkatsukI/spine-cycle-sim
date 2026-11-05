@@ -27,6 +27,27 @@ class ResumePolicyTests(unittest.TestCase):
         self.assertTrue(admission.eligible(required, [peer], resume.POLICY))
         self.assertFalse(admission.eligible(500 * 2**30, [dict(bounded=False)], resume.POLICY))
 
+    def test_larger_profile_is_explicit_and_reserves_its_full_limit(self):
+        policy = resume.MEMORY_PROFILES['192g-v1']
+        self.assertEqual(resume.POLICY['tree_memory_gib'], 104)
+        self.assertEqual(policy['reserve_gib'], 128)
+        self.assertIn('MemoryMax=192G', resume.properties(policy))
+        self.assertIn('MemoryHigh=184G', resume.properties(policy))
+        self.assertIn('MemorySwapMax=0', resume.properties(policy))
+        required = (192 + 128 + 8 + 40) * 2**30
+        peer = dict(bounded=True, cgroup='/peer', memory_max_bytes=40 * 2**30)
+        self.assertEqual(admission.required_bytes(policy, [peer]), required)
+        self.assertFalse(admission.eligible(required - 1, [peer], policy))
+        self.assertTrue(admission.eligible(required, [peer], policy))
+        with TemporaryDirectory() as temporary:
+            group = Path(temporary)
+            for name, value in {'memory.max': 192 * 2**30, 'memory.high': 184 * 2**30,
+                                'memory.swap.max': 0, 'memory.oom.group': 1}.items():
+                (group / name).write_text(str(value))
+            self.assertEqual(resume.verify(group, policy)['memory.max'], str(192 * 2**30))
+            with self.assertRaises(MemoryError):
+                resume.verify(group)
+
 
 if __name__ == '__main__':
     unittest.main()
