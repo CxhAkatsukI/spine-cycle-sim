@@ -208,3 +208,20 @@ the coordinator has a separate 2-GiB maximum. It started the Spine arm. This
 launch record is **not a completed pair**; inspect the terminal receipt and
 replay all gates before exporting a new checkpoint. No automatic repeat or
 dependent old-host retime was queued.
+
+That direct pair subsequently stopped at 22:17 CST with `FAILED_RETAINED`:
+full PSI reached 1.66% continuously for ten seconds. Effective discounted
+headroom was still 71,529,877,504 bytes; the task peak was 3,091,701,760 bytes
+(2.88 GiB), and all cgroup high/max/OOM counters were zero. Only the Spine arm
+was attempted; neither a completed pair nor a new speedup is available. This
+is a stop by our global-pressure policy, not proof of OOM or of non-reclaimable
+ARC. No further retry was queued.
+
+The [direct-pair receipts](qualified_lj08_v1_receipts.tar.gz) preserve the
+terminal matrix, child receipt, service log, clocks and repackaging records;
+binaries remain indexed, not duplicated. Archive SHA-256:
+`5099480fad32559871bbd68109aa9433384b0d957249ecd62ac4154a06cf725c`.
+Child receipt SHA-256:
+`004024a6e3a565c69f85087ef7837cfa5f7b2298ef1eee154c0d2ecaf26f665f`.
+The frozen review still has fifteen of twenty-four accepted pairs. The CC
+build and its previously documented followers are independent of this stop.
