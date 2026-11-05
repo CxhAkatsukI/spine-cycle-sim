@@ -192,3 +192,19 @@ between duplicate datasets, substitute a different baseline image or accept a
 failed pair. The CSV distinguishes two fresh arms from a reused G+R sample.
 Original failed matrices remain in the receipt archive; the frozen review
 package and its fifteen accepted pairs are not rewritten.
+
+The first direct LJ08 pair was queued from frozen simulator commit
+`380884bd` on 2026-11-05, under
+`gr-respr-qualified-lj08-20261105-v1.service` (invocation
+`086e83d7d76b4f8fb81f80eb8c3d587a`). Its child is
+`gr-respr-qualified-lj08-child-20261105-v1-lj08.service` (invocation
+`aa829d46ff0b4e39aeb4e762c378a634`). The run host's live receipts are
+`/data/chuxiao/checks/source-retention-repair-20261104/respr-qualified-lj08-v1/matrix.json`
+and `lj08/results.json` below that directory. At the recorded admission the
+discounted effective memory was 74,237,573,632 bytes against a 68,719,476,736-byte
+requirement, and both PSI averages were 0.02%. The child retains 32/30-GiB
+max/high, zero swap and the unchanged `zfs-arc-clean-half-settle10-v1` policy;
+the coordinator has a separate 2-GiB maximum. It started the Spine arm. This
+launch record is **not a completed pair**; inspect the terminal receipt and
+replay all gates before exporting a new checkpoint. No automatic repeat or
+dependent old-host retime was queued.
