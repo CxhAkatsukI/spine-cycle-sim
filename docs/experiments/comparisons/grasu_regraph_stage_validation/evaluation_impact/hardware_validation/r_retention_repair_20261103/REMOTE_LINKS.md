@@ -969,10 +969,29 @@ unit `gr-retention-cc-source-bursts-au-resident-20261105-v8.service`,
 invocation `2cda9d6a363f41b2bb7aa5f8d60e904e`. The other seven CC cases
 still require an admitted Spine image that can handle their largest rows.
 
+The retained Spine update log reports 7.986286 ms in admission/discovery
+and 8.032858 ms in relaxation, with no changed labels. An offline union-find
+check of the frozen old graph confirmed that all eight insertions connect
+vertices within the same old component. The `2315cae` candidate streams
+live-row admission and skips relaxation in that case. Subtracting only the
+old relaxation time would leave 9.648103 ms, still 4.084386 ms above the
+measured G+R time. That subtraction is a diagnostic target, not a timing
+estimate for the new build. The old Spine stdout is pinned by the v8 receipt
+(SHA-256 `fc1413b9c1042b0ec450d4aacad130fd5352bdb26c89bfd60d1dcb58047d53ec`).
+
 The collector `spine-retention-cc-au-stream-2315cae-follow-v2.service`
 (`9040b47cdf2f4c889bcf60b5c621cea1`) waits for the new Spine route. It
 will use the v8 anchor for a single new Spine arm and will not rerun G+R.
 The collector journal is `cc-au-stream-2315cae-follow-v2/results.json`.
+
+On Seele, `spine-cc-stream-admit-2315cae-layout-seele-v1.service`
+(`9f882f9ff9564ce1ac19ddb7f8c3046b`) builds only the host from the exact
+same source and settings, then checks the frozen SO, PK, LJ, and LJ08
+layouts under a 24 GiB hard cap with no swap. Its output is
+`spine-cc-stream-admit-2315cae-layout-large-v1/results.json` under the same
+checks root on Seele. Reuse requires the routed host to match the checked
+host digest. The offline check does not access the board or produce a
+latency measurement.
 
 ### Archived Spine Images on Feiyang
 
