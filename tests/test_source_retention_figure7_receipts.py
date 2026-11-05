@@ -38,9 +38,10 @@ class Figure7ReceiptsTest(unittest.TestCase):
         matrix = {"stages": {"au_slice": {"ready": True, "receipt": pin}},
                   "au_slice_r": {"report": pin, "comparison": comparison, "candidate_clock": {
                       "binary": image, "driver_reported_mhz": clocks}}}
-        out = {"stage_ratios": {"r_ratios": {}}}
+        out = {"stage_ratios": {"r_ratios": {}}, "stage_receipts": {}}
         figure.record_cc_topology(out, matrix, gate)
         self.assertEqual(out["cc_topology_stage"], pin)
+        self.assertEqual(out["stage_receipts"]["r_au_slice"], pin)
         self.assertEqual(out["stage_ratios"]["r_ratios"]["au_slice"], 1.1)
         with self.assertRaisesRegex(ValueError, "resident admission"):
             figure.record_cc_topology(out, matrix, dict(gate, image={"sha256": "different"}))
@@ -54,15 +55,22 @@ class Figure7ReceiptsTest(unittest.TestCase):
                           clock=clock, clock_evidence=clock)
                 for arm, clock in (("spine", spine), ("gr", gr))}
         b = figure.BOUNDARIES[algorithm]
-        r = {"comparison": {"retention_gate_pass": True, "candidate_over_reference": 1.15}}
+        r = {"retention_gate_pass": True, "candidate_over_reference": 1.15}
         g = {"retention_gate_pass": True, "current_over_reference": 1.12}
+
+        def stage(role, comparison):
+            pin = self.receipt(f"{algorithm}-{dataset}-{role}",
+                               {"algorithm": algorithm, "comparison": comparison})
+            return dict(report=pin, comparison=comparison, candidate_clock=gr)
+
         if algorithm == "cc":
             pair = dict(boundary=b, gr_ms=5, spine_ms=10, gr_over_spine=0.5, gr_supersteps=2, spine_rounds=2)
         else:
             pair = dict(boundary=b, gr_wall_ms=5, spine_wall_ms=10, speedup_gr_over_spine=0.5,
                         gr_rounds=0, spine_rounds=0)
         gates = dict(status="BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE", algorithm=algorithm,
-                     g={"comparison": g}, r=r, resident_mhz=[150], image=gr["binary"])
+                     g=dict(stage("g", g), reference=self.receipt("g-reference", {})),
+                     r=stage("r", r), resident_mhz=[150], image=gr["binary"])
         graph = self.root / f"{algorithm}-{dataset}.graph"
         graph.write_text("2 1 1\n0 1 1\n1 0 1\n")
         case = dict(dataset=dataset, spine_binary=spine["binary"]["path"], graph=str(graph),
@@ -71,7 +79,7 @@ class Figure7ReceiptsTest(unittest.TestCase):
                      repetitions_per_arm=1, warmups=0, stage_gates=gates, attempts=["spine", "gr"],
                      arms=arms, case=case, pins=[dict(spine["binary"]), identity(graph)], pair=pair,
                      comparison_log=self.receipt(f"{algorithm}-{dataset}-pair", pair))
-        return child, gates, r
+        return child, gates, stage("odd", r)
 
     def test_waiting_failures_and_all_rows_retained(self):
         save(self.paths["cc_matrix"], {"status": "MATRIX_NEEDS_REVIEW",
@@ -92,10 +100,26 @@ class Figure7ReceiptsTest(unittest.TestCase):
                          ("G+R", 0.5, figure.cc_resident_wall.BOUNDARY))
         self.assertEqual(row["r_validation_scope"], "amazon_only_diagnostic")
         self.assertIs(row["same_driver_clocks"], False)
+        self.assertEqual(row["stage_receipts"], {
+            "g": gates["g"]["report"], "g_reference": gates["g"]["reference"],
+            "r_amazon": gates["r"]["report"], "r_amazon_odd": odd["report"],
+        })
         save(Path(child["arms"]["gr"]["stdout"]["path"]), {"changed": True})
         result = figure.export(self.paths)
         (rejected,) = [r for r in result["rows"] if r["status"] == "RECEIPT_REJECTED"]
         self.assertNotIn("gr_over_spine", rejected)
+
+    def test_changed_independent_stage_receipt_rejects_pair(self):
+        child, gates, odd = self.pair("weighted_sssp", "AU")
+        pin = self.receipt("child", child)
+        save(self.paths["sssp_au"], dict(status=figure.MEASURED, requested_pair=True, result=pin))
+        save(self.paths["sssp_matrix"], dict(status="MEASURED", cases={}, baseline=gates,
+                                            odd_r=odd, au_result=pin))
+        self.assertEqual(figure.export(self.paths)["rows"][0]["status"], figure.MEASURED)
+        save(Path(gates["g"]["report"]["path"]), {"changed": True})
+        row = figure.export(self.paths)["rows"][0]
+        self.assertEqual(row["status"], "RECEIPT_REJECTED")
+        self.assertNotIn("gr_over_spine", row)
 
     def test_cc_au_retains_spine_receipt_without_fabricating_a_second_launch(self):
         child, gates, odd = self.pair("cc", "AU")
@@ -237,8 +261,11 @@ class Figure7ReceiptsTest(unittest.TestCase):
     def respr_screen(self, dataset, rounds, status="MEASURED"):
         child, _, _ = self.pair("respr", dataset)
         decision = {"retention_gate_pass": True, "current_over_reference": 1.15}
+        board = self.root / "board-once/results.json"
+        board.parent.mkdir(exist_ok=True)
+        save(board, {})
         gates = dict(g_control=decision, r_controls={key: decision for key in ("amazon", "skewed_sources")},
-                     resident_mhz=[150])
+                     resident_mhz=[150], pins=[identity(board)])
         pair = dict(child["pair"], gr_rounds=rounds[0], spine_rounds=rounds[1])
         requires_propagation = dataset == "Flickr"
         row = dict(status=status, case=dict(child["case"], algorithm="residual_pagerank",
@@ -265,8 +292,13 @@ class Figure7ReceiptsTest(unittest.TestCase):
         self.assertEqual(result["status"], figure.MEASURED)
         self.assertIs(result["respr_propagated_on_both"], False)
         gates = screen["stage_gates"]
+        self.assertEqual(result["stage_receipts"]["admission"], gates["pins"])
         with self.assertRaises(ValueError):
             figure.summarize_gates("respr", dict(gates, r_controls={"amazon": gates["g_control"]}), None)
+        save(Path(gates["pins"][0]["path"]), {"changed": True})
+        result = figure.export(self.paths)["rows"][-1]
+        self.assertEqual(result["status"], "RECEIPT_REJECTED")
+        self.assertNotIn("gr_over_spine", result)
 
     def test_respr_flickr_propagation_is_pinned_and_outside_figure_rows(self):
         screen, image = self.respr_screen("Flickr", (1, 2))

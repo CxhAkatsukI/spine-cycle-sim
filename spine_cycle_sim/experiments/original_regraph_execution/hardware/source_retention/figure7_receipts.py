@@ -59,6 +59,32 @@ def summarize_gates(algorithm, gates, extra):
                          "amazon_odd": ratio(extra["comparison"], "candidate_over_reference")}}
 
 
+def stage_receipts(algorithm, gates, extra):
+    if algorithm == "respr":
+        # The ResPR admission pins the screen, raw board receipt, and frozen
+        # controls together with binaries. Recheck the compact receipts here.
+        pins = [pin for pin in gates["pins"] if Path(pin["path"]).suffix == ".json"]
+        if not any(Path(pin["path"]).parts[-2:] == ("board-once", "results.json") for pin in pins):
+            raise ValueError("ResPR admission is missing its pinned R board receipt")
+        for pin in pins:
+            checked(pin)
+        return {"admission": pins}
+
+    stages = {"g": gates["g"], "r_amazon": gates["r"], "r_amazon_odd": extra}
+    receipts = {"g_reference": gates["g"]["reference"]}
+    checked(receipts["g_reference"])
+    for role, stage in stages.items():
+        pin = stage["report"]
+        report = load(pin)
+        clock = stage["candidate_clock"]
+        if (report["algorithm"] != algorithm or report["comparison"] != stage["comparison"]
+                or clock["binary"] != gates["image"]
+                or clock["driver_reported_mhz"] != gates["resident_mhz"]):
+            raise ValueError(f"{role} receipt differs from the resident admission")
+        receipts[role] = pin
+    return receipts
+
+
 def record_topology(out, stage, job, gates, algorithm):
     pin = stage["report"]
     raw = load(pin)
@@ -68,6 +94,7 @@ def record_topology(out, stage, job, gates, algorithm):
             or clock["driver_reported_mhz"] != gates["resident_mhz"]):
         raise ValueError("AU topology receipt does not match the resident admission")
     out["stage_ratios"]["r_ratios"]["au_slice"] = ratio(stage["comparison"], "candidate_over_reference")
+    out["stage_receipts"]["r_au_slice"] = pin
     out.update(au_topology_stage=pin, r_validation_scope="amazon_and_askubuntu")
 
 
@@ -202,6 +229,7 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
                 respr_propagated_on_both=(pair["positive_propagation_on_both"] if algorithm == "respr" else None),
                 clocks_mhz=mhz, same_driver_clocks=mhz["spine"] == mhz["gr"],
                 bdf=child["bdf"], workload=workload, stage_ratios=stage, comparison=pair_pin,
+                stage_receipts=stage_receipts(algorithm, gates, extra),
                 images={arm: record["binary"] for arm, record in observed.items()},
                 clocks={arm: entry["clock_evidence"] for arm, entry in arms.items()}, raw=evidence,
                 **retained_record, **warm_record)

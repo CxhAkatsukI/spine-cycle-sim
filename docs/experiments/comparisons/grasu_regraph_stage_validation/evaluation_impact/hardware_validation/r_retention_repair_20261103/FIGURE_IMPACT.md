@@ -50,6 +50,13 @@ its ordered batch), vertex/edge/update counts, and source ID to the raw
 comparison. The JSON carries the full evidence links: original logs,
 verified clock receipts, the predeclared images for both arms, wall-time
 comparison, and independent G and R ratios.
+Each admitted row also lists its independent `stage_receipts`. SSSP and
+CC name the G reference, G candidate and each R control; ResPR lists the
+pinned JSON admission inputs, including the one-shot R board receipt.
+The export verifies these files against their recorded digests and rejects
+a row if a receipt has changed. Raw stage timing and correctness replay
+remain part of the independent hardware admission, not a new board run
+performed by the exporter.
 The `same_driver_clocks` field states whether the arms reported the same
 clock configuration; Figure 7 uses measured wall time at those native
 clocks, with no frequency rescaling. Independent R retention requires
