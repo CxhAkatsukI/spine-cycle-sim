@@ -143,3 +143,26 @@ identity. Malformed input still fails. This avoids both the v5 startup race
 and v6's futile wait without changing any hardware, numerical model, memory
 guard, existing receipt, or accepted timing. Focused tests verify that a
 terminal failed producer cannot launch a board child or become a sample.
+
+The [fresh terminal classification](arc_lj08_v7_terminal.json), run from
+commit `23f004f0` under a 2-GiB/zero-swap, 120-second service limit,
+replayed the v6 terminal source and returned `RETAINED_INCOMPLETE_MATRIX` /
+`UPSTREAM_UNAVAILABLE_RETAINED`. It launched no board child. This receipt
+verifies the queue repair, not FPGA performance.
+
+The subsequent v7 pair was admitted at 79,580,377,088 bytes effective
+headroom and zero admission PSI, with the same 32/30-GiB max/high and zero
+swap. It stopped during the original Spine arm after ten seconds of high
+PSI; the final full PSI was 1.01%, effective headroom 58,659,192,576 bytes,
+and cgroup peak 10,264,940,544 bytes. All high/max/OOM counters were zero.
+The G+R arm did not start. The fixed v8 follower correctly returned
+`UPSTREAM_UNAVAILABLE_RETAINED` without launching a board child. Neither
+result adds a measured pair. These observations distinguish our conservative
+pressure cutoff from allocation failure; they do not establish a need to
+purge ARC or identify the cause of system-wide pressure. No additional retry
+was queued immediately after this failure.
+
+[Retained v7 pair and v8 follower receipts](arc_lj08_v7_receipts.tar.gz)
+have archive SHA-256
+`1d5c7dfda1f90c05203ed784230ab2c04095f23de003c130221969cd1f83541b`.
+The fifteen-pair frozen review archive remains unchanged.

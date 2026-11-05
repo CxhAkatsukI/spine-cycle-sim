@@ -1,0 +1,220 @@
+{
+  "status": "RETAINED_INCOMPLETE_MATRIX",
+  "cases": {
+    "LJ08": {
+      "status": "UPSTREAM_UNAVAILABLE_RETAINED",
+      "memory_gib": 32,
+      "upstream_matrix": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-dual-arc-lj08-settle-v6/matrix.json",
+        "sha256": "f922f53bb5fdbf0365f738f62da4d273721c74da8c93758f00671e1087560307",
+        "bytes": 32642
+      },
+      "upstream_status": "RETAINED_INCOMPLETE_MATRIX",
+      "upstream_case": {
+        "case": {
+          "dataset": "LJ08",
+          "graph": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj08_residual_pagerank_insert_u8.graph",
+          "source": 0,
+          "vertices": 5363260,
+          "edges": 99028616,
+          "updates": 8,
+          "algorithm": "residual_pagerank",
+          "requires_propagation": false
+        },
+        "memory_gib": 32,
+        "status": "FAILED_RETAINED",
+        "command": [
+          "systemd-run",
+          "--user",
+          "--wait",
+          "--collect",
+          "--unit=gr-respr-dual-arc-lj08-settle-v6-lj08",
+          "--working-directory=/data/chuxiao/worktrees/spine-board-arc-settle-daf5b304",
+          "--property=MemoryMax=32G",
+          "--property=MemoryHigh=30G",
+          "--property=MemorySwapMax=0",
+          "--property=OOMPolicy=kill",
+          "--property=KillMode=control-group",
+          "--property=RuntimeMaxSec=8h",
+          "/usr/bin/python3",
+          "-m",
+          "spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.dual_clock_resident",
+          "--dataset",
+          "LJ08",
+          "--output",
+          "/data/chuxiao/checks/source-retention-repair-20261104/respr-dual-arc-lj08-settle-v6/lj08",
+          "--board-wait-seconds",
+          "21600",
+          "--memory-profile",
+          "zfs-arc-clean-half-settle10-v1",
+          "--previous",
+          "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix",
+          "--r-report",
+          "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/results.json",
+          "--g-report",
+          "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/results.json",
+          "--route",
+          "/data/chuxiao/checks/source-retention-repair-20261104/respr-tail-degree-prefix-link-v1",
+          "--spine-host",
+          "/data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/thresholded_residual_pagerank.host",
+          "--spine-image",
+          "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-v1/build/respr/xclbin/spine_partitioned_split_e2e.respr.hw.xclbin",
+          "--comparator",
+          "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+          "--verifier",
+          "/data/chuxiao/checks/source-retention-repair-20261104/verify-clock-repackage-v1"
+        ],
+        "service_exit": 1,
+        "result": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-dual-arc-lj08-settle-v6/lj08/results.json",
+          "sha256": "2b7745fb4ab365a95fa76e5796a065fe884777066ca7e168c5ecbeae5f0f6a11",
+          "bytes": 90200
+        },
+        "child_status": "FAILED_RETAINED",
+        "attempts": [
+          "spine"
+        ]
+      }
+    }
+  },
+  "pins": [
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-qualification-v2/qualification.json",
+      "sha256": "cf9000c022292628f2dfd67b3d4ef6f6e2f9bdaa5d6259ef327cc48d51708b71",
+      "bytes": 5058
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-resident-optimized/tests/test_integration/Makefile",
+      "sha256": "5f68a16d459d77f4ed499a9d18ac435afb145a21f8b1e2a2a0a273f156584e15",
+      "bytes": 24981
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-resident-optimized/tests/test_integration/host_resident_benchmark.hpp",
+      "sha256": "00d63675de1ab84cdb2cc5741f03e2fb7ca4f3394d778f558933466313836bbd",
+      "bytes": 12702
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-resident-optimized/tests/test_integration/host_resident_pagerank_correction.hpp",
+      "sha256": "14200ce1c35428fe8031cad9a2f7ac2dd44f26dbc80fab612587e3770bb62c1f",
+      "bytes": 6555
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-resident-optimized/tests/test_integration/host_resident_pagerank_correction_test.cpp",
+      "sha256": "36927345e9da41e825e281da22257184e670402860e4297d177b2e09ce71518e",
+      "bytes": 3486
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-resident-optimized/tests/test_integration/host_resident_benchmark_test.cpp",
+      "sha256": "bd2de7814413440d1d91336b24718257e48e2d70007def536249942e8f20b813",
+      "bytes": 8401
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-resident-optimized/tests/test_integration/host_partitioned_algorithms_smoke.cpp",
+      "sha256": "c8fbc6840091b7ae78365fbf08c13470ce5dd07b94498a3775c65e4452666c6f",
+      "bytes": 105964
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-resident-optimized/tests/test_integration/host_split.hpp",
+      "sha256": "2e6e3bf8f450e5553f07dea0086ec78ffc9e865939fd17b0420b310e378f58e2",
+      "bytes": 206346
+    },
+    {
+      "path": "/home/chuxiao/spine-dynamic-graph/spine-dynamic-graph-resident-optimized/tests/test_integration/xcl2.cpp",
+      "sha256": "b0c87c47de2b4fc5e6c8b40f0ebdacb1bd8e06db4b3eea94489e58257a67511d",
+      "bytes": 2805
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-v1/thresholded_residual_pagerank.host",
+      "sha256": "10e6bf6c6c7d730fa8ec3a97d58ce788a1c491259fc5685c65aaae8393dc637a",
+      "bytes": 4596608
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-v1/correction.test",
+      "sha256": "fda38db5bd5015b5ccdf2576c41a25133e3dc25c2aac567eac7f1cf4c450cf18",
+      "bytes": 5322240
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-v1/resident.test",
+      "sha256": "c9024708b310b9200a9dff23e812d3325816653d61d263a74467d14b0afc1915",
+      "bytes": 5578032
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/spine_cycle_sim/experiments/original_regraph_execution/hardware/source_retention/host_correction.py",
+      "sha256": "47259dcb979ab9253c62618896a18412ede923b3e5d8a9c766388eeed9947eff",
+      "bytes": 3905
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-qualification-v2/correction.stdout.txt",
+      "sha256": "48478869f7c2cdf64ad9062e2d487e0f2b84ea96104d2a5ff27e2e4ae1ec8a06",
+      "bytes": 108
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-qualification-v2/correction.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-qualification-v2/resident.stdout.txt",
+      "sha256": "3fde5071039e3e01b5340e058ff5bd765247b9c7e94b6c8bae8572c9e7cdeb4e",
+      "bytes": 4245
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-qualification-v2/resident.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-correction-terminal-23f004f0/spine_cycle_sim/experiments/original_regraph_execution/hardware/source_retention/correction_matrix.py",
+      "sha256": "24d61f35d465c4a6c469df987b649509cd8cf9721cc303dd8785a6244d488aaa",
+      "bytes": 9034
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-correction-terminal-23f004f0/spine_cycle_sim/experiments/original_regraph_execution/hardware/source_retention/correction_retime.py",
+      "sha256": "c13d4ac67fae247be126d9abbf7959ff9c2f178f12181fcec7a5664b2a7dcd3e",
+      "bytes": 7295
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-qualification-v2/qualification.json",
+      "sha256": "cf9000c022292628f2dfd67b3d4ef6f6e2f9bdaa5d6259ef327cc48d51708b71",
+      "bytes": 5058
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-v1/thresholded_residual_pagerank.host",
+      "sha256": "10e6bf6c6c7d730fa8ec3a97d58ce788a1c491259fc5685c65aaae8393dc637a",
+      "bytes": 4596608
+    },
+    {
+      "path": "/data/chuxiao/builds/grasu-cache-extent-20261025/spine-respr-zfs-v1/build/respr/xclbin/spine_partitioned_split_e2e.respr.hw.xclbin",
+      "sha256": "b6cb210342029a77233740e7aeffea354d19757ebb68431b0fc993bef59bd15b",
+      "bytes": 56915851
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+      "sha256": "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f",
+      "bytes": 6792
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/verify-clock-repackage-v1",
+      "sha256": "182dd19a63529bf7d3057a5f9ac94afa71cd7be6707a979c708ab2eadfe79d6b",
+      "bytes": 28040
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-dual-arc-lj08-settle-v6/matrix.json",
+      "sha256": "f922f53bb5fdbf0365f738f62da4d273721c74da8c93758f00671e1087560307",
+      "bytes": 32642
+    }
+  ],
+  "fresh_samples_per_case": {
+    "spine": 1,
+    "gr": 0
+  },
+  "gr_sample_reused": true,
+  "upstream": "/data/chuxiao/checks/source-retention-repair-20261104/respr-dual-arc-lj08-settle-v6/matrix.json",
+  "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+  "memory_profile": "zfs-arc-clean-half-settle10-v1",
+  "requested_datasets": [
+    "LJ08"
+  ],
+  "complete_eight_dataset_matrix": false,
+  "limitation": "old-graph-only cache prepared outside resident window; single batch"
+}
