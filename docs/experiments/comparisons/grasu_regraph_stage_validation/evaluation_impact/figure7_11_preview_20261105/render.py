@@ -4,6 +4,7 @@ import argparse
 import csv
 import hashlib
 import importlib.util
+import json
 from math import isclose, log10
 from pathlib import Path
 
@@ -246,7 +247,7 @@ def fig7_nov05(output):
     save(figure, output, "fig7_nov05_fpga_diagnostic")
 
 
-def fig8_persistent(output, data=ROOT, stem="fig8_ten_batch_partial"):
+def fig8_persistent(output, data=ROOT, stem="fig8_ten_batch_partial", *, sweep_path=None):
     rows = read_csv(data / "fig8_ten_batch.csv")
     if any(row["status"] != "PERSISTENT_PAIRED_SETUP_PREDICTION" or row["baseline_admitted"] != "False"
            or (int(row["updates"]), int(row["batches"])) != (4096, 10) for row in rows):
@@ -267,7 +268,7 @@ def fig8_persistent(output, data=ROOT, stem="fig8_ten_batch_partial"):
     axis.yaxis.set_major_locator(MaxNLocator(nbins=4))
     style_axis(axis, parity=True)
     legend(axis, [handle], height=1.18)
-    sweep_path = data / "fig8_batch_sensitivity.csv"
+    sweep_path = sweep_path or data / "fig8_batch_sensitivity.csv"
     if sweep_path.is_file():
         sweep = read_csv(sweep_path)
         if tuple(int(row["batches"]) for row in sweep) != (10, 100, 1000) or any(
@@ -288,6 +289,30 @@ def fig8_persistent(output, data=ROOT, stem="fig8_ten_batch_partial"):
     right.set_xlabel("Updates/batch")
     style_axis(right, parity=True)
     save(figure, output, stem)
+
+
+def fig8_headroom(output):
+    data = ROOT / "fresh_simulator/portable_fig8_headroom_v1"
+    scope_path = data / "scope.json"
+    scope = json.loads(scope_path.read_bytes())
+    sweep = json.loads((data / "batch_sweep/scope.json").read_bytes())
+    rows = read_csv(data / "fig8_ten_batch.csv")
+    sensitivity = read_csv(data / "batch_sweep/fig8_batch_sensitivity.csv")
+    if (scope["status"] != "COMPLETE" or sweep["status"] != "COMPLETE"
+            or scope["cohort"] != sweep["cohort"]
+            or scope["reference_sha256"] != sweep["reference_sha256"]
+            or scope["cohort"]["spine_preload_minimum_level"] != 4
+            or sweep["dataset_scope_sha256"] != hashlib.sha256(scope_path.read_bytes()).hexdigest()
+            or tuple(row["dataset"] for row in rows) != ("AU", "SU", "WK", "SO", "PK")
+            or any(int(row["spine_preload_minimum_level"]) != 4 for row in rows + sensitivity)):
+        raise ValueError("complete matching L4 dataset and batch-sweep cohorts required")
+    for exported, recorded in ((rows, scope["cases"]), (sensitivity, sweep["cases"])):
+        expected = [{key: "" if value is None else str(value) for key, value in row.items()}
+                    for row in recorded]
+        if exported != expected:
+            raise ValueError("Fig. 8 CSV differs from its checked scope")
+    fig8_persistent(output, data, "fig8_update_prediction_headroom",
+                    sweep_path=data / "batch_sweep/fig8_batch_sensitivity.csv")
 
 
 def fig8_portable(output):
@@ -444,13 +469,18 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--fresh", action="store_true", help="use the independently replayed Nov. 5 simulator experiments")
     mode.add_argument("--portable-fig8", action="store_true", help="draw the separate same-host remote Fig. 8 cohort")
+    mode.add_argument("--headroom-fig8", action="store_true", help="draw the complete same-host L4 follow-up")
     args = parser.parse_args()
-    default = ("fresh_simulator/portable_fig8/figures" if args.portable_fig8 else
+    default = ("fresh_simulator/portable_fig8_headroom_v1/figures" if args.headroom_fig8 else
+               "fresh_simulator/portable_fig8/figures" if args.portable_fig8 else
                "fresh_simulator/figures" if args.fresh else "figures")
     output = args.output or ROOT / default
     output.mkdir(parents=True, exist_ok=True)
     reference = prior_renderer()
     reference.configure_matplotlib()
+    if args.headroom_fig8:
+        fig8_headroom(output)
+        return
     if args.portable_fig8:
         fig8_portable(output)
         return

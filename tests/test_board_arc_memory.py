@@ -105,6 +105,70 @@ class BoardArcMemoryTests(unittest.TestCase):
                 self.assertEqual(module.run(args), memory.ARC)
                 self.assertEqual(memory.selected(), memory.DEFAULT)
 
+    def test_settle_profile_still_rejects_pressure_at_admission_and_reserve_loss(self):
+        pressured = memory.estimate(*observed(pressure=11))
+        with memory.scope(memory.ARC_SETTLE), patch.object(memory, "sample", return_value=pressured):
+            with self.assertRaises(MemoryError):
+                memory.live()
+            self.assertEqual(memory.live(allow_transient_pressure=True), pressured)
+        with memory.scope(memory.ARC), self.assertRaises(ValueError):
+            memory.live(allow_transient_pressure=True)
+        with memory.scope(memory.ARC_SETTLE), \
+                patch.object(memory, "sample", return_value=dict(pressured, effective_available_bytes=31 * GIB)), \
+                self.assertRaises(MemoryError):
+            memory.live(allow_transient_pressure=True)
+
+    def test_pressure_window_recovers_and_rejects_ten_seconds_of_continuous_pressure(self):
+        high, low = dict(pressure_ok=False), dict(pressure_ok=True)
+        window = memory.PressureWindow()
+        window.check(high, 100)
+        window.check(high, 109)
+        window.check(low, 110)
+        self.assertEqual(window.maximum_seconds, 10)
+        self.assertEqual(window.pressured_checks, 2)
+        window.check(high, 120)
+        window.check(high, 129)
+        with self.assertRaisesRegex(MemoryError, "ten seconds"):
+            window.check(high, 130)
+        self.assertEqual(window.maximum_seconds, 10)
+
+    def test_settle_guard_records_recovered_pressure_without_changing_timeout(self):
+        low = memory.estimate(*observed())
+        high = dict(low, pressure_ok=False, pressure_avg10=dict(some=1.2, full=1.2))
+        process = Mock(pid=123456)
+        process.__enter__ = Mock(return_value=process)
+        process.__exit__ = Mock(return_value=False)
+        process.wait.side_effect = [subprocess.TimeoutExpired("owned", 1), 0]
+        with memory.scope(memory.ARC_SETTLE), \
+                patch.object(memory, "live", side_effect=[low, high, low]) as live, \
+                patch.object(guarded_process.subprocess, "Popen", return_value=process), \
+                patch.object(guarded_process.time, "monotonic", side_effect=[0, 1, 1, 3, 3]):
+            code, receipt = guarded_process.run(["owned"], timeout=5)
+        self.assertEqual(code, 0)
+        self.assertEqual(live.call_args_list[0].kwargs, {})
+        self.assertEqual(live.call_args_list[1].kwargs, dict(allow_transient_pressure=True))
+        self.assertEqual(receipt["maximum_consecutive_pressure_seconds"], 2)
+        self.assertEqual(receipt["pressured_checks"], 1)
+        self.assertEqual(receipt["pressure_grace_seconds"], 10)
+        self.assertEqual(receipt["maximum_pressure_avg10"]["full"], 1.2)
+
+    def test_settle_guard_kills_only_owned_group_on_sustained_pressure(self):
+        low = memory.estimate(*observed())
+        high = dict(low, pressure_ok=False)
+        process = Mock(pid=123456)
+        process.__enter__ = Mock(return_value=process)
+        process.__exit__ = Mock(return_value=False)
+        process.wait.side_effect = [subprocess.TimeoutExpired("owned", 1), 0, 0, 0]
+        with memory.scope(memory.ARC_SETTLE), \
+                patch.object(memory, "live", side_effect=[low, high, high]), \
+                patch.object(guarded_process.subprocess, "Popen", return_value=process), \
+                patch.object(guarded_process.os, "killpg") as kill, \
+                patch.object(guarded_process.time, "monotonic", side_effect=[0, 1, 1, 11]), \
+                self.assertRaisesRegex(MemoryError, "ten seconds"):
+            guarded_process.run(["owned"], timeout=30)
+        self.assertEqual(kill.call_args_list[0].args, (123456, signal.SIGTERM))
+        self.assertEqual(kill.call_args_list[-1].args, (123456, signal.SIGKILL))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -64,7 +64,7 @@ def execute(command, output, name, fd, node, bdf, *, memory_gib=8, timeout=240):
     log, error = output / f"{name}.stdout.txt", output / f"{name}.stderr.txt"
     with log.open("x") as stdout, error.open("x") as stderr:
         options = dict(env=env, pass_fds=(fd,), cwd=output, stdout=stdout, stderr=stderr)
-        if memory_policy.selected() == memory_policy.ARC:
+        if memory_policy.selected() != memory_policy.DEFAULT:
             from ..board_execution import guarded_process
             code, memory = guarded_process.run(command, timeout=timeout, **options)
         else:

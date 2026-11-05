@@ -12,6 +12,7 @@ Fig. 7 and source controls. Pending cases are not filled with older results.
 | 8a, local CPU | [Ten chronological batches](fig8_ten_batch.csv) | [PNG](figures/fig8_update_prediction.png), [PDF](figures/fig8_update_prediction.pdf) | AU/SU/WK complete; local SO/PK waiting for memory admission |
 | 8a, separate remote CPU | [Five-case cohort](portable_fig8/README.md) | [PNG](portable_fig8/figures/fig8_ten_batch_portable.png), [PDF](portable_fig8/figures/fig8_ten_batch_portable.pdf) | AU/SU/WK/SO complete; PK capacity failure retained |
 | 8b | [Fixed 131,072-update sweep](fig8_batch_sensitivity.csv) | Same two-panel preview | 10/100/1,000 batches complete; G+R wins at 1,000 |
+| 8a--b, separate remote L4 follow-up | [Five datasets and three batch counts](portable_fig8_headroom_v1/README.md) | [PNG](portable_fig8_headroom_v1/figures/fig8_update_prediction_headroom.png), [PDF](portable_fig8_headroom_v1/figures/fig8_update_prediction_headroom.pdf) | Complete matching CPU/bootstrap cohort; G+R wins at 1,000 batches |
 | 9 | [Nine ratios](fig9_memory_energy_rows.csv), [18 absolute arms](fig9_arms.csv) | [PNG](figures/fig9_memory_hbm_prediction.png), [PDF](figures/fig9_memory_hbm_prediction.pdf) | Complete declared AU/SU/WK x SSSP/CC/ResPR scope |
 | 10 | [Normalized rows](fig10_normalized_breakdown_rows.csv), [absolute stages](fig10_stage_rows.csv) | [PNG](figures/fig10_simulator_breakdown.png), [PDF](figures/fig10_simulator_breakdown.pdf) | 11 correctness/ledger-admitted stacks, each normalized to 100% |
 | 11 | [41 predictions](fig11_e2e_prediction_rows.csv), [metrics](fig11_e2e_metric_rows.csv), [model](fig11_e2e_model.json) | [PNG](figures/fig11_realized_work_model.png), [PDF](figures/fig11_realized_work_model.pdf) | 24 calibration + 17 unseen rows; ZN excluded from fit |
@@ -39,6 +40,13 @@ failing Spine's cold-hierarchy capacity check. Its smoke device counters and
 compiled numerical recipe match the local reference exactly. Do not combine
 its Xeon host times with the local EPYC sensitivity sweep, or infer hardware
 calibration from this portability check.
+
+The [separate L4 follow-up](portable_fig8_headroom_v1/README.md) explicitly
+changes bootstrap placement, completing all five datasets without overwriting
+the L2 failure. Its matching same-host batch sweep gives ratios
+1.822/1.116/0.583: G+R wins at 1,000 batches by 1.715x. Neither this change
+nor the portable smoke check establishes HLS-bootstrap parity or routed
+four-copy G equivalence.
 
 **Fig. 9:** resident old state -> eight updates -> new convergence, device-only
 traffic, 32 HBM channels and 32 outstanding requests/channel. The complete

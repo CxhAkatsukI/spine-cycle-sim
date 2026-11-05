@@ -3,12 +3,12 @@
 ## November 5 Fresh Checkpoint
 
 Start with the [current FPGA G/R controls](current_fpga/README.md) and
-[current resident FPGA checkpoint](current_fpga/resident_checkpoint_v1/README.md).
+[current resident FPGA checkpoint](current_fpga/resident_checkpoint_v2/README.md).
 The former contains eleven replayed controls on the exact current baseline
 images: all eight R points are within absolute +/-15%, and all three G points
-are faster than their public-source ports. The latter has **13 of 24** measured
-Fig. 7 pairs: all eight SSSP and five ResPR cases favor Spine. Eight CC and three
-ResPR cases remain pending, not zero-speedup measurements. The grouped preview
+are faster than their public-source ports. The latter has **15 of 24** measured
+Fig. 7 pairs: all eight SSSP and seven ResPR cases favor Spine. Eight CC and one
+ResPR case remain missing, not zero-speedup measurements. The grouped preview
 uses one algorithm series per dataset, as requested.
 
 Later resident exports may repeat `--retimes` with the full original
@@ -32,12 +32,13 @@ runner and its unchanged numerical settings. Remote and local host timings
 belong to separate cohorts; a queued or running remote job is not an accepted
 replacement point.
 
-The protocol also records the **separate L4 bootstrap-headroom follow-up**:
-all five remote ten-batch cases now complete, and a matching same-host
-131,072-update batch sweep is running. This explicitly changes initial
+The protocol also records the [separate L4 bootstrap-headroom follow-up](fresh_simulator/portable_fig8_headroom_v1/README.md):
+all five remote ten-batch cases and a matching same-host
+131,072-update batch sweep now complete. The sweep ratios are
+1.822/1.116/0.583: G+R wins at 1,000 batches by 1.715x. This explicitly changes initial
 placement from the older L2 runs. It does not erase PK's original capacity
 failure, prove HLS-layout parity, or turn a prediction into FPGA evidence.
-The checked export and preview will be added separately after replay.
+The checked export and two-panel preview are linked in that separate folder.
 
 The new ResPR degree-prefix image passed its **same-clock 140/500/430-MHz**
 G/R controls: G 10.957 vs. 19.166 ms; R Amazon +0.53%, skew -9.41% relative
@@ -48,7 +49,8 @@ new resident matrix is still running. The original host lost on PK (Spine
 102.13 vs. G+R 75.73 ms). An independently qualified, bit-exact host correction
 cache removes the per-batch full-graph correction rebuild; the five completed
 retimes now favor Spine, **1.51x--13.07x**, against reused frozen G+R samples.
-The cache uses only the old graph/rank, prepares outside the resident timer,
+The later LJ/R19 additions bring the corrected ResPR scope to seven cases,
+1.51x--19.29x. LJ08 pressure-guard aborts remain unmeasured. The cache uses only the old graph/rank, prepares outside the resident timer,
 and reports that preparation separately. All five have zero nonempty
 propagation rounds, so they do not demonstrate propagation speedup. A separate
 compact Flickr propagation case still loses (35.08 vs. 4.76 ms). The original

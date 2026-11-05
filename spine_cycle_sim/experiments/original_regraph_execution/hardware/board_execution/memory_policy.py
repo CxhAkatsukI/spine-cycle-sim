@@ -10,8 +10,10 @@ from spine_cycle_sim.experiments.upstream_controls.execution import available_me
 
 DEFAULT = "memavailable-v1"
 ARC = "zfs-arc-clean-half-v1"
-PROFILES = (DEFAULT, ARC)
+ARC_SETTLE = "zfs-arc-clean-half-settle10-v1"
+PROFILES = (DEFAULT, ARC, ARC_SETTLE)
 RESERVE_BYTES = 32 * 2**30
+PRESSURE_GRACE_SECONDS = 10
 _profile = ContextVar("board_memory_profile", default=DEFAULT)
 
 
@@ -71,13 +73,39 @@ def estimate(meminfo, arcstats, pressure):
 def sample(proc=Path("/proc")):
     if selected() == DEFAULT:
         return dict(profile=DEFAULT, effective_available_bytes=available_memory_bytes(), pressure_ok=True)
-    return estimate((proc / "meminfo").read_text(),
-                    (proc / "spl/kstat/zfs/arcstats").read_text(),
-                    (proc / "pressure/memory").read_text())
+    observation = estimate((proc / "meminfo").read_text(),
+                           (proc / "spl/kstat/zfs/arcstats").read_text(),
+                           (proc / "pressure/memory").read_text())
+    observation["profile"] = selected()
+    return observation
 
 
-def live():
+def live(*, allow_transient_pressure=False):
+    if allow_transient_pressure and selected() != ARC_SETTLE:
+        raise ValueError("transient pressure requires the explicit settle profile")
     observation = sample()
-    if observation["effective_available_bytes"] < RESERVE_BYTES or not observation["pressure_ok"]:
+    if (observation["effective_available_bytes"] < RESERVE_BYTES
+            or not allow_transient_pressure and not observation["pressure_ok"]):
         raise MemoryError("32-GiB live reserve and low memory PSI required: " + repr(observation))
     return observation
+
+
+class PressureWindow:
+    """Bound consecutive high-PSI observations without relaxing physical reserve."""
+
+    def __init__(self):
+        self.started = None
+        self.maximum_seconds = 0
+        self.pressured_checks = 0
+
+    def check(self, observation, now):
+        if self.started is not None:
+            self.maximum_seconds = max(self.maximum_seconds, now - self.started)
+        if observation["pressure_ok"]:
+            self.started = None
+            return
+        self.pressured_checks += 1
+        if self.started is None:
+            self.started = now
+        if now - self.started >= PRESSURE_GRACE_SECONDS:
+            raise MemoryError("memory PSI remained high for ten seconds: " + repr(observation))

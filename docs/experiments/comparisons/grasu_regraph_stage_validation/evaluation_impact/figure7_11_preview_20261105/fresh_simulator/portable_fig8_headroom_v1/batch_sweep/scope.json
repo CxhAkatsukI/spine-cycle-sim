@@ -1,0 +1,111 @@
+{
+  "evidence": "same-host measured preparation plus simulated device/transfer; not FPGA",
+  "cohort": {
+    "host": "seele",
+    "cpu_model": "Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz",
+    "cpu": 20,
+    "platform": "Linux-6.10.4-amd64-x86_64-with-glibc2.42",
+    "compiler_version": "x86_64-linux-gnu-g++-15 (Debian 15.2.0-7) 15.2.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+    "dependencies": {
+      "compiler": {
+        "bytes": 1284720,
+        "sha256": "a7c2379bbc923ff73cf8fda328f7b3eccdc14cb060ff729553ed35a8064f71f9"
+      },
+      "sst": {
+        "bytes": 306915185,
+        "sha256": "b53df38eb8e076403b9f496986e3462b78ec49e86270263ecde463cea8566424"
+      }
+    },
+    "git_head": "05aff52b785a69d675baa85399753709738c7bef",
+    "spine_preload_minimum_level": 4
+  },
+  "status": "COMPLETE",
+  "total_updates": 131072,
+  "expected_batches": [
+    10,
+    100,
+    1000
+  ],
+  "cases": [
+    {
+      "dataset": "AU",
+      "status": "PERSISTENT_PAIRED_SETUP_PREDICTION",
+      "cpu": 20,
+      "updates": 131072,
+      "spine_preload_minimum_level": 4,
+      "batches": 10,
+      "host_samples_per_arm": 1,
+      "baseline_admitted": false,
+      "speedup_gr_over_spine": 1.821971269355376,
+      "error": "",
+      "expanded_test_files": 0,
+      "receipt_sha256": "1bfa39249c0549b4773a692827f32aead09d9d2d5b0ecce6e22645ef34e2153b",
+      "spine_host_seconds": 0.056958578,
+      "spine_transfer_seconds": 0.0005586046666666666,
+      "spine_device_seconds": 0.08012628666666667,
+      "spine_setup_inclusive_seconds": 0.13774346933333334,
+      "spine_updates_per_second": 951565.9844664674,
+      "spine_device_cycles": 12018943,
+      "gr_host_seconds": 0.238356955,
+      "gr_transfer_seconds": 0.003773442,
+      "gr_device_seconds": 0.008734246666666667,
+      "gr_setup_inclusive_seconds": 0.25096464366666665,
+      "gr_updates_per_second": 522272.77151474345,
+      "gr_device_cycles": 1310137
+    },
+    {
+      "dataset": "AU",
+      "status": "PERSISTENT_PAIRED_SETUP_PREDICTION",
+      "cpu": 20,
+      "updates": 131072,
+      "spine_preload_minimum_level": 4,
+      "batches": 100,
+      "host_samples_per_arm": 1,
+      "baseline_admitted": false,
+      "speedup_gr_over_spine": 1.1156144814581788,
+      "error": "",
+      "expanded_test_files": 0,
+      "receipt_sha256": "f42f9e3ee5be5c2c3a56344cb7c553e8dacab8572553c4eb258054f61c39ce7f",
+      "spine_host_seconds": 0.05753597,
+      "spine_transfer_seconds": 0.0005586046666666666,
+      "spine_device_seconds": 0.17415306,
+      "spine_setup_inclusive_seconds": 0.23324763466666665,
+      "spine_updates_per_second": 561943.5334781187,
+      "spine_device_cycles": 26122959,
+      "gr_host_seconds": 0.245082817,
+      "gr_transfer_seconds": 0.003773442,
+      "gr_device_seconds": 0.01035818,
+      "gr_setup_inclusive_seconds": 0.260214439,
+      "gr_updates_per_second": 503707.63630068966,
+      "gr_device_cycles": 1553727
+    },
+    {
+      "dataset": "AU",
+      "status": "PERSISTENT_PAIRED_SETUP_PREDICTION",
+      "cpu": 20,
+      "updates": 131072,
+      "spine_preload_minimum_level": 4,
+      "batches": 1000,
+      "host_samples_per_arm": 1,
+      "baseline_admitted": false,
+      "speedup_gr_over_spine": 0.5830573024431142,
+      "error": "",
+      "expanded_test_files": 0,
+      "receipt_sha256": "93fc747451fd29831f7fa631e971c56067aad34509090fe9c955b4aec9a646d3",
+      "spine_host_seconds": 0.056890669,
+      "spine_transfer_seconds": 0.0005586046666666666,
+      "spine_device_seconds": 0.42192379333333335,
+      "spine_setup_inclusive_seconds": 0.489373067,
+      "spine_updates_per_second": 267836.5624073055,
+      "spine_device_cycles": 63288569,
+      "gr_host_seconds": 0.257870745,
+      "gr_transfer_seconds": 0.003773442,
+      "gr_device_seconds": 0.013688353333333333,
+      "gr_setup_inclusive_seconds": 0.2853325403333334,
+      "gr_updates_per_second": 459365.7626532118,
+      "gr_device_cycles": 2053253
+    }
+  ],
+  "reference_sha256": "ab7a65edce53e07b056ca03243b4960d32743418699638c85c1f2c7792d5cc61",
+  "dataset_scope_sha256": "42a1aa189851d88d45dd0c38cdd49be9eb8be985a4075c5125a1a733f041362e"
+}

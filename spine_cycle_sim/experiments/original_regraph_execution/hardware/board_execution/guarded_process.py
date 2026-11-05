@@ -29,11 +29,16 @@ def run(command, *, timeout, **kwargs):
     minimum = before["effective_available_bytes"]
     maximum_psi = dict(before["pressure_avg10"])
     checks = 1
+    settle = memory_policy.selected() == memory_policy.ARC_SETTLE
+    pressure = memory_policy.PressureWindow()
     deadline = time.monotonic() + timeout
     with subprocess.Popen(command, start_new_session=True, **kwargs) as process:
         try:
             while True:
-                observed = memory_policy.live()
+                observed = (memory_policy.live(allow_transient_pressure=True) if settle
+                            else memory_policy.live())
+                if settle:
+                    pressure.check(observed, time.monotonic())
                 checks += 1
                 minimum = min(minimum, observed["effective_available_bytes"])
                 maximum_psi = {key: max(maximum_psi[key], value)
@@ -49,6 +54,11 @@ def run(command, *, timeout, **kwargs):
         except BaseException:
             stop(process)
             raise
-    return code, dict(profile=memory_policy.selected(), admission=before,
-                      minimum_effective_available_bytes=minimum,
-                      maximum_pressure_avg10=maximum_psi, checks=checks)
+    receipt = dict(profile=memory_policy.selected(), admission=before,
+                   minimum_effective_available_bytes=minimum,
+                   maximum_pressure_avg10=maximum_psi, checks=checks)
+    if settle:
+        receipt.update(pressure_grace_seconds=memory_policy.PRESSURE_GRACE_SECONDS,
+                       maximum_consecutive_pressure_seconds=pressure.maximum_seconds,
+                       pressured_checks=pressure.pressured_checks)
+    return code, receipt

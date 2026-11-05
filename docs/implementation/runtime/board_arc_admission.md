@@ -59,3 +59,23 @@ The reclaim rationale comes from the
 and [Linux ARC shrinker](https://github.com/openzfs/zfs/blob/master/module/os/linux/zfs/arc_os.c).
 The half-credit and PSI limits above are our safety policy, not OpenZFS
 performance guarantees.
+
+## Bounded Reclaim Settling
+
+`zfs-arc-clean-half-settle10-v1` is a separate opt-in profile for the same
+board runners. It preserves the estimate, strict low-PSI admission, full peer
+reservations, cgroup max/high, zero swap and immediate 32-GiB live-reserve
+check. During an owned child only, high PSI must persist for ten seconds
+before aborting; a low-PSI observation resets that timer. Missing/malformed
+observations, timeout or a reserve breach still stop immediately. The
+one-second monitor records peak PSI, number of pressured observations and
+maximum consecutive pressure duration in every successful receipt.
+
+This addresses a specific operational failure: LJ08's preceding strict
+attempts stopped while loading old state, with about 20 GiB peak cgroup use,
+no OOM/high/max events, over 32 GiB effective reserve and transient full PSI
+around 1.1%. It does not establish that those attempts would have completed,
+nor change their failed status. Ten seconds is a bounded settling policy,
+not a measured ZFS reclaim guarantee. Original strict-profile runs, defaults,
+and numerical/FPGA settings remain unchanged; new runs require fresh paths
+and source pins.

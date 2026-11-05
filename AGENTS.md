@@ -87,6 +87,9 @@ before changing an implementation or launching an experiment.
   ARC under its [explicit policy](docs/implementation/runtime/board_arc_admission.md).
   Keep full finite reservations, zero swap, live reserve/PSI supervision,
   and source/observation receipts. Do not clear caches or change global ZFS.
+  The separate `zfs-arc-clean-half-settle10-v1` board profile retains strict
+  admission and immediate physical-reserve enforcement but tolerates at most
+  ten seconds of high PSI in a monitored child; record transient pressure.
   Start with a correctness smoke, then a bounded representative matrix.
   Do not silently reduce workload semantics to make a run complete.
 - Preserve raw evidence and fixed model identities. Record repetitions,
