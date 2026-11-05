@@ -17,16 +17,16 @@ DRAM = Path("/data/tmp/chuxiao/candidate73-dramsim3-pgo-src-20260729")
 SST = Path("/data/feiyang/sst/bin/sst")
 
 
-def plugin_command(compiler, core, output):
+def plugin_command(compiler, core, output, *, sst_include=Path("/data/feiyang/sst/include"), dram=DRAM):
     return [str(compiler), "-std=gnu++20", "-O3", "-DNDEBUG", "-fPIC", "-shared",
-        "-DHAVE_CONFIG_H", "-DSPINE_HAVE_DIRECT_DRAMSIM3", "-I/data/feiyang/sst/include",
-        "-I" + str(ROOT / "cpp/include"), "-I" + str(DRAM / "src"),
+        "-DHAVE_CONFIG_H", "-DSPINE_HAVE_DIRECT_DRAMSIM3", "-I" + str(sst_include),
+        "-I" + str(ROOT / "cpp/include"), "-I" + str(dram / "src"),
         str(ROOT / "cpp/tests/evaluation_impact/figure_refresh/component.cpp"),
         *[str(ROOT / "cpp/sst" / name) for name in ("sst_memory_backend.cpp",
             "physical_hbm_mapper.cpp", "direct_dramsim3_engine.cpp")],
         str(core / "liboriginal_regraph_cycle.a"), str(core / "libspine_cycle_core.a"),
         "-Wl,--wrap=_ZN5spine3sim13MemoryBackend18initialize_payloadEmmRKSt6vectorIhSaIhEE",
-        "-L" + str(DRAM), "-Wl,-rpath," + str(DRAM), "-ldramsim3", "-o", str(output)]
+        "-L" + str(dram), "-Wl,-rpath," + str(dram), "-ldramsim3", "-o", str(output)]
 
 
 def run(output, reference, cpu, timeout, datasets=(), memory_profile=runtime.FRESH_CPU, figures=(8, 9)):

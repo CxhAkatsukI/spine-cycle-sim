@@ -18,6 +18,11 @@ counts; SO/PK are pending memory admission. Fig. 9 has nine fresh pairs; Figs.
 10--11 have 42 fresh executions, with 41 fit/holdout rows. Hardware source
 retention is a separate claim, not implied by these predictions.
 
+The [remote CPU protocol](REMOTE_CPU.md) documents the isolated portable
+runner and its unchanged numerical settings. Remote and local host timings
+belong to separate cohorts; a queued or running remote job is not an accepted
+replacement point.
+
 The new ResPR degree-prefix image passed its **same-clock 140/500/430-MHz**
 G/R controls: G 10.957 vs. 19.166 ms; R Amazon +0.53%, skew -9.41% relative
 to the public-source A4 port. These are one-sample, at-most-15%-slower checks,
