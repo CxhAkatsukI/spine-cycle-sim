@@ -13,6 +13,9 @@ def collect(matrix, expected_image):
     if set(matrix["cases"]) != set(figure.DATASETS):
         raise ValueError("all eight CC statuses required")
     rows, evidence = [], []
+    parent_receipt = matrix.get("parent", {}).get("receipt")
+    if matrix["status"] == "FAILED_RETAINED" and parent_receipt is not None:
+        evidence.append(dict(result=parent_receipt, report=figure.load(parent_receipt)))
     measured = any(row["status"] == figure.MEASURED for row in matrix["cases"].values())
     if measured:
         unchanged(matrix["runner_pins"])
@@ -27,6 +30,12 @@ def collect(matrix, expected_image):
             for key in ("error", "service_exit", "child_status"):
                 if key in entry:
                     row[key] = entry[key]
+            if "result" in entry:
+                pin = entry["result"]
+                child = figure.load(pin)
+                if child.get("dataset") != dataset or child.get("status") != entry.get("child_status"):
+                    raise ValueError("CC failure receipt differs from the matrix case")
+                evidence.append(dict(result=pin, report=child))
             if matrix["status"] == "FAILED_RETAINED":
                 row.update(parent_status=matrix["status"], parent_error=matrix.get("error"))
             rows.append(row)

@@ -67,6 +67,31 @@ class ResidentCheckpointTests(unittest.TestCase):
         row = self.row(spine_wall_ms=20, speedup_gr_over_spine=0.5)
         self.assertEqual(row["speedup_gr_over_spine"], 0.5)
 
+    def test_failed_cc_child_receipt_is_archived_but_not_admitted(self):
+        export = self.export
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "results.json"
+            child = dict(status="FAILED_RETAINED", dataset="WK", error="oracle mismatch")
+            path.write_text(json.dumps(child))
+            pin = export.identity(path)
+            cases = {dataset: dict(status="NOT_REQUESTED") for dataset in export.sssp.DATASETS}
+            cases["WK"] = dict(status="FAILED_RETAINED", child_status=child["status"], result=pin)
+            matrix = dict(status="CC_MATRIX_WITH_FAILURES", cases=cases)
+            rows, evidence = export.cc_checkpoint.collect(matrix, "baseline")
+            members, index = {}, {}
+            export.controls.small_evidence(evidence, members, index)
+            self.assertEqual(members[f"objects/{pin['sha256']}/results.json"], path.read_bytes())
+            self.assertEqual(index[str(path)], pin)
+            self.assertEqual(next(row for row in rows if row["dataset"] == "WK"),
+                             dict(dataset="WK", status="FAILED_RETAINED", child_status=child["status"]))
+            cases["WK"]["child_status"] = "DIFFERENT"
+            with self.assertRaisesRegex(ValueError, "failure receipt differs"):
+                export.cc_checkpoint.collect(matrix, "baseline")
+            cases["WK"]["child_status"] = child["status"]
+            path.write_text("{}")
+            with self.assertRaisesRegex(ValueError, "receipt or raw log changed"):
+                export.cc_checkpoint.collect(matrix, "baseline")
+
     def test_fresh_qualified_pair_cannot_replace_measured_retime_or_change_baseline(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "result.json"

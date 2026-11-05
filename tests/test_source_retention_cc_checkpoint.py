@@ -1,5 +1,8 @@
-"""New CC checkpoints never promote pending, stale-route or mismatched-control rows."""
+"""New CC checkpoints never promote pending, failed or mismatched-control rows."""
 
+import json
+from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -24,6 +27,17 @@ class CcCheckpointTests(unittest.TestCase):
         self.assertEqual(len(rows), 8)
         self.assertTrue(all(row["parent_error"] == "route failed" for row in rows))
         self.assertEqual(evidence, [])
+
+    def test_failed_collector_receipt_is_evidence_not_a_timing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "collector.json"
+            parent = dict(status="FAILED_RETAINED", error="route failed")
+            path.write_text(json.dumps(parent))
+            pin = cc.figure.identity(path)
+            self.matrix.update(parent=dict(receipt=pin), **parent)
+            rows, evidence = cc.collect(self.matrix, "image")
+        self.assertEqual(evidence, [dict(result=pin, report=parent)])
+        self.assertTrue(all("pair" not in row and row["status"] == "NOT_REQUESTED" for row in rows))
 
     def test_requires_every_declared_dataset(self):
         del self.matrix["cases"]["AU"]

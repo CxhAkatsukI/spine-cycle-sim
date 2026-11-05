@@ -51,6 +51,8 @@ exporter. The verifier checks the 24 slots, timings and ratios, the exact
 control CSV pin, and the per-file archive hashes. Each measured Fig. 7 row
 must also match the content hash of an embedded board receipt. The exporter,
 not the plotter, is responsible for admitting board runs against raw receipts.
+New exports also retain available pinned CC failure receipts from the child
+or collector, without converting those slots to measurements.
 
 Extract the archive into an empty directory, then run from the extracted
 root with Python 3.11+, Matplotlib, LaTeX `txfonts`, and `dvipng`:
