@@ -43,7 +43,10 @@ The current SSSP uses a separate AU screen; the new CC matrix includes R19.
 does not already contain that case. The export rejects duplicate sources.
 The export has eight rows each for SSSP, CC, and ResPR. FullPR is outside
 this campaign. The optional CSV keeps all 24 statuses and leaves timings
-and ratios blank for pending or failed rows. It does not replace the old
+and ratios blank for pending or failed rows. If a source journal ends in
+failure or does not admit the baseline, `BLOCKED_BY_TERMINAL_JOURNAL`
+identifies unmeasured rows with the responsible journal and its reason.
+This status is not a board attempt or a timeout. The snapshot does not replace the old
 handoff CSV. If a live journal changes during export, rerun rather than
 mixing snapshots. Admitted rows bind the original graph file (including
 its ordered batch), vertex/edge/update counts, and source ID to the raw

@@ -20,10 +20,12 @@ JOURNALS = {"weighted_sssp": ("sssp_matrix", "sssp_au"),
             "cc": ("cc_matrix", "cc_r19"), "respr": ("respr_matrix", "respr_screen")}
 ROLES = tuple(role for roles in JOURNALS.values() for role in roles)
 OPTIONAL_SCREENS = {"sssp_au", "cc_r19"}
+TERMINAL_BLOCKERS = {"NOT_ADMITTED", "FAILED_RETAINED", "PAIRED_SCREEN_NEEDS_REVIEW"}
+PENDING_ROWS = {"NOT_RECORDED", "NOT_REQUESTED", "PREDECLARED", "WAITING_FOR_MATCHED_MATRIX_ADMISSION"}
 CSV_FIELDS = ("algorithm", "dataset", "status", "r_validation_scope", "boundary", "graph_sha256", "vertices", "edges",
               "updates", "source", "spine_ms", "gr_ms", "gr_over_spine", "winner", "gr_rounds",
               "spine_rounds", "respr_propagated_on_both", "same_driver_clocks", "comparison_sha256",
-              "error")
+              "blocked_by", "error")
 
 
 def checked(pin):
@@ -242,6 +244,18 @@ def respr_case(rows, dataset):
     return entries[0] if entries else {}
 
 
+def record_terminal_blocker(out, *journals):
+    if out["status"] not in PENDING_ROWS or out.get("error"):
+        return
+    for role, journal in journals:
+        status = journal["status"]
+        if status in TERMINAL_BLOCKERS:
+            reason = journal.get("error")
+            out.update(status="BLOCKED_BY_TERMINAL_JOURNAL", blocked_by=role,
+                       error=f"{status}: {reason}" if reason else status)
+            return
+
+
 def respr_propagation_screen(matrix, screen, screen_pin):
     out = dict(algorithm="respr", dataset="Flickr", boundary=BOUNDARIES["respr"])
     try:
@@ -257,6 +271,7 @@ def respr_propagation_screen(matrix, screen, screen_pin):
         else:
             out.update(measured("respr", "Flickr", screen, row, matrix["stage_gates"], None, matrix["image"]))
             out["status"] = MEASURED
+        record_terminal_blocker(out, ("respr_screen", screen), ("respr_matrix", matrix))
     except (KeyError, ValueError, OSError, TypeError) as error:
         out.update(status="RECEIPT_REJECTED", error=str(error))
     return out
@@ -331,6 +346,10 @@ def export(paths):
                         out["status"] = MEASURED
                 elif row.get("error"):
                     out["error"] = row["error"]
+                journals = [(matrix_role, matrix)]
+                if special is not None and dataset == SPECIAL[algorithm]:
+                    journals.insert(0, (screen_role, special))
+                record_terminal_blocker(out, *journals)
             except (KeyError, ValueError, OSError, TypeError) as error:
                 out.update(status="RECEIPT_REJECTED", error=str(error))
             result["rows"].append(out)

@@ -89,6 +89,29 @@ class Figure7ReceiptsTest(unittest.TestCase):
         self.assertTrue(all("gr_over_spine" not in row for row in result["rows"]))
         self.assertIn("timeout", {row.get("error") for row in result["rows"]})
 
+    def test_terminal_parent_blocks_unmeasured_rows_but_not_attempted_rows(self):
+        save(self.paths["respr_screen"], dict(status="NOT_ADMITTED", error="R above 15%", cases=[
+            {"status": "PREDECLARED", "case": {"dataset": dataset}} for dataset in ("R19", "Flickr")
+        ]))
+        save(self.paths["respr_matrix"], dict(status="NOT_ADMITTED", error="resident screen failed", cases=[
+            {"status": "PREDECLARED", "case": {"dataset": "AU"}},
+            {"status": "FAILED_RETAINED", "error": "device timeout", "case": {"dataset": "SU"}},
+        ]))
+        result = figure.export(self.paths)
+        rows = {row["dataset"]: row for row in result["rows"] if row["algorithm"] == "respr"}
+        self.assertEqual(rows["R19"]["error"], "NOT_ADMITTED: R above 15%")
+        self.assertEqual(rows["AU"]["blocked_by"], "respr_matrix")
+        self.assertEqual(rows["SU"]["error"], "device timeout")
+        self.assertEqual(result["respr_propagation_screen"]["blocked_by"], "respr_screen")
+        self.assertEqual(result["rows"][0]["status"], "WAITING")
+        output = self.root / "blocked.csv"
+        figure.write_csv(output, result["rows"])
+        with output.open(newline="") as stream:
+            (au,) = [row for row in csv.DictReader(stream)
+                     if (row["algorithm"], row["dataset"]) == ("respr", "AU")]
+        self.assertEqual((au["status"], au["blocked_by"], au["gr_over_spine"]),
+                         ("BLOCKED_BY_TERMINAL_JOURNAL", "respr_matrix", ""))
+
     def test_cc_special_pair_retains_loss_and_boundary(self):
         child, gates, odd = self.pair("cc", "R19")
         save(self.paths["cc_matrix"], dict(status="MEASURED", cases={}, baseline=gates, odd_r=odd))
@@ -256,7 +279,8 @@ class Figure7ReceiptsTest(unittest.TestCase):
         }})
         result = figure.export(paths)
         self.assertEqual(result["journal_errors"], {"sssp_matrix": "odd gate"})
-        self.assertEqual(result["rows"][0]["status"], "NOT_REQUESTED")
+        self.assertEqual(result["rows"][0]["status"], "BLOCKED_BY_TERMINAL_JOURNAL")
+        self.assertEqual(result["rows"][0]["blocked_by"], "sssp_matrix")
 
     def respr_screen(self, dataset, rounds, status="MEASURED"):
         child, _, _ = self.pair("respr", dataset)
