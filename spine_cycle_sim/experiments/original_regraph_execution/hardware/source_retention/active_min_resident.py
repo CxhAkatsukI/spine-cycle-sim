@@ -114,6 +114,44 @@ def compare(case, arms, comparator, output):
     return pair, identity(result)
 
 
+def replay_controls(args, gate, *, warm_cc=False, stage_receipts=None):
+    decisions, pins = {}, []
+    controls = getattr(args, "additional_r", ())
+    warm_controls = getattr(args, "cc_warm_r_controls", None)
+    sssp_controls = getattr(args, "sssp_r_controls", None)
+    diagnostic = getattr(args, "au_r_diagnostic_sha256", None)
+    if warm_controls is not None or sssp_controls is not None:
+        if (controls or (warm_controls is not None and not warm_cc)
+                or (sssp_controls is not None and (args.algorithm != "weighted_sssp" or warm_controls is not None))):
+            raise ValueError("additional R controls must match the declared SSSP or warm CC protocol")
+        odd_receipt, odd_inputs, au_receipt, au_inputs = warm_controls or sssp_controls
+        fixture, queue, odd_pin = active_min_admission.pin_odd_queue(odd_receipt, odd_inputs, args.algorithm)
+        pins += [fixture, queue]
+        controls = (
+            ("amazon_odd", odd_pin, odd_inputs, active_min_admission.AMAZON_GEOMETRY),
+            ("au_slice", identity(au_receipt), au_inputs, active_min_admission.AU_SLICE_GEOMETRY),
+        )
+    if diagnostic is not None and not (warm_controls or sssp_controls):
+        raise ValueError("AU R exception requires both pinned cross-topology controls")
+    for label, receipt, inputs, geometry in controls:
+        if stage_receipts is not None and stage_receipts.get(label) != receipt:
+            raise ValueError(f"{label} R receipt differs from the exact producer")
+        options = {"au_diagnostic_sha256": diagnostic} if label == "au_slice" and diagnostic else {}
+        decision = active_min_admission.replay_r(Path(receipt["path"]), args.algorithm, inputs,
+                                                 gate["host"], gate["image"], geometry=geometry, **options)
+        if (decision["report"] != receipt or
+                decision["candidate_clock"]["driver_reported_mhz"] != gate["resident_mhz"]):
+            raise ValueError(f"additional {label} R gate used different evidence or clocks")
+        decisions[label] = decision
+        pins.append(receipt)
+    if warm_cc:
+        if warm_controls is None or set(decisions) != {"amazon_odd", "au_slice"}:
+            raise ValueError("the warm CC pair needs both the odd Amazon and AU topology R gates")
+        if len({row["report"]["sha256"] for row in (gate["r"], *decisions.values())}) != 3:
+            raise ValueError("the warm CC pair needs three distinct R stage receipts")
+    return decisions, pins
+
+
 def run(args):
     if not 0 <= args.wait_seconds <= 21600:
         raise ValueError("board and memory admission wait is limited to six hours")
@@ -176,29 +214,8 @@ def run(args):
             command_pair = commands(case, gate, args.output)
         pins += [gate["host"], gate["image"], gate["g"]["report"], gate["g"]["reference"], gate["r"]["report"],
                  identity(__file__), identity(active_min_admission.__file__)]
-        additional_r = {}
-        controls = getattr(args, "additional_r", ())
-        warm_controls = getattr(args, "cc_warm_r_controls", None)
-        if warm_controls is not None:
-            if not warm_cc or controls:
-                raise ValueError("warm CC R controls require a warm CC host and no other controls")
-            odd_receipt, odd_inputs, au_receipt, au_inputs = warm_controls
-            fixture, queue, odd_pin = active_min_admission.pin_odd_queue(odd_receipt, odd_inputs)
-            pins += [fixture, queue]
-            controls = (
-                ("amazon_odd", odd_pin, odd_inputs, active_min_admission.AMAZON_GEOMETRY),
-                ("au_slice", identity(au_receipt), au_inputs, active_min_admission.AU_SLICE_GEOMETRY),
-            )
-        for label, receipt, inputs, geometry in controls:
-            if stage_receipts is not None and stage_receipts.get(label) != receipt:
-                raise ValueError(f"{label} R receipt differs from the exact producer")
-            decision = active_min_admission.replay_r(Path(receipt["path"]), args.algorithm, inputs,
-                                                     gate["host"], gate["image"], geometry=geometry)
-            if (decision["report"] != receipt or
-                    decision["candidate_clock"]["driver_reported_mhz"] != gate["resident_mhz"]):
-                raise ValueError(f"additional {label} R gate used different evidence or clocks")
-            additional_r[label] = decision
-            pins.append(receipt)
+        additional_r, control_pins = replay_controls(args, gate, warm_cc=warm_cc, stage_receipts=stage_receipts)
+        pins += control_pins
         if stage_receipts is not None:
             expected_stages = {"g", "r", *additional_r}
             if retained is not None:
@@ -207,11 +224,6 @@ def run(args):
                 raise ValueError("queued producer receipts do not match the replayed stages")
         if additional_r:
             report["additional_r_gates"] = additional_r
-        if warm_cc:
-            if warm_controls is None or set(additional_r) != {"amazon_odd", "au_slice"}:
-                raise ValueError("the warm CC pair needs both the odd Amazon and AU topology R gates")
-            if len({row["report"]["sha256"] for row in (gate["r"], *additional_r.values())}) != 3:
-                raise ValueError("the warm CC pair needs three distinct R stage receipts")
         report.update(stage_gates=gate, case=case, pins=pins)
         budget = case["memory_gib"]
         group = containment.current()
@@ -304,6 +316,10 @@ def parse_arguments(argv=None, *, extend=None):
     warm.add_argument("--cc-warm-layout", type=lambda value: Path(value).resolve())
     parser.add_argument("--cc-warm-r-controls", nargs=4, type=lambda value: Path(value).resolve(),
                         metavar=("ODD_RECEIPT", "ODD_INPUTS", "AU_RECEIPT", "AU_INPUTS"))
+    parser.add_argument("--sssp-r-controls", nargs=4, type=lambda value: Path(value).resolve(),
+                        metavar=("ODD_RECEIPT", "ODD_INPUTS", "AU_RECEIPT", "AU_INPUTS"))
+    parser.add_argument("--au-r-diagnostic-sha256",
+                        help="allow a pinned AU R miss up to 22%% for the resident run only")
     parser.add_argument("--wait-seconds", type=int, default=0)
     if extend is not None:
         extend(parser)

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution import runtime
@@ -110,9 +111,27 @@ def replay_returned_route(route, algorithm, record, evidence_directory):
     if (proof != record["proof"] or parent.get("mode") != ROUTE_MODES[algorithm]
             or checked.get("status") != "ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD"
             or checked.get("topology_profile") != topology_profile
-            or checked.get("candidate") != image or checked.get("pins") != pins
+            or checked.get("candidate") != image
             or checked["timing"]["report"] != timing):
         raise ValueError("returned candidate link, mode or topology admission changed")
+    original_pins = checked["pins"]
+    if original_pins != pins:
+        # Tool source pins depend on the worktree. Artifact pins must still match exactly.
+        suffix = tuple(replacement_return.__package__.split("."))
+
+        def artifacts(rows):
+            return [row for row in rows if Path(row["path"]).parent.parts[-len(suffix):] != suffix]
+
+        if artifacts(original_pins) != artifacts(pins):
+            raise ValueError("returned candidate artifact pins changed")
+        unchanged(original_pins)
+        with TemporaryDirectory(prefix="replay-active-min-") as workspace:
+            replayed_image, replayed_pins = replacement_return.active_min(
+                route, Path(capsule), Path(platform), digest, Path(predecessor),
+                Path(workspace) / "topology", mode=ROUTE_MODES[algorithm])
+            if (replayed_image, replayed_pins) != (image, pins):
+                raise ValueError("returned candidate topology or replay pins changed")
+        pins = list({pin["path"]: pin for pin in [*original_pins, *pins]}.values())
     pins += [image, proof, timing]
     unchanged(pins)
     return image, pins

@@ -247,8 +247,14 @@ def test_warm_au_runner_replays_all_queued_receipts(tmp_path, monkeypatch, missi
 def test_odd_admission_uses_the_producers_identity_schema(tmp_path, monkeypatch):
     inputs = tmp_path / "inputs"
     inputs.mkdir()
+    fixture_inputs = []
+    for name in admission.active_min.INPUTS + admission.active_min.STATE["cc"]:
+        path = inputs / f"{name}.u32le"
+        path.write_bytes(b"\0" * 4)
+        fixture_inputs.append(admission.artifact.identity(path))
     fixture = tmp_path / "manifest.json"
-    save(fixture, dict(frontier="odd-vertices", status="ACTIVE_MIN_COMPONENT_INPUTS_OFFLINE_PASS", input_pins=[]))
+    save(fixture, dict(frontier="odd-vertices", status="ACTIVE_MIN_COMPONENT_INPUTS_OFFLINE_PASS",
+                       input_pins=fixture_inputs))
     monkeypatch.setattr(admission, "ODD_FIXTURE_SHA256", identity(fixture)["sha256"])
     pair = tmp_path / "pair"
     pair.mkdir()
@@ -256,13 +262,18 @@ def test_odd_admission_uses_the_producers_identity_schema(tmp_path, monkeypatch)
     save(receipt, {})
     queue = tmp_path / "queue.json"
     producer = dict(status="PAIRED_ACTIVE_MIN_R_GATE_PASS", retention_gate_pass=True,
-                    pins=[admission.artifact.identity(fixture)], result=admission.artifact.identity(receipt))
+                    pins=fixture_inputs.copy(), result=admission.artifact.identity(receipt))
     save(queue, producer)
-    assert admission.pin_odd_queue(receipt, inputs) == [identity(path) for path in (fixture, queue, receipt)]
+    assert admission.pin_odd_queue(receipt, inputs, "cc") == [identity(path) for path in (fixture, queue, receipt)]
+    producer["pins"].pop()
+    save(queue, producer)
+    with pytest.raises(ValueError, match="did not admit this hardware receipt"):
+        admission.pin_odd_queue(receipt, inputs, "cc")
+    producer["pins"] = fixture_inputs
     producer["result"]["path"] = str(tmp_path / "other.json")
     save(queue, producer)
     with pytest.raises(ValueError, match="did not admit this hardware receipt"):
-        admission.pin_odd_queue(receipt, inputs)
+        admission.pin_odd_queue(receipt, inputs, "cc")
 
 
 @pytest.mark.parametrize("topology_pass", [True, False])

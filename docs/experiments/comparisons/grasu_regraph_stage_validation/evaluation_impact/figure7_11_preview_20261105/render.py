@@ -189,6 +189,44 @@ def fig7(output):
     save(figure, output, "fig7_fullpr_legacy")
 
 
+def fig7_nov05(output):
+    rows = read_csv(ROOT / "fig7_nov05_diagnostic.csv")
+    by_case = {(row["algorithm"], row["dataset"]): row for row in rows}
+    keys = ("weighted_sssp", "cc", "respr")
+    if len(rows) != 24 or set(by_case) != {(key, dataset) for key in keys for dataset in DATASETS}:
+        raise ValueError("expected a unique status for each diagnostic case")
+
+    figure, axis = plt.subplots(figsize=(3.55, 1.85), layout="constrained")
+    width = 0.23
+    floor = 0.1
+    handles, measured = [], []
+    for i, (key, name, series) in enumerate(zip(keys, ALGORITHMS.values(), SERIES, strict=True)):
+        x, y = [], []
+        for j, dataset in enumerate(DATASETS):
+            row = by_case[key, dataset]
+            position = j + (i - 1) * width
+            if row["status"] == "MEASURED_RESIDENT_PAIR":
+                x.append(position)
+                y.append(float(row["gr_over_spine"]))
+            elif row["status"] in {"FAILED_RETAINED", "RECEIPT_REJECTED"}:
+                axis.plot(position, 0.065, marker="x", color=series[0], linestyle="none",
+                          markersize=2.6, markeredgewidth=0.7, transform=axis.get_xaxis_transform())
+        measured.extend(y)
+        handles.append(bars(axis, x, y, series, width=width, bottom=floor, label=name))
+    if not measured or min(measured) <= floor:
+        raise ValueError("unexpected range of diagnostic speedups")
+    upper = max(12, max(measured) * 1.2)
+    log_axis(axis, floor, upper, tuple(tick for tick in (0.1, 1, 10, 100, 1000) if tick < upper))
+    axis.set_xticks(range(len(DATASETS)), DATASETS)
+    axis.set_xlim(-0.5, len(DATASETS) - 0.5)
+    axis.set_ylabel("Speedup (G+R / Spine)")
+    axis.set_xlabel("x: failed or rejected; blank: no result", fontsize=5.5)
+    axis.set_title(r"Nov. 5 FPGA diagnostic; AU R outside 15\%", fontsize=5.8, pad=4)
+    legend(axis, handles, ncol=3)
+    style_axis(axis, parity=True)
+    save(figure, output, "fig7_nov05_fpga_diagnostic")
+
+
 def fig8(output):
     cross = read_csv(HANDOFF / "fig8_update_cross_dataset.csv")
     sweep = read_csv(HANDOFF / "fig8_update_batch_sensitivity.csv")
@@ -308,7 +346,7 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     reference = prior_renderer()
     reference.configure_matplotlib()
-    for draw in (source_comparison, fig7, fig8, fig9, fig11):
+    for draw in (source_comparison, fig7, fig7_nov05, fig8, fig9, fig11):
         draw(output)
     fig10(output, reference)
 

@@ -17,6 +17,9 @@ R_BDF = "0000:82:00.1"
 AMAZON_GEOMETRY = (735324, 5158388, 48)
 AU_SLICE_GEOMETRY = (156289, 903774, 12)
 ODD_FIXTURE_SHA256 = "81e9430421d52acf665a507f808a7f467f745818f491aa7dc1fc605ae95e9add"
+R_PASS = "PAIRED_ACTIVE_MIN_R_GATE_PASS"
+R_SLOW = "PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED"
+AU_DIAGNOSTIC_MAX_PERCENT = 122
 
 
 def checked(pin):
@@ -34,28 +37,38 @@ def read_report(path, status, algorithm):
     return report, pin
 
 
-def pin_odd_queue(receipt, inputs):
+def pin_odd_queue(receipt, inputs, algorithm):
     fixture_path = inputs.parent / "manifest.json"
     queue_path = receipt.parent.parent / "queue.json"
     pins = [identity(path) for path in (fixture_path, queue_path, receipt)]
-    fixture = active_min_follow.fixture_pin(
-        argparse.Namespace(odd_fixture=(fixture_path, ODD_FIXTURE_SHA256)), [])
+    fixture_inputs = [artifact.identity(inputs / f"{name}.u32le")
+                      for name in active_min.INPUTS + active_min.STATE[algorithm]]
+    active_min_follow.fixture_pin(
+        argparse.Namespace(odd_fixture=(fixture_path, ODD_FIXTURE_SHA256)), fixture_inputs)
     queue = json.loads(queue_path.read_text())
     if ((queue.get("status"), queue.get("result"), queue.get("retention_gate_pass"))
             != ("PAIRED_ACTIVE_MIN_R_GATE_PASS", artifact.identity(receipt), True)
-            or fixture not in queue["pins"]):
+            or any(pin not in queue["pins"] for pin in fixture_inputs)):
         raise ValueError("odd-frontier R queue did not admit this hardware receipt")
     unchanged(pins)
     return pins
 
 
-def replay_r(path, algorithm, inputs, host, image, *, geometry=AMAZON_GEOMETRY):
-    report, pin = read_report(path, "PAIRED_ACTIVE_MIN_R_GATE_PASS", algorithm)
+def replay_r(path, algorithm, inputs, host, image, *, geometry=AMAZON_GEOMETRY, au_diagnostic_sha256=None):
+    if au_diagnostic_sha256 is None:
+        report, pin = read_report(path, R_PASS, algorithm)
+    else:
+        if geometry != AU_SLICE_GEOMETRY or algorithm not in ("cc", "weighted_sssp"):
+            raise ValueError("the performance exception is only for the matched AU R control")
+        report, pin = read_report(path, R_SLOW, algorithm)
+        if pin["sha256"] != au_diagnostic_sha256:
+            raise ValueError("AU performance exception requires the exact retained receipt digest")
     retained = report.get("retained_reference_pair")
     attempts = ["candidate"] if retained else ["reference", "candidate"]
     if (report["bdf"] != R_BDF or report["boundary"] != active_min.BOUNDARY
             or report["requested_runs_per_arm"] != 1 or report["attempts"] != attempts
-            or report["convergence_measured"] is not False or report["retention_gate_pass"] is not True
+            or report["convergence_measured"] is not False
+            or report["retention_gate_pass"] is not (au_diagnostic_sha256 is None)
             or set(report["arms"]) != {"reference", "candidate"}):
         raise ValueError("expected one same-card R superstep per arm, not a convergence measurement")
     directory = path.parent
@@ -82,7 +95,9 @@ def replay_r(path, algorithm, inputs, host, image, *, geometry=AMAZON_GEOMETRY):
     if (current_clock["binary"] != image or ref_clock["bdf"] != R_BDF or current_clock["bdf"] != R_BDF):
         raise ValueError("R clock evidence does not bind the repaired image on the leased card")
     if retained:
-        receipt = checked(retained)
+        receipt = Path(retained["path"])
+        if artifact.identity(receipt) != retained:
+            raise ValueError("retained public R receipt changed: " + str(receipt))
         reference_host = Path(ref["execution"]["command"][-7])
         args = argparse.Namespace(reference_host=reference_host, candidate_host=Path(host["path"]),
                                   algorithm=algorithm, inputs=inputs, bdf=R_BDF)
@@ -97,9 +112,16 @@ def replay_r(path, algorithm, inputs, host, image, *, geometry=AMAZON_GEOMETRY):
                                           offline, expected, inputs)
     decision = r_candidate.compare(observed_ref, observed_current, ref_clock, current_clock)
     if (ref["analysis"] != observed_ref or current["analysis"] != observed_current
-            or decision != report["comparison"] or not decision["retention_gate_pass"]):
-        raise ValueError("R raw event/oracle replay does not pass the 15 percent gate")
-    return {"report": pin, "comparison": decision, "candidate_clock": current_clock}
+            or decision != report["comparison"] or not decision["equal_driver_reported_clocks"]
+            or decision["retention_gate_pass"] is not (au_diagnostic_sha256 is None)):
+        raise ValueError("R raw event/oracle replay does not establish matched clocks and the recorded 15 percent decision")
+    result = {"report": pin, "comparison": decision, "candidate_clock": current_clock}
+    if au_diagnostic_sha256 is not None:
+        if 100 * observed_current["event_span_ns"] > AU_DIAGNOSTIC_MAX_PERCENT * observed_ref["event_span_ns"]:
+            raise ValueError("AU R slowdown exceeds the 22 percent diagnostic limit")
+        result["resident_only_exception"] = {"max_slowdown_percent": AU_DIAGNOSTIC_MAX_PERCENT - 100,
+                                             "receipt_sha256": au_diagnostic_sha256}
+    return result
 
 
 def replay_g(path, reference_path, algorithm, host, image, *, extra_pins=()):

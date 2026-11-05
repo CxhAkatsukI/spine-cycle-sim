@@ -89,6 +89,30 @@ class Figure7ReceiptsTest(unittest.TestCase):
         self.assertTrue(all("gr_over_spine" not in row for row in result["rows"]))
         self.assertIn("timeout", {row.get("error") for row in result["rows"]})
 
+    def test_diagnostic_keeps_losses_and_missing_rows_separate_from_parity(self):
+        paths = []
+        for algorithm in ("weighted_sssp", "cc"):
+            path = self.root / f"diagnostic-{algorithm}.json"
+            cases = {dataset: {"status": "NOT_REQUESTED"} for dataset in figure.DATASETS}
+            if algorithm == "cc":
+                cases["AU"] = {"status": figure.MEASURED, "result": self.receipt("cc-au-child", {})}
+                cases["SU"] = {"status": "FAILED_RETAINED", "error": "row overflow"}
+            save(path, dict(algorithm=algorithm, r_retention_all_controls_pass=False, cases=cases,
+                            baseline={"image": "exact"}, additional_r_gates={
+                                "amazon_odd": "passing", "au_slice": "diagnostic miss"}))
+            paths.append(path)
+        with patch.object(figure, "measured", return_value={"winner": "G+R", "gr_over_spine": 0.3}) as check:
+            result = figure.export_diagnostic(paths)
+        self.assertEqual(len(result["rows"]), 24)
+        by_case = {(row["algorithm"], row["dataset"]): row for row in result["rows"]}
+        loss = by_case["cc", "AU"]
+        self.assertEqual((loss["status"], loss["winner"], loss["gr_over_spine"]), (figure.MEASURED, "G+R", 0.3))
+        self.assertEqual(loss["r_validation_scope"], "amazon_pass_au_outside_15_percent")
+        self.assertEqual(check.call_args.kwargs, {"topology_miss": "diagnostic miss"})
+        self.assertEqual(by_case["cc", "SU"]["error"], "row overflow")
+        self.assertNotIn("gr_over_spine", by_case["cc", "SU"])
+        self.assertEqual(by_case["respr", "AU"]["status"], "NOT_RECORDED")
+
     def test_terminal_parent_blocks_unmeasured_rows_but_not_attempted_rows(self):
         save(self.paths["respr_screen"], dict(status="NOT_ADMITTED", error="R above 15%", cases=[
             {"status": "PREDECLARED", "case": {"dataset": dataset}} for dataset in ("R19", "Flickr")

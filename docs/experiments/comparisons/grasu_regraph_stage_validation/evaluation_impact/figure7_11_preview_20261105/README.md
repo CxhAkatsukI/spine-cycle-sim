@@ -9,6 +9,7 @@ evidence labels when reusing them.
 | G and R vs. public source | [PDF](figures/gr_source_comparison.pdf) / [PNG](figures/gr_source_comparison.png) | [Matched stage times](gr_source_comparison.csv), one U55C sample per arm; dashed line is the public-source control |
 | 7 | [PDF](figures/fig7_oct26_fpga.pdf) / [PNG](figures/fig7_oct26_fpga.png) | [Oct. 26 board data](../figure7_11_handoff_20261103/data/fig7_fpga_speedup.csv), 24 resident update-to-readback comparisons; no projections/timeouts. All eight ResPR rows have zero nonempty propagation rounds |
 | 7, newer SSSP diagnostic | [PDF](figures/fig7_nov04_sssp_diagnostic.pdf) / [PNG](figures/fig7_nov04_sssp_diagnostic.png) | [Nov. 4 board data](../hardware_validation/r_retention_repair_20261103/sssp-resident-followup/README.md), six pairs; n/m means no measurement, not timeout. G and the two Amazon R screens passed, but AU R exceeded 15% on this specific image |
+| 7, Nov. 5 FPGA diagnostic | [PDF](figures/fig7_nov05_fpga_diagnostic.pdf) / [PNG](figures/fig7_nov05_fpga_diagnostic.png) | [All 24 case statuses](fig7_nov05_diagnostic.csv) and [receipt index](fig7_nov05_diagnostic.json). One matched board sample per arm where admitted; crosses mark failed cases, blank slots have no admitted measurement. AU R is outside 15% |
 | 7, legacy FullPR | [PDF](figures/fig7_fullpr_legacy.pdf) / [PNG](figures/fig7_fullpr_legacy.png) | [Three compact FPGA cases](../figure7_11_handoff_20261103/data/fig7_fullpr_legacy_not_refreshed.csv), older hardware and measurement contract; bars are medians, whiskers are observed ranges |
 | 8 | [PDF](figures/fig8_one_batch_model.pdf) / [PNG](figures/fig8_one_batch_model.png) | [Setup-inclusive model](../figure7_11_handoff_20261103/README.md#figure-8-setup-inclusive-update-throughput): measured host preparation plus modeled device and transfer terms. Update only, one batch, older G path |
 | 8, native diagnostic | [PDF](figures/fig8_one_batch_fpga_diagnostic.pdf) / [PNG](figures/fig8_one_batch_fpga_diagnostic.png) | [Earlier native setup checkpoint](../hardware_validation/r_retention_repair_20261103/paired-board-checkpoint/figure8.csv) (bars) and [direct-metadata host replay](fig8_direct_metadata.csv) (dots), one batch, four G metadata replicas. Orange marks earlier losses; Cap. means the G allocation did not fit |
@@ -47,6 +48,7 @@ cases are relevant to interpretation and must not be omitted:
 
 | Scope | Outcome |
 | --- | --- |
+| Nov. 5 resident CC FPGA | On AU, G+R **5.450 ms** vs. Spine **17.681 ms** (G+R wins **3.24x**). Spine admission and relaxation each took about 8 ms; packing through batch residency took about 0.165 ms. The other workloads exceed the old CC image's 4,096-edge per-source row limit (R19 reaches 62,361). The enlarged 65,536-entry workspace passed C-model tests but was not yet board-verified. |
 | Legacy compact FullPR FPGA | G+R wins on **AM 48.77x, WG 22.15x, FL 23.46x**, using the inverse median speedup. No current large-graph FullPR sweep |
 | Fig. 8 native setup checkpoint | G wins on **AU/64 2.35x, AU/512 2.06x, AU/4096 2.53x, SU/512 1.69x**. Spine wins WK/512 1.03x and PK/512 1.99x. SO/512 has no four-copy pair. These are not ten-batch results |
 | Fig. 8 intermediate host revisions | The early direct-directory AU/64 check still favored G by **1.61x**. The reused-directory host still lost AU/4096 by **1.10x**. The first card-0 AU/512 check with repaired G favored G by **1.054x**, then the [two-bank Spine replay](../hardware_validation/r_retention_repair_20261103/FIGURE_IMPACT.md#two-bank-spine-host-replay) flipped it to **1.21x** for Spine |
@@ -62,6 +64,16 @@ against a baseline. Fig. 10 abbreviations: Syn = synthetic, FL = compact
 Flickr, L1/L3/L5 = carry target levels 1/3/5. Zero-net uses the fallback
 path on a delete/reinsert sequence, not a no-op optimization. The stage
 shares are simulated attribution, not FPGA counters.
+
+The Nov. 5 diagnostic tests the replacement images despite the documented
+AU R slowdown. It does not turn that screen into a 15% parity pass. The
+SSSP rows use the resident update through final readback wall-time receipt;
+the CC rows explicitly use host packing after old-state residency through
+final readback. Both include host relaunch where present; do not aggregate
+these two boundaries. The ResPR degree-prefix route and hardware controls
+had not supplied an admitted pair for this snapshot. Figs. 8--11 retain the
+version and evidence labels above; the new Fig. 7 measurements do not
+refresh their input data.
 
 ## Reproduce
 

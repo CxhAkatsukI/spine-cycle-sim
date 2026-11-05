@@ -1,0 +1,1500 @@
+{
+  "status": "DIAGNOSTIC_SNAPSHOT_NOT_FINAL_EVALUATION",
+  "inputs": {
+    "weighted_sssp": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/figure7-nov05-snapshot.WtJwuA4C/sssp.json",
+      "sha256": "d94098c6e49641db14ae6e042a2d0b90b4ea7cc83be8655973cfc3e94699b2ec",
+      "bytes": 40932
+    },
+    "cc": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/figure7-nov05-snapshot.WtJwuA4C/cc.json",
+      "sha256": "e45d61492b58edbbb8567e1e33fb4920e49fedf2b1136c44563c2d22e6973a88",
+      "bytes": 86723
+    }
+  },
+  "rows": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "AU",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "spine_ms": 4.70148,
+      "gr_ms": 8.76072,
+      "gr_over_spine": 1.8633962071517902,
+      "winner": "Spine",
+      "gr_rounds": 2,
+      "spine_rounds": 2,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:82:00.1",
+      "workload": {
+        "vertices": 515281,
+        "edges": 390847,
+        "updates": 8,
+        "source": 11,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_weighted_sssp_insert_u8.graph",
+          "sha256": "c59f311efc83dc1c748b7e1121cca055c3b86aaca4e04c5d1de57e694022e734",
+          "bytes": 5946590
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3973169256257088,
+        "r_ratios": {
+          "amazon": 0.9445877945899956,
+          "amazon_odd": 0.9381899423954899,
+          "au_slice": 1.2143425861677533
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/pair.json",
+        "sha256": "a18b37c927d445bfe4d86b6ed3d4ce6cd9bee9f8ec106d293c9874fea80ec455",
+        "bytes": 396
+      },
+      "stage_receipts": {
+        "g_reference": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+          "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+          "bytes": 6882
+        },
+        "g": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-sssp-physopt-sealed/results.json",
+          "sha256": "3bd1cd2903753216c973fa37f8186a8e336aa8f593aab574afbc182894316062",
+          "bytes": 96220
+        },
+        "r_amazon": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-sealed/pair/results.json",
+          "sha256": "9bf0036d8da906fd74090545e744db2715fdbf0df5f734a64cf9e726381eae21",
+          "bytes": 173737
+        },
+        "r_amazon_odd": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-odd-sealed/pair/results.json",
+          "sha256": "596d9766f5037ff4ce1ca231eb11023afa49f81bb693eed6e193d2eb02086283",
+          "bytes": 173798
+        },
+        "r_au_slice": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-burst-au903k-physopt-sealed/pair/results.json",
+          "sha256": "094fb5442b379cf4c999d33d6c0884092430c4ace4e30b7a25cfbce41f67adaa",
+          "bytes": 173954
+        }
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+          "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+          "bytes": 77357548
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/spine.clock.json",
+            "sha256": "3be331a1cd857f56743c3d5d8937944715133b1d4800017de5f86e2705f6f9b2",
+            "bytes": 814
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/gr.clock.json",
+            "sha256": "54de039f1c6c8faabc5ba53eed98238b5a6f5ff6225e58858f3aa86fd9253194",
+            "bytes": 829
+          },
+          "expected": {
+            "uuid": "739f208f-04ff-1492-c9e2-801c834060cb",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+              "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+              "bytes": 77357548
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/gr.xclbin-info.txt",
+              "sha256": "7a64114671e0e26bbab2326847173830738344a725a939d361567b30de324a7d",
+              "bytes": 112328
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/spine.stdout.txt",
+            "sha256": "98fcd01b104a3a2395a051396bfc98c41fee4eeea474e8a79843614c74b36f6a",
+            "bytes": 3458
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/gr.stdout.txt",
+            "sha256": "9caad20e894428aaf59e6a69954a9bc740af5ca1d25fb4806a782b81c6953eb5",
+            "bytes": 6179
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-au-diagnostic-v4/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "SU",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "spine_ms": 4.59264,
+      "gr_ms": 11.104336,
+      "gr_over_spine": 2.4178546544035675,
+      "winner": "Spine",
+      "gr_rounds": 2,
+      "spine_rounds": 2,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:82:00.1",
+      "workload": {
+        "vertices": 567316,
+        "edges": 616118,
+        "updates": 8,
+        "source": 23,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_weighted_sssp_insert_u8.graph",
+          "sha256": "9e137a0a4f44163c04d18219577093b93b4426d182cf017ecce7aa1e2560b6a2",
+          "bytes": 9332631
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3973169256257088,
+        "r_ratios": {
+          "amazon": 0.9445877945899956,
+          "amazon_odd": 0.9381899423954899,
+          "au_slice": 1.2143425861677533
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/pair.json",
+        "sha256": "1a35dde7dc2ea65180853438d724e78b18db15dd568932cb64fdb1cb6b78373a",
+        "bytes": 398
+      },
+      "stage_receipts": {
+        "g_reference": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+          "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+          "bytes": 6882
+        },
+        "g": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-sssp-physopt-sealed/results.json",
+          "sha256": "3bd1cd2903753216c973fa37f8186a8e336aa8f593aab574afbc182894316062",
+          "bytes": 96220
+        },
+        "r_amazon": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-sealed/pair/results.json",
+          "sha256": "9bf0036d8da906fd74090545e744db2715fdbf0df5f734a64cf9e726381eae21",
+          "bytes": 173737
+        },
+        "r_amazon_odd": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-odd-sealed/pair/results.json",
+          "sha256": "596d9766f5037ff4ce1ca231eb11023afa49f81bb693eed6e193d2eb02086283",
+          "bytes": 173798
+        },
+        "r_au_slice": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-burst-au903k-physopt-sealed/pair/results.json",
+          "sha256": "094fb5442b379cf4c999d33d6c0884092430c4ace4e30b7a25cfbce41f67adaa",
+          "bytes": 173954
+        }
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+          "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+          "bytes": 77357548
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/spine.clock.json",
+            "sha256": "22b21e82cf762a54febf1d09e3f2c9bf211542e3c328a85c81deb4f9b77e1b5b",
+            "bytes": 821
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/gr.clock.json",
+            "sha256": "c8433bbef45f1acb7c9e836cc206c669624524825650feaa1dfe2392221bd35d",
+            "bytes": 836
+          },
+          "expected": {
+            "uuid": "739f208f-04ff-1492-c9e2-801c834060cb",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+              "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+              "bytes": 77357548
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/gr.xclbin-info.txt",
+              "sha256": "7a64114671e0e26bbab2326847173830738344a725a939d361567b30de324a7d",
+              "bytes": 112328
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/spine.stdout.txt",
+            "sha256": "5c0759d4801cb8fc1197686638bb4456d495aa55f0771b2022a54c4176377d10",
+            "bytes": 3459
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/gr.stdout.txt",
+            "sha256": "50811ecdee413a37b804e95908fad928521426b9752612a189386609b76b6ade",
+            "bytes": 8463
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/su/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "WK",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "spine_ms": 3.90823,
+      "gr_ms": 15.468499,
+      "gr_over_spine": 3.9579295486703696,
+      "winner": "Spine",
+      "gr_rounds": 1,
+      "spine_rounds": 1,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:82:00.1",
+      "workload": {
+        "vertices": 1140149,
+        "edges": 1142352,
+        "updates": 8,
+        "source": 0,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_weighted_sssp_insert_u8.graph",
+          "sha256": "e23457cd3dcb6c15c0a7c4379072ed12051f0230c3158e4e812807e1bc5bdcb7",
+          "bytes": 15546755
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3973169256257088,
+        "r_ratios": {
+          "amazon": 0.9445877945899956,
+          "amazon_odd": 0.9381899423954899,
+          "au_slice": 1.2143425861677533
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/pair.json",
+        "sha256": "331a5a592e326b166cb720f29656e16fb11674eba5640cb85899cb4d38949df6",
+        "bytes": 399
+      },
+      "stage_receipts": {
+        "g_reference": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+          "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+          "bytes": 6882
+        },
+        "g": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-sssp-physopt-sealed/results.json",
+          "sha256": "3bd1cd2903753216c973fa37f8186a8e336aa8f593aab574afbc182894316062",
+          "bytes": 96220
+        },
+        "r_amazon": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-sealed/pair/results.json",
+          "sha256": "9bf0036d8da906fd74090545e744db2715fdbf0df5f734a64cf9e726381eae21",
+          "bytes": 173737
+        },
+        "r_amazon_odd": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-odd-sealed/pair/results.json",
+          "sha256": "596d9766f5037ff4ce1ca231eb11023afa49f81bb693eed6e193d2eb02086283",
+          "bytes": 173798
+        },
+        "r_au_slice": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-burst-au903k-physopt-sealed/pair/results.json",
+          "sha256": "094fb5442b379cf4c999d33d6c0884092430c4ace4e30b7a25cfbce41f67adaa",
+          "bytes": 173954
+        }
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+          "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+          "bytes": 77357548
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/spine.clock.json",
+            "sha256": "cd14183f9958634c8252d8b32dd32061e6e317d42aaacbf5e4dabb4f959607a8",
+            "bytes": 821
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/gr.clock.json",
+            "sha256": "8939faa34b4cb86b314385b9af9ac110b158025b90c9385b6410df76e37f6306",
+            "bytes": 836
+          },
+          "expected": {
+            "uuid": "739f208f-04ff-1492-c9e2-801c834060cb",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+              "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+              "bytes": 77357548
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/gr.xclbin-info.txt",
+              "sha256": "7a64114671e0e26bbab2326847173830738344a725a939d361567b30de324a7d",
+              "bytes": 112328
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/spine.stdout.txt",
+            "sha256": "bf22f88c06a2d158febbc156f6f9c513f1978fbc58e6b823f39bbeeec5dc3663",
+            "bytes": 2494
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/gr.stdout.txt",
+            "sha256": "54392e73cce7107b4e979f301e46618d8337e7b7b9ae3885353a5f4a10152d85",
+            "bytes": 6123
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/wk/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "SO",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "spine_ms": 15.8455,
+      "gr_ms": 220.681903,
+      "gr_over_spine": 13.927102521220537,
+      "winner": "Spine",
+      "gr_rounds": 1,
+      "spine_rounds": 1,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:82:00.1",
+      "workload": {
+        "vertices": 6024271,
+        "edges": 23724166,
+        "updates": 8,
+        "source": 32,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/so_weighted_sssp_insert_u8.graph",
+          "sha256": "75b6938f70ac68286dc2a144d382f78aa489bdcdf3ee70ef1a39f943322a0a91",
+          "bytes": 411306939
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3973169256257088,
+        "r_ratios": {
+          "amazon": 0.9445877945899956,
+          "amazon_odd": 0.9381899423954899,
+          "au_slice": 1.2143425861677533
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/pair.json",
+        "sha256": "91eaa3dfaa58d4722e0c6ba489132e03aed9d0e516b33c6869686ab56aff1c0e",
+        "bytes": 400
+      },
+      "stage_receipts": {
+        "g_reference": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+          "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+          "bytes": 6882
+        },
+        "g": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-sssp-physopt-sealed/results.json",
+          "sha256": "3bd1cd2903753216c973fa37f8186a8e336aa8f593aab574afbc182894316062",
+          "bytes": 96220
+        },
+        "r_amazon": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-sealed/pair/results.json",
+          "sha256": "9bf0036d8da906fd74090545e744db2715fdbf0df5f734a64cf9e726381eae21",
+          "bytes": 173737
+        },
+        "r_amazon_odd": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-odd-sealed/pair/results.json",
+          "sha256": "596d9766f5037ff4ce1ca231eb11023afa49f81bb693eed6e193d2eb02086283",
+          "bytes": 173798
+        },
+        "r_au_slice": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-burst-au903k-physopt-sealed/pair/results.json",
+          "sha256": "094fb5442b379cf4c999d33d6c0884092430c4ace4e30b7a25cfbce41f67adaa",
+          "bytes": 173954
+        }
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+          "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+          "bytes": 77357548
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/spine.clock.json",
+            "sha256": "82e0479be91cd108f32e0b516fdfaaa8dd2f9f745154889fcfe302a430df9f50",
+            "bytes": 821
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/gr.clock.json",
+            "sha256": "883aa250bc128937e57e5241596f2333ed68bb916b78805941b61a9ee8acd0b4",
+            "bytes": 836
+          },
+          "expected": {
+            "uuid": "739f208f-04ff-1492-c9e2-801c834060cb",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+              "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+              "bytes": 77357548
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/gr.xclbin-info.txt",
+              "sha256": "7a64114671e0e26bbab2326847173830738344a725a939d361567b30de324a7d",
+              "bytes": 112328
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/spine.stdout.txt",
+            "sha256": "3d02b463c58c8ada2bb116a57712694bc22373d8760eb6a18e3e12ad93e3b1f8",
+            "bytes": 2493
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/gr.stdout.txt",
+            "sha256": "e6e91ac10f3212a7fefd827d940546e14cc145b4479907c00037ca073038976f",
+            "bytes": 17609
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/so/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "PK",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "spine_ms": 8.71138,
+      "gr_ms": 104.296908,
+      "gr_over_spine": 11.972489777739003,
+      "winner": "Spine",
+      "gr_rounds": 2,
+      "spine_rounds": 2,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:82:00.1",
+      "workload": {
+        "vertices": 1632803,
+        "edges": 44603928,
+        "updates": 8,
+        "source": 64,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/pk_weighted_sssp_insert_u8.graph",
+          "sha256": "efddd1bebd16d8fd64b29f17783d2615d8a2513f3f9c541a1a1d353cb81bb2dd",
+          "bytes": 745656911
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3973169256257088,
+        "r_ratios": {
+          "amazon": 0.9445877945899956,
+          "amazon_odd": 0.9381899423954899,
+          "au_slice": 1.2143425861677533
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/pair.json",
+        "sha256": "9b93b8cc0f433574d1b13ff7f2efb78a022ad6be80343e8e5fe2620a430130ad",
+        "bytes": 400
+      },
+      "stage_receipts": {
+        "g_reference": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+          "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+          "bytes": 6882
+        },
+        "g": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-sssp-physopt-sealed/results.json",
+          "sha256": "3bd1cd2903753216c973fa37f8186a8e336aa8f593aab574afbc182894316062",
+          "bytes": 96220
+        },
+        "r_amazon": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-sealed/pair/results.json",
+          "sha256": "9bf0036d8da906fd74090545e744db2715fdbf0df5f734a64cf9e726381eae21",
+          "bytes": 173737
+        },
+        "r_amazon_odd": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-odd-sealed/pair/results.json",
+          "sha256": "596d9766f5037ff4ce1ca231eb11023afa49f81bb693eed6e193d2eb02086283",
+          "bytes": 173798
+        },
+        "r_au_slice": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-burst-au903k-physopt-sealed/pair/results.json",
+          "sha256": "094fb5442b379cf4c999d33d6c0884092430c4ace4e30b7a25cfbce41f67adaa",
+          "bytes": 173954
+        }
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+          "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+          "bytes": 77357548
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/spine.clock.json",
+            "sha256": "e8bc58f5b0975b9b9e02044c719e117c592e71bf19822cdd669259531a52a583",
+            "bytes": 821
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/gr.clock.json",
+            "sha256": "148c3a4a690f74bb0ec12b4858750f7e673d9a8bf1210cf26838bdfd8be646f5",
+            "bytes": 836
+          },
+          "expected": {
+            "uuid": "739f208f-04ff-1492-c9e2-801c834060cb",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+              "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+              "bytes": 77357548
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/gr.xclbin-info.txt",
+              "sha256": "7a64114671e0e26bbab2326847173830738344a725a939d361567b30de324a7d",
+              "bytes": 112328
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/spine.stdout.txt",
+            "sha256": "98639192cb7ddc4cca56806198c93ce74ac073685065921adae1424a0628b0d8",
+            "bytes": 3462
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/gr.stdout.txt",
+            "sha256": "87e7b164b152eaa8552906128a49c1c3c8c027c576c09fc03da73533e60ae2f6",
+            "bytes": 17679
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/pk/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "LJ",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "spine_ms": 31.13,
+      "gr_ms": 617.177958,
+      "gr_over_spine": 19.825825827176356,
+      "winner": "Spine",
+      "gr_rounds": 3,
+      "spine_rounds": 3,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:82:00.1",
+      "workload": {
+        "vertices": 4847571,
+        "edges": 85702474,
+        "updates": 8,
+        "source": 71,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj_weighted_sssp_insert_u8.graph",
+          "sha256": "ecca323e5bd5117cc7736bdaa2dc24516628fd1d2af505c246f46a7d61793724",
+          "bytes": 1500442132
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3973169256257088,
+        "r_ratios": {
+          "amazon": 0.9445877945899956,
+          "amazon_odd": 0.9381899423954899,
+          "au_slice": 1.2143425861677533
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/pair.json",
+        "sha256": "ddb90b06262d31ba524c8605db692edc1db875779cc21657fd5c3553edd1c8c7",
+        "bytes": 398
+      },
+      "stage_receipts": {
+        "g_reference": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+          "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+          "bytes": 6882
+        },
+        "g": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-sssp-physopt-sealed/results.json",
+          "sha256": "3bd1cd2903753216c973fa37f8186a8e336aa8f593aab574afbc182894316062",
+          "bytes": 96220
+        },
+        "r_amazon": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-sealed/pair/results.json",
+          "sha256": "9bf0036d8da906fd74090545e744db2715fdbf0df5f734a64cf9e726381eae21",
+          "bytes": 173737
+        },
+        "r_amazon_odd": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-odd-sealed/pair/results.json",
+          "sha256": "596d9766f5037ff4ce1ca231eb11023afa49f81bb693eed6e193d2eb02086283",
+          "bytes": 173798
+        },
+        "r_au_slice": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-burst-au903k-physopt-sealed/pair/results.json",
+          "sha256": "094fb5442b379cf4c999d33d6c0884092430c4ace4e30b7a25cfbce41f67adaa",
+          "bytes": 173954
+        }
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+          "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+          "bytes": 77357548
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/spine.clock.json",
+            "sha256": "0a5e06dc02b1d4c8d2ae8628c0a9004b61fffa4a84b906ef2585742eff6e551f",
+            "bytes": 821
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/gr.clock.json",
+            "sha256": "5d7eb9fdc9cf93f4588d7fa0e8833dac956f7c37ec44119144bc992d12f5d000",
+            "bytes": 836
+          },
+          "expected": {
+            "uuid": "739f208f-04ff-1492-c9e2-801c834060cb",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+              "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+              "bytes": 77357548
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/gr.xclbin-info.txt",
+              "sha256": "7a64114671e0e26bbab2326847173830738344a725a939d361567b30de324a7d",
+              "bytes": 112328
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/spine.stdout.txt",
+            "sha256": "4c08cc69494d37bbb5810a6953e082ad0e9ebe250c4df229ff204895f7c558fe",
+            "bytes": 4425
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/gr.stdout.txt",
+            "sha256": "63ecfa796b1f3963e1c9928acba1ee2e40d3af40664566a578fcb3faf47f42a9",
+            "bytes": 20063
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/lj/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "LJ08",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "REQUESTED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent"
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "R19",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "spine_ms": 3.81283,
+      "gr_ms": 31.041801,
+      "gr_over_spine": 8.141407038866143,
+      "winner": "Spine",
+      "gr_rounds": 2,
+      "spine_rounds": 2,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:82:00.1",
+      "workload": {
+        "vertices": 524288,
+        "edges": 15483485,
+        "updates": 8,
+        "source": 113,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_weighted_sssp_insert_u8.graph",
+          "sha256": "e61c9c21746e6f03d34f6904f5af4c17fc615054a3786ccf709ec205946dedc5",
+          "bytes": 254295196
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3973169256257088,
+        "r_ratios": {
+          "amazon": 0.9445877945899956,
+          "amazon_odd": 0.9381899423954899,
+          "au_slice": 1.2143425861677533
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/pair.json",
+        "sha256": "b4822ec5841fca3d341f14181dc9acf0d367ff5b4b906f60e9f6b28924e51d5d",
+        "bytes": 397
+      },
+      "stage_receipts": {
+        "g_reference": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+          "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+          "bytes": 6882
+        },
+        "g": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-sssp-physopt-sealed/results.json",
+          "sha256": "3bd1cd2903753216c973fa37f8186a8e336aa8f593aab574afbc182894316062",
+          "bytes": 96220
+        },
+        "r_amazon": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-sealed/pair/results.json",
+          "sha256": "9bf0036d8da906fd74090545e744db2715fdbf0df5f734a64cf9e726381eae21",
+          "bytes": 173737
+        },
+        "r_amazon_odd": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-amazon-odd-sealed/pair/results.json",
+          "sha256": "596d9766f5037ff4ce1ca231eb11023afa49f81bb693eed6e193d2eb02086283",
+          "bytes": 173798
+        },
+        "r_au_slice": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-burst-au903k-physopt-sealed/pair/results.json",
+          "sha256": "094fb5442b379cf4c999d33d6c0884092430c4ace4e30b7a25cfbce41f67adaa",
+          "bytes": 173954
+        }
+      },
+      "images": {
+        "spine": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+          "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+          "bytes": 77357548
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/spine.clock.json",
+            "sha256": "1be938a8d0cb6e97a3c78f5da40ffb175f5b4360964670ebbff2271263748662",
+            "bytes": 822
+          },
+          "expected": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/spine.xclbin-info.txt",
+              "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+              "bytes": 30574
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/gr.clock.json",
+            "sha256": "67771b3359d01a0648071556415f1ebf25a12eec578709586a609771192413d8",
+            "bytes": 837
+          },
+          "expected": {
+            "uuid": "739f208f-04ff-1492-c9e2-801c834060cb",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-source-bursts-physopt-final/returned/route/candidate.hw.xclbin",
+              "sha256": "32b73f1772ffbaf0e1ee4ab7c63626e1c5a50e0515f78db38462f29bf5a89886",
+              "bytes": 77357548
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/gr.xclbin-info.txt",
+              "sha256": "7a64114671e0e26bbab2326847173830738344a725a939d361567b30de324a7d",
+              "bytes": 112328
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/spine.stdout.txt",
+            "sha256": "b55f14c6906d350cac27f5efa5d03f3c5694c84c74078c2076b7879044d33989",
+            "bytes": 3464
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/gr.stdout.txt",
+            "sha256": "e8cd450e14de4bd4a504f3f94bf7495eb8073fec65603cac5503b2e8728e7223",
+            "bytes": 10763
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-physopt-diagnostic-matrix-v1/r19/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "AU",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "MEASURED_RESIDENT_PAIR",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "spine_ms": 17.680961,
+      "gr_ms": 5.449674,
+      "gr_over_spine": 0.30822272612897,
+      "winner": "G+R",
+      "gr_rounds": 1,
+      "spine_rounds": 1,
+      "respr_propagated_on_both": null,
+      "clocks_mhz": {
+        "spine": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "gr": [
+          150,
+          500,
+          450,
+          0
+        ]
+      },
+      "same_driver_clocks": true,
+      "bdf": "0000:82:00.1",
+      "workload": {
+        "vertices": 515281,
+        "edges": 679246,
+        "updates": 16,
+        "source": 0,
+        "graph": {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_connected_components_insert_u8.graph",
+          "sha256": "66eb4ba111ceec80ce9c6496cd04c34aa74cedfc813dc37dd55417d2a03dbc90",
+          "bytes": 10382474
+        }
+      },
+      "stage_ratios": {
+        "g_ratio": 0.3835178078982072,
+        "r_ratios": {
+          "amazon": 1.006567899350948,
+          "amazon_odd": 0.9318192812568472,
+          "au_slice": 1.2092333061599552
+        }
+      },
+      "comparison": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au-diagnostic-v3/pair.json",
+        "sha256": "dd290f1d55c02c83a8abb88739cc3e07c0e3b1cd361e37a8d4002b85d71a0964",
+        "bytes": 295
+      },
+      "stage_receipts": {
+        "g_reference": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+          "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+          "bytes": 6882
+        },
+        "g": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-banked-final/results.json",
+          "sha256": "9192cff10b15958f5162ca34bdf85fb63294bc05143e7c58d341e499aef3aec9",
+          "bytes": 95621
+        },
+        "r_amazon": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-pair-final/pair/results.json",
+          "sha256": "d4bc44d5c97ee2cb3867cf918d4eb58b5e78e79a4beea0467fdf877fcec3918a",
+          "bytes": 67384
+        },
+        "r_amazon_odd": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-odd-pair-final/pair/results.json",
+          "sha256": "1bb8fb15037de879975011d05cc8141f8c79c983fcd87441b6a1f315ee736492",
+          "bytes": 67264
+        },
+        "r_au_slice": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au903k-pair-final/pair/results.json",
+          "sha256": "4450913816a1a85437cb2b57f85ada20966fd31b6856b8822d34268eedeec4a8",
+          "bytes": 67184
+        }
+      },
+      "images": {
+        "spine": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-insert-return-v1/spine_partitioned_split_e2e.cc_repair.hw.xclbin",
+          "sha256": "bb08b045dfdf1b86224662a95e98b09eed2b6a64f449a5832702e5e9b56bda8b",
+          "bytes": 59155484
+        },
+        "gr": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-cc-banked-clear-final/returned/route/candidate.hw.xclbin",
+          "sha256": "852cdcba83a379d896df0102f57e823e8585794af57219fcc579bd4d2e4edc1f",
+          "bytes": 79327676
+        }
+      },
+      "clocks": {
+        "spine": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-au-board-v4/spine_cc.clock.json",
+            "sha256": "862cf00ac1cfb338bfcd88eb60d7bdf8b0a1209f18ed63c24919ff7024bddc6e",
+            "bytes": 826
+          },
+          "expected": {
+            "uuid": "8b6451ae-8e9b-2102-d374-85341228ed15",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-insert-return-v1/spine_partitioned_split_e2e.cc_repair.hw.xclbin",
+              "sha256": "bb08b045dfdf1b86224662a95e98b09eed2b6a64f449a5832702e5e9b56bda8b",
+              "bytes": 59155484
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-au-board-v4/spine_cc.xclbin-info.txt",
+              "sha256": "76c2e671923f9eebd99da3da396b5f145b0e28340fd458a88027a6e0e127d1ad",
+              "bytes": 30417
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        },
+        "gr": {
+          "record": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au-diagnostic-v3/gr.clock.json",
+            "sha256": "b687ecd89b1893bad6ac2fde56fa585c0e15a51b9b00262fc2dc738fef8133a2",
+            "bytes": 812
+          },
+          "expected": {
+            "uuid": "dc58da1f-608c-1cbe-0f72-a0b1e6a773c0",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-cc-banked-clear-final/returned/route/candidate.hw.xclbin",
+              "sha256": "852cdcba83a379d896df0102f57e823e8585794af57219fcc579bd4d2e4edc1f",
+              "bytes": 79327676
+            },
+            "info": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au-diagnostic-v3/gr.xclbin-info.txt",
+              "sha256": "ddde00b3881f863a261d63476346c971070233d5a4d2d0ea822f3427837be2ae",
+              "bytes": 111948
+            },
+            "tool": {
+              "path": "/opt/xilinx/xrt/bin/xclbinutil",
+              "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+              "bytes": 1294
+            }
+          }
+        }
+      },
+      "raw": {
+        "spine": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-au-board-v4/spine_cc.stdout.txt",
+            "sha256": "fc1413b9c1042b0ec450d4aacad130fd5352bdb26c89bfd60d1dcb58047d53ec",
+            "bytes": 3646
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-au-board-v4/spine_cc.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        },
+        "gr": {
+          "stdout": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au-diagnostic-v3/gr.stdout.txt",
+            "sha256": "1609994e6ebecb3eec7d0717a81e76dd1c89dae5acc5b08b7bee4a9e46b4ce8b",
+            "bytes": 4014
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au-diagnostic-v3/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      },
+      "retained_spine": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-au-board-v4/results.json",
+        "sha256": "4335635ca86b0fa7f0d255e9264a5f738a0ce371d29e40dd0039e03334c5f687",
+        "bytes": 9612
+      }
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "SU",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "FAILED_RETAINED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/su/spine.stderr.txt')"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "WK",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "FAILED_RETAINED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/wk/spine.stderr.txt')"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "SO",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "FAILED_RETAINED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/so/spine.stderr.txt')"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "PK",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "FAILED_RETAINED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/pk/spine.stderr.txt')"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "LJ",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "FAILED_RETAINED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/lj/spine.stderr.txt')"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "LJ08",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "REQUESTED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent"
+    },
+    {
+      "algorithm": "cc",
+      "dataset": "R19",
+      "boundary": "resident_old_graph_host_pack_to_final_readback",
+      "status": "FAILED_RETAINED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/r19/spine.stderr.txt')"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "AU",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "SU",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "WK",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "SO",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "PK",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "LJ",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "LJ08",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_RECORDED"
+    },
+    {
+      "algorithm": "respr",
+      "dataset": "R19",
+      "boundary": "resident_update_to_final_readback_wall_including_host_relaunch",
+      "status": "NOT_RECORDED"
+    }
+  ]
+}

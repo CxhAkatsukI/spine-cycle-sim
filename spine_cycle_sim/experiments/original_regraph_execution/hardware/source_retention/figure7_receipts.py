@@ -6,7 +6,7 @@ import json
 import math
 from pathlib import Path
 
-from . import active_min_resident, cc_resident_wall, clocks, resident_matrix, spine_cc_warm_receipt
+from . import active_min_admission, active_min_resident, cc_resident_wall, clocks, resident_matrix, spine_cc_warm_receipt
 from .runtime import identity, save
 
 
@@ -149,7 +149,7 @@ def pinned_workload(case, pins):
     return dict(workload, graph=matches[0])
 
 
-def measured(algorithm, dataset, child, row, gates, extra, image):
+def measured(algorithm, dataset, child, row, gates, extra, image, *, topology_miss=None):
     if (child["repetitions_per_arm"], child["warmups"]) != (1, 0):
         raise ValueError("one measured run and no warmups per arm required")
     boundary = BOUNDARIES[algorithm]
@@ -170,6 +170,25 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
     if set(arms) != {"spine", "gr"} or attempts != expected_attempts:
         raise ValueError("expected exactly one Spine run and one G+R run")
     stage = summarize_gates(algorithm, gates, extra)
+    receipts = stage_receipts(algorithm, gates, extra)
+    if topology_miss is not None:
+        pin = topology_miss["report"]
+        raw = load(pin)
+        decision = topology_miss["comparison"]
+        exception = topology_miss["resident_only_exception"]
+        cap = active_min_admission.AU_DIAGNOSTIC_MAX_PERCENT
+        if (algorithm == "respr" or child["additional_r_gates"] != {"amazon_odd": extra, "au_slice": topology_miss}
+                or raw["status"] != "PAIRED_ACTIVE_MIN_R_GATE_FAILED_RETAINED"
+                or raw["algorithm"] != algorithm or raw["comparison"] != decision
+                or exception != {"max_slowdown_percent": cap - 100, "receipt_sha256": pin["sha256"]}
+                or decision["retention_gate_pass"] is not False
+                or decision["equal_driver_reported_clocks"] is not True
+                or not 1.15 < decision["candidate_over_reference"] <= cap / 100
+                or topology_miss["candidate_clock"]["binary"] != image
+                or topology_miss["candidate_clock"]["driver_reported_mhz"] != gates["resident_mhz"]):
+            raise ValueError("the disclosed AU topology miss does not match the measured pair")
+        stage["r_ratios"]["au_slice"] = decision["candidate_over_reference"]
+        receipts["r_au_slice"] = pin
     workload = pinned_workload(row["case"], child["pins"])
     if retained is not None:
         if ((algorithm, dataset) != ("cc", "AU") or retained not in child["pins"]
@@ -231,7 +250,7 @@ def measured(algorithm, dataset, child, row, gates, extra, image):
                 respr_propagated_on_both=(pair["positive_propagation_on_both"] if algorithm == "respr" else None),
                 clocks_mhz=mhz, same_driver_clocks=mhz["spine"] == mhz["gr"],
                 bdf=child["bdf"], workload=workload, stage_ratios=stage, comparison=pair_pin,
-                stage_receipts=stage_receipts(algorithm, gates, extra),
+                stage_receipts=receipts,
                 images={arm: record["binary"] for arm, record in observed.items()},
                 clocks={arm: entry["clock_evidence"] for arm, entry in arms.items()}, raw=evidence,
                 **retained_record, **warm_record)
@@ -372,10 +391,44 @@ def write_csv(path, rows):
             writer.writerow(record)
 
 
+def export_diagnostic(paths):
+    """Record the two explicitly non-parity matrices, leaving ResPR unmeasured."""
+    algorithms = ("weighted_sssp", "cc")
+    pins = {key: identity(path) for key, path in zip(algorithms, paths, strict=True)}
+    snapshots = {key: load(pin) for key, pin in pins.items()}
+    result = {"status": "DIAGNOSTIC_SNAPSHOT_NOT_FINAL_EVALUATION", "inputs": pins, "rows": []}
+    for algorithm in ALGORITHMS:
+        matrix = snapshots.get(algorithm)
+        if matrix and (matrix["algorithm"] != algorithm or matrix["r_retention_all_controls_pass"] is not False):
+            raise ValueError("expected the explicitly non-parity resident matrix")
+        for dataset in DATASETS:
+            out = dict(algorithm=algorithm, dataset=dataset, boundary=BOUNDARIES[algorithm],
+                       status="NOT_RECORDED")
+            if matrix:
+                entry = matrix["cases"][dataset]
+                out.update(status=entry["status"], r_validation_scope="amazon_pass_au_outside_15_percent")
+                if entry.get("result"):
+                    try:
+                        child = load(entry["result"])
+                        if entry["status"] == MEASURED:
+                            gates, extra = matrix["baseline"], matrix["additional_r_gates"]
+                            out.update(measured(algorithm, dataset, child, child, gates, extra["amazon_odd"],
+                                                gates["image"], topology_miss=extra["au_slice"]))
+                        elif child.get("error"):
+                            out["error"] = child["error"]
+                    except (KeyError, ValueError, OSError, TypeError) as error:
+                        out.update(status="RECEIPT_REJECTED", error=str(error))
+                elif entry.get("error"):
+                    out["error"] = entry["error"]
+            result["rows"].append(out)
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--diagnostic-matrices", nargs=2, type=Path, metavar=("SSSP", "CC"))
     for role in (*ROLES, "output"):
-        parser.add_argument("--" + role.replace("_", "-"), type=Path, required=role not in OPTIONAL_SCREENS)
+        parser.add_argument("--" + role.replace("_", "-"), type=Path, required=role == "output")
     parser.add_argument("--csv", type=Path, help="optional flat data table with all declared rows")
     args = parser.parse_args()
     outputs = [args.output] + ([args.csv] if args.csv is not None else [])
@@ -384,7 +437,10 @@ def main():
     for path in outputs:
         if path.exists():
             raise FileExistsError(path)
-    result = export({key: getattr(args, key) for key in ROLES if getattr(args, key) is not None})
+    strict = {key: getattr(args, key) for key in ROLES if getattr(args, key) is not None}
+    if args.diagnostic_matrices and strict:
+        parser.error("choose strict receipts or the explicitly non-parity diagnostic matrices")
+    result = export_diagnostic(args.diagnostic_matrices) if args.diagnostic_matrices else export(strict)
     save(args.output, result)
     if args.csv is not None:
         write_csv(args.csv, result["rows"])

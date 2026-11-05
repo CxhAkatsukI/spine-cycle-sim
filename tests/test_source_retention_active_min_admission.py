@@ -83,6 +83,35 @@ class ActiveMinJointAdmissionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "mode or topology"):
                 pair.replay_returned_route(route, "cc", record, self.root)
 
+    def test_returned_route_revalidates_when_verifier_is_in_another_worktree(self):
+        pair = gate.active_min_pair
+        route = self.root / "route"
+        (route / "route").mkdir(parents=True)
+        (self.root / "candidate_admission").mkdir()
+        tool_paths = []
+        for checkout in ("old", "new"):
+            source = self.root.joinpath(checkout, *pair.replacement_return.__package__.split("."), "admission.py")
+            source.parent.mkdir(parents=True)
+            source.write_text(checkout)
+            tool_paths.append(pair.artifact.identity(source))
+        image = pair.artifact.identity(self.make("route/route/candidate.hw.xclbin", "image"))
+        timing = pair.artifact.identity(self.make("route/route/timing.rpt", "timing"))
+        predecessor = pair.artifact.identity(self.make("predecessor", "predecessor"))
+        parameters = ["a" * 64, str(self.root), "/platform", predecessor["path"]]
+        proof = self.report("candidate_admission/summary.json", dict(
+            status="ROUTED_METADATA_TIMING_PASS_AWAITING_BOARD", candidate=image,
+            timing={"report": timing}, pins=[tool_paths[0], predecessor]))
+        record = dict(directory=str(route), parameters=parameters, proof=pair.artifact.identity(proof))
+        with patch.object(pair.replacement_return, "verify", return_value=({}, {"mode": "destination"}, [tool_paths[1]])), \
+                patch.object(pair.replacement_return, "active_min",
+                             return_value=(image, [tool_paths[1], predecessor])) as replay:
+            _, pins = pair.replay_returned_route(route, "cc", record, self.root)
+            self.assertTrue(all(pin in pins for pin in tool_paths))
+            replay.assert_called_once()
+            Path(tool_paths[0]["path"]).write_text("modified original verifier")
+            with self.assertRaises(ValueError):
+                pair.replay_returned_route(route, "cc", record, self.root)
+
     def test_g_remote_ready_requires_matching_collector_and_image(self):
         route = self.root / "returned"
         (route / "route").mkdir(parents=True)
@@ -162,7 +191,7 @@ class ActiveMinJointAdmissionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "15 percent"):
                 gate.replay_r(*args)
             observed.return_value = current["analysis"]
-            original = gate.identity(self.report("original-pair.json", {}))
+            original = gate.artifact.identity(self.report("original-pair.json", {}))
             retained = json.loads(path.read_text())
             ref["execution"]["command"] = [str(self.host), "board", "cc", str(self.inputs),
                                            "original/reference", str(self.image), "0"]
@@ -175,3 +204,30 @@ class ActiveMinJointAdmissionTests(unittest.TestCase):
                 replay.return_value = ({**ref, "analysis": {}}, original)
                 with self.assertRaisesRegex(ValueError, "retained R arm differs"):
                     gate.replay_r(*args)
+
+            geometry = gate.AU_SLICE_GEOMETRY
+            raw[0].write_text(json.dumps(dict(status="A4_ACTIVE_MIN_OFFLINE_PASS_NOT_FPGA", algorithm="cc",
+                                              vertices=geometry[0], logical_edges=geometry[1], tasks=geometry[2])))
+            old_offline = next(pin for pin in pins if pin["path"] == str(raw[0]))
+            pins[pins.index(old_offline)] = gate.artifact.identity(raw[0])
+            ref["execution"] = execution
+            for span in (121, 123):
+                current["analysis"] = observed.return_value = {"event_span_ns": span}
+                decision = gate.r_candidate.compare(ref["analysis"], current["analysis"], clock, clock)
+                self.report(path.name, dict(status=gate.R_SLOW, algorithm="cc", bdf=gate.R_BDF,
+                                            boundary=gate.active_min.BOUNDARY, requested_runs_per_arm=1,
+                                            attempts=["reference", "candidate"], convergence_measured=False,
+                                            retention_gate_pass=False, arms={"reference": ref, "candidate": current},
+                                            pins=pins, comparison=decision))
+                sha = gate.identity(path)["sha256"]
+                with self.assertRaisesRegex(ValueError, "only for the matched AU"):
+                    gate.replay_r(*args, au_diagnostic_sha256=sha)
+                with self.assertRaisesRegex(ValueError, "exact retained receipt digest"):
+                    gate.replay_r(*args, geometry=geometry, au_diagnostic_sha256="0" * 64)
+                if span == 121:
+                    result = gate.replay_r(*args, geometry=geometry, au_diagnostic_sha256=sha)
+                    self.assertFalse(result["comparison"]["retention_gate_pass"])
+                    self.assertEqual(result["resident_only_exception"]["receipt_sha256"], sha)
+                else:
+                    with self.assertRaisesRegex(ValueError, "22 percent"):
+                        gate.replay_r(*args, geometry=geometry, au_diagnostic_sha256=sha)

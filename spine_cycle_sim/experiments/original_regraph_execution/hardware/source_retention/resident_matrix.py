@@ -80,7 +80,7 @@ def child_command(args, dataset, budget, output, *, packet=None):
     ]
 
 
-def run_child(command, log, output, dataset, gate, boundary):
+def run_child(command, log, output, dataset, gate, boundary, *, controls=None):
     with log.open("x") as stream:
         job = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, timeout=8 * 3600 + 60)
     evidence = {"status": "FAILED_RETAINED", "service_exit": job.returncode}
@@ -95,6 +95,8 @@ def run_child(command, log, output, dataset, gate, boundary):
                     child.get("repetitions_per_arm"), child.get("warmups"), child.get("attempts")) != (
                         gate, dataset, boundary, 1, 0, ["spine", "gr"]):
                 raise ValueError(f"{dataset} result differs from the admitted single-pass protocol")
+            if controls is not None and child.get("additional_r_gates") != controls:
+                raise ValueError(f"{dataset} result used different R topology controls")
             if job.returncode == 0:
                 evidence["status"] = MEASURED
     return evidence
