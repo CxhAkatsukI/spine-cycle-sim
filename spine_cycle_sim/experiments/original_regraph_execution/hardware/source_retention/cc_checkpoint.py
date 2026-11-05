@@ -4,6 +4,11 @@ from . import figure7_receipts as figure
 from .follow import unchanged
 
 
+LOGICAL_INSERTIONS = 8
+# The frozen CC graph inputs and board receipts count both directed records.
+RECIPROCAL_RECORDS = 2 * LOGICAL_INSERTIONS
+
+
 def collect(matrix, expected_image):
     if set(matrix["cases"]) != set(figure.DATASETS):
         raise ValueError("all eight CC statuses required")
@@ -41,11 +46,12 @@ def collect(matrix, expected_image):
             figure.record_cc_topology(checked, matrix, gate, child)
             evidence.append(child)
         workload = checked["workload"]
-        if (workload["updates"] != 8 or not checked["same_driver_clocks"]
+        if (workload["updates"] != RECIPROCAL_RECORDS or not checked["same_driver_clocks"]
                 or checked["clocks_mhz"]["gr"] != gate["resident_mhz"]
                 or checked["images"]["gr"]["sha256"] != expected_image):
             raise ValueError("CC pair changed the batch, matched clocks or baseline image")
-        pair = dict(algorithm="cc", logical_updates=8, physical_updates=8,
+        pair = dict(algorithm="cc", logical_updates=LOGICAL_INSERTIONS,
+                    physical_updates=workload["updates"],
                     boundary=figure.BOUNDARIES["cc"], spine_wall_ms=checked["spine_ms"],
                     gr_wall_ms=checked["gr_ms"], speedup_gr_over_spine=checked["gr_over_spine"],
                     spine_rounds=checked["spine_rounds"], gr_rounds=checked["gr_rounds"])

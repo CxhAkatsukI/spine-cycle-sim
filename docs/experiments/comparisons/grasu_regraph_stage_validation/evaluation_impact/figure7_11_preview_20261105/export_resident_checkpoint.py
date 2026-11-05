@@ -28,10 +28,12 @@ FIELDS = ("algorithm", "dataset", "status", "boundary", "spine_wall_ms", "gr_wal
 
 def measured_row(algorithm, dataset, pair, pin, profile, *, reused=False, correction=None):
     spine, gr = (pair[key] for key in ("spine_wall_ms", "gr_wall_ms"))
+    counts = (cc_checkpoint.LOGICAL_INSERTIONS, cc_checkpoint.RECIPROCAL_RECORDS) if algorithm == "cc" else (8, 8)
     if (not all(type(value) in (int, float) and math.isfinite(value) and value > 0
                 for value in (spine, gr, pair["speedup_gr_over_spine"]))
             or not math.isclose(pair["speedup_gr_over_spine"], gr / spine)
-            or (pair["algorithm"], pair["logical_updates"], pair["physical_updates"]) != (algorithm, 8, 8)):
+            or pair["algorithm"] != algorithm
+            or (pair["logical_updates"], pair["physical_updates"]) != counts):
         raise ValueError("invalid paired times, algorithm, batch or round scope")
     row = dict(algorithm=algorithm, dataset=dataset, status="MEASURED",
                boundary=pair["boundary"], spine_wall_ms=spine, gr_wall_ms=gr,
@@ -145,7 +147,8 @@ def collect(args):
     return rows, members, dict(status=status, measured_pairs=sum(row["status"] == "MEASURED" for row in rows),
         expected_pairs=24, inputs=[identity(path) for path in
             (args.sssp_matrix, *retime_paths, args.cc_matrix, args.controls, args.qualification,
-             *getattr(args, "qualified_pair", ()), Path(__file__), Path(qualified_resident.__file__))],
+             *getattr(args, "qualified_pair", ()), Path(__file__), Path(qualified_resident.__file__),
+             Path(cc_checkpoint.__file__))],
         retime_sources=retime_sources,
         fresh_qualified_sources={dataset: checked["result"] for dataset, checked in fresh.items()},
         evidence=evidence, artifact_index=list(index.values()),

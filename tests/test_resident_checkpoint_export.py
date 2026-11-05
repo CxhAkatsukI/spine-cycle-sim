@@ -45,12 +45,23 @@ class ResidentCheckpointTests(unittest.TestCase):
 
     def test_invalid_values_and_changed_batch_rejected(self):
         for changes in (dict(spine_wall_ms=0), dict(gr_wall_ms=float("nan")),
-                        dict(speedup_gr_over_spine=3), dict(logical_updates=9)):
+                        dict(speedup_gr_over_spine=3), dict(logical_updates=9), dict(physical_updates=16)):
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 self.row(**changes)
 
     def test_different_round_counts_do_not_alone_disprove_same_final_state(self):
         self.assertEqual(self.row(spine_rounds=1, gr_rounds=2)["gr_rounds"], 2)
+
+    def test_cc_requires_reciprocal_records_and_exports_a_measured_loss(self):
+        pair = dict(algorithm="cc", logical_updates=8, physical_updates=16,
+                    spine_wall_ms=20, gr_wall_ms=10, speedup_gr_over_spine=0.5,
+                    boundary="resident", spine_rounds=0, gr_rounds=1)
+        export = self.export.measured_row
+        args = (dict(sha256="receipt"), [150, 500, 450, 0])
+        row = export("cc", "AU", pair, *args, reused=True)
+        self.assertEqual((row["status"], row["speedup_gr_over_spine"]), ("MEASURED", 0.5))
+        with self.assertRaisesRegex(ValueError, "invalid paired times"):
+            export("cc", "AU", dict(pair, physical_updates=8), *args)
 
     def test_losing_row_is_retained(self):
         row = self.row(spine_wall_ms=20, speedup_gr_over_spine=0.5)

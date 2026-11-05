@@ -16,6 +16,8 @@ are included; large graphs, FPGA images and toolchains are indexed by hash.
 | 10 | [Stacks](fresh_simulator/fig10_normalized_breakdown_rows.csv), [absolute stages](fresh_simulator/fig10_stage_rows.csv) | Eleven normalized simulator stacks from closed ten-stage ledgers. Syn is synthetic, FL is compact Flickr, and L1/L3/L5 are carry target levels. No FPGA stage calibration. |
 | 11 | [Predictions](fresh_simulator/fig11_e2e_prediction_rows.csv), [metrics](fresh_simulator/fig11_e2e_metric_rows.csv) | Simulator cycles, not FPGA: 24 fit / 17 holdout, excluding zero-net from fitting. Overall holdout median APE 10.0%; real-input subset median 58.1%, max 89.1%. |
 
+The CC batch has eight logical undirected insertions, stored as sixteen
+directed records on each arm. The SSSP and ResPR batches have eight records.
 Fig. 7 does not charge the initial G+R frontier packing inside its timer;
 Spine source-list construction is inside. The selected ResPR correction
 cache is built from old graph/rank outside the timer, with its cost reported

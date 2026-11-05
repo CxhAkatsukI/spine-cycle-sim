@@ -12,7 +12,7 @@ class CcCheckpointTests(unittest.TestCase):
             cases={ds: dict(status="NOT_REQUESTED") for ds in cc.figure.DATASETS},
             baseline=dict(algorithm="cc", image=dict(sha256="image"), resident_mhz=[150, 500, 450, 0]),
             parent=dict(route=dict(sha256="route")), odd_r={})
-        self.checked = dict(workload=dict(updates=8), same_driver_clocks=True,
+        self.checked = dict(workload=dict(updates=16), same_driver_clocks=True,
             clocks_mhz=dict(gr=[150, 500, 450, 0]), images=dict(gr=dict(sha256="image")),
             spine_ms=20, gr_ms=10, gr_over_spine=0.5, spine_rounds=0, gr_rounds=1)
 
@@ -43,6 +43,7 @@ class CcCheckpointTests(unittest.TestCase):
         replay.assert_called_once_with(self.matrix, self.matrix["cases"]["AU"])
         au = next(row for row in rows if row["dataset"] == "AU")
         self.assertEqual(au["pair"]["speedup_gr_over_spine"], 0.5)
+        self.assertEqual((au["pair"]["logical_updates"], au["pair"]["physical_updates"]), (8, 16))
         self.assertTrue(au["gr_sample_reused"])
         self.assertEqual(len(evidence), 1)
 
@@ -55,7 +56,7 @@ class CcCheckpointTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "replacement-route"):
                 cc.collect(self.matrix, "image")
             self.matrix["cases"]["AU"]["kind"] = "replacement_au"
-            for changes in (dict(workload=dict(updates=9)), dict(same_driver_clocks=False)):
+            for changes in (dict(workload=dict(updates=8)), dict(same_driver_clocks=False)):
                 with self.subTest(changes=changes), \
                         patch.object(cc.figure, "cc_replacement_au", return_value=dict(self.checked, **changes)), \
                         self.assertRaisesRegex(ValueError, "changed the batch"):
