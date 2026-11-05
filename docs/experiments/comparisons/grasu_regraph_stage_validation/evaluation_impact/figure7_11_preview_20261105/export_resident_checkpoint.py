@@ -12,7 +12,7 @@ from pathlib import Path
 import export_banked_sssp as sssp
 import export_controls as controls
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    correction_matrix, host_correction,
+    cc_checkpoint, correction_matrix, host_correction,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.follow import unchanged
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import identity
@@ -62,19 +62,21 @@ def collect(args):
         raise ValueError("all eight retime statuses required")
     cc_bytes = args.cc_matrix.read_bytes()
     cc = json.loads(cc_bytes)
-    if any(row.get("status") == "MEASURED_RESIDENT_PAIR" for row in cc["cases"].values()):
-        raise ValueError("new CC measurements need their own complete admission replay, not a pending marker")
+    cc_rows, cc_evidence = cc_checkpoint.collect(cc, expected_images["cc"])
     members = {"sssp/" + name: data for name, data in sssp_members.items()}
     members.update({"retime-matrix.json": raw_retimes, "cc-matrix.json": cc_bytes})
-    index, evidence, rows = {}, [], []
+    index, evidence, rows = {}, cc_evidence, []
     for row in sssp_rows:
         if expected_images["weighted_sssp"] != sssp.GR_IMAGE:
             raise ValueError("SSSP controls and resident baseline differ")
         rows.append(measured_row("weighted_sssp", row["dataset"], row,
                                  dict(sha256=row["receipt_sha256"]), sssp.CLOCKS))
-    for dataset in sssp.DATASETS:
-        rows.append(dict(algorithm="cc", dataset=dataset,
-                         status="PENDING_REPLACEMENT_ROUTE_AND_BOARD_TEST"))
+    for row in cc_rows:
+        if row["status"] == "MEASURED":
+            rows.append(measured_row("cc", row["dataset"], row["pair"], row["receipt"],
+                                     [150, 500, 450, 0], reused=row["gr_sample_reused"]))
+        else:
+            rows.append(dict(algorithm="cc", dataset=row["dataset"], status=row["status"]))
     for dataset in sssp.DATASETS:
         case = retimes["cases"][dataset]
         if case["status"] != correction_matrix.MEASURED:
@@ -92,13 +94,14 @@ def collect(args):
             report["stage_gates"]["resident_mhz"], reused=True, correction=checked["correction"]))
         evidence.append(dict(result=pin, report=report))
     controls.small_evidence(evidence, members, index)
-    status = "INCOMPLETE_CURRENT_FPGA_CHECKPOINT"
+    status = ("MEASURED_CURRENT_FPGA_MATRIX" if all(row["status"] == "MEASURED" for row in rows)
+              else "INCOMPLETE_CURRENT_FPGA_CHECKPOINT")
     return rows, members, dict(status=status, measured_pairs=sum(row["status"] == "MEASURED" for row in rows),
         expected_pairs=24, inputs=[identity(path) for path in
             (args.sssp_matrix, args.retimes, args.cc_matrix, args.controls, args.qualification)],
         evidence=evidence, artifact_index=list(index.values()),
         limitation="ResPR host-only single-batch cache, old-graph preparation excluded/reported; G+R reused",
-        cc="pending replacement route; old AU loss and seven row-overflow failures remain in parent README",
+        cc="replacement-route measurements replayed when present; old AU loss and seven row-overflow failures retained",
         publication_throughput_reproduced=False)
 
 

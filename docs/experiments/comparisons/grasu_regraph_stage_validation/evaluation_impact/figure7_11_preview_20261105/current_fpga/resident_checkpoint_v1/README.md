@@ -101,8 +101,10 @@ python3 "$pkg/render_current.py" --data "$pkg/current_fpga/gr_controls.csv" \
 ```
 
 The exporter replays SSSP admission, qualified-host identity, the frozen G+R
-references, retime hashes, matched clocks and ratios. It refuses newly measured
-CC rows until their separate complete admission replay is implemented; it will
-not silently label such rows pending. This directory is a frozen checkpoint;
-later results require a fresh export, not edits to its receipts. Large graphs,
-state dumps, binaries and toolchains are indexed rather than embedded.
+references, retime hashes, matched clocks and ratios. Its CC replay verifies
+the replacement route, raw board logs, baseline source controls, clocks and
+eight-update batch before admitting a measured row; failed and pending states
+remain distinct. This support does not mean the CC board samples exist yet.
+This directory is a frozen checkpoint; later results require a fresh export,
+not edits to its receipts. Large graphs, state dumps, binaries and toolchains
+are indexed rather than embedded.
