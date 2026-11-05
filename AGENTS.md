@@ -83,6 +83,10 @@ before changing an implementation or launching an experiment.
   evidence and conflicting leases still block. Record the named exception
   in fresh manifests; never change another user's limits or a frozen runner.
 - Give runs bounded timeouts, unique output paths, and saved stdout/stderr.
+  Board-only `zfs-arc-clean-half-v1` may credit discounted clean evictable
+  ARC under its [explicit policy](docs/implementation/runtime/board_arc_admission.md).
+  Keep full finite reservations, zero swap, live reserve/PSI supervision,
+  and source/observation receipts. Do not clear caches or change global ZFS.
   Start with a correctness smoke, then a bounded representative matrix.
   Do not silently reduce workload semantics to make a run complete.
 - Preserve raw evidence and fixed model identities. Record repetitions,

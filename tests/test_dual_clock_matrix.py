@@ -47,6 +47,28 @@ class DualClockMatrixTests(unittest.TestCase):
             self.assertIn("--property=MemorySwapMax=0", command)
             self.assertNotIn("--repetitions", command)
 
+    def test_explicit_remainder_runs_only_requested_cases_and_forwards_arc_profile(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            args = argparse.Namespace(output=Path(temporary) / "matrix", child_prefix="remainder",
+                board_wait_seconds=10, datasets=["LJ", "LJ08", "R19"],
+                memory_profile=matrix.memory_policy.ARC)
+            for key in matrix.INPUTS:
+                setattr(args, key, Path(temporary) / key)
+            with patch.object(matrix, "check_memory"), \
+                    patch.object(resident, "admit", return_value={"pins": []}), \
+                    patch.object(resident, "declaration", side_effect=lambda previous, dataset:
+                        ({"dataset": dataset}, 32, [])), \
+                    patch.object(matrix, "identity", side_effect=lambda path: {"path": str(path)}), \
+                    patch.object(matrix, "unchanged"), \
+                    patch.object(matrix.resident_matrix, "run_child",
+                        return_value={"status": matrix.resident_matrix.MEASURED}):
+                report = matrix.run(args)
+            self.assertEqual(list(report["cases"]), args.datasets)
+            self.assertFalse(report["complete_eight_dataset_matrix"])
+            for case in report["cases"].values():
+                command = case["command"]
+                self.assertEqual(command[command.index("--memory-profile") + 1], args.memory_profile)
+
     def test_large_cases_keep_the_frozen_graph_and_budget(self):
         frozen = dict(dataset="LJ", graph="graph", source=0, vertices=100,
                       edges=200, updates=8, memory_gib=32)

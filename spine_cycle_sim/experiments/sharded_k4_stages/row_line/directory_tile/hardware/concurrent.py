@@ -30,6 +30,17 @@ def merge(builds, leases):
     return [*groups.values(), *rejected]
 
 
+def verify_peer(group, maximum):
+    # A peer retains its declared full budget, not this runner's 40/36-GiB cap.
+    limits = {key: (group / key).read_text().strip() for key in
+              ("memory.max", "memory.high", "memory.swap.max", "memory.oom.group")}
+    if (type(maximum) is not int or maximum <= 0 or limits["memory.max"] != str(maximum)):
+        raise ValueError("reserved compiler cgroup limit changed")
+    if (limits["memory.high"] == "max" or not 0 < int(limits["memory.high"]) <= maximum
+            or limits["memory.swap.max"] != "0" or limits["memory.oom.group"] != "1"):
+        raise ValueError("finite peer high/max, zero swap and group OOM kill required")
+
+
 class Lease:
     def __init__(self, directory, own, *, proc=Path("/proc"), root=Path("/sys/fs/cgroup"),
                  host_swap_disabled=False):
@@ -62,9 +73,7 @@ class Lease:
                 continue
             if group == self.own:
                 raise ValueError("another supervisor already reserved this compiler cgroup")
-            guard = verify(group)
-            if int(guard["limits"]["memory.max"]) != row["memory_max_bytes"]:
-                raise ValueError("reserved compiler cgroup limit changed")
+            verify_peer(group, row["memory_max_bytes"])
             peers.append(row)
         return peers
 

@@ -3,6 +3,7 @@
 import argparse
 from pathlib import Path
 
+from ..board_execution import memory_policy
 from . import active_min_resident, dual_clock_resident, resident_matrix
 from .follow import unchanged
 from .runtime import check_memory, identity, save
@@ -18,14 +19,21 @@ def run(args):
     gate = dual_clock_resident.admit(args.r_report, args.g_report, args.route)
     cases = {}
     pins = [identity(__file__), identity(dual_clock_resident.__file__), *gate["pins"]]
-    for dataset in active_min_resident.DATASETS:
+    datasets = getattr(args, "datasets", active_min_resident.DATASETS)
+    if not datasets or len(set(datasets)) != len(datasets) or not set(datasets) <= set(active_min_resident.DATASETS):
+        raise ValueError("unique known resident datasets required")
+    profile = getattr(args, "memory_profile", memory_policy.DEFAULT)
+    if profile not in memory_policy.PROFILES:
+        raise ValueError("unknown board memory profile")
+    for dataset in datasets:
         case, budget, inputs = dual_clock_resident.declaration(args.previous, dataset)
         cases[dataset] = dict(case=case, memory_gib=budget, status="PREDECLARED")
         pins.extend(inputs)
     pins.extend(identity(getattr(args, key)) for key in INPUTS if key not in ("previous", "route"))
     report = dict(status="PREDECLARED", algorithm="residual_pagerank", stage_gates=gate,
         boundary=dual_clock_resident.BOUNDARY, repetitions_per_arm=1, warmups=0,
-        nominal_timing_pass=False, cases=cases, pins=pins)
+        nominal_timing_pass=False, cases=cases, pins=pins, memory_profile=profile,
+        requested_datasets=list(datasets), complete_eight_dataset_matrix=len(datasets) == 8)
     write = lambda: save(args.output / "matrix.json", report)
     write()
     try:
@@ -36,6 +44,7 @@ def run(args):
                 declaration["memory_gib"], dual_clock_resident.__spec__.name),
                 "--dataset", dataset, "--output", str(output),
                 "--board-wait-seconds", str(args.board_wait_seconds),
+                "--memory-profile", profile,
                 *(part for key in INPUTS for part in
                   ("--" + key.replace("_", "-"), str(getattr(args, key))))]
             declaration.update(status="RUNNING", command=command)
@@ -64,6 +73,9 @@ def parser():
                             type=lambda s: Path(s).resolve(), required=True)
     result.add_argument("--child-prefix", required=True)
     result.add_argument("--board-wait-seconds", type=int, default=21600)
+    result.add_argument("--datasets", nargs="+", choices=active_min_resident.DATASETS,
+                        default=list(active_min_resident.DATASETS))
+    result.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.DEFAULT)
     return result
 
 

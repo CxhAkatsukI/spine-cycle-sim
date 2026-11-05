@@ -9,6 +9,8 @@
   and [Full PageRank integration](sst_spine_full_pagerank_20260725.md).
 - [Exact DRAMSim3 idle advancement](dramsim3_exact_idle_advance_20260727.md):
   an optimization with a memory-clock equivalence requirement.
+- [ARC-aware board admission](board_arc_admission.md): explicit discounted
+  clean-cache headroom, unchanged containment, and live child supervision.
 - [Dynamic AXI sleep](scheduler_dynamic_axi_sleep_20260727.md) and
   [phase dispatch](scheduler_phase_dispatch_20260727.md):
   scheduling behavior and wakeup conditions.

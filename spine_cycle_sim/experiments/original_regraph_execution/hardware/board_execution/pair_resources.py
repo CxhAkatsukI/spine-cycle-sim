@@ -7,7 +7,7 @@ import subprocess
 import time
 
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import concurrent, containment
-from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
+from . import memory_policy
 from ..source_retention.runtime import lease
 
 
@@ -27,7 +27,10 @@ def admit(device, bdf, group, seconds, record, *, legacy_lock=None, memory_gib=8
     while True:
         with ExitStack() as resources:
             resources.callback(memory.release)
-            memory_state = memory.sample(available_memory_bytes(), containment.other_builds(), policy, commit=True)
+            observation = memory_policy.sample()
+            available = observation["effective_available_bytes"] if observation["pressure_ok"] else 0
+            memory_state = memory.sample(available, containment.other_builds(), policy, commit=True)
+            memory_state["physical_memory_observation"] = observation
             if memory.held:
                 try:
                     if legacy_lock is not None:

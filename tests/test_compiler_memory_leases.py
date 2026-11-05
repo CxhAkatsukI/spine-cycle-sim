@@ -90,6 +90,27 @@ class MemoryLeaseTests(unittest.TestCase):
     def test_start_time_handles_spaces_in_process_name(self):
         self.assertEqual(concurrent.start_time(os.getpid(), self.proc), "1")
 
+    def test_large_peer_keeps_full_budget_without_inheriting_own_limits(self):
+        first, second = self.lease(self.first), self.lease(self.second)
+        first.sample(120 * concurrent.GIB, [], self.policy, commit=True)
+        row = json.loads(first.path.read_text())
+        row["memory_max_bytes"] = 104 * concurrent.GIB
+        first.path.write_text(json.dumps(row))
+        (self.first / "memory.max").write_text(str(104 * concurrent.GIB))
+        (self.first / "memory.high").write_text(str(100 * concurrent.GIB))
+        state = second.sample(176 * concurrent.GIB, [], self.policy)
+        self.assertEqual(state["required_bytes"], 176 * concurrent.GIB)
+        self.assertTrue(state["admitted"])
+        self.assertFalse(second.sample(176 * concurrent.GIB - 1, [], self.policy)["admitted"])
+        for key, value in (("memory.high", "max"), ("memory.swap.max", "1"),
+                           ("memory.oom.group", "0")):
+            old = (self.first / key).read_text()
+            (self.first / key).write_text(value)
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                second.sample(200 * concurrent.GIB, [], self.policy)
+            (self.first / key).write_text(old)
+        first.release()
+
 
 if __name__ == "__main__":
     unittest.main()

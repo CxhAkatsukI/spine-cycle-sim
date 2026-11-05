@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import runner_pins
-from ..board_execution import pair_resources
+from ..board_execution import memory_policy, pair_resources
 from . import clock_profile, clocks, dual_clock_resident, host_correction, repackage_hbm
 from . import resident_board as board, resident_results
 from .follow import unchanged
@@ -47,12 +47,18 @@ def validate_correction_log(text):
 
 
 def run(args):
+    with memory_policy.scope(getattr(args, "memory_profile", memory_policy.DEFAULT)):
+        return _run(args)
+
+
+def _run(args):
     group = check_memory(args.memory_gib, require_live_reserve=False)
     args.output.mkdir(parents=True, exist_ok=False)
     report = dict(status="PREDECLARED", fresh_samples=dict(spine=1, gr=0),
                   gr_sample_reused=True, repetitions_per_arm=1, attempts=[],
                   qualification=identity(args.qualification), reference_pair=identity(args.reference_pair),
                   boundary=dual_clock_resident.BOUNDARY, nominal_timing_pass=False,
+                  memory_profile=memory_policy.selected(),
                   limitation="single-batch host cache; old-graph index preparation excluded and reported")
     write = lambda: save(args.output / "results.json", report)
     write()
@@ -116,6 +122,7 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, type=lambda s: Path(s).resolve(), required=True)
     parser.add_argument("--memory-gib", type=int, choices=(8, 16, 24, 32), required=True)
     parser.add_argument("--board-wait-seconds", type=int, default=21600)
+    parser.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.DEFAULT)
     args = parser.parse_args()
     if not 1 <= args.board_wait_seconds <= 21600:
         raise ValueError("finite board admission wait required")

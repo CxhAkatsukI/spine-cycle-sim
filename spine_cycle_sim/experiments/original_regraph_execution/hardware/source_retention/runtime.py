@@ -9,6 +9,8 @@ from pathlib import Path
 import resource
 import subprocess
 
+from ..board_execution import memory_policy
+
 
 def identity(path):
     path = Path(path).resolve()
@@ -24,10 +26,8 @@ def save(path, value):
 
 
 def check_memory(memory_gib=8, *, require_live_reserve=True):
-    available = next(int(line.split()[1]) * 1024 for line in Path("/proc/meminfo").read_text().splitlines()
-                     if line.startswith("MemAvailable:"))
-    if require_live_reserve and available < 32 * 2**30:
-        raise MemoryError("32-GiB live reserve required")
+    if require_live_reserve:
+        memory_policy.live()
     group = next(line.split(":", 2)[2] for line in Path("/proc/self/cgroup").read_text().splitlines()
                  if line.startswith("0::"))
     root = Path("/sys/fs/cgroup") / group.lstrip("/")
@@ -63,9 +63,15 @@ def execute(command, output, name, fd, node, bdf, *, memory_gib=8, timeout=240):
     command = ["/usr/bin/taskset", "-c", "124,125", *map(str, command)]
     log, error = output / f"{name}.stdout.txt", output / f"{name}.stderr.txt"
     with log.open("x") as stdout, error.open("x") as stderr:
-        completed = subprocess.run(command, env=env, pass_fds=(fd,), cwd=output,
-                                   stdout=stdout, stderr=stderr, timeout=timeout)
-    if completed.returncode:
-        raise RuntimeError(f"{name} failed ({completed.returncode}): {error}")
+        options = dict(env=env, pass_fds=(fd,), cwd=output, stdout=stdout, stderr=stderr)
+        if memory_policy.selected() == memory_policy.ARC:
+            from ..board_execution import guarded_process
+            code, memory = guarded_process.run(command, timeout=timeout, **options)
+        else:
+            code = subprocess.run(command, timeout=timeout, **options).returncode
+            memory = dict(profile=memory_policy.DEFAULT)
+    if code:
+        raise RuntimeError(f"{name} failed ({code}): {error}")
     return {"command": command, "stdout": identity(log), "stderr": identity(error),
+            "memory_guard": memory,
             "maximum_child_rss_kib_so_far": resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss}

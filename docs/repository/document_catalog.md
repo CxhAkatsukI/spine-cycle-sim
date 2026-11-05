@@ -183,6 +183,7 @@ Start with the [documentation index](../README.md) and its topic guides.
 
 ## Runtime and memory integration
 
+- [board_arc_admission.md](../implementation/runtime/board_arc_admission.md)
 - [dramsim3_exact_idle_advance_20260727.md](../implementation/runtime/dramsim3_exact_idle_advance_20260727.md)
 - [dramsim3_idle_clock_runtime_gap_20260727.md](../implementation/runtime/dramsim3_idle_clock_runtime_gap_20260727.md)
 - [runtime_hotpath_profile_20260727.md](../implementation/runtime/runtime_hotpath_profile_20260727.md)

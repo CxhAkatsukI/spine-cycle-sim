@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import time
 
+from ..board_execution import memory_policy
 from . import active_min_resident, correction_retime, host_correction, resident_matrix
 from .follow import unchanged
 from .runtime import check_memory, identity, save
@@ -59,17 +60,27 @@ def run(args):
     pins = host_correction.admit(args.qualification, args.spine_host)
     pins += [identity(__file__), identity(correction_retime.__file__),
              *(identity(getattr(args, name)) for name in INPUTS)]
+    datasets = getattr(args, "datasets", active_min_resident.DATASETS)
+    if not datasets or len(set(datasets)) != len(datasets) or not set(datasets) <= set(active_min_resident.DATASETS):
+        raise ValueError("unique known correction datasets required")
+    profile = getattr(args, "memory_profile", memory_policy.DEFAULT)
+    if profile not in memory_policy.PROFILES:
+        raise ValueError("unknown board memory profile")
     cases = {dataset: dict(status="WAITING_FOR_FROZEN_PAIR",
                            memory_gib=32 if dataset in ("LJ", "LJ08") else 16)
-             for dataset in active_min_resident.DATASETS}
+             for dataset in datasets}
     report = dict(status="PREDECLARED", cases=cases, pins=pins,
                   fresh_samples_per_case=dict(spine=1, gr=0), gr_sample_reused=True,
                   upstream=str(args.matrix), boundary=correction_retime.dual_clock_resident.BOUNDARY,
+                  memory_profile=profile, requested_datasets=list(datasets),
+                  complete_eight_dataset_matrix=len(datasets) == 8,
                   limitation="old-graph-only cache prepared outside resident window; single batch")
     write = lambda: save(args.output / "matrix.json", report)
     write()
     try:
         if args.reuse_pk:
+            if "PK" not in cases:
+                raise ValueError("PK reuse requires PK in the declared dataset selection")
             reference = args.matrix.parent / "pk/results.json"
             cases["PK"].update(validate_result(args.reuse_pk, reference, args, "PK"),
                                 existing_sample_reused_without_rerun=True)
@@ -95,6 +106,7 @@ def run(args):
                     cases[dataset]["memory_gib"], correction_retime.__spec__.name),
                     "--reference-pair", str(reference), "--output", str(output),
                     "--memory-gib", str(cases[dataset]["memory_gib"]),
+                    "--memory-profile", profile,
                     "--board-wait-seconds", str(args.wait_seconds),
                     *(part for name in INPUTS for part in
                       ("--" + name.replace("_", "-"), str(getattr(args, name))))]
@@ -128,6 +140,9 @@ if __name__ == "__main__":
     parser.add_argument("--reuse-pk", type=lambda s: Path(s).resolve())
     parser.add_argument("--child-prefix", required=True)
     parser.add_argument("--wait-seconds", type=int, default=21600)
+    parser.add_argument("--datasets", nargs="+", choices=active_min_resident.DATASETS,
+                        default=list(active_min_resident.DATASETS))
+    parser.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.DEFAULT)
     args = parser.parse_args()
     if not 1 <= args.wait_seconds <= 21600:
         raise ValueError("finite upstream and admission wait required")

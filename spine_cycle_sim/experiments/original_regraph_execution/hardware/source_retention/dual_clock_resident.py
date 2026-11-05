@@ -6,7 +6,7 @@ from pathlib import Path
 
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board import dual_clock_candidate as g_control
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import runner_pins
-from ..board_execution import pair_resources
+from ..board_execution import memory_policy, pair_resources
 from . import active_min_resident, analysis, clock_profile, clocks, repackage_hbm
 from . import resident_board as board, resident_results
 from .follow import unchanged
@@ -59,12 +59,18 @@ def declaration(previous, dataset, flickr=None):
 
 
 def run(args):
+    with memory_policy.scope(getattr(args, "memory_profile", memory_policy.DEFAULT)):
+        return _run(args)
+
+
+def _run(args):
     case, budget, inputs = declaration(args.previous, args.dataset, args.flickr)
     group = check_memory(budget, require_live_reserve=False)
     args.output.mkdir(parents=True, exist_ok=False)
     report = dict(status="PREDECLARED", dataset=args.dataset, boundary=BOUNDARY,
         warmups=0, repetitions_per_arm=1, attempts=[], board_launch_attempted=False,
         case=case, memory_gib=budget, nominal_timing_pass=False,
+        memory_profile=memory_policy.selected(),
         limitation="per-arm oracles; sparse rows may require zero propagation rounds")
     write = lambda: save(args.output / "results.json", report)
     write()
@@ -144,6 +150,7 @@ def parser():
     result.add_argument("--dataset", choices=(*active_min_resident.DATASETS, "Flickr"), required=True)
     result.add_argument("--flickr", type=lambda s: Path(s).resolve())
     result.add_argument("--board-wait-seconds", type=int, default=21600)
+    result.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.DEFAULT)
     return result
 
 
