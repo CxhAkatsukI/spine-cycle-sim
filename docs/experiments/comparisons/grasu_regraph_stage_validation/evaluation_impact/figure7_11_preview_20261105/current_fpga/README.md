@@ -81,3 +81,35 @@ run host. Export replays original G/R admission and validates hashes, ratios,
 images and clocks before writing. The renderer reuses the parent Python
 GraphyFlow/TX Typewriter style and verifies the supplied ZIP's SHA-256.
 The source-control preview is independent of all older frozen previews.
+
+## ARC Follow-Up: LJ08 Remains Missing
+
+ZFS ARC is normally reclaimed automatically; no cache purge or global ZFS
+change was requested or performed. `MemAvailable` alone was too conservative
+as an admission test, so the explicit board policies also observe discounted
+clean evictable ARC, enforce cgroup limits and supervise memory pressure.
+
+The separate `zfs-arc-clean-half-settle10-v1` LJ08 attempt also stopped:
+full PSI remained above our 1% guard for ten seconds. At the final observation,
+`MemAvailable` was 19,433,537,536 bytes, the policy's discounted effective
+headroom was 59,164,557,824 bytes and full PSI was 1.23%. The child peak was
+20,295,331,840 bytes. All cgroup high/max/OOM counters were zero. This was
+our pressure-protection decision, not evidence of OOM or a measured speedup.
+The guard thresholds are our operational policy, not an OpenZFS guarantee.
+This result does not justify repeatedly relaxing them until a run passes.
+
+Preserved receipts on the run host:
+
+- `/data/chuxiao/checks/source-retention-repair-20261104/respr-dual-arc-lj08-settle-v5/lj08/results.json`:
+  `FAILED_RETAINED`, SHA-256 `ef1c4ac1437d453f36b867898373fbd57fdc89825b3ddf14f4b7c822cc6f4c1a`.
+- Sibling `../matrix.json`: `RETAINED_INCOMPLETE_MATRIX`, SHA-256
+  `dccbcf1ce74bdd597c8a4d544b56f6ec39597e381de160e731644007dac63135`.
+- The dependent correction retime produced no accepted pair; its
+  `/data/chuxiao/checks/source-retention-repair-20261104/respr-host-correction-arc-lj08-settle-v5/matrix.json`
+  records `FAILED_RETAINED` (`FileNotFoundError`), SHA-256
+  `a07032798f2cad6f32faa71c4a0bfcd05a908efc4ac136664d388414a93be829`.
+
+The frozen fifteen-pair checkpoint is unchanged. LJ08 ResPR is still missing;
+partial per-arm output is not a completed comparison. The independent CC
+[192-GiB build replacement](cc_resume_v2/README.md#launched-replacement) runs
+on the high-memory host without changing this local board policy.

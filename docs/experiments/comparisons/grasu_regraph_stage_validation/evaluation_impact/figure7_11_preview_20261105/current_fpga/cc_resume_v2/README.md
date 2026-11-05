@@ -42,3 +42,36 @@ select `--resume-memory-profile 192g-v1`; clean completion, exact unit and
 invocation, original ABI log, artifact hashes, correctness smoke and the
 resident comparison remain separate gates. Pending routing or the old
 104-GiB failure cannot supply a CC speedup bar.
+
+## Launched Replacement
+
+The replacement passed atomic admission with 518,656,262,144 available
+bytes, no competing compiler reservations and 352,187,318,272 required
+bytes (192-GiB tree + 128-GiB reserve + 8-GiB background). Its first saved
+checkpoint is `BUILDING`, not a route or board-test completion.
+
+| Task | Exact unit / invocation |
+| --- | --- |
+| Remote build | `spine-cc-stream-admit-resume-20261105-v2.service` / `399a1a48cab642a5ade18796812f1aba` |
+| Local collector and AU correctness/comparison | `spine-retention-cc-au-stream-resume-20261105-v2.service` / `579a21c92f744ee6a636a3cb399accd5` |
+| Local follow-up matrix | `gr-retention-cc-stream-resume-matrix-20261105-v3.service` / `035b0877640e437c913ab4230c77223f` |
+
+All three use fresh, detached source `c3db0f54`. The remote source is
+`/data/chuxiao/fig8-portable-20261105/cc-build-budget-192-c3db0f54`;
+local followers use `/data/chuxiao/worktrees/spine-cc-resume-192-c3db0f54`.
+The frozen HLS build ABI remains
+`caa178a765083ba21d6a6e3e900171f09a3e19957360db60af87f3c8fb869574`.
+
+Live output paths are:
+
+- Remote: `/data/chuxiao/cc-stream-resume-20261105-v2/execution.json`
+  and sibling `build.log`.
+- Collector: `/data/chuxiao/checks/source-retention-repair-20261104/cc-au-stream-resume-20261105-v2/results.json`.
+- Follow-up: `/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-stream-resume-matrix-v3/`.
+
+The collector retains its 24/22-GiB max/high, zero-swap limit and an 18-hour
+wait. It explicitly selects `192g-v1` when validating remote completion.
+The matrix supervisor has a 2-GiB limit and still waits for the exact
+collector invocation and correct AU result before requesting other cases.
+Board leases, per-child admission and correctness gates remain mandatory.
+These queued follow-ups are not a promise that routing or all tests finish.
