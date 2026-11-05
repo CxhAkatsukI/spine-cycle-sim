@@ -18,6 +18,8 @@ are included; large graphs, FPGA images and toolchains are indexed by hash.
 
 The CC batch has eight logical undirected insertions, stored as sixteen
 directed records on each arm. The SSSP and ResPR batches have eight records.
+CC receipts use the host-pack-to-final-readback boundary for the resident
+old graph; SSSP and ResPR retain their resident-update-to-readback labels.
 Fig. 7 does not charge the initial G+R frontier packing inside its timer;
 Spine source-list construction is inside. The selected ResPR correction
 cache is built from old graph/rank outside the timer, with its cost reported

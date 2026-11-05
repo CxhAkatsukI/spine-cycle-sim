@@ -22,10 +22,11 @@ class EvaluationArchiveTests(unittest.TestCase):
         files[str(self.resident / "scope.json")] = json.dumps(scope).encode()
         files[str(review.FRESH)] = json.dumps(dict(
             fpga_stage_calibrated=False, no_holdout_used_for_fit=True, executions=42)).encode()
-        rows = [dict(algorithm=algorithm, dataset=dataset, status="MEASURED", boundary=review.BOUNDARY,
+        rows = [dict(algorithm=algorithm, dataset=dataset, status="MEASURED", boundary=review.BOUNDARIES[algorithm],
                      spine_wall_ms="2", gr_wall_ms="4", speedup_gr_over_spine="2", receipt_sha256="a" * 64)
                 for algorithm in review.ALGORITHMS for dataset in review.DATASETS]
-        rows[1].update(gr_wall_ms="1", speedup_gr_over_spine=".5")
+        next(row for row in rows if row["algorithm"] == "cc").update(
+            gr_wall_ms="1", speedup_gr_over_spine=".5")
         rows[2].update(gr_wall_ms="2", speedup_gr_over_spine="1")
         if pending:
             rows[-1].update(status="LAYOUT_FAILURE", spine_wall_ms="", gr_wall_ms="", speedup_gr_over_spine="")
@@ -54,6 +55,7 @@ class EvaluationArchiveTests(unittest.TestCase):
             self.assertEqual(summary["complete"], not pending)
             self.assertFalse(summary["all_pairs_spine_wins"])
             self.assertEqual(len(summary["spine_wins"]), 21 if pending else 22)
+            self.assertEqual(summary["gr_wins"][0]["algorithm"], "cc")
             self.assertEqual(summary["gr_wins"][0]["speedup_gr_over_spine"], .5)
             self.assertEqual(len(summary["ties"]), 1)
             self.assertEqual([row["status"] for row in summary["unmeasured"]],
@@ -64,7 +66,15 @@ class EvaluationArchiveTests(unittest.TestCase):
         files[str(review.CONTROLS)] = b"other"
         with self.assertRaisesRegex(ValueError, "not exported against"):
             review.checkpoint(self.name, files.__getitem__)
-        rows[1]["speedup_gr_over_spine"] = "2"
+        next(row for row in rows if row["algorithm"] == "cc")["speedup_gr_over_spine"] = "2"
+        self.write_rows(files, rows)
+        with self.assertRaisesRegex(ValueError, "timing, boundary or receipt"):
+            review.checkpoint(self.name, files.__getitem__)
+
+    def test_rejects_substituted_cc_timing_boundary(self):
+        files, rows = self.fixture()
+        cc = next(row for row in rows if row["algorithm"] == "cc")
+        cc["boundary"] = review.BOUNDARIES["weighted_sssp"]
         self.write_rows(files, rows)
         with self.assertRaisesRegex(ValueError, "timing, boundary or receipt"):
             review.checkpoint(self.name, files.__getitem__)

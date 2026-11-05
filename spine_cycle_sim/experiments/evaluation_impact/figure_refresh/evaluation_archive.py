@@ -25,7 +25,11 @@ CONTROLS = RESIDENT / "gr_controls.csv"
 FRESH = HANDOFF / "fresh_simulator/fresh_summary.json"
 ALGORITHMS = ("weighted_sssp", "cc", "residual_pagerank")
 DATASETS = ("AU", "SU", "WK", "SO", "PK", "LJ", "LJ08", "R19")
-BOUNDARY = "resident_update_to_final_readback_wall_including_host_relaunch"
+BOUNDARIES = {
+    "weighted_sssp": "resident_update_to_final_readback_wall_including_host_relaunch",
+    "cc": "resident_old_graph_host_pack_to_final_readback",
+    "residual_pagerank": "resident_update_to_final_readback_wall_including_host_relaunch",
+}
 
 
 def resident_path(name):
@@ -61,7 +65,7 @@ def checkpoint(name, read):
             outcomes["unmeasured"].append(dict(case, status=row["status"]))
             continue
         spine, gr, ratio = (float(row[field]) for field in fields)
-        if (row["boundary"] != BOUNDARY or not re.fullmatch(r"[0-9a-f]{64}", row["receipt_sha256"])
+        if (row["boundary"] != BOUNDARIES[algorithm] or not re.fullmatch(r"[0-9a-f]{64}", row["receipt_sha256"])
                 or not all(math.isfinite(value) and value > 0 for value in (spine, gr, ratio))
                 or not math.isclose(gr / spine, ratio, rel_tol=1e-9, abs_tol=0)):
             raise ValueError("Fig. 7 timing, boundary or receipt pin is invalid")
