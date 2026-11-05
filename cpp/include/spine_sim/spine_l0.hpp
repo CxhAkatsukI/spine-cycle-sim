@@ -399,14 +399,17 @@ struct SpineResidentClassification {
 };
 
 [[nodiscard]] SpineResidentClassification classify_spine_resident_snapshot(
-    const SpineEdgeSlice &snapshot, const SpineL0Config &config);
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config,
+    std::size_t minimum_level = 2);
 
 // Offline/bootstrap placement for an interval-zero resident graph. This
-// mirrors the routed HLS host's compacted L2-L10 placement and degree-based
-// hot/cold policy, then updates config.hot_vertices to match the returned state.
+// mirrors the HLS host's compacted placement and degree-based hot/cold policy,
+// then updates config.hot_vertices. Raising minimum_level reserves lower levels
+// for updates and reduces the classifier's usable bootstrap capacity as well.
 [[nodiscard]] SpineL0State preload_spine_resident_snapshot(
     const SpineEdgeSlice &snapshot, SpineL0Config &config,
-    SpineResidentClassification *classification = nullptr);
+    SpineResidentClassification *classification = nullptr,
+    std::size_t minimum_level = 2);
 
 // Reproduce the frozen refactor31 host's cold-only resident placement. The
 // lowest level at or above min_level that fits every destination family is

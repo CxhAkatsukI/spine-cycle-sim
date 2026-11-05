@@ -8,9 +8,17 @@ import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.evaluation_impact.figure_refresh import analysis
+from spine_cycle_sim.experiments.evaluation_impact.figure_refresh import persistent_study
 
 
 class PersistentFigureRefreshTests(unittest.TestCase):
+    def test_preload_policy_rejects_invalid_values_before_running(self):
+        for value in (True, False, 0, 1, 11, 4.0, "4", None):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "integer in L2-L10"):
+                    persistent_study.run(None, None, 0, 4096,
+                                         preload_minimum_level=value)
+
     def test_host_single_pass_identity_and_conserved_payload(self):
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp) / "stdout"

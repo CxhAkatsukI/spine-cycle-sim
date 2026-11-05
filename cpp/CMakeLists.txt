@@ -105,6 +105,13 @@ target_compile_options(persistent_update_host_benchmark PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 if(BUILD_TESTING)
+  add_executable(spine_resident_preload_tests
+    tests/spine_resident_preload_tests.cpp)
+  target_link_libraries(spine_resident_preload_tests PRIVATE spine_cycle_core)
+  target_compile_options(spine_resident_preload_tests PRIVATE
+    -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME spine_resident_preload_tests COMMAND spine_resident_preload_tests)
+
   add_executable(figure_refresh_update_failure_tests
     tests/evaluation_impact/figure_refresh/update_failure_tests.cpp)
   target_link_libraries(figure_refresh_update_failure_tests PRIVATE spine_cycle_core)

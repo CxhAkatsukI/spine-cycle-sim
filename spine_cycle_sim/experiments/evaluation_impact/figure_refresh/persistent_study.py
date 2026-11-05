@@ -14,7 +14,10 @@ from . import analysis, environment, study
 
 
 def run(output, manifest, cpu, update_count, batch_count=10,
-        memory_profile=runtime.FRESH_CPU, admission_wait_seconds=600, execution_environment=None):
+        memory_profile=runtime.FRESH_CPU, admission_wait_seconds=600, execution_environment=None,
+        preload_minimum_level=2):
+    if type(preload_minimum_level) is not int or not 2 <= preload_minimum_level <= 10:
+        raise ValueError("Spine preload minimum level must be an integer in L2-L10")
     if cpu not in os.sched_getaffinity(0):
         raise ValueError("CPU outside allowed affinity")
     case = json.loads(manifest.read_text())
@@ -36,6 +39,7 @@ def run(output, manifest, cpu, update_count, batch_count=10,
                      if p.is_file() and p.suffix in (".cpp", ".hpp", ".py"))
     output.mkdir(parents=True, exist_ok=False)
     report = dict(status="RUNNING", cpu=cpu, host_included=True, steps={}, rows={},
+                  spine_preload_minimum_level=preload_minimum_level,
                   environment=execution.description(),
                   comparisons={}, compiler_version=subprocess.check_output([str(compiler), "--version"], text=True),
                   boundary="one initial layout/upload plus chronological batch packing/upload, per-batch launch/sync and device maintenance; no propagation",
@@ -73,9 +77,9 @@ def run(output, manifest, cpu, update_count, batch_count=10,
                     "-DCMAKE_CXX_COMPILER=" + str(compiler)], 120)
             execute("core", ["cmake", "--build", str(build), "--parallel", "2", "--target",
                     "spine_cycle_core", "original_regraph_cycle", "grasu_cycle_tests",
-                    "grasu_resident_tests"], 650)
+                    "grasu_resident_tests", "spine_resident_preload_tests"], 650)
             execute("core_tests", ["ctest", "--test-dir", str(build), "--output-on-failure",
-                    "-R", "^grasu_(cycle|resident)_tests$"], 180)
+                    "-R", "^(grasu_(cycle|resident)_tests|spine_resident_preload_tests)$"], 180)
             plugin = build / "libfigure_refresh.so"
             execute("plugin", study.plugin_command(compiler, build / "cpp", plugin,
                 sst_include=execution.sst_include, dram=execution.dram), 240)
@@ -93,6 +97,7 @@ def run(output, manifest, cpu, update_count, batch_count=10,
                     config = directory / "config.json"
                     atomic_write_json(config, dict(mode="update", arm=arm, graph=graph,
                         updates=updates, batches=batches, output=str(directory),
+                        preload_minimum_level=preload_minimum_level,
                         dram_config=str(dram_config), maximum=150000000))
                     step = execute(name, execution.sst_command(cpu=cpu, library=build,
                         configuration=sst_config, parameters=config), 900)
@@ -105,7 +110,8 @@ def run(output, manifest, cpu, update_count, batch_count=10,
                     host_directory.mkdir()
                     host_config = host_directory / "config.json"
                     atomic_write_json(host_config, dict(mode="host", arm=arm, graph=graph,
-                        updates=updates, batches=batches, output=str(host_directory)))
+                        updates=updates, batches=batches, output=str(host_directory),
+                        preload_minimum_level=preload_minimum_level))
                     host_step = execute(name + "_host", execution.sst_command(cpu=cpu,
                         library=build, configuration=sst_config, parameters=host_config), 900)
                     report["rows"][name]["host"] = analysis.persistent_host(
@@ -134,6 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--cpu", type=int, required=True)
     parser.add_argument("--update-count", type=int, required=True)
     parser.add_argument("--batch-count", type=int, default=10)
+    parser.add_argument("--preload-minimum-level", type=int, choices=range(2, 11), default=2)
     parser.add_argument("--memory-profile", choices=(runtime.FRESH_CPU, runtime.LARGE_CPU,
                                                     runtime.memory_profiles.SEELE),
                         default=runtime.FRESH_CPU)
@@ -149,4 +156,5 @@ if __name__ == "__main__":
         for name in ("compiler", "sst", "sst_include", "dram", "python_home", "python_library")
         for value in (getattr(args, name),)})
     run(args.output.resolve(), args.manifest.resolve(), args.cpu, args.update_count,
-        args.batch_count, args.memory_profile, args.admission_wait_seconds, execution)
+        args.batch_count, args.memory_profile, args.admission_wait_seconds, execution,
+        args.preload_minimum_level)

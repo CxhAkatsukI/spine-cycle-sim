@@ -26,11 +26,15 @@ class Refresh final : public SST::Component {
       require((mode == "update" || mode == "propagation" || mode == "host") &&
           (arm == "spine" || arm == "gr"), "invalid refresh mode or arm");
       const auto batches = params_.find<std::size_t>("batches", 1);
+      const auto preload_level = params_.find<std::size_t>("preload_minimum_level", 2);
+      require(preload_level >= 2 && preload_level < 11, "preload minimum must be in L2-L10");
+      require(preload_level == 2 || (mode != "propagation" && batches > 1),
+              "nondefault preload is supported only by persistent update/host runs");
       require(batches == 1 || mode != "propagation", "propagation requires one batch");
       const auto input = load(params_.find<std::string>("graph", ""),
           params_.find<std::string>("updates", ""), params_.find<std::uint32_t>("root", 0), mode == "propagation");
       const auto output = params_.find<std::string>("output", "");
-      if (mode == "host" && batches > 1) persistent_host(input, arm, batches);
+      if (mode == "host" && batches > 1) persistent_host(input, arm, batches, preload_level);
       else if (mode == "host") host(input, arm);
       else {
         Scheduler scheduler;
@@ -49,7 +53,8 @@ class Refresh final : public SST::Component {
         if (arm == "gr" && batches > 1) update_grasu(input, scheduler, clock, backend, maximum, batches);
         else if (arm == "gr") wc::integrated_with_backend(input, output, scheduler, clock, backend, false,
                                                      maximum, mode == "update");
-        else if (mode == "update") update_spine(input, scheduler, clock, backend, maximum, batches);
+        else if (mode == "update") update_spine(input, scheduler, clock, backend, maximum, batches,
+                                               preload_level);
         else wc::spine_with_backend(input, output, scheduler, clock, backend, maximum);
         backend.print_direct_stats();
         std::ofstream summary(output + "/backend.json");
@@ -67,6 +72,7 @@ class Refresh final : public SST::Component {
   SST_ELI_DOCUMENT_PARAMS({"mode", "update, propagation or host", ""}, {"arm", "gr or spine", ""},
       {"graph", "Materialized graph", ""}, {"updates", "Materialized batch", ""},
       {"batches", "Chronological batch count (update or host)", "1"},
+      {"preload_minimum_level", "Spine bootstrap lowest occupied level; reserves lower carry levels", "2"},
       {"root", "Source vertex", "0"}, {"output", "Fresh output directory", ""},
       {"dram_config", "DRAMSim3 configuration", ""}, {"maximum", "Finite cycle budget", "150000000"})
  private:

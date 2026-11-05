@@ -17,6 +17,8 @@
 
 ## Component Details
 
+- Initial placement: [resident bootstrap headroom](resident_bootstrap_headroom.md),
+  explicit finite-capacity lower-level reservation for persistent updates.
 - Maintenance: [L0 writer](spine_online_l0_writer_20260724.md),
   [carry writer](spine_online_carry_writer_20260724.md), and
   [exact maintenance result](spine_exact_maintenance_result_20260724.md).

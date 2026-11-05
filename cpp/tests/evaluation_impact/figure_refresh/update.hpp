@@ -9,11 +9,12 @@
 namespace figure_refresh {
 inline void update_spine(const wc::Input& input, Scheduler& scheduler, ClockId clock,
                          MemoryBackend& backend, std::uint64_t maximum,
-                         std::size_t batches) {
+                         std::size_t batches, std::size_t preload_minimum_level = 2) {
   const auto trace = slice(input, true);
   require(batches > 0 && batches <= trace.edges.size(), "batch count would create empty batches");
   auto config = spine_config();
-  auto state = preload_spine_resident_snapshot(slice(input, false), config);
+  auto state = preload_spine_resident_snapshot(slice(input, false), config, nullptr,
+                                              preload_minimum_level);
   std::vector<std::unique_ptr<FixedAxiPort>> graph;
   SpineL0Ports ports;
   for (std::size_t i = 0; i < ports.graph.size(); ++i) {

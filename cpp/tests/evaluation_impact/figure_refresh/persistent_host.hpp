@@ -23,10 +23,12 @@ struct PersistentHostWork {
   std::vector<std::uint64_t> batch_bytes;
 };
 
-inline PersistentHostWork persistent_spine_host(const wc::Input& input, std::size_t count) {
+inline PersistentHostWork persistent_spine_host(const wc::Input& input, std::size_t count,
+                                               std::size_t preload_minimum_level = 2) {
   const auto start = HostClock::now();
   auto config = spine_config();
-  auto state = preload_spine_resident_snapshot(slice(input, false), config);
+  auto state = preload_spine_resident_snapshot(slice(input, false), config, nullptr,
+                                              preload_minimum_level);
   BootstrapCapture capture(config);
   constructor_image(state, SpineEdgeSlice{.vertices = input.after.compact.vertices, .edges = {},
       .case_name = "persistent-host-bootstrap"}, config);
@@ -99,9 +101,10 @@ inline PersistentHostWork persistent_grasu_host(const wc::Input& input, std::siz
   return work;
 }
 
-inline void persistent_host(const wc::Input& input, const std::string& arm, std::size_t count) {
+inline void persistent_host(const wc::Input& input, const std::string& arm, std::size_t count,
+                            std::size_t preload_minimum_level = 2) {
   require(count > 1 && count <= input.updates.size(), "nonempty persistent host batches required");
-  const auto work = arm == "spine" ? persistent_spine_host(input, count)
+  const auto work = arm == "spine" ? persistent_spine_host(input, count, preload_minimum_level)
                                     : persistent_grasu_host(input, count);
   std::cout << "HOST_RESULT {\"arm\":\"" << arm << "\",\"repeat\":0,\"batches\":" << count
       << ",\"updates\":" << input.updates.size() << ",\"nanoseconds\":" << work.total_ns

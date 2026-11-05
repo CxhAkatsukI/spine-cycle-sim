@@ -776,7 +776,8 @@ SpineLevelLayout spine_slice_layout(const SpineL0Config &config, bool hot,
 }
 
 SpineResidentClassification classify_spine_resident_snapshot(
-    const SpineEdgeSlice &snapshot, const SpineL0Config &config) {
+    const SpineEdgeSlice &snapshot, const SpineL0Config &config,
+    std::size_t minimum_level) {
   if (snapshot.vertices == 0 || snapshot.vertices > config.max_vertices ||
       config.partitions != 16 || config.levels != 11 ||
       config.vertex_partition_size == 0) {
@@ -784,13 +785,12 @@ SpineResidentClassification classify_spine_resident_snapshot(
         "invalid Spine resident hot/cold classification request");
   }
 
-  constexpr std::size_t kCompactedMinimumLevel = 2;
-  if (config.levels <= kCompactedMinimumLevel) {
+  if (minimum_level < 2 || config.levels <= minimum_level) {
     throw std::invalid_argument(
-        "Spine resident compacted preload requires L2 or above");
+        "Spine resident compacted preload requires a minimum level in L2-L10");
   }
   SpineResidentClassification result;
-  for (std::size_t level = kCompactedMinimumLevel; level < config.levels;
+  for (std::size_t level = minimum_level; level < config.levels;
        ++level) {
     const std::uint64_t capacity =
         spine_level_layout(config, false, level).edge_capacity;
@@ -930,7 +930,7 @@ SpineResidentClassification classify_spine_resident_snapshot(
     if (edge_count == 0) {
       return std::size_t{0};
     }
-    for (std::size_t level = kCompactedMinimumLevel; level < config.levels;
+    for (std::size_t level = minimum_level; level < config.levels;
          ++level) {
       if (edge_count <=
           spine_level_layout(config, false, level).edge_capacity) {
@@ -940,7 +940,7 @@ SpineResidentClassification classify_spine_resident_snapshot(
     std::uint64_t remaining = edge_count;
     std::size_t occupied = 0;
     for (std::size_t level = config.levels;
-         level-- > kCompactedMinimumLevel && remaining != 0;) {
+         level-- > minimum_level && remaining != 0;) {
       const std::uint64_t assigned = std::min(
           remaining, spine_level_layout(config, false, level).edge_capacity);
       if (assigned != 0) {
@@ -977,9 +977,9 @@ SpineResidentClassification classify_spine_resident_snapshot(
 
 SpineL0State preload_spine_resident_snapshot(
     const SpineEdgeSlice &snapshot, SpineL0Config &config,
-    SpineResidentClassification *classification) {
+    SpineResidentClassification *classification, std::size_t minimum_level) {
   SpineResidentClassification resident =
-      classify_spine_resident_snapshot(snapshot, config);
+      classify_spine_resident_snapshot(snapshot, config, minimum_level);
   config.hot_vertices = resident.hot_vertices;
   SpineL0State state;
   state.hot_vertices.insert(config.hot_vertices.begin(),
@@ -1017,9 +1017,8 @@ SpineL0State preload_spine_resident_snapshot(
       }
       std::sort(edges.begin(), edges.end(), edge_less);
 
-      constexpr std::size_t kCompactedMinimumLevel = 2;
       std::uint64_t total_capacity = 0;
-      for (std::size_t level = kCompactedMinimumLevel;
+      for (std::size_t level = minimum_level;
            level < config.levels; ++level) {
         const std::uint64_t capacity =
             spine_level_layout(config, hot, level).edge_capacity;
@@ -1037,7 +1036,7 @@ SpineL0State preload_spine_resident_snapshot(
 
       std::vector<std::size_t> plan(config.levels, 0);
       bool single_level = false;
-      for (std::size_t level = kCompactedMinimumLevel;
+      for (std::size_t level = minimum_level;
            level < config.levels; ++level) {
         if (edges.size() <=
             spine_level_layout(config, hot, level).edge_capacity) {
@@ -1049,7 +1048,7 @@ SpineL0State preload_spine_resident_snapshot(
       if (!single_level) {
         std::size_t remaining = edges.size();
         for (std::size_t level = config.levels;
-             level-- > kCompactedMinimumLevel && remaining != 0;) {
+             level-- > minimum_level && remaining != 0;) {
           const std::size_t assigned = static_cast<std::size_t>(
               std::min<std::uint64_t>(
                   remaining,
@@ -1065,7 +1064,7 @@ SpineL0State preload_spine_resident_snapshot(
 
       std::size_t cursor = 0;
       for (std::size_t level = config.levels;
-           level-- > kCompactedMinimumLevel;) {
+           level-- > minimum_level;) {
         const std::size_t count = plan[level];
         if (count == 0) {
           continue;
