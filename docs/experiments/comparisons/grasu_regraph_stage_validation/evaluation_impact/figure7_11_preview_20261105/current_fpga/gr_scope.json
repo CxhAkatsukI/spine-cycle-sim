@@ -1,0 +1,944 @@
+{
+  "status": "REPLAYED_CURRENT_STAGE_CONTROLS",
+  "rows": 11,
+  "criterion": "current/public <= 1.15, not absolute +/-15% parity",
+  "publication_throughput_reproduced": false,
+  "convergence_measured": false,
+  "boundary": "resident update-CU span (G); resident adapter+R superstep span (R)",
+  "clock_note": "ResPR both arms at 140/500/430 MHz; nominal route timing failed",
+  "excluded_large_evidence": "graphs, state arrays, binaries and large reports indexed by hash",
+  "inputs": [
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-resident-matrix-banked-v4/matrix.json",
+      "sha256": "5aa118cacd2baf7c279841bee62895b47155e9c24ac45860cb95364ecc199b39",
+      "bytes": 98455
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-au-source-bursts-resident-v8/results.json",
+      "sha256": "2222676a7e2993ae969b9dec2e54c3dfabedbbbe5bcf35f08e0e7ec833332a74",
+      "bytes": 28290
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/results.json",
+      "sha256": "6c72aef181c1c65d5263a76a630cbd34ccd2ceda1cde3b659b92c96622aa0135",
+      "bytes": 27420
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/results.json",
+      "sha256": "fe6784cbd3d42e59edf5d0a66e3847a4b58813aff57c9ad8b504cf0be8395e1e",
+      "bytes": 9728
+    }
+  ],
+  "artifact_index": [
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-resident-matrix-banked-v4/matrix.json",
+      "sha256": "5aa118cacd2baf7c279841bee62895b47155e9c24ac45860cb95364ecc199b39",
+      "bytes": 98455
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-au-source-bursts-resident-v8/results.json",
+      "sha256": "2222676a7e2993ae969b9dec2e54c3dfabedbbbe5bcf35f08e0e7ec833332a74",
+      "bytes": 28290
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/results.json",
+      "sha256": "6c72aef181c1c65d5263a76a630cbd34ccd2ceda1cde3b659b92c96622aa0135",
+      "bytes": 27420
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/results.json",
+      "sha256": "fe6784cbd3d42e59edf5d0a66e3847a4b58813aff57c9ad8b504cf0be8395e1e",
+      "bytes": 9728
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-active-pair-return-v3/pair/reference.stdout.txt",
+      "sha256": "24ef59f441caac07b9d18fccaa0f6809e78f7d9562f61bfbb4f0634d924ecfee",
+      "bytes": 25
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-active-pair-return-v3/pair/reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-active-pair-return-v3/pair/reference.clock.json",
+      "sha256": "e0916adb1310f6149552fe7d6d841491662f840b71177066169e5a849aa70417",
+      "bytes": 811
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-directory-spans-20261103/public-a4-sssp-v1/build/original_r_a4_weighted_sssp.hw.xclbin",
+      "sha256": "5185d9be6f0b889f8da107fb3a6d9b5d3d62d4affe4cfc6a1910833ddcfda3b4",
+      "bytes": 54677250
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-active-pair-return-v3/pair/reference.xclbin-info.txt",
+      "sha256": "15224fa282796aa34dfed7291b92cae0d2eee17dafd57b439e474ba42c2867cc",
+      "bytes": 35649
+    },
+    {
+      "path": "/opt/xilinx/xrt/bin/xclbinutil",
+      "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+      "bytes": 1294
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-banked-v3/pair/candidate.stdout.txt",
+      "sha256": "3832a3a88989f884a712711196b28c10d39eb87082273e816cec5771bfdeef03",
+      "bytes": 5940
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-banked-v3/pair/candidate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-banked-v3/pair/candidate.clock.json",
+      "sha256": "3cb6a12dd5e848cc72aee764c1414db0e50a4601cfb0234e080e84cc58911f09",
+      "bytes": 832
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+      "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+      "bytes": 79628218
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-banked-v3/pair/candidate.xclbin-info.txt",
+      "sha256": "618995eae103b307cbb322fc79bb552a47a8c8c391de77331e840de6e44516cd",
+      "bytes": 112291
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-odd-pair-return-v2/pair/reference.stdout.txt",
+      "sha256": "24ef59f441caac07b9d18fccaa0f6809e78f7d9562f61bfbb4f0634d924ecfee",
+      "bytes": 25
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-odd-pair-return-v2/pair/reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-odd-pair-return-v2/pair/reference.clock.json",
+      "sha256": "fa5f214a9b5e8f85540ee1cd3d54885d55a5912cb9c499d22283c403d10176c2",
+      "bytes": 808
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-odd-pair-return-v2/pair/reference.xclbin-info.txt",
+      "sha256": "15224fa282796aa34dfed7291b92cae0d2eee17dafd57b439e474ba42c2867cc",
+      "bytes": 35649
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-odd-banked-v3/pair/candidate.stdout.txt",
+      "sha256": "31cc3be66a00c3b4da070453e944a4bf636236dc01cd37bd42a316ef7adfe6e0",
+      "bytes": 5948
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-odd-banked-v3/pair/candidate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-odd-banked-v3/pair/candidate.clock.json",
+      "sha256": "7ede46bf8f2afb7f3644595c82be11982b24dbd585111b7c8716f3b2046c9c25",
+      "bytes": 836
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-odd-banked-v3/pair/candidate.xclbin-info.txt",
+      "sha256": "618995eae103b307cbb322fc79bb552a47a8c8c391de77331e840de6e44516cd",
+      "bytes": 112291
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-au903k-active-pair-v1/pair/reference.stdout.txt",
+      "sha256": "24ef59f441caac07b9d18fccaa0f6809e78f7d9562f61bfbb4f0634d924ecfee",
+      "bytes": 25
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-au903k-active-pair-v1/pair/reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-au903k-active-pair-v1/pair/reference.clock.json",
+      "sha256": "f556bb76aa532f0a6f5334f23ddaa5f9d1327d7dae1f9928fb3655a3e5e9dfff",
+      "bytes": 811
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-au903k-active-pair-v1/pair/reference.xclbin-info.txt",
+      "sha256": "15224fa282796aa34dfed7291b92cae0d2eee17dafd57b439e474ba42c2867cc",
+      "bytes": 35649
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-banked-bursts-au903k-v1/pair/candidate.stdout.txt",
+      "sha256": "ed378e9477ba6403f98792a4b2cff2c5ddce4e9f9f7d0ecd587e058c8beecf2f",
+      "bytes": 2302
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-banked-bursts-au903k-v1/pair/candidate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-banked-bursts-au903k-v1/pair/candidate.clock.json",
+      "sha256": "74c63dd53711b09b2d539d132eaf3b045facd53bfd17bb17bace457a549ec5f5",
+      "bytes": 839
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-banked-bursts-au903k-v1/pair/candidate.xclbin-info.txt",
+      "sha256": "618995eae103b307cbb322fc79bb552a47a8c8c391de77331e840de6e44516cd",
+      "bytes": 112291
+    },
+    {
+      "path": "/data/chuxiao/checks/gr-active-min-candidate-20261104-v1/weighted_sssp/sharded_k4_sssp_native_host",
+      "sha256": "8e5d95a07bf3166de28e9835bfd5cfddc3fcd62bbce8fd47bf8941b5eb8cafdd",
+      "bytes": 232424
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-banked-v3/pair/results.json",
+      "sha256": "1c63b6a364e38aca5e1d9112c9d7f8fb9ff707f08b31143a49f8872dded72481",
+      "bytes": 174380
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-amazon-banked-v3/pair/candidate.clock-raw.json",
+      "sha256": "48e7f15b0b0ec2423da16980d9c4b8c5ba0adc1ea9dfd684764bedff322fc929",
+      "bytes": 94
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/results.json",
+      "sha256": "06af729bdbf8371eddb71301f9e3db3ce33b62e41994350aaee17c5906d3d325",
+      "bytes": 98350
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+      "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+      "bytes": 6882
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/candidate.clock-raw.json",
+      "sha256": "48e7f15b0b0ec2423da16980d9c4b8c5ba0adc1ea9dfd684764bedff322fc929",
+      "bytes": 94
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-20261103-v1/campaign-v1/au_131072.graph",
+      "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+      "bytes": 8324454
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-host-v2/original_g_once",
+      "sha256": "ddca0262a475a1615ac87c673eb7911afdccd3fb8a3ffbc00b7c0e1173e7de0c",
+      "bytes": 134616
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-weighted-tail-board-admission/spine_cycle_sim/experiments/upstream_controls/grasu/hardware/board/active_min_candidate.py",
+      "sha256": "38c7f6a8a7086d0b1d4e21a3c88a14913d87903c6d2036c40f8f709ff4adf7ab",
+      "bytes": 12264
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/candidate.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/candidate.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/candidate.before.clock.json",
+      "sha256": "a1f09fd222b31137169f4e5f48e45297ceb3af805a890710675c98a827ccde4d",
+      "bytes": 829
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/candidate.xclbin-info.txt",
+      "sha256": "618995eae103b307cbb322fc79bb552a47a8c8c391de77331e840de6e44516cd",
+      "bytes": 112291
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/candidate.stdout.txt",
+      "sha256": "583165628306028ed50ad968424dc4a46cc23002d40f316ddda38d6f26db5f5d",
+      "bytes": 19482
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/candidate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/candidate.clock.json",
+      "sha256": "9486a771228469c6d62d94ff74c167cc561355e28d0885ac0868748a322c3482",
+      "bytes": 822
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-g-banked-v3/native-oracle.txt",
+      "sha256": "774fce9a0e5eb8a450a3468ebbe18d2c76de37c75a102d83f7f3056d0f7e1035",
+      "bytes": 69
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-g-external-port-return-follow-v7/returned/route/original_grasu.hw.xclbin",
+      "sha256": "89c682cea8520453abd9038f7b8026bdc27298ad768a05f069f91a69a691e6ed",
+      "bytes": 77595116
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/reference.clock-raw.json",
+      "sha256": "a627ed336a736505821b885b37e9e3fcf5e9eb64f257a625724ef5a8021d7b08",
+      "bytes": 94
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-host-v2/manifest.json",
+      "sha256": "d29836d63cbf7a3cf281e6dd6994b4353e570eba974c64b5f112e91ab2f07772",
+      "bytes": 5262
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-retention-notes-20261104/spine_cycle_sim/experiments/upstream_controls/grasu/hardware/board/reference_board.py",
+      "sha256": "c61f23a1f1555bc517345af683820724ae909439aabe6de426b9baad380600aa",
+      "bytes": 4721
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/reference.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/reference.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/reference.before.clock.json",
+      "sha256": "67446ee9c03cbb72d41fb4e055fd322daadebf8cdddf7d45929d46d0cc556df7",
+      "bytes": 842
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/reference.xclbin-info.txt",
+      "sha256": "85426928ecfb71fac59f91bd0718b5cb2aaf09ea9154df3e999d06938aaf30ea",
+      "bytes": 38541
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/reference.stdout.txt",
+      "sha256": "8f9d88f79e746fae93bd31898a5c2343411881cfe1faa542968b35d824f9130a",
+      "bytes": 7162
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/reference.clock.json",
+      "sha256": "fd2437d7e17ad7e31b93283907019293cc9a94b69b43f4d630e68b32841204a9",
+      "bytes": 835
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-pair-final/pair/reference.stdout.txt",
+      "sha256": "24ef59f441caac07b9d18fccaa0f6809e78f7d9562f61bfbb4f0634d924ecfee",
+      "bytes": 25
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-pair-final/pair/reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-pair-final/pair/reference.clock.json",
+      "sha256": "1b5b53cce9759b1c8530a5b3d3d518cc18f3a3a35dbb81f50faa062670023b06",
+      "bytes": 826
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v4-public-a4-cc-final/returned/original_r_a4_cc.hw.xclbin",
+      "sha256": "d8ccf7dfb051801dd052047a3d18f91a3beb351649a637bd07aada775acb15a0",
+      "bytes": 56755058
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-pair-final/pair/reference.xclbin-info.txt",
+      "sha256": "9e6e9c19e3559668287412e32eba89b2c8093dbba0c6036c20a529510ae2f9b9",
+      "bytes": 36521
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/candidate.stdout.txt",
+      "sha256": "2a08e66554bfa62e7d4e6ee1f91676eb0b37e4bb6a8bdae28fa042ae168d43f1",
+      "bytes": 5933
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/candidate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/candidate.clock.json",
+      "sha256": "e693e889359b48f761eaf973d6b0be9fdf84dcab606c6561e5eed161dbe83804",
+      "bytes": 847
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+      "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+      "bytes": 79624812
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/candidate.xclbin-info.txt",
+      "sha256": "4de5c11054047420eeee6ba0bcc5d8d6b11d1a2a8d05fd5a22b383e22f9c8c28",
+      "bytes": 112247
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-odd-pair-final/pair/reference.stdout.txt",
+      "sha256": "24ef59f441caac07b9d18fccaa0f6809e78f7d9562f61bfbb4f0634d924ecfee",
+      "bytes": 25
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-odd-pair-final/pair/reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-odd-pair-final/pair/reference.clock.json",
+      "sha256": "3383a3a6888872f85dd9ddc22bb987f02b425581779f8853a37d592c5e213a6a",
+      "bytes": 830
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-amazon-odd-pair-final/pair/reference.xclbin-info.txt",
+      "sha256": "9e6e9c19e3559668287412e32eba89b2c8093dbba0c6036c20a529510ae2f9b9",
+      "bytes": 36521
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/pair/candidate.stdout.txt",
+      "sha256": "3a3e07866cb1079976cd47fcfe9e3091d5c91b7d1bcee92f1f4d33dc9fa4c02b",
+      "bytes": 5943
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/pair/candidate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/pair/candidate.clock.json",
+      "sha256": "db03a9149b2c7a7ccd914526aec1e9b3ff12734129b570869d5e0fca4afb08be",
+      "bytes": 851
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/pair/candidate.xclbin-info.txt",
+      "sha256": "4de5c11054047420eeee6ba0bcc5d8d6b11d1a2a8d05fd5a22b383e22f9c8c28",
+      "bytes": 112247
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au903k-pair-final/pair/reference.stdout.txt",
+      "sha256": "24ef59f441caac07b9d18fccaa0f6809e78f7d9562f61bfbb4f0634d924ecfee",
+      "bytes": 25
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au903k-pair-final/pair/reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au903k-pair-final/pair/reference.clock.json",
+      "sha256": "44d234bf0206a9c8638c8befb8133c1f4eccaa265de844e358b4f306f2b264e6",
+      "bytes": 826
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-au903k-pair-final/pair/reference.xclbin-info.txt",
+      "sha256": "9e6e9c19e3559668287412e32eba89b2c8093dbba0c6036c20a529510ae2f9b9",
+      "bytes": 36521
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-au903k-pair-v1/pair/candidate.stdout.txt",
+      "sha256": "77b9879deb0a5082f926dd9ae128b090ea550319bc5c4d5300ad9f923178507b",
+      "bytes": 2297
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-au903k-pair-v1/pair/candidate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-au903k-pair-v1/pair/candidate.clock.json",
+      "sha256": "163fc7c7747762b5ce39f392e987e0c3218461b43d11dd17dd84e4de54b2f73b",
+      "bytes": 847
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-au903k-pair-v1/pair/candidate.xclbin-info.txt",
+      "sha256": "4de5c11054047420eeee6ba0bcc5d8d6b11d1a2a8d05fd5a22b383e22f9c8c28",
+      "bytes": 112247
+    },
+    {
+      "path": "/data/chuxiao/checks/gr-active-min-candidate-20261104-v1/connected_components/sharded_k4_cc_native_host",
+      "sha256": "b4106f1f5886bbf7374ddc19e693705018f127ba4e0b1e2be3065dffa178bf55",
+      "bytes": 232960
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/results.json",
+      "sha256": "dc0ee46d193836ef24905b846af00b0bba81db82db4e28d5dc68ec079b9de167",
+      "bytes": 70673
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/candidate.clock-raw.json",
+      "sha256": "25fe520c58cc79b06cd04eba5e9607bd6c4f5c017fa1d60018322fa6a639140c",
+      "bytes": 94
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/results.json",
+      "sha256": "259c8aa5a0142b95ecee6672e40f9ade932c1d974210414dbd46c06826e7fed7",
+      "bytes": 96940
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.clock-raw.json",
+      "sha256": "25fe520c58cc79b06cd04eba5e9607bd6c4f5c017fa1d60018322fa6a639140c",
+      "bytes": 94
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-retention-board-88260882/spine_cycle_sim/experiments/upstream_controls/grasu/hardware/board/active_min_candidate.py",
+      "sha256": "64ecffa8193d35eed154667c53abebb7ea823a9af40f86146f77e4a1a551c7d2",
+      "bytes": 12040
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.before.clock.json",
+      "sha256": "5915aebc2bc6a288599cfb0eb8858bd99e157caa7713d3fd2b829c99405aaa66",
+      "bytes": 838
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.xclbin-info.txt",
+      "sha256": "4de5c11054047420eeee6ba0bcc5d8d6b11d1a2a8d05fd5a22b383e22f9c8c28",
+      "bytes": 112247
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.stdout.txt",
+      "sha256": "c3f470ce84e36508a380b98db6eb218f877a834ed42023c73073f4c8ca93056d",
+      "bytes": 19482
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.clock.json",
+      "sha256": "d345c9060c510d6f2d9c5bf24496be97b5afc31948539a18318d0b02e6f8e15d",
+      "bytes": 831
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/native-oracle.txt",
+      "sha256": "774fce9a0e5eb8a450a3468ebbe18d2c76de37c75a102d83f7f3056d0f7e1035",
+      "bytes": 69
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-tail-degree-prefix-link-v1/manifest.json",
+      "sha256": "e5257f3e755121b46b13fce789f24f97f1ccdcb734579bfadfac94e5d16eb238",
+      "bytes": 45651
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/verify-clock-repackage-v1",
+      "sha256": "182dd19a63529bf7d3057a5f9ac94afa71cd7be6707a979c708ab2eadfe79d6b",
+      "bytes": 28040
+    },
+    {
+      "path": "/data/chuxiao/builds/gr-degree-prefix-20261105/native-host-v1/sharded_k4_residual_pagerank_native_host",
+      "sha256": "c367213917824a4d4427a23c562bab0a4619cd7ecd2602bef503e6a0a192b2fe",
+      "bytes": 221016
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/spine_cycle_sim/experiments/upstream_controls/grasu/hardware/board/dual_clock_candidate.py",
+      "sha256": "029bb4e19a58cf7bcaf5a827ab081dd211e69d784f6b1290890971383102e609",
+      "bytes": 7574
+    },
+    {
+      "path": "/opt/xilinx/xrt/lib/libxilinxopencl.so.2.18.179",
+      "sha256": "9f460ce2480f51c8bd086af15df8c0b7748663583d7dccee6cb8b56a0feb87e8",
+      "bytes": 1498976
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/results.json",
+      "sha256": "c132530b315bf5ffbbce417789b33d6f751c7f22f9662f3565a5770e7b5dd5d8",
+      "bytes": 31750
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/before-once/results.json",
+      "sha256": "61d4988ba5948015b9383d180dfe6e8c1940bf2053681e2fa671946c3cbbae0f",
+      "bytes": 14266
+    },
+    {
+      "path": "/data/chuxiao/checks/grasu-gap-control-20261026-host-v2",
+      "sha256": "472cb4ce7b7f494906bd1c022d01cecf33dabfb5e43cf98f111e31427d7a85b4",
+      "bytes": 146648
+    },
+    {
+      "path": "/data/chuxiao/checks/grasu-cache-extent-ab-20261026-v1/bounded-cache-independent/input.graph",
+      "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+      "bytes": 8324454
+    },
+    {
+      "path": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/sssp/grasu_regraph_weighted_pma_native_sharded_k4.hw.xclbin",
+      "sha256": "ed674b033c738506bd8ac32da9ab2b51e3e70e8925113aed048f50eb35dbf11e",
+      "bytes": 80080123
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/hosts-pinned/r_reference",
+      "sha256": "0c310096586b13a5791f1253e0db19f14941abda739d5eecd7e142f1077f5a3c",
+      "bytes": 107920
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/hosts-pinned/r_candidate",
+      "sha256": "71e79bd4df9e37ef380915487996ea58de226ec8f4d02f686c4a621ef90942a3",
+      "bytes": 152344
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/a4-source-route-v2/build/original_r_a4.hw.xclbin",
+      "sha256": "b19b89545306460298c080550860e8836d8e5beb71cf161d0eacee2aec60436e",
+      "bytes": 56032800
+    },
+    {
+      "path": "/data/chuxiao/builds/grasu-cache-extent-20261025/route-zfs-v2/respr/grasu_regraph_residual_pagerank.hw.xclbin",
+      "sha256": "c112e790c3cfd81c05b4059f1dc34fcee23bc36a94a995ba1c0d6d49280058c0",
+      "bytes": 80514108
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/csr_destinations.u32le",
+      "sha256": "6b07a8600029eac54f3d4f801011ab31ff4b00d5abc4055e63ebfdd00aebb4e7",
+      "bytes": 524548
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/csr_offsets.u32le",
+      "sha256": "25cdb4f6ec83af594faf55e6761b1abe2e22f6a2aa50e775202ffa923b37e8dc",
+      "bytes": 524296
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/degrees.u32le",
+      "sha256": "8266271e2b58e1370820e1d5c71b380e8d8ed48a8298fae0002f6d23ba679e2d",
+      "bytes": 786432
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/execution.u32le",
+      "sha256": "e59e8ae532aef2ab7635d1af930cc20a4dc87c1c23645e0fe461c4bb0016beb3",
+      "bytes": 416
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/initial.u32le",
+      "sha256": "713da263a02462123af106c8a3c1c4920e1a238f87c0d5dd9d2459859678ffd8",
+      "bytes": 786432
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/boundary_ring/tasks.u32le",
+      "sha256": "eea75f09656fd08bbfe329586b3733cf3bc96481360872ef64c1b86cad5cd896",
+      "bytes": 1050688
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/csr_destinations.u32le",
+      "sha256": "ef65bf4a55473a1b51ba8d772e26fdcea210e09408443ed104fbbee7c136d931",
+      "bytes": 32772
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/csr_offsets.u32le",
+      "sha256": "47d19baaa49aceee6bcab9ca624f97dc632af6b4a7e6c7113a75590856923c1b",
+      "bytes": 262152
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/degrees.u32le",
+      "sha256": "1e2f334279659b6cacfbb7cf3ac901502923edf0bd19692d17eb3bdcb7a26a2e",
+      "bytes": 524288
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/execution.u32le",
+      "sha256": "ac21cb1717fbc387fa4357d63261386d00acf5f99bb93a674c2a0b95ac9ef40a",
+      "bytes": 160
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/initial.u32le",
+      "sha256": "25a49d3cc1089a37c78da60ead5648ab98f8defdcf46d2efda48db19ac97febe",
+      "bytes": 524288
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/skewed_sources/tasks.u32le",
+      "sha256": "23815b72fe33530aadf7f14c62005d37ad38a05a2deb0fa187864bcf679def60",
+      "bytes": 65792
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/csr_destinations.u32le",
+      "sha256": "de451517a647469d39c327d1ff0810135d234e4215b368b41d8cbff27f3472e2",
+      "bytes": 20633552
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/csr_offsets.u32le",
+      "sha256": "7b43e4689360107f0d284a627166c87676726676f90a986ecdb6df7aec7a095e",
+      "bytes": 2941300
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/degrees.u32le",
+      "sha256": "a8b0eca0b556775f627f046b281fa89beba31962ab43f16beba0c84f2bf54072",
+      "bytes": 3145728
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/execution.u32le",
+      "sha256": "1ef46ed89f74b441583e6a92cb1d910440f1b353b27625ed41c6b828232be424",
+      "bytes": 1568
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/initial.u32le",
+      "sha256": "1c5549ce390b024758fd6653a615a2898a24349b62d72085aa3d20d5cf4813ce",
+      "bytes": 3145728
+    },
+    {
+      "path": "/data/chuxiao/experiments/baseline_hardware_validation_20261015/original-r-xrt-host-validation-v1/inputs/a4/amazon/tasks.u32le",
+      "sha256": "a4758acf27c8eb82981e23bf5d283056d7600d8225aa78217baae1f25e18472c",
+      "bytes": 41327424
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/hosts-tail-v1/r_reference",
+      "sha256": "0c310096586b13a5791f1253e0db19f14941abda739d5eecd7e142f1077f5a3c",
+      "bytes": 107920
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/hosts-tail-v1/r_candidate",
+      "sha256": "ba0326d7bb2340f24b2f42e4a2e84308c8aa5e94697d562c810c6e76106fd799",
+      "bytes": 152344
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-respr-tail-degree-prefix/returned/route/candidate.hw.xclbin",
+      "sha256": "3e769552f7cf515e2535ffaacf8f6060ec346e3e60caa967fce5d8f924593cb2",
+      "bytes": 80896372
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/route-admission/summary.json",
+      "sha256": "02dc7018c56da0d9f95e3bac9312e0bc69a9895a4bf18d832ad7c2a40d5b20fb",
+      "bytes": 441589
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/spine_cycle_sim/experiments/original_regraph_execution/hardware/source_retention/dual_clock_screen.py",
+      "sha256": "a520a17bb752cc986c2e19c532a8b3baab291f311acf84d0fb6dab15e697533c",
+      "bytes": 3470
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/reference-clock-copy/control.xclbin",
+      "sha256": "484a334da2b1bf63dbfb731b00e024d85ea2e67b210ecd7964b30129b4f8f36a",
+      "bytes": 77595116
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/current-clock-copy/control.xclbin",
+      "sha256": "2a754b0b195bf7c9d6635fce622844991852c25c2e090660a684c39a10107b63",
+      "bytes": 80896372
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/reference.stdout.txt",
+      "sha256": "117a5017d2a6fd858c6bb529545156d2f4b9b7be3cf989a3a1e35d44538035cc",
+      "bytes": 7162
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/reference.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/reference.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/reference.before.clock.json",
+      "sha256": "1e139290c47000dadc04c7a4b89febf2ae25dfb71d9f5b669b2f75e31c77c3d5",
+      "bytes": 837
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/reference.xclbin-info.txt",
+      "sha256": "de53538348c0c968623ce693d451ce48773e840e777b1d4f8813e0dd709f01f1",
+      "bytes": 38521
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/reference.clock.json",
+      "sha256": "7dcc5eac2fb3c47ade1dd68d61501166f994d944b3708d8d51dc21d880767ab8",
+      "bytes": 830
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/current.stdout.txt",
+      "sha256": "9ed35c07293f9b8878921f5d8ad33c950db8f64b357501332a186f2d42c8f828",
+      "bytes": 21303
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/current.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/current.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/current.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/current.before.clock.json",
+      "sha256": "b41e89083fff7b1ba9a0e19eb7e9e04ab3b5b83d1685223bf03739a07341f9ff",
+      "bytes": 831
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/current.xclbin-info.txt",
+      "sha256": "fda3e48501d7ec46b436d23525756d55fe2f077390d33f36323d3d3b7acaa103",
+      "bytes": 114191
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/current.clock.json",
+      "sha256": "a1a3c39e0af4cb2733444cc1b7700daecac7452088fa0420a2f7e2126a7115b7",
+      "bytes": 824
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-g-dual-clock-v1/native-oracle.txt",
+      "sha256": "56d0b2ee339b6994d3e01ff588f16e8bf086fed35f9a745ca808c4715c43e592",
+      "bytes": 114
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_reference.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_reference.clock.json",
+      "sha256": "b2983116e38f6084c3f0a9fd039c9ef25e6464800cf9b7635535c778ff23cd9f",
+      "bytes": 854
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/reference-clock-copy/control.xclbin",
+      "sha256": "7bc2dd119e8f23b8a202c0d7954e3bc6c20ae0f007905fe8ec321958399539b3",
+      "bytes": 56032800
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_reference.xclbin-info.txt",
+      "sha256": "8bd5c0c10b1b6a94376a098570b455aaa14850cf233591ceee5375157972c057",
+      "bytes": 35914
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_reference.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_reference.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_reference.before.clock.json",
+      "sha256": "8a443e447e63e74949c2ee6795cb354e612f01e40047ee68f5ccb18130468eec",
+      "bytes": 861
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_reference/result.json",
+      "sha256": "a771f867acb91bbc57b2d242aa10edc7a92c398aa42db5b56a4a09cdee0794f7",
+      "bytes": 1366
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_current.stdout.txt",
+      "sha256": "95f4c95a9b30db31c13fdd8a0ccaf856d14e77aef4c4af4658ce13a161dd27d7",
+      "bytes": 844
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_current.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_current.clock.json",
+      "sha256": "d064f42c33d7fb4cb8d0a2185027aa1535edc73e7d89d16e79a2f570513d309e",
+      "bytes": 850
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_current.xclbin-info.txt",
+      "sha256": "fda3e48501d7ec46b436d23525756d55fe2f077390d33f36323d3d3b7acaa103",
+      "bytes": 114191
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_current.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_current.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_skewed_sources_current.before.clock.json",
+      "sha256": "eab66e76d371e731350fe0d8ca2afc14d48b28bc846ec49e4e305c2c3811e52f",
+      "bytes": 857
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_reference.stdout.txt",
+      "sha256": "3ff133e288ee0d7ae67fd2d6dcc85c9a41cf40892e6ae991d5eef83e084e7b75",
+      "bytes": 38
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_reference.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_reference.clock.json",
+      "sha256": "74dae6415a8a430d01638725d4bdfc4bff5294421a789c82d8ff596dfeecd649",
+      "bytes": 846
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_reference.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_reference.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_reference.before.clock.json",
+      "sha256": "9b270dc3a6e63acaf770aea3a46c1829e3494aad1338a57cc3f912b1ae9ce42b",
+      "bytes": 853
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_reference/result.json",
+      "sha256": "8689c7a61bda2d6fde2e99dd7bef869df8881650c5afb9366b5ecf5f1a2775a8",
+      "bytes": 6955
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_current.stdout.txt",
+      "sha256": "705667ff88c154db3321426f961e3fa327e0415fd3cf62c7c0512aced441121f",
+      "bytes": 3328
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_current.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_current.clock.json",
+      "sha256": "8f1f0647591e3383078a4f1de61a1446dd31e2531078c9d9cb1c3feaf9be920d",
+      "bytes": 842
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_current.program.stdout.txt",
+      "sha256": "dd037ef5a5f3f6f4ae52929ab393d6f11e6db5144016030771f6794267a8dcec",
+      "bytes": 48
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_current.program.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/board-once/r_amazon_current.before.clock.json",
+      "sha256": "1b07f5571ca0ee2052a0d9d58d481a53444c1404f4851b2a258517863ba9ba4c",
+      "bytes": 849
+    }
+  ]
+}

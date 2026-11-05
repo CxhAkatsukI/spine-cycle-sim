@@ -2,6 +2,15 @@
 
 ## November 5 Fresh Checkpoint
 
+Start with the [current FPGA G/R controls](current_fpga/README.md) and
+[current resident FPGA checkpoint](current_fpga/resident_checkpoint_v1/README.md).
+The former contains eleven replayed controls on the exact current baseline
+images: all eight R points are within absolute +/-15%, and all three G points
+are faster than their public-source ports. The latter has **13 of 24** measured
+Fig. 7 pairs: all eight SSSP and five ResPR cases favor Spine. Eight CC and three
+ResPR cases remain pending, not zero-speedup measurements. The grouped preview
+uses one algorithm series per dataset, as requested.
+
 The [fresh simulator data and previews](fresh_simulator/README.md) come from new
 executions and replayed analysis, not the older CSV files listed below. Fig. 8
 currently contains AU/SU/WK ten-batch pairs and all three fixed-total batch
@@ -14,9 +23,15 @@ G/R controls: G 10.957 vs. 19.166 ms; R Amazon +0.53%, skew -9.41% relative
 to the public-source A4 port. These are one-sample, at-most-15%-slower checks,
 not a reproduction of publication throughput or absolute +/-15% parity. The
 150-MHz route missed timing; the two arms were both explicitly derated. The
-new resident matrix is still running. Its first five rows contain a PK loss:
-Spine 102.13 vs. G+R 75.73 ms. A separate compact Flickr propagation case
-also loses (35.08 vs. 4.76 ms). Both remain evidence, not omitted outliers.
+new resident matrix is still running. The original host lost on PK (Spine
+102.13 vs. G+R 75.73 ms). An independently qualified, bit-exact host correction
+cache removes the per-batch full-graph correction rebuild; the five completed
+retimes now favor Spine, **1.51x--13.07x**, against reused frozen G+R samples.
+The cache uses only the old graph/rank, prepares outside the resident timer,
+and reports that preparation separately. All five have zero nonempty
+propagation rounds, so they do not demonstrate propagation speedup. A separate
+compact Flickr propagation case still loses (35.08 vs. 4.76 ms). The original
+PK loss and Flickr loss both remain evidence, not omitted outliers.
 
 The CC replacement route and its queued follow-ups are not measurements yet.
 The SSSP eight-row all-win result below is measured on its exact admitted
@@ -54,6 +69,11 @@ G+R's timer and the corresponding source-list construction is inside
 Spine's. The archive includes clocks, logs and hash-pinned comparison
 receipts. It does not duplicate the large final state dumps, input graphs,
 host binaries or xclbins; their paths and hashes are in the receipts.
+
+The following stage-control paragraphs describe the **older** previews in
+the table above. The current degree-prefix ResPR G time and the corrected
+resident checkpoint are linked at the top; do not use the old ResPR 7.27x
+slowdown as the latest source-retention result.
 
 G measures the first-to-last update-CU event span, including gaps between
 shards but excluding input residency and final readback. The public GraSU

@@ -4,6 +4,10 @@ The current November 5 campaign includes FPGA source-retention controls and
 paired board measurements, alongside separately identified simulator runs.
 Start with the [dated plot/evidence index](figure7_11_preview_20261105/README.md)
 and its [fresh simulator checkpoint](figure7_11_preview_20261105/fresh_simulator/README.md).
+The [current source-control table](figure7_11_preview_20261105/current_fpga/README.md)
+has eleven admitted G/R points, and the separate
+[resident FPGA checkpoint](figure7_11_preview_20261105/current_fpga/resident_checkpoint_v1/README.md)
+has 13 measured pairs (eight SSSP, five ResPR), with eleven pending slots.
 CC replacement routing and the full ResPR matrix remain in progress; this is
 not a completed three-algorithm, all-win hardware handoff. Historical simulator
 diagnostics below retain their original scope and decisions.
