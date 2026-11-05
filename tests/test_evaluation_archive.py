@@ -2,6 +2,7 @@ import csv
 import io
 import json
 from pathlib import Path
+import tarfile
 from tempfile import TemporaryDirectory
 import unittest
 
@@ -22,8 +23,16 @@ class EvaluationArchiveTests(unittest.TestCase):
         files[str(self.resident / "scope.json")] = json.dumps(scope).encode()
         files[str(review.FRESH)] = json.dumps(dict(
             fpga_stage_calibrated=False, no_holdout_used_for_fit=True, executions=42)).encode()
+        receipt = b'{"status":"fixture"}'
+        bundle = io.BytesIO()
+        with tarfile.open(fileobj=bundle, mode="w:gz") as archive:
+            member = tarfile.TarInfo("receipt.json")
+            member.size = len(receipt)
+            archive.addfile(member, io.BytesIO(receipt))
+        files[str(self.resident / review.RECEIPTS)] = bundle.getvalue()
         rows = [dict(algorithm=algorithm, dataset=dataset, status="MEASURED", boundary=review.BOUNDARIES[algorithm],
-                     spine_wall_ms="2", gr_wall_ms="4", speedup_gr_over_spine="2", receipt_sha256="a" * 64)
+                     spine_wall_ms="2", gr_wall_ms="4", speedup_gr_over_spine="2",
+                     receipt_sha256=review.frozen.digest(receipt))
                 for algorithm in review.ALGORITHMS for dataset in review.DATASETS]
         next(row for row in rows if row["algorithm"] == "cc").update(
             gr_wall_ms="1", speedup_gr_over_spine=".5")
@@ -77,6 +86,13 @@ class EvaluationArchiveTests(unittest.TestCase):
         cc["boundary"] = review.BOUNDARIES["weighted_sssp"]
         self.write_rows(files, rows)
         with self.assertRaisesRegex(ValueError, "timing, boundary or receipt"):
+            review.checkpoint(self.name, files.__getitem__)
+
+    def test_rejects_valid_pin_without_its_receipt(self):
+        files, rows = self.fixture()
+        rows[0]["receipt_sha256"] = "a" * 64
+        self.write_rows(files, rows)
+        with self.assertRaisesRegex(ValueError, "receipt not found in archive: weighted_sssp/AU"):
             review.checkpoint(self.name, files.__getitem__)
 
     def test_archive_roundtrip_is_deterministic_and_never_overwrites(self):

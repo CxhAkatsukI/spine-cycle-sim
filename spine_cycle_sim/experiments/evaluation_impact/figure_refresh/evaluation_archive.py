@@ -3,6 +3,7 @@
 import argparse
 import csv
 import gzip
+import hashlib
 import io
 import json
 import math
@@ -21,6 +22,7 @@ INDEX = "evaluation_archive_manifest.json"
 RESIDENT = HANDOFF / "current_fpga"
 OLD_RESIDENT = RESIDENT / "resident_checkpoint_v2"
 CSV = "fig7_resident_checkpoint.csv"
+RECEIPTS = "receipts.tar.gz"
 CONTROLS = RESIDENT / "gr_controls.csv"
 FRESH = HANDOFF / "fresh_simulator/fresh_summary.json"
 ALGORITHMS = ("weighted_sssp", "cc", "residual_pagerank")
@@ -47,6 +49,22 @@ def selection(name):
     )])
 
 
+def receipt_digests(payload):
+    seen, digests = set(), set()
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r|gz") as archive:
+        for member in archive:
+            frozen.safe_name(member.name)
+            if not member.isfile() or member.name in seen:
+                raise ValueError("invalid or duplicate Fig. 7 receipt member: " + member.name)
+            seen.add(member.name)
+            with archive.extractfile(member) as stream:
+                digest = hashlib.sha256()
+                for chunk in iter(lambda: stream.read(1 << 16), b""):
+                    digest.update(chunk)
+            digests.add(digest.hexdigest())
+    return digests
+
+
 def checkpoint(name, read):
     resident = resident_path(name)
     scope = json.loads(read(str(resident / "scope.json")))
@@ -55,6 +73,7 @@ def checkpoint(name, read):
     keys = [(row["algorithm"], row["dataset"]) for row in rows]
     if len(keys) != len(expected) or set(keys) != expected or scope["expected_pairs"] != len(expected):
         raise ValueError("Fig. 7 must retain all twenty-four distinct slots")
+    receipt_hashes = receipt_digests(read(str(resident / RECEIPTS)))
     outcomes = {label: [] for label in ("spine_wins", "gr_wins", "ties", "unmeasured")}
     fields = ("spine_wall_ms", "gr_wall_ms", "speedup_gr_over_spine")
     for (algorithm, dataset), row in zip(keys, rows, strict=True):
@@ -69,6 +88,8 @@ def checkpoint(name, read):
                 or not all(math.isfinite(value) and value > 0 for value in (spine, gr, ratio))
                 or not math.isclose(gr / spine, ratio, rel_tol=1e-9, abs_tol=0)):
             raise ValueError("Fig. 7 timing, boundary or receipt pin is invalid")
+        if row["receipt_sha256"] not in receipt_hashes:
+            raise ValueError(f"Fig. 7 receipt not found in archive: {algorithm}/{dataset}")
         winner = "spine_wins" if gr > spine else "gr_wins" if spine > gr else "ties"
         outcomes[winner].append(dict(case, speedup_gr_over_spine=ratio))
     measured = len(expected) - len(outcomes["unmeasured"])
