@@ -69,7 +69,11 @@ zero nonempty propagation rounds, so they do not demonstrate propagation speedup
 compact Flickr propagation case still loses (35.08 vs. 4.76 ms). The original
 PK loss and Flickr loss both remain evidence, not omitted outliers.
 
-The CC replacement route and its queued follow-ups are not measurements yet.
+The CC replacement passed final setup/hold timing and packaging, but an
+agent-caused packaging retry deleted its temporary raw bus-skew report.
+A separate [fresh link and gated follow-ups](current_fpga/cc_resume_v2/README.md#route-packaging-and-evidence-recovery)
+are rebuilding complete evidence from identical host/XO/config bytes.
+No replacement CC performance sample has been admitted.
 The [build-resume record](current_fpga/cc_resume_v1/README.md) preserves the
 agent-caused guard interruption and corrected launch without rewriting the
 old logs. The [PK capacity diagnostic](fresh_simulator/portable_fig8/diagnostics/pk_capacity_v1/README.md)

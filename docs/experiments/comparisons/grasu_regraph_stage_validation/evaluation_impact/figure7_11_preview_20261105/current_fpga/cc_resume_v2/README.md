@@ -1,5 +1,16 @@
 # CC Build Memory Follow-Up
 
+## Current Status, November 6
+
+The 320-GiB build completed routing with setup/hold timing met at the
+150-MHz target. Packaging succeeded after adding two private Boost libraries.
+The successful image is preserved, but an agent-caused packaging retry deleted
+the original temporary bus-skew report. **No new CC performance sample is
+admitted.** A direct AU correctness diagnostic is waiting for board-host PSI
+admission; a separate fresh link is rebuilding complete route evidence from
+the same host, XOs and wiring. See the [recovery record](#route-packaging-and-evidence-recovery).
+The dated records below are retained history, not current build status.
+
 The November 5 `spine-cc-stream-admit-resume-20261105-v1.service`
 invocation `fc098f3fc0c44cb4a8e2c405ea8d787e` ended at 20:51 CST with
 systemd `Result=oom-kill` and `MemoryPeak=111669149696` bytes: its full
@@ -236,3 +247,93 @@ size. It is not a placed platform or per-SLR report, does not show that the
 walkers were deduplicated, and does not establish timing closure or a
 board-ready image. The queued paired tests remain gated on the exact
 packaged image and board correctness.
+
+## Route, Packaging And Evidence Recovery
+
+The v3 implementation above subsequently finished route and bitstream
+generation on November 6. Its retained final timing report says all user
+constraints are met: setup WNS +0.002 ns / TNS 0, hold WHS +0.009 ns / THS 0,
+and zero failing pulse-width endpoints. The build then failed in packaging:
+XRT's `xclbinutil` could not find `libboost_filesystem.so.1.74.0` and
+`libboost_program_options.so.1.74.0`. This was not a routing or board failure.
+The original build peaked around 244 GiB without an OOM event under `320g-v1`.
+
+The libraries were copied into the private
+`/data/chuxiao/cc-stream-package-runtime-20261106/lib` on seele; no global
+library or ZFS settings changed. The [packaging-only script](cc-stream-package-resume-20261106.sh)
+succeeded in invocation `1b85c876f7194daeb9d495965b8e0972` of
+`spine-cc-stream-package-resume-20261106-v1.service`. Its image, adjacent
+manifest and successful Vitis log were moved out of the disposable project
+before the next attempt. Local copies are in:
+
+```text
+/data/chuxiao/checks/source-retention-repair-20261104/cc-stream-packaged-return-20261106-v1/
+  spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin
+  spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin.weighted-manifest
+  v++_spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.log
+  host_cc_repair
+  impl_1_hw_bb_locked_timing_summary_postroute_physopted.rpt
+  vivado.log
+```
+
+Image SHA-256: `4c5e9ee7648cb57de2e47d3b43cd9913e0cc45df9b997a9ca70633c066a97987`.
+Host SHA-256: `f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1`.
+The image is 59,042,593 bytes and has the unchanged ABI printed above.
+These large binaries are indexed here, not duplicated into Git.
+
+The v1 collector rejected the short systemd launch description before any
+board test. The agent incorrectly retried packaging to obtain a different
+launch record. Vitis recreated its temporary project, deleting the original
+routed checkpoint and raw `bus_skew_routed.rpt`; that v2 attempt was stopped.
+The saved image and final timing/Vivado logs remain intact. The raw skew
+report is **missing**, so the existing complete-route gate cannot be replayed
+for this image. A report-generation marker in the log does not establish
+passing skew slack. Neither an older image's report nor a reconstructed
+report is substituted.
+
+The independent diagnostic `spine-cc-packaged-au-smoke-20261106-v1.service`
+(invocation `47193ef017764bfd81c218d500ed62ef`) uses the saved image and frozen
+AU inputs. Its report is
+`/data/chuxiao/checks/source-retention-repair-20261104/cc-stream-packaged-au-smoke-20261106-v1/results.json`.
+At 07:27 CST it was still waiting for memory-pressure admission, not running
+on the FPGA. It explicitly records `performance_admission: false`. Even a
+successful diagnostic does not replace the missing route gate.
+
+### Fresh Link And Queued Tests
+
+The [fresh-link script](cc-stream-link-fresh-20261106.sh) runs a normal link
+in the separate `/data/chuxiao/spine-cc-stream-admit-2315cae-route-v2` on seele.
+Host, all three XOs and `system_cc_repair.cfg` match the predecessor's
+SHA-256 digests. A retained `make -n` confirms no host/HLS recompilation and
+the same 150-MHz configuration and ABI. The script verifies inherited
+artifact hashes and copies the final skew report and routed checkpoint out
+of the disposable project after success. It must not be rerun over an
+existing output image. Its SHA-256 is
+`a3b39b8ed67a054a98da6ebb07a29109e3afa8a9f9d5f561f2f9420195cc94a1`.
+
+| Task | Exact unit / invocation |
+| --- | --- |
+| Fresh remote link | `spine-cc-stream-link-fresh-20261106-v1.service` / `fbb13007b3984adc92d0dcbcb5c7baaf` |
+| AU route collector and paired check | `spine-retention-cc-au-fresh-link-20261106-v1.service` / `cf6c19a6b55944ca8dfe269993466b43` |
+| Remaining seven datasets | `gr-retention-cc-fresh-link-matrix-20261106-v1.service` / `89f5bd3760744eb8935e6baa1e098eab` |
+
+The remote supervisor remains frozen `5cd13bbc`, `320g-v1`, with a 128-GiB
+live reserve and zero task swap. Local followers remain frozen `c03ca5e2`
+with `zfs-arc-clean-half-settle10-v1`; correctness, route, clock and paired
+timing gates are unchanged. Reports respectively live at:
+
+- `/data/chuxiao/cc-stream-link-fresh-20261106-v1/execution.json` on seele.
+- `/data/chuxiao/checks/source-retention-repair-20261104/cc-au-fresh-link-20261106-v1/results.json` on trif.
+- `/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-fresh-link-matrix-20261106-v1/matrix.json` on trif.
+
+All are pending at this checkpoint; no CC bar or all-win claim follows from
+launching them. The already accepted sixteen SSSP/ResPR pairs are unchanged.
+
+### Retained Recovery Receipts
+
+| Archive | Scope | SHA-256 |
+| --- | --- | --- |
+| [Packaging failure](package-failure-receipts.tar.gz) | Original v3 packaging failure and terminal followers | `0a7fc5ea75c2da20f5e8beaf6538a224f9c56942330af5eb5534a94ac76b5e69` |
+| [Collector v1](package-collector-v1-failure.tar.gz) | Successful packaging receipt and rejected collector/matrix | `205ca00f05c4c12d2173baaf38fca1af9970bc53e40a08126a563f88dc3ed0e0` |
+| [Stopped v2 followers](package-followers-v2-failure.tar.gz) | Terminal collector/matrix without a board run | `a190e4f36e99c8684cda1c22c61d6964670d2e3d0a71530e1ef9ad1f7fddb192` |
+| [Route and packaging](route-packaging-receipts.tar.gz) | Final timing, Vivado log, successful packaging log/manifest, interrupted retry, unit records, library hashes, inherited-artifact hashes and dry-run command | `1350ac4f8c255a52aa5e421662516dc3f7960059104bdcf8c751c7026fc27f7d` |
