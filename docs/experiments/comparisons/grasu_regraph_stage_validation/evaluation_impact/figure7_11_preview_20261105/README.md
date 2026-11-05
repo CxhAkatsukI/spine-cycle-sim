@@ -1,5 +1,11 @@
 # G/R Source Controls and Evaluation Plots
 
+For one unambiguous selection of the latest available data, previews and
+self-contained plotting code, start with [the current review entry](CURRENT.md).
+It explicitly remains incomplete (15/24 FPGA pairs), uses the complete
+same-host L4 Fig. 8 follow-up and retains the negative results. Older preview
+commands below deliberately retain their earlier selections.
+
 ## November 5 Fresh Checkpoint
 
 Start with the [current FPGA G/R controls](current_fpga/README.md) and

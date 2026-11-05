@@ -1,0 +1,276 @@
+{
+  "authority": "Per-file hashes include the new uncommitted review entry; base commit is not their source pin.",
+  "base_git_commit": "f150ffb06995e009aa13829d129c6205532771d7",
+  "checkpoint": {
+    "complete": false,
+    "expected_fpga_pairs": 24,
+    "fpga_pairs": 15,
+    "fpga_stage_calibrated": false,
+    "limitations": [
+      "Fig. 7 still lacks CC and LJ08 ResPR; no all-win matrix claim.",
+      "Fig. 8 is the same-host L4 prediction, including its 1000-batch loss; not routed G parity.",
+      "Fig. 9 uses modeled traffic/energy and zero-active ResPR, not measured board power.",
+      "Fig. 10 is simulator attribution; Fig. 11 predicts simulator output, not FPGA counters.",
+      "Historical losses and failed attempts remain documented; this is not a replacement for them."
+    ],
+    "missing_fpga_pairs": 9,
+    "publication_throughput_reproduced": false,
+    "simulator_executions": 42,
+    "status": "INCOMPLETE_REVIEW_CHECKPOINT"
+  },
+  "external": "Large graphs, state arrays, binaries and toolchains are hash-indexed in receipts, not embedded.",
+  "members": [
+    {
+      "bytes": 343281,
+      "path": "docs/evaluation_refresh_20260810/figure7_10_handoff_v1/reference/GraphyFlow_Plot.zip",
+      "sha256": "a1b053bbd7c20cd9ce5c79d44a11027327da1c72a402487f5c8c659b71c18a27"
+    },
+    {
+      "bytes": 31468,
+      "path": "docs/evaluation_refresh_20260810/figure7_10_handoff_v1/render_all.py",
+      "sha256": "cccad190ae1b33e00fbe38df39f445707752c0a3f366663dd67837df57fabcc7"
+    },
+    {
+      "bytes": 10025,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/CURRENT.md",
+      "sha256": "88f04068a3e5429e22522311e487a4bfc8ce84ff4a71147e3acc81b283e9d609"
+    },
+    {
+      "bytes": 12662,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/figures/gr_current_source_controls.pdf",
+      "sha256": "768272f6b80970b63cfee1778a3308aadadd4af95b5d99ae3d21c33a34768b20"
+    },
+    {
+      "bytes": 69626,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/figures/gr_current_source_controls.png",
+      "sha256": "87385635409ac84ac9c589efe326c42c9669764270fb51a71e5ac98401076b94"
+    },
+    {
+      "bytes": 2195,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/gr_controls.csv",
+      "sha256": "e579a17711c2dc1e9451542cb37faad76185fad1fc4c4c7186dc3c9dda87acc2"
+    },
+    {
+      "bytes": 312776,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/gr_receipts.tar.gz",
+      "sha256": "d7eb6022e4c1bff758bdb363e786b15a18bd8fd6661ba692a5a1b9197852bfa7"
+    },
+    {
+      "bytes": 46702,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/gr_scope.json",
+      "sha256": "7b77adaf4b6d52dd5d80f4bdd8353804f30a47e27ca6482fc311ac4cdb207255"
+    },
+    {
+      "bytes": 4203,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/resident_checkpoint_v2/fig7_resident_checkpoint.csv",
+      "sha256": "8aaa7f5095a398e6446f6ef832bbe2f0522580d8e9fce4337cd4c8b48f2908ef"
+    },
+    {
+      "bytes": 12782,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/resident_checkpoint_v2/figures/fig7_resident_checkpoint.pdf",
+      "sha256": "d07a33e55d6f9b14ad1b1090dae5d571d54eaac0e5a9e10cc034684d09efe527"
+    },
+    {
+      "bytes": 48331,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/resident_checkpoint_v2/figures/fig7_resident_checkpoint.png",
+      "sha256": "299a3c9cebcee7d194076da8f974a926771f4287652e7229e31fda257af58b86"
+    },
+    {
+      "bytes": 602890,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/resident_checkpoint_v2/receipts.tar.gz",
+      "sha256": "12063c4c3550e1cb20a5ca137352f90a549023315e2c6c66404ed00bc7da5224"
+    },
+    {
+      "bytes": 1310046,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/resident_checkpoint_v2/scope.json",
+      "sha256": "00b0155a015fdb631ec5246290c9d5e36516087ee71cbf8a0381ad2e34028af0"
+    },
+    {
+      "bytes": 18929177,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig10_11_receipts.tar.gz",
+      "sha256": "46b6acbe0a79fc5ad4c92416d3baef10f8858914d362c7b1f7e501c9d128bb69"
+    },
+    {
+      "bytes": 281773,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig10_11_scope.json",
+      "sha256": "a970ac5c8d189d16951ec081905514c932f1f29358210d826ba3999aa1b5502e"
+    },
+    {
+      "bytes": 3262,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig10_normalized_breakdown_rows.csv",
+      "sha256": "79a3d1f77ff9b0a2438314fa97729dff1aa7d022b7a86eac140b2cdbbd491bad"
+    },
+    {
+      "bytes": 6045,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig10_stage_rows.csv",
+      "sha256": "eb0a0424c6577af1b9fe3c6ea2cfad46648771bacdd0a045fef9b6d1fc76a07a"
+    },
+    {
+      "bytes": 378,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_coverage_rows.csv",
+      "sha256": "8c952168ea851818d30612a936779b074a343c7b02c49119300a0bffeee87d8c"
+    },
+    {
+      "bytes": 341,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_e2e_metric_rows.csv",
+      "sha256": "33b0365cf49a4ec618f9596c90bd3712bed12634ec32c1e6d75cc02baad6b624"
+    },
+    {
+      "bytes": 1197,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_e2e_model.json",
+      "sha256": "d4deb6f378e52d87b0baa50a65d1a28d09a4dd55668a69bd783bacbb0dcb73a7"
+    },
+    {
+      "bytes": 8361,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_e2e_prediction_rows.csv",
+      "sha256": "dfb8bedea8f507aad817e7bb2727921b2721fe010d355b50130cbf0cfa30f857"
+    },
+    {
+      "bytes": 20014,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_latency_rows.csv",
+      "sha256": "656589b16074edfefeed62e43a38469f884f80da159bc95d4b039e0862fce018"
+    },
+    {
+      "bytes": 3078,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_regression_rows.csv",
+      "sha256": "1a733c0f6df0e36f9f7da4fc359b4bc2d83abcf3f5bcf0a0432b678a545be12d"
+    },
+    {
+      "bytes": 4214,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_representative_rows.csv",
+      "sha256": "324cb527d4dbc6a09ecce4c354c162144f1d601403dbcd9010526a3db8c6133f"
+    },
+    {
+      "bytes": 2583,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_summary.json",
+      "sha256": "13cf6507ad9e3c4d8932919b79a1ece470f80c69fd6aeff63b67ebe958720b81"
+    },
+    {
+      "bytes": 15568,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig11_work_rows.csv",
+      "sha256": "c40f51761058e9cfbb80299fef604fead4ca766975cf7933c935d3a2576b8451"
+    },
+    {
+      "bytes": 6987,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig9_arms.csv",
+      "sha256": "9fcbc31a229f596be3ebe9632de367e301bb42d34463f536135e490e5956748f"
+    },
+    {
+      "bytes": 708,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig9_memory_energy_rows.csv",
+      "sha256": "a89e189db63dfe01c7af497996e478201d063a985a298df9f794934d75abcde3"
+    },
+    {
+      "bytes": 1461103,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig9_receipts.tar.gz",
+      "sha256": "5bfa2026f895eaca115fb20cb61b66123e85e66365cb89c8b40cd8c0b79913fd"
+    },
+    {
+      "bytes": 391448,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fig9_scope.json",
+      "sha256": "41087f5a111f756ceaca98844ddb487883fbc90731d6dc737ef62982a22dfc56"
+    },
+    {
+      "bytes": 15908,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/figures/fig10_simulator_breakdown.pdf",
+      "sha256": "890a05636d63483e06918b71348e3ca8543abee4c1a1670474a82eea9d293994"
+    },
+    {
+      "bytes": 75411,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/figures/fig10_simulator_breakdown.png",
+      "sha256": "ecacf1f386bf1d0b40a64f39d28d491948f87db4493b75a338922d20950109d2"
+    },
+    {
+      "bytes": 10898,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/figures/fig11_realized_work_model.pdf",
+      "sha256": "4881de9bd32dca4005c5298641a0a3bccd62f1b9ba841b59ed3de523cfde9ae0"
+    },
+    {
+      "bytes": 66548,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/figures/fig11_realized_work_model.png",
+      "sha256": "6d103edc7a6f61a3e8409276af54656cfa138b3a83e576fc4a76d34eb22b7941"
+    },
+    {
+      "bytes": 13958,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/figures/fig9_memory_hbm_prediction.pdf",
+      "sha256": "da0cbb9d3782247759b1160623741165331fd8f86d2fcf14fb216ccc5fb0ce45"
+    },
+    {
+      "bytes": 55092,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/figures/fig9_memory_hbm_prediction.png",
+      "sha256": "5b90b79b30bb2b0ba7c83dd7c07b0b6d8ba15ddb026547f87615a3c686c6f099"
+    },
+    {
+      "bytes": 8391,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/fresh_summary.json",
+      "sha256": "f160aa2d95409b1eaab9a57c464bb37e8e915a379a4cd78c60edca812670e22e"
+    },
+    {
+      "bytes": 28862,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/measurement_origins.json",
+      "sha256": "d32027a71d43c3df0f7186444b87cad8c30dc4c65f9e046a72ba2268c3b80e7f"
+    },
+    {
+      "bytes": 1410,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/batch_sweep/fig8_batch_sensitivity.csv",
+      "sha256": "acad6aeceb2bb1cddccd57d068cf67db75cd5228763ebe5bdb9ea07bf7a7d431"
+    },
+    {
+      "bytes": 453376,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/batch_sweep/receipts.tar.gz",
+      "sha256": "d03c807b7327c8b365197a32581c63d525cb5fad28f5c5a4b82c3ba72f6e5688"
+    },
+    {
+      "bytes": 4302,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/batch_sweep/scope.json",
+      "sha256": "8934993e4561ea5f99412a9ce3b18905fcdb455f37fd3d45e0b90498bda6e1a0"
+    },
+    {
+      "bytes": 2055,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/fig8_ten_batch.csv",
+      "sha256": "4cc0ec09d22d1c66d6d6a0a359b2825f36fba3c6868912d39a510ef42535b95e"
+    },
+    {
+      "bytes": 11355,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/figures/fig8_update_prediction_headroom.pdf",
+      "sha256": "0c6314f4888862b41eeab5543aa32d5ccda7b6f5d2608bd760026bbab7c3ed31"
+    },
+    {
+      "bytes": 52988,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/figures/fig8_update_prediction_headroom.png",
+      "sha256": "6c47f2f8100f1e4c71670c6a4b6ca7aa8f121cc51cb2592b407698cf63cbd20e"
+    },
+    {
+      "bytes": 573503,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/receipts.tar.gz",
+      "sha256": "48295799804952b6ff432d8d4fd4610d44efc1552cbbdda902ae03ffcecec767"
+    },
+    {
+      "bytes": 87406,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/scope.json",
+      "sha256": "42a1aa189851d88d45dd0c38cdd49be9eb8be985a4075c5125a1a733f041362e"
+    },
+    {
+      "bytes": 25213,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/render.py",
+      "sha256": "1988d99ecc21e3070304a2690bff9281679ea42e44738a9028002dc58ee31d76"
+    },
+    {
+      "bytes": 6223,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/render_current.py",
+      "sha256": "81203d8f3c921499ab5cac3a175a71e727bc9dd1d291f0b4dc7bdcbc27cc908d"
+    },
+    {
+      "bytes": 1603,
+      "path": "docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/render_review.py",
+      "sha256": "523f40e364a9acf48841b5b9d70c3ad58d9253e15238344e7383686c84375d5e"
+    },
+    {
+      "bytes": 10036,
+      "path": "spine_cycle_sim/experiments/evaluation_impact/figure_refresh/review_bundle.py",
+      "sha256": "7ce299b814da885efa637a4298588fd8d1ec212aec393a673053c1a67296862c"
+    }
+  ],
+  "schema": 1,
+  "selection": "nov05-review-v1"
+}
