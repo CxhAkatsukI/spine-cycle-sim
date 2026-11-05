@@ -2,6 +2,7 @@
 
 #include "bootstrap.hpp"
 #include "update_preparation.hpp"
+#include "update_failure.hpp"
 #include "spine_sim/axi.hpp"
 #include <iostream>
 
@@ -45,7 +46,12 @@ inline void update_spine(const wc::Input& input, Scheduler& scheduler, ClockId c
     const auto start = scheduler.clock(clock).completed_cycles;
     const auto before = backend.traffic_stats();
     scheduler.run_until([&] { return drained() || maintenance.failed(); }, maximum - start);
-    if (maintenance.failed()) throw std::runtime_error(maintenance.failure());
+    if (maintenance.failed()) {
+      write_update_failure(std::cerr, state, config, index,
+          (index + 1) * trace.edges.size() / batches - index * trace.edges.size() / batches,
+          scheduler.clock(clock).completed_cycles - start);
+      throw std::runtime_error(maintenance.failure());
+    }
     require(drained(), "maintenance exhausted cycle budget");
     const auto traffic = subtract_memory_traffic(backend.traffic_stats(), before);
     work.push_back({scheduler.clock(clock).completed_cycles - start, traffic.reads.bytes,

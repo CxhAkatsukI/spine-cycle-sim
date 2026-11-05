@@ -1,4 +1,5 @@
 from hashlib import sha256
+import json
 from pathlib import Path
 
 import pytest
@@ -81,3 +82,65 @@ def test_collect_rejects_files_modified_in_transit(route, tmp_path):
 
     with pytest.raises(ValueError, match="changed during transfer"):
         cc_au_collect.collect(command, modified, ROOT, tmp_path / "tampered", ABI)
+
+
+def test_engine_filename_and_traversal(route):
+    command, _ = route
+    name = 'spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin'
+    paths = cc_au_collect.select_files(command, ROOT, image_name=name)
+    assert paths['image'].name == name
+    assert paths['link'].name == f'v++_{name.removesuffix(".xclbin")}.log'
+    with pytest.raises(ValueError, match='basename'):
+        cc_au_collect.select_files(command, ROOT, image_name='../different.hw.xclbin')
+
+
+def test_resume_journal_requires_exact_launch(journal):
+    output, script = Path('/data/chuxiao/resume-v1'), Path('/data/chuxiao/resume.sh')
+    journal[0]['MESSAGE'] = (f'Started {UNIT} - /usr/bin/python3 -m '
+        f'spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.build_resume '
+        f'--script {script} --output {output}.')
+    cc_au_collect.retired(journal, UNIT, INVOCATION, ROOT, resume=(output, script))
+    with pytest.raises(ValueError, match='different launch'):
+        cc_au_collect.retired(journal, UNIT, INVOCATION, ROOT, resume=(Path('/data/chuxiao/resume-v'), script))
+
+
+def test_collect_resumed_build_keeps_original_and_resume_evidence(tmp_path):
+    resume = Path('/data/chuxiao/resume-v1/execution.json')
+    original = Path('/data/chuxiao/archive/original-build.log')
+    name = 'spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin'
+    files = {
+        original.name: f"g++ -DSPINE_WEIGHTED_BUILD_SHA256='\"{ABI}\"'\ncheck.py --expected {ABI}\n",
+        name + '.weighted-manifest': f'build_sha256 {ABI}\n',
+        'resume.sh': f'#!/bin/bash\nroot={ROOT}\nexec make\n',
+        'build.log': 'resumed link completed\n',
+        'build_resume.py': '# frozen supervisor\n',
+    }
+    def pin(path):
+        content = files[Path(path).name].encode()
+        return dict(path=path, sha256=sha256(content).hexdigest(), bytes=len(content))
+    record = dict(status='BUILD_COMPLETED_NOT_BOARD_ADMITTED', returncode=0,
+                  policy=dict(tree_memory_gib=104, high_memory_gib=100, reserve_gib=128,
+                              background_memory_gib=8, allow_bounded_builds=True),
+                  script=pin('/data/chuxiao/resume.sh'), build_log=pin(str(resume.parent / 'build.log')),
+                  supervisor=pin('/data/chuxiao/source/build_resume.py'))
+    files['execution.json'] = json.dumps(record)
+    def content(path):
+        return files.get(path.name, 'sample\n')
+    def command(argv, *, timeout=40):
+        if argv[0] == 'cat':
+            return files['execution.json']
+        if argv[0] == 'find':
+            return str(ROOT / 'temp/bus_skew_routed.rpt') + '\n'
+        return ''.join(f'{sha256(content(path).encode()).hexdigest()}  {path}\n' for path in argv[2:])
+    def transfer(paths, output):
+        for path in paths:
+            (output / path.name).write_text(content(path))
+    result = cc_au_collect.collect(command, transfer, ROOT, tmp_path / 'route', ABI,
+        image_name=name, resume=resume, original_log=original)
+    assert Path(result['build']['path']).name == original.name
+    assert Path(result['resume_log']['path']).name == 'build.log'
+    assert result['resume_script']['sha256'] == record['script']['sha256']
+    files['resume.sh'] += '# changed after execution\n'
+    with pytest.raises(ValueError, match='completed execution'):
+        cc_au_collect.collect(command, transfer, ROOT, tmp_path / 'tampered', ABI,
+            image_name=name, resume=resume, original_log=original)

@@ -41,6 +41,11 @@ is retained in the archive. This is a model/hierarchy-capacity failure, not
 an accepted pair, timeout or missing-runtime error. No timing conclusion for
 PK follows from this run.
 
+The separate [failure-only follow-up](diagnostics/pk_capacity_v1/README.md)
+locates the failure at the fourth batch: cold family 0 has no free carry
+target because its bootstrap placement occupies every level 2--10. It
+preserves raw logs and source pins without replacing the failed point.
+
 ## Equivalence Gate
 
 The exporter reparsed all completed raw per-batch/device/host counters and the

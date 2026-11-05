@@ -1,0 +1,5 @@
+WARNING: Building component "refresh" with no links assigned.
+HOST_PAYLOAD_DIGEST 5747744362959954656
+HOST_RESULT {"arm":"gr","repeat":0,"batches":3,"updates":3,"nanoseconds":36080,"initial_nanoseconds":31577,"batch_nanoseconds":4503,"initial_h2d_bytes":7616,"update_h2d_bytes":24,"bootstrap_complete":true,"batch_preparation_complete":true,"batch_h2d_bytes": [8,8,8]}
+REFRESH_COMPLETE
+Simulation is complete, simulated time: 0 s

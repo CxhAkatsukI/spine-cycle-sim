@@ -41,6 +41,11 @@ compact Flickr propagation case still loses (35.08 vs. 4.76 ms). The original
 PK loss and Flickr loss both remain evidence, not omitted outliers.
 
 The CC replacement route and its queued follow-ups are not measurements yet.
+The [build-resume record](current_fpga/cc_resume_v1/README.md) preserves the
+agent-caused guard interruption and corrected launch without rewriting the
+old logs. The [PK capacity diagnostic](fresh_simulator/portable_fig8/diagnostics/pk_capacity_v1/README.md)
+separately explains the fourth-batch hierarchy failure; PK has no accepted
+Fig. 8 latency or ratio.
 The SSSP eight-row all-win result below is measured on its exact admitted
 image; it must not be extrapolated to CC/ResPR. Older sections below describe
 earlier dated checkpoints and remain intact for provenance.

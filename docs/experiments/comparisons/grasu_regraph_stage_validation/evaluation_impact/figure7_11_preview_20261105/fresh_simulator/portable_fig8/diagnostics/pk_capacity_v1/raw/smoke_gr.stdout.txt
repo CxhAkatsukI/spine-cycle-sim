@@ -1,0 +1,7 @@
+WARNING: Building component "refresh" with no links assigned.
+WARM_BATCH {"batch":0,"updates":1,"cycles":88,"read_bytes":80,"write_bytes":64}
+WARM_BATCH {"batch":1,"updates":1,"cycles":85,"read_bytes":80,"write_bytes":64}
+WARM_BATCH {"batch":2,"updates":1,"cycles":86,"read_bytes":80,"write_bytes":64}
+WARM_RESULT {"arm":"gr","cycles":259,"read_bytes":240,"write_bytes":192,"correctness":true,"physical_image_checked":true,"ledger_closed":true}
+REFRESH_COMPLETE
+Simulation is complete, simulated time: 0 s

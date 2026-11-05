@@ -1,0 +1,21 @@
+{
+  "available_before_bytes": 414449569792,
+  "command": [
+    "ctest",
+    "--test-dir",
+    "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/build",
+    "--output-on-failure",
+    "-R",
+    "^grasu_(cycle|resident)_tests$"
+  ],
+  "cwd": "/data/chuxiao/fig8-portable-20261105/source-pk-diagnostic-v1",
+  "exit_code": 0,
+  "memory_limit_gib": 32,
+  "peak_rss_kib": 94588,
+  "reserve_gib": 128,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/raw/core_tests.stderr.txt",
+  "stdout": "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/raw/core_tests.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 0.505454970523715
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "checkpoint_utc": "2026-11-05T11:00:00Z",
+  "status_at_checkpoint": "BUILDING_NOT_BOARD_MEASURED",
+  "remote": "chuxiao@10.129.165.42",
+  "port": 23333,
+  "build_root": "/data/chuxiao/spine-cc-stream-admit-2315cae-route-v1",
+  "expected_abi": "caa178a765083ba21d6a6e3e900171f09a3e19957360db60af87f3c8fb869574",
+  "expected_image": "xclbin/spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin",
+  "interrupted_unit": "spine-cc-stream-admit-2315cae-route-v1.service",
+  "interrupted_invocation": "03f8945d09764be581fac5f09ad03447",
+  "interruption": "guard stopped owned build after soft-limit change; LIMITS_CHANGED",
+  "resume_unit": "spine-cc-stream-admit-resume-20261105-v1.service",
+  "resume_invocation": "fc098f3fc0c44cb4a8e2c405ea8d787e",
+  "resume_execution": "/data/chuxiao/cc-stream-resume-20261105-v1/execution.json",
+  "au_unit": "spine-retention-cc-au-stream-resume-20261105-v1.service",
+  "au_invocation": "0b622c2000674847a4443ac16a4f3bf8",
+  "au_output": "/data/chuxiao/checks/source-retention-repair-20261104/cc-au-stream-resume-20261105-v1/results.json",
+  "matrix_unit": "gr-retention-cc-stream-resume-matrix-20261105-v1.service",
+  "matrix_invocation": "56c507016b294ae089d65372244a49db",
+  "matrix_output": "/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-stream-resume-matrix-v1/matrix.json",
+  "policy": {
+    "tree_memory_gib": 104,
+    "high_memory_gib": 100,
+    "reserve_gib": 128,
+    "background_memory_gib": 8,
+    "allow_bounded_builds": true
+  }
+}

@@ -4,6 +4,8 @@ These eleven replayed controls supersede the older ResPR source-control series
 in the parent directory. They are **not** a complete new Figure 7 matrix.
 The [resident FPGA checkpoint](resident_checkpoint_v1/README.md) supplies the
 13 completed pairs and all eleven pending statuses separately.
+The [CC resume record](cc_resume_v1/README.md) explains the guarded build
+restart and exact queued follow-ups; it is not additional board evidence.
 
 - [Data](gr_controls.csv): actual per-arm milliseconds, ratios, image identities,
   clocks, sample counts, timing-closure status and claim scope.

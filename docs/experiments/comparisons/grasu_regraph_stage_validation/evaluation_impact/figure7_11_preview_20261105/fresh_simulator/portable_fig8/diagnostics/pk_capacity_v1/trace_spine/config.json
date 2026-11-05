@@ -1,0 +1,10 @@
+{
+  "arm": "spine",
+  "batches": 10,
+  "dram_config": "/data/chuxiao/fig8-portable-20261105/source-pk-diagnostic-v1/configs/memory/HBM2_1ch_x128_summary_only.ini",
+  "graph": "/data/chuxiao/fig8-portable-20261105/inputs/pk/graph.slice",
+  "maximum": 150000000,
+  "mode": "update",
+  "output": "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/trace_spine",
+  "updates": "/data/chuxiao/fig8-portable-20261105/inputs/pk/updates.slice"
+}

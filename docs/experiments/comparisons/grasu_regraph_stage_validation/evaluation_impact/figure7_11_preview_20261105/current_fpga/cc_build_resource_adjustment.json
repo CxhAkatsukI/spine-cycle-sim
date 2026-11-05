@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "host": "seele",
+  "unit": "spine-cc-stream-admit-2315cae-route-v1.service",
+  "invocation_id": "03f8945d09764be581fac5f09ad03447",
+  "observed_utc": "2026-11-05T10:48:53Z",
+  "observed_memory_current_bytes": 102195867648,
+  "observed_memory_peak_bytes": 102196125696,
+  "observed_memory_high_events": 2294683,
+  "observed_memory_pressure_full_avg60_percent": 90.44,
+  "observed_memory_oom_events": 0,
+  "observed_memory_oom_kill_events": 0,
+  "nearby_host_available_kib": 401081672,
+  "before": {"memory_high_gib": 88, "memory_max_gib": 104, "swap_max_bytes": 0},
+  "requested": {"memory_high_gib": 100, "memory_max_gib": 104, "swap_max_bytes": 0},
+  "scope": "Owned build service only; no source, image, clocks, compiler options, global memory setting or peer service changes",
+  "reason": "The finite 104-GiB budget remains reserved; raise only its soft threshold to avoid reclaim throttling with more than 128 GiB live host reserve",
+  "command": ["systemctl", "--user", "set-property", "--runtime", "spine-cc-stream-admit-2315cae-route-v1.service", "MemoryHigh=100G"],
+  "applied": true,
+  "verified_after": {"memory_high_bytes": 107374182400, "memory_max_bytes": 111669149696, "swap_max_bytes": 0, "same_invocation": true},
+  "observation_note": "Pressure/events and host availability were sampled shortly before the timestamped service snapshot; they are not simultaneous FPGA timing measurements"
+}

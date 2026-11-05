@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/build
+Test project /data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/build
+    Start 37: grasu_cycle_tests
+1/2 Test #37: grasu_cycle_tests ................   Passed    0.47 sec
+    Start 38: grasu_resident_tests
+2/2 Test #38: grasu_resident_tests .............   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   0.48 sec

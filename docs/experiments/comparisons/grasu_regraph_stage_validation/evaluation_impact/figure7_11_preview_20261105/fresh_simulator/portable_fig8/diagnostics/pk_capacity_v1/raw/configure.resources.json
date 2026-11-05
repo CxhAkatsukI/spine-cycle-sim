@@ -1,0 +1,25 @@
+{
+  "available_before_bytes": 414633390080,
+  "command": [
+    "cmake",
+    "-S",
+    "/data/chuxiao/fig8-portable-20261105/source-pk-diagnostic-v1",
+    "-B",
+    "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/build",
+    "-G",
+    "Ninja",
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+    "-DCMAKE_CXX_COMPILER=/usr/bin/x86_64-linux-gnu-g++-15"
+  ],
+  "cwd": "/data/chuxiao/fig8-portable-20261105/source-pk-diagnostic-v1",
+  "exit_code": 0,
+  "memory_limit_gib": 32,
+  "peak_rss_kib": 169276,
+  "reserve_gib": 128,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/raw/configure.stderr.txt",
+  "stdout": "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/raw/configure.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 0.35381597839295864
+}

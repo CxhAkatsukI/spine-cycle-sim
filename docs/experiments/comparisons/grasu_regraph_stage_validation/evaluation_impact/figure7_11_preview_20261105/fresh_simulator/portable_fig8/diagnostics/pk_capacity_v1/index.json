@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "status": "FAILED_RETAINED",
+  "accepted_fig8_pair": false,
+  "files": {
+    "results.json": "30b39c93189eb389c44b35165035a2b2dfee2a3695c8c36a041e0f68df973971",
+    "raw/trace_spine.stderr.txt": "637ab7ea6594fa54d58b67f882beb4e45224e683f69e2116134ddc7ba2fb6d54",
+    "raw/trace_spine.stdout.txt": "3fc0fc430c2ec7c53ab2e1be441a5532f419f52a5a7623a9e7a9dec6a92d36c3",
+    "trace_spine/config.json": "e7b97f1ae2fb688dbb2ec0e054e012fbf6e441ec7368c4f656f125e4dd434bc4",
+    "update.hpp": "d6eb452994273fba0e0c857cf17bf0501a12d1ba58688af74cc843b64f9c013a",
+    "update_failure.hpp": "f0296461593b8d8d9727b61205290e044c8e7f458fe2f22ca50d34bffc417cce",
+    "update_failure_tests.cpp": "a1e057f778ae26a02a77b1aa33ca114620c25e49935a8eb048f76a7139d829b4"
+  }
+}

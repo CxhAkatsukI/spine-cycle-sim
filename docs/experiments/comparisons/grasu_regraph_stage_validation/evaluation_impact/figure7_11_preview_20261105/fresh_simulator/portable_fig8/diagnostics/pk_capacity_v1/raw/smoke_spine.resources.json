@@ -1,0 +1,27 @@
+{
+  "available_before_bytes": 414369583104,
+  "command": [
+    "env",
+    "LD_LIBRARY_PATH=/data/chuxiao/fig8-portable-20261105/runtime/dramsim3:/data/chuxiao/simulator_runtime_20261019/sst/pylib",
+    "PYTHONHOME=/data/chuxiao/simulator_runtime_20261019/python",
+    "taskset",
+    "-c",
+    "20",
+    "/data/chuxiao/simulator_runtime_20261019/sst/libexec/sstsim.x",
+    "--no-env-config",
+    "--lib-path=/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/build",
+    "/data/chuxiao/fig8-portable-20261105/source-pk-diagnostic-v1/spine_cycle_sim/experiments/evaluation_impact/figure_refresh/sst_config.py",
+    "--",
+    "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/smoke_spine/config.json"
+  ],
+  "cwd": "/data/chuxiao/fig8-portable-20261105/source-pk-diagnostic-v1",
+  "exit_code": 0,
+  "memory_limit_gib": 32,
+  "peak_rss_kib": 28180,
+  "reserve_gib": 128,
+  "rss_scope": "wait4_maximum_process_RSS_not_simultaneous_tree_sum",
+  "stderr": "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/raw/smoke_spine.stderr.txt",
+  "stdout": "/data/chuxiao/fig8-portable-20261105/pk-failure-diagnostic-v2/raw/smoke_spine.stdout.txt",
+  "timed_out": false,
+  "wall_seconds": 0.05472388118505478
+}

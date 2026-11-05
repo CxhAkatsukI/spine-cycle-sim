@@ -24,7 +24,7 @@ TIMING = "impl_1_hw_bb_locked_timing_summary_postroute_physopted.rpt"
 START, TEARDOWN = "39f53479d3a045ac8e11786248231fbf", "ae8f7b866b0347b9af31fe1c80b127c0"
 
 
-def retired(records, unit, invocation, root):
+def retired(records, unit, invocation, root, *, resume=None):
     starts = [row for row in records if row.get("MESSAGE_ID") == START]
     finishes = [row for row in records if row.get("MESSAGE_ID") == TEARDOWN]
     if (len(starts) != 1 or len(finishes) != 1 or any(
@@ -37,25 +37,42 @@ def retired(records, unit, invocation, root):
         raise ValueError("collected build has no clean exact-invocation journal")
     start, end = starts[0], finishes[0]
     launch = start["MESSAGE"].replace("\\n", "\n").splitlines()
+    named_launch = ([line.strip() for line in launch if line.strip().startswith("root=")] == [f"root={root}"]
+                    if resume is None else all(re.search(re.escape(token) + r'(?=\s|[".]|$)', start["MESSAGE"])
+                        for token in ('source_retention.build_resume', f'--output {resume[0]}',
+                                      f'--script {resume[1]}')))
     if (start["_BOOT_ID"] != end["_BOOT_ID"]
             or int(start["__MONOTONIC_TIMESTAMP"]) >= int(end["__MONOTONIC_TIMESTAMP"])
-            or [line.strip() for line in launch if line.strip().startswith("root=")] != [f"root={root}"]):
+            or not named_launch):
         raise ValueError("build journal names a different launch or output")
 
 
-def select_files(command, root):
-    image = root / "xclbin" / IMAGE
+def select_files(command, root, *, image_name=IMAGE, build_log=None):
+    if (Path(image_name).name != image_name or not re.fullmatch(r"[A-Za-z0-9_.-]+\.hw\.xclbin", image_name)):
+        raise ValueError("an explicit hardware image basename is required")
+    image = root / "xclbin" / image_name
     hooks = command(["find", root / "temp", "-type", "f", "-name", "bus_skew_routed.rpt"]).splitlines()
     if len(hooks) != 1 or not Path(hooks[0]).is_relative_to(root / "temp"):
         raise ValueError("expected one post-route skew-hook report in this build")
     return dict(host=root / "host_cc_repair", image=image, manifest=Path(str(image) + ".weighted-manifest"),
                 timing=root / "reports/link/imp" / TIMING,
-                skew=Path(hooks[0]), link=root / "logs" / f"v++_{IMAGE.removesuffix('.xclbin')}.log",
-                build=root / "build.log")
+                skew=Path(hooks[0]), link=root / "logs" / f"v++_{image_name.removesuffix('.xclbin')}.log",
+                build=root / "build.log" if build_log is None else build_log)
 
 
-def collect(command, transfer, root, output, expected_abi):
-    paths = select_files(command, root)
+def collect(command, transfer, root, output, expected_abi, *, image_name=IMAGE, resume=None,
+            original_log=None):
+    paths = select_files(command, root, image_name=image_name, build_log=original_log)
+    if resume is not None:
+        record = json.loads(command(["cat", "--", resume]))
+        if (record.get("status") != "BUILD_COMPLETED_NOT_BOARD_ADMITTED" or record.get("returncode") != 0
+                or record.get("policy") != dict(tree_memory_gib=104, high_memory_gib=100,
+                    reserve_gib=128, background_memory_gib=8, allow_bounded_builds=True)
+                or original_log is None):
+            raise ValueError("resume must have its own successful guarded execution and original log")
+        paths.update(resume_execution=resume, resume_script=Path(record["script"]["path"]),
+                     resume_log=Path(record["build_log"]["path"]),
+                     resume_supervisor=Path(record["supervisor"]["path"]))
     if len({path.name for path in paths.values()}) != len(paths):
         raise ValueError("route files must have distinct names")
     digests = {}
@@ -71,6 +88,15 @@ def collect(command, transfer, root, output, expected_abi):
     pins = {key: identity(output / path.name) for key, path in paths.items()}
     if any(pins[key]["sha256"] != digests[path] for key, path in paths.items()):
         raise ValueError("remote route file changed during transfer")
+    if resume is not None:
+        for key in ("script", "build_log", "supervisor"):
+            pin = pins[{"script": "resume_script", "build_log": "resume_log",
+                        "supervisor": "resume_supervisor"}[key]]
+            if (pin['sha256'], pin['bytes']) != (record[key]['sha256'], record[key]['bytes']):
+                raise ValueError("resume artifact differs from its completed execution")
+        script = Path(pins['resume_script']['path']).read_text()
+        if [line for line in script.splitlines() if line.startswith('root=')] != [f'root={root}']:
+            raise ValueError('resume script names a different original build')
     manifest = Path(pins["manifest"]["path"]).read_text()
     abi, = re.findall(r"^build_sha256 ([a-f0-9]{64})$", manifest, re.MULTILINE)
     if abi != expected_abi:
@@ -90,6 +116,11 @@ def run(args):
             or not re.fullmatch(r"/data/chuxiao/[A-Za-z0-9_.-]+", str(args.root))
             or not 1 <= args.wait_seconds <= 64800):
         raise ValueError("explicit remote build identity and bounded wait required")
+    resume, original_log = getattr(args, 'resume', None), getattr(args, 'original_log', None)
+    if ((resume is None) != (original_log is None) or any(
+            not re.fullmatch(r'/data/chuxiao/[A-Za-z0-9_./-]+', str(path)) or '..' in path.parts
+            for path in (resume, original_log) if path is not None)):
+        raise ValueError('resumed builds require both explicit safe execution and original-log paths')
     anchor = revision.pinned_arg(args.anchor)
     check_memory(24, require_live_reserve=False)
     args.output.mkdir(parents=True, exist_ok=False)
@@ -128,7 +159,13 @@ def run(args):
                     journal = command(["journalctl", "--user", "--boot", "--no-pager", "-o", "json",
                                        f"USER_UNIT={args.unit}", f"USER_INVOCATION_ID={args.invocation}"])
                     report["terminal_journal"] = [json.loads(line) for line in journal.splitlines()]
-                    retired(report["terminal_journal"], args.unit, args.invocation, args.root)
+                    if resume is None:
+                        retired(report["terminal_journal"], args.unit, args.invocation, args.root)
+                    else:
+                        record = json.loads(command(['cat', '--', resume]))
+                        save(args.output / 'remote-resume-execution.json', record)
+                        retired(report["terminal_journal"], args.unit, args.invocation, args.root,
+                                resume=(resume.parent, Path(record['script']['path'])))
                     break
                 if route_finished(state, args.invocation):
                     break
@@ -142,7 +179,8 @@ def run(args):
 
         report["status"] = "COLLECTING_ROUTE"
         checkpoint()
-        candidate = collect(command, transfer, args.root, args.output / "route", args.abi)
+        candidate = collect(command, transfer, args.root, args.output / "route", args.abi,
+                            image_name=getattr(args, 'image_name', IMAGE), resume=resume, original_log=original_log)
         spec = args.output / "candidate.json"
         save(spec, candidate)
         prepared = revision.preflight(anchor, identity(spec))
@@ -173,6 +211,9 @@ def main():
     parser.add_argument("--port", type=int, default=22)
     parser.add_argument("--anchor", nargs=2, required=True, metavar=("JSON", "SHA256"))
     parser.add_argument("--wait-seconds", type=int, default=64800)
+    parser.add_argument('--image-name', default=IMAGE)
+    parser.add_argument('--resume', type=Path)
+    parser.add_argument('--original-log', type=Path)
     run(parser.parse_args())
 
 

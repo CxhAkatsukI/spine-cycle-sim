@@ -1,0 +1,4 @@
+WARNING: Building component "refresh" with no links assigned.
+HOST_RESULT {"arm":"spine","repeat":0,"batches":3,"updates":3,"nanoseconds":114204,"initial_nanoseconds":109310,"batch_nanoseconds":4894,"initial_h2d_bytes":1880,"update_h2d_bytes":48,"bootstrap_complete":true,"batch_preparation_complete":true,"batch_h2d_bytes": [16,16,16]}
+REFRESH_COMPLETE
+Simulation is complete, simulated time: 0 s
