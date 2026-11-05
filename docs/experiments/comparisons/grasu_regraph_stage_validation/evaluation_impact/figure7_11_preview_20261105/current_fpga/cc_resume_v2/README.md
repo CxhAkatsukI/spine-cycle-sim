@@ -191,3 +191,31 @@ CC state. Cross-component insert counts are not counts of distinct merges,
 changed vertices, propagation rounds or device cycles. This check does
 not replace the paired FPGA runs or admit any Fig. 7 bar; all eight tests
 remain in the matrix.
+
+### Synthesis Diagnostic For The Queued Image
+
+The remote `2315cae` build passed HLS and entered Vivado block synthesis.
+At about 89 minutes into that phase, the build cgroup used about 244 GiB
+(238 GiB anonymous memory), with no cgroup high, max or OOM events at that
+sample. This is compiler memory on seele, not the local board host's ZFS
+file cache. Neither placement nor routing was complete.
+
+The HLS reports under `temp/compile_engine-4-1-2-2-1/` in the remote build
+root `/data/chuxiao/spine-cc-stream-admit-2315cae-route-v1` show two instances
+of the same row walker in distinct CC command paths:
+
+| HLS hierarchy | Estimated LUTs |
+| --- | ---: |
+| `cc_control / cc_admit_source / spine_row_next` | 46,054 |
+| `cc_control / cc_live_row / spine_row_materialize / spine_row_next` | 46,054 |
+| `spine_partconv_rdmaint_kernel` (entire kernel) | 444,417 |
+
+See `cc_control_csynth.rpt` and the top-level `*_csynth.rpt` in the HLS
+solution's `syn/report/`. These are HLS estimates, not placed utilization;
+the top estimate is slightly above the report's nominal single-SLR LUT
+capacity of 434,560, not above whole-device capacity. The duplicate walkers
+are a candidate for resource reduction, not a diagnosis of the earlier OOM
+or a demonstrated routing or latency fix. Admission and propagation run
+sequentially; a reviewed shared walker would need to retain streamed
+admission without HBM scratch and bounded row materialization for propagation.
+No such source change is in the running build or the queued board tests.
