@@ -282,9 +282,24 @@ The frozen fifteen-pair review archive remains unchanged. New execution
 requires a new frozen runner and output directory; the failed receipt is
 never rewritten.
 
-On the run host, inspect the exact handle and live report with:
+The fresh prelaunch continuation uses frozen simulator commit `f684a1c7`,
+service `gr-respr-qualified-lj08-prelaunch-20261105-v2.service`, invocation
+`0c514a3df92a4f8a9351a87a952a84f3`, with the same 32/30-GiB limits,
+zero swap, eight-hour runtime and qualified host/image. At 15:03 UTC it
+had completed the Spine arm and started G+R. This is a live execution record,
+not an accepted pair; both arms, clocks, final oracles and export gates must
+pass before adding a row. There is no automatic repeat of either arm.
+
+An earlier startup-only `gr-respr-qualified-lj08-prelaunch-20261105-v1.service`
+(invocation `61c8796c78c04d58b977d52fdb726b1e`) failed with
+`ModuleNotFoundError` because its new worktree was not yet ready. No output
+directory, experiment host or board test was started. After worktree creation
+finished, import and clean-source checks passed before the separate v2 launch.
+This startup failure supplies no performance evidence.
+
+On the run host, inspect the new exact handle and live report with:
 
 ```sh
-systemctl --user status gr-respr-qualified-lj08-diagnostics-20261105-v1.service --no-pager
-python3 -m json.tool /data/chuxiao/checks/source-retention-repair-20261104/respr-qualified-lj08-diagnostics-v1/results.json
+systemctl --user status gr-respr-qualified-lj08-prelaunch-20261105-v2.service --no-pager
+python3 -m json.tool /data/chuxiao/checks/source-retention-repair-20261104/respr-qualified-lj08-prelaunch-v2/results.json
 ```
