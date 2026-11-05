@@ -217,7 +217,7 @@ headroom was still 71,529,877,504 bytes; the task peak was 3,091,701,760 bytes
 (2.88 GiB), and all cgroup high/max/OOM counters were zero. Only the Spine arm
 was attempted; neither a completed pair nor a new speedup is available. This
 is a stop by our global-pressure policy, not proof of OOM or of non-reclaimable
-ARC. No further retry was queued.
+ARC. At that checkpoint, no further retry had been queued.
 
 The [direct-pair receipts](qualified_lj08_v1_receipts.tar.gz) preserve the
 terminal matrix, child receipt, service log, clocks and repackaging records;
@@ -249,3 +249,30 @@ This adds the previously missing last/peak observations and before/after
 cgroup pressure to a hashed failure sidecar. Safety thresholds, workloads,
 oracles, image identities and timing boundaries are unchanged. The former
 attempts remain frozen failures without retroactively invented diagnostics.
+
+### Guarded Direct-Pair Continuation
+
+After adding the failure diagnostics, one direct LJ08 pair was queued from
+frozen simulator commit `c0e26ce988b60f0d6c997a10fd9147a232bb580d` at
+14:39 UTC on November 5. The service is
+`gr-respr-qualified-lj08-diagnostics-20261105-v1.service`, invocation
+`ea37d855386a418cbfa18149e026f1e0`. Its live receipt is
+`/data/chuxiao/checks/source-retention-repair-20261104/respr-qualified-lj08-diagnostics-v1/results.json`.
+It has a 32-GiB maximum, 30-GiB high limit, zero swap and an eight-hour runtime
+limit. Board admission waits at most six hours, then measures each arm once;
+there is no automatic retry after a failed execution.
+
+The last checked state for this launch record was `WAITING_FOR_MEMORY`, with
+no measured-arm attempt. Full finite reservations, the 32-GiB reserve and
+the unchanged settling profile still apply. Both the qualified Spine host
+and the exact screened G+R image are unchanged. The only runner changes are
+failure diagnostics. A live queue is not a sixteenth accepted pair; inspect
+the eventual terminal receipt and replay the exporter before selecting data.
+The frozen fifteen-pair review archive remains unchanged.
+
+On the run host, inspect the exact handle and live report with:
+
+```sh
+systemctl --user status gr-respr-qualified-lj08-diagnostics-20261105-v1.service --no-pager
+python3 -m json.tool /data/chuxiao/checks/source-retention-repair-20261104/respr-qualified-lj08-diagnostics-v1/results.json
+```
