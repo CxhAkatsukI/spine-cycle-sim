@@ -189,6 +189,25 @@ def fig7(output):
     save(figure, output, "fig7_fullpr_legacy")
 
 
+def fig7_banked_sssp(output):
+    rows = read_csv(ROOT / "fig7_sssp_banked.csv")
+    if tuple(row["dataset"] for row in rows) != DATASETS or any(
+        row["status"] != "MEASURED_RESIDENT_PAIR" for row in rows
+    ):
+        raise ValueError("expected eight admitted banked SSSP pairs")
+    values = numbers(rows, "speedup_gr_over_spine")
+    figure, axis = plt.subplots(figsize=(3.55, 1.52), layout="constrained")
+    x = range(len(rows))
+    bars(axis, x, values, SERIES[0], width=0.62)
+    axis.set_xticks(x, DATASETS)
+    axis.set_ylabel("Speedup (G+R / Spine)")
+    axis.set_ylim(0, max(5, max(values) * 1.13))
+    axis.yaxis.set_major_locator(MaxNLocator(nbins=5, integer=True))
+    axis.set_title("Weighted SSSP, banked G+R (FPGA)", pad=7)
+    style_axis(axis, parity=True)
+    save(figure, output, "fig7_sssp_banked")
+
+
 def fig7_nov05(output):
     rows = read_csv(ROOT / "fig7_nov05_diagnostic.csv")
     by_case = {(row["algorithm"], row["dataset"]): row for row in rows}
@@ -346,7 +365,7 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     reference = prior_renderer()
     reference.configure_matplotlib()
-    for draw in (source_comparison, fig7, fig7_nov05, fig8, fig9, fig11):
+    for draw in (source_comparison, fig7, fig7_nov05, fig7_banked_sssp, fig8, fig9, fig11):
         draw(output)
     fig10(output, reference)
 

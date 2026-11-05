@@ -6,7 +6,8 @@ evidence labels when reusing them.
 
 | Plot | PDF / PNG | Inputs and scope |
 | --- | --- | --- |
-| G and R vs. public source | [PDF](figures/gr_source_comparison.pdf) / [PNG](figures/gr_source_comparison.png) | [Matched stage times](gr_source_comparison.csv), one U55C sample per arm; includes the new CC source-burst image. The dashed line is the public-source control |
+| G and R vs. public source | [PDF](figures/gr_source_comparison.pdf) / [PNG](figures/gr_source_comparison.png) | [Matched stage times](gr_source_comparison.csv), one U55C sample per arm. The SSSP/CC points use the exact banked baselines; the ResPR points are from the older packed-validity route. The dashed line is the public-source control |
+| 7, latest SSSP FPGA | [PDF](figures/fig7_sssp_banked.pdf) / [PNG](figures/fig7_sssp_banked.png) | [Eight matched pairs](fig7_sssp_banked.csv), [raw receipt archive](fig7_sssp_banked_receipts.tar.gz). Same banked G+R image as the SSSP source controls. One sample per arm, no projections or timeouts |
 | 7 | [PDF](figures/fig7_oct26_fpga.pdf) / [PNG](figures/fig7_oct26_fpga.png) | [Oct. 26 board data](../figure7_11_handoff_20261103/data/fig7_fpga_speedup.csv), 24 resident update-to-readback comparisons; no projections/timeouts. All eight ResPR rows have zero nonempty propagation rounds |
 | 7, newer SSSP diagnostic | [PDF](figures/fig7_nov04_sssp_diagnostic.pdf) / [PNG](figures/fig7_nov04_sssp_diagnostic.png) | [Nov. 4 board data](../hardware_validation/r_retention_repair_20261103/sssp-resident-followup/README.md), six pairs; n/m means no measurement, not timeout. G and the two Amazon R screens passed, but AU R exceeded 15% on this specific image |
 | 7, Nov. 5 FPGA diagnostic | [PDF](figures/fig7_nov05_fpga_diagnostic.pdf) / [PNG](figures/fig7_nov05_fpga_diagnostic.png) | [All 24 case statuses](fig7_nov05_diagnostic.csv) and [receipt index](fig7_nov05_diagnostic.json). One matched board sample per arm where admitted; crosses mark failed cases, blank slots have no admitted measurement. AU R is outside 15% |
@@ -19,19 +20,22 @@ evidence labels when reusing them.
 
 ## What The G/R Plot Establishes
 
-**Later SSSP checkpoint:** the [banked source-burst stage and board
-receipts](../hardware_validation/r_retention_repair_20261103/SSSP_STAGE_ADMISSION.md#banked-source-burst-follow-up)
-supersede the SSSP stage numbers below for the replacement image. All
-three R controls are within 15%; G passes the no-degradation check. The
-first correctness-admitted resident pair on that exact image is a
-**2.03x Spine win on full AU**. Neither that single pair nor the new
-[Spine-only ten-batch replay](../hardware_validation/r_retention_repair_20261103/FIGURE_IMPACT.md#persistent-spine-update-replay)
-is a complete replacement for the frozen plots.
+The [banked source-burst stage and board receipts](../hardware_validation/r_retention_repair_20261103/SSSP_STAGE_ADMISSION.md#banked-source-burst-follow-up)
+supersede the earlier SSSP control on which AU R was outside 15%. All
+three SSSP R controls are now within 15%, and G is faster in its matched
+control. On that exact G+R image, Spine wins all eight resident SSSP
+pairs, **2.03x--24.01x**. This is a replacement for the SSSP series only,
+not a three-algorithm replacement. The prepared-batch wall time includes
+host waits, relaunch and readback; initial frontier packing is outside
+G+R's timer and the corresponding source-list construction is inside
+Spine's. The archive includes clocks, logs and hash-pinned comparison
+receipts. It does not duplicate the large final state dumps, input graphs,
+host binaries or xclbins; their paths and hashes are in the receipts.
 
 G measures the first-to-last update-CU event span, including gaps between
 shards but excluding input residency and final readback. The public GraSU
 control updates PMA only. SSSP and CC are faster in the matched AU 131K
-screen (7.298 and 7.364 ms vs. 18.369 ms); the older integrated ResPR
+screen (7.023 and 7.364 ms vs. 18.369 ms); the older integrated ResPR
 variant includes the device degree-update CU and takes 133.500 ms
 (7.27x the public PMA-only time). That is a measurement of the augmented
 path, not an isolated PMA slowdown or a result for the new degree-prefix
@@ -41,8 +45,8 @@ R compares the actual adapter + integrated R with the public four-Little
 ReGraph configuration (A4) on matched resident inputs; it excludes G,
 initial upload and end-to-end host orchestration. AM+ is higher-activity
 Amazon; Skew is the skewed-source fixture. The slowest observed ratios
-are 1.214x (SSSP AU), 1.124x (CC AU) and 1.157x (ResPR Skew);
-the Amazon controls range from 0.932x to 1.007x. These are observed ratios,
+are 1.135x (SSSP AU), 1.124x (CC AU) and 1.157x (older ResPR Skew);
+the Amazon controls range from 0.917x to 0.966x. These are observed ratios,
 not a blanket 15% parity claim or a reproduction of the original published
 topology/throughput. The [dated stage receipts](../hardware_validation/r_retention_repair_20261103/README.md)
 retain the earlier gate outcomes. The new degree-prefix ResPR image had
@@ -51,9 +55,9 @@ not produced a new G time at this checkpoint.
 ## Where Spine Loses
 
 All 24 Oct. 26 main Fig. 7 rows and all six Nov. 4 SSSP diagnostic rows
-favor Spine **on their measured images and batches**. This does not
-establish the outcome on the replacement images. These losses and missing
-cases are relevant to interpretation and must not be omitted:
+favor Spine **on their measured images and batches**. For the latest
+images, the all-win result is established for SSSP only. These losses
+and missing cases are relevant to interpretation and must not be omitted:
 
 | Scope | Outcome |
 | --- | --- |
@@ -144,3 +148,8 @@ The Python renderer uses the grouped-bar construction from the supplied
 (SHA-256 verified), reuses the previous TX Typewriter styling and Figure 10
 renderer, and writes only PDF and PNG. Use `--output /path/to/figures`
 to write a clean review copy without touching the tracked previews.
+
+To regenerate the SSSP CSV and receipt archive on the run host, use
+`python export_banked_sssp.py /path/to/sssp-resident-matrix-banked-v4/matrix.json --output /path/to/export`.
+The exporter rejects incomplete matrices, mismatched receipt digests,
+different clocks/images and failed stage gates.

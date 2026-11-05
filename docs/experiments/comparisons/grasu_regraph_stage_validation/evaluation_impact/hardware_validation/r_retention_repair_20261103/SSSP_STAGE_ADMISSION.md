@@ -327,6 +327,14 @@ Full raw output is under
 `/data/chuxiao/checks/source-retention-repair-20261104/` in the
 directories named in the archive.
 
+The subsequent single-pass matrix completed on the same images, card
+and clocks. Together with the AU anchor, it contains [eight
+correctness-admitted resident pairs](../../figure7_11_preview_20261105/fig7_sssp_banked.csv),
+all with eight updates and nonempty propagation. Spine is faster on all
+eight by 2.03x--24.01x. The [matrix receipts](../../figure7_11_preview_20261105/fig7_sssp_banked_receipts.tar.gz)
+and [FPGA plot](../../figure7_11_preview_20261105/figures/fig7_sssp_banked.pdf)
+retain the prepared-batch timing scope above.
+
 ## Evidence
 
 [Raw evidence archive](sssp-stage-admission.tar.gz) preserves both R queue
