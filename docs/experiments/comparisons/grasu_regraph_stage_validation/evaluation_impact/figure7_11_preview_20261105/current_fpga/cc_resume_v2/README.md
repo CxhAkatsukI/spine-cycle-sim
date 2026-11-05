@@ -6,9 +6,11 @@ The 320-GiB build completed routing with setup/hold timing met at the
 150-MHz target. Packaging succeeded after adding two private Boost libraries.
 The successful image is preserved, but an agent-caused packaging retry deleted
 the original temporary bus-skew report. **No new CC performance sample is
-admitted.** A direct AU correctness diagnostic is waiting for board-host PSI
-admission; a separate fresh link is rebuilding complete route evidence from
-the same host, XOs and wiring. See the [recovery record](#route-packaging-and-evidence-recovery).
+admitted.** A direct AU correctness diagnostic now passes state, work and
+clock checks under bounded ARC-aware admission; a separate fresh link is
+rebuilding complete route evidence from the same host, XOs and wiring.
+See the [diagnostic and current queues](#arc-admission-and-au-diagnostic)
+and the [recovery record](#route-packaging-and-evidence-recovery).
 The dated records below are retained history, not current build status.
 
 The November 5 `spine-cc-stream-admit-resume-20261105-v1.service`
@@ -328,6 +330,73 @@ timing gates are unchanged. Reports respectively live at:
 
 All are pending at this checkpoint; no CC bar or all-win claim follows from
 launching them. The already accepted sixteen SSSP/ResPR pairs are unchanged.
+
+### ARC Admission And AU Diagnostic
+
+The v1 local queues above were stopped while idle, after preserving their
+unit properties, exact commands and pending reports. The diagnostic had
+not started its board child; the collector and matrix were waiting on
+their predecessors. Their frozen reports were not overwritten. No remote
+build or other user's task was stopped.
+
+The earlier request for administrator cache release was unnecessarily
+conservative. ARC is reclaimable without manually clearing it. With the
+half-clean-ARC estimate, roughly 79 GiB was available at the new smoke's
+admission, exceeding its full 24-GiB budget plus 32-GiB reserve. The old
+queue instead rejected the approximately 2% global full PSI against its
+1% threshold, even with no owned board child running. This was a pressure
+policy rejection, not proof of insufficient capacity or OOM.
+
+The separately declared
+[`zfs-arc-clean-half-background5-v1`](../../../../../../../implementation/runtime/board_arc_admission.md#background-pressure-profile)
+keeps full budgets, the reserve, cgroup limits, zero task swap, exclusive
+board leases and timeouts. It permits full PSI below 5%, some below 10%,
+and stops a running child after ten consecutive seconds above the limits.
+Missing observations or a physical-reserve breach still stop immediately.
+Old profiles are unchanged. The new runners use clean frozen source
+`ad6fea1e00c2a379a524403c675453e4d6e60047` at
+`/data/chuxiao/worktrees/spine-board-background-ad6fea1e`.
+
+The AU diagnostic completed at about 07:47 CST on November 6:
+
+| Check | Observation |
+| --- | --- |
+| Workload | 515,281 vertices, 679,246 old directed edges, eight reciprocal insertions / 16 physical records |
+| State and work | All raw labels, graph and round work pass; eight within-component insertions, zero propagation rounds |
+| Actual clock | Driver reports 150/500/450 MHz under the exclusive board lease |
+| Host pack to final checked readback | 4.542262 ms |
+| Batch resident to final checked readback | 4.413918 ms |
+| Containment | 24/22-GiB max/high, zero swap, group OOM enabled; peak 9,177,985,024 bytes (8.55 GiB) |
+| Live observations | Minimum discounted available 77,204,808,704 bytes (71.90 GiB); maximum full/some PSI 2.0%; no pressured checks |
+| Memory events | High, max, OOM and OOM-kill all zero |
+| Admission status | Correctness-only; `performance_admission: false` |
+
+This is not a fresh G+R pair or an admitted Fig. 7 point. It checks the
+saved image despite its missing raw skew report; it cannot repair that
+missing evidence or establish performance on WK/R19's propagation cases.
+The linked fresh image must independently pass its complete route and
+board gates before replacement performance data are exported.
+
+| Current task | Exact unit / invocation | Report under `/data/chuxiao/checks/source-retention-repair-20261104/` |
+| --- | --- | --- |
+| Completed diagnostic | `spine-cc-packaged-au-smoke-20261106-v2.service` / `3cba804f01dd4e3997b04110dcec3abb` | `cc-stream-packaged-au-smoke-20261106-v2/results.json` |
+| Waiting for fresh remote link, then AU check | `spine-retention-cc-au-fresh-link-20261106-v2.service` / `e3007078573249d3b279543d2256b3ca` | `cc-au-fresh-link-20261106-v2/results.json` |
+| Waiting for that exact AU collector, then seven cases | `gr-retention-cc-fresh-link-matrix-20261106-v2.service` / `225e50b5f04441d4bcd0c040ff4721f4` | `cc-warm-fresh-link-matrix-20261106-v2/matrix.json` |
+
+At the 07:49 CST snapshot the unchanged remote invocation remained
+`BUILDING` in block synthesis, using about 11.1 GiB. The collector and
+matrix were waiting, not measuring. The local launch initially rejected
+unsupported systemd property `MemoryOOMGroup=yes` before starting any new
+unit. Launching with supported `OOMPolicy=kill` then produced verified
+`memory.oom.group=1`; no containment requirement was removed. The focused
+runner/policy regression suite passed all 85 tests.
+
+[Admission, queue replacement and diagnostic receipts](background-admission-au-smoke-receipts.tar.gz)
+retain the old idle-queue records, three new launch/containment receipts,
+tests, exact diagnostic outputs and clocks, and dated pending local/remote
+snapshots. SHA-256:
+`0632ae28e5e7ff518e5cf7fffc24d9d0cf48aeb238d8631fd1abe77e58abb91c`.
+The archive is a frozen checkpoint, not live status or completed CC coverage.
 
 ### Retained Recovery Receipts
 

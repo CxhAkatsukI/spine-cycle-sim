@@ -74,6 +74,11 @@ agent-caused packaging retry deleted its temporary raw bus-skew report.
 A separate [fresh link and gated follow-ups](current_fpga/cc_resume_v2/README.md#route-packaging-and-evidence-recovery)
 are rebuilding complete evidence from identical host/XO/config bytes.
 No replacement CC performance sample has been admitted.
+The [bounded ARC-aware AU diagnostic](current_fpga/cc_resume_v2/README.md#arc-admission-and-au-diagnostic)
+now passes labels, graph, work and clock checks (4.54 ms host pack through
+checked final readback). It is explicitly correctness-only, not a new paired
+Fig. 7 point. The replacement local collector and seven-case matrix wait
+on the still-running fresh link; caches were not manually cleared.
 The [build-resume record](current_fpga/cc_resume_v1/README.md) preserves the
 agent-caused guard interruption and corrected launch without rewriting the
 old logs. The [PK capacity diagnostic](fresh_simulator/portable_fig8/diagnostics/pk_capacity_v1/README.md)
