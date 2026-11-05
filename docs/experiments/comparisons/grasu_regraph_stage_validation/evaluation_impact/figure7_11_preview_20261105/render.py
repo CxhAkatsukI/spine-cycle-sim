@@ -290,6 +290,40 @@ def fig8_persistent(output, data=ROOT, stem="fig8_ten_batch_partial"):
     save(figure, output, stem)
 
 
+def fig8_portable(output):
+    rows = read_csv(ROOT / "fresh_simulator/portable_fig8/fig8_ten_batch.csv")
+    datasets = ("AU", "SU", "WK", "SO", "PK")
+    if tuple(row["dataset"] for row in rows) != datasets or any(
+        row["baseline_admitted"] != "False" or (int(row["updates"]), int(row["batches"])) != (4096, 10)
+        for row in rows
+    ):
+        raise ValueError("expected the complete portable five-case status table")
+    figure, axis = plt.subplots(figsize=(3.55, 1.70), layout="constrained")
+    measured = []
+    for i, row in enumerate(rows):
+        if row["status"] == "PERSISTENT_PAIRED_SETUP_PREDICTION":
+            value = float(row["speedup_gr_over_spine"])
+            if value <= 0 or not isclose(value, float(row["gr_setup_inclusive_seconds"]) /
+                                         float(row["spine_setup_inclusive_seconds"])):
+                raise ValueError("portable comparison differs from elapsed-time ratio")
+            measured.append(value)
+            bars(axis, [i], [value], SERIES[0])
+        elif row["status"] == "FAILED_RETAINED" and not row["speedup_gr_over_spine"] and row["error"]:
+            axis.text(i, 0.3, "Failed", ha="center", va="bottom", fontsize=5.5)
+        else:
+            raise ValueError("unrecognized portable outcome")
+    if not measured:
+        raise ValueError("portable preview has no completed pairs")
+    axis.set_xticks(range(len(datasets)), datasets)
+    axis.set_ylim(0, max(measured) * 1.15)
+    axis.set_xlim(-0.6, len(datasets) - 0.4)
+    axis.set_ylabel("Throughput speedup")
+    axis.set_title("Ten batches, 4,096 updates; CPU + simulator", pad=7, fontsize=6)
+    axis.yaxis.set_major_locator(MaxNLocator(nbins=4))
+    style_axis(axis, parity=True)
+    save(figure, output, "fig8_ten_batch_portable")
+
+
 def fig8(output):
     cross = read_csv(HANDOFF / "fig8_update_cross_dataset.csv")
     sweep = read_csv(HANDOFF / "fig8_update_batch_sensitivity.csv")
@@ -407,12 +441,19 @@ def fig11(output, data=HANDOFF):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path)
-    parser.add_argument("--fresh", action="store_true", help="use the independently replayed Nov. 5 simulator experiments")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--fresh", action="store_true", help="use the independently replayed Nov. 5 simulator experiments")
+    mode.add_argument("--portable-fig8", action="store_true", help="draw the separate same-host remote Fig. 8 cohort")
     args = parser.parse_args()
-    output = args.output or ROOT / ("fresh_simulator/figures" if args.fresh else "figures")
+    default = ("fresh_simulator/portable_fig8/figures" if args.portable_fig8 else
+               "fresh_simulator/figures" if args.fresh else "figures")
+    output = args.output or ROOT / default
     output.mkdir(parents=True, exist_ok=True)
     reference = prior_renderer()
     reference.configure_matplotlib()
+    if args.portable_fig8:
+        fig8_portable(output)
+        return
     if args.fresh:
         data = ROOT / "fresh_simulator"
         fig8_persistent(output, data, "fig8_update_prediction")

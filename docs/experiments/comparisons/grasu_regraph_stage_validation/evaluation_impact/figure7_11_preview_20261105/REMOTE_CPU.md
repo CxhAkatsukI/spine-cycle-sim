@@ -43,3 +43,20 @@ The existing local SO/PK waiting runs remain separate, with their frozen
 source and original memory policy. No completed point is silently replaced
 by a faster host measurement. New results require a new export directory and
 an explicit host-cohort label in its README.
+
+## November 5 Completed Cohort
+
+The [checked export](fresh_simulator/portable_fig8/README.md) contains all five
+declared statuses: AU/SU/WK/SO complete, PK failed at Spine hierarchy capacity.
+Both smoke arms exactly match the frozen local device cycles and ledgers.
+The exporter also checks compiled numerical units/flags, DRAM identities,
+relocated input hashes, raw counters and the setup formula. The numerical
+model was not retuned. Source inventory differences are confined to CMake's
+uncompiled test target and 155 additional uncompiled test files, documented
+in the export; a source-level identity check is not FPGA calibration.
+
+The four measured preparation samples use Xeon Platinum 8375C CPUs and GCC
+15.2.0. Their combined setup-prediction ratios are 3.83/3.85/9.09/6.99.
+PK has no ratio. The raw stderr and failed receipt remain in the archive.
+The [portable cohort README](fresh_simulator/portable_fig8/README.md#reproduction)
+includes exact exporter commands and the earlier SU reference identity.

@@ -13,8 +13,10 @@ uses one algorithm series per dataset, as requested.
 
 The [fresh simulator data and previews](fresh_simulator/README.md) come from new
 executions and replayed analysis, not the older CSV files listed below. Fig. 8
-currently contains AU/SU/WK ten-batch pairs and all three fixed-total batch
-counts; SO/PK are pending memory admission. Fig. 9 has nine fresh pairs; Figs.
+contains a local AU/SU/WK ten-batch cohort and all three fixed-total batch
+counts. A [separate same-host remote cohort](fresh_simulator/portable_fig8/README.md)
+completes AU/SU/WK/SO, with PK's capacity failure retained; the local SO/PK
+jobs remain queued. Fig. 9 has nine fresh pairs; Figs.
 10--11 have 42 fresh executions, with 41 fit/holdout rows. Hardware source
 retention is a separate claim, not implied by these predictions.
 

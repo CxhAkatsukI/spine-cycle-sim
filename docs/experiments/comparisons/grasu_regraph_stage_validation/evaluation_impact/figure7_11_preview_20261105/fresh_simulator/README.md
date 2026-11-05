@@ -9,7 +9,8 @@ Fig. 7 and source controls. Pending cases are not filled with older results.
 
 | Figure | Data | Preview | Status |
 | --- | --- | --- | --- |
-| 8a | [Ten chronological batches](fig8_ten_batch.csv) | [PNG](figures/fig8_update_prediction.png), [PDF](figures/fig8_update_prediction.pdf) | AU/SU/WK complete; SO/PK pending memory admission |
+| 8a, local CPU | [Ten chronological batches](fig8_ten_batch.csv) | [PNG](figures/fig8_update_prediction.png), [PDF](figures/fig8_update_prediction.pdf) | AU/SU/WK complete; local SO/PK waiting for memory admission |
+| 8a, separate remote CPU | [Five-case cohort](portable_fig8/README.md) | [PNG](portable_fig8/figures/fig8_ten_batch_portable.png), [PDF](portable_fig8/figures/fig8_ten_batch_portable.pdf) | AU/SU/WK/SO complete; PK capacity failure retained |
 | 8b | [Fixed 131,072-update sweep](fig8_batch_sensitivity.csv) | Same two-panel preview | 10/100/1,000 batches complete; G+R wins at 1,000 |
 | 9 | [Nine ratios](fig9_memory_energy_rows.csv), [18 absolute arms](fig9_arms.csv) | [PNG](figures/fig9_memory_hbm_prediction.png), [PDF](figures/fig9_memory_hbm_prediction.pdf) | Complete declared AU/SU/WK x SSSP/CC/ResPR scope |
 | 10 | [Normalized rows](fig10_normalized_breakdown_rows.csv), [absolute stages](fig10_stage_rows.csv) | [PNG](figures/fig10_simulator_breakdown.png), [PDF](figures/fig10_simulator_breakdown.pdf) | 11 correctness/ledger-admitted stacks, each normalized to 100% |
@@ -31,6 +32,13 @@ because of the predicted Spine device term, not host preparation. The b10
 case explicitly overrides the frozen b100 input manifest's batch count;
 graph and update bytes are unchanged. Scope and formula checks are in
 [fig8_ten_batch_scope.json](fig8_ten_batch_scope.json).
+
+The separately exported [remote CPU cohort](portable_fig8/README.md) has all
+five declared case statuses: AU/SU/WK/SO ratios 3.83/3.85/9.09/6.99, with PK
+failing Spine's cold-hierarchy capacity check. Its smoke device counters and
+compiled numerical recipe match the local reference exactly. Do not combine
+its Xeon host times with the local EPYC sensitivity sweep, or infer hardware
+calibration from this portability check.
 
 **Fig. 9:** resident old state -> eight updates -> new convergence, device-only
 traffic, 32 HBM channels and 32 outstanding requests/channel. The complete
