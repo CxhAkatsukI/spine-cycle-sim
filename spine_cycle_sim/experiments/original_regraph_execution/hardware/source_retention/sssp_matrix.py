@@ -69,7 +69,7 @@ def admitted_au_topology(args, au_pins, gate):
     return decisions["amazon_odd"], decisions["au_slice"], pins
 
 
-def legacy_jobs(args):
+def legacy_jobs(args, completed=False):
     prerequisites = {
         "au": {"unit": args.au_unit, "invocation": args.au_invocation},
         "odd_r": {"unit": args.odd_unit, "invocation": args.odd_invocation},
@@ -79,8 +79,15 @@ def legacy_jobs(args):
             for row in prerequisites.values()):
         raise ValueError("exact AU and odd-frontier R invocations and bounded waits required")
     for row in prerequisites.values():
-        if route_finished(service_state(row["unit"]), row["invocation"]):
-            raise ValueError("enqueue while both pinned screens are active")
+        state = service_state(row["unit"])
+        collected = (state["LoadState"] == "not-found" and not state["InvocationID"]
+                     and state.get("ActiveState") == "inactive" and state.get("MainPID") == "0")
+        if completed:
+            if not collected and not route_finished(state, row["invocation"]):
+                raise ValueError("completed-screen mode requires both pinned screens to be terminal")
+            row.update(state=state, ready=True)
+        elif route_finished(state, row["invocation"]):
+            raise ValueError("enqueue while both pinned screens are active or pin their completed receipts")
     return prerequisites
 
 
@@ -90,10 +97,14 @@ def run(args):
     include_au = getattr(args, "include_au", False)
     source = getattr(args, "continue_from", None)
     require_topology = getattr(args, "require_au_topology", False)
+    completed = getattr(args, "completed_au_screen", None)
     if source and not include_au:
         raise ValueError("continuation requires the complete SSSP matrix")
     if require_topology and include_au:
         raise ValueError("cross-topology admission requires the separate AU resident screen")
+    if completed and (not require_topology or source or
+                      any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in completed)):
+        raise ValueError("completed AU requires cross-topology admission and two receipt hashes")
     if include_au and (args.au_unit or args.au_invocation or args.au_output):
         raise ValueError("choose the complete matrix or a separate AU screen")
     if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,75}", args.child_prefix)
@@ -110,6 +121,15 @@ def run(args):
     save(journal, report)
     try:
         pins = [*runner_pins(), identity(__file__), identity(resident_matrix.__file__)]
+        completed_pins = []
+        if completed:
+            if args.au_output is None:
+                raise ValueError("completed AU requires the original AU output directory")
+            completed_pins = [identity(args.au_output / name) for name in ("queue.json", "pair/results.json")]
+            if [pin["sha256"] for pin in completed_pins] != list(completed):
+                raise ValueError("completed AU receipt digest mismatch")
+            pins += completed_pins
+            report["completed_au_screen"] = completed_pins
         if include_au:
             pins.append(identity(follow.__file__))
         report["runner_pins"] = pins
@@ -126,7 +146,7 @@ def run(args):
             previous, pending = None, list(rows)
             if require_topology:
                 pending.sort(key=lambda ds: rows[ds]["case"]["memory_gib"])
-            prerequisites = resident_matrix.stage_jobs(args) if include_au else legacy_jobs(args)
+            prerequisites = resident_matrix.stage_jobs(args) if include_au else legacy_jobs(args, bool(completed))
         report["prerequisites"] = prerequisites
         save(journal, report)
         deadline = time.monotonic() + args.au_wait_seconds
@@ -156,6 +176,8 @@ def run(args):
             resident_matrix.check_stage_receipts(prerequisites, gate, odd)
         else:
             au_pins = admitted_au(args, gate)
+            if completed and au_pins != completed_pins:
+                raise ValueError("completed AU receipts changed before admission")
             pins += au_pins
             report["au_result"] = au_pins[1]
             if require_topology:
@@ -194,6 +216,8 @@ def arguments(parser):
                         help="keep prior attempts and queue unattempted cases from smallest memory budget")
     parser.add_argument("--require-au-topology", action="store_true",
                         help="replay the separate AU screen's exact cross-topology admission")
+    parser.add_argument("--completed-au-screen", nargs=2, metavar=("QUEUE_SHA256", "PAIR_SHA256"),
+                        help="start the remaining seven from terminal, hash-pinned AU receipts")
     for stage in ("au", "g", "r"):
         parser.add_argument(f"--{stage}-unit", default="")
         parser.add_argument(f"--{stage}-invocation", default="")

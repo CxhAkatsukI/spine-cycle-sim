@@ -125,6 +125,46 @@ class SsspMatrixTest(unittest.TestCase):
         self.assertEqual([call.args[3] for call in launch.call_args_list],
                          [ds for ds in matrix.resident.DATASETS if ds != "AU"])
 
+    def test_completed_screen_requires_terminal_services_and_pinned_au_pair(self):
+        self.args.require_au_topology = True
+        queue, pair = self.args.au_output / "queue.json", self.args.au_output / "pair/results.json"
+        pair.parent.mkdir(parents=True)
+        queue.write_text("completed queue")
+        pair.write_text("measured pair")
+        pins = [matrix.identity(path) for path in (queue, pair)]
+        self.args.completed_au_screen = [pin["sha256"] for pin in pins]
+        collected = dict(LoadState="not-found", InvocationID="", ActiveState="inactive", MainPID="0")
+        loaded = dict(LoadState="loaded", InvocationID=self.args.odd_invocation)
+
+        with patch.object(matrix, "service_state", side_effect=[collected, loaded]), \
+                patch.object(matrix, "admitted_au", return_value=pins), \
+                patch.object(matrix, "admitted_au_topology", return_value=({}, {}, [])) as replay, \
+                patch.object(matrix, "run_child", return_value={"status": matrix.MEASURED}) as launch:
+            with self.assertRaisesRegex(ValueError, "both pinned screens to be terminal"):
+                matrix.run(self.args)
+            launch.assert_not_called()
+            replay.assert_not_called()
+
+        self.args.output = self.root / "completed"
+        with patch.object(matrix, "service_state", side_effect=[collected, loaded]), \
+                patch.object(matrix, "route_finished", return_value=True) as terminal, \
+                patch.object(matrix, "admitted_au", return_value=pins), \
+                patch.object(matrix, "admitted_au_topology", return_value=({}, {}, [])) as replay, \
+                patch.object(matrix, "run_child", return_value={"status": matrix.MEASURED}) as launch:
+            report = matrix.run(self.args)
+            terminal.assert_called_once_with(loaded, self.args.odd_invocation)
+            replay.assert_called_once_with(self.args, pins, self.gate)
+            self.assertEqual(report["completed_au_screen"], pins)
+            self.assertEqual([call.args[3] for call in launch.call_args_list],
+                             [ds for ds in matrix.resident.DATASETS if ds != "AU"])
+
+        self.args.output = self.root / "tampered"
+        pair.write_text("replaced pair")
+        with patch.object(matrix, "run_child") as launch:
+            with self.assertRaisesRegex(ValueError, "receipt digest mismatch"):
+                matrix.run(self.args)
+            launch.assert_not_called()
+
     def test_cross_topology_replay_rejects_a_different_au_image(self):
         self.args.odd_output, self.args.odd_inputs = self.root / "odd", self.root
         for name in matrix.active_min.INPUTS + matrix.active_min.STATE[matrix.ALGORITHM]:

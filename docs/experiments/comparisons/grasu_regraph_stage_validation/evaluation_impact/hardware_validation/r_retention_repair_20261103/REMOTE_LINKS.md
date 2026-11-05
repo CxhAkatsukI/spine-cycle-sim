@@ -1035,6 +1035,17 @@ not request a second AU run, or continue if the AU comparison fails
 correctness. Losing speedups remain in the output. The tail variant has
 no parallel seven-case matrix.
 
+If the banked candidate cannot be admitted and the tail candidate passes
+the full AU resident pair, the same continuation can be started after
+both tail producers have exited. Use the tail route, host, and stage
+receipts from the table above, with `--require-au-topology` and
+`--completed-au-screen QUEUE_SHA256 PAIR_SHA256` (hashes of
+`--au-output/queue.json` and `--au-output/pair/results.json`, respectively).
+Specify the original AU and odd-R service invocations and a fresh output
+and child prefix. The mode requires terminal producers and still replays
+all four independent stage receipts before any board launch. It does
+not retry AU or replace a running banked matrix.
+
 Each requested pair runs once, sequentially by memory budget, under
 the existing board lease and 16--32 GiB zero-swap case limits. The frozen
 SSSP campaign used `0000:c1:00.1`; the banked baseline's qualified G
