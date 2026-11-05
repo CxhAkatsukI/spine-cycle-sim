@@ -4,7 +4,10 @@ The latest incremental FPGA export is the [sixteen-pair checkpoint](current_fpga
 all eight SSSP and eight ResPR pairs are measured; eight CC pairs remain
 missing. The [portable review entry](CURRENT.md) still selects its frozen
 fifteen-pair archive, the complete same-host L4 Fig. 8 follow-up and the
-negative results. It has not silently incorporated this increment. Older
+negative results. It has not silently incorporated this increment. To
+redraw all selected figures with an explicit newer Fig. 7 checkpoint, use the
+[reusable evaluation archive](PORTABLE.md). It reports measured wins, losses,
+ties and missing rows separately. Older
 preview commands below deliberately retain their earlier selections.
 
 ## November 5 Fresh Checkpoint
