@@ -219,3 +219,20 @@ or a demonstrated routing or latency fix. Admission and propagation run
 sequentially; a reviewed shared walker would need to retain streamed
 admission without HBM scratch and bounded row materialization for propagation.
 No such source change is in the running build or the queued board tests.
+
+The same invocation (`c9a1583f0d644a1cb972bb29237c7abf`) subsequently
+completed Vivado 2024.1 out-of-context `synth_design` for the CC kernel in
+2 h 18 min 36 s, with zero errors, and wrote a checkpoint. Its synthesized
+utilization report lists **190,148 CLB LUTs** (171,363 logic and 18,785
+memory), 239,007 registers, 68 BRAM tiles and 27 DSPs. The report accounts for
+LUT combining; use this count rather than summing the raw LUT primitives
+in `runme.log`. The report is
+`ulp_spine_partconv_rdmaint_kernel_1_0_utilization_synth.rpt` in
+`temp/partitioned_split_e2e_link_engine-4-1-2-2-1/link/vivado/vpl/prj/prj.runs/ulp_spine_partconv_rdmaint_kernel_1_0_synth_1/`
+under the same build root (SHA-256
+`b789e8235fd3e599603446faa8f0ba9c49751733ed54ecf8ed90b3c9e40ff564`).
+This supersedes the HLS estimate as evidence of the synthesized kernel's
+size. It is not a placed platform or per-SLR report, does not show that the
+walkers were deduplicated, and does not establish timing closure or a
+board-ready image. The queued paired tests remain gated on the exact
+packaged image and board correctness.
