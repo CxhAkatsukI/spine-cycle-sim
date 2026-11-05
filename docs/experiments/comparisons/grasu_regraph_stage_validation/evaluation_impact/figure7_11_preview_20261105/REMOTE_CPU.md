@@ -25,6 +25,13 @@ to create a new manifest with `--source`, `--output`, `--graph`, `--updates`,
 or an existing output and preserves the source manifest's other fields. The
 original manifest and transferred file identities remain indexed in the new one.
 
+SST receives `--lib-path` for the fresh plugin directory, not `--add-lib-path`.
+The latter still loads the compile-time install configuration even with
+`--no-env-config`, which fails when that installation path does not exist on
+the destination host. This isolates plugin discovery without editing SST or
+creating a compatibility directory in another user's installation. A missing
+runtime dependency or failed smoke remains a failed attempt, not a trace row.
+
 On seele (at least 480 GiB RAM), use the existing named
 `seele-reserve-128g-v1` policy: exact 40/36-GiB max/high cgroup, zero own swap,
 128-GiB live reserve, and atomic reservation against other finite jobs. The

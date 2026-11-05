@@ -94,9 +94,8 @@ def run(output, manifest, cpu, update_count, batch_count=10,
                     atomic_write_json(config, dict(mode="update", arm=arm, graph=graph,
                         updates=updates, batches=batches, output=str(directory),
                         dram_config=str(dram_config), maximum=150000000))
-                    step = execute(name, [*execution.prefix(), "taskset",
-                        "-c", str(cpu), str(execution.sst), "--no-env-config",
-                        "--add-lib-path=" + str(build), str(sst_config), "--", str(config)], 900)
+                    step = execute(name, execution.sst_command(cpu=cpu, library=build,
+                        configuration=sst_config, parameters=config), 900)
                     report["rows"][name] = dict(
                         **analysis.persistent_device(step, arm=arm, updates=count, batch_count=batches),
                         config=pin(config), backend=pin(directory / "backend.json"),
@@ -107,9 +106,8 @@ def run(output, manifest, cpu, update_count, batch_count=10,
                     host_config = host_directory / "config.json"
                     atomic_write_json(host_config, dict(mode="host", arm=arm, graph=graph,
                         updates=updates, batches=batches, output=str(host_directory)))
-                    host_step = execute(name + "_host", [*execution.prefix(),
-                        "taskset", "-c", str(cpu), str(execution.sst), "--no-env-config",
-                        "--add-lib-path=" + str(build), str(sst_config), "--", str(host_config)], 900)
+                    host_step = execute(name + "_host", execution.sst_command(cpu=cpu,
+                        library=build, configuration=sst_config, parameters=host_config), 900)
                     report["rows"][name]["host"] = analysis.persistent_host(
                         host_step, arm=arm, updates=count, batch_count=batches)
                     report["rows"][name]["host_evidence"] = dict(config=pin(host_config),

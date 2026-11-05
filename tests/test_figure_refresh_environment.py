@@ -32,6 +32,15 @@ class FigureEnvironmentTests(unittest.TestCase):
         self.assertEqual(selected.prefix(), ["env", "LD_LIBRARY_PATH=dram:pylib", "PYTHONHOME=python"])
         self.assertIn("same host", selected.description()["host_timing_cohort"])
 
+    def test_sst_uses_only_the_explicit_plugin_directory(self):
+        selected = environment.Environment(Path("compiler"), Path("sst"),
+                                           Path("include"), Path("dram"))
+        command = selected.sst_command(cpu=7, library=Path("fresh-build"),
+            configuration=Path("config.py"), parameters=Path("input.json"))
+        self.assertEqual(command, ["env", "LD_LIBRARY_PATH=dram", "taskset", "-c", "7",
+            "sst", "--no-env-config", "--lib-path=fresh-build", "config.py", "--", "input.json"])
+        self.assertFalse(any(arg.startswith("--add-lib-path") for arg in command))
+
     def test_dependency_inventory_includes_headers_python_and_shared_library(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

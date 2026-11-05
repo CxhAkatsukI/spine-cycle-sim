@@ -39,6 +39,12 @@ class Environment:
             assignments.append("PYTHONHOME=" + str(self.python_home))
         return ["env", "LD_LIBRARY_PATH=" + ":".join(libraries), *assignments]
 
+    def sst_command(self, *, cpu, library, configuration, parameters):
+        # --add-lib-path still reads SST's compiled-in install configuration.
+        return [*self.prefix(), "taskset", "-c", str(cpu), str(self.sst),
+                "--no-env-config", "--lib-path=" + str(library),
+                str(configuration), "--", str(parameters)]
+
     def description(self):
         fields = {key: str(value) if value is not None else None
                   for key, value in vars(self).items()}
