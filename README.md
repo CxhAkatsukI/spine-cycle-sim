@@ -11,6 +11,7 @@ Contributors and coding agents must follow [the repository working rules](AGENTS
 
 | Task | Entry point |
 | --- | --- |
+| Inspect the latest 16/24 resident FPGA pairs; CC remains pending | [Current FPGA checkpoint](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/resident_checkpoint_v3/README.md) |
 | Review or redraw the current selected G/R controls and Figures 7--11; incomplete FPGA matrix | [Current review entry and portable plotting archive](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/CURRENT.md) |
 | Understand the code and review a change | [C++ code map](cpp/README.md) |
 | Find architecture, implementation, and evidence records | [Documentation index](docs/README.md) |

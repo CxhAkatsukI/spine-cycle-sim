@@ -1,10 +1,13 @@
 """Incomplete exports retain pending slots and do not invent propagation or repetitions."""
 
 import argparse
+import csv
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
 import sys
+import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -16,6 +19,7 @@ class ResidentCheckpointTests(unittest.TestCase):
         folder = Path(__file__).resolve().parents[1] / (
             "docs/experiments/comparisons/grasu_regraph_stage_validation/"
             "evaluation_impact/figure7_11_preview_20261105")
+        cls.package = folder
         sys.path.insert(0, str(folder))
         try:
             spec = importlib.util.spec_from_file_location("resident_checkpoint", folder / "export_resident_checkpoint.py")
@@ -121,6 +125,40 @@ class ResidentCheckpointTests(unittest.TestCase):
             path.write_text(json.dumps(dict(pins=[], cases={"AU": dict(status="WAITING")})))
             with self.assertRaisesRegex(ValueError, "all eight"):
                 self.export.retime_fragments([path])
+
+    def test_sixteen_pair_increment_preserves_prior_samples_and_raw_qualified_receipt(self):
+        current = self.package / "current_fpga/resident_checkpoint_v3"
+        previous = current.with_name("resident_checkpoint_v2")
+
+        def read_rows(folder):
+            with (folder / "fig7_resident_checkpoint.csv").open(newline="") as stream:
+                return {(row["algorithm"], row["dataset"]): row for row in csv.DictReader(stream)}
+
+        old, new = read_rows(previous), read_rows(current)
+        scope = json.loads((current / "scope.json").read_text())
+        self.assertEqual(set(new), set(old))
+        self.assertEqual(len(new), scope["expected_pairs"])
+        measured = [row for row in new.values() if row["status"] == "MEASURED"]
+        self.assertEqual((len(measured), scope["measured_pairs"]), (16, 16))
+        added = ("residual_pagerank", "LJ08")
+        for key in old.keys() - {added}:
+            self.assertEqual(new[key], old[key])
+        for row in new.values():
+            if row["status"] != "MEASURED":
+                self.assertEqual(row["algorithm"], "cc")
+                self.assertTrue(all(not row[name] for name in (
+                    "spine_wall_ms", "gr_wall_ms", "speedup_gr_over_spine")))
+        row = new[added]
+        self.assertEqual((row["fresh_spine_samples"], row["fresh_gr_samples"],
+                          row["gr_sample_reused"]), ("1", "1", "False"))
+        self.assertAlmostEqual(float(row["speedup_gr_over_spine"]),
+                               float(row["gr_wall_ms"]) / float(row["spine_wall_ms"]))
+        pin = scope["fresh_qualified_sources"]["LJ08"]
+        with tarfile.open(current / "receipts.tar.gz", "r:gz") as archive:
+            raw = archive.extractfile(f"objects/{pin['sha256']}/results.json").read()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), pin["sha256"])
+        self.assertEqual(row["receipt_sha256"], pin["sha256"])
+        self.assertEqual(json.loads(raw)["status"], "MEASURED_RESIDENT_PAIR")
 
 
 if __name__ == "__main__":

@@ -2,15 +2,16 @@
 
 These eleven replayed controls supersede the older ResPR source-control series
 in the parent directory. They are **not** a complete new Figure 7 matrix.
-The [resident FPGA checkpoint](resident_checkpoint_v2/README.md) supplies the
-15 completed pairs and all nine missing statuses separately.
+The [resident FPGA checkpoint](resident_checkpoint_v3/README.md) supplies the
+16 completed pairs and all eight missing statuses separately. It adds the
+completed LJ08 ResPR pair without rewriting the frozen fifteen-pair review.
 The [CC resume record](cc_resume_v1/README.md) explains the guarded build
 restart and exact queued follow-ups; it is not additional board evidence.
 Its 104-GiB attempt subsequently hit its cgroup OOM limit; the separate
 [memory follow-up](cc_resume_v2/README.md) records that failure and the
 explicit larger build policy. Neither record supplies a measured CC bar.
-LJ08 ResPR also remains missing. The local ARC diagnostic below does not
-change those fifteen accepted pairs or the separate remote CC build.
+The local ARC diagnostics below describe earlier failed attempts, not the
+latest accepted LJ08 result. They do not change the remote CC build.
 
 - [Data](gr_controls.csv): actual per-arm milliseconds, ratios, image identities,
   clocks, sample counts, timing-closure status and claim scope.
@@ -84,7 +85,11 @@ images and clocks before writing. The renderer reuses the parent Python
 GraphyFlow/TX Typewriter style and verifies the supplied ZIP's SHA-256.
 The source-control preview is independent of all older frozen previews.
 
-## ARC Follow-Up: LJ08 Remains Missing
+## Earlier ARC Attempts: No Accepted LJ08 Pair
+
+This historical failure record is superseded only for current pair coverage
+by the [validated LJ08 result](resident_checkpoint_v3/README.md). The failed
+receipts and the frozen fifteen-pair review remain unchanged.
 
 ZFS ARC is normally reclaimed automatically; no cache purge or global ZFS
 change was requested or performed. `MemAvailable` alone was too conservative

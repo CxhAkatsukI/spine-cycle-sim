@@ -1,20 +1,21 @@
 # G/R Source Controls and Evaluation Plots
 
-For one unambiguous selection of the latest available data, previews and
-self-contained plotting code, start with [the current review entry](CURRENT.md).
-It explicitly remains incomplete (15/24 FPGA pairs), uses the complete
-same-host L4 Fig. 8 follow-up and retains the negative results. Older preview
-commands below deliberately retain their earlier selections.
+The latest incremental FPGA export is the [sixteen-pair checkpoint](current_fpga/resident_checkpoint_v3/README.md):
+all eight SSSP and eight ResPR pairs are measured; eight CC pairs remain
+missing. The [portable review entry](CURRENT.md) still selects its frozen
+fifteen-pair archive, the complete same-host L4 Fig. 8 follow-up and the
+negative results. It has not silently incorporated this increment. Older
+preview commands below deliberately retain their earlier selections.
 
 ## November 5 Fresh Checkpoint
 
 Start with the [current FPGA G/R controls](current_fpga/README.md) and
-[current resident FPGA checkpoint](current_fpga/resident_checkpoint_v2/README.md).
+[current resident FPGA checkpoint](current_fpga/resident_checkpoint_v3/README.md).
 The former contains eleven replayed controls on the exact current baseline
 images: all eight R points are within absolute +/-15%, and all three G points
-are faster than their public-source ports. The latter has **15 of 24** measured
-Fig. 7 pairs: all eight SSSP and seven ResPR cases favor Spine. Eight CC and one
-ResPR case remain missing, not zero-speedup measurements. The grouped preview
+are faster than their public-source ports. The latter has **16 of 24** measured
+Fig. 7 pairs: all eight SSSP and eight ResPR cases favor Spine. Eight CC cases
+remain missing, not zero-speedup measurements. The grouped preview
 uses one algorithm series per dataset, as requested.
 
 Later resident exports may repeat `--retimes` with the full original
@@ -51,14 +52,17 @@ G/R controls: G 10.957 vs. 19.166 ms; R Amazon +0.53%, skew -9.41% relative
 to the public-source A4 port. These are one-sample, at-most-15%-slower checks,
 not a reproduction of publication throughput or absolute +/-15% parity. The
 150-MHz route missed timing; the two arms were both explicitly derated. The
-new resident matrix is still running. The original host lost on PK (Spine
+original-host resident matrix is an earlier diagnostic. That host lost on PK (Spine
 102.13 vs. G+R 75.73 ms). An independently qualified, bit-exact host correction
 cache removes the per-batch full-graph correction rebuild; the five completed
 retimes now favor Spine, **1.51x--13.07x**, against reused frozen G+R samples.
-The later LJ/R19 additions bring the corrected ResPR scope to seven cases,
-1.51x--19.29x. LJ08 pressure-guard aborts remain unmeasured. The cache uses only the old graph/rank, prepares outside the resident timer,
-and reports that preparation separately. All five have zero nonempty
-propagation rounds, so they do not demonstrate propagation speedup. A separate
+The LJ/R19 additions brought the corrected ResPR scope to seven cases.
+The subsequent direct LJ08 pair passes both final oracles: **16.5773 ms
+Spine vs. 330.583238 ms G+R**, or 19.94x for Spine. The eight-case range is
+1.51x--19.94x. Earlier LJ08 pressure-guard aborts remain retained failures,
+not measurements. The cache uses only the old graph/rank, prepares outside
+the resident timer and reports that preparation separately. All eight have
+zero nonempty propagation rounds, so they do not demonstrate propagation speedup. A separate
 compact Flickr propagation case still loses (35.08 vs. 4.76 ms). The original
 PK loss and Flickr loss both remain evidence, not omitted outliers.
 
@@ -69,7 +73,7 @@ old logs. The [PK capacity diagnostic](fresh_simulator/portable_fig8/diagnostics
 separately explains the fourth-batch hierarchy failure; PK has no accepted
 Fig. 8 latency or ratio under that original L2 configuration.
 The SSSP eight-row all-win result below is measured on its exact admitted
-image; it must not be extrapolated to CC/ResPR. Older sections below describe
+image; it must not be extrapolated to CC. Older sections below describe
 earlier dated checkpoints and remain intact for provenance.
 
 Author handoff, 2026-11-05. The paper and the November 3 data package are
@@ -133,7 +137,8 @@ not produced a new G time at this checkpoint.
 
 All 24 Oct. 26 main Fig. 7 rows and all six Nov. 4 SSSP diagnostic rows
 favor Spine **on their measured images and batches**. For the latest
-images, the all-win result is established for SSSP only. These losses
+images, the latest checkpoint establishes eight SSSP wins and eight
+zero-propagation ResPR wins; eight replacement CC pairs are still missing. These losses
 and missing cases are relevant to interpretation and must not be omitted:
 
 | Scope | Outcome |

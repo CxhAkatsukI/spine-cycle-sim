@@ -83,7 +83,14 @@ The exact v2 build above ended at 23:21 CST on November 5 with
 peak. Its collector and dependent matrix also terminated, without a new
 CC sample. The build's last JSON still says `BUILDING`: group OOM killed
 the supervisor before its final checkpoint. Systemd's terminal state, not
-that stale JSON, determines the outcome. All original outputs are retained.
+that stale JSON, determines the outcome. Its original per-attempt log and
+receipt are retained; the next attempt reuses the original build directory
+and can replace intermediate tool products there.
+
+[Retained 192-GiB failure receipts](192g_failed_receipts.tar.gz) contain the
+original remote execution checkpoint/build log and the terminal local
+collector/matrix reports. Archive SHA-256:
+`1aa98331b7f3baf0face2bfd6497cc350d8bc6f7b42a8bf8608c87bd50141bdf`.
 
 At 15:24 UTC the remote host reported 519,523,016,704 available bytes
 (about 484 GiB), so this was the task's imposed limit, not host exhaustion.
@@ -96,3 +103,36 @@ older profile changes. The collector must select this new profile explicitly.
 This is an operational resource change only, not a source/ABI change,
 successful route, timing closure or a board result. A fresh invocation and
 output are required; the failed v2 service is never restarted in place.
+
+## Running 320-GiB Replacement
+
+The separate v3 build passed admission at 15:29 UTC on November 5 with
+519,461,150,720 available bytes, no peer reservations and
+489,626,271,744 required bytes. Its observed status at 15:33 UTC was
+`BUILDING`, with about 5.5 GiB in its cgroup. This is not routing completion.
+
+| Task | Exact unit / invocation |
+| --- | --- |
+| Remote build | `spine-cc-stream-admit-resume-20261105-v3.service` / `c9a1583f0d644a1cb972bb29237c7abf` |
+| Collector and AU comparison | `spine-retention-cc-au-stream-resume-20261105-v3.service` / `e061098f78594c5d8081b89517440c53` |
+| Follow-up matrix | `gr-retention-cc-stream-resume-matrix-20261105-v4.service` / `bb56598515124534896760fae3983f8b` |
+
+All three runners use frozen simulator source `5cd13bbc`. The remote runner
+root is `/data/chuxiao/fig8-portable-20261105/cc-build-budget-320-5cd13bbc`;
+the local follower worktree is `/data/chuxiao/worktrees/spine-cc-resume-320-5cd13bbc`.
+The remote supervisor SHA-256 is
+`8f96c62065210671bf1ddf586436c8e617fd8e1e104f537dec7c7b5372ee345f`.
+The HLS source, ABI and frozen make-script hash remain unchanged.
+
+New receipts, distinct from both failed predecessors:
+
+- Remote: `/data/chuxiao/cc-stream-resume-20261105-v3/execution.json`
+  and sibling `build.log`.
+- AU collector: `/data/chuxiao/checks/source-retention-repair-20261104/cc-au-stream-resume-20261105-v3/results.json`.
+- Matrix: `/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-stream-resume-matrix-v4/matrix.json`.
+
+The collector explicitly requires `320g-v1`, retains its 24/22-GiB max/high
+and zero swap, and waits for the exact new invocation. The matrix retains
+its 2-GiB limit and cannot launch later cases until AU passes. No CC bar is
+admitted by this launch record. The newly completed LJ08 ResPR pair is
+independent of these queued CC tests.
