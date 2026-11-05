@@ -1,0 +1,422 @@
+[
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_au_connected_components_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_au_connected_components_u8",
+    "receipt_sha256": "ce8f1ae0dd2f46b1d0f0396c7f50ef2f4a5f033aecd78705632273eac81426fd",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_au_thresholded_residual_pagerank_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_au_thresholded_residual_pagerank_u8",
+    "receipt_sha256": "9f08847fe94ce00fa8fd057d527f401cb3733e4b45fdf513a9dceb2716701c68",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_au_weighted_sssp_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_au_weighted_sssp_u8",
+    "receipt_sha256": "afcb1ee86425183dbdd8a2bea75b539d7c4062909f37b163fc39479fb86eb8a7",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_delete_fallback_sssp",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_delete_fallback_sssp",
+    "receipt_sha256": "f242757e27bef5af21b4aa60b6ac468f63eb072d30140d4c7d232a358a37fffb",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_flickr_respr_correction_u1",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u1",
+    "receipt_sha256": "66a0b92e38da050ea8a65cedbc50e518eefc55b6d4cdf3f025a65b18b330ed87",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_flickr_respr_correction_u64",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u64",
+    "receipt_sha256": "09a5bf889088c353967dab0314691b75fe0e67d7c7b75d64ceacf5afc3b1d2f0",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_flickr_respr_correction_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_flickr_respr_correction_u8",
+    "receipt_sha256": "ec4300556d2a06795ad01da8196050e28311a2520f4c8a8e7a95f3b5b1fab55b",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-r19cc-v3",
+    "execution_id": "fresh_20261103_current_fpga_v12_r19_connected_components_u8",
+    "identity_sha256": "6da2000d1035b1532d6e566ed259f6b27423717f85a793a0f507593f749730c5",
+    "matrix_sha256": "fc81e853333ce2a322db93b271be128af90118297a4b9565cc4fac68d7287c2f",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-r19cc-v3/runs/fresh_20261103_current_fpga_v12_r19_connected_components_u8",
+    "receipt_sha256": "becf5ad35d0a160bd9ef59c1432503fa1a45db130833eb2ce6071a23f4d55cfb",
+    "retried": true,
+    "status_sha256": "9bdd101b1942055d410e8f224867434a87b4ee74d533a2448cc86d6fdbeebfb7"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_r19_thresholded_residual_pagerank_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_r19_thresholded_residual_pagerank_u8",
+    "receipt_sha256": "72410f1e93210ff294b78beedfe80b18aa7a8043b06a50a1404660e51d708316",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_r19_weighted_sssp_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_r19_weighted_sssp_u8",
+    "receipt_sha256": "15bbd98e402b452859ab0854384756f8874afbeb7f3a0c9c61a741e706f7c764",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_su_connected_components_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_su_connected_components_u8",
+    "receipt_sha256": "c364e1baf7bb2ccff0e4908343e5435906fbfab80e433d47b14f39b1052c81ba",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_su_thresholded_residual_pagerank_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_su_thresholded_residual_pagerank_u8",
+    "receipt_sha256": "0e00a957412751c9d3ed7e04c72bb8fdcfc5d4c12df988aa149fe9b379805061",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_su_weighted_sssp_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_su_weighted_sssp_u8",
+    "receipt_sha256": "89d05064412bcec381a65367b1f87da97ff88ac57202bae4a16dbd992d7d5d7f",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_wk_connected_components_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_wk_connected_components_u8",
+    "receipt_sha256": "24815a9d3eefe172e4f41c38fa2d779b83a2b5c47c226c5bf0bcb8ed50993a1d",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_wk_thresholded_residual_pagerank_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_wk_thresholded_residual_pagerank_u8",
+    "receipt_sha256": "1cbc59275ca119c92648b8352202d1fb89349c399628da614bd2e00d6e645692",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_current_fpga_v12_wk_weighted_sssp_u8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_current_fpga_v12_wk_weighted_sssp_u8",
+    "receipt_sha256": "ca6321112e6fc76ab866929df21a9f92665a53cbf7eee1c1d69450782c895a48",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l1_e1",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l1_e1",
+    "receipt_sha256": "a4114044360b8f9295f34ccd40bb25774cad2952feeabb1037dc579df6879710",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l1_e16",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l1_e16",
+    "receipt_sha256": "1525ab23d4fb4d40584f9eb6fa5626021b6e2342320f4acf488800428f115e17",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l1_e32",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l1_e32",
+    "receipt_sha256": "a6e24804aff9c0bc7b2b89f685a241a10b9f2fd69df369db3b4faeca51722287",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l1_e4",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l1_e4",
+    "receipt_sha256": "deac900d83c7ae91db1f97e2c034dc7bc53be713524093fe726640be6bb5c750",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l1_e8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l1_e8",
+    "receipt_sha256": "a1d4b9368ea320bfdb8174ce0b6725ada8c8833966404334873da21acdc5bf02",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l2_e1",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l2_e1",
+    "receipt_sha256": "f2eccc8b5a5bcbee1d0825908c4c329f26d4cc470de26b03678b5d0d698e0f6d",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l2_e16",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l2_e16",
+    "receipt_sha256": "5d155eb0cc82ffc165dd08cc0cc4fec161fe195889217e8fa996d4ae5a448f5c",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l2_e32",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l2_e32",
+    "receipt_sha256": "d18a9c141be52836c650ade33d32e6a81d05eb8aff9ce08275294775e190218e",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l2_e4",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l2_e4",
+    "receipt_sha256": "a608e10cb47ad25f90646c54e92ed6dfa39d3d9a20bf279d7f3b0d2cbbd7aa3d",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l2_e8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l2_e8",
+    "receipt_sha256": "3e8b7f4cada6c72fc6a74fd619841a267391f8107edefe4dd85cb71922896892",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l3_e1",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l3_e1",
+    "receipt_sha256": "424d9119baacfcaaf6c131a0b21b7a0ef16c205b79464c1dbff019fea955a1a0",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l3_e16",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l3_e16",
+    "receipt_sha256": "2a811c2c106ae9c07bc81e0f8500e046dfa9d849cafbdf1a08aca809523054ae",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l3_e32",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l3_e32",
+    "receipt_sha256": "738e2c99eb76925350997343722dba9b4816ea8f37ff9ffe359cda7af074fad0",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l3_e4",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l3_e4",
+    "receipt_sha256": "9f32c1087837e67c402d0fed1d5e939747fba1a63a972845b51e5c5b400b5a3b",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l3_e8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l3_e8",
+    "receipt_sha256": "d8806d3e6f0514978f3fad515086336a5897441787a1a90a0f4032f42b7907f4",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l4_e1",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l4_e1",
+    "receipt_sha256": "6451c8d9fb5d88beb5e812e5015fb4ba9da75a9641f7b9fcaf47b0d1b3e741ce",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l4_e16",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l4_e16",
+    "receipt_sha256": "10d02e4eeb239e52f6a7c5b8d819c7b51a00478c534ebe42c46f4916d549052b",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l4_e32",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l4_e32",
+    "receipt_sha256": "f6a0911f0a68c505c51259adf10afdc10730e074c7bea6ec41d5f8edb2ef3bd5",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l4_e4",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l4_e4",
+    "receipt_sha256": "70f6c8977f03870c77470b228be42ddbaae63be9b9b3aa6bd43802d37a505b66",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l4_e8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l4_e8",
+    "receipt_sha256": "dc0e5a8b0dd2c6fe980785d7330ef63ce29c2695ad31790c59d97498b1affcb9",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l5_e1",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l5_e1",
+    "receipt_sha256": "2c2491df005b24b8ac48ab7c6a48511686b127dbb72183e87bd87b7011a98ebd",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l5_e16",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l5_e16",
+    "receipt_sha256": "cbb0c3b9e4c84b919dedff8edb5137b3df19317ba21ed990be2a74a78ccffe10",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l5_e32",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l5_e32",
+    "receipt_sha256": "dffab66d0334ea68077db4a7a9c3cfc6e7bfec4d48dfdd8d878bb26e108cf5d2",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l5_e4",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l5_e4",
+    "receipt_sha256": "5ae368aa16c42e6414b933b5dc64233bdce13efc4dd873180d8b541527f069bf",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_rq3_trace_carry_l5_e8",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_rq3_trace_carry_l5_e8",
+    "receipt_sha256": "5ac79f299642b0036eadf21b1e0848e08a0bd59621123a17514cc8e95eb14a49",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  },
+  {
+    "campaign": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1",
+    "execution_id": "fresh_20261103_zero_net_sssp",
+    "identity_sha256": "cfc570c26c5b7aa64f6b9e8dcdd2b3fbab67a5b0cfa644c767d3a3c78f980763",
+    "matrix_sha256": "d004ead46c53797dc239c849d77eba22b649f06a5751f3d8cb46ecb09f131085",
+    "out_dir": "/data/chuxiao/checks/source-retention-repair-20261104/fig1011-fresh-v1/runs/fresh_20261103_zero_net_sssp",
+    "receipt_sha256": "3f9d4b02548a449d13dc94e7524acd98a038f3b5c00b6f0907642044a281eec2",
+    "retried": false,
+    "status_sha256": "b20747621d281c3283e36c7c0d9d1410270c947210a523c6b6b8ed10baaa748c"
+  }
+]

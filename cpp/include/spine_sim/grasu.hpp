@@ -114,6 +114,12 @@ struct GraSuPmaLayout {
   local_destination(std::uint32_t destination) const;
 };
 
+// Four compact update buffers, with global source and partition-local dst.
+[[nodiscard]] std::array<std::vector<std::uint8_t>, 4>
+encode_grasu_compact_updates(const GraSuPmaLayout &layout,
+                             const std::vector<GraSuEdge> &updates,
+                             GraSuPmaWordAbi abi);
+
 // Host-visible destination partitioning used by ReGraph. Every partition has
 // global source rows but an independent PMA containing local destinations.
 struct GraSuPartitionedPmaLayout {
@@ -184,6 +190,8 @@ struct GraSuNativeConfig {
   // selected pseudo-channel. Legacy profiles retain the historical fixed
   // channel mapping when this flag is false.
   bool explicit_runtime_regions{};
+  // A rolling replay has already populated the pinned PMA/metadata regions.
+  bool initialize_pma_payload{true};
   std::array<std::size_t, 4> update_channels{{0, 1, 2, 3}};
   std::array<std::uint64_t, 4> update_bases{};
   std::array<std::size_t, 4> row_channels{{0, 1, 2, 3}};

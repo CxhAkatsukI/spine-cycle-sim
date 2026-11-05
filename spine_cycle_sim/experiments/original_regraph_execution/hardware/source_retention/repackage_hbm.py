@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 
-from . import clocks, matched_hbm
+from . import clock_profile, clocks, matched_hbm
 from .runtime import identity, save
 
 
@@ -27,7 +27,7 @@ def retarget(payload, target):
     return copy
 
 
-def run(source, verifier, target, output):
+def run(source, verifier, target, output, *, profile=None):
     output.mkdir(exist_ok=False)
     original = clocks.image(source, output, "original")
     source_clock = output / "original-clock.json"
@@ -36,6 +36,8 @@ def run(source, verifier, target, output):
     binary = output / "control.xclbin"
     receipt = {"status": "FAILED_RETAINED", "original": original, "verifier": identity(verifier),
                "xclbinutil": identity(TOOL), "requested_hbm_mhz": target, "commands": []}
+    if profile is not None:
+        receipt["explicit_clock_profile_mhz"] = clock_profile.validate(profile)
 
     def invoke(name, command):
         command = list(map(str, command))
@@ -46,7 +48,8 @@ def run(source, verifier, target, output):
     try:
         invoke("dump-original", [TOOL, "--input", source, "--dump-section",
                                  f"CLOCK_FREQ_TOPOLOGY:JSON:{source_clock}"])
-        requested = retarget(json.loads(source_clock.read_text()), target)
+        payload = json.loads(source_clock.read_text())
+        requested = retarget(payload, target) if profile is None else clock_profile.retarget(payload, profile)
         save(target_clock, requested)
         invoke("repackage", [TOOL, "--input", source, "--replace-section",
                              f"CLOCK_FREQ_TOPOLOGY:JSON:{target_clock}", "--output", binary])

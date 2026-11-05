@@ -1,22 +1,11 @@
 #pragma once
 
 #include "bootstrap.hpp"
+#include "update_preparation.hpp"
 #include "spine_sim/axi.hpp"
 #include <iostream>
 
 namespace figure_refresh {
-inline SpineEdgeSlice ordered_batch(const SpineEdgeSlice& trace, std::size_t index,
-                                   std::size_t count) {
-  const auto begin = trace.edges.begin() + index * trace.edges.size() / count;
-  const auto end = trace.edges.begin() + (index + 1) * trace.edges.size() / count;
-  SpineEdgeSlice batch{.vertices = trace.vertices, .edges = {begin, end},
-                       .case_name = trace.case_name};
-  std::stable_sort(batch.edges.begin(), batch.edges.end(), [](const auto& a, const auto& b) {
-    return std::tie(a.src, a.dst, a.weight, a.diff) < std::tie(b.src, b.dst, b.weight, b.diff);
-  });
-  return batch;
-}
-
 inline void update_spine(const wc::Input& input, Scheduler& scheduler, ClockId clock,
                          MemoryBackend& backend, std::uint64_t maximum,
                          std::size_t batches) {

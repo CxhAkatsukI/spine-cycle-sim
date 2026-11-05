@@ -1,0 +1,281 @@
+{
+  "all_fig10_ten_stage_ledgers_closed": true,
+  "analysis_environment": {
+    "numpy": "2.5.4",
+    "python": "3.13.12"
+  },
+  "e2e_metrics": [
+    {
+      "mape_percent": 14.205021498717159,
+      "max_ape_percent": 48.05725669134296,
+      "median_ape_percent": 10.482412864239947,
+      "r2": 0.9999611943337632,
+      "role": "calibration",
+      "samples": 24
+    },
+    {
+      "mape_percent": 24.287364988057774,
+      "max_ape_percent": 89.06611286437659,
+      "median_ape_percent": 10.003221362348881,
+      "r2": 0.9802770260617226,
+      "role": "trace_holdout",
+      "samples": 17
+    },
+    {
+      "mape_percent": 48.628529191208784,
+      "max_ape_percent": 89.06611286437659,
+      "median_ape_percent": 58.07566734530858,
+      "r2": 0.9776175117533175,
+      "role": "real_trace_holdout",
+      "samples": 7
+    }
+  ],
+  "executions": 42,
+  "fig10_bars": 11,
+  "fig11_fit_and_holdout_rows": 41,
+  "fpga_stage_calibrated": false,
+  "measurement_origins_sha256": "d32027a71d43c3df0f7186444b87cad8c30dc4c65f9e046a72ba2268c3b80e7f",
+  "no_holdout_used_for_fit": true,
+  "plugin_sha256": "1a417c2f78c48911dfe9b84bd76759ad7dc634036bbad1b1a4684d783190fe62",
+  "residual_apply_mode": "dense_default_sparse_candidate_not_wired_in_SST",
+  "split": {
+    "synthetic_calibration": 18,
+    "trace_calibration": 6,
+    "trace_holdout": 17
+  },
+  "stage_regressions": [
+    {
+      "intercept": 135.66856773852678,
+      "mechanism": "sort_frontend",
+      "r2": 0.9805380523452873,
+      "role": "all",
+      "samples": 41,
+      "slope": 10.522203795294775,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "w_sort_records",
+      "y_metric": "t_xfer_reduce_cycles"
+    },
+    {
+      "intercept": 1001.7362550003704,
+      "mechanism": "carry",
+      "r2": 0.9914236112369346,
+      "role": "all",
+      "samples": 25,
+      "slope": 7.267511423330381,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "w_carry_records",
+      "y_metric": "t_carry_cycles"
+    },
+    {
+      "intercept": 1607.7996048370412,
+      "mechanism": "directory",
+      "r2": 0.14914259373955507,
+      "role": "all",
+      "samples": 41,
+      "slope": -1.1738604289476389,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "directory_requests",
+      "y_metric": "t_directory_cycles"
+    },
+    {
+      "intercept": -30374.00844143532,
+      "mechanism": "physical_resolve_apply",
+      "r2": 0.994738194273918,
+      "role": "all",
+      "samples": 41,
+      "slope": 144.90219672504185,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "m_phys_records",
+      "y_metric": "t_resolve_app_cycles"
+    },
+    {
+      "intercept": 440.7516202024983,
+      "mechanism": "seed",
+      "r2": 0.745391558793807,
+      "role": "all",
+      "samples": 37,
+      "slope": 4.661173392275409,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "m_seed_records",
+      "y_metric": "t_seed_cycles"
+    },
+    {
+      "intercept": 3625.105724061938,
+      "mechanism": "switch",
+      "r2": 0.09351715363489777,
+      "role": "all",
+      "samples": 41,
+      "slope": -95.92605695064664,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "switch_work",
+      "y_metric": "t_switch_cycles"
+    },
+    {
+      "intercept": 14.10843262951696,
+      "mechanism": "drain",
+      "r2": 0.0010819555412607818,
+      "role": "all",
+      "samples": 35,
+      "slope": 0.0020083024655800255,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "source_and_reactivation_work",
+      "y_metric": "t_drain_cycles"
+    },
+    {
+      "intercept": 134.9574971133227,
+      "mechanism": "sort_frontend",
+      "r2": 0.9880298333286627,
+      "role": "calibration",
+      "samples": 24,
+      "slope": 10.65994941441689,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "w_sort_records",
+      "y_metric": "t_xfer_reduce_cycles"
+    },
+    {
+      "intercept": 757.4746073365388,
+      "mechanism": "carry",
+      "r2": 0.9815638129940708,
+      "role": "calibration",
+      "samples": 15,
+      "slope": 7.5529224277782765,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "w_carry_records",
+      "y_metric": "t_carry_cycles"
+    },
+    {
+      "intercept": 1687.2786408877703,
+      "mechanism": "directory",
+      "r2": 0.1324029350573751,
+      "role": "calibration",
+      "samples": 24,
+      "slope": -1.374602448232468,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "directory_requests",
+      "y_metric": "t_directory_cycles"
+    },
+    {
+      "intercept": -13163.369169607235,
+      "mechanism": "physical_resolve_apply",
+      "r2": 0.9994180196280289,
+      "role": "calibration",
+      "samples": 24,
+      "slope": 146.22457317979865,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "m_phys_records",
+      "y_metric": "t_resolve_app_cycles"
+    },
+    {
+      "intercept": 343.25465117216345,
+      "mechanism": "seed",
+      "r2": 0.7647136370393351,
+      "role": "calibration",
+      "samples": 22,
+      "slope": 5.579145849232401,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "m_seed_records",
+      "y_metric": "t_seed_cycles"
+    },
+    {
+      "intercept": 3726.1573920265782,
+      "mechanism": "switch",
+      "r2": 0.09372491738606181,
+      "role": "calibration",
+      "samples": 24,
+      "slope": -130.47425249169436,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "switch_work",
+      "y_metric": "t_switch_cycles"
+    },
+    {
+      "intercept": 1.6595103555750579,
+      "mechanism": "drain",
+      "r2": 0.9463359987660143,
+      "role": "calibration",
+      "samples": 20,
+      "slope": 0.0038933768353904795,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "source_and_reactivation_work",
+      "y_metric": "t_drain_cycles"
+    },
+    {
+      "intercept": 154.82579564489114,
+      "mechanism": "sort_frontend",
+      "r2": 0.9007920811995012,
+      "role": "trace_holdout",
+      "samples": 17,
+      "slope": 8.857621440536013,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "w_sort_records",
+      "y_metric": "t_xfer_reduce_cycles"
+    },
+    {
+      "intercept": 1426.2860378618243,
+      "mechanism": "carry",
+      "r2": 0.9971820571855764,
+      "role": "trace_holdout",
+      "samples": 10,
+      "slope": 7.034334484771015,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "w_carry_records",
+      "y_metric": "t_carry_cycles"
+    },
+    {
+      "intercept": 1516.2962374267006,
+      "mechanism": "directory",
+      "r2": 0.2919537639971377,
+      "role": "trace_holdout",
+      "samples": 17,
+      "slope": -0.9534478325348411,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "directory_requests",
+      "y_metric": "t_directory_cycles"
+    },
+    {
+      "intercept": -14940.618616108812,
+      "mechanism": "physical_resolve_apply",
+      "r2": 0.9580585173089052,
+      "role": "trace_holdout",
+      "samples": 17,
+      "slope": 96.9094332033269,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "m_phys_records",
+      "y_metric": "t_resolve_app_cycles"
+    },
+    {
+      "intercept": 510.60098671372134,
+      "mechanism": "seed",
+      "r2": 0.946535704727547,
+      "role": "trace_holdout",
+      "samples": 15,
+      "slope": 3.2131839495094834,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "m_seed_records",
+      "y_metric": "t_seed_cycles"
+    },
+    {
+      "intercept": 3616.133333333333,
+      "mechanism": "switch",
+      "r2": 0.22797354197615693,
+      "role": "trace_holdout",
+      "samples": 17,
+      "slope": -69.62222222222222,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "switch_work",
+      "y_metric": "t_switch_cycles"
+    },
+    {
+      "intercept": 31.189352836326293,
+      "mechanism": "drain",
+      "r2": 0.001870897652138992,
+      "role": "trace_holdout",
+      "samples": 15,
+      "slope": -0.027504076707874997,
+      "support_metric": "ten_stage_counter_supported",
+      "x_metric": "source_and_reactivation_work",
+      "y_metric": "t_drain_cycles"
+    }
+  ],
+  "status": "PASS_SIMULATOR_PREDICTION",
+  "zero_net_excluded_from_fit": true
+}

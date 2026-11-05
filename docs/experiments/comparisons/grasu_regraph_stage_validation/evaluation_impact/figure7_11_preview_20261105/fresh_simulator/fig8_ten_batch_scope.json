@@ -1,0 +1,34 @@
+{
+  "status": "PARTIAL_RETAINED",
+  "evidence": "single-sample host plus simulator/transfer prediction, not FPGA",
+  "expected": [
+    "AU",
+    "SU",
+    "WK",
+    "SO",
+    "PK"
+  ],
+  "measured": [
+    "AU",
+    "SU",
+    "WK"
+  ],
+  "missing": [
+    "SO",
+    "PK"
+  ],
+  "sensitivity": {
+    "expected_batches": [
+      10,
+      100,
+      1000
+    ],
+    "total_updates": 131072,
+    "measured_batches": [
+      10,
+      100,
+      1000
+    ]
+  },
+  "batch_override": "b10 reuses b100's frozen graph/update input; explicit command sets ten batches"
+}

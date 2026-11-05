@@ -23,6 +23,7 @@ Contributors and coding agents must follow [the repository working rules](AGENTS
 | Review the bounded PMA/K4 optimization toward original A4 | [Fixed one-round prediction study](docs/experiments/comparisons/grasu_regraph_stage_validation/actual_sharded_k4/adapter_optimization/row_line/directory_tile/README.md) |
 | Validate current G/R before a new Spine comparison | [Baseline admission plan and bounded diagnostics](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/README.md) |
 | Check the active FPGA R repair and its actual comparison limits | [R retention repair](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/hardware_validation/r_retention_repair_20261103/README.md) |
+| Inspect the fresh November 5 simulator runs separately from FPGA data | [Current Fig. 8--11 checkpoint](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/README.md) |
 
 ## Repository Boundaries
 

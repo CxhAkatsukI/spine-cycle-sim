@@ -55,6 +55,8 @@ def main() -> None:
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--lib-dir", type=Path, required=True)
     parser.add_argument("--only", help="substring selection for correctness smoke")
+    parser.add_argument("--memory-gib", type=int, choices=(4, 8, 16, 32), default=32,
+                        help="finite child address-space budget, frozen in the campaign identity")
     args = parser.parse_args()
     output, library = args.out_dir.resolve(), args.lib_dir.resolve()
     path = output / "matrix.json"
@@ -66,7 +68,7 @@ def main() -> None:
         "source_hashes": {str(p.relative_to(ROOT)): sha256_file(p)
             for directory in ("cpp", "sst") for p in (ROOT / directory).rglob("*")
             if p.is_file() and p.suffix in (".cpp", ".hpp", ".py") and "build" not in p.parts},
-        "memory": {"per_process_address_limit_gib": 32, "reserve_gib": 24, "jobs": 1},
+        "memory": {"per_process_address_limit_gib": args.memory_gib, "reserve_gib": 24, "jobs": 1},
         "matrix_sha256": sha256_file(path)}
     identity_path = output / "identity.json"
     if identity_path.exists() and json.loads(identity_path.read_text()) != identity:
@@ -92,7 +94,7 @@ def main() -> None:
             continue
         print("RUN", case["execution_id"], flush=True)
         resources = run_bounded(case["command"], ROOT, directory / "driver",
-                                timeout=1200, memory_gib=32, reserve_gib=24)
+                                timeout=1200, memory_gib=args.memory_gib, reserve_gib=24)
         try:
             if resources["exit_code"] != 0:
                 raise ValueError(f"runner exit {resources['exit_code']}")

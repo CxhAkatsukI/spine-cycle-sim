@@ -246,6 +246,50 @@ def fig7_nov05(output):
     save(figure, output, "fig7_nov05_fpga_diagnostic")
 
 
+def fig8_persistent(output, data=ROOT, stem="fig8_ten_batch_partial"):
+    rows = read_csv(data / "fig8_ten_batch.csv")
+    if any(row["status"] != "PERSISTENT_PAIRED_SETUP_PREDICTION" or row["baseline_admitted"] != "False"
+           or (int(row["updates"]), int(row["batches"])) != (4096, 10) for row in rows):
+        raise ValueError("expected ten-batch update-only predictions")
+    figure, (axis, right) = plt.subplots(1, 2, figsize=(3.55, 1.92), layout="constrained")
+    datasets = ("AU", "SU", "WK", "SO", "PK")
+    positions = {dataset: i for i, dataset in enumerate(datasets)}
+    values = [float(row["gr_setup_inclusive_seconds"]) / float(row["spine_setup_inclusive_seconds"])
+              for row in rows]
+    handle = bars(axis, [positions[row["dataset"]] for row in rows], values, SERIES[0], label="10 batches")
+    for dataset in set(datasets) - {row["dataset"] for row in rows}:
+        axis.text(positions[dataset], 0.4, "n/m", ha="center", va="bottom", fontsize=5.5)
+    axis.set_xticks(range(len(datasets)), datasets)
+    axis.set_xlim(-0.6, len(datasets) - 0.4)
+    axis.set_ylim(0, max(1.2, max(values) * 1.15))
+    axis.set_title("(a) Datasets", pad=7)
+    axis.set_ylabel("Throughput speedup")
+    axis.yaxis.set_major_locator(MaxNLocator(nbins=4))
+    style_axis(axis, parity=True)
+    legend(axis, [handle], height=1.18)
+    sweep_path = data / "fig8_batch_sensitivity.csv"
+    if sweep_path.is_file():
+        sweep = read_csv(sweep_path)
+        if tuple(int(row["batches"]) for row in sweep) != (10, 100, 1000) or any(
+            row["status"] != "PERSISTENT_PAIRED_SETUP_PREDICTION"
+            or row["baseline_admitted"] != "False" or int(row["updates"]) != 131072 for row in sweep
+        ):
+            raise ValueError("expected fixed-total AU sensitivity predictions")
+        values = numbers(sweep, "speedup_gr_over_spine")
+        right.plot(range(3), values, "-s", color=ORANGE, linewidth=0.8, markersize=2.9,
+                   label="AU, 131K total", zorder=6)
+        right.set_xticks(range(3), ("13.1K", "1.31K", "131"))
+        right.set_ylim(0, max(values) * 1.18)
+        right.yaxis.set_major_locator(MaxNLocator(nbins=4))
+        legend(right, height=1.18)
+    else:
+        right.text(0.5, 0.5, "Not measured", transform=right.transAxes, ha="center")
+    right.set_title("(b) Batch size", pad=7)
+    right.set_xlabel("Updates/batch")
+    style_axis(right, parity=True)
+    save(figure, output, stem)
+
+
 def fig8(output):
     cross = read_csv(HANDOFF / "fig8_update_cross_dataset.csv")
     sweep = read_csv(HANDOFF / "fig8_update_batch_sensitivity.csv")
@@ -295,26 +339,28 @@ def fig8(output):
     save(figure, output, "fig8_one_batch_fpga_diagnostic")
 
 
-def fig9(output):
-    rows = read_csv(HANDOFF / "fig9_memory_energy_rows.csv")
+def fig9(output, data=HANDOFF, stem="fig9_memory_hbm_model", fresh=False):
+    rows = read_csv(data / "fig9_memory_energy_rows.csv")
     figure, axes = plt.subplots(1, 2, figsize=(3.55, 1.75), layout="constrained")
-    for axis, (field, title, ticks) in zip(axes, (
-        ("memory_ratio_gr_over_spine", "(a) Accepted bytes", (1, 10, 100, 1000, 10000)),
-        ("hbm_energy_ratio_gr_over_spine", "(b) HBM energy", (1, 10, 100)),
+    for axis, (field, title) in zip(axes, (
+        ("accepted_bytes_ratio" if fresh else "memory_ratio_gr_over_spine", "(a) Accepted bytes"),
+        ("hbm_energy_ratio" if fresh else "hbm_energy_ratio_gr_over_spine", "(b) HBM energy"),
     ), strict=True):
         values = {(row["algorithm"], row["dataset"]): float(row[field]) for row in rows}
-        handles = grouped(axis, tuple(ALGORITHMS.values()), ("AU", "SU", "WK"), values, bottom=1)
-        log_axis(axis, 1, max(values.values()) * 1.35, ticks)
+        lower = 10 ** int(log10(min(values.values()) * 0.8)) if fresh else 1
+        upper = max(values.values()) * 1.35
+        handles = grouped(axis, tuple(ALGORITHMS.values()), ("AU", "SU", "WK"), values, bottom=lower)
+        log_axis(axis, lower, upper, tuple(t for t in (1, 10, 100, 1000, 10000) if lower <= t < upper))
         axis.set_title(title, pad=7)
         style_axis(axis)
     axes[0].set_ylabel("Ratio (G+R / Spine)")
-    figure.legend(handles=handles, ncol=3, loc="upper center", bbox_to_anchor=(0.54, 1.06),
+    figure.legend(handles=handles, ncol=3, loc="lower center", bbox_to_anchor=(0.54, 1.13),
                   frameon=False, handlelength=1.3, columnspacing=0.9)
-    save(figure, output, "fig9_memory_hbm_model")
+    save(figure, output, stem)
 
 
-def fig10(output, reference):
-    rows = read_csv(HANDOFF / "fig10_normalized_breakdown_rows.csv")
+def fig10(output, reference, data=HANDOFF):
+    rows = read_csv(data / "fig10_normalized_breakdown_rows.csv")
     assert len(rows) == 11 and all(isclose(
         sum(float(row[key]) for key, *_ in reference.FIG10_STAGES), 100, abs_tol=1e-6
     ) for row in rows)
@@ -326,9 +372,9 @@ def fig10(output, reference):
     reference.render_fig10(plt, rows)
 
 
-def fig11(output):
-    rows = read_csv(HANDOFF / "fig11_e2e_prediction_rows.csv")
-    metrics = {row["role"]: row for row in read_csv(HANDOFF / "fig11_e2e_metric_rows.csv")}
+def fig11(output, data=HANDOFF):
+    rows = read_csv(data / "fig11_e2e_prediction_rows.csv")
+    metrics = {row["role"]: row for row in read_csv(data / "fig11_e2e_metric_rows.csv")}
     figure, axis = plt.subplots(figsize=(3.55, 2.14), layout="constrained")
     for label, expected, color, marker, selected in (
         ("Fit", 24, BLUE, "s", [row for row in rows if row["model_role"] == "calibration"]),
@@ -360,12 +406,21 @@ def fig11(output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ROOT / "figures")
-    output = parser.parse_args().output
+    parser.add_argument("--output", type=Path)
+    parser.add_argument("--fresh", action="store_true", help="use the independently replayed Nov. 5 simulator experiments")
+    args = parser.parse_args()
+    output = args.output or ROOT / ("fresh_simulator/figures" if args.fresh else "figures")
     output.mkdir(parents=True, exist_ok=True)
     reference = prior_renderer()
     reference.configure_matplotlib()
-    for draw in (source_comparison, fig7, fig7_nov05, fig7_banked_sssp, fig8, fig9, fig11):
+    if args.fresh:
+        data = ROOT / "fresh_simulator"
+        fig8_persistent(output, data, "fig8_update_prediction")
+        fig9(output, data, "fig9_memory_hbm_prediction", fresh=True)
+        fig10(output, reference, data)
+        fig11(output, data)
+        return
+    for draw in (source_comparison, fig7, fig7_nov05, fig7_banked_sssp, fig8, fig8_persistent, fig9, fig11):
         draw(output)
     fig10(output, reference)
 

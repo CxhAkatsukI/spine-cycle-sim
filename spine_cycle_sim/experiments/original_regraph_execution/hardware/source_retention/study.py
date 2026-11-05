@@ -7,12 +7,17 @@ from pathlib import Path
 from ..board_execution import pair_resources
 from .runtime import check_memory, execute, identity, lease, save
 from .preflight import duplicate_edges
-from . import clocks, matched_hbm
+from . import clock_profile, clocks, matched_hbm
 
 
 def run(args):
     single = getattr(args, "r_single_run", False)
     strict_clocks = getattr(args, "strict_nominal_clocks", False)
+    profile = getattr(args, "matched_clock_profile", None)
+    if profile is not None:
+        clock_profile.validate(profile)
+        if strict_clocks or not single:
+            raise ValueError("explicit matched clocks require a separate single-run R control")
     if strict_clocks and not single:
         raise ValueError("nominal clock screening requires a single-run R comparison")
     if single and args.stages != ["R"]:
@@ -31,6 +36,7 @@ def run(args):
               "gate": "at most 15% slowdown per disclosed matched row; improvements allowed; no claim of publication reproduction",
               "bdf": args.bdf, "device": args.device, "affinity": "124,125",
               "nominal_clock_validation": strict_clocks, "board_attempts": [],
+              "explicit_matched_clock_profile_mhz": profile,
               "pins": {name: identity(getattr(args, name)) for name in
                        ("g_host", "g_input", "g_reference", "g_current", "r_host", "r_candidate", "r_reference", "r_current")},
               "input_pins": {case: [identity(p) for p in sorted((args.r_inputs / case).glob("*.u32le"))]
@@ -104,13 +110,19 @@ def run(args):
                     if strict_clocks:
                         preparation = matched_hbm.prepare(getattr(args, "r_" + arm), images[arm], 450, output,
                                                           name, fd, node, args.bdf, nominal=True)
+                    elif profile is not None:
+                        preparation = clock_profile.prepare(getattr(args, "r_" + arm), images[arm], profile,
+                                                            output, name, fd, node, args.bdf)
                     report["board_attempts"].append(name)
                     save(output / "results.json", report)
                     row = execute(command, output, name, fd, node, args.bdf)
                     row["clock_evidence"] = clocks.capture(args.bdf, images[arm], output, name)
                     if preparation:
                         row["clock_preparation"] = preparation
-                        matched_hbm.validate_after(preparation, row["clock_evidence"], 450, nominal=True)
+                        if profile is not None:
+                            clock_profile.validate_after(preparation, row["clock_evidence"], profile)
+                        else:
+                            matched_hbm.validate_after(preparation, row["clock_evidence"], 450, nominal=True)
                     if single:
                         row["repetitions"] = 1
                         if arm == "reference":

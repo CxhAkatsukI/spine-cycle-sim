@@ -17,6 +17,7 @@ from spine_cycle_sim.experiments.rq3 import TEN_STAGE_KEYS, analyze_rq3_results,
 from spine_cycle_sim.experiments.shared_workloads import load_slice
 from .matrix import FRESH, SELECTION
 from .run import admit
+from . import receipts
 
 
 def write_csv(path: Path, rows: list[dict]) -> None:
@@ -61,23 +62,13 @@ def stage_rows(analysis: dict) -> list[dict]:
     return rows
 
 
-def analyze(campaign: Path) -> dict:
-    matrix = json.loads((campaign / "matrix.json").read_text())
-    identity = json.loads((campaign / "identity.json").read_text())
-    if sha256_file(campaign / "matrix.json") != identity["matrix_sha256"]:
-        raise ValueError("frozen matrix changed")
+def analyze(campaign: Path, *, replacements=(), output=None) -> dict:
+    if replacements and output is None:
+        raise ValueError("composed analysis requires a separate output directory")
+    matrix, identity, results, origins = receipts.select(campaign, replacements)
     if len(matrix["cases"]) != 42:
         raise ValueError("expected 41 fit/holdout cases plus one zero-net")
-    results = []
     for case in matrix["cases"]:
-        for item in case["inputs"].values():
-            if sha256_file(Path(item["path"])) != item["sha256"]:
-                raise ValueError("input changed")
-        path = Path(case["out_dir"]) / "case_result.json"
-        wrapper = json.loads(path.read_text())
-        if wrapper != admit(case, identity["plugin_sha256"]):
-            raise ValueError(f"admission changed: {case['execution_id']}")
-        results.append(wrapper)
         if case["previous_execution_id"] == "zero_net_sssp":
             check_zero_net(case)
     fit_cases = [r for r in results if r["rq3_role"] != "excluded_fig10_only"]
@@ -91,7 +82,7 @@ def analyze(campaign: Path) -> dict:
     breakdown = analyze_rq3_results([r for r in results if r["case"]["execution_id"] in selection],
                                    preferred_plugin_sha256=[identity["plugin_sha256"]])
     stages = stage_rows(breakdown)
-    output = campaign / "analysis"
+    output = output or campaign / "analysis"
     write_rq3_analysis(output, fit)
     for path in output.glob("rq3_*.csv"):
         with path.open(newline="", encoding="ascii") as stream:
@@ -110,6 +101,8 @@ def analyze(campaign: Path) -> dict:
         "fpga_stage_calibrated": False,
         "analysis_environment": {"python": platform.python_version(), "numpy": np.__version__},
         "residual_apply_mode": matrix["residual_apply_mode"]}
+    atomic_write_json(output / "measurement_origins.json", origins)
+    report["measurement_origins_sha256"] = sha256_file(output / "measurement_origins.json")
     atomic_write_json(output / "fresh_summary.json", report)
     return report
 
@@ -117,8 +110,12 @@ def analyze(campaign: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("--campaign", type=Path, required=True)
+    parser.add_argument("--replacement-campaign", type=Path, action="append", default=[])
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    print(json.dumps(analyze(args.campaign.resolve()), indent=2))
+    print(json.dumps(analyze(args.campaign.resolve(),
+        replacements=tuple(path.resolve() for path in args.replacement_campaign),
+        output=args.output.resolve() if args.output else None), indent=2))
 
 
 if __name__ == "__main__":

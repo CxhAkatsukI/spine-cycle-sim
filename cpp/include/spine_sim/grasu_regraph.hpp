@@ -138,7 +138,8 @@ public:
                               GraSuPartitionedPmaLayout layout,
                               std::vector<GraSuEdge> updates,
                               GraSuNativeConfig config,
-                              std::size_t runtime_channel_capacity_bytes);
+                              std::size_t runtime_channel_capacity_bytes,
+                              std::vector<std::size_t> batch_capacity_per_shard = {});
   ~GraSuShardedPmaUpdateSystem() override;
 
   GraSuShardedPmaUpdateSystem(const GraSuShardedPmaUpdateSystem &) = delete;
@@ -147,6 +148,7 @@ public:
 
   void register_components() override;
   void unregister_components() override;
+  void prepare_batch(const std::vector<GraSuEdge> &updates);
   bool advance_if_complete() override;
   [[nodiscard]] bool done() const noexcept override;
   [[nodiscard]] bool failed() const noexcept override;

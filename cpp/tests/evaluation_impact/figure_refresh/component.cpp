@@ -2,7 +2,9 @@
 #include "sst/core/sst_config.h"
 // clang-format on
 #include "host.hpp"
+#include "persistent_host.hpp"
 #include "update.hpp"
+#include "update_grasu.hpp"
 #include "dram_clock.hpp"
 #include "../warm_comparison/integrated.hpp"
 #include "../warm_comparison/spine.hpp"
@@ -24,12 +26,12 @@ class Refresh final : public SST::Component {
       require((mode == "update" || mode == "propagation" || mode == "host") &&
           (arm == "spine" || arm == "gr"), "invalid refresh mode or arm");
       const auto batches = params_.find<std::size_t>("batches", 1);
-      require(batches == 1 || (mode == "update" && arm == "spine"),
-              "multiple batches currently require the Spine update-only arm");
+      require(batches == 1 || mode != "propagation", "propagation requires one batch");
       const auto input = load(params_.find<std::string>("graph", ""),
           params_.find<std::string>("updates", ""), params_.find<std::uint32_t>("root", 0), mode == "propagation");
       const auto output = params_.find<std::string>("output", "");
-      if (mode == "host") host(input, arm);
+      if (mode == "host" && batches > 1) persistent_host(input, arm, batches);
+      else if (mode == "host") host(input, arm);
       else {
         Scheduler scheduler;
         const auto clock = scheduler.add_clock_mhz("core", 150);
@@ -44,7 +46,8 @@ class Refresh final : public SST::Component {
         DramClock pump(clock, backend);
         scheduler.add_component(pump);
         const auto maximum = params_.find<std::uint64_t>("maximum", 150000000);
-        if (arm == "gr") wc::integrated_with_backend(input, output, scheduler, clock, backend, false,
+        if (arm == "gr" && batches > 1) update_grasu(input, scheduler, clock, backend, maximum, batches);
+        else if (arm == "gr") wc::integrated_with_backend(input, output, scheduler, clock, backend, false,
                                                      maximum, mode == "update");
         else if (mode == "update") update_spine(input, scheduler, clock, backend, maximum, batches);
         else wc::spine_with_backend(input, output, scheduler, clock, backend, maximum);
@@ -63,7 +66,7 @@ class Refresh final : public SST::Component {
       "Pinned simulator-only comparison data refresh", COMPONENT_CATEGORY_MEMORY)
   SST_ELI_DOCUMENT_PARAMS({"mode", "update, propagation or host", ""}, {"arm", "gr or spine", ""},
       {"graph", "Materialized graph", ""}, {"updates", "Materialized batch", ""},
-      {"batches", "Chronological batch count (Spine update only)", "1"},
+      {"batches", "Chronological batch count (update or host)", "1"},
       {"root", "Source vertex", "0"}, {"output", "Fresh output directory", ""},
       {"dram_config", "DRAMSim3 configuration", ""}, {"maximum", "Finite cycle budget", "150000000"})
  private:

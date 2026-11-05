@@ -1,5 +1,28 @@
 # G/R Source Controls and Evaluation Plots
 
+## November 5 Fresh Checkpoint
+
+The [fresh simulator data and previews](fresh_simulator/README.md) come from new
+executions and replayed analysis, not the older CSV files listed below. Fig. 8
+currently contains AU/SU/WK ten-batch pairs and all three fixed-total batch
+counts; SO/PK are pending memory admission. Fig. 9 has nine fresh pairs; Figs.
+10--11 have 42 fresh executions, with 41 fit/holdout rows. Hardware source
+retention is a separate claim, not implied by these predictions.
+
+The new ResPR degree-prefix image passed its **same-clock 140/500/430-MHz**
+G/R controls: G 10.957 vs. 19.166 ms; R Amazon +0.53%, skew -9.41% relative
+to the public-source A4 port. These are one-sample, at-most-15%-slower checks,
+not a reproduction of publication throughput or absolute +/-15% parity. The
+150-MHz route missed timing; the two arms were both explicitly derated. The
+new resident matrix is still running. Its first five rows contain a PK loss:
+Spine 102.13 vs. G+R 75.73 ms. A separate compact Flickr propagation case
+also loses (35.08 vs. 4.76 ms). Both remain evidence, not omitted outliers.
+
+The CC replacement route and its queued follow-ups are not measurements yet.
+The SSSP eight-row all-win result below is measured on its exact admitted
+image; it must not be extrapolated to CC/ResPR. Older sections below describe
+earlier dated checkpoints and remain intact for provenance.
+
 Author handoff, 2026-11-05. The paper and the November 3 data package are
 unchanged. The plots do not represent one new hardware campaign. Keep their
 evidence labels when reusing them.

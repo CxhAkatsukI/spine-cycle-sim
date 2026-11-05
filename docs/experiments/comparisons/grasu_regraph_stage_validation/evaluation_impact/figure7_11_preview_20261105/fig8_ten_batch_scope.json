@@ -1,0 +1,21 @@
+{
+  "status": "PARTIAL_RETAINED",
+  "evidence": "single-sample host plus simulator/transfer prediction, not FPGA",
+  "expected": [
+    "AU",
+    "SU",
+    "WK",
+    "SO",
+    "PK"
+  ],
+  "measured": [
+    "AU",
+    "SU",
+    "WK"
+  ],
+  "missing": [
+    "SO",
+    "PK"
+  ],
+  "sensitivity": "not supplied by the cross-dataset cases"
+}

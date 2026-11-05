@@ -324,6 +324,11 @@ if(BUILD_TESTING)
   target_compile_options(grasu_cycle_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
   add_test(NAME grasu_cycle_tests COMMAND grasu_cycle_tests)
 
+  add_executable(grasu_resident_tests tests/grasu_resident_tests.cpp)
+  target_link_libraries(grasu_resident_tests PRIVATE spine_cycle_core)
+  target_compile_options(grasu_resident_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  add_test(NAME grasu_resident_tests COMMAND grasu_resident_tests)
+
   add_executable(grasu_parallel_search_tests tests/grasu_parallel_search_tests.cpp)
   target_link_libraries(grasu_parallel_search_tests PRIVATE spine_cycle_core)
   target_compile_options(grasu_parallel_search_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)

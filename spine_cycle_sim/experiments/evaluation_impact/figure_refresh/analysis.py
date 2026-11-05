@@ -25,13 +25,13 @@ def device(step):
     return row
 
 
-def persistent_spine_device(step, *, updates, batch_count):
+def persistent_device(step, *, arm, updates, batch_count):
     """Check a rolling update-only device ledger, not setup-inclusive timing."""
     if not 1 < batch_count <= updates:
         raise ValueError("persistent update requires multiple nonempty batches")
     total = device(step)
-    if total.get("arm") != "spine" or total.get("physical_image_checked") is not True:
-        raise ValueError("persistent Spine result must pass the final physical-image check")
+    if arm not in {"spine", "gr"} or total.get("arm") != arm or total.get("physical_image_checked") is not True:
+        raise ValueError("persistent result must match the arm and pass the final physical-image check")
     rows = records(step, "WARM_BATCH ")
     if len(rows) != batch_count:
         raise ValueError("missing or extra persistent batch records")
@@ -45,6 +45,52 @@ def persistent_spine_device(step, *, updates, batch_count):
     if any(sum(row[key] for row in rows) != total[key] for key in work):
         raise ValueError("persistent batch counters do not conserve device totals")
     return {"device": total, "batches": rows}
+
+
+def persistent_spine_device(step, *, updates, batch_count):
+    return persistent_device(step, arm="spine", updates=updates, batch_count=batch_count)
+
+
+def persistent_host(step, *, arm, updates, batch_count):
+    rows = records(step, "HOST_RESULT ")
+    if arm not in {"spine", "gr"} or len(rows) != 1:
+        raise ValueError("one explicit-arm persistent host sample required")
+    row = rows[0]
+    if (row.get("arm"), row.get("repeat"), row.get("updates"), row.get("batches")) != (
+            arm, 0, updates, batch_count):
+        raise ValueError("persistent host identity or batch scope mismatch")
+    values = ("nanoseconds", "initial_nanoseconds", "batch_nanoseconds", "initial_h2d_bytes", "update_h2d_bytes")
+    if any(type(row.get(k)) is not int or row[k] < 0 for k in values):
+        raise ValueError("finite nonnegative integer host counters required")
+    if row["nanoseconds"] != row["initial_nanoseconds"] + row["batch_nanoseconds"]:
+        raise ValueError("persistent host time ledger does not conserve totals")
+    width = 16 if arm == "spine" else 8
+    expected = [((i + 1) * updates // batch_count - i * updates // batch_count) * width
+                for i in range(batch_count)]
+    if (row.get("batch_h2d_bytes") != expected or row["update_h2d_bytes"] != updates * width
+            or row["initial_h2d_bytes"] <= 0):
+        raise ValueError("persistent host transfer ledger does not match actual batch ABI")
+    if any(row.get(key) is not True for key in ("bootstrap_complete", "batch_preparation_complete")):
+        raise ValueError("persistent host preparation is incomplete")
+    return row
+
+
+def persistent_comparison(arms, *, updates, batch_count):
+    result = dict(status="PERSISTENT_PAIRED_SETUP_PREDICTION", baseline_admitted=False,
+        updates=updates, batches=batch_count, host_samples_per_arm=1,
+        assumptions=dict(clock_hz=150e6, transfer_bytes_per_second=12e9,
+                         launch_sync_seconds_per_batch=10e-6))
+    for arm in ("spine", "gr"):
+        row = arms[arm]
+        h = row["host"]
+        transfer = (h["initial_h2d_bytes"] + h["update_h2d_bytes"]) / 12e9
+        device_seconds = row["device"]["cycles"] / 150e6
+        seconds = h["nanoseconds"] / 1e9 + transfer + batch_count * 10e-6 + device_seconds
+        result[arm] = dict(host_seconds=h["nanoseconds"] / 1e9, transfer_seconds=transfer,
+            device_seconds=device_seconds, setup_inclusive_seconds=seconds,
+            updates_per_second=updates / seconds)
+    result["speedup_gr_over_spine"] = result["gr"]["setup_inclusive_seconds"] / result["spine"]["setup_inclusive_seconds"]
+    return result
 
 
 def host(step):

@@ -1319,6 +1319,23 @@ GraSuPartitionAddressPlan make_grasu_partition_address_plan(
   return result;
 }
 
+std::array<std::vector<std::uint8_t>, 4>
+encode_grasu_compact_updates(const GraSuPmaLayout &layout,
+                             const std::vector<GraSuEdge> &updates,
+                             GraSuPmaWordAbi abi) {
+  std::array<std::vector<std::uint8_t>, 4> payloads;
+  for (std::size_t index = 0; index < updates.size(); ++index) {
+    const auto &edge = updates[index];
+    std::uint64_t value = (static_cast<std::uint64_t>(edge.source) << 32) |
+        encode_pma_word(layout.local_destination(edge.destination), edge.weight, abi);
+    if (edge.delete_op) value |= std::uint64_t{1} << 63;
+    const auto encoded = encode_u64(value);
+    auto &lane = payloads[index & 3U];
+    lane.insert(lane.end(), encoded.begin(), encoded.end());
+  }
+  return payloads;
+}
+
 void initialize_grasu_pma_layout_payloads(MemoryBackend &backend,
                                           const GraSuPmaLayout &layout,
 
@@ -2010,23 +2027,14 @@ private:
     for (std::size_t index = 0; index < updates_.size(); ++index) {
       striped[index & 3U].push_back(updates_[index]);
     }
+    const auto compact = partitioned_updates()
+        ? std::array<std::vector<std::uint8_t>, 4>{}
+        : encode_grasu_compact_updates(layout_.partitions.front(), updates_, config_.pma_word_abi);
     for (std::size_t channel = 0; channel < 4; ++channel) {
       std::vector<std::uint8_t> update_bytes;
-      for (const GraSuEdge &edge : striped[channel]) {
-        if (partitioned_updates()) {
+      if (partitioned_updates()) {
+        for (const GraSuEdge &edge : striped[channel]) {
           const auto encoded = encode_partitioned_update(edge);
-          update_bytes.insert(update_bytes.end(), encoded.begin(),
-                              encoded.end());
-        } else {
-          const GraSuPmaLayout &layout = layout_.partitions.front();
-          std::uint64_t value =
-              (static_cast<std::uint64_t>(edge.source) << 32) |
-              encode_pma_word(layout.local_destination(edge.destination),
-                              edge.weight, config_.pma_word_abi);
-          if (edge.delete_op) {
-            value |= std::uint64_t{1} << 63;
-          }
-          const auto encoded = encode_u64(value);
           update_bytes.insert(update_bytes.end(), encoded.begin(),
                               encoded.end());
         }
@@ -2036,16 +2044,18 @@ private:
                                            : channel,
           config_.explicit_runtime_regions ? config_.update_bases[channel]
                                            : config_.update_base,
-          update_bytes);
+          partitioned_updates() ? update_bytes : compact[channel]);
     }
-    for (std::size_t partition = 0; partition < layout_.partitions.size();
-         ++partition) {
-      GraSuNativeConfig partition_config = config_;
-      partition_config.row_offset_base = address_plan_.row_bases.at(partition);
-      partition_config.binary_base = address_plan_.binary_bases.at(partition);
-      partition_config.pma_base = address_plan_.pma_bases.at(partition);
-      initialize_grasu_pma_layout_payloads(
-          backend_, layout_.partitions[partition], partition_config);
+    if (config_.initialize_pma_payload) {
+      for (std::size_t partition = 0; partition < layout_.partitions.size();
+           ++partition) {
+        GraSuNativeConfig partition_config = config_;
+        partition_config.row_offset_base = address_plan_.row_bases.at(partition);
+        partition_config.binary_base = address_plan_.binary_bases.at(partition);
+        partition_config.pma_base = address_plan_.pma_bases.at(partition);
+        initialize_grasu_pma_layout_payloads(
+            backend_, layout_.partitions[partition], partition_config);
+      }
     }
     if (config_.maintain_out_degree && config_.initialize_degree_payload) {
       std::vector<std::uint32_t> degrees(layout_.vertices);

@@ -93,6 +93,7 @@ class ActiveMinCandidateTests(unittest.TestCase):
             (root / "memory.high").write_text(str(7 * 2**30))
             with patch.object(pair, "check_memory", return_value=root), patch.dict(pair.os.environ, {}, clear=True), \
                     patch.object(pair.runtime, "require_clean_environment"), \
+                    patch.object(pair.weighted_tail_link, "check_bound_host", return_value=[]), \
                     patch.object(pair, "derated_candidate", return_value=({"vendor_hbm_mhz": None}, [])), \
                     patch.object(pair.pair_resources, "admit") as board:
                 result = pair.run(args)

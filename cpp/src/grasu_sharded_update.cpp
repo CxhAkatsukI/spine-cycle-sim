@@ -3,6 +3,7 @@
 #include "spine_sim/grasu_native.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <stdexcept>
 #include <utility>
 
@@ -12,22 +13,21 @@ class GraSuShardedPmaUpdateSystem::Impl {
 public:
   Impl(Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
        GraSuPartitionedPmaLayout layout, std::vector<GraSuEdge> updates,
-       GraSuNativeConfig config, std::size_t runtime_channel_capacity_bytes)
+       GraSuNativeConfig config, std::size_t runtime_channel_capacity_bytes,
+       std::vector<std::size_t> batch_capacity_per_shard)
       : scheduler_(scheduler), clock_id_(clock_id), backend_(backend),
         layout_(std::move(layout)), config_(config),
         start_cycle_(scheduler.clock(clock_id).completed_cycles) {
-    updates_by_shard_.resize(layout_.partitions.size());
-    for (const GraSuEdge &edge : updates) {
-      updates_by_shard_.at(layout_.partition_for_destination(edge.destination))
-          .push_back(edge);
+    updates_by_shard_ = bin_updates(updates);
+    if (batch_capacity_per_shard.empty()) {
+      for (const auto &bin : updates_by_shard_) {
+        batch_capacity_per_shard.push_back(bin.size());
+      }
     }
-    std::vector<std::size_t> counts;
-    counts.reserve(updates_by_shard_.size());
-    for (const auto &shard_updates : updates_by_shard_) {
-      counts.push_back(shard_updates.size());
-    }
+    batch_capacity_per_shard_ = std::move(batch_capacity_per_shard);
+    check_batch_capacity(updates_by_shard_);
     runtime_plan_ = build_grasu_regraph_runtime_plan(
-        layout_, counts, config_.cache_segments_per_half,
+        layout_, batch_capacity_per_shard_, config_.cache_segments_per_half,
         kGraSuReGraphU55cGraphChannels, runtime_channel_capacity_bytes);
     if (config_.maintain_out_degree && config_.initialize_degree_payload) {
       initialize_degree_payload();
@@ -49,6 +49,28 @@ public:
           "sharded GraSU update engine can only unregister after completion");
     }
     registered_ = false;
+  }
+
+  void prepare_batch(const std::vector<GraSuEdge> &updates) {
+    if (registered_ || current_shard_ != updates_by_shard_.size() ||
+        backend_.outstanding() != 0 || config_.initialize_pma_payload) {
+      throw std::logic_error(
+          "next GraSU batch requires drained, externally initialized regions");
+    }
+    auto bins = bin_updates(updates);
+    check_batch_capacity(bins);
+    // The backend keeps traffic records for retired initiators.
+    const auto next_base = batch_initiator_base_ + bins.size() * kIdsPerShard;
+    if (next_base + bins.size() * kIdsPerShard >
+        std::numeric_limits<std::uint32_t>::max()) {
+      throw std::overflow_error("resident GraSU initiator space exhausted");
+    }
+    batch_initiator_base_ = next_base;
+    updates_by_shard_ = std::move(bins);
+    current_shard_ = 0;
+    completed_counters_ = {};
+    start_cycle_ = scheduler_.clock(clock_id_).completed_cycles;
+    end_cycle_ = 0;
   }
 
   bool advance_if_complete() {
@@ -109,6 +131,28 @@ public:
   }
 
 private:
+  static constexpr std::size_t kIdsPerShard = 32;
+
+  std::vector<std::vector<GraSuEdge>>
+  bin_updates(const std::vector<GraSuEdge> &updates) const {
+    std::vector<std::vector<GraSuEdge>> bins(layout_.partitions.size());
+    for (const GraSuEdge &edge : updates) {
+      bins.at(layout_.partition_for_destination(edge.destination)).push_back(edge);
+    }
+    return bins;
+  }
+
+  void check_batch_capacity(const std::vector<std::vector<GraSuEdge>> &bins) const {
+    if (bins.size() != batch_capacity_per_shard_.size()) {
+      throw std::invalid_argument("GraSU batch capacity does not match shard count");
+    }
+    for (std::size_t shard = 0; shard < bins.size(); ++shard) {
+      if (bins[shard].size() > batch_capacity_per_shard_[shard]) {
+        throw std::length_error("GraSU batch exceeds the resident update capacity");
+      }
+    }
+  }
+
   void initialize_degree_payload() {
     std::vector<std::uint32_t> degrees(layout_.vertices);
     for (const GraSuEdge &edge : layout_.live_edges()) {
@@ -140,7 +184,7 @@ private:
     shard_config.packed_partition_addresses = false;
     shard_config.initialize_degree_payload = false;
     shard_config.initiator_base =
-        static_cast<std::uint32_t>(10'000 + current_shard_ * 32);
+        static_cast<std::uint32_t>(batch_initiator_base_ + current_shard_ * kIdsPerShard);
     const std::string row_name = "row";
     const std::string binary_name = "binary";
     const GraSuReGraphBufferRegion &row = find_grasu_regraph_runtime_region(
@@ -225,9 +269,11 @@ private:
   GraSuPartitionedPmaLayout layout_;
   GraSuNativeConfig config_;
   std::vector<std::vector<GraSuEdge>> updates_by_shard_;
+  std::vector<std::size_t> batch_capacity_per_shard_;
   GraSuReGraphRuntimePlan runtime_plan_;
   std::unique_ptr<GraSuPmaUpdateSystem> current_;
   std::size_t current_shard_{};
+  std::size_t batch_initiator_base_{10'000};
   GraSuUpdateCounters completed_counters_;
   std::uint64_t start_cycle_{};
   std::uint64_t end_cycle_{};
@@ -237,10 +283,12 @@ private:
 GraSuShardedPmaUpdateSystem::GraSuShardedPmaUpdateSystem(
     Scheduler &scheduler, ClockId clock_id, MemoryBackend &backend,
     GraSuPartitionedPmaLayout layout, std::vector<GraSuEdge> updates,
-    GraSuNativeConfig config, std::size_t runtime_channel_capacity_bytes)
+    GraSuNativeConfig config, std::size_t runtime_channel_capacity_bytes,
+    std::vector<std::size_t> batch_capacity_per_shard)
     : impl_(std::make_unique<Impl>(scheduler, clock_id, backend,
                                    std::move(layout), std::move(updates),
-                                   config, runtime_channel_capacity_bytes)) {}
+                                   config, runtime_channel_capacity_bytes,
+                                   std::move(batch_capacity_per_shard))) {}
 
 GraSuShardedPmaUpdateSystem::~GraSuShardedPmaUpdateSystem() = default;
 
@@ -250,6 +298,10 @@ void GraSuShardedPmaUpdateSystem::register_components() {
 
 void GraSuShardedPmaUpdateSystem::unregister_components() {
   impl_->unregister_components();
+}
+
+void GraSuShardedPmaUpdateSystem::prepare_batch(const std::vector<GraSuEdge> &updates) {
+  impl_->prepare_batch(updates);
 }
 
 bool GraSuShardedPmaUpdateSystem::advance_if_complete() {
