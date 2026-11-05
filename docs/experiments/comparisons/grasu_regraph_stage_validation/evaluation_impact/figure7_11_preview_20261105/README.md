@@ -93,7 +93,7 @@ once the candidate route is complete:
 runner=spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_au_revision
 python3 -m "$runner" --anchor "$anchor" "$anchor_sha" --candidate "$candidate" "$candidate_sha" --preflight
 systemd-run --user --wait --collect --working-directory="$PWD" \
-  -p MemoryMax=24G -p MemoryHigh=22G -p MemorySwapMax=0 -p MemoryOOMGroup=yes \
+  -p MemoryMax=24G -p MemoryHigh=22G -p MemorySwapMax=0 -p OOMPolicy=kill \
   /usr/bin/python3 -m "$runner" --anchor "$anchor" "$anchor_sha" \
   --candidate "$candidate" "$candidate_sha" --run "$fresh_output_dir" --admission-wait-seconds 3600
 ```
@@ -107,6 +107,14 @@ manifest, and route timing/skew. The board run measures one sample and
 requires the same workload, card, clocks, checked final labels, and
 pack-to-readback timer. It writes `comparison.json` separately from the
 published figure; it is still a diagnostic, not admission for parity.
+
+If the route is on a separate build host, the
+`spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_au_collect`
+entry point can wait under the same memory cap. Pass the SSH endpoint
+(`--remote`, `--port`), immutable build launch (`--root`, `--unit`,
+`--invocation`, `--abi`), the same `--anchor`, and a fresh `--output`.
+It hashes the selected artifacts at both ends before preflight and board
+admission, and retains the route and original sample separately.
 
 ## Reproduce
 
