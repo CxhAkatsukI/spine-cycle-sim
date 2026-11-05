@@ -1,8 +1,10 @@
 """Incomplete exports retain pending slots and do not invent propagation or repetitions."""
 
 import importlib.util
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 
 
@@ -47,6 +49,46 @@ class ResidentCheckpointTests(unittest.TestCase):
     def test_losing_row_is_retained(self):
         row = self.row(spine_wall_ms=20, speedup_gr_over_spine=0.5)
         self.assertEqual(row["speedup_gr_over_spine"], 0.5)
+
+    def test_retime_fragments_keep_all_statuses_and_unmodified_raw_matrices(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first, next_ = root / "first.json", root / "next.json"
+            cases = {dataset: dict(status="WAITING") for dataset in self.export.sssp.DATASETS}
+            cases["AU"] = dict(status=self.export.correction_matrix.MEASURED, result="first")
+            first.write_text(json.dumps(dict(pins=[], cases=cases)))
+            pending = dict(status="FAILED_RETAINED", error="pressure guard")
+            next_.write_text(json.dumps(dict(pins=[], cases={"LJ": pending})))
+            combined, members, sources = self.export.retime_fragments([first, next_])
+            self.assertEqual(combined["AU"], cases["AU"])
+            self.assertEqual(combined["LJ"], pending)
+            self.assertEqual(members["retime-matrix.json"], first.read_bytes())
+            self.assertEqual(members["retime-fragments/01.json"], next_.read_bytes())
+            self.assertEqual(sources["LJ"], "retime-fragments/01.json")
+            self.assertEqual(set(combined), set(cases))
+
+    def test_retime_fragments_never_choose_between_two_measured_samples(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first, next_ = root / "first.json", root / "next.json"
+            cases = {dataset: dict(status="WAITING") for dataset in self.export.sssp.DATASETS}
+            cases["AU"] = dict(status=self.export.correction_matrix.MEASURED, result="first")
+            first.write_text(json.dumps(dict(pins=[], cases=cases)))
+            next_.write_text(json.dumps(dict(pins=[], cases={"AU": dict(
+                status=self.export.correction_matrix.MEASURED, result="different")})))
+            with self.assertRaisesRegex(ValueError, "conflicting measured"):
+                self.export.retime_fragments([first, next_])
+            next_.write_text(json.dumps(dict(pins=[], cases={"AU": dict(status="WAITING")})))
+            combined, _, sources = self.export.retime_fragments([first, next_])
+            self.assertEqual(combined["AU"], cases["AU"])
+            self.assertEqual(sources["AU"], "retime-matrix.json")
+
+    def test_partial_first_matrix_cannot_remove_declared_slots(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "partial.json"
+            path.write_text(json.dumps(dict(pins=[], cases={"AU": dict(status="WAITING")})))
+            with self.assertRaisesRegex(ValueError, "all eight"):
+                self.export.retime_fragments([path])
 
 
 if __name__ == "__main__":

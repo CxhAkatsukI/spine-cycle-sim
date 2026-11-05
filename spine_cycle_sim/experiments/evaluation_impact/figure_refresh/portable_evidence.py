@@ -110,6 +110,22 @@ def device_row(report, name, *, updates, batches):
     return parsed
 
 
+def preload_policy(report):
+    level = report.get("spine_preload_minimum_level", 2)
+    if type(level) is not int or not 2 <= level <= 10:
+        raise ValueError("explicit integer preload policy in L2-L10 required")
+    for row in report["rows"].values():
+        configs = [row["config"]]
+        if "host_evidence" in row:
+            configs.append(row["host_evidence"]["config"])
+        for identity in configs:
+            config = json.loads(checked(identity))
+            configured = config.get("preload_minimum_level", 2)
+            if type(configured) is not int or configured != level:
+                raise ValueError("device/host configuration differs from preload policy")
+    return level
+
+
 def freeze_reference(path, paths=None):
     report = json.loads(path.read_bytes())
     if report["status"] != STATUS:
@@ -117,6 +133,7 @@ def freeze_reference(path, paths=None):
     rows = {arm: device_row(report, "smoke_" + arm, updates=3, batches=3)
             for arm in ("spine", "gr")}
     return dict(reference=pin(path), numerical_pins=numerical_pins(report),
+                spine_preload_minimum_level=preload_policy(report),
                 build_recipe=build_recipe(report, paths), smoke=rows,
                 reference_environment_paths=paths or report["environment"]["paths"],
                 raw_smoke={arm: checked(report["rows"]["smoke_" + arm]["stdout"]).decode()
@@ -134,17 +151,21 @@ def cohort_key(report):
         identity = next(item for item in report["pins"] if item["path"] == path)
         checked(identity)
         dependencies[key] = {k: identity[k] for k in ("bytes", "sha256")}
-    return dict(host=environment["host"], cpu_model=environment["cpu_model"],
+    return dict(host=environment["host"], cpu_model=environment["cpu_model"], cpu=report["cpu"],
                 platform=environment["platform"], compiler_version=report["compiler_version"],
-                dependencies=dependencies, git_head=report["git_head"])
+                dependencies=dependencies, git_head=report["git_head"],
+                spine_preload_minimum_level=preload_policy(report))
 
 
-def collect(dataset, path, reference):
+def collect(dataset, path, reference, *, updates=4096, batches=10, member_prefix=None):
     report_bytes = path.read_bytes()
     report = json.loads(report_bytes)
     if dataset not in DATASETS or report["status"] not in (STATUS, "FAILED_RETAINED"):
         raise ValueError("completed or retained-failure predeclared case required")
     extra_tests = verify_numerical_sources(report, reference)
+    level = preload_policy(report)
+    if level != reference.get("spine_preload_minimum_level", 2):
+        raise ValueError("preload policy differs from frozen reference")
     for arm in ("spine", "gr"):
         if device_row(report, "smoke_" + arm, updates=3, batches=3) != reference["smoke"][arm]:
             raise ValueError("portable smoke device counters differ")
@@ -165,42 +186,44 @@ def collect(dataset, path, reference):
         identity = next(item for item in report["pins"] if item["path"] == manifest[key])
         if identity != relocation["inputs"][key] or pin(Path(identity["path"])) != identity:
             raise ValueError("relocated input identity differs")
-    members = {f"{dataset}/results.json": report_bytes,
-               f"{dataset}/input_manifest.json": manifest_bytes,
-               f"{dataset}/original_manifest.json": original_bytes}
+    prefix = member_prefix or dataset
+    members = {f"{prefix}/results.json": report_bytes,
+               f"{prefix}/input_manifest.json": manifest_bytes,
+               f"{prefix}/original_manifest.json": original_bytes}
     compiled = next(p for p in report["build_pins"] if p["path"].endswith("/compile_commands.json"))
-    members[f"{dataset}/compile_commands.json"] = checked(compiled)
+    members[f"{prefix}/compile_commands.json"] = checked(compiled)
     for name, step in report["steps"].items():
         for stream in ("stdout", "stderr"):
             source = Path(step[stream])
-            members[f"{dataset}/raw/{name}.{stream}.txt"] = source.read_bytes()
+            members[f"{prefix}/raw/{name}.{stream}.txt"] = source.read_bytes()
     for name, row in report["rows"].items():
         for key in ("config", "backend", "stdout"):
-            members[f"{dataset}/{name}/{key}" + Path(row[key]["path"]).suffix] = checked(row[key])
+            members[f"{prefix}/{name}/{key}" + Path(row[key]["path"]).suffix] = checked(row[key])
         for key, identity in row.get("host_evidence", {}).items():
-            members[f"{dataset}/{name}/host_{key}" + Path(identity["path"]).suffix] = checked(identity)
-    row = dict(dataset=dataset, status=report["status"], cpu=report["cpu"], updates=4096,
-               batches=10, host_samples_per_arm=1, baseline_admitted=False,
+            members[f"{prefix}/{name}/host_{key}" + Path(identity["path"]).suffix] = checked(identity)
+    row = dict(dataset=dataset, status=report["status"], cpu=report["cpu"], updates=updates,
+               spine_preload_minimum_level=level,
+               batches=batches, host_samples_per_arm=1, baseline_admitted=False,
                speedup_gr_over_spine=None, error=report.get("error", ""),
                expanded_test_files=len(extra_tests),
                receipt_sha256=hashlib.sha256(report_bytes).hexdigest())
     if report["status"] == STATUS:
         for arm in ("spine", "gr"):
             name = "trace_" + arm
-            device_row(report, name, updates=4096, batches=10)
+            device_row(report, name, updates=updates, batches=batches)
             host = analysis.persistent_host(report["steps"][name + "_host"], arm=arm,
-                                            updates=4096, batch_count=10)
+                                            updates=updates, batch_count=batches)
             if host != report["rows"][name]["host"]:
                 raise ValueError("stored host row differs from raw log")
             for label in ("config", "host_evidence"):
                 identity = (report["rows"][name][label] if label == "config" else
                             report["rows"][name][label]["config"])
                 config = json.loads(checked(identity))
-                if any(config[k] != manifest[k] for k in ("graph", "updates")) or config["batches"] != 10:
+                if any(config[k] != manifest[k] for k in ("graph", "updates")) or config["batches"] != batches:
                     raise ValueError("trace arm input or batch scope differs")
         comparison = analysis.persistent_comparison(
             {arm: report["rows"]["trace_" + arm] for arm in ("spine", "gr")},
-            updates=4096, batch_count=10)
+            updates=updates, batch_count=batches)
         if comparison != report["comparisons"]["trace"]:
             raise ValueError("stored comparison differs from setup formula")
         row["speedup_gr_over_spine"] = comparison["speedup_gr_over_spine"]
@@ -225,18 +248,52 @@ def export(cases, reference_path, output):
         cohort = key
         rows.append(row)
         members.update(files)
-    output.mkdir(parents=True, exist_ok=False)
-    fields = list(dict.fromkeys(k for row in rows for k in row))
-    with (output / "fig8_ten_batch.csv").open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(rows)
     scope = dict(evidence="same-host measured preparation plus simulated device/transfer; not FPGA",
         status="COMPLETE" if all(r["status"] == STATUS for r in rows) else "PARTIAL_RETAINED",
         expected=list(DATASETS), measured=[r["dataset"] for r in rows if r["status"] == STATUS],
         failed=[r["dataset"] for r in rows if r["status"] != STATUS], cohort=cohort,
-        exact_local_smoke_device_match=True, numerical_pins=reference["numerical_pins"],
+        exact_reference_smoke_device_match=True, numerical_pins=reference["numerical_pins"],
         cases=rows, reference_sha256=hashlib.sha256(reference_bytes).hexdigest())
+    write_export(output, "fig8_ten_batch.csv", rows, members, scope)
+    return scope
+
+
+def export_sweep(cases, reference_path, cohort_path, output):
+    if set(cases) != {10, 100, 1000}:
+        raise ValueError("all three predeclared batch counts required")
+    reference_bytes, cohort_bytes = reference_path.read_bytes(), cohort_path.read_bytes()
+    reference, cohort_report = json.loads(reference_bytes), json.loads(cohort_bytes)
+    if cohort_report["status"] != "COMPLETE":
+        raise ValueError("completed five-dataset cohort required")
+    members = {"reference.json": reference_bytes, "dataset-scope.json": cohort_bytes}
+    rows = []
+    for count in sorted(cases):
+        row, files, key = collect("AU", cases[count], reference, updates=131072,
+                                  batches=count, member_prefix=f"AU_b{count}")
+        if key != cohort_report["cohort"]:
+            raise ValueError("sweep and dataset host/configuration cohorts differ")
+        rows.append(row)
+        members.update(files)
+    inputs = [json.loads(members[f"AU_b{count}/input_manifest.json"])["input_relocation"]["inputs"]
+              for count in sorted(cases)]
+    if any(item != inputs[0] for item in inputs[1:]):
+        raise ValueError("batch counts must use identical graph and update inputs")
+    scope = dict(evidence=cohort_report["evidence"], cohort=cohort_report["cohort"],
+        status="COMPLETE" if all(row["status"] == STATUS for row in rows) else "PARTIAL_RETAINED",
+        total_updates=131072, expected_batches=[10, 100, 1000], cases=rows,
+        reference_sha256=hashlib.sha256(reference_bytes).hexdigest(),
+        dataset_scope_sha256=hashlib.sha256(cohort_bytes).hexdigest())
+    write_export(output, "fig8_batch_sensitivity.csv", rows, members, scope)
+    return scope
+
+
+def write_export(output, csv_name, rows, members, scope):
+    output.mkdir(parents=True, exist_ok=False)
+    fields = list(dict.fromkeys(k for row in rows for k in row))
+    with (output / csv_name).open("w", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
     (output / "scope.json").write_text(json.dumps(scope, indent=2) + "\n")
     with (output / "receipts.tar.gz").open("wb") as stream:
         with gzip.GzipFile(filename="", fileobj=stream, mode="wb", mtime=0) as compressed:
@@ -245,7 +302,6 @@ def export(cases, reference_path, output):
                     info = tarfile.TarInfo(name)
                     info.size = len(content)
                     archive.addfile(info, io.BytesIO(content))
-    return scope
 
 
 if __name__ == "__main__":
@@ -260,6 +316,11 @@ if __name__ == "__main__":
     run.add_argument("--case", nargs=2, action="append", required=True)
     run.add_argument("--reference", type=Path, required=True)
     run.add_argument("--output", type=Path, required=True)
+    sweep = sub.add_parser("sweep")
+    sweep.add_argument("--case", nargs=2, action="append", required=True)
+    sweep.add_argument("--reference", type=Path, required=True)
+    sweep.add_argument("--cohort", type=Path, required=True)
+    sweep.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.mode == "freeze":
         if (args.reference_sst_include is None) != (args.reference_dram is None):
@@ -270,7 +331,11 @@ if __name__ == "__main__":
         with args.output.open("x") as stream:
             stream.write(json.dumps(reference, indent=2) + "\n")
     else:
-        cases = {name: Path(path) for name, path in args.case}
+        cases = {(int(name) if args.mode == "sweep" else name): Path(path)
+                 for name, path in args.case}
         if len(cases) != len(args.case):
             parser.error("duplicate dataset labels")
-        export(cases, args.reference, args.output)
+        if args.mode == "sweep":
+            export_sweep(cases, args.reference, args.cohort, args.output)
+        else:
+            export(cases, args.reference, args.output)

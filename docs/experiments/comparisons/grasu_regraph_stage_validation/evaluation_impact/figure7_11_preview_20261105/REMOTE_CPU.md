@@ -60,3 +60,37 @@ The four measured preparation samples use Xeon Platinum 8375C CPUs and GCC
 PK has no ratio. The raw stderr and failed receipt remain in the archive.
 The [portable cohort README](fresh_simulator/portable_fig8/README.md#reproduction)
 includes exact exporter commands and the earlier SU reference identity.
+
+## Explicit Headroom Follow-Up
+
+The subsequent `headroom-source-05aff52b` execution checkout is frozen at
+`05aff52b`. It exposes an explicit Spine bootstrap policy:
+`--preload-minimum-level 4`. Existing edges start at L4 or above, reserving
+lower levels for later chronological carries. Finite capacities, update
+ordering, correctness checks and device timing parameters are unchanged.
+Host layout construction and initial logical upload are still charged.
+This is a configuration change from the earlier L2 cohort, not merely a
+CPU-portability rerun or a timing correction. Matching HLS bootstrap behavior
+has not been established. Keep the earlier PK failure and L2 results intact.
+
+All five datasets were rerun with the same L4 policy, Xeon host, GCC 15.2,
+CPU 20, numerical source and dependencies. Their completed ten-batch ratios
+are AU 3.50, SU 3.58, WK 8.91, SO 6.73 and PK 1.51. A fresh PK receipt is
+the frozen numerical smoke reference for this cohort; exact equality to that
+reference is not a claim of old-L2 equivalence or FPGA calibration.
+
+The matching batch sweep uses the same execution checkout, host, affinity
+and policy, and the same AU graph/update bytes in all three cases:
+131,072 total updates split into 10, 100 or 1,000 chronological batches.
+It runs sequentially after the dataset cohort, under the same 40/36-GiB
+limits, zero swap and named seele reserve policy. Preserve every status,
+including a capacity failure or a ratio below one. Do not reuse the local
+EPYC sensitivity samples in this Xeon cohort.
+
+The portable exporter accepts `freeze`, `export` and `sweep` subcommands.
+`sweep --case COUNT RESULTS_JSON ... --reference REFERENCE --cohort SCOPE`
+requires all three counts, identical graph/update identities and the exact
+host/configuration cohort of the completed five-dataset export. The receipt
+archive retains the frozen reference, cohort scope, raw logs, configurations
+and compiler recipes. An export runs from a separate checkout so that the
+execution source pins remain unchanged.

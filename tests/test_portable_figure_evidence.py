@@ -124,6 +124,36 @@ class PortableEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "numerical source"):
             self.collect()
 
+    def test_explicit_preload_policy_is_part_of_the_cohort(self):
+        self.report["spine_preload_minimum_level"] = 4
+        for row in self.report["rows"].values():
+            for identity in (row["config"], row["host_evidence"]["config"]):
+                config = json.loads(Path(identity["path"]).read_text())
+                config["preload_minimum_level"] = 4
+                identity.update(self.put(Path(identity["path"]).relative_to(self.root), config))
+        self.save()
+        reference = evidence.freeze_reference(self.path)
+        row, _, cohort = evidence.collect("AU", self.path, reference)
+        self.assertEqual(row["spine_preload_minimum_level"], 4)
+        self.assertEqual(cohort["spine_preload_minimum_level"], 4)
+        self.assertNotEqual(cohort, evidence.cohort_key(dict(self.report,
+            spine_preload_minimum_level=2, rows={})))
+        with self.assertRaisesRegex(ValueError, "preload policy differs"):
+            evidence.collect("AU", self.path, self.reference)
+
+    def test_host_config_cannot_silently_use_a_different_preload_policy(self):
+        row = self.report["rows"]["trace_spine"]
+        config = json.loads(Path(row["host_evidence"]["config"]["path"]).read_text())
+        config["preload_minimum_level"] = 4
+        row["host_evidence"]["config"] = self.put("trace_spine/host.json", config)
+        with self.assertRaisesRegex(ValueError, "configuration differs"):
+            self.collect()
+
+    def test_invalid_preload_policy_is_rejected(self):
+        for level in (True, 1, 11, 4.0, "4"):
+            with self.subTest(level=level), self.assertRaisesRegex(ValueError, "integer preload"):
+                evidence.preload_policy(dict(self.report, spine_preload_minimum_level=level))
+
     def test_expanded_uncompiled_test_inventory_is_explicitly_retained(self):
         self.report["pins"].append(self.put("cpp/tests/other.cpp", "test only"))
         row, _, _ = self.collect()
@@ -176,6 +206,47 @@ class PortableEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "mixed host"):
                 evidence.export({ds: self.path for ds in evidence.DATASETS},
                                 Path(reference["path"]), self.root / "export")
+
+    def test_generalized_collection_still_checks_actual_batch_scope(self):
+        with self.assertRaisesRegex(ValueError, "mutation count mismatch"):
+            evidence.collect("AU", self.path, self.reference, updates=131072, batches=10)
+
+    def sweep(self, *, other_cpu=False, changed_inputs=False, failure=False):
+        reference = self.put("reference.json", self.reference)
+        key = evidence.cohort_key(self.report)
+        cohort = self.put("dataset-scope.json", dict(status="COMPLETE", cohort=key,
+                                                    evidence="prediction only"))
+        values = []
+        for count in (10, 100, 1000):
+            manifest = copy.deepcopy(self.manifest)
+            if changed_inputs and count == 1000:
+                manifest["input_relocation"]["inputs"]["updates"]["sha256"] = "different"
+            row = dict(dataset="AU", updates=131072, batches=count,
+                       status="FAILED_RETAINED" if failure and count == 1000 else evidence.STATUS)
+            values.append((row, {f"AU_b{count}/input_manifest.json": json.dumps(manifest).encode()},
+                           dict(key, cpu=99) if other_cpu and count == 1000 else key))
+        with patch.object(evidence, "collect", side_effect=values) as collector:
+            result = evidence.export_sweep({n: self.path for n in (10, 100, 1000)},
+                Path(reference["path"]), Path(cohort["path"]), self.root / "sweep")
+            self.assertEqual([call.kwargs["batches"] for call in collector.call_args_list], [10, 100, 1000])
+            self.assertTrue(all(call.kwargs["updates"] == 131072 for call in collector.call_args_list))
+        return result
+
+    def test_sweep_keeps_declared_counts_and_failed_status(self):
+        scope = self.sweep(failure=True)
+        self.assertEqual(scope["status"], "PARTIAL_RETAINED")
+        self.assertEqual(scope["cases"][-1]["status"], "FAILED_RETAINED")
+        self.assertTrue((self.root / "sweep/receipts.tar.gz").is_file())
+
+    def test_sweep_cannot_mix_cpu_or_input_cohorts(self):
+        with self.assertRaisesRegex(ValueError, "cohorts differ"):
+            self.sweep(other_cpu=True)
+        with self.assertRaisesRegex(ValueError, "identical graph and update"):
+            self.sweep(changed_inputs=True)
+
+    def test_sweep_requires_all_three_statuses(self):
+        with self.assertRaisesRegex(ValueError, "all three"):
+            evidence.export_sweep({10: self.path}, self.path, self.path, self.root / "sweep")
 
 
 class PackagedPortableEvidenceTests(unittest.TestCase):

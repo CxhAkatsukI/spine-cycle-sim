@@ -11,6 +11,13 @@ Fig. 7 pairs: all eight SSSP and five ResPR cases favor Spine. Eight CC and thre
 ResPR cases remain pending, not zero-speedup measurements. The grouped preview
 uses one algorithm series per dataset, as requested.
 
+Later resident exports may repeat `--retimes` with the full original
+eight-status matrix first and explicit remainder matrices after it. All raw
+matrices are archived unchanged, with a per-dataset source map. A later
+pending/failed status cannot erase an accepted sample; conflicting measured
+samples are rejected instead of choosing the faster one. Each later export
+gets a new directory, leaving the thirteen-pair checkpoint frozen.
+
 The [fresh simulator data and previews](fresh_simulator/README.md) come from new
 executions and replayed analysis, not the older CSV files listed below. Fig. 8
 contains a local AU/SU/WK ten-batch cohort and all three fixed-total batch
@@ -24,6 +31,13 @@ The [remote CPU protocol](REMOTE_CPU.md) documents the isolated portable
 runner and its unchanged numerical settings. Remote and local host timings
 belong to separate cohorts; a queued or running remote job is not an accepted
 replacement point.
+
+The protocol also records the **separate L4 bootstrap-headroom follow-up**:
+all five remote ten-batch cases now complete, and a matching same-host
+131,072-update batch sweep is running. This explicitly changes initial
+placement from the older L2 runs. It does not erase PK's original capacity
+failure, prove HLS-layout parity, or turn a prediction into FPGA evidence.
+The checked export and preview will be added separately after replay.
 
 The new ResPR degree-prefix image passed its **same-clock 140/500/430-MHz**
 G/R controls: G 10.957 vs. 19.166 ms; R Amazon +0.53%, skew -9.41% relative
@@ -45,7 +59,7 @@ The [build-resume record](current_fpga/cc_resume_v1/README.md) preserves the
 agent-caused guard interruption and corrected launch without rewriting the
 old logs. The [PK capacity diagnostic](fresh_simulator/portable_fig8/diagnostics/pk_capacity_v1/README.md)
 separately explains the fourth-batch hierarchy failure; PK has no accepted
-Fig. 8 latency or ratio.
+Fig. 8 latency or ratio under that original L2 configuration.
 The SSSP eight-row all-win result below is measured on its exact admitted
 image; it must not be extrapolated to CC/ResPR. Older sections below describe
 earlier dated checkpoints and remain intact for provenance.

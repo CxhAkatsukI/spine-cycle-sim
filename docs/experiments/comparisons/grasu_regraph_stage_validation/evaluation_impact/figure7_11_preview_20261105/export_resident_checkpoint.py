@@ -45,6 +45,31 @@ def measured_row(algorithm, dataset, pair, pin, profile, *, reused=False, correc
     return row
 
 
+def retime_fragments(paths):
+    paths = [paths] if isinstance(paths, Path) else paths
+    cases, members, sources = {}, {}, {}
+    for number, path in enumerate(paths):
+        raw = path.read_bytes()
+        report = json.loads(raw)
+        unchanged(report["pins"])
+        declared = report["cases"]
+        if (not declared or not set(declared) <= set(sssp.DATASETS)
+                or number == 0 and set(declared) != set(sssp.DATASETS)):
+            raise ValueError("first retime matrix must declare all eight; fragments need known datasets")
+        name = "retime-matrix.json" if number == 0 else f"retime-fragments/{number:02d}.json"
+        members[name] = raw
+        for dataset, case in declared.items():
+            previous = cases.get(dataset, {})
+            if previous.get("status") == correction_matrix.MEASURED:
+                if case.get("status") == correction_matrix.MEASURED and case != previous:
+                    raise ValueError("conflicting measured retime samples for " + dataset)
+                continue
+            cases[dataset], sources[dataset] = case, name
+    if set(cases) != set(sssp.DATASETS):
+        raise ValueError("all eight retime statuses required")
+    return cases, members, sources
+
+
 def collect(args):
     with args.controls.open(newline="") as stream:
         stage_rows = list(csv.DictReader(stream))
@@ -55,16 +80,14 @@ def collect(args):
     host_correction.admit(args.qualification, args.spine_host)
     matrix_bytes = args.sssp_matrix.read_bytes()
     sssp_rows, sssp_members = sssp.collect(matrix_bytes)
-    raw_retimes = args.retimes.read_bytes()
-    retimes = json.loads(raw_retimes)
-    unchanged(retimes["pins"])
-    if set(retimes["cases"]) != set(sssp.DATASETS):
-        raise ValueError("all eight retime statuses required")
+    retime_paths = [args.retimes] if isinstance(args.retimes, Path) else args.retimes
+    retimes, retime_members, retime_sources = retime_fragments(retime_paths)
     cc_bytes = args.cc_matrix.read_bytes()
     cc = json.loads(cc_bytes)
     cc_rows, cc_evidence = cc_checkpoint.collect(cc, expected_images["cc"])
     members = {"sssp/" + name: data for name, data in sssp_members.items()}
-    members.update({"retime-matrix.json": raw_retimes, "cc-matrix.json": cc_bytes})
+    members.update(retime_members)
+    members["cc-matrix.json"] = cc_bytes
     index, evidence, rows = {}, cc_evidence, []
     for row in sssp_rows:
         if expected_images["weighted_sssp"] != sssp.GR_IMAGE:
@@ -78,7 +101,7 @@ def collect(args):
         else:
             rows.append(dict(algorithm="cc", dataset=row["dataset"], status=row["status"]))
     for dataset in sssp.DATASETS:
-        case = retimes["cases"][dataset]
+        case = retimes[dataset]
         if case["status"] != correction_matrix.MEASURED:
             rows.append(dict(algorithm="residual_pagerank", dataset=dataset, status=case["status"]))
             continue
@@ -98,7 +121,8 @@ def collect(args):
               else "INCOMPLETE_CURRENT_FPGA_CHECKPOINT")
     return rows, members, dict(status=status, measured_pairs=sum(row["status"] == "MEASURED" for row in rows),
         expected_pairs=24, inputs=[identity(path) for path in
-            (args.sssp_matrix, args.retimes, args.cc_matrix, args.controls, args.qualification)],
+            (args.sssp_matrix, *retime_paths, args.cc_matrix, args.controls, args.qualification)],
+        retime_sources=retime_sources,
         evidence=evidence, artifact_index=list(index.values()),
         limitation="ResPR host-only single-batch cache, old-graph preparation excluded/reported; G+R reused",
         cc="replacement-route measurements replayed when present; old AU loss and seven row-overflow failures retained",
@@ -107,9 +131,11 @@ def collect(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("sssp-matrix", "retimes", "cc-matrix", "controls", "qualification",
+    for name in ("sssp-matrix", "cc-matrix", "controls", "qualification",
                  "spine-host", "comparator", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--retimes", type=Path, action="append", required=True,
+                        help="Full original matrix, then explicit retained remainder fragments")
     args = parser.parse_args()
     rows, members, scope = collect(args)
     args.output.mkdir(parents=True, exist_ok=False)
