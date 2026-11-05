@@ -113,3 +113,33 @@ The frozen fifteen-pair checkpoint is unchanged. LJ08 ResPR is still missing;
 partial per-arm output is not a completed comparison. The independent CC
 [192-GiB build replacement](cc_resume_v2/README.md#launched-replacement) runs
 on the high-memory host without changing this local board policy.
+
+### Subsequent Attempt And Queue Repair
+
+The separate `respr-dual-arc-lj08-settle-v6` attempt was admitted with
+68,822,335,488 bytes effective headroom against a 68,719,476,736-byte
+reservation requirement, with low admission PSI (0.22%). It then stopped
+after ten seconds of sustained high PSI. At the final observation, effective
+headroom was 62,210,951,936 bytes and full PSI was 1.65%. Its cgroup peak
+was 3,166,302,208 bytes; all high/max/OOM counters were zero. Only the
+original Spine arm started, and no accepted timing pair was produced.
+This does not show that ARC was unreclaimable, or identify which concurrent
+workload caused pressure. No cache purge or global setting was changed.
+
+[Retained v6 receipts](arc_lj08_v6_receipts.tar.gz) contain the original
+terminal matrix, child result, logs and the dependent retime's last report.
+Archive SHA-256:
+`01ec515f482fe2fd9683fa56fe5c42dcaa2cd236f97691ed8bee803a6842ae74`.
+The downstream invocation `ad16f5504b8944b29a5ed969201aedf5` was stopped
+at 2026-11-05 21:45:32 CST after its producer was confirmed terminal. Its
+last report still says `WAITING_FOR_FROZEN_PAIRS`; neither that stale report
+nor systemd's successful stop is a successful measurement.
+
+The correction-matrix runner now tolerates a producer file that has not yet
+been created, within the existing finite wait deadline. Once a producer is
+terminal, measured rows remain eligible for retiming, while failed or missing
+rows become `UPSTREAM_UNAVAILABLE_RETAINED` with the exact terminal source
+identity. Malformed input still fails. This avoids both the v5 startup race
+and v6's futile wait without changing any hardware, numerical model, memory
+guard, existing receipt, or accepted timing. Focused tests verify that a
+terminal failed producer cannot launch a board child or become a sample.

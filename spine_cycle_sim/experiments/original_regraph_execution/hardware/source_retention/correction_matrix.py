@@ -14,11 +14,30 @@ from .runtime import check_memory, identity, save
 
 MEASURED = "MEASURED_SPINE_HOST_RETIME_REUSED_GR"
 INPUTS = ("qualification", "spine_host", "spine_image", "comparator", "verifier")
+TERMINAL_UPSTREAM = {"MEASURED_RESPR_MATRIX", "RETAINED_INCOMPLETE_MATRIX", "FAILED_RETAINED"}
 
 
 def ready_cases(upstream, pending):
     return [(dataset, row["result"]) for dataset, row in upstream["cases"].items()
             if dataset in pending and row.get("status") == "MEASURED_RESIDENT_PAIR"]
+
+
+def upstream_state(path, pending):
+    try:
+        pin = identity(path)
+        upstream = json.loads(path.read_text())
+    except FileNotFoundError:
+        return [], {}, None
+    ready = ready_cases(upstream, pending)
+    if upstream.get("status") not in TERMINAL_UPSTREAM:
+        return ready, {}, None
+    unchanged([pin])
+    measured = {dataset for dataset, _ in ready}
+    unavailable = {dataset: dict(status="UPSTREAM_UNAVAILABLE_RETAINED",
+        upstream_matrix=pin, upstream_status=upstream["status"],
+        upstream_case=upstream["cases"].get(dataset))
+        for dataset in sorted(pending - measured)}
+    return ready, unavailable, pin
 
 
 def pair_with_scope(pair, case):
@@ -91,8 +110,15 @@ def run(args):
             pending = {key for key, value in cases.items() if value["status"] == "WAITING_FOR_FROZEN_PAIR"}
             if not pending:
                 break
-            ready = ready_cases(json.loads(args.matrix.read_text()), pending)
+            ready, unavailable, terminal = upstream_state(args.matrix, pending)
+            for dataset, failure in unavailable.items():
+                cases[dataset].update(failure)
+            if terminal is not None and terminal not in pins:
+                pins.append(terminal)
+                write()
             if not ready:
+                if unavailable:
+                    break
                 report["status"] = "WAITING_FOR_FROZEN_PAIRS"
                 write()
                 time.sleep(30)
