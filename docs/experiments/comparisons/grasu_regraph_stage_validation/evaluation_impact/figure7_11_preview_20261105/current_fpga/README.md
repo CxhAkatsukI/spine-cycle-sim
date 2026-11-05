@@ -9,6 +9,8 @@ restart and exact queued follow-ups; it is not additional board evidence.
 Its 104-GiB attempt subsequently hit its cgroup OOM limit; the separate
 [memory follow-up](cc_resume_v2/README.md) records that failure and the
 explicit larger build policy. Neither record supplies a measured CC bar.
+LJ08 ResPR also remains missing. The local ARC diagnostic below does not
+change those fifteen accepted pairs or the separate remote CC build.
 
 - [Data](gr_controls.csv): actual per-arm milliseconds, ratios, image identities,
   clocks, sample counts, timing-closure status and claim scope.
@@ -225,3 +227,25 @@ Child receipt SHA-256:
 `004024a6e3a565c69f85087ef7837cfa5f7b2298ef1eee154c0d2ecaf26f665f`.
 The frozen review still has fifteen of twenty-four accepted pairs. The CC
 build and its previously documented followers are independent of this stop.
+
+### Memory Diagnostic, Not A New Board Result
+
+The [read-only observation series](memory_baseline_no_pair.json) sampled the
+existing ARC policy thirty times at two-second intervals from 14:31:27 to
+14:32:25 UTC on November 5. The observer launched no FPGA or graph task and
+used a 128-MiB maximum, 96-MiB high limit and zero swap. Its service peak was
+12.4 MiB. The policy source is pinned in the receipt. This is a subsequent
+background observation, not a reconstruction of the failed pair's pressure.
+
+Full PSI ranged from 0.19% to 0.78%, and no observation failed the PSI guard.
+Nevertheless, discounted effective headroom reached a minimum of 48.25 GiB
+(raw `MemAvailable` minimum 15.89 GiB), below the 64-GiB board admission
+requirement. These observations do not identify the cause of earlier pressure
+or justify changing global ARC settings. No extra pair was launched.
+
+The runner now preserves failed-execution memory diagnostics as described in
+the [board admission guide](../../../../../../implementation/runtime/board_arc_admission.md).
+This adds the previously missing last/peak observations and before/after
+cgroup pressure to a hashed failure sidecar. Safety thresholds, workloads,
+oracles, image identities and timing boundaries are unchanged. The former
+attempts remain frozen failures without retroactively invented diagnostics.

@@ -37,6 +37,21 @@ reclaim; ARC reclaim can cause host stalls.
   effective headroom, maximum observed PSI, named profile, and source pins.
   Memory events and peak cgroup usage remain in the final result.
 
+Failed supervised executions also retain `<arm>.memory-failure.json` with
+hashed stdout/stderr, the admission and last memory observation, minimum
+headroom, peak PSI, observation counts and the original exception. The
+settling profile retains its pressure duration/count even when it aborts.
+Before/after cgroup snapshots include `memory.current`, `memory.peak`,
+`memory.events` and `memory.pressure`; an unavailable diagnostic is recorded
+as an error rather than invented. The dual-clock resident-pair report pins this sidecar.
+These are diagnostics, not an extra sample or a relaxation of any gate.
+
+Global PSI alone cannot attribute a stall to a particular board task. In
+particular, high global PSI while no owned board task runs is not a board
+OOM. Per-cgroup pressure is useful context, but neither a low cgroup value
+nor a lack of OOM events proves that an aborted pair would have completed.
+Earlier failures without these diagnostics remain unchanged.
+
 Select with `--memory-profile zfs-arc-clean-half-v1` on
 `source_retention.dual_clock_matrix`, `dual_clock_resident`,
 `correction_matrix`, or `correction_retime`. A matrix may explicitly select
@@ -61,12 +76,14 @@ unqualified-host identity and the existing host-only retime runner are unchanged
 atomic memory and board admission. `source_retention/runtime.py` retains
 cgroup checks and execution receipts.
 
-Run `python3 -m unittest discover -s tests -p test_board_arc_memory.py` and
+Run `python3 -m unittest discover -s tests -p 'test_board*memory*.py'` and
 the existing source-retention clock/matrix/host-retime tests before use.
 
 The reclaim rationale comes from the
 [OpenZFS module parameters](https://openzfs.github.io/openzfs-docs/Performance%20and%20Tuning/Module%20Parameters.html)
 and [Linux ARC shrinker](https://github.com/openzfs/zfs/blob/master/module/os/linux/zfs/arc_os.c).
+The [kernel PSI guide](https://docs.kernel.org/accounting/psi.html) defines
+stall percentages; they are not an OOM prediction or a memory capacity value.
 The half-credit and PSI limits above are our safety policy, not OpenZFS
 performance guarantees.
 

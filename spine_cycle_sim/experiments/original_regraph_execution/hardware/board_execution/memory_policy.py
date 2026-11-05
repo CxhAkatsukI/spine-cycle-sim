@@ -17,6 +17,14 @@ PRESSURE_GRACE_SECONDS = 10
 _profile = ContextVar("board_memory_profile", default=DEFAULT)
 
 
+class ObservationError(MemoryError):
+    """Retain the observation that caused a safety stop, without changing it."""
+
+    def __init__(self, message, observation):
+        super().__init__(message + ": " + repr(observation))
+        self.observation = observation
+
+
 def selected():
     return _profile.get()
 
@@ -86,7 +94,7 @@ def live(*, allow_transient_pressure=False):
     observation = sample()
     if (observation["effective_available_bytes"] < RESERVE_BYTES
             or not allow_transient_pressure and not observation["pressure_ok"]):
-        raise MemoryError("32-GiB live reserve and low memory PSI required: " + repr(observation))
+        raise ObservationError("32-GiB live reserve and low memory PSI required", observation)
     return observation
 
 
@@ -108,4 +116,4 @@ class PressureWindow:
         if self.started is None:
             self.started = now
         if now - self.started >= PRESSURE_GRACE_SECONDS:
-            raise MemoryError("memory PSI remained high for ten seconds: " + repr(observation))
+            raise ObservationError("memory PSI remained high for ten seconds", observation)

@@ -153,6 +153,8 @@ def _run(args):
         unchanged(evidence)
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
+        if hasattr(error, "memory_guard_receipt"):
+            report["failed_execution"] = error.memory_guard_receipt
         raise
     finally:
         report["memory_peak_bytes"] = int((group / "memory.peak").read_text())

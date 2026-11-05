@@ -1,0 +1,674 @@
+{
+  "scope": "global memory observations; observer launches no FPGA or graph task",
+  "status": "OBSERVED_ONLY_NOT_A_BOARD_RESULT",
+  "interval_seconds": 2,
+  "pins": [
+    {
+      "path": "/data/chuxiao/worktrees/spine-evidence-headroom-20261105/spine_cycle_sim/experiments/original_regraph_execution/hardware/board_execution/memory_policy.py",
+      "sha256": "f75bc50b50a08056d079021b12961aeb2271e825af5b58958562fd6b0a6eace9",
+      "bytes": 4907
+    }
+  ],
+  "samples": [
+    {
+      "utc": "2026-11-05T14:31:27.101493+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17973436416,
+        "mem_free_bytes": 9177714688,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026239080,
+          "mru_evictable_data": 22616275456,
+          "mfu_evictable_data": 65476703744
+        },
+        "clean_evictable_bytes": 88092979200,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53224204288,
+        "pressure_avg10": {
+          "some": 0.23,
+          "full": 0.23
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:29.103211+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17889406976,
+        "mem_free_bytes": 9185583104,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026325336,
+          "mru_evictable_data": 22616275456,
+          "mfu_evictable_data": 65476703232
+        },
+        "clean_evictable_bytes": 88092978688,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53232072448,
+        "pressure_avg10": {
+          "some": 0.37,
+          "full": 0.37
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:31.105215+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17918754816,
+        "mem_free_bytes": 9229697024,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026465984,
+          "mru_evictable_data": 22616275456,
+          "mfu_evictable_data": 65476703232
+        },
+        "clean_evictable_bytes": 88092978688,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53276186368,
+        "pressure_avg10": {
+          "some": 0.3,
+          "full": 0.3
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:33.107068+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17977974784,
+        "mem_free_bytes": 9305698304,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026473904,
+          "mru_evictable_data": 22616279552,
+          "mfu_evictable_data": 65476831232
+        },
+        "clean_evictable_bytes": 88093110784,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53352253696,
+        "pressure_avg10": {
+          "some": 0.25,
+          "full": 0.25
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:35.108991+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17990864896,
+        "mem_free_bytes": 9336324096,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026748616,
+          "mru_evictable_data": 22616282112,
+          "mfu_evictable_data": 65476741120
+        },
+        "clean_evictable_bytes": 88093023232,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53382835712,
+        "pressure_avg10": {
+          "some": 0.38,
+          "full": 0.38
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:37.110896+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 18415947776,
+        "mem_free_bytes": 9305403392,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026297800,
+          "mru_evictable_data": 22616271360,
+          "mfu_evictable_data": 65477265920
+        },
+        "clean_evictable_bytes": 88093537280,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53352172032,
+        "pressure_avg10": {
+          "some": 0.49,
+          "full": 0.49
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:39.112821+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17956933632,
+        "mem_free_bytes": 9281970176,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026451048,
+          "mru_evictable_data": 22616285184,
+          "mfu_evictable_data": 65477266432
+        },
+        "clean_evictable_bytes": 88093551616,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53328745984,
+        "pressure_avg10": {
+          "some": 0.58,
+          "full": 0.58
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:41.114805+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17989840896,
+        "mem_free_bytes": 9337122816,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026446104,
+          "mru_evictable_data": 22616286720,
+          "mfu_evictable_data": 65477268992
+        },
+        "clean_evictable_bytes": 88093555712,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53383900672,
+        "pressure_avg10": {
+          "some": 0.66,
+          "full": 0.66
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:43.116673+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 18045497344,
+        "mem_free_bytes": 9416724480,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026373544,
+          "mru_evictable_data": 22616271360,
+          "mfu_evictable_data": 65477528064
+        },
+        "clean_evictable_bytes": 88093799424,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53463624192,
+        "pressure_avg10": {
+          "some": 0.54,
+          "full": 0.54
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:45.118783+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 18029432832,
+        "mem_free_bytes": 9391198208,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026512232,
+          "mru_evictable_data": 22616275456,
+          "mfu_evictable_data": 65477528064
+        },
+        "clean_evictable_bytes": 88093803520,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53438099968,
+        "pressure_avg10": {
+          "some": 0.62,
+          "full": 0.62
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:47.120816+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 18447159296,
+        "mem_free_bytes": 9315405824,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026397936,
+          "mru_evictable_data": 22616271360,
+          "mfu_evictable_data": 65477783552
+        },
+        "clean_evictable_bytes": 88094054912,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53362433280,
+        "pressure_avg10": {
+          "some": 0.69,
+          "full": 0.69
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:49.122889+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17961644032,
+        "mem_free_bytes": 9267122176,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026782808,
+          "mru_evictable_data": 22616275456,
+          "mfu_evictable_data": 65477972992
+        },
+        "clean_evictable_bytes": 88094248448,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53314246400,
+        "pressure_avg10": {
+          "some": 0.56,
+          "full": 0.56
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:51.124800+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17952686080,
+        "mem_free_bytes": 9257639936,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110027148712,
+          "mru_evictable_data": 22616275456,
+          "mfu_evictable_data": 65477899264
+        },
+        "clean_evictable_bytes": 88094174720,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53304727296,
+        "pressure_avg10": {
+          "some": 0.46,
+          "full": 0.46
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:53.126839+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17960738816,
+        "mem_free_bytes": 9274691584,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026519304,
+          "mru_evictable_data": 22616263168,
+          "mfu_evictable_data": 65478800384
+        },
+        "clean_evictable_bytes": 88095063552,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53322223360,
+        "pressure_avg10": {
+          "some": 0.38,
+          "full": 0.38
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:55.128890+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17972908032,
+        "mem_free_bytes": 9308717056,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026677696,
+          "mru_evictable_data": 22616287744,
+          "mfu_evictable_data": 65478802944
+        },
+        "clean_evictable_bytes": 88095090688,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53356262400,
+        "pressure_avg10": {
+          "some": 0.31,
+          "full": 0.31
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:57.130951+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 18044862464,
+        "mem_free_bytes": 9397121024,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110027485512,
+          "mru_evictable_data": 22616242688,
+          "mfu_evictable_data": 65478726656
+        },
+        "clean_evictable_bytes": 88094969344,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53444605696,
+        "pressure_avg10": {
+          "some": 0.43,
+          "full": 0.43
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:31:59.133090+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 18461495296,
+        "mem_free_bytes": 9368420352,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026629760,
+          "mru_evictable_data": 22616247296,
+          "mfu_evictable_data": 65479738368
+        },
+        "clean_evictable_bytes": 88095985664,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53416413184,
+        "pressure_avg10": {
+          "some": 0.35,
+          "full": 0.35
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:01.135108+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 18430480384,
+        "mem_free_bytes": 9310048256,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026691240,
+          "mru_evictable_data": 22616247296,
+          "mfu_evictable_data": 65479738368
+        },
+        "clean_evictable_bytes": 88095985664,
+        "discount_denominator": 2,
+        "effective_available_bytes": 53358041088,
+        "pressure_avg10": {
+          "some": 0.29,
+          "full": 0.29
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:03.137077+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17544851456,
+        "mem_free_bytes": 8880336896,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 110026593624,
+          "mru_evictable_data": 22616242688,
+          "mfu_evictable_data": 65480000512
+        },
+        "clean_evictable_bytes": 88096243200,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52928458496,
+        "pressure_avg10": {
+          "some": 0.23,
+          "full": 0.23
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:05.139214+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17808916480,
+        "mem_free_bytes": 9151246336,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108687663784,
+          "mru_evictable_data": 22616263168,
+          "mfu_evictable_data": 64350600192
+        },
+        "clean_evictable_bytes": 86966863360,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52634678016,
+        "pressure_avg10": {
+          "some": 0.19,
+          "full": 0.19
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:07.141272+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17923002368,
+        "mem_free_bytes": 9263960064,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108580299224,
+          "mru_evictable_data": 22616263168,
+          "mfu_evictable_data": 64270833152
+        },
+        "clean_evictable_bytes": 86887096320,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52707508224,
+        "pressure_avg10": {
+          "some": 0.34,
+          "full": 0.34
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:09.143328+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17916043264,
+        "mem_free_bytes": 9242775552,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108579959248,
+          "mru_evictable_data": 22616268800,
+          "mfu_evictable_data": 64271226880
+        },
+        "clean_evictable_bytes": 86887495680,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52686523392,
+        "pressure_avg10": {
+          "some": 0.27,
+          "full": 0.27
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:11.145531+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17888632832,
+        "mem_free_bytes": 9200803840,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108580084504,
+          "mru_evictable_data": 22616272896,
+          "mfu_evictable_data": 64271229440
+        },
+        "clean_evictable_bytes": 86887502336,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52644555008,
+        "pressure_avg10": {
+          "some": 0.41,
+          "full": 0.41
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:13.147599+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 18129657856,
+        "mem_free_bytes": 9132982272,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108579967320,
+          "mru_evictable_data": 22616261120,
+          "mfu_evictable_data": 64271451648
+        },
+        "clean_evictable_bytes": 86887712768,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52576838656,
+        "pressure_avg10": {
+          "some": 0.51,
+          "full": 0.51
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:15.149712+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17852395520,
+        "mem_free_bytes": 9152839680,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108580380032,
+          "mru_evictable_data": 22616244736,
+          "mfu_evictable_data": 64272823808
+        },
+        "clean_evictable_bytes": 86889068544,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52597373952,
+        "pressure_avg10": {
+          "some": 0.6,
+          "full": 0.6
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:17.151752+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17785106432,
+        "mem_free_bytes": 9109995520,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108581374704,
+          "mru_evictable_data": 22616228352,
+          "mfu_evictable_data": 64272724480
+        },
+        "clean_evictable_bytes": 86888952832,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52554471936,
+        "pressure_avg10": {
+          "some": 0.67,
+          "full": 0.67
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:19.153968+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17787723776,
+        "mem_free_bytes": 9139683328,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108582022856,
+          "mru_evictable_data": 22616233984,
+          "mfu_evictable_data": 64274018816
+        },
+        "clean_evictable_bytes": 86890252800,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52584809728,
+        "pressure_avg10": {
+          "some": 0.73,
+          "full": 0.73
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:21.156276+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17575272448,
+        "mem_free_bytes": 8928980992,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108582067224,
+          "mru_evictable_data": 22616238080,
+          "mfu_evictable_data": 64274018816
+        },
+        "clean_evictable_bytes": 86890256896,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52374109440,
+        "pressure_avg10": {
+          "some": 0.78,
+          "full": 0.78
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:23.158496+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17332596736,
+        "mem_free_bytes": 8672636928,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108581782280,
+          "mru_evictable_data": 22616221696,
+          "mfu_evictable_data": 64274416128
+        },
+        "clean_evictable_bytes": 86890637824,
+        "discount_denominator": 2,
+        "effective_available_bytes": 52117955840,
+        "pressure_avg10": {
+          "some": 0.64,
+          "full": 0.64
+        },
+        "pressure_ok": true
+      }
+    },
+    {
+      "utc": "2026-11-05T14:32:25.160808+00:00",
+      "observation": {
+        "profile": "zfs-arc-clean-half-settle10-v1",
+        "mem_available_bytes": 17059168256,
+        "mem_free_bytes": 8363646976,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 108582385832,
+          "mru_evictable_data": 22616246784,
+          "mfu_evictable_data": 64274579968
+        },
+        "clean_evictable_bytes": 86890826752,
+        "discount_denominator": 2,
+        "effective_available_bytes": 51809060352,
+        "pressure_avg10": {
+          "some": 0.52,
+          "full": 0.52
+        },
+        "pressure_ok": true
+      }
+    }
+  ]
+}

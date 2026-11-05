@@ -80,6 +80,7 @@ class BoardArcMemoryTests(unittest.TestCase):
             code, guard = guarded_process.run([sys.executable, "-c", "pass"], timeout=5,
                                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.assertEqual(code, 0)
+        self.assertEqual(guard["status"], "COMPLETED")
         self.assertEqual(guard["minimum_effective_available_bytes"], 67 * GIB)
         self.assertGreaterEqual(guard["checks"], 2)
 
@@ -93,8 +94,11 @@ class BoardArcMemoryTests(unittest.TestCase):
                     patch.object(memory, "live", side_effect=[snapshot, error]), \
                     patch.object(guarded_process.subprocess, "Popen", return_value=process), \
                     patch.object(guarded_process.os, "killpg") as kill, \
-                    self.assertRaises(type(error)):
+                    self.assertRaises(type(error)) as raised:
                 guarded_process.run(["owned"], timeout=1)
+            self.assertIs(raised.exception, error)
+            self.assertEqual(error.memory_guard["status"], "ABORTED")
+            self.assertEqual(error.memory_guard["last_observation"], snapshot)
             self.assertEqual(kill.call_args_list[0].args, (123456, signal.SIGTERM))
             self.assertEqual(kill.call_args_list[-1].args, (123456, signal.SIGKILL))
 
@@ -164,10 +168,36 @@ class BoardArcMemoryTests(unittest.TestCase):
                 patch.object(guarded_process.subprocess, "Popen", return_value=process), \
                 patch.object(guarded_process.os, "killpg") as kill, \
                 patch.object(guarded_process.time, "monotonic", side_effect=[0, 1, 1, 11]), \
-                self.assertRaisesRegex(MemoryError, "ten seconds"):
+                self.assertRaisesRegex(MemoryError, "ten seconds") as raised:
             guarded_process.run(["owned"], timeout=30)
+        receipt = raised.exception.memory_guard
+        self.assertEqual(receipt["last_observation"], high)
+        self.assertEqual(receipt["checks"], 3)
+        self.assertEqual(receipt["maximum_consecutive_pressure_seconds"], 10)
+        self.assertEqual(receipt["pressured_checks"], 2)
         self.assertEqual(kill.call_args_list[0].args, (123456, signal.SIGTERM))
         self.assertEqual(kill.call_args_list[-1].args, (123456, signal.SIGKILL))
+
+    def test_strict_stop_retains_the_failing_observation_and_peak(self):
+        low = memory.estimate(*observed())
+        high = dict(low, pressure_ok=False, effective_available_bytes=31 * GIB,
+                    pressure_avg10=dict(some=2.0, full=2.0))
+        error = memory.ObservationError("pressure", high)
+        process = Mock(pid=123456)
+        process.__enter__ = Mock(return_value=process)
+        process.__exit__ = Mock(return_value=False)
+        with memory.scope(memory.ARC), \
+                patch.object(memory, "live", side_effect=[low, error]), \
+                patch.object(guarded_process.subprocess, "Popen", return_value=process), \
+                patch.object(guarded_process.os, "killpg"), \
+                self.assertRaises(MemoryError) as raised:
+            guarded_process.run(["owned"], timeout=30)
+        self.assertIs(raised.exception, error)
+        receipt = error.memory_guard
+        self.assertEqual(receipt["checks"], 2)
+        self.assertEqual(receipt["last_observation"], high)
+        self.assertEqual(receipt["minimum_effective_available_bytes"], 31 * GIB)
+        self.assertEqual(receipt["maximum_pressure_avg10"], high["pressure_avg10"])
 
 
 if __name__ == "__main__":
