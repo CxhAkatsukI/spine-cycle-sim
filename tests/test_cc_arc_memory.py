@@ -101,6 +101,20 @@ class CcArcMemoryTests(unittest.TestCase):
         self.assertEqual(observer.receipt["pressured_checks"], 2)
         self.assertEqual(observer.receipt["maximum_pressure_avg10"]["full"], 2)
 
+    def test_background_profile_keeps_ten_second_tree_stop(self):
+        low = observation()
+        high = dict(observation(pressured=True), pressure_avg10=dict(some=6, full=6))
+        with memory.scope(memory.ARC_BACKGROUND), \
+                patch.object(memory, "live", side_effect=[low, high, high]), \
+                patch.object(tree_memory.time, "monotonic", side_effect=[100, 110]):
+            observer = tree_memory.Observer(30)
+            observer(initial=True)
+            observer(initial=False)
+            with self.assertRaisesRegex(memory.ObservationError, "ten seconds"):
+                observer(initial=False)
+        self.assertEqual(observer.receipt["pressure_grace_seconds"], 10)
+        self.assertEqual(observer.receipt["maximum_consecutive_pressure_seconds"], 10)
+
     def test_matrix_forwards_profile_and_keeps_32_gib_budget_and_zero_swap(self):
         args = argparse.Namespace(**{key: Path(key) for key in resident_matrix.INPUTS},
                                   algorithm="cc", child_prefix="test-cc", wait_seconds=60,

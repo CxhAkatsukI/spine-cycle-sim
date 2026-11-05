@@ -25,7 +25,7 @@ def admit(timeout):
             receipt["last_observation"] = observation
             if started is not None:
                 receipt["waited_seconds"] = time.monotonic() - started
-            retry = (memory_policy.selected() == memory_policy.ARC_SETTLE
+            retry = (memory_policy.settling()
                      and observation["effective_available_bytes"] >= memory_policy.RESERVE_BYTES
                      and not observation["pressure_ok"])
             if retry:

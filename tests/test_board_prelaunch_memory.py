@@ -46,6 +46,15 @@ class PrelaunchMemoryTests(unittest.TestCase):
         self.assertTrue(all(call.kwargs == {} for call in live.call_args_list))
         sleep.assert_called_once_with(1)
 
+    def test_background_profile_reuses_bounded_prelaunch_re_admission(self):
+        with memory.scope(memory.ARC_BACKGROUND), \
+                patch.object(memory, "live", side_effect=[pressure(), LOW]), \
+                patch.object(prelaunch.time, "monotonic", side_effect=[100, 101]), \
+                patch.object(prelaunch.time, "sleep"):
+            observed, receipt = prelaunch.admit(30)
+        self.assertIs(observed, LOW)
+        self.assertEqual(receipt["waited_seconds"], 1)
+
     def test_no_child_starts_when_bounded_re_admission_expires(self):
         failure = pressure()
         with memory.scope(memory.ARC_SETTLE), \

@@ -90,6 +90,10 @@ before changing an implementation or launching an experiment.
   The separate `zfs-arc-clean-half-settle10-v1` board profile retains strict
   admission and immediate physical-reserve enforcement but tolerates at most
   ten seconds of high PSI in a monitored child; record transient pressure.
+  Board-only `zfs-arc-clean-half-background5-v1` is a separately recorded
+  opt-in with full PSI below 5% (some remains below 10%), the same ten-second
+  sustained-pressure stop, and unchanged budgets, reserve and containment.
+  Do not relabel older profiles or treat PSI as an OOM/capacity measurement.
   Start with a correctness smoke, then a bounded representative matrix.
   Do not silently reduce workload semantics to make a run complete.
 - Preserve raw evidence and fixed model identities. Record repetitions,

@@ -74,6 +74,38 @@ class BoardArcMemoryTests(unittest.TestCase):
             with patch.object(memory, "sample", return_value=row), self.assertRaises(MemoryError):
                 memory.live()
 
+    def test_background_profile_has_explicit_limits_without_changing_strict_profiles(self):
+        for profile in (memory.ARC, memory.ARC_SETTLE, memory.ARC_BACKGROUND):
+            for full in (0.99, 1.0, 2.0, 4.99, 5.0):
+                meminfo, arc, psi = observed()
+                psi = psi.replace("full avg10=0", f"full avg10={full}")
+                contents = iter((meminfo, arc, psi))
+                with self.subTest(profile=profile, full=full), memory.scope(profile), \
+                        patch.object(Path, "read_text", side_effect=lambda: next(contents)):
+                    row = memory.sample()
+                limit = 5 if profile == memory.ARC_BACKGROUND else 1
+                self.assertEqual(row["pressure_ok"], full < limit)
+                self.assertEqual(row["effective_available_bytes"], 67 * GIB)
+                if profile == memory.ARC_BACKGROUND:
+                    self.assertEqual(row["pressure_limits_avg10"], dict(some=10, full=5))
+                else:
+                    self.assertNotIn("pressure_limits_avg10", row)
+
+    def test_background_does_not_relax_partial_pressure_or_physical_reserve(self):
+        for some, full in ((10, 2), (2, 5)):
+            meminfo, arc, psi = observed(pressure=some)
+            psi = psi.replace("full avg10=0", f"full avg10={full}")
+            contents = iter((meminfo, arc, psi))
+            with self.subTest(some=some, full=full), memory.scope(memory.ARC_BACKGROUND), \
+                    patch.object(Path, "read_text", side_effect=lambda: next(contents)), \
+                    self.assertRaises(memory.ObservationError):
+                memory.live()
+        with memory.scope(memory.ARC_BACKGROUND), \
+                patch.object(memory, "sample", return_value=dict(
+                    effective_available_bytes=31 * GIB, pressure_ok=True)), \
+                self.assertRaises(memory.ObservationError):
+            memory.live(allow_transient_pressure=True)
+
     def test_guarded_process_records_live_observations(self):
         snapshot = memory.estimate(*observed())
         with memory.scope(memory.ARC), patch.object(memory, "live", return_value=snapshot):

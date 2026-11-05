@@ -317,7 +317,7 @@ def _run(args):
                             if memory_policy.selected() == memory_policy.DEFAULT:
                                 if available_memory_bytes() < policy["reserve_gib"] * 2**30:
                                     raise MemoryError("resident host memory reserve fell below policy")
-                            elif memory_policy.selected() == memory_policy.ARC_SETTLE:
+                            elif memory_policy.settling():
                                 memory_policy.live(allow_transient_pressure=True)
                             else:
                                 memory_policy.live()

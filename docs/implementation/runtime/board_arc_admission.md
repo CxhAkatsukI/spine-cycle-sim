@@ -128,3 +128,31 @@ reserve. A reserve breach or malformed counters fails immediately. Exhausted
 waits retain `child_started=false` and `NOT_STARTED` diagnostics. The running
 child's ten-second pressure limit, finite cgroup and all timing boundaries
 are unchanged. The strict profile and default do not retry prelaunch checks.
+
+## Background Pressure Profile
+
+`zfs-arc-clean-half-background5-v1` is a separate board-only opt-in, declared
+before its first board measurement. It reuses the half-clean-ARC estimate,
+full task and peer reservations, 32-GiB physical reserve, zero swap, finite
+cgroup max/high, exclusive board lease, and bounded command timeouts. The
+only pressure threshold change is `full avg10 < 5%` instead of `< 1%`;
+`some avg10 < 10%` is unchanged. Above-threshold observations still queue
+before launch, and stop an owned running child after ten consecutive
+seconds. Missing counters and physical-reserve breaches fail immediately.
+The existing profiles and their receipts retain their original meanings.
+
+The motivating November 6 observation was about 37 GiB `MemAvailable`,
+123 GiB ARC, 106 GiB clean evictable data, and 82 GiB discounted effective
+headroom, while global full PSI stayed near 2% with no owned board child.
+The earlier 1% threshold was an operational caution, not an OOM limit.
+Five percent caps admitted global full-stall time at one twentieth of the
+averaging window; it is not proof of OOM safety or an estimate of runtime
+error. Containment, headroom, and live checks remain essential.
+
+Every observation identifies the named profile and its explicit pressure
+limits. New executions use fresh outputs and pinned runner source. Both
+arms of a new pair use the same profile. Host-inclusive measurements may
+still be affected by background reclaim, which must remain visible in the
+receipts; no correction factor is applied. Old strict-profile samples are
+not relabeled, and this change does not turn a correctness-only smoke or an
+incomplete FPGA route record into an admitted performance result.

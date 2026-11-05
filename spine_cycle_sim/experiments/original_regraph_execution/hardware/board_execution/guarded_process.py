@@ -41,7 +41,7 @@ def run(command, *, timeout, **kwargs):
                    minimum_effective_available_bytes=before["effective_available_bytes"],
                    maximum_pressure_avg10=dict(before["pressure_avg10"]), checks=0)
     _remember(receipt, before)
-    settle = memory_policy.selected() == memory_policy.ARC_SETTLE
+    settle = memory_policy.settling()
     pressure = memory_policy.PressureWindow()
     deadline = time.monotonic() + timeout - prelaunch["waited_seconds"]
     with subprocess.Popen(command, start_new_session=True, **kwargs) as process:

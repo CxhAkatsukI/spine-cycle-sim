@@ -33,10 +33,10 @@ class Observer:
                 observation, prelaunch = prelaunch_memory.admit(self.timeout)
                 self.receipt.update(admission=observation, prelaunch=prelaunch, status="MONITORING")
             else:
-                settle = memory_policy.selected() == memory_policy.ARC_SETTLE
+                settle = memory_policy.settling()
                 observation = memory_policy.live(allow_transient_pressure=True) if settle else memory_policy.live()
             self.remember(observation)
-            if not initial and memory_policy.selected() == memory_policy.ARC_SETTLE:
+            if not initial and memory_policy.settling():
                 self.pressure.check(observation, time.monotonic())
             return observation["effective_available_bytes"]
         except BaseException as error:
@@ -48,7 +48,7 @@ class Observer:
                 self.receipt["prelaunch_failure"] = error.memory_guard
             raise
         finally:
-            if memory_policy.selected() == memory_policy.ARC_SETTLE:
+            if memory_policy.settling():
                 self.receipt.update(pressure_grace_seconds=memory_policy.PRESSURE_GRACE_SECONDS,
                                     maximum_consecutive_pressure_seconds=self.pressure.maximum_seconds,
                                     pressured_checks=self.pressure.pressured_checks)

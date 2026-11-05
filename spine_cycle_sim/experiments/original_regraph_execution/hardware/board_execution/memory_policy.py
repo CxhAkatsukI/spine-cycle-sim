@@ -11,7 +11,8 @@ from spine_cycle_sim.experiments.upstream_controls.execution import available_me
 DEFAULT = "memavailable-v1"
 ARC = "zfs-arc-clean-half-v1"
 ARC_SETTLE = "zfs-arc-clean-half-settle10-v1"
-PROFILES = (DEFAULT, ARC, ARC_SETTLE)
+ARC_BACKGROUND = "zfs-arc-clean-half-background5-v1"
+PROFILES = (DEFAULT, ARC, ARC_SETTLE, ARC_BACKGROUND)
 RESERVE_BYTES = 32 * 2**30
 PRESSURE_GRACE_SECONDS = 10
 _profile = ContextVar("board_memory_profile", default=DEFAULT)
@@ -27,6 +28,10 @@ class ObservationError(MemoryError):
 
 def selected():
     return _profile.get()
+
+
+def settling():
+    return selected() in (ARC_SETTLE, ARC_BACKGROUND)
 
 
 @contextmanager
@@ -85,11 +90,16 @@ def sample(proc=Path("/proc")):
                            (proc / "spl/kstat/zfs/arcstats").read_text(),
                            (proc / "pressure/memory").read_text())
     observation["profile"] = selected()
+    if selected() == ARC_BACKGROUND:
+        observation["pressure_limits_avg10"] = dict(some=10, full=5)
+        observation["pressure_ok"] = all(
+            observation["pressure_avg10"][key] < limit
+            for key, limit in observation["pressure_limits_avg10"].items())
     return observation
 
 
 def live(*, allow_transient_pressure=False):
-    if allow_transient_pressure and selected() != ARC_SETTLE:
+    if allow_transient_pressure and not settling():
         raise ValueError("transient pressure requires the explicit settle profile")
     observation = sample()
     if (observation["effective_available_bytes"] < RESERVE_BYTES
