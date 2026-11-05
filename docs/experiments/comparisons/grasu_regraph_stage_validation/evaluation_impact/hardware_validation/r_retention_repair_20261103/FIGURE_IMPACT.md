@@ -925,6 +925,27 @@ from the Fig. 9 diagnostic, or treat the payload difference as an exact
 DRAMSim3 energy correction. The one-shard directory byte floor above
 does not depend on the degree-update path.
 
+The frozen ResPR simulator (`f09e196`) and directory diagnostic
+(`95fb905`) already use 64-byte degree requests, but
+[`RoutedPageRankPrepare`](../../../../../../../cpp/src/routed_regraph/pagerank_prepare.cpp)
+issues a read/write pair once per 16-entry line with a nonzero net degree
+change. The uncached HLS loop instead issues one pair per successful update.
+The three `insert_u8.slice` files listed in the reports' `matrix` have eight
+insertions each; none of those pairs is present in the corresponding old
+graph. Grouping the source IDs by `floor(src / 16)` gives:
+
+| Dataset | Changed degree lines | Simulator degree-patch payload (B) | New HLS requested payload (B) | Difference (B) |
+| --- | ---: | ---: | ---: | ---: |
+| AU | 1 | 128 | 1,024 | +896 |
+| SU | 2 | 256 | 1,024 | +768 |
+| WK | 1 | 128 | 1,024 | +896 |
+
+This difference is under 0.001% of the corresponding diagnostic G+R
+accepted-byte totals in all three rows. It accounts only for degree
+patching, not degree reads in source-state preparation or changes in the
+timing of requests. It does not close the whole-image traffic or energy
+comparison.
+
 ## Figure 7: The Smallest Observed Margins
 
 Holding the old Spine wall time fixed, the break-even reduction of the old
