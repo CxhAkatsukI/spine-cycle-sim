@@ -48,7 +48,7 @@ cases are relevant to interpretation and must not be omitted:
 
 | Scope | Outcome |
 | --- | --- |
-| Nov. 5 resident CC FPGA | On AU, G+R **5.450 ms** vs. Spine **17.681 ms** (G+R wins **3.24x**). Spine admission and relaxation each took about 8 ms; packing through batch residency took about 0.165 ms. The other workloads exceed the old CC image's 4,096-edge per-source row limit (R19 reaches 62,361). The enlarged 65,536-entry workspace passed C-model tests but was not yet board-verified. |
+| Nov. 5 resident CC FPGA | On AU, G+R **5.450 ms** vs. Spine **17.681 ms** (G+R wins **3.24x**). Spine admission and relaxation each took about 8 ms; packing through batch residency took about 0.165 ms. Six other cases failed with row overflow on the old CC image; LJ08 did not yet have a completed receipt at this snapshot. All seven exceed the image's 4,096-edge per-source row limit (R19 reaches 62,361). The enlarged 65,536-entry workspace passed C-model tests but was not yet board-verified. |
 | Legacy compact FullPR FPGA | G+R wins on **AM 48.77x, WG 22.15x, FL 23.46x**, using the inverse median speedup. No current large-graph FullPR sweep |
 | Fig. 8 native setup checkpoint | G wins on **AU/64 2.35x, AU/512 2.06x, AU/4096 2.53x, SU/512 1.69x**. Spine wins WK/512 1.03x and PK/512 1.99x. SO/512 has no four-copy pair. These are not ten-batch results |
 | Fig. 8 intermediate host revisions | The early direct-directory AU/64 check still favored G by **1.61x**. The reused-directory host still lost AU/4096 by **1.10x**. The first card-0 AU/512 check with repaired G favored G by **1.054x**, then the [two-bank Spine replay](../hardware_validation/r_retention_repair_20261103/FIGURE_IMPACT.md#two-bank-spine-host-replay) flipped it to **1.21x** for Spine |
@@ -65,7 +65,9 @@ Flickr, L1/L3/L5 = carry target levels 1/3/5. Zero-net uses the fallback
 path on a delete/reinsert sequence, not a no-op optimization. The stage
 shares are simulated attribution, not FPGA counters.
 
-The Nov. 5 diagnostic tests the replacement images despite the documented
+The Nov. 5 diagnostic contains nine measured pairs: Spine wins all eight
+SSSP workloads (1.86x--23.82x), and G+R wins the one admitted CC workload
+(AU). The diagnostic tests the replacement images despite the documented
 AU R slowdown. It does not turn that screen into a 15% parity pass. The
 SSSP rows use the resident update through final readback wall-time receipt;
 the CC rows explicitly use host packing after old-state residency through
