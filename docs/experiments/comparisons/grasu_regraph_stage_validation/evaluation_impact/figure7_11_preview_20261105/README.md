@@ -84,6 +84,30 @@ is internal to an old component. Its production-configuration C-model
 tests passed. It is not a routed or board-measured result, and the seven
 capacity failures and AU loss remain in this index.
 
+The AU follow-up can replace only the Spine arm of the Nov. 5 diagnostic.
+The original G+R sample and its failed AU R retention screen are preserved.
+From the simulator checkout, run the following on the original board host
+once the candidate route is complete:
+
+```sh
+runner=spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_au_revision
+python3 -m "$runner" --anchor "$anchor" "$anchor_sha" --candidate "$candidate" "$candidate_sha" --preflight
+systemd-run --user --wait --collect --working-directory="$PWD" \
+  -p MemoryMax=24G -p MemoryHigh=22G -p MemorySwapMax=0 -p MemoryOOMGroup=yes \
+  /usr/bin/python3 -m "$runner" --anchor "$anchor" "$anchor_sha" \
+  --candidate "$candidate" "$candidate_sha" --run "$fresh_output_dir" --admission-wait-seconds 3600
+```
+
+`anchor` is the retained CC diagnostic matrix named in the receipt index.
+`candidate` is a JSON object with `host`, `image`, `manifest`, `link`,
+`timing`, and `skew` file identities (`path`, `sha256`, `bytes`), the
+Vitis output path `linked_image`, and the weighted build SHA `abi`.
+The read-only preflight checks the original pair, candidate link and
+manifest, and route timing/skew. The board run measures one sample and
+requires the same workload, card, clocks, checked final labels, and
+pack-to-readback timer. It writes `comparison.json` separately from the
+published figure; it is still a diagnostic, not admission for parity.
+
 ## Reproduce
 
 From this directory in a full simulator checkout, run:
