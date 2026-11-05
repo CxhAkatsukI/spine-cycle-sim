@@ -176,6 +176,9 @@ def run(args):
         case, pins = frozen_case(args.previous, args.algorithm, args.dataset)
         retained = getattr(args, "cc_warm_au_receipt", None)
         warm_layout = getattr(args, "cc_warm_layout", None)
+        warm_candidate = getattr(args, "cc_warm_candidate", None)
+        if warm_candidate is not None and (not cc_wall or warm_layout is None):
+            raise ValueError("the replacement route requires a warm CC wall layout")
         warm_cc = retained is not None or warm_layout is not None
         if warm_cc and (not cc_wall or args.algorithm != "cc" or bdf != spine_cc_warm_receipt.BDF):
             raise ValueError("the warm CC hosts require the matched wall scope and the qualified card")
@@ -198,6 +201,8 @@ def run(args):
             if warm_layout is not None:
                 report["warm_layout"] = identity(warm_layout)
                 report["wall_packet"] = identity(args.cc_wall_packet)
+                if warm_candidate is not None:
+                    report["warm_candidate"] = warm_candidate
                 if any(report[key] not in added_pins for key in ("warm_layout", "wall_packet")):
                     raise ValueError("warm layout or wall packet changed after admission")
             report.update(boundary=cc_resident_wall.BOUNDARY,
@@ -314,6 +319,7 @@ def parse_arguments(argv=None, *, extend=None):
     warm = parser.add_mutually_exclusive_group()
     warm.add_argument("--cc-warm-au-receipt", type=lambda value: Path(value).resolve())
     warm.add_argument("--cc-warm-layout", type=lambda value: Path(value).resolve())
+    parser.add_argument("--cc-warm-candidate", nargs=2, metavar=("JSON", "SHA256"))
     parser.add_argument("--cc-warm-r-controls", nargs=4, type=lambda value: Path(value).resolve(),
                         metavar=("ODD_RECEIPT", "ODD_INPUTS", "AU_RECEIPT", "AU_INPUTS"))
     parser.add_argument("--sssp-r-controls", nargs=4, type=lambda value: Path(value).resolve(),
@@ -323,7 +329,10 @@ def parse_arguments(argv=None, *, extend=None):
     parser.add_argument("--wait-seconds", type=int, default=0)
     if extend is not None:
         extend(parser)
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.cc_warm_candidate is not None:
+        args.cc_warm_candidate = cc_resident_wall.cc_spine_route.pinned_arg(args.cc_warm_candidate)
+    return args
 
 
 def main():

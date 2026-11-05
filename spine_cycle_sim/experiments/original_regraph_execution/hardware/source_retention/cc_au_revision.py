@@ -2,45 +2,19 @@
 
 import argparse
 import json
-import os
 from pathlib import Path
-import re
 
 from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import board_memory
 from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.board_analysis import single
 
 from . import cc_resident_results, clocks, figure7_receipts as figure, spine_cc_warm_receipt as warm, spine_smoke
+from .cc_spine_route import candidate_route, pinned_arg
 from .follow import unchanged
 from .runtime import identity, save
 
 
 MATCHED = "CC_AU_REVISION_WITH_PASSED_BASELINE_CONTROLS"
 DIAGNOSTIC = "CC_AU_REVISION_DIAGNOSTIC_NOT_PARITY_ADMISSION"
-
-
-def candidate_route(spec):
-    files = {key: spec[key] for key in ("host", "image", "manifest", "link", "timing", "skew")}
-    host, image = (figure.checked(files[key]) for key in ("host", "image"))
-    manifest, link, timing, skew = (figure.checked(files[key]).read_text()
-                                    for key in ("manifest", "link", "timing", "skew"))
-    if not os.access(host, os.X_OK) or Path(str(image) + ".weighted-manifest") != Path(files["manifest"]["path"]):
-        raise ValueError("candidate image and host must have their own hardware manifest")
-    expected = {f"build_sha256 {spec['abi']}", f"image_sha256 {files['image']['sha256']}", "target hw"}
-    if not expected <= set(manifest.splitlines()) or files["image"]["sha256"] == warm.IMAGE_SHA256:
-        raise ValueError("candidate manifest does not pin a new hardware image")
-    linked_image = Path(spec["linked_image"])
-    lines = link.splitlines()
-    created = f"INFO: [v++ 60-586] Created {linked_image}"
-    completed = "INFO: [v++ 60-1307] Run completed. Additional information can be found in:"
-    if (not linked_image.is_absolute() or linked_image.name != image.name
-            or created not in lines or completed not in lines or lines.index(created) >= lines.index(completed)):
-        raise ValueError("Vitis link did not complete for the declared hardware image")
-    summary = skew.rsplit("\n2. Bus Skew Report Per Constraint", 1)[0]
-    slacks = re.findall(r"^\s*(?:Slow|Fast)(?:\s+[-.\d]+){2}\s+([-.\d]+)\s*$", summary, re.MULTILINE)
-    if ("All user specified timing constraints are met." not in timing
-            or not slacks or min(map(float, slacks)) < 0):
-        raise ValueError("candidate route did not close timing and bus skew")
-    return files
 
 
 def anchor_pair(anchor_pin):
@@ -122,12 +96,17 @@ def replay(prepared, smoke_pin):
                 anchor=prepared["anchor"], stage_ratios=previous["stage_ratios"], verifier=identity(__file__))
 
 
-def pinned_arg(path_and_sha):
-    path, sha = path_and_sha
-    pin = identity(path)
-    if pin["sha256"] != sha:
-        raise ValueError(f"declared SHA-256 does not match {path}")
-    return pin
+def replay_comparison(comparison, candidate):
+    saved = figure.load(comparison)
+    prepared = preflight(saved["anchor"], candidate)
+    if prepared["result_status"] != MATCHED:
+        raise ValueError("the AU replacement did not use a baseline that passed all stage controls")
+    replayed = replay(prepared, saved["candidate_smoke"])
+    if ({key: value for key, value in saved.items() if key != "verifier"}
+            != {key: value for key, value in replayed.items() if key != "verifier"}):
+        raise ValueError("AU replacement differs from the raw board pair")
+    unchanged([comparison])
+    return prepared, replayed
 
 
 def main():

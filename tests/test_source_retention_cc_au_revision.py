@@ -7,6 +7,8 @@ import pytest
 
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
     cc_au_revision as revision,
+    cc_resident_wall as wall,
+    cc_spine_route,
     spine_cc_warm_receipt as warm,
     spine_smoke,
 )
@@ -53,6 +55,79 @@ def test_route_must_match_declared_successful_hardware(tmp_path, route, fault):
             revision.candidate_route(route)
     else:
         assert revision.candidate_route(route)["image"] == route["image"]
+
+
+@pytest.mark.parametrize("fault", [None, "build", "wrong_route_host", "wrong_offline_host"])
+def test_matrix_binds_route_to_byte_identical_offline_host(tmp_path, monkeypatch, route, fault):
+    abi = route["abi"]
+    route["build"] = file(tmp_path, "build.log", f"SPINE_WEIGHTED_BUILD_SHA256='\"{abi}\"'\n"
+                          + ("" if fault == "build" else f"--expected {abi}\n"))
+    candidate = file(tmp_path, "candidate.json", json.dumps(route))
+    host = route["host"] if fault != "wrong_route_host" else file(tmp_path, "other-host", "other")
+    offline = file(tmp_path, "offline-host", "other" if fault == "wrong_offline_host" else "executable")
+    layout = file(tmp_path, "layout.json", json.dumps({"host": offline}))
+    source = {"path": "pinned-workload"}
+
+    def replay(path, dataset, *, host, inputs, frozen):
+        assert (path, dataset, host, inputs, frozen) == (layout["path"], "SU", offline, "split", source)
+        return {}, [layout, offline]
+
+    monkeypatch.setattr(wall.spine_cc_layout, "replay", replay)
+    if fault:
+        with pytest.raises(ValueError):
+            wall.warm_evidence(layout["path"], "SU", host, route["image"], "split", source, candidate)
+    else:
+        checked_abi, route_pins, layout_pins = wall.warm_evidence(
+            layout["path"], "SU", host, route["image"], "split", source, candidate)
+        assert checked_abi == abi
+        assert {candidate["path"], route["build"]["path"], cc_spine_route.__file__} <= {
+            pin["path"] for pin in route_pins}
+        assert layout_pins == [layout, offline]
+
+
+@pytest.mark.parametrize("fault", [None, "clock", "abi"])
+def test_matrix_candidate_matches_clock_and_abi(fault):
+    clocks = {"gr": {"driver_reported_mhz": [150]}, "spine": {"driver_reported_mhz": [150]}}
+    if fault == "clock":
+        clocks["spine"]["driver_reported_mhz"] = [145]
+    log = "CC_SETUP source_config_sha256=" + ("old" if fault == "abi" else "new")
+    if fault:
+        with pytest.raises(ValueError):
+            wall.check_candidate_sample("new", clocks, log)
+    else:
+        wall.check_candidate_sample("new", clocks, log)
+
+
+@pytest.mark.parametrize("spine_ms,winner", [(1, "Spine"), (2, "tie"), (3, "G+R")])
+def test_fig7_indexes_replacement_and_retains_losses(tmp_path, monkeypatch, route, spine_ms, winner):
+    figure = revision.figure
+    pair = {"spine_ms": spine_ms, "gr_ms": 2, "gr_over_spine": 2 / spine_ms,
+            "spine_rounds": 0, "gr_supersteps": 1}
+    stage = {"receipt": "admitted"}
+    gate = {"algorithm": "cc"}
+    anchor = {"stage_gates": gate, "additional_r_gates": {"amazon_odd": stage, "au_slice": stage}}
+    arm = file(tmp_path, "anchor.json", json.dumps(anchor))
+    smoke = file(tmp_path, "smoke.json", json.dumps({"clock_evidence": "clock", "stdout": "out", "stderr": "err"}))
+    comparison = file(tmp_path, "comparison.json", "verified by replay")
+    candidate = file(tmp_path, "candidate.json", "verified by route validator")
+    prior = dict(images={"spine": "old", "gr": "same"}, clocks={"spine": "old", "gr": "same"},
+                 clocks_mhz={"spine": [140], "gr": [150]}, raw={"spine": "old", "gr": "same"},
+                 retained_spine="old")
+    monkeypatch.setattr(cc_spine_route, "matrix_route", lambda pin: pin)
+    monkeypatch.setattr(revision, "replay_comparison", lambda *args: (
+        dict(arm=arm, files=route, prior=prior), dict(new_pair=pair, candidate_smoke=smoke)))
+    monkeypatch.setattr(figure, "record_cc_topology", lambda *args: None)
+    matrix = {"parent": {"comparison": comparison, "route": candidate}, "baseline": gate}
+    entry = {"result": comparison, "reused": True, "comparison": pair}
+    result = figure.cc_replacement_au(matrix, entry)
+    assert result["winner"] == winner
+    assert result["images"] == {"spine": route["image"], "gr": "same"}
+    assert result["clocks_mhz"] == {"spine": [150], "gr": [150]}
+    assert result["comparison"] == comparison
+    assert result["replacement_spine"] == smoke
+    assert "retained_spine" not in result
+    with pytest.raises(ValueError, match="exact replacement AU"):
+        figure.cc_replacement_au(matrix, dict(entry, result=arm))
 
 
 @pytest.mark.parametrize("diagnostic", [False, True])

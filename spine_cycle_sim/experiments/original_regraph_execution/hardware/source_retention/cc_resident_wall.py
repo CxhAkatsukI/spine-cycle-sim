@@ -3,7 +3,9 @@
 import json
 from pathlib import Path
 
-from . import cc_resident_results, spine_cc_layout, spine_cc_warm_receipt
+from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.board_analysis import single
+
+from . import cc_resident_results, cc_spine_route, spine_cc_layout, spine_cc_warm_receipt
 from .follow import unchanged
 from .runtime import identity, save
 
@@ -14,6 +16,24 @@ SPINE_HOST = "c7f81eeb24cbabc13e6a28366370417106af2a2063c457c970fe171900fe1153"
 GR_HOST = "b72c20fec3bc7130edf430ff0006963e3112dfa57ea31bc96e38246b303f7412"
 
 
+def warm_evidence(layout, dataset, host, image, inputs, source, candidate):
+    if candidate is None:
+        if host["sha256"] != spine_cc_warm_receipt.BALANCED_HOST_SHA256:
+            raise ValueError("warm CC pair did not use the pinned wall host")
+        abi, offline_host = None, host
+        route_pins = spine_cc_warm_receipt.route_pins(image)
+    else:
+        abi, files = cc_spine_route.matrix_route(candidate)
+        if (host, image) != (files["host"], files["image"]):
+            raise ValueError("warm CC pair does not use the replacement route and host")
+        offline_host = json.loads(Path(layout).read_text())["host"]
+        if offline_host["sha256"] != host["sha256"]:
+            raise ValueError("offline layout did not use the replacement board host binary")
+        route_pins = [candidate, *files.values(), identity(cc_spine_route.__file__)]
+    _, layout_pins = spine_cc_layout.replay(layout, dataset, host=offline_host, inputs=inputs, frozen=source)
+    return abi, route_pins, layout_pins
+
+
 def configure(args, case, pins, *, retained_spine=None):
     if args.algorithm != "cc":
         raise ValueError("the matched wall host pair is CC-only")
@@ -21,6 +41,9 @@ def configure(args, case, pins, *, retained_spine=None):
     pin = identity(packet)
     paths = json.loads(packet.read_text())
     layout = getattr(args, "cc_warm_layout", None)
+    candidate = getattr(args, "cc_warm_candidate", None)
+    if candidate is not None and layout is None:
+        raise ValueError("a replacement CC route requires a checked offline layout")
     if layout is not None and (retained_spine is not None or case["dataset"] == "AU"):
         raise ValueError("warm layout is for new non-AU measurements, not the retained AU arm")
     expected = {"spine_host": SPINE_HOST, "spine_binary": IMAGE, "gr_host": GR_HOST}
@@ -28,7 +51,7 @@ def configure(args, case, pins, *, retained_spine=None):
         expected.update(spine_host=identity(retained_spine["command"][3])["sha256"],
                         spine_binary=retained_spine["clock"]["binary"]["sha256"])
     elif layout is not None:
-        expected.update(spine_host=spine_cc_warm_receipt.BALANCED_HOST_SHA256, spine_binary=None)
+        expected.update(spine_host=None, spine_binary=None)
     if set(paths) != expected.keys() | {"inputs"}:
         raise ValueError("unexpected CC wall packet members")
     binaries = {name: identity(paths[name]) for name in expected}
@@ -49,11 +72,13 @@ def configure(args, case, pins, *, retained_spine=None):
     new_pins = [pin, inputs, *binaries.values(), split["graph"], split["update"], identity(__file__),
                 identity(cc_resident_results.__file__)]
     if layout is not None:
-        route_pins = spine_cc_warm_receipt.route_pins(binaries["spine_binary"])
-        _, layout_pins = spine_cc_layout.replay(layout, case["dataset"], host=binaries["spine_host"],
-                                                inputs=inputs["path"], frozen=source)
+        abi, route_pins, layout_pins = warm_evidence(
+            layout, case["dataset"], binaries["spine_host"], binaries["spine_binary"], inputs["path"],
+            source, candidate)
         new_pins += [*route_pins, *layout_pins, identity(spine_cc_layout.__file__),
                      identity(spine_cc_warm_receipt.__file__)]
+        if abi is not None:
+            case = dict(case, spine_route_abi=abi)
     unchanged(new_pins)
     return dict(case, **{name: row["path"] for name, row in binaries.items()},
                 graph_slice=split["graph"]["path"], update_slice=split["update"]["path"],
@@ -70,6 +95,12 @@ def commands(case, gate, output):
     }
 
 
+def check_candidate_sample(abi, observed, spine_stdout):
+    if (observed["spine"]["driver_reported_mhz"] != observed["gr"]["driver_reported_mhz"]
+            or single(spine_stdout.splitlines(), "CC_SETUP").get("source_config_sha256") != abi):
+        raise ValueError("replacement Spine CC sample does not match the baseline clock and route ABI")
+
+
 def replay_warm_pair(child, source, observed, recorded):
     """Recheck the warm layout and wall samples when indexing a finished pair."""
     case, arms, pins = (child[key] for key in ("case", "arms", "pins"))
@@ -82,15 +113,15 @@ def replay_warm_pair(child, source, observed, recorded):
     image, host = observed["spine"]["binary"], identity(case["spine_host"])
     if (inputs["spine_binary"], inputs["spine_host"], inputs["gr_host"]) != (
             image["path"], host["path"], case["gr_host"]) or (
-                host["sha256"] != spine_cc_warm_receipt.BALANCED_HOST_SHA256
-                or identity(case["gr_host"])["sha256"] != GR_HOST):
+                identity(case["gr_host"])["sha256"] != GR_HOST):
         raise ValueError("warm CC pair did not use the pinned wall hosts and Spine image")
     split = json.loads(Path(inputs["inputs"]).read_text())
     if [case["graph_slice"], case["update_slice"]] != [split[key]["path"] for key in ("graph", "update")]:
         raise ValueError("warm CC pair did not use the checked split inputs")
-    route_pins = spine_cc_warm_receipt.route_pins(image)
-    _, layout_pins = spine_cc_layout.replay(layout["path"], case["dataset"], host=host,
-                                            inputs=inputs["inputs"], frozen=source)
+    abi, route_pins, layout_pins = warm_evidence(layout["path"], case["dataset"], host, image,
+                                                inputs["inputs"], source, child.get("warm_candidate"))
+    if case.get("spine_route_abi") != abi:
+        raise ValueError("recorded Spine ABI differs from the checked route")
     if any(pin not in pins for pin in [packet, *route_pins, *layout_pins]):
         raise ValueError("warm CC layout or route differs from the pre-measurement pins")
     output = Path(child["comparison_log"]["path"]).parent
@@ -99,8 +130,10 @@ def replay_warm_pair(child, source, observed, recorded):
         raise ValueError("warm CC arm commands differ from the frozen packet")
     logs = [arms[name]["stdout"] for name in ("gr", "spine")]
     unchanged(logs)
-    if cc_resident_results.analyze(case, *(Path(pin["path"]).read_text() for pin in logs),
-                                   bdf=child["bdf"]) != recorded:
+    gr, spine = (Path(pin["path"]).read_text() for pin in logs)
+    if abi is not None:
+        check_candidate_sample(abi, observed, spine)
+    if cc_resident_results.analyze(case, gr, spine, bdf=child["bdf"]) != recorded:
         raise ValueError("warm CC wall times or oracle results differ from the raw logs")
     unchanged([packet, *route_pins, *layout_pins, *logs])
     return {"warm_layout": layout, "wall_packet": packet, "spine_route": route_pins}
@@ -110,6 +143,8 @@ def compare(case, arms, output, bdf):
     logs = [arms[name]["stdout"] for name in ("gr", "spine")]
     unchanged(logs)
     gr, spine = (Path(pin["path"]).read_text() for pin in logs)
+    if "spine_route_abi" in case:
+        check_candidate_sample(case["spine_route_abi"], {name: arm["clock"] for name, arm in arms.items()}, spine)
     pair = cc_resident_results.analyze(case, gr, spine, bdf=bdf)
     unchanged(logs)
     result = output / "pair.json"

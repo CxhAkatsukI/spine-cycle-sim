@@ -330,6 +330,37 @@ def candidate(algorithm, dataset, matrix, special):
     return (child["row"] if algorithm == "respr" else child), child, gates, True
 
 
+def cc_replacement_au(matrix, entry):
+    from . import cc_au_revision, cc_spine_route
+
+    parent = matrix["parent"]
+    comparison, route = parent["comparison"], parent["route"]
+    if entry["result"] != comparison or entry.get("reused") is not True:
+        raise ValueError("matrix did not reuse its exact replacement AU comparison")
+    cc_spine_route.matrix_route(route)
+    prepared, replayed = cc_au_revision.replay_comparison(comparison, route)
+    anchor = load(prepared["arm"])
+    gates = matrix["baseline"]
+    if anchor["stage_gates"] != gates or entry["comparison"] != replayed["new_pair"]:
+        raise ValueError("AU replacement differs from the admitted matrix pair")
+    pair = replayed["new_pair"]
+    smoke = load(replayed["candidate_smoke"])
+    prior = prepared["prior"]
+    out = dict(prior, comparison=comparison, spine_ms=pair["spine_ms"], gr_ms=pair["gr_ms"],
+               gr_over_spine=pair["gr_over_spine"], spine_rounds=pair["spine_rounds"],
+               gr_rounds=pair["gr_supersteps"],
+               winner="Spine" if pair["spine_ms"] < pair["gr_ms"] else
+                      "G+R" if pair["spine_ms"] > pair["gr_ms"] else "tie",
+               images=dict(prior["images"], spine=prepared["files"]["image"]),
+               clocks=dict(prior["clocks"], spine=smoke["clock_evidence"]),
+               clocks_mhz=dict(prior["clocks_mhz"], spine=prior["clocks_mhz"]["gr"]),
+               same_driver_clocks=True, replacement_spine=replayed["candidate_smoke"],
+               raw=dict(prior["raw"], spine={key: smoke[key] for key in ("stdout", "stderr")}))
+    del out["retained_spine"]
+    record_cc_topology(out, matrix, gates, anchor)
+    return out
+
+
 def export(paths):
     required = set(ROLES) - OPTIONAL_SCREENS
     if not required <= paths.keys() <= set(ROLES):
@@ -351,6 +382,11 @@ def export(paths):
         for dataset in DATASETS:
             out = dict(algorithm=algorithm, dataset=dataset, boundary=BOUNDARIES[algorithm])
             try:
+                entry = matrix.get("cases", {}).get("AU", {}) if algorithm == "cc" and dataset == "AU" else {}
+                if entry.get("kind") == "replacement_au":
+                    out.update(cc_replacement_au(matrix, entry), status=MEASURED)
+                    result["rows"].append(out)
+                    continue
                 row, child, gates, ready = candidate(algorithm, dataset, matrix, special)
                 out["status"] = row.get("status", "NOT_RECORDED")
                 if ready:
@@ -366,6 +402,9 @@ def export(paths):
                         image = matrix["image"] if algorithm == "respr" else gates["image"]
                         row_data = measured(algorithm, dataset, child, row, gates, matrix.get("odd_r"), image)
                         if algorithm == "cc":
+                            route = matrix.get("parent", {}).get("route")
+                            if route is not None and child.get("warm_candidate") != route:
+                                raise ValueError("CC matrix row uses a different Spine route than AU")
                             record_cc_topology(row_data, matrix, gates, child)
                         elif algorithm == "weighted_sssp":
                             record_sssp_topology(row_data, matrix, special, gates)

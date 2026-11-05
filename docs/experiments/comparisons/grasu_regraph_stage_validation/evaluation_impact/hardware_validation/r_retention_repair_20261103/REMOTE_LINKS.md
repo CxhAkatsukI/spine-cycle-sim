@@ -993,6 +993,31 @@ checks root on Seele. Reuse requires the routed host to match the checked
 host digest. The offline check does not access the board or produce a
 latency measurement.
 
+The exact-host offline layout checks passed for all seven remaining graphs.
+The large receipt was copied only after the pinned Seele invocation
+finished; all 17 files were checked against their remote SHA-256 digests.
+The local index replays the layout command, raw logs, and frozen split
+inputs for each graph.
+
+| Datasets | Offline receipt under the check root |
+| --- | --- |
+| SU, WK | `spine-cc-stream-admit-2315cae-layout-small-v3/results.json` |
+| R19 | `spine-cc-stream-admit-2315cae-layout-r19-v3/results.json` |
+| SO, PK, LJ, LJ08 | `spine-cc-stream-admit-2315cae-layout-large-v1/results.json` |
+
+The imported large receipt has SHA-256
+`3e9b792aeb5ccccfbc8aa30065b0084a58ff4cf4d51fbb61926d6f3edc2d9c86`.
+The waiting matrix service
+`gr-retention-cc-stream-2315cae-matrix-20261105-v1.service`
+(invocation `e3310a955b424c6a8933cb576e63a074`, journal
+`cc-warm-stream-2315cae-matrix-v1/matrix.json`) is bound to the replacement
+AU collector above. It replays the AU board result and all four baseline
+controls, checks that the routed host is byte-identical to the offline
+host, and then requests one pair per remaining dataset under an exclusive
+board lease and a 32 GiB hard cap with no swap. It does not require a Spine
+win to keep an otherwise correct row and does not retry a failed arm.
+Passing the offline checks does not imply that the FPGA runs have completed.
+
 ### Archived Spine Images on Feiyang
 
 The `tiny-active.final172` and `tiny-active.scaled175` U55C images
