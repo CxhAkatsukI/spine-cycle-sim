@@ -6,6 +6,9 @@ They remain necessary for any eventual new measured-hardware claim.
 
 For the consolidated author handoff, read the
 [Figures 7--11 data package](figure7_11_handoff_20261103/README.md).
+The separate [plot handoff and negative results](figure7_11_preview_20261105/README.md)
+includes the measured G/R source controls and figure previews without changing
+the data package.
 It indexes the October FPGA Figure 7 and simulator Figures 8--9 evidence,
 and supplies fresh Figure 10 stage executions and a fresh Figure 11 fit.
 These are explicitly different experiment versions and evidence tiers;

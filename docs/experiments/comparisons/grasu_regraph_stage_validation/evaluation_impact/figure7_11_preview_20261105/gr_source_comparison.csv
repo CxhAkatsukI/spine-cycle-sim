@@ -1,0 +1,12 @@
+stage,algorithm,workload,public_ms,integrated_ms,integrated_image,source
+G,SSSP,AU 131K,18.368928,7.298286,nominal source burst,SSSP_STAGE_ADMISSION.md#nominal-source-burst-board-screen
+G,CC,AU 131K,18.368928,7.044811,four-bank,REMOTE_LINKS.md#cc-banked-clear-board-checkpoint
+G,ResPR,AU 131K,18.368928,133.499578,packed validity with degree update,G_SCOPE.md#packed-validity-respr-result
+R,SSSP,AU,2.189131,2.658355,nominal source burst,SSSP_STAGE_ADMISSION.md#nominal-source-burst-board-screen
+R,SSSP,AM,10.404206,9.827686,nominal source burst,SSSP_STAGE_ADMISSION.md#nominal-source-burst-board-screen
+R,SSSP,AM+,10.591011,9.936380,nominal source burst,SSSP_STAGE_ADMISSION.md#nominal-source-burst-board-screen
+R,CC,AU,2.150389,2.600322,four-bank,REMOTE_LINKS.md#cc-banked-clear-board-checkpoint
+R,CC,AM,10.067298,10.133419,four-bank,REMOTE_LINKS.md#cc-banked-clear-board-checkpoint
+R,CC,AM+,10.542570,9.823770,four-bank,REMOTE_LINKS.md#cc-banked-clear-board-checkpoint
+R,ResPR,AM,10.532629,10.088276,packed validity,LOWER_CLOCK_SCREEN.md#nominal-packed-validity-board-screen
+R,ResPR,Skew,0.531815,0.615458,packed validity,LOWER_CLOCK_SCREEN.md#nominal-packed-validity-board-screen
