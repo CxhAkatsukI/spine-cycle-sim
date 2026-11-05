@@ -14,6 +14,7 @@ from spine_cycle_sim.experiments.sharded_k4_stages.link_runtime import run_link
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import containment
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware.concurrent import Lease
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
+from ..board_execution import memory_policy, tree_memory
 from . import clocks
 from .runtime import identity, lease, save
 
@@ -57,6 +58,11 @@ def resident_wall(text, *, vertices, physical_updates):
 
 
 def run(args):
+    with memory_policy.scope(getattr(args, "memory_profile", memory_policy.DEFAULT)):
+        return _run(args)
+
+
+def _run(args):
     wait = getattr(args, "admission_wait_seconds", 0)
     if type(wait) is not int or not 0 <= wait <= 21600:
         raise ValueError("admission wait must be bounded to six hours")
@@ -85,6 +91,11 @@ def run(args):
     report = {"status": "PREPARING", "performance_admission": False, "pins": pins,
               "scope": "canonical 12-vertex CC fixture; one sample, 11 distinct batches; not a G+R comparison",
               "errors": [], "device": 0, "bdf": "0000:82:00.1", "memory_policy": declared}
+    report["memory_profile"] = memory_policy.selected()
+    observer = None
+    if memory_policy.selected() != memory_policy.DEFAULT:
+        pins.extend(identity(module.__file__) for module in (memory_policy, tree_memory))
+        observer = tree_memory.Observer(timeout=240)
     if workload is not None:
         report.update(scope="frozen resident CC graph; one update batch; not a G+R comparison",
                       workload=workload, host_timer="batch upload through publication, excludes final label readback")
@@ -98,7 +109,13 @@ def run(args):
             if any(identity(pin["path"]) != pin for pin in pins):
                 raise ValueError("CC image, host or runner changed before memory admission")
             board_memory.require_unthrottled((group / "memory.events").read_text())
-            report["admission"] = reservation.sample(available_memory_bytes(), containment.other_builds(),
+            if observer is None:
+                available = available_memory_bytes()
+            else:
+                observation = memory_policy.sample()
+                report["memory_observation"] = observation
+                available = observation["effective_available_bytes"] if observation["pressure_ok"] else 0
+            report["admission"] = reservation.sample(available, containment.other_builds(),
                                                      declared, commit=True)
             report["admission_attempts"] += 1
             report["admission_waited_seconds"] = time.monotonic() - started
@@ -121,7 +138,8 @@ def run(args):
             # This native Spine host does not consume a lease fd; the parent holds it throughout.
             result = run_link(command, output, output / "spine_cc", timeout=240,
                               tree_memory_gib=declared["tree_memory_gib"],
-                              reserve_gib=declared["reserve_gib"], environment=environment)
+                              reserve_gib=declared["reserve_gib"], environment=environment,
+                              **({"memory_observer": observer, "poll_seconds": 1} if observer is not None else {}))
             report["execution"] = result
             if (result["exit_code"] or result["stop_reason"] != "process_exit"
                     or result["cleanup_snapshot_error"]):
@@ -148,6 +166,12 @@ def run(args):
         raise
     finally:
         reservation.release()
+        if observer is not None:
+            if observer.receipt["status"] == "MONITORING":
+                result = report.get("execution", {})
+                observer.receipt["status"] = ("COMPLETED" if result.get("exit_code") == 0
+                                               and result.get("stop_reason") == "process_exit" else "STOPPED")
+            report["memory_guard"] = observer.receipt
         report["memory_peak_bytes"] = int((group / "memory.peak").read_text())
         report["memory_events"] = (group / "memory.events").read_text()
         save(output / "results.json", report)
@@ -161,4 +185,5 @@ if __name__ == "__main__":
     parser.add_argument("--resident-wall", action="store_true")
     parser.add_argument("--memory-gib", type=int, choices=(16, 24), default=24)
     parser.add_argument("--admission-wait-seconds", type=int, default=0)
+    parser.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.DEFAULT)
     run(parser.parse_args())

@@ -124,7 +124,7 @@ class SpineSmokeTest(unittest.TestCase):
         with self.assertRaises(SystemExit):
             spine_cc_layout.arguments(argv + ["--memory-gib", "24"])
 
-    def check_memory_failure(self, *, wait=0, decisions=None, times=None):
+    def check_memory_failure(self, *, wait=0, decisions=None, times=None, observation=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             group = root / "group"
@@ -134,13 +134,16 @@ class SpineSmokeTest(unittest.TestCase):
                                 "memory.events": "high 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"}.items():
                 (group / name).write_text(value)
             args = argparse.Namespace(output=root / "output", host=root / "host", image=root / "image",
-                                      admission_wait_seconds=wait)
+                                      admission_wait_seconds=wait,
+                                      memory_profile=(spine_smoke.memory_policy.ARC if observation is not None
+                                                      else spine_smoke.memory_policy.DEFAULT))
             with mock.patch.object(spine_smoke.containment, "current", return_value=group), \
                     mock.patch.object(spine_smoke.containment, "other_builds", return_value=[]), \
                     mock.patch.object(spine_smoke, "available_memory_bytes", return_value=100 * 2**30), \
                     mock.patch.object(spine_smoke, "identity", side_effect=lambda path: {
                         "path": str(path), "sha256": "a" * 64}), \
                     mock.patch.object(spine_smoke, "Lease") as reservation, \
+                    mock.patch.object(spine_smoke.memory_policy, "sample", return_value=observation), \
                     mock.patch.object(spine_smoke, "lease") as board, \
                     mock.patch.object(spine_smoke.time, "monotonic", side_effect=times or [0, 0]), \
                     mock.patch.object(spine_smoke.time, "sleep") as sleep:
@@ -154,6 +157,10 @@ class SpineSmokeTest(unittest.TestCase):
                 else:
                     board.assert_not_called()
                 reservation.return_value.release.assert_called_once()
+                if observation is not None:
+                    effective = observation["effective_available_bytes"] if observation["pressure_ok"] else 0
+                    self.assertEqual(reservation.return_value.sample.call_args.args[0], effective)
+                    self.assertEqual(reservation.return_value.sample.call_args.args[2]["tree_memory_gib"], 24)
             report = json.loads((args.output / "results.json").read_text())
             self.assertEqual(report["status"], "FAILED_RETAINED")
             self.assertFalse(report["performance_admission"])
@@ -180,6 +187,13 @@ class SpineSmokeTest(unittest.TestCase):
         for value in (-1, 21601, 1.0, True):
             with self.subTest(wait=value), self.assertRaises(ValueError):
                 spine_smoke.run(argparse.Namespace(admission_wait_seconds=value))
+
+    def test_arc_admission_keeps_full_budget_and_pressure_gate(self):
+        for pressure_ok in (True, False):
+            row = dict(effective_available_bytes=67 * 2**30, pressure_ok=pressure_ok)
+            report, _ = self.check_memory_failure(observation=row)
+            self.assertEqual(report["memory_observation"], row)
+            self.assertEqual(report["memory_profile"], spine_smoke.memory_policy.ARC)
 
 
 if __name__ == "__main__":

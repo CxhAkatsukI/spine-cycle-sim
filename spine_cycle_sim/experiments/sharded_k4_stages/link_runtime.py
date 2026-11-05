@@ -37,13 +37,19 @@ def _child_limits() -> None:
 
 def run_link(command: list[str], cwd: Path, prefix: Path, *, timeout: int = 14400,
              tree_memory_gib: int = 40, reserve_gib: int = 16,
-             poll_seconds: float = 2, environment: dict | None = None) -> dict:
+             poll_seconds: float = 2, environment: dict | None = None,
+             memory_observer=None) -> dict:
     if timeout <= 0 or tree_memory_gib <= 0 or reserve_gib < 0 or poll_seconds <= 0:
         raise ValueError("invalid route watchdog budget")
-    available = available_memory_bytes()
+    started = time.monotonic() if memory_observer is not None else None
+    available = (available_memory_bytes() if memory_observer is None
+                 else memory_observer(initial=True))
     if available < (tree_memory_gib + reserve_gib) * 1024**3:
         raise RuntimeError("insufficient memory for route tree budget plus reserve")
-    started = time.monotonic()
+    if started is None:
+        started = time.monotonic()
+    elif time.monotonic() - started >= timeout:
+        raise subprocess.TimeoutExpired(command, timeout)
     peak = 0
     minimum_available = available
     reason = "process_exit"
@@ -62,7 +68,8 @@ def run_link(command: list[str], cwd: Path, prefix: Path, *, timeout: int = 1440
                 rss, pids = tree_rss_kib(snapshot, process.pid, workers.live_pids())
                 workers.observe(pids)
                 peak = max(peak, rss)
-                current = available_memory_bytes()
+                current = (available_memory_bytes() if memory_observer is None
+                           else memory_observer(initial=False))
                 minimum_available = min(minimum_available, current)
                 elapsed = time.monotonic() - started
                 if rss * 1024 > tree_memory_gib * 1024**3:
@@ -110,5 +117,7 @@ def run_link(command: list[str], cwd: Path, prefix: Path, *, timeout: int = 1440
             record.update({"cleanup_scope": "pidfd_bound_observed_workers_not_cgroup_containment",
                            "observed_pids": observed, "cleanup_signaled_pids": signaled,
                            "cleanup_snapshot_error": cleanup_error})
+            if memory_observer is not None:
+                record["available_memory_basis"] = "explicit_memory_observer"
             atomic_write_json(prefix.with_suffix(".resources.json"), record)
     return record

@@ -10,10 +10,12 @@ import time
 
 from spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import concurrent, containment
 from spine_cycle_sim.experiments.upstream_controls.execution import available_memory_bytes
+from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness import board_memory
+from ..board_execution import guarded_process, memory_policy
 from . import active_min_admission, cc_resident_wall, clocks, spine_cc_warm_receipt
 from .follow import unchanged
 from .resident_board import LEGACY_LOCK
-from .runtime import identity, lease, save
+from .runtime import identity, lease, memory_snapshot, save
 
 
 DEVICE, BDF = 1, "0000:c1:00.1"
@@ -86,16 +88,39 @@ def arm(name, command, expected, output, *, cc_wall=False, bdf=BDF, device=DEVIC
     env = environment(bdf=bdf, device=device)
     if cc_wall and name == "gr":
         env["GRASU_SHARDED_RESIDENT_BATCH_WALL"] = "1"
-    with stdout.open("x") as out, stderr.open("x") as err:
-        completed = subprocess.run(command, env=env, cwd=output, stdout=out, stderr=err, timeout=1800)
-    if completed.returncode != 0:
-        raise RuntimeError(f"{name} exit {completed.returncode}; see {stderr}")
+    guard = None
+    group = containment.current() if memory_policy.selected() != memory_policy.DEFAULT else None
+    before = memory_snapshot(group) if group is not None else None
+    try:
+        with stdout.open("x") as out, stderr.open("x") as err:
+            if memory_policy.selected() == memory_policy.DEFAULT:
+                code = subprocess.run(command, env=env, cwd=output, stdout=out, stderr=err, timeout=1800).returncode
+            else:
+                code, guard = guarded_process.run(command, env=env, cwd=output, stdout=out, stderr=err, timeout=1800)
+        if code != 0:
+            raise RuntimeError(f"{name} exit {code}; see {stderr}")
+    except BaseException as error:
+        if memory_policy.selected() != memory_policy.DEFAULT:
+            failed = output / f"{name}.memory-failure.json"
+            try:
+                save(failed, dict(status="FAILED_RETAINED", error=repr(error), command=command,
+                                  memory_guard=getattr(error, "memory_guard", guard),
+                                  cgroup_before=before, cgroup_after=memory_snapshot(group),
+                                  stdout=identity(stdout), stderr=identity(stderr)))
+                error.memory_guard_receipt = identity(failed)
+            except (OSError, ValueError) as receipt_error:
+                error.add_note("failed to retain board memory diagnostics: " + repr(receipt_error))
+        raise
     evidence = clocks.capture(bdf, expected, output, name)
     observed = clocks.replay(evidence)
     if observed["bdf"] != bdf or observed["binary"] != expected["binary"]:
         raise ValueError("measured board or image differs from the preflight")
-    return dict(command=command, stdout=identity(stdout), stderr=identity(stderr),
-                clock_evidence=evidence, clock=observed)
+    row = dict(command=command, stdout=identity(stdout), stderr=identity(stderr),
+               clock_evidence=evidence, clock=observed)
+    if guard is not None:
+        row["memory_guard"] = guard
+        row.update(cgroup_before=before, cgroup_after=memory_snapshot(group))
+    return row
 
 
 def compare(case, arms, comparator, output):
@@ -153,12 +178,17 @@ def replay_controls(args, gate, *, warm_cc=False, stage_receipts=None):
 
 
 def run(args):
+    with memory_policy.scope(getattr(args, "memory_profile", memory_policy.DEFAULT)):
+        return _run(args)
+
+
+def _run(args):
     if not 0 <= args.wait_seconds <= 21600:
         raise ValueError("board and memory admission wait is limited to six hours")
     args.output.mkdir(parents=True, exist_ok=False)
     report = {"status": "PREDECLARED", "dataset": args.dataset, "algorithm": args.algorithm,
               "boundary": BOUNDARY, "bdf": BDF, "warmups": 0, "repetitions_per_arm": 1,
-              "attempts": [], "arms": {}}
+              "attempts": [], "arms": {}, "memory_profile": memory_policy.selected()}
     write = lambda: save(args.output / "results.json", report)
     write()
     memory = None
@@ -219,6 +249,8 @@ def run(args):
             command_pair = commands(case, gate, args.output)
         pins += [gate["host"], gate["image"], gate["g"]["report"], gate["g"]["reference"], gate["r"]["report"],
                  identity(__file__), identity(active_min_admission.__file__)]
+        if memory_policy.selected() != memory_policy.DEFAULT:
+            pins += [identity(memory_policy.__file__), identity(guarded_process.__file__)]
         additional_r, control_pins = replay_controls(args, gate, warm_cc=warm_cc, stage_receipts=stage_receipts)
         pins += control_pins
         if stage_receipts is not None:
@@ -235,6 +267,8 @@ def run(args):
         limits = containment.verify(group, memory_gib=budget)["limits"]
         if int(limits["memory.max"]) != budget * 2**30 or int(limits["memory.high"]) > (budget - 2) * 2**30:
             raise ValueError("reserve the frozen board host budget with a 2-GiB high-watermark margin")
+        if memory_policy.selected() != memory_policy.DEFAULT:
+            board_memory.require_unthrottled((group / "memory.events").read_text())
         memory = concurrent.Lease(Path.home() / ".cache/spine-cycle-sim/compiler-reservations", group)
         policy = {"tree_memory_gib": budget, "reserve_gib": 32, "allow_bounded_builds": True}
         images = {"gr": gate["image"]["path"]}
@@ -250,7 +284,13 @@ def run(args):
         write()
         deadline = time.monotonic() + args.wait_seconds
         while True:
-            report["memory_admission"] = memory.sample(available_memory_bytes(), containment.other_builds(),
+            if memory_policy.selected() == memory_policy.DEFAULT:
+                available = available_memory_bytes()
+            else:
+                observation = memory_policy.sample()
+                report["memory_observation"] = observation
+                available = observation["effective_available_bytes"] if observation["pressure_ok"] else 0
+            report["memory_admission"] = memory.sample(available, containment.other_builds(),
                                                         policy, commit=True)
             write()
             if memory.held:
@@ -274,8 +314,13 @@ def run(args):
                             unchanged(pins)
                             if not idle(node):
                                 raise RuntimeError("card acquired by another user between arms")
-                            if available_memory_bytes() < policy["reserve_gib"] * 2**30:
-                                raise MemoryError("resident host memory reserve fell below policy")
+                            if memory_policy.selected() == memory_policy.DEFAULT:
+                                if available_memory_bytes() < policy["reserve_gib"] * 2**30:
+                                    raise MemoryError("resident host memory reserve fell below policy")
+                            elif memory_policy.selected() == memory_policy.ARC_SETTLE:
+                                memory_policy.live(allow_transient_pressure=True)
+                            else:
+                                memory_policy.live()
                             report["attempts"].append(name)
                             write()
                             report["arms"][name] = arm(name, report["commands"][name], expected[name], args.output,
@@ -293,9 +338,13 @@ def run(args):
         report["pair"], report["comparison_log"] = (
             cc_resident_wall.compare(case, report["arms"], args.output, bdf) if cc_wall
             else compare(case, report["arms"], args.comparator, args.output))
+        if memory_policy.selected() != memory_policy.DEFAULT:
+            board_memory.require_unthrottled((group / "memory.events").read_text())
         report["status"] = "MEASURED_RESIDENT_PAIR"
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
+        if hasattr(error, "memory_guard_receipt"):
+            report["memory_guard_failure"] = error.memory_guard_receipt
         raise
     finally:
         if memory is not None:
@@ -327,6 +376,7 @@ def parse_arguments(argv=None, *, extend=None):
     parser.add_argument("--au-r-diagnostic-sha256",
                         help="allow a pinned AU R miss up to 22%% for the resident run only")
     parser.add_argument("--wait-seconds", type=int, default=0)
+    parser.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.DEFAULT)
     if extend is not None:
         extend(parser)
     args = parser.parse_args(argv)

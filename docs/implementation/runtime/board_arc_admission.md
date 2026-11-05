@@ -1,7 +1,7 @@
 # ARC-Aware Board Admission
 
 The explicit `zfs-arc-clean-half-v1` profile is limited to the single-pass
-resident-pair and Spine host-retime board runners. It does not change FPGA
+resident-pair, Spine host-retime, and CC qualification board runners. It does not change FPGA
 build admission, simulator memory policies, HLS, inputs, or timing boundaries.
 The default remains `memavailable-v1`; frozen campaigns are not modified.
 
@@ -32,7 +32,8 @@ reclaim; ARC reclaim can cause host stalls.
   and `full avg10 < 1%`; running children also retain a 32-GiB effective
   physical reserve. The live check runs every second.
 - On pressure, timeout, or interruption, terminate only the owned child
-  process group; never adjust or terminate another user's work.
+  process group or the smoke watchdog's pidfd-tracked workers; never adjust
+  or terminate another user's work.
 - Receipts retain raw memory/ARC/PSI admission observations, the minimum
   effective headroom, maximum observed PSI, named profile, and source pins.
   Memory events and peak cgroup usage remain in the final result.
@@ -59,6 +60,15 @@ remaining datasets with `--datasets LJ LJ08 R19`; its receipt marks that it
 is not a complete eight-dataset matrix. Earlier accepted samples are kept
 separately, not silently rerun or rewritten.
 
+The same option is accepted by `source_retention.cc_au_collect`,
+`spine_smoke`, `cc_warm_matrix`, and `active_min_resident`. The collector
+uses it only for local board execution after validating the exact remote
+build; it does not change remote build supervision. The warm CC matrix
+forwards the chosen profile to its per-dataset board child. The AU smoke
+retains a 24-GiB cgroup limit; warm CC pairs retain 32 GiB. The smoke's
+existing RSS/watchdog checks and the pair's exclusive board lease remain in
+force. Receipts identify the profile separately from the FPGA measurement.
+
 `dual_clock_matrix` and `dual_clock_resident` may separately opt into
 `--qualification /path/to/qualification.json` with the exact qualified
 `--spine-host`. This replays the existing CPU correction tests and measures
@@ -74,7 +84,9 @@ unqualified-host identity and the existing host-only retime runner are unchanged
 `hardware/board_execution/memory_policy.py` owns observation and policy;
 `guarded_process.py` owns live child supervision. `pair_resources.py` owns
 atomic memory and board admission. `source_retention/runtime.py` retains
-cgroup checks and execution receipts.
+cgroup checks and execution receipts. `tree_memory.py` supplies ARC
+observations to the existing smoke process-tree watchdog; it does not own
+or signal processes.
 
 Run `python3 -m unittest discover -s tests -p 'test_board*memory*.py'` and
 the existing source-retention clock/matrix/host-retime tests before use.

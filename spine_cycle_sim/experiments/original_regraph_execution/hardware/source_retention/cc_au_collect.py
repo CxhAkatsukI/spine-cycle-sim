@@ -17,6 +17,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.complete_pipeline.ha
 
 from . import build_resume, cc_au_revision as revision
 from .runtime import check_memory, identity, save
+from ..board_execution import memory_policy
 
 
 IMAGE = "spine_partitioned_split_e2e.cc_repair.hw.xclbin"
@@ -108,6 +109,11 @@ def collect(command, transfer, root, output, expected_abi, *, image_name=IMAGE, 
 
 
 def run(args):
+    with memory_policy.scope(getattr(args, "memory_profile", memory_policy.DEFAULT)):
+        return _run(args)
+
+
+def _run(args):
     if (not re.fullmatch(r"[A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+", args.remote)
             or not 1 <= args.port <= 65535
             or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service", args.unit)
@@ -125,7 +131,8 @@ def run(args):
     check_memory(24, require_live_reserve=False)
     args.output.mkdir(parents=True, exist_ok=False)
     report = dict(status="WAITING_FOR_ROUTE", anchor=anchor, root=str(args.root),
-                  unit=args.unit, invocation=args.invocation, expected_abi=args.abi, runner=identity(__file__))
+                  unit=args.unit, invocation=args.invocation, expected_abi=args.abi, runner=identity(__file__),
+                  memory_profile=memory_policy.selected())
 
     def checkpoint():
         save(args.output / "results.json", report)
@@ -192,7 +199,8 @@ def run(args):
         revision.spine_smoke.run(argparse.Namespace(
             host=Path(candidate["host"]["path"]), image=Path(candidate["image"]["path"]),
             output=smoke, memory_gib=24, admission_wait_seconds=3600,
-            input_manifest=Path(prepared["inputs"]["path"]), resident_wall=True))
+            input_manifest=Path(prepared["inputs"]["path"]), resident_wall=True,
+            memory_profile=memory_policy.selected()))
         result = revision.replay(prepared, identity(smoke / "results.json"))
         save(args.output / "comparison.json", result)
         report.update(status=result["status"], comparison=identity(args.output / "comparison.json"))
@@ -216,6 +224,7 @@ def main():
     parser.add_argument('--resume', type=Path)
     parser.add_argument('--original-log', type=Path)
     parser.add_argument('--resume-memory-profile', choices=build_resume.MEMORY_PROFILES, default='104g-v1')
+    parser.add_argument('--memory-profile', choices=memory_policy.PROFILES, default=memory_policy.DEFAULT)
     run(parser.parse_args())
 
 

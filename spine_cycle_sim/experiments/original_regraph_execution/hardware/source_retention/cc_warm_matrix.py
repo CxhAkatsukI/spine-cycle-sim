@@ -89,6 +89,11 @@ def replacement_ready(parent, state):
 
 
 def run(args):
+    with resident.memory_policy.scope(getattr(args, "memory_profile", resident.memory_policy.DEFAULT)):
+        return _run(args)
+
+
+def _run(args):
     layouts = {ds: (Path(receipt).resolve(), Path(inputs).resolve()) for ds, receipt, inputs in args.layout}
     replacement = getattr(args, "au_replacement", None)
     if ((args.algorithm, args.dataset) != ("cc", "AU") or set(layouts) != set(DATASETS)
@@ -108,7 +113,8 @@ def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     journal = args.output / "matrix.json"
     rows = {ds: {"status": "NOT_REQUESTED"} for ds in ("AU", *DATASETS)}
-    report = dict(status="WAITING_FOR_WARM_CC_AU", cases=rows, parent=parent, warmups=0, repetitions_per_arm=1)
+    report = dict(status="WAITING_FOR_WARM_CC_AU", cases=rows, parent=parent, warmups=0, repetitions_per_arm=1,
+                  memory_profile=resident.memory_policy.selected())
     save(journal, report)
     try:
         pins = [*runner_pins(), *(identity(module.__file__) for module in (matrix, resident, follow, wall)),

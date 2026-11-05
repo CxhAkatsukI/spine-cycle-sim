@@ -72,12 +72,18 @@ def child_service(prefix, dataset, budget, module):
 
 def child_command(args, dataset, budget, output, *, packet=None):
     comparison = ("--cc-wall-packet", packet) if packet is not None else ("--comparator", args.comparator)
-    return [
+    command = [
         *child_service(args.child_prefix, dataset, budget, resident.__spec__.name),
         "--algorithm", args.algorithm, "--dataset", dataset, "--output", str(output),
         "--wait-seconds", str(args.wait_seconds), comparison[0], str(comparison[1]),
         *(part for key in INPUTS for part in ("--" + key.replace("_", "-"), str(getattr(args, key)))),
     ]
+    profile = getattr(args, "memory_profile", resident.memory_policy.DEFAULT)
+    if profile not in resident.memory_policy.PROFILES:
+        raise ValueError("unknown board memory profile")
+    if profile != resident.memory_policy.DEFAULT:
+        command += ["--memory-profile", profile]
+    return command
 
 
 def run_child(command, log, output, dataset, gate, boundary, *, controls=None):
