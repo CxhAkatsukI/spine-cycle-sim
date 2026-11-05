@@ -161,3 +161,33 @@ are `cc-au-stream-resume-20261105-v4/results.json` and
 `cc-warm-stream-resume-matrix-v5/matrix.json`. At replacement, the remote
 build was still synthesizing, the collector was waiting for its route and
 the matrix was waiting for AU. This update does not admit any CC result.
+
+### What The Queued CC Batches Change
+
+An offline topology audit checked the exact graph and update byte counts
+and SHA-256 digests pinned by the AU collector anchor and the seven matrix
+input manifests above. It treated every old directed record as an
+undirected edge for union-find and checked that the 16 update records form
+eight distinct reciprocal insertions. Each insertion is classified against
+the **old** connected components, before applying any of the batch.
+
+| Dataset | Old directed edges | Inserts within old components | Inserts across old components | Input manifest SHA-256 |
+| --- | ---: | ---: | ---: | --- |
+| AU | 679,246 | 8 | 0 | `2222676a7e2993ae969b9dec2e54c3dfabedbbbe5bcf35f08e0e7ec833332a74` |
+| SU | 1,061,248 | 8 | 0 | `9486fae3e66b1cc0755febd68a731206754a1926eca7abe7d70211309fb97a1e` |
+| WK | 2,032,558 | 1 | 7 | `ef3d5ebc4af75f80535bc45c53ac2d26f6a2e6e8c4ab931098f235d536e301b4` |
+| SO | 41,008,044 | 8 | 0 | `239e1660410802e3eb9c367bc8f3fc356666a38a1ce4495e7b376af582fbfb0a` |
+| PK | 44,603,928 | 8 | 0 | `87c4ed14d003444caee54b3977bf12c7debbad78ba663450aee31b483014a571` |
+| LJ | 85,702,474 | 8 | 0 | `7c469824ebf49946d6cc89119c2ad9aeb6622bd47c37e27bd16131a5c55091dd` |
+| LJ08 | 99,028,542 | 8 | 0 | `d05ba4f7e47470da103471f9ff21a8e057cab4fc105da40da313ce0efe27b98e` |
+| R19 | 29,732,038 | 6 | 2 | `2edadba1f26b126b442c34e18f3d224df5eb39158201326bf4b7d9b599499d5c` |
+
+The AU digest is that of the collector's pinned
+`cc-warm-au-source-bursts-resident-v8/results.json` anchor; the other
+digests are of the corresponding `inputs.json` files passed to the matrix.
+For six batches the edges still have to be inserted, but the CC partition
+and converged minimum labels do not change. WK and R19 require a change in
+CC state. Cross-component insert counts are not counts of distinct merges,
+changed vertices, propagation rounds or device cycles. This check does
+not replace the paired FPGA runs or admit any Fig. 7 bar; all eight tests
+remain in the matrix.
