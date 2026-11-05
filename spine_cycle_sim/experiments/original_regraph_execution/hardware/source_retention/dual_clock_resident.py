@@ -7,7 +7,7 @@ from pathlib import Path
 from spine_cycle_sim.experiments.upstream_controls.grasu.hardware.board import dual_clock_candidate as g_control
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import runner_pins
 from ..board_execution import memory_policy, pair_resources
-from . import active_min_resident, analysis, clock_profile, clocks, repackage_hbm
+from . import active_min_resident, analysis, clock_profile, clocks, host_correction, repackage_hbm
 from . import resident_board as board, resident_results
 from .follow import unchanged
 from .runtime import check_memory, execute, identity, save
@@ -15,6 +15,7 @@ from .runtime import check_memory, execute, identity, save
 
 MEASURED = "MEASURED_RESIDENT_PAIR"
 BOUNDARY = active_min_resident.BOUNDARY
+QUALIFIED_HOST = "cpu_qualified_old_graph_correction_cache"
 
 
 def admit(r_path, g_path, route):
@@ -58,6 +59,22 @@ def declaration(previous, dataset, flickr=None):
     return dict(case, algorithm="residual_pagerank", requires_propagation=False), frozen["memory_gib"], pins
 
 
+def spine_inputs(args):
+    original = {name: identity(getattr(args, name)) for name in
+                ("spine_host", "spine_image", "comparator", "verifier")}
+    expected = dict(spine_image=board.SPINE_IMAGE_SHA256,
+                    comparator=resident_results.COMPARATOR_SHA256)
+    qualification = getattr(args, "qualification", None)
+    qualified = []
+    if qualification is None:
+        expected["spine_host"] = board.SPINE_HOST_SHA256
+    else:
+        qualified = host_correction.admit(qualification, args.spine_host)
+    if any(original[name]["sha256"] != sha for name, sha in expected.items()):
+        raise ValueError("frozen Spine binary, host or comparator differs")
+    return original, qualified
+
+
 def run(args):
     with memory_policy.scope(getattr(args, "memory_profile", memory_policy.DEFAULT)):
         return _run(args)
@@ -77,12 +94,11 @@ def _run(args):
     try:
         gate = admit(args.r_report, args.g_report, args.route)
         args.gr_host = Path(gate["host"]["path"])
-        original = {name: identity(getattr(args, name)) for name in
-                    ("spine_host", "spine_image", "comparator", "verifier")}
-        expected_hashes = dict(spine_host=board.SPINE_HOST_SHA256,
-            spine_image=board.SPINE_IMAGE_SHA256, comparator=resident_results.COMPARATOR_SHA256)
-        if any(original[name]["sha256"] != sha for name, sha in expected_hashes.items()):
-            raise ValueError("frozen Spine binary, host or comparator differs")
+        original, qualified = spine_inputs(args)
+        if getattr(args, "qualification", None) is not None:
+            report.update(qualification=identity(args.qualification), spine_host_mode=QUALIFIED_HOST,
+                fresh_samples=dict(spine=1, gr=1), gr_sample_reused=False,
+                limitation="single-batch old-graph correction cache preparation excluded and reported")
         profile = gate["resident_mhz"]
         copy = args.output / "spine-clock-copy"
         repackage_hbm.run(args.spine_image, args.verifier, profile[2], copy, profile=profile)
@@ -90,7 +106,7 @@ def _run(args):
         pins = {**original, "spine_image": identity(args.spine_image), "gr_host": gate["host"],
                 args.dataset.lower(): identity(case["graph"])}
         evidence = [identity(__file__), *original.values(), *pins.values(), *gate["pins"],
-                    *inputs, *runner_pins()]
+                    *inputs, *qualified, identity(host_correction.__file__), *runner_pins()]
         report.update(stage_gates=gate, bdf=gate["bdf"], device=gate["device"], pins=pins,
                       original_artifacts=original, inputs=evidence, image=gate["image"])
         expected = {arm: clocks.image(image, args.output, arm) for arm, image in
@@ -127,6 +143,9 @@ def _run(args):
         record["rows"]["gr"]["ranks"] = identity(directory / "gr-ranks.txt")
         record["pair"] = resident_results.analyze(case, record["rows"], args.comparator,
                                                   directory, gate["bdf"])
+        if getattr(args, "qualification", None) is not None:
+            report["correction"] = host_correction.validate_correction_log(
+                Path(record["rows"]["spine"]["stdout"]["path"]).read_text())
         record["comparison_log"] = identity(directory / "pair.json")
         record["status"] = ("MEASURED" if record["pair"]["meets_propagation_screen"]
                             else "RETAINED_WITHOUT_REQUIRED_PROPAGATION")
@@ -148,6 +167,8 @@ def parser():
                  "comparator", "verifier", "output"):
         result.add_argument("--" + name, type=lambda s: Path(s).resolve(), required=True)
     result.add_argument("--dataset", choices=(*active_min_resident.DATASETS, "Flickr"), required=True)
+    result.add_argument("--qualification", type=lambda s: Path(s).resolve(),
+                        help="Explicit CPU-qualified correction host; both arms still measured once")
     result.add_argument("--flickr", type=lambda s: Path(s).resolve())
     result.add_argument("--board-wait-seconds", type=int, default=21600)
     result.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.DEFAULT)

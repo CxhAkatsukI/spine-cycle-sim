@@ -12,7 +12,7 @@ from pathlib import Path
 import export_banked_sssp as sssp
 import export_controls as controls
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import (
-    cc_checkpoint, correction_matrix, host_correction,
+    cc_checkpoint, correction_matrix, host_correction, qualified_resident,
 )
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.follow import unchanged
 from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import identity
@@ -70,6 +70,22 @@ def retime_fragments(paths):
     return cases, members, sources
 
 
+def fresh_qualified_pairs(args, retimes, expected_image):
+    pairs = {}
+    for path in getattr(args, "qualified_pair", ()):
+        report = json.loads(path.read_text())
+        dataset = report["dataset"]
+        if dataset not in retimes or dataset in pairs:
+            raise ValueError("unique declared datasets required for fresh qualified pairs")
+        if retimes[dataset]["status"] == correction_matrix.MEASURED:
+            raise ValueError("fresh pair cannot replace an already measured retime sample")
+        checked = qualified_resident.validate_result(path, args, dataset)
+        if checked["report"]["stage_gates"]["image"]["sha256"] != expected_image:
+            raise ValueError("fresh pair baseline image differs from admitted source controls")
+        pairs[dataset] = checked
+    return pairs
+
+
 def collect(args):
     with args.controls.open(newline="") as stream:
         stage_rows = list(csv.DictReader(stream))
@@ -82,6 +98,7 @@ def collect(args):
     sssp_rows, sssp_members = sssp.collect(matrix_bytes)
     retime_paths = [args.retimes] if isinstance(args.retimes, Path) else args.retimes
     retimes, retime_members, retime_sources = retime_fragments(retime_paths)
+    fresh = fresh_qualified_pairs(args, retimes, expected_images["residual_pagerank"])
     cc_bytes = args.cc_matrix.read_bytes()
     cc = json.loads(cc_bytes)
     cc_rows, cc_evidence = cc_checkpoint.collect(cc, expected_images["cc"])
@@ -101,6 +118,12 @@ def collect(args):
         else:
             rows.append(dict(algorithm="cc", dataset=row["dataset"], status=row["status"]))
     for dataset in sssp.DATASETS:
+        if dataset in fresh:
+            checked = fresh[dataset]
+            rows.append(measured_row("residual_pagerank", dataset, checked["pair"],
+                checked["result"], checked["profile_mhz"], correction=checked["correction"]))
+            evidence.append(dict(result=checked["result"], report=checked["report"]))
+            continue
         case = retimes[dataset]
         if case["status"] != correction_matrix.MEASURED:
             rows.append(dict(algorithm="residual_pagerank", dataset=dataset, status=case["status"]))
@@ -121,10 +144,12 @@ def collect(args):
               else "INCOMPLETE_CURRENT_FPGA_CHECKPOINT")
     return rows, members, dict(status=status, measured_pairs=sum(row["status"] == "MEASURED" for row in rows),
         expected_pairs=24, inputs=[identity(path) for path in
-            (args.sssp_matrix, *retime_paths, args.cc_matrix, args.controls, args.qualification)],
+            (args.sssp_matrix, *retime_paths, args.cc_matrix, args.controls, args.qualification,
+             *getattr(args, "qualified_pair", ()), Path(__file__), Path(qualified_resident.__file__))],
         retime_sources=retime_sources,
+        fresh_qualified_sources={dataset: checked["result"] for dataset, checked in fresh.items()},
         evidence=evidence, artifact_index=list(index.values()),
-        limitation="ResPR host-only single-batch cache, old-graph preparation excluded/reported; G+R reused",
+        limitation="ResPR host-only single-batch cache, old-graph preparation excluded/reported; per-row G+R reuse or fresh sample recorded",
         cc="replacement-route measurements replayed when present; old AU loss and seven row-overflow failures retained",
         publication_throughput_reproduced=False)
 
@@ -136,6 +161,8 @@ def main():
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--retimes", type=Path, action="append", required=True,
                         help="Full original matrix, then explicit retained remainder fragments")
+    parser.add_argument("--qualified-pair", type=Path, action="append", default=[],
+                        help="Fresh measured qualified-host pair for a previously missing dataset")
     args = parser.parse_args()
     rows, members, scope = collect(args)
     args.output.mkdir(parents=True, exist_ok=False)

@@ -12,6 +12,9 @@ from .follow import unchanged
 from .runtime import check_memory, execute, identity, save
 
 
+validate_correction_log = host_correction.validate_correction_log
+
+
 def reference(path, comparator):
     old = json.loads(path.read_text())
     gate_paths = old["stage_gates"]["pins"][:3]
@@ -30,20 +33,6 @@ def reference(path, comparator):
     for row in rows.values():
         clock_profile.validate_after(row["clock_preparation"], row["clock_evidence"], gate["resident_mhz"])
     return old, gate, pins
-
-
-def validate_correction_log(text):
-    cache, = [line for line in text.splitlines() if line.startswith("RESIDENT_CORRECTION_CACHE ")]
-    correction, = [line for line in text.splitlines() if line.startswith("RESIDENT_CORRECTION ")]
-    fields = lambda line: dict(item.split("=", 1) for item in line.split()[1:])
-    first, second = fields(cache), fields(correction)
-    if (first["scope"], first["included_in_dynamic_wall"], second["mode"],
-            second["host_update_and_state_upload_in_dynamic_wall"]) != (
-                "old_graph_only_single_batch", "0", "old_incoming_fp32_replay", "1"):
-        raise ValueError("correction cache timing scope differs")
-    return dict(resident_cache_bytes=int(first["bytes"]),
-                old_graph_cache_preparation_ms=float(first["preparation_ms"]),
-                dense_dangling_fallback=bool(int(second["dense_dangling_fallback"])))
 
 
 def run(args):

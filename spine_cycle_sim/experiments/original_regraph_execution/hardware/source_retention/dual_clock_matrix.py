@@ -19,6 +19,10 @@ def run(args):
     gate = dual_clock_resident.admit(args.r_report, args.g_report, args.route)
     cases = {}
     pins = [identity(__file__), identity(dual_clock_resident.__file__), *gate["pins"]]
+    qualification = getattr(args, "qualification", None)
+    if qualification is not None:
+        _, qualified = dual_clock_resident.spine_inputs(args)
+        pins.extend(qualified)
     datasets = getattr(args, "datasets", active_min_resident.DATASETS)
     if not datasets or len(set(datasets)) != len(datasets) or not set(datasets) <= set(active_min_resident.DATASETS):
         raise ValueError("unique known resident datasets required")
@@ -34,6 +38,10 @@ def run(args):
         boundary=dual_clock_resident.BOUNDARY, repetitions_per_arm=1, warmups=0,
         nominal_timing_pass=False, cases=cases, pins=pins, memory_profile=profile,
         requested_datasets=list(datasets), complete_eight_dataset_matrix=len(datasets) == 8)
+    if qualification is not None:
+        report.update(qualification=identity(qualification),
+            spine_host_mode=dual_clock_resident.QUALIFIED_HOST,
+            fresh_samples_per_case=dict(spine=1, gr=1), gr_sample_reused=False)
     write = lambda: save(args.output / "matrix.json", report)
     write()
     try:
@@ -47,6 +55,8 @@ def run(args):
                 "--memory-profile", profile,
                 *(part for key in INPUTS for part in
                   ("--" + key.replace("_", "-"), str(getattr(args, key))))]
+            if qualification is not None:
+                command.extend(("--qualification", str(qualification)))
             declaration.update(status="RUNNING", command=command)
             report.update(status="RUNNING", current=dataset)
             write()
@@ -72,6 +82,8 @@ def parser():
         result.add_argument("--" + name.replace("_", "-"),
                             type=lambda s: Path(s).resolve(), required=True)
     result.add_argument("--child-prefix", required=True)
+    result.add_argument("--qualification", type=lambda s: Path(s).resolve(),
+                        help="Explicit CPU-qualified host for one fresh sample of each arm")
     result.add_argument("--board-wait-seconds", type=int, default=21600)
     result.add_argument("--datasets", nargs="+", choices=active_min_resident.DATASETS,
                         default=list(active_min_resident.DATASETS))

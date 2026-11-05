@@ -44,6 +44,16 @@ remaining datasets with `--datasets LJ LJ08 R19`; its receipt marks that it
 is not a complete eight-dataset matrix. Earlier accepted samples are kept
 separately, not silently rerun or rewritten.
 
+`dual_clock_matrix` and `dual_clock_resident` may separately opt into
+`--qualification /path/to/qualification.json` with the exact qualified
+`--spine-host`. This replays the existing CPU correction tests and measures
+one fresh sample of **each** arm directly, rather than first measuring the
+old host and then retiming Spine. It does not change memory admission or
+relax any kernel, clock, input, threshold, oracle or timing-boundary gate.
+The old-graph-only cache preparation remains excluded and explicitly reported;
+CPU qualification alone is not a board correctness result. The default
+unqualified-host identity and the existing host-only retime runner are unchanged.
+
 ## Ownership And Checks
 
 `hardware/board_execution/memory_policy.py` owns observation and policy;

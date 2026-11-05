@@ -82,6 +82,31 @@ class DualClockMatrixTests(unittest.TestCase):
         self.assertFalse(case["requires_propagation"])
         self.assertEqual(case["algorithm"], "residual_pagerank")
 
+    def test_qualified_host_is_admitted_and_forwarded_without_retiming_or_extra_samples(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            args = argparse.Namespace(output=Path(temporary) / "matrix", child_prefix="qualified",
+                board_wait_seconds=10, datasets=["LJ08"], qualification=Path(temporary) / "qualification")
+            for key in matrix.INPUTS:
+                setattr(args, key, Path(temporary) / key)
+            with patch.object(matrix, "check_memory"), \
+                    patch.object(resident, "admit", return_value={"pins": []}), \
+                    patch.object(resident, "spine_inputs", return_value=({}, ["qualified-pin"])) as admit, \
+                    patch.object(resident, "declaration", return_value=({"dataset": "LJ08"}, 32, [])), \
+                    patch.object(matrix, "identity", side_effect=lambda path: {"path": str(path)}), \
+                    patch.object(matrix, "unchanged"), \
+                    patch.object(matrix.resident_matrix, "run_child",
+                        return_value={"status": matrix.resident_matrix.MEASURED}):
+                report = matrix.run(args)
+            admit.assert_called_once_with(args)
+            self.assertIn("qualified-pin", report["pins"])
+            self.assertEqual(report["fresh_samples_per_case"], dict(spine=1, gr=1))
+            self.assertFalse(report["gr_sample_reused"])
+            self.assertEqual(report["spine_host_mode"], resident.QUALIFIED_HOST)
+            command = report["cases"]["LJ08"]["command"]
+            self.assertEqual(command[command.index("--qualification") + 1], str(args.qualification))
+            self.assertEqual(command[command.index("--memory-profile") + 1], matrix.memory_policy.DEFAULT)
+            self.assertIn("--property=MemoryMax=32G", command)
+
     def test_nominal_or_different_image_g_evidence_is_rejected(self):
         profile = [140, 500, 430, 0]
         measured = dict(bdf="card", device=0, pins={"r_current": "image"})

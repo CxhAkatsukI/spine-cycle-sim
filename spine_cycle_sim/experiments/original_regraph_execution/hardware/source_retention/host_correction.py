@@ -16,6 +16,20 @@ FILES = ("Makefile", "host_resident_benchmark.hpp", "host_resident_pagerank_corr
          "host_partitioned_algorithms_smoke.cpp", "host_split.hpp", "xcl2.cpp")
 
 
+def validate_correction_log(text):
+    cache, = [line for line in text.splitlines() if line.startswith("RESIDENT_CORRECTION_CACHE ")]
+    correction, = [line for line in text.splitlines() if line.startswith("RESIDENT_CORRECTION ")]
+    fields = lambda line: dict(item.split("=", 1) for item in line.split()[1:])
+    first, second = fields(cache), fields(correction)
+    if (first["scope"], first["included_in_dynamic_wall"], second["mode"],
+            second["host_update_and_state_upload_in_dynamic_wall"]) != (
+                "old_graph_only_single_batch", "0", "old_incoming_fp32_replay", "1"):
+        raise ValueError("correction cache timing scope differs")
+    return dict(resident_cache_bytes=int(first["bytes"]),
+                old_graph_cache_preparation_ms=float(first["preparation_ms"]),
+                dense_dangling_fallback=bool(int(second["dense_dangling_fallback"])))
+
+
 def validate_test_logs(correction, resident):
     marker = "RESIDENT_CORRECTION_TEST_PASS cases=160 bit_exact_seed=1 "
     if correction.count(marker) != 1 or "scope=offboard_not_fpga" not in correction:

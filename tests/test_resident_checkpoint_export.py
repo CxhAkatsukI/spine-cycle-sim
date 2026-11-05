@@ -1,11 +1,13 @@
 """Incomplete exports retain pending slots and do not invent propagation or repetitions."""
 
+import argparse
 import importlib.util
 import json
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 class ResidentCheckpointTests(unittest.TestCase):
@@ -48,6 +50,36 @@ class ResidentCheckpointTests(unittest.TestCase):
 
     def test_losing_row_is_retained(self):
         row = self.row(spine_wall_ms=20, speedup_gr_over_spine=0.5)
+        self.assertEqual(row["speedup_gr_over_spine"], 0.5)
+
+    def test_fresh_qualified_pair_cannot_replace_measured_retime_or_change_baseline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "result.json"
+            path.write_text(json.dumps(dict(dataset="LJ08")))
+            args = argparse.Namespace(qualified_pair=[path])
+            checked = dict(report=dict(stage_gates=dict(image=dict(sha256="baseline"))))
+            retimes = dict(LJ08=dict(status="UPSTREAM_UNAVAILABLE_RETAINED"))
+            with patch.object(self.export.qualified_resident, "validate_result", return_value=checked):
+                self.assertEqual(self.export.fresh_qualified_pairs(args, retimes, "baseline"),
+                                 dict(LJ08=checked))
+                with self.assertRaisesRegex(ValueError, "baseline image"):
+                    self.export.fresh_qualified_pairs(args, retimes, "different")
+                args.qualified_pair = [path, path]
+                with self.assertRaisesRegex(ValueError, "unique declared"):
+                    self.export.fresh_qualified_pairs(args, retimes, "baseline")
+                args.qualified_pair = [path]
+                retimes["LJ08"]["status"] = self.export.correction_matrix.MEASURED
+                with self.assertRaisesRegex(ValueError, "already measured"):
+                    self.export.fresh_qualified_pairs(args, retimes, "baseline")
+
+    def test_two_fresh_arms_are_not_labelled_as_a_reused_gr_sample(self):
+        pair = dict(algorithm="residual_pagerank", logical_updates=8, physical_updates=8,
+                    spine_wall_ms=20, gr_wall_ms=10, speedup_gr_over_spine=0.5,
+                    boundary="resident", spine_rounds=0, gr_rounds=0)
+        row = self.export.measured_row("residual_pagerank", "LJ08", pair,
+            dict(sha256="receipt"), [140, 500, 430, 0])
+        self.assertEqual((row["fresh_spine_samples"], row["fresh_gr_samples"]), (1, 1))
+        self.assertFalse(row["gr_sample_reused"])
         self.assertEqual(row["speedup_gr_over_spine"], 0.5)
 
     def test_retime_fragments_keep_all_statuses_and_unmodified_raw_matrices(self):

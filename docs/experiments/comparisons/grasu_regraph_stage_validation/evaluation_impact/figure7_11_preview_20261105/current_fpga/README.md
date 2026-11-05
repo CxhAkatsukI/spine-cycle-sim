@@ -166,3 +166,29 @@ was queued immediately after this failure.
 have archive SHA-256
 `1d5c7dfda1f90c05203ed784230ab2c04095f23de003c130221969cd1f83541b`.
 The fifteen-pair frozen review archive remains unchanged.
+
+### Direct Qualified-Host Pair
+
+The resident runner can now explicitly consume the existing CPU qualification
+and measure the qualified Spine correction host and G+R once each. This removes
+the redundant old-host measurement previously required before a host-only
+retime. It does not provide a new performance result, guarantee that the ARC
+pressure guard will pass, or change its thresholds. The existing seven accepted
+ResPR retimes still reuse their exact frozen G+R samples and remain labelled so.
+
+The new optional `--qualification` argument is forwarded by `dual_clock_matrix`.
+It requires the exact CPU-qualified host and unchanged Spine kernel and
+comparator; G/R source-control admission, matched clocks, numerical policy,
+final-result oracles, one-sample count, cgroup limits and live memory monitoring
+remain enforced. Both fresh-arm attempts and correction preparation scope are
+recorded. This host-side cache is not device-resident PageRank correction.
+
+For a **completed, checked** direct pair on a previously missing dataset,
+`export_resident_checkpoint.py --qualified-pair /path/to/new/results.json`
+adds the separately pinned receipt to a fresh output directory. Export rechecks
+qualification, host/kernel identity, G/R controls, clocks, log hashes, analysis
+and cache timing scope. It refuses to replace an already measured retime, choose
+between duplicate datasets, substitute a different baseline image or accept a
+failed pair. The CSV distinguishes two fresh arms from a reused G+R sample.
+Original failed matrices remain in the receipt archive; the frozen review
+package and its fifteen accepted pairs are not rewritten.
