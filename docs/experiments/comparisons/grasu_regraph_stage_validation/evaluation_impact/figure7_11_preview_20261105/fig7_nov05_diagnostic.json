@@ -2,14 +2,14 @@
   "status": "DIAGNOSTIC_SNAPSHOT_NOT_FINAL_EVALUATION",
   "inputs": {
     "weighted_sssp": {
-      "path": "/data/chuxiao/checks/source-retention-repair-20261104/figure7-nov05-snapshot.PfK7L0X5/sssp.json",
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/figure7-nov05-snapshot.d9H0buvr/sssp.json",
       "sha256": "a6132e56b8e26067695924dc85fe50e941a7076eb397b2e63318310f6f010211",
       "bytes": 41345
     },
     "cc": {
-      "path": "/data/chuxiao/checks/source-retention-repair-20261104/figure7-nov05-snapshot.PfK7L0X5/cc.json",
-      "sha256": "e45d61492b58edbbb8567e1e33fb4920e49fedf2b1136c44563c2d22e6973a88",
-      "bytes": 86723
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/figure7-nov05-snapshot.d9H0buvr/cc.json",
+      "sha256": "7c0fcbe61ae42bccf5009f3a2f3fa394cc0139b762462dbdbebce631d3a72f5e",
+      "bytes": 87099
     }
   },
   "rows": [
@@ -1601,8 +1601,9 @@
       "algorithm": "cc",
       "dataset": "LJ08",
       "boundary": "resident_old_graph_host_pack_to_final_readback",
-      "status": "REQUESTED",
-      "r_validation_scope": "amazon_pass_au_outside_15_percent"
+      "status": "FAILED_RETAINED",
+      "r_validation_scope": "amazon_pass_au_outside_15_percent",
+      "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/lj08/spine.stderr.txt')"
     },
     {
       "algorithm": "cc",

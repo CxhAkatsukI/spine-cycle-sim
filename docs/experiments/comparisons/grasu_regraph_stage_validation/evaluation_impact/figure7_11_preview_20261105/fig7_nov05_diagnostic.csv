@@ -13,7 +13,7 @@ cc,WK,FAILED_RETAINED,amazon_pass_au_outside_15_percent,resident_old_graph_host_
 cc,SO,FAILED_RETAINED,amazon_pass_au_outside_15_percent,resident_old_graph_host_pack_to_final_readback,,,,,,,,,,,,,,,,RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/so/spine.stderr.txt')
 cc,PK,FAILED_RETAINED,amazon_pass_au_outside_15_percent,resident_old_graph_host_pack_to_final_readback,,,,,,,,,,,,,,,,RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/pk/spine.stderr.txt')
 cc,LJ,FAILED_RETAINED,amazon_pass_au_outside_15_percent,resident_old_graph_host_pack_to_final_readback,,,,,,,,,,,,,,,,RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/lj/spine.stderr.txt')
-cc,LJ08,REQUESTED,amazon_pass_au_outside_15_percent,resident_old_graph_host_pack_to_final_readback,,,,,,,,,,,,,,,,
+cc,LJ08,FAILED_RETAINED,amazon_pass_au_outside_15_percent,resident_old_graph_host_pack_to_final_readback,,,,,,,,,,,,,,,,RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/lj08/spine.stderr.txt')
 cc,R19,FAILED_RETAINED,amazon_pass_au_outside_15_percent,resident_old_graph_host_pack_to_final_readback,,,,,,,,,,,,,,,,RuntimeError('spine exit 1; see /data/chuxiao/checks/source-retention-repair-20261104/cc-banked-diagnostic-matrix-v1/r19/spine.stderr.txt')
 respr,AU,NOT_RECORDED,,resident_update_to_final_readback_wall_including_host_relaunch,,,,,,,,,,,,,,,,
 respr,SU,NOT_RECORDED,,resident_update_to_final_readback_wall_including_host_relaunch,,,,,,,,,,,,,,,,
