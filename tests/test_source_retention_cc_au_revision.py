@@ -55,8 +55,56 @@ def test_route_must_match_declared_successful_hardware(tmp_path, route, fault):
         assert revision.candidate_route(route)["image"] == route["image"]
 
 
-@pytest.mark.parametrize("fault", [None, "clock", "abi", "host", "throttled", "baseline_wall", "oracle"])
-def test_replay_pins_arms_and_keeps_zero_round_wins(tmp_path, monkeypatch, route, fault):
+@pytest.mark.parametrize("diagnostic", [False, True])
+@pytest.mark.parametrize("fault", [None, "miss", "mismatched_receipt", "image", "wrong_case"])
+def test_anchor_preserves_stage_screen_scope(tmp_path, monkeypatch, diagnostic, fault):
+    figure = revision.figure
+    image = {"sha256": "a" * 64}
+    gates = {"image": image, "resident_mhz": [150, 500, 450, 0]}
+    miss = diagnostic or fault == "miss"
+    decision = dict(retention_gate_pass=not miss, candidate_over_reference=1.21 if miss else 1.12,
+                    equal_driver_reported_clocks=True)
+    report = dict(status=f"PAIRED_ACTIVE_MIN_R_GATE_{'FAILED_RETAINED' if miss else 'PASS'}",
+                  algorithm="cc", comparison=decision)
+    pin = file(tmp_path, "au-r", json.dumps(report))
+    stage = dict(report=pin, comparison={**decision}, candidate_clock=dict(binary=image,
+                 driver_reported_mhz=gates["resident_mhz"]))
+    if fault == "mismatched_receipt":
+        stage["comparison"]["candidate_over_reference"] = 1.1
+    if fault == "image":
+        stage["candidate_clock"]["binary"] = {}
+    extra = {"amazon_odd": {}, "au_slice": stage}
+    child = dict(status=figure.MEASURED, algorithm="cc", dataset="R19" if fault == "wrong_case" else "AU",
+                 additional_r_gates=extra, stage_gates=gates, retained_spine={})
+    arm = file(tmp_path, "arm", json.dumps(child))
+    if diagnostic:
+        anchor = file(tmp_path, "matrix", json.dumps(dict(algorithm="cc", r_retention_all_controls_pass=False,
+                      cases={"AU": {"result": arm, "status": figure.MEASURED}}, baseline=gates,
+                      additional_r_gates=extra)))
+    else:
+        anchor = arm
+
+    def measured(*args, topology_miss):
+        assert topology_miss == (stage if diagnostic else None)
+        return dict(stage_ratios={"r_ratios": {}}, stage_receipts={})
+
+    monkeypatch.setattr(figure, "measured", measured)
+    if fault and (not diagnostic or fault == "wrong_case"):
+        with pytest.raises(ValueError):
+            revision.anchor_pair(anchor)
+    else:
+        actual, _, pair, status = revision.anchor_pair(anchor)
+        assert actual == arm
+        assert status == (revision.DIAGNOSTIC if diagnostic else revision.MATCHED)
+        if not diagnostic:
+            assert pair["stage_ratios"]["r_ratios"]["au_slice"] == 1.12
+            assert pair["stage_receipts"]["r_au_slice"] == pin
+
+
+@pytest.mark.parametrize("status,fault", [(revision.MATCHED, None), *(
+    (revision.DIAGNOSTIC, fault) for fault in [None, "clock", "abi", "host", "throttled", "baseline_wall", "oracle"]
+)])
+def test_replay_pins_arms_and_keeps_zero_round_wins(tmp_path, monkeypatch, route, status, fault):
     files = revision.candidate_route(route)
     data = {key: file(tmp_path, key, key) for key in ("source", "graph", "update")}
     data.update(vertices=20, edges=30, updates=2)
@@ -74,7 +122,8 @@ def test_replay_pins_arms_and_keeps_zero_round_wins(tmp_path, monkeypatch, route
     previous = dict(gr_ms=3 if fault == "baseline_wall" else 2, spine_ms=4, comparison=arm,
                     boundary="resident_old_graph_host_pack_to_final_readback",
                     raw={"gr": {"stdout": gr_log}}, clocks_mhz={"gr": [150, 500, 450]})
-    prepared = dict(anchor=anchor, prior=previous, inputs=inputs, arm=arm, candidate=spec, files=files, abi=route["abi"])
+    prepared = dict(anchor=anchor, prior=previous, inputs=inputs, arm=arm, candidate=spec, files=files, abi=route["abi"],
+                    result_status=status)
     previous["stage_ratios"] = {"r_ratios": {"au_slice": 1.21}}
     clock = dict(binary=files["image"], bdf=warm.BDF, driver_reported_mhz=[150, 500, 450])
     if fault == "clock":
@@ -109,7 +158,7 @@ def test_replay_pins_arms_and_keeps_zero_round_wins(tmp_path, monkeypatch, route
             revision.replay(prepared, identity(path))
     else:
         result = revision.replay(prepared, identity(path))
-        assert result["status"] == "CC_AU_REVISION_DIAGNOSTIC_NOT_PARITY_ADMISSION"
+        assert result["status"] == status
         assert result["old_spine_ms"] == 4
         assert result["new_pair"]["gr_over_spine"] == 2
         assert result["new_pair"]["spine_rounds"] == 0

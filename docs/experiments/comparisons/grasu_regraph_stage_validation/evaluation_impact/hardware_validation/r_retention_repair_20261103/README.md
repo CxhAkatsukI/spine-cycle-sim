@@ -2,27 +2,27 @@
 
 ## Latest Checkpoint
 
-No current image has passed both G and all declared R hardware controls
-for its algorithm. These are the latest relevant measured checkpoints;
-numbers are elapsed-time changes from each matched public control.
+The CC source-burst image passed G and all three declared R hardware
+controls. Weighted SSSP and ResPR do not yet have an equivalent pass.
+Numbers below are elapsed-time changes from each matched public control.
 
 | Algorithm | R-only FPGA screen | Independent G and next image |
 | --- | --- | --- |
 | Weighted SSSP | Latest nominal source-burst image: Amazon **-5.54%**, high-activity Amazon **-6.18%**, AU **+21.43%**. | G on this exact image passed (**-60.27%** on AU 131K); the failed AU R gate prevented resident tests. |
-| CC | Four-bank image: Amazon **+0.66%**, high-activity Amazon **-6.82%**, AU **+20.92%**. | The four-bank image passed G (**-61.65%** on AU 131K). Its source-burst replacement needs separate G and R screens. |
+| CC | Source-burst image: Amazon **-3.36%**, high-activity Amazon **-7.79%**, AU **+12.41%**. | G on the same image passed (**-59.91%** on AU 131K). Full AU still favors G+R over the retained Spine image, **5.564 vs. 17.681 ms**. |
 | ResPR | Packed-validity image: Amazon **-4.22%**, skewed-source **+15.73%**, a miss of **3.871 us** at nominal clocks. | G on that image took **133.500 ms** against **18.369 ms**. The degree-prefix replacement addresses this G path and needs separate G and R screens. |
 
 See the [nominal SSSP board receipts](SSSP_STAGE_ADMISSION.md#nominal-source-burst-board-screen),
-[CC board receipts](REMOTE_LINKS.md#cc-banked-clear-board-checkpoint),
+[CC source-burst board receipts](REMOTE_LINKS.md#cc-source-burst-board-results),
 [same-clock R screens](LOWER_CLOCK_SCREEN.md#measured-pairs),
 and [independent G receipts](G_SCOPE.md) for input, host and bitstream
 provenance. Resident convergence queues require the new exact-image
 stage gates. Each new arm is measured once, under a board lease and
 memory admission with no swap.
 
-The [AU timing-budget replay](SSSP_STAGE_ADMISSION.md#au-timing-budget-across-sssp-and-cc)
+The [earlier AU timing-budget replay](SSSP_STAGE_ADMISSION.md#au-timing-budget-across-sssp-and-cc)
 shows that eliminating the gaps between mux commands and the suffix
-after the final mux would still leave SSSP and CC over their R gate
+after the final mux would still leave those SSSP and CC images over their R gate
 by 91.863 us and 54.912 us, respectively. No board run was repeated.
 
 The [same-card AU/512 setup replay](FIGURE_IMPACT.md#two-bank-spine-host-replay)
@@ -34,7 +34,8 @@ R gate or a replacement for Figure 8.
 The [Spine CC warm-insert repair](SPINE_ARTIFACTS.md#sparse-warm-insertion-repair)
 passed the one-shot full AU correctness check. Its resident window fell
 from **7,886.354 ms** to **17.516 ms**. This compares two Spine images on
-the same workload; no G+R arm has been timed against this Spine image yet.
+the same workload. The retained **17.681 ms** sample used in the full AU
+comparison above is a separate, single-pass paired receipt.
 
 ResPR returned images use the qualified card at `0000:82:00.1` for the
 nominal screen, with measured 150/500/450/0 MHz required around each arm.

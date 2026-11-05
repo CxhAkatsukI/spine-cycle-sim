@@ -929,16 +929,50 @@ require passing offline Spine layouts for the exact fixture. Each
 admitted case gets one timed run per arm under the board and memory
 guards; a failed upstream stage does not launch a matrix.
 
-The two resident rows above are superseded. The current AU queue
-replays the completed Spine warm-insertion result and requests only
-the G+R arm after the exact G and all three R gates pass. The current
-matrix imports this AU pair and uses the same image and host for the
-remaining seven Spine arms.
+The two resident rows above are superseded. The v6 resident queue
+stopped before board access because its verifier required the original
+absolute tool paths. The v7 follow-up also stopped before board access:
+it expected live producer jobs, but the four stage receipts were already
+complete. Neither attempt produced a timing.
 
 | Step | Unit (without `.service`) | Invocation | Journal |
 | --- | --- | --- | --- |
 | Resident CC, full AU | `gr-retention-cc-source-bursts-au-resident-20261105-v6` | `3bcc90c0abb64c89b3d9055230a04943` | `cc-warm-au-source-bursts-resident-v6/queue.json` |
 | Remaining resident CC cases | `gr-retention-cc-warm-balanced-matrix-source-bursts-20261105-v6` | `018d0fdbc2314c7698eac74a58ecac74` | `cc-warm-balanced-matrix-source-bursts-v6/matrix.json` |
+
+### CC Source-Burst Board Results
+
+The tested image is
+`seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin`,
+SHA-256 `ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5`.
+All four controls used U55C `0000:82:00.1` at driver-reported
+150/500/450/0 MHz, with checked outputs and one sample per arm. A negative
+change means that the candidate was faster. The G window is update-CU event
+span and the R window is resident adapter plus R against public four-Little
+ReGraph; neither includes end-to-end host orchestration.
+
+| Control | Public port (ms) | Candidate (ms) | Change | Local receipt (under the root above) |
+| --- | ---: | ---: | ---: | --- |
+| G, AU 131K | 18.368928 | 7.363858 | -59.91% | `g-cc-board-source-bursts-v1/results.json` |
+| R, AU 903,774 reciprocal edges | 2.150389 | 2.417278 | +12.41% | `cc-banked-source-bursts-au903k-pair-v1/pair/results.json` |
+| R, Amazon | 10.067298 | 9.729135 | -3.36% | `cc-banked-source-bursts-amazon-pair-v1/pair/results.json` |
+| R, Amazon-odd | 10.542570 | 9.721725 | -7.79% | `cc-banked-source-bursts-amazon-odd-pair-v1/pair/results.json` |
+
+The resident v8 run rechecked the exact image and all four completed
+controls. It measured one new G+R arm and replayed the earlier checked Spine
+arm. On **full AU**, with identical updates and one convergence round on
+each side, G+R took **5.563717 ms** and Spine took **17.680961 ms** from host
+packing after old-state residency through final readback. **G+R won 3.18x.**
+Receipt: `cc-warm-au-source-bursts-resident-v8/results.json`, SHA-256
+`2222676a7e2993ae969b9dec2e54c3dfabedbbbe5bcf35f08e0e7ec833332a74`,
+unit `gr-retention-cc-source-bursts-au-resident-20261105-v8.service`,
+invocation `2cda9d6a363f41b2bb7aa5f8d60e904e`. The other seven CC cases
+still require an admitted Spine image that can handle their largest rows.
+
+The collector `spine-retention-cc-au-stream-2315cae-follow-v2.service`
+(`9040b47cdf2f4c889bcf60b5c621cea1`) waits for the new Spine route. It
+will use the v8 anchor for a single new Spine arm and will not rerun G+R.
+The collector journal is `cc-au-stream-2315cae-follow-v2/results.json`.
 
 ### Archived Spine Images on Feiyang
 

@@ -30,8 +30,10 @@ class Figure7ReceiptsTest(unittest.TestCase):
         return identity(path)
 
     def test_cc_topology_export_requires_exact_stage_receipt_and_image(self):
-        comparison = {"retention_gate_pass": True, "candidate_over_reference": 1.1}
-        pin = self.receipt("au-r", {"algorithm": "cc", "comparison": comparison})
+        comparison = {"retention_gate_pass": True, "candidate_over_reference": 1.1,
+                      "equal_driver_reported_clocks": True}
+        pin = self.receipt("au-r", {"status": "PAIRED_ACTIVE_MIN_R_GATE_PASS",
+                                   "algorithm": "cc", "comparison": comparison})
         image = {"sha256": "gr"}
         clocks = [150, 500, 450, 0]
         gate = {"image": image, "resident_mhz": clocks}
@@ -205,8 +207,10 @@ class Figure7ReceiptsTest(unittest.TestCase):
         child.update(warm_layout=layout, wall_packet=packet, commands=wall.commands(case, gates, self.root))
         for name, command in child["commands"].items():
             arms[name]["command"] = command
-        comparison = {"retention_gate_pass": True, "candidate_over_reference": 1.1}
-        au_r = self.receipt("au-cc-r", {"algorithm": "cc", "comparison": comparison})
+        comparison = {"retention_gate_pass": True, "candidate_over_reference": 1.1,
+                      "equal_driver_reported_clocks": True}
+        au_r = self.receipt("au-cc-r", {"status": "PAIRED_ACTIVE_MIN_R_GATE_PASS",
+                                       "algorithm": "cc", "comparison": comparison})
         au = dict(report=au_r, comparison=comparison, candidate_clock=arms["gr"]["clock"])
         child["additional_r_gates"] = {"amazon_odd": odd, "au_slice": au}
         matrix = dict(status="MEASURED", baseline=gates, odd_r=odd, au_slice_r=au, stages={
@@ -266,8 +270,10 @@ class Figure7ReceiptsTest(unittest.TestCase):
 
     def test_sssp_cross_topology_evidence_is_exported_for_the_au_screen(self):
         child, gates, odd = self.pair("weighted_sssp", "AU")
-        comparison = {"retention_gate_pass": True, "candidate_over_reference": 1.1}
-        au_r = self.receipt("au-r", {"algorithm": "weighted_sssp", "comparison": comparison})
+        comparison = {"retention_gate_pass": True, "candidate_over_reference": 1.1,
+                      "equal_driver_reported_clocks": True}
+        au_r = self.receipt("au-r", {"status": "PAIRED_ACTIVE_MIN_R_GATE_PASS",
+                                    "algorithm": "weighted_sssp", "comparison": comparison})
         stage = dict(report=au_r, comparison=comparison, candidate_clock=child["arms"]["gr"]["clock"])
         child["additional_r_gates"] = {"au_slice": stage}
         pin = self.receipt("child", child)

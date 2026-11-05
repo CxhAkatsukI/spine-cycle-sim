@@ -6,7 +6,7 @@ evidence labels when reusing them.
 
 | Plot | PDF / PNG | Inputs and scope |
 | --- | --- | --- |
-| G and R vs. public source | [PDF](figures/gr_source_comparison.pdf) / [PNG](figures/gr_source_comparison.png) | [Matched stage times](gr_source_comparison.csv), one U55C sample per arm; dashed line is the public-source control |
+| G and R vs. public source | [PDF](figures/gr_source_comparison.pdf) / [PNG](figures/gr_source_comparison.png) | [Matched stage times](gr_source_comparison.csv), one U55C sample per arm; includes the new CC source-burst image. The dashed line is the public-source control |
 | 7 | [PDF](figures/fig7_oct26_fpga.pdf) / [PNG](figures/fig7_oct26_fpga.png) | [Oct. 26 board data](../figure7_11_handoff_20261103/data/fig7_fpga_speedup.csv), 24 resident update-to-readback comparisons; no projections/timeouts. All eight ResPR rows have zero nonempty propagation rounds |
 | 7, newer SSSP diagnostic | [PDF](figures/fig7_nov04_sssp_diagnostic.pdf) / [PNG](figures/fig7_nov04_sssp_diagnostic.png) | [Nov. 4 board data](../hardware_validation/r_retention_repair_20261103/sssp-resident-followup/README.md), six pairs; n/m means no measurement, not timeout. G and the two Amazon R screens passed, but AU R exceeded 15% on this specific image |
 | 7, Nov. 5 FPGA diagnostic | [PDF](figures/fig7_nov05_fpga_diagnostic.pdf) / [PNG](figures/fig7_nov05_fpga_diagnostic.png) | [All 24 case statuses](fig7_nov05_diagnostic.csv) and [receipt index](fig7_nov05_diagnostic.json). One matched board sample per arm where admitted; crosses mark failed cases, blank slots have no admitted measurement. AU R is outside 15% |
@@ -22,7 +22,7 @@ evidence labels when reusing them.
 G measures the first-to-last update-CU event span, including gaps between
 shards but excluding input residency and final readback. The public GraSU
 control updates PMA only. SSSP and CC are faster in the matched AU 131K
-screen (7.298 and 7.045 ms vs. 18.369 ms); the older integrated ResPR
+screen (7.298 and 7.364 ms vs. 18.369 ms); the older integrated ResPR
 variant includes the device degree-update CU and takes 133.500 ms
 (7.27x the public PMA-only time). That is a measurement of the augmented
 path, not an isolated PMA slowdown or a result for the new degree-prefix
@@ -32,7 +32,7 @@ R compares the actual adapter + integrated R with the public four-Little
 ReGraph configuration (A4) on matched resident inputs; it excludes G,
 initial upload and end-to-end host orchestration. AM+ is higher-activity
 Amazon; Skew is the skewed-source fixture. The slowest observed ratios
-are 1.214x (SSSP AU), 1.209x (CC AU) and 1.157x (ResPR Skew);
+are 1.214x (SSSP AU), 1.124x (CC AU) and 1.157x (ResPR Skew);
 the Amazon controls range from 0.932x to 1.007x. These are observed ratios,
 not a blanket 15% parity claim or a reproduction of the original published
 topology/throughput. The [dated stage receipts](../hardware_validation/r_retention_repair_20261103/README.md)
@@ -48,6 +48,7 @@ cases are relevant to interpretation and must not be omitted:
 
 | Scope | Outcome |
 | --- | --- |
+| Nov. 5 resident CC FPGA, baseline passed on all declared controls | On full AU, the source-burst G+R takes **5.564 ms**, against the same **17.681 ms** Spine arm (G+R wins **3.18x**). Both execute one round, with the old graph converged and the same host-pack-to-final-readback boundary. See the [paired receipt and exact-image stage results](../hardware_validation/r_retention_repair_20261103/REMOTE_LINKS.md#cc-source-burst-board-results). This follow-up is newer than the diagnostic plot above. |
 | Nov. 5 resident CC FPGA | On AU, G+R **5.450 ms** vs. Spine **17.681 ms** (G+R wins **3.24x**). Spine admission and relaxation each took about 8 ms; packing through batch residency took about 0.165 ms. All seven other cases, including LJ08, failed with row overflow on the old CC image. Each exceeds the image's 4,096-edge per-source row limit (R19 reaches 62,361). |
 | Legacy compact FullPR FPGA | G+R wins on **AM 48.77x, WG 22.15x, FL 23.46x**, using the inverse median speedup. No current large-graph FullPR sweep |
 | Fig. 8 native setup checkpoint | G wins on **AU/64 2.35x, AU/512 2.06x, AU/4096 2.53x, SU/512 1.69x**. Spine wins WK/512 1.03x and PK/512 1.99x. SO/512 has no four-copy pair. These are not ten-batch results |
@@ -84,8 +85,10 @@ is internal to an old component. Its production-configuration C-model
 tests passed. It is not a routed or board-measured result, and the seven
 capacity failures and AU loss remain in this index.
 
-The AU follow-up can replace only the Spine arm of the Nov. 5 diagnostic.
-The original G+R sample and its failed AU R retention screen are preserved.
+The AU follow-up replaces only the Spine arm. Its current anchor is the
+full AU receipt from the source-burst image that passed G and all three R
+controls. The runner can also replay the older diagnostic matrix separately;
+that replay preserves its original failed AU R retention screen.
 From the simulator checkout, run the following on the original board host
 once the candidate route is complete:
 
@@ -98,7 +101,7 @@ systemd-run --user --wait --collect --working-directory="$PWD" \
   --candidate "$candidate" "$candidate_sha" --run "$fresh_output_dir" --admission-wait-seconds 3600
 ```
 
-`anchor` is the retained CC diagnostic matrix named in the receipt index.
+`anchor` is the retained full AU pair receipt (or the older CC diagnostic matrix).
 `candidate` is a JSON object with `host`, `image`, `manifest`, `link`,
 `timing`, and `skew` file identities (`path`, `sha256`, `bytes`), the
 Vitis output path `linked_image`, and the weighted build SHA `abi`.
@@ -106,7 +109,8 @@ The read-only preflight checks the original pair, candidate link and
 manifest, and route timing/skew. The board run measures one sample and
 requires the same workload, card, clocks, checked final labels, and
 pack-to-readback timer. It writes `comparison.json` separately from the
-published figure; it is still a diagnostic, not admission for parity.
+published figure and records whether the exact G+R image passed the declared
+stage controls. A single AU pair does not establish an eight-graph result.
 
 If the route is on a separate build host, the
 `spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_au_collect`

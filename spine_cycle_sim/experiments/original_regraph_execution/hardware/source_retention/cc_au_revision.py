@@ -1,4 +1,4 @@
-"""Measure a replacement Spine CC arm against the verified AU diagnostic."""
+"""Measure a replacement Spine CC arm against a verified AU board sample."""
 
 import argparse
 import json
@@ -12,6 +12,10 @@ from spine_cycle_sim.experiments.evaluation_impact.fullgraph_readiness.board_ana
 from . import cc_resident_results, clocks, figure7_receipts as figure, spine_cc_warm_receipt as warm, spine_smoke
 from .follow import unchanged
 from .runtime import identity, save
+
+
+MATCHED = "CC_AU_REVISION_WITH_PASSED_BASELINE_CONTROLS"
+DIAGNOSTIC = "CC_AU_REVISION_DIAGNOSTIC_NOT_PARITY_ADMISSION"
 
 
 def candidate_route(spec):
@@ -39,26 +43,43 @@ def candidate_route(spec):
     return files
 
 
-def preflight(anchor_pin, candidate_pin):
-    matrix = figure.load(anchor_pin)
-    if (matrix["algorithm"], matrix["r_retention_all_controls_pass"]) != ("cc", False):
-        raise ValueError("expected the pinned non-parity CC diagnostic")
-    entry = matrix["cases"]["AU"]
-    child = figure.load(entry["result"])
-    if entry["status"] != figure.MEASURED or child["status"] != figure.MEASURED:
-        raise ValueError("AU anchor is not a completed board pair")
-    gates, extra = matrix["baseline"], matrix["additional_r_gates"]
-    previous = figure.measured("cc", "AU", child, child, gates, extra["amazon_odd"],
-                               gates["image"], topology_miss=extra["au_slice"])
+def anchor_pair(anchor_pin):
+    anchor = figure.load(anchor_pin)
+    diagnostic = "cases" in anchor
+    if diagnostic:
+        if (anchor["algorithm"], anchor["r_retention_all_controls_pass"]) != ("cc", False):
+            raise ValueError("expected the pinned non-parity CC diagnostic")
+        entry = anchor["cases"]["AU"]
+        if entry["status"] != figure.MEASURED:
+            raise ValueError("AU diagnostic has no completed board pair")
+        arm = entry["result"]
+        child = figure.load(arm)
+        gates, extra = anchor["baseline"], anchor["additional_r_gates"]
+    else:
+        arm, child = anchor_pin, anchor
+        gates, extra = child["stage_gates"], child["additional_r_gates"]
+    if ((child["status"], child["algorithm"], child["dataset"]) != (figure.MEASURED, "cc", "AU")
+            or set(extra) != {"amazon_odd", "au_slice"} or child["additional_r_gates"] != extra
+            or "retained_spine" not in child):
+        raise ValueError("AU anchor must be a completed CC pair with all stage receipts and the retained Spine arm")
+    previous = figure.measured("cc", "AU", child, child, gates, extra["amazon_odd"], gates["image"],
+                               topology_miss=extra["au_slice"] if diagnostic else None)
+    if not diagnostic:
+        figure.record_topology_receipt(previous, extra["au_slice"], gates, "cc")
     previous["boundary"] = figure.BOUNDARIES["cc"]
+    return arm, child, previous, DIAGNOSTIC if diagnostic else MATCHED
+
+
+def preflight(anchor_pin, candidate_pin):
+    arm, child, previous, result_status = anchor_pair(anchor_pin)
     old_spine = figure.load(child["retained_spine"])
     inputs = next(pin for pin in old_spine["pins"] if pin["sha256"] == warm.INPUTS_SHA256)
     if figure.load(inputs) != old_spine["workload"]:
         raise ValueError("AU split inputs differ from the retained pair")
     candidate = figure.load(candidate_pin)
     files = candidate_route(candidate)
-    return dict(anchor=anchor_pin, prior=previous, inputs=inputs, arm=entry["result"],
-                candidate=candidate_pin, files=files, abi=candidate["abi"])
+    return dict(anchor=anchor_pin, prior=previous, inputs=inputs, arm=arm,
+                candidate=candidate_pin, files=files, abi=candidate["abi"], result_status=result_status)
 
 
 def replay(prepared, smoke_pin):
@@ -95,7 +116,7 @@ def replay(prepared, smoke_pin):
     pair = cc_resident_results.analyze(workload, figure.checked(gr_log).read_text(), spine_log, bdf=warm.BDF)
     if pair["gr_ms"] != previous["gr_ms"] or pair["boundary"] != previous["boundary"]:
         raise ValueError("candidate comparison changed the baseline time or boundary")
-    return dict(status="CC_AU_REVISION_DIAGNOSTIC_NOT_PARITY_ADMISSION", new_pair=pair,
+    return dict(status=prepared["result_status"], new_pair=pair,
                 old_spine_ms=previous["spine_ms"], old_pair=previous["comparison"],
                 retained_gr_log=gr_log, candidate_smoke=smoke_pin, candidate_route=prepared["candidate"],
                 anchor=prepared["anchor"], stage_ratios=previous["stage_ratios"], verifier=identity(__file__))

@@ -88,11 +88,19 @@ def stage_receipts(algorithm, gates, extra):
 
 
 def record_topology(out, stage, job, gates, algorithm):
+    if job["receipt"] != stage["report"] or not job["ready"]:
+        raise ValueError("AU topology job does not match the resident admission")
+    record_topology_receipt(out, stage, gates, algorithm)
+
+
+def record_topology_receipt(out, stage, gates, algorithm):
     pin = stage["report"]
     raw = load(pin)
     clock = stage["candidate_clock"]
-    if (job["receipt"] != pin or not job["ready"] or raw["algorithm"] != algorithm
-            or raw["comparison"] != stage["comparison"] or clock["binary"] != gates["image"]
+    if (raw["status"] != "PAIRED_ACTIVE_MIN_R_GATE_PASS" or raw["algorithm"] != algorithm
+            or raw["comparison"] != stage["comparison"]
+            or raw["comparison"]["equal_driver_reported_clocks"] is not True
+            or clock["binary"] != gates["image"]
             or clock["driver_reported_mhz"] != gates["resident_mhz"]):
         raise ValueError("AU topology receipt does not match the resident admission")
     out["stage_ratios"]["r_ratios"]["au_slice"] = ratio(stage["comparison"], "candidate_over_reference")
