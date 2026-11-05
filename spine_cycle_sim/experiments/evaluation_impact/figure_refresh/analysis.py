@@ -25,6 +25,28 @@ def device(step):
     return row
 
 
+def persistent_spine_device(step, *, updates, batch_count):
+    """Check a rolling update-only device ledger, not setup-inclusive timing."""
+    if not 1 < batch_count <= updates:
+        raise ValueError("persistent update requires multiple nonempty batches")
+    total = device(step)
+    if total.get("arm") != "spine" or total.get("physical_image_checked") is not True:
+        raise ValueError("persistent Spine result must pass the final physical-image check")
+    rows = records(step, "WARM_BATCH ")
+    if len(rows) != batch_count:
+        raise ValueError("missing or extra persistent batch records")
+    work = ("cycles", "read_bytes", "write_bytes")
+    for index, row in enumerate(rows):
+        expected = (index + 1) * updates // batch_count - index * updates // batch_count
+        if row.get("batch") != index or row.get("updates") != expected:
+            raise ValueError("persistent batch order or mutation count mismatch")
+        if any(type(row.get(key)) is not int or row[key] < 0 for key in work) or row["cycles"] == 0:
+            raise ValueError("invalid persistent batch counters")
+    if any(sum(row[key] for row in rows) != total[key] for key in work):
+        raise ValueError("persistent batch counters do not conserve device totals")
+    return {"device": total, "batches": rows}
+
+
 def host(step):
     rows = records(step, "HOST_RESULT ")
     if len(rows) != 5 or {row["repeat"] for row in rows} != set(range(5)):

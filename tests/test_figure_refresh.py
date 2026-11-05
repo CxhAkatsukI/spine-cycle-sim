@@ -93,6 +93,37 @@ class FigureRefreshTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "five"):
                 analysis.host(step)
 
+    def test_persistent_spine_requires_the_ordered_conserved_ledger(self):
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "stdout"
+            step = dict(exit_code=0, timed_out=False, stdout=str(output))
+            total = dict(arm="spine", cycles=21, read_bytes=192, write_bytes=128,
+                         correctness=True, ledger_closed=True, physical_image_checked=True)
+            rows = [dict(batch=0, updates=2, cycles=10, read_bytes=64, write_bytes=64),
+                    dict(batch=1, updates=3, cycles=11, read_bytes=128, write_bytes=64)]
+
+            def parse():
+                output.write_text("".join("WARM_BATCH " + json.dumps(row) + "\n" for row in rows) +
+                                  "WARM_RESULT " + json.dumps(total) + "\nREFRESH_COMPLETE\n")
+                return analysis.persistent_spine_device(step, updates=5, batch_count=2)
+
+            self.assertEqual(parse(), dict(device=total, batches=rows))
+            rows.reverse()
+            with self.assertRaisesRegex(ValueError, "order"):
+                parse()
+            rows.reverse()
+            rows[0]["read_bytes"] += 64
+            with self.assertRaisesRegex(ValueError, "conserve"):
+                parse()
+            rows[0]["read_bytes"] -= 64
+            total["physical_image_checked"] = False
+            with self.assertRaisesRegex(ValueError, "physical-image"):
+                parse()
+            total["physical_image_checked"] = True
+            rows.pop()
+            with self.assertRaisesRegex(ValueError, "missing or extra"):
+                parse()
+
     def test_spine_host_requires_complete_constructor_payload_accounting(self):
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp) / "stdout"

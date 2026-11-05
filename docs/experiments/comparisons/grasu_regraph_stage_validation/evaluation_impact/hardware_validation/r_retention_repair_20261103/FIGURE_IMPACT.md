@@ -632,6 +632,28 @@ same-card receipts and logs, clocks, the unchanged G PMA oracle and
 Spine build/test evidence. SHA-256:
 `5103f04d8584bfd2a2fd21011572a601ae04096ebf3bbd6946e6da737dfea017`.
 
+### Persistent Spine Update Replay
+
+The new SST figure-refresh replay reserves and initializes one Spine
+image, applies contiguous trace batches in order, and drains before the
+next batch without rebuilding the graph or resetting the DRAM backend.
+It splits by `floor(i * update_count / batches)`, then orders work within
+each batch. The direct DRAMSim3 replay checks the per-batch traffic
+ledger, the final signed graph, and the physical image and readback.
+
+| Replay | Batches | Updates | Device cycles | Read bytes | Write bytes |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Smoke, legacy single-batch agreement | 1 | 3 | 4,117 | 3,304 | 1,944 |
+| Smoke, persistent | 3 | 3 | 11,008 | 9,552 | 6,784 |
+| AU, persistent | 10 | 4,096 | 428,754 | 408,016 | 217,184 |
+
+The [run receipt](fig8-persistent-spine-receipt.json.gz) pins the
+Release plugin, toolchain, and input hashes. Uncompressed SHA-256:
+`8bc38e493d553602c65837477150386a9d563fb84ee67acb1ed1526e9dd2b171`.
+These are simulator device-maintenance times only. They do not yet
+supply the persistent G arm or the host/transfer terms required to
+compute a setup-inclusive Fig. 8 speedup.
+
 ### SO/512 Metadata Capacity
 
 The board log fails in the host placement planner, before a timed G update.

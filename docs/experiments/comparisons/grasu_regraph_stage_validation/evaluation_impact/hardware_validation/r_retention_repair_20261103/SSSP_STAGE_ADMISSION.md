@@ -289,10 +289,43 @@ packing/upload, and final oracle validation are outside these windows.
 There is still a first-frontier preparation difference. K4 sets the
 initial active bits from the update sources before migrating initial
 state. Spine builds the update-source list after its timer starts.
-Treat the pending resident pairs as implementation timings with a
+Treat the resident pairs as implementation timings with a
 prepared batch, with this specific G+R cost excluded, not as a symmetric
 wall measurement from an unprocessed host batch. Do not combine their
 ratio with the CC wall variant or Fig. 8 without labeling the boundary.
+
+## Banked Source-Burst Follow-Up
+
+The replacement xclbin (`2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784`)
+completed nominal routing (WNS 0.000 ns, WHS +0.009 ns). All measurements
+below use this same candidate image on U55C `0000:82:00.1` with reported
+clocks 150/500/450/0 MHz and one timed run per arm.
+
+| Stage and workload | Candidate (ms) | Public-source port (ms) | Candidate time change |
+| --- | ---: | ---: | ---: |
+| G, AU 131,072 updates | 7.022759 | 18.368928 | -61.77% |
+| Adapter + R, Amazon | 9.801720 | 10.404206 | -5.79% |
+| Adapter + R, Amazon odd frontier | 9.707357 | 10.591011 | -8.34% |
+| Adapter + R, AU 903K-edge topology | 2.485571 | 2.189131 | +13.54% |
+
+Each R pair passed the common output oracle and the 15% retention
+screen. G passed the no-degradation check; its time is not within a
+two-sided 15% equivalence band. These are matched source-port controls,
+not a reproduction of the published throughput.
+
+Using that same image on full AU (515,281 vertices, eight updates),
+both resident SSSP arms matched the final oracle and executed two
+nonempty propagation rounds. Spine took **4.240300 ms** versus
+**8.615455 ms** for G+R (**2.031803x**). This is one full-graph point
+under the timing boundary above, not an eight-dataset result.
+
+The [receipt archive](sssp-banked-au-receipts.tar.gz) includes the
+four stage receipts, the resident pair receipt, output logs and clocks.
+The pair receipt SHA-256 is
+`e4ad116bcd49a0c61258f3e6515a411880c6f5d6562dec7c6749f6e0495b63bc`.
+Full raw output is under
+`/data/chuxiao/checks/source-retention-repair-20261104/` in the
+directories named in the archive.
 
 ## Evidence
 

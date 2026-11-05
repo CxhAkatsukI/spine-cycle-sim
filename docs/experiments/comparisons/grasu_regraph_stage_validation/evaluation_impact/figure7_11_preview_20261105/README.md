@@ -19,6 +19,15 @@ evidence labels when reusing them.
 
 ## What The G/R Plot Establishes
 
+**Later SSSP checkpoint:** the [banked source-burst stage and board
+receipts](../hardware_validation/r_retention_repair_20261103/SSSP_STAGE_ADMISSION.md#banked-source-burst-follow-up)
+supersede the SSSP stage numbers below for the replacement image. All
+three R controls are within 15%; G passes the no-degradation check. The
+first correctness-admitted resident pair on that exact image is a
+**2.03x Spine win on full AU**. Neither that single pair nor the new
+[Spine-only ten-batch replay](../hardware_validation/r_retention_repair_20261103/FIGURE_IMPACT.md#persistent-spine-update-replay)
+is a complete replacement for the frozen plots.
+
 G measures the first-to-last update-CU event span, including gaps between
 shards but excluding input residency and final readback. The public GraSU
 control updates PMA only. SSSP and CC are faster in the matched AU 131K

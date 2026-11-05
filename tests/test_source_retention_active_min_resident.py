@@ -172,3 +172,42 @@ class ResidentStageFollowerTest(unittest.TestCase):
             path.write_text(json.dumps(dict(status="R_GATE_FAILED", algorithm="cc")))
             with self.assertRaisesRegex(ValueError, "R_GATE_FAILED"):
                 follow.ready(row, self.state("collected"), follow.STAGE_PASS["r"], "cc")
+
+    def test_recovers_only_unattempted_sssp_pair_with_exact_completed_stage_receipts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "pair").mkdir()
+            pair = root / "pair/results.json"
+            queue = root / "queue.json"
+            args = SimpleNamespace(algorithm="weighted_sssp", dataset="AU", output=root / "next")
+            case = dict(algorithm=args.algorithm, dataset=args.dataset, status="FAILED_RETAINED")
+            prior = {}
+            for key in (*follow.STAGE_PASS, *follow.ADDITIONAL_R):
+                receipt = root / (key + ".json")
+                receipt.write_text(json.dumps(dict(algorithm=args.algorithm,
+                                                   status=follow.STAGE_PASS.get(key, follow.STAGE_PASS["r"]))))
+                prior[key] = dict(unit=key + ".service", invocation=self.INVOCATION, report_path=str(receipt),
+                                  observed=True, ready=True, receipt=identity(receipt))
+            queue.write_text(json.dumps(dict(case, stages=prior, requested_pair=True, runner_pins=[])))
+            args.recover_preboard = (str(queue), identity(queue)["sha256"], "prior.service")
+            stage_inputs = lambda: {k: {f: row[f] for f in ("unit", "invocation", "report_path")}
+                                    for k, row in prior.items()}
+            cmd = f"{{ argv[]=/usr/bin/python3 -m {follow.__name__} --output {root} ; ignore_errors=no }}"
+            with patch.object(follow, "require_stopped", return_value=self.state("failed")), \
+                    patch.object(follow.subprocess, "check_output", return_value=cmd), \
+                    patch.object(follow, "service_state", return_value=self.state("collected")):
+                pair.write_text(json.dumps(dict(case, attempts=["spine"], arms={})))
+                with self.assertRaisesRegex(ValueError, "attempted"):
+                    follow.recover_preboard(args, stage_inputs())
+                pair.write_text(json.dumps(dict(case, attempts=[], arms={})))
+                inputs = stage_inputs()
+                inputs["g"]["invocation"] = "b" * 32
+                with self.assertRaisesRegex(ValueError, "changed the g producer"):
+                    follow.recover_preboard(args, inputs)
+                inputs = stage_inputs()
+                result = follow.recover_preboard(args, inputs)
+                self.assertEqual(result["prior"], [identity(queue), identity(pair)])
+                self.assertEqual({k: row["receipt"] for k, row in inputs.items()},
+                                 {k: row["receipt"] for k, row in prior.items()})
+                with self.assertRaises(FileExistsError):
+                    follow.recover_preboard(args, stage_inputs())

@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 import re
+import shlex
+import subprocess
 import time
 
 from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.execution.supervisor import (
@@ -12,6 +14,7 @@ from spine_cycle_sim.experiments.evaluation_impact.common_g.continuous_board.exe
 from . import active_min_resident as resident
 from .follow import unchanged
 from .runtime import identity, save
+from .sssp_continuation import require_stopped
 
 
 STAGE_PASS = {"r": "PAIRED_ACTIVE_MIN_R_GATE_PASS", "g": "G_GATE_PASS_FOR_ACTIVE_MIN_IMAGE"}
@@ -53,6 +56,52 @@ def ready(row, state, expected, algorithm):
     return True
 
 
+def recover_preboard(args, stages):
+    path, digest, unit = args.recover_preboard
+    if ((args.algorithm, args.dataset) != ("weighted_sssp", "AU")
+            or set(stages) != {*STAGE_PASS, *ADDITIONAL_R}):
+        raise ValueError("preboard recovery requires the cross-topology AU SSSP screen")
+    stopped = require_stopped(unit)
+    queue = Path(path).resolve(strict=True)
+    queue_pin = identity(queue)
+    if queue_pin["sha256"] != digest or queue.name != "queue.json":
+        raise ValueError("preboard recovery queue identity changed")
+    command = subprocess.check_output(
+        ["systemctl", "--user", "show", unit, "-p", "ExecStart", "--value"], text=True, timeout=15)
+    match = re.search(r"argv\[\]=(.*?) ; ignore_errors=", command)
+    argv = shlex.split(match[1]) if match else []
+    if (__spec__.name not in argv or argv.count("--output") != 1
+            or argv[argv.index("--output") + 1:argv.index("--output") + 2] != [str(queue.parent)]):
+        raise ValueError("preboard recovery service did not own the prior queue")
+    pair = queue.parent / "pair/results.json"
+    pins = [queue_pin, identity(pair)]
+    prior, failure = (json.loads(Path(pin["path"]).read_text()) for pin in pins)
+    if (prior.get("status"), prior.get("requested_pair"), prior.get("algorithm"), prior.get("dataset"),
+            failure.get("status"), failure.get("attempts"), failure.get("arms"),
+            failure.get("algorithm"), failure.get("dataset")) != (
+            "FAILED_RETAINED", True, args.algorithm, args.dataset,
+            "FAILED_RETAINED", [], {}, args.algorithm, args.dataset):
+        raise ValueError("cannot recover a measured or attempted board pair")
+    if prior["stages"].keys() != stages.keys():
+        raise ValueError("preboard recovery changed the set of stage producers")
+    for stage, row in stages.items():
+        old = prior["stages"][stage]
+        if any(row.get(key) != old.get(key) for key in ("unit", "invocation", "report_path", "inputs")):
+            raise ValueError(f"preboard recovery changed the {stage} producer")
+        if not old.get("observed") or not old.get("ready"):
+            raise ValueError(f"preboard recovery lacks a completed {stage} receipt")
+        row["observed"] = True
+        if not ready(row, service_state(row["unit"]), STAGE_PASS.get(stage, STAGE_PASS["r"]), args.algorithm):
+            raise ValueError(f"preboard recovery has a live {stage} producer")
+        if row["receipt"] != old["receipt"]:
+            raise ValueError(f"preboard recovery changed the {stage} receipt")
+        row["ready"] = True
+    unchanged([*pins, *prior["runner_pins"], *(row["receipt"] for row in stages.values())])
+    with (queue.parent / "preboard-recovery.claim").open("x") as stream:
+        stream.write(str(args.output.resolve()) + "\n")
+    return dict(prior=pins, unit=unit, state=stopped)
+
+
 def run(args):
     if not 1 <= args.stage_wait_seconds <= 111600:
         raise ValueError("stage wait must be bounded to 31 hours")
@@ -91,7 +140,10 @@ def run(args):
                   dataset=args.dataset, algorithm=args.algorithm)
     save(journal, report)
     try:
-        for stage, row in stages.items():
+        recovery = getattr(args, "recover_preboard", None)
+        if recovery:
+            report["preboard_recovery"] = recover_preboard(args, stages)
+        for stage, row in (() if recovery else stages.items()):
             state = service_state(row["unit"])
             path = Path(row["report_path"])
             if state["LoadState"] != "loaded" or state["InvocationID"] != row["invocation"]:
@@ -107,6 +159,8 @@ def run(args):
                 raise ValueError(f"expected no terminal {stage} receipt at enqueue: {path}")
             row.update(state=state, observed=True)
         pins = [*runner_pins(), identity(__file__)]
+        if recovery:
+            pins += report["preboard_recovery"]["prior"]
         if getattr(args, "cc_wall_packet", None) is not None:
             case, case_pins = resident.frozen_case(args.previous, args.algorithm, args.dataset)
             if warm:
@@ -154,6 +208,8 @@ def arguments(parser):
         parser.add_argument(f"--{stage}-unit", required=True)
         parser.add_argument(f"--{stage}-invocation", required=True)
     parser.add_argument("--stage-wait-seconds", type=int, default=108000)
+    parser.add_argument("--recover-preboard", nargs=3, metavar=("QUEUE", "SHA256", "STOPPED_SERVICE"),
+                        help="reuse exact stage receipts after a rejected AU SSSP pair with zero board attempts")
     parser.add_argument("--cc-warm-unit")
     parser.add_argument("--cc-warm-invocation")
     for label in ADDITIONAL_R:
