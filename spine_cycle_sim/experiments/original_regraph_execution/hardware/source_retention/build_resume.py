@@ -20,7 +20,8 @@ from .runtime import identity, save
 POLICY = dict(tree_memory_gib=104, high_memory_gib=100, reserve_gib=128,
               background_memory_gib=8, allow_bounded_builds=True)
 MEMORY_PROFILES = {"104g-v1": POLICY, "192g-v1": dict(
-    POLICY, tree_memory_gib=192, high_memory_gib=184)}
+    POLICY, tree_memory_gib=192, high_memory_gib=184), "320g-v1": dict(
+    POLICY, tree_memory_gib=320, high_memory_gib=304)}
 
 
 def properties(policy=POLICY):

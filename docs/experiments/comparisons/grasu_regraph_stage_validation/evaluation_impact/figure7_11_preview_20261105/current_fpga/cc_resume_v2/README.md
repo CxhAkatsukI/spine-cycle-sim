@@ -75,3 +75,24 @@ The matrix supervisor has a 2-GiB limit and still waits for the exact
 collector invocation and correct AU result before requesting other cases.
 Board leases, per-child admission and correctness gates remain mandatory.
 These queued follow-ups are not a promise that routing or all tests finish.
+
+## Terminal 192-GiB Failure
+
+The exact v2 build above ended at 23:21 CST on November 5 with
+`Result=oom-kill`, `ExecMainStatus=9` and a 206,158,430,208-byte (192-GiB)
+peak. Its collector and dependent matrix also terminated, without a new
+CC sample. The build's last JSON still says `BUILDING`: group OOM killed
+the supervisor before its final checkpoint. Systemd's terminal state, not
+that stale JSON, determines the outcome. All original outputs are retained.
+
+At 15:24 UTC the remote host reported 519,523,016,704 available bytes
+(about 484 GiB), so this was the task's imposed limit, not host exhaustion.
+The separate explicit `320g-v1` policy now permits 320-GiB max / 304-GiB
+high. With no peers it requires **456 GiB** at atomic admission (320 tree +
+128 reserve + 8 background), and retains the same zero swap, live 128-GiB
+reserve, >=480-GiB host check and exact-containment verification. Neither
+older profile changes. The collector must select this new profile explicitly.
+
+This is an operational resource change only, not a source/ABI change,
+successful route, timing closure or a board result. A fresh invocation and
+output are required; the failed v2 service is never restarted in place.

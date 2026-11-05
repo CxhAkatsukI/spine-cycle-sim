@@ -104,7 +104,7 @@ def test_resume_journal_requires_exact_launch(journal):
         cc_au_collect.retired(journal, UNIT, INVOCATION, ROOT, resume=(Path('/data/chuxiao/resume-v'), script))
 
 
-@pytest.mark.parametrize('profile', ['104g-v1', '192g-v1'])
+@pytest.mark.parametrize('profile', ['104g-v1', '192g-v1', '320g-v1'])
 def test_collect_resumed_build_keeps_original_and_resume_evidence(tmp_path, profile):
     resume = Path('/data/chuxiao/resume-v1/execution.json')
     original = Path('/data/chuxiao/archive/original-build.log')
