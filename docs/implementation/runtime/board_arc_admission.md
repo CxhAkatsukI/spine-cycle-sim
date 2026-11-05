@@ -106,3 +106,13 @@ nor change their failed status. Ten seconds is a bounded settling policy,
 not a measured ZFS reclaim guarantee. Original strict-profile runs, defaults,
 and numerical/FPGA settings remain unchanged; new runs require fresh paths
 and source pins.
+
+Clock programming and source-pin verification can outlast a passing queue
+observation. Under the settling profile only, each child therefore permits
+at most 60 seconds of strict prelaunch re-admission when PSI rises in that
+interval. No child exists during this wait; it consumes the existing command
+timeout. Launch still requires the original low-PSI observation and physical
+reserve. A reserve breach or malformed counters fails immediately. Exhausted
+waits retain `child_started=false` and `NOT_STARTED` diagnostics. The running
+child's ten-second pressure limit, finite cgroup and all timing boundaries
+are unchanged. The strict profile and default do not retry prelaunch checks.

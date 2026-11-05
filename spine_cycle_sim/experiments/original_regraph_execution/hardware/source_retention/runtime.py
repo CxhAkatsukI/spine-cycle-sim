@@ -64,7 +64,8 @@ def memory_snapshot(group):
 
 
 def execute(command, output, name, fd, node, bdf, *, memory_gib=8, timeout=240):
-    group = check_memory(memory_gib)
+    group = check_memory(memory_gib,
+        require_live_reserve=memory_policy.selected() != memory_policy.ARC_SETTLE)
     if subprocess.run(["fuser", str(node)], capture_output=True).returncode != 1:
         raise RuntimeError("board is not demonstrably idle")
     env = dict(os.environ, ORIGINAL_G_LEASE_FD=str(fd), ORIGINAL_G_EXPECT_BDF=bdf,

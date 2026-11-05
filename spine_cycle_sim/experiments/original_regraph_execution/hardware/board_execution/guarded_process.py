@@ -5,7 +5,7 @@ import signal
 import subprocess
 import time
 
-from . import memory_policy
+from . import memory_policy, prelaunch_memory
 
 
 def stop(process):
@@ -35,15 +35,17 @@ def _remember(receipt, observation):
 
 
 def run(command, *, timeout, **kwargs):
-    before = memory_policy.live()
+    before, prelaunch = prelaunch_memory.admit(timeout)
     receipt = dict(profile=memory_policy.selected(), admission=before, status="RUNNING",
+                   child_started=False, prelaunch=prelaunch,
                    minimum_effective_available_bytes=before["effective_available_bytes"],
                    maximum_pressure_avg10=dict(before["pressure_avg10"]), checks=0)
     _remember(receipt, before)
     settle = memory_policy.selected() == memory_policy.ARC_SETTLE
     pressure = memory_policy.PressureWindow()
-    deadline = time.monotonic() + timeout
+    deadline = time.monotonic() + timeout - prelaunch["waited_seconds"]
     with subprocess.Popen(command, start_new_session=True, **kwargs) as process:
+        receipt["child_started"] = True
         try:
             while True:
                 observed = (memory_policy.live(allow_transient_pressure=True) if settle

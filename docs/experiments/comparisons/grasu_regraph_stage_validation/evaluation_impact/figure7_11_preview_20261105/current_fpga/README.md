@@ -262,13 +262,25 @@ It has a 32-GiB maximum, 30-GiB high limit, zero swap and an eight-hour runtime
 limit. Board admission waits at most six hours, then measures each arm once;
 there is no automatic retry after a failed execution.
 
-The last checked state for this launch record was `WAITING_FOR_MEMORY`, with
-no measured-arm attempt. Full finite reservations, the 32-GiB reserve and
-the unchanged settling profile still apply. Both the qualified Spine host
-and the exact screened G+R image are unchanged. The only runner changes are
-failure diagnostics. A live queue is not a sixteenth accepted pair; inspect
-the eventual terminal receipt and replay the exporter before selecting data.
-The frozen fifteen-pair review archive remains unchanged.
+This attempt ended at 14:45 UTC with `FAILED_RETAINED`, before starting the
+measured host: clock programming completed, but the second strict prelaunch
+check saw full PSI 1.08%. Raw available memory was 51.41 GiB and discounted
+effective headroom 82.88 GiB. Both host logs are empty, cgroup pressure was
+zero, peak cgroup usage was 135.4 MiB, and high/max/OOM events were all zero.
+The top-level `attempts=[spine]` records the intended call, not proof that a
+host process started. This is not the earlier ten-second live-child stop,
+not OOM, and not a measured slowdown. The
+[prelaunch failure receipts](qualified_lj08_prelaunch_failure_receipts.tar.gz)
+retain all records except the indexed xclbin; archive SHA-256:
+`9a24cdb0e1cd452713c506d199247861f880c4eadb4a0ce3376db2e97e139275`.
+
+The settling profile now permits a strict, bounded prelaunch wait as
+described in the [memory guide](../../../../../../implementation/runtime/board_arc_admission.md).
+This does not relax PSI or memory thresholds, retry an executed arm, change
+the qualified Spine host or screened G+R image, or supply a sixteenth pair.
+The frozen fifteen-pair review archive remains unchanged. New execution
+requires a new frozen runner and output directory; the failed receipt is
+never rewritten.
 
 On the run host, inspect the exact handle and live report with:
 
