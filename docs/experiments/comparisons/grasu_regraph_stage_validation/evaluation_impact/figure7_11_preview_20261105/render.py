@@ -213,6 +213,8 @@ def fig8(output):
     save(figure, output, "fig8_one_batch_model")
 
     checkpoint = read_csv(REPAIR / "paired-board-checkpoint" / "figure8.csv")
+    latest = {(row["dataset"], row["updates"]): float(row["g_ms"]) / float(row["spine_ms"])
+              for row in read_csv(ROOT / "fig8_direct_metadata.csv")}
     figure, (left, right) = plt.subplots(1, 2, figsize=(3.55, 1.75), layout="constrained")
     for axis, rows, labels, title in (
         (left, [row for row in checkpoint if row["updates"] == "512"], "dataset", "(a) 512 updates"),
@@ -224,13 +226,15 @@ def fig8(output):
                 continue
             ratio = float(row["g_over_spine"])
             bars(axis, [i], [ratio], SERIES[1 if ratio >= 1 else 2])
+            axis.scatter(i, latest[row["dataset"], row["updates"]], s=12, facecolor=INK,
+                         edgecolor="white", linewidth=0.35, zorder=7)
         axis.set_xticks(range(len(rows)), [row[labels] for row in rows])
         axis.set_title(title, pad=7)
-        axis.set_ylim(0, 2.1)
-        axis.set_yticks((0, 0.5, 1, 1.5, 2))
+        axis.set_ylim(0, 2.6)
+        axis.set_yticks((0, 1, 2))
         style_axis(axis, parity=True)
     left.set_ylabel("Throughput speedup")
-    figure.suptitle("Native FPGA checkpoint: one batch", fontsize=6.5)
+    figure.suptitle("FPGA, one batch: initial host (bars), revised host (dots)", fontsize=5.8)
     save(figure, output, "fig8_one_batch_fpga_diagnostic")
 
 
