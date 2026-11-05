@@ -114,10 +114,10 @@ The separate v3 build passed admission at 15:29 UTC on November 5 with
 | Task | Exact unit / invocation |
 | --- | --- |
 | Remote build | `spine-cc-stream-admit-resume-20261105-v3.service` / `c9a1583f0d644a1cb972bb29237c7abf` |
-| Collector and AU comparison | `spine-retention-cc-au-stream-resume-20261105-v3.service` / `e061098f78594c5d8081b89517440c53` |
-| Follow-up matrix | `gr-retention-cc-stream-resume-matrix-20261105-v4.service` / `bb56598515124534896760fae3983f8b` |
+| Original local collector (superseded) | `spine-retention-cc-au-stream-resume-20261105-v3.service` / `e061098f78594c5d8081b89517440c53` |
+| Original local matrix (superseded) | `gr-retention-cc-stream-resume-matrix-20261105-v4.service` / `bb56598515124534896760fae3983f8b` |
 
-All three runners use frozen simulator source `5cd13bbc`. The remote runner
+These three initial runners used frozen simulator source `5cd13bbc`. The remote runner
 root is `/data/chuxiao/fig8-portable-20261105/cc-build-budget-320-5cd13bbc`;
 the local follower worktree is `/data/chuxiao/worktrees/spine-cc-resume-320-5cd13bbc`.
 The remote supervisor SHA-256 is
@@ -136,3 +136,28 @@ and zero swap, and waits for the exact new invocation. The matrix retains
 its 2-GiB limit and cannot launch later cases until AU passes. No CC bar is
 admitted by this launch record. The newly completed LJ08 ResPR pair is
 independent of these queued CC tests.
+
+### Local ARC-Aware Followers
+
+Both original local followers were deliberately stopped while still waiting,
+before either attempted a board run. Their reports and systemd journal
+entries retain the original unit and invocation. The remote build was not
+stopped or restarted.
+
+The replacements run frozen source `c03ca5e2` in
+`/data/chuxiao/worktrees/spine-cc-board-arc-c03ca5e2` and select
+`zfs-arc-clean-half-settle10-v1` only for local board admission. They retain
+the same memory limits, zero swap, route and input identities, single-pass
+tests, clocks, correctness checks and timing boundary. No global ARC
+setting changed.
+
+| Task | Exact unit / invocation |
+| --- | --- |
+| AU collector | `spine-retention-cc-au-stream-resume-20261105-v4.service` / `c5294337b09b4fdd83bf28f09fd953fe` |
+| Follow-up matrix | `gr-retention-cc-stream-resume-matrix-20261105-v5.service` / `161594dc941347d295cf7f36424fc342` |
+
+The local reports under `/data/chuxiao/checks/source-retention-repair-20261104`
+are `cc-au-stream-resume-20261105-v4/results.json` and
+`cc-warm-stream-resume-matrix-v5/matrix.json`. At replacement, the remote
+build was still synthesizing, the collector was waiting for its route and
+the matrix was waiting for AU. This update does not admit any CC result.
