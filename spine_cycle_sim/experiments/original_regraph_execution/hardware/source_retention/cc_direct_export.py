@@ -45,8 +45,9 @@ def measured(dataset, case, arms, bdf, artifacts, *, reused=False):
 def _attempts(matrix_path, matrix, resume_path):
     attempts = [(matrix_path, matrix)]
     cases = dict(matrix["cases"])
-    if resume_path is not None:
-        resumed = json.loads(resume_path.read_text())
+    paths = (resume_path,) if isinstance(resume_path, Path) else (resume_path or ())
+    for path in paths:
+        resumed = json.loads(path.read_text())
         if (resumed["status"] not in (MEASURED, "COMPLETED_WITH_FAILURES")
                 or not resumed["cases"] or not set(resumed["cases"]) <= set(cases)):
             raise ValueError("resume must be a terminal subset of the original CC matrix")
@@ -62,7 +63,7 @@ def _attempts(matrix_path, matrix, resume_path):
             if row["status"] not in (MEASURED, "FAILED"):
                 raise ValueError("resume contains a nonterminal case")
             cases[dataset] = row
-        attempts.append((resume_path, resumed))
+        attempts.append((path, resumed))
     return cases, attempts
 
 
@@ -101,7 +102,7 @@ def collect(matrix_path, au_path, au_gr_path, *, resume_path=None):
                  measured_pairs=len(pairs), expected_pairs=8, boundary=matrix["boundary"],
                  bdf=matrix["bdf"], repetitions_per_arm=1, warmups=0, artifacts=matrix["artifacts"],
                  raw_source_records=[identity(path) for path in
-                                     (matrix_path, au_path, au_gr_path, *([resume_path] if resume_path else []))],
+                                     (au_path, au_gr_path, *(path for path, _ in attempts))],
                  pairs=pairs, routing_report_complete=False, memory_profile=matrix["memory_profile"],
                  memory_peak_bytes=max(record["memory_peak_bytes"] for _, record in attempts),
                  attempts=[dict(source=identity(path), status=record["status"],
@@ -127,8 +128,8 @@ def export(matrix_path, au_path, au_gr_path, output, *, resume_path=None):
     # Preserve only small receipts/logs; state dumps, graph data and binaries stay external.
     members = {}
     roots = [("remaining", matrix_path.parent), ("au", au_path.parent)]
-    if resume_path is not None:
-        roots.append(("long-startup", resume_path.parent))
+    paths = (resume_path,) if isinstance(resume_path, Path) else (resume_path or ())
+    roots.extend((f"retry-{index}", path.parent) for index, path in enumerate(paths, 1))
     for prefix, root in roots:
         for path in sorted(root.rglob("*")):
             if path.is_file() and path.stat().st_size <= 8 * 2**20 and (
@@ -161,8 +162,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("matrix", "au", "au-gr", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
-    parser.add_argument("--resume", type=Path,
-                        help="terminal retry of failed datasets; measured samples cannot be replaced")
+    parser.add_argument("--resume", type=Path, action="append",
+                        help="ordered terminal retry; repeat to retain attempts; measured samples cannot be replaced")
     args = parser.parse_args()
     export(args.matrix, args.au, args.au_gr, args.output, resume_path=args.resume)
 

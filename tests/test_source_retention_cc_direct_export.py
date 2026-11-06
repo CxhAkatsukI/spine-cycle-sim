@@ -95,6 +95,19 @@ class DirectCCExportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "terminal subset"):
             export._attempts(self.paths[0], self.matrix, path)
 
+    def test_ordered_retries_preserve_failures_but_cannot_replace_a_valid_sample(self):
+        path, resumed = self.resume()
+        later = self.root / "retry-again.json"
+        final = deepcopy(resumed)
+        final["cases"]["LJ"].update(status=export.MEASURED, comparison={})
+        later.write_text(json.dumps(final))
+        cases, attempts = export._attempts(self.paths[0], self.matrix, [path, later])
+        self.assertEqual(cases["LJ"]["status"], export.MEASURED)
+        self.assertEqual([record["cases"]["LJ"]["status"] for _, record in attempts],
+                         ["FAILED", "FAILED", export.MEASURED])
+        with self.assertRaisesRegex(ValueError, "already measured"):
+            export._attempts(self.paths[0], self.matrix, [path, later, later])
+
     @patch.object(export, "measured")
     def test_completed_retry_is_selected_and_memory_is_reported_per_attempt(self, measured):
         path, resumed = self.resume()

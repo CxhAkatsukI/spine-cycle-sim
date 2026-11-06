@@ -42,6 +42,15 @@ single sample and 32-GiB/zero-swap containment remain unchanged. Completed
 datasets are not rerun. The runner's default remains 1,800 seconds.
 The longer run was launched from simulator commit `e4da2406`.
 
+Its LJ attempt failed at BOOTSTRAP with a zero workspace header and a stale
+propagation result, before any batch timing. This followed the interrupted
+original stream. Residual device state is suspected, not a confirmed ABI or
+workload defect. While LJ08 was still loading input and the render node was
+unopened, the board was successfully programmed with the existing G+R image
+so that its next Spine load changes the programmed UUID. The operation and
+observations are retained in `long_startup/device-recovery.json`. LJ remains
+pending and needs a separate attempt; no failed sample is replaced by a number.
+
 ## Measurement
 
 Both systems start with the old graph and converged labels resident. Each
