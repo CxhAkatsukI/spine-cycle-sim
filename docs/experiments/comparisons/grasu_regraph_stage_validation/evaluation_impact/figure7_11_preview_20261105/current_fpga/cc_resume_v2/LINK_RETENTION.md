@@ -136,3 +136,37 @@ SHA-256 `d9d7f788e0916bd83e51e75081d258aa560f399d64bd49c0f3b4fc32872b2e83`.
 All inherited artifact hashes also passed. This check writes neither the
 live build's plan nor an image; the admitted build must repeat it before
 starting Vitis. It is not routing, clock or performance evidence.
+
+## Matrix Coordinator Repair
+
+An offline replay on November 6 found that `cc_warm_matrix` omitted the
+required algorithm argument when validating the odd-frontier R control.
+The earlier test used an unrestricted mock and missed the signature error.
+The failing test reproduces the error before the fix; the corrected call
+passes `cc` explicitly. Signature-checked regression tests also exercise
+the replacement-AU continuation across all seven remaining datasets,
+preserving the same candidate, baseline controls and one-shot protocol.
+The focused evidence/runtime/organization suite passes all 139 tests.
+Document-layout, catalog and whitespace checks pass as well.
+
+Only the waiting matrix coordinator was replaced. Its exact invocation
+`2700c7f30d524fdcab6294141ae3d338` still reported
+`WAITING_FOR_WARM_CC_AU`, with all eight cases `NOT_REQUESTED`, before it
+was stopped. The old output and frozen runner remain intact; this is a
+coordinator correction, not a failed hardware measurement. The remote
+retained-link invocation and AU collector listed above were not restarted.
+
+The replacement is `gr-retention-cc-retained-link-matrix-20261106-v2.service`,
+invocation `d7d53a88b8044c30aaaefcfa17753dc9`, running clean frozen commit
+`14cfb326dee5096975b14a58e78c48116969187e` from
+`/data/chuxiao/worktrees/spine-cc-matrix-control-fix-20261106`.
+Its output is
+`/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-retained-link-matrix-20261106-v2/matrix.json`.
+Only the output, child-unit prefix and runner source changed; the pinned AU
+parent, stage/layout receipts, memory policy, budgets and timing boundary
+are unchanged. The launch receipt, including the old observation and exact
+new command, is
+`/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-matrix-control-fix-20261106-handoff.json`,
+SHA-256 `d065e4e1f993268603d5936b4c2eb9f2df1644e08f10c265e1478c9c61c0ef63`.
+The new coordinator is waiting for the same AU parent; this correction adds
+no measured pairs. The formal checkpoint remains **16/24**, with CC pending.
