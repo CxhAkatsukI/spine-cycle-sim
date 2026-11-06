@@ -1,8 +1,14 @@
 # G/R Source Controls and Evaluation Plots
 
 The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md)
-has seven completed, correctness-checked pairs. Only LJ remains running;
-startup failures and recovery are recorded, not substituted with old samples.
+has completed all eight correctness-checked pairs. Spine wins by
+1.18x--26.61x on these insertion traces. The
+[combined Fig. 7 preview](current_fpga/cc_direct_board_v1/figures/fig7_resident_checkpoint.png)
+contains all 24 SSSP/CC/ResPR pairs, using the
+[eight new CC rows](current_fpga/cc_direct_board_v1/data/fig7_cc.csv)
+and the sixteen frozen SSSP/ResPR rows below. Six CC batches leave labels
+unchanged; WK and R19 require two propagation rounds. Startup failures and
+recovery are retained in the CC receipt archive, not hidden or counted as samples.
 The Spine image's raw routed bus-skew report is unavailable; these are actual
 board measurements with incomplete static timing documentation.
 The separate [sixteen-pair checkpoint](current_fpga/resident_checkpoint_v3/README.md)
@@ -22,8 +28,9 @@ Start with the [current FPGA G/R controls](current_fpga/README.md) and
 The former contains eleven replayed controls on the exact current baseline
 images: all eight R points are within absolute +/-15%, and all three G points
 are faster than their public-source ports. The latter has **16 of 24** measured
-Fig. 7 pairs: all eight SSSP and eight ResPR cases favor Spine. Eight CC cases
-remain missing, not zero-speedup measurements. The grouped preview
+Fig. 7 pairs: all eight SSSP and eight ResPR cases favor Spine. Its eight CC
+slots remain frozen as missing; the separate direct CC overlay above now
+completes coverage without rewriting that checkpoint. The grouped preview
 uses one algorithm series per dataset, as requested.
 
 Later resident exports may repeat `--retimes` with the full original
@@ -74,7 +81,9 @@ zero nonempty propagation rounds, so they do not demonstrate propagation speedup
 compact Flickr propagation case still loses (35.08 vs. 4.76 ms). The original
 PK loss and Flickr loss both remain evidence, not omitted outliers.
 
-Two CC replacement links reached packaging but lost their temporary raw
+The following CC routing records describe earlier attempts, not pending
+requirements for the completed direct board campaign above. Two CC
+replacement links reached packaging but lost their temporary raw
 bus-skew evidence because the agent's scripts did not retain link outputs.
 The latest ended at 15:29 CST on November 6, not with an admitted image.
 The [corrected link and gated follow-ups](current_fpga/cc_resume_v2/LINK_RETENTION.md)

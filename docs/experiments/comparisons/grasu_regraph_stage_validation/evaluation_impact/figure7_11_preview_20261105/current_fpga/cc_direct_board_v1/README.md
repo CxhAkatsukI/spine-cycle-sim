@@ -2,14 +2,18 @@
 
 November 6, 2026. This is the direct board campaign using the existing
 Spine CC streaming image. It does not wait for the independent routing-report
-rebuild. Results and raw logs will be added when the running matrix finishes;
-this launch record alone is not a complete eight-dataset result.
+rebuild. All eight pairs are complete and pass correctness checks. This
+folder contains the [CC data](data/fig7_cc.csv), [scope and source index](data/scope.json),
+[raw receipt archive](data/receipts.tar.gz), and combined Fig. 7
+[PNG](figures/fig7_resident_checkpoint.png) / [PDF](figures/fig7_resident_checkpoint.pdf).
+The combined preview overlays these eight CC rows on the unchanged
+[sixteen-pair SSSP/ResPR checkpoint](../resident_checkpoint_v3/README.md).
 
 ## Completed Pairs
 
-The running campaign has completed these pairs. Ratios are G+R wall time
-divided by Spine wall time; values above one favor Spine. Pending rows are
-not estimated or filled from an older image.
+Ratios are G+R wall time divided by Spine wall time; values above one favor
+Spine. Every dataset has a measured pair; no projection or timeout estimate
+is used.
 
 | Dataset | Spine, ms | G+R, ms | G+R / Spine | Spine rounds | G+R steps |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -18,11 +22,13 @@ not estimated or filled from an older image.
 | WK | 12.632963 | 32.553868 | 2.5769 | 2 | 2 |
 | SO | 37.319110 | 220.937809 | 5.9202 | 0 | 1 |
 | PK | 5.227821 | 46.870413 | 8.9656 | 0 | 1 |
+| LJ | 9.069096 | 204.045173 | 22.4990 | 0 | 1 |
 | LJ08 | 9.264784 | 246.582085 | 26.6150 | 0 | 1 |
 | R19 | 10.381851 | 41.171681 | 3.9657 | 2 | 2 |
 
-All seven pairs pass their final-state checks. LJ is running. This is a
-CC-only update, not completion of Figures 7--11.
+All eight pairs pass their final-state checks and favor Spine. This is a
+CC-only measurement update that completes the 24-pair Fig. 7 preview;
+it does not rerun SSSP/ResPR or refresh Figures 8--11.
 
 ### Longer Preparation Limit
 
@@ -50,16 +56,16 @@ workload defect. While LJ08 was still loading input and the render node was
 unopened, the board was successfully programmed with the existing G+R image
 so that its next Spine load changes the programmed UUID. The operation and
 observations are retained in `long_startup/device-recovery.json`. LJ08 then
-completed both arms successfully. LJ is running in a separate attempt; no
-failed sample is replaced by a number before that attempt completes.
+completed both arms successfully. LJ then completed both arms in the separate
+48-GiB attempt below. Earlier failed attempts remain in the exported archive.
 
-The current LJ retry is running under
+The final LJ retry completed under
 `spine-cc-direct-recovered-lj-48g-20261106-v1.service`, writing `recovered_lj_48g/`,
 from clean simulator commit `8d055ba8`.
-It allows up to 14,400 seconds for board/memory admission before either arm,
-then the same 7,200-second process timeout per arm. The queue does not open
-the board or allocate graph buffers until the existing pair releases its
-lease and its full finite 48-GiB budget plus reserve fits. This is not a
+It allowed up to 14,400 seconds for board/memory admission before either arm,
+then the same 7,200-second process timeout per arm. The queue did not open
+the board or allocate graph buffers until the existing pair released its
+lease and its full finite 48-GiB budget plus reserve fit. This was not a
 parallel board run or a change to the measured interval.
 
 ### Large CPU Audit Capacity
@@ -77,7 +83,9 @@ before/after settings, memory observations and reasons.
 The completed LJ08 Spine arm reached 48,414,642,176 bytes (45.09 GiB) cgroup
 peak. Soft-limit throttling was recorded; hard-limit and OOM counters were
 zero. Thus this is not a claim of zero memory-pressure events. The final LJ
-retry reserves 48/46 GiB up front. Its earlier 32-GiB and 40-GiB queues were
+retry reserved 48/46 GiB up front and reached 43,110,612,992 bytes (40.15 GiB)
+cgroup peak, with all memory high/max/OOM counters zero. Its earlier
+32-GiB and 40-GiB queues were
 stopped before either arm started; their `operator-stop.json` records remain
 under `recovered_lj/` and `recovered_lj_40g/`. No measured sample was discarded.
 
@@ -103,7 +111,32 @@ reporting its actual, correctness-checked execution time. Do not relabel this
 campaign as having complete routed timing evidence. Driver-reported clocks
 are saved per arm.
 
-## Artifacts And Live Output
+### Interpreting Zero Rounds
+
+A zero-round Spine batch is not an omitted convergence run: these insertions
+do not lower any existing component label. The device still applies the
+updates, completes its maintenance/publication path and returns the checked
+labels. G+R takes one verification superstep on those same batches. WK and
+R19 instead change component labels and take two propagation rounds on each
+system. The initial old-graph convergence is outside both resident windows;
+its long execution time is not included in the speedup.
+
+These are single-sample results for the named insertion traces. They do not
+establish the same advantage for arbitrary CC propagation or deletion traces,
+nor calibrate simulator stages or reproduce published GraSU/ReGraph throughput.
+
+## Artifacts And Replay
+
+The committed `data/` directory holds the complete eight-row CSV, scope and
+raw receipt archive. The archive includes terminal attempts, memory-budget
+changes, device recovery and both arms' output, including failed attempts.
+Large binaries and graph/state buffers are indexed rather than duplicated.
+Within the archive, `retry-1/` is `long_startup/`, `retry-2/` is
+`recovered_lj/`, `retry-3/` is `recovered_lj_40g/`, and `retry-4/` is
+`recovered_lj_48g/`. The successful final LJ logs are therefore
+`retry-4/lj/{spine,gr}.stdout.txt`.
+The `figures/` directory also contains an unchanged G/R source-control redraw;
+those controls are not new measurements in this CC campaign.
 
 The run host's base directory is:
 
@@ -113,16 +146,19 @@ The run host's base directory is:
 
 - `image/spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin`: Spine image.
 - `AU/results.json` and `AU/spine_cc.stdout.txt`: completed AU Spine sample.
-- `remaining/matrix.json`: all seven subsequent dataset statuses and results.
-- `remaining/<dataset>/pair.json`: each completed pair's wall times and ratio.
-- `remaining/<dataset>/{spine,gr}.stdout.txt`: raw program output.
+- `remaining/matrix.json`: first attempts for the seven subsequent datasets.
+- `long_startup/matrix.json`: retained failed LJ attempt and completed LJ08 pair.
+- `recovered_lj/matrix.json` and `recovered_lj_40g/matrix.json`: stopped queues.
+- `recovered_lj_48g/matrix.json`: final completed LJ pair.
+- Each attempt's `<dataset>/pair.json` and `{spine,gr}.stdout.txt`: pair timings
+  and raw program output, where the arms ran.
 
 The simulator runner is
 `spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_direct_matrix`.
 The original service `spine-cc-direct-matrix-20261106-v1.service` and the
-longer-startup service are terminal; only the final LJ retry is active. This is a
+longer-startup service and all LJ retry services are terminal. This is a
 board-only runner: it changes no HLS, numerical model, input graph or paper.
-Finite process limits and live memory protection remain active.
+Finite process limits and live memory protection were enforced throughout.
 
 From a full simulator checkout with the indexed files available:
 
@@ -180,3 +216,11 @@ python3 "$pkg/render_current.py" \
   --cc-direct /path/to/fresh-cc-data/fig7_cc.csv \
   --output /path/to/fresh-figures
 ```
+
+## Delivery Checks
+
+All 80 focused runner, export, memory-policy, renderer and repository-layout
+tests pass. Document-layout and catalog checks and `git diff --check` pass.
+The combined preview has been visually inspected. These checks validate the
+delivery and its data handling; final-state correctness comes from the board
+runs' exact label, graph and work checks, not from the plot tests.

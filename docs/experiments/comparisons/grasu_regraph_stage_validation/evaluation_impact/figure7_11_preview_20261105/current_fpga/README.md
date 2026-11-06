@@ -1,9 +1,12 @@
 # Current FPGA Source Controls
 
-The [direct CC board run](cc_direct_board_v1/README.md) now supplies seven
-correctness-checked pairs using the existing streaming image. Only LJ is
-still running, with startup failures and device recovery recorded in that
-campaign's README. Missing raw routing reports do not postpone these
+The [direct CC board run](cc_direct_board_v1/README.md) now supplies all eight
+correctness-checked pairs using the existing streaming image. Spine wins
+1.18x--26.61x on these insertion traces. Its
+[combined Fig. 7 preview](cc_direct_board_v1/figures/fig7_resident_checkpoint.png)
+adds these CC rows to the sixteen frozen SSSP/ResPR pairs below. Startup
+failures, device recovery and all retry logs remain retained. Missing raw
+routing reports did not postpone these
 measurements; their static-timing documentation remains explicitly incomplete.
 The separate frozen checkpoint below is not silently rewritten.
 
@@ -63,8 +66,8 @@ either paper's published throughput** or blanket equivalence for all workloads.
 The exact SSSP image is the one used for the eight-row
 [new SSSP result](../fig7_sssp_banked.csv). The CC image is the admitted
 source-burst baseline; the replacement Spine CC route does not change that
-baseline. The degree-prefix ResPR image is the baseline in the new running
-resident matrix. No point is borrowed from the earlier packed-validity image.
+baseline. The degree-prefix ResPR image is the baseline in the frozen
+resident checkpoint. No point is borrowed from the earlier packed-validity image.
 
 The [qualified Spine correction host](https://github.com/jayfeather9/spine-dynamic-graph/commit/b576278)
 and its tests are committed separately in the HLS repository. It changes host

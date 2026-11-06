@@ -7,6 +7,13 @@ their actual status, not a fabricated timing, timeout or speedup. This
 archive is for review and redraw, not an FPGA rerun. Raw compact receipts
 are included; large graphs, FPGA images and toolchains are indexed by hash.
 
+The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md) is a
+separate delivery and overlay. The archive builder does not automatically
+merge it into `resident_checkpoint_v3`: selecting that frozen checkpoint
+still selects sixteen measured pairs, not twenty-four. Follow the direct
+campaign's export/redraw commands to combine its CC rows with that
+checkpoint; do not rename the frozen checkpoint to imply new measurements.
+
 | Plot | Selected data within this directory | Evidence boundary |
 | --- | --- | --- |
 | G/R control | [CSV](current_fpga/gr_controls.csv), [scope](current_fpga/gr_scope.json), [receipts](current_fpga/gr_receipts.tar.gz) | Single-sample same-workload FPGA public-source ports. G resident CU span is faster (one-sided gate); all eight adapter+R supersteps are within absolute +/-15%. Neither measures published throughput or whole convergence. |
