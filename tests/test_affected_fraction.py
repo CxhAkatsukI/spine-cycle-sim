@@ -162,6 +162,8 @@ class AnalysisTest(unittest.TestCase):
             result = export([campaign_path], output)
             self.assertEqual(result["measured_points"], 0)
             self.assertEqual(result["total_samples"], 1)
+            self.assertNotIn(b"\r", (output / "points.csv").read_bytes())
+            self.assertNotIn(b"\r", (output / "samples.csv").read_bytes())
             with tarfile.open(output / "host-logs.tar.gz") as archive:
                 self.assertEqual(archive.getnames(), ["campaign-0/target/sample-0/spine.stderr.txt"])
             with tarfile.open(output / "updates.tar.gz") as archive:

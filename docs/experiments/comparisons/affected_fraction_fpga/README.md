@@ -191,7 +191,7 @@ algorithmic loss. Subsequent campaigns use board 0 serially, with unchanged
 paired binaries and clocks. Results and current completeness are reported
 in the exported summary, not inferred from this directory list.
 
-The bounded `spine-impact-delivery-20261106.service` waits for the five primary
+The bounded `spine-impact-delivery-20261106-v2.service` waits for the five primary
 campaigns (44 planned points total) and exports to `handoff/` in this folder.
 That future output is not a completed delivery until `delivery.json` says so.
 Current jobs can be inspected without attaching to a long-running command:
@@ -199,5 +199,5 @@ Current jobs can be inspected without attaching to a long-running command:
 ```sh
 systemctl --user status spine-impact-r19-sssp-20261106.service \
   spine-impact-au-cc-board0-20261106.service \
-  spine-impact-au-pr-20261106.service spine-impact-delivery-20261106.service
+  spine-impact-au-pr-20261106.service spine-impact-delivery-20261106-v2.service
 ```
