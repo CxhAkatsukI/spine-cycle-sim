@@ -25,6 +25,7 @@ def configure(previous, dataset, inputs, spine_host, spine_image, gr_host):
 def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     report = dict(status="RUNNING", boundary=wall.BOUNDARY, repetitions_per_arm=1, warmups=0,
+                  arm_timeout_seconds=args.arm_timeout_seconds,
                   routing_report_complete=False, timing_qualification="raw routed skew report unavailable",
                   memory_profile=args.memory_profile, bdf="0000:82:00.1", device=0,
                   artifacts={name: identity(getattr(args, name))
@@ -60,7 +61,8 @@ def run(args):
                             write()
                             command = ["/usr/bin/taskset", "-c", "124,125", *commands[name]]
                             row["arms"][name] = resident.arm(name, command, expected[name], output,
-                                                              cc_wall=True, bdf=report["bdf"], device=0)
+                                                              cc_wall=True, bdf=report["bdf"], device=0,
+                                                              timeout_seconds=args.arm_timeout_seconds)
                             write()
                         pair, receipt = wall.compare(case, row["arms"], output, report["bdf"])
                         row.update(status="MEASURED_WITHOUT_RAW_SKEW_REPORT", comparison=pair, result=receipt)
@@ -84,9 +86,13 @@ def main():
     for name in ("previous", "spine-host", "spine-image", "gr-host", "gr-image", "output"):
         parser.add_argument("--" + name, type=lambda value: Path(value).resolve(), required=True)
     parser.add_argument("--inputs", nargs=2, action="append", required=True, metavar=("DATASET", "JSON"))
+    parser.add_argument("--arm-timeout-seconds", type=int, default=1800,
+                        help="bounded process timeout including unmeasured old-graph preparation (max 7200)")
     parser.add_argument("--memory-profile", choices=memory_policy.PROFILES,
                         default="zfs-arc-clean-half-background5-v1")
     args = parser.parse_args()
+    if not 1 <= args.arm_timeout_seconds <= 7200:
+        parser.error("arm timeout must be between 1 and 7200 seconds")
     if len({dataset for dataset, _ in args.inputs}) != len(args.inputs):
         parser.error("duplicate dataset")
     run(args)

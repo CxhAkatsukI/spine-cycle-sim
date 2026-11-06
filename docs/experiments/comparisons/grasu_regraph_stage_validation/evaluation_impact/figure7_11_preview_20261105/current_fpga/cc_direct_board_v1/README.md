@@ -23,6 +23,24 @@ not estimated or filled from an older image.
 All six pairs pass their final-state checks. LJ and LJ08 are still
 pending. This is a CC-only update, not completion of Figures 7--11.
 
+### Longer Preparation Limit
+
+LJ exhausted the original 1,800-second process timeout during old-graph
+convergence, before producing a measured batch sample. It was in its third
+propagation round; no OOM or cgroup-limit event occurred. The subsequently
+started LJ08 process was explicitly stopped during input loading, rather
+than spending another preparation attempt under that same short limit.
+Its `remaining/lj08/operator-stop.json` records this operator decision.
+These attempts remain preserved; neither is a measured performance loss.
+
+The two missing datasets are resumed serially under the separate service
+`spine-cc-direct-long-startup-20261106-v1.service`, with
+`--arm-timeout-seconds 7200` and output `long_startup/` beneath the base below.
+This changes the process deadline, including unmeasured preparation, not the
+batch timing boundary. The host, images, inputs, affinity, correctness checks,
+single sample and 32-GiB/zero-swap containment remain unchanged. Completed
+datasets are not rerun. The runner's default remains 1,800 seconds.
+
 ## Measurement
 
 Both systems start with the old graph and converged labels resident. Each

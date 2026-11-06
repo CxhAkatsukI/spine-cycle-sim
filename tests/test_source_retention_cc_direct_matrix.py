@@ -62,6 +62,22 @@ class DirectCCMatrixTests(unittest.TestCase):
             direct.main()
         run.assert_not_called()
 
+    @patch.object(direct, "run")
+    def test_long_startup_timeout_is_explicit_and_bounded(self, run):
+        argv = ["direct", "--previous", "p", "--spine-host", "s", "--spine-image", "si",
+                "--gr-host", "g", "--gr-image", "gi", "--output", "out", "--inputs", "LJ", "i"]
+        with patch("sys.argv", argv):
+            direct.main()
+        self.assertEqual(run.call_args.args[0].arm_timeout_seconds, 1800)
+        with patch("sys.argv", argv + ["--arm-timeout-seconds", "7200"]):
+            direct.main()
+        self.assertEqual(run.call_args.args[0].arm_timeout_seconds, 7200)
+        for value in ("0", "7201"):
+            run.reset_mock()
+            with patch("sys.argv", argv + ["--arm-timeout-seconds", value]), self.assertRaises(SystemExit):
+                direct.main()
+            run.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -83,7 +83,10 @@ def idle(node):
     return users.returncode == 1 and not (users.stdout.strip() or users.stderr.strip())
 
 
-def arm(name, command, expected, output, *, cc_wall=False, bdf=BDF, device=DEVICE):
+def arm(name, command, expected, output, *, cc_wall=False, bdf=BDF, device=DEVICE,
+        timeout_seconds=1800):
+    if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 7200:
+        raise ValueError("board arm timeout must be between 1 and 7200 seconds")
     stdout, stderr = (output / f"{name}.{stream}.txt" for stream in ("stdout", "stderr"))
     env = environment(bdf=bdf, device=device)
     if cc_wall and name == "gr":
@@ -94,9 +97,11 @@ def arm(name, command, expected, output, *, cc_wall=False, bdf=BDF, device=DEVIC
     try:
         with stdout.open("x") as out, stderr.open("x") as err:
             if memory_policy.selected() == memory_policy.DEFAULT:
-                code = subprocess.run(command, env=env, cwd=output, stdout=out, stderr=err, timeout=1800).returncode
+                code = subprocess.run(command, env=env, cwd=output, stdout=out, stderr=err,
+                                      timeout=timeout_seconds).returncode
             else:
-                code, guard = guarded_process.run(command, env=env, cwd=output, stdout=out, stderr=err, timeout=1800)
+                code, guard = guarded_process.run(command, env=env, cwd=output, stdout=out, stderr=err,
+                                                  timeout=timeout_seconds)
         if code != 0:
             raise RuntimeError(f"{name} exit {code}; see {stderr}")
     except BaseException as error:
@@ -115,7 +120,7 @@ def arm(name, command, expected, output, *, cc_wall=False, bdf=BDF, device=DEVIC
     observed = clocks.replay(evidence)
     if observed["bdf"] != bdf or observed["binary"] != expected["binary"]:
         raise ValueError("measured board or image differs from the preflight")
-    row = dict(command=command, stdout=identity(stdout), stderr=identity(stderr),
+    row = dict(command=command, timeout_seconds=timeout_seconds, stdout=identity(stdout), stderr=identity(stderr),
                clock_evidence=evidence, clock=observed)
     if guard is not None:
         row["memory_guard"] = guard
