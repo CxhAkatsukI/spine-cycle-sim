@@ -6,11 +6,11 @@ import subprocess
 GIB = 1024**3
 
 
-def verify(directory: Path, memory_gib: int = 40) -> dict:
+def verify(directory: Path, memory_gib: int = 40, *, high_gib: int = 36) -> dict:
     fields = {key: (directory / key).read_text().strip() for key in (
         "memory.max", "memory.high", "memory.swap.max", "memory.oom.group")}
     if (fields["memory.max"] == "max" or not 0 < int(fields["memory.max"]) <= memory_gib * GIB
-            or fields["memory.high"] == "max" or not 0 < int(fields["memory.high"]) <= 36 * GIB
+            or fields["memory.high"] == "max" or not 0 < int(fields["memory.high"]) <= high_gib * GIB
             or int(fields["memory.high"]) > int(fields["memory.max"])
             or fields["memory.swap.max"] != "0" or fields["memory.oom.group"] != "1"):
         raise ValueError("bounded memory.high/max, zero swap and group OOM kill required")

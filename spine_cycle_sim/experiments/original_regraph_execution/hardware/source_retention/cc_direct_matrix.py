@@ -95,8 +95,8 @@ def main():
                         help="wait for the board and safe memory admission before either arm (max 21600)")
     parser.add_argument("--memory-profile", choices=memory_policy.PROFILES,
                         default="zfs-arc-clean-half-background5-v1")
-    parser.add_argument("--memory-gib", type=int, choices=(32, 40), default=32,
-                        help="full cgroup reservation; 40 GiB permits large raw-graph audits (high <= 36 GiB)")
+    parser.add_argument("--memory-gib", type=int, choices=(32, 40, 48), default=32,
+                        help="full cgroup reservation; large CPU raw-graph audits may need 48/46-GiB max/high")
     args = parser.parse_args()
     if not 1 <= args.arm_timeout_seconds <= 7200:
         parser.error("arm timeout must be between 1 and 7200 seconds")

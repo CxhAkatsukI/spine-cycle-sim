@@ -43,9 +43,10 @@ def verify_peer(group, maximum):
 
 class Lease:
     def __init__(self, directory, own, *, proc=Path("/proc"), root=Path("/sys/fs/cgroup"),
-                 host_swap_disabled=False):
+                 host_swap_disabled=False, own_limits=None):
         self.directory, self.own, self.proc, self.root = directory, own, proc, root
         self.host_swap_disabled = host_swap_disabled
+        self.own_limits = dict(own_limits or {})
         self.path = directory / (hashlib.sha256(str(own).encode()).hexdigest() + ".json")
         self.held = False
 
@@ -79,7 +80,7 @@ class Lease:
 
     def sample(self, available, active, manifest, *, commit=False):
         with self.locked():
-            guard = verify(self.own)
+            guard = verify(self.own, **self.own_limits)
             if self.host_swap_disabled:
                 fields = dict(line.split(":", 1) for line in (self.proc / "meminfo").read_text().splitlines())
                 if fields.get("SwapTotal", "").split() != ["0", "kB"]:

@@ -90,6 +90,19 @@ class MemoryLeaseTests(unittest.TestCase):
     def test_start_time_handles_spaces_in_process_name(self):
         self.assertEqual(concurrent.start_time(os.getpid(), self.proc), "1")
 
+    def test_larger_board_limit_is_explicit_and_fully_reserved(self):
+        (self.first / "memory.max").write_text(str(48 * concurrent.GIB))
+        (self.first / "memory.high").write_text(str(46 * concurrent.GIB))
+        policy = dict(self.policy, tree_memory_gib=48)
+        with self.assertRaises(ValueError):
+            self.lease(self.first).sample(200 * concurrent.GIB, [], policy)
+        board = concurrent.Lease(self.directory, self.first, proc=self.proc, root=self.root,
+                                 own_limits=dict(memory_gib=48, high_gib=46))
+        self.assertFalse(board.sample(79 * concurrent.GIB, [], policy)["admitted"])
+        self.assertTrue(board.sample(80 * concurrent.GIB, [], policy, commit=True)["admitted"])
+        self.assertEqual(json.loads(board.path.read_text())["memory_max_bytes"], 48 * concurrent.GIB)
+        board.release()
+
     def test_large_peer_keeps_full_budget_without_inheriting_own_limits(self):
         first, second = self.lease(self.first), self.lease(self.second)
         first.sample(120 * concurrent.GIB, [], self.policy, commit=True)

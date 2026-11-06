@@ -22,7 +22,7 @@ reclaim; ARC reclaim can cause host stalls.
 
 ## Containment And Records
 
-- Atomic admission still reserves the task's full 8/16/24/32/40-GiB cgroup
+- Atomic admission still reserves the task's full 8/16/24/32/40/48-GiB cgroup
   limit, all bounded peer reservations, and a 32-GiB safety reserve.
   A peer reservation is validated against its own full finite max/high,
   zero swap and group-OOM settings, not against the board runner's smaller
@@ -47,10 +47,11 @@ Before/after cgroup snapshots include `memory.current`, `memory.peak`,
 as an error rather than invented. The dual-clock resident-pair report pins this sidecar.
 These are diagnostics, not an extra sample or a relaxation of any gate.
 
-The direct CC runner additionally accepts `--memory-gib 40` for the largest
-raw-graph audits. Use `MemoryMax=40G`, `MemoryHigh=36G`, and zero swap; all
-40 GiB are reserved atomically before admission, with the same 32-GiB live
-reserve. The default remains 32 GiB. This changes CPU preparation/audit
+The direct CC runner additionally accepts `--memory-gib 40` or `48` for large
+raw-graph audits. Use max/high of 40/36 GiB or 48/46 GiB, and zero swap; the
+full hard limit is reserved atomically before admission, with the same 32-GiB
+live reserve. The default remains 32 GiB. The 48/46-GiB verification is an
+explicit board lease setting; compiler defaults remain 40/36 GiB. This changes CPU preparation/audit
 capacity, not the FPGA image or measured batch boundary. An already-running
 attempt's recorded limit extension must retain its before/after limits,
 full lease update, physical-memory observation, and reason in the raw archive.

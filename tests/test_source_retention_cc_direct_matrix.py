@@ -88,8 +88,11 @@ class DirectCCMatrixTests(unittest.TestCase):
         with patch("sys.argv", argv + ["--memory-gib", "40"]):
             direct.main()
         self.assertEqual(run.call_args.args[0].memory_gib, 40)
+        with patch("sys.argv", argv + ["--memory-gib", "48"]):
+            direct.main()
+        self.assertEqual(run.call_args.args[0].memory_gib, 48)
         run.reset_mock()
-        with patch("sys.argv", argv + ["--memory-gib", "48"]), self.assertRaises(SystemExit):
+        with patch("sys.argv", argv + ["--memory-gib", "64"]), self.assertRaises(SystemExit):
             direct.main()
         run.assert_not_called()
 
