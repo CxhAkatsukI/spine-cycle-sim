@@ -11,6 +11,7 @@ Contributors and coding agents must follow [the repository working rules](AGENTS
 
 | Task | Entry point |
 | --- | --- |
+| Download the selected complete Fig. 7--11 data/code/previews and G/R source controls | [Latest evaluation delivery](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/LATEST.md) |
 | Inspect all eight direct CC board pairs and the combined 24-pair Fig. 7 preview | [Direct CC measurements](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/cc_direct_board_v1/README.md) |
 | Inspect the frozen 16-pair SSSP/ResPR checkpoint; newer CC progress is linked above | [Frozen FPGA checkpoint](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/resident_checkpoint_v3/README.md) |
 | Bundle or redraw G/R controls and Figures 7--11 with an explicit FPGA checkpoint | [Portable evaluation archive](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/PORTABLE.md) |

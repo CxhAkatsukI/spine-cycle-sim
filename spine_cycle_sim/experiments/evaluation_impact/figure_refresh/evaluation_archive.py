@@ -24,6 +24,10 @@ OLD_RESIDENT = RESIDENT / "resident_checkpoint_v2"
 CSV = "fig7_resident_checkpoint.csv"
 RECEIPTS = "receipts.tar.gz"
 CONTROLS = RESIDENT / "gr_controls.csv"
+CC_DIRECT = RESIDENT / "cc_direct_board_v1"
+CC_TABLE = CC_DIRECT / "data/fig7_cc.csv"
+CC_MEASURED = "MEASURED_WITHOUT_RAW_SKEW_REPORT"
+COMPLETE_CSV = HANDOFF / "fig7_complete.csv"
 FRESH = HANDOFF / "fresh_simulator/fresh_summary.json"
 ALGORITHMS = ("weighted_sssp", "cc", "residual_pagerank")
 DATASETS = ("AU", "SU", "WK", "SO", "PK", "LJ", "LJ08", "R19")
@@ -40,13 +44,24 @@ def resident_path(name):
     return RESIDENT / name
 
 
-def selection(name):
+def selection(name, cc_direct=False):
     resident = resident_path(name)
+    if cc_direct and name != "resident_checkpoint_v3":
+        raise ValueError("direct CC preview is pinned to resident_checkpoint_v3")
     historical = {HANDOFF / "CURRENT.md", HANDOFF / "render_review.py"}
-    return sorted([MODULE, GUIDE, *(
+    paths = [MODULE, GUIDE, *(
         resident / path.relative_to(OLD_RESIDENT) if path.is_relative_to(OLD_RESIDENT) else path
         for path in frozen.selected_paths() if path not in historical
-    )])
+    )]
+    if cc_direct:
+        paths = [path for path in paths if path.parent != resident / "figures"]
+        paths += [HANDOFF / "LATEST.md", COMPLETE_CSV, CC_DIRECT / "README.md",
+                  CC_TABLE, CC_DIRECT / "data/scope.json", CC_DIRECT / "data/receipts.tar.gz",
+                  CC_DIRECT / "figures/fig7_resident_checkpoint.png",
+                  CC_DIRECT / "figures/fig7_resident_checkpoint.pdf",
+                  RESIDENT / "README.md", resident / "README.md", FRESH.parent / "README.md",
+                  FRESH.parent / "portable_fig8_headroom_v1/README.md"]
+    return sorted(paths)
 
 
 def receipt_digests(payload):
@@ -114,11 +129,81 @@ def checkpoint(name, read):
                 simulator_executions=summary["executions"], **outcomes)
 
 
+def combined_rows(name, read):
+    """Overlay the completed CC campaign without rewriting its frozen checkpoint."""
+    resident = resident_path(name)
+    rows = list(csv.DictReader(io.StringIO(read(str(resident / CSV)).decode())))
+    cc = list(csv.DictReader(io.StringIO(read(str(CC_TABLE)).decode())))
+    scope = json.loads(read(str(CC_DIRECT / "data/scope.json")))
+    if (len(cc) != 8 or {(row["algorithm"], row["dataset"]) for row in cc} != {
+            ("cc", dataset) for dataset in DATASETS} or scope["measured_pairs"] != 8
+            or scope["expected_pairs"] != 8 or scope["status"] != "MEASURED"
+            or scope["routing_report_complete"] is not False):
+        raise ValueError("direct CC overlay must retain eight qualified measurements")
+    hashes = receipt_digests(read(str(CC_DIRECT / "data/receipts.tar.gz")))
+    if any(pin["sha256"] not in hashes for pin in scope["raw_source_records"]):
+        raise ValueError("direct CC source receipt missing from archive")
+    controls = json.loads(read(str(RESIDENT / "gr_scope.json")))
+    if scope["artifacts"]["gr_image"] not in controls["artifact_index"]:
+        raise ValueError("direct CC image differs from G/R controls")
+    lookup = {(row["algorithm"], row["dataset"]): row for row in rows}
+    for row in cc:
+        key = (row["algorithm"], row["dataset"])
+        if lookup[key]["status"] == "MEASURED":
+            raise ValueError("direct CC cannot replace a measured checkpoint sample")
+        pair = scope["pairs"][row["dataset"]]
+        spine, gr, ratio = (float(row[field]) for field in (
+            "spine_wall_ms", "gr_wall_ms", "speedup_gr_over_spine"))
+        if (row["status"] != CC_MEASURED or row["routing_report_complete"] != "False"
+                or row["boundary"] != BOUNDARIES["cc"] or pair["boundary"] != row["boundary"]
+                or not all(math.isfinite(value) and value > 0 for value in (spine, gr, ratio))
+                or not math.isclose(gr / spine, ratio, rel_tol=1e-9)
+                or (spine, gr, ratio) != (pair["spine_ms"], pair["gr_ms"], pair["gr_over_spine"])):
+            raise ValueError("direct CC timing or qualification differs from exported scope")
+        lookup[key] = row
+    combined = [lookup[(algorithm, dataset)] for algorithm in ALGORITHMS for dataset in DATASETS]
+    for row in combined:
+        source = CC_TABLE if row["algorithm"] == "cc" else resident / CSV
+        row["source_csv"] = str(source.relative_to(HANDOFF))
+    return combined
+
+
+def complete_csv(name, read):
+    rows = combined_rows(name, read)
+    out = io.StringIO()
+    writer = csv.DictWriter(out, fieldnames=list(dict.fromkeys(key for row in rows for key in row)),
+                            lineterminator="\n")
+    writer.writeheader()
+    writer.writerows(rows)
+    return out.getvalue().encode("utf-8")
+
+
+def selected_checkpoint(name, read, cc_direct=False):
+    summary = checkpoint(name, read)
+    if not cc_direct:
+        return summary
+    rows = combined_rows(name, read)
+    if any(row["status"] not in ("MEASURED", CC_MEASURED) for row in rows):
+        raise ValueError("complete selection still has unmeasured FPGA rows")
+    outcomes = {label: [] for label in ("spine_wins", "gr_wins", "ties", "unmeasured")}
+    for row in rows:
+        ratio = float(row["speedup_gr_over_spine"])
+        label = "spine_wins" if ratio > 1 else "gr_wins" if ratio < 1 else "ties"
+        outcomes[label].append(dict(algorithm=row["algorithm"], dataset=row["dataset"],
+                                    speedup_gr_over_spine=ratio))
+    return dict(summary, status="MEASURED_CURRENT_FPGA_MATRIX", fpga_pairs=24, complete=True,
+                all_pairs_spine_wins=len(outcomes["spine_wins"]) == 24,
+                cc_routing_report_complete=False, **outcomes)
+
+
 def verify(read, names=None):
     manifest = json.loads(read(INDEX))
     if manifest.get("schema") != "evaluation-archive-v1":
         raise ValueError("unsupported evaluation archive")
-    expected = [str(path) for path in selection(manifest["resident_checkpoint"])]
+    cc_direct = manifest.get("cc_direct", False)
+    if not isinstance(cc_direct, bool):
+        raise ValueError("CC selection must be explicit boolean")
+    expected = [str(path) for path in selection(manifest["resident_checkpoint"], cc_direct)]
     members = manifest["members"]
     if [row["path"] for row in members] != expected or (
             names is not None and names != {INDEX, *expected}):
@@ -127,7 +212,9 @@ def verify(read, names=None):
         payload = read(row["path"])
         if len(payload) != row["bytes"] or frozen.digest(payload) != row["sha256"]:
             raise ValueError("changed evaluation member: " + row["path"])
-    if checkpoint(manifest["resident_checkpoint"], read) != manifest["checkpoint"]:
+    if cc_direct and read(str(COMPLETE_CSV)) != complete_csv(manifest["resident_checkpoint"], read):
+        raise ValueError("combined Fig. 7 CSV differs from its source tables")
+    if selected_checkpoint(manifest["resident_checkpoint"], read, cc_direct) != manifest["checkpoint"]:
         raise ValueError("archive summary differs from selected evidence")
     return manifest
 
@@ -152,14 +239,20 @@ def read_file(root, name):
     return path.read_bytes()
 
 
-def build(root, name, destination):
-    paths = selection(name)
+def build(root, name, destination, cc_direct=False):
+    paths = selection(name, cc_direct)
     root = root.resolve()
-    payloads = {str(path): read_file(root, str(path)) for path in paths}
+    payloads = {str(path): read_file(root, str(path)) for path in paths
+                if not (cc_direct and path == COMPLETE_CSV)}
+    if cc_direct:
+        payloads[str(COMPLETE_CSV)] = complete_csv(name, payloads.__getitem__)
+        payloads = dict(sorted(payloads.items()))
     manifest = dict(schema="evaluation-archive-v1", resident_checkpoint=name,
-                    checkpoint=checkpoint(name, payloads.__getitem__),
+                    checkpoint=selected_checkpoint(name, payloads.__getitem__, cc_direct),
                     members=[dict(path=path, bytes=len(blob), sha256=frozen.digest(blob))
                              for path, blob in payloads.items()])
+    if cc_direct:
+        manifest["cc_direct"] = True
     index = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode("ascii")
     with destination.open("xb") as stream:
         with gzip.GzipFile(filename="", mode="wb", fileobj=stream, mtime=0) as compressed:
@@ -186,7 +279,8 @@ def render(root, output):
     reference = style.prior_renderer()
     reference.configure_matplotlib()
     current.draw(current.checked_rows(root / CONTROLS), output)
-    current.draw_resident(root / resident_path(manifest["resident_checkpoint"]) / CSV, output)
+    current.draw_resident(root / resident_path(manifest["resident_checkpoint"]) / CSV, output,
+                          root / CC_TABLE if manifest.get("cc_direct") else None)
     style.fig8_headroom(output)
     fresh = root / FRESH.parent
     style.fig9(output, fresh, "fig9_memory_hbm_prediction", fresh=True)
@@ -200,6 +294,8 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     package = commands.add_parser("build")
     package.add_argument("--resident", required=True)
+    package.add_argument("--cc-direct", action="store_true",
+                         help="include the completed direct CC overlay without changing the checkpoint")
     package.add_argument("--output", type=Path, required=True)
     check = commands.add_parser("verify")
     check.add_argument("archive", type=Path)
@@ -207,7 +303,7 @@ def main():
     redraw.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "build":
-        result = build(Path.cwd(), args.resident, args.output)
+        result = build(Path.cwd(), args.resident, args.output, args.cc_direct)
     elif args.command == "verify":
         result = verify_archive(args.archive)
     else:

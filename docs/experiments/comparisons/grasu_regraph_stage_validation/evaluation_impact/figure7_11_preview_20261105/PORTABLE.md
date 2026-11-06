@@ -7,12 +7,12 @@ their actual status, not a fabricated timing, timeout or speedup. This
 archive is for review and redraw, not an FPGA rerun. Raw compact receipts
 are included; large graphs, FPGA images and toolchains are indexed by hash.
 
-The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md) is a
-separate delivery and overlay. The archive builder does not automatically
-merge it into `resident_checkpoint_v3`: selecting that frozen checkpoint
-still selects sixteen measured pairs, not twenty-four. Follow the direct
-campaign's export/redraw commands to combine its CC rows with that
-checkpoint; do not rename the frozen checkpoint to imply new measurements.
+The [selected complete delivery](LATEST.md) explicitly combines the
+[direct CC board campaign](current_fpga/cc_direct_board_v1/README.md) with
+`resident_checkpoint_v3`. Select `--cc-direct` to include that overlay and
+a derived 24-row CSV. Without that flag, selecting the frozen checkpoint
+still selects sixteen measured pairs, not twenty-four. Neither selection
+rewrites the checkpoint or removes CC's missing-raw-report qualification.
 
 | Plot | Selected data within this directory | Evidence boundary |
 | --- | --- | --- |
@@ -49,15 +49,20 @@ From a checkout containing the explicit checkpoint:
 
 ```sh
 module=spine_cycle_sim.experiments.evaluation_impact.figure_refresh.evaluation_archive
-python3 -m "$module" build --resident resident_checkpoint_v3 --output /tmp/eval-review.tar.gz
+python3 -m "$module" build --resident resident_checkpoint_v3 --cc-direct --output /tmp/eval-review.tar.gz
 python3 -m "$module" verify /tmp/eval-review.tar.gz
 ```
 
-Change `--resident` only to a reviewed checkpoint from the same replayed
-exporter. The verifier checks the 24 slots, timings and ratios, the exact
+Without the CC overlay, change `--resident` only to a reviewed checkpoint
+from the same replayed exporter. `--cc-direct` is pinned to v3 because its
+combined preview selects those exact sixteen source rows. The verifier
+checks the 24 slots, timings and ratios, the exact
 control CSV pin, and the per-file archive hashes. Each measured Fig. 7 row
 must also match the content hash of an embedded board receipt. The exporter,
 not the plotter, is responsible for admitting board runs against raw receipts.
+The direct CC overlay additionally checks its exported scope, source-receipt
+presence and exact baseline image against the G/R controls, and preserves
+its qualified measurement status in the derived CSV.
 New exports also retain available pinned CC failure receipts from the child
 or collector, without converting those slots to measurements.
 

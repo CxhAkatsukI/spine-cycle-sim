@@ -1,5 +1,13 @@
 # G/R Source Controls and Evaluation Plots
 
+**Selected delivery:** [Figures 7--11 plus G/R controls](LATEST.md), with a
+single complete download, [24-row Fig. 7 CSV](fig7_complete.csv), all six
+PDF/PNG previews, Python plotting code and source receipts. The new archive
+includes all eight direct CC board pairs; `CURRENT.md` and
+`current_review.tar.gz` below are historical frozen selections, not the
+latest delivery. The remaining sections retain earlier checkpoints and
+their limitations for provenance.
+
 The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md)
 has completed all eight correctness-checked pairs. Spine wins by
 1.18x--26.61x on these insertion traces. The
