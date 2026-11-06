@@ -80,3 +80,59 @@ required. A fresh launch/output is required. Local followers identify its
 exact successful build,
 then pass the AU correctness/replay gate before requesting the other seven
 CC pairs. The frozen formal result remains **16/24 pairs; eight CC missing**.
+
+## Active Queue, November 6
+
+At 15:51 CST the replacement build was `WAITING_FOR_ADMISSION`, the AU
+collector was `WAITING_FOR_ROUTE`, and the matrix was
+`WAITING_FOR_WARM_CC_AU`. The observed host had about 478 GiB available;
+four compiler processes from one foreign, unbounded cgroup prevented
+admission. No compiler had started in the v3 root. The two-hour admission
+wait does not remove the finite-peer requirement or alter another user's
+task. These are launch observations, not final execution receipts.
+
+| Task | Exact unit / invocation |
+| --- | --- |
+| Remote link | `spine-cc-stream-link-retained-20261106-v2.service` / `00449cce4545414eb4047c88c76236d6` |
+| AU collector | `spine-retention-cc-au-retained-link-20261106-v2.service` / `04bfdcc356304613846852941c270dec` |
+| CC matrix | `gr-retention-cc-retained-link-matrix-20261106-v1.service` / `2700c7f30d524fdcab6294141ae3d338` |
+
+The frozen runner source is simulator commit `7d6aca20`. Local followers
+use `/data/chuxiao/worktrees/spine-link-retained-wait-20261106`; the remote
+runner uses `/data/chuxiao/cc-link-retained-wait-runner-20261106`.
+The link-script SHA-256 is
+`dfeadb69fc0aec749a6aad2ebdf6d84af4e005c63fbc350c9eba69f946ac1236`;
+the new supervisor SHA-256 is
+`b9b7173d02a4edf2f91f442e37ece718eb6e53698b7639b8046c35f7835eab4f`.
+Hardware source `2315caefdaa40b4a4fb9619f6286232aafa8dee7` and ABI
+`caa178a765083ba21d6a6e3e900171f09a3e19957360db60af87f3c8fb869574`
+are unchanged.
+
+Live receipts, distinct from every earlier attempt:
+
+- Remote: `/data/chuxiao/cc-stream-link-retained-20261106-v2/execution.json`;
+  sibling `build.log` is created only after admission.
+- AU: `/data/chuxiao/checks/source-retention-repair-20261104/cc-au-retained-link-20261106-v2/results.json`.
+- Matrix: `/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-retained-link-matrix-20261106-v1/matrix.json`.
+
+After successful link and raw-skew validation, the collector requests one
+resident AU execution against its pinned G+R anchor. Only a passing exact
+AU receipt releases the other seven paired CC executions. Collector limits
+remain 24/22 GiB max/high; the matrix coordinator remains 2/1 GiB and each
+board child 32/30 GiB, all with zero task swap. There is one repetition per
+arm, with no warmups. Board leases, ARC-aware admission and correctness
+checks remain mandatory; a queued follower does not establish a speedup.
+
+Verification before launch: 58 focused runtime/evidence tests and 15
+repository-organization tests passed, as did document-layout, catalog and
+whitespace checks. No numerical simulator, kernel or frozen figure data
+changed in this recovery.
+
+An additional compiler-free check generated the command from the actual
+copied Makefile, using the frozen script's exact argument array. Its
+[dry-run output](link-plan-preflight-20261106.txt) passed
+[link-command validation](link-plan-preflight-20261106.json), with plan
+SHA-256 `d9d7f788e0916bd83e51e75081d258aa560f399d64bd49c0f3b4fc32872b2e83`.
+All inherited artifact hashes also passed. This check writes neither the
+live build's plan nor an image; the admitted build must repeat it before
+starting Vitis. It is not routing, clock or performance evidence.
