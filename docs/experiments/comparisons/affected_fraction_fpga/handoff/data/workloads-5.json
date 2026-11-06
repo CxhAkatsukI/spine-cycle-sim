@@ -1,0 +1,234 @@
+{
+  "algorithm": "residual_pagerank",
+  "dataset": "AU",
+  "source": 0,
+  "vertices": 515281,
+  "edges": 826848,
+  "original": {
+    "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph",
+    "sha256": "b66ce231811d607cf3ff853f82e0320d04768f7171d6d7c22e115ab21ab2c580",
+    "bytes": 13151403
+  },
+  "oracle": {
+    "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/pagerank_reference",
+    "sha256": "1a3610b177275d2652a94fb3a12f978252e9a5f818788c43c87eaf5733a6d896",
+    "bytes": 33248
+  },
+  "preparation": {
+    "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/pagerank.py",
+    "sha256": "0aa0e5b8142b9a4757055095d31043dc494e0ef22e832a72466b7897164389a0",
+    "bytes": 4875
+  },
+  "epsilon": 1e-06,
+  "points": [
+    {
+      "name": "fan-in-16384",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/fan-in-16384.graph",
+        "sha256": "75c9deba9d1b981440b45a141eafef9d1ef87dbddeaa20800bc1d9893eace3e8",
+        "bytes": 13438200
+      },
+      "updates": 16384,
+      "converged": true,
+      "changed_vertices": 9437,
+      "changed_above_epsilon": 9433,
+      "initial_active": 8627,
+      "rounds": 9,
+      "reference_edges_traversed": 151069,
+      "reference_sources_served": 26163,
+      "rank_delta_l1": 0.0369115,
+      "changed_fraction": 0.018314279005047732,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 0.01,
+      "selected_for_targets": [
+        0.01
+      ]
+    },
+    {
+      "name": "fan-in-65536",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/fan-in-65536.graph",
+        "sha256": "8f06d9d8576180f178211462dc638c84c12bd9506dd116d09f4521a748653f94",
+        "bytes": 14298780
+      },
+      "updates": 65536,
+      "converged": true,
+      "changed_vertices": 37113,
+      "changed_above_epsilon": 37074,
+      "initial_active": 34427,
+      "rounds": 11,
+      "reference_edges_traversed": 445133,
+      "reference_sources_served": 103810,
+      "rank_delta_l1": 0.147286,
+      "changed_fraction": 0.07202477871297408,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 0.1,
+      "selected_for_targets": [
+        0.1
+      ]
+    },
+    {
+      "name": "fan-in-8",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/fan-in-8.graph",
+        "sha256": "94eb54b7d705093c4a072fd03cf1cc0cc79b173c7de0b66e6fbd56532eeaf2af",
+        "bytes": 13151432
+      },
+      "updates": 8,
+      "converged": true,
+      "changed_vertices": 4,
+      "changed_above_epsilon": 4,
+      "initial_active": 4,
+      "rounds": 4,
+      "reference_edges_traversed": 16,
+      "reference_sources_served": 16,
+      "rank_delta_l1": 2.10264e-05,
+      "changed_fraction": 7.762754691129695e-06,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05,
+      "selected_for_targets": [
+        1e-05
+      ]
+    },
+    {
+      "name": "hub-1",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-1.graph",
+        "sha256": "2d2837fc634c67703900ac59426e8bbac31296da4d5694492e4e7559c5ca7746",
+        "bytes": 13151308
+      },
+      "updates": 1,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "ordinary-4096",
+      "kind": "ordinary",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/ordinary-4096.graph",
+        "sha256": "13230a703cc2de3b47b7bbfc7919e0dd2e04f03291f31b23c966ede655f8e190",
+        "bytes": 13226839
+      },
+      "updates": 4096,
+      "converged": true,
+      "changed_vertices": 740,
+      "changed_above_epsilon": 740,
+      "initial_active": 708,
+      "rounds": 7,
+      "reference_edges_traversed": 7931,
+      "reference_sources_served": 871,
+      "rank_delta_l1": 0.00137108,
+      "changed_fraction": 0.0014361096178589934,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 0.001
+    },
+    {
+      "name": "ordinary-512",
+      "kind": "ordinary",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/ordinary-512.graph",
+        "sha256": "c578af6b72d0f7b714659f697cd17abdb33dc3254f4bc97a95f7ed262cba020e",
+        "bytes": 13160714
+      },
+      "updates": 512,
+      "converged": true,
+      "changed_vertices": 70,
+      "changed_above_epsilon": 70,
+      "initial_active": 69,
+      "rounds": 4,
+      "reference_edges_traversed": 136,
+      "reference_sources_served": 81,
+      "rank_delta_l1": 0.000122869,
+      "changed_fraction": 0.00013584820709476966,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 0.0001
+    },
+    {
+      "name": "ordinary-64",
+      "kind": "ordinary",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/ordinary-64.graph",
+        "sha256": "58b339d1f1df87e6f906e2ffad4dda2d0a598a9a75188531b79c84bb2669a038",
+        "bytes": 13152464
+      },
+      "updates": 64,
+      "converged": true,
+      "changed_vertices": 14,
+      "changed_above_epsilon": 14,
+      "initial_active": 12,
+      "rounds": 5,
+      "reference_edges_traversed": 32,
+      "reference_sources_served": 21,
+      "rank_delta_l1": 4.83682e-05,
+      "changed_fraction": 2.716964141895393e-05,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "ordinary-8",
+      "kind": "ordinary",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/ordinary-8.graph",
+        "sha256": "f2679e67b126622859f960e4d13e337cdeae0b45651519cf667f3756960eab80",
+        "bytes": 13151440
+      },
+      "updates": 8,
+      "converged": true,
+      "changed_vertices": 2,
+      "changed_above_epsilon": 2,
+      "initial_active": 2,
+      "rounds": 1,
+      "reference_edges_traversed": 3,
+      "reference_sources_served": 2,
+      "rank_delta_l1": 2.1501e-06,
+      "changed_fraction": 3.881377345564847e-06,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    }
+  ],
+  "context": {
+    "seed": 20261106,
+    "strategy": "fan-in",
+    "old_rank_rounds": 128,
+    "damping": 0.85,
+    "max_propagation_rounds": 256,
+    "threshold_semantics": "direct_per_vertex",
+    "vertex_denominator": "all_declared_vertices_including_isolated_ids",
+    "changed_semantics": "final_fp32_rank_differs_from_old_fp32_rank"
+  },
+  "selection": {
+    "rule": "closest_log_actual_fraction_for_each_target_plus_ordinary_and_one_zero",
+    "uses_hardware_timings": false,
+    "sources": [
+      {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/workloads.json",
+        "sha256": "1ac1efd7d9f3630fbc18f41eda28978f0b9c5398d99bc791a7bd9d8514f6ce76",
+        "bytes": 15218
+      },
+      {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/workloads.json",
+        "sha256": "33c16f6c6cac851f5632143342bbf738058857e04e596db2a8a7a345b8315f9d",
+        "bytes": 15060
+      }
+    ],
+    "selector": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/select.py",
+      "sha256": "3e00ec3e7ad6ef32f5902b2cb6937076aad4da4800e19da5be7628b6412747e4",
+      "bytes": 2235
+    }
+  },
+  "continuation_of": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-selected.json"
+}

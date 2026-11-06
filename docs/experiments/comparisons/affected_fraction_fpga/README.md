@@ -6,39 +6,75 @@ wall latency. It supplements, and does not replace, the frozen Figures 7--11.
 The paper is not edited. Raw evidence is retained outside the checkout;
 completed measurements are exported here with their input and host-log archives.
 
-## Measured AU SSSP Pilot
+## Results And Delivery
 
-All thirteen pilot/refinement points completed one warmup and three measured
-pairs, with both arms passing their CPU correctness checks at matched clocks.
-These are FPGA wall measurements, not simulator predictions. The remaining
-AU CC, AU ResPR and R19 SSSP campaigns are still running or queued; they are
-not represented as completed measurements here.
+These are FPGA wall measurements, not simulator predictions. A value above
+1x favors Spine; below 1x favors G+R. **Spine does not win at all affected
+fractions.** Each targeted family crosses 1x in the tested range.
 
-| Actual changed fraction | Batch records | G+R wall (ms) | Spine wall (ms) | G+R / Spine |
-| --- | ---: | ---: | ---: | ---: |
-| 0.00116% | 3 | 12.016 | 5.810 | 2.068 |
-| 0.01029% | 7 | 22.781 | 12.268 | 1.857 |
-| 0.10014% | 304 | 30.708 | 20.519 | 1.497 |
-| 0.21076% | 190 | 30.972 | 27.364 | 1.132 |
-| 0.40017% | 59 | 33.928 | 43.638 | 0.777 |
-| 0.60200% | 78 | 33.904 | 56.286 | 0.602 |
-| 1.00198% | 78 | 40.472 | 88.365 | 0.458 |
-| 10.22491% | 1740 | 56.936 | 951.272 | 0.060 |
-| 38.93487% | 131072 | 44.838 | 2416.030 | 0.019 |
+All 44 unique primary points were attempted: 42 have valid paired timings,
+and two failed. The archive contains 126 formal pairs, 42 successful warmup
+pairs, two failed primary warmups and two superseded failed warmups (172
+sample records in total). One valid zero-change PR control remains in the
+data but not on the logarithmic plot. The final outcome is
+`COMPLETED_WITH_FAILURES`, not an all-successful hardware sweep.
 
-For this targeted shortcut family, adjacent measurements bracket the 1x
-crossing between **0.21076% and 0.40017%** affected vertices. This is an
-empirical bracket, not an interpolated or universal threshold. Ordinary
-8/64/512/4096-update batches respectively achieve 2.286/2.454/1.286/0.317x
-at 0.000582/0.001553/0.014167/0.123816% changed vertices. The last point
-loses despite a lower changed fraction: batch-update work and source/work
-distribution also matter. All losses remain in the exported data and plot.
+| Curve | Adjacent measured 1x bracket, changed vertices (%) | Speedups at the bracket endpoints | Largest CPU-labeled fraction tested |
+| --- | --- | --- | --- |
+| AU SSSP | 0.21076--0.40017 | 1.132x / 0.777x | 38.93% |
+| AU CC | 0.010286--0.100722 | 1.976x / 0.728x | 39.12% |
+| AU ResPR | 0.013197--0.113336 | 1.069x / 0.504x | 14.30%; hardware overflow at this point |
+| R19 SSSP | 0.100327--1.068878 | 3.259x / 0.314x | 52.61% |
 
-The completed AU data are in [data/au-sssp/summary.json](data/au-sssp/summary.json),
-[points.csv](data/au-sssp/points.csv), and [samples.csv](data/au-sssp/samples.csv).
-This export contains 13 measured points and all 52 pairs, including 13 excluded
-warmups. The [PNG preview](figures/au-sssp-crossover.png) and
-[vector PDF](figures/au-sssp-crossover.pdf) are generated solely from that export.
+The brackets use adjacent **targeted** median measurements, not an
+interpolated or universal threshold. Ordinary batches appear as separate
+open markers. For example, AU SSSP's ordinary 4096-update batch already
+loses at 0.12382% changed vertices (0.317x), below its targeted crossing.
+Update work, source distribution, propagation and current host handling
+also affect latency; changed fraction alone does not determine performance.
+
+| Artifact | Location |
+| --- | --- |
+| Combined plot | [PNG](handoff/figures/crossover.png), [vector PDF](handoff/figures/crossover.pdf) |
+| One row per attempted point | [points.csv](handoff/data/points.csv) |
+| Every warmup, formal sample and failed attempt | [samples.csv](handoff/data/samples.csv) |
+| Exact curve data and brackets | [summary.json](handoff/data/summary.json) |
+| Recorded outcome and file identities | [delivery.json](handoff/delivery.json) |
+| Independent protocol/export check | [review.json](handoff/review.json) |
+| Available round, work and timing fields | [work records](handoff/work/records.csv), [field semantics](handoff/work/summary.json) |
+| Raw host logs and exact updates | [host-logs.tar.gz](handoff/data/host-logs.tar.gz), [updates.tar.gz](handoff/data/updates.tar.gz) |
+| Python source, shared helpers, configs, scripts and tests | [crossover-source.zip](crossover-source.zip) |
+
+The source archive is from commit `018b3c88` (full identity in
+`handoff/source-bundle.json`). It is not a bundle of FPGA tools, graph data,
+host executables or bitstreams: those remain explicitly hash-indexed in the
+hardware/workload manifests. The earlier thirteen-point AU SSSP export is
+preserved in [data/au-sssp/](data/au-sssp/summary.json), with its separate
+[pilot preview](figures/au-sssp-crossover.png); use `handoff/` for this delivery.
+
+The independent archive review passes for the 42 valid points and 126 formal
+pairs; its PASS means the exported protocol and evidence agree, not that
+the failed hardware points passed. The work export preserves 1356 available
+timing/work records. Seventy-six focused tests pass across the crossover,
+repository organization, memory guard and paired-host log parsers. No core,
+SST or HLS implementation was changed or rebuilt for this study. The largest
+recorded board-run cgroup peak was 8.58 GiB; no arm incurred an OOM event.
+
+### Retained Hardware Failures
+
+ResPR `fan-in-16384` (1.83143% changed) and `fan-in-131072` (14.30326%)
+failed in the first Spine propagation round with `overflow=1`. The first
+also reports `owner_status=6`; both reach FIFO occupancy 256. These are
+**invalid latency points**, not slow successful runs or timeouts. Their logs
+and input batches are retained, with no invented speedup. The intervening
+`fan-in-65536` point at 7.20248% passes all paired checks (0.05284x), so a
+single monotonic capacity limit based on changed fraction is not established.
+This study reports the implementation failure; it does not claim to repair
+the owner/reactivation scheduler or identify the precise RTL root cause.
+
+Other retained attempts are a board-1 xclbin download timeout (`-110`) and
+an initial PR host CLI mismatch, fixed before valid PR timings were obtained.
+These are distinguished from the two workload-induced Spine failures.
 
 ## Predeclared Method
 
@@ -62,6 +98,9 @@ incremental reference checks targeted batch construction. The denominator
 includes all declared vertex IDs, including isolated IDs. Targeted batches
 insert source shortcuts; ordinary batches use fixed-seed random
 missing directed edges with weights 1--64. Existing topology and IDs are kept.
+Some shortcuts make previously unreachable declared IDs, including isolated
+IDs, reachable. Dense targeted cases are constructed stress workloads,
+not claims about the frequency of such updates in the original trace.
 Shortcut weights are selected from 1 and fractions of the old distance,
 clamped to the weight12 ABI. This avoids forcing every nontrivial shortcut
 to activate the same giant reachable region. Targeting uses a 10% count
@@ -107,6 +146,8 @@ retained failed attempts never masquerade as additional successful samples.
 `review.py` independently checks the completed archive's point/sample coverage,
 alternating order, raw-log digests, paired clocks, medians, CSV values and
 recorded OOM events. This is a protocol/export check, not a new calibration.
+`work.py` exports available log fields, including failed-arm diagnostics,
+without inventing missing counters or treating layout slots as AXI bytes.
 
 ```sh
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.prepare \
@@ -126,7 +167,8 @@ reserve and pressure checks. A waiting job is not a measured point.
 ```sh
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.board \
   --workloads /path/to/workloads.json --template /path/to/hardware.json \
-  --comparator /path/to/compare_resident_fpga_logs.py --output /path/to/fresh-run
+  --comparator /path/to/compare_resident_fpga_logs.py --continue-on-case-error \
+  --output /path/to/fresh-run
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.analyze \
   --campaign /path/to/run/campaign.json --output /path/to/fresh-export
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.plot \
@@ -136,15 +178,20 @@ python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.deliv
   --wait-seconds 14400 --output /path/to/fresh-handoff
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.review \
   /path/to/completed-handoff --output /path/to/completed-handoff/review.json
+python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.work \
+  /path/to/completed-handoff --output /path/to/completed-handoff/work
 ```
 
 Repeat `--campaign` for each primary campaign. Use `--retained-campaign` for
 failed attempts that must be preserved but are superseded by primary reruns,
 and `--candidate` for complete CPU candidate manifests. The delivery includes
 CSV/JSON, exact updates, raw host logs, source/configuration identities, and
-PNG/PDF. `COMPLETED` requires every planned point; failed primary campaigns
-produce `PARTIAL_RETAINED`. A waiting timeout produces `WAIT_TIMEOUT` without
-exporting still-mutating campaigns.
+PNG/PDF. Continuations retain the original primary campaign and attempt only
+its unattempted points; they do not overwrite failures. `COMPLETED` means all
+planned points passed. `COMPLETED_WITH_FAILURES` means all unique planned
+points were attempted but some failed, not that all timings are valid.
+Missing/unattempted points produce `PARTIAL_RETAINED`. A waiting timeout
+produces `WAIT_TIMEOUT` without exporting still-mutating campaigns.
 
 The timing boundary is the current Fig. 7 boundary for each algorithm:
 SSSP/PR use resident batch to final readback including host relaunch;
@@ -182,10 +229,13 @@ Raw root: `/data/chuxiao/checks/affected-fraction-fpga-20261106`.
 | `inputs/sssp-au-refine`, `sssp-au-refine` | Adaptive crossing refinement |
 | `inputs/cc-au`, `cc-au-board0` | Reciprocal CC sweep on the working board |
 | `inputs/respr-au`, `inputs/respr-au-fanin` | All CPU PR candidates, including zero spread |
-| `inputs/respr-au-selected.json`, `respr-au` | CPU-selected primary PR hardware sweep |
-| `inputs/sssp-r19` | Second graph class: R-MAT, not a road network |
+| `inputs/respr-au-selected.json`, `respr-au-v2` | Primary PR sweep through the first retained overflow |
+| `inputs/respr-au-remaining.json`, `respr-au-v3` | Unattempted PR points; continue after per-case failure |
+| `inputs/sssp-r19`, `sssp-r19` | Second graph class: R-MAT, not a road network |
 | `sssp-au-pilot-v1` | Superseded queued attempt; stopped before either arm started |
 | `cc-au` | Board 1 xclbin-download timeout; no valid timing pair |
+| `respr-au` | Superseded PR CLI failure; no valid timing pair |
+| `partial-handoff-cli-v1`, `partial-handoff-pr-overflow-v2` | Earlier partial exports, retained outside Git |
 
 The first SSSP CPU construction overshot intermediate targets; its inputs
 are retained separately under `inputs/sssp-au`, not used as the v2 pilot.
@@ -196,13 +246,9 @@ algorithmic loss. Subsequent campaigns use board 0 serially, with unchanged
 paired binaries and clocks. Results and current completeness are reported
 in the exported summary, not inferred from this directory list.
 
-The bounded `spine-impact-delivery-20261106-v2.service` waits for the five primary
-campaigns (44 planned points total) and exports to `handoff/` in this folder.
-That future output is not a completed delivery until `delivery.json` says so.
-Current jobs can be inspected without attaching to a long-running command:
-
-```sh
-systemctl --user status spine-impact-r19-sssp-20261106.service \
-  spine-impact-au-cc-board0-20261106.service \
-  spine-impact-au-pr-20261106.service spine-impact-delivery-20261106-v2.service
-```
+The combined export has six primary campaign journals covering 44 unique
+planned points, plus two superseded failed attempts. The final completeness
+and sample counts are recorded in `handoff/delivery.json` and independently
+checked in `handoff/review.json`. Failed points never appear as successful
+ratios in the plot. One zero-change PR control remains in the CSV/JSON but
+cannot appear on the logarithmic x-axis.

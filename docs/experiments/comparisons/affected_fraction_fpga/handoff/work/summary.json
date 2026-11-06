@@ -1,0 +1,11 @@
+{
+  "records": 1356,
+  "source": "archived host stdout; original field names prefixed log_",
+  "excludes": "bootstrap/pre-update work; no timing subtraction or missing-counter imputation",
+  "semantics": {
+    "KERNEL_PAIR_RESULT": "one Spine propagation round; processed_edges and source_requests are work counts",
+    "CC_UPDATE_PASS": "one complete Spine CC update; physical_edges/row_queries/vertex_visits are distinct work counts",
+    "SHARDED_RESULT": "G+R result; processed_edge_slots_per_superstep is a layout count, not measured AXI bytes",
+    "TIMING": "available host/event fields; overlapping component durations are not additive host time"
+  }
+}

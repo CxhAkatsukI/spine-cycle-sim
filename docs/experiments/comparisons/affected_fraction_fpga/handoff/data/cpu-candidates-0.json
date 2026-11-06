@@ -1,0 +1,428 @@
+{
+  "algorithm": "residual_pagerank",
+  "dataset": "AU",
+  "source": 0,
+  "vertices": 515281,
+  "edges": 826848,
+  "original": {
+    "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph",
+    "sha256": "b66ce231811d607cf3ff853f82e0320d04768f7171d6d7c22e115ab21ab2c580",
+    "bytes": 13151403
+  },
+  "oracle": {
+    "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/pagerank_reference",
+    "sha256": "1a3610b177275d2652a94fb3a12f978252e9a5f818788c43c87eaf5733a6d896",
+    "bytes": 33248
+  },
+  "epsilon": 1e-06,
+  "points": [
+    {
+      "name": "hub-1",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-1.graph",
+        "sha256": "2d2837fc634c67703900ac59426e8bbac31296da4d5694492e4e7559c5ca7746",
+        "bytes": 13151308
+      },
+      "updates": 1,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-2",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-2.graph",
+        "sha256": "a6ceba59a3566a8fcbe6cc9cbea8348cb91f1995f2ba4fddc81d57b7225e1c27",
+        "bytes": 13151324
+      },
+      "updates": 2,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-4",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-4.graph",
+        "sha256": "0ef5890278df6e531eef9794677d812288eb564d7dadd88a669ef418919a3409",
+        "bytes": 13151354
+      },
+      "updates": 4,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-8",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-8.graph",
+        "sha256": "d4dfcd9d5e2e2aaeae9145990c189cd580ec0ad05be8f0dc76fc4ea0592209c8",
+        "bytes": 13151418
+      },
+      "updates": 8,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-16",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-16.graph",
+        "sha256": "ce5a45b5ad47bd8a1d2d3f0f4dc65703846cfd115de108ca1492e3f825a226f0",
+        "bytes": 13151551
+      },
+      "updates": 16,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-32",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-32.graph",
+        "sha256": "2cdc40d5009edad9fae474151b1202168496bcff9a7479b0ee0ce660c8e92406",
+        "bytes": 13151817
+      },
+      "updates": 32,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-64",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-64.graph",
+        "sha256": "b6d3c47c5b8bd09f3d6b3a523d6ddae1c6f49dc11dd631027ca26862e7321890",
+        "bytes": 13152350
+      },
+      "updates": 64,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-128",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-128.graph",
+        "sha256": "b06e3530fae212db20a78df8dca734b44a3271ef5acf3b3ac45e954ca5ed1151",
+        "bytes": 13153421
+      },
+      "updates": 128,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-256",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-256.graph",
+        "sha256": "6a33dc1655ed0cadefe49ce02e323ff32921e4271dfd1652416f54d57b5093e9",
+        "bytes": 13155583
+      },
+      "updates": 256,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-512",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-512.graph",
+        "sha256": "c34423cd20dd9cffbdd8d1c557b29e38e8d819abdfbec5a2865b584bb60fd3f1",
+        "bytes": 13159876
+      },
+      "updates": 512,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-1024",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-1024.graph",
+        "sha256": "372f971b1c3bb07e4c7abfa4a7891e822c42dd8af708e10dae69ddc6a56f361a",
+        "bytes": 13168456
+      },
+      "updates": 1024,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-4096",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-4096.graph",
+        "sha256": "e97737704f39f65d509eb4bccc79956aa3014d4d471800f445a2f202ae601715",
+        "bytes": 13219963
+      },
+      "updates": 4096,
+      "converged": true,
+      "changed_vertices": 0,
+      "changed_above_epsilon": 0,
+      "initial_active": 0,
+      "rounds": 0,
+      "reference_edges_traversed": 0,
+      "reference_sources_served": 0,
+      "rank_delta_l1": 0,
+      "changed_fraction": 0.0,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-16384",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-16384.graph",
+        "sha256": "eae21451150512e03575bc11e7f0502e9d30019da4b506b02c5ca795a5109db1",
+        "bytes": 13425835
+      },
+      "updates": 16384,
+      "converged": true,
+      "changed_vertices": 9,
+      "changed_above_epsilon": 9,
+      "initial_active": 9,
+      "rounds": 1,
+      "reference_edges_traversed": 15084,
+      "reference_sources_served": 9,
+      "rank_delta_l1": 1.08837e-05,
+      "changed_fraction": 1.7466198055041814e-05,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "hub-65536",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-65536.graph",
+        "sha256": "dfdd0f7bd1a22cf1c586391a72d363d83d4c7f17f9fc5f78b1ba0b6b0ea41908",
+        "bytes": 14249316
+      },
+      "updates": 65536,
+      "converged": true,
+      "changed_vertices": 145,
+      "changed_above_epsilon": 145,
+      "initial_active": 120,
+      "rounds": 3,
+      "reference_edges_traversed": 94255,
+      "reference_sources_served": 145,
+      "rank_delta_l1": 0.000216065,
+      "changed_fraction": 0.0002813998575534514,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 0.0001
+    },
+    {
+      "name": "hub-131072",
+      "kind": "target-candidate",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/hub-131072.graph",
+        "sha256": "cfee49672099f60cf45d10526238adae97b8a0318d342e8b32119f5684f96cbc",
+        "bytes": 15347417
+      },
+      "updates": 131072,
+      "converged": true,
+      "changed_vertices": 282,
+      "changed_above_epsilon": 282,
+      "initial_active": 226,
+      "rounds": 4,
+      "reference_edges_traversed": 173270,
+      "reference_sources_served": 292,
+      "rank_delta_l1": 0.000465142,
+      "changed_fraction": 0.0005472742057246434,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 0.0001
+    },
+    {
+      "name": "ordinary-8",
+      "kind": "ordinary",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/ordinary-8.graph",
+        "sha256": "f2679e67b126622859f960e4d13e337cdeae0b45651519cf667f3756960eab80",
+        "bytes": 13151440
+      },
+      "updates": 8,
+      "converged": true,
+      "changed_vertices": 2,
+      "changed_above_epsilon": 2,
+      "initial_active": 2,
+      "rounds": 1,
+      "reference_edges_traversed": 3,
+      "reference_sources_served": 2,
+      "rank_delta_l1": 2.1501e-06,
+      "changed_fraction": 3.881377345564847e-06,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "ordinary-64",
+      "kind": "ordinary",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/ordinary-64.graph",
+        "sha256": "58b339d1f1df87e6f906e2ffad4dda2d0a598a9a75188531b79c84bb2669a038",
+        "bytes": 13152464
+      },
+      "updates": 64,
+      "converged": true,
+      "changed_vertices": 14,
+      "changed_above_epsilon": 14,
+      "initial_active": 12,
+      "rounds": 5,
+      "reference_edges_traversed": 32,
+      "reference_sources_served": 21,
+      "rank_delta_l1": 4.83682e-05,
+      "changed_fraction": 2.716964141895393e-05,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 1e-05
+    },
+    {
+      "name": "ordinary-512",
+      "kind": "ordinary",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/ordinary-512.graph",
+        "sha256": "c578af6b72d0f7b714659f697cd17abdb33dc3254f4bc97a95f7ed262cba020e",
+        "bytes": 13160714
+      },
+      "updates": 512,
+      "converged": true,
+      "changed_vertices": 70,
+      "changed_above_epsilon": 70,
+      "initial_active": 69,
+      "rounds": 4,
+      "reference_edges_traversed": 136,
+      "reference_sources_served": 81,
+      "rank_delta_l1": 0.000122869,
+      "changed_fraction": 0.00013584820709476966,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 0.0001
+    },
+    {
+      "name": "ordinary-4096",
+      "kind": "ordinary",
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/ordinary-4096.graph",
+        "sha256": "13230a703cc2de3b47b7bbfc7919e0dd2e04f03291f31b23c966ede655f8e190",
+        "bytes": 13226839
+      },
+      "updates": 4096,
+      "converged": true,
+      "changed_vertices": 740,
+      "changed_above_epsilon": 740,
+      "initial_active": 708,
+      "rounds": 7,
+      "reference_edges_traversed": 7931,
+      "reference_sources_served": 871,
+      "rank_delta_l1": 0.00137108,
+      "changed_fraction": 0.0014361096178589934,
+      "cpu_reference": "fp32_128_old_rounds_then_thresholded_new_correction_to_convergence",
+      "nearest_target_fraction": 0.001
+    }
+  ],
+  "context": {
+    "seed": 20261106,
+    "old_rank_rounds": 128,
+    "damping": 0.85,
+    "max_propagation_rounds": 256,
+    "threshold_semantics": "direct_per_vertex",
+    "vertex_denominator": "all_declared_vertices_including_isolated_ids",
+    "changed_semantics": "final_fp32_rank_differs_from_old_fp32_rank"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "source_receipts": [
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/sssp-resident-au-banked-v6/pair/results.json",
+      "sha256": "e4ad116bcd49a0c61258f3e6515a411880c6f5d6562dec7c6749f6e0495b63bc",
+      "bytes": 20604
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-stream-direct-board-20261106-v1/remaining/matrix.json",
+      "sha256": "4a4885c25a238540aeea48a0c8841ce652c4d06556abdf6b5623136f525ae839",
+      "bytes": 124090
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-qualified-lj08-prelaunch-v2/results.json",
+      "sha256": "5e8d128ff834a5fd5511015b21bfd197c147a0c821f62b13d8be6b53cbbe0d9a",
+      "bytes": 120741
+    }
+  ],
+  "hardware": {
+    "weighted_sssp": {
+      "spine_host": {
+        "path": "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+        "sha256": "0061ca145086c55d752503a7f2b9c9ae316b4a7f6108d404d423833dd6d2bdde",
+        "bytes": 4313456
+      },
+      "spine_image": {
+        "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+        "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+        "bytes": 58375377
+      },
+      "gr_host": {
+        "path": "/data/chuxiao/checks/gr-active-min-candidate-20261104-v1/weighted_sssp/sharded_k4_sssp_native_host",
+        "sha256": "8e5d95a07bf3166de28e9835bfd5cfddc3fcd62bbce8fd47bf8941b5eb8cafdd",
+        "bytes": 232424
+      },
+      "gr_image": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+        "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+        "bytes": 79628218
+      },
+      "limitation": "reuse current weighted SSSP implementation; no new route"
+    },
+    "connected_components": {
+      "spine_host": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+        "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+        "bytes": 201112
+      },
+      "spine_image": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-stream-direct-board-20261106-v1/image/spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin",
+        "sha256": "0939fc5b51133cf79954c266434c502f1ac8cd9f541a0200d5f331931e373d28",
+        "bytes": 59048346
+      },
+      "gr_host": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/gr-active-min-wall-host-v1/connected_components/sharded_k4_cc_native_host",
+        "sha256": "b72c20fec3bc7130edf430ff0006963e3112dfa57ea31bc96e38246b303f7412",
+        "bytes": 243400
+      },
+      "gr_image": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+        "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+        "bytes": 79624812
+      },
+      "limitation": "current routed CC implementation; raw skew report remains unavailable"
+    },
+    "residual_pagerank": {
+      "spine_host": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-respr-incoming-cache-v1/thresholded_residual_pagerank.host",
+        "sha256": "10e6bf6c6c7d730fa8ec3a97d58ce788a1c491259fc5685c65aaae8393dc637a",
+        "bytes": 4596608
+      },
+      "spine_image": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-qualified-lj08-prelaunch-v2/spine-clock-copy/control.xclbin",
+        "sha256": "e3f0cb8095e830f2a9a16637e64f39cae95061a3fde93132e3140afdd1af8dec",
+        "bytes": 56915851
+      },
+      "gr_host": {
+        "path": "/data/chuxiao/builds/gr-degree-prefix-20261105/native-host-v1/sharded_k4_residual_pagerank_native_host",
+        "sha256": "c367213917824a4d4427a23c562bab0a4619cd7ecd2602bef503e6a0a192b2fe",
+        "bytes": 221016
+      },
+      "gr_image": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/current-clock-copy/control.xclbin",
+        "sha256": "2a754b0b195bf7c9d6635fce622844991852c25c2e090660a684c39a10107b63",
+        "bytes": 80896372
+      },
+      "epsilon": 1e-06,
+      "limitation": "matched derated 140-MHz execution, not nominal timing closure"
+    }
+  }
+}

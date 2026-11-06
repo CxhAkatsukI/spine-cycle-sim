@@ -1,0 +1,103 @@
+{
+  "status": "PASS",
+  "planned_points": 44,
+  "primary_points": 42,
+  "failed_primary_points": 2,
+  "primary_pairs": 170,
+  "measured_pairs": 126,
+  "warmup_pairs": 42,
+  "studies": [
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "AU",
+      "points": 10,
+      "clocks": [
+        [
+          150,
+          500,
+          450,
+          0
+        ]
+      ],
+      "peak_memory_bytes": 2487910400,
+      "minimum_effective_available_bytes": 65082822656
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "AU",
+      "points": 3,
+      "clocks": [
+        [
+          150,
+          500,
+          450,
+          0
+        ]
+      ],
+      "peak_memory_bytes": 2456944640,
+      "minimum_effective_available_bytes": 101859468288
+    },
+    {
+      "algorithm": "weighted_sssp",
+      "dataset": "R19",
+      "points": 10,
+      "clocks": [
+        [
+          150,
+          500,
+          450,
+          0
+        ]
+      ],
+      "peak_memory_bytes": 3263246336,
+      "minimum_effective_available_bytes": 103693088768
+    },
+    {
+      "algorithm": "connected_components",
+      "dataset": "AU",
+      "points": 10,
+      "clocks": [
+        [
+          150,
+          500,
+          450,
+          0
+        ]
+      ],
+      "peak_memory_bytes": 9213030400,
+      "minimum_effective_available_bytes": 95900713728
+    },
+    {
+      "algorithm": "residual_pagerank",
+      "dataset": "AU",
+      "points": 2,
+      "clocks": [
+        [
+          140,
+          500,
+          430,
+          0
+        ]
+      ],
+      "peak_memory_bytes": 2563960832,
+      "minimum_effective_available_bytes": 103229552640
+    },
+    {
+      "algorithm": "residual_pagerank",
+      "dataset": "AU",
+      "points": 7,
+      "clocks": [
+        [
+          140,
+          500,
+          430,
+          0
+        ]
+      ],
+      "peak_memory_bytes": 2561617920,
+      "minimum_effective_available_bytes": 101889028096
+    }
+  ],
+  "retained_other_pairs": 2,
+  "scope": "archived protocol, clocks, logs, medians, completeness and OOM receipts; CPU correctness was checked by each host and the frozen board comparator"
+}

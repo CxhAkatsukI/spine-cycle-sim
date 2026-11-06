@@ -1,0 +1,192 @@
+{
+  "algorithm": "weighted_sssp",
+  "dataset": "R19",
+  "source": 113,
+  "vertices": 524288,
+  "edges": 15483485,
+  "original": {
+    "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_weighted_sssp_insert_u8.graph",
+    "sha256": "e61c9c21746e6f03d34f6904f5af4c17fc615054a3786ccf709ec205946dedc5",
+    "bytes": 254295196
+  },
+  "preparation": [
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/prepare.py",
+      "sha256": "e1f8c97d36007c52e97eff70dbcf9a15e16442c12d09a32f92931451d821dcf5",
+      "bytes": 2942
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/sssp.py",
+      "sha256": "4cada70081d6481ca8fff32880d92448c36bc20bdc3a3cf17badc7f5cb3fdda5",
+      "bytes": 6846
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/cc.py",
+      "sha256": "a5a8b63d19fb20f28519228df1a78e293c87a204a74ec2030dd4980f4f43c16d",
+      "bytes": 3333
+    }
+  ],
+  "context": {
+    "old_reachable_vertices": 335475,
+    "probe_count": 356,
+    "seed": 20261106,
+    "max_updates": 131072,
+    "requested_targets": [
+      1e-05,
+      0.0001,
+      0.001,
+      0.01,
+      0.1,
+      0.5
+    ],
+    "vertex_denominator": "all_declared_vertices_including_isolated_ids"
+  },
+  "points": [
+    {
+      "name": "target-1e-05",
+      "kind": "target",
+      "target_fraction": 1e-05,
+      "changed_vertices": 6,
+      "target_reached": true,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/target-1e-05.graph",
+        "sha256": "67ff9b849de4443603f7e4f7aed041b45226d7f9528a93df1308774300caff3a",
+        "bytes": 254295094
+      },
+      "updates": 1,
+      "changed_fraction": 1.1444091796875e-05,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "target-0.0001",
+      "kind": "target",
+      "target_fraction": 0.0001,
+      "changed_vertices": 53,
+      "target_reached": true,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/target-0.0001.graph",
+        "sha256": "352e38c27a27fe8447879cb662a47bd34d1d3ff73a9c4da3af24204594b6c05b",
+        "bytes": 254295183
+      },
+      "updates": 7,
+      "changed_fraction": 0.0001010894775390625,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "target-0.001",
+      "kind": "target",
+      "target_fraction": 0.001,
+      "changed_vertices": 526,
+      "target_reached": true,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/target-0.001.graph",
+        "sha256": "1bd207438ef9e59d24e2c57a0a566431e50b8b6270f5157c3ce7d65f2d9272ad",
+        "bytes": 254297274
+      },
+      "updates": 148,
+      "changed_fraction": 0.001003265380859375,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "target-0.01",
+      "kind": "target",
+      "target_fraction": 0.01,
+      "changed_vertices": 5604,
+      "target_reached": true,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/target-0.01.graph",
+        "sha256": "592bb103a0d44fffc8d5527e05301973c877e64b3f33bd6722cae7daa1e5c4ed",
+        "bytes": 254295468
+      },
+      "updates": 26,
+      "changed_fraction": 0.01068878173828125,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "target-0.1",
+      "kind": "target",
+      "target_fraction": 0.1,
+      "changed_vertices": 54430,
+      "target_reached": true,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/target-0.1.graph",
+        "sha256": "028513beba98f51c2cac49e9472bbe36c4dc74041a67c711a1915a9a21521924",
+        "bytes": 254295109
+      },
+      "updates": 2,
+      "changed_fraction": 0.10381698608398438,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "target-0.5",
+      "kind": "target",
+      "target_fraction": 0.5,
+      "changed_vertices": 275847,
+      "target_reached": true,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/target-0.5.graph",
+        "sha256": "fa8519f7dc00835af5a5da203606184e89346b6af29437016cf528b1fd55ac92",
+        "bytes": 254295512
+      },
+      "updates": 29,
+      "changed_fraction": 0.5261363983154297,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "ordinary-8",
+      "kind": "ordinary",
+      "target_fraction": null,
+      "changed_vertices": 4,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/ordinary-8.graph",
+        "sha256": "90a31da67a85b059179847ce0cc20fcdd9b46608dab2ddff63c15ce95ed8828f",
+        "bytes": 254295228
+      },
+      "updates": 8,
+      "changed_fraction": 7.62939453125e-06,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "ordinary-64",
+      "kind": "ordinary",
+      "target_fraction": null,
+      "changed_vertices": 20,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/ordinary-64.graph",
+        "sha256": "4cd8930cd2cca29cfafcbff66f5ddba4ffbe25637625fa96edeb59b710077677",
+        "bytes": 254296258
+      },
+      "updates": 64,
+      "changed_fraction": 3.814697265625e-05,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "ordinary-512",
+      "kind": "ordinary",
+      "target_fraction": null,
+      "changed_vertices": 139,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/ordinary-512.graph",
+        "sha256": "f4bb5c64f991209670aa6c84a31ac0de570a75edf47009e7b36aa7c42ae9bdc6",
+        "bytes": 254304498
+      },
+      "updates": 512,
+      "changed_fraction": 0.0002651214599609375,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    },
+    {
+      "name": "ordinary-4096",
+      "kind": "ordinary",
+      "target_fraction": null,
+      "changed_vertices": 1183,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/sssp-r19/ordinary-4096.graph",
+        "sha256": "2ddcb388105f7f8d425588a08cbf2d2d0f31dea86fce0ead2033c2e8cbfef1ec",
+        "bytes": 254370652
+      },
+      "updates": 4096,
+      "changed_fraction": 0.0022563934326171875,
+      "cpu_reference": "full_positive_integer_dijkstra_old_and_new"
+    }
+  ]
+}

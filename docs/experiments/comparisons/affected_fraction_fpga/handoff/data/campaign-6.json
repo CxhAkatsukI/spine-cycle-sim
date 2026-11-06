@@ -1,0 +1,182 @@
+{
+  "status": "FAILED_RETAINED",
+  "workloads": {
+    "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/workloads.json",
+    "sha256": "91d6accbf1689af6740f4d986c7527ff4c77eb1d9ae8fdbd7db0117318f969ad",
+    "bytes": 6008
+  },
+  "template": {
+    "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/hardware.json",
+    "sha256": "dbf63be10ad301b439d2ac649c05d3c54e5ca271b4c587ed08f589aa867f4980",
+    "bytes": 4520
+  },
+  "comparator": {
+    "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+    "sha256": "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f",
+    "bytes": 6792
+  },
+  "runner": {
+    "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/board.py",
+    "sha256": "47f39a3318015affe94901a000b1b50aa754135937ff594d4e28c9f693e20cf1",
+    "bytes": 7935
+  },
+  "memory_gib": 16,
+  "memory_profile": "zfs-arc-clean-half-background5-v1",
+  "bdf": "0000:c1:00.1",
+  "device": 1,
+  "warmup_pairs": 1,
+  "measured_pairs": 3,
+  "cases": [
+    {
+      "name": "target-1e-05",
+      "kind": "target",
+      "target_fraction": 1e-05,
+      "target_reached": true,
+      "changed_vertices": 7,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/target-1e-05.graph",
+        "sha256": "9a1b63d8ed0a3ed5a8d70427b504fdd294d9a384aa4b80f6cc0b180a67b4b596",
+        "bytes": 10382302
+      },
+      "updates": 2,
+      "changed_fraction": 1.3584820709476966e-05,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new",
+      "status": "FAILED_RETAINED",
+      "samples": [
+        {
+          "sample_index": 0,
+          "warmup": true,
+          "order": [
+            "spine",
+            "gr"
+          ],
+          "arms": {},
+          "split_inputs": {
+            "source": {
+              "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/target-1e-05.graph",
+              "sha256": "9a1b63d8ed0a3ed5a8d70427b504fdd294d9a384aa4b80f6cc0b180a67b4b596",
+              "bytes": 10382302
+            },
+            "graph": {
+              "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/cc-au/target-1e-05/sample-0/cc-input/graph.slice",
+              "sha256": "263dded6ba3d11afa23c041bd89e6a14891855477ef9d9901c7442ac59ac5496",
+              "bytes": 11740770
+            },
+            "update": {
+              "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/cc-au/target-1e-05/sample-0/cc-input/update.slice",
+              "sha256": "eabd937facb9fadcbf81e289662076dc4b110878ff729a60c3dd11316380b3e4",
+              "bytes": 44
+            },
+            "vertices": 515281,
+            "edges": 679246,
+            "updates": 2
+          },
+          "status": "FAILED_RETAINED",
+          "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/affected-fraction-fpga-20261106/cc-au/target-1e-05/sample-0/spine.stderr.txt')"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/workloads.json",
+      "sha256": "91d6accbf1689af6740f4d986c7527ff4c77eb1d9ae8fdbd7db0117318f969ad",
+      "bytes": 6008
+    },
+    {
+      "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/hardware.json",
+      "sha256": "dbf63be10ad301b439d2ac649c05d3c54e5ca271b4c587ed08f589aa867f4980",
+      "bytes": 4520
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+      "sha256": "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f",
+      "bytes": 6792
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/board.py",
+      "sha256": "47f39a3318015affe94901a000b1b50aa754135937ff594d4e28c9f693e20cf1",
+      "bytes": 7935
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+      "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+      "bytes": 201112
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-stream-direct-board-20261106-v1/image/spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin",
+      "sha256": "0939fc5b51133cf79954c266434c502f1ac8cd9f541a0200d5f331931e373d28",
+      "bytes": 59048346
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/gr-active-min-wall-host-v1/connected_components/sharded_k4_cc_native_host",
+      "sha256": "b72c20fec3bc7130edf430ff0006963e3112dfa57ea31bc96e38246b303f7412",
+      "bytes": 243400
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+      "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+      "bytes": 79624812
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/hardware.py",
+      "sha256": "4825011b75fd0332f2698ea9c9586711b2c6f081d5bd6a515beeac888445bc98",
+      "bytes": 3456
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/original_regraph_execution/hardware/board_execution/memory_policy.py",
+      "sha256": "cb2a8e5508253b9963073463f9809194e153f867c943df2aa62cdbc28e0f0244",
+      "bytes": 5317
+    }
+  ],
+  "hardware_limitation": "current routed CC implementation; raw skew report remains unavailable",
+  "admission": {
+    "admitted": true,
+    "available_bytes": 109989761536,
+    "required_bytes": 60129542144,
+    "reservations": [
+      {
+        "bounded": true,
+        "cgroup": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-impact-au-sssp-v2-20261106.service",
+        "memory_max_bytes": 8589934592,
+        "pid": 924392,
+        "start_time": "119632731"
+      }
+    ],
+    "cgroup": {
+      "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-impact-au-cc-20261106.service",
+      "limits": {
+        "memory.max": "17179869184",
+        "memory.high": "15032385536",
+        "memory.swap.max": "0",
+        "memory.oom.group": "1"
+      }
+    },
+    "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+    "host_swap_disabled_verified": false,
+    "physical_memory_observation": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 94969647104,
+      "mem_free_bytes": 84442611712,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 66256904872,
+        "mru_evictable_data": 14776507392,
+        "mfu_evictable_data": 36317792256
+      },
+      "clean_evictable_bytes": 51094299648,
+      "discount_denominator": 2,
+      "effective_available_bytes": 109989761536,
+      "pressure_avg10": {
+        "some": 0.0,
+        "full": 0.0
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    }
+  },
+  "error": "RuntimeError('spine exit 1; see /data/chuxiao/checks/affected-fraction-fpga-20261106/cc-au/target-1e-05/sample-0/spine.stderr.txt')"
+}
