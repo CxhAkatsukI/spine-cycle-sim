@@ -1,5 +1,11 @@
 # Current FPGA Source Controls
 
+The [direct CC board run](cc_direct_board_v1/README.md) now supplies four
+correctness-checked pairs using the existing streaming image. The remaining
+four are running or queued. Missing raw routing reports do not postpone these
+measurements; their static-timing documentation remains explicitly incomplete.
+The separate frozen checkpoint below is not silently rewritten.
+
 These eleven replayed controls supersede the older ResPR source-control series
 in the parent directory. They are **not** a complete new Figure 7 matrix.
 The [resident FPGA checkpoint](resident_checkpoint_v3/README.md) supplies the
