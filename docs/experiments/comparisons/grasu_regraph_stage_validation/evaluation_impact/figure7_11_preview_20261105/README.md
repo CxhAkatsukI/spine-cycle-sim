@@ -1,8 +1,13 @@
 # G/R Source Controls and Evaluation Plots
 
-The latest incremental FPGA export is the [sixteen-pair checkpoint](current_fpga/resident_checkpoint_v3/README.md):
-all eight SSSP and eight ResPR pairs are measured; eight CC pairs remain
-missing. The [portable review entry](CURRENT.md) still selects its frozen
+The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md)
+has six completed, correctness-checked pairs. LJ and LJ08 remain pending;
+startup failures and recovery are recorded, not substituted with old samples.
+The Spine image's raw routed bus-skew report is unavailable; these are actual
+board measurements with incomplete static timing documentation.
+The separate [sixteen-pair checkpoint](current_fpga/resident_checkpoint_v3/README.md)
+contains all eight SSSP and eight ResPR pairs and remains frozen.
+The [portable review entry](CURRENT.md) still selects its frozen
 fifteen-pair archive, the complete same-host L4 Fig. 8 follow-up and the
 negative results. It has not silently incorporated this increment. To
 redraw all selected figures with an explicit newer Fig. 7 checkpoint, use the
