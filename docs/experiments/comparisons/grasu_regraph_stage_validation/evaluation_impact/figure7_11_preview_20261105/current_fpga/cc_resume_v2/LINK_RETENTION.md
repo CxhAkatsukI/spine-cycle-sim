@@ -170,3 +170,32 @@ new command, is
 SHA-256 `d065e4e1f993268603d5936b4c2eb9f2df1644e08f10c265e1478c9c61c0ef63`.
 The new coordinator is waiting for the same AU parent; this correction adds
 no measured pairs. The formal checkpoint remains **16/24**, with CC pending.
+
+## Offline Queue Replay
+
+The [completed replay receipt](matrix-offline-replay-20261106.json) verifies
+the actual replacement queue's arguments and frozen commit `14cfb326`,
+not mocked test fixtures. Existing admission code rechecked the exact CC
+G/R image, raw event spans, oracle outputs, clocks and artifact hashes. The
+three R current/public time ratios remain AM 0.966410, AM+ 0.922140 and
+AU 1.124112, all within absolute +/-15%. G remains 7.363858 / 18.368928 ms:
+the one-sided no-slowdown gate passes, not absolute +/-15% parity or
+published-throughput reproduction. These are replays of existing samples,
+not additional board runs or a convergence calibration.
+
+All seven queued layouts (SU, WK, R19, SO, PK, LJ and LJ08) pass source,
+split-input, dimension, layout-log and resource-receipt replay. Their host
+bytes match the retained-link host, and each batch contains sixteen directed
+records for eight logical CC insertions. The receipt preserves per-dataset
+pins/counts, the exact Python replay command and its source identity.
+Its SHA-256 is
+`1b971201cdfd1147cfe8ff586b9597551d8a82602fb1cf997a19cd87e5b666e8`.
+
+The bounded offline service used 2/1-GiB max/high with zero task swap,
+completed in about 58 seconds, and peaked at 292,667,392 bytes. All saved
+cgroup memory-event counters are zero. It opened no FPGA and checked no
+new Spine route: retained raw-skew/timing evidence, AU final correctness
+and the subsequent seven wall-time pairs remain pending. Neither this
+layout replay nor passing G/R controls completes any missing Fig. 7 bar.
+The 52 focused admission/layout/coordinator/organization tests and the
+document-layout, catalog and whitespace checks also pass.

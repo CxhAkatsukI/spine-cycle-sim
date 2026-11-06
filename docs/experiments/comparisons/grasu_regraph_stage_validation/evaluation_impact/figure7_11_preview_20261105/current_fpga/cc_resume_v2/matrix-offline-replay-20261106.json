@@ -1,0 +1,876 @@
+{
+  "status": "BASELINE_AND_SEVEN_LAYOUTS_REPLAY_PASS_NOT_FPGA",
+  "source_commit": "14cfb326dee5096975b14a58e78c48116969187e",
+  "launch": {
+    "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-matrix-control-fix-20261106-handoff.json",
+    "sha256": "d065e4e1f993268603d5936b4c2eb9f2df1644e08f10c265e1478c9c61c0ef63",
+    "bytes": 6456
+  },
+  "live_matrix_command": [
+    "/usr/bin/python3",
+    "-m",
+    "spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_warm_matrix",
+    "--algorithm",
+    "cc",
+    "--dataset",
+    "AU",
+    "--previous",
+    "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix",
+    "--route",
+    "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned",
+    "--host",
+    "/data/chuxiao/checks/gr-active-min-candidate-20261104-v1/connected_components/sharded_k4_cc_native_host",
+    "--r-report",
+    "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/results.json",
+    "--r-inputs",
+    "/data/chuxiao/checks/source-retention-repair-20261104/a4-active-amazon-v2/inputs",
+    "--g-report",
+    "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/results.json",
+    "--g-reference",
+    "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+    "--cc-wall-packet",
+    "/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-au-wall-packet-v4.json",
+    "--wait-seconds",
+    "21600",
+    "--cc-warm-r-controls",
+    "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/pair/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/a4-active-amazon-odd-v1/inputs",
+    "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-au903k-pair-v1/pair/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/a4-active-au903k-v1/fixture/inputs",
+    "--au-replacement",
+    "spine-retention-cc-au-retained-link-20261106-v2.service",
+    "04bfdcc356304613846852941c270dec",
+    "/data/chuxiao/checks/source-retention-repair-20261104/cc-au-retained-link-20261106-v2/results.json",
+    "--layout",
+    "SU",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-small-v3/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-small-inputs-v1/su/inputs.json",
+    "--layout",
+    "WK",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-small-v3/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-small-inputs-v1/wk/inputs.json",
+    "--layout",
+    "R19",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-r19-v3/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-r19-inputs-v1/r19/inputs.json",
+    "--layout",
+    "SO",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/so/inputs.json",
+    "--layout",
+    "PK",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/pk/inputs.json",
+    "--layout",
+    "LJ",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/lj/inputs.json",
+    "--layout",
+    "LJ08",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/results.json",
+    "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/lj08/inputs.json",
+    "--stage-wait-seconds",
+    "64800",
+    "--layout-wait-seconds",
+    "0",
+    "--child-prefix",
+    "gr-retention-cc-retained-link-matrix-20261106-v2",
+    "--output",
+    "/data/chuxiao/checks/source-retention-repair-20261104/cc-warm-retained-link-matrix-20261106-v2",
+    "--memory-profile",
+    "zfs-arc-clean-half-background5-v1"
+  ],
+  "replay_command": [
+    "/usr/bin/python3",
+    "-c",
+    "import json, os, subprocess, sys, time\nfrom pathlib import Path\nfrom spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention import active_min_admission as admission, active_min_resident as resident, cc_warm_matrix as warm, cc_resident_wall as wall, spine_cc_layout as layout\nfrom spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.runtime import identity, save\nfrom spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.follow import unchanged\nfrom spine_cycle_sim.experiments.sharded_k4_stages.row_line.directory_tile.hardware import containment\nroot = Path(\"/data/chuxiao/checks/source-retention-repair-20261104\")\nout = root / \"cc-warm-matrix-offline-replay-20261106-v1\"\nout.mkdir(exist_ok=False)\ngroup = containment.current()\nguard = containment.verify(group, 2)\nhandoff_path = root / \"cc-warm-matrix-control-fix-20261106-handoff.json\"\nhandoff_pin = identity(handoff_path)\nhandoff = json.loads(handoff_path.read_text())\nreplacement = handoff[\"replacement\"]\ncommand = replacement[\"command\"]\nindex = command.index(\"-m\")\nexpected = command[index-1:]\nactual = Path(\"/proc/3634236/cmdline\").read_bytes().decode().strip(\"\\0\").split(\"\\0\")\nif actual != expected:\n    raise ValueError(\"live matrix command no longer matches the retained launch\")\nsource = subprocess.check_output([\"git\", \"rev-parse\", \"HEAD\"], text=True).strip()\nif source != replacement[\"source_commit\"]:\n    raise ValueError(\"offline replay must use the exact live frozen matrix source\")\nif subprocess.check_output([\"git\", \"status\", \"--porcelain\"], text=True):\n    raise ValueError(\"frozen matrix source is dirty\")\nargs = resident.parse_arguments(command[index+2:], extend=warm.arguments)\nresult = dict(status=\"RUNNING\", source_commit=source, launch=handoff_pin, live_matrix_command=actual,\n              replay_command=Path(\"/proc/self/cmdline\").read_bytes().decode().strip(\"\\0\").split(\"\\0\"),\n              containment=guard, board_launch_attempted=False, new_performance_measurement=False,\n              route_admission_checked=False, route_pending=\"new Spine CC image, raw skew, AU correctness and wall comparison\",\n              layouts={})\njournal = out / \"results.json\"\nsave(journal, result)\nstart = time.monotonic()\ntry:\n    gate = admission.admit(args.algorithm, args.route, args.host, args.r_report, args.r_inputs,\n                            args.g_report, args.g_reference)\n    result[\"baseline\"] = gate\n    odd, odd_inputs, topology, topology_inputs = args.cc_warm_r_controls\n    pins = admission.pin_odd_queue(odd, odd_inputs, args.algorithm)\n    result[\"odd_queue_pins\"] = pins\n    controls = {name: admission.replay_r(path, \"cc\", inputs, gate[\"host\"], gate[\"image\"], geometry=geometry)\n                for name, path, inputs, geometry in (\n                    (\"amazon_odd\", odd, odd_inputs, admission.AMAZON_GEOMETRY),\n                    (\"au_slice\", topology, topology_inputs, admission.AU_SLICE_GEOMETRY))}\n    result[\"additional_r_gates\"] = controls\n    packet = json.loads(args.cc_wall_packet.read_text())\n    gr_host = identity(packet[\"gr_host\"])\n    if gr_host[\"sha256\"] != wall.GR_HOST:\n        raise ValueError(\"queued wall host differs from the qualified G+R wall binary\")\n    result[\"gr_wall_host\"] = gr_host\n    save(journal, result)\n    for dataset, receipt, inputs in args.layout:\n        receipt, inputs = Path(receipt), Path(inputs)\n        case, frozen = resident.frozen_case(args.previous, \"cc\", dataset)\n        old = json.loads(receipt.read_text())\n        host = old[\"host\"]\n        if host[\"sha256\"] != \"f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1\":\n            raise ValueError(dataset + \": offline host differs from the retained-link host bytes\")\n        split = json.loads(inputs.read_text())\n        source_pin = next(pin for pin in frozen if pin[\"path\"] == case[\"graph\"])\n        if split[\"source\"] != source_pin or any(split[key] != case[key] for key in (\"vertices\", \"edges\", \"updates\")):\n            raise ValueError(dataset + \": split dimensions or source differ from frozen workload\")\n        counts, checked = layout.replay(receipt, dataset, host=host, inputs=inputs, frozen=source_pin)\n        unchanged(frozen + checked)\n        result[\"layouts\"][dataset] = dict(status=\"LAYOUT_REPLAY_PASS_NOT_FPGA\", counts=counts,\n                                            vertices=case[\"vertices\"], edges=case[\"edges\"], updates=case[\"updates\"],\n                                            pins=frozen + checked)\n        save(journal, result)\n        print(dataset + \": frozen source, split and layout replay passed\", flush=True)\n    if set(result[\"layouts\"]) != set(warm.DATASETS):\n        raise ValueError(\"replay did not cover every queued remaining dataset\")\n    unchanged([handoff_pin, *pins, gr_host])\n    result[\"status\"] = \"BASELINE_AND_SEVEN_LAYOUTS_REPLAY_PASS_NOT_FPGA\"\nexcept BaseException as error:\n    result.update(status=\"FAILED_RETAINED\", error=repr(error))\n    raise\nfinally:\n    result[\"elapsed_seconds\"] = time.monotonic() - start\n    result[\"memory_peak_bytes\"] = int((group / \"memory.peak\").read_text())\n    result[\"memory_events\"] = (group / \"memory.events\").read_text()\n    save(journal, result)\nprint(result[\"status\"], flush=True)\n"
+  ],
+  "containment": {
+    "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-cc-matrix-offline-replay-20261106-v1.service",
+    "limits": {
+      "memory.max": "2147483648",
+      "memory.high": "1073741824",
+      "memory.swap.max": "0",
+      "memory.oom.group": "1"
+    }
+  },
+  "board_launch_attempted": false,
+  "new_performance_measurement": false,
+  "route_admission_checked": false,
+  "route_pending": "new Spine CC image, raw skew, AU correctness and wall comparison",
+  "layouts": {
+    "SU": {
+      "status": "LAYOUT_REPLAY_PASS_NOT_FPGA",
+      "counts": {
+        "hot_vertices": 0,
+        "hot_edges": 0,
+        "update_margin": 16,
+        "max_n": 16777216,
+        "family_words": 32804886,
+        "graph_aligned_bytes": 524881920,
+        "workspace_aligned_bytes": 275779584
+      },
+      "vertices": 567316,
+      "edges": 1061248,
+      "updates": 16,
+      "pins": [
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-su.json",
+          "sha256": "0e2b690bd65c00b9312ff99f44aa9ca33db1aa2ac0051226282f2f8ab810e459",
+          "bytes": 3419
+        },
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-su/manifest.json",
+          "sha256": "71595718f09a478ad5fdfe91e066888cfd561db6da76aa879bff549c3b85b68f",
+          "bytes": 8971
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_connected_components_insert_u8.graph",
+          "sha256": "4192ed007f04d465ecc242bebafa423de481709bf55d76481855381d0893354c",
+          "bytes": 16147946
+        },
+        {
+          "path": "/data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/connected_components.host",
+          "sha256": "51cc53e4ea38baeb0077b931293e609cb34b5c65891630220db71222a80a76d6",
+          "bytes": 4326576
+        },
+        {
+          "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/cc/xclbin/spine_partitioned_split_e2e.cc.hw.xclbin",
+          "sha256": "e3d103fcca2c6718ffaacdc6309db9b39047714c53e15c77a087149997f0096b",
+          "bytes": 59165742
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-small-v3/results.json",
+          "sha256": "6ee58146715e2cbbd4df0e3d57ca4993703a26f2d822f74032867c22f3fa4c69",
+          "bytes": 9782
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-small-inputs-v1/su/inputs.json",
+          "sha256": "9486fae3e66b1cc0755febd68a731206754a1926eca7abe7d70211309fb97a1e",
+          "bytes": 779
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+          "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+          "bytes": 201112
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/su_connected_components_insert_u8.graph",
+          "sha256": "4192ed007f04d465ecc242bebafa423de481709bf55d76481855381d0893354c",
+          "bytes": 16147946
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-small-inputs-v1/su/graph.slice",
+          "sha256": "81f8a758fe8118a01176f9f4cf487f7cab107555330d115b654704cb42ef384e",
+          "bytes": 18270219
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-small-inputs-v1/su/update.slice",
+          "sha256": "8987e5fce66322f1e33c970064d4eaff7f9bb2a4acd4cf9d949799bc3c1c7966",
+          "bytes": 241
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-small-v3/su/layout.stdout.txt",
+          "sha256": "445f5ab98c18066b8a7b67e5ef096ecbe46607b1295c1f8d44f0cf0fbcf46bbc",
+          "bytes": 180
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-small-v3/su/layout.resources.json",
+          "sha256": "4cb8fdfff38cc383fa4f276335d69ac00e34d269b1f28ae3a4654fb6c5edf757",
+          "bytes": 2207
+        }
+      ]
+    },
+    "WK": {
+      "status": "LAYOUT_REPLAY_PASS_NOT_FPGA",
+      "counts": {
+        "hot_vertices": 0,
+        "hot_edges": 0,
+        "update_margin": 16,
+        "max_n": 16777216,
+        "family_words": 32804886,
+        "graph_aligned_bytes": 524881920,
+        "workspace_aligned_bytes": 275779584
+      },
+      "vertices": 1140149,
+      "edges": 2032558,
+      "updates": 16,
+      "pins": [
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-wk.json",
+          "sha256": "c4f4962eebb096aa5c3aeb8ad48a07f2218a6481527b3c31bdbf4f65af78ada9",
+          "bytes": 3419
+        },
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-wk/manifest.json",
+          "sha256": "d8e77b14d41bbe15c97107c7a3dc2e826ab61e8edcc192b2a752398d508a442e",
+          "bytes": 8971
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_connected_components_insert_u8.graph",
+          "sha256": "e92332ec33738e6289ae5bec8f6b3fc6d08e79292a351fde48b250cec220ceec",
+          "bytes": 27799537
+        },
+        {
+          "path": "/data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/connected_components.host",
+          "sha256": "51cc53e4ea38baeb0077b931293e609cb34b5c65891630220db71222a80a76d6",
+          "bytes": 4326576
+        },
+        {
+          "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/cc/xclbin/spine_partitioned_split_e2e.cc.hw.xclbin",
+          "sha256": "e3d103fcca2c6718ffaacdc6309db9b39047714c53e15c77a087149997f0096b",
+          "bytes": 59165742
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-small-v3/results.json",
+          "sha256": "6ee58146715e2cbbd4df0e3d57ca4993703a26f2d822f74032867c22f3fa4c69",
+          "bytes": 9782
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-small-inputs-v1/wk/inputs.json",
+          "sha256": "ef3d5ebc4af75f80535bc45c53ac2d26f6a2e6e8c4ab931098f235d536e301b4",
+          "bytes": 780
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+          "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+          "bytes": 201112
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_connected_components_insert_u8.graph",
+          "sha256": "e92332ec33738e6289ae5bec8f6b3fc6d08e79292a351fde48b250cec220ceec",
+          "bytes": 27799537
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-small-inputs-v1/wk/graph.slice",
+          "sha256": "68516ab98fb8a283186b22a5a575beb4c5adf5f1b99029c99952dfc30325cbd3",
+          "bytes": 31864430
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-small-inputs-v1/wk/update.slice",
+          "sha256": "5da7d2732f68b4f5d133a7c86e571f2680c864bb99d73d0f5e33c54cd5c194c3",
+          "bytes": 242
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-small-v3/wk/layout.stdout.txt",
+          "sha256": "445f5ab98c18066b8a7b67e5ef096ecbe46607b1295c1f8d44f0cf0fbcf46bbc",
+          "bytes": 180
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-small-v3/wk/layout.resources.json",
+          "sha256": "6766c9cca5673f74ab296be1243907db8ecbb84dc1363462380dda2f8ab70a32",
+          "bytes": 2210
+        }
+      ]
+    },
+    "R19": {
+      "status": "LAYOUT_REPLAY_PASS_NOT_FPGA",
+      "counts": {
+        "hot_vertices": 23913,
+        "hot_edges": 21343521,
+        "update_margin": 16,
+        "max_n": 16777216,
+        "family_words": 32804886,
+        "graph_aligned_bytes": 524881920,
+        "workspace_aligned_bytes": 275779584
+      },
+      "vertices": 524288,
+      "edges": 29732038,
+      "updates": 16,
+      "pins": [
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-r19.json",
+          "sha256": "a19eca623ca5203c416bce32a460b23e2ba578e0747efc0ae00537e16c69268c",
+          "bytes": 3615
+        },
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-r19/manifest.json",
+          "sha256": "0766d4a9485502bfdc578619ae06c5ca37538e5ca63b03dcc28fa72639607a97",
+          "bytes": 9371
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_connected_components_insert_u8.graph",
+          "sha256": "f83b0d1796ac4b71c19719081c60e7295d4fdd5c3f4319ab6f428e315b5cf9f2",
+          "bytes": 488313483
+        },
+        {
+          "path": "/data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/connected_components.host",
+          "sha256": "51cc53e4ea38baeb0077b931293e609cb34b5c65891630220db71222a80a76d6",
+          "bytes": 4326576
+        },
+        {
+          "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/cc/xclbin/spine_partitioned_split_e2e.cc.hw.xclbin",
+          "sha256": "e3d103fcca2c6718ffaacdc6309db9b39047714c53e15c77a087149997f0096b",
+          "bytes": 59165742
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-r19-v3/results.json",
+          "sha256": "4fa95c3994518f6ce5d6f994e71251744d04e08f554c13e87c52a7aaabb3b094",
+          "bytes": 5432
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-r19-inputs-v1/r19/inputs.json",
+          "sha256": "2edadba1f26b126b442c34e18f3d224df5eb39158201326bf4b7d9b599499d5c",
+          "bytes": 781
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+          "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+          "bytes": 201112
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_connected_components_insert_u8.graph",
+          "sha256": "f83b0d1796ac4b71c19719081c60e7295d4fdd5c3f4319ab6f428e315b5cf9f2",
+          "bytes": 488313483
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-r19-inputs-v1/r19/graph.slice",
+          "sha256": "8efdf85c1281a716c08b629f0bef765de92bc92e7acd6b1797c4af49e9cb58ff",
+          "bytes": 547777325
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-r19-inputs-v1/r19/update.slice",
+          "sha256": "9dc8d4359f2627aa1a884197f050f3c92fe2d028c250444512569aa2c488ff65",
+          "bytes": 251
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-r19-v3/r19/layout.stdout.txt",
+          "sha256": "53a3304f31dfb96cc0fd69adfacc1257dbe64606c38f968f28160ebc07f43a48",
+          "bytes": 191
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-r19-v3/r19/layout.resources.json",
+          "sha256": "63e0bba46672fa1a39def2168a1c95b30387f2c9fb743bdb026f307c47e6af88",
+          "bytes": 2209
+        }
+      ]
+    },
+    "SO": {
+      "status": "LAYOUT_REPLAY_PASS_NOT_FPGA",
+      "counts": {
+        "hot_vertices": 43385,
+        "hot_edges": 19693290,
+        "update_margin": 16,
+        "max_n": 16777216,
+        "family_words": 32804886,
+        "graph_aligned_bytes": 524881920,
+        "workspace_aligned_bytes": 275779584
+      },
+      "vertices": 6024271,
+      "edges": 41008044,
+      "updates": 16,
+      "pins": [
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-so.json",
+          "sha256": "e33e4fb0ea74d21a2e59e398d6d4aacb56f87496073485b21628acab37ad0c46",
+          "bytes": 3419
+        },
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-so/manifest.json",
+          "sha256": "00a1252cbfcf8b34b2ccc38f3cdca271988502fa6c93567233823ac22aa31683",
+          "bytes": 8971
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/so_connected_components_insert_u8.graph",
+          "sha256": "da4ac6a2e166bd4647eabe56b923779dd5f66acefdcc4cd018cc8a93ff390499",
+          "bytes": 713604302
+        },
+        {
+          "path": "/data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/connected_components.host",
+          "sha256": "51cc53e4ea38baeb0077b931293e609cb34b5c65891630220db71222a80a76d6",
+          "bytes": 4326576
+        },
+        {
+          "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/cc/xclbin/spine_partitioned_split_e2e.cc.hw.xclbin",
+          "sha256": "e3d103fcca2c6718ffaacdc6309db9b39047714c53e15c77a087149997f0096b",
+          "bytes": 59165742
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/results.json",
+          "sha256": "3e9b792aeb5ccccfbc8aa30065b0084a58ff4cf4d51fbb61926d6f3edc2d9c86",
+          "bytes": 19815
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/so/inputs.json",
+          "sha256": "239e1660410802e3eb9c367bc8f3fc356666a38a1ce4495e7b376af582fbfb0a",
+          "bytes": 783
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+          "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+          "bytes": 201112
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/so_connected_components_insert_u8.graph",
+          "sha256": "da4ac6a2e166bd4647eabe56b923779dd5f66acefdcc4cd018cc8a93ff390499",
+          "bytes": 713604302
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/so/graph.slice",
+          "sha256": "5d32d2fa99732375791520cd84fd5dff4122760a4d7a5670c55ef04c830937c0",
+          "bytes": 795620143
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/so/update.slice",
+          "sha256": "21f082fe501d33743db0d301ce68ca7678c93e9186f06fcc89d0596d0b531def",
+          "bytes": 265
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/so/layout.stdout.txt",
+          "sha256": "990c8e50f57ad8b9a120355231308ac16dd19754f7cb8e57cbce7f66e1bdd6a7",
+          "bytes": 191
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/so/layout.resources.json",
+          "sha256": "0d1ac869a3aded9c7cb91906bff138985e4d75f839bb091b86255e150e2bada1",
+          "bytes": 2214
+        }
+      ]
+    },
+    "PK": {
+      "status": "LAYOUT_REPLAY_PASS_NOT_FPGA",
+      "counts": {
+        "hot_vertices": 460434,
+        "hot_edges": 32996202,
+        "update_margin": 16,
+        "max_n": 16777216,
+        "family_words": 32804886,
+        "graph_aligned_bytes": 524881920,
+        "workspace_aligned_bytes": 275779584
+      },
+      "vertices": 1632803,
+      "edges": 44603928,
+      "updates": 16,
+      "pins": [
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-pk.json",
+          "sha256": "b9dfc629461dd60b5f4477aba4a2106c0c15b62a1f5d1e8172e111632ba2147e",
+          "bytes": 3419
+        },
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-pk/manifest.json",
+          "sha256": "8bb5b9b6e65d7ac658f1bc91e29457fc527d9369f5a234cd232f161f0013edb0",
+          "bytes": 8971
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/pk_connected_components_insert_u8.graph",
+          "sha256": "afa8ed81a2f39f20111e22eb1fad163f65ef470aa5267bb765fe8f76d1094873",
+          "bytes": 745657034
+        },
+        {
+          "path": "/data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/connected_components.host",
+          "sha256": "51cc53e4ea38baeb0077b931293e609cb34b5c65891630220db71222a80a76d6",
+          "bytes": 4326576
+        },
+        {
+          "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/cc/xclbin/spine_partitioned_split_e2e.cc.hw.xclbin",
+          "sha256": "e3d103fcca2c6718ffaacdc6309db9b39047714c53e15c77a087149997f0096b",
+          "bytes": 59165742
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/results.json",
+          "sha256": "3e9b792aeb5ccccfbc8aa30065b0084a58ff4cf4d51fbb61926d6f3edc2d9c86",
+          "bytes": 19815
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/pk/inputs.json",
+          "sha256": "87c4ed14d003444caee54b3977bf12c7debbad78ba663450aee31b483014a571",
+          "bytes": 783
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+          "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+          "bytes": 201112
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/pk_connected_components_insert_u8.graph",
+          "sha256": "afa8ed81a2f39f20111e22eb1fad163f65ef470aa5267bb765fe8f76d1094873",
+          "bytes": 745657034
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/pk/graph.slice",
+          "sha256": "fc2859738d4886a9d256316b2a563d0903502d303519e31b3bdc306b49334156",
+          "bytes": 834864643
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/pk/update.slice",
+          "sha256": "dad097b7e7a3f7a143801edfd7a2279a6bb593804343bf683ffd0c1e84d93453",
+          "bytes": 265
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/pk/layout.stdout.txt",
+          "sha256": "a7d03a10543c748ad4738242b13afe8fe619b6b80318b62fa2a7a7b42c0e20e0",
+          "bytes": 192
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/pk/layout.resources.json",
+          "sha256": "089fef27f007cd0d73b881368f9633fc33f546e98ed5cf3b77a822973c1f6fd6",
+          "bytes": 2212
+        }
+      ]
+    },
+    "LJ": {
+      "status": "LAYOUT_REPLAY_PASS_NOT_FPGA",
+      "counts": {
+        "hot_vertices": 746346,
+        "hot_edges": 58305644,
+        "update_margin": 16,
+        "max_n": 16777216,
+        "family_words": 32804886,
+        "graph_aligned_bytes": 524881920,
+        "workspace_aligned_bytes": 275779584
+      },
+      "vertices": 4847571,
+      "edges": 85702474,
+      "updates": 16,
+      "pins": [
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-lj.json",
+          "sha256": "7611c4f50675d25cfc4bccfe69045b5e79c03f1fbf4f8f2af03e920c67438c92",
+          "bytes": 3419
+        },
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-lj/manifest.json",
+          "sha256": "99304f71ac9c848c6d06c8c82c1c99b953b622d9ce10fd9e9201a101a0ea29a5",
+          "bytes": 8971
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj_connected_components_insert_u8.graph",
+          "sha256": "89093e0ccfdf40e973018b78eeb4596f3facc94e8f1a590451df314f8b6d3cb3",
+          "bytes": 1500442263
+        },
+        {
+          "path": "/data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/connected_components.host",
+          "sha256": "51cc53e4ea38baeb0077b931293e609cb34b5c65891630220db71222a80a76d6",
+          "bytes": 4326576
+        },
+        {
+          "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/cc/xclbin/spine_partitioned_split_e2e.cc.hw.xclbin",
+          "sha256": "e3d103fcca2c6718ffaacdc6309db9b39047714c53e15c77a087149997f0096b",
+          "bytes": 59165742
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/results.json",
+          "sha256": "3e9b792aeb5ccccfbc8aa30065b0084a58ff4cf4d51fbb61926d6f3edc2d9c86",
+          "bytes": 19815
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/lj/inputs.json",
+          "sha256": "7c469824ebf49946d6cc89119c2ad9aeb6622bd47c37e27bd16131a5c55091dd",
+          "bytes": 785
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+          "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+          "bytes": 201112
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj_connected_components_insert_u8.graph",
+          "sha256": "89093e0ccfdf40e973018b78eeb4596f3facc94e8f1a590451df314f8b6d3cb3",
+          "bytes": 1500442263
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/lj/graph.slice",
+          "sha256": "5ccb06999833309f3625b0ffaf0b34093b614b23238508f6cb897e28b7a13190",
+          "bytes": 1671846949
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/lj/update.slice",
+          "sha256": "ac5ac15d90bbc7d5e9609c98e5a5bf340c4467ce53b25a202cc2772fe5af2730",
+          "bytes": 280
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/lj/layout.stdout.txt",
+          "sha256": "278841c17d917b8d5b7cc4db6e629ed6e9e7e8887c56f7f5c0ad95536ed81950",
+          "bytes": 192
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/lj/layout.resources.json",
+          "sha256": "860c2a4df980e942fe0a89aca6ab613e5968c1b5996391a7d40d32b37d4c0d35",
+          "bytes": 2214
+        }
+      ]
+    },
+    "LJ08": {
+      "status": "LAYOUT_REPLAY_PASS_NOT_FPGA",
+      "counts": {
+        "hot_vertices": 491332,
+        "hot_edges": 57668658,
+        "update_margin": 16,
+        "max_n": 16777216,
+        "family_words": 32804886,
+        "graph_aligned_bytes": 524881920,
+        "workspace_aligned_bytes": 275779584
+      },
+      "vertices": 5363260,
+      "edges": 99028542,
+      "updates": 16,
+      "pins": [
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-lj08.json",
+          "sha256": "a0ce6771853fbf84b78b28a5ec38924b7af3c288fa9cb772e03c4489a5e6ce34",
+          "bytes": 3425
+        },
+        {
+          "path": "/data/chuxiao/checks/grasu-replicated-host-singlepass-20261026-v1/matrix/cc-lj08/manifest.json",
+          "sha256": "be9af8689b714453a670b27b42aeec5641ceb190d78af8f6c48c0afc7698ac95",
+          "bytes": 8983
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj08_connected_components_insert_u8.graph",
+          "sha256": "ccd6ab77097f0bf573a8d54dca50622abb68804a6233c43ae4692ab1bcf2b542",
+          "bytes": 1827894666
+        },
+        {
+          "path": "/data/chuxiao/checks/spine-cc-respr-host-20261026/default-hosts-v1/connected_components.host",
+          "sha256": "51cc53e4ea38baeb0077b931293e609cb34b5c65891630220db71222a80a76d6",
+          "bytes": 4326576
+        },
+        {
+          "path": "/data/feiyang/codex_builds/spine_paper_alignment/owner_fifo_hw_v1/cc/xclbin/spine_partitioned_split_e2e.cc.hw.xclbin",
+          "sha256": "e3d103fcca2c6718ffaacdc6309db9b39047714c53e15c77a087149997f0096b",
+          "bytes": 59165742
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/results.json",
+          "sha256": "3e9b792aeb5ccccfbc8aa30065b0084a58ff4cf4d51fbb61926d6f3edc2d9c86",
+          "bytes": 19815
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/lj08/inputs.json",
+          "sha256": "d05ba4f7e47470da103471f9ff21a8e057cab4fc105da40da313ce0efe27b98e",
+          "bytes": 791
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+          "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+          "bytes": 201112
+        },
+        {
+          "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj08_connected_components_insert_u8.graph",
+          "sha256": "ccd6ab77097f0bf573a8d54dca50622abb68804a6233c43ae4692ab1bcf2b542",
+          "bytes": 1827894666
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/lj08/graph.slice",
+          "sha256": "ed3bfe57021f949cd4f02896b4e9c3d56ccbb49a31cc75e89f8453852778f8d8",
+          "bytes": 2025951487
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-balanced-large-inputs-v1/lj08/update.slice",
+          "sha256": "b1d428315e62b5f33d4b4c851f074472522e09880fdefd6b3d6247633beb6479",
+          "bytes": 281
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/lj08/layout.stdout.txt",
+          "sha256": "c2ef22e6cb2b8d0416039f6c153f72a568c22094d7a6c5603bb5b0a409abe036",
+          "bytes": 192
+        },
+        {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-layout-large-v1/lj08/layout.resources.json",
+          "sha256": "fe218505f3b1a4fabfa80d4a707c587c582fc3ae3c7d888b6b468de7e7f7e730",
+          "bytes": 2219
+        }
+      ]
+    }
+  },
+  "baseline": {
+    "status": "BASELINE_STAGES_ADMITTED_NOT_CONVERGENCE",
+    "algorithm": "cc",
+    "image": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+      "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+      "bytes": 79624812
+    },
+    "host": {
+      "path": "/data/chuxiao/checks/gr-active-min-candidate-20261104-v1/connected_components/sharded_k4_cc_native_host",
+      "sha256": "b4106f1f5886bbf7374ddc19e693705018f127ba4e0b1e2be3065dffa178bf55",
+      "bytes": 232960
+    },
+    "resident_mhz": [
+      150,
+      500,
+      450,
+      0
+    ],
+    "r": {
+      "report": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/results.json",
+        "sha256": "dc0ee46d193836ef24905b846af00b0bba81db82db4e28d5dc68ec079b9de167",
+        "bytes": 70673
+      },
+      "comparison": {
+        "candidate_over_reference": 0.9664097556265843,
+        "at_most_15_percent_slower": true,
+        "equal_driver_reported_clocks": true,
+        "retention_gate_pass": true,
+        "requested_runs_per_arm": 1
+      },
+      "candidate_clock": {
+        "uuid": "2cda664a-f88a-8ae6-3cb5-eb2d60dfb3e3",
+        "binary": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+          "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+          "bytes": 79624812
+        },
+        "driver_reported_mhz": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "bdf": "0000:82:00.1",
+        "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+        "raw": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-pair-v1/pair/candidate.clock-raw.json",
+          "sha256": "25fe520c58cc79b06cd04eba5e9607bd6c4f5c017fa1d60018322fa6a639140c",
+          "bytes": 94
+        },
+        "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+      }
+    },
+    "g": {
+      "report": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/results.json",
+        "sha256": "259c8aa5a0142b95ecee6672e40f9ade932c1d974210414dbd46c06826e7fed7",
+        "bytes": 96940
+      },
+      "reference": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-reference-card0-v1/results.json",
+        "sha256": "c431518e8b98a44153c53b8dd5f035f6dd570445ac9ba4d943b6c75a9545f26f",
+        "bytes": 6882
+      },
+      "comparison": {
+        "reference_ms": 18.368928,
+        "current_ms": 7.363858,
+        "current_over_reference": 0.40088664945499264,
+        "slowdown_percent": -59.91133505450074,
+        "at_most_15_percent_slower": true,
+        "selection": "one measured resident run per arm; no warmup or averaging",
+        "equal_driver_reported_clocks": true,
+        "retention_gate_pass": true
+      },
+      "candidate_clock": {
+        "uuid": "2cda664a-f88a-8ae6-3cb5-eb2d60dfb3e3",
+        "binary": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+          "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+          "bytes": 79624812
+        },
+        "driver_reported_mhz": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "bdf": "0000:82:00.1",
+        "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+        "raw": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/g-cc-board-source-bursts-v1/candidate.clock-raw.json",
+          "sha256": "25fe520c58cc79b06cd04eba5e9607bd6c4f5c017fa1d60018322fa6a639140c",
+          "bytes": 94
+        },
+        "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+      }
+    }
+  },
+  "odd_queue_pins": [
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/a4-active-amazon-odd-v1/manifest.json",
+      "sha256": "81e9430421d52acf665a507f808a7f467f745818f491aa7dc1fc605ae95e9add",
+      "bytes": 6283
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/queue.json",
+      "sha256": "2a553a4e2d46dc8dcf83473a9ffb1e4661dde70f1bb836996e0e2a9f289b2e8d",
+      "bytes": 54163
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/pair/results.json",
+      "sha256": "69a89089730eef89b0c952cff4ca4196ee7815a7aba6e7c7f46a789e1c5c322a",
+      "bytes": 70873
+    }
+  ],
+  "additional_r_gates": {
+    "amazon_odd": {
+      "report": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/pair/results.json",
+        "sha256": "69a89089730eef89b0c952cff4ca4196ee7815a7aba6e7c7f46a789e1c5c322a",
+        "bytes": 70873
+      },
+      "comparison": {
+        "candidate_over_reference": 0.9221399525922047,
+        "at_most_15_percent_slower": true,
+        "equal_driver_reported_clocks": true,
+        "retention_gate_pass": true,
+        "requested_runs_per_arm": 1
+      },
+      "candidate_clock": {
+        "uuid": "2cda664a-f88a-8ae6-3cb5-eb2d60dfb3e3",
+        "binary": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+          "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+          "bytes": 79624812
+        },
+        "driver_reported_mhz": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "bdf": "0000:82:00.1",
+        "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+        "raw": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-amazon-odd-pair-v1/pair/candidate.clock-raw.json",
+          "sha256": "25fe520c58cc79b06cd04eba5e9607bd6c4f5c017fa1d60018322fa6a639140c",
+          "bytes": 94
+        },
+        "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+      }
+    },
+    "au_slice": {
+      "report": {
+        "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-au903k-pair-v1/pair/results.json",
+        "sha256": "019bcfb8a6706d25b79f8bbb50bdcac8dd01a73e1ff0e418059496d0691186fc",
+        "bytes": 70608
+      },
+      "comparison": {
+        "candidate_over_reference": 1.1241119629983227,
+        "at_most_15_percent_slower": true,
+        "equal_driver_reported_clocks": true,
+        "retention_gate_pass": true,
+        "requested_runs_per_arm": 1
+      },
+      "candidate_clock": {
+        "uuid": "2cda664a-f88a-8ae6-3cb5-eb2d60dfb3e3",
+        "binary": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+          "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+          "bytes": 79624812
+        },
+        "driver_reported_mhz": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "bdf": "0000:82:00.1",
+        "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+        "raw": {
+          "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-banked-source-bursts-au903k-pair-v1/pair/candidate.clock-raw.json",
+          "sha256": "25fe520c58cc79b06cd04eba5e9607bd6c4f5c017fa1d60018322fa6a639140c",
+          "bytes": 94
+        },
+        "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+      }
+    }
+  },
+  "gr_wall_host": {
+    "path": "/data/chuxiao/checks/source-retention-repair-20261104/gr-active-min-wall-host-v1/connected_components/sharded_k4_cc_native_host",
+    "sha256": "b72c20fec3bc7130edf430ff0006963e3112dfa57ea31bc96e38246b303f7412",
+    "bytes": 243400
+  },
+  "elapsed_seconds": 57.70932862209156,
+  "memory_peak_bytes": 292667392,
+  "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"
+}
