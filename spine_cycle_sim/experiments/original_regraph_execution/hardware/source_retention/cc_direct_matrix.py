@@ -26,6 +26,7 @@ def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     report = dict(status="RUNNING", boundary=wall.BOUNDARY, repetitions_per_arm=1, warmups=0,
                   arm_timeout_seconds=args.arm_timeout_seconds,
+                  admission_wait_seconds=args.admission_wait_seconds,
                   routing_report_complete=False, timing_qualification="raw routed skew report unavailable",
                   memory_profile=args.memory_profile, bdf="0000:82:00.1", device=0,
                   artifacts={name: identity(getattr(args, name))
@@ -55,7 +56,8 @@ def run(args):
                         row.update(status=status, memory_observation=observation)
                         write()
 
-                    with pair_resources.admit(0, report["bdf"], group, 600, record, memory_gib=32):
+                    with pair_resources.admit(0, report["bdf"], group,
+                                              args.admission_wait_seconds, record, memory_gib=32):
                         for name in ("spine", "gr"):
                             row["status"] = "RUNNING_" + name.upper()
                             write()
@@ -88,11 +90,15 @@ def main():
     parser.add_argument("--inputs", nargs=2, action="append", required=True, metavar=("DATASET", "JSON"))
     parser.add_argument("--arm-timeout-seconds", type=int, default=1800,
                         help="bounded process timeout including unmeasured old-graph preparation (max 7200)")
+    parser.add_argument("--admission-wait-seconds", type=int, default=600,
+                        help="wait for the board and safe memory admission before either arm (max 21600)")
     parser.add_argument("--memory-profile", choices=memory_policy.PROFILES,
                         default="zfs-arc-clean-half-background5-v1")
     args = parser.parse_args()
     if not 1 <= args.arm_timeout_seconds <= 7200:
         parser.error("arm timeout must be between 1 and 7200 seconds")
+    if not 1 <= args.admission_wait_seconds <= 21600:
+        parser.error("admission wait must be between 1 and 21600 seconds")
     if len({dataset for dataset, _ in args.inputs}) != len(args.inputs):
         parser.error("duplicate dataset")
     run(args)

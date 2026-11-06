@@ -51,6 +51,14 @@ so that its next Spine load changes the programmed UUID. The operation and
 observations are retained in `long_startup/device-recovery.json`. LJ remains
 pending and needs a separate attempt; no failed sample is replaced by a number.
 
+The separate LJ retry is queued under
+`spine-cc-direct-recovered-lj-20261106-v1.service`, writing `recovered_lj/`.
+It allows up to 14,400 seconds for board/memory admission before either arm,
+then the same 7,200-second process timeout per arm. The queue does not open
+the board or allocate graph buffers until the existing pair releases its
+lease and the same finite 32-GiB budget plus reserve fits. This is not a
+parallel board run or a change to the measured interval.
+
 ## Measurement
 
 Both systems start with the old graph and converged labels resident. Each
@@ -120,14 +128,15 @@ systemd-run --user --wait --pipe --unit=cc-direct-fresh \
   --output /path/to/fresh-cc-measurements
 ```
 
-After both attempts are terminal, export the original matrix together with
-the longer retry. The exporter only permits replacement of failed attempts,
-requires unchanged artifacts and inputs, and retains both original records.
+After all attempts are terminal, export the original matrix together with
+the ordered retries. The exporter only permits replacement of failed attempts,
+requires unchanged artifacts and inputs, and retains all original records.
 
 ```sh
 python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_direct_export \
   --matrix "$base/remaining/matrix.json" \
   --resume "$base/long_startup/matrix.json" \
+  --resume "$base/recovered_lj/matrix.json" \
   --au "$base/AU/results.json" \
   --au-gr "$checks/cc-warm-au-source-bursts-resident-v8/results.json" \
   --output /path/to/fresh-cc-data

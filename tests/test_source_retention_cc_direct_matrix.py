@@ -78,6 +78,22 @@ class DirectCCMatrixTests(unittest.TestCase):
                 direct.main()
             run.assert_not_called()
 
+    @patch.object(direct, "run")
+    def test_queued_retry_wait_is_explicit_and_bounded(self, run):
+        argv = ["direct", "--previous", "p", "--spine-host", "s", "--spine-image", "si",
+                "--gr-host", "g", "--gr-image", "gi", "--output", "out", "--inputs", "LJ", "i"]
+        with patch("sys.argv", argv):
+            direct.main()
+        self.assertEqual(run.call_args.args[0].admission_wait_seconds, 600)
+        with patch("sys.argv", argv + ["--admission-wait-seconds", "14400"]):
+            direct.main()
+        self.assertEqual(run.call_args.args[0].admission_wait_seconds, 14400)
+        for value in ("0", "21601"):
+            run.reset_mock()
+            with patch("sys.argv", argv + ["--admission-wait-seconds", value]), self.assertRaises(SystemExit):
+                direct.main()
+            run.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
