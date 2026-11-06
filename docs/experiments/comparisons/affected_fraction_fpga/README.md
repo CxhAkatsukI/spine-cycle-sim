@@ -104,6 +104,9 @@ updates without duplicating the old graph; `plot.py` renders with Matplotlib and
 TX Typewriter, following the existing handoff typography. `delivery.py` waits
 with a finite deadline and exports a complete or explicitly partial handoff;
 retained failed attempts never masquerade as additional successful samples.
+`review.py` independently checks the completed archive's point/sample coverage,
+alternating order, raw-log digests, paired clocks, medians, CSV values and
+recorded OOM events. This is a protocol/export check, not a new calibration.
 
 ```sh
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.prepare \
@@ -116,7 +119,7 @@ g++ -std=c++17 -O2 -ffp-contract=off -Wall -Wextra -Werror \
 ```
 
 Board runs require a finite systemd cgroup (8 GiB max / 6 GiB high for AU
-SSSP and PR; 16 / 14 GiB for CC), zero swap and group OOM cleanup. The named
+SSSP and PR; 16 / 14 GiB for CC and R19 SSSP), zero swap and group OOM cleanup. The named
 `zfs-arc-clean-half-background5-v1` policy retains the existing 32-GiB live
 reserve and pressure checks. A waiting job is not a measured point.
 
@@ -131,6 +134,8 @@ python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.plot 
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.delivery \
   --campaign /path/to/run/campaign.json --hardware /path/to/hardware.json \
   --wait-seconds 14400 --output /path/to/fresh-handoff
+python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.review \
+  /path/to/completed-handoff --output /path/to/completed-handoff/review.json
 ```
 
 Repeat `--campaign` for each primary campaign. Use `--retained-campaign` for
