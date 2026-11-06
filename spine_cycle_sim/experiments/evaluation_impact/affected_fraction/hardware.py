@@ -31,7 +31,9 @@ def freeze(sssp, cc, respr, output):
 def commands(binding, manifest, point, output):
     graph, source = point["graph"]["path"], str(manifest["source"])
     gr = [binding["gr_host"]["path"], binding["gr_image"]["path"], graph,
-          str(output / "gr-state.txt"), source, "256"]
+          str(output / "gr-state.txt")]
+    if manifest["algorithm"] != "residual_pagerank":
+        gr.extend((source, "256"))
     if manifest["algorithm"] == "connected_components":
         data = spine_cc_input.prepare(Path(graph), output / "cc-input")
         spine = [binding["spine_host"]["path"], "--xclbin", binding["spine_image"]["path"],
