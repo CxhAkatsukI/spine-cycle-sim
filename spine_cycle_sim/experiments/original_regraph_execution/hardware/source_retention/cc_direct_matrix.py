@@ -28,6 +28,7 @@ def run(args):
                   arm_timeout_seconds=args.arm_timeout_seconds,
                   admission_wait_seconds=args.admission_wait_seconds,
                   routing_report_complete=False, timing_qualification="raw routed skew report unavailable",
+                  memory_gib=args.memory_gib,
                   memory_profile=args.memory_profile, bdf="0000:82:00.1", device=0,
                   artifacts={name: identity(getattr(args, name))
                              for name in ("spine_host", "spine_image", "gr_host", "gr_image")},
@@ -36,7 +37,7 @@ def run(args):
     write = lambda: save(journal, report)
     write()
     with memory_policy.scope(args.memory_profile):
-        group = check_memory(32, require_live_reserve=False)
+        group = check_memory(args.memory_gib, require_live_reserve=False)
         try:
             for dataset, manifest in args.inputs:
                 output = args.output / dataset.lower()
@@ -57,7 +58,7 @@ def run(args):
                         write()
 
                     with pair_resources.admit(0, report["bdf"], group,
-                                              args.admission_wait_seconds, record, memory_gib=32):
+                                              args.admission_wait_seconds, record, memory_gib=args.memory_gib):
                         for name in ("spine", "gr"):
                             row["status"] = "RUNNING_" + name.upper()
                             write()
@@ -94,6 +95,8 @@ def main():
                         help="wait for the board and safe memory admission before either arm (max 21600)")
     parser.add_argument("--memory-profile", choices=memory_policy.PROFILES,
                         default="zfs-arc-clean-half-background5-v1")
+    parser.add_argument("--memory-gib", type=int, choices=(32, 40), default=32,
+                        help="full cgroup reservation; 40 GiB permits large raw-graph audits (high <= 36 GiB)")
     args = parser.parse_args()
     if not 1 <= args.arm_timeout_seconds <= 7200:
         parser.error("arm timeout must be between 1 and 7200 seconds")

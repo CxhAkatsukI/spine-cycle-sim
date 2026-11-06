@@ -15,7 +15,7 @@ from ..source_retention.runtime import lease
 def admit(device, bdf, group, seconds, record, *, legacy_lock=None, memory_gib=8):
     if not 1 <= seconds <= 21600:
         raise ValueError("paired board admission must be bounded to six hours")
-    if memory_gib not in (8, 16, 24, 32):
+    if memory_gib not in (8, 16, 24, 32, 40):
         raise ValueError("unknown paired board memory budget")
     limits = containment.verify(group, memory_gib=memory_gib)["limits"]
     if (int(limits["memory.max"]) != memory_gib * 2**30

@@ -79,6 +79,21 @@ class DirectCCMatrixTests(unittest.TestCase):
             run.assert_not_called()
 
     @patch.object(direct, "run")
+    def test_large_audit_budget_is_explicit_and_finite(self, run):
+        argv = ["direct", "--previous", "p", "--spine-host", "s", "--spine-image", "si",
+                "--gr-host", "g", "--gr-image", "gi", "--output", "out", "--inputs", "LJ", "i"]
+        with patch("sys.argv", argv):
+            direct.main()
+        self.assertEqual(run.call_args.args[0].memory_gib, 32)
+        with patch("sys.argv", argv + ["--memory-gib", "40"]):
+            direct.main()
+        self.assertEqual(run.call_args.args[0].memory_gib, 40)
+        run.reset_mock()
+        with patch("sys.argv", argv + ["--memory-gib", "48"]), self.assertRaises(SystemExit):
+            direct.main()
+        run.assert_not_called()
+
+    @patch.object(direct, "run")
     def test_queued_retry_wait_is_explicit_and_bounded(self, run):
         argv = ["direct", "--previous", "p", "--spine-host", "s", "--spine-image", "si",
                 "--gr-host", "g", "--gr-image", "gi", "--output", "out", "--inputs", "LJ", "i"]
