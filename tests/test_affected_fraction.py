@@ -137,6 +137,27 @@ class AnalysisTest(unittest.TestCase):
             self.assertEqual(result["status"], "WAIT_TIMEOUT")
             self.assertFalse((output / "data").exists())
 
+    def test_continuation_covers_unattempted_points_but_retains_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / "workloads.json"
+            manifest.write_text(json.dumps(dict(algorithm="weighted_sssp", dataset="fixture",
+                                                points=[dict(name=name) for name in ("a", "b", "c")])) )
+            first, second = root / "first.json", root / "second.json"
+            first.write_text(json.dumps(dict(status="FAILED_RETAINED", workloads=dict(path=str(manifest)),
+                cases=[dict(name="a", status="MEASURED"), dict(name="b", status="FAILED_RETAINED",
+                    samples=[dict(status="FAILED_RETAINED")])])))
+            self.assertEqual(completion([first])["status"], "PARTIAL_RETAINED")
+            second.write_text(json.dumps(dict(status="COMPLETED", workloads=dict(path=str(manifest)),
+                                              cases=[dict(name="c", status="MEASURED")])))
+            result = completion([first, second])
+            self.assertEqual(result["status"], "COMPLETED_WITH_FAILURES")
+            self.assertEqual(result["planned_unique_points"], 3)
+            self.assertEqual(result["failed_points"][0]["name"], "b")
+            self.assertTrue(all(not row["missing_points"] for row in result["studies"]))
+            with self.assertRaisesRegex(ValueError, "duplicate"):
+                completion([first, first])
+
     def test_export_keeps_failed_logs_and_warmups_without_inventing_work(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -102,8 +102,12 @@ def run(args):
                             result.update(status="FAILED_RETAINED", error=repr(error))
                             row["status"] = "FAILED_RETAINED"
                             save(journal, report)
-                            raise
+                            if not args.continue_on_case_error:
+                                raise
+                            break
                         save(journal, report)
+                    if row["status"] == "FAILED_RETAINED":
+                        continue
                     measured = [sample["pair"] for sample in row["samples"] if not sample["warmup"]]
                     medians = {name: statistics.median(pair[name + "_wall_ms"] for pair in measured)
                                for name in ("gr", "spine")}
@@ -113,7 +117,8 @@ def run(args):
                     print(point["name"], point["changed_fraction"], row["speedup"], flush=True)
         if not report["cases"]:
             raise ValueError("no requested workloads were selected")
-        report["status"] = "COMPLETED"
+        report["status"] = ("COMPLETED_WITH_FAILURES" if any(
+            row["status"] == "FAILED_RETAINED" for row in report["cases"]) else "COMPLETED")
     except BaseException as error:
         report.update(status="FAILED_RETAINED", error=repr(error))
         raise
@@ -127,6 +132,8 @@ def main():
     for name in ("workloads", "template", "comparator", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--point", action="append")
+    parser.add_argument("--continue-on-case-error", action="store_true",
+                        help="retain a failed point and attempt the remaining frozen inputs")
     parser.add_argument("--repetitions", type=int, choices=(1, 3), default=3)
     parser.add_argument("--memory-gib", type=int, choices=(8, 16, 24, 32), default=8)
     parser.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.ARC_BACKGROUND)

@@ -4,6 +4,7 @@
 
 | What you need | Read this |
 | --- | --- |
+| FPGA crossover as the affected-vertex fraction grows, including losses and failures | [Affected-fraction study](experiments/comparisons/affected_fraction_fpga/README.md) |
 | Selected complete Figures 7--11 data/code/previews and G/R public-source controls | [Latest evaluation delivery](experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/LATEST.md) |
 | Current G/R controls and FPGA Fig. 7 progress, including pending/failed rows | [Current evidence index](experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/README.md) |
 | Earlier October 24 FPGA Fig. 7 campaign | [October hardware refresh](evaluation_refresh_20261024/README.md) |

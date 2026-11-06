@@ -30,7 +30,7 @@ class WorkTests(unittest.TestCase):
             data.mkdir()
             study = dict(campaign=0, dataset="AU", algorithm="connected_components")
             (data / "summary.json").write_text(json.dumps(dict(studies=[study])))
-            sample = dict(sample_index=0, warmup=True, status="PASS", arms=dict(spine={}))
+            sample = dict(sample_index=0, warmup=True, status="FAILED_RETAINED", arms={})
             campaign = dict(cases=[dict(name="target", samples=[sample])])
             (data / "campaign-0.json").write_text(json.dumps(campaign))
             with tarfile.open(data / "host-logs.tar.gz", "w:gz") as archive:
@@ -44,6 +44,7 @@ class WorkTests(unittest.TestCase):
                 row, = csv.DictReader(stream)
             self.assertEqual(row["log_physical_edges"], "25")
             self.assertEqual(row["warmup"], "True")
+            self.assertEqual(row["status"], "FAILED_RETAINED")
             self.assertNotIn("log_source_requests", row)
 
 

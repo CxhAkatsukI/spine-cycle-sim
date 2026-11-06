@@ -40,13 +40,17 @@ def export(root, output):
     summary = json.loads((root / "data/summary.json").read_text())
     rows = []
     with tarfile.open(root / "data/host-logs.tar.gz") as archive:
+        members = set(archive.getnames())
         for study in summary["studies"]:
             index = study["campaign"]
             campaign = json.loads((root / f"data/campaign-{index}.json").read_text())
             for point in campaign["cases"]:
                 for sample in point["samples"]:
-                    for arm in sample["arms"]:
+                    for arm in ("spine", "gr"):
                         name = f"campaign-{index}/{point['name']}/sample-{sample['sample_index']}/{arm}.stdout.txt"
+                        # A failed arm can leave logs before returning a journal result.
+                        if name not in members:
+                            continue
                         text = archive.extractfile(name).read().decode()
                         for ordinal, record in enumerate(records(text)):
                             row = dict(campaign=index, dataset=study["dataset"], algorithm=study["algorithm"],

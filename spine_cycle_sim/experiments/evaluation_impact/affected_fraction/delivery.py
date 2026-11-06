@@ -9,22 +9,39 @@ from ...original_regraph_execution.hardware.source_retention.runtime import iden
 from . import analyze, plot
 
 
-TERMINAL = {"COMPLETED", "FAILED_RETAINED"}
+TERMINAL = {"COMPLETED", "COMPLETED_WITH_FAILURES", "FAILED_RETAINED"}
 
 
 def completion(campaigns):
-    studies = []
+    studies, expected, attempted, failed = [], set(), set(), []
     for path in campaigns:
         document = json.loads(path.read_text())
         manifest = json.loads(Path(document["workloads"]["path"]).read_text())
+        group = (manifest["algorithm"], manifest["dataset"])
+        expected.update((*group, row["name"]) for row in manifest["points"])
+        for row in document["cases"]:
+            key = (*group, row["name"])
+            if key in attempted:
+                raise ValueError("duplicate primary attempt: " + repr(key))
+            if row["status"] == "MEASURED":
+                attempted.add(key)
+            elif (row["status"] == "FAILED_RETAINED" and row.get("samples")
+                  and row["samples"][-1].get("status") == "FAILED_RETAINED"):
+                attempted.add(key)
+                failed.append(dict(algorithm=group[0], dataset=group[1], name=row["name"]))
         measured = {row["name"] for row in document["cases"] if row["status"] == "MEASURED"}
-        missing = [row["name"] for row in manifest["points"] if row["name"] not in measured]
         studies.append(dict(campaign=identity(path), algorithm=manifest["algorithm"],
                             dataset=manifest["dataset"], status=document["status"],
                             planned_points=len(manifest["points"]), measured_points=len(measured),
-                            missing_points=missing))
-    return dict(status="COMPLETED" if all(row["status"] == "COMPLETED" and not row["missing_points"]
-                                        for row in studies) else "PARTIAL_RETAINED", studies=studies)
+                            planned_names=[row["name"] for row in manifest["points"]]))
+    if attempted - expected:
+        raise ValueError("attempted point was not planned")
+    for study in studies:
+        study["missing_points"] = [name for name in study["planned_names"]
+                                   if (study["algorithm"], study["dataset"], name) not in attempted]
+    complete = expected == attempted and all(row["status"] in TERMINAL for row in studies)
+    status = ("COMPLETED_WITH_FAILURES" if failed else "COMPLETED") if complete else "PARTIAL_RETAINED"
+    return dict(status=status, studies=studies, planned_unique_points=len(expected), failed_points=failed)
 
 
 def deliver(campaigns, retained, output, *, hardware, candidates=(), wait_seconds=14400):

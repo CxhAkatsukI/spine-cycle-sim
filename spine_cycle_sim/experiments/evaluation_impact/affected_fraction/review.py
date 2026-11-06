@@ -55,7 +55,7 @@ def check_point(point, log_hashes, campaign):
 
 def review(root):
     delivery = json.loads((root / "delivery.json").read_text())
-    if delivery["status"] != "COMPLETED":
+    if delivery["status"] not in {"COMPLETED", "COMPLETED_WITH_FAILURES"}:
         raise ValueError("delivery is not complete")
     for name, record in delivery["files"].items():
         if hashlib.sha256((root / name).read_bytes()).hexdigest() != record["sha256"]:
@@ -63,23 +63,42 @@ def review(root):
     with tarfile.open(root / "data/host-logs.tar.gz") as archive:
         log_hashes = {member.name: hashlib.sha256(archive.extractfile(member).read()).hexdigest()
                       for member in archive.getmembers() if member.isfile()}
-    points, reports = [], []
+    points, failures, reports, expected, attempted = [], [], [], set(), set()
     for index, study in enumerate(delivery["studies"]):
         campaign = json.loads((root / f"data/campaign-{index}.json").read_text())
         manifest = json.loads((root / f"data/workloads-{index}.json").read_text())
-        expected = {point["name"] for point in manifest["points"]}
-        actual = [point["name"] for point in campaign["cases"]]
-        if (campaign["status"] != "COMPLETED" or set(actual) != expected
-                or len(actual) != len(expected)):
-            raise ValueError("campaign does not contain every planned point exactly once")
-        checks = [check_point(point, log_hashes, index) for point in campaign["cases"]]
+        group = (manifest["algorithm"], manifest["dataset"])
+        expected.update((*group, point["name"]) for point in manifest["points"])
+        if campaign["status"] not in {"COMPLETED", "COMPLETED_WITH_FAILURES", "FAILED_RETAINED"}:
+            raise ValueError("primary campaign is still active")
+        checks = []
+        for point in campaign["cases"]:
+            key = (*group, point["name"])
+            if key in attempted:
+                raise ValueError("duplicate primary point")
+            attempted.add(key)
+            if point["status"] == "MEASURED":
+                checks.append(check_point(point, log_hashes, index))
+                points.append((index, point))
+            elif (point["status"] == "FAILED_RETAINED" and point.get("samples")
+                  and point["samples"][-1].get("status") == "FAILED_RETAINED"
+                  and point["samples"][-1].get("error")):
+                prefix = f"campaign-{index}/{point['name']}/"
+                if not any(name.startswith(prefix) and name.endswith("stderr.txt") for name in log_hashes):
+                    raise ValueError("failed point has no archived error log")
+                failures.append((index, point))
+            else:
+                raise ValueError("primary point has no terminal outcome")
         reports.append(dict(algorithm=study["algorithm"], dataset=study["dataset"],
                             points=len(checks), clocks=sorted({tuple(clock) for check in checks
                                                             for clock in check["clocks"]}),
-                            peak_memory_bytes=max(check["peak_memory_bytes"] for check in checks),
+                            peak_memory_bytes=max((check["peak_memory_bytes"] for check in checks), default=0),
                             minimum_effective_available_bytes=min(
-                                check["minimum_effective_available_bytes"] for check in checks)))
-        points.extend((index, point) for point in campaign["cases"])
+                                (check["minimum_effective_available_bytes"] for check in checks), default=0)))
+    if expected != attempted:
+        raise ValueError("primary campaigns do not cover every planned point exactly once")
+    if bool(failures) != (delivery["status"] == "COMPLETED_WITH_FAILURES"):
+        raise ValueError("delivery status hides or invents failures")
     with (root / "data/points.csv").open() as stream:
         csv_points = {(int(row["campaign"]), row["name"]): row for row in csv.DictReader(stream)}
     for index, point in points:
@@ -90,9 +109,19 @@ def review(root):
     with (root / "data/samples.csv").open() as stream:
         exported = list(csv.DictReader(stream))
     primary = [row for row in exported if int(row["campaign"]) < len(reports)]
-    if len(primary) != len(points) * 4 or any(row["status"] != "PASS" for row in primary):
+    measured_keys = {(index, point["name"]) for index, point in points}
+    passed = [row for row in primary if (int(row["campaign"]), row["name"]) in measured_keys]
+    if len(passed) != len(points) * 4 or any(row["status"] != "PASS" for row in passed):
         raise ValueError("sample CSV is incomplete")
-    return dict(status="PASS", primary_points=len(points), primary_pairs=len(primary),
+    for index, point in failures:
+        row = csv_points[(index, point["name"])]
+        if row["status"] != "FAILED_RETAINED" or row["speedup"]:
+            raise ValueError("failed point was exported as a speedup")
+        rows = [row for row in primary if (int(row["campaign"]), row["name"]) == (index, point["name"])]
+        if len(rows) != len(point["samples"]) or rows[-1]["status"] != "FAILED_RETAINED":
+            raise ValueError("failed samples are missing")
+    return dict(status="PASS", planned_points=len(expected), primary_points=len(points),
+                failed_primary_points=len(failures), primary_pairs=len(primary),
                 measured_pairs=len(points) * 3, warmup_pairs=len(points), studies=reports,
                 retained_other_pairs=len(exported) - len(primary),
                 scope="archived protocol, clocks, logs, medians, completeness and OOM receipts; "
