@@ -25,17 +25,17 @@ def render(summary, output):
     names = {"weighted_sssp": "SSSP", "connected_components": "CC", "residual_pagerank": "ResPR"}
     colors = {"weighted_sssp": "#428a98", "connected_components": "#bc742e", "residual_pagerank": "#52864b"}
     figure, axis = plt.subplots(figsize=(3.5, 2.65))
-    markers = ("o", "s", "D", "v")
+    markers = dict(zip(sorted({dataset for dataset, _ in groups}), ("o", "s", "D", "v")))
     for index, (dataset, algorithm) in enumerate(groups):
         rows = [row for row in points if (row["dataset"], row["algorithm"]) == (dataset, algorithm)]
         targeted = sorted((row for row in rows if row["kind"] != "ordinary"), key=lambda row: row["changed_fraction"])
         ordinary = [row for row in rows if row["kind"] == "ordinary"]
         color = colors[algorithm]
         axis.plot([row["changed_fraction"] * 100 for row in targeted], [row["speedup"] for row in targeted],
-                  marker=markers[index % len(markers)], markersize=3.5, linewidth=.8, color=color,
+                  marker=markers[dataset], markersize=3.5, linewidth=.8, color=color,
                   linestyle="-" if index < 3 else "--", label=dataset + " " + names[algorithm], zorder=3)
         axis.scatter([row["changed_fraction"] * 100 for row in ordinary], [row["speedup"] for row in ordinary],
-                     marker="^", s=18, facecolors="white", edgecolors=color, linewidths=.65, zorder=4)
+                     marker=markers[dataset], s=18, facecolors="white", edgecolors=color, linewidths=.65, zorder=4)
     axis.axhline(1, color="black", linewidth=.7, linestyle="--", zorder=2)
     axis.set_xscale("log")
     axis.set_yscale("log")
@@ -51,8 +51,8 @@ def render(summary, output):
     for spine in axis.spines.values():
         spine.set_zorder(10)
     handles, labels = axis.get_legend_handles_labels()
-    handles.append(plt.Line2D([], [], color="#555555", marker="^", markerfacecolor="white", linestyle="None", markersize=4))
-    labels.append("Ordinary batches")
+    handles.append(plt.Line2D([], [], color="#555555", marker="o", markerfacecolor="white", linestyle="None", markersize=4))
+    labels.append("Open: ordinary")
     axis.legend(handles, labels, loc="lower left", bbox_to_anchor=(0, 1.02), frameon=False,
                 ncol=2, borderaxespad=0, columnspacing=1)
     figure.subplots_adjust(left=.18, right=.98, bottom=.2, top=.76)

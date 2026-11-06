@@ -15,6 +15,7 @@ from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.pagerank im
 from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.analyze import crossings, export
 from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.select import select
 from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.input_archive import update_text
+from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.delivery import completion, deliver
 
 
 class SsspReferenceTest(unittest.TestCase):
@@ -106,6 +107,36 @@ class PageRankOracleTest(unittest.TestCase):
 
 
 class AnalysisTest(unittest.TestCase):
+    def test_delivery_requires_every_planned_point(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / "workloads.json"
+            manifest.write_text(json.dumps(dict(algorithm="weighted_sssp", dataset="fixture",
+                                                points=[dict(name="first"), dict(name="second")])))
+            campaign = root / "campaign.json"
+            document = dict(status="COMPLETED", workloads=dict(path=str(manifest)),
+                            cases=[dict(name="first", status="MEASURED")])
+            campaign.write_text(json.dumps(document))
+            result = completion([campaign])
+            self.assertEqual(result["status"], "PARTIAL_RETAINED")
+            self.assertEqual(result["studies"][0]["missing_points"], ["second"])
+            document["cases"].append(dict(name="second", status="MEASURED"))
+            campaign.write_text(json.dumps(document))
+            self.assertEqual(completion([campaign])["status"], "COMPLETED")
+
+    def test_delivery_timeout_does_not_export_a_mutating_campaign(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / "workloads.json"
+            manifest.write_text(json.dumps(dict(algorithm="weighted_sssp", dataset="fixture",
+                                                points=[dict(name="first")])))
+            campaign = root / "campaign.json"
+            campaign.write_text(json.dumps(dict(status="RUNNING", workloads=dict(path=str(manifest)), cases=[])))
+            output = root / "delivery"
+            result = deliver([campaign], [], output, hardware=root / "unused", wait_seconds=0)
+            self.assertEqual(result["status"], "WAIT_TIMEOUT")
+            self.assertFalse((output / "data").exists())
+
     def test_export_keeps_failed_logs_and_warmups_without_inventing_work(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -3,8 +3,42 @@
 This experiment varies the **actual fraction of final vertex values changed**,
 not batch size or the initial active set, and measures G+R / Spine resident
 wall latency. It supplements, and does not replace, the frozen Figures 7--11.
-The paper is not edited. Raw evidence is retained outside the checkout and
-small indexed data/figures will be exported here after measurement.
+The paper is not edited. Raw evidence is retained outside the checkout;
+completed measurements are exported here with their input and host-log archives.
+
+## Measured AU SSSP Pilot
+
+All thirteen pilot/refinement points completed one warmup and three measured
+pairs, with both arms passing their CPU correctness checks at matched clocks.
+These are FPGA wall measurements, not simulator predictions. The remaining
+AU CC, AU ResPR and R19 SSSP campaigns are still running or queued; they are
+not represented as completed measurements here.
+
+| Actual changed fraction | Batch records | G+R wall (ms) | Spine wall (ms) | G+R / Spine |
+| --- | ---: | ---: | ---: | ---: |
+| 0.00116% | 3 | 12.016 | 5.810 | 2.068 |
+| 0.01029% | 7 | 22.781 | 12.268 | 1.857 |
+| 0.10014% | 304 | 30.708 | 20.519 | 1.497 |
+| 0.21076% | 190 | 30.972 | 27.364 | 1.132 |
+| 0.40017% | 59 | 33.928 | 43.638 | 0.777 |
+| 0.60200% | 78 | 33.904 | 56.286 | 0.602 |
+| 1.00198% | 78 | 40.472 | 88.365 | 0.458 |
+| 10.22491% | 1740 | 56.936 | 951.272 | 0.060 |
+| 38.93487% | 131072 | 44.838 | 2416.030 | 0.019 |
+
+For this targeted shortcut family, adjacent measurements bracket the 1x
+crossing between **0.21076% and 0.40017%** affected vertices. This is an
+empirical bracket, not an interpolated or universal threshold. Ordinary
+8/64/512/4096-update batches respectively achieve 2.286/2.454/1.286/0.317x
+at 0.000582/0.001553/0.014167/0.123816% changed vertices. The last point
+loses despite a lower changed fraction: batch-update work and source/work
+distribution also matter. All losses remain in the exported data and plot.
+
+The completed AU data are in [data/au-sssp/summary.json](data/au-sssp/summary.json),
+[points.csv](data/au-sssp/points.csv), and [samples.csv](data/au-sssp/samples.csv).
+This export contains 13 measured points and all 52 pairs, including 13 excluded
+warmups. The [PNG preview](figures/au-sssp-crossover.png) and
+[vector PDF](figures/au-sssp-crossover.pdf) are generated solely from that export.
 
 ## Predeclared Method
 
@@ -67,7 +101,9 @@ owns the FP32 reference. `prepare.py` / `pagerank.py` freeze workloads;
 existing hosts/images; `board.py` owns execution; `analyze.py` exports every
 sample/failure and crossing brackets; `input_archive.py` preserves exact
 updates without duplicating the old graph; `plot.py` renders with Matplotlib and
-TX Typewriter, following the existing handoff typography.
+TX Typewriter, following the existing handoff typography. `delivery.py` waits
+with a finite deadline and exports a complete or explicitly partial handoff;
+retained failed attempts never masquerade as additional successful samples.
 
 ```sh
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.prepare \
@@ -92,7 +128,18 @@ python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.analy
   --campaign /path/to/run/campaign.json --output /path/to/fresh-export
 python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.plot \
   /path/to/fresh-export/summary.json /path/to/fresh-export/crossover
+python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.delivery \
+  --campaign /path/to/run/campaign.json --hardware /path/to/hardware.json \
+  --wait-seconds 14400 --output /path/to/fresh-handoff
 ```
+
+Repeat `--campaign` for each primary campaign. Use `--retained-campaign` for
+failed attempts that must be preserved but are superseded by primary reruns,
+and `--candidate` for complete CPU candidate manifests. The delivery includes
+CSV/JSON, exact updates, raw host logs, source/configuration identities, and
+PNG/PDF. `COMPLETED` requires every planned point; failed primary campaigns
+produce `PARTIAL_RETAINED`. A waiting timeout produces `WAIT_TIMEOUT` without
+exporting still-mutating campaigns.
 
 The timing boundary is the current Fig. 7 boundary for each algorithm:
 SSSP/PR use resident batch to final readback including host relaunch;
@@ -143,3 +190,14 @@ The board-1 CC download failure is retained rather than interpreted as an
 algorithmic loss. Subsequent campaigns use board 0 serially, with unchanged
 paired binaries and clocks. Results and current completeness are reported
 in the exported summary, not inferred from this directory list.
+
+The bounded `spine-impact-delivery-20261106.service` waits for the five primary
+campaigns (44 planned points total) and exports to `handoff/` in this folder.
+That future output is not a completed delivery until `delivery.json` says so.
+Current jobs can be inspected without attaching to a long-running command:
+
+```sh
+systemctl --user status spine-impact-r19-sssp-20261106.service \
+  spine-impact-au-cc-board0-20261106.service \
+  spine-impact-au-pr-20261106.service spine-impact-delivery-20261106.service
+```
