@@ -11,6 +11,37 @@ from spine_cycle_sim.experiments.original_regraph_execution.hardware.source_rete
 
 
 class ActiveMinResidentTest(unittest.TestCase):
+    def test_process_deadline_is_forwarded_without_changing_default(self):
+        for guarded in (False, True):
+            for explicit in (False, True):
+                with self.subTest(guarded=guarded, explicit=explicit), tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    expected = dict(binary=dict(path="image"))
+                    observed = dict(bdf=resident.BDF, binary=expected["binary"])
+                    profile = "zfs-arc-clean-half-background5-v1" if guarded else resident.memory_policy.DEFAULT
+                    with patch.object(resident.memory_policy, "selected", return_value=profile), \
+                            patch.object(resident.containment, "current", return_value=root), \
+                            patch.object(resident, "memory_snapshot", return_value={}), \
+                            patch.object(resident.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run, \
+                            patch.object(resident.guarded_process, "run", return_value=(0, {})) as guard, \
+                            patch.object(resident.clocks, "capture", return_value={}), \
+                            patch.object(resident.clocks, "replay", return_value=observed):
+                        options = dict(timeout_seconds=7200) if explicit else {}
+                        row = resident.arm("spine", ["host", "image"], expected, root, **options)
+                    selected, unused = (guard, run) if guarded else (run, guard)
+                    self.assertEqual(selected.call_args.kwargs["timeout"], 7200 if explicit else 1800)
+                    self.assertEqual(row["timeout_seconds"], 7200 if explicit else 1800)
+                    unused.assert_not_called()
+
+    def test_invalid_process_deadline_does_not_launch(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(resident.subprocess, "run") as run:
+            root = Path(directory)
+            for value in (0, 7201, True, 1.5):
+                with self.assertRaisesRegex(ValueError, "between 1 and 7200"):
+                    resident.arm("spine", ["host"], {}, root, timeout_seconds=value)
+            self.assertEqual(list(root.iterdir()), [])
+            run.assert_not_called()
+
     def test_freezes_old_batch_but_not_old_baseline(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

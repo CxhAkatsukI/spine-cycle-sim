@@ -42,7 +42,31 @@ def measured(dataset, case, arms, bdf, artifacts, *, reused=False):
     return row, pair
 
 
-def collect(matrix_path, au_path, au_gr_path):
+def _attempts(matrix_path, matrix, resume_path):
+    attempts = [(matrix_path, matrix)]
+    cases = dict(matrix["cases"])
+    if resume_path is not None:
+        resumed = json.loads(resume_path.read_text())
+        if (resumed["status"] not in (MEASURED, "COMPLETED_WITH_FAILURES")
+                or not resumed["cases"] or not set(resumed["cases"]) <= set(cases)):
+            raise ValueError("resume must be a terminal subset of the original CC matrix")
+        for key in ("artifacts", "boundary", "bdf", "repetitions_per_arm", "warmups", "memory_profile"):
+            if resumed[key] != matrix[key]:
+                raise ValueError("resume changed comparison configuration: " + key)
+        for dataset, row in resumed["cases"].items():
+            original = cases[dataset]
+            if original["status"] != "FAILED":
+                raise ValueError("resume cannot replace an already measured sample")
+            if any(row[key] != original[key] for key in ("case", "inputs")):
+                raise ValueError("resume changed the original workload")
+            if row["status"] not in (MEASURED, "FAILED"):
+                raise ValueError("resume contains a nonterminal case")
+            cases[dataset] = row
+        attempts.append((resume_path, resumed))
+    return cases, attempts
+
+
+def collect(matrix_path, au_path, au_gr_path, *, resume_path=None):
     matrix, au, reference = (json.loads(path.read_text()) for path in (matrix_path, au_path, au_gr_path))
     if (matrix["status"] not in (MEASURED, "COMPLETED_WITH_FAILURES")
             or set(matrix["cases"]) != set(DATASETS) - {"AU"}
@@ -52,6 +76,7 @@ def collect(matrix_path, au_path, au_gr_path):
         raise ValueError("AU must use the completed new Spine and named retained G+R sample")
     if any(au["workload"][key] != reference["case"][key] for key in ("vertices", "edges", "updates")):
         raise ValueError("AU workloads differ")
+    cases, attempts = _attempts(matrix_path, matrix, resume_path)
     au_arms = dict(spine=dict(stdout=au["stdout"], clock_evidence=au["clock_evidence"]),
                    gr=reference["arms"]["gr"])
     rows, pairs = [], {}
@@ -59,7 +84,7 @@ def collect(matrix_path, au_path, au_gr_path):
         if dataset == "AU":
             case, arms, reused = au["workload"], au_arms, True
         else:
-            record = matrix["cases"][dataset]
+            record = cases[dataset]
             if record["status"] == "FAILED":
                 rows.append(dict(algorithm="cc", dataset=dataset, status="FAILED",
                                  routing_report_complete=False, error=record["error"]))
@@ -68,16 +93,23 @@ def collect(matrix_path, au_path, au_gr_path):
                 raise ValueError("nonterminal case in terminal matrix")
             case, arms, reused = record["case"], record["arms"], False
         row, pair = measured(dataset, case, arms, matrix["bdf"], matrix["artifacts"], reused=reused)
-        if dataset != "AU" and pair != matrix["cases"][dataset]["comparison"]:
+        if dataset != "AU" and pair != cases[dataset]["comparison"]:
             raise ValueError("CC summary differs from raw program output")
         rows.append(row)
         pairs[dataset] = pair
     scope = dict(status="MEASURED" if len(pairs) == 8 else "COMPLETED_WITH_FAILURES",
                  measured_pairs=len(pairs), expected_pairs=8, boundary=matrix["boundary"],
                  bdf=matrix["bdf"], repetitions_per_arm=1, warmups=0, artifacts=matrix["artifacts"],
-                 raw_source_records=[identity(path) for path in (matrix_path, au_path, au_gr_path)],
+                 raw_source_records=[identity(path) for path in
+                                     (matrix_path, au_path, au_gr_path, *([resume_path] if resume_path else []))],
                  pairs=pairs, routing_report_complete=False, memory_profile=matrix["memory_profile"],
-                 memory_peak_bytes=matrix["memory_peak_bytes"], memory_events=matrix["memory_events"],
+                 memory_peak_bytes=max(record["memory_peak_bytes"] for _, record in attempts),
+                 attempts=[dict(source=identity(path), status=record["status"],
+                                datasets=list(record["cases"]),
+                                arm_timeout_seconds=record.get("arm_timeout_seconds", 1800),
+                                memory_peak_bytes=record["memory_peak_bytes"],
+                                memory_events=record["memory_events"])
+                           for path, record in attempts],
                  limitations=["Spine raw routed bus-skew report unavailable; board times are measured",
                               "AU reuses the named same-image G+R sample; other arms are newly measured",
                               "Initial graph loading and old-graph convergence are outside the window",
@@ -85,8 +117,8 @@ def collect(matrix_path, au_path, au_gr_path):
     return rows, scope
 
 
-def export(matrix_path, au_path, au_gr_path, output):
-    rows, scope = collect(matrix_path, au_path, au_gr_path)
+def export(matrix_path, au_path, au_gr_path, output, *, resume_path=None):
+    rows, scope = collect(matrix_path, au_path, au_gr_path, resume_path=resume_path)
     output.mkdir(parents=True, exist_ok=False)
     with (output / "fig7_cc.csv").open("w", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=FIELDS, lineterminator="\n")
@@ -94,7 +126,10 @@ def export(matrix_path, au_path, au_gr_path, output):
         writer.writerows(rows)
     # Preserve only small receipts/logs; state dumps, graph data and binaries stay external.
     members = {}
-    for prefix, root in (("remaining", matrix_path.parent), ("au", au_path.parent)):
+    roots = [("remaining", matrix_path.parent), ("au", au_path.parent)]
+    if resume_path is not None:
+        roots.append(("long-startup", resume_path.parent))
+    for prefix, root in roots:
         for path in sorted(root.rglob("*")):
             if path.is_file() and path.stat().st_size <= 8 * 2**20 and (
                     path.suffix == ".json" or path.suffix == ".txt" and path.name != "gr-state.txt"):
@@ -126,8 +161,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("matrix", "au", "au-gr", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--resume", type=Path,
+                        help="terminal retry of failed datasets; measured samples cannot be replaced")
     args = parser.parse_args()
-    export(args.matrix, args.au, args.au_gr, args.output)
+    export(args.matrix, args.au, args.au_gr, args.output, resume_path=args.resume)
 
 
 if __name__ == "__main__":

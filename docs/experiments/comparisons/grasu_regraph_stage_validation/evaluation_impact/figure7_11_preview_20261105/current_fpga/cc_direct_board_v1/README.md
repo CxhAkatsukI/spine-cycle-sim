@@ -40,6 +40,7 @@ This changes the process deadline, including unmeasured preparation, not the
 batch timing boundary. The host, images, inputs, affinity, correctness checks,
 single sample and 32-GiB/zero-swap containment remain unchanged. Completed
 datasets are not rerun. The runner's default remains 1,800 seconds.
+The longer run was launched from simulator commit `e4da2406`.
 
 ## Measurement
 
@@ -106,5 +107,19 @@ systemd-run --user --wait --pipe --unit=cc-direct-fresh \
   --inputs PK "$checks/spine-cc-warm-balanced-large-inputs-v1/pk/inputs.json" \
   --inputs LJ "$checks/spine-cc-warm-balanced-large-inputs-v1/lj/inputs.json" \
   --inputs LJ08 "$checks/spine-cc-warm-balanced-large-inputs-v1/lj08/inputs.json" \
+  --arm-timeout-seconds 7200 \
   --output /path/to/fresh-cc-measurements
+```
+
+After both attempts are terminal, export the original matrix together with
+the longer retry. The exporter only permits replacement of failed attempts,
+requires unchanged artifacts and inputs, and retains both original records.
+
+```sh
+python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_direct_export \
+  --matrix "$base/remaining/matrix.json" \
+  --resume "$base/long_startup/matrix.json" \
+  --au "$base/AU/results.json" \
+  --au-gr "$checks/cc-warm-au-source-bursts-resident-v8/results.json" \
+  --output /path/to/fresh-cc-data
 ```

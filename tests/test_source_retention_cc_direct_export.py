@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -57,6 +58,58 @@ class DirectCCExportTests(unittest.TestCase):
         self.write()
         with self.assertRaisesRegex(ValueError, "AU workloads differ"):
             export.collect(*self.paths)
+
+    def resume(self):
+        self.matrix["cases"]["LJ"].update(case=self.case, inputs="same-inputs")
+        resumed = dict(deepcopy(self.matrix), cases={"LJ": deepcopy(self.matrix["cases"]["LJ"])},
+                       arm_timeout_seconds=7200, memory_peak_bytes=456)
+        self.write()
+        path = self.root / "resume.json"
+        path.write_text(json.dumps(resumed))
+        return path, resumed
+
+    def test_resume_replaces_only_failed_attempt_and_keeps_both_records(self):
+        path, resumed = self.resume()
+        cases, attempts = export._attempts(self.paths[0], self.matrix, path)
+        self.assertEqual(cases["LJ"], resumed["cases"]["LJ"])
+        self.assertEqual([entry[0] for entry in attempts], [self.paths[0], path])
+        self.assertNotIn("arm_timeout_seconds", self.matrix)
+        self.matrix["cases"]["LJ"]["status"] = export.MEASURED
+        with self.assertRaisesRegex(ValueError, "already measured"):
+            export._attempts(self.paths[0], self.matrix, path)
+
+    def test_resume_cannot_change_image_boundary_or_workload(self):
+        path, resumed = self.resume()
+        for key, value in (("artifacts", dict(spine_image="different")), ("boundary", "different")):
+            path.write_text(json.dumps(dict(resumed, **{key: value})))
+            with self.assertRaisesRegex(ValueError, "configuration"):
+                export._attempts(self.paths[0], self.matrix, path)
+        resumed["cases"]["LJ"]["inputs"] = "different-inputs"
+        path.write_text(json.dumps(resumed))
+        with self.assertRaisesRegex(ValueError, "original workload"):
+            export._attempts(self.paths[0], self.matrix, path)
+
+    def test_running_resume_is_not_deliverable(self):
+        path, resumed = self.resume()
+        path.write_text(json.dumps(dict(resumed, status="RUNNING")))
+        with self.assertRaisesRegex(ValueError, "terminal subset"):
+            export._attempts(self.paths[0], self.matrix, path)
+
+    @patch.object(export, "measured")
+    def test_completed_retry_is_selected_and_memory_is_reported_per_attempt(self, measured):
+        path, resumed = self.resume()
+        pair = dict(gr_over_spine=2.)
+        resumed["status"] = export.MEASURED
+        resumed["cases"]["LJ"].update(status=export.MEASURED, arms={}, comparison=pair)
+        path.write_text(json.dumps(resumed))
+        measured.side_effect = lambda dataset, *args, **kwargs: (dict(dataset=dataset), pair)
+        rows, scope = export.collect(*self.paths, resume_path=path)
+        self.assertEqual(scope["measured_pairs"], 2)
+        self.assertEqual(scope["memory_peak_bytes"], 456)
+        self.assertEqual([row["arm_timeout_seconds"] for row in scope["attempts"]], [1800, 7200])
+        self.assertEqual([row["memory_peak_bytes"] for row in scope["attempts"]], [123, 456])
+        self.assertEqual([row["dataset"] for row in rows if "error" not in row], ["AU", "LJ"])
+        self.assertEqual(len(scope["raw_source_records"]), 4)
 
     @patch.object(export.clocks, "replay")
     @patch.object(export.cc_resident_results, "analyze")
