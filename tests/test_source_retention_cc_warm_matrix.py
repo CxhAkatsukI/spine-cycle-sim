@@ -74,13 +74,14 @@ class CcWarmMatrixTest(unittest.TestCase):
         with patch.object(warm, "service_state", return_value=self.state), \
                 patch.object(warm.follow, "ready", side_effect=ready), \
                 patch.object(admission, "admit", return_value=self.gate), \
-                patch.object(admission, "pin_odd_queue", return_value=[]), \
+                patch.object(admission, "pin_odd_queue", autospec=True, return_value=[]) as odd_queue, \
                 patch.object(admission, "replay_r", side_effect=self.controls.values()), \
                 patch.object(warm.resident, "frozen_case", return_value=({}, [])), \
                 patch.object(warm.wall, "configure", return_value=({"memory_gib": 32}, [])), \
                 patch.object(warm.matrix, "run_child", side_effect=[dict(status=warm.matrix.MEASURED),
                     dict(status="FAILED_RETAINED", attempts=["spine"]), dict(status=warm.matrix.MEASURED)]) as child:
             report = warm.run(self.args)
+        odd_queue.assert_called_once_with(*self.args.cc_warm_r_controls[:2], "cc")
         self.assertEqual([call.args[3] for call in child.call_args_list], ["SU", "WK", "R19"])
         self.assertTrue(report["cases"]["AU"]["reused"])
         self.assertEqual(report["cases"]["SO"]["status"], "LAYOUT_NOT_ADMITTED")
@@ -91,6 +92,48 @@ class CcWarmMatrixTest(unittest.TestCase):
         self.assertIn("--property=MemorySwapMax=0", command)
         self.assertIn("--cc-warm-layout", command)
         self.assertEqual(command[-4:], list(map(str, self.args.cc_warm_r_controls)))
+
+    def test_replacement_au_continues_all_layouts_with_the_same_candidate(self):
+        self.args.balanced_host = None
+        comparison = self.root / "comparison.json"
+        candidate = self.root / "candidate.json"
+        warm.save(comparison, {"new_pair": "pinned replacement"})
+        warm.save(candidate, {"image": "pinned replacement"})
+        comparison_pin, candidate_pin = map(warm.identity, (comparison, candidate))
+        self.args.au_replacement = (*self.args.au_parent[:2], self.root / "collector.json")
+        warm.save(self.args.au_replacement[2], dict(
+            status=warm.revision.MATCHED, comparison=comparison_pin, candidate=candidate_pin))
+        for _, layout, _ in self.args.layout:
+            warm.save(layout, dict(status="LAYOUT_PASS_OFFLINE"))
+        terminal = dict(self.state, ActiveState="inactive", SubState="dead", Result="success",
+                        MainPID="0", ExecMainStatus="0")
+        au_row = dict(status=warm.matrix.MEASURED, result=comparison_pin, kind="replacement_au", reused=True)
+        template = dict(self.template, spine_host="replacement-host", spine_binary="replacement-image")
+        admission = warm.resident.active_min_admission
+        with patch.object(warm, "service_state", return_value=terminal), \
+                patch.object(admission, "admit", autospec=True, return_value=self.gate), \
+                patch.object(admission, "pin_odd_queue", autospec=True, return_value=[]) as odd_queue, \
+                patch.object(admission, "replay_r", autospec=True, side_effect=self.controls.values()), \
+                patch.object(warm, "replacement_au", autospec=True,
+                             return_value=(au_row, template, [comparison_pin, candidate_pin])) as replacement, \
+                patch.object(warm.resident, "frozen_case", autospec=True, return_value=({}, [])), \
+                patch.object(warm.wall, "configure", autospec=True,
+                             return_value=({"memory_gib": 32}, [])), \
+                patch.object(warm.matrix, "run_child", autospec=True,
+                             return_value=dict(status=warm.matrix.MEASURED)) as child:
+            report = warm.run(self.args)
+        odd_queue.assert_called_once_with(*self.args.cc_warm_r_controls[:2], "cc")
+        replacement.assert_called_once_with(comparison_pin, candidate_pin, self.gate, self.controls)
+        self.assertEqual(report["status"], "MEASURED_CC_SINGLE_PASS")
+        self.assertEqual([call.args[3] for call in child.call_args_list], list(warm.DATASETS))
+        self.assertEqual(report["cases"]["AU"], au_row)
+        for call in child.call_args_list:
+            command = call.args[0]
+            self.assertEqual(command[-3:], ["--cc-warm-candidate", str(candidate), candidate_pin["sha256"]])
+            packet = warm.load(Path(command[command.index("--cc-wall-packet") + 1]))
+            self.assertEqual(packet["spine_host"], template["spine_host"])
+            self.assertEqual(packet["spine_binary"], template["spine_binary"])
+            self.assertEqual(call.kwargs["controls"], self.controls)
 
 
 if __name__ == "__main__":

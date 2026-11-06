@@ -140,7 +140,7 @@ def _run(args):
         gate = admission.admit("cc", args.route, args.host, args.r_report, args.r_inputs,
                                args.g_report, args.g_reference)
         odd, odd_inputs, topology, topology_inputs = args.cc_warm_r_controls
-        pins.extend(admission.pin_odd_queue(odd, odd_inputs))
+        pins.extend(admission.pin_odd_queue(odd, odd_inputs, args.algorithm))
         controls = {name: admission.replay_r(path, "cc", inputs, gate["host"], gate["image"], geometry=geometry)
                     for name, path, inputs, geometry in (("amazon_odd", odd, odd_inputs, admission.AMAZON_GEOMETRY),
                         ("au_slice", topology, topology_inputs, admission.AU_SLICE_GEOMETRY))}
