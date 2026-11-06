@@ -18,10 +18,11 @@ not estimated or filled from an older image.
 | WK | 12.632963 | 32.553868 | 2.5769 | 2 | 2 |
 | SO | 37.319110 | 220.937809 | 5.9202 | 0 | 1 |
 | PK | 5.227821 | 46.870413 | 8.9656 | 0 | 1 |
+| LJ08 | 9.264784 | 246.582085 | 26.6150 | 0 | 1 |
 | R19 | 10.381851 | 41.171681 | 3.9657 | 2 | 2 |
 
-All six pairs pass their final-state checks. LJ and LJ08 are still
-pending. This is a CC-only update, not completion of Figures 7--11.
+All seven pairs pass their final-state checks. LJ is running. This is a
+CC-only update, not completion of Figures 7--11.
 
 ### Longer Preparation Limit
 
@@ -33,12 +34,12 @@ than spending another preparation attempt under that same short limit.
 Its `remaining/lj08/operator-stop.json` records this operator decision.
 These attempts remain preserved; neither is a measured performance loss.
 
-The two missing datasets are resumed serially under the separate service
+The two initially missing datasets were resumed serially under the separate service
 `spine-cc-direct-long-startup-20261106-v1.service`, with
 `--arm-timeout-seconds 7200` and output `long_startup/` beneath the base below.
 This changes the process deadline, including unmeasured preparation, not the
 batch timing boundary. The host, images, inputs, affinity, correctness checks,
-single sample and 32-GiB/zero-swap containment remain unchanged. Completed
+single sample and zero-swap containment remain unchanged. Completed
 datasets are not rerun. The runner's default remains 1,800 seconds.
 The longer run was launched from simulator commit `e4da2406`.
 
@@ -48,16 +49,37 @@ original stream. Residual device state is suspected, not a confirmed ABI or
 workload defect. While LJ08 was still loading input and the render node was
 unopened, the board was successfully programmed with the existing G+R image
 so that its next Spine load changes the programmed UUID. The operation and
-observations are retained in `long_startup/device-recovery.json`. LJ remains
-pending and needs a separate attempt; no failed sample is replaced by a number.
+observations are retained in `long_startup/device-recovery.json`. LJ08 then
+completed both arms successfully. LJ is running in a separate attempt; no
+failed sample is replaced by a number before that attempt completes.
 
-The separate LJ retry is queued under
-`spine-cc-direct-recovered-lj-20261106-v1.service`, writing `recovered_lj/`.
+The current LJ retry is running under
+`spine-cc-direct-recovered-lj-48g-20261106-v1.service`, writing `recovered_lj_48g/`,
+from clean simulator commit `8d055ba8`.
 It allows up to 14,400 seconds for board/memory admission before either arm,
 then the same 7,200-second process timeout per arm. The queue does not open
 the board or allocate graph buffers until the existing pair releases its
-lease and the same finite 32-GiB budget plus reserve fits. This is not a
+lease and its full finite 48-GiB budget plus reserve fits. This is not a
 parallel board run or a change to the measured interval.
+
+### Large CPU Audit Capacity
+
+The unchanged host checks the full graph on the CPU both before and after
+the measured batch. On LJ08, retained maps for these exact checks exceeded
+the original 30-GiB soft limit, then the 36-GiB soft limit. The owned service
+was extended from max/high 32/30 to 40/36 and finally 48/46 GiB, each with a
+matching atomic full-reservation update and the same 32-GiB effective live
+reserve, pressure monitoring and zero swap. The extensions occurred before
+batch packing and after final readback, respectively. They did not change
+the measured interval. `long_startup/live-memory-budget.json` retains the
+before/after settings, memory observations and reasons.
+
+The completed LJ08 Spine arm reached 48,414,642,176 bytes (45.09 GiB) cgroup
+peak. Soft-limit throttling was recorded; hard-limit and OOM counters were
+zero. Thus this is not a claim of zero memory-pressure events. The final LJ
+retry reserves 48/46 GiB up front. Its earlier 32-GiB and 40-GiB queues were
+stopped before either arm started; their `operator-stop.json` records remain
+under `recovered_lj/` and `recovered_lj_40g/`. No measured sample was discarded.
 
 ## Measurement
 
@@ -97,9 +119,10 @@ The run host's base directory is:
 
 The simulator runner is
 `spine_cycle_sim.experiments.original_regraph_execution.hardware.source_retention.cc_direct_matrix`.
-The live service is `spine-cc-direct-matrix-20261106-v1.service`. This is a
+The original service `spine-cc-direct-matrix-20261106-v1.service` and the
+longer-startup service are terminal; only the final LJ retry is active. This is a
 board-only runner: it changes no HLS, numerical model, input graph or paper.
-Its separate 32-GiB process limit and live memory protection remain active.
+Finite process limits and live memory protection remain active.
 
 From a full simulator checkout with the indexed files available:
 
@@ -108,7 +131,7 @@ runner=spine_cycle_sim.experiments.original_regraph_execution.hardware.source_re
 checks=/data/chuxiao/checks/source-retention-repair-20261104
 base="$checks/cc-stream-direct-board-20261106-v1"
 systemd-run --user --wait --pipe --unit=cc-direct-fresh \
-  -p MemoryMax=32G -p MemoryHigh=30G -p MemorySwapMax=0 -p OOMPolicy=kill \
+  -p MemoryMax=48G -p MemoryHigh=46G -p MemorySwapMax=0 -p OOMPolicy=kill \
   -p KillMode=control-group -p RuntimeMaxSec=21600 \
   --working-directory="$PWD" \
   /usr/bin/python3 -m "$runner" \
@@ -125,6 +148,7 @@ systemd-run --user --wait --pipe --unit=cc-direct-fresh \
   --inputs LJ "$checks/spine-cc-warm-balanced-large-inputs-v1/lj/inputs.json" \
   --inputs LJ08 "$checks/spine-cc-warm-balanced-large-inputs-v1/lj08/inputs.json" \
   --arm-timeout-seconds 7200 \
+  --memory-gib 48 \
   --output /path/to/fresh-cc-measurements
 ```
 
@@ -137,6 +161,8 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
   --matrix "$base/remaining/matrix.json" \
   --resume "$base/long_startup/matrix.json" \
   --resume "$base/recovered_lj/matrix.json" \
+  --resume "$base/recovered_lj_40g/matrix.json" \
+  --resume "$base/recovered_lj_48g/matrix.json" \
   --au "$base/AU/results.json" \
   --au-gr "$checks/cc-warm-au-source-bursts-resident-v8/results.json" \
   --output /path/to/fresh-cc-data

@@ -1,7 +1,7 @@
 # G/R Source Controls and Evaluation Plots
 
 The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md)
-has six completed, correctness-checked pairs. LJ and LJ08 remain pending;
+has seven completed, correctness-checked pairs. Only LJ remains running;
 startup failures and recovery are recorded, not substituted with old samples.
 The Spine image's raw routed bus-skew report is unavailable; these are actual
 board measurements with incomplete static timing documentation.
