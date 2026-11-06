@@ -141,3 +141,16 @@ python3 -m spine_cycle_sim.experiments.original_regraph_execution.hardware.sourc
   --au-gr "$checks/cc-warm-au-source-bursts-resident-v8/results.json" \
   --output /path/to/fresh-cc-data
 ```
+
+To render the combined three-algorithm preview after export, use the existing
+Python GraphyFlow/TX Typewriter renderer. The overlay replaces only pending
+CC slots; it neither rewrites the frozen sixteen measured SSSP/ResPR pairs
+nor turns the missing CC routing report into timing-closure evidence.
+
+```sh
+pkg=docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105
+python3 "$pkg/render_current.py" \
+  --resident-checkpoint "$pkg/current_fpga/resident_checkpoint_v3/fig7_resident_checkpoint.csv" \
+  --cc-direct /path/to/fresh-cc-data/fig7_cc.csv \
+  --output /path/to/fresh-figures
+```

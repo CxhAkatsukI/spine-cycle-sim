@@ -10,6 +10,9 @@ from matplotlib.ticker import FixedLocator, FormatStrFormatter
 
 
 LABELS = {"weighted_sssp": "SSSP", "cc": "CC", "residual_pagerank": "ResPR"}
+DATASETS = ("AU", "SU", "WK", "SO", "PK", "LJ", "LJ08", "R19")
+CC_MEASURED = "MEASURED_WITHOUT_RAW_SKEW_REPORT"
+MEASURED = ("MEASURED", CC_MEASURED)
 EXPECTED = [(algorithm, stage, workload)
             for algorithm in LABELS
             for stage, workload in [("G", "AU-131K"), *[("R", case) for case in (
@@ -67,22 +70,50 @@ def draw(rows, output):
     style.save(figure, output, "gr_current_source_controls")
 
 
-def draw_resident(path, output):
-    datasets = ("AU", "SU", "WK", "SO", "PK", "LJ", "LJ08", "R19")
+def resident_rows(path, cc_direct=None):
     rows = style.read_csv(path)
     lookup = {(row["algorithm"], row["dataset"]): row for row in rows}
-    if len(lookup) != 24 or set(lookup) != {(algorithm, ds) for algorithm in LABELS for ds in datasets}:
+    if len(rows) != 24 or set(lookup) != {(algorithm, ds) for algorithm in LABELS for ds in DATASETS}:
         raise ValueError("all twenty-four measured or pending slots required")
+    if cc_direct is not None:
+        cc = style.read_csv(cc_direct)
+        if len(cc) != 8 or {(row["algorithm"], row["dataset"]) for row in cc} != {
+                ("cc", dataset) for dataset in DATASETS}:
+            raise ValueError("direct CC export must contain exactly eight dataset slots")
+        for row in cc:
+            key = ("cc", row["dataset"])
+            if lookup[key]["status"] in MEASURED:
+                raise ValueError("direct CC export cannot replace a measured checkpoint sample")
+            if (row["status"] not in (CC_MEASURED, "FAILED")
+                    or row["routing_report_complete"] != "False"):
+                raise ValueError("unexpected direct CC measurement qualification")
+            lookup[key] = row
+    rows = [lookup[(algorithm, dataset)] for algorithm in LABELS for dataset in DATASETS]
+    for row in rows:
+        values = [row.get(field) for field in ("spine_wall_ms", "gr_wall_ms", "speedup_gr_over_spine")]
+        if row["status"] not in MEASURED:
+            if any(values):
+                raise ValueError("unmeasured slot contains a fabricated timing")
+            continue
+        spine, gr, ratio = map(float, values)
+        if (not all(math.isfinite(value) and value > 0 for value in (spine, gr, ratio))
+                or not math.isclose(gr / spine, ratio)
+                or row["status"] == CC_MEASURED and row["algorithm"] != "cc"):
+            raise ValueError("invalid resident times or qualification")
+    return rows
+
+
+def draw_resident(path, output, cc_direct=None):
+    rows = resident_rows(path, cc_direct)
+    lookup = {(row["algorithm"], row["dataset"]): row for row in rows}
     figure, axis = plt.subplots(figsize=(5.3, 2.0), layout="constrained")
     handles = []
     for index, (algorithm, label) in enumerate(LABELS.items()):
         positions, ratios, pending = [], [], []
-        for i, dataset in enumerate(datasets):
+        for i, dataset in enumerate(DATASETS):
             row = lookup[(algorithm, dataset)]
             position = i + (index - 1) * 0.24
-            if row["status"] != "MEASURED":
-                if any(row.get(field) for field in ("spine_wall_ms", "gr_wall_ms", "speedup_gr_over_spine")):
-                    raise ValueError("unmeasured slot contains a fabricated timing")
+            if row["status"] not in MEASURED:
                 pending.append(position)
                 continue
             ratio = float(row["speedup_gr_over_spine"])
@@ -94,10 +125,10 @@ def draw_resident(path, output):
         for position in pending:
             axis.text(position, 0.56, "-", ha="center", va="center", fontsize=6)
     axis.set_yscale("log")
-    measured = [float(row["speedup_gr_over_spine"]) for row in rows if row["status"] == "MEASURED"]
+    measured = [float(row["speedup_gr_over_spine"]) for row in rows if row["status"] in MEASURED]
     axis.set_ylim(min(0.5, min(measured) * 0.8), max(40, max(measured) * 1.3))
     axis.set_xlim(-0.6, 7.6)
-    axis.set_xticks(range(8), datasets)
+    axis.set_xticks(range(8), DATASETS)
     axis.set_ylabel("Speedup (G+R / Spine)")
     axis.yaxis.set_major_locator(FixedLocator((1, 2, 5, 10, 20)))
     style.style_axis(axis, parity=True)
@@ -111,13 +142,16 @@ def main():
     parser.add_argument("--data", type=Path, default=Path(__file__).parent / "current_fpga/gr_controls.csv")
     parser.add_argument("--output", type=Path, default=Path(__file__).parent / "current_fpga/figures")
     parser.add_argument("--resident-checkpoint", type=Path)
+    parser.add_argument("--cc-direct", type=Path, help="overlay the separately exported CC campaign on pending slots")
     args = parser.parse_args()
+    if args.cc_direct and not args.resident_checkpoint:
+        parser.error("--cc-direct requires --resident-checkpoint")
     rows = checked_rows(args.data)
     style.prior_renderer().configure_matplotlib()
     args.output.mkdir(parents=True, exist_ok=True)
     draw(rows, args.output)
     if args.resident_checkpoint:
-        draw_resident(args.resident_checkpoint, args.output)
+        draw_resident(args.resident_checkpoint, args.output, args.cc_direct)
 
 
 if __name__ == "__main__":
